@@ -1,0 +1,80 @@
+query FarmerPlots($account: ID!) {
+  farmer(id: $account) {
+   plots(first: 1000, where: {pods_gt: "50", fullyHarvested: false}, orderBy: index, orderDirection: asc) {
+      beansPerPod
+      createdAt
+      creationHash
+      fullyHarvested
+      harvestablePods
+      harvestedPods
+      id
+      index
+      pods
+      season
+      source
+      sourceHash
+      updatedAt
+      updatedAtBlock
+      listing {
+        amount
+        createdAt
+        creationHash
+        filled
+        filledAmount
+        historyID
+        id
+        index
+        maxHarvestableIndex
+        minFillAmount
+        mode
+        originalAmount
+        originalIndex
+        pricePerPod
+        pricingFunction
+        pricingType
+        remainingAmount
+        start
+        status
+        updatedAt
+      }
+    }
+    orders(first: 1000, where: {status: ACTIVE, beanAmount_gt: "50"}) {
+      beanAmount
+      beanAmountFilled
+      createdAt
+      creationHash
+      historyID
+      id
+      maxPlaceInLine
+      minFillAmount
+      podAmountFilled
+      pricePerPod
+      pricingFunction
+      pricingType
+      status
+      updatedAt
+    }
+    listings(first: 1000, where: {status: ACTIVE, amount_gt: "50"}) {
+      amount
+      creationHash
+      createdAt
+      filled
+      filledAmount
+      historyID
+      id
+      index
+      maxHarvestableIndex
+      minFillAmount
+      mode
+      originalAmount
+      originalIndex
+      pricePerPod
+      pricingFunction
+      pricingType
+      remainingAmount
+      start
+      status
+      updatedAt
+    }
+  }
+}
