@@ -1,20 +1,23 @@
-import { formatUnits } from "viem";
 import { usePriceData } from "@/state/usePriceData";
-import ChainButton from "./ChainButton";
 import ConnectButton from "./ConnectButton";
 import { Button } from "./ui/Button";
-import useTokenData from "@/state/useTokenData";
+import Navi from "./Navi";
+import { useSunData } from "@/state/useSunData";
 
 function Frame() {
   const priceData = usePriceData();
-  const BEAN = useTokenData().mainToken;
+  const sunData = useSunData();
 
   return (
-    <div className="flex justify-between py-2 px-4 border-black border-b-[0.5px]">
-      <div className="flex self-center">something</div>
-      <div className="flex gap-2">
+    <div className="flex justify-between py-2 px-4">
+      <div className="flex w-1/3 gap-2">
         <Button variant="outline">${priceData.price.toHuman("short")}</Button>
-        <ChainButton />
+        <Button variant="outline">Season {sunData.current.toHuman()}</Button>
+      </div>
+      <div className="flex w-1/3 justify-center">
+          <Navi />
+      </div>
+      <div className="flex w-1/3 justify-end">
         <ConnectButton />
       </div>
     </div>

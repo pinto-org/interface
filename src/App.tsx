@@ -1,6 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Frame from "./components/Frame";
-import Navi from "./components/Navi";
 import Field from "./pages/Field";
 import { Market } from "./pages/Market";
 import Silo from "./pages/Silo";
@@ -13,11 +12,8 @@ function App() {
 
   return (
     <div className="font-nacelle">
-      <Frame />
       <BrowserRouter>
-        <div className="flex flex-row justify-center items-center my-4">
-          <Navi />
-        </div>
+        <Frame />
         <div className="mt-0 mx-4 mb-4">
           <Routes>
             <Route index element={<StartPage />} />
