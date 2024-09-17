@@ -31,7 +31,7 @@ export default function DestinationBalanceSelect({
           {_balanceTo === FarmToMode.EXTERNAL ? "External Balance" : "Internal Balance"}
         </Button>
       </DialogTrigger>
-      <DialogContent className="font-nacelle">
+      <DialogContent className="font-pinto">
         <DialogHeader>
           <DialogTitle>Select Destination</DialogTitle>
           <DialogDescription>

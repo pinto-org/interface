@@ -19,7 +19,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <WagmiProvider config={testConfig}>
       <QueryClientProvider client={queryClient}>
         <App />
-        <Toaster richColors toastOptions={{ className: "font-nacelle" }} />
+        <Toaster richColors toastOptions={{ className: "font-pinto" }} />
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </WagmiProvider>

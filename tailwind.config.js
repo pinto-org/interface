@@ -54,7 +54,7 @@ module.exports = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        nacelle: ["Nacelle-SemiBold"],
+        pinto: ["Pinto"],
       },
       keyframes: {
         "accordion-down": {

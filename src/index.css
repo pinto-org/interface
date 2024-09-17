@@ -4,9 +4,28 @@
 
 @layer base {
   @font-face { 
-    font-family: "Nacelle-SemiBold";
+    font-family: "Pinto";
+    font-weight: 400;
     src: 
-      url(src/public/fonts/Nacelle-SemiBold.otf) format('opentype');
+      url(src/public/fonts/Pinto-Regular.woff2) format('woff2');
+  }
+  @font-face { 
+    font-family: "Pinto";
+    font-weight: 350;
+    src: 
+      url(src/public/fonts/Pinto-Book.woff2) format('woff2');
+  }
+  @font-face { 
+    font-family: "Pinto";
+    font-weight: 300;
+    src: 
+      url(src/public/fonts/Pinto-Light.woff2) format('woff2');
+  }
+  @font-face { 
+    font-family: "Pinto";
+    font-weight: 500;
+    src: 
+      url(src/public/fonts/Pinto-Medium.woff2) format('woff2');
   }
 }
 

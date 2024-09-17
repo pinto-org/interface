@@ -35,7 +35,7 @@ export default function TokenSelectDepositedBalances({
       <DialogTrigger asChild>
         <Button variant={"outline"}>{_token.symbol}</Button>
       </DialogTrigger>
-      <DialogContent className="font-nacelle">
+      <DialogContent className="font-pinto">
         <DialogHeader>
           <DialogTitle>Select Token</DialogTitle>
           <DialogDescription>

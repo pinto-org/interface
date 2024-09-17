@@ -47,7 +47,7 @@ export default function PlotSelect({
               : `${_plots.length} PLOTS`}
         </Button>
       </DialogTrigger>
-      <DialogContent className="font-nacelle">
+      <DialogContent className="font-pinto">
         <DialogHeader>
           <DialogTitle>Select Plots</DialogTitle>
           <DialogDescription>

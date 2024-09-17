@@ -19,7 +19,7 @@ export default function SlippageButton({slippage, setSlippage} : { slippage: num
             <GearIcon />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-52 font-nacelle">
+        <PopoverContent className="w-52 font-pinto">
             <Label>Slippage</Label>
             <div className="flex flex-row gap-2">
               <Input type="number" inputMode="numeric" min={0} value={internalAmount} onChange={((e) => setInternalAmount(Number(e.target.value)))} />
