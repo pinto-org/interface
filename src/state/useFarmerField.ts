@@ -95,5 +95,7 @@ export function useFarmerField() {
     });
   }
 
-  return { plots: plots, orders: orders, listings: listings, queryKey: queryKey };
+  const totalPods: TokenValue = !plots ? TokenValue.ZERO : plots.reduce((total: TokenValue, plot) => total.add(plot.pods), TokenValue.ZERO);
+
+  return { plots: plots, orders: orders, listings: listings, totalPods: totalPods, queryKey: queryKey };
 }
