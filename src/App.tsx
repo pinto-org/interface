@@ -11,7 +11,7 @@ function App() {
   anvilTestClient.impersonateAccount({ address: "0x43B9F935c798522aaaCB2bFEa2F407cE5A291e9D" });
 
   return (
-    <div className="font-pinto">
+    <div className="font-pinto bg-gradient-light">
       <BrowserRouter>
         <Frame />
         <div className="mt-0 mx-4 mb-4">

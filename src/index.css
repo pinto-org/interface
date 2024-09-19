@@ -32,9 +32,9 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 47.4% 11.2%;
+    --foreground: 0, 0%, 32%;
  
-    --muted: 210 40% 96.1%;
+    --muted: 0, 0%, 73%;
     --muted-foreground: 215.4 16.3% 46.9%;
  
     --popover: 0 0% 100%;
@@ -52,7 +52,7 @@
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
  
-    --accent: 210 40% 96.1%;
+    --accent: 151, 100%, 39%;
     --accent-foreground: 222.2 47.4% 11.2%;
  
     --destructive: 0 100% 50%;
@@ -96,6 +96,13 @@
     --radius: 0.5rem;
   }
 }
+
+@layer components {
+  .bg-gradient-light {
+    background: linear-gradient(90deg, rgba(233, 231, 224, 0.1) 0%, rgba(254, 225, 140, 0.1) 52.5%, rgba(241, 248, 140, 0.1) 100%),
+linear-gradient(0deg, #FFFFFF, #FFFFFF);
+  }
+}
  
 @layer base {
   * {
@@ -103,6 +110,5 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }

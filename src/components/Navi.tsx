@@ -8,20 +8,20 @@ import {
 } from "./ui/NavigationMenu";
 import { useState } from "react";
 
-const Link = ({ href, ...props }: { href?: string, [x: string]: any }) => {
+const Link = ({ href, active, topMenu, className, ...props }: { href?: string, active?: boolean, topMenu?: boolean, className?: string, [x: string]: any }) => {
   const location = useLocation();
-  const isActive = href === location.pathname;
+  const isActive = active || href === location.pathname;
 
   if (href) {
     return (
-      <NavigationMenuLink asChild active={isActive}>
+      <NavigationMenuLink asChild active={isActive} className={`${className} ${topMenu ? `text-[1rem] data-[active]:text-black` : `text-[0.85rem]`} font-[400] hover:cursor-pointer`}>
         <ReactLink to={href} className={navigationMenuTriggerStyle()} {...props} />
       </NavigationMenuLink>
     )
   };
 
   return (
-    <NavigationMenuLink asChild active={isActive}>
+    <NavigationMenuLink asChild active={isActive} className={`${className} ${topMenu ? `text-[1rem] data-[active]:text-black` : `text-[0.85rem]`} font-[400] hover:cursor-pointer`}>
       <div className={navigationMenuTriggerStyle()} {...props} />
     </NavigationMenuLink>
   );
@@ -34,7 +34,7 @@ const AppNavi = () => {
   <NavigationMenuItem>
     <Link href="/">Overview</Link>
   </NavigationMenuItem>
-  <NavigationMenuItem>
+  <NavigationMenuItem className="col">
     <Link href="/silo">Silo</Link>
   </NavigationMenuItem>
   <NavigationMenuItem>
@@ -98,20 +98,20 @@ export default function Navi() {
   const [naviTab, setNaviTab] = useState<string | undefined>('app');
 
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center" onMouseLeave={() => setNaviTab('app')}>
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <Link href="/lmao">Home</Link>
+          <Link href="/lmao" topMenu>Home</Link>
         </NavigationMenuItem>
         <NavigationMenuItem onMouseEnter={() => setNaviTab('app')}>
-          <Link>App</Link>
+          <Link active={naviTab === 'app'} topMenu>App</Link>
         </NavigationMenuItem>
         <NavigationMenuItem onMouseEnter={() => setNaviTab('docs')}>
-          <Link>Documentation</Link>
+          <Link active={naviTab === 'docs'} topMenu>Documentation</Link>
         </NavigationMenuItem>
         <NavigationMenuItem onMouseEnter={() => setNaviTab('more')}>
-          <Link>More</Link>
+          <Link active={naviTab === 'more'} topMenu>More</Link>
         </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>
