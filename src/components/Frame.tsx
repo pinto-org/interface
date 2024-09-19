@@ -9,7 +9,7 @@ function Frame() {
   const sunData = useSunData();
 
   return (
-    <div className="flex justify-between py-2 px-4">
+    <div className="flex justify-between p-6">
       <div className="flex w-1/3 gap-2">
         <Button variant="outline">${priceData.price.toHuman("short")}</Button>
         <Button variant="outline">Season {sunData.current.toHuman()}</Button>
