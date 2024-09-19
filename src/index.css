@@ -5,13 +5,13 @@
 @layer base {
   @font-face { 
     font-family: "Pinto";
-    font-weight: 400;
+    font-weight: 500;
     src: 
       url(src/public/fonts/Pinto-Regular.woff2) format('woff2');
   }
   @font-face { 
     font-family: "Pinto";
-    font-weight: 350;
+    font-weight: 400;
     src: 
       url(src/public/fonts/Pinto-Book.woff2) format('woff2');
   }

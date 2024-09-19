@@ -14,14 +14,14 @@ const Link = ({ href, active, topMenu, className, ...props }: { href?: string, a
 
   if (href) {
     return (
-      <NavigationMenuLink asChild active={isActive} className={`${className} ${topMenu ? `text-[1rem] data-[active]:text-black` : `text-[0.85rem]`} font-[400] hover:cursor-pointer`}>
+      <NavigationMenuLink asChild active={isActive} className={`${className} ${topMenu ? `text-[1.5rem] data-[active]:text-black` : `text-[1.25rem]`} font-[400] hover:cursor-pointer`}>
         <ReactLink to={href} className={navigationMenuTriggerStyle()} {...props} />
       </NavigationMenuLink>
     )
   };
 
   return (
-    <NavigationMenuLink asChild active={isActive} className={`${className} ${topMenu ? `text-[1rem] data-[active]:text-black` : `text-[0.85rem]`} font-[400] hover:cursor-pointer`}>
+    <NavigationMenuLink asChild active={isActive} className={`${className} ${topMenu ? `text-[1.5rem] data-[active]:text-black` : `text-[1.25rem]`} font-[400] hover:cursor-pointer`}>
       <div className={navigationMenuTriggerStyle()} {...props} />
     </NavigationMenuLink>
   );
@@ -34,7 +34,7 @@ const AppNavi = () => {
   <NavigationMenuItem>
     <Link href="/">Overview</Link>
   </NavigationMenuItem>
-  <NavigationMenuItem className="col">
+  <NavigationMenuItem>
     <Link href="/silo">Silo</Link>
   </NavigationMenuItem>
   <NavigationMenuItem>
