@@ -47,6 +47,11 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        pinto: {
+          DEFAULT: '#404040',
+          'gray-4': '#9C9C9C',
+          'gray-5': '#404040',
+        }
       },
       borderRadius: {
         lg: `var(--radius)`,
