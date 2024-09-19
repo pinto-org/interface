@@ -98,7 +98,7 @@ export default function Navi() {
   const [naviTab, setNaviTab] = useState<string | undefined>('app');
 
   return (
-    <div className="flex flex-col items-center justify-center" onMouseLeave={() => setNaviTab('app')}>
+    <div className="flex flex-col items-center justify-center gap-5" onMouseLeave={() => setNaviTab('app')}>
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
