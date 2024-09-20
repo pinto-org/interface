@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/Dialog";
+import chevronDown from "@/assets/misc/ChevronDown.svg";
 
 export default function ConnectButton() {
   const account = useAccount();
@@ -20,7 +21,10 @@ export default function ConnectButton() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>{account.address ? `${account.address.substring(0, 7)}...` : "Connect"}</Button>
+        <Button variant="outline" className="font-[400] text-[1.25rem] h-10 text-pinto-gray-5 hover:text-pinto-gray-5 rounded-full flex flex-row gap-2">
+          <span>{account.address ? `${account.address.substring(0, 7)}...${account.address.substring(38, 42)}` : "Connect"}</span>
+          <img src={chevronDown} className="h-4 w-4" />
+        </Button>
       </DialogTrigger>
       <DialogContent className="w-[240px]">
         <DialogHeader>
