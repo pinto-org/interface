@@ -109,6 +109,6 @@ linear-gradient(0deg, #FFFFFF, #FFFFFF);
     @apply border-border;
   }
   body {
-    @apply bg-gradient-light text-foreground;
+    @apply bg-gradient-light text-foreground font-pinto;
   }
 }
