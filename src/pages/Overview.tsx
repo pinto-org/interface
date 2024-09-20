@@ -102,63 +102,65 @@ export default function Overview() {
                         <TabsTrigger className="pl-3 pr-0 font-[400] text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5" value="pods">My Pods</TabsTrigger>
                     </TabsList>
                     <TabsContent className="mt-6" value="deposits">
-                    <div className="border border-pinto-gray-2 rounded-[1rem] overflow-clip">
-                        <Table>
-                            {/* <TableCaption>Your deposits will appear here</TableCaption> */}
-                            <TableHeader>
-                                <TableRow className="bg-pinto-gray-1 hover:bg-pinto-gray-1 h-14">
-                                    <TableHead className="text-black font-[400] text-[1rem] w-1/4 p-4">Deposited Asset</TableHead>
-                                    <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4">Amount Deposited</TableHead>
-                                    <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4">Stalk</TableHead>
-                                    <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4 p-4">Seeds</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {(claimableBeans.gt(0) || claimableStalk.gt(0) || claimableSeeds.gt(0)) && 
-                                    <TableRow className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1">
-                                    <TableCell className="text-pinto-green-2 font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">
-                                        <img src={claimableIcon} className="h-8 w-8" />
-                                        <div>Claimable</div>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="text-pinto-green-2 font-[400] text-[1rem]">{claimableBeans.toHuman('short')}{' '}{mainToken.name}</div>
-                                    </TableCell>
-                                    <TableCell className="text-pinto-green-2 font-[400] text-[1rem] text-right">
-                                        <div>{claimableStalk.toHuman('short')}</div>
-                                    </TableCell>
-                                    <TableCell className="text-pinto-green-2 font-[400] text-[1rem] text-right p-4">{claimableSeeds.toHuman('short')}</TableCell>
-                                </TableRow>
-                                }
-                                {SILO_WHITELIST.map((token) => {
-                                    const userData = farmerDeposits.get(token);
-                                    return (
-                                    <TableRow className="h-[4.5rem] bg-white hover:bg-white">
-                                        <TableCell className="text-black font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">
-                                            <img src={token.logoURI} className="h-8 w-8" />
-                                            <div>{token.name}</div>
+                        <div className="border border-pinto-gray-2 rounded-[1rem] overflow-clip">
+                            <Table>
+                                {/* <TableCaption>Your deposits will appear here</TableCaption> */}
+                                <TableHeader>
+                                    <TableRow className="bg-pinto-gray-1 hover:bg-pinto-gray-1 h-14">
+                                        <TableHead className="text-black font-[400] text-[1rem] w-1/4 p-4">Deposited Asset</TableHead>
+                                        <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4">Amount Deposited</TableHead>
+                                        <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4">Stalk</TableHead>
+                                        <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4 p-4">Seeds</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {(claimableBeans.gt(0) || claimableStalk.gt(0) || claimableSeeds.gt(0)) && 
+                                        <TableRow className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1">
+                                        <TableCell className="text-pinto-green-2 font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">
+                                            <img src={claimableIcon} className="h-8 w-8" />
+                                            <div>Claimable</div>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <div className="text-black font-[400] text-[1rem]">{userData.amount.toHuman('short')}{' '}{token.name}</div>
-                                            <div className="inline-flex items-center gap-1">
-                                                <img src={pdvIcon} className="h-3 w-5" />
-                                                <div className="text-pinto-gray-4 font-[300] text-[1rem]">{userData.depositBDV.toHuman('short')}</div>
-                                            </div>
+                                            <div className="text-pinto-green-2 font-[400] text-[1rem]">{claimableBeans.toHuman('short')}{' '}{mainToken.name}</div>
                                         </TableCell>
-                                        <TableCell className="text-black font-[400] text-[1rem] text-right">
-                                            <div>{userData.stalk.base.toHuman('short')}</div>
-                                            {userData.stalk.grown.gt(0) && 
-                                                <div className="text-pinto-gray-4">Claimable Grown Stalk: <span className="text-pinto-green-2">+{userData.stalk.grown.toHuman('short')}</span></div>
-                                            }
+                                        <TableCell className="text-pinto-green-2 font-[400] text-[1rem] text-right">
+                                            <div>{claimableStalk.toHuman('short')}</div>
                                         </TableCell>
-                                        <TableCell className="text-black font-[400] text-[1rem] text-right p-4">{userData.seeds.toHuman('short')}</TableCell>
+                                        <TableCell className="text-pinto-green-2 font-[400] text-[1rem] text-right p-4">{claimableSeeds.toHuman('short')}</TableCell>
                                     </TableRow>
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
-                    </div>
+                                    }
+                                    {SILO_WHITELIST.map((token) => {
+                                        const userData = farmerDeposits.get(token);
+                                        return (
+                                        <TableRow className="h-[4.5rem] bg-white hover:bg-white">
+                                            <TableCell className="text-black font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">
+                                                <img src={token.logoURI} className="h-8 w-8" />
+                                                <div>{token.name}</div>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <div className="text-black font-[400] text-[1rem]">{userData.amount.toHuman('short')}{' '}{token.name}</div>
+                                                <div className="inline-flex items-center gap-1">
+                                                    <img src={pdvIcon} className="h-3 w-5" />
+                                                    <div className="text-pinto-gray-4 font-[300] text-[1rem]">{userData.depositBDV.toHuman('short')}</div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-black font-[400] text-[1rem] text-right">
+                                                <div>{userData.stalk.base.toHuman('short')}</div>
+                                                {userData.stalk.grown.gt(0) && 
+                                                    <div className="text-pinto-gray-4">Claimable Grown Stalk: <span className="text-pinto-green-2">+{userData.stalk.grown.toHuman('short')}</span></div>
+                                                }
+                                            </TableCell>
+                                            <TableCell className="text-black font-[400] text-[1rem] text-right p-4">{userData.seeds.toHuman('short')}</TableCell>
+                                        </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </div>
                     </TabsContent>
-                    <TabsContent value="pods">Pod table here.</TabsContent>
+                    <TabsContent value="pods">Pod table here.
+
+                    </TabsContent>
                 </Tabs>
             </div>
         </div>
