@@ -87,6 +87,12 @@ function useFarmerDepositedBalances() {
       convertibleAmount: convertibleAmount,
       currentBDV: currentBDV,
       depositBDV: depositBDV,
+      stalk: {
+        base: depositData.reduce((total, deposit) => deposit.stalk.base.add(total), TokenValue.ZERO),
+        grown: depositData.reduce((total, deposit) => deposit.stalk.grown.add(total), TokenValue.ZERO),
+        total: depositData.reduce((total, deposit) => deposit.stalk.total.add(total), TokenValue.ZERO),
+      },
+      seeds: depositData.reduce((total, deposit) => deposit.seeds.add(total), TokenValue.ZERO),
       deposits: [...depositData],
     });
   });

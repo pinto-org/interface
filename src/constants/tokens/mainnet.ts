@@ -1,4 +1,7 @@
 import { Token } from "@/utils/types";
+import pintoIcon from "@/assets/tokens/Pinto.png";
+import pintoWethIcon from "@/assets/tokens/Pinto_wETH.png";
+import pintoWstethIcon from "@/assets/tokens/Pinto_wstETH.png";
 
 export const mainnetProtocol: Token[] = [
     {
@@ -7,7 +10,7 @@ export const mainnetProtocol: Token[] = [
         name: "Bean",
         symbol: "BEAN",
         decimals: 6,
-        logoURI: "https://assets.coingecko.com/coins/images/18447/thumb/bean-logo-coingecko.png?1696517934"
+        logoURI: pintoIcon
     }
 ];
 
@@ -31,7 +34,7 @@ export const mainnetLP: Token[] = [
         decimals: 18,
         isLP: true,
         address: "0xBEA0e11282e2bB5893bEcE110cF199501e872bAd",
-        logoURI: "https://assets.coingecko.com/coins/images/18447/thumb/bean-logo-coingecko.png?1696517934"
+        logoURI: pintoWethIcon
     },
     {
         chainId: 1,
@@ -40,7 +43,7 @@ export const mainnetLP: Token[] = [
         decimals: 18,
         isLP: true,
         address: "0xBeA0000113B0d182f4064C86B71c315389E4715D",
-        logoURI: "https://assets.coingecko.com/coins/images/18447/thumb/bean-logo-coingecko.png?1696517934"
+        logoURI: pintoWstethIcon
     }
 ];
 
