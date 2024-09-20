@@ -26,7 +26,7 @@ export default function Overview() {
     const placesInLine = farmerField.plots.map((plot) => plot.index.sub(fieldData.harvestableIndex)).sort((a,b) => a.sub(b));
 
     return (
-        <div className="flex flex-col pt-64 gap-32">
+        <div className="flex flex-col pt-64 gap-52">
             <div>
                 <div className="flex flex-col items-center">
                     <div className="text-[1.25rem] text-pinto-gray-5 font-[400]">My deposited value</div>
@@ -82,8 +82,8 @@ export default function Overview() {
             <div className="flex flex-col items-center">
                 <Tabs defaultValue="deposits" className="w-[1100px]">
                     <TabsList className="h-0 bg-transparent p-0">
-                        <TabsTrigger className="pr-3 pl-0 font-[400] text-[2rem] data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5" value="deposits">My Deposits</TabsTrigger>
-                        <TabsTrigger className="pl-3 pr-0 font-[400] text-[2rem] data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5" value="pods">My Pods</TabsTrigger>
+                        <TabsTrigger className="pr-3 pl-0 font-[400] text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5" value="deposits">My Deposits</TabsTrigger>
+                        <TabsTrigger className="pl-3 pr-0 font-[400] text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5" value="pods">My Pods</TabsTrigger>
                     </TabsList>
                     <TabsContent value="deposits">Deposit table here.</TabsContent>
                     <TabsContent value="pods">Pod table here.</TabsContent>
