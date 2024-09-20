@@ -7,25 +7,25 @@
     font-family: "Pinto";
     font-weight: 500;
     src: 
-      url(src/public/fonts/Pinto-Regular.woff2) format('woff2');
+      url(src/assets/fonts/Pinto-Regular.woff2) format('woff2');
   }
   @font-face { 
     font-family: "Pinto";
     font-weight: 400;
     src: 
-      url(src/public/fonts/Pinto-Book.woff2) format('woff2');
+      url(src/assets/fonts/Pinto-Book.woff2) format('woff2');
   }
   @font-face { 
     font-family: "Pinto";
     font-weight: 300;
     src: 
-      url(src/public/fonts/Pinto-Light.woff2) format('woff2');
+      url(src/assets/fonts/Pinto-Light.woff2) format('woff2');
   }
   @font-face { 
     font-family: "Pinto";
     font-weight: 600;
     src: 
-      url(src/public/fonts/Pinto-Medium.woff2) format('woff2');
+      url(src/assets/fonts/Pinto-Medium.woff2) format('woff2');
   }
 }
 
@@ -109,6 +109,6 @@ linear-gradient(0deg, #FFFFFF, #FFFFFF);
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-gradient-light text-foreground;
   }
 }

@@ -3,9 +3,12 @@ import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useFieldData } from "@/state/useFieldData";
 import { useSiloData } from "@/state/useSiloData";
+import TooltipSimple from "@/components/TooltipSimple";
 import stalkIcon from "@/assets/protocol/Stalk-variant.png";
 import seedIcon from "@/assets/protocol/Seed-variant.png";
 import podIcon from "@/assets/protocol/Pod-variant.png";
+import pdvIcon from "@/assets/protocol/PDV.png";
+import tooltipIcon from "@/assets/misc/Tooltip-default.png";
 
 export default function Overview() {
 
@@ -25,32 +28,51 @@ export default function Overview() {
             <div className="flex flex-col items-center">
                 <div className="text-[1.25rem] text-pinto-gray-5 font-[400]">My deposited value</div>
                 <div className="text-[3.5rem] text-black leading-tight font-[400]">${farmerSilo.depositsUSD.toHuman('short')}</div>
-                <div className="text-[1.25rem] text-pinto-gray-4 font-[300] leading-none">{farmerSilo.depositsBDV.toHuman('short')} PDV</div>
+                <div className="flex flex-row gap-1 items-center">
+                    <img src={pdvIcon} className="scale-[1.2]"/>
+                    <div className="text-[1.25rem] text-pinto-gray-4 font-[300] leading-none">{farmerSilo.depositsBDV.toHuman('short')} PDV</div>
+                </div>
+                
             </div>
             <div className="flex flex-row justify-center gap-16">
                 <div className="flex flex-col items-center w-72">
                     <div className="text-[1.25rem] text-pinto-gray-5 font-[400]">My Stalk</div>
-                    <div className="flex flex-row gap-2 items-center">
+                    <div className="flex flex-row gap-1 items-center">
                         <img src={stalkIcon} className={"h-9 w-9 drop-shadow-md"}/>
                         <div className="text-[2rem] text-black leading-tight font-[400]">{farmerSilo.activeStalkBalance.toHuman('short')}</div>
                     </div>
-                    <div className="text-[1.25rem] text-pinto-gray-4 font-[300] leading-none">{siloPct.toHuman('short')}% of Stalk supply</div>
+                    <div className="flex flex-row gap-1 items-center">
+                        <div className="text-[1.25rem] text-pinto-gray-4 font-[300] leading-none">{siloPct.toHuman('short')}% of Stalk supply</div>
+                        <TooltipSimple content={"Your ownership of the Stalk supply determines the portion of Pinto supply increases that you earn."}>
+                            <img src={tooltipIcon} className={"h-4 w-4"} />
+                        </TooltipSimple>
+                    </div>
                 </div>
                 <div className="flex flex-col items-center w-72">
                     <div className="text-[1.25rem] text-pinto-gray-5 font-[400]">My Seeds</div>
-                    <div className="flex flex-row gap-2 items-center">
+                    <div className="flex flex-row gap-1 items-center">
                         <img src={seedIcon} className={"h-9 w-9 drop-shadow-md]"}/> 
                         <div className="text-[2rem] text-black leading-tight font-[400]">{farmerSilo.activeSeedsBalance.toHuman('short')}</div>
                     </div>
-                    <div className="text-[1.25rem] text-pinto-gray-4 font-[300] leading-none">+{stalkPerSeason.toHuman('short')} Grown Stalk per Season</div>
+                    <div className="flex flex-row gap-1 items-center">
+                        <div className="text-[1.25rem] text-pinto-gray-4 font-[300] text-nowrap leading-none">+{stalkPerSeason.toHuman('short')} Grown Stalk per Season</div>
+                        <TooltipSimple content={"Seeds grow Stalk every Season, creating the time weighted staking mechanism that is the Silo."}>
+                            <img src={tooltipIcon} className={"h-4 w-4"} />
+                        </TooltipSimple>
+                    </div>
                 </div>
                 <div className="flex flex-col items-center w-72">
                     <div className="text-[1.25rem] text-pinto-gray-5 font-[400]">My Pods</div>
-                    <div className="flex flex-row gap-2 items-center">
+                    <div className="flex flex-row gap-1 items-center">
                         <img src={podIcon} className={"h-8 w-8 drop-shadow-md"} />
                         <div className="text-[2rem] text-black leading-tight font-[400]">{farmerField.totalPods.toHuman('short')}</div>
                     </div>
-                    <div className="text-[1.25rem] text-pinto-gray-4 font-[300] text-nowrap leading-none">next position in line: {placesInLine[0]?.toHuman('short') || 0}</div>
+                    <div className="flex flex-row gap-1 items-center">
+                        <div className="text-[1.25rem] text-pinto-gray-4 font-[300] text-nowrap leading-none">Next position in line: {placesInLine[0]?.toHuman('short') || 0}</div>
+                        <TooltipSimple content={"The number of Pods that need to Harvest before your next place in the Pod Line."}>
+                            <img src={tooltipIcon} className={"h-4 w-4"} />
+                        </TooltipSimple>
+                    </div>
                 </div>
             </div>
         </div>
