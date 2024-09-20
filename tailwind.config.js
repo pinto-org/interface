@@ -48,7 +48,8 @@ module.exports = {
           foreground: "hsl(var(--card-foreground))",
         },
         pinto: {
-          DEFAULT: '#404040',
+          DEFAULT: '#246645',
+          'green': '#246645',
           'green-1': '#D8F1E2',
           'green-2': '#00C767',
           'gray-1': '#F8F8F8',
