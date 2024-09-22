@@ -9,7 +9,7 @@ import Convert from "./silo/actions/Convert";
 import Deposit from "./silo/actions/Deposit";
 import Transfer from "./silo/actions/Transfer";
 import Withdraw from "./silo/actions/Withdraw";
-import siloIcon from "@/assets/protocol/Silo.png";
+import siloIcon from "@/assets/protocol/Silo.svg";
 import { Separator } from "@/components/ui/Separator";
 
 function Silo() {
