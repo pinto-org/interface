@@ -1,4 +1,3 @@
-import { useLocation } from "react-router-dom";
 import SiloTable from "./silo/SiloTable";
 import siloIcon from "@/assets/protocol/Silo.svg";
 import { Separator } from "@/components/ui/Separator";
@@ -18,6 +17,8 @@ function Silo() {
     TokenValue.ZERO
   );
 
+  const enableStatPanels = farmerSilo.depositsUSD.gt(0) || farmerSilo.activeStalkBalance.gt(0) || farmerSilo.activeSeedsBalance.gt(0)
+
   return (
     <div className="flex flex-col items-center">
     <div className="flex flex-col gap-6 w-[80%]">
@@ -32,6 +33,7 @@ function Silo() {
       </div>
       <Separator />
       <div className="flex flex-col gap-2">
+      {enableStatPanels &&
       <div className="mb-4 p-4">
           <div className="flex flex-col items-center">
               <StatPanel
@@ -56,6 +58,7 @@ function Silo() {
               />
           </div>
       </div>
+      }
       <div>
         <div className="font-[400] text-[2rem] text-black">
           Deposit Whitelist
