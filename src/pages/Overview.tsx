@@ -33,10 +33,7 @@ export default function Overview() {
     const mainToken = tokenData.mainToken;
 
     const claimableBeans = farmerSilo.earnedBeansBalance;
-    const claimableStalk = Object.values(farmerSilo.grownStalkPerToken).reduce(
-        (acc, curr) => acc.add(curr.grownStalk),
-        TokenValue.ZERO,
-      );
+    const claimableStalk = farmerSilo.grownStalkReward;
     const claimableSeeds = claimableBeans.mul(siloData.tokenData.get(mainToken).rewards.seeds)
 
     return (
@@ -107,6 +104,7 @@ export default function Overview() {
                                     }
                                     {SILO_WHITELIST.map((token) => {
                                         const userData = farmerDeposits.get(token);
+                                        const claimableStalk = farmerSilo.grownStalkPerToken.get(token) || TokenValue.ZERO ;
                                         return (
                                         <TableRow className="h-[4.5rem] bg-white hover:bg-white">
                                             <TableCell className="text-black font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">
@@ -122,8 +120,8 @@ export default function Overview() {
                                             </TableCell>
                                             <TableCell className="text-black font-[400] text-[1rem] text-right">
                                                 <div>{userData.stalk.base.toHuman('short')}</div>
-                                                {userData.stalk.grown.gt(0) && 
-                                                    <div className="text-pinto-gray-4">Claimable Grown Stalk: <span className="text-pinto-green-2">+{userData.stalk.grown.toHuman('short')}</span></div>
+                                                {claimableStalk.gt(0) && 
+                                                    <div className="text-pinto-gray-4">Claimable Grown Stalk: <span className="text-pinto-green-2">+{claimableStalk.toHuman('short')}</span></div>
                                                 }
                                             </TableCell>
                                             <TableCell className="text-black font-[400] text-[1rem] text-right p-4">{userData.seeds.toHuman('short')}</TableCell>

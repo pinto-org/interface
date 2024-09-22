@@ -3,7 +3,6 @@ import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
-import { TokenValue } from "@/classes/TokenValue";
 import pdvIcon from "@/assets/protocol/PDV.png";
 import apyIcon from "@/assets/protocol/APY.svg";
 import stalkIcon from "@/assets/protocol/Stalk-default.png";

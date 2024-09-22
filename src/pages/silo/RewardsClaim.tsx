@@ -22,11 +22,7 @@ function RewardsClaim() {
   const { mainToken: BEAN, whitelistedTokens: SILO_WHITELIST } = useTokenData();
   const stalkRewards = siloData.tokenData.get(BEAN).rewards.stalk.mul(10 ** STALK.decimals);
   const seedsRewards = siloData.tokenData.get(BEAN).rewards.seeds;
-  const grownStalk = Object.values(data.grownStalkPerToken).reduce(
-    (acc, curr) => acc.add(curr.grownStalk),
-    TokenValue.ZERO,
-  );
-  
+  const grownStalk = data.grownStalkReward
   const queryClient = useQueryClient();
   const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
 

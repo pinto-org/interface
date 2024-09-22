@@ -32,7 +32,7 @@ export function useFarmerSilo() {
   });
   queryKeys.push(activeStalkBalance.queryKey);
 
-  const grownStalkPerToken: any[] = [];
+  const grownStalkPerToken = new Map();
   SILO_WHITELIST.forEach((token) => {
     const grownStalk = useReadBeanstalk_BalanceOfGrownStalk({
       args: [account.address!, token.address],
@@ -40,10 +40,8 @@ export function useFarmerSilo() {
         enabled: !!account.address && !!token.address,
       },
     });
-    grownStalkPerToken.push({
-      token: token,
-      grownStalk: TokenValue.fromBlockchain(grownStalk.data || 0n, STALK.decimals),
-    });
+    grownStalkPerToken.set(token, TokenValue.fromBlockchain(grownStalk.data || 0n, STALK.decimals));
+
     queryKeys.push(grownStalk.queryKey);
 
     const depositData = farmerDeposits.get(token);
@@ -59,12 +57,18 @@ export function useFarmerSilo() {
   });
   queryKeys.push(earnedBeansBalance.queryKey);
 
+  const grownStalkReward = Array.from(grownStalkPerToken).reduce(
+    (acc, curr) => acc.add(curr[1]),
+    TokenValue.ZERO,
+  );
+
   return {
     activeStalkBalance: TokenValue.fromBlockchain(activeStalkBalance.data || 0n, STALK.decimals),
     activeSeedsBalance: activeSeeds,
     depositsBDV: depositsBDV,
     depositsUSD: depositsUSD,
     earnedBeansBalance: TokenValue.fromBlockchain(earnedBeansBalance.data || 0n, BEAN.decimals),
+    grownStalkReward: grownStalkReward,
     grownStalkPerToken: grownStalkPerToken,
     queryKeys: queryKeys
   };
