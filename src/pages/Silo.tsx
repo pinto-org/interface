@@ -8,14 +8,15 @@ import { useSiloData } from "@/state/useSiloData";
 import { TokenValue } from "@/classes/TokenValue";
 
 function Silo() {
-  const location = useLocation();
-  const currentSelection = location.search;
-
   const farmerSilo = useFarmerSilo();
   const siloData = useSiloData();
 
-  const siloPct = siloData.totalStalk.gt(0) ? farmerSilo.activeStalkBalance.div(siloData.totalStalk).mul(100) : TokenValue.ZERO;
-  const stalkPerSeason = farmerSilo.activeSeedsBalance.div(10000);
+  const earnedStalk = farmerSilo.grownStalkReward;
+  const earnedSeeds = Array.from(farmerSilo.grownStalkPerToken)
+    .map((token) => token[1].mul(siloData.tokenData.get(token[0]).rewards.seeds))
+    .reduce((acc, curr) => acc.add(curr),
+    TokenValue.ZERO
+  );
 
   return (
     <div className="flex flex-col items-center">
@@ -44,13 +45,13 @@ function Silo() {
               <StatPanel
                   mode={"stalk"}
                   mainValue={farmerSilo.activeStalkBalance}
-                  secondaryValue={siloPct}
+                  secondaryValue={earnedStalk}
                   variant={"silo"}
               />
               <StatPanel
                   mode={"seeds"}
                   mainValue={farmerSilo.activeSeedsBalance}
-                  secondaryValue={stalkPerSeason}
+                  secondaryValue={earnedSeeds}
                   variant={"silo"}
               />
           </div>
