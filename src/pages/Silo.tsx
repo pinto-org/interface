@@ -1,20 +1,21 @@
-import { useState } from "react";
 import { useLocation } from "react-router-dom";
-import ActionSelect from "./silo/ActionSelect";
-import DepositsTable from "./silo/DepositsTable";
-import RewardsClaim from "./silo/RewardsClaim";
-import SiloBalances from "./silo/SiloBalances";
 import SiloTable from "./silo/SiloTable";
-import Convert from "./silo/actions/Convert";
-import Deposit from "./silo/actions/Deposit";
-import Transfer from "./silo/actions/Transfer";
-import Withdraw from "./silo/actions/Withdraw";
 import siloIcon from "@/assets/protocol/Silo.svg";
 import { Separator } from "@/components/ui/Separator";
+import StatPanel from "@/components/StatPanel";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useSiloData } from "@/state/useSiloData";
+import { TokenValue } from "@/classes/TokenValue";
 
 function Silo() {
   const location = useLocation();
   const currentSelection = location.search;
+
+  const farmerSilo = useFarmerSilo();
+  const siloData = useSiloData();
+
+  const siloPct = siloData.totalStalk.gt(0) ? farmerSilo.activeStalkBalance.div(siloData.totalStalk).mul(100) : TokenValue.ZERO;
+  const stalkPerSeason = farmerSilo.activeSeedsBalance.div(10000);
 
   return (
     <div className="flex flex-col items-center">
@@ -30,11 +31,37 @@ function Silo() {
       </div>
       <Separator />
       <div className="flex flex-col gap-2">
-      <div className="font-[400] text-[2rem] text-black">
-        Deposit Whitelist
+      <div className="mb-4 p-4">
+          <div className="flex flex-col items-center">
+              <StatPanel
+                  mode={"depositedValue"}
+                  mainValue={farmerSilo.depositsUSD}
+                  secondaryValue={farmerSilo.depositsBDV}
+                  size={"large"}
+              />
+          </div>
+          <div className="flex flex-row justify-center mt-20 gap-16">
+              <StatPanel
+                  mode={"stalk"}
+                  mainValue={farmerSilo.activeStalkBalance}
+                  secondaryValue={siloPct}
+                  variant={"silo"}
+              />
+              <StatPanel
+                  mode={"seeds"}
+                  mainValue={farmerSilo.activeSeedsBalance}
+                  secondaryValue={stalkPerSeason}
+                  variant={"silo"}
+              />
+          </div>
       </div>
-      <div className="font-[400] text-xl text-pinto-gray-4">
-        These are deposits which are currently incentivized by Pinto.
+      <div>
+        <div className="font-[400] text-[2rem] text-black">
+          Deposit Whitelist
+        </div>
+        <div className="font-[400] text-xl text-pinto-gray-4">
+          These are deposits which are currently incentivized by Pinto.
+        </div>
       </div>
       <SiloTable />
       </div>

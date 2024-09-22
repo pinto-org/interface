@@ -3,13 +3,9 @@ import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useFieldData } from "@/state/useFieldData";
 import { useSiloData } from "@/state/useSiloData";
-import TooltipSimple from "@/components/TooltipSimple";
-import stalkIcon from "@/assets/protocol/Stalk-variant.png";
-import seedIcon from "@/assets/protocol/Seed-variant.png";
 import podIcon from "@/assets/protocol/Pod-variant.png";
 import pdvIcon from "@/assets/protocol/PDV.png";
 import claimableIcon from '@/assets/protocol/Claimable.png';
-import tooltipIcon from "@/assets/misc/Tooltip-default.png";
 import plotIcon from "@/assets/protocol/Plot.svg";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
@@ -48,7 +44,7 @@ export default function Overview() {
             <div>
                 <div className="flex flex-col items-center">
                     <StatPanel
-                        variant={"depositedValue"}
+                        mode={"depositedValue"}
                         mainValue={farmerSilo.depositsUSD}
                         secondaryValue={farmerSilo.depositsBDV}
                         size={"large"}
@@ -56,21 +52,21 @@ export default function Overview() {
                 </div>
                 <div className="flex flex-row justify-center mt-20 gap-16">
                     <StatPanel
-                        variant={"stalk"}
+                        mode={"stalk"}
                         mainValue={farmerSilo.activeStalkBalance}
                         secondaryValue={siloPct}
                         tooltipContent={"Your ownership of the Stalk supply determines the portion of Pinto supply increases that you earn."}
                     />
                     <StatPanel
-                        variant={"seeds"}
+                        mode={"seeds"}
                         mainValue={farmerSilo.activeSeedsBalance}
                         secondaryValue={stalkPerSeason}
                         tooltipContent={"Seeds grow Stalk every Season, creating the time weighted staking mechanism that is the Silo."}
                     />
                     <StatPanel
-                        variant={"pods"}
+                        mode={"pods"}
                         mainValue={farmerField.totalPods}
-                        secondaryValue={placesInLine[0] || 0}
+                        secondaryValue={placesInLine[0]}
                         tooltipContent={"The number of Pods that need to Harvest before your next place in the Pod Line."}
                     />
                 </div>
