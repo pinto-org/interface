@@ -51,6 +51,7 @@ export default function Overview() {
                         variant={"depositedValue"}
                         mainValue={farmerSilo.depositsUSD}
                         secondaryValue={farmerSilo.depositsBDV}
+                        size={"large"}
                     />
                 </div>
                 <div className="flex flex-row justify-center mt-20 gap-16">

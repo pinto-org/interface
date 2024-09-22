@@ -16,9 +16,9 @@ interface StatPanel {
     size?: 'large' | 'small' | undefined
 }
 
-export default function StatPanel({ variant, mainValue, secondaryValue, tooltipContent }: StatPanel) {
+export default function StatPanel({ variant, mainValue, secondaryValue, tooltipContent, size = 'small' }: StatPanel) {
 
-
+    
     return (
         <div className="flex flex-col items-center">
             <div className="text-[1.25rem] text-pinto-gray-5 font-[400]">
@@ -27,24 +27,24 @@ export default function StatPanel({ variant, mainValue, secondaryValue, tooltipC
                 {variant === 'seeds' && 'My Seeds'}
                 {variant === 'pods' && 'My Pods'}
             </div>
-            <div className="text-[3.5rem] text-black leading-tight font-[400]">
+            <div className={`${size === "large" ? 'text-[3.5rem]' : 'text-[2rem]'} text-black leading-tight font-[400]`}>
                 {variant === 'depositedValue' && `$${mainValue.toHuman('short')}`}
                 {variant === 'stalk' &&                         
                     <div className="flex flex-row gap-1 items-center">
-                        <img src={stalkIcon} className={"h-9 w-9 drop-shadow-md"}/>
-                        <div className="text-[2rem] text-black leading-tight font-[400]">{mainValue.toHuman('short')}</div>
+                        <img src={stalkIcon} className={`${size === "large" ? 'h-12 w-12' : 'h-9 w-9'} drop-shadow-md`}/>
+                        <div>{mainValue.toHuman('short')}</div>
                     </div>
                 }
                 {variant === 'seeds' &&                 
                     <div className="flex flex-row gap-1 items-center">
-                        <img src={seedIcon} className={"h-9 w-9 drop-shadow-md"}/>
-                        <div className="text-[2rem] text-black leading-tight font-[400]">{mainValue.toHuman('short')}</div>
+                        <img src={seedIcon} className={`${size === "large" ? 'h-12 w-12' : 'h-9 w-9'} drop-shadow-md`}/>
+                        <div>{mainValue.toHuman('short')}</div>
                     </div>
                 }
                 {variant === 'pods' &&                 
                     <div className="flex flex-row gap-1 items-center">
-                        <img src={podIcon} className={"h-9 w-9 drop-shadow-md"}/>
-                        <div className="text-[2rem] text-black leading-tight font-[400]">{mainValue.toHuman('short')}</div>
+                        <img src={podIcon} className={`${size === "large" ? 'h-12 w-12' : 'h-9 w-9'} drop-shadow-md`}/>
+                        <div>{mainValue.toHuman('short')}</div>
                     </div>
                 }
             </div>
