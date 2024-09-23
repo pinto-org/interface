@@ -24,7 +24,7 @@ function Field() {
             <div className="font-[400] text-xl text-pinto-gray-4">
               Pods become Harvestable, redeemable for 1 Pinto when they reach the front of the Pod Line.
             </div>
-            <a className="font-[400] text-xl text-pinto-green-2 hover:cursor-pointer hover:underline">
+            <a href={"https://link.to.pinto/explanation"} className="font-[400] text-xl text-pinto-green-2 hover:cursor-pointer hover:underline">
               How do my Pods reach the front of the Pod Line?
             </a>
           </div>
