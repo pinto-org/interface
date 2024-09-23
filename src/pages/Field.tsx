@@ -11,7 +11,7 @@ function Field() {
 
   return (
     <div className="flex flex-col items-center">
-        <div className="flex flex-row w-[85%] gap-14">
+        <div className="flex flex-row w-[85%] items-start gap-14">
           <div className="flex flex-col w-[80%] gap-8">
           <div className="flex flex-col gap-2">
             <div className="inline-flex gap-2 items-center">
@@ -27,7 +27,7 @@ function Field() {
             <a className="font-[400] text-xl text-pinto-green-2 hover:cursor-pointer hover:underline">
               How do my Pods reach the front of the Pod Line?
             </a>
-        </div>
+          </div>
         <Separator />
         <div className="flex flex-row justify-between">
           <div>
@@ -68,8 +68,8 @@ function Field() {
           </div>
           <PlotsTable />
         </div>
-      </div>
-        <div className="flex flex-shrink w-[500px] mt-32 p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border">
+          </div>
+        <div className="w-[500px] mt-32 p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border">
           <FieldActions />
         </div> 
         </div>

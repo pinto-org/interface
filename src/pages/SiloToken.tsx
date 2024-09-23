@@ -43,7 +43,7 @@ export default function SiloToken() {
 
     return (    
         <div className="flex flex-col items-center">
-            <div className="flex flex-row w-[80%] gap-14">
+            <div className="flex flex-row w-[80%] gap-14 items-start">
                 <div className="flex flex-col w-[80%] gap-8">
                     <Button asChild variant={'outline'} className="rounded-full -my-4 h-12 w-12 p-0">
                         <a href={"/silo"}>
@@ -185,7 +185,7 @@ export default function SiloToken() {
                         </div>
                     </div>
                 </div>
-                <div className="flex flex-shrink w-[500px] mt-32 p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border">
+                <div className="w-[500px] mt-32 p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border">
                     <SiloActions token={siloToken} />
                 </div> 
             </div>
