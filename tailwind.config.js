@@ -54,9 +54,14 @@ module.exports = {
           'green-2': '#00C767',
           'gray-1': '#F8F8F8',
           'gray-2': '#D9D9D9',
+          'gray-3': '#B9B9B9',
           'gray-4': '#9C9C9C',
           'gray-5': '#404040',
         }
+      },
+      backgroundImage: {
+        'pinto-morning': 'linear-gradient(90deg, rgba(233, 231, 224, 0.2) 0%, rgba(254, 225, 140, 0.2) 0.01%, rgba(241, 248, 140, 0.4) 100%)',
+        'pinto-morning-strong': 'linear-gradient(90deg, #E9E7E0 0%, #FEE18C 52.5%, #F1F88C 100%);'
       },
       borderRadius: {
         lg: `var(--radius)`,

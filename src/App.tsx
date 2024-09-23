@@ -7,6 +7,7 @@ import StartPage from "./pages/StartPage";
 import Swap from "./pages/Swap";
 import { anvilTestClient } from "./wagmi";
 import Overview from "./pages/Overview";
+import SiloToken from "./pages/SiloToken";
 
 function App() {
   anvilTestClient.impersonateAccount({ address: "0xe543357d4f0eb174cfc6bed6ef5e7ab5762f1b2b" });
@@ -19,6 +20,7 @@ function App() {
           {/* <Route index element={<StartPage />} /> */}
           <Route index element={<Overview />} />
           <Route path="/silo" element={<Silo />} />
+          <Route path="/silo/:tokenAddress" element={<SiloToken />} />
           <Route path="/field" element={<Field />} />
           <Route path="/market" element={<Market />} />
           <Route path="/market/:mode" element={<Market />} />

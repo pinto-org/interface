@@ -30,10 +30,10 @@ export default function ConnectButton() {
         <DialogHeader>
           <DialogTitle>Select Wallet</DialogTitle>
           <DialogDescription>
-            {connectors.map((connector) => (
+            {connectors.map((connector, i) => (
               <DialogClose asChild>
                 <Button
-                  key={connector.uid}
+                  key={`${connector.uid}_${i}`}
                   onClick={() => connect({ connector })}
                   type="button"
                   className="flex flex-col w-full my-2"

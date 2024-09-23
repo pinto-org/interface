@@ -7,6 +7,7 @@ import pdvIcon from "@/assets/protocol/PDV.png";
 import apyIcon from "@/assets/protocol/APY.svg";
 import stalkIcon from "@/assets/protocol/Stalk-default.png";
 import seedsIcon from "@/assets/protocol/Seed-default.png";
+import { useNavigate } from "react-router-dom";
 
 
 function SiloTable() {
@@ -14,6 +15,8 @@ function SiloTable() {
   const farmerDeposits = useFarmerDepositedBalances().data;
   const SILO_WHITELIST = useTokenData().whitelistedTokens;
   const priceData = usePriceData();
+
+  const navigate = useNavigate();
 
   return (
 
@@ -33,7 +36,7 @@ function SiloTable() {
                 const data = siloData.tokenData.get(token);
                 const userData = farmerDeposits.get(token);
                 return (
-                <TableRow className="h-[4.5rem] bg-white hover:bg-pinto-green-1 hover:cursor-pointer">
+                <TableRow className="h-[4.5rem] bg-white hover:bg-pinto-green-1/50 hover:cursor-pointer" onClick={() => navigate(`/silo/${token.address}`)}>
                     <TableCell className="text-black font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">
                         <img src={token.logoURI} className="h-8 w-8" />
                         <div>{token.name}</div>

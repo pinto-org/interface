@@ -1,84 +1,60 @@
-import { useState } from "react";
-import TokenSelectDepositedBalances from "@/components/TokenSelectDepositedBalances";
-import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { FormLabel } from "@/components/ui/Form";
-import { Label } from "@/components/ui/Label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
-import useTokenData from "@/state/useTokenData";
+import { Token } from "@/utils/types";
 
-function DepositsTable() {
+interface DepositsTable {
+  token: Token
+};
+
+function DepositsTable({token}: DepositsTable) {
+
   const farmerDeposits = useFarmerDepositedBalances().data;
-  const BEAN = useTokenData().mainToken;
-  const [token, setToken] = useState(BEAN);
   const tokenData = farmerDeposits.get(token);
 
-  const rowsPerPage = 5;
-  const totalRows = tokenData?.deposits?.length || 0;
-  const totalPages = Math.ceil(totalRows / rowsPerPage);
-  const [currentPage, setCurrentPage] = useState(1);
-  const newestEventOnPage = rowsPerPage * currentPage - rowsPerPage;
-  const oldestEventOnPage = rowsPerPage * currentPage - 1;
-
   return (
-    <Card className="h-fit w-[450px]">
-      <CardHeader>
-        <CardTitle>Deposits</CardTitle>
-        <CardDescription>Your deposits will appear here</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-row grow justify-between mb-4">
-          <Label className="content-center">Whitelisted Asset</Label>
-          <TokenSelectDepositedBalances setToken={setToken} selectedToken={token} />
-        </div>
-        <Table>
-          {/* <TableCaption>Your deposits will appear here</TableCaption> */}
-          <TableHeader>
-            <TableRow>
-              <TableHead>Amount</TableHead>
-              <TableHead>Total Stalk</TableHead>
-              <TableHead className="text-right">Grown Stalk</TableHead>
-              <TableHead className="text-right">Seeds</TableHead>
+
+    <div className="border border-pinto-gray-2 rounded-[1rem] overflow-clip mt-2">
+    <Table>
+        <TableHeader>
+            <TableRow className="bg-pinto-gray-1 hover:bg-pinto-gray-1 h-14">
+              <TableHead className="text-black font-[400] text-[1rem] w-1/4 p-4">Deposit ID</TableHead>
+              <TableHead className="text-black font-[400] text-[1rem] w-1/4">Amount Deposited</TableHead>
+              <TableHead className="text-black font-[400] text-[1rem] w-1/4">Stalk</TableHead>
+              <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4 p-4">Seeds</TableHead>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {tokenData.deposits.map((deposit: any, i: number) => {
-              if (i >= newestEventOnPage && i <= oldestEventOnPage)
+        </TableHeader>
+        <TableBody>
+        {!tokenData || tokenData.deposits.length === 0 ? (
+          <TableRow className="bg-white hover:bg-white">
+            <TableCell colSpan={4}>
+              <div className="flex flex-row h-48 w-full items-center justify-center text-pinto-gray-4 font-[400] text-[1rem]">
+                {`Your Deposits will appear here`}
+              </div>
+            </TableCell>
+          </TableRow>
+        ) : (
+        tokenData.deposits.map((deposit: any) => {
                 return (
-                  <TableRow>
-                    <TableCell>{Number(deposit.amount.toHuman()).toFixed(2)}</TableCell>
-                    <TableCell>{Number(deposit.stalk.total.toHuman()).toFixed(2)}</TableCell>
-                    <TableCell className="text-right">{Number(deposit.stalk.grown.toHuman()).toFixed(2)}</TableCell>
-                    <TableCell className="text-right">{Number(deposit.seeds.toHuman()).toFixed(2)}</TableCell>
-                  </TableRow>
+                <TableRow className="h-[4.5rem] bg-white hover:bg-pinto-green-1/50 hover:cursor-pointer">
+                    <TableCell className="text-black font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">
+                        {deposit.stem.toHuman('short')}
+                    </TableCell>
+                    <TableCell>
+                        {deposit.amount.toHuman('short')}
+                    </TableCell>
+                    <TableCell>
+                        {deposit.stalk.base.toHuman('short')}
+                    </TableCell>
+                    <TableCell className="text-right">
+                        {deposit.seeds.toHuman('short')}
+                    </TableCell>
+                </TableRow>
                 );
-            })}
-          </TableBody>
-        </Table>
-        {totalPages > 1 && (
-          <div className="flex items-center justify-end space-x-2 py-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </Button>
-            <div className="text-xs">{`${currentPage} of ${totalPages}`}</div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </Button>
-          </div>
+            })
         )}
-      </CardContent>
-    </Card>
+        </TableBody>
+    </Table>
+</div>
   );
 }
 

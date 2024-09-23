@@ -18,7 +18,10 @@ const Link = ({ href, ...props }) => {
   );
 };
 
-function ActionSelect() {
+export default function SiloActions() {
+
+  
+
   return (
     <NavigationMenu>
       <NavigationMenuList>
@@ -38,5 +41,3 @@ function ActionSelect() {
     </NavigationMenu>
   );
 }
-
-export default ActionSelect;
