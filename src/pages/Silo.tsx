@@ -69,22 +69,6 @@ function Silo() {
         </div>
         <SiloTable />
       </div>
-        {/*
-        <div className="flex flex-col flex-grow gap-4">
-          <div className="flex flex-row flex-grow gap-4">
-            <DepositsTable />
-            <RewardsClaim />
-            <SiloBalances />
-          </div>
-        </div>
-        <div className="flex flex-col gap-4 self-start">
-          <ActionSelect />
-          {(currentSelection === "?action=deposit" || !currentSelection) && <Deposit />}
-          {currentSelection === "?action=convert" && <Convert />}
-          {currentSelection === "?action=transfer" && <Transfer />}
-          {currentSelection === "?action=withdraw" && <Withdraw />}
-        </div>
-        */}
       </div>
     </div>
   );

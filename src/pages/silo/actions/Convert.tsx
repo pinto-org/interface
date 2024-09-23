@@ -100,40 +100,34 @@ function Convert() {
   }
 
   return (
-    <>
-      <Card className="max-w-96 h-fit">
-        <CardHeader>
-          <CardTitle>Convert</CardTitle>
-          <CardDescription>Convert between whitelisted assets</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div>
-            <Label>Amount</Label>
-            <ComboInputField 
-              amount={amountIn}
-              setAmount={setAmountIn}
-              setToken={setFromToken} 
-              selectedToken={fromToken}
-              setMaxAmount={changeAmountIn}
-              useSiloTokens
-            />                        
-          </div>
-          <div className="flex flex-row justify-between">
-            <Label className="content-center">Convert to</Label>
-            <TokenSelectDepositedBalances 
-              setToken={setToToken} 
-              selectedToken={toToken}
-            />
-          </div>
-          <div className="flex flex-row gap-2">
-            <Button type="button" className="w-full" onClick={onSubmit} disabled={fromToken.address === toToken.address}>
-              Convert
-            </Button>
-            <SlippageButton slippage={slippage} setSlippage={setSlippage} />
-          </div>
-          </CardContent>
-      </Card>
-    </>
+    <div className="flex flex-col gap-4">
+      <div>
+        <div className="flex flex-row justify-between items-center">
+          <Label>Amount</Label>
+          <SlippageButton slippage={slippage} setSlippage={setSlippage} />
+        </div>
+        <ComboInputField 
+          amount={amountIn}
+          setAmount={setAmountIn}
+          setToken={setFromToken} 
+          selectedToken={fromToken}
+          setMaxAmount={changeAmountIn}
+          useSiloTokens
+        />                        
+      </div>
+      <div className="flex flex-row justify-between">
+        <Label className="content-center">Convert to</Label>
+        <TokenSelectDepositedBalances 
+          setToken={setToToken} 
+          selectedToken={toToken}
+        />
+      </div>
+      <div className="flex flex-row gap-2">
+        <Button type="button" className="w-full flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem]" onClick={onSubmit} disabled={fromToken.address === toToken.address}>
+          Convert
+        </Button>
+      </div>
+    </div>
   );
 }
 

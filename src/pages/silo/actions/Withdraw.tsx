@@ -91,7 +91,9 @@ function Withdraw() {
   return (
     <div className="flex flex-col gap-4">
       <div>
+        <div className="h-10 flex items-center">
         <Label>Amount</Label>
+        </div>
         <ComboInputField 
           amount={amount}
           setAmount={setAmount}
@@ -101,9 +103,9 @@ function Withdraw() {
           useSiloTokens
         />
       </div>
-      <div className="flex flex-row justify-between">
-        <Label className="content-center">Destination</Label>
-        <DestinationBalanceSelect setBalanceTo={setDestination} />
+      <div className="flex flex-col">
+        <Label className="flex h-10 items-center">Destination</Label>
+        <DestinationBalanceSelect setBalanceTo={setDestination} balanceTo={destination} />
       </div>
       <div>
         <Button className="w-full flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem]" onClick={onSubmit}>
