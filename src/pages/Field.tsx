@@ -1,11 +1,9 @@
 import { Separator } from "@/components/ui/Separator";
-import Harvest from "./field/actions/Harvest";
-import Sow from "./field/actions/Sow";
-import Transfer from "./field/actions/Transfer";
 import fieldIcon from "@/assets/protocol/Field.png";
 import { useFieldData } from "@/state/useFieldData";
 import { Button } from "@/components/ui/Button";
 import PlotsTable from "@/components/PlotsTable";
+import FieldActions from "./field/FieldActions";
 
 function Field() {
 
@@ -71,12 +69,10 @@ function Field() {
           <PlotsTable />
         </div>
       </div>
-                <div className="flex flex-shrink w-[500px] mt-32 p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border">
-                <Sow />
-        <Transfer />
-        <Harvest />
-                    </div> 
-            </div>
+        <div className="flex flex-shrink w-[500px] mt-32 p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border">
+          <FieldActions />
+        </div> 
+        </div>
     </div>
   );
 }

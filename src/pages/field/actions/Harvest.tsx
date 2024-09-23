@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useAccount, useChainId, useWriteContract } from "wagmi";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Label } from "@/components/ui/Label";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { useFarmerField } from "@/state/useFarmerField";
@@ -11,10 +10,17 @@ import { FarmToMode } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { BaseError } from "viem";
+import useTokenData from "@/state/useTokenData";
+import { usePriceData } from "@/state/usePriceData";
 
 function Harvest() {
   const chainId = useChainId();
   const account = useAccount();
+
+  const tokenData = useTokenData();
+  const mainToken = tokenData.mainToken;
+
+  const priceData = usePriceData();
 
   const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
   const queryClient = useQueryClient();
@@ -62,27 +68,34 @@ function Harvest() {
   }
 
   return (
-    <>
-      <Card className="w-full h-fit">
-        <CardHeader>
-          <CardTitle>Harvest</CardTitle>
-          <CardDescription>Harvest your plots</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-8">
-          <div className="flex flex-row justify-between">
-            <Label className="content-center">Harvestable Balance</Label>
-            <div>{harvestableAmount.toHuman("short")}</div>
-          </div>
-          <div className="flex flex-row justify-between">
-            <Label className="content-center">Destination</Label>
-            <DestinationBalanceSelect setBalanceTo={setBalanceTo} />
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button type="button" onClick={() => onSubmit()} className="w-full">{`Submit`}</Button>
-        </CardFooter>
-      </Card>
-    </>
+    <div className="flex flex-col gap-8">
+      {harvestableAmount.gt(0) ?
+      <>
+      <div className="flex flex-col justify-between">
+        <div className="text-pinto-gray-4 text-[1.25rem]">
+          You receive
+        </div>
+        <div className="inline-flex gap-1 items-center text-black text-[2rem]">
+          {harvestableAmount.toHuman("short")}
+          <img src={mainToken.logoURI} className="w-6 h-6"/>
+          <span className="text-[1.25rem]">{mainToken.name}</span>
+        </div>
+        <div className="text-[1rem] text-pinto-gray-4">
+          ${harvestableAmount.mul(priceData.price).toHuman("short")}
+        </div>
+      </div>
+      <div className="flex flex-col gap-4 text-">
+        <Label>I want to Receive my Pinto to my:</Label>
+        <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} />
+      </div>
+      </>
+      :
+      <div className="text-[1.25rem] font-[400] text-center">
+        Your Pods become Harvestable when they reach a Place in Line of 0.
+      </div>
+      }
+      <Button type="button" disabled={harvestableAmount.eq(0)} onClick={() => onSubmit()} className="w-full flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem]">{`Harvest`}</Button>
+    </div>
   );
 }
 

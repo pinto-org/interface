@@ -15,7 +15,6 @@ import { BaseError } from "viem";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { useAccount, useWriteContract } from "wagmi";
 import { useChainId } from "wagmi";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 
 function Sow() {
   const account = useAccount();
@@ -115,30 +114,26 @@ function Sow() {
   }
 
   return (
-    <Card className="w-full h-fit">
-      <CardHeader>
-        <CardTitle>Sow</CardTitle>
-        <CardDescription>Lend your Beans to the protocol</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <div>
-          <Label>Amount</Label>
-          <ComboInputField
-            amount={amountIn}
-            setAmount={setAmountIn}
-            setToken={setTokenIn}
-            setBalanceFrom={setBalanceFrom} 
-            selectedToken={tokenIn}
-            balanceFrom={balanceFrom}
-            setMaxAmount={changeAmountIn}
-          />
-        </div>
-        <div className="flex flex-row gap-2">
-          <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit}/>
+    <div className="flex flex-col gap-4">
+      <div>
+        <div className="flex flex-row justify-between items-center">
+          <Label>Amount and Token to lend</Label>
           <SlippageButton slippage={slippage} setSlippage={setSlippage} />
         </div>
-      </CardContent>
-    </Card>
+        <ComboInputField
+          amount={amountIn}
+          setAmount={setAmountIn}
+          setToken={setTokenIn}
+          setBalanceFrom={setBalanceFrom} 
+          selectedToken={tokenIn}
+          balanceFrom={balanceFrom}
+          setMaxAmount={changeAmountIn}
+        />
+      </div>
+      <div className="flex flex-row gap-2">
+        <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit} submitButtonText="Sow"/>
+      </div>
+    </div>
   );
 }
 
