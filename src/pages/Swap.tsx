@@ -127,7 +127,7 @@ export default function Swap() {
           </div>
           <div className="flex flex-row justify-between">
             <Label className="content-center">Destination</Label>
-            <DestinationBalanceSelect setBalanceTo={setBalanceTo} />
+            <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} />
           </div>
           <div className="flex flex-row gap-2">
             <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit}/>

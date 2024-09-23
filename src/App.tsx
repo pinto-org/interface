@@ -22,10 +22,10 @@ function App() {
           <Route path="/silo" element={<Silo />} />
           <Route path="/silo/:tokenAddress" element={<SiloToken />} />
           <Route path="/field" element={<Field />} />
-          <Route path="/market" element={<Market />} />
+          {/*<Route path="/market" element={<Market />} />
           <Route path="/market/:mode" element={<Market />} />
-          <Route path="/market/:mode/:id" element={<Market />} />
-          <Route path="/swap" element={<Swap />} />
+          <Route path="/market/:mode/:id" element={<Market />} /> */}
+          <Route path="/market" element={<Swap />} />
         </Routes>
       </div>
     </BrowserRouter>
