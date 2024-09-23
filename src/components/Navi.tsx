@@ -10,7 +10,7 @@ import { useState } from "react";
 
 const Link = ({ href, active, topMenu, className, ...props }: { href?: string, active?: boolean, topMenu?: boolean, className?: string, [x: string]: any }) => {
   const location = useLocation();
-  const isActive = active || href === "/" ? href === location.pathname : href ? location.pathname.includes(href?.substring(1)) : false;
+  const isActive = active || (href === "/" ? href === location.pathname : href ? location.pathname.includes(href?.substring(1)) : false);
 
   if (href) {
     return (
