@@ -7,6 +7,7 @@ import externalLinkIcon from "@/assets/misc/ExternalLink.svg";
 import etherscanIcon from "@/assets/misc/Etherscan.png";
 import stalkIcon from "@/assets/protocol/Stalk-variant.png";
 import seedsIcon from "@/assets/protocol/Seed-variant.png";
+import backArrowIcon from "@/assets/misc/LeftArrow.svg";
 import { Separator } from "@/components/ui/Separator";
 import APYChip from "@/components/APYChip";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
@@ -44,6 +45,11 @@ export default function SiloToken() {
         <div className="flex flex-col items-center">
             <div className="flex flex-row w-[80%] gap-14">
                 <div className="flex flex-col w-[80%] gap-8">
+                    <Button asChild variant={'outline'} className="rounded-full -my-4 h-12 w-12 p-0">
+                        <a href={"/silo"}>
+                            <img src={backArrowIcon} />
+                        </a>
+                    </Button>
                     <div className="inline-flex items-center gap-3">
                         <img src={siloToken?.logoURI} className="w-14 h-14"/>
                         <span className="text-black font-[300] text-[3.5rem]">{siloToken?.name}</span>
