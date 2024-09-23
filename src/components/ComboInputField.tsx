@@ -51,16 +51,16 @@ function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, 
 
     return (
         <>
-            <div className="border border-input content-center bg-transparent shadow-sm transition-colors p-2 rounded-md focus-within:outline-none focus-within:ring-1 focus-within:ring-ring">
+            <div className="border border-pinto-gray-blue content-center bg-transparent shadow-sm transition-colors p-4 rounded-[0.75rem] focus-within:outline-none focus-within:ring-1 focus-within:ring-ring">
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-row gap-2 items-center">
                         {isLoading 
-                            ? <Skeleton className="flex w-full h-8 rounded-md" />
+                            ? <Skeleton className="flex w-full h-8 rounded-[0.75rem]" />
                             : <input 
                                 min={0} 
                                 type="number"
                                 disabled={disableInput} 
-                                className="flex w-full px-1 text-2xl align-middle focus-visible:outline-none placeholder:text-muted-foreground  disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                className="flex w-full px-1 text-2xl text-pinto-gray-4 align-middle focus-visible:outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                                 value={internalAmount || amount}
                                 onChange={(e) => setInternalAmount(e.target.value)}
                             />
@@ -73,9 +73,16 @@ function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, 
                         }
                     </div>
                     <div className="flex flex-row gap-2 justify-end items-center">
-                        <div className="text-sm">{`Balance: ${maxAmount?.toHuman("short")}`}</div>
+                        <div className="text-[1rem] text-black">
+                            {`${balanceFrom === FarmFromMode.EXTERNAL 
+                                    ? 'Wallet Balance:' 
+                                : balanceFrom === FarmFromMode.INTERNAL 
+                                    ? 'Farm Balance:' 
+                                    : 'Combined Balance:'} 
+                            ${maxAmount?.toHuman("short")}`}
+                        </div>
                         {!hideMax && 
-                            <Button type={"button"} variant={"outline"} size={"sm"} onClick={setMaxAmount ? () => setMaxAmount(maxAmount.humanString) : undefined}>Max</Button>
+                            <Button type={"button"} size={"sm"} variant={"defaultAlt"} className={"rounded-[0.75rem] text-[1rem] px-1.5 py-1"} onClick={() => setMaxAmount(maxAmount.humanString)}>Max</Button>
                         }
                     </div>
                 </div>

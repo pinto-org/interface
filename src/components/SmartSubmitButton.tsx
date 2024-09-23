@@ -9,7 +9,14 @@ import { Token } from "@/utils/types";
 import useTokenData from "@/state/useTokenData";
 import { toast } from "sonner";
 
-export default function SmartSubmitButton({ token, amount, submitFunction }: { token: Token, amount: any, submitFunction: () => void }) {
+interface SmartSubmitButton {
+    token: Token, 
+    amount: any, 
+    submitFunction: () => void,
+    submitButtonText?: string,  
+}
+
+export default function SmartSubmitButton({ token, amount, submitFunction, submitButtonText }: SmartSubmitButton) {
 
     const account = useAccount();
     const chainId = useChainId();
@@ -63,8 +70,8 @@ export default function SmartSubmitButton({ token, amount, submitFunction }: { t
     };
 
     return (
-        <Button type={"button"} className="flex grow" onClick={() => approveOrRun()}>
-            {account.address && needsApproval ? "Approve Spending" : "Submit"}
+        <Button type={"button"} className="flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem]" onClick={() => approveOrRun()}>
+            {account.address && needsApproval ? "Approve Spending" : (submitButtonText || "Submit")}
         </Button>
     )
 }

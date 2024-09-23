@@ -2,7 +2,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useWriteContract } from "wagmi";
 import { useChainId } from "wagmi";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { TokenValue } from "@/classes/TokenValue";
 import { AdvancedFarmCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
@@ -19,7 +18,11 @@ import { toast } from "sonner";
 import { BaseError } from "viem";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 
-function Deposit() {
+interface SiloDepositForm {
+  siloToken: Token
+}
+
+function Deposit({ siloToken }: SiloDepositForm) {
   // silo - deposit
   const chainId = useChainId();
   const depositedBalances = useFarmerDepositedBalances();
@@ -28,11 +31,10 @@ function Deposit() {
   const mainToken = useTokenData().mainToken;
   const ETH = useTokenData().nativeToken;
   const [amountIn, setAmountIn] = useState(0);
-  const [tokenIn, setTokenIn] = useState(mainToken);
+  const [tokenIn, setTokenIn] = useState(siloToken);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.INTERNAL_EXTERNAL);
   const [intToken, setIntToken] = useState<Token | undefined>(undefined);
   const [pool, setPool] = useState<PoolData | undefined>(undefined);
-  const [siloToken, setSiloToken] = useState(mainToken);
   const [slippage, setSlippage] = useState(0.5);
   
   const queryClient = useQueryClient();
@@ -115,14 +117,12 @@ function Deposit() {
     };
 
   return (
-    <Card className="max-w-96 h-fit">
-      <CardHeader>
-        <CardTitle>Deposit</CardTitle>
-        <CardDescription>Deposit a token into the Silo</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
         <div>
-          <Label>Amount</Label>
+          <div className="flex flex-row justify-between items-center">
+            <Label>Amount and Token to use</Label>
+            <SlippageButton slippage={slippage} setSlippage={setSlippage} />
+          </div>
           <ComboInputField
             amount={amountIn}
             setAmount={setAmountIn}
@@ -134,18 +134,16 @@ function Deposit() {
           />
         </div>
         <div className="flex flex-row justify-between">
-          <Label className="content-center">Deposit to</Label>
+          {/*<Label className="content-center">Deposit to</Label>
           <TokenSelectDepositedBalances 
             setToken={setSiloToken}
             selectedToken={siloToken}
-          />
+          />*/}
         </div>
         <div className="flex flex-row gap-2">
-          <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit}/>
-          <SlippageButton slippage={slippage} setSlippage={setSlippage} />
+          <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit} submitButtonText="Deposit"/>
         </div>
-      </CardContent>
-    </Card>
+      </div>
   );
 }
 

@@ -89,36 +89,28 @@ function Withdraw() {
   }
 
   return (
-    <>
-      <Card className="max-w-96 h-fit">
-        <CardHeader>
-          <CardTitle>Withdraw</CardTitle>
-          <CardDescription>Withdraw your deposited assets</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div>
-            <Label>Amount</Label>
-            <ComboInputField 
-              amount={amount}
-              setAmount={setAmount}
-              setToken={setFromToken} 
-              selectedToken={fromToken}
-              setMaxAmount={setMaxAmount}
-              useSiloTokens
-            />
-          </div>
-          <div className="flex flex-row justify-between">
-            <Label className="content-center">Destination</Label>
-            <DestinationBalanceSelect setBalanceTo={setDestination} />
-          </div>
-          <div>
-            <Button className="w-full" onClick={onSubmit}>
-                {"Submit"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </>
+    <div className="flex flex-col gap-4">
+      <div>
+        <Label>Amount</Label>
+        <ComboInputField 
+          amount={amount}
+          setAmount={setAmount}
+          setToken={setFromToken} 
+          selectedToken={fromToken}
+          setMaxAmount={setMaxAmount}
+          useSiloTokens
+        />
+      </div>
+      <div className="flex flex-row justify-between">
+        <Label className="content-center">Destination</Label>
+        <DestinationBalanceSelect setBalanceTo={setDestination} />
+      </div>
+      <div>
+        <Button className="w-full flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem]" onClick={onSubmit}>
+            {"Withdraw"}
+        </Button>
+      </div>
+    </div>
   );
 }
 

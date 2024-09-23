@@ -5,6 +5,7 @@ import { FarmFromMode, Token } from "@/utils/types";
 import { Button } from "./ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/Dialog";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
+import arrowDown from "@/assets/misc/ChevronDown.svg";
 
 export default function TokenSelectWithBalances({
   setToken,
@@ -35,7 +36,11 @@ export default function TokenSelectWithBalances({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant={"outline"}>{selectedToken.symbol}</Button>
+        <Button variant={"outline"} className={"inline-flex items-center p-4 gap-1.5 border border-pinto-gray-blue bg-white hover:bg-pinto-green-2/10 drop-shadow-pinto-token-select rounded-full text-black text-[1.25rem]"}>
+          <img src={selectedToken.logoURI} className="w-5 h-5" />
+          <div>{selectedToken.symbol}</div>
+          <img src={arrowDown} className="w-4 h-4" />
+        </Button>
       </DialogTrigger>
       <DialogContent className="font-pinto">
         <DialogHeader>

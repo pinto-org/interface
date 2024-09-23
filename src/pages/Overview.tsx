@@ -70,7 +70,7 @@ export default function Overview() {
             </div>
             <div className="flex flex-col items-center">
                 <Tabs defaultValue="deposits" className="w-[1150px]">
-                    <TabsList className="h-0 bg-transparent p-0">
+                    <TabsList className="h-0 bg-transparent p-0 border-0">
                         <TabsTrigger className="pr-3 pl-0 font-[400] text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5" value="deposits">My Deposits</TabsTrigger>
                         <TabsTrigger className="pl-3 pr-0 font-[400] text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5" value="pods">My Pods</TabsTrigger>
                     </TabsList>

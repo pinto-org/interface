@@ -13,6 +13,7 @@ import {
 } from "./ui/Dialog";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
 import { Token } from "@/utils/types";
+import arrowDown from "@/assets/misc/ChevronDown.svg";
 
 export default function TokenSelectDepositedBalances({
   setToken,
@@ -33,7 +34,11 @@ export default function TokenSelectDepositedBalances({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant={"outline"}>{_token.symbol}</Button>
+        <Button variant={"outline"} className="inline-flex items-center p-4 gap-1.5 border border-pinto-gray-blue bg-white hover:bg-pinto-green-2/10 drop-shadow-pinto-token-select rounded-full text-black text-[1.25rem]">
+          <img src={_token.logoURI} className="w-5 h-5" />
+          <div>{_token.symbol}</div>
+          <img src={arrowDown} className="w-4 h-4" />
+        </Button>
       </DialogTrigger>
       <DialogContent className="font-pinto">
         <DialogHeader>

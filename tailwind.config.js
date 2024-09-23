@@ -57,6 +57,7 @@ module.exports = {
           'gray-3': '#B9B9B9',
           'gray-4': '#9C9C9C',
           'gray-5': '#404040',
+          'gray-blue': '#E9F0F6',
           'off-white': '#FCFCFC'
         }
       },
@@ -68,6 +69,9 @@ module.exports = {
         lg: `var(--radius)`,
         md: `calc(var(--radius) - 2px)`,
         sm: "calc(var(--radius) - 4px)",
+      },
+      dropShadow: {
+        'pinto-token-select': '0px 1px 8px 0px rgba(233, 240, 246, 1)',
       },
       fontFamily: {
         pinto: ["Pinto"],
