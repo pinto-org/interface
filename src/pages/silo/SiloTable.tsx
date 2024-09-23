@@ -12,7 +12,6 @@ import seedsIcon from "@/assets/protocol/Seed-default.png";
 function SiloTable() {
   const siloData = useSiloData();
   const farmerDeposits = useFarmerDepositedBalances().data;
-  const BEAN = useTokenData().mainToken;
   const SILO_WHITELIST = useTokenData().whitelistedTokens;
   const priceData = usePriceData();
 
@@ -34,7 +33,7 @@ function SiloTable() {
                 const data = siloData.tokenData.get(token);
                 const userData = farmerDeposits.get(token);
                 return (
-                <TableRow className="h-[4.5rem] bg-white hover:bg-white">
+                <TableRow className="h-[4.5rem] bg-white hover:bg-pinto-green-1 hover:cursor-pointer">
                     <TableCell className="text-black font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">
                         <img src={token.logoURI} className="h-8 w-8" />
                         <div>{token.name}</div>

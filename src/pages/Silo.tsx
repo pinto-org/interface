@@ -21,71 +21,71 @@ function Silo() {
 
   return (
     <div className="flex flex-col items-center">
-    <div className="flex flex-col gap-6 w-[80%]">
-      <div className="flex flex-col gap-2">
-        <div className="inline-flex gap-2 items-center">
-          <img src={siloIcon} className="h-12 w-11" />
-          <span className="font-[300] text-[3.5rem] text-black">Silo</span>
-        </div>
-        <div className="font-[400] text-xl text-pinto-gray-4">
-          Deposit value in the Silo to earn yield.
-        </div>
-      </div>
-      <Separator />
-      <div className="flex flex-col gap-2">
-      {enableStatPanels &&
-      <div className="mb-4 p-4">
-          <div className="flex flex-col items-center">
-              <StatPanel
-                  mode={"depositedValue"}
-                  mainValue={farmerSilo.depositsUSD}
-                  secondaryValue={farmerSilo.depositsBDV}
-                  size={"large"}
-              />
+      <div className="flex flex-col gap-6 w-[80%]">
+        <div className="flex flex-col gap-2">
+          <div className="inline-flex gap-2 items-center">
+            <img src={siloIcon} className="h-12 w-11" />
+            <span className="font-[300] text-[3.5rem] text-black">Silo</span>
           </div>
-          <div className="flex flex-row justify-center mt-20 gap-16">
-              <StatPanel
-                  mode={"stalk"}
-                  mainValue={farmerSilo.activeStalkBalance}
-                  secondaryValue={earnedStalk}
-                  variant={"silo"}
-              />
-              <StatPanel
-                  mode={"seeds"}
-                  mainValue={farmerSilo.activeSeedsBalance}
-                  secondaryValue={earnedSeeds}
-                  variant={"silo"}
-              />
+          <div className="font-[400] text-xl text-pinto-gray-4">
+            Deposit value in the Silo to earn yield.
           </div>
-      </div>
-      }
-      <div>
-        <div className="font-[400] text-[2rem] text-black">
-          Deposit Whitelist
         </div>
-        <div className="font-[400] text-xl text-pinto-gray-4">
-          These are deposits which are currently incentivized by Pinto.
+        <Separator />
+        <div className="flex flex-col gap-2">
+        {enableStatPanels &&
+        <div className="mb-4 p-4">
+            <div className="flex flex-col items-center">
+                <StatPanel
+                    mode={"depositedValue"}
+                    mainValue={farmerSilo.depositsUSD}
+                    secondaryValue={farmerSilo.depositsBDV}
+                    size={"large"}
+                />
+            </div>
+            <div className="flex flex-row justify-center mt-20 gap-16">
+                <StatPanel
+                    mode={"stalk"}
+                    mainValue={farmerSilo.activeStalkBalance}
+                    secondaryValue={earnedStalk}
+                    variant={"silo"}
+                />
+                <StatPanel
+                    mode={"seeds"}
+                    mainValue={farmerSilo.activeSeedsBalance}
+                    secondaryValue={earnedSeeds}
+                    variant={"silo"}
+                />
+            </div>
         </div>
-      </div>
-      <SiloTable />
-      </div>
-      {/*
-      <div className="flex flex-col flex-grow gap-4">
-        <div className="flex flex-row flex-grow gap-4">
-          <DepositsTable />
-          <RewardsClaim />
-          <SiloBalances />
+        }
+        <div>
+          <div className="font-[400] text-[2rem] text-black">
+            Deposit Whitelist
+          </div>
+          <div className="font-[400] text-xl text-pinto-gray-4">
+            These are deposits which are currently incentivized by Pinto.
+          </div>
         </div>
+        <SiloTable />
       </div>
-      <div className="flex flex-col gap-4 self-start">
-        <ActionSelect />
-        {(currentSelection === "?action=deposit" || !currentSelection) && <Deposit />}
-        {currentSelection === "?action=convert" && <Convert />}
-        {currentSelection === "?action=transfer" && <Transfer />}
-        {currentSelection === "?action=withdraw" && <Withdraw />}
+        {/*
+        <div className="flex flex-col flex-grow gap-4">
+          <div className="flex flex-row flex-grow gap-4">
+            <DepositsTable />
+            <RewardsClaim />
+            <SiloBalances />
+          </div>
+        </div>
+        <div className="flex flex-col gap-4 self-start">
+          <ActionSelect />
+          {(currentSelection === "?action=deposit" || !currentSelection) && <Deposit />}
+          {currentSelection === "?action=convert" && <Convert />}
+          {currentSelection === "?action=transfer" && <Transfer />}
+          {currentSelection === "?action=withdraw" && <Withdraw />}
+        </div>
+        */}
       </div>
-      */}
-    </div>
     </div>
   );
 }
