@@ -57,6 +57,7 @@ module.exports = {
           'gray-3': '#B9B9B9',
           'gray-4': '#9C9C9C',
           'gray-5': '#404040',
+          'off-white': '#FCFCFC'
         }
       },
       backgroundImage: {

@@ -185,7 +185,7 @@ export default function SiloToken() {
                         </div>
                     </div>
                 </div>
-                <div className="flex w-[500px] mt-32 bg-white rounded border-black border">
+                <div className="flex w-[500px] mt-32 p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border">
                     <SiloActions />
                 </div> 
             </div>
