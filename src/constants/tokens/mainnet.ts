@@ -9,8 +9,10 @@ export const mainnetProtocol: Token[] = [
         address: "0xbea0000029ad1c77d3d5d23ba2d8893db9d1efab",
         name: "Bean",
         symbol: "BEAN",
+        isMain: true,
         decimals: 6,
-        logoURI: pintoIcon
+        logoURI: pintoIcon,
+        color: "#246645"
     }
 ];
 
@@ -34,7 +36,8 @@ export const mainnetLP: Token[] = [
         decimals: 18,
         isLP: true,
         address: "0xBEA0e11282e2bB5893bEcE110cF199501e872bAd",
-        logoURI: pintoWethIcon
+        logoURI: pintoWethIcon,
+        color: "#627EEA"
     },
     {
         chainId: 1,
@@ -43,7 +46,8 @@ export const mainnetLP: Token[] = [
         decimals: 18,
         isLP: true,
         address: "0xBeA0000113B0d182f4064C86B71c315389E4715D",
-        logoURI: pintoWstethIcon
+        logoURI: pintoWstethIcon,
+        color: "#00A3FF"
     }
 ];
 
@@ -56,6 +60,7 @@ export const mainnetPreferred: Token[] = [
         isWrappedNative: true,
         chainId: 1,
         logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png",
+        color: "#627EEA"
     },
     {
         chainId: 1,
@@ -63,7 +68,8 @@ export const mainnetPreferred: Token[] = [
         name: "Wrapped stETH",
         symbol: "WSTETH",
         decimals: 18,
-        logoURI: "https://assets.coingecko.com/coins/images/18834/thumb/wstETH.png?1696518295"
+        logoURI: "https://assets.coingecko.com/coins/images/18834/thumb/wstETH.png?1696518295",
+        color: "#00A3FF"
     },
     {
         name: "Dai Stablecoin",

@@ -5219,6 +5219,111 @@ export const pipelineConfig = {
 } as const
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// usdOracle
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb24a70b71e4cca41eb114c2f61346982aa774180)
+ * -
+ */
+export const usdOracleAbi = [
+  {
+    type: 'function',
+    inputs: [],
+    name: 'getEthUsdPrice',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'lookback', internalType: 'uint256', type: 'uint256' }],
+    name: 'getEthUsdTwap',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'token', internalType: 'address', type: 'address' }],
+    name: 'getTokenUsdPrice',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'token', internalType: 'address', type: 'address' },
+      { name: 'lookback', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'getTokenUsdTwap',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'token', internalType: 'address', type: 'address' }],
+    name: 'getUsdTokenPrice',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'token', internalType: 'address', type: 'address' },
+      { name: 'lookback', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'getUsdTokenTwap',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'getWstethEthPrice',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'lookback', internalType: 'uint256', type: 'uint256' }],
+    name: 'getWstethEthTwap',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'getWstethUsdPrice',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'lookback', internalType: 'uint256', type: 'uint256' }],
+    name: 'getWstethUsdTwap',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+] as const
+
+/**
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb24a70b71e4cca41eb114c2f61346982aa774180)
+ * -
+ */
+export const usdOracleAddress = {
+  1: '0xb24a70B71e4CcA41Eb114c2f61346982Aa774180',
+  1337: '0xb24a70B71e4CcA41Eb114c2f61346982Aa774180',
+} as const
+
+/**
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb24a70b71e4cca41eb114c2f61346982aa774180)
+ * -
+ */
+export const usdOracleConfig = {
+  address: usdOracleAddress,
+  abi: usdOracleAbi,
+} as const
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // React
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -11596,3 +11701,144 @@ export const useSimulatePipeline_OnErc721Received =
 export const useSimulatePipeline_Pipe = /*#__PURE__*/ createUseSimulateContract(
   { abi: pipelineAbi, address: pipelineAddress, functionName: 'pipe' },
 )
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link usdOracleAbi}__
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb24a70b71e4cca41eb114c2f61346982aa774180)
+ * -
+ */
+export const useReadUsdOracle_undefined = /*#__PURE__*/ createUseReadContract({
+  abi: usdOracleAbi,
+  address: usdOracleAddress,
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link usdOracleAbi}__ and `functionName` set to `"getEthUsdPrice"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb24a70b71e4cca41eb114c2f61346982aa774180)
+ * -
+ */
+export const useReadUsdOracle_GetEthUsdPrice =
+  /*#__PURE__*/ createUseReadContract({
+    abi: usdOracleAbi,
+    address: usdOracleAddress,
+    functionName: 'getEthUsdPrice',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link usdOracleAbi}__ and `functionName` set to `"getEthUsdTwap"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb24a70b71e4cca41eb114c2f61346982aa774180)
+ * -
+ */
+export const useReadUsdOracle_GetEthUsdTwap =
+  /*#__PURE__*/ createUseReadContract({
+    abi: usdOracleAbi,
+    address: usdOracleAddress,
+    functionName: 'getEthUsdTwap',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link usdOracleAbi}__ and `functionName` set to `"getTokenUsdPrice"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb24a70b71e4cca41eb114c2f61346982aa774180)
+ * -
+ */
+export const useReadUsdOracle_GetTokenUsdPrice =
+  /*#__PURE__*/ createUseReadContract({
+    abi: usdOracleAbi,
+    address: usdOracleAddress,
+    functionName: 'getTokenUsdPrice',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link usdOracleAbi}__ and `functionName` set to `"getTokenUsdTwap"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb24a70b71e4cca41eb114c2f61346982aa774180)
+ * -
+ */
+export const useReadUsdOracle_GetTokenUsdTwap =
+  /*#__PURE__*/ createUseReadContract({
+    abi: usdOracleAbi,
+    address: usdOracleAddress,
+    functionName: 'getTokenUsdTwap',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link usdOracleAbi}__ and `functionName` set to `"getUsdTokenPrice"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb24a70b71e4cca41eb114c2f61346982aa774180)
+ * -
+ */
+export const useReadUsdOracle_GetUsdTokenPrice =
+  /*#__PURE__*/ createUseReadContract({
+    abi: usdOracleAbi,
+    address: usdOracleAddress,
+    functionName: 'getUsdTokenPrice',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link usdOracleAbi}__ and `functionName` set to `"getUsdTokenTwap"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb24a70b71e4cca41eb114c2f61346982aa774180)
+ * -
+ */
+export const useReadUsdOracle_GetUsdTokenTwap =
+  /*#__PURE__*/ createUseReadContract({
+    abi: usdOracleAbi,
+    address: usdOracleAddress,
+    functionName: 'getUsdTokenTwap',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link usdOracleAbi}__ and `functionName` set to `"getWstethEthPrice"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb24a70b71e4cca41eb114c2f61346982aa774180)
+ * -
+ */
+export const useReadUsdOracle_GetWstethEthPrice =
+  /*#__PURE__*/ createUseReadContract({
+    abi: usdOracleAbi,
+    address: usdOracleAddress,
+    functionName: 'getWstethEthPrice',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link usdOracleAbi}__ and `functionName` set to `"getWstethEthTwap"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb24a70b71e4cca41eb114c2f61346982aa774180)
+ * -
+ */
+export const useReadUsdOracle_GetWstethEthTwap =
+  /*#__PURE__*/ createUseReadContract({
+    abi: usdOracleAbi,
+    address: usdOracleAddress,
+    functionName: 'getWstethEthTwap',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link usdOracleAbi}__ and `functionName` set to `"getWstethUsdPrice"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb24a70b71e4cca41eb114c2f61346982aa774180)
+ * -
+ */
+export const useReadUsdOracle_GetWstethUsdPrice =
+  /*#__PURE__*/ createUseReadContract({
+    abi: usdOracleAbi,
+    address: usdOracleAddress,
+    functionName: 'getWstethUsdPrice',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link usdOracleAbi}__ and `functionName` set to `"getWstethUsdTwap"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb24a70b71e4cca41eb114c2f61346982aa774180)
+ * -
+ */
+export const useReadUsdOracle_GetWstethUsdTwap =
+  /*#__PURE__*/ createUseReadContract({
+    abi: usdOracleAbi,
+    address: usdOracleAddress,
+    functionName: 'getWstethUsdTwap',
+  })

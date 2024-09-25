@@ -1,5 +1,4 @@
-import { Address } from "viem";
-import { useReadBeanstalkPrice_Price } from "@/generated/contractHooks";
+import { useReadBeanstalkPrice_Price, useReadUsdOracle_GetEthUsdPrice, useReadUsdOracle_GetEthUsdTwap, useReadUsdOracle_GetWstethUsdPrice, useReadUsdOracle_GetWstethUsdTwap } from "@/generated/contractHooks";
 import { TokenValue } from "@/classes/TokenValue";
 import { Token } from "@/utils/types";
 import useTokenData from "./useTokenData";
@@ -25,10 +24,25 @@ export interface PoolData {
 export function usePriceData() {
   
   const price = useReadBeanstalkPrice_Price(settings).data;
+  const ethPrice = useReadUsdOracle_GetEthUsdPrice(settings).data;
+  const ethPriceTwa = useReadUsdOracle_GetEthUsdTwap({args: [3600n], ...settings}).data;
+  const wstEthPrice = useReadUsdOracle_GetWstethUsdPrice(settings).data;
+  const wstEthPriceTwa = useReadUsdOracle_GetWstethUsdTwap({args: [3600n], ...settings}).data;
   const tokenData = useTokenData();
 
-  const pools: PoolData[] = [];
+  const tokenPrices = new Map();
+  const weth = tokenData.preferredTokens.find((token) => token.symbol === "WETH");
+  const wstEth = tokenData.preferredTokens.find((token) => token.symbol === "WSTETH");
+  tokenPrices.set(weth, {
+    instant: TokenValue.fromBlockchain(ethPrice || 0n, 6),
+    twa: TokenValue.fromBlockchain(ethPriceTwa || 0n, 6)
+  });
+  tokenPrices.set(wstEth, {
+    instant: TokenValue.fromBlockchain(wstEthPrice || 0n, 6),
+    twa: TokenValue.fromBlockchain(wstEthPriceTwa || 0n, 6)
+  });
 
+  const pools: PoolData[] = [];
   price?.ps.forEach((pool) => {
 
     const tokens: Token[] = [];
@@ -72,7 +86,8 @@ export function usePriceData() {
     liquidity: TokenValue.fromBlockchain(price?.liquidity || 0n, 4),
     price: TokenValue.fromBlockchain(price?.price || 0n, 6),
     pools: pools.sort((a, b) => Number(b.liquidity.sub(a.liquidity).toHuman())),
-  }
+    tokenPrices: tokenPrices
+  };
 
   return output;
 }

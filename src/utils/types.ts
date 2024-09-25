@@ -17,11 +17,13 @@ export interface Token {
   symbol: string,
   chainId: number,
   decimals: number,
+  isMain?: boolean,
   isLP?: boolean,
   isNative?: boolean,
   isWrappedNative?: boolean,
   address: Address,
-  logoURI: string
+  logoURI: string,
+  color?: string
 }
 
 export interface InternalToken {

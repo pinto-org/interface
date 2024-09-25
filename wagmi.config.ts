@@ -6,6 +6,7 @@ import BEANSTALK_ABI from "./src/constants/abi/Beanstalk.json";
 import BEANSTALK_PRICE_ABI from "./src/constants/abi/BeanstalkPrice.json";
 import PIPELINE_ABI from "./src/constants/abi/Pipeline.json";
 import DEPOT_ABI from "./src/constants/abi/Depot.json";
+import USDORACLE_ABI from "./src/constants/abi/UsdOracle.json";
 
 export default defineConfig(() => {
   const reactHookNames: string[] = [];
@@ -51,6 +52,14 @@ export default defineConfig(() => {
         address: {
           [mainnet.id]: "0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2",
           [localhost.id]: "0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2",
+        }
+      },
+      {
+        name: "usdOracle",
+        abi: USDORACLE_ABI as Abi,
+        address: {
+          [mainnet.id]: "0xb24a70b71e4cca41eb114c2f61346982aa774180",
+          [localhost.id]: "0xb24a70b71e4cca41eb114c2f61346982aa774180"
         }
       }
     ],

@@ -3,7 +3,6 @@ import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { useParams } from "react-router-dom";
 import copyIcon from "@/assets/misc/Copy.svg";
-import externalLinkIcon from "@/assets/misc/ExternalLink.svg";
 import etherscanIcon from "@/assets/misc/Etherscan.png";
 import stalkIcon from "@/assets/protocol/Stalk-variant.png";
 import seedsIcon from "@/assets/protocol/Seed-variant.png";
@@ -15,6 +14,7 @@ import { usePriceData } from "@/state/usePriceData";
 import DepositsTable from "./silo/DepositsTable";
 import { TokenValue } from "@/classes/TokenValue";
 import SiloActions from "./silo/SiloActions";
+import { ExternalLinkIcon } from "@/components/Icons";
 
 export default function SiloToken() {
     const { tokenAddress } = useParams();
@@ -58,8 +58,8 @@ export default function SiloToken() {
                                 <img src={copyIcon} />
                             </Button>
                             <Button asChild variant={'outline'} className="rounded-full h-12 w-12 p-0" >
-                                <a href={`https://basin.exchange/#/wells/${siloToken.address}`} target={"_blank"}>
-                                    <img src={externalLinkIcon} />
+                                <a href={`https://basin.exchange/#/wells/${pool.pool?.address}`} target={"_blank"} className="text-pinto-gray-5 hover:text-pinto-green-2 hover:cursor-pointer transition-all">
+                                    <ExternalLinkIcon color="currentColor" />
                                 </a>
                             </Button>
                             <Button variant={'outline'} className="rounded-full h-12 w-12 p-0">
