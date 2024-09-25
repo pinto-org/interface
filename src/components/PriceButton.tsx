@@ -2,7 +2,7 @@ import { usePriceData } from "@/state/usePriceData";
 import { Button } from "./ui/Button";
 import pintoIcon from "@/assets/tokens/Pinto-variant.png";
 import chevronDown from "@/assets/misc/ChevronDown.svg";
-import { Card, CardContent } from "./ui/Card";
+import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
 import { TokenValue } from "@/classes/TokenValue";
 import useTokenData from "@/state/useTokenData";
 import { ExternalLinkIcon } from "./Icons";
@@ -28,8 +28,8 @@ export default function PriceButton() {
         <img src={chevronDown} className="h-4 w-4" />
       </Button>
       <Card className="absolute top-10 w-[600px] overflow-clip">
-        <CardContent>
-          <div className="pt-4 pl pb-4">
+        <CardHeader>
+            <div className="pb-4">
             <div className="font-[400] text-[1.25rem] text-black">Price of Pinto</div>
             <div className="font-[300] text-[1.25rem] text-pinto-gray-4">The Pinto price is determined by the ratio and value of assets in each liquidity pool.</div>
             <div className="flex flex-row justify-between items-center mt-4">
@@ -62,9 +62,11 @@ export default function PriceButton() {
                 <div className="h-6 border-box text-center w-0 bg-white border-pinto-gray-3 border border-dashed" />
               </div>
             </div>
-             </div>
+            </div>
             <Separator className="w-[599px] -ml-4"/>
-            <div className="flex flex-col mt-4 gap-4">
+        </CardHeader>
+        <CardContent className="overflow-y-auto pt-0 -mt-4">
+            <div className="flex flex-col gap-4 mt-4 h-[100px]">
             {priceData.pools.map((pool) => {
               const token0Price = pool.tokens[0].isMain ? priceData.price : priceData.tokenPrices.get(pool.tokens[0])?.instant || TokenValue.ZERO;
               const token1Price = pool.tokens[1].isMain ? priceData.price : priceData.tokenPrices.get(pool.tokens[1])?.instant || TokenValue.ZERO;
@@ -75,7 +77,7 @@ export default function PriceButton() {
               const deltaBar = Number((pool.deltaB.abs()).div(pool.balances[mainTokenIndex]).mul(100).toHuman()).toFixed(2);
               if (!isWhitelisted) return;
               return (
-                <Card className="overflow-clip group hover:border-pinto-green-2">
+                <Card className="overflow-clip group hover:border-pinto-green-2 mb-4">
                   <CardContent className="p-4 bg-white flex flex-col gap-4">
                     <div className="flex flex-row justify-between items-center">
                       <div className="inline-flex gap-1.5 items-center">
@@ -126,46 +128,48 @@ export default function PriceButton() {
             }
             )}
             </div>
-            <Separator className="w-[599px] -ml-4 mt-4"/>
-            <div className="inline-flex">
-              <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
-                {Array.from(priceData.tokenPrices).map((token) => 
-                  <>
-                  {token[0]?.name &&
-                  <div className="inline-flex items-center px-2 gap-1.5">
-                    <img src={token[0].logoURI} className={"w-6 h-6"} />
-                    <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1].instant.toHuman()).toFixed(2)}`}</span>   
-                  </div>
-                  }
-                  </>
-                )}
-              </div>
-              <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
-                {Array.from(priceData.tokenPrices).map((token) => 
-                  <>
-                  {token[0]?.name &&
-                  <div className="inline-flex items-center px-2 gap-1.5">
-                    <img src={token[0].logoURI} className={"w-6 h-6"} />
-                    <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1].instant.toHuman()).toFixed(2)}`}</span>   
-                  </div>
-                  }
-                  </>
-                )}
-              </div>
-              <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
-                {Array.from(priceData.tokenPrices).map((token) => 
-                  <>
-                  {token[0]?.name &&
-                  <div className="inline-flex items-center px-2 gap-1.5">
-                    <img src={token[0].logoURI} className={"w-6 h-6"} />
-                    <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1].instant.toHuman()).toFixed(2)}`}</span>   
-                  </div>
-                  }
-                  </>
-                )}
-              </div>
-            </div>
         </CardContent>
+        <CardFooter className="flex flex-col relative z-[900] bg-white pb-4 items-stretch">
+          <Separator className="w-[600px] -ml-4 "/>
+          <div className="inline-flex items-center">
+            <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
+              {Array.from(priceData.tokenPrices).map((token) => 
+                <>
+                {token[0]?.name &&
+                <div className="inline-flex items-center px-2 gap-1.5">
+                  <img src={token[0].logoURI} className={"w-6 h-6"} />
+                  <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1].instant.toHuman()).toFixed(2)}`}</span>   
+                </div>
+                }
+                </>
+              )}
+            </div>
+            <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
+              {Array.from(priceData.tokenPrices).map((token) => 
+                <>
+                {token[0]?.name &&
+                <div className="inline-flex items-center px-2 gap-1.5">
+                  <img src={token[0].logoURI} className={"w-6 h-6"} />
+                  <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1].instant.toHuman()).toFixed(2)}`}</span>   
+                </div>
+                }
+                </>
+              )}
+            </div>
+            <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
+              {Array.from(priceData.tokenPrices).map((token) => 
+                <>
+                {token[0]?.name &&
+                <div className="inline-flex items-center px-2 gap-1.5">
+                  <img src={token[0].logoURI} className={"w-6 h-6"} />
+                  <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1].instant.toHuman()).toFixed(2)}`}</span>   
+                </div>
+                }
+                </>
+              )}
+            </div>
+          </div>
+        </CardFooter>
       </Card>
       </>
     )
