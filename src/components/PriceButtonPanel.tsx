@@ -42,8 +42,11 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
                 <img src={pintoIconOriginal} className={"w-9 h-9"} />
                 <span className={"text-[2rem]"}>${priceData.price.toHuman("short")}</span>
               </div>
-              <div className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] text-pinto-green font-[400] text-[0.875rem]">
+              <div className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] text-pinto-green font-[400] text-[0.875rem] inline-flex items-center gap-1">
                 Total deltaP: {Number(priceData.deltaB.toHuman()).toFixed(2)}
+                <span className="text-pinto-green -mt-1">
+                  <InfoIcon color={"currentColor"} />
+                </span>
               </div>
             </div>
             <div className="flex flex-row relative mt-4">
@@ -133,7 +136,12 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
                     </div>
                     <div className={`flex flex-row gap-4 justify-center ${expandAll ? 'mb-0' : '-mb-10 group-hover:mb-0'} transition-all`}>
                       <div className="px-2 py-0.5 h-6 bg-pinto-gray-blue rounded-[0.25rem] text-black font-[400] text-[0.875rem]">Total Liquidity: ${pool.liquidity.toHuman("short")}</div>
-                      <div className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] text-pinto-green font-[400] text-[0.875rem]">deltaP: {Number(pool.deltaB.toHuman()).toFixed(0)}</div>
+                      <div className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] text-pinto-green font-[400] text-[0.875rem] inline-flex items-center gap-1">
+                        deltaP: {Number(pool.deltaB.toHuman()).toFixed(0)}
+                        <span className="text-pinto-green -mt-0.5">
+                          <InfoIcon color={"currentColor"} />
+                        </span>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
