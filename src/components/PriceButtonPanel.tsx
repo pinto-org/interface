@@ -2,9 +2,13 @@ import { usePriceData } from "@/state/usePriceData";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
 import { TokenValue } from "@/classes/TokenValue";
 import useTokenData from "@/state/useTokenData";
-import { ExternalLinkIcon } from "./Icons";
+import { ExternalLinkIcon, GearIcon, InfoIcon } from "./Icons";
 import { Separator } from "./ui/Separator";
 import pintoIconOriginal from "@/assets/tokens/Pinto.png";
+import backArrowIcon from "@/assets/misc/LeftArrow.svg";
+import { useState } from "react";
+import { Button } from "./ui/Button";
+import { Switch } from "./ui/Switch";
 
 export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
 
@@ -17,11 +21,21 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
          
     const totalDeltaBar = (priceData.deltaB).div(totalMainTokens.gt(0) ? totalMainTokens : 1).mul(-100);
 
+    const [showSettings, setShowSettings] = useState(false);
+    const [useTwa, setUseTwa] = useState(false);
+    const [expandAll, setExpandAll] = useState(false);
+
     return (
       <Card className={`absolute top-[5rem] transition-all ${isOpen ? 'left-[1.5rem]' : '-left-[100%]'} w-[38rem] overflow-clip max-h-[calc(100vh-9rem)] z-[5]`}>
-        <CardHeader>
+        <CardHeader className="transition-all">
+          {!showSettings ?
             <div className="pb-4">
-            <div className="font-[400] text-[1.25rem] text-black">Price of Pinto</div>
+            <div className="flex flex-row justify-between items-center">
+              <div className="font-[400] text-[1.25rem] text-black">Price of Pinto</div>
+              <span className="text-pinto-gray-4 hover:text-black transition-colors hover:cursor-pointer" onClick={() => setShowSettings(!showSettings)}>
+                <GearIcon color={"currentColor"} height={20} width={20} />
+              </span>
+            </div>
             <div className="font-[300] text-[1.25rem] text-pinto-gray-4">The Pinto price is determined by the ratio and value of assets in each liquidity pool.</div>
             <div className="flex flex-row justify-between items-center mt-4">
               <div className="font-[400] text-[1.25rem] text-black inline-flex gap-1.5 items-center">
@@ -54,9 +68,17 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
               </div>
             </div>
             </div>
+          : <div>
+              <Button asChild variant={'outline'} className="rounded-full h-12 w-12 p-0" onClick={() => setShowSettings(!showSettings)}>
+                <img src={backArrowIcon} />
+              </Button>
+              <div className="text-black text-[1.25rem] my-2 font-[500]">Settings</div>
+            </div> 
+          }
             <Separator className="w-[38rem] -ml-4"/>
         </CardHeader>
         <CardContent className="overflow-y-auto pt-0 -mt-4 mb-16 max-h-[calc(100vh-28rem)]">
+            {!showSettings ? 
             <div className="flex flex-col gap-4 mt-4">
             {priceData.pools.map((pool) => {
               const token0Price = pool.tokens[0].isMain ? priceData.price : priceData.tokenPrices.get(pool.tokens[0])?.instant || TokenValue.ZERO;
@@ -119,6 +141,31 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
             }
             )}
             </div>
+            : 
+            <div className="flex flex-col gap-4 mt-4 mr-2">
+              <div className="flex flex-row justify-between h-14 items-center">
+                <div className="text-black font-[400] text-[1.25rem] inline-flex items-center gap-1.5">
+                  Use time-weighted average values
+                  <span className="text-pinto-green">
+                    <InfoIcon color={"currentColor"} />
+                  </span>
+                </div>
+                <Switch 
+                  checked={useTwa}
+                  onCheckedChange={() => setUseTwa(!useTwa)}
+                  className="scale-[1.5]"
+                />
+              </div>
+              <div className="flex flex-row justify-between h-14 items-center">
+                <div className="text-black font-[400] text-[1.25rem]">Show deltaP and total liquidity on all Wells</div>
+                <Switch 
+                  checked={expandAll}
+                  onCheckedChange={() => setExpandAll(!expandAll)}
+                  className="scale-[1.5]"
+                />
+              </div>
+            </div>
+            }
         </CardContent>
         <CardFooter className="flex flex-col absolute bottom-0 bg-pinto-gray-1 pb-4 items-stretch">
           <Separator className="w-[38rem] -ml-4 "/>
