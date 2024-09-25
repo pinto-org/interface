@@ -27,7 +27,7 @@ export default function PriceButton() {
         <span>${priceData.price.toHuman("short")}</span>
         <img src={chevronDown} className="h-4 w-4" />
       </Button>
-      <Card className="absolute top-10 w-[600px]">
+      <Card className="absolute top-10 w-[600px] overflow-clip">
         <CardContent>
           <div className="pt-4 pl pb-4">
             <div className="font-[400] text-[1.25rem] text-black">Price of Pinto</div>
@@ -41,7 +41,7 @@ export default function PriceButton() {
                 Total deltaP: {Number(priceData.deltaB.toHuman()).toFixed(2)}
               </div>
             </div>
-            <div className="flex flex-row relative">
+            <div className="flex flex-row relative mt-4">
               <div className={"h-2 rounded-l-[0.5rem] bg-pinto"} style={{ width: `${Number(totalDeltaBar.add(50).toHuman())}%` }} />
               <div className={"h-2 w-full relative flex flex-row rounded-r-[0.5rem] overflow-clip bg-red-500"} style={{ width: `${totalDeltaBar.add(50).sub(100).abs().toHuman()}%` }}>
                 {priceData.pools.map((pool, i) => {                  
@@ -127,17 +127,43 @@ export default function PriceButton() {
             )}
             </div>
             <Separator className="w-[599px] -ml-4 mt-4"/>
-            <div className="flex flex-row gap-4 mt-4">
-              {Array.from(priceData.tokenPrices).map((token) => 
-                <>
-                {token[0]?.name &&
-                <div className="flex flex-row gap-1 items-center">
-                  <img src={token[0].logoURI} className={"w-6 h-6"} />
-                  <div className="font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1].instant.toHuman()).toFixed(2)}`}</div>
-                </div>
-                }
-                </>
-              )}
+            <div className="inline-flex">
+              <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
+                {Array.from(priceData.tokenPrices).map((token) => 
+                  <>
+                  {token[0]?.name &&
+                  <div className="inline-flex items-center px-2 gap-1.5">
+                    <img src={token[0].logoURI} className={"w-6 h-6"} />
+                    <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1].instant.toHuman()).toFixed(2)}`}</span>   
+                  </div>
+                  }
+                  </>
+                )}
+              </div>
+              <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
+                {Array.from(priceData.tokenPrices).map((token) => 
+                  <>
+                  {token[0]?.name &&
+                  <div className="inline-flex items-center px-2 gap-1.5">
+                    <img src={token[0].logoURI} className={"w-6 h-6"} />
+                    <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1].instant.toHuman()).toFixed(2)}`}</span>   
+                  </div>
+                  }
+                  </>
+                )}
+              </div>
+              <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
+                {Array.from(priceData.tokenPrices).map((token) => 
+                  <>
+                  {token[0]?.name &&
+                  <div className="inline-flex items-center px-2 gap-1.5">
+                    <img src={token[0].logoURI} className={"w-6 h-6"} />
+                    <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1].instant.toHuman()).toFixed(2)}`}</span>   
+                  </div>
+                  }
+                  </>
+                )}
+              </div>
             </div>
         </CardContent>
       </Card>
