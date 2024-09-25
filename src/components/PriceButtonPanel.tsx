@@ -84,14 +84,14 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
             {!showSettings ? 
             <div className="flex flex-col gap-4 mt-4">
             {priceData.pools.map((pool) => {
-              const token0Price = pool.tokens[0].isMain ? priceData.price : priceData.tokenPrices.get(pool.tokens[0])?.[useTwa ? 'twa' : 'instant'] || TokenValue.ZERO;
-              const token1Price = pool.tokens[1].isMain ? priceData.price : priceData.tokenPrices.get(pool.tokens[1])?.[useTwa ? 'twa' : 'instant'] || TokenValue.ZERO;
+              const isWhitelisted = tokenData.whitelistedTokens.findIndex((token) => token?.address.toLowerCase() === pool.pool?.address.toLowerCase()) > -1;
+              if (!isWhitelisted) return;
+              const token0Price = pool.tokens[0].isMain ? priceData.price : useTwa ? priceData.tokenPrices.get(pool.tokens[0])?.twa : priceData.tokenPrices.get(pool.tokens[0])?.instant || TokenValue.ZERO;
+              const token1Price = pool.tokens[1].isMain ? priceData.price : useTwa ? priceData.tokenPrices.get(pool.tokens[1])?.twa : priceData.tokenPrices.get(pool.tokens[1])?.instant || TokenValue.ZERO;
               const token0BalanceUsd = pool.balances[0].mul(token0Price) || 0n;
               const token1BalanceUsd = pool.balances[1].mul(token1Price) || 0n;
               const mainTokenIndex = pool.tokens.findIndex((token) => token.isMain);
-              const isWhitelisted = tokenData.whitelistedTokens.findIndex((token) => token?.address.toLowerCase() === pool.pool?.address.toLowerCase()) > -1;
               const deltaBar = Number((pool.deltaB.abs()).div(pool.balances[mainTokenIndex]).mul(100).toHuman()).toFixed(2);
-              if (!isWhitelisted) return;
               return (
                 <Card className="overflow-clip group hover:border-pinto-green-2">
                   <CardContent className="p-4 bg-white flex flex-col gap-4">
