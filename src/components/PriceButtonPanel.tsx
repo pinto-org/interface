@@ -69,7 +69,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
             </div>
             </div>
           : <div>
-              <Button asChild variant={'outline'} className="rounded-full h-12 w-12 p-0" onClick={() => setShowSettings(!showSettings)}>
+              <Button asChild variant={'outline'} className="rounded-full h-12 w-12 p-0 hover:cursor-pointer" onClick={() => setShowSettings(!showSettings)}>
                 <img src={backArrowIcon} />
               </Button>
               <div className="text-black text-[1.25rem] my-2 font-[500]">Settings</div>
@@ -81,8 +81,8 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
             {!showSettings ? 
             <div className="flex flex-col gap-4 mt-4">
             {priceData.pools.map((pool) => {
-              const token0Price = pool.tokens[0].isMain ? priceData.price : priceData.tokenPrices.get(pool.tokens[0])?.instant || TokenValue.ZERO;
-              const token1Price = pool.tokens[1].isMain ? priceData.price : priceData.tokenPrices.get(pool.tokens[1])?.instant || TokenValue.ZERO;
+              const token0Price = pool.tokens[0].isMain ? priceData.price : priceData.tokenPrices.get(pool.tokens[0])?.[useTwa ? 'twa' : 'instant'] || TokenValue.ZERO;
+              const token1Price = pool.tokens[1].isMain ? priceData.price : priceData.tokenPrices.get(pool.tokens[1])?.[useTwa ? 'twa' : 'instant'] || TokenValue.ZERO;
               const token0BalanceUsd = pool.balances[0].mul(token0Price) || 0n;
               const token1BalanceUsd = pool.balances[1].mul(token1Price) || 0n;
               const mainTokenIndex = pool.tokens.findIndex((token) => token.isMain);
@@ -131,7 +131,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
                         </span>
                       </div>
                     </div>
-                    <div className="flex flex-row gap-4 justify-center -mb-10 group-hover:mb-0 transition-all">
+                    <div className={`flex flex-row gap-4 justify-center ${expandAll ? 'mb-0' : '-mb-10 group-hover:mb-0'} transition-all`}>
                       <div className="px-2 py-0.5 h-6 bg-pinto-gray-blue rounded-[0.25rem] text-black font-[400] text-[0.875rem]">Total Liquidity: ${pool.liquidity.toHuman("short")}</div>
                       <div className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] text-pinto-green font-[400] text-[0.875rem]">deltaP: {Number(pool.deltaB.toHuman()).toFixed(0)}</div>
                     </div>
@@ -176,7 +176,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
                 {token[0]?.name &&
                 <div className="inline-flex items-center px-2 gap-1.5">
                   <img src={token[0].logoURI} className={"w-6 h-6"} />
-                  <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1].instant.toHuman()).toFixed(2)}`}</span>   
+                  <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1][useTwa ? 'twa' : 'instant'].toHuman()).toFixed(2)}`}</span>   
                 </div>
                 }
                 </>
@@ -188,7 +188,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
                 {token[0]?.name &&
                 <div className="inline-flex items-center px-2 gap-1.5">
                   <img src={token[0].logoURI} className={"w-6 h-6"} />
-                  <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1].instant.toHuman()).toFixed(2)}`}</span>   
+                  <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1][useTwa ? 'twa' : 'instant'].toHuman()).toFixed(2)}`}</span>   
                 </div>
                 }
                 </>
@@ -200,7 +200,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
                 {token[0]?.name &&
                 <div className="inline-flex items-center px-2 gap-1.5">
                   <img src={token[0].logoURI} className={"w-6 h-6"} />
-                  <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1].instant.toHuman()).toFixed(2)}`}</span>   
+                  <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1][useTwa ? 'twa' : 'instant'].toHuman()).toFixed(2)}`}</span>   
                 </div>
                 }
                 </>
