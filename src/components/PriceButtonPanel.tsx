@@ -2,13 +2,14 @@ import { usePriceData } from "@/state/usePriceData";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
 import { TokenValue } from "@/classes/TokenValue";
 import useTokenData from "@/state/useTokenData";
-import { ExternalLinkIcon, ForwardArrowIcon, GearIcon, InfoIcon } from "./Icons";
+import { ExternalLinkIcon, ForwardArrowIcon, GearIcon } from "./Icons";
 import { Separator } from "./ui/Separator";
 import pintoIconOriginal from "@/assets/tokens/Pinto.png";
 import backArrowIcon from "@/assets/misc/LeftArrow.svg";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "./ui/Button";
 import { Switch } from "./ui/Switch";
+import TooltipSimple from "./TooltipSimple";
 
 export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
 
@@ -87,9 +88,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
               </div>
               <div className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] text-pinto-green font-[400] text-[0.875rem] inline-flex items-center gap-1">
                 Total deltaP: {Number(priceData.deltaB.toHuman()).toFixed(2)}
-                <span className="text-pinto-green">
-                  <InfoIcon color={"currentColor"} />
-                </span>
+                <TooltipSimple />
               </div>
             </div>
             <div className="flex flex-row relative mt-4">
@@ -214,9 +213,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
                       <div className="px-2 py-0.5 h-6 bg-pinto-gray-blue rounded-[0.25rem] text-black font-[400] text-[0.875rem]">Total Liquidity: ${pool.liquidity.toHuman("short")}</div>
                       <div className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] text-pinto-green font-[400] text-[0.875rem] inline-flex items-center gap-1">
                         deltaP: {Number(pool.deltaB.toHuman()).toFixed(0)}
-                        <span className="text-pinto-green">
-                          <InfoIcon color={"currentColor"} />
-                        </span>
+                        <TooltipSimple />
                       </div>
                     </div>
                   </CardContent>
@@ -243,9 +240,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
               <div className="flex flex-row justify-between h-14 items-center">
                 <div className="text-black font-[400] text-[1.25rem] inline-flex items-center gap-1.5">
                   Use time-weighted average values
-                  <span className="text-pinto-green">
-                    <InfoIcon color={"currentColor"} />
-                  </span>
+                  <TooltipSimple  />
                 </div>
                 <Switch 
                   checked={useTwa}

@@ -4,10 +4,16 @@ import sunIcon from "@/assets/protocol/Sun.png";
 import pintoIcon from "@/assets/tokens/Pinto.png";
 import { Separator } from "./ui/Separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/Table";
+import TooltipSimple from "./TooltipSimple";
+import useFieldSnapshots from "@/state/useFieldSnapshots";
+import useSiloSnapshots from "@/state/useSiloSnapshots";
+import { TokenValue } from "@/classes/TokenValue";
 
 export default function SeasonsButtonPanel({isOpen = false}: {isOpen: boolean}) {
 
     const sunData = useSunData();
+    const fieldSnapshots = useFieldSnapshots();
+    const siloSnapshots = useSiloSnapshots();
 
     return (
         <Card className={`absolute top-[5rem] transition-all ${isOpen ? 'left-[1.5rem]' : '-left-[100%]'} w-[60rem] overflow-clip max-h-[calc(100vh-9rem)] z-[51]`}>
@@ -30,47 +36,60 @@ export default function SeasonsButtonPanel({isOpen = false}: {isOpen: boolean}) 
             <Table>
                 <TableHeader className="[&_tr]:border-0">
                     <TableRow className="h-14 border-0">
-                        <TableHead className="text-black font-[400] text-[1rem] w-1/4 p-4">Season</TableHead>
-                        <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4">Pinto Supply</TableHead>
-                        <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4">Silo Adjustments</TableHead>
-                        <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4 p-4">Field Adjustments</TableHead>
+                        <TableHead className="text-black font-[400] text-[1rem] w-[15%] p-4">Season</TableHead>
+                        <TableHead className="text-black text-right font-[400] text-[1rem] w-[25%]">Pinto Supply</TableHead>
+                        <TableHead className="text-black text-right font-[400] text-[1rem] w-[25%]">Silo Adjustments</TableHead>
+                        <TableHead className="text-black text-right font-[400] text-[1rem] w-[35%] p-4" colSpan={2}>Field Adjustments</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    <TableRow className="h-[4.5rem] bg-white hover:bg-white">
-                        <TableCell className="text-black font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">
-                            25000
-                        </TableCell>
-                        <TableCell className="text-right">
-                            <div className="flex flex-col items-end">
-                                <div className="inline-flex gap-1 text-[1rem]">
-                                    <span>+</span>
-                                    <img src={pintoIcon} className="w-4 h-4" />
-                                    <span>{10000}</span>
+                    {fieldSnapshots?.map((snapshot, i) => {
+                        const mints = siloSnapshots ? snapshot.season === siloSnapshots[i]?.season ? siloSnapshots[i]?.deltaBeanMints : TokenValue.ZERO : TokenValue.ZERO; 
+                        return (
+                            <TableRow className="h-[4.5rem] bg-white hover:bg-white border-0">
+                            <TableCell className="text-black font-[400] text-[1rem] pl-4 items-center">
+                                {snapshot.season}
+                            </TableCell>
+                            <TableCell className="text-right">
+                                <div className="flex flex-col items-end">
+                                    <div className={`inline-flex gap-1 text-[1rem] items-center ${mints.gt(0) ? 'text-pinto-green-2' : ''}`}>
+                                        {mints.gt(0) && <span>+</span>}
+                                        <img src={pintoIcon} className="w-4 h-4" />
+                                        <span>{Number(mints.toHuman()).toFixed(0)}</span>
+                                    </div>
+                                    <span className="text-[0.875rem] font-[300] text-pinto-gray-4">New Pinto</span>
                                 </div>
-                                <span className="text-[0.875rem] font-[300] text-pinto-gray-4">New Pinto</span>
-                            </div>
-                        </TableCell>
-                        <TableCell className="text-black font-[400] text-[1rem] text-right">
-                            -
-                        </TableCell>
-                        <TableCell className="text-black font-[400] text-[1rem] text-right p-4">
-                            <div className="flex flex-row gap-4 justify-end">
-                                <div className="flex flex-col">
-                                    +100
-                                    <span className="text-[0.875rem] font-[300] text-pinto-gray-4">
-                                        New Pinto
-                                    </span>
+                            </TableCell>
+                            <TableCell className="text-black font-[400] text-[1rem] text-right">
+                                -
+                            </TableCell>    
+                            <TableCell className="text-black font-[400] text-[1rem] text-right pr-4">
+                                <div className="flex flex-row gap-4 justify-end">
+                                    <div className="flex flex-col w-[60%]">
+                                        {`${snapshot.deltaSoil.gt(0) ? '+ ' : snapshot.deltaSoil.lt(0) ? '- ' : ''}${Number(snapshot.deltaSoil.abs().toHuman()).toFixed(0)}`}
+                                        <span className="text-[0.875rem] font-[300] text-pinto-gray-4 inline-flex gap-0.5 items-center justify-end">
+                                            New Soil
+                                            <TooltipSimple variant="gray" />
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col w-[50%]">
+                                        <span className="inline-flex gap-2 justify-end">
+                                        {`${snapshot.temperature.toFixed(0)}% `}
+                                            <span className="text-pinto-gray-4">
+                                                {`(${snapshot.deltaTemperature > 0 ? '+' : snapshot.deltaTemperature < 0 ? '-' : ''}${snapshot.deltaTemperature.toFixed(0)}%)`}
+                                            </span>
+                                        </span>
+                                        <span className="text-[0.875rem] font-[300] text-pinto-gray-4 inline-flex gap-0.5 items-center justify-end">
+                                            Temperature
+                                            <TooltipSimple variant="gray" />
+                                        </span>
+                                    </div>
                                 </div>
-                                <div className="flex flex-col">
-                                    62% -3%
-                                    <span className="text-[0.875rem] font-[300] text-pinto-gray-4">
-                                        Temperature
-                                    </span>
-                                </div>
-                            </div>
-                        </TableCell>
-                    </TableRow>
+                            </TableCell>
+                        </TableRow>
+                        )
+                    }
+                    )}
                 </TableBody>
             </Table>
             </CardContent>

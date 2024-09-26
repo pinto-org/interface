@@ -3,7 +3,6 @@ import stalkIcon from "@/assets/protocol/Stalk-variant.png";
 import seedIcon from "@/assets/protocol/Seed-variant.png";
 import podIcon from "@/assets/protocol/Pod-variant.png";
 import pdvIcon from "@/assets/protocol/PDV.png";
-import tooltipIcon from "@/assets/misc/Tooltip-default.png";
 import TooltipSimple from "./TooltipSimple";
 import { ReactNode } from "react";
 
@@ -70,9 +69,7 @@ export default function StatPanel({ mode, mainValue = TokenValue.ZERO, secondary
                             }
                         </div>
                         {tooltipContent &&
-                            <TooltipSimple content={tooltipContent}>
-                                <img src={tooltipIcon} className={"h-4 w-4"} />
-                            </TooltipSimple>
+                            <TooltipSimple content={tooltipContent} />
                         }
                     </>
                 }
@@ -90,9 +87,7 @@ export default function StatPanel({ mode, mainValue = TokenValue.ZERO, secondary
                             }
                         </div>
                         {tooltipContent &&
-                            <TooltipSimple content={tooltipContent}>
-                                <img src={tooltipIcon} className={"h-4 w-4"} />
-                            </TooltipSimple>
+                            <TooltipSimple content={tooltipContent} />
                         }
                     </>
                 }
@@ -100,9 +95,7 @@ export default function StatPanel({ mode, mainValue = TokenValue.ZERO, secondary
                     <>
                         <div className="text-[1.25rem] text-pinto-gray-4 font-[300] leading-none">Next position in line: {secondaryValue.toHuman('short')}</div>
                         {tooltipContent &&
-                            <TooltipSimple content={tooltipContent}>
-                                <img src={tooltipIcon} className={"h-4 w-4"} />
-                            </TooltipSimple>
+                            <TooltipSimple content={tooltipContent} />
                         }
                     </>
                 }

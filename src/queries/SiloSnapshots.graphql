@@ -1,0 +1,6 @@
+query SiloSnapshots($first: Int!) {
+  siloHourlySnapshots(first: $first, orderBy: season, orderDirection: desc) {
+    deltaBeanMints
+    season
+  }
+}

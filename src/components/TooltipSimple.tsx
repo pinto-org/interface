@@ -5,20 +5,30 @@ import {
     TooltipProvider,
     TooltipTrigger,
   } from "@/components/ui/Tooltip"
+import { InfoOutlinedIcon, InfoSolidIcon } from './Icons';
   
   interface ParentComponentProps {
-    children: ReactNode;
-    content: ReactNode;
+    variant?: "pinto" | "gray" | "outlined"
+    children?: ReactNode;
+    content?: ReactNode;
     props?: [x: string];
   }
 
-export default function TooltipSimple({children, content, ...props}: ParentComponentProps) {
+export default function TooltipSimple({variant = "pinto", children, content, ...props}: ParentComponentProps) {
 
     return (
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-              {children}
+              {children ||
+                <span className={`${variant === "pinto" ? 'text-pinto' : 'text-pinto-gray-4'}`}>
+                  {(variant === "pinto" ||  variant === "gray") ?
+                    <InfoSolidIcon color={"currentColor"} />
+                    :
+                    <InfoOutlinedIcon color={"currentColor"} />
+                  }
+                </span> 
+              }
           </TooltipTrigger>
           <TooltipContent {...props}>
             {content}
