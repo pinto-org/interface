@@ -250,7 +250,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
                 <Switch 
                   checked={useTwa}
                   onCheckedChange={() => setUseTwa(!useTwa)}
-                  className="scale-[1.5]"
+                  className="scale-[1.5] border-[1px]"
                 />
               </div>
               <div className="flex flex-row justify-between h-14 items-center">
@@ -258,7 +258,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
                 <Switch 
                   checked={expandAll}
                   onCheckedChange={() => setExpandAll(!expandAll)}
-                  className="scale-[1.5]"
+                  className="scale-[1.5] border-[1px]"
                 />
               </div>
             </div>
