@@ -24,3 +24,10 @@ export const InfoIcon = ({ color = "#246645", width = 16, height = 16 }: SVGProp
     <path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 8v3.333M7.999 5.333A.167.167 0 1 0 8 5.666.167.167 0 0 0 8 5.334"/>
   </svg>
 );
+
+export const ForwardArrowIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: SVGProps) => (
+  <svg width={width} height={height} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10.6673 7L8.00065 4.33333L5.33398 7" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M11.3337 11.6666L8.00033 8.33329L4.66699 11.6666" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+);

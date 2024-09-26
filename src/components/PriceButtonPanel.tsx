@@ -2,11 +2,11 @@ import { usePriceData } from "@/state/usePriceData";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
 import { TokenValue } from "@/classes/TokenValue";
 import useTokenData from "@/state/useTokenData";
-import { ExternalLinkIcon, GearIcon, InfoIcon } from "./Icons";
+import { ExternalLinkIcon, ForwardArrowIcon, GearIcon, InfoIcon } from "./Icons";
 import { Separator } from "./ui/Separator";
 import pintoIconOriginal from "@/assets/tokens/Pinto.png";
 import backArrowIcon from "@/assets/misc/LeftArrow.svg";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "./ui/Button";
 import { Switch } from "./ui/Switch";
 
@@ -24,6 +24,49 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
     const [showSettings, setShowSettings] = useState(false);
     const [useTwa, setUseTwa] = useState(false);
     const [expandAll, setExpandAll] = useState(false);
+    const [showPrices, setShowPrices] = useState(false);
+
+    const tokenPanelRef = useRef<HTMLButtonElement>(null);
+    const [isOverlapping, setIsOverlapping] = useState(false);
+
+    useEffect(() => {
+      const handleMouseMove = (event: MouseEvent) => {
+        if (tokenPanelRef.current) {
+          const rect = tokenPanelRef.current.getBoundingClientRect();
+          const isOverlap = (
+            event.clientX >= rect.left &&
+            event.clientX <= rect.right &&
+            event.clientY >= rect.top &&
+            event.clientY <= rect.bottom
+          );
+          setIsOverlapping(isOverlap);
+        }
+      };
+
+      const handleMouseClick = (event: MouseEvent) => {
+        if (tokenPanelRef.current) {
+          const rect = tokenPanelRef.current.getBoundingClientRect();
+          const isOverlap = (
+            event.clientX >= rect.left &&
+            event.clientX <= rect.right &&
+            event.clientY >= rect.top &&
+            event.clientY <= rect.bottom
+          );
+          if (isOverlap) {
+            setShowPrices(true);
+            setIsOverlapping(false);
+          };
+        }
+      };
+  
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('click', handleMouseClick);
+  
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('click', handleMouseClick);
+      };
+    }, []);
 
     return (
       <Card className={`absolute top-[5rem] transition-all ${isOpen ? 'left-[1.5rem]' : '-left-[100%]'} w-[38rem] overflow-clip max-h-[calc(100vh-9rem)] z-[5]`}>
@@ -44,7 +87,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
               </div>
               <div className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] text-pinto-green font-[400] text-[0.875rem] inline-flex items-center gap-1">
                 Total deltaP: {Number(priceData.deltaB.toHuman()).toFixed(2)}
-                <span className="text-pinto-green -mt-1">
+                <span className="text-pinto-green">
                   <InfoIcon color={"currentColor"} />
                 </span>
               </div>
@@ -80,9 +123,21 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
           }
             <Separator className="w-[38rem] -ml-4"/>
         </CardHeader>
-        <CardContent className="overflow-y-auto pt-0 -mt-4 mb-16 max-h-[calc(100vh-28rem)]">
+        <CardContent className={`overflow-y-auto pt-0 -mt-4 mb-16 max-h-[calc(100vh-28rem)] ${isOverlapping && 'hover: cursor-pointer'}`}>
             {!showSettings ? 
-            <div className="flex flex-col gap-4 mt-4">
+            <div className="flex flex-col gap-4 mt-4 relative">
+              {showPrices && 
+                <Button 
+                  asChild 
+                  variant={'outline'} 
+                  className={`h-8 w-full p-0 border-0 hover:cursor-pointer shadow-none`} 
+                  onClick={() => setShowPrices(false)}
+                >
+                  <span className="text-black rotate-180">
+                    <ForwardArrowIcon color={"currentColor"} />
+                  </span>
+                </Button>
+              }
             {priceData.pools.map((pool) => {
               const isWhitelisted = tokenData.whitelistedTokens.findIndex((token) => token?.address.toLowerCase() === pool.pool?.address.toLowerCase()) > -1;
               if (!isWhitelisted) return;
@@ -91,7 +146,28 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
               const token0BalanceUsd = pool.balances[0].mul(token0Price) || 0n;
               const token1BalanceUsd = pool.balances[1].mul(token1Price) || 0n;
               const mainTokenIndex = pool.tokens.findIndex((token) => token.isMain);
+              const backingTokenIndex = pool.tokens.findIndex((token) => !token.isMain);
               const deltaBar = Number((pool.deltaB.abs()).div(pool.balances[mainTokenIndex]).mul(100).toHuman()).toFixed(2);
+              
+              if (showPrices) {
+                return (
+                    <div className="flex flex-row justify-between">
+                      <div className="inline-flex gap-4 items-center">
+                        <img src={pool.tokens[backingTokenIndex].logoURI} className="w-12 h-12" />
+                        <span className="text-pinto-gray-5 text-[1.25rem] font-[400]">{pool.tokens[backingTokenIndex].symbol}</span>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <div className="text-pinto-gray-5 text-[1.25rem] font-[400]">
+                          Current Price: ${Number(priceData.tokenPrices.get(pool.tokens[backingTokenIndex]).instant.toHuman()).toFixed(2)}
+                        </div>
+                        <div className="text-pinto-gray-4 text-[1rem] font-[400]">
+                          Time Weighted Average Price: ${Number(priceData.tokenPrices.get(pool.tokens[backingTokenIndex]).twa.toHuman()).toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                )
+              }
+              
               return (
                 <Card className="overflow-clip group hover:border-pinto-green-2">
                   <CardContent className="p-4 bg-white flex flex-col gap-4">
@@ -138,16 +214,29 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
                       <div className="px-2 py-0.5 h-6 bg-pinto-gray-blue rounded-[0.25rem] text-black font-[400] text-[0.875rem]">Total Liquidity: ${pool.liquidity.toHuman("short")}</div>
                       <div className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] text-pinto-green font-[400] text-[0.875rem] inline-flex items-center gap-1">
                         deltaP: {Number(pool.deltaB.toHuman()).toFixed(0)}
-                        <span className="text-pinto-green -mt-0.5">
+                        <span className="text-pinto-green">
                           <InfoIcon color={"currentColor"} />
                         </span>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-              )
+              );
             }
             )}
+            {!showPrices &&
+              <Button 
+                asChild 
+                variant={'outline'} 
+                className={`rounded-full pointer-events-none h-6 w-6 p-0 absolute bottom-4 left-[50%] shadow-xl -ml-[0.65rem] border-black ${isOverlapping && 'bg-pinto-gray-2'}`} 
+                onClick={() => setShowSettings(!showSettings)}
+                ref={tokenPanelRef}
+              >
+                <span className="text-black">
+                  <ForwardArrowIcon color={"currentColor"} />
+                </span>
+              </Button>
+            }
             </div>
             : 
             <div className="flex flex-col gap-4 mt-4 mr-2">
