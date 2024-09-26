@@ -3,26 +3,22 @@ import { Button } from "./ui/Button";
 import pintoIcon from "@/assets/tokens/Pinto-variant.png";
 import chevronDown from "@/assets/misc/ChevronDown.svg";
 import PriceButtonPanel from "./PriceButtonPanel";
-import { useState } from "react";
 
-export default function PriceButton() {
+export default function PriceButton({isOpen = false}: {isOpen: boolean}) {
 
     const priceData = usePriceData();
-    const [isOpen, setIsOpen] = useState(false);
 
     return (
       <>
       <Button 
-        onClick={() => setIsOpen(!isOpen)} 
         variant="outline" 
-        className={`font-[400] text-[1.25rem] h-10 z-[51] text-pinto-green hover:text-pinto-green rounded-full flex flex-row gap-2 ${isOpen && 'border-pinto-green'}`}
+        className={`font-[400] text-[1.25rem] h-10 text-pinto-green hover:text-pinto-green rounded-full flex flex-row gap-2 ${isOpen && 'border-pinto-green'}`}
       >
         <img src={pintoIcon} className="h-8 w-8 mt-1 drop-shadow-md" />
         <span>${Number(priceData.price.toHuman()).toFixed(4)}</span>
         <img src={chevronDown} className="h-4 w-4" />
       </Button>
       <PriceButtonPanel isOpen={isOpen} />
-      <div onClick={() => setIsOpen(false)} className={`fixed top-0 left-0 w-full h-full transition-all ${isOpen ? 'backdrop-blur-[2px] bg-white/50 pointer-events-auto' : 'pointer-events-none'} z-50`} />
       </>
     )
 }
