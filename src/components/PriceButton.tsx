@@ -4,7 +4,7 @@ import pintoIcon from "@/assets/tokens/Pinto-variant.png";
 import chevronDown from "@/assets/misc/ChevronDown.svg";
 import PriceButtonPanel from "./PriceButtonPanel";
 
-export default function PriceButton({isOpen = false}: {isOpen: boolean}) {
+export default function PriceButton({isOpen = false, togglePanel}: {isOpen: boolean, togglePanel: () => void}) {
 
     const priceData = usePriceData();
 
@@ -13,6 +13,7 @@ export default function PriceButton({isOpen = false}: {isOpen: boolean}) {
       <Button 
         variant="outline" 
         className={`font-[400] text-[1.25rem] h-10 text-pinto-green hover:text-pinto-green rounded-full flex flex-row gap-2 ${isOpen && 'border-pinto-green'}`}
+        onClick={() => togglePanel()}
       >
         <img src={pintoIcon} className="h-8 w-8 mt-1 drop-shadow-md" />
         <span>${Number(priceData.price.toHuman()).toFixed(4)}</span>

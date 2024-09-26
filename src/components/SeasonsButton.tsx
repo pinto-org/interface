@@ -4,7 +4,7 @@ import { useSunData } from "@/state/useSunData";
 import { Button } from "./ui/Button";
 import SeasonsButtonPanel from "./SeasonsButtonPanel";
 
-export default function SeasonsButton({isOpen = false}: {isOpen: boolean}) {
+export default function SeasonsButton({isOpen = false, togglePanel}: {isOpen: boolean, togglePanel: () => void}) {
 
     const sunData = useSunData();
 
@@ -13,6 +13,7 @@ export default function SeasonsButton({isOpen = false}: {isOpen: boolean}) {
         <Button 
           variant="outline" 
           className={`font-[400] text-[1.25rem] h-10 text-pinto-gray-5 hover:text-pinto-gray-5 rounded-full flex flex-row gap-2 ${isOpen && 'border-pinto-green'}`}
+          onClick={() => togglePanel()}
         >
           <img src={sunIcon} className="h-6 w-6" />
           <span>Season {sunData.current.toHuman()}</span>

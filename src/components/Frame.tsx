@@ -33,11 +33,11 @@ function Frame() {
   return (
     <div className="flex justify-between p-6">
       <div className="flex w-1/3 gap-2">
-        <span className={`${lastOpened === 'price' && 'z-[51]'}`} onClick={() => togglePanel('price')}>
-          <PriceButton isOpen={priceOpen} />
+        <span className={`${lastOpened === 'price' && 'z-[51]'}`}>
+          <PriceButton isOpen={priceOpen} togglePanel={() => togglePanel('price')}/>
         </span>
-        <span className={`${lastOpened === 'seasons' && 'z-[51]'}`} onClick={() => togglePanel('seasons')}>
-          <SeasonsButton isOpen={seasonsOpen} />
+        <span className={`${lastOpened === 'seasons' && 'z-[51]'}`}>
+          <SeasonsButton isOpen={seasonsOpen} togglePanel={() => togglePanel('seasons')} />
         </span>
       </div>
       <div className="flex w-1/3 justify-center">
