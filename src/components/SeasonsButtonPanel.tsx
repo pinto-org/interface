@@ -79,7 +79,14 @@ export default function SeasonsButtonPanel({isOpen = false}: {isOpen: boolean}) 
                                         {`${snapshot.deltaSoil.gt(0) ? '+ ' : snapshot.deltaSoil.lt(0) ? '- ' : ''}${Number(snapshot.deltaSoil.abs().toHuman()).toFixed(0)}`}
                                         <span className="text-[0.875rem] font-[300] text-pinto-gray-4 inline-flex gap-0.5 items-center justify-end">
                                             New Soil
-                                            <TooltipSimple variant="gray" />
+                                            <TooltipSimple variant="gray" 
+                                                content={
+                                                    <>
+                                                        <div className="text-left">Soil is the total number of Pinto that can be lent (Sown).</div>
+                                                        <div className="text-left text-pinto-gray-4">When the Pinto price is less than $1, the amount of Soil issued is set to the amount of excess Pinto.</div>
+                                                    </>
+                                                }
+                                            />
                                         </span>
                                     </div>
                                     <div className="flex flex-col w-[50%]">
@@ -91,7 +98,14 @@ export default function SeasonsButtonPanel({isOpen = false}: {isOpen: boolean}) 
                                         </span>
                                         <span className="text-[0.875rem] font-[300] text-pinto-gray-4 inline-flex gap-0.5 items-center justify-end">
                                             Max Temperature
-                                            <TooltipSimple variant="gray" />
+                                            <TooltipSimple variant="gray" 
+                                                content={
+                                                    <>
+                                                        <div className="text-left">Temperature is the interest rate for lending (Sowing) Pinto .</div>
+                                                        <div className="text-left text-pinto-gray-4">Sown Pinto are burned, reducing the Pinto supply.</div>
+                                                    </>
+                                                }
+                                            />
                                         </span>
                                     </div>
                                 </div>
