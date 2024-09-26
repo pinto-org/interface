@@ -69,7 +69,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
     }, []);
 
     return (
-      <Card className={`absolute top-[5rem] transition-all ${isOpen ? 'left-[1.5rem]' : '-left-[100%]'} w-[38rem] overflow-clip max-h-[calc(100vh-9rem)] z-[5]`}>
+      <Card className={`absolute top-[5rem] transition-all ${isOpen ? 'left-[1.5rem]' : '-left-[100%]'} w-[38rem] overflow-clip max-h-[calc(100vh-9rem)] z-[51]`}>
         <CardHeader className="transition-all">
           {!showSettings ?
             <div className="pb-4">
