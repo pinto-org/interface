@@ -8,6 +8,8 @@ import TooltipSimple from "./TooltipSimple";
 import useFieldSnapshots from "@/state/useFieldSnapshots";
 import useSiloSnapshots from "@/state/useSiloSnapshots";
 import { TokenValue } from "@/classes/TokenValue";
+import { Button } from "./ui/Button";
+import { ExternalLinkIcon } from "./Icons";
 
 export default function SeasonsButtonPanel({isOpen = false}: {isOpen: boolean}) {
 
@@ -18,17 +20,25 @@ export default function SeasonsButtonPanel({isOpen = false}: {isOpen: boolean}) 
     return (
         <Card className={`absolute top-[5rem] transition-all ${isOpen ? 'left-[1.5rem]' : '-left-[100%]'} w-[60rem] overflow-clip max-h-[calc(100vh-9rem)] z-[51]`}>
             <CardHeader>
-                <div className="flex flex-col gap-1 mb-2">
-                    <div className="font-[400] text-[1.25rem] text-black inline-flex gap-2 items-center">
-                        <img src={sunIcon} className={"w-6 h-6"} />
-                        Season {sunData.current.toHuman()}
+                <div className="flex flex-row justify-between">
+                    <div className="flex flex-col gap-1 mb-2">
+                        <div className="font-[400] text-[1.25rem] text-black inline-flex gap-2 items-center">
+                            <img src={sunIcon} className={"w-6 h-6"} />
+                            Season {sunData.current.toHuman()}
+                        </div>
+                        <div className="font-[300] text-[1rem] text-pinto-gray-4">
+                            Seasons are how Pinto keeps time. Each Season is about 1 hour.
+                        </div>
+                        <div className="font-[300] text-[1rem] text-pinto-gray-4">
+                            Pinto adjusts the supply and various incentives every Season to facilitate price stability.
+                        </div>
                     </div>
-                    <div className="font-[300] text-[1rem] text-pinto-gray-4">
-                        Seasons are how Pinto keeps time. Each Season is about 1 hour.
-                    </div>
-                    <div className="font-[300] text-[1rem] text-pinto-gray-4">
-                        Pinto adjusts the supply and various incentives every Season to facilitate price stability.
-                    </div>
+                    <Button asChild variant={'outline'} className="rounded-full hover:cursor-pointer self-center h-[2.625rem]">
+                        <a href={`/explorer`} target={"_blank"} className="text-pinto-gray-5 hover:cursor-pointer transition-all gap-2">
+                            View more data
+                            <ExternalLinkIcon color="currentColor" width={16} height={16} />
+                        </a>
+                    </Button>
                 </div>
                 <Separator className="w-[60rem] -ml-4" />
             </CardHeader>
