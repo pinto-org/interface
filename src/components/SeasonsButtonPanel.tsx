@@ -90,7 +90,7 @@ export default function SeasonsButtonPanel({isOpen = false}: {isOpen: boolean}) 
                                             </span>
                                         </span>
                                         <span className="text-[0.875rem] font-[300] text-pinto-gray-4 inline-flex gap-0.5 items-center justify-end">
-                                            Temperature
+                                            Max Temperature
                                             <TooltipSimple variant="gray" />
                                         </span>
                                     </div>
