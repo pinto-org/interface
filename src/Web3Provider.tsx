@@ -33,7 +33,7 @@ const config = createConfig(
       },
     },
     // Required API Keys
-    walletConnectProjectId: '',
+    walletConnectProjectId: 'my-project',
     // Required App Info
     appName: "Pinto",
     // Optional App Info
@@ -52,7 +52,28 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
   return (
     <WagmiProvider config={testConfig}>
       <QueryClientProvider client={queryClient}>
-        <ConnectKitProvider>{children}</ConnectKitProvider>
+        <ConnectKitProvider
+          customTheme={{
+            "--ck-font-family": "Pinto",
+            "--ck-border-radius": "24px",
+            "--ck-body-background": "#FCFCFC",
+            "--ck-modal-box-shadow": "0px 0px 0px 0.5px rgb(217, 217, 217)",
+            "--ck-overlay-backdrop-filter": "blur(2px)",
+            "--ck-overlay-background": "rgb(255 255 255 / 0.5)",
+            "--ck-primary-button-font-weight": "400",
+            "--ck-primary-button-box-shadow": "0px 0px 0px 0.5px rgb(217, 217, 217)",
+            "--ck-primary-button-background": "#FCFCFC",
+            "--ck-primary-button-hover-background": "rgb(217 217 217 / 0.5)",
+            "--ck-spinner-color" : "rgb(36 102 69)"
+          }}
+          options={{
+            avoidLayoutShift: true,
+            hideNoWalletCTA: true,
+            hideQuestionMarkCTA: true
+          }}
+        >
+          {children}
+        </ConnectKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
