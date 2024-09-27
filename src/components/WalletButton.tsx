@@ -16,7 +16,7 @@ export default function WalletButton({isOpen = false, togglePanel}: {isOpen: boo
       <Button 
         onClick={() => address ? togglePanel() : modal.setOpen(true)} 
         variant="outline" 
-        className={`font-[400] text-[1.25rem] h-10 text-pinto-gray-5 hover:text-pinto-gray-5 rounded-full flex flex-row gap-2 items-center`}
+        className={`font-[400] text-[1.25rem] h-10 text-pinto-gray-5 hover:text-pinto-gray-5 rounded-full flex flex-row gap-2 items-center ${isOpen && 'border-pinto-green'}`}
       >
         {ensAvatar && <Avatar address={address} size={28} />}
         <span>{ensName ? ensName : address ? `${address.substring(0, 7)}...${address.substring(38, 42)}` : "Connect"}</span>
