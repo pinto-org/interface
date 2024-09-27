@@ -6,9 +6,9 @@ interface SVGProps {
 
 export const ExternalLinkIcon = ({ color = "#9C9C9C", width = 24, height = 24 }: SVGProps) => (
   <svg width={width} height={height} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M21 13V18C21 19.6569 19.6569 21 18 21H6C4.34315 21 3 19.6569 3 18V6C3 4.34315 4.34315 3 6 3H11" stroke={color} stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M21 3L13.5 10.5" stroke={color} stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M21 8.5V3H15.5" stroke={color} stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M21 13V18C21 19.6569 19.6569 21 18 21H6C4.34315 21 3 19.6569 3 18V6C3 4.34315 4.34315 3 6 3H11" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M21 3L13.5 10.5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M21 8.5V3H15.5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 
@@ -20,21 +20,21 @@ export const GearIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: SVGProp
 
 export const InfoSolidIcon = ({ color = "#246645", width = 16, height = 16 }: SVGProps) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} fill="none" viewBox="0 0 16 16">
-    <path fill={color} fill-rule="evenodd" stroke={color} stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 14A6 6 0 1 1 8 2a6 6 0 0 1 0 12Z" clip-rule="evenodd"/>
-    <path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 8v3.333M7.999 5.333A.167.167 0 1 0 8 5.666.167.167 0 0 0 8 5.334"/>
+    <path fill={color} fillRule="evenodd" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 14A6 6 0 1 1 8 2a6 6 0 0 1 0 12Z" clipRule="evenodd"/>
+    <path stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 8v3.333M7.999 5.333A.167.167 0 1 0 8 5.666.167.167 0 0 0 8 5.334"/>
   </svg>
 );
 
 export const InfoOutlinedIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: SVGProps) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} fill="none" viewBox="0 0 16 16">
-    <path fill="#fff" fill-rule="evenodd" stroke={color} stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 14A6 6 0 1 1 8 2a6 6 0 0 1 0 12Z" clip-rule="evenodd"/>
-    <path stroke={color} stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 8v3.333M8 5.333A.167.167 0 1 0 8 5.666a.167.167 0 0 0-.002-.333"/>
+    <path fill="#fff" fillRule="evenodd" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 14A6 6 0 1 1 8 2a6 6 0 0 1 0 12Z" clipRule="evenodd"/>
+    <path stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 8v3.333M8 5.333A.167.167 0 1 0 8 5.666a.167.167 0 0 0-.002-.333"/>
   </svg>
 );
 
 export const ForwardArrowIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: SVGProps) => (
   <svg width={width} height={height} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M10.6673 7L8.00065 4.33333L5.33398 7" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M11.3337 11.6666L8.00033 8.33329L4.66699 11.6666" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M10.6673 7L8.00065 4.33333L5.33398 7" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M11.3337 11.6666L8.00033 8.33329L4.66699 11.6666" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
