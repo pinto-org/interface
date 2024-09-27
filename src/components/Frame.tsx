@@ -1,37 +1,37 @@
-import ConnectButton from "./ConnectButton";
 import Navi from "./Navi";
 import PriceButton from "./PriceButton";
 import SeasonsButton from "./SeasonsButton";
 import { useState } from "react";
+import WalletButton from "./WalletButton";
 
 function Frame() {
 
   const [priceOpen, setPriceOpen] = useState(false);
   const [seasonsOpen, setSeasonsOpen] = useState(false);
-  const [connectOpen, setConnectOpen] = useState(false);
-  const [lastOpened, setLastOpened] = useState<'price' | 'seasons' | 'connect' | undefined>();
+  const [walletOpen, setWalletOpen] = useState(false);
+  const [lastOpened, setLastOpened] = useState<'price' | 'seasons' | 'wallet' | undefined>();
 
-  const backdropActive = priceOpen || seasonsOpen
+  const backdropActive = priceOpen || seasonsOpen || walletOpen;
 
-  function togglePanel(panel: 'price' | 'seasons' | 'connect') {
+  function togglePanel(panel: 'price' | 'seasons' | 'wallet') {
     setLastOpened(panel);
     if (panel === 'price') {
       setPriceOpen(!priceOpen);
     } else if (panel === 'seasons') {
       setSeasonsOpen(!seasonsOpen);
-    } else if (panel === 'connect') {
-      setConnectOpen(!connectOpen);
+    } else if (panel === 'wallet') {
+      setWalletOpen(!walletOpen);
     };
   };
 
   function closePanel() {
     setPriceOpen(false)
     setSeasonsOpen(false)
-    setConnectOpen(false)
+    setWalletOpen(false)
   };
 
   return (
-    <div className="flex justify-between p-6">
+    <div className="flex justify-between p-6 relative overflow-x-clip">
       <div className="flex w-1/3 gap-2">
         <span className={`${lastOpened === 'price' && 'z-[51]'}`}>
           <PriceButton isOpen={priceOpen} togglePanel={() => togglePanel('price')}/>
@@ -44,8 +44,8 @@ function Frame() {
         <Navi />
       </div>
       <div className="flex w-1/3 justify-end">
-        <span className={`${lastOpened === 'connect' && 'z-[51]'}`} onClick={() => togglePanel('connect')}>
-          <ConnectButton />
+        <span className={`${lastOpened === 'wallet' && 'z-[51]'}`}>
+          <WalletButton isOpen={walletOpen} togglePanel={() => togglePanel('wallet')} />
         </span>
       </div>
       <div onClick={closePanel} className={`fixed top-0 left-0 w-full h-full transition-all ${backdropActive ? 'backdrop-blur-[2px] bg-white/50 pointer-events-auto' : 'pointer-events-none'} z-50`} />

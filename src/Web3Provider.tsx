@@ -9,9 +9,11 @@ import { mock } from "wagmi/connectors";
 export const anvilTestClient = 
   createTestClient({ mode: "anvil", chain: localhost, transport: http() })
   // alt test acc: 0xfe42972c584e442c3f0a49cb2930e55d5bf13ba7
+  // alt test acc: 0x43B9F935c798522aaaCB2bFEa2F407cE5A291e9D
+  // alt test acc: 0xe543357d4f0eb174cfc6bed6ef5e7ab5762f1b2b
   
 export const testConfig = createConfig({
-  connectors: [mock({ accounts: ["0xd8da6bf26964af9d7eed9e03e53415d37aa96045"] })],
+  connectors: [mock({ accounts: ["0xe543357d4f0eb174cfc6bed6ef5e7ab5762f1b2b"] })],
   chains: [localhost],
   client() {
     return anvilTestClient;
@@ -47,10 +49,10 @@ const queryClient = new QueryClient();
 
 export const Web3Provider = ({ children }: { children: ReactNode }) => {
 
-  anvilTestClient.impersonateAccount({ address: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045" });
+  anvilTestClient.impersonateAccount({ address: "0xe543357d4f0eb174cfc6bed6ef5e7ab5762f1b2b" });
   
   return (
-    <WagmiProvider config={config}>
+    <WagmiProvider config={testConfig}>
       <QueryClientProvider client={queryClient}>
         <ConnectKitProvider
           customTheme={{
