@@ -50,21 +50,27 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
   anvilTestClient.impersonateAccount({ address: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045" });
   
   return (
-    <WagmiProvider config={testConfig}>
+    <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <ConnectKitProvider
           customTheme={{
             "--ck-font-family": "Pinto",
             "--ck-border-radius": "24px",
             "--ck-body-background": "#FCFCFC",
-            "--ck-modal-box-shadow": "0px 0px 0px 0.5px rgb(217, 217, 217)",
+            "--ck-modal-box-shadow": "0px 0px 0px 1px rgb(217, 217, 217)",
             "--ck-overlay-backdrop-filter": "blur(2px)",
             "--ck-overlay-background": "rgb(255 255 255 / 0.5)",
             "--ck-primary-button-font-weight": "400",
-            "--ck-primary-button-box-shadow": "0px 0px 0px 0.5px rgb(217, 217, 217)",
+            "--ck-primary-button-box-shadow": "0px 0px 0px 1px rgb(217, 217, 217)",
             "--ck-primary-button-background": "#FCFCFC",
-            "--ck-primary-button-hover-background": "rgb(217 217 217 / 0.5)",
-            "--ck-spinner-color" : "rgb(36 102 69)"
+            "--ck-primary-button-hover-background": "#EBEBEB",
+            "--ck-secondary-button-background": "#FCFCFC",
+            "--ck-secondary-button-hover-background": "#EBEBEB",
+            "--ck-secondary-button-box-shadow": "0px 0px 0px 1px rgb(217, 217, 217)",
+            "--ck-spinner-color" : "rgb(36 102 69)",
+            "--ck-qr-border-color": "rgb(217, 217, 217)",
+            "--ck-qr-dot-color": "rgb(36 102 69)",
+            "--ck-body-divider": "rgb(217, 217, 217)"
           }}
           options={{
             avoidLayoutShift: true,
