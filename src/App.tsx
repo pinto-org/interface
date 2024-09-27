@@ -1,16 +1,12 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Frame from "./components/Frame";
 import Field from "./pages/Field";
-import { Market } from "./pages/Market";
 import Silo from "./pages/Silo";
-import StartPage from "./pages/StartPage";
 import Swap from "./pages/Swap";
-import { anvilTestClient } from "./wagmi";
 import Overview from "./pages/Overview";
 import SiloToken from "./pages/SiloToken";
 
 function App() {
-  anvilTestClient.impersonateAccount({ address: "0xe543357d4f0eb174cfc6bed6ef5e7ab5762f1b2b" });
 
   return (
     <BrowserRouter>
