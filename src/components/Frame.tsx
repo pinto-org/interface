@@ -31,7 +31,7 @@ function Frame() {
   };
 
   return (
-    <div className="flex justify-between p-6 relative overflow-x-clip">
+    <div className="flex justify-between p-6 fixed w-full overflow-x-clip bg-gradient-light">
       <div className="flex w-1/3 gap-2">
         <span className={`${lastOpened === 'price' && 'z-[51]'}`}>
           <PriceButton isOpen={priceOpen} togglePanel={() => togglePanel('price')}/>
