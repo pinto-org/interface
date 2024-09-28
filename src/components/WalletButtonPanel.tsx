@@ -132,17 +132,26 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
                         {totalBalance.external.eq(0) ? 
                         <div>You have no balance in your Wallet</div>
                         : 
-                        <div>
+                        <div className="mt-4 -mx-4">
                             {Array.from(farmerBalances.balances).map((tokenBalance) => {
                             const [token, balances] = tokenBalance;
                             const price = priceData.tokenPrices.get(token)?.instant || TokenValue.ZERO;
                             if (balances.external.eq(0)) return;
                             return (
-                                <div key={`${token.address}_externalBalance`}>
-                                    <span>{token.symbol}</span>
-                                    <span>{balances.external.toHuman('short')}</span>
-                                    <span>{`$${Number(balances.total.mul(price).toHuman()).toFixed(2)}`}</span>
-                                </div>
+                                <Toggle key={`${token.address}_externalBalance`} className="flex flex-row w-full gap-4 overflow-hidden transition-all hover:cursor-default hover:bg-pinto-gray-1 data-[state=on]:bg-white data-[state=off]:bg-white rounded-[0.75rem] h-auto px-4 py-2">
+                                    <img src={token.logoURI} className="w-12 h-12 self-start" />
+                                    <div className="flex flex-col w-full transition-all">
+                                        <div className="flex flex-row justify-between items-center">
+                                            <div className="flex flex-col text-left gap-2 my-1">
+                                                <span className="text-[1.25rem] text-pinto-gray-5">{token.symbol}</span>
+                                                <span className="font-[340] transition-all text-pinto-gray-4 inline-flex gap-1 items-center">
+                                                    {`${balances.external.toHuman('short')} ${token.symbol}`}
+                                                </span>
+                                            </div>
+                                            <span className="text-[1.5rem] font-[500] text-pinto-gray-5">{`$${Number(balances.external.mul(price).toHuman()).toFixed(2)}`}</span>    
+                                        </div>
+                                    </div>
+                                </Toggle>
                             )
                             })}
                         </div>
@@ -152,17 +161,26 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
                         {totalBalance.internal.eq(0) ?
                         <div>Your have no balance in the Farm</div>
                         :
-                        <div>
+                        <div className="mt-4 -mx-4">
                             {Array.from(farmerBalances.balances).map((tokenBalance) => {
                                 const [token, balances] = tokenBalance;
                                 const price = priceData.tokenPrices.get(token)?.instant || TokenValue.ZERO;
                                 if (balances.internal.eq(0)) return;
                                 return (
-                                    <div key={`${token.address}_internalBalance`}>
-                                        <span>{token.symbol}</span>
-                                        <span>{balances.internal.toHuman('short')}</span>
-                                        <span>{`$${Number(balances.internal.mul(price).toHuman()).toFixed(2)}`}</span>
-                                    </div>
+                                    <Toggle key={`${token.address}_externalBalance`} className="flex flex-row w-full gap-4 overflow-hidden transition-all hover:cursor-default hover:bg-pinto-gray-1 data-[state=on]:bg-white data-[state=off]:bg-white rounded-[0.75rem] h-auto px-4 py-2">
+                                        <img src={token.logoURI} className="w-12 h-12 self-start" />
+                                        <div className="flex flex-col w-full transition-all">
+                                            <div className="flex flex-row justify-between items-center">
+                                                <div className="flex flex-col text-left gap-2 my-1">
+                                                    <span className="text-[1.25rem] text-pinto-gray-5">{token.symbol}</span>
+                                                    <span className="font-[340] transition-all text-pinto-gray-4 inline-flex gap-1 items-center">
+                                                        {`${balances.internal.toHuman('short')} ${token.symbol}`}
+                                                    </span>
+                                                </div>
+                                                <span className="text-[1.5rem] font-[500] text-pinto-gray-5">{`$${Number(balances.internal.mul(price).toHuman()).toFixed(2)}`}</span>    
+                                            </div>
+                                        </div>
+                                    </Toggle>
                                 )
                             })}
                         </div>
