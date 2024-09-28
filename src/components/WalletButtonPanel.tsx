@@ -7,7 +7,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import { Button } from "./ui/Button";
 import { Separator } from "./ui/Separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/Tabs";
-import { BackwardArrowDotsIcon, ChevronDownIcon, LeftArrowIcon, TransferArrowIcon, UpDownArrowsIcon } from "./Icons";
+import { BackwardArrowDotsIcon, ChevronDownIcon, CloseIcon, LeftArrowIcon, UpDownArrowsIcon } from "./Icons";
 import { Toggle } from "./ui/Toggle";
 
 export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen: boolean, togglePanel: () => void}) {
@@ -30,7 +30,7 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
     
     return (
         <Card className={`absolute top-[5rem] flex flex-col bg-white transition-all ${isOpen ? 'right-[1.5rem]' : '-right-[100%]'} w-[38rem] overflow-clip max-h-[calc(100vh-9rem)] z-[51]`}>
-            <CardHeader className="flex flex-col gap-4 p-6">
+            <CardHeader className="flex flex-col gap-4 p-6 pb-10">
                 <div className="flex flex-row gap-1">
                     {ensAvatar && <Avatar address={address} size={24} />}
                     <span className="font-[400] text-[1rem] text-pinto-gray-5">{ensName ? ensName : address ? `${address.substring(0, 7)}...${address.substring(38, 42)}` : ''}</span>
@@ -75,18 +75,20 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
                     </Button>
                 </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0 -mt-4 pb-0">
                 <Separator className="w-[38rem] -ml-4"/>
-                <div className="py-6 px-3">
+                <div className="pt-6 px-3 pb-0">
                     <Tabs defaultValue="combined" className="w-full">
                         <TabsList className="grid w-full grid-cols-3 h-11 py-0 px-1 gap-[0.75rem]">
                             <TabsTrigger className="h-9 text-[1rem] hover:bg-pinto-gray-1" value="combined">Combined</TabsTrigger>
                             <TabsTrigger className="h-9 text-[1rem] hover:bg-pinto-gray-1" value="external">Wallet Balance</TabsTrigger>
                             <TabsTrigger className="h-9 text-[1rem] hover:bg-pinto-gray-1" value="internal">Farm Balance</TabsTrigger>
                         </TabsList>
-                        <TabsContent value="combined">
+                        <TabsContent value="combined" className="overflow-y-auto overflow-x-clip max-h-[calc(100vh-39rem)] -mx-4 px-4">
                         {totalBalance.total.eq(0) ? 
-                        <div>No balances found.</div>
+                        <div className="flex flex-grow items-center justify-around h-40">
+                            No balances found.
+                        </div>
                         :
                         <div className={"mt-4 -mx-4"}>
                             {Array.from(farmerBalances.balances).map((tokenBalance) => {
@@ -123,14 +125,16 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
                                             </div>
                                         </div>
                                     </Toggle>
-                                )
-                            })}
+                                    )
+                                })}
                         </div>
                         }
                         </TabsContent>
-                        <TabsContent value="external">
+                        <TabsContent value="external" className="overflow-y-auto overflow-x-clip max-h-[calc(100vh-39rem)] -mx-4 px-4">
                         {totalBalance.external.eq(0) ? 
-                        <div>You have no balance in your Wallet</div>
+                        <div className="flex flex-grow items-center justify-around h-40">
+                            You have no balance in your Wallet
+                        </div>
                         : 
                         <div className="mt-4 -mx-4">
                             {Array.from(farmerBalances.balances).map((tokenBalance) => {
@@ -157,9 +161,11 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
                         </div>
                         }
                         </TabsContent>
-                        <TabsContent value="internal">
+                        <TabsContent value="internal" className="overflow-y-auto overflow-x-clip max-h-[calc(100vh-39rem)] -mx-4 px-4">
                         {totalBalance.internal.eq(0) ?
-                        <div>Your have no balance in the Farm</div>
+                        <div className="flex flex-grow items-center justify-around h-40">
+                            You have no balance in the Farm
+                        </div>
                         :
                         <div className="mt-4 -mx-4">
                             {Array.from(farmerBalances.balances).map((tokenBalance) => {
@@ -189,8 +195,8 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
                     </Tabs>
                 </div>
             </CardContent>
-            <CardFooter>
-                <Button variant="ghost" onClick={() => { disconnect(); togglePanel(); }}>disconnect</Button>
+            <CardFooter className="justify-around p-0 mt-4 mb-4">
+                <Button variant="ghost" className="inline-flex items-center gap-2 rounded-full text-black bg-pinto-gray-1 hover:hover:bg-pinto-green-2 hover:text-white" onClick={() => { disconnect(); togglePanel(); }}>Disconnect Wallet <CloseIcon color={"currentColor"} /></Button>
             </CardFooter>
         </Card>
     )

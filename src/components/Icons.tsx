@@ -71,3 +71,10 @@ export const ChevronDownIcon = ({ color = "#9C9C9C", width = 15, height = 15, cl
   </svg>
 );
 
+export const CloseIcon = ({ color = "#9C9C9C", width = 9, height = 10 }: SVGProps) => (
+  <svg width={width} height={height} viewBox="0 0 9 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M1.16675 1.66675L7.83341 8.33341" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M1.16675 8.33341L7.83341 1.66675" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
