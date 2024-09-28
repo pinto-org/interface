@@ -58,7 +58,8 @@ module.exports = {
           'gray-4': '#9C9C9C',
           'gray-5': '#404040',
           'gray-blue': '#E9F0F6',
-          'off-white': '#FCFCFC'
+          'off-white': '#FCFCFC',
+          'yellow-1': '#FEE18C'
         }
       },
       backgroundImage: {
