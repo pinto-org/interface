@@ -1,5 +1,5 @@
-import { useAccount, useEnsAvatar, useEnsName } from "wagmi";
-import { Card, CardContent, CardHeader } from "./ui/Card";
+import { useAccount, useDisconnect, useEnsAvatar, useEnsName } from "wagmi";
+import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
 import { Avatar } from "connectkit";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { usePriceData } from "@/state/usePriceData";
@@ -8,11 +8,12 @@ import { Button } from "./ui/Button";
 import { Separator } from "./ui/Separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/Tabs";
 
-export default function WalletButtonPanel({isOpen = false}: {isOpen: boolean}) {
+export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen: boolean, togglePanel: () => void}) {
 
     const { address } = useAccount();
     const { data: ensName } = useEnsName({ address })
     const { data: ensAvatar } = useEnsAvatar({ name: ensName as string })
+    const { disconnect } = useDisconnect();
 
     const farmerBalances = useFarmerBalances();
     const priceData = usePriceData();
@@ -42,23 +43,26 @@ export default function WalletButtonPanel({isOpen = false}: {isOpen: boolean}) {
                 <Separator />
             </CardHeader>
             <CardContent>
-            <Tabs defaultValue="combined" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="combined">Combined</TabsTrigger>
-                    <TabsTrigger value="external">Wallet Balance</TabsTrigger>
-                    <TabsTrigger value="internal">Farm Balance</TabsTrigger>
-                </TabsList>
-                <TabsContent value="combined">
-                combined
-                </TabsContent>
-                <TabsContent value="external">
-                external
-                </TabsContent>
-                <TabsContent value="internal">
-                internal
-                </TabsContent>
-            </Tabs>
+                <Tabs defaultValue="combined" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="combined">Combined</TabsTrigger>
+                        <TabsTrigger value="external">Wallet Balance</TabsTrigger>
+                        <TabsTrigger value="internal">Farm Balance</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="combined">
+                    combined
+                    </TabsContent>
+                    <TabsContent value="external">
+                    external
+                    </TabsContent>
+                    <TabsContent value="internal">
+                    internal
+                    </TabsContent>
+                </Tabs>
             </CardContent>
+            <CardFooter>
+                <Button variant="ghost" onClick={() => { disconnect(); togglePanel(); }}>disconnect</Button>
+            </CardFooter>
         </Card>
     )
 }

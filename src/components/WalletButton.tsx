@@ -22,7 +22,7 @@ export default function WalletButton({isOpen = false, togglePanel}: {isOpen: boo
         <span>{ensName ? ensName : address ? `${address.substring(0, 7)}...${address.substring(38, 42)}` : "Connect"}</span>
         <img src={chevronDown} className="h-4 w-4" />
       </Button>
-      <WalletButtonPanel isOpen={isOpen} />
+      <WalletButtonPanel isOpen={isOpen} togglePanel={togglePanel} />
     </>
   );
 }
