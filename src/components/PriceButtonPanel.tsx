@@ -98,7 +98,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
                   const deltaBar = Number((pool.deltaB.abs()).div(priceData.deltaB.eq(0) ? 1 : priceData.deltaB.abs()).mul(100).toHuman()).toFixed(2);
                   if (!pool.pool?.color) return
                     return (
-                      <div className={`${i === 0 ? 'border-l-0' : 'border-l-2'} border-white min-w-2`} style={{ background: pool.pool.color, width: `${deltaBar}%` }} />
+                      <div key={`${pool.pool.address}_bar_${i}`} className={`${i === 0 ? 'border-l-0' : 'border-l-2'} border-white min-w-2`} style={{ background: pool.pool.color, width: `${deltaBar}%` }} />
                     )
                 })}
               </div>
@@ -137,7 +137,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
                   </span>
                 </Button>
               }
-            {priceData.pools.map((pool) => {
+            {priceData.pools.map((pool, i) => {
               const isWhitelisted = tokenData.whitelistedTokens.findIndex((token) => token?.address.toLowerCase() === pool.pool?.address.toLowerCase()) > -1;
               if (!isWhitelisted) return;
               const token0Price = pool.tokens[0].isMain ? priceData.price : useTwa ? priceData.tokenPrices.get(pool.tokens[0])?.twa : priceData.tokenPrices.get(pool.tokens[0])?.instant || TokenValue.ZERO;
@@ -150,7 +150,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
               
               if (showPrices) {
                 return (
-                    <div className="flex flex-row justify-between">
+                    <div key={`${pool.pool.address}_prices_${i}`} className="flex flex-row justify-between">
                       <div className="inline-flex gap-4 items-center">
                         <img src={pool.tokens[backingTokenIndex].logoURI} className="w-12 h-12" />
                         <span className="text-pinto-gray-5 text-[1.25rem] font-[400]">{pool.tokens[backingTokenIndex].symbol}</span>
@@ -168,7 +168,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
               }
               
               return (
-                <Card className="overflow-clip group hover:border-pinto-green-2">
+                <Card key={`${pool.pool.address}_card_${i}`} className="overflow-clip group hover:border-pinto-green-2">
                   <CardContent className="p-4 bg-white flex flex-col gap-4">
                     <div className="flex flex-row justify-between items-center">
                       <div className="inline-flex gap-1.5 items-center">
@@ -263,39 +263,48 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
           <Separator className="w-[38rem] -ml-4 "/>
           <div className="inline-flex items-center">
             <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
-              {Array.from(priceData.tokenPrices).map((token) => 
-                <>
-                {token[0]?.name &&
-                <div className="inline-flex items-center px-2 gap-1.5">
-                  <img src={token[0].logoURI} className={"w-6 h-6"} />
-                  <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1][useTwa ? 'twa' : 'instant'].toHuman()).toFixed(2)}`}</span>   
-                </div>
-                }
-                </>
+              {Array.from(priceData.tokenPrices).map((token, i) => {
+                if (!token[0].isWhitelisted) return
+                return (
+                  <div key={`${token[0].address}_marquee1_${i}`}>
+                  {token[0]?.name &&
+                      <div className="inline-flex items-center px-2 gap-1.5">
+                        <img src={token[0].logoURI} className={"w-6 h-6"} />
+                        <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1][useTwa ? 'twa' : 'instant'] ? token[1][useTwa ? 'twa' : 'instant'].toHuman() : 0).toFixed(2)}`}</span>   
+                      </div>
+                      }
+                  </div>
+                )}
               )}
             </div>
             <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
-              {Array.from(priceData.tokenPrices).map((token) => 
-                <>
-                {token[0]?.name &&
-                <div className="inline-flex items-center px-2 gap-1.5">
-                  <img src={token[0].logoURI} className={"w-6 h-6"} />
-                  <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1][useTwa ? 'twa' : 'instant'].toHuman()).toFixed(2)}`}</span>   
-                </div>
-                }
-                </>
+              {Array.from(priceData.tokenPrices).map((token, i) => {
+                if (!token[0].isWhitelisted) return
+                return (
+                  <div key={`${token[0].address}_marquee2_${i}`}>
+                    {token[0]?.name &&
+                      <div className="inline-flex items-center px-2 gap-1.5">
+                        <img src={token[0].logoURI} className={"w-6 h-6"} />
+                        <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1][useTwa ? 'twa' : 'instant'] ? token[1][useTwa ? 'twa' : 'instant'].toHuman() : 0).toFixed(2)}`}</span>   
+                      </div>
+                    }
+                  </div>
+                )}
               )}
             </div>
             <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
-              {Array.from(priceData.tokenPrices).map((token) => 
-                <>
-                {token[0]?.name &&
-                <div className="inline-flex items-center px-2 gap-1.5">
-                  <img src={token[0].logoURI} className={"w-6 h-6"} />
-                  <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1][useTwa ? 'twa' : 'instant'].toHuman()).toFixed(2)}`}</span>   
+              {Array.from(priceData.tokenPrices).map((token, i) => {
+                if (!token[0].isWhitelisted) return
+                return (
+                <div key={`${token[0].address}_marquee3_${i}`}>
+                  {token[0]?.name &&
+                    <div className="inline-flex items-center px-2 gap-1.5">
+                      <img src={token[0].logoURI} className={"w-6 h-6"} />
+                      <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1][useTwa ? 'twa' : 'instant'] ? token[1][useTwa ? 'twa' : 'instant'].toHuman() : 0).toFixed(2)}`}</span>   
+                    </div>
+                  }
                 </div>
-                }
-                </>
+                )}
               )}
             </div>
           </div>

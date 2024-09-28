@@ -103,11 +103,11 @@ export default function Overview() {
                                         <TableCell className="text-pinto-green-2 font-[400] text-[1rem] text-right p-4">{claimableSeeds.toHuman('short')}</TableCell>
                                     </TableRow>
                                     }
-                                    {SILO_WHITELIST.map((token) => {
+                                    {SILO_WHITELIST.map((token, i) => {
                                         const userData = farmerDeposits.get(token);
                                         const claimableStalk = farmerSilo.grownStalkPerToken.get(token) || TokenValue.ZERO ;
                                         return (
-                                        <TableRow className="h-[4.5rem] bg-white hover:bg-white">
+                                        <TableRow key={`${token.address}_${i}`} className="h-[4.5rem] bg-white hover:bg-white">
                                             <TableCell className="text-black font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">
                                                 <img src={token.logoURI} className="h-8 w-8" />
                                                 <div>{token.name}</div>

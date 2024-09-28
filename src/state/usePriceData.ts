@@ -2,6 +2,9 @@ import { useReadBeanstalkPrice_Price, useReadUsdOracle_GetEthUsdPrice, useReadUs
 import { TokenValue } from "@/classes/TokenValue";
 import { Token } from "@/utils/types";
 import useTokenData from "./useTokenData";
+import { useReadContracts } from "wagmi";
+import chainlinkOracleAbi from "@/constants/abi/ChainlinkOracle.json";
+import { Abi } from "viem";
 
 const settings = {
   query: {
@@ -29,10 +32,40 @@ export function usePriceData() {
   const wstEthPrice = useReadUsdOracle_GetWstethUsdPrice(settings).data;
   const wstEthPriceTwa = useReadUsdOracle_GetWstethUsdTwap({args: [3600n], ...settings}).data;
   const tokenData = useTokenData();
-
   const tokenPrices = new Map();
+
+  for (const token of Array.from(tokenData.preferredTokens)) {
+    if (!token.priceOracle || token.isMain || token.isWhitelisted) continue
+
+    const oracle = useReadContracts({
+      contracts: [
+        {
+          address: token.priceOracle,
+          abi: chainlinkOracleAbi as Abi, 
+          functionName: 'decimals'
+        },
+        {
+          address: token.priceOracle,
+          abi: chainlinkOracleAbi as Abi,
+          functionName: 'latestRoundData'
+        }
+      ],
+      ...settings
+    }).data;
+
+    tokenPrices.set(token, {
+      instant: TokenValue.fromBlockchain(oracle ? oracle[1].result[1] : 0, oracle ? oracle[0].result : 0),
+      twa: TokenValue.ZERO
+    })
+  };
+
+  const eth = tokenData.nativeToken;
   const weth = tokenData.preferredTokens.find((token) => token.symbol === "WETH");
   const wstEth = tokenData.preferredTokens.find((token) => token.symbol === "WSTETH");
+  tokenPrices.set(eth, {
+    instant: TokenValue.fromBlockchain(ethPrice || 0n, 6),
+    twa: TokenValue.fromBlockchain(ethPriceTwa || 0n, 6)
+  });
   tokenPrices.set(weth, {
     instant: TokenValue.fromBlockchain(ethPrice || 0n, 6),
     twa: TokenValue.fromBlockchain(ethPriceTwa || 0n, 6)

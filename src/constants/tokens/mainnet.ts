@@ -58,6 +58,7 @@ export const mainnetPreferred: Token[] = [
         symbol: "WETH",
         decimals: 18,
         isWrappedNative: true,
+        isWhitelisted: true,
         chainId: 1,
         logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png",
         color: "#627EEA"
@@ -68,6 +69,7 @@ export const mainnetPreferred: Token[] = [
         name: "Wrapped stETH",
         symbol: "WSTETH",
         decimals: 18,
+        isWhitelisted: true,
         logoURI: "https://assets.coingecko.com/coins/images/18834/thumb/wstETH.png?1696518295",
         color: "#00A3FF"
     },
@@ -75,6 +77,7 @@ export const mainnetPreferred: Token[] = [
         name: "Dai Stablecoin",
         address: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
         symbol: "DAI",
+        priceOracle: "0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9",
         decimals: 18,
         chainId: 1,
         logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x6B175474E89094C44Da98b954EedeAC495271d0F/logo.png"
@@ -83,6 +86,7 @@ export const mainnetPreferred: Token[] = [
         name: "USDCoin",
         address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
         symbol: "USDC",
+        priceOracle: "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
         decimals: 6,
         chainId: 1,
         logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png",
@@ -91,6 +95,7 @@ export const mainnetPreferred: Token[] = [
         name: "Tether USD",
         address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
         symbol: "USDT",
+        priceOracle: "0x3E7d1eAB13ad0104d2750B8863b489D65364e32D",
         decimals: 6,
         chainId: 1,
         logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",

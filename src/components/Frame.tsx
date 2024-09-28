@@ -48,7 +48,7 @@ function Frame() {
           <WalletButton isOpen={walletOpen} togglePanel={() => togglePanel('wallet')} />
         </span>
       </div>
-      <div onClick={closePanel} className={`fixed top-0 left-0 w-full h-full transition-all ${backdropActive ? 'backdrop-blur-[2px] bg-white/50 pointer-events-auto' : 'pointer-events-none'} z-50`} />
+      <div onClick={closePanel} className={`fixed top-0 left-0 w-full h-full transition-all ${backdropActive ? 'backdrop-blur-[2px] bg-white/50 pointer-events-auto z-50' : 'pointer-events-none -z-[-2]'}`} />
     </div>
   );
 }

@@ -56,7 +56,7 @@ export default function SeasonsButtonPanel({isOpen = false}: {isOpen: boolean}) 
                     {fieldSnapshots?.map((snapshot, i) => {
                         const mints = siloSnapshots ? snapshot.season === siloSnapshots[i]?.season ? siloSnapshots[i]?.deltaBeanMints : TokenValue.ZERO : TokenValue.ZERO; 
                         return (
-                            <TableRow className="h-[4.5rem] bg-white hover:bg-white border-0">
+                            <TableRow key={`${snapshot.season}_${i}`} className="h-[4.5rem] bg-white hover:bg-white border-0">
                             <TableCell className="text-black font-[400] text-[1rem] pl-4 items-center">
                                 {snapshot.season}
                             </TableCell>
