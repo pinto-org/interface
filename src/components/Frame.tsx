@@ -31,7 +31,7 @@ function Frame() {
   };
 
   return (
-    <div className="flex justify-between p-6 fixed w-full overflow-x-clip bg-gradient-light">
+    <div className="flex justify-between p-6 fixed w-full overflow-x-clip bg-gradient-light z-[2]">
       <div className="flex w-1/3 gap-2">
         <span className={`${lastOpened === 'price' && 'z-[51]'}`}>
           <PriceButton isOpen={priceOpen} togglePanel={() => togglePanel('price')}/>
@@ -48,7 +48,7 @@ function Frame() {
           <WalletButton isOpen={walletOpen} togglePanel={() => togglePanel('wallet')} />
         </span>
       </div>
-      <div onClick={closePanel} className={`fixed top-0 left-0 w-full h-full transition-all ${backdropActive ? 'backdrop-blur-[2px] bg-white/50 pointer-events-auto z-50' : 'pointer-events-none -z-[-2]'}`} />
+      <div onClick={closePanel} className={`fixed top-0 left-0 w-full h-full transition-all ${backdropActive ? 'backdrop-blur-[2px] bg-white/50 pointer-events-auto' : 'pointer-events-none -z-[-2]'} `} />
     </div>
   );
 }
