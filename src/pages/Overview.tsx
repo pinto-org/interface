@@ -45,7 +45,7 @@ export default function Overview() {
 
   const podRate = fieldData.temperature.max;
   const siloTokens = Array.from(siloData.tokenData.entries());
-  const avg = siloTokens.reduce((total, token) => token[1].yields.beanAPY + total, 0) / siloTokens.length;
+  const avg = (siloTokens.reduce((total, token) => token[1].yields.beanAPY + total, 0) / siloTokens.length).toFixed(2);
 
   return (
     <div
@@ -197,7 +197,7 @@ export default function Overview() {
               <span className="text-pinto-body text-pinto-gray-4">
                 and yield additional Pinto when the supply expands.
               </span>
-              <span className="text-pinto-h1 text-pinto mt-4">{`${avg}% average vAPY`}</span>
+              {Number(avg) > 0 && <span className="text-pinto-h1 text-pinto mt-4">{`${avg}% average vAPY`}</span>}
             </a>
           </Button>
           <Button
@@ -213,7 +213,9 @@ export default function Overview() {
               <span className="text-pinto-body text-pinto-gray-4">
                 Pods are redeemable for one Pinto when they reach the front of the Pod Line.
               </span>
-              <span className="text-pinto-h1 text-pinto mt-4">{`${podRate.toHuman()}% interest rate`}</span>
+              {podRate.gt(0) && (
+                <span className="text-pinto-h1 text-pinto mt-4">{`${podRate.toHuman()}% interest rate`}</span>
+              )}
             </a>
           </Button>
         </div>
