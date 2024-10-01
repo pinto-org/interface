@@ -1963,6 +1963,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@kurkle/color@npm:^0.3.0":
+  version: 0.3.2
+  resolution: "@kurkle/color@npm:0.3.2"
+  checksum: 10c0/a9e8e3e35dcd59dec4dd4f0105919c05e24823a96347bcf152965c29e48d6290b66d5fb96c071875db752e10930724c48ce6d338fefbd65e0ce5082d5c78970e
+  languageName: node
+  linkType: hard
+
 "@lit-labs/ssr-dom-shim@npm:^1.0.0, @lit-labs/ssr-dom-shim@npm:^1.1.0":
   version: 1.2.0
   resolution: "@lit-labs/ssr-dom-shim@npm:1.2.0"
@@ -4779,6 +4786,8 @@ __metadata:
     "@wagmi/cli": "npm:2.1.15"
     autoprefixer: "npm:10.4.19"
     buffer: "npm:^6.0.3"
+    chart.js: "npm:^4.4.4"
+    chartjs-react: "npm:^4.2.1"
     class-variance-authority: "npm:0.7.0"
     clsx: "npm:2.1.1"
     connectkit: "npm:^1.8.2"
@@ -5157,6 +5166,25 @@ __metadata:
   version: 0.7.0
   resolution: "chardet@npm:0.7.0"
   checksum: 10c0/96e4731b9ec8050cbb56ab684e8c48d6c33f7826b755802d14e3ebfdc51c57afeece3ea39bc6b09acc359e4363525388b915e16640c1378053820f5e70d0f27d
+  languageName: node
+  linkType: hard
+
+"chart.js@npm:^4.4.4":
+  version: 4.4.4
+  resolution: "chart.js@npm:4.4.4"
+  dependencies:
+    "@kurkle/color": "npm:^0.3.0"
+  checksum: 10c0/9fa3206403a6103916f7762c2665d322c42b0cc07fba91526b1d033ddb887c1ba74b3ebc0bd0748a9e55abd1017f25fdb2292cdd6579d8c2d3bcb1c58f71281c
+  languageName: node
+  linkType: hard
+
+"chartjs-react@npm:^4.2.1":
+  version: 4.2.1
+  resolution: "chartjs-react@npm:4.2.1"
+  peerDependencies:
+    chart.js: ">=3.9.0"
+    react: ">=16.8.0"
+  checksum: 10c0/ed8779266ec0a2c0a40ef68c6b04524eafaceca21e5c4cf540045a2450e15938653bddf94a04ce74a425634eaaa1db3c60cb26852839e41dbbc2be3c78acc99d
   languageName: node
   linkType: hard
 

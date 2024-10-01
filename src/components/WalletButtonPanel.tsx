@@ -11,6 +11,7 @@ import { BackwardArrowDotsIcon, ChevronDownIcon, CloseIcon, LeftArrowIcon, UpDow
 import { Toggle } from "./ui/Toggle";
 import { useState } from "react";
 import WalletButtonTransfer from "./WalletButtonTransfer";
+import DonutChart from "./DonutChart";
 
 export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen: boolean, togglePanel: () => void}) {
 
@@ -109,6 +110,20 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
                                                     <div className="flex flex-col text-left gap-2 my-1">
                                                         <span className="text-[1.25rem] text-pinto-gray-5">{token.symbol}</span>
                                                         <span className="font-[340] transition-all group-hover:text-pinto-green-2 text-pinto-gray-4 inline-flex gap-1 items-center">
+                                                        <DonutChart 
+                                                            data={{    
+                                                                labels: ['Farm Balance', 'Wallet Balance'],
+                                                                datasets: [{
+                                                                    label: '',
+                                                                    data: [Number(balances.internal), Number(balances.external)],
+                                                                    backgroundColor: [
+                                                                        'rgb(254, 225, 140)',
+                                                                        'rgb(36, 102, 69)',
+                                                                    ],
+                                                                    borderWidth: 0,
+                                                                }]
+                                                            }} 
+                                                        />
                                                             {`${balances.total.toHuman('short')} ${token.symbol}`}
                                                             <ChevronDownIcon color={"currentColor"} className={"transform transition-transform group-data-[state=on]:-scale-y-100"} />
                                                         </span>
