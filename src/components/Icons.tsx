@@ -59,9 +59,9 @@ export const LeftArrowIcon = ({ color = "#9C9C9C", width = 17, height = 12 }: SV
 
 export const BackwardArrowDotsIcon = ({ color = "#9C9C9C", width = 25, height = 24 }: SVGProps) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} fill="none">
-    <path stroke={color} stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.5 4.997H5.497M12.5 4.997a8.003 8.003 0 1 1-8.003 8.004M8.499 1.996 5.497 4.997M8.499 7.999 5.497 4.997"/>
-    <path stroke={color} stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12.5 12.82a.18.18 0 1 0 .002.36.18.18 0 0 0-.002-.36M12.5 15.943a.18.18 0 1 0 .002.36.18.18 0 0 0-.002-.36M15.101 14.441a.18.18 0 1 0 0 .36.18.18 0 0 0 0-.36M9.9 14.441a.18.18 0 1 0 .001.36.18.18 0 0 0-.002-.36M9.9 11.439a.18.18 0 1 0 .001.36.18.18 0 0 0-.002-.36M15.101 11.441a.18.18 0 1 0 0 .36.18.18 0 0 0 0-.36M12.5 9.94a.18.18 0 1 0 .002.36.18.18 0 0 0-.002-.36"/>
-    <path stroke={color} stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12.5 9.94a.18.18 0 1 0 0 .36.18.18 0 0 0 0-.36"/>
+    <path stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12.5 4.997H5.497M12.5 4.997a8.003 8.003 0 1 1-8.003 8.004M8.499 1.996 5.497 4.997M8.499 7.999 5.497 4.997"/>
+    <path stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12.5 12.82a.18.18 0 1 0 .002.36.18.18 0 0 0-.002-.36M12.5 15.943a.18.18 0 1 0 .002.36.18.18 0 0 0-.002-.36M15.101 14.441a.18.18 0 1 0 0 .36.18.18 0 0 0 0-.36M9.9 14.441a.18.18 0 1 0 .001.36.18.18 0 0 0-.002-.36M9.9 11.439a.18.18 0 1 0 .001.36.18.18 0 0 0-.002-.36M15.101 11.441a.18.18 0 1 0 0 .36.18.18 0 0 0 0-.36M12.5 9.94a.18.18 0 1 0 .002.36.18.18 0 0 0-.002-.36"/>
+    <path stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12.5 9.94a.18.18 0 1 0 0 .36.18.18 0 0 0 0-.36"/>
   </svg>
 );
 
