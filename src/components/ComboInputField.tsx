@@ -20,10 +20,11 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
     isLoading?: boolean,
     setMaxAmount?: any,
     hideMax?: boolean,
-    disableInput?: boolean
+    disableInput?: boolean,
+    balancesToShow?: FarmFromMode[]
 }
 
-function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, amount, setAmount, useSiloTokens, isLoading, setMaxAmount, hideMax, disableInput}: ComboInputProps) {
+function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, amount, setAmount, useSiloTokens, isLoading, setMaxAmount, hideMax, disableInput, balancesToShow}: ComboInputProps) {
 
     let maxAmount;
     const { balances } = useFarmerBalances();
@@ -68,7 +69,7 @@ function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, 
                         {useSiloTokens 
                             ? <TokenSelectDepositedBalances setToken={setToken} selectedToken={selectedToken} />
                             : (setBalanceFrom && balanceFrom)
-                                ? <TokenSelectWithBalances setToken={setToken} selectedToken={selectedToken} setBalanceFrom={setBalanceFrom} balanceFrom={balanceFrom} />
+                                ? <TokenSelectWithBalances setToken={setToken} selectedToken={selectedToken} setBalanceFrom={setBalanceFrom} balanceFrom={balanceFrom} balancesToShow={balancesToShow} />
                                 : <TokenSelectWithBalances setToken={setToken} selectedToken={selectedToken} />
                         }
                     </div>

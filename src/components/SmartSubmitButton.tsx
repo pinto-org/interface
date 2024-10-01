@@ -13,10 +13,11 @@ interface SmartSubmitButton {
     token: Token, 
     amount: any, 
     submitFunction: () => void,
-    submitButtonText?: string,  
+    submitButtonText?: string,
+    className?: string 
 }
 
-export default function SmartSubmitButton({ token, amount, submitFunction, submitButtonText }: SmartSubmitButton) {
+export default function SmartSubmitButton({ token, amount, submitFunction, submitButtonText, className }: SmartSubmitButton) {
 
     const account = useAccount();
     const chainId = useChainId();
@@ -70,7 +71,7 @@ export default function SmartSubmitButton({ token, amount, submitFunction, submi
     };
 
     return (
-        <Button type={"button"} className="flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem]" onClick={() => approveOrRun()}>
+        <Button type={"button"} className={`flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem] ${className}`} onClick={() => approveOrRun()}>
             {account.address && needsApproval ? "Approve Spending" : (submitButtonText || "Submit")}
         </Button>
     )

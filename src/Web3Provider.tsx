@@ -8,12 +8,13 @@ import { mock } from "wagmi/connectors";
 
 export const anvilTestClient = 
   createTestClient({ mode: "anvil", chain: localhost, transport: http() })
+  // alt test acc: 0xe543357d4f0eb174cfc6bed6ef5e7ab5762f1b2b
   // alt test acc: 0xfe42972c584e442c3f0a49cb2930e55d5bf13ba7
   // alt test acc: 0x43B9F935c798522aaaCB2bFEa2F407cE5A291e9D
   // alt test acc: 0xe543357d4f0eb174cfc6bed6ef5e7ab5762f1b2b
   
 export const testConfig = createConfig({
-  connectors: [mock({ accounts: ["0xe543357d4f0eb174cfc6bed6ef5e7ab5762f1b2b"] })],
+  connectors: [mock({ accounts: ["0x43B9F935c798522aaaCB2bFEa2F407cE5A291e9D"] })],
   chains: [localhost],
   client() {
     return anvilTestClient;
@@ -49,7 +50,7 @@ const queryClient = new QueryClient();
 
 export const Web3Provider = ({ children }: { children: ReactNode }) => {
 
-  anvilTestClient.impersonateAccount({ address: "0xe543357d4f0eb174cfc6bed6ef5e7ab5762f1b2b" });
+  anvilTestClient.impersonateAccount({ address: "0x43B9F935c798522aaaCB2bFEa2F407cE5A291e9D" });
   
   return (
     <WagmiProvider config={testConfig}>

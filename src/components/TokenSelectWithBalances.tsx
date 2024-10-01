@@ -11,12 +11,14 @@ export default function TokenSelectWithBalances({
   setToken,
   selectedToken,
   setBalanceFrom,
-  balanceFrom
+  balanceFrom,
+  balancesToShow
 }: {
   setToken: React.Dispatch<React.SetStateAction<any>>;
   selectedToken: Token;
   setBalanceFrom?: React.Dispatch<React.SetStateAction<any>>;
   balanceFrom?: FarmFromMode;
+  balancesToShow?: FarmFromMode[];
 }) {
   const account = useAccount();
   const { balances } = useFarmerBalances();
@@ -58,27 +60,33 @@ export default function TokenSelectWithBalances({
                   }}
                   className="my-2"
                 >
-                  <ToggleGroupItem
-                    value={FarmFromMode.INTERNAL_EXTERNAL}
-                    aria-label="Select Combined Balance"
-                    className="w-full"
-                  >
-                    Combined Balance
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value={FarmFromMode.EXTERNAL}
-                    aria-label="Select External Balance"
-                    className="w-full"
-                  >
-                    External Balance
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value={FarmFromMode.INTERNAL}
-                    aria-label="Select Internal Balance"
-                    className="w-full"
-                  >
-                    Internal Balance
-                  </ToggleGroupItem>
+                  {(!balancesToShow || balancesToShow.includes(FarmFromMode.INTERNAL_EXTERNAL)) && 
+                    <ToggleGroupItem
+                      value={FarmFromMode.INTERNAL_EXTERNAL}
+                      aria-label="Select Combined Balance"
+                      className="w-full"
+                    >
+                      Combined Balance
+                    </ToggleGroupItem>
+                  }
+                  {(!balancesToShow || balancesToShow.includes(FarmFromMode.EXTERNAL)) && 
+                    <ToggleGroupItem
+                      value={FarmFromMode.EXTERNAL}
+                      aria-label="Select External Balance"
+                      className="w-full"
+                    >
+                      External Balance
+                    </ToggleGroupItem>
+                  }
+                  {(!balancesToShow || balancesToShow.includes(FarmFromMode.INTERNAL)) && 
+                    <ToggleGroupItem
+                      value={FarmFromMode.INTERNAL}
+                      aria-label="Select Internal Balance"
+                      className="w-full"
+                    >
+                      Internal Balance
+                    </ToggleGroupItem>
+                  }
                 </ToggleGroup>
               }
                 <ToggleGroup
