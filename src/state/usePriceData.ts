@@ -59,6 +59,11 @@ export function usePriceData() {
     })
   };
 
+  tokenPrices.set(tokenData.mainToken, {
+    instant: TokenValue.fromBlockchain(price?.price || 0n, tokenData.mainToken.decimals || 6),
+    twa: TokenValue.ZERO
+  });
+
   const eth = tokenData.nativeToken;
   const weth = tokenData.preferredTokens.find((token) => token.symbol === "WETH");
   const wstEth = tokenData.preferredTokens.find((token) => token.symbol === "WSTETH");
