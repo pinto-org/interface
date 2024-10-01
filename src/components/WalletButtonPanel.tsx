@@ -104,7 +104,7 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
                                     return (
                                         <Toggle key={`${token.address}_totalBalance`} className="flex flex-row w-full gap-4 group overflow-hidden transition-all hover:bg-pinto-gray-1 hover:cursor-pointer data-[state=on]:bg-white data-[state=on]:hover:bg-pinto-gray-1 data-[state=off]:hover:bg-pinto-gray-1 data-[state=off]:bg-white rounded-[0.75rem] h-auto px-4 py-2">
                                             <img src={token.logoURI} className="w-12 h-12 self-start" />
-                                            <div className="flex flex-col w-full -mb-12 group-data-[state=on]:mb-0 transition-all">
+                                            <div className="flex flex-col w-full -mb-[2.75rem] group-data-[state=on]:mb-0 transition-all">
                                                 <div className="flex flex-row justify-between items-center">
                                                     <div className="flex flex-col text-left gap-2 my-1">
                                                         <span className="text-[1.25rem] text-pinto-gray-5">{token.symbol}</span>
