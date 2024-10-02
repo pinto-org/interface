@@ -137,7 +137,7 @@ export default function Swap() {
               setToken={setTokenOut}
               selectedToken={tokenOut}
               isLoading={swapData?.isLoading || false}
-              hideMax
+              disableInlineBalance
             />
           </div>
           <div>

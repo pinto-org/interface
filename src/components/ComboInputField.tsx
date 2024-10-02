@@ -21,10 +21,11 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
     setMaxAmount?: any,
     hideMax?: boolean,
     disableInput?: boolean,
+    disableInlineBalance?: boolean,
     balancesToShow?: FarmFromMode[]
 }
 
-function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, amount, setAmount, useSiloTokens, isLoading, setMaxAmount, hideMax, disableInput, balancesToShow}: ComboInputProps) {
+function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, amount, setAmount, useSiloTokens, isLoading, setMaxAmount, hideMax, disableInput, disableInlineBalance, balancesToShow}: ComboInputProps) {
 
     let maxAmount;
     const { balances } = useFarmerBalances();
@@ -52,7 +53,7 @@ function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, 
 
     return (
         <>
-            <div className="border border-pinto-gray-blue content-center bg-white transition-colors p-4 rounded-[0.75rem] focus-within:outline-none focus-within:ring-1 focus-within:ring-ring">
+            <div className="border border-pinto-gray-blue content-center bg-white transition-colors py-4 px-6 rounded-[0.75rem] focus-within:outline-none focus-within:ring-1 focus-within:ring-ring">
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-row gap-2 items-center">
                         {isLoading 
@@ -73,8 +74,9 @@ function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, 
                                 : <TokenSelectWithBalances setToken={setToken} selectedToken={selectedToken} />
                         }
                     </div>
+                    {!disableInlineBalance && 
                     <div className="flex flex-row gap-2 justify-end items-center">
-                        <div className="text-[1rem] text-black">
+                        <div className="text-[1rem] text-black font-[340] leading-[1.11rem] -tracking-[0.02em]">
                             {`${balanceFrom === FarmFromMode.EXTERNAL 
                                     ? 'Wallet Balance:' 
                                 : balanceFrom === FarmFromMode.INTERNAL 
@@ -86,6 +88,7 @@ function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, 
                             <Button type={"button"} size={"sm"} variant={"defaultAlt"} className={"rounded-[0.75rem] text-[1rem] px-1.5 py-1"} onClick={() => setMaxAmount(maxAmount.humanString)}>Max</Button>
                         }
                     </div>
+                    }
                 </div>
             </div>
         </>
