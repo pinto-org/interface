@@ -84,12 +84,7 @@ export default function CreateListing() {
     }
 
     return (
-      <Card className="h-fit w-full">
-        <CardHeader>
-          <CardTitle>Create Listing</CardTitle>
-          <CardDescription>Sell pods by listing them on the market</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4">
           <div>
             <Label>Select Plot</Label>
             <ComboPlotInputField 
@@ -123,7 +118,6 @@ export default function CreateListing() {
               {"Submit"}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
     )
 }

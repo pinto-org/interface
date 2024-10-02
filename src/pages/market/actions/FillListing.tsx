@@ -137,12 +137,7 @@ export default function FillListing() {
     };
 
     return (
-        <Card className="h-fit w-full">
-        <CardHeader>
-          <CardTitle>Fill Listing</CardTitle>
-          <CardDescription>Buy a pod listing</CardDescription>
-        </CardHeader>
-        <CardContent>
+        <div>
           {!listing ? <div>Listing not found.</div> : 
             <>
               <div className="flex flex-row justify-between">
@@ -185,8 +180,6 @@ export default function FillListing() {
               </div>
             </>
             }
-          </CardContent>
-      </Card>
-
+          </div>
     )
 }

@@ -83,12 +83,7 @@ export default function FillOrder() {
   
 
     return (
-        <Card className="h-fit w-full">
-        <CardHeader>
-          <CardTitle>Fill Order</CardTitle>
-          <CardDescription>Sell pods directly to an open order</CardDescription>
-        </CardHeader>
-        <CardContent>
+        <div>
         {!order ? <div>Listing not found.</div> : 
             <div className="flex flex-col gap-4">
             <div>
@@ -134,7 +129,6 @@ export default function FillOrder() {
             </div>
           </div>
         }
-        </CardContent>
-      </Card>
+        </div>
     )
 }

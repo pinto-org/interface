@@ -27,7 +27,7 @@ export function Market() {
           </div>
         </div>
         <div className="flex flex-col gap-4 self-start w-[540px]">
-          <Card className="p-4">
+          <Card className="flex flex-col gap-4 p-4">
             <ModeSelect />
             {(mode === "buy" || !mode) && !id && <CreateOrder />}
             {mode === "buy" && id && <FillListing />}
