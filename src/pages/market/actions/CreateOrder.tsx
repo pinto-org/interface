@@ -3,8 +3,6 @@ import { ComboInputField } from "@/components/ComboInputField";
 import SimpleInputField from "@/components/SimpleInputField";
 import SlippageButton from "@/components/SlippageButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { PODS } from "@/constants/internalTokens";
 import createPodOrder from "@/encoders/createPodOrder";
@@ -152,7 +150,7 @@ export default function CreateOrder() {
         />
       </div>
       <div className="flex flex-row gap-2 items-center">
-        <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit} />
+        <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit} className="h-12" />
         <div className="scale-[1.5]">
           <SlippageButton slippage={slippage} setSlippage={setSlippage} />
         </div>

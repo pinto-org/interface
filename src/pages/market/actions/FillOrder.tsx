@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Label } from "@/components/ui/Label";
 import { FarmToMode } from "@/utils/types";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
@@ -118,12 +117,12 @@ export default function FillOrder() {
                 type="single"
               />
             </div>
-            <div className="flex flex-row justify-between">
+            <div className="flex flex-col">
                 <Label className="content-center">Destination</Label>
-                <DestinationBalanceSelect setBalanceTo={setBalanceTo} />
+                <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} />
             </div>
-            <div>
-              <Button type="button" className="flex grow" onClick={onSubmit}>
+            <div className="flex">
+              <Button type="button" className={`flex grow h-12 rounded-[0.75rem] text-[1.5rem]`} onClick={onSubmit}>
                 {"Submit"}
               </Button>
             </div>

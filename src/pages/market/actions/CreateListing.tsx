@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
 import { FarmToMode } from "@/utils/types";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import { useChainId, useWriteContract } from "wagmi";
@@ -16,11 +14,12 @@ import { Label } from "@/components/ui/Label";
 import ComboPlotInputField from "@/components/ComboPlotInputField";
 import usePodListings from "@/state/usePodListings";
 import { useQueryClient } from "@tanstack/react-query";
+import SimpleInputField from "@/components/SimpleInputField";
 
 export default function CreateListing() {
 
     const chainId = useChainId();
-    const BEAN = useTokenData().mainToken;
+    const mainToken = useTokenData().mainToken;
     const podListings = usePodListings();
     const queryKey = podListings.queryKey;
     const queryClient = useQueryClient();
@@ -50,7 +49,7 @@ export default function CreateListing() {
     function onSubmit() {
       if (!pricePerPod || pricePerPod <= 0 || !expiresIn || !amount || amount <= 0) return;
 
-      const _pricePerPod = TokenValue.fromHuman(pricePerPod, BEAN.decimals);
+      const _pricePerPod = TokenValue.fromHuman(pricePerPod, mainToken.decimals);
       const _expiresIn = TokenValue.fromHuman(expiresIn, PODS.decimals);
       const index = plot[0].index;
       const start = TokenValue.fromHuman(0, PODS.decimals);
@@ -97,24 +96,25 @@ export default function CreateListing() {
           </div>
           <div>
             <Label>Price Per Pod</Label>
-            <div className="flex flex-row gap-2">
-              <Input type="number" inputMode="numeric" value={pricePerPod} onChange={(e) => setPricePerPod(Number(e.target.value))} />
-              <Button variant="outline" type="button" className="hover:cursor-default hover:bg-white">BEAN</Button>
-            </div>
+            <SimpleInputField 
+              amount={pricePerPod}
+              setAmount={setPricePerPod}
+              token={mainToken}
+            />
           </div>
           <div>
             <Label>Expires In</Label>
-            <div className="flex flex-row gap-2">
-              <Input type="number" inputMode="numeric" value={expiresIn} onChange={(e) => setExpiresIn(Number(e.target.value))}/>
-              <Button variant="outline" type="button" className="hover:cursor-default hover:bg-white">Place In Line</Button>
-            </div>
+            <SimpleInputField
+              amount={expiresIn}
+              setAmount={setExpiresIn}
+            />
           </div>
-          <div className="flex flex-row justify-between">
+          <div className="flex flex-col">
               <Label className="content-center">Send proceeds to</Label>
-              <DestinationBalanceSelect setBalanceTo={setBalanceTo} />
+              <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} />
           </div>
           <div className="flex flex-row">
-            <Button type="button" className="flex grow" onClick={onSubmit}>
+            <Button type="button" className={`flex grow h-12 rounded-[0.75rem] text-[1.5rem]`} onClick={onSubmit}>
               {"Submit"}
             </Button>
           </div>
