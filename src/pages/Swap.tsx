@@ -14,6 +14,7 @@ import useTokenData from "@/state/useTokenData";
 import { FarmFromMode, FarmToMode } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import type { BaseError } from "viem";
 import { useChainId, useWriteContract } from "wagmi";
@@ -108,10 +109,10 @@ export default function Swap() {
               variant={"outline"}
               className="rounded-[0.75rem] text-[1rem] text-black font-[500] -tracking-[0.02em] inline-flex gap-2"
             >
-              <a href="/podmarket">
+              <Link to="/podmarket">
                 Buy and sell Pods
                 <UpRightArrowIcon color={"currentColor"} />
-              </a>
+              </Link>
             </Button>
             <SlippageButton slippage={slippage} setSlippage={setSlippage} />
           </div>

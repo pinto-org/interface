@@ -47,7 +47,6 @@ export function PodOrdersTable() {
     </CardHeader>
     <CardContent>
     <Table>
-  {/* <TableCaption>Earn yield and participate in protocol governance by depositing whitelisted assets</TableCaption> */}
   <TableHeader>
     <TableRow className="hover:bg-white">
       <TableHead className="w-[200px] transition-colors hover:bg-muted/50">Created At</TableHead>
