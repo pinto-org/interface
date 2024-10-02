@@ -26,7 +26,7 @@ export function Market() {
           {currentSelection === "?view=activity" && <FarmerActivityTable />}
         </div>
     </div>
-    <div className="flex flex-col gap-4 self-start">
+    <div className="flex flex-col gap-4 self-start w-[540px]">
       <ModeSelect />
       {(mode === "buy" || !mode) && !id && <CreateOrder />}
       {mode === "buy" && id && <FillListing />}

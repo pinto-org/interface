@@ -84,7 +84,7 @@ export default function CreateListing() {
     }
 
     return (
-      <Card className="h-fit w-[360px]">
+      <Card className="h-fit w-full">
         <CardHeader>
           <CardTitle>Create Listing</CardTitle>
           <CardDescription>Sell pods by listing them on the market</CardDescription>

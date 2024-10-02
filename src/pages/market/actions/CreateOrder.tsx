@@ -129,7 +129,7 @@ export default function CreateOrder() {
     };
 
     return (
-        <Card className="h-fit w-[360px]">
+        <Card className="h-fit w-full">
         <CardHeader>
           <CardTitle>Create Order</CardTitle>
           <CardDescription>Create a buy order</CardDescription>

@@ -137,7 +137,7 @@ export default function FillListing() {
     };
 
     return (
-        <Card className="h-fit w-[360px]">
+        <Card className="h-fit w-full">
         <CardHeader>
           <CardTitle>Fill Listing</CardTitle>
           <CardDescription>Buy a pod listing</CardDescription>

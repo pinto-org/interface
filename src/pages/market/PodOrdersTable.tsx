@@ -36,7 +36,7 @@ export function PodOrdersTable() {
   const navigate = useNavigate();
 
   function navigateTo(id: string) {
-    navigate(`/market/sell/${id}`)
+    navigate(`/podmarket/sell/${id}`)
   };
 
     return (
