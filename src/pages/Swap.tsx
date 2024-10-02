@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/Button";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Label } from "@/components/ui/Label";
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { FarmFromMode, FarmToMode } from "@/utils/types";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import useTokenData from "@/state/useTokenData";
@@ -16,6 +15,8 @@ import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { BaseError } from "viem";
+import { UpDownArrowsIcon, UpRightArrowIcon } from "@/components/Icons";
+import marketIcon from "@/assets/protocol/Market.png";
 
 
 export default function Swap() {
@@ -92,15 +93,27 @@ export default function Swap() {
   };
 
   return (
-    <div className="flex flex-row justify-center">
-      <Card className="h-fit w-[450px]">
-        <CardHeader>
-          <CardTitle>Swap</CardTitle>
-          <CardDescription>Swap between tokens</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+    <div className="flex flex-col w-full">
+      <div className="flex flex-col self-center w-[700px]">
+        <div className="flex flex-row justify-between">
+          <div className="flex flex-col">
+            <div className="text-pinto-h1 text-black inline-flex gap-2 items-center">
+              <img src={marketIcon} className="h-12 w-12" />
+              Market
+            </div>
+            <div className="font-[340] text-[1.25rem] text-pinto-gray-4">Buy and sell Pinto-native assets.</div>
+          </div>
+          <div className="flex flex-row items-center">
+            <Button variant={"outline"} className="rounded-[0.75rem] text-[1rem] text-black font-[500] -tracking-[0.02em] inline-flex gap-2">
+              Buy and sell Pods
+              <UpRightArrowIcon color={"currentColor"} />
+            </Button>
+            <SlippageButton slippage={slippage} setSlippage={setSlippage} />
+          </div>
+        </div>
+        <div className="flex flex-col mt-9 gap-4">
           <div>
-            <Label>Amount In</Label>
+            <Label>Sell</Label>
             <ComboInputField
               amount={amountIn}
               setAmount={setAmountIn}
@@ -112,10 +125,12 @@ export default function Swap() {
             />
           </div>
           <div className="flex flex-row justify-center">
-            <Button type="button" onClick={invertTokens}>↕️</Button>
+            <Button onClick={invertTokens} variant={'outline'} className="rounded-full h-10 w-10 p-0 self-center hover:cursor-pointer">
+                <UpDownArrowsIcon />
+            </Button> 
           </div>
           <div>
-            <Label>Amount Out</Label>
+            <Label>Buy</Label>
             <ComboInputField
               amount={amountOut}
               setAmount={setAmountOut}
@@ -125,16 +140,15 @@ export default function Swap() {
               hideMax
             />
           </div>
-          <div className="flex flex-row justify-between">
-            <Label className="content-center">Destination</Label>
+          <div>
+            <Label className="content-center">Send output to:</Label>
             <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} />
           </div>
-          <div className="flex flex-row gap-2">
-            <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit}/>
-            <SlippageButton slippage={slippage} setSlippage={setSlippage} />
+          <div className="mt-6 flex">
+            <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit} className="h-[5.25rem]" />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

@@ -52,7 +52,7 @@ function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, 
 
     return (
         <>
-            <div className="border border-pinto-gray-blue content-center bg-transparent shadow-sm transition-colors p-4 rounded-[0.75rem] focus-within:outline-none focus-within:ring-1 focus-within:ring-ring">
+            <div className="border border-pinto-gray-blue content-center bg-white transition-colors p-4 rounded-[0.75rem] focus-within:outline-none focus-within:ring-1 focus-within:ring-ring">
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-row gap-2 items-center">
                         {isLoading 
@@ -61,7 +61,7 @@ function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, 
                                 min={0} 
                                 type="number"
                                 disabled={disableInput} 
-                                className="flex w-full px-1 text-2xl text-pinto-gray-4 align-middle focus-visible:outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                className="flex w-full px-1 text-2xl text-black align-middle focus-visible:outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                                 value={internalAmount || amount}
                                 onChange={(e) => setInternalAmount(e.target.value)}
                             />

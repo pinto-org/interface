@@ -78,3 +78,10 @@ export const CloseIcon = ({ color = "#9C9C9C", width = 9, height = 10 }: SVGProp
   </svg>
 );
 
+export const UpRightArrowIcon = ({ color = "#9C9C9C", width = 12, height = 13 }: SVGProps) => (
+  <svg width={width} height={height} viewBox="0 0 12 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10.95 1.54688L1.05005 11.4469" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M4 1.5L10.95 1.549L11 8.5" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
