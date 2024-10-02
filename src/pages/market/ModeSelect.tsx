@@ -1,37 +1,44 @@
-import { Link as ReactLink, useLocation, useParams } from "react-router-dom";
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/NavigationMenu";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
-const Link = ({ href, ...props }) => {
-  const { mode, plotId } = useParams();
-  const location = useLocation();
-  const isActive = href === "/podmarket/buy" && !mode && !plotId ? true : href === location.pathname;
+export default function ModeSelect() {
+  const { mode, id } = useParams();
+  const navigate = useNavigate();
 
   return (
-    <NavigationMenuLink asChild active={isActive}>
-      <ReactLink to={href} className={navigationMenuTriggerStyle()} {...props} />
-    </NavigationMenuLink>
-  );
-};
-
-function ModeSelect() {
-  return (
-    <NavigationMenu>
-      <NavigationMenuList>
-        <NavigationMenuItem>
-          <Link href="/podmarket/buy">Buy</Link>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <Link href="/podmarket/sell">Sell</Link>
-        </NavigationMenuItem>
-      </NavigationMenuList>
-    </NavigationMenu>
+    <div className="flex flex-col gap-4">
+      <Tabs
+        defaultValue="buy"
+        className="w-full"
+        value={!mode ? "buy" : mode}
+        onValueChange={(value) => navigate(`/podmarket/${value}`)}
+      >
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="buy">
+            <Link to="/podmarket/buy">Buy</Link>
+          </TabsTrigger>
+          <TabsTrigger value="sell">
+            <Link to="/podmarket/sell">Sell</Link>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+      <Tabs
+        defaultValue="order-list"
+        className="w-full"
+        value={!id ? "order-list" : "fill"}
+        onValueChange={(value) =>
+          value === "order-list" ? navigate(`/podmarket/${mode === "buy" ? "buy" : "sell"}`) : undefined
+        }
+      >
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="order-list">
+            <Link to={!mode || mode === "buy" ? "/podmarket/buy" : "/podmarket/sell"}>
+              {!mode || mode === "buy" ? "Order" : "List"}
+            </Link>
+          </TabsTrigger>
+          <TabsTrigger value="fill">Fill</TabsTrigger>
+        </TabsList>
+      </Tabs>
+    </div>
   );
 }
-
-export default ModeSelect;
