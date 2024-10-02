@@ -5,6 +5,7 @@ import Silo from "./pages/Silo";
 import Swap from "./pages/Swap";
 import Overview from "./pages/Overview";
 import SiloToken from "./pages/SiloToken";
+import { Market } from "./pages/Market";
 
 function App() {
 
@@ -18,9 +19,9 @@ function App() {
           <Route path="/silo" element={<Silo />} />
           <Route path="/silo/:tokenAddress" element={<SiloToken />} />
           <Route path="/field" element={<Field />} />
-          {/*<Route path="/market" element={<Market />} />
-          <Route path="/market/:mode" element={<Market />} />
-          <Route path="/market/:mode/:id" element={<Market />} /> */}
+          <Route path="/podmarket" element={<Market />} />
+          <Route path="/podmarket/:mode" element={<Market />} />
+          <Route path="/podmarket/:mode/:id" element={<Market />} />
           <Route path="/market" element={<Swap />} />
         </Routes>
       </div>
