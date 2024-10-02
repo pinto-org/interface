@@ -26,7 +26,7 @@ export function PodListingsTable() {
   const navigate = useNavigate();
 
   function navigateTo(id: string) {
-    navigate(`/market/buy/${id}`)
+    navigate(`/podmarket/buy/${id}`)
   };
 
     return (

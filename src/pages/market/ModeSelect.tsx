@@ -10,7 +10,7 @@ import {
 const Link = ({ href, ...props }) => {
   const { mode, plotId } = useParams();
   const location = useLocation();
-  const isActive = href === "/market/buy" && !mode && !plotId ? true : href === location.pathname;
+  const isActive = href === "/podmarket/buy" && !mode && !plotId ? true : href === location.pathname;
 
   return (
     <NavigationMenuLink asChild active={isActive}>
@@ -24,10 +24,10 @@ function ModeSelect() {
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <Link href="/market/buy">Buy</Link>
+          <Link href="/podmarket/buy">Buy</Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="/market/sell">Sell</Link>
+          <Link href="/podmarket/sell">Sell</Link>
         </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>
