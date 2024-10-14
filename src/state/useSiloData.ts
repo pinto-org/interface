@@ -1,14 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { QueryKey, useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
-import { useChainId } from "wagmi";
+import { useChainId, useReadContracts } from "wagmi";
 import {
-  useReadBeanstalk_Bdv,
-  useReadBeanstalk_GetGerminatingStem,
-  useReadBeanstalk_GetTotalDeposited,
-  useReadBeanstalk_GetTotalDepositedBdv,
-  useReadBeanstalk_GetTotalWithdrawn,
-  useReadBeanstalk_StemTipForToken,
-  useReadBeanstalk_TokenSettings,
+  beanstalkAbi,
+  beanstalkAddress,
   useReadBeanstalk_TotalEarnedBeans,
   useReadBeanstalk_TotalStalk,
 } from "@/generated/contractHooks";
@@ -16,17 +11,21 @@ import { SiloYieldsDocument } from "@/generated/gql/graphql";
 import { TokenValue } from "@/classes/TokenValue";
 import useTokenData from "./useTokenData";
 import { SEEDS, STALK } from "@/constants/internalTokens";
+import { Address } from "viem";
 
-const querySettings = {
-  staleTime: 1000 * 60 * 2,
-  refetchInterval: 1000 * 60 * 3, // 3 minutes, in milliseconds
+const settings = {
+  query: {
+    staleTime: 1000 * 60 * 2,
+    refetchInterval: 1000 * 60 * 3, // 3 minutes, in milliseconds
+  }
 };
 
 export function useSiloData() {
   const chainId = useChainId();
-  const stalkTotal = useReadBeanstalk_TotalStalk({ query: querySettings }).data || 0n;
-  // const rootsTotal = useReadBeanstalk_TotalRoots();
-  const earnedBeansTotal = useReadBeanstalk_TotalEarnedBeans({ query: querySettings }).data || 0n;
+  const protocolAddress = beanstalkAddress[chainId as keyof typeof beanstalkAddress];
+
+  const stalkTotal = useReadBeanstalk_TotalStalk({ ...settings }).data || 0n;
+  const earnedBeansTotal = useReadBeanstalk_TotalEarnedBeans({ ...settings }).data || 0n;
   const { data: yields } = useQuery({
     queryKey: ["siloYields", { chainId: chainId }],
     queryFn: async () => request("https://graph.bean.money/beanstalk", SiloYieldsDocument),
@@ -34,81 +33,105 @@ export function useSiloData() {
   const SILO_WHITELIST = useTokenData().whitelistedTokens;
   const BEAN = useTokenData().mainToken;
 
-  const queryKeys = [];
+  const queryKeys: QueryKey[] = [];
 
   const data = new Map();
   SILO_WHITELIST.forEach((token) => {
-    //@ts-ignore
-    const { data: totalDeposited, queryKey: queryKey1 } =
-      useReadBeanstalk_GetTotalDeposited({
-        args: [token.address],
-        query: querySettings,
-      });
-    queryKeys.push(queryKey1);
+    const contractCalls = [
+      {
+        address: protocolAddress,
+        abi: beanstalkAbi,
+        functionName: 'getTotalDeposited',
+        args: [token.address]
+      },
+      {
+        address: protocolAddress,
+        abi: beanstalkAbi,
+        functionName: 'bdv',
+        args: [token.address, BigInt(10 ** token.decimals)]
+      },
+      {
+        address: protocolAddress,
+        abi: beanstalkAbi,
+        functionName: 'stemTipForToken',
+        args: [token.address]
+      },
+      {
+        address: protocolAddress,
+        abi: beanstalkAbi,
+        functionName: 'getTotalDepositedBdv',
+        args: [token.address]
+      },
+      {
+        address: protocolAddress,
+        abi: beanstalkAbi,
+        functionName: 'getGerminatingStem',
+        args: [token.address]
+      },
+      {
+        address: protocolAddress,
+        abi: beanstalkAbi,
+        functionName: 'tokenSettings',
+        args: [token.address]
+      }
+    ];
 
-    const { data: totalWithdrawn, queryKey: queryKey2 } =
-      useReadBeanstalk_GetTotalWithdrawn({
-        args: [token.address],
-        query: querySettings,
-      });
-    queryKeys.push(queryKey2);
-
-    const { data: tokenBDV, queryKey: queryKey3 } =
-      useReadBeanstalk_Bdv({
-        args: [token.address, BigInt(10 ** token.decimals)],
-        query: querySettings,
-      });
-    queryKeys.push(queryKey3);
-
-    const { data: stemTip, queryKey: queryKey4 } =
-      useReadBeanstalk_StemTipForToken({
-        args: [token.address],
-        query: querySettings,
-      });
-    queryKeys.push(queryKey4);
-
-    const { data: depositedBDV, queryKey: queryKey5 } =
-      useReadBeanstalk_GetTotalDepositedBdv({
-        args: [token.address],
-        query: querySettings,
-      });
-    queryKeys.push(queryKey5);
-
-    const { data: germinatingStem, queryKey: queryKey6 } =
-      useReadBeanstalk_GetGerminatingStem({
-        args: [token.address],
-        query: querySettings,
-      });
-    queryKeys.push(queryKey6);
-
-    const { data: tokenSettings, queryKey: queryKey7 } = useReadBeanstalk_TokenSettings({
-      args: [token.address],
-      query: querySettings,
+    const result = useReadContracts({
+      contracts: contractCalls,
+      ...settings
     });
-    queryKeys.push(queryKey7);
+    const siloTokenData = result.data as Array<{ result: any, status: string }>
 
     const index = yields?.siloYields[0].tokenAPYS.findIndex(
       (apys) => apys.token.toLowerCase() === token.address.toLowerCase(),
     );
     const yieldData = index ? yields?.siloYields[0].tokenAPYS[index] : undefined;
 
-    data.set(token, {
-      totalDeposited: TokenValue.fromBlockchain(totalDeposited || 0n, token.decimals),
-      totalWithdrawn: TokenValue.fromBlockchain(totalWithdrawn || 0n, token.decimals),
-      tokenBDV: TokenValue.fromBlockchain(tokenBDV || 0n, BEAN.decimals),
-      stemTip: TokenValue.fromBlockchain(stemTip || 0n, BEAN.decimals),
-      depositedBDV: TokenValue.fromBlockchain(depositedBDV || 0n, BEAN.decimals),
-      germinatingStem: TokenValue.fromBlockchain(germinatingStem || 0n, BEAN.decimals),
-      rewards: {
-        seeds: TokenValue.fromBlockchain(tokenSettings?.stalkEarnedPerSeason || 0n, SEEDS.decimals),
-        stalk: TokenValue.fromBlockchain(tokenSettings?.stalkIssuedPerBdv || 0n, STALK.decimals),
-      },
-      yields: {
-        beanAPY: yieldData ? Number(yieldData.beanAPY) : 0,
-        stalkAPY: yieldData ? Number(yieldData.stalkAPY) : 0,
-      },
-    });
+    if (siloTokenData) {
+      data.set(token, {
+        totalDeposited: TokenValue.fromBlockchain(siloTokenData[0].result || 0n, token.decimals),
+        tokenBDV: TokenValue.fromBlockchain(siloTokenData[1].result || 0n, BEAN.decimals),
+        stemTip: TokenValue.fromBlockchain(siloTokenData[2].result || 0n, BEAN.decimals),
+        depositedBDV: TokenValue.fromBlockchain(siloTokenData[3].result || 0n, BEAN.decimals),
+        germinatingStem: TokenValue.fromBlockchain(siloTokenData[4].result || 0n, BEAN.decimals),
+        tokenSettings: {
+          deltaStalkEarnedPerSeason: TokenValue.fromBlockchain(siloTokenData[5].result.deltaStalkEarnedPerSeason || 0n, STALK.decimals),
+          encodeType: siloTokenData[5].result.encodeType as string,
+          gaugePointImplementation: {
+            target: siloTokenData[5].result.gaugePointImplementation.target as Address, 
+            selector: siloTokenData[5].result.gaugePointImplementation.selector as string, 
+            encodeType: siloTokenData[5].result.gaugePointImplementation.encodeType as string, 
+            data: siloTokenData[5].result.gaugePointImplementation.data as string
+          },
+          gaugePoints: siloTokenData[5].result.gaugePoints as bigint,
+          liquidityWeightImplementation: {
+            target: siloTokenData[5].result.liquidityWeightImplementation.target as Address, 
+            selector: siloTokenData[5].result.liquidityWeightImplementation.selector as string, 
+            encodeType: siloTokenData[5].result.liquidityWeightImplementation.encodeType as string, 
+            data: siloTokenData[5].result.liquidityWeightImplementation.data as string
+          },
+          milestoneSeason: siloTokenData[5].result.milestoneSeason as number,
+          milestoneStem: TokenValue.fromBlockchain(siloTokenData[5].result.milestoneStem || 0n, BEAN.decimals),
+          optimalPercentDepositedBdv: TokenValue.fromBlockchain(siloTokenData[5].result.optimalPercentDepositedBdv || 0n, BEAN.decimals),
+          selector: siloTokenData[5].result.selector as string,
+          stalkEarnedPerSeason: TokenValue.fromBlockchain(siloTokenData[5].result.stalkEarnedPerSeason || 0n, SEEDS.decimals),
+          stalkIssuedPerBdv: TokenValue.fromBlockchain(siloTokenData[5].result.stalkIssuedPerBdv || 0n, STALK.decimals),
+        },
+        rewards: {
+          seeds: TokenValue.fromBlockchain(siloTokenData[5].result.stalkEarnedPerSeason || 0n, SEEDS.decimals),
+          stalk: TokenValue.fromBlockchain(siloTokenData[5].result.stalkIssuedPerBdv || 0n, STALK.decimals),
+        },
+        yields: {
+          beanAPY: yieldData ? Number(yieldData.beanAPY) : 0,
+          stalkAPY: yieldData ? Number(yieldData.stalkAPY) : 0,
+        },
+      });
+    };
+
+    queryKeys.push(result.queryKey);
   });
+
+  console.log("tokendata: ", data)
 
   return {
     tokenData: data,
