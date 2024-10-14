@@ -1,5 +1,11 @@
 import { InternalToken } from "@/utils/types";
 
+export const BEAN: InternalToken = {
+  name: "Bean",
+  symbol: "BEAN",
+  decimals: 6,
+};
+
 export const STALK: InternalToken = {
   name: "Stalk",
   symbol: "STALK",

@@ -1,8 +1,7 @@
 import { encodeAbiParameters } from "viem";
-import { SEEDS, STALK } from "@/constants/internalTokens";
+import { SEEDS, STALK, BEAN } from "@/constants/internalTokens";
 import { TokenValue } from "@/classes/TokenValue";
 import { Token } from "./types";
-import { MAIN_TOKENS } from "@/constants/tokens";
 
 export enum ConvertKind {
   BEANS_TO_CURVE_LP = 0,
@@ -44,7 +43,6 @@ export function pickCrates(deposits, amount: TokenValue) {
   let totalStalk = TokenValue.ZERO;
   let totalSeeds = TokenValue.ZERO;
 
-  const BEAN = MAIN_TOKENS[0];
   const cratesToWithdrawFrom = [];
 
   deposits.some((deposit) => {

@@ -1,10 +1,94 @@
-import { mainnetLP, mainnetNative, mainnetPreferred, mainnetProtocol } from "./tokens/mainnet";
+import { Token } from "@/utils/types";
+import pintoIcon from "@/assets/tokens/Pinto.png";
+import pintoWethIcon from "@/assets/tokens/Pinto_wETH.png";
+import pintoWstethIcon from "@/assets/tokens/Pinto_wstETH.png";
+import { arbitrum } from "viem/chains";
 
-export const MAIN_TOKENS = [...mainnetProtocol];
+export const tokens: { [chainId: number]: Token[] } = {
+    [arbitrum.id]: [
+        // Protocol Token
+        {
+            chainId: arbitrum.id,
+            name: "Bean",
+            symbol: "BEAN",
+            address: "0xBEA0005B8599265D41256905A9B3073D397812E4",
+            decimals: 6,
+            isMain: true,
+            logoURI: pintoIcon,
+            color: "#246645"
+        },
+        // Native Chain Token
+        {
+            chainId: arbitrum.id,
+            name: "Ether",
+            symbol: "ETH",
+            address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+            decimals: 18,
+            isNative: true,
+            logoURI: "https://assets.coingecko.com/coins/images/279/standard/ethereum.png"
+        },
+        // Well LP Tokens
+        {
+            chainId: arbitrum.id,
+            name: "BEAN:WETH LP",
+            symbol: "BEAN:WETH",
+            address: "0xBeA00Aa8130aCaD047E137ec68693C005f8736Ce",
+            decimals: 18,
+            isLP: true,
+            logoURI: pintoWethIcon,
+            color: "#627EEA"
+        },
+        {
+            chainId: arbitrum.id,
+            name: "BEAN:wstETH LP",
+            symbol: "BEAN:wstETH",
+            address: "0xBEa00BbE8b5da39a3F57824a1a13Ec2a8848D74F",
+            decimals: 18,
+            isLP: true,
+            logoURI: pintoWstethIcon,
+            color: "#00A3FF"
+        },
+        // Whitelisted Tokens
+        {
+            chainId: arbitrum.id,
+            name: "Wrapped Ether",
+            symbol: "WETH",
+            address: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+            decimals: 18,
+            isWrappedNative: true,
+            isWhitelisted: true,
+            logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png",
+            color: "#627EEA"
+        },
+        {
+            chainId: arbitrum.id,
+            name: "Wrapped stETH",
+            symbol: "WSTETH",
+            address: "0x5979D7b546E38E414F7E9822514be443A4800529",
+            decimals: 18,
+            isWhitelisted: true,
+            logoURI: "https://assets.coingecko.com/coins/images/18834/thumb/wstETH.png?1696518295",
+            color: "#00A3FF"
+        },
+        // Other Tokens
+        {
+            chainId: arbitrum.id,
+            name: "USDCoin",
+            symbol: "USDC",
+            address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+            decimals: 6,
+            logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png",
+            priceOracle: "0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3",
+        },
+        {
+            chainId: arbitrum.id,
+            name: "Tether USD",
+            symbol: "USDT",
+            address: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+            decimals: 6,
+            logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
+            priceOracle: "0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7",
+        },
 
-export const NATIVE_TOKENS = [...mainnetNative];
-
-export const LP_TOKENS = [...mainnetLP];
-
-export const PREFERRED_TOKENS = [...mainnetPreferred];
-
+    ]
+}
