@@ -1,6 +1,6 @@
 import { defineConfig } from "@wagmi/cli";
 import { react } from "@wagmi/cli/plugins";
-import { type Abi, erc20Abi } from "viem";
+import { type Abi } from "viem";
 import { arbitrum, localhost, mainnet } from "wagmi/chains";
 import BEANSTALK_ABI from "./src/constants/abi/Beanstalk.json";
 import BEANSTALK_PRICE_ABI from "./src/constants/abi/BeanstalkPrice.json";

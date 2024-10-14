@@ -14,9 +14,9 @@ export default function useTokenData() {
 
     const _chainId = chainId === 1337 ? arbitrum.id : chainId;
 
-    const mainToken = tokens[_chainId].find((token) => token.isMain);
-    const nativeToken = tokens[_chainId].find((token) => token.isNative);
-    const wrappedNativeToken = tokens[_chainId].find((token) => token.isWrappedNative);
+    const mainToken = tokens[_chainId].find((token) => token.isMain) as Token;
+    const nativeToken = tokens[_chainId].find((token) => token.isNative) as Token;
+    const wrappedNativeToken = tokens[_chainId].find((token) => token.isWrappedNative) as Token;
 
     for (const token of tokens[_chainId]) {
       if (token.isLP) {
@@ -27,7 +27,7 @@ export default function useTokenData() {
       };
     };
 
-    const allowances = new Map();
+    const allowances = new Map<Token, TokenValue>();
     const contractQueries: { address: `0x${string}`, abi: Abi, functionName: string }[] = [];
     const tokensToGetAllowance = [mainToken, ...lpTokens, ...preferredTokens].filter(Boolean) as Token[];
     for (const token of tokensToGetAllowance) {
