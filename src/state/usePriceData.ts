@@ -1,10 +1,9 @@
-import { useReadBeanstalkPrice_Price, useReadUsdOracle_GetEthUsdPrice, useReadUsdOracle_GetEthUsdTwap, useReadUsdOracle_GetWstethUsdPrice, useReadUsdOracle_GetWstethUsdTwap } from "@/generated/contractHooks";
+import { beanstalkAbi, beanstalkAddress, useReadBeanstalkPrice_Price } from "@/generated/contractHooks";
 import { TokenValue } from "@/classes/TokenValue";
 import { Token } from "@/utils/types";
 import useTokenData from "./useTokenData";
-import { useReadContracts } from "wagmi";
-import chainlinkOracleAbi from "@/constants/abi/ChainlinkOracle.json";
-import { Abi } from "viem";
+import { useChainId, useReadContracts } from "wagmi";
+import { Abi, Address } from "viem";
 
 const settings = {
   query: {
@@ -26,60 +25,64 @@ export interface PoolData {
 
 export function usePriceData() {
   
-  const price = useReadBeanstalkPrice_Price(settings).data;
-  const ethPrice = useReadUsdOracle_GetEthUsdPrice(settings).data;
-  const ethPriceTwa = useReadUsdOracle_GetEthUsdTwap({args: [3600n], ...settings}).data;
-  const wstEthPrice = useReadUsdOracle_GetWstethUsdPrice(settings).data;
-  const wstEthPriceTwa = useReadUsdOracle_GetWstethUsdTwap({args: [3600n], ...settings}).data;
   const tokenData = useTokenData();
-  const tokenPrices = new Map();
+  const chainId = useChainId();
+  const protocolAddress = beanstalkAddress[chainId as keyof typeof beanstalkAddress] as Address;
+  const nativeToken = tokenData.nativeToken;
+  const wrappedNativeToken = tokenData.wrappedNativeToken;
+  const tokenPrices = new Map<Token, { instant: TokenValue, twa: TokenValue }>();
+  const contractCalls: { address: `0x${string}`, abi: Abi, functionName: string, args: any }[] = []; 
 
-  for (const token of Array.from(tokenData.preferredTokens)) {
-    if (!token.priceOracle || token.isMain || token.isWhitelisted) continue
+  const tokensToFetch = tokenData.preferredTokens.filter((token) => !token.isMain);
 
-    const oracle = useReadContracts({
-      contracts: [
-        {
-          address: token.priceOracle,
-          abi: chainlinkOracleAbi as Abi, 
-          functionName: 'decimals'
-        },
-        {
-          address: token.priceOracle,
-          abi: chainlinkOracleAbi as Abi,
-          functionName: 'latestRoundData'
-        }
-      ],
-      ...settings
-    }).data;
-
-    tokenPrices.set(token, {
-      instant: TokenValue.fromBlockchain(oracle ? oracle[1].result[1] : 0, oracle ? oracle[0].result : 0),
-      twa: TokenValue.ZERO
-    })
+  for (const token of tokensToFetch) {
+    if (!token.priceOracle || token.isMain) continue;
+    const instantPriceCall = {
+      address: protocolAddress,
+      abi: beanstalkAbi,
+      functionName: 'getTokenUsdPrice',
+      args: [token.address]
+    };
+    const twaPriceCall = {
+      address: protocolAddress,
+      abi: beanstalkAbi,
+      functionName: 'getTokenUsdTwap',
+      args: [token.address, 3600n]
+    };
+    contractCalls.push(instantPriceCall);
+    contractCalls.push(twaPriceCall);
   };
 
-  tokenPrices.set(tokenData.mainToken, {
-    instant: TokenValue.fromBlockchain(price?.price || 0n, tokenData.mainToken.decimals || 6),
-    twa: TokenValue.ZERO
+  const result = useReadContracts({
+    contracts: contractCalls,
+    ...settings
   });
+  const tokenPriceData = result.data as Array<{ result: bigint, status: string }>
 
-  const eth = tokenData.nativeToken;
-  const weth = tokenData.preferredTokens.find((token) => token.symbol === "WETH");
-  const wstEth = tokenData.preferredTokens.find((token) => token.symbol === "WSTETH");
-  tokenPrices.set(eth, {
-    instant: TokenValue.fromBlockchain(ethPrice || 0n, 6),
-    twa: TokenValue.fromBlockchain(ethPriceTwa || 0n, 6)
-  });
-  tokenPrices.set(weth, {
-    instant: TokenValue.fromBlockchain(ethPrice || 0n, 6),
-    twa: TokenValue.fromBlockchain(ethPriceTwa || 0n, 6)
-  });
-  tokenPrices.set(wstEth, {
-    instant: TokenValue.fromBlockchain(wstEthPrice || 0n, 6),
-    twa: TokenValue.fromBlockchain(wstEthPriceTwa || 0n, 6)
-  });
+  if (tokenPriceData) {
+    for (const [index, tokenPrice] of tokenPriceData.entries()) {
+      const isOdd = (index % 2 === 1);
+      const _token = tokensToFetch[Math.floor(index / 2)];
+      if (!isOdd) {
+        tokenPrices.set(_token, { 
+          instant: TokenValue.fromBlockchain(tokenPrice.result ?? 0n, 6), 
+          twa: TokenValue.fromBlockchain(0, 6) 
+        })
+      } else {
+        const _priceData = tokenPrices.get(_token);
+        const newPriceData = { 
+          instant: _priceData ? _priceData.instant : TokenValue.fromBlockchain(0n, 6), 
+          twa: TokenValue.fromBlockchain(tokenPrice.result ?? 0n, 6) 
+        }
+        tokenPrices.set(_token, newPriceData)
+      }
+    }
+    const wrappedNativePrice = tokenPrices.get(wrappedNativeToken);
+    tokenPrices.set(nativeToken, wrappedNativePrice ?? { instant: TokenValue.ZERO, twa: TokenValue.ZERO });
+  }
 
+  const price = useReadBeanstalkPrice_Price(settings).data;
+  
   const pools: PoolData[] = [];
   price?.ps.forEach((pool) => {
 
