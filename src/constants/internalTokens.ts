@@ -9,7 +9,7 @@ export const BEAN: InternalToken = {
 export const STALK: InternalToken = {
   name: "Stalk",
   symbol: "STALK",
-  decimals: 10,
+  decimals: 16,
 };
 
 export const SEEDS: InternalToken = {
