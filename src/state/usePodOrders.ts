@@ -11,7 +11,7 @@ export default function usePodOrders() {
     const podOrders = useQuery({
         queryKey: queryKey,
         queryFn: async () =>
-          request("https://graph.node.bean.money/subgraphs/name/beanstalk", AllPodOrdersDocument, {
+          request("https://graph.bean.money/beanstalk", AllPodOrdersDocument, {
             skip: 0
           }),
       });

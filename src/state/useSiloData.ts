@@ -29,7 +29,7 @@ export function useSiloData() {
   const earnedBeansTotal = useReadBeanstalk_TotalEarnedBeans({ query: querySettings }).data || 0n;
   const { data: yields } = useQuery({
     queryKey: ["siloYields", { chainId: chainId }],
-    queryFn: async () => request("https://graph.node.bean.money/subgraphs/name/beanstalk", SiloYieldsDocument),
+    queryFn: async () => request("https://graph.bean.money/beanstalk", SiloYieldsDocument),
   });
   const SILO_WHITELIST = useTokenData().whitelistedTokens;
   const BEAN = useTokenData().mainToken;

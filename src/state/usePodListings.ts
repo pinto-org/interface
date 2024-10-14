@@ -15,7 +15,7 @@ export default function usePodListings() {
     const podListings = useQuery({
         queryKey: queryKey,
         queryFn: async () =>
-          request("https://graph.node.bean.money/subgraphs/name/beanstalk", AllPodListingsDocument, {
+          request("https://graph.bean.money/beanstalk", AllPodListingsDocument, {
             maxHarvestableIndex: harvestableIndex.toBigInt().toString(),
             skip: 0
           }),

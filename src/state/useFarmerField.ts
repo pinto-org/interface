@@ -16,7 +16,7 @@ export function useFarmerField() {
   const { data } = useQuery({
     queryKey: queryKey,
     queryFn: async () =>
-      request("https://graph.node.bean.money/subgraphs/name/beanstalk", FarmerPlotsDocument, {
+      request("https://graph.bean.money/beanstalk", FarmerPlotsDocument, {
         account: account.address!.toString().toLowerCase(),
       }),
     enabled: !!account.address,

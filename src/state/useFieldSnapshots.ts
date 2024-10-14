@@ -19,7 +19,7 @@ export default function useFieldSnapshots() {
     const query = useQuery({
         queryKey: ["fieldSnapshots", { chainId: chainId, variables: [fieldId.toLowerCase()] }],
         queryFn: async () =>
-          request("https://graph.node.bean.money/subgraphs/name/beanstalk", FieldSnapshotsDocument, {
+          request("https://graph.bean.money/beanstalk", FieldSnapshotsDocument, {
             fieldId: fieldId.toLowerCase(),
             first: 7
           }),

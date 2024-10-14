@@ -10,7 +10,7 @@ export function useFarmerMarket() {
   const { data: listings } = useQuery({
     queryKey: ["farmerMarketListings", { chainId: chainId, variables: [account.address?.toString().toLowerCase()] }],
     queryFn: async () =>
-      request("https://graph.node.bean.money/subgraphs/name/beanstalk", FarmerPodListingsDocument, {
+      request("https://graph.bean.money/beanstalk", FarmerPodListingsDocument, {
         account: account.address!.toString().toLowerCase(),
         createdAt_gt: 0,
         first: 1000
@@ -21,7 +21,7 @@ export function useFarmerMarket() {
   const { data: orders } = useQuery({
     queryKey: ["farmerMarketOrders", { chainId: chainId, variables: [account.address?.toString().toLowerCase()] }],
     queryFn: async () =>
-      request("https://graph.node.bean.money/subgraphs/name/beanstalk", FarmerPodOrdersDocument, {
+      request("https://graph.bean.money/beanstalk", FarmerPodOrdersDocument, {
         account: account.address!.toString().toLowerCase(),
         createdAt_gt: 0,
         first: 1000

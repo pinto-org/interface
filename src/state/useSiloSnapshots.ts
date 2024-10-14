@@ -16,7 +16,7 @@ export default function useSiloSnapshots() {
     const query = useQuery({
         queryKey: ["siloSnapshots", { chainId: chainId }],
         queryFn: async () =>
-          request("https://graph.node.bean.money/subgraphs/name/beanstalk", SiloSnapshotsDocument, {
+          request("https://graph.bean.money/beanstalk", SiloSnapshotsDocument, {
             first: 7
           }),
         enabled: !!season,

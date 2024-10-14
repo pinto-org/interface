@@ -24,7 +24,7 @@ function useFarmerDepositedBalances() {
   const { data } = useQuery({
     queryKey: queryKey,
     queryFn: async () =>
-      request("https://graph.node.bean.money/subgraphs/name/beanstalk", FarmerSiloBalancesDocument, {
+      request("https://graph.bean.money/beanstalk", FarmerSiloBalancesDocument, {
         account: account.address!.toString().toLowerCase(),
         season: Number(season.toHuman()),
       }),

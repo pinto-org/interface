@@ -51,7 +51,7 @@ export type Bean = {
   /** Hourly snapshot of Bean data */
   hourlySnapshot: Array<BeanHourlySnapshot>;
   /** Contract address of the Bean token */
-  id: Scalars['ID']['output'];
+  id: Scalars['Bytes']['output'];
   /** Last timestamp a cross was seen */
   lastCross: Scalars['BigInt']['output'];
   /** Last season seen from Beanstalk */
@@ -929,14 +929,16 @@ export type Bean_Filter = {
   dewhitelistedPools_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
   dewhitelistedPools_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
   hourlySnapshot_?: InputMaybe<BeanHourlySnapshot_Filter>;
-  id?: InputMaybe<Scalars['ID']['input']>;
-  id_gt?: InputMaybe<Scalars['ID']['input']>;
-  id_gte?: InputMaybe<Scalars['ID']['input']>;
-  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  id_lt?: InputMaybe<Scalars['ID']['input']>;
-  id_lte?: InputMaybe<Scalars['ID']['input']>;
-  id_not?: InputMaybe<Scalars['ID']['input']>;
-  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id?: InputMaybe<Scalars['Bytes']['input']>;
+  id_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  id_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  id_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  id_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  id_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  id_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   lastCross?: InputMaybe<Scalars['BigInt']['input']>;
   lastCross_gt?: InputMaybe<Scalars['BigInt']['input']>;
   lastCross_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -1052,25 +1054,23 @@ export enum Bean_OrderBy {
 export type Beanstalk = {
   __typename?: 'Beanstalk';
   /** Array of the addresses for all active farmers in the silo */
-  activeFarmers: Array<Scalars['String']['output']>;
-  /** Array of the addresses for all farmers that had silo transfers and need stalk/seeds/roots updated */
-  farmersToUpdate: Array<Scalars['String']['output']>;
+  activeFarmers: Array<Scalars['Bytes']['output']>;
+  /** Array of the addresses for all farmers that had silo transfers and need stalk/roots updated */
+  farmersToUpdate: Array<Scalars['Bytes']['output']>;
   /** Address of the fertilizer contract */
-  fertilizer1155?: Maybe<Scalars['String']['output']>;
+  fertilizer1155?: Maybe<Scalars['Bytes']['output']>;
   /** Field level data */
   field: Field;
-  /** Smart contract address of the protocol's main contract (Factory, Registry, etc)  */
+  /** 'beanstalk' */
   id: Scalars['ID']['output'];
   /** Last season called */
   lastSeason: Scalars['Int']['output'];
-  /** Name of the protocol, including version. e.g. Uniswap v3 */
-  name: Scalars['String']['output'];
   /** Season specific data */
   seasons: Array<Season>;
   /** Silo level data */
   silo: Silo;
   /** Bean token address of the protocol */
-  token: Scalars['String']['output'];
+  token: Scalars['Bytes']['output'];
 };
 
 
@@ -1085,39 +1085,29 @@ export type BeanstalkSeasonsArgs = {
 export type Beanstalk_Filter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  activeFarmers?: InputMaybe<Array<Scalars['String']['input']>>;
-  activeFarmers_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  activeFarmers_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
-  activeFarmers_not?: InputMaybe<Array<Scalars['String']['input']>>;
-  activeFarmers_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  activeFarmers_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
+  activeFarmers?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  activeFarmers_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  activeFarmers_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  activeFarmers_not?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  activeFarmers_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  activeFarmers_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   and?: InputMaybe<Array<InputMaybe<Beanstalk_Filter>>>;
-  farmersToUpdate?: InputMaybe<Array<Scalars['String']['input']>>;
-  farmersToUpdate_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  farmersToUpdate_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
-  farmersToUpdate_not?: InputMaybe<Array<Scalars['String']['input']>>;
-  farmersToUpdate_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  farmersToUpdate_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
-  fertilizer1155?: InputMaybe<Scalars['String']['input']>;
-  fertilizer1155_contains?: InputMaybe<Scalars['String']['input']>;
-  fertilizer1155_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  fertilizer1155_ends_with?: InputMaybe<Scalars['String']['input']>;
-  fertilizer1155_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  fertilizer1155_gt?: InputMaybe<Scalars['String']['input']>;
-  fertilizer1155_gte?: InputMaybe<Scalars['String']['input']>;
-  fertilizer1155_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  fertilizer1155_lt?: InputMaybe<Scalars['String']['input']>;
-  fertilizer1155_lte?: InputMaybe<Scalars['String']['input']>;
-  fertilizer1155_not?: InputMaybe<Scalars['String']['input']>;
-  fertilizer1155_not_contains?: InputMaybe<Scalars['String']['input']>;
-  fertilizer1155_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  fertilizer1155_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  fertilizer1155_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  fertilizer1155_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  fertilizer1155_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  fertilizer1155_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  fertilizer1155_starts_with?: InputMaybe<Scalars['String']['input']>;
-  fertilizer1155_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  farmersToUpdate?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  farmersToUpdate_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  farmersToUpdate_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  farmersToUpdate_not?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  farmersToUpdate_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  farmersToUpdate_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  fertilizer1155?: InputMaybe<Scalars['Bytes']['input']>;
+  fertilizer1155_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  fertilizer1155_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  fertilizer1155_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  fertilizer1155_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  fertilizer1155_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  fertilizer1155_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  fertilizer1155_not?: InputMaybe<Scalars['Bytes']['input']>;
+  fertilizer1155_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  fertilizer1155_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   field_?: InputMaybe<Field_Filter>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
@@ -1135,49 +1125,19 @@ export type Beanstalk_Filter = {
   lastSeason_lte?: InputMaybe<Scalars['Int']['input']>;
   lastSeason_not?: InputMaybe<Scalars['Int']['input']>;
   lastSeason_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  name_contains?: InputMaybe<Scalars['String']['input']>;
-  name_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  name_ends_with?: InputMaybe<Scalars['String']['input']>;
-  name_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  name_gt?: InputMaybe<Scalars['String']['input']>;
-  name_gte?: InputMaybe<Scalars['String']['input']>;
-  name_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  name_lt?: InputMaybe<Scalars['String']['input']>;
-  name_lte?: InputMaybe<Scalars['String']['input']>;
-  name_not?: InputMaybe<Scalars['String']['input']>;
-  name_not_contains?: InputMaybe<Scalars['String']['input']>;
-  name_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  name_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  name_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  name_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  name_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  name_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  name_starts_with?: InputMaybe<Scalars['String']['input']>;
-  name_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   or?: InputMaybe<Array<InputMaybe<Beanstalk_Filter>>>;
   seasons_?: InputMaybe<Season_Filter>;
   silo_?: InputMaybe<Silo_Filter>;
-  token?: InputMaybe<Scalars['String']['input']>;
-  token_contains?: InputMaybe<Scalars['String']['input']>;
-  token_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_ends_with?: InputMaybe<Scalars['String']['input']>;
-  token_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_gt?: InputMaybe<Scalars['String']['input']>;
-  token_gte?: InputMaybe<Scalars['String']['input']>;
-  token_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  token_lt?: InputMaybe<Scalars['String']['input']>;
-  token_lte?: InputMaybe<Scalars['String']['input']>;
-  token_not?: InputMaybe<Scalars['String']['input']>;
-  token_not_contains?: InputMaybe<Scalars['String']['input']>;
-  token_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  token_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  token_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  token_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_starts_with?: InputMaybe<Scalars['String']['input']>;
-  token_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  token?: InputMaybe<Scalars['Bytes']['input']>;
+  token_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  token_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  token_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  token_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  token_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  token_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  token_not?: InputMaybe<Scalars['Bytes']['input']>;
+  token_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  token_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
 };
 
 export enum Beanstalk_OrderBy {
@@ -1185,6 +1145,7 @@ export enum Beanstalk_OrderBy {
   FarmersToUpdate = 'farmersToUpdate',
   Fertilizer1155 = 'fertilizer1155',
   Field = 'field',
+  FieldHarvestableIndex = 'field__harvestableIndex',
   FieldHarvestablePods = 'field__harvestablePods',
   FieldHarvestedPods = 'field__harvestedPods',
   FieldId = 'field__id',
@@ -1200,9 +1161,9 @@ export enum Beanstalk_OrderBy {
   FieldSownBeans = 'field__sownBeans',
   FieldTemperature = 'field__temperature',
   FieldUnharvestablePods = 'field__unharvestablePods',
+  FieldUnmigratedL1Pods = 'field__unmigratedL1Pods',
   Id = 'id',
   LastSeason = 'lastSeason',
-  Name = 'name',
   Seasons = 'seasons',
   Silo = 'silo',
   SiloActiveFarmers = 'silo__activeFarmers',
@@ -1216,8 +1177,8 @@ export enum Beanstalk_OrderBy {
   SiloLastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
   SiloPlantableStalk = 'silo__plantableStalk',
   SiloRoots = 'silo__roots',
-  SiloSeeds = 'silo__seeds',
   SiloStalk = 'silo__stalk',
+  SiloUnmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
   Token = 'token'
 }
 
@@ -1242,7 +1203,7 @@ export type Chop = {
   /** Account address */
   farmer: Farmer;
   /** Transaction hash of the transaction that emitted this event */
-  hash: Scalars['String']['output'];
+  hash: Scalars['Bytes']['output'];
   /** (chop|convert)-{ Transaction hash }-{ Log index } */
   id: Scalars['ID']['output'];
   /** Amount of underlying tokens `farmer` received */
@@ -1308,26 +1269,16 @@ export type Chop_Filter = {
   farmer_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   farmer_starts_with?: InputMaybe<Scalars['String']['input']>;
   farmer_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash?: InputMaybe<Scalars['String']['input']>;
-  hash_contains?: InputMaybe<Scalars['String']['input']>;
-  hash_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_ends_with?: InputMaybe<Scalars['String']['input']>;
-  hash_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_gt?: InputMaybe<Scalars['String']['input']>;
-  hash_gte?: InputMaybe<Scalars['String']['input']>;
-  hash_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  hash_lt?: InputMaybe<Scalars['String']['input']>;
-  hash_lte?: InputMaybe<Scalars['String']['input']>;
-  hash_not?: InputMaybe<Scalars['String']['input']>;
-  hash_not_contains?: InputMaybe<Scalars['String']['input']>;
-  hash_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  hash_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  hash_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  hash_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_starts_with?: InputMaybe<Scalars['String']['input']>;
-  hash_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  hash?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  hash_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -1426,11 +1377,10 @@ export enum Chop_OrderBy {
   UnderlyingToken = 'underlyingToken',
   UnderlyingTokenDecimals = 'underlyingToken__decimals',
   UnderlyingTokenGaugePoints = 'underlyingToken__gaugePoints',
-  UnderlyingTokenGpSelector = 'underlyingToken__gpSelector',
   UnderlyingTokenId = 'underlyingToken__id',
+  UnderlyingTokenIsGaugeEnabled = 'underlyingToken__isGaugeEnabled',
   UnderlyingTokenLastDailySnapshotDay = 'underlyingToken__lastDailySnapshotDay',
   UnderlyingTokenLastHourlySnapshotSeason = 'underlyingToken__lastHourlySnapshotSeason',
-  UnderlyingTokenLwSelector = 'underlyingToken__lwSelector',
   UnderlyingTokenMilestoneSeason = 'underlyingToken__milestoneSeason',
   UnderlyingTokenOptimalPercentDepositedBdv = 'underlyingToken__optimalPercentDepositedBdv',
   UnderlyingTokenSelector = 'underlyingToken__selector',
@@ -1468,7 +1418,7 @@ export type Farmer = {
   field?: Maybe<Field>;
   fills: Array<PodFill>;
   /** Address for the farmer */
-  id: Scalars['ID']['output'];
+  id: Scalars['Bytes']['output'];
   listings: Array<PodListing>;
   orders: Array<PodOrder>;
   plots: Array<Plot>;
@@ -1547,14 +1497,16 @@ export type Farmer_Filter = {
   fertilizers_?: InputMaybe<FertilizerBalance_Filter>;
   field_?: InputMaybe<Field_Filter>;
   fills_?: InputMaybe<PodFill_Filter>;
-  id?: InputMaybe<Scalars['ID']['input']>;
-  id_gt?: InputMaybe<Scalars['ID']['input']>;
-  id_gte?: InputMaybe<Scalars['ID']['input']>;
-  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  id_lt?: InputMaybe<Scalars['ID']['input']>;
-  id_lte?: InputMaybe<Scalars['ID']['input']>;
-  id_not?: InputMaybe<Scalars['ID']['input']>;
-  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id?: InputMaybe<Scalars['Bytes']['input']>;
+  id_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  id_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  id_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  id_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  id_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  id_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   listings_?: InputMaybe<PodListing_Filter>;
   or?: InputMaybe<Array<InputMaybe<Farmer_Filter>>>;
   orders_?: InputMaybe<PodOrder_Filter>;
@@ -1567,6 +1519,7 @@ export enum Farmer_OrderBy {
   Deposits = 'deposits',
   Fertilizers = 'fertilizers',
   Field = 'field',
+  FieldHarvestableIndex = 'field__harvestableIndex',
   FieldHarvestablePods = 'field__harvestablePods',
   FieldHarvestedPods = 'field__harvestedPods',
   FieldId = 'field__id',
@@ -1582,6 +1535,7 @@ export enum Farmer_OrderBy {
   FieldSownBeans = 'field__sownBeans',
   FieldTemperature = 'field__temperature',
   FieldUnharvestablePods = 'field__unharvestablePods',
+  FieldUnmigratedL1Pods = 'field__unmigratedL1Pods',
   Fills = 'fills',
   Id = 'id',
   Listings = 'listings',
@@ -1599,20 +1553,22 @@ export enum Farmer_OrderBy {
   SiloLastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
   SiloPlantableStalk = 'silo__plantableStalk',
   SiloRoots = 'silo__roots',
-  SiloSeeds = 'silo__seeds',
   SiloStalk = 'silo__stalk',
+  SiloUnmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
   Withdraws = 'withdraws'
 }
 
 export type Fertilizer = {
   __typename?: 'Fertilizer';
-  /** Address of parent beanstalk */
+  /** 'beanstalk' */
   beanstalk: Scalars['String']['output'];
   /** Token address for fert */
-  id: Scalars['ID']['output'];
+  id: Scalars['Bytes']['output'];
   /** Total overall suppy of fert tokens */
   supply: Scalars['BigInt']['output'];
   tokens: Array<FertilizerToken>;
+  /** Supply from L1 which has not been minted on L2 yet */
+  unmigratedL1Supply?: Maybe<Scalars['BigInt']['output']>;
 };
 
 
@@ -1824,6 +1780,7 @@ export enum FertilizerToken_OrderBy {
   FertilizerBeanstalk = 'fertilizer__beanstalk',
   FertilizerId = 'fertilizer__id',
   FertilizerSupply = 'fertilizer__supply',
+  FertilizerUnmigratedL1Supply = 'fertilizer__unmigratedL1Supply',
   Humidity = 'humidity',
   Id = 'id',
   Season = 'season',
@@ -1964,14 +1921,16 @@ export type Fertilizer_Filter = {
   beanstalk_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   beanstalk_starts_with?: InputMaybe<Scalars['String']['input']>;
   beanstalk_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  id?: InputMaybe<Scalars['ID']['input']>;
-  id_gt?: InputMaybe<Scalars['ID']['input']>;
-  id_gte?: InputMaybe<Scalars['ID']['input']>;
-  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  id_lt?: InputMaybe<Scalars['ID']['input']>;
-  id_lte?: InputMaybe<Scalars['ID']['input']>;
-  id_not?: InputMaybe<Scalars['ID']['input']>;
-  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id?: InputMaybe<Scalars['Bytes']['input']>;
+  id_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  id_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  id_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  id_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  id_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  id_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   or?: InputMaybe<Array<InputMaybe<Fertilizer_Filter>>>;
   supply?: InputMaybe<Scalars['BigInt']['input']>;
   supply_gt?: InputMaybe<Scalars['BigInt']['input']>;
@@ -1982,23 +1941,34 @@ export type Fertilizer_Filter = {
   supply_not?: InputMaybe<Scalars['BigInt']['input']>;
   supply_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   tokens_?: InputMaybe<FertilizerToken_Filter>;
+  unmigratedL1Supply?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1Supply_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1Supply_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1Supply_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  unmigratedL1Supply_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1Supply_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1Supply_not?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1Supply_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
 export enum Fertilizer_OrderBy {
   Beanstalk = 'beanstalk',
   Id = 'id',
   Supply = 'supply',
-  Tokens = 'tokens'
+  Tokens = 'tokens',
+  UnmigratedL1Supply = 'unmigratedL1Supply'
 }
 
 export type Field = {
   __typename?: 'Field';
-  /** Contract address of beanstalk */
+  /** 'beanstalk' */
   beanstalk: Beanstalk;
   /** Link to daily snapshot data */
   dailySnapshots: Array<FieldDailySnapshot>;
   /** Farmer address if applicable */
   farmer?: Maybe<Farmer>;
+  /** Current harvestable index */
+  harvestableIndex: Scalars['BigInt']['output'];
   /** Current harvestable pods */
   harvestablePods: Scalars['BigInt']['output'];
   /** Cumulative harvested pods */
@@ -2006,7 +1976,7 @@ export type Field = {
   /** Link to hourly snapshot data */
   hourlySnapshots: Array<FieldHourlySnapshot>;
   /** Contract address for this field or farmer */
-  id: Scalars['ID']['output'];
+  id: Scalars['Bytes']['output'];
   /** Day of when the previous daily snapshot was taken/updated */
   lastDailySnapshotDay?: Maybe<Scalars['BigInt']['output']>;
   /** Season when the previous hourly snapshot was taken/updated */
@@ -2033,6 +2003,8 @@ export type Field = {
   temperature: Scalars['Int']['output'];
   /** Current outstanding non-harvestable pods */
   unharvestablePods: Scalars['BigInt']['output'];
+  /** Pods from L1 which has not been minted on L2 yet */
+  unmigratedL1Pods?: Maybe<Scalars['BigInt']['output']>;
 };
 
 
@@ -2057,6 +2029,7 @@ export type FieldDailySnapshot = {
   __typename?: 'FieldDailySnapshot';
   /** Timestamp of initial snapshot creation */
   createdAt: Scalars['BigInt']['output'];
+  deltaHarvestableIndex: Scalars['BigInt']['output'];
   deltaHarvestablePods: Scalars['BigInt']['output'];
   deltaHarvestedPods: Scalars['BigInt']['output'];
   deltaIssuedSoil: Scalars['BigInt']['output'];
@@ -2071,6 +2044,8 @@ export type FieldDailySnapshot = {
   deltaUnharvestablePods: Scalars['BigInt']['output'];
   /** Field associated with this snapshot */
   field: Field;
+  /** Point in time harvestable index */
+  harvestableIndex: Scalars['BigInt']['output'];
   /** Point in time harvestable pods */
   harvestablePods: Scalars['BigInt']['output'];
   /** Point in time delta harvested pods */
@@ -2115,6 +2090,14 @@ export type FieldDailySnapshot_Filter = {
   createdAt_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  deltaHarvestableIndex?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaHarvestableIndex_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaHarvestableIndex_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaHarvestableIndex_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  deltaHarvestableIndex_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaHarvestableIndex_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaHarvestableIndex_not?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaHarvestableIndex_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaHarvestablePods?: InputMaybe<Scalars['BigInt']['input']>;
   deltaHarvestablePods_gt?: InputMaybe<Scalars['BigInt']['input']>;
   deltaHarvestablePods_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -2232,6 +2215,14 @@ export type FieldDailySnapshot_Filter = {
   field_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   field_starts_with?: InputMaybe<Scalars['String']['input']>;
   field_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  harvestableIndex?: InputMaybe<Scalars['BigInt']['input']>;
+  harvestableIndex_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  harvestableIndex_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  harvestableIndex_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  harvestableIndex_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  harvestableIndex_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  harvestableIndex_not?: InputMaybe<Scalars['BigInt']['input']>;
+  harvestableIndex_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   harvestablePods?: InputMaybe<Scalars['BigInt']['input']>;
   harvestablePods_gt?: InputMaybe<Scalars['BigInt']['input']>;
   harvestablePods_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -2357,6 +2348,7 @@ export type FieldDailySnapshot_Filter = {
 
 export enum FieldDailySnapshot_OrderBy {
   CreatedAt = 'createdAt',
+  DeltaHarvestableIndex = 'deltaHarvestableIndex',
   DeltaHarvestablePods = 'deltaHarvestablePods',
   DeltaHarvestedPods = 'deltaHarvestedPods',
   DeltaIssuedSoil = 'deltaIssuedSoil',
@@ -2370,6 +2362,7 @@ export enum FieldDailySnapshot_OrderBy {
   DeltaTemperature = 'deltaTemperature',
   DeltaUnharvestablePods = 'deltaUnharvestablePods',
   Field = 'field',
+  FieldHarvestableIndex = 'field__harvestableIndex',
   FieldHarvestablePods = 'field__harvestablePods',
   FieldHarvestedPods = 'field__harvestedPods',
   FieldId = 'field__id',
@@ -2385,6 +2378,8 @@ export enum FieldDailySnapshot_OrderBy {
   FieldSownBeans = 'field__sownBeans',
   FieldTemperature = 'field__temperature',
   FieldUnharvestablePods = 'field__unharvestablePods',
+  FieldUnmigratedL1Pods = 'field__unmigratedL1Pods',
+  HarvestableIndex = 'harvestableIndex',
   HarvestablePods = 'harvestablePods',
   HarvestedPods = 'harvestedPods',
   Id = 'id',
@@ -2410,6 +2405,7 @@ export type FieldHourlySnapshot = {
   caseId?: Maybe<Scalars['BigInt']['output']>;
   /** Timestamp of initial snapshot creation */
   createdAt: Scalars['BigInt']['output'];
+  deltaHarvestableIndex: Scalars['BigInt']['output'];
   deltaHarvestablePods: Scalars['BigInt']['output'];
   deltaHarvestedPods: Scalars['BigInt']['output'];
   deltaIssuedSoil: Scalars['BigInt']['output'];
@@ -2424,6 +2420,8 @@ export type FieldHourlySnapshot = {
   deltaUnharvestablePods: Scalars['BigInt']['output'];
   /** Field associated with this snapshot */
   field: Field;
+  /** Point in time harvestable index */
+  harvestableIndex: Scalars['BigInt']['output'];
   /** Point in time harvestable pods */
   harvestablePods: Scalars['BigInt']['output'];
   /** Point in time cumulative harvested pods */
@@ -2488,6 +2486,14 @@ export type FieldHourlySnapshot_Filter = {
   createdAt_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  deltaHarvestableIndex?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaHarvestableIndex_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaHarvestableIndex_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaHarvestableIndex_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  deltaHarvestableIndex_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaHarvestableIndex_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaHarvestableIndex_not?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaHarvestableIndex_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaHarvestablePods?: InputMaybe<Scalars['BigInt']['input']>;
   deltaHarvestablePods_gt?: InputMaybe<Scalars['BigInt']['input']>;
   deltaHarvestablePods_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -2605,6 +2611,14 @@ export type FieldHourlySnapshot_Filter = {
   field_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   field_starts_with?: InputMaybe<Scalars['String']['input']>;
   field_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  harvestableIndex?: InputMaybe<Scalars['BigInt']['input']>;
+  harvestableIndex_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  harvestableIndex_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  harvestableIndex_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  harvestableIndex_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  harvestableIndex_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  harvestableIndex_not?: InputMaybe<Scalars['BigInt']['input']>;
+  harvestableIndex_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   harvestablePods?: InputMaybe<Scalars['BigInt']['input']>;
   harvestablePods_gt?: InputMaybe<Scalars['BigInt']['input']>;
   harvestablePods_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -2744,6 +2758,7 @@ export enum FieldHourlySnapshot_OrderBy {
   BlocksToSoldOutSoil = 'blocksToSoldOutSoil',
   CaseId = 'caseId',
   CreatedAt = 'createdAt',
+  DeltaHarvestableIndex = 'deltaHarvestableIndex',
   DeltaHarvestablePods = 'deltaHarvestablePods',
   DeltaHarvestedPods = 'deltaHarvestedPods',
   DeltaIssuedSoil = 'deltaIssuedSoil',
@@ -2757,6 +2772,7 @@ export enum FieldHourlySnapshot_OrderBy {
   DeltaTemperature = 'deltaTemperature',
   DeltaUnharvestablePods = 'deltaUnharvestablePods',
   Field = 'field',
+  FieldHarvestableIndex = 'field__harvestableIndex',
   FieldHarvestablePods = 'field__harvestablePods',
   FieldHarvestedPods = 'field__harvestedPods',
   FieldId = 'field__id',
@@ -2772,6 +2788,8 @@ export enum FieldHourlySnapshot_OrderBy {
   FieldSownBeans = 'field__sownBeans',
   FieldTemperature = 'field__temperature',
   FieldUnharvestablePods = 'field__unharvestablePods',
+  FieldUnmigratedL1Pods = 'field__unmigratedL1Pods',
+  HarvestableIndex = 'harvestableIndex',
   HarvestablePods = 'harvestablePods',
   HarvestedPods = 'harvestedPods',
   Id = 'id',
@@ -2838,6 +2856,14 @@ export type Field_Filter = {
   farmer_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   farmer_starts_with?: InputMaybe<Scalars['String']['input']>;
   farmer_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  harvestableIndex?: InputMaybe<Scalars['BigInt']['input']>;
+  harvestableIndex_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  harvestableIndex_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  harvestableIndex_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  harvestableIndex_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  harvestableIndex_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  harvestableIndex_not?: InputMaybe<Scalars['BigInt']['input']>;
+  harvestableIndex_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   harvestablePods?: InputMaybe<Scalars['BigInt']['input']>;
   harvestablePods_gt?: InputMaybe<Scalars['BigInt']['input']>;
   harvestablePods_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -2855,14 +2881,16 @@ export type Field_Filter = {
   harvestedPods_not?: InputMaybe<Scalars['BigInt']['input']>;
   harvestedPods_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   hourlySnapshots_?: InputMaybe<FieldHourlySnapshot_Filter>;
-  id?: InputMaybe<Scalars['ID']['input']>;
-  id_gt?: InputMaybe<Scalars['ID']['input']>;
-  id_gte?: InputMaybe<Scalars['ID']['input']>;
-  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  id_lt?: InputMaybe<Scalars['ID']['input']>;
-  id_lte?: InputMaybe<Scalars['ID']['input']>;
-  id_not?: InputMaybe<Scalars['ID']['input']>;
-  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id?: InputMaybe<Scalars['Bytes']['input']>;
+  id_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  id_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  id_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  id_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  id_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  id_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   lastDailySnapshotDay?: InputMaybe<Scalars['BigInt']['input']>;
   lastDailySnapshotDay_gt?: InputMaybe<Scalars['BigInt']['input']>;
   lastDailySnapshotDay_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -2966,6 +2994,14 @@ export type Field_Filter = {
   unharvestablePods_lte?: InputMaybe<Scalars['BigInt']['input']>;
   unharvestablePods_not?: InputMaybe<Scalars['BigInt']['input']>;
   unharvestablePods_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  unmigratedL1Pods?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1Pods_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1Pods_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1Pods_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  unmigratedL1Pods_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1Pods_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1Pods_not?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1Pods_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
 export enum Field_OrderBy {
@@ -2973,11 +3009,11 @@ export enum Field_OrderBy {
   BeanstalkFertilizer1155 = 'beanstalk__fertilizer1155',
   BeanstalkId = 'beanstalk__id',
   BeanstalkLastSeason = 'beanstalk__lastSeason',
-  BeanstalkName = 'beanstalk__name',
   BeanstalkToken = 'beanstalk__token',
   DailySnapshots = 'dailySnapshots',
   Farmer = 'farmer',
   FarmerId = 'farmer__id',
+  HarvestableIndex = 'harvestableIndex',
   HarvestablePods = 'harvestablePods',
   HarvestedPods = 'harvestedPods',
   HourlySnapshots = 'hourlySnapshots',
@@ -2994,13 +3030,14 @@ export enum Field_OrderBy {
   Soil = 'soil',
   SownBeans = 'sownBeans',
   Temperature = 'temperature',
-  UnharvestablePods = 'unharvestablePods'
+  UnharvestablePods = 'unharvestablePods',
+  UnmigratedL1Pods = 'unmigratedL1Pods'
 }
 
 export type Germinating = {
   __typename?: 'Germinating';
   /** Address of the token or account which is germinating */
-  address: Scalars['String']['output'];
+  address: Scalars['Bytes']['output'];
   /** Germinating bdv. This only applies to a Token address */
   bdv: Scalars['BigInt']['output'];
   /** Address-(EVEN|ODD) */
@@ -3020,26 +3057,16 @@ export type Germinating = {
 export type Germinating_Filter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  address?: InputMaybe<Scalars['String']['input']>;
-  address_contains?: InputMaybe<Scalars['String']['input']>;
-  address_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  address_ends_with?: InputMaybe<Scalars['String']['input']>;
-  address_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  address_gt?: InputMaybe<Scalars['String']['input']>;
-  address_gte?: InputMaybe<Scalars['String']['input']>;
-  address_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  address_lt?: InputMaybe<Scalars['String']['input']>;
-  address_lte?: InputMaybe<Scalars['String']['input']>;
-  address_not?: InputMaybe<Scalars['String']['input']>;
-  address_not_contains?: InputMaybe<Scalars['String']['input']>;
-  address_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  address_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  address_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  address_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  address_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  address_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  address_starts_with?: InputMaybe<Scalars['String']['input']>;
-  address_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  address?: InputMaybe<Scalars['Bytes']['input']>;
+  address_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  address_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   and?: InputMaybe<Array<InputMaybe<Germinating_Filter>>>;
   bdv?: InputMaybe<Scalars['BigInt']['input']>;
   bdv_gt?: InputMaybe<Scalars['BigInt']['input']>;
@@ -3134,13 +3161,11 @@ export type MarketplaceEvent = {
   /** Timestamp of this event */
   createdAt: Scalars['BigInt']['output'];
   /** Transaction hash of the transaction that emitted this event */
-  hash: Scalars['String']['output'];
+  hash: Scalars['Bytes']['output'];
   /** { Event type }-{ Transaction hash }-{ Log index } */
   id: Scalars['ID']['output'];
   /** Event log index. For transactions that don't emit event, create arbitrary index starting from 0 */
   logIndex: Scalars['Int']['output'];
-  /** The protocol this transaction belongs to */
-  protocol: Beanstalk;
 };
 
 export type MarketplaceEvent_Filter = {
@@ -3163,26 +3188,16 @@ export type MarketplaceEvent_Filter = {
   createdAt_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  hash?: InputMaybe<Scalars['String']['input']>;
-  hash_contains?: InputMaybe<Scalars['String']['input']>;
-  hash_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_ends_with?: InputMaybe<Scalars['String']['input']>;
-  hash_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_gt?: InputMaybe<Scalars['String']['input']>;
-  hash_gte?: InputMaybe<Scalars['String']['input']>;
-  hash_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  hash_lt?: InputMaybe<Scalars['String']['input']>;
-  hash_lte?: InputMaybe<Scalars['String']['input']>;
-  hash_not?: InputMaybe<Scalars['String']['input']>;
-  hash_not_contains?: InputMaybe<Scalars['String']['input']>;
-  hash_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  hash_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  hash_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  hash_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_starts_with?: InputMaybe<Scalars['String']['input']>;
-  hash_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  hash?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  hash_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -3200,27 +3215,6 @@ export type MarketplaceEvent_Filter = {
   logIndex_not?: InputMaybe<Scalars['Int']['input']>;
   logIndex_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
   or?: InputMaybe<Array<InputMaybe<MarketplaceEvent_Filter>>>;
-  protocol?: InputMaybe<Scalars['String']['input']>;
-  protocol_?: InputMaybe<Beanstalk_Filter>;
-  protocol_contains?: InputMaybe<Scalars['String']['input']>;
-  protocol_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_ends_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_gt?: InputMaybe<Scalars['String']['input']>;
-  protocol_gte?: InputMaybe<Scalars['String']['input']>;
-  protocol_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  protocol_lt?: InputMaybe<Scalars['String']['input']>;
-  protocol_lte?: InputMaybe<Scalars['String']['input']>;
-  protocol_not?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_contains?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  protocol_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_starts_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
 export enum MarketplaceEvent_OrderBy {
@@ -3228,13 +3222,7 @@ export enum MarketplaceEvent_OrderBy {
   CreatedAt = 'createdAt',
   Hash = 'hash',
   Id = 'id',
-  LogIndex = 'logIndex',
-  Protocol = 'protocol',
-  ProtocolFertilizer1155 = 'protocol__fertilizer1155',
-  ProtocolId = 'protocol__id',
-  ProtocolLastSeason = 'protocol__lastSeason',
-  ProtocolName = 'protocol__name',
-  ProtocolToken = 'protocol__token'
+  LogIndex = 'logIndex'
 }
 
 /** Defines the order direction, either ascending or descending */
@@ -3250,7 +3238,7 @@ export type Plot = {
   /** Timestamp of creation */
   createdAt: Scalars['BigInt']['output'];
   /** Transaction hash of when this plot entity was created */
-  creationHash: Scalars['String']['output'];
+  creationHash: Scalars['Bytes']['output'];
   /** Farmer who owns this plot */
   farmer: Farmer;
   /** Field to which this plot belongs */
@@ -3274,7 +3262,7 @@ export type Plot = {
   /** Transaction source for this plot. Not the same as creationHash which can include plots splitting from transfer or harvest without the owner changing */
   source: PlotSource;
   /** Transaction hash corresponding to source */
-  sourceHash: Scalars['String']['output'];
+  sourceHash: Scalars['Bytes']['output'];
   /** Timestamp when updated */
   updatedAt: Scalars['BigInt']['output'];
   /** Block when updated */
@@ -3282,7 +3270,9 @@ export type Plot = {
 };
 
 export enum PlotSource {
+  ContractReceiverMigrated = 'CONTRACT_RECEIVER_MIGRATED',
   Market = 'MARKET',
+  ReseedMigrated = 'RESEED_MIGRATED',
   Sow = 'SOW',
   Transfer = 'TRANSFER'
 }
@@ -3307,26 +3297,16 @@ export type Plot_Filter = {
   createdAt_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  creationHash?: InputMaybe<Scalars['String']['input']>;
-  creationHash_contains?: InputMaybe<Scalars['String']['input']>;
-  creationHash_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  creationHash_ends_with?: InputMaybe<Scalars['String']['input']>;
-  creationHash_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  creationHash_gt?: InputMaybe<Scalars['String']['input']>;
-  creationHash_gte?: InputMaybe<Scalars['String']['input']>;
-  creationHash_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  creationHash_lt?: InputMaybe<Scalars['String']['input']>;
-  creationHash_lte?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not_contains?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  creationHash_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  creationHash_starts_with?: InputMaybe<Scalars['String']['input']>;
-  creationHash_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  creationHash?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  creationHash_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_not?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   farmer?: InputMaybe<Scalars['String']['input']>;
   farmer_?: InputMaybe<Farmer_Filter>;
   farmer_contains?: InputMaybe<Scalars['String']['input']>;
@@ -3444,26 +3424,16 @@ export type Plot_Filter = {
   season_not?: InputMaybe<Scalars['Int']['input']>;
   season_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
   source?: InputMaybe<PlotSource>;
-  sourceHash?: InputMaybe<Scalars['String']['input']>;
-  sourceHash_contains?: InputMaybe<Scalars['String']['input']>;
-  sourceHash_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  sourceHash_ends_with?: InputMaybe<Scalars['String']['input']>;
-  sourceHash_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  sourceHash_gt?: InputMaybe<Scalars['String']['input']>;
-  sourceHash_gte?: InputMaybe<Scalars['String']['input']>;
-  sourceHash_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  sourceHash_lt?: InputMaybe<Scalars['String']['input']>;
-  sourceHash_lte?: InputMaybe<Scalars['String']['input']>;
-  sourceHash_not?: InputMaybe<Scalars['String']['input']>;
-  sourceHash_not_contains?: InputMaybe<Scalars['String']['input']>;
-  sourceHash_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  sourceHash_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  sourceHash_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  sourceHash_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  sourceHash_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  sourceHash_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  sourceHash_starts_with?: InputMaybe<Scalars['String']['input']>;
-  sourceHash_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  sourceHash?: InputMaybe<Scalars['Bytes']['input']>;
+  sourceHash_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  sourceHash_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  sourceHash_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  sourceHash_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  sourceHash_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  sourceHash_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  sourceHash_not?: InputMaybe<Scalars['Bytes']['input']>;
+  sourceHash_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  sourceHash_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   source_in?: InputMaybe<Array<PlotSource>>;
   source_not?: InputMaybe<PlotSource>;
   source_not_in?: InputMaybe<Array<PlotSource>>;
@@ -3492,6 +3462,7 @@ export enum Plot_OrderBy {
   Farmer = 'farmer',
   FarmerId = 'farmer__id',
   Field = 'field',
+  FieldHarvestableIndex = 'field__harvestableIndex',
   FieldHarvestablePods = 'field__harvestablePods',
   FieldHarvestedPods = 'field__harvestedPods',
   FieldId = 'field__id',
@@ -3507,6 +3478,7 @@ export enum Plot_OrderBy {
   FieldSownBeans = 'field__sownBeans',
   FieldTemperature = 'field__temperature',
   FieldUnharvestablePods = 'field__unharvestablePods',
+  FieldUnmigratedL1Pods = 'field__unmigratedL1Pods',
   FullyHarvested = 'fullyHarvested',
   HarvestablePods = 'harvestablePods',
   HarvestedPods = 'harvestedPods',
@@ -3550,7 +3522,7 @@ export type PodFill = {
   /** Creation timestamp */
   createdAt: Scalars['BigInt']['output'];
   /** Account that is sending pods */
-  fromFarmer: Scalars['String']['output'];
+  fromFarmer: Scalars['Bytes']['output'];
   /** Beanstalk address - Order/Listing index - transaction hash */
   id: Scalars['ID']['output'];
   /** Index of plot transferred */
@@ -3597,26 +3569,16 @@ export type PodFill_Filter = {
   createdAt_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  fromFarmer?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_contains?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_ends_with?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_gt?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_gte?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  fromFarmer_lt?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_lte?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not_contains?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  fromFarmer_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_starts_with?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  fromFarmer?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  fromFarmer_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_not?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -3814,7 +3776,7 @@ export type PodListing = {
   /** Timestamp of PodListing creation. */
   createdAt: Scalars['BigInt']['output'];
   /** Transaction hash when this PodListing entity was created. */
-  creationHash: Scalars['String']['output'];
+  creationHash: Scalars['Bytes']['output'];
   /** The Farmer that created the PodListing. */
   farmer: Farmer;
   /** Any Fills associated with this PodListing. */
@@ -3935,13 +3897,13 @@ export type PodListing = {
 export type PodListingCancelled = MarketplaceEvent & {
   __typename?: 'PodListingCancelled';
   /** Account cancelling listing */
-  account: Scalars['String']['output'];
+  account: Scalars['Bytes']['output'];
   /** Block number of this event */
   blockNumber: Scalars['BigInt']['output'];
   /** Timestamp of this event */
   createdAt: Scalars['BigInt']['output'];
   /** Transaction hash of the transaction that emitted this event */
-  hash: Scalars['String']['output'];
+  hash: Scalars['Bytes']['output'];
   /** Historical ID for joins */
   historyID: Scalars['String']['output'];
   /** seedChange-{ Transaction hash }-{ Log index } */
@@ -3952,33 +3914,21 @@ export type PodListingCancelled = MarketplaceEvent & {
   logIndex: Scalars['Int']['output'];
   /** Where these pods were in line when cancelled */
   placeInLine: Scalars['BigInt']['output'];
-  /** The protocol this transaction belongs to */
-  protocol: Beanstalk;
 };
 
 export type PodListingCancelled_Filter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  account?: InputMaybe<Scalars['String']['input']>;
-  account_contains?: InputMaybe<Scalars['String']['input']>;
-  account_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_ends_with?: InputMaybe<Scalars['String']['input']>;
-  account_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_gt?: InputMaybe<Scalars['String']['input']>;
-  account_gte?: InputMaybe<Scalars['String']['input']>;
-  account_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  account_lt?: InputMaybe<Scalars['String']['input']>;
-  account_lte?: InputMaybe<Scalars['String']['input']>;
-  account_not?: InputMaybe<Scalars['String']['input']>;
-  account_not_contains?: InputMaybe<Scalars['String']['input']>;
-  account_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  account_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  account_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  account_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_starts_with?: InputMaybe<Scalars['String']['input']>;
-  account_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  account?: InputMaybe<Scalars['Bytes']['input']>;
+  account_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  account_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  account_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  account_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  account_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  account_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   and?: InputMaybe<Array<InputMaybe<PodListingCancelled_Filter>>>;
   blockNumber?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gt?: InputMaybe<Scalars['BigInt']['input']>;
@@ -3996,26 +3946,16 @@ export type PodListingCancelled_Filter = {
   createdAt_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  hash?: InputMaybe<Scalars['String']['input']>;
-  hash_contains?: InputMaybe<Scalars['String']['input']>;
-  hash_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_ends_with?: InputMaybe<Scalars['String']['input']>;
-  hash_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_gt?: InputMaybe<Scalars['String']['input']>;
-  hash_gte?: InputMaybe<Scalars['String']['input']>;
-  hash_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  hash_lt?: InputMaybe<Scalars['String']['input']>;
-  hash_lte?: InputMaybe<Scalars['String']['input']>;
-  hash_not?: InputMaybe<Scalars['String']['input']>;
-  hash_not_contains?: InputMaybe<Scalars['String']['input']>;
-  hash_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  hash_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  hash_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  hash_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_starts_with?: InputMaybe<Scalars['String']['input']>;
-  hash_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  hash?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  hash_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   historyID?: InputMaybe<Scalars['String']['input']>;
   historyID_contains?: InputMaybe<Scalars['String']['input']>;
   historyID_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -4069,27 +4009,6 @@ export type PodListingCancelled_Filter = {
   placeInLine_lte?: InputMaybe<Scalars['BigInt']['input']>;
   placeInLine_not?: InputMaybe<Scalars['BigInt']['input']>;
   placeInLine_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  protocol?: InputMaybe<Scalars['String']['input']>;
-  protocol_?: InputMaybe<Beanstalk_Filter>;
-  protocol_contains?: InputMaybe<Scalars['String']['input']>;
-  protocol_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_ends_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_gt?: InputMaybe<Scalars['String']['input']>;
-  protocol_gte?: InputMaybe<Scalars['String']['input']>;
-  protocol_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  protocol_lt?: InputMaybe<Scalars['String']['input']>;
-  protocol_lte?: InputMaybe<Scalars['String']['input']>;
-  protocol_not?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_contains?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  protocol_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_starts_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
 export enum PodListingCancelled_OrderBy {
@@ -4101,19 +4020,13 @@ export enum PodListingCancelled_OrderBy {
   Id = 'id',
   Index = 'index',
   LogIndex = 'logIndex',
-  PlaceInLine = 'placeInLine',
-  Protocol = 'protocol',
-  ProtocolFertilizer1155 = 'protocol__fertilizer1155',
-  ProtocolId = 'protocol__id',
-  ProtocolLastSeason = 'protocol__lastSeason',
-  ProtocolName = 'protocol__name',
-  ProtocolToken = 'protocol__token'
+  PlaceInLine = 'placeInLine'
 }
 
 export type PodListingCreated = MarketplaceEvent & {
   __typename?: 'PodListingCreated';
   /** Account creating the listing */
-  account: Scalars['String']['output'];
+  account: Scalars['Bytes']['output'];
   /** Amount of pods listed */
   amount: Scalars['BigInt']['output'];
   /** Block number of this event */
@@ -4121,7 +4034,7 @@ export type PodListingCreated = MarketplaceEvent & {
   /** Timestamp of this event */
   createdAt: Scalars['BigInt']['output'];
   /** Transaction hash of the transaction that emitted this event */
-  hash: Scalars['String']['output'];
+  hash: Scalars['Bytes']['output'];
   /** Historical ID for joins */
   historyID: Scalars['String']['output'];
   /** podListingCreated-{ Transaction hash }-{ Log index } */
@@ -4144,8 +4057,6 @@ export type PodListingCreated = MarketplaceEvent & {
   pricingFunction?: Maybe<Scalars['Bytes']['output']>;
   /** Pricing Type */
   pricingType?: Maybe<Scalars['Int']['output']>;
-  /** The protocol this transaction belongs to */
-  protocol: Beanstalk;
   /** Start value of the plot listed */
   start: Scalars['BigInt']['output'];
 };
@@ -4153,26 +4064,16 @@ export type PodListingCreated = MarketplaceEvent & {
 export type PodListingCreated_Filter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  account?: InputMaybe<Scalars['String']['input']>;
-  account_contains?: InputMaybe<Scalars['String']['input']>;
-  account_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_ends_with?: InputMaybe<Scalars['String']['input']>;
-  account_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_gt?: InputMaybe<Scalars['String']['input']>;
-  account_gte?: InputMaybe<Scalars['String']['input']>;
-  account_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  account_lt?: InputMaybe<Scalars['String']['input']>;
-  account_lte?: InputMaybe<Scalars['String']['input']>;
-  account_not?: InputMaybe<Scalars['String']['input']>;
-  account_not_contains?: InputMaybe<Scalars['String']['input']>;
-  account_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  account_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  account_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  account_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_starts_with?: InputMaybe<Scalars['String']['input']>;
-  account_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  account?: InputMaybe<Scalars['Bytes']['input']>;
+  account_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  account_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  account_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  account_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  account_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  account_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   amount?: InputMaybe<Scalars['BigInt']['input']>;
   amount_gt?: InputMaybe<Scalars['BigInt']['input']>;
   amount_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4198,26 +4099,16 @@ export type PodListingCreated_Filter = {
   createdAt_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  hash?: InputMaybe<Scalars['String']['input']>;
-  hash_contains?: InputMaybe<Scalars['String']['input']>;
-  hash_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_ends_with?: InputMaybe<Scalars['String']['input']>;
-  hash_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_gt?: InputMaybe<Scalars['String']['input']>;
-  hash_gte?: InputMaybe<Scalars['String']['input']>;
-  hash_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  hash_lt?: InputMaybe<Scalars['String']['input']>;
-  hash_lte?: InputMaybe<Scalars['String']['input']>;
-  hash_not?: InputMaybe<Scalars['String']['input']>;
-  hash_not_contains?: InputMaybe<Scalars['String']['input']>;
-  hash_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  hash_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  hash_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  hash_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_starts_with?: InputMaybe<Scalars['String']['input']>;
-  hash_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  hash?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  hash_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   historyID?: InputMaybe<Scalars['String']['input']>;
   historyID_contains?: InputMaybe<Scalars['String']['input']>;
   historyID_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -4321,27 +4212,6 @@ export type PodListingCreated_Filter = {
   pricingType_lte?: InputMaybe<Scalars['Int']['input']>;
   pricingType_not?: InputMaybe<Scalars['Int']['input']>;
   pricingType_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  protocol?: InputMaybe<Scalars['String']['input']>;
-  protocol_?: InputMaybe<Beanstalk_Filter>;
-  protocol_contains?: InputMaybe<Scalars['String']['input']>;
-  protocol_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_ends_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_gt?: InputMaybe<Scalars['String']['input']>;
-  protocol_gte?: InputMaybe<Scalars['String']['input']>;
-  protocol_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  protocol_lt?: InputMaybe<Scalars['String']['input']>;
-  protocol_lte?: InputMaybe<Scalars['String']['input']>;
-  protocol_not?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_contains?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  protocol_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_starts_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   start?: InputMaybe<Scalars['BigInt']['input']>;
   start_gt?: InputMaybe<Scalars['BigInt']['input']>;
   start_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4369,12 +4239,6 @@ export enum PodListingCreated_OrderBy {
   PricePerPod = 'pricePerPod',
   PricingFunction = 'pricingFunction',
   PricingType = 'pricingType',
-  Protocol = 'protocol',
-  ProtocolFertilizer1155 = 'protocol__fertilizer1155',
-  ProtocolId = 'protocol__id',
-  ProtocolLastSeason = 'protocol__lastSeason',
-  ProtocolName = 'protocol__name',
-  ProtocolToken = 'protocol__token',
   Start = 'start'
 }
 
@@ -4389,9 +4253,9 @@ export type PodListingFilled = MarketplaceEvent & {
   /** Timestamp of this event */
   createdAt: Scalars['BigInt']['output'];
   /** Account selling pods */
-  fromFarmer: Scalars['String']['output'];
+  fromFarmer: Scalars['Bytes']['output'];
   /** Transaction hash of the transaction that emitted this event */
-  hash: Scalars['String']['output'];
+  hash: Scalars['Bytes']['output'];
   /** Historical ID for joins */
   historyID: Scalars['String']['output'];
   /** podListingFilled-{ Transaction hash }-{ Log index } */
@@ -4402,12 +4266,10 @@ export type PodListingFilled = MarketplaceEvent & {
   logIndex: Scalars['Int']['output'];
   /** Where these pods were in line when filled */
   placeInLine: Scalars['BigInt']['output'];
-  /** The protocol this transaction belongs to */
-  protocol: Beanstalk;
   /** Start of the plot transferred */
   start: Scalars['BigInt']['output'];
   /** Account buying pods */
-  toFarmer: Scalars['String']['output'];
+  toFarmer: Scalars['Bytes']['output'];
 };
 
 export type PodListingFilled_Filter = {
@@ -4446,46 +4308,26 @@ export type PodListingFilled_Filter = {
   createdAt_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  fromFarmer?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_contains?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_ends_with?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_gt?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_gte?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  fromFarmer_lt?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_lte?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not_contains?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  fromFarmer_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_starts_with?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash?: InputMaybe<Scalars['String']['input']>;
-  hash_contains?: InputMaybe<Scalars['String']['input']>;
-  hash_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_ends_with?: InputMaybe<Scalars['String']['input']>;
-  hash_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_gt?: InputMaybe<Scalars['String']['input']>;
-  hash_gte?: InputMaybe<Scalars['String']['input']>;
-  hash_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  hash_lt?: InputMaybe<Scalars['String']['input']>;
-  hash_lte?: InputMaybe<Scalars['String']['input']>;
-  hash_not?: InputMaybe<Scalars['String']['input']>;
-  hash_not_contains?: InputMaybe<Scalars['String']['input']>;
-  hash_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  hash_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  hash_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  hash_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_starts_with?: InputMaybe<Scalars['String']['input']>;
-  hash_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  fromFarmer?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  fromFarmer_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_not?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  hash?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  hash_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   historyID?: InputMaybe<Scalars['String']['input']>;
   historyID_contains?: InputMaybe<Scalars['String']['input']>;
   historyID_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -4539,27 +4381,6 @@ export type PodListingFilled_Filter = {
   placeInLine_lte?: InputMaybe<Scalars['BigInt']['input']>;
   placeInLine_not?: InputMaybe<Scalars['BigInt']['input']>;
   placeInLine_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  protocol?: InputMaybe<Scalars['String']['input']>;
-  protocol_?: InputMaybe<Beanstalk_Filter>;
-  protocol_contains?: InputMaybe<Scalars['String']['input']>;
-  protocol_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_ends_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_gt?: InputMaybe<Scalars['String']['input']>;
-  protocol_gte?: InputMaybe<Scalars['String']['input']>;
-  protocol_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  protocol_lt?: InputMaybe<Scalars['String']['input']>;
-  protocol_lte?: InputMaybe<Scalars['String']['input']>;
-  protocol_not?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_contains?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  protocol_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_starts_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   start?: InputMaybe<Scalars['BigInt']['input']>;
   start_gt?: InputMaybe<Scalars['BigInt']['input']>;
   start_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4568,26 +4389,16 @@ export type PodListingFilled_Filter = {
   start_lte?: InputMaybe<Scalars['BigInt']['input']>;
   start_not?: InputMaybe<Scalars['BigInt']['input']>;
   start_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  toFarmer?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_contains?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_ends_with?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_gt?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_gte?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  toFarmer_lt?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_lte?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_not?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_not_contains?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  toFarmer_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_starts_with?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  toFarmer?: InputMaybe<Scalars['Bytes']['input']>;
+  toFarmer_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  toFarmer_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  toFarmer_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  toFarmer_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  toFarmer_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  toFarmer_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  toFarmer_not?: InputMaybe<Scalars['Bytes']['input']>;
+  toFarmer_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  toFarmer_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
 };
 
 export enum PodListingFilled_OrderBy {
@@ -4602,12 +4413,6 @@ export enum PodListingFilled_OrderBy {
   Index = 'index',
   LogIndex = 'logIndex',
   PlaceInLine = 'placeInLine',
-  Protocol = 'protocol',
-  ProtocolFertilizer1155 = 'protocol__fertilizer1155',
-  ProtocolId = 'protocol__id',
-  ProtocolLastSeason = 'protocol__lastSeason',
-  ProtocolName = 'protocol__name',
-  ProtocolToken = 'protocol__token',
   Start = 'start',
   ToFarmer = 'toFarmer'
 }
@@ -4632,26 +4437,16 @@ export type PodListing_Filter = {
   createdAt_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  creationHash?: InputMaybe<Scalars['String']['input']>;
-  creationHash_contains?: InputMaybe<Scalars['String']['input']>;
-  creationHash_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  creationHash_ends_with?: InputMaybe<Scalars['String']['input']>;
-  creationHash_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  creationHash_gt?: InputMaybe<Scalars['String']['input']>;
-  creationHash_gte?: InputMaybe<Scalars['String']['input']>;
-  creationHash_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  creationHash_lt?: InputMaybe<Scalars['String']['input']>;
-  creationHash_lte?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not_contains?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  creationHash_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  creationHash_starts_with?: InputMaybe<Scalars['String']['input']>;
-  creationHash_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  creationHash?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  creationHash_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_not?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   farmer?: InputMaybe<Scalars['String']['input']>;
   farmer_?: InputMaybe<Farmer_Filter>;
   farmer_contains?: InputMaybe<Scalars['String']['input']>;
@@ -4985,7 +4780,7 @@ export type PodMarketplace = {
   fills: Array<PodFill>;
   /** Link to hourly snapshot data */
   hourlySnapshots: Array<PodMarketplaceHourlySnapshot>;
-  /** Contract address of beanstalk */
+  /** Field id */
   id: Scalars['ID']['output'];
   /** Day of when the previous daily snapshot was taken/updated */
   lastDailySnapshotDay?: Maybe<Scalars['BigInt']['output']>;
@@ -5951,7 +5746,7 @@ export type PodOrder = {
   /** Timestamp of PodOrder creation. */
   createdAt: Scalars['BigInt']['output'];
   /** Transaction hash when this PodOrder entity was created. */
-  creationHash: Scalars['String']['output'];
+  creationHash: Scalars['Bytes']['output'];
   /** The Farmer that created the Pod Order. */
   farmer: Farmer;
   /** All Fills associated with this PodOrder. */
@@ -6036,13 +5831,13 @@ export type PodOrderFillsArgs = {
 export type PodOrderCancelled = MarketplaceEvent & {
   __typename?: 'PodOrderCancelled';
   /** Account cancelling listing */
-  account: Scalars['String']['output'];
+  account: Scalars['Bytes']['output'];
   /** Block number of this event */
   blockNumber: Scalars['BigInt']['output'];
   /** Timestamp of this event */
   createdAt: Scalars['BigInt']['output'];
   /** Transaction hash of the transaction that emitted this event */
-  hash: Scalars['String']['output'];
+  hash: Scalars['Bytes']['output'];
   /** Historical ID for joins */
   historyID: Scalars['String']['output'];
   /** podOrderCancelled-{ Transaction hash }-{ Log index } */
@@ -6051,33 +5846,21 @@ export type PodOrderCancelled = MarketplaceEvent & {
   logIndex: Scalars['Int']['output'];
   /** ID of order cancelled */
   orderId: Scalars['String']['output'];
-  /** The protocol this transaction belongs to */
-  protocol: Beanstalk;
 };
 
 export type PodOrderCancelled_Filter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  account?: InputMaybe<Scalars['String']['input']>;
-  account_contains?: InputMaybe<Scalars['String']['input']>;
-  account_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_ends_with?: InputMaybe<Scalars['String']['input']>;
-  account_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_gt?: InputMaybe<Scalars['String']['input']>;
-  account_gte?: InputMaybe<Scalars['String']['input']>;
-  account_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  account_lt?: InputMaybe<Scalars['String']['input']>;
-  account_lte?: InputMaybe<Scalars['String']['input']>;
-  account_not?: InputMaybe<Scalars['String']['input']>;
-  account_not_contains?: InputMaybe<Scalars['String']['input']>;
-  account_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  account_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  account_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  account_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_starts_with?: InputMaybe<Scalars['String']['input']>;
-  account_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  account?: InputMaybe<Scalars['Bytes']['input']>;
+  account_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  account_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  account_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  account_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  account_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  account_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   and?: InputMaybe<Array<InputMaybe<PodOrderCancelled_Filter>>>;
   blockNumber?: InputMaybe<Scalars['BigInt']['input']>;
   blockNumber_gt?: InputMaybe<Scalars['BigInt']['input']>;
@@ -6095,26 +5878,16 @@ export type PodOrderCancelled_Filter = {
   createdAt_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  hash?: InputMaybe<Scalars['String']['input']>;
-  hash_contains?: InputMaybe<Scalars['String']['input']>;
-  hash_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_ends_with?: InputMaybe<Scalars['String']['input']>;
-  hash_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_gt?: InputMaybe<Scalars['String']['input']>;
-  hash_gte?: InputMaybe<Scalars['String']['input']>;
-  hash_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  hash_lt?: InputMaybe<Scalars['String']['input']>;
-  hash_lte?: InputMaybe<Scalars['String']['input']>;
-  hash_not?: InputMaybe<Scalars['String']['input']>;
-  hash_not_contains?: InputMaybe<Scalars['String']['input']>;
-  hash_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  hash_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  hash_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  hash_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_starts_with?: InputMaybe<Scalars['String']['input']>;
-  hash_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  hash?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  hash_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   historyID?: InputMaybe<Scalars['String']['input']>;
   historyID_contains?: InputMaybe<Scalars['String']['input']>;
   historyID_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -6172,27 +5945,6 @@ export type PodOrderCancelled_Filter = {
   orderId_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   orderId_starts_with?: InputMaybe<Scalars['String']['input']>;
   orderId_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol?: InputMaybe<Scalars['String']['input']>;
-  protocol_?: InputMaybe<Beanstalk_Filter>;
-  protocol_contains?: InputMaybe<Scalars['String']['input']>;
-  protocol_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_ends_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_gt?: InputMaybe<Scalars['String']['input']>;
-  protocol_gte?: InputMaybe<Scalars['String']['input']>;
-  protocol_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  protocol_lt?: InputMaybe<Scalars['String']['input']>;
-  protocol_lte?: InputMaybe<Scalars['String']['input']>;
-  protocol_not?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_contains?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  protocol_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_starts_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
 export enum PodOrderCancelled_OrderBy {
@@ -6203,19 +5955,13 @@ export enum PodOrderCancelled_OrderBy {
   HistoryId = 'historyID',
   Id = 'id',
   LogIndex = 'logIndex',
-  OrderId = 'orderId',
-  Protocol = 'protocol',
-  ProtocolFertilizer1155 = 'protocol__fertilizer1155',
-  ProtocolId = 'protocol__id',
-  ProtocolLastSeason = 'protocol__lastSeason',
-  ProtocolName = 'protocol__name',
-  ProtocolToken = 'protocol__token'
+  OrderId = 'orderId'
 }
 
 export type PodOrderCreated = MarketplaceEvent & {
   __typename?: 'PodOrderCreated';
   /** Account creating the listing */
-  account: Scalars['String']['output'];
+  account: Scalars['Bytes']['output'];
   /**
    * The represented value emitted with this event changed with BIP-29 at block 15277986
    * Pre  BIP-29: The number of pods ordered is emitted
@@ -6228,7 +5974,7 @@ export type PodOrderCreated = MarketplaceEvent & {
   /** Timestamp of this event */
   createdAt: Scalars['BigInt']['output'];
   /** Transaction hash of the transaction that emitted this event */
-  hash: Scalars['String']['output'];
+  hash: Scalars['Bytes']['output'];
   /** Historical ID for joins */
   historyID: Scalars['String']['output'];
   /** podOrderCreated-{ Transaction hash }-{ Log index } */
@@ -6245,33 +5991,21 @@ export type PodOrderCreated = MarketplaceEvent & {
   pricingFunction?: Maybe<Scalars['Bytes']['output']>;
   /** Pricing Type */
   pricingType?: Maybe<Scalars['Int']['output']>;
-  /** The protocol this transaction belongs to */
-  protocol: Beanstalk;
 };
 
 export type PodOrderCreated_Filter = {
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  account?: InputMaybe<Scalars['String']['input']>;
-  account_contains?: InputMaybe<Scalars['String']['input']>;
-  account_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_ends_with?: InputMaybe<Scalars['String']['input']>;
-  account_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_gt?: InputMaybe<Scalars['String']['input']>;
-  account_gte?: InputMaybe<Scalars['String']['input']>;
-  account_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  account_lt?: InputMaybe<Scalars['String']['input']>;
-  account_lte?: InputMaybe<Scalars['String']['input']>;
-  account_not?: InputMaybe<Scalars['String']['input']>;
-  account_not_contains?: InputMaybe<Scalars['String']['input']>;
-  account_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  account_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  account_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  account_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  account_starts_with?: InputMaybe<Scalars['String']['input']>;
-  account_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  account?: InputMaybe<Scalars['Bytes']['input']>;
+  account_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  account_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  account_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  account_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  account_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  account_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   amount?: InputMaybe<Scalars['BigInt']['input']>;
   amount_gt?: InputMaybe<Scalars['BigInt']['input']>;
   amount_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -6297,26 +6031,16 @@ export type PodOrderCreated_Filter = {
   createdAt_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  hash?: InputMaybe<Scalars['String']['input']>;
-  hash_contains?: InputMaybe<Scalars['String']['input']>;
-  hash_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_ends_with?: InputMaybe<Scalars['String']['input']>;
-  hash_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_gt?: InputMaybe<Scalars['String']['input']>;
-  hash_gte?: InputMaybe<Scalars['String']['input']>;
-  hash_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  hash_lt?: InputMaybe<Scalars['String']['input']>;
-  hash_lte?: InputMaybe<Scalars['String']['input']>;
-  hash_not?: InputMaybe<Scalars['String']['input']>;
-  hash_not_contains?: InputMaybe<Scalars['String']['input']>;
-  hash_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  hash_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  hash_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  hash_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_starts_with?: InputMaybe<Scalars['String']['input']>;
-  hash_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  hash?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  hash_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   historyID?: InputMaybe<Scalars['String']['input']>;
   historyID_contains?: InputMaybe<Scalars['String']['input']>;
   historyID_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -6408,27 +6132,6 @@ export type PodOrderCreated_Filter = {
   pricingType_lte?: InputMaybe<Scalars['Int']['input']>;
   pricingType_not?: InputMaybe<Scalars['Int']['input']>;
   pricingType_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  protocol?: InputMaybe<Scalars['String']['input']>;
-  protocol_?: InputMaybe<Beanstalk_Filter>;
-  protocol_contains?: InputMaybe<Scalars['String']['input']>;
-  protocol_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_ends_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_gt?: InputMaybe<Scalars['String']['input']>;
-  protocol_gte?: InputMaybe<Scalars['String']['input']>;
-  protocol_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  protocol_lt?: InputMaybe<Scalars['String']['input']>;
-  protocol_lte?: InputMaybe<Scalars['String']['input']>;
-  protocol_not?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_contains?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  protocol_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_starts_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
 export enum PodOrderCreated_OrderBy {
@@ -6444,13 +6147,7 @@ export enum PodOrderCreated_OrderBy {
   OrderId = 'orderId',
   PricePerPod = 'pricePerPod',
   PricingFunction = 'pricingFunction',
-  PricingType = 'pricingType',
-  Protocol = 'protocol',
-  ProtocolFertilizer1155 = 'protocol__fertilizer1155',
-  ProtocolId = 'protocol__id',
-  ProtocolLastSeason = 'protocol__lastSeason',
-  ProtocolName = 'protocol__name',
-  ProtocolToken = 'protocol__token'
+  PricingType = 'pricingType'
 }
 
 export type PodOrderFilled = MarketplaceEvent & {
@@ -6464,9 +6161,9 @@ export type PodOrderFilled = MarketplaceEvent & {
   /** Timestamp of this event */
   createdAt: Scalars['BigInt']['output'];
   /** Account selling pods */
-  fromFarmer: Scalars['String']['output'];
+  fromFarmer: Scalars['Bytes']['output'];
   /** Transaction hash of the transaction that emitted this event */
-  hash: Scalars['String']['output'];
+  hash: Scalars['Bytes']['output'];
   /** Historical ID for joins */
   historyID: Scalars['String']['output'];
   /** podOrderFilled-{ Transaction hash }-{ Log index } */
@@ -6477,12 +6174,10 @@ export type PodOrderFilled = MarketplaceEvent & {
   logIndex: Scalars['Int']['output'];
   /** Where these pods were in line when filled */
   placeInLine: Scalars['BigInt']['output'];
-  /** The protocol this transaction belongs to */
-  protocol: Beanstalk;
   /** Start of the plot transferred */
   start: Scalars['BigInt']['output'];
   /** Account buying pods */
-  toFarmer: Scalars['String']['output'];
+  toFarmer: Scalars['Bytes']['output'];
 };
 
 export type PodOrderFilled_Filter = {
@@ -6521,46 +6216,26 @@ export type PodOrderFilled_Filter = {
   createdAt_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  fromFarmer?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_contains?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_ends_with?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_gt?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_gte?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  fromFarmer_lt?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_lte?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not_contains?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  fromFarmer_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_starts_with?: InputMaybe<Scalars['String']['input']>;
-  fromFarmer_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash?: InputMaybe<Scalars['String']['input']>;
-  hash_contains?: InputMaybe<Scalars['String']['input']>;
-  hash_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_ends_with?: InputMaybe<Scalars['String']['input']>;
-  hash_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_gt?: InputMaybe<Scalars['String']['input']>;
-  hash_gte?: InputMaybe<Scalars['String']['input']>;
-  hash_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  hash_lt?: InputMaybe<Scalars['String']['input']>;
-  hash_lte?: InputMaybe<Scalars['String']['input']>;
-  hash_not?: InputMaybe<Scalars['String']['input']>;
-  hash_not_contains?: InputMaybe<Scalars['String']['input']>;
-  hash_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  hash_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  hash_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  hash_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hash_starts_with?: InputMaybe<Scalars['String']['input']>;
-  hash_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  fromFarmer?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  fromFarmer_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_not?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  fromFarmer_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  hash?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  hash_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  hash_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   historyID?: InputMaybe<Scalars['String']['input']>;
   historyID_contains?: InputMaybe<Scalars['String']['input']>;
   historyID_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -6614,27 +6289,6 @@ export type PodOrderFilled_Filter = {
   placeInLine_lte?: InputMaybe<Scalars['BigInt']['input']>;
   placeInLine_not?: InputMaybe<Scalars['BigInt']['input']>;
   placeInLine_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  protocol?: InputMaybe<Scalars['String']['input']>;
-  protocol_?: InputMaybe<Beanstalk_Filter>;
-  protocol_contains?: InputMaybe<Scalars['String']['input']>;
-  protocol_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_ends_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_gt?: InputMaybe<Scalars['String']['input']>;
-  protocol_gte?: InputMaybe<Scalars['String']['input']>;
-  protocol_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  protocol_lt?: InputMaybe<Scalars['String']['input']>;
-  protocol_lte?: InputMaybe<Scalars['String']['input']>;
-  protocol_not?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_contains?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  protocol_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  protocol_starts_with?: InputMaybe<Scalars['String']['input']>;
-  protocol_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   start?: InputMaybe<Scalars['BigInt']['input']>;
   start_gt?: InputMaybe<Scalars['BigInt']['input']>;
   start_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -6643,26 +6297,16 @@ export type PodOrderFilled_Filter = {
   start_lte?: InputMaybe<Scalars['BigInt']['input']>;
   start_not?: InputMaybe<Scalars['BigInt']['input']>;
   start_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  toFarmer?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_contains?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_ends_with?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_gt?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_gte?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  toFarmer_lt?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_lte?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_not?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_not_contains?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  toFarmer_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_starts_with?: InputMaybe<Scalars['String']['input']>;
-  toFarmer_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  toFarmer?: InputMaybe<Scalars['Bytes']['input']>;
+  toFarmer_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  toFarmer_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  toFarmer_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  toFarmer_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  toFarmer_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  toFarmer_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  toFarmer_not?: InputMaybe<Scalars['Bytes']['input']>;
+  toFarmer_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  toFarmer_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
 };
 
 export enum PodOrderFilled_OrderBy {
@@ -6677,12 +6321,6 @@ export enum PodOrderFilled_OrderBy {
   Index = 'index',
   LogIndex = 'logIndex',
   PlaceInLine = 'placeInLine',
-  Protocol = 'protocol',
-  ProtocolFertilizer1155 = 'protocol__fertilizer1155',
-  ProtocolId = 'protocol__id',
-  ProtocolLastSeason = 'protocol__lastSeason',
-  ProtocolName = 'protocol__name',
-  ProtocolToken = 'protocol__token',
   Start = 'start',
   ToFarmer = 'toFarmer'
 }
@@ -6715,26 +6353,16 @@ export type PodOrder_Filter = {
   createdAt_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdAt_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  creationHash?: InputMaybe<Scalars['String']['input']>;
-  creationHash_contains?: InputMaybe<Scalars['String']['input']>;
-  creationHash_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  creationHash_ends_with?: InputMaybe<Scalars['String']['input']>;
-  creationHash_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  creationHash_gt?: InputMaybe<Scalars['String']['input']>;
-  creationHash_gte?: InputMaybe<Scalars['String']['input']>;
-  creationHash_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  creationHash_lt?: InputMaybe<Scalars['String']['input']>;
-  creationHash_lte?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not_contains?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  creationHash_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  creationHash_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  creationHash_starts_with?: InputMaybe<Scalars['String']['input']>;
-  creationHash_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  creationHash?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  creationHash_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_not?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  creationHash_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   farmer?: InputMaybe<Scalars['String']['input']>;
   farmer_?: InputMaybe<Farmer_Filter>;
   farmer_contains?: InputMaybe<Scalars['String']['input']>;
@@ -6924,7 +6552,7 @@ export type Pool = {
   /** Instantaneous deltaB */
   deltaBeans: Scalars['BigInt']['output'];
   hourlySnapshot: Array<PoolHourlySnapshot>;
-  id: Scalars['ID']['output'];
+  id: Scalars['Bytes']['output'];
   /** Last timestamp a cross was seen for this pool */
   lastCross: Scalars['BigInt']['output'];
   lastPrice: Scalars['BigDecimal']['output'];
@@ -7717,14 +7345,16 @@ export type Pool_Filter = {
   deltaBeans_not?: InputMaybe<Scalars['BigInt']['input']>;
   deltaBeans_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   hourlySnapshot_?: InputMaybe<PoolHourlySnapshot_Filter>;
-  id?: InputMaybe<Scalars['ID']['input']>;
-  id_gt?: InputMaybe<Scalars['ID']['input']>;
-  id_gte?: InputMaybe<Scalars['ID']['input']>;
-  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  id_lt?: InputMaybe<Scalars['ID']['input']>;
-  id_lte?: InputMaybe<Scalars['ID']['input']>;
-  id_not?: InputMaybe<Scalars['ID']['input']>;
-  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id?: InputMaybe<Scalars['Bytes']['input']>;
+  id_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  id_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  id_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  id_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  id_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  id_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   lastCross?: InputMaybe<Scalars['BigInt']['input']>;
   lastCross_gt?: InputMaybe<Scalars['BigInt']['input']>;
   lastCross_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -8976,7 +8606,7 @@ export type Season = {
   __typename?: 'Season';
   /** Total Bean supply */
   beans: Scalars['BigInt']['output'];
-  /** Beanstalk Contract Address */
+  /** 'beanstalk' */
   beanstalk: Beanstalk;
   /** Block timestamp when sunrise was called */
   createdAt: Scalars['BigInt']['output'];
@@ -8984,8 +8614,6 @@ export type Season = {
   deltaB: Scalars['BigInt']['output'];
   /** Change in Bean supply */
   deltaBeans: Scalars['BigInt']['output'];
-  /** New harvestable index for the season */
-  harvestableIndex: Scalars['BigInt']['output'];
   /** Season Number */
   id: Scalars['ID']['output'];
   /** Amount of Beans paid to sunrise caller */
@@ -9000,6 +8628,8 @@ export type Season = {
   season: Scalars['Int']['output'];
   /** Block in which the season start was triggered by the sunrise call */
   sunriseBlock: Scalars['BigInt']['output'];
+  /** Beans from L1 which have not migrated yet */
+  unmigratedL1Beans?: Maybe<Scalars['BigInt']['output']>;
 };
 
 export type Season_Filter = {
@@ -9059,14 +8689,6 @@ export type Season_Filter = {
   deltaBeans_lte?: InputMaybe<Scalars['BigInt']['input']>;
   deltaBeans_not?: InputMaybe<Scalars['BigInt']['input']>;
   deltaBeans_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  harvestableIndex?: InputMaybe<Scalars['BigInt']['input']>;
-  harvestableIndex_gt?: InputMaybe<Scalars['BigInt']['input']>;
-  harvestableIndex_gte?: InputMaybe<Scalars['BigInt']['input']>;
-  harvestableIndex_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  harvestableIndex_lt?: InputMaybe<Scalars['BigInt']['input']>;
-  harvestableIndex_lte?: InputMaybe<Scalars['BigInt']['input']>;
-  harvestableIndex_not?: InputMaybe<Scalars['BigInt']['input']>;
-  harvestableIndex_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -9124,6 +8746,14 @@ export type Season_Filter = {
   sunriseBlock_lte?: InputMaybe<Scalars['BigInt']['input']>;
   sunriseBlock_not?: InputMaybe<Scalars['BigInt']['input']>;
   sunriseBlock_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  unmigratedL1Beans?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1Beans_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1Beans_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1Beans_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  unmigratedL1Beans_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1Beans_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1Beans_not?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1Beans_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
 };
 
 export enum Season_OrderBy {
@@ -9132,19 +8762,18 @@ export enum Season_OrderBy {
   BeanstalkFertilizer1155 = 'beanstalk__fertilizer1155',
   BeanstalkId = 'beanstalk__id',
   BeanstalkLastSeason = 'beanstalk__lastSeason',
-  BeanstalkName = 'beanstalk__name',
   BeanstalkToken = 'beanstalk__token',
   CreatedAt = 'createdAt',
   DeltaB = 'deltaB',
   DeltaBeans = 'deltaBeans',
-  HarvestableIndex = 'harvestableIndex',
   Id = 'id',
   IncentiveBeans = 'incentiveBeans',
   MarketCap = 'marketCap',
   Price = 'price',
   RewardBeans = 'rewardBeans',
   Season = 'season',
-  SunriseBlock = 'sunriseBlock'
+  SunriseBlock = 'sunriseBlock',
+  UnmigratedL1Beans = 'unmigratedL1Beans'
 }
 
 export type Silo = {
@@ -9157,24 +8786,29 @@ export type Silo = {
   beanMints: Scalars['BigInt']['output'];
   /** [Seed Gauge] Current target ratio of Bean to LP deposits */
   beanToMaxLpGpPerBdvRatio?: Maybe<Scalars['BigInt']['output']>;
-  /** Beanstalk diamond address */
+  /** 'beanstalk' */
   beanstalk: Beanstalk;
   /** Link to daily snapshot data */
   dailySnapshots: Array<SiloDailySnapshot>;
   /** Current BDV of all deposited assets */
   depositedBDV: Scalars['BigInt']['output'];
   /** Tokens that have been removed from the silo deposit whitelist */
-  dewhitelistedTokens: Array<Scalars['String']['output']>;
+  dewhitelistedTokens: Array<Scalars['Bytes']['output']>;
   /** Farmer address if applicable */
   farmer?: Maybe<Farmer>;
   /** [Seed Gauge] Stalk that is currently Germinating */
   germinatingStalk: Scalars['BigInt']['output'];
-  /** Current grown stalk per season */
+  /**
+   * Current grown stalk per season.
+   * NOTE: This value is currently not accurate for pre-gauge queries (BIP-45).
+   * A correct implementation would recalculate this value when a whitelisted token's seed amount is changed.
+   *
+   */
   grownStalkPerSeason: Scalars['BigInt']['output'];
   /** Link to hourly snapshot data */
   hourlySnapshots: Array<SiloHourlySnapshot>;
-  /** Address for the farmer or Beanstalk */
-  id: Scalars['ID']['output'];
+  /** Address for the farmer or Beanstalk contract */
+  id: Scalars['Bytes']['output'];
   /** Day of when the previous daily snapshot was taken/updated */
   lastDailySnapshotDay?: Maybe<Scalars['BigInt']['output']>;
   /** Season when the previous hourly snapshot was taken/updated */
@@ -9183,12 +8817,12 @@ export type Silo = {
   plantableStalk: Scalars['BigInt']['output'];
   /** Current roots balance */
   roots: Scalars['BigInt']['output'];
-  /** Current seeds balance */
-  seeds: Scalars['BigInt']['output'];
   /** Current stalk balance */
   stalk: Scalars['BigInt']['output'];
+  /** Deposited BDV from L1 which has not migrated yet */
+  unmigratedL1DepositedBdv?: Maybe<Scalars['BigInt']['output']>;
   /** Tokens whitelisted for deposit within the silo */
-  whitelistedTokens: Array<Scalars['String']['output']>;
+  whitelistedTokens: Array<Scalars['Bytes']['output']>;
 };
 
 
@@ -9239,7 +8873,7 @@ export type SiloAsset = {
   /** Silo for this asset */
   silo: Silo;
   /** Token address for this asset */
-  token: Scalars['String']['output'];
+  token: Scalars['Bytes']['output'];
   /** Current Token amount of silo withdrawals */
   withdrawnAmount: Scalars['BigInt']['output'];
 };
@@ -9686,26 +9320,16 @@ export type SiloAsset_Filter = {
   silo_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   silo_starts_with?: InputMaybe<Scalars['String']['input']>;
   silo_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  token?: InputMaybe<Scalars['String']['input']>;
-  token_contains?: InputMaybe<Scalars['String']['input']>;
-  token_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_ends_with?: InputMaybe<Scalars['String']['input']>;
-  token_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_gt?: InputMaybe<Scalars['String']['input']>;
-  token_gte?: InputMaybe<Scalars['String']['input']>;
-  token_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  token_lt?: InputMaybe<Scalars['String']['input']>;
-  token_lte?: InputMaybe<Scalars['String']['input']>;
-  token_not?: InputMaybe<Scalars['String']['input']>;
-  token_not_contains?: InputMaybe<Scalars['String']['input']>;
-  token_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  token_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  token_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  token_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_starts_with?: InputMaybe<Scalars['String']['input']>;
-  token_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  token?: InputMaybe<Scalars['Bytes']['input']>;
+  token_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  token_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  token_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  token_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  token_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  token_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  token_not?: InputMaybe<Scalars['Bytes']['input']>;
+  token_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  token_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   withdrawnAmount?: InputMaybe<Scalars['BigInt']['input']>;
   withdrawnAmount_gt?: InputMaybe<Scalars['BigInt']['input']>;
   withdrawnAmount_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -9737,8 +9361,8 @@ export enum SiloAsset_OrderBy {
   SiloLastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
   SiloPlantableStalk = 'silo__plantableStalk',
   SiloRoots = 'silo__roots',
-  SiloSeeds = 'silo__seeds',
   SiloStalk = 'silo__stalk',
+  SiloUnmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
   Token = 'token',
   WithdrawnAmount = 'withdrawnAmount'
 }
@@ -9757,9 +9381,9 @@ export type SiloDailySnapshot = {
   deltaBeanMints: Scalars['BigInt']['output'];
   deltaDepositedBDV: Scalars['BigInt']['output'];
   deltaGerminatingStalk: Scalars['BigInt']['output'];
+  deltaGrownStalkPerSeason: Scalars['BigInt']['output'];
   deltaPlantableStalk: Scalars['BigInt']['output'];
   deltaRoots: Scalars['BigInt']['output'];
-  deltaSeeds: Scalars['BigInt']['output'];
   deltaStalk: Scalars['BigInt']['output'];
   /** Point in time current BDV of all deposited assets */
   depositedBDV: Scalars['BigInt']['output'];
@@ -9775,8 +9399,6 @@ export type SiloDailySnapshot = {
   roots: Scalars['BigInt']['output'];
   /** Last season for the snapshot */
   season: Scalars['Int']['output'];
-  /** Point in time current seeds balance */
-  seeds: Scalars['BigInt']['output'];
   /** Silo associated with the snapshot */
   silo: Silo;
   /** Point in time current stalk balance */
@@ -9853,6 +9475,14 @@ export type SiloDailySnapshot_Filter = {
   deltaGerminatingStalk_lte?: InputMaybe<Scalars['BigInt']['input']>;
   deltaGerminatingStalk_not?: InputMaybe<Scalars['BigInt']['input']>;
   deltaGerminatingStalk_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  deltaGrownStalkPerSeason?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaGrownStalkPerSeason_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaGrownStalkPerSeason_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaGrownStalkPerSeason_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  deltaGrownStalkPerSeason_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaGrownStalkPerSeason_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaGrownStalkPerSeason_not?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaGrownStalkPerSeason_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaPlantableStalk?: InputMaybe<Scalars['BigInt']['input']>;
   deltaPlantableStalk_gt?: InputMaybe<Scalars['BigInt']['input']>;
   deltaPlantableStalk_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -9869,14 +9499,6 @@ export type SiloDailySnapshot_Filter = {
   deltaRoots_lte?: InputMaybe<Scalars['BigInt']['input']>;
   deltaRoots_not?: InputMaybe<Scalars['BigInt']['input']>;
   deltaRoots_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaSeeds?: InputMaybe<Scalars['BigInt']['input']>;
-  deltaSeeds_gt?: InputMaybe<Scalars['BigInt']['input']>;
-  deltaSeeds_gte?: InputMaybe<Scalars['BigInt']['input']>;
-  deltaSeeds_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaSeeds_lt?: InputMaybe<Scalars['BigInt']['input']>;
-  deltaSeeds_lte?: InputMaybe<Scalars['BigInt']['input']>;
-  deltaSeeds_not?: InputMaybe<Scalars['BigInt']['input']>;
-  deltaSeeds_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaStalk?: InputMaybe<Scalars['BigInt']['input']>;
   deltaStalk_gt?: InputMaybe<Scalars['BigInt']['input']>;
   deltaStalk_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -9942,14 +9564,6 @@ export type SiloDailySnapshot_Filter = {
   season_lte?: InputMaybe<Scalars['Int']['input']>;
   season_not?: InputMaybe<Scalars['Int']['input']>;
   season_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  seeds?: InputMaybe<Scalars['BigInt']['input']>;
-  seeds_gt?: InputMaybe<Scalars['BigInt']['input']>;
-  seeds_gte?: InputMaybe<Scalars['BigInt']['input']>;
-  seeds_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  seeds_lt?: InputMaybe<Scalars['BigInt']['input']>;
-  seeds_lte?: InputMaybe<Scalars['BigInt']['input']>;
-  seeds_not?: InputMaybe<Scalars['BigInt']['input']>;
-  seeds_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   silo?: InputMaybe<Scalars['String']['input']>;
   silo_?: InputMaybe<Silo_Filter>;
   silo_contains?: InputMaybe<Scalars['String']['input']>;
@@ -9998,9 +9612,9 @@ export enum SiloDailySnapshot_OrderBy {
   DeltaBeanMints = 'deltaBeanMints',
   DeltaDepositedBdv = 'deltaDepositedBDV',
   DeltaGerminatingStalk = 'deltaGerminatingStalk',
+  DeltaGrownStalkPerSeason = 'deltaGrownStalkPerSeason',
   DeltaPlantableStalk = 'deltaPlantableStalk',
   DeltaRoots = 'deltaRoots',
-  DeltaSeeds = 'deltaSeeds',
   DeltaStalk = 'deltaStalk',
   DepositedBdv = 'depositedBDV',
   GerminatingStalk = 'germinatingStalk',
@@ -10009,7 +9623,6 @@ export enum SiloDailySnapshot_OrderBy {
   PlantableStalk = 'plantableStalk',
   Roots = 'roots',
   Season = 'season',
-  Seeds = 'seeds',
   Silo = 'silo',
   SiloActiveFarmers = 'silo__activeFarmers',
   SiloBeanMints = 'silo__beanMints',
@@ -10022,8 +9635,8 @@ export enum SiloDailySnapshot_OrderBy {
   SiloLastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
   SiloPlantableStalk = 'silo__plantableStalk',
   SiloRoots = 'silo__roots',
-  SiloSeeds = 'silo__seeds',
   SiloStalk = 'silo__stalk',
+  SiloUnmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
   Stalk = 'stalk',
   UpdatedAt = 'updatedAt'
 }
@@ -10043,7 +9656,7 @@ export type SiloDeposit = {
   /** Farmer address */
   farmer: Farmer;
   /** Transaction hashes pertaining to this deposit */
-  hashes: Array<Scalars['String']['output']>;
+  hashes: Array<Scalars['Bytes']['output']>;
   /**
    * Account - Token Address - Deposit Version - (Season|Stem)
    *
@@ -10056,7 +9669,7 @@ export type SiloDeposit = {
   /** Silo v3.1 equivalent stem. This value will always be assigned regardless of the deposit version. */
   stemV31: Scalars['BigInt']['output'];
   /** Token Address */
-  token: Scalars['String']['output'];
+  token: Scalars['Bytes']['output'];
   /** Timestamp when last updated */
   updatedAt: Scalars['BigInt']['output'];
   /** Block when last updated */
@@ -10140,12 +9753,12 @@ export type SiloDeposit_Filter = {
   farmer_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   farmer_starts_with?: InputMaybe<Scalars['String']['input']>;
   farmer_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  hashes?: InputMaybe<Array<Scalars['String']['input']>>;
-  hashes_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  hashes_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
-  hashes_not?: InputMaybe<Array<Scalars['String']['input']>>;
-  hashes_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  hashes_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
+  hashes?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  hashes_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  hashes_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  hashes_not?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  hashes_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  hashes_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -10179,26 +9792,16 @@ export type SiloDeposit_Filter = {
   stem_lte?: InputMaybe<Scalars['BigInt']['input']>;
   stem_not?: InputMaybe<Scalars['BigInt']['input']>;
   stem_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  token?: InputMaybe<Scalars['String']['input']>;
-  token_contains?: InputMaybe<Scalars['String']['input']>;
-  token_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_ends_with?: InputMaybe<Scalars['String']['input']>;
-  token_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_gt?: InputMaybe<Scalars['String']['input']>;
-  token_gte?: InputMaybe<Scalars['String']['input']>;
-  token_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  token_lt?: InputMaybe<Scalars['String']['input']>;
-  token_lte?: InputMaybe<Scalars['String']['input']>;
-  token_not?: InputMaybe<Scalars['String']['input']>;
-  token_not_contains?: InputMaybe<Scalars['String']['input']>;
-  token_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  token_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  token_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  token_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_starts_with?: InputMaybe<Scalars['String']['input']>;
-  token_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  token?: InputMaybe<Scalars['Bytes']['input']>;
+  token_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  token_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  token_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  token_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  token_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  token_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  token_not?: InputMaybe<Scalars['Bytes']['input']>;
+  token_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  token_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   updatedAt?: InputMaybe<Scalars['BigInt']['input']>;
   updatedAt_gt?: InputMaybe<Scalars['BigInt']['input']>;
   updatedAt_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -10251,9 +9854,9 @@ export type SiloHourlySnapshot = {
   deltaBeanMints: Scalars['BigInt']['output'];
   deltaDepositedBDV: Scalars['BigInt']['output'];
   deltaGerminatingStalk: Scalars['BigInt']['output'];
+  deltaGrownStalkPerSeason: Scalars['BigInt']['output'];
   deltaPlantableStalk: Scalars['BigInt']['output'];
   deltaRoots: Scalars['BigInt']['output'];
-  deltaSeeds: Scalars['BigInt']['output'];
   deltaStalk: Scalars['BigInt']['output'];
   /** Point in time current BDV of all deposited assets */
   depositedBDV: Scalars['BigInt']['output'];
@@ -10269,8 +9872,6 @@ export type SiloHourlySnapshot = {
   roots: Scalars['BigInt']['output'];
   /** Season for the snapshot */
   season: Scalars['Int']['output'];
-  /** Point in time current seeds balance */
-  seeds: Scalars['BigInt']['output'];
   /** Silo associated with the snapshot */
   silo: Silo;
   /** Point in time current stalk balance */
@@ -10355,6 +9956,14 @@ export type SiloHourlySnapshot_Filter = {
   deltaGerminatingStalk_lte?: InputMaybe<Scalars['BigInt']['input']>;
   deltaGerminatingStalk_not?: InputMaybe<Scalars['BigInt']['input']>;
   deltaGerminatingStalk_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  deltaGrownStalkPerSeason?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaGrownStalkPerSeason_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaGrownStalkPerSeason_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaGrownStalkPerSeason_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  deltaGrownStalkPerSeason_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaGrownStalkPerSeason_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaGrownStalkPerSeason_not?: InputMaybe<Scalars['BigInt']['input']>;
+  deltaGrownStalkPerSeason_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaPlantableStalk?: InputMaybe<Scalars['BigInt']['input']>;
   deltaPlantableStalk_gt?: InputMaybe<Scalars['BigInt']['input']>;
   deltaPlantableStalk_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -10371,14 +9980,6 @@ export type SiloHourlySnapshot_Filter = {
   deltaRoots_lte?: InputMaybe<Scalars['BigInt']['input']>;
   deltaRoots_not?: InputMaybe<Scalars['BigInt']['input']>;
   deltaRoots_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaSeeds?: InputMaybe<Scalars['BigInt']['input']>;
-  deltaSeeds_gt?: InputMaybe<Scalars['BigInt']['input']>;
-  deltaSeeds_gte?: InputMaybe<Scalars['BigInt']['input']>;
-  deltaSeeds_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  deltaSeeds_lt?: InputMaybe<Scalars['BigInt']['input']>;
-  deltaSeeds_lte?: InputMaybe<Scalars['BigInt']['input']>;
-  deltaSeeds_not?: InputMaybe<Scalars['BigInt']['input']>;
-  deltaSeeds_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   deltaStalk?: InputMaybe<Scalars['BigInt']['input']>;
   deltaStalk_gt?: InputMaybe<Scalars['BigInt']['input']>;
   deltaStalk_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -10444,14 +10045,6 @@ export type SiloHourlySnapshot_Filter = {
   season_lte?: InputMaybe<Scalars['Int']['input']>;
   season_not?: InputMaybe<Scalars['Int']['input']>;
   season_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  seeds?: InputMaybe<Scalars['BigInt']['input']>;
-  seeds_gt?: InputMaybe<Scalars['BigInt']['input']>;
-  seeds_gte?: InputMaybe<Scalars['BigInt']['input']>;
-  seeds_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  seeds_lt?: InputMaybe<Scalars['BigInt']['input']>;
-  seeds_lte?: InputMaybe<Scalars['BigInt']['input']>;
-  seeds_not?: InputMaybe<Scalars['BigInt']['input']>;
-  seeds_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   silo?: InputMaybe<Scalars['String']['input']>;
   silo_?: InputMaybe<Silo_Filter>;
   silo_contains?: InputMaybe<Scalars['String']['input']>;
@@ -10501,9 +10094,9 @@ export enum SiloHourlySnapshot_OrderBy {
   DeltaBeanMints = 'deltaBeanMints',
   DeltaDepositedBdv = 'deltaDepositedBDV',
   DeltaGerminatingStalk = 'deltaGerminatingStalk',
+  DeltaGrownStalkPerSeason = 'deltaGrownStalkPerSeason',
   DeltaPlantableStalk = 'deltaPlantableStalk',
   DeltaRoots = 'deltaRoots',
-  DeltaSeeds = 'deltaSeeds',
   DeltaStalk = 'deltaStalk',
   DepositedBdv = 'depositedBDV',
   GerminatingStalk = 'germinatingStalk',
@@ -10512,7 +10105,6 @@ export enum SiloHourlySnapshot_OrderBy {
   PlantableStalk = 'plantableStalk',
   Roots = 'roots',
   Season = 'season',
-  Seeds = 'seeds',
   Silo = 'silo',
   SiloActiveFarmers = 'silo__activeFarmers',
   SiloBeanMints = 'silo__beanMints',
@@ -10525,8 +10117,8 @@ export enum SiloHourlySnapshot_OrderBy {
   SiloLastHourlySnapshotSeason = 'silo__lastHourlySnapshotSeason',
   SiloPlantableStalk = 'silo__plantableStalk',
   SiloRoots = 'silo__roots',
-  SiloSeeds = 'silo__seeds',
   SiloStalk = 'silo__stalk',
+  SiloUnmigratedL1DepositedBdv = 'silo__unmigratedL1DepositedBdv',
   Stalk = 'stalk',
   UpdatedAt = 'updatedAt'
 }
@@ -10546,7 +10138,7 @@ export type SiloWithdraw = {
   /** Account - Deposit Token - Current Season */
   id: Scalars['ID']['output'];
   /** Token address */
-  token: Scalars['String']['output'];
+  token: Scalars['Bytes']['output'];
   /** Season withdrawal initiated */
   withdrawSeason: Scalars['Int']['output'];
 };
@@ -10613,26 +10205,16 @@ export type SiloWithdraw_Filter = {
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
   or?: InputMaybe<Array<InputMaybe<SiloWithdraw_Filter>>>;
-  token?: InputMaybe<Scalars['String']['input']>;
-  token_contains?: InputMaybe<Scalars['String']['input']>;
-  token_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_ends_with?: InputMaybe<Scalars['String']['input']>;
-  token_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_gt?: InputMaybe<Scalars['String']['input']>;
-  token_gte?: InputMaybe<Scalars['String']['input']>;
-  token_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  token_lt?: InputMaybe<Scalars['String']['input']>;
-  token_lte?: InputMaybe<Scalars['String']['input']>;
-  token_not?: InputMaybe<Scalars['String']['input']>;
-  token_not_contains?: InputMaybe<Scalars['String']['input']>;
-  token_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  token_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  token_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  token_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  token_starts_with?: InputMaybe<Scalars['String']['input']>;
-  token_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  token?: InputMaybe<Scalars['Bytes']['input']>;
+  token_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  token_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  token_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  token_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  token_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  token_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  token_not?: InputMaybe<Scalars['Bytes']['input']>;
+  token_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  token_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   withdrawSeason?: InputMaybe<Scalars['Int']['input']>;
   withdrawSeason_gt?: InputMaybe<Scalars['Int']['input']>;
   withdrawSeason_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -10674,7 +10256,7 @@ export type SiloYield = {
   /** u used for EMA */
   u: Scalars['Int']['output'];
   /** Current whitelisted silo tokens */
-  whitelistedTokens: Array<Scalars['String']['output']>;
+  whitelistedTokens: Array<Scalars['Bytes']['output']>;
 };
 
 
@@ -10744,12 +10326,12 @@ export type SiloYield_Filter = {
   u_lte?: InputMaybe<Scalars['Int']['input']>;
   u_not?: InputMaybe<Scalars['Int']['input']>;
   u_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  whitelistedTokens?: InputMaybe<Array<Scalars['String']['input']>>;
-  whitelistedTokens_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  whitelistedTokens_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
-  whitelistedTokens_not?: InputMaybe<Array<Scalars['String']['input']>>;
-  whitelistedTokens_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  whitelistedTokens_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
+  whitelistedTokens?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  whitelistedTokens_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  whitelistedTokens_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  whitelistedTokens_not?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  whitelistedTokens_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  whitelistedTokens_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
 };
 
 export enum SiloYield_OrderBy {
@@ -10823,12 +10405,12 @@ export type Silo_Filter = {
   depositedBDV_lte?: InputMaybe<Scalars['BigInt']['input']>;
   depositedBDV_not?: InputMaybe<Scalars['BigInt']['input']>;
   depositedBDV_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  dewhitelistedTokens?: InputMaybe<Array<Scalars['String']['input']>>;
-  dewhitelistedTokens_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  dewhitelistedTokens_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
-  dewhitelistedTokens_not?: InputMaybe<Array<Scalars['String']['input']>>;
-  dewhitelistedTokens_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  dewhitelistedTokens_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
+  dewhitelistedTokens?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  dewhitelistedTokens_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  dewhitelistedTokens_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  dewhitelistedTokens_not?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  dewhitelistedTokens_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  dewhitelistedTokens_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   farmer?: InputMaybe<Scalars['String']['input']>;
   farmer_?: InputMaybe<Farmer_Filter>;
   farmer_contains?: InputMaybe<Scalars['String']['input']>;
@@ -10867,14 +10449,16 @@ export type Silo_Filter = {
   grownStalkPerSeason_not?: InputMaybe<Scalars['BigInt']['input']>;
   grownStalkPerSeason_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   hourlySnapshots_?: InputMaybe<SiloHourlySnapshot_Filter>;
-  id?: InputMaybe<Scalars['ID']['input']>;
-  id_gt?: InputMaybe<Scalars['ID']['input']>;
-  id_gte?: InputMaybe<Scalars['ID']['input']>;
-  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  id_lt?: InputMaybe<Scalars['ID']['input']>;
-  id_lte?: InputMaybe<Scalars['ID']['input']>;
-  id_not?: InputMaybe<Scalars['ID']['input']>;
-  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id?: InputMaybe<Scalars['Bytes']['input']>;
+  id_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  id_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  id_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  id_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  id_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  id_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   lastDailySnapshotDay?: InputMaybe<Scalars['BigInt']['input']>;
   lastDailySnapshotDay_gt?: InputMaybe<Scalars['BigInt']['input']>;
   lastDailySnapshotDay_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -10908,14 +10492,6 @@ export type Silo_Filter = {
   roots_lte?: InputMaybe<Scalars['BigInt']['input']>;
   roots_not?: InputMaybe<Scalars['BigInt']['input']>;
   roots_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  seeds?: InputMaybe<Scalars['BigInt']['input']>;
-  seeds_gt?: InputMaybe<Scalars['BigInt']['input']>;
-  seeds_gte?: InputMaybe<Scalars['BigInt']['input']>;
-  seeds_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  seeds_lt?: InputMaybe<Scalars['BigInt']['input']>;
-  seeds_lte?: InputMaybe<Scalars['BigInt']['input']>;
-  seeds_not?: InputMaybe<Scalars['BigInt']['input']>;
-  seeds_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   stalk?: InputMaybe<Scalars['BigInt']['input']>;
   stalk_gt?: InputMaybe<Scalars['BigInt']['input']>;
   stalk_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -10924,12 +10500,20 @@ export type Silo_Filter = {
   stalk_lte?: InputMaybe<Scalars['BigInt']['input']>;
   stalk_not?: InputMaybe<Scalars['BigInt']['input']>;
   stalk_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  whitelistedTokens?: InputMaybe<Array<Scalars['String']['input']>>;
-  whitelistedTokens_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  whitelistedTokens_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
-  whitelistedTokens_not?: InputMaybe<Array<Scalars['String']['input']>>;
-  whitelistedTokens_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
-  whitelistedTokens_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
+  unmigratedL1DepositedBdv?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1DepositedBdv_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1DepositedBdv_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1DepositedBdv_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  unmigratedL1DepositedBdv_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1DepositedBdv_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1DepositedBdv_not?: InputMaybe<Scalars['BigInt']['input']>;
+  unmigratedL1DepositedBdv_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  whitelistedTokens?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  whitelistedTokens_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  whitelistedTokens_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  whitelistedTokens_not?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  whitelistedTokens_not_contains?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  whitelistedTokens_not_contains_nocase?: InputMaybe<Array<Scalars['Bytes']['input']>>;
 };
 
 export enum Silo_OrderBy {
@@ -10941,7 +10525,6 @@ export enum Silo_OrderBy {
   BeanstalkFertilizer1155 = 'beanstalk__fertilizer1155',
   BeanstalkId = 'beanstalk__id',
   BeanstalkLastSeason = 'beanstalk__lastSeason',
-  BeanstalkName = 'beanstalk__name',
   BeanstalkToken = 'beanstalk__token',
   DailySnapshots = 'dailySnapshots',
   DepositedBdv = 'depositedBDV',
@@ -10956,8 +10539,8 @@ export enum Silo_OrderBy {
   LastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
   PlantableStalk = 'plantableStalk',
   Roots = 'roots',
-  Seeds = 'seeds',
   Stalk = 'stalk',
+  UnmigratedL1DepositedBdv = 'unmigratedL1DepositedBdv',
   WhitelistedTokens = 'whitelistedTokens'
 }
 
@@ -12057,7 +11640,7 @@ export type Token = {
   /** Number of decimals */
   decimals: Scalars['BigInt']['output'];
   /** Smart contract address of the token */
-  id: Scalars['ID']['output'];
+  id: Scalars['Bytes']['output'];
   /** Last USD price calculated. Isn't calculated for all tokens, in those cases will be zero. */
   lastPriceUSD: Scalars['BigDecimal']['output'];
   /** Name of the token, i.e. BEAN, WETH */
@@ -12191,14 +11774,16 @@ export type Token_Filter = {
   decimals_lte?: InputMaybe<Scalars['BigInt']['input']>;
   decimals_not?: InputMaybe<Scalars['BigInt']['input']>;
   decimals_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  id?: InputMaybe<Scalars['ID']['input']>;
-  id_gt?: InputMaybe<Scalars['ID']['input']>;
-  id_gte?: InputMaybe<Scalars['ID']['input']>;
-  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  id_lt?: InputMaybe<Scalars['ID']['input']>;
-  id_lte?: InputMaybe<Scalars['ID']['input']>;
-  id_not?: InputMaybe<Scalars['ID']['input']>;
-  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id?: InputMaybe<Scalars['Bytes']['input']>;
+  id_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  id_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  id_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  id_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  id_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  id_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   lastPriceUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
   lastPriceUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   lastPriceUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -12245,7 +11830,7 @@ export type TwaOracle = {
   cumulativeWellReservesPrevBlock: Scalars['BigInt']['output'];
   cumulativeWellReservesPrevTime: Scalars['BigInt']['output'];
   cumulativeWellReservesTime: Scalars['BigInt']['output'];
-  id: Scalars['ID']['output'];
+  id: Scalars['Bytes']['output'];
   lastBalances: Array<Scalars['BigInt']['output']>;
   lastSun: Scalars['BigInt']['output'];
   lastUpdated: Scalars['BigInt']['output'];
@@ -12310,14 +11895,16 @@ export type TwaOracle_Filter = {
   cumulativeWellReserves_not?: InputMaybe<Scalars['Bytes']['input']>;
   cumulativeWellReserves_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   cumulativeWellReserves_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  id?: InputMaybe<Scalars['ID']['input']>;
-  id_gt?: InputMaybe<Scalars['ID']['input']>;
-  id_gte?: InputMaybe<Scalars['ID']['input']>;
-  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  id_lt?: InputMaybe<Scalars['ID']['input']>;
-  id_lte?: InputMaybe<Scalars['ID']['input']>;
-  id_not?: InputMaybe<Scalars['ID']['input']>;
-  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id?: InputMaybe<Scalars['Bytes']['input']>;
+  id_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  id_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  id_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  id_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  id_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  id_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   lastBalances?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   lastBalances_contains?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   lastBalances_contains_nocase?: InputMaybe<Array<Scalars['BigInt']['input']>>;
@@ -12778,11 +12365,10 @@ export enum UnripeTokenDailySnapshot_OrderBy {
   UnderlyingToken = 'underlyingToken',
   UnderlyingTokenDecimals = 'underlyingToken__decimals',
   UnderlyingTokenGaugePoints = 'underlyingToken__gaugePoints',
-  UnderlyingTokenGpSelector = 'underlyingToken__gpSelector',
   UnderlyingTokenId = 'underlyingToken__id',
+  UnderlyingTokenIsGaugeEnabled = 'underlyingToken__isGaugeEnabled',
   UnderlyingTokenLastDailySnapshotDay = 'underlyingToken__lastDailySnapshotDay',
   UnderlyingTokenLastHourlySnapshotSeason = 'underlyingToken__lastHourlySnapshotSeason',
-  UnderlyingTokenLwSelector = 'underlyingToken__lwSelector',
   UnderlyingTokenMilestoneSeason = 'underlyingToken__milestoneSeason',
   UnderlyingTokenOptimalPercentDepositedBdv = 'underlyingToken__optimalPercentDepositedBdv',
   UnderlyingTokenSelector = 'underlyingToken__selector',
@@ -13129,11 +12715,10 @@ export enum UnripeTokenHourlySnapshot_OrderBy {
   UnderlyingToken = 'underlyingToken',
   UnderlyingTokenDecimals = 'underlyingToken__decimals',
   UnderlyingTokenGaugePoints = 'underlyingToken__gaugePoints',
-  UnderlyingTokenGpSelector = 'underlyingToken__gpSelector',
   UnderlyingTokenId = 'underlyingToken__id',
+  UnderlyingTokenIsGaugeEnabled = 'underlyingToken__isGaugeEnabled',
   UnderlyingTokenLastDailySnapshotDay = 'underlyingToken__lastDailySnapshotDay',
   UnderlyingTokenLastHourlySnapshotSeason = 'underlyingToken__lastHourlySnapshotSeason',
-  UnderlyingTokenLwSelector = 'underlyingToken__lwSelector',
   UnderlyingTokenMilestoneSeason = 'underlyingToken__milestoneSeason',
   UnderlyingTokenOptimalPercentDepositedBdv = 'underlyingToken__optimalPercentDepositedBdv',
   UnderlyingTokenSelector = 'underlyingToken__selector',
@@ -13312,11 +12897,10 @@ export enum UnripeToken_OrderBy {
   UnderlyingToken = 'underlyingToken',
   UnderlyingTokenDecimals = 'underlyingToken__decimals',
   UnderlyingTokenGaugePoints = 'underlyingToken__gaugePoints',
-  UnderlyingTokenGpSelector = 'underlyingToken__gpSelector',
   UnderlyingTokenId = 'underlyingToken__id',
+  UnderlyingTokenIsGaugeEnabled = 'underlyingToken__isGaugeEnabled',
   UnderlyingTokenLastDailySnapshotDay = 'underlyingToken__lastDailySnapshotDay',
   UnderlyingTokenLastHourlySnapshotSeason = 'underlyingToken__lastHourlySnapshotSeason',
-  UnderlyingTokenLwSelector = 'underlyingToken__lwSelector',
   UnderlyingTokenMilestoneSeason = 'underlyingToken__milestoneSeason',
   UnderlyingTokenOptimalPercentDepositedBdv = 'underlyingToken__optimalPercentDepositedBdv',
   UnderlyingTokenSelector = 'underlyingToken__selector',
@@ -13331,6 +12915,8 @@ export type Version = {
   chain: Scalars['String']['output'];
   /** = 'subgraph' */
   id: Scalars['ID']['output'];
+  /** Address of Beanstalk protocol */
+  protocolAddress: Scalars['Bytes']['output'];
   /** = 'beanstalk' */
   subgraphName: Scalars['String']['output'];
   /** Verison number of the subgraph */
@@ -13370,6 +12956,16 @@ export type Version_Filter = {
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
   or?: InputMaybe<Array<InputMaybe<Version_Filter>>>;
+  protocolAddress?: InputMaybe<Scalars['Bytes']['input']>;
+  protocolAddress_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  protocolAddress_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  protocolAddress_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  protocolAddress_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  protocolAddress_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  protocolAddress_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  protocolAddress_not?: InputMaybe<Scalars['Bytes']['input']>;
+  protocolAddress_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  protocolAddress_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   subgraphName?: InputMaybe<Scalars['String']['input']>;
   subgraphName_contains?: InputMaybe<Scalars['String']['input']>;
   subgraphName_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -13415,6 +13011,7 @@ export type Version_Filter = {
 export enum Version_OrderBy {
   Chain = 'chain',
   Id = 'id',
+  ProtocolAddress = 'protocolAddress',
   SubgraphName = 'subgraphName',
   VersionNumber = 'versionNumber'
 }
@@ -13427,18 +13024,17 @@ export type WhitelistTokenDailySnapshot = {
   createdAt: Scalars['BigInt']['output'];
   deltaBdv?: Maybe<Scalars['BigInt']['output']>;
   deltaGaugePoints?: Maybe<Scalars['BigInt']['output']>;
+  deltaIsGaugeEnabled: Scalars['Boolean']['output'];
   deltaMilestoneSeason: Scalars['Int']['output'];
   deltaOptimalPercentDepositedBdv?: Maybe<Scalars['BigInt']['output']>;
   deltaStalkEarnedPerSeason: Scalars['BigInt']['output'];
   deltaStalkIssuedPerBdv: Scalars['BigInt']['output'];
   /** [Seed Gauge] Current Gauge Points */
   gaugePoints?: Maybe<Scalars['BigInt']['output']>;
-  /** [Seed Gauge] Encoded Gauge Point selector */
-  gpSelector?: Maybe<Scalars['Bytes']['output']>;
   /** Token address - Day */
   id: Scalars['ID']['output'];
-  /** [Seed Gauge] Encoded Liquidity Weight selector */
-  lwSelector?: Maybe<Scalars['Bytes']['output']>;
+  /** Whether the seed gauge is enabled on this whitelisted token */
+  isGaugeEnabled: Scalars['Boolean']['output'];
   /** The last season in which the stalkEarnedPerSeason for this token was updated. */
   milestoneSeason: Scalars['Int']['output'];
   /** [Seed Gauge] The current optimal targeted distribution of BDV for this whitelisted asset */
@@ -13493,6 +13089,10 @@ export type WhitelistTokenDailySnapshot_Filter = {
   deltaGaugePoints_lte?: InputMaybe<Scalars['BigInt']['input']>;
   deltaGaugePoints_not?: InputMaybe<Scalars['BigInt']['input']>;
   deltaGaugePoints_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  deltaIsGaugeEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  deltaIsGaugeEnabled_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
+  deltaIsGaugeEnabled_not?: InputMaybe<Scalars['Boolean']['input']>;
+  deltaIsGaugeEnabled_not_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
   deltaMilestoneSeason?: InputMaybe<Scalars['Int']['input']>;
   deltaMilestoneSeason_gt?: InputMaybe<Scalars['Int']['input']>;
   deltaMilestoneSeason_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -13533,16 +13133,6 @@ export type WhitelistTokenDailySnapshot_Filter = {
   gaugePoints_lte?: InputMaybe<Scalars['BigInt']['input']>;
   gaugePoints_not?: InputMaybe<Scalars['BigInt']['input']>;
   gaugePoints_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  gpSelector?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_gt?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_gte?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  gpSelector_lt?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_lte?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_not?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -13551,16 +13141,10 @@ export type WhitelistTokenDailySnapshot_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  lwSelector?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_gt?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_gte?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  lwSelector_lt?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_lte?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_not?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  isGaugeEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  isGaugeEnabled_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
+  isGaugeEnabled_not?: InputMaybe<Scalars['Boolean']['input']>;
+  isGaugeEnabled_not_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
   milestoneSeason?: InputMaybe<Scalars['Int']['input']>;
   milestoneSeason_gt?: InputMaybe<Scalars['Int']['input']>;
   milestoneSeason_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -13648,14 +13232,14 @@ export enum WhitelistTokenDailySnapshot_OrderBy {
   CreatedAt = 'createdAt',
   DeltaBdv = 'deltaBdv',
   DeltaGaugePoints = 'deltaGaugePoints',
+  DeltaIsGaugeEnabled = 'deltaIsGaugeEnabled',
   DeltaMilestoneSeason = 'deltaMilestoneSeason',
   DeltaOptimalPercentDepositedBdv = 'deltaOptimalPercentDepositedBdv',
   DeltaStalkEarnedPerSeason = 'deltaStalkEarnedPerSeason',
   DeltaStalkIssuedPerBdv = 'deltaStalkIssuedPerBdv',
   GaugePoints = 'gaugePoints',
-  GpSelector = 'gpSelector',
   Id = 'id',
-  LwSelector = 'lwSelector',
+  IsGaugeEnabled = 'isGaugeEnabled',
   MilestoneSeason = 'milestoneSeason',
   OptimalPercentDepositedBdv = 'optimalPercentDepositedBdv',
   Season = 'season',
@@ -13665,11 +13249,10 @@ export enum WhitelistTokenDailySnapshot_OrderBy {
   Token = 'token',
   TokenDecimals = 'token__decimals',
   TokenGaugePoints = 'token__gaugePoints',
-  TokenGpSelector = 'token__gpSelector',
   TokenId = 'token__id',
+  TokenIsGaugeEnabled = 'token__isGaugeEnabled',
   TokenLastDailySnapshotDay = 'token__lastDailySnapshotDay',
   TokenLastHourlySnapshotSeason = 'token__lastHourlySnapshotSeason',
-  TokenLwSelector = 'token__lwSelector',
   TokenMilestoneSeason = 'token__milestoneSeason',
   TokenOptimalPercentDepositedBdv = 'token__optimalPercentDepositedBdv',
   TokenSelector = 'token__selector',
@@ -13687,18 +13270,17 @@ export type WhitelistTokenHourlySnapshot = {
   createdAt: Scalars['BigInt']['output'];
   deltaBdv?: Maybe<Scalars['BigInt']['output']>;
   deltaGaugePoints?: Maybe<Scalars['BigInt']['output']>;
+  deltaIsGaugeEnabled: Scalars['Boolean']['output'];
   deltaMilestoneSeason: Scalars['Int']['output'];
   deltaOptimalPercentDepositedBdv?: Maybe<Scalars['BigInt']['output']>;
   deltaStalkEarnedPerSeason: Scalars['BigInt']['output'];
   deltaStalkIssuedPerBdv: Scalars['BigInt']['output'];
   /** [Seed Gauge] Current Gauge Points */
   gaugePoints?: Maybe<Scalars['BigInt']['output']>;
-  /** [Seed Gauge] Encoded Gauge Point selector */
-  gpSelector?: Maybe<Scalars['Bytes']['output']>;
   /** Token address - Season */
   id: Scalars['ID']['output'];
-  /** [Seed Gauge] Encoded Liquidity Weight selector */
-  lwSelector?: Maybe<Scalars['Bytes']['output']>;
+  /** Whether the seed gauge is enabled on this whitelisted token */
+  isGaugeEnabled: Scalars['Boolean']['output'];
   /** The last season in which the stalkEarnedPerSeason for this token was updated. */
   milestoneSeason: Scalars['Int']['output'];
   /** [Seed Gauge] The current optimal targeted distribution of BDV for this whitelisted asset */
@@ -13753,6 +13335,10 @@ export type WhitelistTokenHourlySnapshot_Filter = {
   deltaGaugePoints_lte?: InputMaybe<Scalars['BigInt']['input']>;
   deltaGaugePoints_not?: InputMaybe<Scalars['BigInt']['input']>;
   deltaGaugePoints_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  deltaIsGaugeEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  deltaIsGaugeEnabled_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
+  deltaIsGaugeEnabled_not?: InputMaybe<Scalars['Boolean']['input']>;
+  deltaIsGaugeEnabled_not_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
   deltaMilestoneSeason?: InputMaybe<Scalars['Int']['input']>;
   deltaMilestoneSeason_gt?: InputMaybe<Scalars['Int']['input']>;
   deltaMilestoneSeason_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -13793,16 +13379,6 @@ export type WhitelistTokenHourlySnapshot_Filter = {
   gaugePoints_lte?: InputMaybe<Scalars['BigInt']['input']>;
   gaugePoints_not?: InputMaybe<Scalars['BigInt']['input']>;
   gaugePoints_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  gpSelector?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_gt?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_gte?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  gpSelector_lt?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_lte?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_not?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -13811,16 +13387,10 @@ export type WhitelistTokenHourlySnapshot_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  lwSelector?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_gt?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_gte?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  lwSelector_lt?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_lte?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_not?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  isGaugeEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  isGaugeEnabled_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
+  isGaugeEnabled_not?: InputMaybe<Scalars['Boolean']['input']>;
+  isGaugeEnabled_not_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
   milestoneSeason?: InputMaybe<Scalars['Int']['input']>;
   milestoneSeason_gt?: InputMaybe<Scalars['Int']['input']>;
   milestoneSeason_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -13908,14 +13478,14 @@ export enum WhitelistTokenHourlySnapshot_OrderBy {
   CreatedAt = 'createdAt',
   DeltaBdv = 'deltaBdv',
   DeltaGaugePoints = 'deltaGaugePoints',
+  DeltaIsGaugeEnabled = 'deltaIsGaugeEnabled',
   DeltaMilestoneSeason = 'deltaMilestoneSeason',
   DeltaOptimalPercentDepositedBdv = 'deltaOptimalPercentDepositedBdv',
   DeltaStalkEarnedPerSeason = 'deltaStalkEarnedPerSeason',
   DeltaStalkIssuedPerBdv = 'deltaStalkIssuedPerBdv',
   GaugePoints = 'gaugePoints',
-  GpSelector = 'gpSelector',
   Id = 'id',
-  LwSelector = 'lwSelector',
+  IsGaugeEnabled = 'isGaugeEnabled',
   MilestoneSeason = 'milestoneSeason',
   OptimalPercentDepositedBdv = 'optimalPercentDepositedBdv',
   Season = 'season',
@@ -13925,11 +13495,10 @@ export enum WhitelistTokenHourlySnapshot_OrderBy {
   Token = 'token',
   TokenDecimals = 'token__decimals',
   TokenGaugePoints = 'token__gaugePoints',
-  TokenGpSelector = 'token__gpSelector',
   TokenId = 'token__id',
+  TokenIsGaugeEnabled = 'token__isGaugeEnabled',
   TokenLastDailySnapshotDay = 'token__lastDailySnapshotDay',
   TokenLastHourlySnapshotSeason = 'token__lastHourlySnapshotSeason',
-  TokenLwSelector = 'token__lwSelector',
   TokenMilestoneSeason = 'token__milestoneSeason',
   TokenOptimalPercentDepositedBdv = 'token__optimalPercentDepositedBdv',
   TokenSelector = 'token__selector',
@@ -13947,18 +13516,16 @@ export type WhitelistTokenSetting = {
   decimals: Scalars['Int']['output'];
   /** [Seed Gauge] Current Gauge Points */
   gaugePoints?: Maybe<Scalars['BigInt']['output']>;
-  /** [Seed Gauge] Encoded Gauge Point selector */
-  gpSelector?: Maybe<Scalars['Bytes']['output']>;
   /** Link to hourly snapshot data */
   hourlySnapshots: Array<WhitelistTokenHourlySnapshot>;
   /** Contract address for the whitelisted token */
   id: Scalars['Bytes']['output'];
+  /** Whether the seed gauge is enabled on this whitelisted token */
+  isGaugeEnabled: Scalars['Boolean']['output'];
   /** Day of when the previous daily snapshot was taken/updated */
   lastDailySnapshotDay?: Maybe<Scalars['BigInt']['output']>;
   /** Season when the previous hourly snapshot was taken/updated */
   lastHourlySnapshotSeason?: Maybe<Scalars['Int']['output']>;
-  /** [Seed Gauge] Encoded Liquidity Weight selector */
-  lwSelector?: Maybe<Scalars['Bytes']['output']>;
   /** The last season in which the stalkEarnedPerSeason for this token was updated. */
   milestoneSeason: Scalars['Int']['output'];
   /** [Seed Gauge] The current optimal targeted distribution of BDV for this whitelisted asset */
@@ -14012,16 +13579,6 @@ export type WhitelistTokenSetting_Filter = {
   gaugePoints_lte?: InputMaybe<Scalars['BigInt']['input']>;
   gaugePoints_not?: InputMaybe<Scalars['BigInt']['input']>;
   gaugePoints_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  gpSelector?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_gt?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_gte?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  gpSelector_lt?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_lte?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_not?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  gpSelector_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   hourlySnapshots_?: InputMaybe<WhitelistTokenHourlySnapshot_Filter>;
   id?: InputMaybe<Scalars['Bytes']['input']>;
   id_contains?: InputMaybe<Scalars['Bytes']['input']>;
@@ -14033,6 +13590,10 @@ export type WhitelistTokenSetting_Filter = {
   id_not?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  isGaugeEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  isGaugeEnabled_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
+  isGaugeEnabled_not?: InputMaybe<Scalars['Boolean']['input']>;
+  isGaugeEnabled_not_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
   lastDailySnapshotDay?: InputMaybe<Scalars['BigInt']['input']>;
   lastDailySnapshotDay_gt?: InputMaybe<Scalars['BigInt']['input']>;
   lastDailySnapshotDay_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -14049,16 +13610,6 @@ export type WhitelistTokenSetting_Filter = {
   lastHourlySnapshotSeason_lte?: InputMaybe<Scalars['Int']['input']>;
   lastHourlySnapshotSeason_not?: InputMaybe<Scalars['Int']['input']>;
   lastHourlySnapshotSeason_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  lwSelector?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_gt?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_gte?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  lwSelector_lt?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_lte?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_not?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  lwSelector_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   milestoneSeason?: InputMaybe<Scalars['Int']['input']>;
   milestoneSeason_gt?: InputMaybe<Scalars['Int']['input']>;
   milestoneSeason_gte?: InputMaybe<Scalars['Int']['input']>;
@@ -14116,12 +13667,11 @@ export enum WhitelistTokenSetting_OrderBy {
   DailySnapshots = 'dailySnapshots',
   Decimals = 'decimals',
   GaugePoints = 'gaugePoints',
-  GpSelector = 'gpSelector',
   HourlySnapshots = 'hourlySnapshots',
   Id = 'id',
+  IsGaugeEnabled = 'isGaugeEnabled',
   LastDailySnapshotDay = 'lastDailySnapshotDay',
   LastHourlySnapshotSeason = 'lastHourlySnapshotSeason',
-  LwSelector = 'lwSelector',
   MilestoneSeason = 'milestoneSeason',
   OptimalPercentDepositedBdv = 'optimalPercentDepositedBdv',
   Selector = 'selector',
@@ -14174,7 +13724,7 @@ export type AllPodListingsQueryVariables = Exact<{
 }>;
 
 
-export type AllPodListingsQuery = { __typename?: 'Query', podListings: Array<{ __typename?: 'PodListing', id: string, historyID: string, index: any, start: any, mode: number, pricingType?: number | null, pricePerPod: number, pricingFunction?: any | null, maxHarvestableIndex: any, minFillAmount: any, originalIndex: any, originalAmount: any, filled: any, amount: any, remainingAmount: any, filledAmount: any, status: MarketStatus, createdAt: any, updatedAt: any, creationHash: string, farmer: { __typename?: 'Farmer', id: string } }> };
+export type AllPodListingsQuery = { __typename?: 'Query', podListings: Array<{ __typename?: 'PodListing', id: string, historyID: string, index: any, start: any, mode: number, pricingType?: number | null, pricePerPod: number, pricingFunction?: any | null, maxHarvestableIndex: any, minFillAmount: any, originalIndex: any, originalAmount: any, filled: any, amount: any, remainingAmount: any, filledAmount: any, status: MarketStatus, createdAt: any, updatedAt: any, creationHash: any, farmer: { __typename?: 'Farmer', id: any } }> };
 
 export type AllPodOrdersQueryVariables = Exact<{
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -14183,14 +13733,14 @@ export type AllPodOrdersQueryVariables = Exact<{
 }>;
 
 
-export type AllPodOrdersQuery = { __typename?: 'Query', podOrders: Array<{ __typename?: 'PodOrder', id: string, historyID: string, pricingType?: number | null, pricePerPod: number, pricingFunction?: any | null, maxPlaceInLine: any, minFillAmount: any, beanAmount: any, podAmountFilled: any, beanAmountFilled: any, status: MarketStatus, createdAt: any, updatedAt: any, creationHash: string, farmer: { __typename?: 'Farmer', id: string } }> };
+export type AllPodOrdersQuery = { __typename?: 'Query', podOrders: Array<{ __typename?: 'PodOrder', id: string, historyID: string, pricingType?: number | null, pricePerPod: number, pricingFunction?: any | null, maxPlaceInLine: any, minFillAmount: any, beanAmount: any, podAmountFilled: any, beanAmountFilled: any, status: MarketStatus, createdAt: any, updatedAt: any, creationHash: any, farmer: { __typename?: 'Farmer', id: any } }> };
 
 export type FarmerPlotsQueryVariables = Exact<{
   account: Scalars['ID']['input'];
 }>;
 
 
-export type FarmerPlotsQuery = { __typename?: 'Query', farmer?: { __typename?: 'Farmer', plots: Array<{ __typename?: 'Plot', beansPerPod: any, createdAt: any, creationHash: string, fullyHarvested: boolean, harvestablePods: any, harvestedPods: any, id: string, index: any, pods: any, season: number, source: PlotSource, sourceHash: string, updatedAt: any, updatedAtBlock: any, listing?: { __typename?: 'PodListing', amount: any, createdAt: any, creationHash: string, filled: any, filledAmount: any, historyID: string, id: string, index: any, maxHarvestableIndex: any, minFillAmount: any, mode: number, originalAmount: any, originalIndex: any, pricePerPod: number, pricingFunction?: any | null, pricingType?: number | null, remainingAmount: any, start: any, status: MarketStatus, updatedAt: any } | null }>, orders: Array<{ __typename?: 'PodOrder', beanAmount: any, beanAmountFilled: any, createdAt: any, creationHash: string, historyID: string, id: string, maxPlaceInLine: any, minFillAmount: any, podAmountFilled: any, pricePerPod: number, pricingFunction?: any | null, pricingType?: number | null, status: MarketStatus, updatedAt: any }>, listings: Array<{ __typename?: 'PodListing', amount: any, creationHash: string, createdAt: any, filled: any, filledAmount: any, historyID: string, id: string, index: any, maxHarvestableIndex: any, minFillAmount: any, mode: number, originalAmount: any, originalIndex: any, pricePerPod: number, pricingFunction?: any | null, pricingType?: number | null, remainingAmount: any, start: any, status: MarketStatus, updatedAt: any }> } | null };
+export type FarmerPlotsQuery = { __typename?: 'Query', farmer?: { __typename?: 'Farmer', plots: Array<{ __typename?: 'Plot', beansPerPod: any, createdAt: any, creationHash: any, fullyHarvested: boolean, harvestablePods: any, harvestedPods: any, id: string, index: any, pods: any, season: number, source: PlotSource, sourceHash: any, updatedAt: any, updatedAtBlock: any, listing?: { __typename?: 'PodListing', amount: any, createdAt: any, creationHash: any, filled: any, filledAmount: any, historyID: string, id: string, index: any, maxHarvestableIndex: any, minFillAmount: any, mode: number, originalAmount: any, originalIndex: any, pricePerPod: number, pricingFunction?: any | null, pricingType?: number | null, remainingAmount: any, start: any, status: MarketStatus, updatedAt: any } | null }>, orders: Array<{ __typename?: 'PodOrder', beanAmount: any, beanAmountFilled: any, createdAt: any, creationHash: any, historyID: string, id: string, maxPlaceInLine: any, minFillAmount: any, podAmountFilled: any, pricePerPod: number, pricingFunction?: any | null, pricingType?: number | null, status: MarketStatus, updatedAt: any }>, listings: Array<{ __typename?: 'PodListing', amount: any, creationHash: any, createdAt: any, filled: any, filledAmount: any, historyID: string, id: string, index: any, maxHarvestableIndex: any, minFillAmount: any, mode: number, originalAmount: any, originalIndex: any, pricePerPod: number, pricingFunction?: any | null, pricingType?: number | null, remainingAmount: any, start: any, status: MarketStatus, updatedAt: any }> } | null };
 
 export type FarmerPodListingsQueryVariables = Exact<{
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -14199,7 +13749,7 @@ export type FarmerPodListingsQueryVariables = Exact<{
 }>;
 
 
-export type FarmerPodListingsQuery = { __typename?: 'Query', podListings: Array<{ __typename?: 'PodListing', id: string, historyID: string, index: any, start: any, mode: number, pricingType?: number | null, pricePerPod: number, pricingFunction?: any | null, maxHarvestableIndex: any, minFillAmount: any, originalIndex: any, originalAmount: any, filled: any, amount: any, remainingAmount: any, filledAmount: any, status: MarketStatus, createdAt: any, updatedAt: any, creationHash: string, farmer: { __typename?: 'Farmer', id: string } }> };
+export type FarmerPodListingsQuery = { __typename?: 'Query', podListings: Array<{ __typename?: 'PodListing', id: string, historyID: string, index: any, start: any, mode: number, pricingType?: number | null, pricePerPod: number, pricingFunction?: any | null, maxHarvestableIndex: any, minFillAmount: any, originalIndex: any, originalAmount: any, filled: any, amount: any, remainingAmount: any, filledAmount: any, status: MarketStatus, createdAt: any, updatedAt: any, creationHash: any, farmer: { __typename?: 'Farmer', id: any } }> };
 
 export type FarmerPodOrdersQueryVariables = Exact<{
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -14208,7 +13758,7 @@ export type FarmerPodOrdersQueryVariables = Exact<{
 }>;
 
 
-export type FarmerPodOrdersQuery = { __typename?: 'Query', podOrders: Array<{ __typename?: 'PodOrder', id: string, historyID: string, pricingType?: number | null, pricePerPod: number, pricingFunction?: any | null, maxPlaceInLine: any, minFillAmount: any, beanAmount: any, podAmountFilled: any, beanAmountFilled: any, status: MarketStatus, createdAt: any, updatedAt: any, creationHash: string, farmer: { __typename?: 'Farmer', id: string } }> };
+export type FarmerPodOrdersQuery = { __typename?: 'Query', podOrders: Array<{ __typename?: 'PodOrder', id: string, historyID: string, pricingType?: number | null, pricePerPod: number, pricingFunction?: any | null, maxPlaceInLine: any, minFillAmount: any, beanAmount: any, podAmountFilled: any, beanAmountFilled: any, status: MarketStatus, createdAt: any, updatedAt: any, creationHash: any, farmer: { __typename?: 'Farmer', id: any } }> };
 
 export type FarmerSiloBalancesQueryVariables = Exact<{
   account: Scalars['ID']['input'];
@@ -14216,7 +13766,7 @@ export type FarmerSiloBalancesQueryVariables = Exact<{
 }>;
 
 
-export type FarmerSiloBalancesQuery = { __typename?: 'Query', farmer?: { __typename?: 'Farmer', deposited: Array<{ __typename?: 'SiloDeposit', season?: number | null, stem?: any | null, token: string, depositedAmount: any, depositedBDV: any }>, withdrawn: Array<{ __typename?: 'SiloWithdraw', token: string, amount: any, season: number }>, claimable: Array<{ __typename?: 'SiloWithdraw', token: string, amount: any, season: number }> } | null };
+export type FarmerSiloBalancesQuery = { __typename?: 'Query', farmer?: { __typename?: 'Farmer', deposited: Array<{ __typename?: 'SiloDeposit', season?: number | null, stem?: any | null, token: any, depositedAmount: any, depositedBDV: any }>, withdrawn: Array<{ __typename?: 'SiloWithdraw', token: any, amount: any, season: number }>, claimable: Array<{ __typename?: 'SiloWithdraw', token: any, amount: any, season: number }> } | null };
 
 export type FieldSnapshotsQueryVariables = Exact<{
   fieldId: Scalars['String']['input'];
@@ -14226,9 +13776,9 @@ export type FieldSnapshotsQueryVariables = Exact<{
 
 export type FieldSnapshotsQuery = { __typename?: 'Query', fieldHourlySnapshots: Array<{ __typename?: 'FieldHourlySnapshot', blocksToSoldOutSoil?: any | null, caseId?: any | null, deltaHarvestablePods: any, deltaHarvestedPods: any, deltaIssuedSoil: any, deltaNumberOfSowers: number, deltaNumberOfSows: number, deltaPodIndex: any, deltaPodRate: any, deltaRealRateOfReturn: any, deltaSoil: any, deltaSownBeans: any, deltaTemperature: number, deltaUnharvestablePods: any, harvestablePods: any, harvestedPods: any, id: string, issuedSoil: any, numberOfSowers: number, numberOfSows: number, podIndex: any, podRate: any, realRateOfReturn: any, season: number, seasonBlock: any, soil: any, soilSoldOut: boolean, sownBeans: any, temperature: number, unharvestablePods: any, updatedAt: any }> };
 
-export type PodListingFragment = { __typename?: 'PodListing', id: string, historyID: string, index: any, start: any, mode: number, pricingType?: number | null, pricePerPod: number, pricingFunction?: any | null, maxHarvestableIndex: any, minFillAmount: any, originalIndex: any, originalAmount: any, filled: any, amount: any, remainingAmount: any, filledAmount: any, status: MarketStatus, createdAt: any, updatedAt: any, creationHash: string, farmer: { __typename?: 'Farmer', id: string } };
+export type PodListingFragment = { __typename?: 'PodListing', id: string, historyID: string, index: any, start: any, mode: number, pricingType?: number | null, pricePerPod: number, pricingFunction?: any | null, maxHarvestableIndex: any, minFillAmount: any, originalIndex: any, originalAmount: any, filled: any, amount: any, remainingAmount: any, filledAmount: any, status: MarketStatus, createdAt: any, updatedAt: any, creationHash: any, farmer: { __typename?: 'Farmer', id: any } };
 
-export type PodOrderFragment = { __typename?: 'PodOrder', id: string, historyID: string, pricingType?: number | null, pricePerPod: number, pricingFunction?: any | null, maxPlaceInLine: any, minFillAmount: any, beanAmount: any, podAmountFilled: any, beanAmountFilled: any, status: MarketStatus, createdAt: any, updatedAt: any, creationHash: string, farmer: { __typename?: 'Farmer', id: string } };
+export type PodOrderFragment = { __typename?: 'PodOrder', id: string, historyID: string, pricingType?: number | null, pricePerPod: number, pricingFunction?: any | null, maxPlaceInLine: any, minFillAmount: any, beanAmount: any, podAmountFilled: any, beanAmountFilled: any, status: MarketStatus, createdAt: any, updatedAt: any, creationHash: any, farmer: { __typename?: 'Farmer', id: any } };
 
 export type SiloSnapshotsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -14240,7 +13790,7 @@ export type SiloSnapshotsQuery = { __typename?: 'Query', siloHourlySnapshots: Ar
 export type SiloYieldsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type SiloYieldsQuery = { __typename?: 'Query', siloYields: Array<{ __typename?: 'SiloYield', beansPerSeasonEMA: any, beta: any, createdAt: any, season: number, id: string, u: number, whitelistedTokens: Array<string>, emaWindow: EmaWindow, tokenAPYS: Array<{ __typename?: 'TokenYield', beanAPY: any, stalkAPY: any, season: number, createdAt: any, token: any }> }> };
+export type SiloYieldsQuery = { __typename?: 'Query', siloYields: Array<{ __typename?: 'SiloYield', beansPerSeasonEMA: any, beta: any, createdAt: any, season: number, id: string, u: number, whitelistedTokens: Array<any>, emaWindow: EmaWindow, tokenAPYS: Array<{ __typename?: 'TokenYield', beanAPY: any, stalkAPY: any, season: number, createdAt: any, token: any }> }> };
 
 export const PodListingFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PodListing"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"PodListing"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"farmer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"historyID"}},{"kind":"Field","name":{"kind":"Name","value":"index"}},{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"mode"}},{"kind":"Field","name":{"kind":"Name","value":"pricingType"}},{"kind":"Field","name":{"kind":"Name","value":"pricePerPod"}},{"kind":"Field","name":{"kind":"Name","value":"pricingFunction"}},{"kind":"Field","name":{"kind":"Name","value":"maxHarvestableIndex"}},{"kind":"Field","name":{"kind":"Name","value":"minFillAmount"}},{"kind":"Field","name":{"kind":"Name","value":"originalIndex"}},{"kind":"Field","name":{"kind":"Name","value":"originalAmount"}},{"kind":"Field","name":{"kind":"Name","value":"filled"}},{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"remainingAmount"}},{"kind":"Field","name":{"kind":"Name","value":"filledAmount"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"creationHash"}}]}}]} as unknown as DocumentNode<PodListingFragment, unknown>;
 export const PodOrderFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PodOrder"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"PodOrder"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"farmer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"historyID"}},{"kind":"Field","name":{"kind":"Name","value":"pricingType"}},{"kind":"Field","name":{"kind":"Name","value":"pricePerPod"}},{"kind":"Field","name":{"kind":"Name","value":"pricingFunction"}},{"kind":"Field","name":{"kind":"Name","value":"maxPlaceInLine"}},{"kind":"Field","name":{"kind":"Name","value":"minFillAmount"}},{"kind":"Field","name":{"kind":"Name","value":"beanAmount"}},{"kind":"Field","name":{"kind":"Name","value":"podAmountFilled"}},{"kind":"Field","name":{"kind":"Name","value":"beanAmountFilled"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"creationHash"}}]}}]} as unknown as DocumentNode<PodOrderFragment, unknown>;
