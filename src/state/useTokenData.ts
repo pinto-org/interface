@@ -22,7 +22,7 @@ export default function useTokenData() {
       if (token.isLP) {
         lpTokens.push(token)
       };
-      if (!token.isNative && !token.isWrappedNative && !token.isLP) {
+      if (!token.isNative && !token.isLP) {
         preferredTokens.push(token)
       };
     };
@@ -46,12 +46,13 @@ export default function useTokenData() {
       }  
     });
     const allowanceData = result.data as Array<{ result: bigint, status: string }>
-
-    for (const [index, allowance] of allowanceData.entries()) {
-      const _token = tokensToGetAllowance[index];
-      allowances.set(_token, allowance.result ? TokenValue.fromBlockchain(allowance.result, _token.decimals) : TokenValue.fromBlockchain(0n, _token.decimals))
+    if (allowanceData) {
+      for (const [index, allowance] of allowanceData.entries()) {
+        const _token = tokensToGetAllowance[index];
+        allowances.set(_token, allowance.result ? TokenValue.fromBlockchain(allowance.result, _token.decimals) : TokenValue.fromBlockchain(0n, _token.decimals))
+      };
+      allowances.set(nativeToken, TokenValue.MAX_UINT256);
     };
-    allowances.set(nativeToken, TokenValue.MAX_UINT256);
     
     return {
       mainToken: mainToken,
