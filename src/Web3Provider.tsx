@@ -1,5 +1,5 @@
 import { WagmiProvider, createConfig, http } from "wagmi";
-import { localhost, mainnet } from "wagmi/chains";
+import { arbitrum, localhost, mainnet } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 import { ReactNode } from "react";
@@ -14,7 +14,7 @@ export const anvilTestClient =
   // alt test acc: 0xe543357d4f0eb174cfc6bed6ef5e7ab5762f1b2b
   
 export const testConfig = createConfig({
-  connectors: [mock({ accounts: ["0x43B9F935c798522aaaCB2bFEa2F407cE5A291e9D"] })],
+  connectors: [mock({ accounts: ["0xfe42972c584e442c3f0a49cb2930e55d5bf13ba7"] })],
   chains: [localhost],
   client() {
     return anvilTestClient;
@@ -24,10 +24,10 @@ export const testConfig = createConfig({
 const config = createConfig(
   getDefaultConfig({
     // Your dApps chains
-    chains: [mainnet, localhost],
+    chains: [arbitrum, localhost],
     transports: {
       // RPC URL for each chain
-      [mainnet.id]: http(),
+      [arbitrum.id]: http(),
       [localhost.id]: http(),
     },
     batch: {
@@ -50,7 +50,7 @@ const queryClient = new QueryClient();
 
 export const Web3Provider = ({ children }: { children: ReactNode }) => {
 
-  anvilTestClient.impersonateAccount({ address: "0x43B9F935c798522aaaCB2bFEa2F407cE5A291e9D" });
+  anvilTestClient.impersonateAccount({ address: "0xfe42972c584e442c3f0a49cb2930e55d5bf13ba7" });
   
   return (
     <WagmiProvider config={testConfig}>
