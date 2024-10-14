@@ -22,7 +22,6 @@ export interface Token {
   isNative?: boolean,
   isWrappedNative?: boolean,
   isWhitelisted?: boolean,
-  priceOracle?: Address,
   address: Address,
   logoURI: string,
   color?: string

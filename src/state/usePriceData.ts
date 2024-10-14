@@ -36,7 +36,7 @@ export function usePriceData() {
   const tokensToFetch = tokenData.preferredTokens.filter((token) => !token.isMain);
 
   for (const token of tokensToFetch) {
-    if (!token.priceOracle || token.isMain) continue;
+    if (token.isMain) continue;
     const instantPriceCall = {
       address: protocolAddress,
       abi: beanstalkAbi,

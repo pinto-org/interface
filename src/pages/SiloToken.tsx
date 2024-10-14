@@ -58,7 +58,7 @@ export default function SiloToken() {
                                 <img src={copyIcon} />
                             </Button>
                             <Button asChild variant={'outline'} className="rounded-full h-12 w-12 p-0" >
-                                <a href={`https://basin.exchange/#/wells/${pool.pool?.address}`} target={"_blank"} className="text-pinto-gray-5 hover:text-pinto-green-2 hover:cursor-pointer transition-all">
+                                <a href={`https://basin.exchange/#/wells/${siloToken.address}`} target={"_blank"} className="text-pinto-gray-5 hover:text-pinto-green-2 hover:cursor-pointer transition-all">
                                     <ExternalLinkIcon color="currentColor" />
                                 </a>
                             </Button>

@@ -58,7 +58,7 @@ export const tokens: { [chainId: number]: Token[] } = {
             isWrappedNative: true,
             isWhitelisted: true,
             logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png",
-            color: "#627EEA"
+            color: "#627EEA",
         },
         {
             chainId: arbitrum.id,
@@ -68,7 +68,7 @@ export const tokens: { [chainId: number]: Token[] } = {
             decimals: 18,
             isWhitelisted: true,
             logoURI: "https://assets.coingecko.com/coins/images/18834/thumb/wstETH.png?1696518295",
-            color: "#00A3FF"
+            color: "#00A3FF",
         },
         // Other Tokens
         {
@@ -78,7 +78,6 @@ export const tokens: { [chainId: number]: Token[] } = {
             address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
             decimals: 6,
             logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png",
-            priceOracle: "0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3",
         },
         {
             chainId: arbitrum.id,
@@ -87,7 +86,6 @@ export const tokens: { [chainId: number]: Token[] } = {
             address: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
             decimals: 6,
             logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
-            priceOracle: "0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7",
         },
 
     ]
