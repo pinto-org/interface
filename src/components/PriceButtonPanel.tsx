@@ -6,7 +6,7 @@ import { ExternalLinkIcon, ForwardArrowIcon, GearIcon } from "./Icons";
 import { Separator } from "./ui/Separator";
 import pintoIconOriginal from "@/assets/tokens/Pinto.png";
 import backArrowIcon from "@/assets/misc/LeftArrow.svg";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Button } from "./ui/Button";
 import { Switch } from "./ui/Switch";
 import TooltipSimple from "./TooltipSimple";

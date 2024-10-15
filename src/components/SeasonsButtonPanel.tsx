@@ -18,7 +18,7 @@ export default function SeasonsButtonPanel({isOpen = false}: {isOpen: boolean}) 
     const siloSnapshots = useSiloSnapshots();
 
     return (
-        <Card className={`absolute top-[5rem] transition-all ${isOpen ? 'left-[1.5rem]' : '-left-[60rem]'} w-[60rem] overflow-clip max-h-[calc(100vh-9rem)] z-[51]`}>
+        <Card className={`absolute top-[5rem] transition-all ${isOpen ? 'left-[1.5rem]' : '-left-[60rem]'} w-[60rem] overflow-clip h-[calc(100vh-9rem)] z-[51]`}>
             <CardHeader>
                 <div className="flex flex-row justify-between">
                     <div className="flex flex-col gap-1 mb-2">

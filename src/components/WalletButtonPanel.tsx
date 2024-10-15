@@ -34,7 +34,7 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
     const [showTransfer, setShowTransfer] = useState(false);
 
     return (
-        <Card className={`absolute top-[5rem] flex flex-col bg-white transition-all ${isOpen ? 'right-[1.5rem]' : '-right-[38rem]'} w-[38rem] ${showTransfer ? 'h-[calc(100vh-9rem)]' : 'h-auto'} overflow-clip max-h-[calc(100vh-9rem)] z-[51]`}>
+        <Card className={`absolute top-[5rem] flex flex-col bg-white transition-all ${isOpen ? 'right-[1.5rem]' : '-right-[38rem]'} w-[38rem] overflow-clip h-[calc(100vh-9rem)] z-[51]`}>
             {!showTransfer ? 
             <> 
                 <CardHeader className="flex flex-col gap-4 p-6 pb-10">
@@ -216,7 +216,7 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
                         </Tabs>
                     </div>
                 </CardContent>
-                <CardFooter className="justify-around p-0 mt-4 mb-4">
+                <CardFooter className="absolute bottom-0 mx-auto left-0 right-0 text-center justify-center">
                     <Button variant="ghost" className="inline-flex items-center gap-2 rounded-full text-black bg-pinto-gray-1 hover:hover:bg-pinto-green-2 hover:text-white" onClick={() => { disconnect(); togglePanel(); }}>Disconnect Wallet <CloseIcon color={"currentColor"} /></Button>
                 </CardFooter>
             </>
