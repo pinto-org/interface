@@ -59,6 +59,8 @@ export function usePriceData() {
   });
   const tokenPriceData = result.data as Array<{ result: bigint, status: string }>
 
+  const price = useReadBeanstalkPrice_Price(settings).data;
+
   if (tokenPriceData) {
     for (const [index, tokenPrice] of tokenPriceData.entries()) {
       const isOdd = (index % 2 === 1);
@@ -79,9 +81,9 @@ export function usePriceData() {
     }
     const wrappedNativePrice = tokenPrices.get(wrappedNativeToken);
     tokenPrices.set(nativeToken, wrappedNativePrice ?? { instant: TokenValue.ZERO, twa: TokenValue.ZERO });
-  }
 
-  const price = useReadBeanstalkPrice_Price(settings).data;
+    tokenPrices.set(tokenData.mainToken, { instant: TokenValue.fromBlockchain(price?.price || 0n, tokenData.mainToken.decimals), twa: TokenValue.ZERO })
+  }
   
   const pools: PoolData[] = [];
   price?.ps.forEach((pool) => {

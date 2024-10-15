@@ -6,6 +6,9 @@ import { Button } from "./ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/Dialog";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
 import arrowDown from "@/assets/misc/ChevronDown.svg";
+import { usePriceData } from "@/state/usePriceData";
+import { TokenValue } from "@/classes/TokenValue";
+import { Separator } from "./ui/Separator";
 
 export default function TokenSelectWithBalances({
   setToken,
@@ -24,6 +27,7 @@ export default function TokenSelectWithBalances({
   const { balances } = useFarmerBalances();
   const [_token, setInternalToken] = useState(selectedToken);
   const [_balanceFrom, setInternalBalanceFrom] = useState(balanceFrom);
+  const priceData = usePriceData();
 
   function selectBalanceFrom(value: FarmFromMode) {
     if (!setBalanceFrom) return;
@@ -48,8 +52,9 @@ export default function TokenSelectWithBalances({
         <DialogHeader>
           <DialogTitle>Select Token</DialogTitle>
           <DialogDescription>
+            <Separator className="w-[31.875rem] -ml-6 top-[4.5rem] absolute"/>
             {account.address ? (
-              <>
+              <div className="mt-8">
               {(balanceFrom && setBalanceFrom) &&
                 <ToggleGroup
                   type="single"
@@ -95,10 +100,12 @@ export default function TokenSelectWithBalances({
                   onValueChange={(value) => {
                     if (value) selectToken(value);
                   }}
-                  className="flex flex-col w-full h-auto justify-between"
+                  className="flex flex-col w-full h-auto justify-between gap-2"
                 >
                   {[...balances.keys()].map((token) => {
                     const balance = balances.get(token);
+                    const tokenPrice = priceData.tokenPrices.get(token);
+                    const price = tokenPrice?.instant ?? TokenValue.ZERO;
                     let balanceAmount;
                     switch (_balanceFrom) {
                       case FarmFromMode.EXTERNAL:
@@ -114,22 +121,28 @@ export default function TokenSelectWithBalances({
                       <ToggleGroupItem
                         value={token}
                         aria-label={`Select ${token.name}`}
-                        className="flex flex-row w-full py-2 h-auto justify-between"
+                        className="flex flex-row w-[105%] py-2 h-auto justify-between"
                       >
-                        <div className="flex flex-col">
-                          <div className="flex justify-start text-xl">{token.symbol}</div>
-                          <div className="flex justify-start text-xs">{token.name}</div>
+                        <div className="flex flex-row items-center gap-4">
+                          <img src={token.logoURI} className="w-12 h-12" />
+                          <div className="flex flex-col gap-1">
+                            <div className="flex justify-start font-[400] text-[1.25rem] text-pinto-gray-5">{token.symbol}</div>
+                            <div className="flex justify-start font-[340] text-[1rem] text-pinto-gray-4">{token.name}</div>
+                          </div>
                         </div>
                         <div className="flex flex-col">
-                          <div className="flex justify-end text-xl">
+                          <div className="flex justify-end font-[340] text-[1.5rem] text-black">
                             {balanceAmount?.gt(0) ? Number(balanceAmount.toHuman()).toFixed(4) : 0}
+                          </div>
+                          <div className="flex justify-end font-[340] text-[1rem] text-pinto-gray-4">
+                            ${balanceAmount?.gt(0) ? Number(price.mul(balanceAmount).toHuman()).toFixed(2) : 0.00}
                           </div>
                         </div>
                       </ToggleGroupItem>
                     );
                   })}
                 </ToggleGroup>
-              </>
+              </div>
             ) : (
               "Connect your wallet to see your Balances"
             )}
