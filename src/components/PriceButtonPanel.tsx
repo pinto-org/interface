@@ -27,50 +27,8 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
     const [expandAll, setExpandAll] = useState(false);
     const [showPrices, setShowPrices] = useState(false);
 
-    const tokenPanelRef = useRef<HTMLButtonElement>(null);
-    const [isOverlapping, setIsOverlapping] = useState(false);
-
-    useEffect(() => {
-      const handleMouseMove = (event: MouseEvent) => {
-        if (tokenPanelRef.current) {
-          const rect = tokenPanelRef.current.getBoundingClientRect();
-          const isOverlap = (
-            event.clientX >= rect.left &&
-            event.clientX <= rect.right &&
-            event.clientY >= rect.top &&
-            event.clientY <= rect.bottom
-          );
-          setIsOverlapping(isOverlap);
-        }
-      };
-
-      const handleMouseClick = (event: MouseEvent) => {
-        if (tokenPanelRef.current) {
-          const rect = tokenPanelRef.current.getBoundingClientRect();
-          const isOverlap = (
-            event.clientX >= rect.left &&
-            event.clientX <= rect.right &&
-            event.clientY >= rect.top &&
-            event.clientY <= rect.bottom
-          );
-          if (isOverlap) {
-            setShowPrices(true);
-            setIsOverlapping(false);
-          };
-        }
-      };
-  
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('click', handleMouseClick);
-  
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('click', handleMouseClick);
-      };
-    }, []);
-
     return (
-      <Card className={`absolute top-[5rem] transition-all ${isOpen ? 'left-[1.5rem]' : '-left-[38rem]'} w-[38rem] overflow-clip max-h-[calc(100vh-9rem)] z-[51]`}>
+      <Card className={`absolute top-[5rem] transition-all ${isOpen ? 'left-[1.5rem]' : '-left-[38rem]'} w-[38rem] overflow-clip h-[calc(100vh-9rem)] z-[51]`}>
         <CardHeader className="transition-all">
           {!showSettings ?
             <div className="pb-4">
@@ -122,7 +80,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
           }
             <Separator className="w-[38rem] -ml-4"/>
         </CardHeader>
-        <CardContent className={`overflow-y-auto pt-0 -mt-4 mb-16 max-h-[calc(100vh-28rem)] ${isOverlapping && 'hover: cursor-pointer'}`}>
+        <CardContent className={`overflow-y-auto pt-0 -mt-4 mb-16 max-h-[calc(100vh-28rem)]`}>
             {!showSettings ? 
             <div className="flex flex-col gap-4 mt-4 relative">
               {showPrices && 
@@ -221,19 +179,6 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
               );
             }
             )}
-            {!showPrices &&
-              <Button 
-                asChild 
-                variant={'outline'} 
-                className={`rounded-full pointer-events-none h-6 w-6 p-0 absolute bottom-4 left-[50%] shadow-xl -ml-[0.65rem] border-black ${isOverlapping && 'bg-pinto-gray-2'}`} 
-                onClick={() => setShowSettings(!showSettings)}
-                ref={tokenPanelRef}
-              >
-                <span className="text-black">
-                  <ForwardArrowIcon color={"currentColor"} />
-                </span>
-              </Button>
-            }
             </div>
             : 
             <div className="flex flex-col gap-4 mt-4 mr-2">
@@ -257,6 +202,18 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
                 />
               </div>
             </div>
+            }
+            {!showPrices && 
+            <Button 
+              asChild 
+              variant={'outline'} 
+              className={`rounded-full h-6 w-6 p-0 absolute bottom-20 left-[50%] shadow-xl -ml-[0.65rem] border-black hover:bg-pinto-gray-2 hover:cursor-pointer`} 
+              onClick={() => setShowPrices(!showPrices)}
+            >
+              <span className="text-black">
+                <ForwardArrowIcon color={"currentColor"} />
+              </span>
+            </Button>
             }
         </CardContent>
         <CardFooter className="flex flex-col absolute bottom-0 bg-pinto-gray-1 pb-4 items-stretch">
