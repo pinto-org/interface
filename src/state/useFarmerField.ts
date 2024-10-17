@@ -5,6 +5,7 @@ import { FarmerPlotsDocument } from "@/generated/gql/graphql";
 import { TokenValue } from "@/classes/TokenValue";
 import useTokenData from "./useTokenData";
 import { PODS } from "@/constants/internalTokens";
+import { subgraphs } from "@/constants/subgraph";
 
 export function useFarmerField() {
   const chainId = useChainId();
@@ -16,7 +17,7 @@ export function useFarmerField() {
   const { data } = useQuery({
     queryKey: queryKey,
     queryFn: async () =>
-      request("https://graph.bean.money/beanstalk", FarmerPlotsDocument, {
+      request(subgraphs[chainId].beanstalk, FarmerPlotsDocument, {
         account: account.address!.toString().toLowerCase(),
       }),
     enabled: !!account.address,

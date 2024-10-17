@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { TokenValue } from "@/classes/TokenValue";
 import { PODS } from "@/constants/internalTokens";
 import useTokenData from "./useTokenData";
+import { subgraphs } from "@/constants/subgraph";
 
 export default function useFieldSnapshots() {
 
@@ -19,7 +20,7 @@ export default function useFieldSnapshots() {
     const query = useQuery({
         queryKey: ["fieldSnapshots", { chainId: chainId, variables: [fieldId.toLowerCase()] }],
         queryFn: async () =>
-          request("https://graph.bean.money/beanstalk", FieldSnapshotsDocument, {
+          request(subgraphs[chainId].beanstalk, FieldSnapshotsDocument, {
             fieldId: fieldId.toLowerCase(),
             first: 7
           }),

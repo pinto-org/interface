@@ -6,6 +6,7 @@ import { useSunData } from "./useSunData";
 import { useEffect } from "react";
 import { TokenValue } from "@/classes/TokenValue";
 import useTokenData from "./useTokenData";
+import { subgraphs } from "@/constants/subgraph";
 
 export default function useSiloSnapshots() {
 
@@ -16,7 +17,7 @@ export default function useSiloSnapshots() {
     const query = useQuery({
         queryKey: ["siloSnapshots", { chainId: chainId }],
         queryFn: async () =>
-          request("https://graph.bean.money/beanstalk", SiloSnapshotsDocument, {
+          request(subgraphs[chainId].beanstalk, SiloSnapshotsDocument, {
             first: 7
           }),
         enabled: !!season,

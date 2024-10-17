@@ -1,9 +1,9 @@
-query FieldSnapshots($fieldId: String!, $first: Int!) {
+query FieldSnapshots($fieldId: Bytes!, $first: Int!) {
   fieldHourlySnapshots(
     first: $first
     orderBy: season
     orderDirection: desc
-    where: {field_starts_with_nocase: $fieldId}
+    where: {field_: {id: $fieldId}}
   ) {
     blocksToSoldOutSoil
     caseId

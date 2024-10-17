@@ -3,6 +3,7 @@ import { useChainId } from "wagmi";
 import { AllPodListingsDocument } from "@/generated/gql/graphql";
 import request from "graphql-request";
 import { useFieldData } from "./useFieldData";
+import { subgraphs } from "@/constants/subgraph";
 
 export default function usePodListings() {
 
@@ -15,7 +16,7 @@ export default function usePodListings() {
     const podListings = useQuery({
         queryKey: queryKey,
         queryFn: async () =>
-          request("https://graph.bean.money/beanstalk", AllPodListingsDocument, {
+          request(subgraphs[chainId].beanstalk, AllPodListingsDocument, {
             maxHarvestableIndex: harvestableIndex.toBigInt().toString(),
             skip: 0
           }),

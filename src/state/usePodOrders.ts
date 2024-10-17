@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useChainId } from "wagmi";
 import { AllPodOrdersDocument } from "@/generated/gql/graphql";
 import request from "graphql-request";
+import { subgraphs } from "@/constants/subgraph";
 
 export default function usePodOrders() {
 
@@ -11,7 +12,7 @@ export default function usePodOrders() {
     const podOrders = useQuery({
         queryKey: queryKey,
         queryFn: async () =>
-          request("https://graph.bean.money/beanstalk", AllPodOrdersDocument, {
+          request(subgraphs[chainId].beanstalk, AllPodOrdersDocument, {
             skip: 0
           }),
       });

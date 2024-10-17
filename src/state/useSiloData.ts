@@ -12,6 +12,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import useTokenData from "./useTokenData";
 import { SEEDS, STALK } from "@/constants/internalTokens";
 import { Address } from "viem";
+import { subgraphs } from "@/constants/subgraph";
 
 const settings = {
   query: {
@@ -28,7 +29,7 @@ export function useSiloData() {
   const earnedBeansTotal = useReadBeanstalk_TotalEarnedBeans({ ...settings }).data || 0n;
   const { data: yields } = useQuery({
     queryKey: ["siloYields", { chainId: chainId }],
-    queryFn: async () => request("https://graph.bean.money/beanstalk", SiloYieldsDocument),
+    queryFn: async () => request(subgraphs[chainId].beanstalk, SiloYieldsDocument),
   });
   const SILO_WHITELIST = useTokenData().whitelistedTokens;
   const BEAN = useTokenData().mainToken;

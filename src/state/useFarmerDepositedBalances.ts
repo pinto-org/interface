@@ -7,6 +7,7 @@ import { useSiloData } from "./useSiloData";
 import { useSunData } from "./useSunData";
 import useTokenData from "./useTokenData";
 import { STALK } from "@/constants/internalTokens";
+import { subgraphs } from "@/constants/subgraph";
 
 function useFarmerDepositedBalances() {
   const account = useAccount();
@@ -24,7 +25,7 @@ function useFarmerDepositedBalances() {
   const { data } = useQuery({
     queryKey: queryKey,
     queryFn: async () =>
-      request("https://graph.bean.money/beanstalk", FarmerSiloBalancesDocument, {
+      request(subgraphs[chainId].beanstalk, FarmerSiloBalancesDocument, {
         account: account.address!.toString().toLowerCase(),
         season: Number(season.toHuman()),
       }),
