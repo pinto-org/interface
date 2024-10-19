@@ -6,6 +6,7 @@ import Swap from "./pages/Swap";
 import Overview from "./pages/Overview";
 import SiloToken from "./pages/SiloToken";
 import { Market } from "./pages/Market";
+import Transfer from "./pages/Transfer";
 
 function App() {
 
@@ -23,6 +24,7 @@ function App() {
           <Route path="/podmarket/:mode" element={<Market />} />
           <Route path="/podmarket/:mode/:id" element={<Market />} />
           <Route path="/market" element={<Swap />} />
+          <Route path="/transfer" element={<Transfer />} />
         </Routes>
       </div>
     </BrowserRouter>
