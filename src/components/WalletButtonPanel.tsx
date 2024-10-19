@@ -58,7 +58,7 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
                         </div>
                     </div>
                     <div className="flex flex-row gap-3 w-full">
-                        <Button variant="ghost" className="bg-pinto-gray-1 hover:hover:bg-pinto-green-2 w-full h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-col gap-4">
+                        <Button onClick={() => { navigate('/market'); togglePanel(); }} variant="ghost" className="bg-pinto-gray-1 hover:hover:bg-pinto-green-2 w-full h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-col gap-4">
                             <div className="rounded-full bg-pinto-green-2 h-9 w-9 flex justify-evenly">
                                 <span className="self-center items-center">
                                     <UpDownArrowsIcon color={"white"} />
