@@ -12,6 +12,7 @@ import { Toggle } from "./ui/Toggle";
 import { useState } from "react";
 import WalletButtonTransfer from "./WalletButtonTransfer";
 import DonutChart from "./DonutChart";
+import { useNavigate } from "react-router-dom";
 
 export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen: boolean, togglePanel: () => void}) {
 
@@ -19,6 +20,7 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
     const { data: ensName } = useEnsName({ address })
     const { data: ensAvatar } = useEnsAvatar({ name: ensName as string })
     const { disconnect } = useDisconnect();
+    const navigate = useNavigate();
 
     const farmerBalances = useFarmerBalances();
     const priceData = usePriceData();
@@ -64,7 +66,7 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
                             </div>
                             Swap
                         </Button>
-                        <Button variant="ghost" className="bg-pinto-gray-1 hover:hover:bg-pinto-green-2 w-full h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-col gap-4">
+                        <Button onClick={() => { navigate('/transfer'); togglePanel(); }} variant="ghost" className="bg-pinto-gray-1 hover:hover:bg-pinto-green-2 w-full h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-col gap-4">
                             <div className="rounded-full bg-pinto-green-2 h-9 w-9 flex justify-evenly">
                                 <span className="self-center items-center">
                                     <LeftArrowIcon color={"white"} />
