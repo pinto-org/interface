@@ -55,7 +55,7 @@ function Transfer() {
 
     if (transferData.crates.length === 1) {
       const tx = () => writeContractAsync({
-        address: beanstalkAddress[chainId],
+        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
         abi: beanstalkAbi,
         functionName: "transferDeposit",
         args: [account.address, recipient as Address, fromToken.address, stems[0], amounts[0]],
@@ -72,7 +72,7 @@ function Transfer() {
       });
     } else if (transferData.crates.length > 1) {
       const tx = () => writeContractAsync({
-        address: beanstalkAddress[chainId],
+        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
         abi: beanstalkAbi,
         functionName: "transferDeposits",
         args: [account.address, recipient as Address, fromToken.address, stems, amounts],

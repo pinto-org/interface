@@ -47,7 +47,7 @@ function Harvest() {
   function onSubmit() {
     if (!!account.address || plots.length === 0 || harvestableAmount.eq(0) || !balanceTo) return;
     const tx = () => writeContractAsync({
-      address: beanstalkAddress[chainId],
+      address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
       abi: beanstalkAbi,
       functionName: "harvest",
       args: [

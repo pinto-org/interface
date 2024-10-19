@@ -72,7 +72,7 @@ export default function FillListing() {
       if (!listing) return
       if (isUsingMain) {
         const tx = () => writeContractAsync({        
-          address: beanstalkAddress[chainId],
+          address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
           abi: beanstalkAbi,
           functionName: "fillPodListing",
           args: [
@@ -116,7 +116,7 @@ export default function FillListing() {
         if (swapData?.callData) {
           swapData?.callData.push(fillCallData);
           const tx = () => writeContractAsync({
-            address: beanstalkAddress[chainId],
+            address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
             abi: beanstalkAbi,
             functionName: "advancedFarm",
             args: [swapData?.callData],

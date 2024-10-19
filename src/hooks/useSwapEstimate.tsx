@@ -159,7 +159,7 @@ export default function useSwapEstimate(
         if (recipient === pipeline) {
             // send it back to user's farm balance
             const approveTransfer = erc20Approve(
-                beanstalkAddress[chainId],
+                beanstalkAddress[chainId as keyof typeof beanstalkAddress],
                 wellQuote1.amountOut,
                 wellOut?.address || zeroAddress,
                 Clipboard.encodeSlot(0, 0, 1)
@@ -172,7 +172,7 @@ export default function useSwapEstimate(
                 wellQuote1.amountOut,
                 FarmFromMode.EXTERNAL,
                 FarmToMode.INTERNAL,
-                beanstalkAddress[chainId],
+                beanstalkAddress[chainId as keyof typeof beanstalkAddress],
                 Clipboard.encodeSlot(0, 0, 2)
             ) as AdvancedPipeCall;
             pipeCalls.push(transferToBeanstalk);
@@ -242,7 +242,7 @@ export default function useSwapEstimate(
             pipeCalls.push(wellSync);
             // slot 3 if no approval needed, 4 if needed
             const approveTransfer = erc20Approve(
-                beanstalkAddress[chainId],
+                beanstalkAddress[chainId as keyof typeof beanstalkAddress],
                 wellAddLiqQuote.amountOut.subSlippage(slippage),
                 lpPool.pool.address || zeroAddress,
                 Clipboard.encodeSlot(zeroExQuote.data?.allowanceTarget !== zeroAddress ? 3 : 2, 0, 1)
@@ -255,14 +255,14 @@ export default function useSwapEstimate(
                 wellAddLiqQuote.amountOut.subSlippage(slippage),
                 FarmFromMode.EXTERNAL,
                 FarmToMode.INTERNAL,
-                beanstalkAddress[chainId],
+                beanstalkAddress[chainId as keyof typeof beanstalkAddress],
                 Clipboard.encodeSlot(zeroExQuote.data.allowanceTarget !== zeroAddress ? 3 : 2, 0, 2)
             ) as AdvancedPipeCall;
             pipeCalls.push(transferToBeanstalk);
         } else {
             // slot 1 if no approval needed, 2 if needed
             const approveTransfer = erc20Approve(
-                beanstalkAddress[chainId],
+                beanstalkAddress[chainId as keyof typeof beanstalkAddress],
                 zeroExQuoteResult,
                 aggOut?.address || zeroAddress,
                 Clipboard.encodeSlot(zeroExQuote.data.allowanceTarget !== zeroAddress ? 1 : 0, 0, 1)
@@ -275,7 +275,7 @@ export default function useSwapEstimate(
                 zeroExQuoteResult,
                 FarmFromMode.EXTERNAL,
                 (aggOut?.isWrappedNative && tokenOut.isNative) ? FarmToMode.INTERNAL : destination,
-                beanstalkAddress[chainId],
+                beanstalkAddress[chainId as keyof typeof beanstalkAddress],
                 Clipboard.encodeSlot(zeroExQuote.data.allowanceTarget !== zeroAddress ? 1 : 0, 0, 2)
             ) as AdvancedPipeCall;
             pipeCalls.push(transferToBeanstalk);
@@ -352,7 +352,7 @@ export default function useSwapEstimate(
 
         // slot 3 in pipeCall
         const approveTransfer = erc20Approve(
-            beanstalkAddress[chainId],
+            beanstalkAddress[chainId as keyof typeof beanstalkAddress],
             zeroExQuoteResult,
             aggOut?.address || zeroAddress,
             Clipboard.encodeSlot(2, 0, 1)
@@ -366,7 +366,7 @@ export default function useSwapEstimate(
             zeroExQuoteResult,
             FarmFromMode.EXTERNAL,
             (aggOut?.isWrappedNative && tokenOut.isNative) ? FarmToMode.INTERNAL : destination,
-            beanstalkAddress[chainId],
+            beanstalkAddress[chainId as keyof typeof beanstalkAddress],
             Clipboard.encodeSlot(2, 0, 2)
         ) as AdvancedPipeCall;
         pipeCalls.push(transferToBeanstalk);
@@ -453,7 +453,7 @@ export default function useSwapEstimate(
         if (recipient === pipeline) {
             // send it back to user's farm balance
             const approveTransfer = erc20Approve(
-                beanstalkAddress[chainId],
+                beanstalkAddress[chainId as keyof typeof beanstalkAddress],
                 wellQuote2.amountOut,
                 wellOut?.address || zeroAddress,
                 Clipboard.encodeSlot(zeroExQuote.data.allowanceTarget !== zeroAddress ? 3 : 2, 0, 1)
@@ -466,7 +466,7 @@ export default function useSwapEstimate(
                 wellQuote2.amountOut,
                 FarmFromMode.EXTERNAL,
                 FarmToMode.INTERNAL,
-                beanstalkAddress[chainId],
+                beanstalkAddress[chainId as keyof typeof beanstalkAddress],
                 Clipboard.encodeSlot(zeroExQuote.data.allowanceTarget !== zeroAddress ? 3 : 2, 0, 2)
             ) as AdvancedPipeCall;
             pipeCalls.push(transferToBeanstalk);

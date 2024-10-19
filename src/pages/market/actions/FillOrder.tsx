@@ -52,7 +52,7 @@ export default function FillOrder() {
     function onSubmit() {
         if (!order || !plot[0]) return
         const tx = () => writeContractAsync({        
-          address: beanstalkAddress[chainId],
+          address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
           abi: beanstalkAbi,
           functionName: "fillPodOrder",
           args: [

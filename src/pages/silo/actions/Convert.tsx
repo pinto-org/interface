@@ -80,7 +80,7 @@ function Convert() {
     
     if (convertData && stems && stems.length > 0 && amounts && amounts.length > 0) {
       const tx = () => writeContractAsync({
-        address: beanstalkAddress[chainId],
+        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
         abi: beanstalkAbi,
         functionName: "convert",
         args: [convertData, stems, amounts],

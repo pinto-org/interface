@@ -74,7 +74,7 @@ export default function Swap() {
       }); */
     const tx = () =>
       writeContractAsync({
-        address: beanstalkAddress[chainId],
+        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
         abi: beanstalkAbi,
         functionName: "advancedFarm",
         args: [swapData.callData],

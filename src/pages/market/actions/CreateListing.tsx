@@ -57,7 +57,7 @@ export default function CreateListing() {
       const maxHarvestableIndex = _expiresIn.add(fieldData.harvestableIndex);
       const minFill = TokenValue.fromHuman(1, PODS.decimals);
       const tx = () => writeContractAsync({
-        address: beanstalkAddress[chainId],
+        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
         abi: beanstalkAbi,
         functionName: "createPodListing",
         args: [

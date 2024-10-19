@@ -74,7 +74,7 @@ export default function CreateOrder() {
     if (_amount && isUsingMain) {
       const tx = () =>
         writeContractAsync({
-          address: beanstalkAddress[chainId],
+          address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
           abi: beanstalkAbi,
           functionName: "createPodOrder",
           args: [
@@ -107,7 +107,7 @@ export default function CreateOrder() {
         swapData?.callData.push(podOrder);
         const tx = () =>
           writeContractAsync({
-            address: beanstalkAddress[chainId],
+            address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
             abi: beanstalkAbi,
             functionName: "advancedFarm",
             args: [swapData?.callData],

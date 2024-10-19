@@ -54,7 +54,7 @@ function Transfer() {
       transfers.push(transferCall);
     });
     const tx = () => writeContractAsync({
-      address: beanstalkAddress[chainId],
+      address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
       abi: beanstalkAbi,
       functionName: "farm",
       args: [transfers],

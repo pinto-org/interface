@@ -29,7 +29,7 @@ export default function SmartSubmitButton({ token, amount, submitFunction, submi
         abi: erc20Abi,
         address: token.address,
         functionName: "allowance",
-        args: [account.address!, beanstalkAddress[chainId]],
+        args: [account.address!, beanstalkAddress[chainId as keyof typeof beanstalkAddress]],
         query: {
           enabled: !!account.address && !!token && token !== ETH,
         },
@@ -53,7 +53,7 @@ export default function SmartSubmitButton({ token, amount, submitFunction, submi
                 abi: erc20Abi,
                 address: token.address,
                 functionName: "approve",
-                args: [beanstalkAddress[chainId], TokenValue.fromHuman(amount, token.decimals).toBigInt()],
+                args: [beanstalkAddress[chainId as keyof typeof beanstalkAddress], TokenValue.fromHuman(amount, token.decimals).toBigInt()],
             });
 
             toast.promise(tx, {

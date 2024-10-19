@@ -53,7 +53,7 @@ function Withdraw() {
 
     if (transferData.crates.length === 1) {
       const tx = () => writeContractAsync({
-        address: beanstalkAddress[chainId],
+        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
         abi: beanstalkAbi,
         functionName: "withdrawDeposit",
         args: [fromToken.address, stems[0], amounts[0], Number(destination)],
@@ -70,7 +70,7 @@ function Withdraw() {
       });
     } else if (transferData.crates.length > 1) {
       const tx = () => writeContractAsync({
-        address: beanstalkAddress[chainId],
+        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
         abi: beanstalkAbi,
         functionName: "withdrawDeposits",
         args: [fromToken.address, stems, amounts, Number(destination)],

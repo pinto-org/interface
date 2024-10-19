@@ -51,7 +51,7 @@ export default function WalletButtonTransfer({ setShowTransfer }: { setShowTrans
         const amount = TokenValue.fromHuman(amountIn, tokenIn.decimals);
 
         const tx = () => writeContractAsync({
-            address: beanstalkAddress[chainId] as Address,
+            address: beanstalkAddress[chainId as keyof typeof beanstalkAddress] as Address,
             abi: beanstalkAbi,
             functionName: "transferToken",
             args: [tokenIn.address, account.address as Address, amount.toBigInt(), Number(fromMode),  Number(toMode)],

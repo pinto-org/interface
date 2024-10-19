@@ -68,7 +68,7 @@ function Sow() {
 
     if (isUsingMain) {
       const tx = () => writeContractAsync({
-        address: beanstalkAddress[chainId],
+        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
         abi: beanstalkAbi,
         functionName: "sowWithMin",
         args: [amount.toBigInt(), minTemp.toBigInt(), minSoil.toBigInt(), Number(balanceFrom)],
@@ -93,7 +93,7 @@ function Sow() {
       if (swapData?.callData) {
         swapData?.callData.push(sow);
         const tx = () => writeContractAsync({
-          address: beanstalkAddress[chainId],
+          address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
           abi: beanstalkAbi,
           functionName: "advancedFarm",
           args: [swapData?.callData],
