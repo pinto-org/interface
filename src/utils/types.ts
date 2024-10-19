@@ -1,3 +1,4 @@
+import { TokenValue } from "@/classes/TokenValue";
 import { Address } from "viem";
 
 export enum FarmFromMode {
@@ -32,6 +33,97 @@ export interface InternalToken {
   symbol: string,
   decimals: number,
 }
+
+export interface DepositData {
+  token: Token;
+  stemTipForToken: TokenValue;
+  stem: TokenValue;
+  season: number;
+  amount: TokenValue;
+  depositBdv: TokenValue;
+  currentBdv: TokenValue;
+  stalk: {
+    base: TokenValue;
+    grown: TokenValue;
+    total: TokenValue;
+  };
+  seeds: TokenValue;
+  isGerminating: boolean;
+}
+
+export interface TokenDepositData {
+  amount: TokenValue;
+  convertibleAmount: TokenValue;
+  currentBDV: TokenValue;
+  depositBDV: TokenValue;
+  stalk: {
+    base: TokenValue;
+    grown: TokenValue;
+    total: TokenValue;
+  };
+  seeds: TokenValue;
+  deposits: DepositData[];
+}
+
+export interface Plot {
+  beansPerPod: TokenValue;
+  createdAt: number;
+  creationHash: string;
+  fullyHarvested: boolean;
+  harvestablePods: TokenValue;
+  harvestedPods: TokenValue;
+  id: string;
+  index: TokenValue;
+  listing: string;
+  pods: TokenValue;
+  season: number;
+  source: string;
+  sourceHash: string;
+  updatedAt: number;
+  updatedAtBlock: number;
+};
+
+export interface Order {
+  type?: string;
+  beanAmount: TokenValue;
+  beanAmountFilled: TokenValue;
+  createdAt: number;
+  creationHash: string;
+  historyID: string;
+  id: string;
+  maxPlaceInLine: TokenValue;
+  minFillAmount: TokenValue;
+  podAmountFilled: TokenValue;
+  pricePerPod: TokenValue;
+  pricingFunction: string;
+  pricingType: number | null | undefined;
+  status: string;
+  updatedAt: number;
+};
+
+export interface Listing {
+  type?: string;
+  amount: TokenValue;
+  creationHash: string;
+  createdAt: number;
+  filled: TokenValue;
+  filledAmount: TokenValue;
+  historyID: string;
+  id: string;
+  index: TokenValue;
+  maxHarvestableIndex: TokenValue;
+  minFillAmount: TokenValue;
+  mode: number;
+  originalAmount: TokenValue;
+  originalIndex: TokenValue;
+  pricePerPod: TokenValue;
+  pricingFunction: string;
+  pricingType: number | null | undefined;
+  remainingAmount: TokenValue;
+  start: string;
+  status: string;
+  updatedAt: number;
+};
 
 export interface ZeroExAPI {
   /**
