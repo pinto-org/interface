@@ -10,6 +10,7 @@ import { useState } from "react";
 import { Button } from "./ui/Button";
 import { Switch } from "./ui/Switch";
 import TooltipSimple from "./TooltipSimple";
+import { Token } from "@/utils/types";
 
 export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
 
@@ -100,13 +101,15 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
               if (!isWhitelisted) return;
               const token0Price = pool.tokens[0].isMain ? priceData.price : useTwa ? priceData.tokenPrices.get(pool.tokens[0])?.twa : priceData.tokenPrices.get(pool.tokens[0])?.instant || TokenValue.ZERO;
               const token1Price = pool.tokens[1].isMain ? priceData.price : useTwa ? priceData.tokenPrices.get(pool.tokens[1])?.twa : priceData.tokenPrices.get(pool.tokens[1])?.instant || TokenValue.ZERO;
-              const token0BalanceUsd = pool.balances[0].mul(token0Price) || 0n;
-              const token1BalanceUsd = pool.balances[1].mul(token1Price) || 0n;
-              const mainTokenIndex = pool.tokens.findIndex((token) => token.isMain);
-              const backingTokenIndex = pool.tokens.findIndex((token) => !token.isMain);
+              const token0BalanceUsd = pool.balances[0].mul(token0Price ?? TokenValue.ZERO) || 0n;
+              const token1BalanceUsd = pool.balances[1].mul(token1Price ?? TokenValue.ZERO) || 0n;
+              const mainTokenIndex = pool.tokens.findIndex((token: Token) => token.isMain);
+              const backingTokenIndex = pool.tokens.findIndex((token: Token) => !token.isMain);
               const deltaBar = Number((pool.deltaB.abs()).div(pool.balances[mainTokenIndex]).mul(100).toHuman()).toFixed(2);
               
               if (showPrices) {
+                const tokenToShow = priceData.tokenPrices.get(pool.tokens[backingTokenIndex]);
+                if (!tokenToShow) return;
                 return (
                     <div key={`${pool.pool.address}_prices_${i}`} className="flex flex-row justify-between">
                       <div className="inline-flex gap-4 items-center">
@@ -115,10 +118,10 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
                       </div>
                       <div className="flex flex-col items-end">
                         <div className="text-pinto-gray-5 text-[1.25rem] font-[400]">
-                          Current Price: ${Number(priceData.tokenPrices.get(pool.tokens[backingTokenIndex]).instant.toHuman()).toFixed(2)}
+                          Current Price: ${Number(tokenToShow.instant.toHuman()).toFixed(2)}
                         </div>
                         <div className="text-pinto-gray-4 text-[1rem] font-[400]">
-                          Time Weighted Average Price: ${Number(priceData.tokenPrices.get(pool.tokens[backingTokenIndex]).twa.toHuman()).toFixed(2)}
+                          Time Weighted Average Price: ${Number(tokenToShow.twa.toHuman()).toFixed(2)}
                         </div>
                       </div>
                     </div>

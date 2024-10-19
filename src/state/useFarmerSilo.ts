@@ -2,6 +2,7 @@ import { useAccount } from "wagmi";
 import {
   useReadBeanstalk_BalanceOfEarnedBeans,
   useReadBeanstalk_BalanceOfGrownStalk,
+  useReadBeanstalk_BalanceOfSop,
   useReadBeanstalk_BalanceOfStalk,
 } from "@/generated/contractHooks";
 import { TokenValue } from "@/classes/TokenValue";
@@ -31,6 +32,15 @@ export function useFarmerSilo() {
     },
   });
   queryKeys.push(activeStalkBalance.queryKey);
+
+  const floodData = useReadBeanstalk_BalanceOfSop({
+    args: [account.address!],
+    query: {
+      enabled: !!account.address
+    },
+  });
+
+  console.log("floodata: ", floodData.data)
 
   const grownStalkPerToken = new Map();
   SILO_WHITELIST.forEach((token) => {
@@ -70,6 +80,7 @@ export function useFarmerSilo() {
     earnedBeansBalance: TokenValue.fromBlockchain(earnedBeansBalance.data || 0n, BEAN.decimals),
     grownStalkReward: grownStalkReward,
     grownStalkPerToken: grownStalkPerToken,
+    flood: floodData.data,
     queryKeys: queryKeys
   };
 }
