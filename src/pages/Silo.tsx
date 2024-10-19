@@ -12,7 +12,7 @@ function Silo() {
 
   const earnedStalk = farmerSilo.grownStalkReward;
   const earnedSeeds = Array.from(farmerSilo.grownStalkPerToken)
-    .map((token) => token[1].mul(siloData.tokenData.get(token[0]).rewards.seeds))
+    .map((token) => token[1].mul(siloData.tokenData.get(token[0])?.rewards.seeds ?? TokenValue.ZERO))
     .reduce((acc, curr) => acc.add(curr),
     TokenValue.ZERO
   );

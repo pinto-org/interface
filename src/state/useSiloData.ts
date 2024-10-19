@@ -13,6 +13,8 @@ import useTokenData from "./useTokenData";
 import { SEEDS, STALK } from "@/constants/internalTokens";
 import { Address } from "viem";
 import { subgraphs } from "@/constants/subgraph";
+import { Token } from "graphql";
+import { SiloTokenData } from "@/utils/types";
 
 const settings = {
   query: {
@@ -36,7 +38,7 @@ export function useSiloData() {
 
   const queryKeys: QueryKey[] = [];
 
-  const data = new Map();
+  const data: Map<Token, SiloTokenData> = new Map();
   SILO_WHITELIST.forEach((token) => {
     const contractCalls = [
       {

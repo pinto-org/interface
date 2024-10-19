@@ -35,6 +35,7 @@ function SiloTable() {
             {SILO_WHITELIST.map((token) => {
                 const data = siloData.tokenData.get(token);
                 const userData = farmerDeposits.get(token);
+                if (!data || !userData) return;
                 return (
                 <TableRow className="h-[4.5rem] bg-white hover:bg-pinto-green-1/50 hover:cursor-pointer" onClick={() => navigate(`/silo/${token.address}`)}>
                     <TableCell className="text-black font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">

@@ -65,6 +65,45 @@ export interface TokenDepositData {
   deposits: DepositData[];
 }
 
+export interface SiloTokenData {
+  totalDeposited: TokenValue;
+  tokenBDV: TokenValue;
+  stemTip: TokenValue;
+  depositedBDV: TokenValue;
+  germinatingStem: TokenValue;
+  tokenSettings: {
+    deltaStalkEarnedPerSeason: TokenValue;
+    encodeType: string;
+    gaugePointImplementation: {
+      target: Address;
+      selector: string;
+      encodeType: string;
+      data: string;
+    };
+    gaugePoints: bigint;
+    liquidityWeightImplementation: {
+      target: Address;
+      selector: string;
+      encodeType: string;
+      data: string;
+    };
+    milestoneSeason: number;
+    milestoneStem: TokenValue;
+    optimalPercentDepositedBdv: TokenValue;
+    selector: string;
+    stalkEarnedPerSeason: TokenValue;
+    stalkIssuedPerBdv: TokenValue;
+  };
+  rewards: {
+    seeds: TokenValue;
+    stalk: TokenValue;
+  };
+  yields: {
+    beanAPY: number;
+    stalkAPY: number;
+  };
+}
+
 export interface Plot {
   beansPerPod: TokenValue;
   createdAt: number;
