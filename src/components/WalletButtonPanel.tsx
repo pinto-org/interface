@@ -34,7 +34,7 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
     const [showTransfer, setShowTransfer] = useState(false);
 
     return (
-        <Card className={`absolute top-[5rem] flex flex-col bg-white transition-all ${isOpen ? 'right-[1.5rem]' : '-right-[38rem]'} w-[38rem] overflow-clip h-[calc(100vh-9rem)] z-[51]`}>
+        <Card className={`absolute top-[5rem] flex flex-col bg-white transition-all ${isOpen ? 'right-[1.5rem]' : '-right-[38rem]'} w-[38rem] overflow-clip h-[calc(100vh-6rem)] z-[51]`}>
             {!showTransfer ? 
             <> 
                 <CardHeader className="flex flex-col gap-4 p-6 pb-10">

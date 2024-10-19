@@ -28,7 +28,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
     const [showPrices, setShowPrices] = useState(false);
 
     return (
-      <Card className={`absolute top-[5rem] transition-all ${isOpen ? 'left-[1.5rem]' : '-left-[38rem]'} w-[38rem] overflow-clip h-[calc(100vh-9rem)] z-[51]`}>
+      <Card className={`absolute top-[5rem] transition-all ${isOpen ? 'left-[1.5rem]' : '-left-[38rem]'} w-[38rem] overflow-clip h-[calc(100vh-6rem)] z-[51]`}>
         <CardHeader className="transition-all">
           {!showSettings ?
             <div className="pb-4">
@@ -203,20 +203,11 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
               </div>
             </div>
             }
-            {!showPrices && 
-            <Button 
-              asChild 
-              variant={'outline'} 
-              className={`rounded-full h-6 w-6 p-0 absolute bottom-20 left-[50%] shadow-xl -ml-[0.65rem] border-black hover:bg-pinto-gray-2 hover:cursor-pointer`} 
-              onClick={() => setShowPrices(!showPrices)}
-            >
-              <span className="text-black">
-                <ForwardArrowIcon color={"currentColor"} />
-              </span>
-            </Button>
-            }
         </CardContent>
-        <CardFooter className="flex flex-col absolute bottom-0 bg-pinto-gray-1 pb-4 items-stretch">
+        <CardFooter              
+          onClick={() => setShowPrices(!showPrices)}
+          className="flex flex-col absolute bottom-0 z-[2] peer bg-pinto-gray-1 pb-4 items-stretch hover:bg-pinto-gray-2 transition-colors hover:cursor-pointer"
+        >
           <Separator className="w-[38rem] -ml-4 "/>
           <div className="inline-flex items-center">
             <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
@@ -266,6 +257,17 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
             </div>
           </div>
         </CardFooter>
+        {!showPrices && 
+          <Button 
+            asChild 
+            variant={'outline'} 
+            className={`rounded-full h-6 w-6 p-0 z-[1] absolute peer-hover:bottom-20 bottom-0 left-[50%] shadow-xl -ml-[0.65rem] border-black transition-all`} 
+          >
+            <span className="text-black">
+              <ForwardArrowIcon color={"currentColor"} />
+            </span>
+          </Button>
+          }
       </Card>
     )
 }
