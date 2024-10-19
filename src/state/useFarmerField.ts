@@ -6,6 +6,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import useTokenData from "./useTokenData";
 import { PODS } from "@/constants/internalTokens";
 import { subgraphs } from "@/constants/subgraph";
+import { Listing, Order, Plot } from "@/utils/types";
 
 export function useFarmerField() {
   const chainId = useChainId();
@@ -23,13 +24,13 @@ export function useFarmerField() {
     enabled: !!account.address,
   });
 
-  const plots: any[] = [];
-  const orders: any[] = [];
-  const listings: any[] = [];
+  const plots: Plot[] = [];
+  const orders: Order[] = [];
+  const listings: Listing[] = [];
 
   if (data && data.farmer) {
     data.farmer.plots.forEach((plot) => {
-      const output = {
+      const output: Plot = {
         beansPerPod: TokenValue.fromBlockchain(plot.beansPerPod, BEAN.decimals),
         createdAt: Number(plot.createdAt),
         creationHash: plot.creationHash,
@@ -38,9 +39,9 @@ export function useFarmerField() {
         harvestedPods: TokenValue.fromBlockchain(plot.harvestedPods, PODS.decimals),
         id: plot.id,
         index: TokenValue.fromBlockchain(plot.index, PODS.decimals),
-        listing: plot.listing,
+        listing: String(plot.listing),
         pods: TokenValue.fromBlockchain(plot.pods, PODS.decimals),
-        season: plot.season,
+        season: Number(plot.season),
         source: plot.source,
         sourceHash: plot.sourceHash,
         updatedAt: Number(plot.updatedAt),
@@ -50,7 +51,7 @@ export function useFarmerField() {
     });
 
     data.farmer.orders.forEach((order) => {
-      const output = {
+      const output: Order = {
         beanAmount: TokenValue.fromBlockchain(order.beanAmount, BEAN.decimals),
         beanAmountFilled: TokenValue.fromBlockchain(order.beanAmountFilled, BEAN.decimals),
         createdAt: Number(order.createdAt),
@@ -70,7 +71,7 @@ export function useFarmerField() {
     });
 
     data.farmer.listings.forEach((listing) => {
-      const output = {
+      const output: Listing = {
         amount: TokenValue.fromBlockchain(listing.amount, PODS.decimals),
         creationHash: listing.creationHash,
         createdAt: Number(listing.createdAt),

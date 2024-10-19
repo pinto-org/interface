@@ -45,9 +45,9 @@ export function useFarmerSilo() {
     queryKeys.push(grownStalk.queryKey);
 
     const depositData = farmerDeposits.get(token);
-    depositsBDV = depositsBDV.add(depositData.currentBDV);
-    depositsUSD = depositsUSD.add(depositData.currentBDV.mul(currPrice));
-    activeSeeds = activeSeeds.add(depositData.deposits.reduce((acc, curr) => acc.add(curr.seeds), TokenValue.ZERO));
+    depositsBDV = depositsBDV.add(depositData ? depositData.currentBDV : TokenValue.ZERO);
+    depositsUSD = depositsUSD.add(depositData ? depositData.currentBDV.mul(currPrice) : TokenValue.ZERO);
+    activeSeeds = activeSeeds.add(depositData ? depositData.deposits.reduce((acc, curr) => acc.add(curr.seeds), TokenValue.ZERO) : TokenValue.ZERO);
   });
   const earnedBeansBalance = useReadBeanstalk_BalanceOfEarnedBeans({
     args: [account.address!],

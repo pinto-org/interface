@@ -132,8 +132,6 @@ export function useSiloData() {
     queryKeys.push(result.queryKey);
   });
 
-  console.log("tokendata: ", data)
-
   return {
     tokenData: data,
     totalStalk: TokenValue.fromBlockchain(stalkTotal, STALK.decimals),

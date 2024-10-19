@@ -2,6 +2,7 @@ import { useAccount, useBalance, useChainId } from "wagmi";
 import { useReadBeanstalk_GetAllBalances } from "@/generated/contractHooks";
 import { TokenValue } from "@/classes/TokenValue";
 import useTokenData from "./useTokenData";
+import { Token } from "@/utils/types";
 
 export function useFarmerBalances() {
   const account = useAccount();
@@ -14,7 +15,7 @@ export function useFarmerBalances() {
   });
   //@ts-ignore
   const tokenBalances = useReadBeanstalk_GetAllBalances({
-    args: [account.address!, preferredTokens],
+    args: [account.address!, preferredTokens],  
     query: {
       staleTime: 1000 * 60 * 2,
       refetchInterval: 1000 * 60 * 3, // 3 minutes, in milliseconds
@@ -22,7 +23,7 @@ export function useFarmerBalances() {
     },
   });
 
-  const balances = new Map();
+  const balances: Map<Token, { internal: TokenValue, external: TokenValue, total: TokenValue }> = new Map();
 
   balances.set(ETH, {
     internal: TokenValue.fromBlockchain(0n, ETH.decimals),

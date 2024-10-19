@@ -14,7 +14,7 @@ export default function useFieldSnapshots() {
 
     const season = useSunData().current;
     const chainId = useChainId();
-    const fieldId = beanstalkAddress[chainId];
+    const fieldId = beanstalkAddress[chainId as keyof typeof beanstalkAddress];
     const tokenData = useTokenData();
  
     const query = useQuery({

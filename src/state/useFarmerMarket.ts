@@ -3,6 +3,9 @@ import request from "graphql-request";
 import { useAccount, useChainId } from "wagmi";
 import { FarmerPodListingsDocument, FarmerPodOrdersDocument } from "@/generated/gql/graphql";
 import { subgraphs } from "@/constants/subgraph";
+import { Listing, Order } from "@/utils/types";
+import { TokenValue } from "@/classes/TokenValue";
+import { BEAN, PODS } from "@/constants/internalTokens";
 
 export function useFarmerMarket() {
   const chainId = useChainId();
@@ -30,20 +33,52 @@ export function useFarmerMarket() {
     enabled: !!account.address,
   });
 
-  const combined: any[] = []
+  const combined: (Order | Listing)[] = []
 
   orders?.podOrders.forEach((order) => {
-    const output = {
+    const output: Order = {
         type: "ORDER",
-        ...order
+        beanAmount: TokenValue.fromBlockchain(order.beanAmount, BEAN.decimals),
+        beanAmountFilled: TokenValue.fromBlockchain(order.beanAmountFilled, BEAN.decimals),
+        createdAt: Number(order.createdAt),
+        creationHash: order.creationHash,
+        historyID: order.historyID,
+        id: order.id,
+        maxPlaceInLine: TokenValue.fromBlockchain(order.maxPlaceInLine, PODS.decimals),
+        minFillAmount: TokenValue.fromBlockchain(order.minFillAmount, BEAN.decimals),
+        podAmountFilled: TokenValue.fromBlockchain(order.podAmountFilled, PODS.decimals),
+        pricePerPod: TokenValue.fromBlockchain(order.pricePerPod, BEAN.decimals),
+        pricingFunction: order.pricingFunction,
+        pricingType: order.pricingType,
+        status: order.status,
+        updatedAt: Number(order.updatedAt),
     }
     combined.push(output)
   });
 
   listings?.podListings.forEach((listing) => {
-    const output = {
+    const output: Listing = {
         type: "LISTING",
-        ...listing
+        amount: TokenValue.fromBlockchain(listing.amount, PODS.decimals),
+        creationHash: listing.creationHash,
+        createdAt: Number(listing.createdAt),
+        filled: TokenValue.fromBlockchain(listing.filled, PODS.decimals),
+        filledAmount: TokenValue.fromBlockchain(listing.filledAmount, PODS.decimals),
+        historyID: listing.historyID,
+        id: listing.id,
+        index: TokenValue.fromBlockchain(listing.index, PODS.decimals),
+        maxHarvestableIndex: TokenValue.fromBlockchain(listing.maxHarvestableIndex, PODS.decimals),
+        minFillAmount: TokenValue.fromBlockchain(listing.minFillAmount, PODS.decimals),
+        mode: listing.mode,
+        originalAmount: TokenValue.fromBlockchain(listing.originalAmount, PODS.decimals),
+        originalIndex: TokenValue.fromBlockchain(listing.originalIndex, PODS.decimals),
+        pricePerPod: TokenValue.fromBlockchain(listing.pricePerPod, BEAN.decimals),
+        pricingFunction: listing.pricingFunction,
+        pricingType: listing.pricingType,
+        remainingAmount: TokenValue.fromBlockchain(listing.remainingAmount, PODS.decimals),
+        start: listing.start,
+        status: listing.status,
+        updatedAt: Number(listing.updatedAt),
     }
     combined.push(output)
   });

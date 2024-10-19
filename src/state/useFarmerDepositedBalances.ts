@@ -8,6 +8,7 @@ import { useSunData } from "./useSunData";
 import useTokenData from "./useTokenData";
 import { STALK } from "@/constants/internalTokens";
 import { subgraphs } from "@/constants/subgraph";
+import { DepositData, Token, TokenDepositData } from "@/utils/types";
 
 function useFarmerDepositedBalances() {
   const account = useAccount();
@@ -32,14 +33,14 @@ function useFarmerDepositedBalances() {
     enabled: !!account.address,
   });
 
-  const output = new Map();
+  const output: Map<Token, TokenDepositData> = new Map();
 
   SILO_WHITELIST.forEach((token) => {
     let amount = TokenValue.fromBlockchain(0n, token.decimals);
     let convertibleAmount = TokenValue.fromBlockchain(0n, token.decimals);
     let depositBDV = TokenValue.fromBlockchain(0n, BEAN.decimals);
     let currentBDV = TokenValue.fromBlockchain(0n, BEAN.decimals);
-    const depositData: any[] = []; // FIXME: Add correct type
+    const depositData: DepositData[] = [];
     const siloTokenData = silo.tokenData.get(token);
     data?.farmer?.deposited.forEach((deposit) => {
       const isToken = deposit.token.toLowerCase() === token.address.toLowerCase();
@@ -66,7 +67,7 @@ function useFarmerDepositedBalances() {
           /** The stem (identifier) of this Deposit. */
           stem: depositStem,
           /** The Season this Deposit ocurred. */
-          season: deposit.season,
+          season: deposit.season ?? 0,
           /** The amount of tokens Deposited. */
           amount: depositAmount,
           /** The BDV of this Deposit at the time of Deposit. */
@@ -94,7 +95,7 @@ function useFarmerDepositedBalances() {
         total: depositData.reduce((total, deposit) => deposit.stalk.total.add(total), TokenValue.ZERO),
       },
       seeds: depositData.reduce((total, deposit) => deposit.seeds.add(total), TokenValue.ZERO),
-      deposits: [...depositData],
+      deposits: depositData,
     });
   });
 
