@@ -59,7 +59,7 @@ export default function useTokenData() {
       nativeToken: nativeToken,
       wrappedNativeToken: wrappedNativeToken,
       lpTokens: lpTokens,
-      preferredTokens: [mainToken, ...preferredTokens],
+      preferredTokens: preferredTokens,
       whitelistedTokens: [mainToken, ...lpTokens],
       allowances: allowances,
       queryKey: result.queryKey,

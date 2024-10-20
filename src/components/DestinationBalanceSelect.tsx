@@ -3,10 +3,11 @@ import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
 
 interface DestinationBalanceSelect {
   setBalanceTo: (value: FarmToMode) => void,
-  balanceTo: FarmToMode
+  balanceTo: FarmToMode,
+  size?: 'small'
 };
 
-export default function DestinationBalanceSelect({ setBalanceTo, balanceTo }: DestinationBalanceSelect) {
+export default function DestinationBalanceSelect({ setBalanceTo, balanceTo, size }: DestinationBalanceSelect) {
 
   return (
     <ToggleGroup
@@ -21,7 +22,7 @@ export default function DestinationBalanceSelect({ setBalanceTo, balanceTo }: De
         <ToggleGroupItem
           value={FarmToMode.EXTERNAL}
           aria-label="Select External Balance"
-          className="flex flex-col w-full py-2 h-[3.25rem] bg-pinto-gray-1 border-pinto-gray-3 text-[1.25rem] -tracking-[0.02em] font-[400] leading-[1.3875rem] text-black"
+          className={`flex flex-col w-full py-2 h-[3.25rem] bg-pinto-gray-1 border-pinto-gray-3 ${size ? 'text-[1rem]' : 'text-[1.25rem]'} -tracking-[0.02em] font-[400] leading-[1.3875rem] text-black whitespace-nowrap`}
           variant={"outline"}
         >
           Wallet Balance
@@ -29,7 +30,7 @@ export default function DestinationBalanceSelect({ setBalanceTo, balanceTo }: De
         <ToggleGroupItem
           value={FarmToMode.INTERNAL}
           aria-label="Select Internal Balance"
-          className="flex flex-col w-full py-2 h-[3.25rem] bg-pinto-gray-1 border-pinto-gray-3 text-[1.25rem] -tracking-[0.02em] font-[400] leading-[1.3875rem] text-black"
+          className={`flex flex-col w-full py-2 h-[3.25rem] bg-pinto-gray-1 border-pinto-gray-3 ${size ? 'text-[1rem]' : 'text-[1.25rem]'} -tracking-[0.02em] font-[400] leading-[1.3875rem] text-black whitespace-nowrap`}
           variant={"outline"}
         >
           Farm Balance

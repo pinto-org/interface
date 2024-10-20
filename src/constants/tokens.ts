@@ -36,7 +36,11 @@ export const tokens: { [chainId: number]: Token[] } = {
             decimals: 18,
             isLP: true,
             logoURI: pintoWethIcon,
-            color: "#627EEA"
+            color: "#627EEA",
+            tokens: [
+                "0xBEA0005B8599265D41256905A9B3073D397812E4",
+                "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1"
+            ]
         },
         {
             chainId: arbitrum.id,
@@ -46,7 +50,11 @@ export const tokens: { [chainId: number]: Token[] } = {
             decimals: 18,
             isLP: true,
             logoURI: pintoWstethIcon,
-            color: "#00A3FF"
+            color: "#00A3FF",
+            tokens: [
+                "0xBEA0005B8599265D41256905A9B3073D397812E4",
+                "0x5979D7b546E38E414F7E9822514be443A4800529"
+            ]
         },
         // Whitelisted Tokens
         {

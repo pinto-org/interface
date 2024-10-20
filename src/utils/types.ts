@@ -26,6 +26,7 @@ export interface Token {
   address: Address,
   logoURI: string,
   color?: string
+  tokens?: Address[]
 }
 
 export interface InternalToken {

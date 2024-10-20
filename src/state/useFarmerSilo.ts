@@ -10,11 +10,13 @@ import useFarmerDepositedBalances from "./useFarmerDepositedBalances";
 import { usePriceData } from "./usePriceData";
 import useTokenData from "./useTokenData";
 import { STALK } from "@/constants/internalTokens";
+import { Token } from "@/utils/types";
 
 export function useFarmerSilo() {
   const account = useAccount();
   const BEAN = useTokenData().mainToken;
-  const SILO_WHITELIST = useTokenData().whitelistedTokens;
+  const tokenData = useTokenData();
+  const SILO_WHITELIST = tokenData.whitelistedTokens;
 
   const farmerDeposits = useFarmerDepositedBalances().data;
   const currPrice = usePriceData().price;
@@ -40,7 +42,7 @@ export function useFarmerSilo() {
     },
   });
 
-  console.log("floodata: ", floodData.data)
+  const farmerSops: Array<{ well: Token, backingAsset: Token, wellsPlenty: { plenty: TokenValue, plentyPerRoot: bigint }}> = []; 
 
   const grownStalkPerToken = new Map();
   SILO_WHITELIST.forEach((token) => {
@@ -58,7 +60,28 @@ export function useFarmerSilo() {
     depositsBDV = depositsBDV.add(depositData ? depositData.currentBDV : TokenValue.ZERO);
     depositsUSD = depositsUSD.add(depositData ? depositData.currentBDV.mul(currPrice) : TokenValue.ZERO);
     activeSeeds = activeSeeds.add(depositData ? depositData.deposits.reduce((acc, curr) => acc.add(curr.seeds), TokenValue.ZERO) : TokenValue.ZERO);
+
+    if (floodData.data && tokenData && token.tokens) {
+      const sopToken = floodData.data.farmerSops.find((farmerSop) => farmerSop.well.toLowerCase() === token.address.toLowerCase());
+      const backingAssetAddress = token.tokens.find((tokenAddress) => tokenAddress !== BEAN.address);
+      if (backingAssetAddress) {
+        const backingAsset = tokenData.preferredTokens.find((preferredToken) => backingAssetAddress.toLowerCase() === preferredToken.address.toLowerCase());
+        if (sopToken && backingAsset) {
+          const sopData = {
+            well: token,
+            backingAsset: backingAsset,
+            wellsPlenty: {
+              plenty: TokenValue.fromBlockchain(sopToken.wellsPlenty.plenty, backingAsset.decimals),
+              plentyPerRoot: sopToken.wellsPlenty.plentyPerRoot,
+            }
+          };
+          farmerSops.push(sopData);
+        }
+      }
+    };
   });
+
+
   const earnedBeansBalance = useReadBeanstalk_BalanceOfEarnedBeans({
     args: [account.address!],
     query: {
@@ -72,6 +95,8 @@ export function useFarmerSilo() {
     TokenValue.ZERO,
   );
 
+ 
+
   return {
     activeStalkBalance: TokenValue.fromBlockchain(activeStalkBalance.data || 0n, STALK.decimals),
     activeSeedsBalance: activeSeeds,
@@ -80,7 +105,12 @@ export function useFarmerSilo() {
     earnedBeansBalance: TokenValue.fromBlockchain(earnedBeansBalance.data || 0n, BEAN.decimals),
     grownStalkReward: grownStalkReward,
     grownStalkPerToken: grownStalkPerToken,
-    flood: floodData.data,
+    flood: {
+      lastRain: floodData?.data?.lastRain ?? 0,
+      lastSop: floodData?.data?.lastSop ?? 0,
+      roots: floodData?.data?.roots ?? 0n,
+      farmerSops: farmerSops
+    },
     queryKeys: queryKeys
   };
 }

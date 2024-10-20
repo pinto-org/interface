@@ -13,6 +13,8 @@ import { useState } from "react";
 import WalletButtonTransfer from "./WalletButtonTransfer";
 import DonutChart from "./DonutChart";
 import { useNavigate } from "react-router-dom";
+import WalletButtonClaim from "./WalletButtonClaim";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 
 export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen: boolean, togglePanel: () => void}) {
 
@@ -24,6 +26,9 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
 
     const farmerBalances = useFarmerBalances();
     const priceData = usePriceData();
+    const farmerSilo = useFarmerSilo();
+
+    const totalFlood = farmerSilo.flood.farmerSops.reduce((total, sopData) => total.add(sopData.wellsPlenty.plenty), TokenValue.ZERO);
 
     const totalBalance = Array.from(farmerBalances.balances).reduce((totalBalance, tokenBalance) => {
         const price = priceData.tokenPrices.get(tokenBalance[0])?.instant || 0
@@ -34,6 +39,7 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
     }, { internal: TokenValue.ZERO, external: TokenValue.ZERO, total: TokenValue.ZERO });
 
     const [showTransfer, setShowTransfer] = useState(false);
+    const [showClaim, setShowClaim] = useState(false);
 
     return (
         <Card className={`absolute top-[5rem] flex flex-col bg-white transition-all ${isOpen ? 'right-[1.5rem]' : '-right-[38rem]'} w-[38rem] overflow-clip h-[calc(100vh-6rem)] z-[51]`}>
@@ -218,8 +224,11 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
                         </Tabs>
                     </div>
                 </CardContent>
-                <CardFooter className="absolute bottom-0 mx-auto left-0 right-0 text-center justify-center">
+                <CardFooter className="absolute bottom-0 mx-auto left-0 right-0 text-center justify-center flex flex-col gap-4">
                     <Button variant="ghost" className="inline-flex items-center gap-2 rounded-full text-black bg-pinto-gray-1 hover:hover:bg-pinto-green-2 hover:text-white" onClick={() => { disconnect(); togglePanel(); }}>Disconnect Wallet <CloseIcon color={"currentColor"} /></Button>
+                    {totalFlood.gt(0) &&
+                        <WalletButtonClaim setShowClaim={setShowClaim} showClaim={showClaim} />
+                    }
                 </CardFooter>
             </>
             :
