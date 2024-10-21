@@ -2,7 +2,7 @@ import { Token } from "@/utils/types";
 import pintoIcon from "@/assets/tokens/Pinto.png";
 import pintoWethIcon from "@/assets/tokens/Pinto_wETH.png";
 import pintoWstethIcon from "@/assets/tokens/Pinto_wstETH.png";
-import { arbitrum } from "viem/chains";
+import { arbitrum, base } from "viem/chains";
 
 export const tokens: { [chainId: number]: Token[] } = {
     [arbitrum.id]: [
@@ -92,6 +92,74 @@ export const tokens: { [chainId: number]: Token[] } = {
             name: "Tether USD",
             symbol: "USDT",
             address: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+            decimals: 6,
+            logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
+        },
+
+    ],
+    [base.id]: [
+        // Protocol Token
+        {
+            chainId: base.id,
+            name: "Pinto",
+            symbol: "PINTO",
+            address: "0xb170000aeeFa790fa61D6e837d1035906839a3c8",
+            decimals: 6,
+            isMain: true,
+            logoURI: pintoIcon,
+            color: "#246645"
+        },
+        // Native Chain Token
+        {
+            chainId: base.id,
+            name: "Ether",
+            symbol: "ETH",
+            address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+            decimals: 18,
+            isNative: true,
+            logoURI: "https://assets.coingecko.com/coins/images/279/standard/ethereum.png"
+        },
+        // Well LP Tokens
+        {
+            chainId: base.id,
+            name: "PINTO:WETH LP",
+            symbol: "PINTO:WETH",
+            address: "0x3e11002e8E77B77AC4AeDCD9dd251d207227F686",
+            decimals: 18,
+            isLP: true,
+            logoURI: pintoWethIcon,
+            color: "#627EEA",
+            tokens: [
+                "0xb170000aeeFa790fa61D6e837d1035906839a3c8",
+                "0x4200000000000000000000000000000000000006"
+            ]
+        },
+        // Whitelisted Tokens
+        {
+            chainId: base.id,
+            name: "Wrapped Ether",
+            symbol: "WETH",
+            address: "0x4200000000000000000000000000000000000006",
+            decimals: 18,
+            isWrappedNative: true,
+            isWhitelisted: true,
+            logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png",
+            color: "#627EEA",
+        },
+        // Other Tokens
+        {
+            chainId: base.id,
+            name: "USDCoin",
+            symbol: "USDC",
+            address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            decimals: 6,
+            logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png",
+        },
+        {
+            chainId: base.id,
+            name: "Tether USD",
+            symbol: "USDT",
+            address: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",
             decimals: 6,
             logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
         },

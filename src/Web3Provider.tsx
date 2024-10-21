@@ -1,9 +1,9 @@
 import { WagmiProvider, createConfig, http } from "wagmi";
-import { arbitrum, localhost, mainnet } from "wagmi/chains";
+import { arbitrum, foundry, localhost, mainnet } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 import { ReactNode } from "react";
-import { createTestClient } from "viem";
+import { createTestClient, defineChain } from "viem";
 import { mock } from "wagmi/connectors";
 
 export const anvilTestClient = 
@@ -21,14 +21,14 @@ export const testConfig = createConfig({
   },
 });
 
+
 const config = createConfig(
   getDefaultConfig({
     // Your dApps chains
-    chains: [arbitrum, localhost],
+    chains: [foundry],
     transports: {
       // RPC URL for each chain
-      [arbitrum.id]: http(),
-      [localhost.id]: http(),
+      [foundry.id]: http('https://virtual.base.rpc.tenderly.co/29dab153-f0b9-4273-8beb-877f1ca3fa26'),
     },
     batch: {
       multicall: {
@@ -50,10 +50,10 @@ const queryClient = new QueryClient();
 
 export const Web3Provider = ({ children }: { children: ReactNode }) => {
 
-  anvilTestClient.impersonateAccount({ address: "0xfe42972c584e442c3f0a49cb2930e55d5bf13ba7" });
+  // anvilTestClient.impersonateAccount({ address: "0xfe42972c584e442c3f0a49cb2930e55d5bf13ba7" });
   
   return (
-    <WagmiProvider config={testConfig}>
+    <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <ConnectKitProvider
           customTheme={{

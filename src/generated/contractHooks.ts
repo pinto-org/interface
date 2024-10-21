@@ -12,6 +12,8 @@ import {
 /**
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const beanstalkAbi = [
@@ -6756,16 +6758,22 @@ export const beanstalkAbi = [
 /**
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const beanstalkAddress = {
   1: '0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5',
   1337: '0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70',
+  8453: '0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f',
+  31337: '0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f',
   42161: '0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70',
 } as const
 
 /**
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -6780,6 +6788,8 @@ export const beanstalkConfig = {
 
 /**
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0x4BEd6cb142b7d474242d87F4796387DEB9E1E1B4)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7)
  */
@@ -6876,16 +6886,22 @@ export const beanstalkPriceAbi = [
 /**
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0x4BEd6cb142b7d474242d87F4796387DEB9E1E1B4)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7)
  */
 export const beanstalkPriceAddress = {
   1: '0x4BEd6cb142b7d474242d87F4796387DEB9E1E1B4',
   1337: '0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7',
+  8453: '0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E',
+  31337: '0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E',
   42161: '0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7',
 } as const
 
 /**
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0x4BEd6cb142b7d474242d87F4796387DEB9E1E1B4)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7)
  */
@@ -6900,6 +6916,8 @@ export const beanstalkPriceConfig = {
 
 /**
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -7163,16 +7181,22 @@ export const depotAbi = [
 /**
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const depotAddress = {
   1: '0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2',
   1337: '0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c',
+  8453: '0xDEb0f00B711f90e503D3035E890A19693ef27Db9',
+  31337: '0xDEb0f00B711f90e503D3035E890A19693ef27Db9',
   42161: '0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c',
 } as const
 
 /**
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -7184,6 +7208,8 @@ export const depotConfig = { address: depotAddress, abi: depotAbi } as const
 
 /**
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -7298,16 +7324,22 @@ export const pipelineAbi = [
 /**
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
 export const pipelineAddress = {
   1: '0xb1bE0000C6B3C62749b5F0c92480146452D15423',
   1337: '0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0',
+  8453: '0xb1bE000421A9d890cb51EBd9D593De9C0B199419',
+  31337: '0xb1bE000421A9d890cb51EBd9D593De9C0B199419',
   42161: '0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0',
 } as const
 
 /**
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -7325,6 +7357,8 @@ export const pipelineConfig = {
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_undefined = /*#__PURE__*/ createUseReadContract({
@@ -7336,6 +7370,8 @@ export const useReadBeanstalk_undefined = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfPenalizedUnderlying"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7351,6 +7387,8 @@ export const useReadBeanstalk_BalanceOfPenalizedUnderlying =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_BalanceOfUnderlying =
@@ -7364,6 +7402,8 @@ export const useReadBeanstalk_BalanceOfUnderlying =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getLockedBeans"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7379,6 +7419,8 @@ export const useReadBeanstalk_GetLockedBeans =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetLockedBeansFromTwaReserves =
@@ -7392,6 +7434,8 @@ export const useReadBeanstalk_GetLockedBeansFromTwaReserves =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getLockedBeansUnderlyingUnripeBean"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7407,6 +7451,8 @@ export const useReadBeanstalk_GetLockedBeansUnderlyingUnripeBean =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetLockedBeansUnderlyingUnripeLp =
@@ -7420,6 +7466,8 @@ export const useReadBeanstalk_GetLockedBeansUnderlyingUnripeLp =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getPenalizedUnderlying"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7435,6 +7483,8 @@ export const useReadBeanstalk_GetPenalizedUnderlying =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetPenalty = /*#__PURE__*/ createUseReadContract({
@@ -7447,6 +7497,8 @@ export const useReadBeanstalk_GetPenalty = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getPercentPenalty"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7462,6 +7514,8 @@ export const useReadBeanstalk_GetPercentPenalty =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetRecapFundedPercent =
@@ -7475,6 +7529,8 @@ export const useReadBeanstalk_GetRecapFundedPercent =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getRecapPaidPercent"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7490,6 +7546,8 @@ export const useReadBeanstalk_GetRecapPaidPercent =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetRecapitalized =
@@ -7503,6 +7561,8 @@ export const useReadBeanstalk_GetRecapitalized =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getTotalUnderlying"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7518,6 +7578,8 @@ export const useReadBeanstalk_GetTotalUnderlying =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetUnderlying =
@@ -7531,6 +7593,8 @@ export const useReadBeanstalk_GetUnderlying =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getUnderlyingPerUnripeToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7546,6 +7610,8 @@ export const useReadBeanstalk_GetUnderlyingPerUnripeToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetUnderlyingToken =
@@ -7560,6 +7626,8 @@ export const useReadBeanstalk_GetUnderlyingToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_IsUnripe = /*#__PURE__*/ createUseReadContract({
@@ -7572,6 +7640,8 @@ export const useReadBeanstalk_IsUnripe = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"_getMintFertilizerOut"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7587,6 +7657,8 @@ export const useReadBeanstalk_GetMintFertilizerOut =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_BalanceOfBatchFertilizer =
@@ -7600,6 +7672,8 @@ export const useReadBeanstalk_BalanceOfBatchFertilizer =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfFertilized"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7615,6 +7689,8 @@ export const useReadBeanstalk_BalanceOfFertilized =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_BalanceOfFertilizer =
@@ -7628,6 +7704,8 @@ export const useReadBeanstalk_BalanceOfFertilizer =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfUnfertilized"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7643,6 +7721,8 @@ export const useReadBeanstalk_BalanceOfUnfertilized =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_BeansPerFertilizer =
@@ -7656,6 +7736,8 @@ export const useReadBeanstalk_BeansPerFertilizer =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getActiveFertilizer"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7671,6 +7753,8 @@ export const useReadBeanstalk_GetActiveFertilizer =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetBarnRaiseToken =
@@ -7684,6 +7768,8 @@ export const useReadBeanstalk_GetBarnRaiseToken =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getBarnRaiseWell"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7699,6 +7785,8 @@ export const useReadBeanstalk_GetBarnRaiseWell =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetCurrentHumidity =
@@ -7713,6 +7801,8 @@ export const useReadBeanstalk_GetCurrentHumidity =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetEndBpf = /*#__PURE__*/ createUseReadContract({
@@ -7725,6 +7815,8 @@ export const useReadBeanstalk_GetEndBpf = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getFertilizer"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7740,6 +7832,8 @@ export const useReadBeanstalk_GetFertilizer =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetFertilizers =
@@ -7754,6 +7848,8 @@ export const useReadBeanstalk_GetFertilizers =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetFirst = /*#__PURE__*/ createUseReadContract({
@@ -7767,6 +7863,8 @@ export const useReadBeanstalk_GetFirst = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetHumidity = /*#__PURE__*/ createUseReadContract(
@@ -7777,6 +7875,8 @@ export const useReadBeanstalk_GetHumidity = /*#__PURE__*/ createUseReadContract(
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getLast"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7790,6 +7890,8 @@ export const useReadBeanstalk_GetLast = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getMintFertilizerOut"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7805,6 +7907,8 @@ export const useReadBeanstalk_GetMintFertilizerOut_duplicated =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetNext = /*#__PURE__*/ createUseReadContract({
@@ -7817,6 +7921,8 @@ export const useReadBeanstalk_GetNext = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getTotalRecapDollarsNeeded"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7832,6 +7938,8 @@ export const useReadBeanstalk_GetTotalRecapDollarsNeeded =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_IsFertilizing =
@@ -7845,6 +7953,8 @@ export const useReadBeanstalk_IsFertilizing =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"leftoverBeans"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7860,6 +7970,8 @@ export const useReadBeanstalk_LeftoverBeans =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_RemainingRecapitalization =
@@ -7873,6 +7985,8 @@ export const useReadBeanstalk_RemainingRecapitalization =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"rinsableSprouts"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7888,6 +8002,8 @@ export const useReadBeanstalk_RinsableSprouts =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_RinsedSprouts =
@@ -7901,6 +8017,8 @@ export const useReadBeanstalk_RinsedSprouts =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"totalFertilizedBeans"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7916,6 +8034,8 @@ export const useReadBeanstalk_TotalFertilizedBeans =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_TotalFertilizerBeans =
@@ -7929,6 +8049,8 @@ export const useReadBeanstalk_TotalFertilizerBeans =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"totalUnfertilizedBeans"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7944,6 +8066,8 @@ export const useReadBeanstalk_TotalUnfertilizedBeans =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_Owner = /*#__PURE__*/ createUseReadContract({
@@ -7956,6 +8080,8 @@ export const useReadBeanstalk_Owner = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"ownerCandidate"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7971,6 +8097,8 @@ export const useReadBeanstalk_OwnerCandidate =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_FacetAddress =
@@ -7984,6 +8112,8 @@ export const useReadBeanstalk_FacetAddress =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"facetAddresses"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -7999,6 +8129,8 @@ export const useReadBeanstalk_FacetAddresses =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_FacetFunctionSelectors =
@@ -8013,6 +8145,8 @@ export const useReadBeanstalk_FacetFunctionSelectors =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_Facets = /*#__PURE__*/ createUseReadContract({
@@ -8025,6 +8159,8 @@ export const useReadBeanstalk_Facets = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"supportsInterface"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8040,6 +8176,8 @@ export const useReadBeanstalk_SupportsInterface =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetBlueprintHash =
@@ -8053,6 +8191,8 @@ export const useReadBeanstalk_GetBlueprintHash =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getBlueprintNonce"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8068,6 +8208,8 @@ export const useReadBeanstalk_GetBlueprintNonce =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetCounter = /*#__PURE__*/ createUseReadContract({
@@ -8080,6 +8222,8 @@ export const useReadBeanstalk_GetCounter = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getPublisherCounter"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8095,6 +8239,8 @@ export const useReadBeanstalk_GetPublisherCounter =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetTractorVersion =
@@ -8108,6 +8254,8 @@ export const useReadBeanstalk_GetTractorVersion =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getAllBalance"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8123,6 +8271,8 @@ export const useReadBeanstalk_GetAllBalance =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetAllBalances =
@@ -8137,6 +8287,8 @@ export const useReadBeanstalk_GetAllBalances =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetBalance = /*#__PURE__*/ createUseReadContract({
@@ -8150,6 +8302,8 @@ export const useReadBeanstalk_GetBalance = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetBalances = /*#__PURE__*/ createUseReadContract(
@@ -8160,6 +8314,8 @@ export const useReadBeanstalk_GetBalances = /*#__PURE__*/ createUseReadContract(
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getExternalBalance"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8175,6 +8331,8 @@ export const useReadBeanstalk_GetExternalBalance =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetExternalBalances =
@@ -8188,6 +8346,8 @@ export const useReadBeanstalk_GetExternalBalances =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getInternalBalance"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8203,6 +8363,8 @@ export const useReadBeanstalk_GetInternalBalance =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetInternalBalances =
@@ -8216,6 +8378,8 @@ export const useReadBeanstalk_GetInternalBalances =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"onERC1155BatchReceived"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8231,6 +8395,8 @@ export const useReadBeanstalk_OnErc1155BatchReceived =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_OnErc1155Received =
@@ -8244,6 +8410,8 @@ export const useReadBeanstalk_OnErc1155Received =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"tokenAllowance"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8259,6 +8427,8 @@ export const useReadBeanstalk_TokenAllowance =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_TokenPermitDomainSeparator =
@@ -8272,6 +8442,8 @@ export const useReadBeanstalk_TokenPermitDomainSeparator =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"tokenPermitNonces"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8287,6 +8459,8 @@ export const useReadBeanstalk_TokenPermitNonces =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_ReadPipe = /*#__PURE__*/ createUseReadContract({
@@ -8300,6 +8474,8 @@ export const useReadBeanstalk_ReadPipe = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_ActiveField = /*#__PURE__*/ createUseReadContract(
@@ -8310,6 +8486,8 @@ export const useReadBeanstalk_ActiveField = /*#__PURE__*/ createUseReadContract(
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfPods"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8325,6 +8503,8 @@ export const useReadBeanstalk_BalanceOfPods =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_FieldCount = /*#__PURE__*/ createUseReadContract({
@@ -8337,6 +8517,8 @@ export const useReadBeanstalk_FieldCount = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getPlotIndexesFromAccount"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8352,6 +8534,8 @@ export const useReadBeanstalk_GetPlotIndexesFromAccount =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetPlotsFromAccount =
@@ -8365,6 +8549,8 @@ export const useReadBeanstalk_GetPlotsFromAccount =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"harvestableIndex"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8380,6 +8566,8 @@ export const useReadBeanstalk_HarvestableIndex =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_IsHarvesting =
@@ -8393,6 +8581,8 @@ export const useReadBeanstalk_IsHarvesting =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"maxTemperature"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8408,6 +8598,8 @@ export const useReadBeanstalk_MaxTemperature =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_Plot = /*#__PURE__*/ createUseReadContract({
@@ -8421,6 +8613,8 @@ export const useReadBeanstalk_Plot = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_PodIndex = /*#__PURE__*/ createUseReadContract({
@@ -8433,6 +8627,8 @@ export const useReadBeanstalk_PodIndex = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"remainingPods"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8448,6 +8644,8 @@ export const useReadBeanstalk_RemainingPods =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_Temperature = /*#__PURE__*/ createUseReadContract(
@@ -8458,6 +8656,8 @@ export const useReadBeanstalk_Temperature = /*#__PURE__*/ createUseReadContract(
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"totalHarvestable"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8473,6 +8673,8 @@ export const useReadBeanstalk_TotalHarvestable =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_TotalHarvestableForActiveField =
@@ -8486,6 +8688,8 @@ export const useReadBeanstalk_TotalHarvestableForActiveField =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"totalHarvested"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8501,6 +8705,8 @@ export const useReadBeanstalk_TotalHarvested =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_TotalPods = /*#__PURE__*/ createUseReadContract({
@@ -8514,6 +8720,8 @@ export const useReadBeanstalk_TotalPods = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_TotalSoil = /*#__PURE__*/ createUseReadContract({
@@ -8526,6 +8734,8 @@ export const useReadBeanstalk_TotalSoil = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"totalUnharvestable"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8541,6 +8751,8 @@ export const useReadBeanstalk_TotalUnharvestable =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_AllowancePods =
@@ -8555,6 +8767,8 @@ export const useReadBeanstalk_AllowancePods =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetOrderId = /*#__PURE__*/ createUseReadContract({
@@ -8567,6 +8781,8 @@ export const useReadBeanstalk_GetOrderId = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getPodListing"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8582,6 +8798,8 @@ export const useReadBeanstalk_GetPodListing =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetPodOrder = /*#__PURE__*/ createUseReadContract(
@@ -8592,6 +8810,8 @@ export const useReadBeanstalk_GetPodOrder = /*#__PURE__*/ createUseReadContract(
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfRevitalizedStalk"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8607,6 +8827,8 @@ export const useReadBeanstalk_BalanceOfRevitalizedStalk =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_CalculateDeltaBFromReserves =
@@ -8620,6 +8842,8 @@ export const useReadBeanstalk_CalculateDeltaBFromReserves =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"calculateStalkPenalty"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8635,6 +8859,8 @@ export const useReadBeanstalk_CalculateStalkPenalty =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_CappedReservesDeltaB =
@@ -8648,6 +8874,8 @@ export const useReadBeanstalk_CappedReservesDeltaB =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getAmountOut"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8663,6 +8891,8 @@ export const useReadBeanstalk_GetAmountOut =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetMaxAmountIn =
@@ -8676,6 +8906,8 @@ export const useReadBeanstalk_GetMaxAmountIn =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getOverallConvertCapacity"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8691,6 +8923,8 @@ export const useReadBeanstalk_GetOverallConvertCapacity =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetWellConvertCapacity =
@@ -8704,6 +8938,8 @@ export const useReadBeanstalk_GetWellConvertCapacity =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"overallCappedDeltaB"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8719,6 +8955,8 @@ export const useReadBeanstalk_OverallCappedDeltaB =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_OverallCurrentDeltaB =
@@ -8732,6 +8970,8 @@ export const useReadBeanstalk_OverallCurrentDeltaB =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"scaledDeltaB"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8747,6 +8987,8 @@ export const useReadBeanstalk_ScaledDeltaB =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_BeanToBdv = /*#__PURE__*/ createUseReadContract({
@@ -8759,6 +9001,8 @@ export const useReadBeanstalk_BeanToBdv = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"unripeBeanToBDV"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8774,6 +9018,8 @@ export const useReadBeanstalk_UnripeBeanToBdv =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_UnripeLpToBdv =
@@ -8788,6 +9034,8 @@ export const useReadBeanstalk_UnripeLpToBdv =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_WellBdv = /*#__PURE__*/ createUseReadContract({
@@ -8800,6 +9048,8 @@ export const useReadBeanstalk_WellBdv = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"depositAllowance"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8815,6 +9065,8 @@ export const useReadBeanstalk_DepositAllowance =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_DepositPermitDomainSeparator =
@@ -8828,6 +9080,8 @@ export const useReadBeanstalk_DepositPermitDomainSeparator =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"depositPermitNonces"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8843,6 +9097,8 @@ export const useReadBeanstalk_DepositPermitNonces =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_IsApprovedForAll =
@@ -8856,6 +9112,8 @@ export const useReadBeanstalk_IsApprovedForAll =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getGaugePointImplementationForToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8871,6 +9129,8 @@ export const useReadBeanstalk_GetGaugePointImplementationForToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetLiquidityWeightImplementationForToken =
@@ -8884,6 +9144,8 @@ export const useReadBeanstalk_GetLiquidityWeightImplementationForToken =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getOracleImplementationForToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8899,6 +9161,8 @@ export const useReadBeanstalk_GetOracleImplementationForToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetSiloTokens =
@@ -8912,6 +9176,8 @@ export const useReadBeanstalk_GetSiloTokens =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getWhitelistStatus"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8927,6 +9193,8 @@ export const useReadBeanstalk_GetWhitelistStatus =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetWhitelistStatuses =
@@ -8940,6 +9208,8 @@ export const useReadBeanstalk_GetWhitelistStatuses =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getWhitelistedLpTokens"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8955,6 +9225,8 @@ export const useReadBeanstalk_GetWhitelistedLpTokens =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetWhitelistedTokens =
@@ -8968,6 +9240,8 @@ export const useReadBeanstalk_GetWhitelistedTokens =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getWhitelistedWellLpTokens"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -8983,6 +9257,8 @@ export const useReadBeanstalk_GetWhitelistedWellLpTokens =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_BalanceOf = /*#__PURE__*/ createUseReadContract({
@@ -8995,6 +9271,8 @@ export const useReadBeanstalk_BalanceOf = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfBatch"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9010,6 +9288,8 @@ export const useReadBeanstalk_BalanceOfBatch =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_BalanceOfDepositedBdv =
@@ -9023,6 +9303,8 @@ export const useReadBeanstalk_BalanceOfDepositedBdv =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfEarnedBeans"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9038,6 +9320,8 @@ export const useReadBeanstalk_BalanceOfEarnedBeans =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_BalanceOfEarnedStalk =
@@ -9051,6 +9335,8 @@ export const useReadBeanstalk_BalanceOfEarnedStalk =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfFinishedGerminatingStalkAndRoots"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9066,6 +9352,8 @@ export const useReadBeanstalk_BalanceOfFinishedGerminatingStalkAndRoots =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_BalanceOfGerminatingStalk =
@@ -9079,6 +9367,8 @@ export const useReadBeanstalk_BalanceOfGerminatingStalk =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfGrownStalk"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9094,6 +9384,8 @@ export const useReadBeanstalk_BalanceOfGrownStalk =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_BalanceOfGrownStalkMultiple =
@@ -9107,6 +9399,8 @@ export const useReadBeanstalk_BalanceOfGrownStalkMultiple =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfPlantableSeeds"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9122,6 +9416,8 @@ export const useReadBeanstalk_BalanceOfPlantableSeeds =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_BalanceOfPlenty =
@@ -9135,6 +9431,8 @@ export const useReadBeanstalk_BalanceOfPlenty =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfRainRoots"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9150,6 +9448,8 @@ export const useReadBeanstalk_BalanceOfRainRoots =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_BalanceOfRoots =
@@ -9163,6 +9463,8 @@ export const useReadBeanstalk_BalanceOfRoots =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfSop"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9178,6 +9480,8 @@ export const useReadBeanstalk_BalanceOfSop =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_BalanceOfStalk =
@@ -9191,6 +9495,8 @@ export const useReadBeanstalk_BalanceOfStalk =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfYoungAndMatureGerminatingStalk"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9206,6 +9512,8 @@ export const useReadBeanstalk_BalanceOfYoungAndMatureGerminatingStalk =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_Bdv = /*#__PURE__*/ createUseReadContract({
@@ -9219,6 +9527,8 @@ export const useReadBeanstalk_Bdv = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_Bdvs = /*#__PURE__*/ createUseReadContract({
@@ -9231,6 +9541,8 @@ export const useReadBeanstalk_Bdvs = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"calculateStemForTokenFromGrownStalk"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9246,6 +9558,8 @@ export const useReadBeanstalk_CalculateStemForTokenFromGrownStalk =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetAddressAndStem =
@@ -9259,6 +9573,8 @@ export const useReadBeanstalk_GetAddressAndStem =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getBeanIndex"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9274,6 +9590,8 @@ export const useReadBeanstalk_GetBeanIndex =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetBeanstalkTokens =
@@ -9288,6 +9606,8 @@ export const useReadBeanstalk_GetBeanstalkTokens =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetDeposit = /*#__PURE__*/ createUseReadContract({
@@ -9300,6 +9620,8 @@ export const useReadBeanstalk_GetDeposit = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getDepositId"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9315,6 +9637,8 @@ export const useReadBeanstalk_GetDepositId =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetDepositsForAccount =
@@ -9328,6 +9652,8 @@ export const useReadBeanstalk_GetDepositsForAccount =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getEvenGerminating"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9343,6 +9669,8 @@ export const useReadBeanstalk_GetEvenGerminating =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetGerminatingRootsForSeason =
@@ -9356,6 +9684,8 @@ export const useReadBeanstalk_GetGerminatingRootsForSeason =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getGerminatingStalkAndRootsForSeason"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9371,6 +9701,8 @@ export const useReadBeanstalk_GetGerminatingStalkAndRootsForSeason =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetGerminatingStalkForSeason =
@@ -9384,6 +9716,8 @@ export const useReadBeanstalk_GetGerminatingStalkForSeason =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getGerminatingStem"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9399,6 +9733,8 @@ export const useReadBeanstalk_GetGerminatingStem =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetGerminatingStems =
@@ -9412,6 +9748,8 @@ export const useReadBeanstalk_GetGerminatingStems =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getGerminatingTotalDeposited"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9427,6 +9765,8 @@ export const useReadBeanstalk_GetGerminatingTotalDeposited =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetGerminatingTotalDepositedBdv =
@@ -9440,6 +9780,8 @@ export const useReadBeanstalk_GetGerminatingTotalDepositedBdv =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getIndexForDepositId"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9455,6 +9797,8 @@ export const useReadBeanstalk_GetIndexForDepositId =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetLastMowedStem =
@@ -9468,6 +9812,8 @@ export const useReadBeanstalk_GetLastMowedStem =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getMowStatus"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9483,6 +9829,8 @@ export const useReadBeanstalk_GetMowStatus =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetNonBeanTokenAndIndexFromWell =
@@ -9496,6 +9844,8 @@ export const useReadBeanstalk_GetNonBeanTokenAndIndexFromWell =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getOddGerminating"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9511,6 +9861,8 @@ export const useReadBeanstalk_GetOddGerminating =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetStemTips = /*#__PURE__*/ createUseReadContract(
@@ -9521,6 +9873,8 @@ export const useReadBeanstalk_GetStemTips = /*#__PURE__*/ createUseReadContract(
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getTokenDepositIdsForAccount"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9536,6 +9890,8 @@ export const useReadBeanstalk_GetTokenDepositIdsForAccount =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetTokenDepositsForAccount =
@@ -9549,6 +9905,8 @@ export const useReadBeanstalk_GetTokenDepositsForAccount =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getTotalDeposited"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9564,6 +9922,8 @@ export const useReadBeanstalk_GetTotalDeposited =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetTotalDepositedBdv =
@@ -9577,6 +9937,8 @@ export const useReadBeanstalk_GetTotalDepositedBdv =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getTotalGerminatingAmount"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9592,6 +9954,8 @@ export const useReadBeanstalk_GetTotalGerminatingAmount =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetTotalGerminatingBdv =
@@ -9605,6 +9969,8 @@ export const useReadBeanstalk_GetTotalGerminatingBdv =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getTotalGerminatingStalk"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9620,6 +9986,8 @@ export const useReadBeanstalk_GetTotalGerminatingStalk =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetTotalSiloDeposited =
@@ -9633,6 +10001,8 @@ export const useReadBeanstalk_GetTotalSiloDeposited =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getTotalSiloDepositedBdv"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9648,6 +10018,8 @@ export const useReadBeanstalk_GetTotalSiloDepositedBdv =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetYoungAndMatureGerminatingTotalStalk =
@@ -9661,6 +10033,8 @@ export const useReadBeanstalk_GetYoungAndMatureGerminatingTotalStalk =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"grownStalkForDeposit"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9676,6 +10050,8 @@ export const useReadBeanstalk_GrownStalkForDeposit =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_LastSeasonOfPlenty =
@@ -9690,6 +10066,8 @@ export const useReadBeanstalk_LastSeasonOfPlenty =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_LastUpdate = /*#__PURE__*/ createUseReadContract({
@@ -9702,6 +10080,8 @@ export const useReadBeanstalk_LastUpdate = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"stalkEarnedPerSeason"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9717,6 +10097,8 @@ export const useReadBeanstalk_StalkEarnedPerSeason =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_StemStartSeason =
@@ -9730,6 +10112,8 @@ export const useReadBeanstalk_StemStartSeason =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"stemTipForToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9745,6 +10129,8 @@ export const useReadBeanstalk_StemTipForToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_TokenSettings =
@@ -9758,6 +10144,8 @@ export const useReadBeanstalk_TokenSettings =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"totalEarnedBeans"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9773,6 +10161,8 @@ export const useReadBeanstalk_TotalEarnedBeans =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_TotalRainRoots =
@@ -9787,6 +10177,8 @@ export const useReadBeanstalk_TotalRainRoots =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_TotalRoots = /*#__PURE__*/ createUseReadContract({
@@ -9800,6 +10192,8 @@ export const useReadBeanstalk_TotalRoots = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_TotalStalk = /*#__PURE__*/ createUseReadContract({
@@ -9812,6 +10206,8 @@ export const useReadBeanstalk_TotalStalk = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"determineReward"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9827,6 +10223,8 @@ export const useReadBeanstalk_DetermineReward =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_Check = /*#__PURE__*/ createUseReadContract({
@@ -9839,6 +10237,8 @@ export const useReadBeanstalk_Check = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getBeansFromPoints"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9854,6 +10254,8 @@ export const useReadBeanstalk_GetBeansFromPoints =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetShipmentPlans =
@@ -9867,6 +10269,8 @@ export const useReadBeanstalk_GetShipmentPlans =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getShipmentRoutes"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9882,6 +10286,8 @@ export const useReadBeanstalk_GetShipmentRoutes =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetMillionUsdPrice =
@@ -9895,6 +10301,8 @@ export const useReadBeanstalk_GetMillionUsdPrice =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getRatiosAndBeanIndex"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9910,6 +10318,8 @@ export const useReadBeanstalk_GetRatiosAndBeanIndex =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetTokenUsdPrice =
@@ -9923,6 +10333,8 @@ export const useReadBeanstalk_GetTokenUsdPrice =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getTokenUsdPriceFromExternal"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9938,6 +10350,8 @@ export const useReadBeanstalk_GetTokenUsdPriceFromExternal =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetTokenUsdTwap =
@@ -9951,6 +10365,8 @@ export const useReadBeanstalk_GetTokenUsdTwap =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getUsdTokenPrice"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9966,6 +10382,8 @@ export const useReadBeanstalk_GetUsdTokenPrice =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetUsdTokenPriceFromExternal =
@@ -9979,6 +10397,8 @@ export const useReadBeanstalk_GetUsdTokenPriceFromExternal =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getUsdTokenTwap"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -9994,6 +10414,8 @@ export const useReadBeanstalk_GetUsdTokenTwap =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_MaxWeight = /*#__PURE__*/ createUseReadContract({
@@ -10006,6 +10428,8 @@ export const useReadBeanstalk_MaxWeight = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"noWeight"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10020,6 +10444,8 @@ export const useReadBeanstalk_NoWeight = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_AbovePeg = /*#__PURE__*/ createUseReadContract({
@@ -10032,6 +10458,8 @@ export const useReadBeanstalk_AbovePeg = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"cumulativeCurrentDeltaB"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10047,6 +10475,8 @@ export const useReadBeanstalk_CumulativeCurrentDeltaB =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetAbsBeanToMaxLpRatioChangeFromCaseId =
@@ -10060,6 +10490,8 @@ export const useReadBeanstalk_GetAbsBeanToMaxLpRatioChangeFromCaseId =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getAbsTemperatureChangeFromCaseId"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10075,6 +10507,8 @@ export const useReadBeanstalk_GetAbsTemperatureChangeFromCaseId =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetCaseData = /*#__PURE__*/ createUseReadContract(
@@ -10085,6 +10519,8 @@ export const useReadBeanstalk_GetCaseData = /*#__PURE__*/ createUseReadContract(
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getCases"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10098,6 +10534,8 @@ export const useReadBeanstalk_GetCases = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getChangeFromCaseId"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10113,6 +10551,8 @@ export const useReadBeanstalk_GetChangeFromCaseId =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetDeltaPodDemandLowerBound =
@@ -10126,6 +10566,8 @@ export const useReadBeanstalk_GetDeltaPodDemandLowerBound =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getDeltaPodDemandUpperBound"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10141,6 +10583,8 @@ export const useReadBeanstalk_GetDeltaPodDemandUpperBound =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetEvaluationParameters =
@@ -10154,6 +10598,8 @@ export const useReadBeanstalk_GetEvaluationParameters =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getExcessivePriceThreshold"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10169,6 +10615,8 @@ export const useReadBeanstalk_GetExcessivePriceThreshold =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetLargestLiqWell =
@@ -10182,6 +10630,8 @@ export const useReadBeanstalk_GetLargestLiqWell =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getLpToSupplyRatioLowerBound"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10197,6 +10647,8 @@ export const useReadBeanstalk_GetLpToSupplyRatioLowerBound =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetLpToSupplyRatioOptimal =
@@ -10210,6 +10662,8 @@ export const useReadBeanstalk_GetLpToSupplyRatioOptimal =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getLpToSupplyRatioUpperBound"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10225,6 +10679,8 @@ export const useReadBeanstalk_GetLpToSupplyRatioUpperBound =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetMaxBeanMaxLpGpPerBdvRatio =
@@ -10238,6 +10694,8 @@ export const useReadBeanstalk_GetMaxBeanMaxLpGpPerBdvRatio =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getMinBeanMaxLpGpPerBdvRatio"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10253,6 +10711,8 @@ export const useReadBeanstalk_GetMinBeanMaxLpGpPerBdvRatio =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetPodRateLowerBound =
@@ -10266,6 +10726,8 @@ export const useReadBeanstalk_GetPodRateLowerBound =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getPodRateOptimal"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10281,6 +10743,8 @@ export const useReadBeanstalk_GetPodRateOptimal =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetPodRateUpperBound =
@@ -10294,6 +10758,8 @@ export const useReadBeanstalk_GetPodRateUpperBound =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getRelBeanToMaxLpRatioChangeFromCaseId"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10309,6 +10775,8 @@ export const useReadBeanstalk_GetRelBeanToMaxLpRatioChangeFromCaseId =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetRelTemperatureChangeFromCaseId =
@@ -10322,6 +10790,8 @@ export const useReadBeanstalk_GetRelTemperatureChangeFromCaseId =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getSeasonStruct"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10337,6 +10807,8 @@ export const useReadBeanstalk_GetSeasonStruct =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetSeasonTimestamp =
@@ -10350,6 +10822,8 @@ export const useReadBeanstalk_GetSeasonTimestamp =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getTargetSeasonsToCatchUp"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10365,6 +10839,8 @@ export const useReadBeanstalk_GetTargetSeasonsToCatchUp =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetTotalUsdLiquidity =
@@ -10378,6 +10854,8 @@ export const useReadBeanstalk_GetTotalUsdLiquidity =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getTotalWeightedUsdLiquidity"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10393,6 +10871,8 @@ export const useReadBeanstalk_GetTotalWeightedUsdLiquidity =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetTwaLiquidityForWell =
@@ -10406,6 +10886,8 @@ export const useReadBeanstalk_GetTwaLiquidityForWell =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getWeightedTwaLiquidityForWell"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10421,6 +10903,8 @@ export const useReadBeanstalk_GetWeightedTwaLiquidityForWell =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetWellsByDeltaB =
@@ -10435,6 +10919,8 @@ export const useReadBeanstalk_GetWellsByDeltaB =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_Paused = /*#__PURE__*/ createUseReadContract({
@@ -10447,6 +10933,8 @@ export const useReadBeanstalk_Paused = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"plentyPerRoot"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10462,6 +10950,8 @@ export const useReadBeanstalk_PlentyPerRoot =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_PoolCurrentDeltaB =
@@ -10476,6 +10966,8 @@ export const useReadBeanstalk_PoolCurrentDeltaB =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_PoolDeltaB = /*#__PURE__*/ createUseReadContract({
@@ -10488,6 +10980,8 @@ export const useReadBeanstalk_PoolDeltaB = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"rain"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10502,6 +10996,8 @@ export const useReadBeanstalk_Rain = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_Season = /*#__PURE__*/ createUseReadContract({
@@ -10514,6 +11010,8 @@ export const useReadBeanstalk_Season = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"sunriseBlock"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10529,6 +11027,8 @@ export const useReadBeanstalk_SunriseBlock =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_Time = /*#__PURE__*/ createUseReadContract({
@@ -10542,6 +11042,8 @@ export const useReadBeanstalk_Time = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_TotalDeltaB = /*#__PURE__*/ createUseReadContract(
@@ -10552,6 +11054,8 @@ export const useReadBeanstalk_TotalDeltaB = /*#__PURE__*/ createUseReadContract(
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"weather"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10565,6 +11069,8 @@ export const useReadBeanstalk_Weather = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"wellOracleSnapshot"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10580,6 +11086,8 @@ export const useReadBeanstalk_WellOracleSnapshot =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_SeasonTime = /*#__PURE__*/ createUseReadContract({
@@ -10592,6 +11100,8 @@ export const useReadBeanstalk_SeasonTime = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"calcGaugePointsWithParams"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10607,6 +11117,8 @@ export const useReadBeanstalk_CalcGaugePointsWithParams =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetAverageGrownStalkPerBdv =
@@ -10620,6 +11132,8 @@ export const useReadBeanstalk_GetAverageGrownStalkPerBdv =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getAverageGrownStalkPerBdvPerSeason"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10635,6 +11149,8 @@ export const useReadBeanstalk_GetAverageGrownStalkPerBdvPerSeason =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetBeanGaugePointsPerBdv =
@@ -10648,6 +11164,8 @@ export const useReadBeanstalk_GetBeanGaugePointsPerBdv =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getBeanToMaxLpGpPerBdvRatio"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10663,6 +11181,8 @@ export const useReadBeanstalk_GetBeanToMaxLpGpPerBdvRatio =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetBeanToMaxLpGpPerBdvRatioScaled =
@@ -10676,6 +11196,8 @@ export const useReadBeanstalk_GetBeanToMaxLpGpPerBdvRatioScaled =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getDeltaPodDemand"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10691,6 +11213,8 @@ export const useReadBeanstalk_GetDeltaPodDemand =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetGaugePoints =
@@ -10704,6 +11228,8 @@ export const useReadBeanstalk_GetGaugePoints =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getGaugePointsPerBdvForToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10719,6 +11245,8 @@ export const useReadBeanstalk_GetGaugePointsPerBdvForToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetGaugePointsPerBdvForWell =
@@ -10732,6 +11260,8 @@ export const useReadBeanstalk_GetGaugePointsPerBdvForWell =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getGaugePointsWithParams"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10747,6 +11277,8 @@ export const useReadBeanstalk_GetGaugePointsWithParams =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetGrownStalkIssuedPerGp =
@@ -10760,6 +11292,8 @@ export const useReadBeanstalk_GetGrownStalkIssuedPerGp =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getGrownStalkIssuedPerSeason"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10775,6 +11309,8 @@ export const useReadBeanstalk_GetGrownStalkIssuedPerSeason =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetLargestGpPerBdv =
@@ -10788,6 +11324,8 @@ export const useReadBeanstalk_GetLargestGpPerBdv =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getLiquidityToSupplyRatio"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10803,6 +11341,8 @@ export const useReadBeanstalk_GetLiquidityToSupplyRatio =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetPodRate = /*#__PURE__*/ createUseReadContract({
@@ -10815,6 +11355,8 @@ export const useReadBeanstalk_GetPodRate = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getSeedGauge"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10830,6 +11372,8 @@ export const useReadBeanstalk_GetSeedGauge =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetTotalBdv = /*#__PURE__*/ createUseReadContract(
@@ -10840,6 +11384,8 @@ export const useReadBeanstalk_GetTotalBdv = /*#__PURE__*/ createUseReadContract(
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"defaultGaugePointFunction"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10855,6 +11401,8 @@ export const useReadBeanstalk_DefaultGaugePointFunction =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetExtremelyFarAbove =
@@ -10868,6 +11416,8 @@ export const useReadBeanstalk_GetExtremelyFarAbove =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getExtremelyFarBelow"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10883,6 +11433,8 @@ export const useReadBeanstalk_GetExtremelyFarBelow =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetRelativelyFarAbove =
@@ -10896,6 +11448,8 @@ export const useReadBeanstalk_GetRelativelyFarAbove =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getRelativelyFarBelow"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10911,6 +11465,8 @@ export const useReadBeanstalk_GetRelativelyFarBelow =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_ImageUri = /*#__PURE__*/ createUseReadContract({
@@ -10923,6 +11479,8 @@ export const useReadBeanstalk_ImageUri = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"name"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10937,6 +11495,8 @@ export const useReadBeanstalk_Name = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_Symbol = /*#__PURE__*/ createUseReadContract({
@@ -10950,6 +11510,8 @@ export const useReadBeanstalk_Symbol = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_Uri = /*#__PURE__*/ createUseReadContract({
@@ -10962,6 +11524,8 @@ export const useReadBeanstalk_Uri = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getDepositMerkleRoot"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -10977,6 +11541,8 @@ export const useReadBeanstalk_GetDepositMerkleRoot =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetFertilizerMerkleRoot =
@@ -10990,6 +11556,8 @@ export const useReadBeanstalk_GetFertilizerMerkleRoot =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getInternalBalanceMerkleRoot"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11005,6 +11573,8 @@ export const useReadBeanstalk_GetInternalBalanceMerkleRoot =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetPlotMerkleRoot =
@@ -11019,6 +11589,8 @@ export const useReadBeanstalk_GetPlotMerkleRoot =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_GetReceiver = /*#__PURE__*/ createUseReadContract(
@@ -11029,6 +11601,8 @@ export const useReadBeanstalk_GetReceiver = /*#__PURE__*/ createUseReadContract(
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"verifyDepositMerkleProof"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11044,6 +11618,8 @@ export const useReadBeanstalk_VerifyDepositMerkleProof =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_VerifyFertilizerMerkleProof =
@@ -11057,6 +11633,8 @@ export const useReadBeanstalk_VerifyFertilizerMerkleProof =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"verifyInternalBalanceMerkleProof"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11072,6 +11650,8 @@ export const useReadBeanstalk_VerifyInternalBalanceMerkleProof =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useReadBeanstalk_VerifyPlotMerkleProof =
@@ -11086,6 +11666,8 @@ export const useReadBeanstalk_VerifyPlotMerkleProof =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_undefined = /*#__PURE__*/ createUseWriteContract(
@@ -11096,6 +11678,8 @@ export const useWriteBeanstalk_undefined = /*#__PURE__*/ createUseWriteContract(
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"addMigratedUnderlying"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11111,6 +11695,8 @@ export const useWriteBeanstalk_AddMigratedUnderlying =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_AddUnripeToken =
@@ -11125,6 +11711,8 @@ export const useWriteBeanstalk_AddUnripeToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_Chop = /*#__PURE__*/ createUseWriteContract({
@@ -11137,6 +11725,8 @@ export const useWriteBeanstalk_Chop = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"switchUnderlyingToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11152,6 +11742,8 @@ export const useWriteBeanstalk_SwitchUnderlyingToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_BeginBarnRaiseMigration =
@@ -11165,6 +11757,8 @@ export const useWriteBeanstalk_BeginBarnRaiseMigration =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"claimFertilized"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11180,6 +11774,8 @@ export const useWriteBeanstalk_ClaimFertilized =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_MintFertilizer =
@@ -11193,6 +11789,8 @@ export const useWriteBeanstalk_MintFertilizer =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"payFertilizer"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11208,6 +11806,8 @@ export const useWriteBeanstalk_PayFertilizer =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_Pause = /*#__PURE__*/ createUseWriteContract({
@@ -11221,6 +11821,8 @@ export const useWriteBeanstalk_Pause = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_Unpause = /*#__PURE__*/ createUseWriteContract({
@@ -11233,6 +11835,8 @@ export const useWriteBeanstalk_Unpause = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"claimOwnership"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11248,6 +11852,8 @@ export const useWriteBeanstalk_ClaimOwnership =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_TransferOwnership =
@@ -11261,6 +11867,8 @@ export const useWriteBeanstalk_TransferOwnership =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"diamondCut"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11276,6 +11884,8 @@ export const useWriteBeanstalk_DiamondCut =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_CancelBlueprint =
@@ -11289,6 +11899,8 @@ export const useWriteBeanstalk_CancelBlueprint =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"publishRequisition"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11304,6 +11916,8 @@ export const useWriteBeanstalk_PublishRequisition =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_Tractor = /*#__PURE__*/ createUseWriteContract({
@@ -11316,6 +11930,8 @@ export const useWriteBeanstalk_Tractor = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"updatePublisherCounter"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11331,6 +11947,8 @@ export const useWriteBeanstalk_UpdatePublisherCounter =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_UpdateTractorVersion =
@@ -11344,6 +11962,8 @@ export const useWriteBeanstalk_UpdateTractorVersion =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"batchTransferERC1155"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11359,6 +11979,8 @@ export const useWriteBeanstalk_BatchTransferErc1155 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_PermitErc20 =
@@ -11372,6 +11994,8 @@ export const useWriteBeanstalk_PermitErc20 =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"permitERC721"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11387,6 +12011,8 @@ export const useWriteBeanstalk_PermitErc721 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_TransferErc1155 =
@@ -11400,6 +12026,8 @@ export const useWriteBeanstalk_TransferErc1155 =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"transferERC721"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11415,6 +12043,8 @@ export const useWriteBeanstalk_TransferErc721 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_ApproveToken =
@@ -11428,6 +12058,8 @@ export const useWriteBeanstalk_ApproveToken =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"decreaseTokenAllowance"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11443,6 +12075,8 @@ export const useWriteBeanstalk_DecreaseTokenAllowance =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_IncreaseTokenAllowance =
@@ -11456,6 +12090,8 @@ export const useWriteBeanstalk_IncreaseTokenAllowance =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"permitToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11471,6 +12107,8 @@ export const useWriteBeanstalk_PermitToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_TransferInternalTokenFrom =
@@ -11484,6 +12122,8 @@ export const useWriteBeanstalk_TransferInternalTokenFrom =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"transferToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11499,6 +12139,8 @@ export const useWriteBeanstalk_TransferToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_UnwrapEth = /*#__PURE__*/ createUseWriteContract(
@@ -11509,6 +12151,8 @@ export const useWriteBeanstalk_UnwrapEth = /*#__PURE__*/ createUseWriteContract(
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"wrapEth"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11522,6 +12166,8 @@ export const useWriteBeanstalk_WrapEth = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"advancedFarm"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11537,6 +12183,8 @@ export const useWriteBeanstalk_AdvancedFarm =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_Farm = /*#__PURE__*/ createUseWriteContract({
@@ -11549,6 +12197,8 @@ export const useWriteBeanstalk_Farm = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"advancedPipe"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11564,6 +12214,8 @@ export const useWriteBeanstalk_AdvancedPipe =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_EtherPipe = /*#__PURE__*/ createUseWriteContract(
@@ -11575,6 +12227,8 @@ export const useWriteBeanstalk_EtherPipe = /*#__PURE__*/ createUseWriteContract(
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_MultiPipe = /*#__PURE__*/ createUseWriteContract(
@@ -11585,6 +12239,8 @@ export const useWriteBeanstalk_MultiPipe = /*#__PURE__*/ createUseWriteContract(
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"pipe"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11599,6 +12255,8 @@ export const useWriteBeanstalk_Pipe = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_AddField = /*#__PURE__*/ createUseWriteContract({
@@ -11612,6 +12270,8 @@ export const useWriteBeanstalk_AddField = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_Harvest = /*#__PURE__*/ createUseWriteContract({
@@ -11624,6 +12284,8 @@ export const useWriteBeanstalk_Harvest = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"setActiveField"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11639,6 +12301,8 @@ export const useWriteBeanstalk_SetActiveField =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_Sow = /*#__PURE__*/ createUseWriteContract({
@@ -11651,6 +12315,8 @@ export const useWriteBeanstalk_Sow = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"sowWithMin"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11666,6 +12332,8 @@ export const useWriteBeanstalk_SowWithMin =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_ApprovePods =
@@ -11679,6 +12347,8 @@ export const useWriteBeanstalk_ApprovePods =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"cancelPodListing"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11694,6 +12364,8 @@ export const useWriteBeanstalk_CancelPodListing =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_CancelPodOrder =
@@ -11707,6 +12379,8 @@ export const useWriteBeanstalk_CancelPodOrder =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"createPodListing"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11722,6 +12396,8 @@ export const useWriteBeanstalk_CreatePodListing =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_CreatePodOrder =
@@ -11735,6 +12411,8 @@ export const useWriteBeanstalk_CreatePodOrder =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"fillPodListing"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11750,6 +12428,8 @@ export const useWriteBeanstalk_FillPodListing =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_FillPodOrder =
@@ -11763,6 +12443,8 @@ export const useWriteBeanstalk_FillPodOrder =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"transferPlot"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11778,6 +12460,8 @@ export const useWriteBeanstalk_TransferPlot =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_TransferPlots =
@@ -11791,6 +12475,8 @@ export const useWriteBeanstalk_TransferPlots =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"pipelineConvert"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11806,6 +12492,8 @@ export const useWriteBeanstalk_PipelineConvert =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_EnrootDeposit =
@@ -11819,6 +12507,8 @@ export const useWriteBeanstalk_EnrootDeposit =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"enrootDeposits"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11834,6 +12524,8 @@ export const useWriteBeanstalk_EnrootDeposits =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_Convert = /*#__PURE__*/ createUseWriteContract({
@@ -11846,6 +12538,8 @@ export const useWriteBeanstalk_Convert = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"approveDeposit"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11861,6 +12555,8 @@ export const useWriteBeanstalk_ApproveDeposit =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_DecreaseDepositAllowance =
@@ -11874,6 +12570,8 @@ export const useWriteBeanstalk_DecreaseDepositAllowance =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"increaseDepositAllowance"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11889,6 +12587,8 @@ export const useWriteBeanstalk_IncreaseDepositAllowance =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_PermitDeposit =
@@ -11902,6 +12602,8 @@ export const useWriteBeanstalk_PermitDeposit =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"permitDeposits"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11917,6 +12619,8 @@ export const useWriteBeanstalk_PermitDeposits =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_SetApprovalForAll =
@@ -11930,6 +12634,8 @@ export const useWriteBeanstalk_SetApprovalForAll =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"dewhitelistToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11945,6 +12651,8 @@ export const useWriteBeanstalk_DewhitelistToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_UpdateGaugeForToken =
@@ -11958,6 +12666,8 @@ export const useWriteBeanstalk_UpdateGaugeForToken =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"updateGaugePointImplementationForToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -11973,6 +12683,8 @@ export const useWriteBeanstalk_UpdateGaugePointImplementationForToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_UpdateLiquidityWeightImplementationForToken =
@@ -11986,6 +12698,8 @@ export const useWriteBeanstalk_UpdateLiquidityWeightImplementationForToken =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"updateOracleImplementationForToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12001,6 +12715,8 @@ export const useWriteBeanstalk_UpdateOracleImplementationForToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_UpdateSeedGaugeSettings =
@@ -12014,6 +12730,8 @@ export const useWriteBeanstalk_UpdateSeedGaugeSettings =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"updateStalkPerBdvPerSeasonForToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12029,6 +12747,8 @@ export const useWriteBeanstalk_UpdateStalkPerBdvPerSeasonForToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_WhitelistToken =
@@ -12043,6 +12763,8 @@ export const useWriteBeanstalk_WhitelistToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_Deposit = /*#__PURE__*/ createUseWriteContract({
@@ -12055,6 +12777,8 @@ export const useWriteBeanstalk_Deposit = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"safeBatchTransferFrom"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12070,6 +12794,8 @@ export const useWriteBeanstalk_SafeBatchTransferFrom =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_SafeTransferFrom =
@@ -12083,6 +12809,8 @@ export const useWriteBeanstalk_SafeTransferFrom =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"transferDeposit"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12098,6 +12826,8 @@ export const useWriteBeanstalk_TransferDeposit =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_TransferDeposits =
@@ -12111,6 +12841,8 @@ export const useWriteBeanstalk_TransferDeposits =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"withdrawDeposit"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12126,6 +12858,8 @@ export const useWriteBeanstalk_WithdrawDeposit =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_WithdrawDeposits =
@@ -12139,6 +12873,8 @@ export const useWriteBeanstalk_WithdrawDeposits =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"claimAllPlenty"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12154,6 +12890,8 @@ export const useWriteBeanstalk_ClaimAllPlenty =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_ClaimPlenty =
@@ -12168,6 +12906,8 @@ export const useWriteBeanstalk_ClaimPlenty =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_Mow = /*#__PURE__*/ createUseWriteContract({
@@ -12180,6 +12920,8 @@ export const useWriteBeanstalk_Mow = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"mowMultiple"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12195,6 +12937,8 @@ export const useWriteBeanstalk_MowMultiple =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_Plant = /*#__PURE__*/ createUseWriteContract({
@@ -12208,6 +12952,8 @@ export const useWriteBeanstalk_Plant = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_Init = /*#__PURE__*/ createUseWriteContract({
@@ -12220,6 +12966,8 @@ export const useWriteBeanstalk_Init = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"setShipmentRoutes"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12235,6 +12983,8 @@ export const useWriteBeanstalk_SetShipmentRoutes =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_Gm = /*#__PURE__*/ createUseWriteContract({
@@ -12248,6 +12998,8 @@ export const useWriteBeanstalk_Gm = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_Sunrise = /*#__PURE__*/ createUseWriteContract({
@@ -12260,6 +13012,8 @@ export const useWriteBeanstalk_Sunrise = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"approveL2Receiver"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12275,6 +13029,8 @@ export const useWriteBeanstalk_ApproveL2Receiver =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_MigrateL2Beans =
@@ -12288,6 +13044,8 @@ export const useWriteBeanstalk_MigrateL2Beans =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"approveReceiver"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12303,6 +13061,8 @@ export const useWriteBeanstalk_ApproveReceiver =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_IssueDeposits =
@@ -12316,6 +13076,8 @@ export const useWriteBeanstalk_IssueDeposits =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"issueFertilizer"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12331,6 +13093,8 @@ export const useWriteBeanstalk_IssueFertilizer =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_IssueInternalBalances =
@@ -12344,6 +13108,8 @@ export const useWriteBeanstalk_IssueInternalBalances =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"issuePlots"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12359,6 +13125,8 @@ export const useWriteBeanstalk_IssuePlots =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWriteBeanstalk_RecieveL1Beans =
@@ -12373,6 +13141,8 @@ export const useWriteBeanstalk_RecieveL1Beans =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_undefined =
@@ -12385,6 +13155,8 @@ export const useSimulateBeanstalk_undefined =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"addMigratedUnderlying"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12400,6 +13172,8 @@ export const useSimulateBeanstalk_AddMigratedUnderlying =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_AddUnripeToken =
@@ -12413,6 +13187,8 @@ export const useSimulateBeanstalk_AddUnripeToken =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"chop"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12428,6 +13204,8 @@ export const useSimulateBeanstalk_Chop =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_SwitchUnderlyingToken =
@@ -12441,6 +13219,8 @@ export const useSimulateBeanstalk_SwitchUnderlyingToken =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"beginBarnRaiseMigration"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12456,6 +13236,8 @@ export const useSimulateBeanstalk_BeginBarnRaiseMigration =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_ClaimFertilized =
@@ -12469,6 +13251,8 @@ export const useSimulateBeanstalk_ClaimFertilized =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"mintFertilizer"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12484,6 +13268,8 @@ export const useSimulateBeanstalk_MintFertilizer =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_PayFertilizer =
@@ -12497,6 +13283,8 @@ export const useSimulateBeanstalk_PayFertilizer =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"pause"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12512,6 +13300,8 @@ export const useSimulateBeanstalk_Pause =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_Unpause =
@@ -12525,6 +13315,8 @@ export const useSimulateBeanstalk_Unpause =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"claimOwnership"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12540,6 +13332,8 @@ export const useSimulateBeanstalk_ClaimOwnership =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_TransferOwnership =
@@ -12553,6 +13347,8 @@ export const useSimulateBeanstalk_TransferOwnership =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"diamondCut"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12568,6 +13364,8 @@ export const useSimulateBeanstalk_DiamondCut =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_CancelBlueprint =
@@ -12581,6 +13379,8 @@ export const useSimulateBeanstalk_CancelBlueprint =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"publishRequisition"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12596,6 +13396,8 @@ export const useSimulateBeanstalk_PublishRequisition =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_Tractor =
@@ -12609,6 +13411,8 @@ export const useSimulateBeanstalk_Tractor =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"updatePublisherCounter"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12624,6 +13428,8 @@ export const useSimulateBeanstalk_UpdatePublisherCounter =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_UpdateTractorVersion =
@@ -12637,6 +13443,8 @@ export const useSimulateBeanstalk_UpdateTractorVersion =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"batchTransferERC1155"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12652,6 +13460,8 @@ export const useSimulateBeanstalk_BatchTransferErc1155 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_PermitErc20 =
@@ -12665,6 +13475,8 @@ export const useSimulateBeanstalk_PermitErc20 =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"permitERC721"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12680,6 +13492,8 @@ export const useSimulateBeanstalk_PermitErc721 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_TransferErc1155 =
@@ -12693,6 +13507,8 @@ export const useSimulateBeanstalk_TransferErc1155 =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"transferERC721"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12708,6 +13524,8 @@ export const useSimulateBeanstalk_TransferErc721 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_ApproveToken =
@@ -12721,6 +13539,8 @@ export const useSimulateBeanstalk_ApproveToken =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"decreaseTokenAllowance"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12736,6 +13556,8 @@ export const useSimulateBeanstalk_DecreaseTokenAllowance =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_IncreaseTokenAllowance =
@@ -12749,6 +13571,8 @@ export const useSimulateBeanstalk_IncreaseTokenAllowance =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"permitToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12764,6 +13588,8 @@ export const useSimulateBeanstalk_PermitToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_TransferInternalTokenFrom =
@@ -12777,6 +13603,8 @@ export const useSimulateBeanstalk_TransferInternalTokenFrom =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"transferToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12792,6 +13620,8 @@ export const useSimulateBeanstalk_TransferToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_UnwrapEth =
@@ -12805,6 +13635,8 @@ export const useSimulateBeanstalk_UnwrapEth =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"wrapEth"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12820,6 +13652,8 @@ export const useSimulateBeanstalk_WrapEth =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_AdvancedFarm =
@@ -12833,6 +13667,8 @@ export const useSimulateBeanstalk_AdvancedFarm =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"farm"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12848,6 +13684,8 @@ export const useSimulateBeanstalk_Farm =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_AdvancedPipe =
@@ -12861,6 +13699,8 @@ export const useSimulateBeanstalk_AdvancedPipe =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"etherPipe"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12876,6 +13716,8 @@ export const useSimulateBeanstalk_EtherPipe =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_MultiPipe =
@@ -12889,6 +13731,8 @@ export const useSimulateBeanstalk_MultiPipe =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"pipe"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12904,6 +13748,8 @@ export const useSimulateBeanstalk_Pipe =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_AddField =
@@ -12917,6 +13763,8 @@ export const useSimulateBeanstalk_AddField =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"harvest"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12932,6 +13780,8 @@ export const useSimulateBeanstalk_Harvest =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_SetActiveField =
@@ -12946,6 +13796,8 @@ export const useSimulateBeanstalk_SetActiveField =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_Sow = /*#__PURE__*/ createUseSimulateContract(
@@ -12956,6 +13808,8 @@ export const useSimulateBeanstalk_Sow = /*#__PURE__*/ createUseSimulateContract(
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"sowWithMin"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12971,6 +13825,8 @@ export const useSimulateBeanstalk_SowWithMin =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_ApprovePods =
@@ -12984,6 +13840,8 @@ export const useSimulateBeanstalk_ApprovePods =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"cancelPodListing"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -12999,6 +13857,8 @@ export const useSimulateBeanstalk_CancelPodListing =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_CancelPodOrder =
@@ -13012,6 +13872,8 @@ export const useSimulateBeanstalk_CancelPodOrder =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"createPodListing"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13027,6 +13889,8 @@ export const useSimulateBeanstalk_CreatePodListing =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_CreatePodOrder =
@@ -13040,6 +13904,8 @@ export const useSimulateBeanstalk_CreatePodOrder =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"fillPodListing"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13055,6 +13921,8 @@ export const useSimulateBeanstalk_FillPodListing =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_FillPodOrder =
@@ -13068,6 +13936,8 @@ export const useSimulateBeanstalk_FillPodOrder =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"transferPlot"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13083,6 +13953,8 @@ export const useSimulateBeanstalk_TransferPlot =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_TransferPlots =
@@ -13096,6 +13968,8 @@ export const useSimulateBeanstalk_TransferPlots =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"pipelineConvert"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13111,6 +13985,8 @@ export const useSimulateBeanstalk_PipelineConvert =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_EnrootDeposit =
@@ -13124,6 +14000,8 @@ export const useSimulateBeanstalk_EnrootDeposit =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"enrootDeposits"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13139,6 +14017,8 @@ export const useSimulateBeanstalk_EnrootDeposits =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_Convert =
@@ -13152,6 +14032,8 @@ export const useSimulateBeanstalk_Convert =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"approveDeposit"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13167,6 +14049,8 @@ export const useSimulateBeanstalk_ApproveDeposit =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_DecreaseDepositAllowance =
@@ -13180,6 +14064,8 @@ export const useSimulateBeanstalk_DecreaseDepositAllowance =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"increaseDepositAllowance"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13195,6 +14081,8 @@ export const useSimulateBeanstalk_IncreaseDepositAllowance =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_PermitDeposit =
@@ -13208,6 +14096,8 @@ export const useSimulateBeanstalk_PermitDeposit =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"permitDeposits"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13223,6 +14113,8 @@ export const useSimulateBeanstalk_PermitDeposits =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_SetApprovalForAll =
@@ -13236,6 +14128,8 @@ export const useSimulateBeanstalk_SetApprovalForAll =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"dewhitelistToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13251,6 +14145,8 @@ export const useSimulateBeanstalk_DewhitelistToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_UpdateGaugeForToken =
@@ -13264,6 +14160,8 @@ export const useSimulateBeanstalk_UpdateGaugeForToken =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"updateGaugePointImplementationForToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13279,6 +14177,8 @@ export const useSimulateBeanstalk_UpdateGaugePointImplementationForToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_UpdateLiquidityWeightImplementationForToken =
@@ -13292,6 +14192,8 @@ export const useSimulateBeanstalk_UpdateLiquidityWeightImplementationForToken =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"updateOracleImplementationForToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13307,6 +14209,8 @@ export const useSimulateBeanstalk_UpdateOracleImplementationForToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_UpdateSeedGaugeSettings =
@@ -13320,6 +14224,8 @@ export const useSimulateBeanstalk_UpdateSeedGaugeSettings =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"updateStalkPerBdvPerSeasonForToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13335,6 +14241,8 @@ export const useSimulateBeanstalk_UpdateStalkPerBdvPerSeasonForToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_WhitelistToken =
@@ -13348,6 +14256,8 @@ export const useSimulateBeanstalk_WhitelistToken =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"deposit"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13363,6 +14273,8 @@ export const useSimulateBeanstalk_Deposit =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_SafeBatchTransferFrom =
@@ -13376,6 +14288,8 @@ export const useSimulateBeanstalk_SafeBatchTransferFrom =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"safeTransferFrom"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13391,6 +14305,8 @@ export const useSimulateBeanstalk_SafeTransferFrom =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_TransferDeposit =
@@ -13404,6 +14320,8 @@ export const useSimulateBeanstalk_TransferDeposit =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"transferDeposits"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13419,6 +14337,8 @@ export const useSimulateBeanstalk_TransferDeposits =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_WithdrawDeposit =
@@ -13432,6 +14352,8 @@ export const useSimulateBeanstalk_WithdrawDeposit =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"withdrawDeposits"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13447,6 +14369,8 @@ export const useSimulateBeanstalk_WithdrawDeposits =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_ClaimAllPlenty =
@@ -13460,6 +14384,8 @@ export const useSimulateBeanstalk_ClaimAllPlenty =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"claimPlenty"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13475,6 +14401,8 @@ export const useSimulateBeanstalk_ClaimPlenty =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_Mow = /*#__PURE__*/ createUseSimulateContract(
@@ -13485,6 +14413,8 @@ export const useSimulateBeanstalk_Mow = /*#__PURE__*/ createUseSimulateContract(
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"mowMultiple"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13500,6 +14430,8 @@ export const useSimulateBeanstalk_MowMultiple =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_Plant =
@@ -13513,6 +14445,8 @@ export const useSimulateBeanstalk_Plant =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"init"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13528,6 +14462,8 @@ export const useSimulateBeanstalk_Init =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_SetShipmentRoutes =
@@ -13542,6 +14478,8 @@ export const useSimulateBeanstalk_SetShipmentRoutes =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_Gm = /*#__PURE__*/ createUseSimulateContract({
@@ -13554,6 +14492,8 @@ export const useSimulateBeanstalk_Gm = /*#__PURE__*/ createUseSimulateContract({
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"sunrise"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13569,6 +14509,8 @@ export const useSimulateBeanstalk_Sunrise =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_ApproveL2Receiver =
@@ -13582,6 +14524,8 @@ export const useSimulateBeanstalk_ApproveL2Receiver =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"migrateL2Beans"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13597,6 +14541,8 @@ export const useSimulateBeanstalk_MigrateL2Beans =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_ApproveReceiver =
@@ -13610,6 +14556,8 @@ export const useSimulateBeanstalk_ApproveReceiver =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"issueDeposits"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13625,6 +14573,8 @@ export const useSimulateBeanstalk_IssueDeposits =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_IssueFertilizer =
@@ -13638,6 +14588,8 @@ export const useSimulateBeanstalk_IssueFertilizer =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"issueInternalBalances"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13653,6 +14605,8 @@ export const useSimulateBeanstalk_IssueInternalBalances =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useSimulateBeanstalk_IssuePlots =
@@ -13666,6 +14620,8 @@ export const useSimulateBeanstalk_IssuePlots =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"recieveL1Beans"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13681,6 +14637,8 @@ export const useSimulateBeanstalk_RecieveL1Beans =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_undefined =
@@ -13693,6 +14651,8 @@ export const useWatchBeanstalk_undefined =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"AddUnripeToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13708,6 +14668,8 @@ export const useWatchBeanstalk_AddUnripeToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_ChangeUnderlying =
@@ -13722,6 +14684,8 @@ export const useWatchBeanstalk_ChangeUnderlying =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_Chop = /*#__PURE__*/ createUseWatchContractEvent(
@@ -13732,6 +14696,8 @@ export const useWatchBeanstalk_Chop = /*#__PURE__*/ createUseWatchContractEvent(
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"InternalBalanceChanged"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13747,6 +14713,8 @@ export const useWatchBeanstalk_InternalBalanceChanged =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_Pick = /*#__PURE__*/ createUseWatchContractEvent(
@@ -13757,6 +14725,8 @@ export const useWatchBeanstalk_Pick = /*#__PURE__*/ createUseWatchContractEvent(
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"SwitchUnderlyingToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13772,6 +14742,8 @@ export const useWatchBeanstalk_SwitchUnderlyingToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_SetFertilizer =
@@ -13785,6 +14757,8 @@ export const useWatchBeanstalk_SetFertilizer =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"Pause"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13800,6 +14774,8 @@ export const useWatchBeanstalk_Pause =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_Unpause =
@@ -13813,6 +14789,8 @@ export const useWatchBeanstalk_Unpause =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"OwnershipTransferred"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13828,6 +14806,8 @@ export const useWatchBeanstalk_OwnershipTransferred =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_DiamondCut =
@@ -13841,6 +14821,8 @@ export const useWatchBeanstalk_DiamondCut =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"CancelBlueprint"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13856,6 +14838,8 @@ export const useWatchBeanstalk_CancelBlueprint =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_PublishRequisition =
@@ -13869,6 +14853,8 @@ export const useWatchBeanstalk_PublishRequisition =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"Tractor"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13884,6 +14870,8 @@ export const useWatchBeanstalk_Tractor =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_TractorVersionSet =
@@ -13897,6 +14885,8 @@ export const useWatchBeanstalk_TractorVersionSet =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"TokenApproval"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13912,6 +14902,8 @@ export const useWatchBeanstalk_TokenApproval =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_TokenTransferred =
@@ -13925,6 +14917,8 @@ export const useWatchBeanstalk_TokenTransferred =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"ActiveFieldSet"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13940,6 +14934,8 @@ export const useWatchBeanstalk_ActiveFieldSet =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_FieldAdded =
@@ -13953,6 +14949,8 @@ export const useWatchBeanstalk_FieldAdded =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"Harvest"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -13968,6 +14966,8 @@ export const useWatchBeanstalk_Harvest =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_PodListingCancelled =
@@ -13982,6 +14982,8 @@ export const useWatchBeanstalk_PodListingCancelled =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_Sow = /*#__PURE__*/ createUseWatchContractEvent({
@@ -13994,6 +14996,8 @@ export const useWatchBeanstalk_Sow = /*#__PURE__*/ createUseWatchContractEvent({
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"PlotTransfer"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14009,6 +15013,8 @@ export const useWatchBeanstalk_PlotTransfer =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_PodApproval =
@@ -14022,6 +15028,8 @@ export const useWatchBeanstalk_PodApproval =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"PodListingCreated"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14037,6 +15045,8 @@ export const useWatchBeanstalk_PodListingCreated =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_PodListingFilled =
@@ -14050,6 +15060,8 @@ export const useWatchBeanstalk_PodListingFilled =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"PodOrderCancelled"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14065,6 +15077,8 @@ export const useWatchBeanstalk_PodOrderCancelled =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_PodOrderCreated =
@@ -14078,6 +15092,8 @@ export const useWatchBeanstalk_PodOrderCreated =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"PodOrderFilled"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14093,6 +15109,8 @@ export const useWatchBeanstalk_PodOrderFilled =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_Convert =
@@ -14106,6 +15124,8 @@ export const useWatchBeanstalk_Convert =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"FarmerGerminatingStalkBalanceChanged"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14121,6 +15141,8 @@ export const useWatchBeanstalk_FarmerGerminatingStalkBalanceChanged =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_RemoveDeposits =
@@ -14134,6 +15156,8 @@ export const useWatchBeanstalk_RemoveDeposits =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"StalkBalanceChanged"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14149,6 +15173,8 @@ export const useWatchBeanstalk_StalkBalanceChanged =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_TotalGerminatingBalanceChanged =
@@ -14162,6 +15188,8 @@ export const useWatchBeanstalk_TotalGerminatingBalanceChanged =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"TotalGerminatingStalkChanged"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14177,6 +15205,8 @@ export const useWatchBeanstalk_TotalGerminatingStalkChanged =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_TransferBatch =
@@ -14190,6 +15220,8 @@ export const useWatchBeanstalk_TransferBatch =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"RemoveDeposit"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14205,6 +15237,8 @@ export const useWatchBeanstalk_RemoveDeposit =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_ApprovalForAll =
@@ -14218,6 +15252,8 @@ export const useWatchBeanstalk_ApprovalForAll =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"DepositApproval"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14233,6 +15269,8 @@ export const useWatchBeanstalk_DepositApproval =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_AddWhitelistStatus =
@@ -14246,6 +15284,8 @@ export const useWatchBeanstalk_AddWhitelistStatus =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"DewhitelistToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14261,6 +15301,8 @@ export const useWatchBeanstalk_DewhitelistToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_UpdateWhitelistStatus =
@@ -14274,6 +15316,8 @@ export const useWatchBeanstalk_UpdateWhitelistStatus =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"UpdatedEvaluationParameters"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14289,6 +15333,8 @@ export const useWatchBeanstalk_UpdatedEvaluationParameters =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_UpdatedGaugePointImplementationForToken =
@@ -14302,6 +15348,8 @@ export const useWatchBeanstalk_UpdatedGaugePointImplementationForToken =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"UpdatedLiquidityWeightImplementationForToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14317,6 +15365,8 @@ export const useWatchBeanstalk_UpdatedLiquidityWeightImplementationForToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_UpdatedOptimalPercentDepositedBdvForToken =
@@ -14330,6 +15380,8 @@ export const useWatchBeanstalk_UpdatedOptimalPercentDepositedBdvForToken =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"UpdatedOracleImplementationForToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14345,6 +15397,8 @@ export const useWatchBeanstalk_UpdatedOracleImplementationForToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_UpdatedStalkPerBdvPerSeason =
@@ -14358,6 +15412,8 @@ export const useWatchBeanstalk_UpdatedStalkPerBdvPerSeason =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"WhitelistToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14373,6 +15429,8 @@ export const useWatchBeanstalk_WhitelistToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_AddDeposit =
@@ -14386,6 +15444,8 @@ export const useWatchBeanstalk_AddDeposit =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"TransferSingle"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14401,6 +15461,8 @@ export const useWatchBeanstalk_TransferSingle =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_ClaimPlenty =
@@ -14414,6 +15476,8 @@ export const useWatchBeanstalk_ClaimPlenty =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"Plant"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14429,6 +15493,8 @@ export const useWatchBeanstalk_Plant =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_Incentivization =
@@ -14442,6 +15508,8 @@ export const useWatchBeanstalk_Incentivization =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"TotalStalkChangedFromGermination"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14457,6 +15525,8 @@ export const useWatchBeanstalk_TotalStalkChangedFromGermination =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_WellOracle =
@@ -14470,6 +15540,8 @@ export const useWatchBeanstalk_WellOracle =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"RemoveWhitelistStatus"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14485,6 +15557,8 @@ export const useWatchBeanstalk_RemoveWhitelistStatus =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_GaugePointChange =
@@ -14498,6 +15572,8 @@ export const useWatchBeanstalk_GaugePointChange =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"UpdateAverageStalkPerBdvPerSeason"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14513,6 +15589,8 @@ export const useWatchBeanstalk_UpdateAverageStalkPerBdvPerSeason =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_Receipt =
@@ -14526,6 +15604,8 @@ export const useWatchBeanstalk_Receipt =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"Shipped"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14541,6 +15621,8 @@ export const useWatchBeanstalk_Shipped =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_MigratedAccountStatus =
@@ -14554,6 +15636,8 @@ export const useWatchBeanstalk_MigratedAccountStatus =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"MigratedAccountTokenStatus"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14569,6 +15653,8 @@ export const useWatchBeanstalk_MigratedAccountTokenStatus =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_FertilizerMigrated =
@@ -14582,6 +15668,8 @@ export const useWatchBeanstalk_FertilizerMigrated =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"MigratedPlot"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14597,6 +15685,8 @@ export const useWatchBeanstalk_MigratedPlot =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_ShipmentRoutesSet =
@@ -14610,6 +15700,8 @@ export const useWatchBeanstalk_ShipmentRoutesSet =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"InternalBalanceMigrated"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14625,6 +15717,8 @@ export const useWatchBeanstalk_InternalBalanceMigrated =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_MigratedPodListing =
@@ -14638,6 +15732,8 @@ export const useWatchBeanstalk_MigratedPodListing =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"MigratedPodOrder"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14653,6 +15749,8 @@ export const useWatchBeanstalk_MigratedPodOrder =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_AddMigratedDeposit =
@@ -14666,6 +15764,8 @@ export const useWatchBeanstalk_AddMigratedDeposit =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"BeanToMaxLpGpPerBdvRatioChange"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14681,6 +15781,8 @@ export const useWatchBeanstalk_BeanToMaxLpGpPerBdvRatioChange =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_SeasonOfPlentyField =
@@ -14694,6 +15796,8 @@ export const useWatchBeanstalk_SeasonOfPlentyField =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"SeasonOfPlentyWell"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14709,6 +15813,8 @@ export const useWatchBeanstalk_SeasonOfPlentyWell =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_Soil = /*#__PURE__*/ createUseWatchContractEvent(
@@ -14719,6 +15825,8 @@ export const useWatchBeanstalk_Soil = /*#__PURE__*/ createUseWatchContractEvent(
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"Sunrise"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14734,6 +15842,8 @@ export const useWatchBeanstalk_Sunrise =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_TemperatureChange =
@@ -14748,6 +15858,8 @@ export const useWatchBeanstalk_TemperatureChange =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_Uri = /*#__PURE__*/ createUseWatchContractEvent({
@@ -14760,6 +15872,8 @@ export const useWatchBeanstalk_Uri = /*#__PURE__*/ createUseWatchContractEvent({
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"RetryableTicketCreated"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14775,6 +15889,8 @@ export const useWatchBeanstalk_RetryableTicketCreated =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_L1BeansMigrated =
@@ -14788,6 +15904,8 @@ export const useWatchBeanstalk_L1BeansMigrated =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"L1DepositsMigrated"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14803,6 +15921,8 @@ export const useWatchBeanstalk_L1DepositsMigrated =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_L1FertilizerMigrated =
@@ -14816,6 +15936,8 @@ export const useWatchBeanstalk_L1FertilizerMigrated =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"L1InternalBalancesMigrated"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14831,6 +15953,8 @@ export const useWatchBeanstalk_L1InternalBalancesMigrated =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_L1OrdersMigrated =
@@ -14844,6 +15968,8 @@ export const useWatchBeanstalk_L1OrdersMigrated =
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"L1PlotsMigrated"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
@@ -14859,6 +15985,8 @@ export const useWatchBeanstalk_L1PlotsMigrated =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
 export const useWatchBeanstalk_ReceiverApproved =
@@ -14873,6 +16001,8 @@ export const useWatchBeanstalk_ReceiverApproved =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0x4BEd6cb142b7d474242d87F4796387DEB9E1E1B4)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7)
  */
 export const useReadBeanstalkPrice_undefined =
@@ -14885,6 +16015,8 @@ export const useReadBeanstalkPrice_undefined =
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkPriceAbi}__ and `functionName` set to `"getConstantProductWell"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0x4BEd6cb142b7d474242d87F4796387DEB9E1E1B4)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7)
  */
@@ -14900,6 +16032,8 @@ export const useReadBeanstalkPrice_GetConstantProductWell =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0x4BEd6cb142b7d474242d87F4796387DEB9E1E1B4)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7)
  */
 export const useReadBeanstalkPrice_GetCurve =
@@ -14914,6 +16048,8 @@ export const useReadBeanstalkPrice_GetCurve =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0x4BEd6cb142b7d474242d87F4796387DEB9E1E1B4)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7)
  */
 export const useReadBeanstalkPrice_Price = /*#__PURE__*/ createUseReadContract({
@@ -14927,6 +16063,8 @@ export const useReadBeanstalkPrice_Price = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useReadDepot_undefined = /*#__PURE__*/ createUseReadContract({
@@ -14938,6 +16076,8 @@ export const useReadDepot_undefined = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link depotAbi}__ and `functionName` set to `"readPipe"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -14952,6 +16092,8 @@ export const useReadDepot_ReadPipe = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useReadDepot_Version = /*#__PURE__*/ createUseReadContract({
@@ -14965,6 +16107,8 @@ export const useReadDepot_Version = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useWriteDepot_undefined = /*#__PURE__*/ createUseWriteContract({
@@ -14976,6 +16120,8 @@ export const useWriteDepot_undefined = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link depotAbi}__ and `functionName` set to `"advancedPipe"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -14989,6 +16135,8 @@ export const useWriteDepot_AdvancedPipe = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link depotAbi}__ and `functionName` set to `"batchTransferERC1155"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -15004,6 +16152,8 @@ export const useWriteDepot_BatchTransferErc1155 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useWriteDepot_EtherPipe = /*#__PURE__*/ createUseWriteContract({
@@ -15016,6 +16166,8 @@ export const useWriteDepot_EtherPipe = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link depotAbi}__ and `functionName` set to `"farm"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -15030,6 +16182,8 @@ export const useWriteDepot_Farm = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useWriteDepot_MultiPipe = /*#__PURE__*/ createUseWriteContract({
@@ -15043,6 +16197,8 @@ export const useWriteDepot_MultiPipe = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useWriteDepot_PermitDeposit = /*#__PURE__*/ createUseWriteContract(
@@ -15053,6 +16209,8 @@ export const useWriteDepot_PermitDeposit = /*#__PURE__*/ createUseWriteContract(
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link depotAbi}__ and `functionName` set to `"permitDeposits"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -15068,6 +16226,8 @@ export const useWriteDepot_PermitDeposits =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useWriteDepot_PermitErc20 = /*#__PURE__*/ createUseWriteContract({
@@ -15080,6 +16240,8 @@ export const useWriteDepot_PermitErc20 = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link depotAbi}__ and `functionName` set to `"permitERC721"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -15094,6 +16256,8 @@ export const useWriteDepot_PermitErc721 = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useWriteDepot_PermitToken = /*#__PURE__*/ createUseWriteContract({
@@ -15107,6 +16271,8 @@ export const useWriteDepot_PermitToken = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useWriteDepot_Pipe = /*#__PURE__*/ createUseWriteContract({
@@ -15119,6 +16285,8 @@ export const useWriteDepot_Pipe = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link depotAbi}__ and `functionName` set to `"transferDeposit"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -15134,6 +16302,8 @@ export const useWriteDepot_TransferDeposit =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useWriteDepot_TransferDeposits =
@@ -15147,6 +16317,8 @@ export const useWriteDepot_TransferDeposits =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link depotAbi}__ and `functionName` set to `"transferERC1155"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -15162,6 +16334,8 @@ export const useWriteDepot_TransferErc1155 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useWriteDepot_TransferErc721 =
@@ -15176,6 +16350,8 @@ export const useWriteDepot_TransferErc721 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useWriteDepot_TransferToken = /*#__PURE__*/ createUseWriteContract(
@@ -15186,6 +16362,8 @@ export const useWriteDepot_TransferToken = /*#__PURE__*/ createUseWriteContract(
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link depotAbi}__
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -15199,6 +16377,8 @@ export const useSimulateDepot_undefined =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link depotAbi}__ and `functionName` set to `"advancedPipe"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -15214,6 +16394,8 @@ export const useSimulateDepot_AdvancedPipe =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useSimulateDepot_BatchTransferErc1155 =
@@ -15227,6 +16409,8 @@ export const useSimulateDepot_BatchTransferErc1155 =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link depotAbi}__ and `functionName` set to `"etherPipe"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -15242,6 +16426,8 @@ export const useSimulateDepot_EtherPipe =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useSimulateDepot_Farm = /*#__PURE__*/ createUseSimulateContract({
@@ -15254,6 +16440,8 @@ export const useSimulateDepot_Farm = /*#__PURE__*/ createUseSimulateContract({
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link depotAbi}__ and `functionName` set to `"multiPipe"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -15269,6 +16457,8 @@ export const useSimulateDepot_MultiPipe =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useSimulateDepot_PermitDeposit =
@@ -15282,6 +16472,8 @@ export const useSimulateDepot_PermitDeposit =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link depotAbi}__ and `functionName` set to `"permitDeposits"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -15297,6 +16489,8 @@ export const useSimulateDepot_PermitDeposits =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useSimulateDepot_PermitErc20 =
@@ -15310,6 +16504,8 @@ export const useSimulateDepot_PermitErc20 =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link depotAbi}__ and `functionName` set to `"permitERC721"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -15325,6 +16521,8 @@ export const useSimulateDepot_PermitErc721 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useSimulateDepot_PermitToken =
@@ -15339,6 +16537,8 @@ export const useSimulateDepot_PermitToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useSimulateDepot_Pipe = /*#__PURE__*/ createUseSimulateContract({
@@ -15351,6 +16551,8 @@ export const useSimulateDepot_Pipe = /*#__PURE__*/ createUseSimulateContract({
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link depotAbi}__ and `functionName` set to `"transferDeposit"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -15366,6 +16568,8 @@ export const useSimulateDepot_TransferDeposit =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useSimulateDepot_TransferDeposits =
@@ -15379,6 +16583,8 @@ export const useSimulateDepot_TransferDeposits =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link depotAbi}__ and `functionName` set to `"transferERC1155"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -15394,6 +16600,8 @@ export const useSimulateDepot_TransferErc1155 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const useSimulateDepot_TransferErc721 =
@@ -15407,6 +16615,8 @@ export const useSimulateDepot_TransferErc721 =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link depotAbi}__ and `functionName` set to `"transferToken"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f00B711f90e503D3035E890A19693ef27Db9)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -15422,6 +16632,8 @@ export const useSimulateDepot_TransferToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
 export const useReadPipeline_undefined = /*#__PURE__*/ createUseReadContract({
@@ -15433,6 +16645,8 @@ export const useReadPipeline_undefined = /*#__PURE__*/ createUseReadContract({
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link pipelineAbi}__ and `functionName` set to `"supportsInterface"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -15448,6 +16662,8 @@ export const useReadPipeline_SupportsInterface =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
 export const useReadPipeline_Version = /*#__PURE__*/ createUseReadContract({
@@ -15461,6 +16677,8 @@ export const useReadPipeline_Version = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
 export const useWritePipeline_undefined = /*#__PURE__*/ createUseWriteContract({
@@ -15472,6 +16690,8 @@ export const useWritePipeline_undefined = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link pipelineAbi}__ and `functionName` set to `"advancedPipe"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -15487,6 +16707,8 @@ export const useWritePipeline_AdvancedPipe =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
 export const useWritePipeline_MultiPipe = /*#__PURE__*/ createUseWriteContract({
@@ -15499,6 +16721,8 @@ export const useWritePipeline_MultiPipe = /*#__PURE__*/ createUseWriteContract({
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link pipelineAbi}__ and `functionName` set to `"onERC1155BatchReceived"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -15514,6 +16738,8 @@ export const useWritePipeline_OnErc1155BatchReceived =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
 export const useWritePipeline_OnErc1155Received =
@@ -15527,6 +16753,8 @@ export const useWritePipeline_OnErc1155Received =
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link pipelineAbi}__ and `functionName` set to `"onERC721Received"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -15542,6 +16770,8 @@ export const useWritePipeline_OnErc721Received =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
 export const useWritePipeline_Pipe = /*#__PURE__*/ createUseWriteContract({
@@ -15555,6 +16785,8 @@ export const useWritePipeline_Pipe = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
 export const useSimulatePipeline_undefined =
@@ -15567,6 +16799,8 @@ export const useSimulatePipeline_undefined =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link pipelineAbi}__ and `functionName` set to `"advancedPipe"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -15582,6 +16816,8 @@ export const useSimulatePipeline_AdvancedPipe =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
 export const useSimulatePipeline_MultiPipe =
@@ -15595,6 +16831,8 @@ export const useSimulatePipeline_MultiPipe =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link pipelineAbi}__ and `functionName` set to `"onERC1155BatchReceived"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -15610,6 +16848,8 @@ export const useSimulatePipeline_OnErc1155BatchReceived =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
 export const useSimulatePipeline_OnErc1155Received =
@@ -15624,6 +16864,8 @@ export const useSimulatePipeline_OnErc1155Received =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
+ * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
 export const useSimulatePipeline_OnErc721Received =
@@ -15637,6 +16879,8 @@ export const useSimulatePipeline_OnErc721Received =
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link pipelineAbi}__ and `functionName` set to `"pipe"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000421A9d890cb51EBd9D593De9C0B199419)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */

@@ -3,7 +3,7 @@ import { tokens } from "@/constants/tokens";
 import { Abi, erc20Abi } from "viem";
 import { TokenValue } from "@/classes/TokenValue";
 import { Token } from "@/utils/types";
-import { arbitrum } from "viem/chains";
+import { arbitrum, base } from "viem/chains";
 
 export default function useTokenData() {
     const chainId = useChainId();
@@ -12,7 +12,7 @@ export default function useTokenData() {
     const lpTokens: Token[] = [];
     const preferredTokens: Token[] = [];
 
-    const _chainId = chainId === 1337 ? arbitrum.id : chainId;
+    const _chainId = chainId === 31337 ? base.id : chainId;
 
     const mainToken = tokens[_chainId].find((token) => token.isMain) as Token;
     const nativeToken = tokens[_chainId].find((token) => token.isNative) as Token;
