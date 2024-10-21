@@ -2,18 +2,19 @@ import { Button } from "./ui/Button";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
 import { Separator } from "./ui/Separator";
 import { useEffect, useState } from "react";
-import { FarmToMode } from "@/utils/types";
+import { FarmToMode, Token } from "@/utils/types";
 import { ForwardArrowIcon } from "./Icons";
 import { useAccount, useChainId, useWriteContract } from "wagmi";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { TokenValue } from "@/classes/TokenValue";
-import { Address, BaseError } from "viem";
+import { Address, BaseError, encodeFunctionData } from "viem";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import DestinationBalanceSelect from "./DestinationBalanceSelect";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
+import useTokenData from "@/state/useTokenData";
 
 
 export default function WalletButtonClaim({ setShowClaim, showClaim }: { setShowClaim: React.Dispatch<React.SetStateAction<boolean>>, showClaim: boolean } ) {
@@ -25,6 +26,7 @@ export default function WalletButtonClaim({ setShowClaim, showClaim }: { setShow
     const farmerSilo = useFarmerSilo();
     const siloQueryKeys = farmerSilo.queryKeys;
     const priceData = usePriceData();
+    const { whitelistedTokens } = useTokenData();
 
     const queryClient = useQueryClient();
     const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
@@ -45,11 +47,24 @@ export default function WalletButtonClaim({ setShowClaim, showClaim }: { setShow
     async function onSubmit() {
         if (!chainId || !account.address || !balanceTo) return;
 
+        const tokensToMow = whitelistedTokens.map((token: Token) => token.address);
+        const mow = encodeFunctionData({
+          abi: beanstalkAbi,
+          functionName: "mowMultiple",
+          args: [account.address, tokensToMow],
+        });
+
+        const claimFlood = encodeFunctionData({ 
+            abi: beanstalkAbi,
+            functionName: "claimAllPlenty",
+            args: [Number(balanceTo)]
+        });
+
         const tx = () => writeContractAsync({
             address: beanstalkAddress[chainId as keyof typeof beanstalkAddress] as Address,
             abi: beanstalkAbi,
-            functionName: "claimAllPlenty",
-            args: [Number(balanceTo)],
+            functionName: "farm",
+            args: [[mow, claimFlood]],
           });
 
           toast.promise(tx, {
