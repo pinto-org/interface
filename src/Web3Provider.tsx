@@ -21,14 +21,32 @@ export const testConfig = createConfig({
   },
 });
 
+export const tenderlyTestnet = defineChain({
+  id: 31337,
+  name: 'Tenderly Base Testnet',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: {
+    default: { http: ['https://virtual.base.rpc.tenderly.co/29dab153-f0b9-4273-8beb-877f1ca3fa26'] },
+  },
+  blockExplorers: {
+    default: { name: 'Etherscan', url: 'https://etherscan.io' },
+  },
+  contracts: {
+    multicall3: {
+      address: '0xca11bde05977b3631167028862be2a173976ca11',
+      blockCreated: 5022,
+    },
+  },
+})
+
 
 const config = createConfig(
   getDefaultConfig({
     // Your dApps chains
-    chains: [foundry],
+    chains: [tenderlyTestnet],
     transports: {
       // RPC URL for each chain
-      [foundry.id]: http('https://virtual.base.rpc.tenderly.co/29dab153-f0b9-4273-8beb-877f1ca3fa26'),
+      [tenderlyTestnet.id]: http(),
     },
     batch: {
       multicall: {
