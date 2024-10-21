@@ -3,6 +3,7 @@ import PriceButton from "./PriceButton";
 import SeasonsButton from "./SeasonsButton";
 import { useState } from "react";
 import WalletButton from "./WalletButton";
+import ChainButton from "./ChainButton";
 
 function Frame() {
 
@@ -44,7 +45,8 @@ function Frame() {
         <Navi />
       </div>
       <div className="flex w-1/3 justify-end">
-        <span className={`${lastOpened === 'wallet' && 'z-[51]'}`}>
+        <span className={`${lastOpened === 'wallet' && 'z-[51]'} flex flex-row gap-2`}>
+          <ChainButton />
           <WalletButton isOpen={walletOpen} togglePanel={() => togglePanel('wallet')} />
         </span>
       </div>

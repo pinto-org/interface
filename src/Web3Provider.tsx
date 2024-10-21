@@ -43,10 +43,11 @@ export const tenderlyTestnet = defineChain({
 const config = createConfig(
   getDefaultConfig({
     // Your dApps chains
-    chains: [tenderlyTestnet],
+    chains: [tenderlyTestnet, localhost],
     transports: {
       // RPC URL for each chain
       [tenderlyTestnet.id]: http(),
+      [localhost.id]: http(),
     },
     batch: {
       multicall: {

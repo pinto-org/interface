@@ -12,7 +12,8 @@ export default function useTokenData() {
     const lpTokens: Token[] = [];
     const preferredTokens: Token[] = [];
 
-    const _chainId = chainId === 31337 ? base.id : chainId;
+    const _chainId = (chainId === 31337) ? base.id : (chainId === 1337) ? arbitrum.id : chainId;
+    console.log("CHAINID: ", _chainId, chainId)
 
     const mainToken = tokens[_chainId].find((token) => token.isMain) as Token;
     const nativeToken = tokens[_chainId].find((token) => token.isNative) as Token;
