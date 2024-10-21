@@ -34,7 +34,7 @@ export default function ChainButton() {
               <DialogClose asChild>
                 <Button
                   key={`selectChain${chain.id}`}
-                  onClick={() => switchChain({ chainId: chain.id })}
+                  onClick={() => { switchChain({ chainId: chain.id }); location.reload() }}
                   type="button"
                   variant="outline" 
                   className={`font-[400] text-[1.5rem] p-8 mt-4 w-full text-pinto-gray-5 hover:text-pinto-gray-5 rounded-[1rem] flex flex-row gap-2 items-center ${chainId === chain.id ? 'border-pinto-green bg-pinto-green-2 text-white' : ''}`}
