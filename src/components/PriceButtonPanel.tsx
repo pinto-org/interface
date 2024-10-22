@@ -51,8 +51,8 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
               </div>
             </div>
             <div className="flex flex-row relative mt-4">
-              <div className={"h-2 rounded-l-[0.5rem] bg-pinto"} style={{ width: `${Number(totalDeltaBar.add(50).toHuman())}%` }} />
-              <div className={"h-2 w-full relative flex flex-row rounded-r-[0.5rem] overflow-clip bg-red-500"} style={{ width: `${totalDeltaBar.add(50).sub(100).abs().toHuman()}%` }}>
+              <div className={"h-2 rounded-l-[0.5rem] bg-pinto min-w-2"} style={{ width: `${Number(totalDeltaBar.add(50).toHuman())}%` }} />
+              <div className={"h-2 w-full relative flex flex-row min-w-2 rounded-r-[0.5rem] overflow-clip bg-red-500"} style={{ width: `${totalDeltaBar.add(50).sub(100).abs().toHuman()}%` }}>
                 {priceData.pools.map((pool, i) => {                  
                   const deltaBar = Number((pool.deltaB.abs()).div(priceData.deltaB.eq(0) ? 1 : priceData.deltaB.abs()).mul(100).toHuman()).toFixed(2);
                   if (!pool.pool?.color) return
@@ -61,8 +61,8 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
                     )
                 })}
               </div>
-              <div className={`${priceData.deltaB.gt(0) ? 'right-[50%] border-l-2' : 'left-[50%] border-r-2'} h-2 bg-white opacity-50 absolute`} style={{ width: `${Number(totalDeltaBar.toHuman())}%` }} />
-              <div className={`${priceData.deltaB.gt(0) ? 'right-[50%] border-l-2' : 'left-[50%] border-r-2'} h-2 bg-transparent border-white absolute`} style={{ width: `${Number(totalDeltaBar.toHuman())}%` }} />
+              <div className={`${priceData.deltaB.gt(0) ? 'right-[50%] border-l-2' : 'left-[50%] border-r-2'} h-2 bg-white opacity-50 absolute max-w-[calc(50%_-_8px)]`} style={{ width: `${totalDeltaBar.abs().toHuman()}%` }} />
+              <div className={`${priceData.deltaB.gt(0) ? 'right-[50%] border-l-2' : 'left-[50%] border-r-2'} h-2 bg-transparent border-white absolute max-w-[calc(50%_-_8px)]`} style={{ width: `${totalDeltaBar.abs().toHuman()}%` }} />
                 <div className="left-[50%] absolute -bottom-2 flex flex-col">
                 <div className="flex flex-col text-center -ml-4 mb-1 text-[0.75rem] text-pinto-gray-3 font-[400]">
                   <span>$1.00</span>
@@ -105,7 +105,7 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
               const token1BalanceUsd = pool.balances[1].mul(token1Price ?? TokenValue.ZERO) || 0n;
               const mainTokenIndex = pool.tokens.findIndex((token: Token) => token.isMain);
               const backingTokenIndex = pool.tokens.findIndex((token: Token) => !token.isMain);
-              const deltaBar = Number((pool.deltaB.abs()).div(pool.balances[mainTokenIndex]).mul(100).toHuman()).toFixed(2);
+              const deltaBar = pool.balances[mainTokenIndex].gt(0) ? Number((pool.deltaB.abs()).div(pool.balances[mainTokenIndex]).mul(100).toHuman()).toFixed(2) : TokenValue.ZERO;
               
               if (showPrices) {
                 const tokenToShow = priceData.tokenPrices.get(pool.tokens[backingTokenIndex]);
@@ -146,8 +146,8 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
                     <div className="flex flex-row relative">
                       <div className={"w-full h-2 rounded-l-[0.5rem]"}  style={{ background: pool.tokens[0].color }} />
                       <div className={"w-full h-2 rounded-r-[0.5rem]"}  style={{ background: pool.tokens[1].color }} />
-                      <div className={`${pool.deltaB.gt(0) ? 'right-[50%] border-l-2' : 'left-[50%] border-r-2'} h-2 border-white bg-white absolute`} style={{ width: `${deltaBar}%` }} />
-                      <div className={`${pool.deltaB.gt(0) ? 'right-[50%] border-l-2' : 'left-[50%] border-r-2'} h-2 border-white opacity-50 absolute`} style={{ width: `${deltaBar}%`, background: `${pool.deltaB.gt(0) ? pool.tokens[1].color : pool.tokens[0].color }` }} />
+                      <div className={`${pool.deltaB.gt(0) ? 'right-[50%] border-l-2' : 'left-[50%] border-r-2'} h-2 border-white bg-white absolute max-w-[calc(50%_-_8px)]`} style={{ width: `${deltaBar}%` }} />
+                      <div className={`${pool.deltaB.gt(0) ? 'right-[50%] border-l-2' : 'left-[50%] border-r-2'} h-2 border-white opacity-50 absolute max-w-[calc(50%_-_8px)]`} style={{ width: `${deltaBar}%`, background: `${pool.deltaB.gt(0) ? pool.tokens[1].color : pool.tokens[0].color }` }} />
                       <div className="left-[50%] absolute -bottom-2 flex flex-col">
                         <div className="flex flex-col text-center -ml-4 mb-1 text-[0.75rem] text-pinto-gray-3 font-[400]">
                           <span>$1.00</span>

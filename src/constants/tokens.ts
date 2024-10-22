@@ -134,6 +134,48 @@ export const tokens: { [chainId: number]: Token[] } = {
                 "0x4200000000000000000000000000000000000006"
             ]
         },
+        {
+            chainId: base.id,
+            name: "PINTO:cbETH LP",
+            symbol: "PINTO:cbETH",
+            address: "0x3e11339Ff6A111A2810974941624Da4e997D253A",
+            decimals: 18,
+            isLP: true,
+            logoURI: pintoWstethIcon,
+            color: "#0052FF",
+            tokens: [
+                "0xb170000aeeFa790fa61D6e837d1035906839a3c8",
+                "0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22"
+            ]
+        },
+        {
+            chainId: base.id,
+            name: "PINTO:USDC LP",
+            symbol: "PINTO:USDC",
+            address: "0x3e115573f7F22029EdF4e6155d2DA0Ba379Dc45d",
+            decimals: 18,
+            isLP: true,
+            logoURI: pintoWstethIcon,
+            color: "#00A3FF",
+            tokens: [
+                "0xb170000aeeFa790fa61D6e837d1035906839a3c8",
+                "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+            ]
+        },
+        {
+            chainId: base.id,
+            name: "PINTO:cbBTC LP",
+            symbol: "PINTO:cbBTC",
+            address: "0x3e11442481e80AB40717A5C7aec2139Feaaac14d",
+            decimals: 18,
+            isLP: true,
+            logoURI: pintoWstethIcon,
+            color: "#F7931A",
+            tokens: [
+                "0xb170000aeeFa790fa61D6e837d1035906839a3c8",
+                "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf"
+            ]
+        },
         // Whitelisted Tokens
         {
             chainId: base.id,
@@ -153,7 +195,9 @@ export const tokens: { [chainId: number]: Token[] } = {
             symbol: "USDC",
             address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
             decimals: 6,
+            isWhitelisted: true,
             logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png",
+            color: "#2775CA"
         },
         {
             chainId: base.id,
@@ -163,6 +207,25 @@ export const tokens: { [chainId: number]: Token[] } = {
             decimals: 6,
             logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
         },
-
+        {
+            chainId: base.id,
+            name: "Coinbase Wrapped Staked ETH",
+            symbol: "cbETH",
+            address: "0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22",
+            decimals: 18,
+            isWhitelisted: true,
+            logoURI: "https://assets.coingecko.com/coins/images/27008/standard/cbeth.png?1709186989",
+            color: "#0052FF",
+        },
+        {
+            chainId: base.id,
+            name: "Coinbase Wrapped BTC",
+            symbol: "cbBTC",
+            address: "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf",
+            decimals: 8,
+            isWhitelisted: true,
+            logoURI: "https://assets.coingecko.com/coins/images/40143/standard/cbbtc.webp?1726136727",
+            color: "#F7931A",
+        }
     ]
 }
