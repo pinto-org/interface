@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAccount, useChainId } from "wagmi";
 import useTokenData from "@/state/useTokenData";
 import { ZeroExAPI } from "@/utils/types";
-import { arbitrum, avalanche, base, bsc, celo, fantom, localhost, mainnet, optimism, polygon } from "viem/chains";
+import { arbitrum, avalanche, base, bsc, celo, fantom, foundry, localhost, mainnet, optimism, polygon } from "viem/chains";
 
 interface ZeroExQuote extends ZeroExAPI {
     mode: "exactInput" | "exactOutput",
@@ -14,7 +14,6 @@ export default function use0x(settings: ZeroExQuote) {
     const chainId = useChainId();
     const endpoints = {
         [mainnet.id]: 'https://api.0x.org/swap/v1/quote?',
-        [localhost.id]: 'https://api.0x.org/swap/v1/quote?',
         [arbitrum.id]: 'https://arbitrum.api.0x.org/swap/v1/quote?',
         [avalanche.id]: 'https://avalanche.api.0x.org/swap/v1/quote?',
         [base.id]: 'https://base.api.0x.org/swap/v1/quote?',
@@ -22,7 +21,9 @@ export default function use0x(settings: ZeroExQuote) {
         [celo.id]: 'https://celo.api.0x.org/swap/v1/quote?',
         [fantom.id]: 'https://fantom.api.0x.org/swap/v1/quote?',
         [optimism.id]: 'https://optimism.api.0x.org/swap/v1/quote?',
-        [polygon.id]: 'https://polygon.api.0x.org/swap/v1/quote?'
+        [polygon.id]: 'https://polygon.api.0x.org/swap/v1/quote?',
+        [localhost.id]: 'https://base.api.0x.org/swap/v1/quote?',
+        [foundry.id]: 'https://base.api.0x.org/swap/v1/quote?'
     }
     const account = useAccount().address || '0x';
 
