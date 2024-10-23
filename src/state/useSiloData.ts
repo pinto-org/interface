@@ -13,8 +13,7 @@ import useTokenData from "./useTokenData";
 import { SEEDS, STALK } from "@/constants/internalTokens";
 import { Address } from "viem";
 import { subgraphs } from "@/constants/subgraph";
-import { Token } from "graphql";
-import { SiloTokenData } from "@/utils/types";
+import { SiloTokenData, Token } from "@/utils/types";
 
 const settings = {
   query: {
