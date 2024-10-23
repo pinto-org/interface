@@ -79,7 +79,7 @@ export default function TransferAll() {
                 if (tokenData.balance.internal.eq(0)) return;
                 return (
                   <div
-                    key={`farmBalance_value_${tokenData.address}`}
+                    key={`farmBalance_value_${tokenData.token.address}`}
                     className={"flex flex-row gap-1.5 items-center font-[340] text-[2rem] text-pinto-gray-5"}
                   >
                     <img src={tokenData.token.logoURI} className="h-8 w-8" alt={tokenData.token.name} />
