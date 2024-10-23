@@ -25,6 +25,7 @@ function App() {
           <Route path="/podmarket/:mode/:id" element={<Market />} />
           <Route path="/market" element={<Swap />} />
           <Route path="/transfer" element={<Transfer />} />
+          <Route path="/transfer/:mode" element={<Transfer />} />
         </Routes>
       </div>
     </BrowserRouter>

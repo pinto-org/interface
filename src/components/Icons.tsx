@@ -85,3 +85,9 @@ export const UpRightArrowIcon = ({ color = "#9C9C9C", width = 12, height = 13 }:
   </svg>
 );
 
+export const CheckmarkIcon = ({ color = "#9C9C9C", width = 24, height = 24 }: SVGProps) => (
+  <svg width={width} height={height} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M5.5 11L10.5 16L19.5 7" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+);
+

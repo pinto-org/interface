@@ -41,6 +41,7 @@ export function useFarmerBalances() {
 
   return {
     balances: balances,
-    queryKey: tokenBalances.queryKey
+    queryKey: tokenBalances.queryKey,
+    refetch: tokenBalances.refetch
   };
 }

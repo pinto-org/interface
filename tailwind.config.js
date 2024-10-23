@@ -76,6 +76,7 @@ module.exports = {
       },
       fontFamily: {
         pinto: ["Pinto"],
+        roboto: ["Roboto"]
       },
       keyframes: {
         "accordion-down": {

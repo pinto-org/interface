@@ -27,6 +27,12 @@
     src: 
       url(src/assets/fonts/Pinto-Medium.woff2) format('woff2');
   }
+  @font-face {
+    font-family: "Roboto";
+    font-weight: 300;
+    src:
+      url(src/assets/fonts/Roboto-Light.ttf) format('ttf');
+  }
 }
 
 @layer base {

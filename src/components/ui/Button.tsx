@@ -9,7 +9,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-pinto-green-2 text-white hover:bg-pinto-green-2/80 transition-all",
+        default: "bg-pinto text-white hover:bg-pinto/80 transition-all",
         defaultAlt: "bg-pinto-green-1 text-pinto-green hover:bg-pinto-green-1/80 transition-all",
         destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         outline: "border border-pinto-gray-2 bg-pinto-gray-1 shadow-sm hover:bg-pinto-gray-2/50 hover:text-accent-foreground",

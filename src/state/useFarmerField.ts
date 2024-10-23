@@ -15,7 +15,7 @@ export function useFarmerField() {
 
   const queryKey = ["farmerField", { chainId: chainId, variables: [account.address?.toString().toLowerCase()] }];
 
-  const { data } = useQuery({
+  const { data: data, refetch: refetch } = useQuery({
     queryKey: queryKey,
     queryFn: async () =>
       request(subgraphs[chainId].beanstalk, FarmerPlotsDocument, {
@@ -99,5 +99,5 @@ export function useFarmerField() {
 
   const totalPods: TokenValue = !plots ? TokenValue.ZERO : plots.reduce((total: TokenValue, plot) => total.add(plot.pods), TokenValue.ZERO);
 
-  return { plots: plots, orders: orders, listings: listings, totalPods: totalPods, queryKey: queryKey };
+  return { plots: plots, orders: orders, listings: listings, totalPods: totalPods, queryKey: queryKey, refetch: refetch };
 }
