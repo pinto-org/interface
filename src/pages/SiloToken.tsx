@@ -130,7 +130,7 @@ export default function SiloToken() {
                     <div className="inline-flex items-center gap-1">
                       <img src={stalkIcon} className="w-6 h-6 mt-0.5" alt="Stalk" />
                       <div className="font-[400] text-[1.5rem] text-black">
-                        {(farmerDeposits ? farmerDeposits.stalk.base : TokenValue.ZERO).reDecimal(2).toHuman("short")}
+                        {(siloTokenData ? siloTokenData.tokenSettings.stalkIssuedPerBdv.mul(siloTokenData.depositedBDV) : TokenValue.ZERO).reDecimal(2).toHuman("short")}
                       </div>
                     </div>
                   </div>
