@@ -22,7 +22,7 @@ export const testConfig = createConfig({
 });
 
 export const tenderlyTestnet = defineChain({
-  id: 8453,
+  id: 41337,
   name: 'Tenderly Base Testnet',
   nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
   rpcUrls: {
