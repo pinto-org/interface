@@ -1,21 +1,29 @@
 import claimableIcon from "@/assets/protocol/Claimable.png";
 import pdvIcon from "@/assets/protocol/PDV.png";
-import plotIcon from "@/assets/protocol/Plot.svg";
-import podIcon from "@/assets/protocol/Pod-variant.png";
 import { TokenValue } from "@/classes/TokenValue";
 import PlotsTable from "@/components/PlotsTable";
 import StatPanel from "@/components/StatPanel";
 import { Button } from "@/components/ui/Button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useFieldData } from "@/state/useFieldData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { BaseError, encodeFunctionData } from "viem";
+import { useAccount, useChainId, useWriteContract } from "wagmi";
+import { toast } from "sonner";
 
 export default function Overview() {
+
+  const account = useAccount();
+  const chainId = useChainId();
+
   const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
 
@@ -46,6 +54,51 @@ export default function Overview() {
   const podRate = fieldData.temperature.max;
   const siloTokens = Array.from(siloData.tokenData.entries());
   const avg = (siloTokens.reduce((total, token) => token[1].yields.beanAPY + total, 0) / siloTokens.length).toFixed(2);
+
+  const queryClient = useQueryClient();
+  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
+
+  useEffect(() => {
+    if (isSuccess) {
+      const allQueryKeys = [...farmerSilo.queryKeys, ...siloData.queryKeys, fieldData.queryKeys]
+      // invalidating query results to trigger a refetch
+      allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
+      farmerField.refetch();
+    };
+  }, [isSuccess]);
+
+  async function onSubmit() {
+    if (!account.address) return;
+    
+    const plant = encodeFunctionData({
+      abi: beanstalkAbi,
+      functionName: "plant"
+    });
+    
+    const tokensToMow = SILO_WHITELIST.map((token) => token.address);
+    const mow = encodeFunctionData({
+      abi: beanstalkAbi,
+      functionName: "mowMultiple",
+      args: [account.address, tokensToMow],
+    });
+    
+    const tx = () => writeContractAsync({
+      address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+      abi: beanstalkAbi,
+      functionName: "farm",
+      args: [[plant, mow]],
+    });
+
+    toast.promise(tx, {
+      loading: "Claiming rewards...",
+      success: (data) => {
+        return `Claim complete!`
+      },
+      error: (error) => {
+        return ((error as BaseError).shortMessage || `Failed to claim rewards.`)
+      }
+    });
+  }
 
   return (
     <div
@@ -119,7 +172,7 @@ export default function Overview() {
                     </TableHeader>
                     <TableBody>
                       {(claimableBeans.gt(0) || claimableStalk.gt(0) || claimableSeeds.gt(0)) && (
-                        <TableRow className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1">
+                        <TableRow onClick={() => onSubmit()}  className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 hover:cursor-pointer">
                           <TableCell className="text-pinto-green-2 font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">
                             <img src={claimableIcon} className="h-8 w-8" alt="Claimable Tokens" />
                             <div>Claimable</div>
