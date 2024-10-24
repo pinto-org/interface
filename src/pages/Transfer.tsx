@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { useChainId, useConfig } from "wagmi";
 import TransferActions from "./transfer/TransferActions";
 import TransferAll from "./transfer/actions/TransferAll";
+import TransferFarmBalance from "./transfer/actions/TransferFarmBalance";
 
 function Transfer() {
   const { mode } = useParams();
@@ -22,7 +23,7 @@ function Transfer() {
           </div>
         </div>
         <Separator />
-        {mode === "all" ? <TransferAll /> : <TransferActions />}
+        {mode === "all" ? <TransferAll /> : /* mode === "farmbalance" ? <TransferFarmBalance /> : */ <TransferActions />}
       </div>
     </div>
   );

@@ -114,6 +114,9 @@ function Deposit({ siloToken }: SiloDepositForm) {
         return ((error as BaseError).shortMessage || `Transaction failed.`)
       }
     });
+
+    depositedBalances.refetch()
+
     };
 
   return (

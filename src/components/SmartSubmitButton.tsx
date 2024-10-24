@@ -71,8 +71,8 @@ export default function SmartSubmitButton({ token, amount, submitFunction, submi
     };
 
     return (
-        <Button type={"button"} className={`flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem] ${className}`} onClick={() => approveOrRun()}>
-            {account.address && needsApproval ? "Approve Spending" : (submitButtonText || "Submit")}
+        <Button type={"button"} disabled={isConfirming} className={`flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem] ${className}`} onClick={() => approveOrRun()}>
+            {isConfirming ? "Sending Transaction" : account.address && needsApproval ? "Approve Spending" : (submitButtonText || "Submit")}
         </Button>
     )
 }

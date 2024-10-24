@@ -21,6 +21,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { type Address, type BaseError, encodeFunctionData } from "viem";
 import { useAccount, useChainId, useWriteContract } from "wagmi";
+import AllFarmBalances from "../AllFarmBalances";
+import { ComboInputField } from "@/components/ComboInputField";
 
 export default function TransferAll() {
   const account = useAccount();
@@ -74,21 +76,7 @@ export default function TransferAll() {
         {hasBalance && (
           <div className="flex flex-col">
             <Label className="font-[340] text-[1.25rem]">Value in my Farm Balance:</Label>
-            <div className="flex flex-wrap gap-x-4">
-              {balancesToSend.map((tokenData) => {
-                if (tokenData.balance.internal.eq(0)) return;
-                return (
-                  <div
-                    key={`farmBalance_value_${tokenData.token.address}`}
-                    className={"flex flex-row gap-1.5 items-center font-[340] text-[2rem] text-pinto-gray-5"}
-                  >
-                    <img src={tokenData.token.logoURI} className="h-8 w-8" alt={tokenData.token.name} />
-                    <span>{tokenData.balance.internal.reDecimal(2).toHuman()}</span>
-                    <span>{tokenData.token.symbol}</span>
-                  </div>
-                );
-              })}
-            </div>
+            <AllFarmBalances />
           </div>
         )}
         {hasPlots && (
@@ -179,46 +167,6 @@ export default function TransferAll() {
       farmData.push(balanceTransferCall);
     }
 
-    // Deposit Transfers
-    for (const depositData of depositsToSend) {
-      if (depositData.deposit.amount.eq(0)) continue;
-      const stems = depositData.deposit.deposits.map((crate) => crate.stem.toBigInt());
-      const amounts = depositData.deposit.deposits.map((crate) => crate.amount.toBigInt());
-      const depositTransferCall = encodeFunctionData({
-        abi: beanstalkAbi,
-        functionName: "transferDeposits",
-        args: [account.address, destination as Address, depositData.token.address, stems, amounts],
-      });
-      farmData.push(depositTransferCall);
-    }
-
-    // Plot Transfers
-    if (hasPlots) {
-      // todo: add support for more than one plot line
-      const fieldId = BigInt(0);
-      const ids: bigint[] = [];
-      const starts: bigint[] = [];
-      const ends: bigint[] = [];
-      for (const plotData of farmerField.plots) {
-        ids.push(plotData.index.toBigInt());
-        starts.push(BigInt(0));
-        ends.push(plotData.pods.toBigInt());
-      }
-      const plotTransferCall = encodeFunctionData({
-        abi: beanstalkAbi,
-        functionName: "transferPlots",
-        args: [
-          account.address,
-          destination as Address,
-          fieldId,
-          ids, //plot ids
-          starts, // starts
-          ends, // ends
-        ],
-      });
-      farmData.push(plotTransferCall);
-    }
-
     const tx = () =>
       writeContractAsync({
         address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
@@ -228,7 +176,7 @@ export default function TransferAll() {
       });
 
     toast.promise(tx, {
-      loading: "Transferring everything...",
+      loading: "Transferring Farm Balances...",
       success: (data) => {
         return "Transfer complete!";
       },
@@ -245,7 +193,18 @@ export default function TransferAll() {
       </div>
       {step <= 1 ? (
         <>
-          <Label>Send everything to</Label>
+          <Label>Amount and token to send</Label>
+          {/*<ComboInputField 
+              amount={amountIn}
+              setAmount={setAmountIn}
+              setToken={setTokenIn}
+              setBalanceFrom={setBalanceFrom} 
+              selectedToken={tokenIn}
+              balanceFrom={balanceFrom}
+              setMaxAmount={changeAmountIn}
+              balancesToShow={[FarmFromMode.EXTERNAL, FarmFromMode.INTERNAL]}
+          />*/}
+          <Label>Send tokens to</Label>
           <AddressInputField value={destination} setValue={setDestination} />
         </>
       ) : (

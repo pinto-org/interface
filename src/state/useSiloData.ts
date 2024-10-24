@@ -82,6 +82,7 @@ export function useSiloData() {
       contracts: contractCalls,
       ...settings
     });
+
     const siloTokenData = result.data as Array<{ result: any, status: string }>
 
     const index = yields?.siloYields[0].tokenAPYS.findIndex(

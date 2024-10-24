@@ -15,6 +15,7 @@ import useTokenData from "@/state/useTokenData";
 import { useParams } from "react-router-dom";
 import DepositsTable from "./silo/DepositsTable";
 import SiloActions from "./silo/SiloActions";
+import GerminationNotice from "./silo/GerminationNotice";
 
 export default function SiloToken() {
   const { tokenAddress } = useParams();
@@ -201,8 +202,18 @@ export default function SiloToken() {
             </div>
           </div>
         </div>
-        <div className="w-[500px] mt-32 p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border">
-          <SiloActions token={siloToken} />
+        <div className="w-[500px] mt-32 flex flex-col gap-6"> 
+          <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border">
+            <SiloActions token={siloToken} />
+          </div>
+          {farmerDeposits && 
+          farmerDeposits?.deposits.map((farmerDeposit) => {
+            if (farmerDeposit.isGerminating) { 
+              return (
+                <GerminationNotice deposit={farmerDeposit} />
+              )
+            }
+          })}
         </div>
       </div>
     </div>

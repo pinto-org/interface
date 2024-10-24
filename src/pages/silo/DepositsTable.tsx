@@ -39,7 +39,7 @@ function DepositsTable({token}: DepositsTable) {
         ) : (
         tokenData.deposits.map((deposit) => {
                 return (
-                <TableRow className="h-[4.5rem] bg-white text-[1rem] hover:bg-pinto-green-1/50 hover:cursor-pointer">
+                <TableRow className={`h-[4.5rem] ${deposit.isGerminating ? 'bg-pinto-off-green/15' : 'bg-white'} text-[1rem] hover:bg-pinto-green-1/50 hover:cursor-pointer`}>
                     <TableCell className="text-black font-[400]">
                       <div className="gap-1.5 pl-2 flex items-center">
                         <img src={depositIcon} />
