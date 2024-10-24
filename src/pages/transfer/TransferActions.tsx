@@ -28,22 +28,24 @@ export default function TransferActions() {
     <>
       <div className="flex flex-row justify-between">
         <span className={"font-[340] text-[1.25rem] text-pinto-gray-4"}>I want to send:</span>
-        <Link to={"/transfer/all"}>
           <Button
-            disabled={disableSendAll}
-            className="font-[340] text-[1.25rem] text-pinto-green bg-transparent hover:underline hover:bg-transparent disabled:opacity-50"
+            asChild
+            className={`font-[340] text-[1.25rem] text-pinto-green bg-transparent hover:underline hover:bg-transparent ${disableSendAll ? "opacity-50 grayscale pointer-events-none" : ""}`}
           >
+            <Link to="/transfer/all">
             Send Everything
+            </Link>
           </Button>
-        </Link>
       </div>
       <Button
         variant="outline"
-        disabled={totalInternalBalance.eq(0)}
-        className="font-[400] text-[1.25rem] py-10 px-6 w-full text-black hover:text-black disabled:opacity-50 rounded-full justify-between bg-white shadow-none"
+        asChild
+        className={`font-[400] text-[1.25rem] py-10 px-6 w-full text-black hover:text-black rounded-full justify-between bg-white shadow-none ${totalInternalBalance.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
       >
-        <span>Tokens from my Farm Balance</span>
-        <span>{`$${Number(totalInternalBalance.toHuman()).toFixed(2)}`}</span>
+        <Link to="/transfer/farmbalance">
+          <span>Tokens from my Farm Balance</span>
+          <span>{`$${Number(totalInternalBalance.toHuman()).toFixed(2)}`}</span>
+        </Link>
       </Button>
       <Button
         variant="outline"
