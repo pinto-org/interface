@@ -24,14 +24,14 @@ export default function SiloToken() {
     const depositedBalances = useFarmerDepositedBalances();
     
     const siloToken = tokenData.whitelistedTokens.find((token) => token.address.toLowerCase() === tokenAddress?.toLowerCase());
-    const siloTokenData = siloData.tokenData.get(siloToken);
-    const farmerDeposits = depositedBalances.data.get(siloToken);
+    const siloTokenData = siloToken ? siloData.tokenData.get(siloToken) : undefined;
+    const farmerDeposits = siloToken ? depositedBalances.data.get(siloToken) : undefined;
 
-    const siloTVD = Array.from(siloData.tokenData)
-        .reduce((total, token) => token[1].depositedBDV.add(total), TokenValue.ZERO);
+    const siloTVD = [...siloData.tokenData].map(([token, data]) => ({ token, data }))
+        .reduce((total, siloData) => siloData.data.depositedBDV.add(total), TokenValue.ZERO);
     
-    const liquidityTVD = Array.from(siloData.tokenData)
-        .reduce((total, token) => (!token[0].isLP ? TokenValue.ZERO : token[1].depositedBDV).add(total), TokenValue.ZERO);
+    const liquidityTVD = [...siloData.tokenData].map(([token, data]) => ({ token, data }))
+        .reduce((total, siloData) => (siloData.token.isLP ? TokenValue.ZERO : siloData.data.depositedBDV).add(total), TokenValue.ZERO);
 
     if (!siloToken) {
         return (
@@ -76,18 +76,18 @@ export default function SiloToken() {
                                 <div className="inline-flex gap-0.5 items-center">
                                     <img src={stalkIcon} className="w-7 h-7 mt-0.5" />
                                     <div className="font-[400] text-[1.5rem] text-black">
-                                        {siloTokenData.rewards.stalk.mul(1000000).toHuman('short')} Stalk
+                                        {(siloTokenData ? siloTokenData.rewards.stalk.mul(1000000) : TokenValue.ZERO).toHuman('short')} Stalk
                                     </div>
                                 </div>
                                 <div className="inline-flex gap-0.5 items-center">
                                     <img src={seedsIcon} className="w-7 h-7 mt-0.5" />
                                     <div className="font-[400] text-[1.5rem] text-black">
-                                        {siloTokenData.rewards.seeds.reDecimal(2).toHuman('short')} Seeds
+                                        {(siloTokenData ? siloTokenData.rewards.seeds : TokenValue.ZERO).reDecimal(2).toHuman('short')} Seeds
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <APYChip apyValue={siloTokenData.yields.beanAPY} />
+                        <APYChip apyValue={siloTokenData ? siloTokenData.yields.beanAPY : 0} />
                     </div>
                     <Separator />
                     <div className="flex flex-row items-center justify-between">
@@ -98,11 +98,11 @@ export default function SiloToken() {
                                     <div className="inline-flex gap-2 items-center">
                                         <img src={siloToken.logoURI} className="w-9 h-9" />
                                         <div className="font-[400] text-[2rem] text-black">
-                                            {`${farmerDeposits.amount.toHuman('short')} ${siloToken.name}`}
+                                            {`${(farmerDeposits ? farmerDeposits.amount : TokenValue.ZERO).toHuman('short')} ${siloToken.name}`}
                                         </div>
                                     </div>
                                     <div className="font-[300] text-[1.5rem] text-pinto-gray-4">
-                                        {`$${farmerDeposits.depositBDV.mul(priceData.price).reDecimal(2).toHuman()}`}
+                                        {`$${(farmerDeposits ? farmerDeposits.depositBDV  : TokenValue.ZERO).mul(priceData.price).reDecimal(2).toHuman()}`}
                                     </div>
                                 </div>
                                 <div className="inline-flex ml-24 gap-8 items-center">
@@ -111,7 +111,7 @@ export default function SiloToken() {
                                         <div className="inline-flex items-center gap-1">
                                             <img src={stalkIcon} className="w-6 h-6 mt-0.5" />
                                             <div className="font-[400] text-[1.5rem] text-black">
-                                                {farmerDeposits.stalk.base.reDecimal(2).toHuman('short')}
+                                                {(farmerDeposits ? farmerDeposits.stalk.base : TokenValue.ZERO).reDecimal(2).toHuman('short')}
                                             </div>
                                         </div>
                                     </div>
@@ -120,7 +120,7 @@ export default function SiloToken() {
                                         <div className="inline-flex items-center gap-1">
                                             <img src={stalkIcon} className="w-6 h-6 mt-0.5" />
                                             <div className="font-[400] text-[1.5rem] text-black">
-                                                {farmerDeposits.seeds.reDecimal(2).toHuman('short')}
+                                                {(farmerDeposits ? farmerDeposits.seeds : TokenValue.ZERO).reDecimal(2).toHuman('short')}
                                             </div>
                                         </div>
                                     </div>
@@ -137,7 +137,7 @@ export default function SiloToken() {
                                     Total Value Deposited
                                 </div>
                                 <div className="font-[400] text-[1.5rem] text-black">
-                                    ${siloTokenData.depositedBDV.mul(priceData.price).toHuman('short')}
+                                    ${(siloTokenData ? siloTokenData.depositedBDV : TokenValue.ZERO).mul(priceData.price).toHuman('short')}
                                 </div>
                             </div>
                             <div className="flex flex-col">
@@ -145,7 +145,7 @@ export default function SiloToken() {
                                     % of Value Deposited
                                 </div>
                                 <div className="font-[400] text-[1.5rem] text-black">
-                                    {`${siloTokenData.depositedBDV.div(siloTVD.gt(0) ? siloTVD : TokenValue.ONE).mul(100).toHuman('short')}%`}
+                                    {`${(siloTokenData ? siloTokenData.depositedBDV :  TokenValue.ZERO).div(siloTVD.gt(0) ? siloTVD : TokenValue.ONE).mul(100).toHuman('short')}%`}
                                 </div>
                             </div>
                             {siloToken.isLP && 
@@ -154,7 +154,7 @@ export default function SiloToken() {
                                         % of LP Deposits
                                     </div>
                                     <div className="font-[400] text-[1.5rem] text-black">
-                                        {`${siloTokenData.depositedBDV.div(liquidityTVD.gt(0) ? liquidityTVD : TokenValue.ONE).mul(100).toHuman('short')}%`}
+                                        {`${(siloTokenData ? siloTokenData.depositedBDV : TokenValue.ZERO).div(liquidityTVD.gt(0) ? liquidityTVD : TokenValue.ONE).mul(100).toHuman('short')}%`}
                                     </div>
                                 </div>
                             }
