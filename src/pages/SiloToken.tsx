@@ -45,6 +45,8 @@ export default function SiloToken() {
     return <>404</>;
   }
 
+  console.log("silotoken: ", siloTokenData)
+
   return (
     <div className="flex flex-col items-center">
       <div className="flex flex-row w-[80%] gap-14 items-start">
@@ -179,7 +181,7 @@ export default function SiloToken() {
               {siloToken.isLP && (
                 <div className="flex flex-col">
                   <div className="font-[400] text-[1rem] text-pinto-gray-5">Target % of LP Deposits</div>
-                  <div className="font-[400] text-[1.5rem] text-black">{"TODO %"}</div>
+                  <div className="font-[400] text-[1.5rem] text-black">{Number((siloTokenData ? siloTokenData.tokenSettings.optimalPercentDepositedBdv : TokenValue.ZERO).toHuman()).toFixed(2)}%</div>
                 </div>
               )}
             </div>
