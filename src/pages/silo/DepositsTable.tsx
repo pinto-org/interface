@@ -37,7 +37,7 @@ function DepositsTable({token}: DepositsTable) {
             </TableCell>
           </TableRow>
         ) : (
-        tokenData.deposits.map((deposit: any) => {
+        tokenData.deposits.map((deposit) => {
                 return (
                 <TableRow className="h-[4.5rem] bg-white text-[1rem] hover:bg-pinto-green-1/50 hover:cursor-pointer">
                     <TableCell className="text-black font-[400]">
@@ -48,7 +48,7 @@ function DepositsTable({token}: DepositsTable) {
                     </TableCell>
                     <TableCell className="text-right text-black">
                       <div>{`${deposit.amount.toHuman('short')} ${token.name}`}</div>
-                      <div className="text-pinto-gray-4">{`$${(deposit.depositBdv || TokenValue.ZERO).mul(priceData.price).toHuman('short')}`}</div>
+                      <div className="text-pinto-gray-4">{`$${(deposit.amount || TokenValue.ZERO).mul(priceData.price).toHuman('short')}`}</div>
                     </TableCell>
                     <TableCell className="text-right text-black">
                         <div>{deposit.stalk.base.toHuman('short')}</div>
