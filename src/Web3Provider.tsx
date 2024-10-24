@@ -26,7 +26,7 @@ export const tenderlyTestnet = defineChain({
   name: 'Tenderly Base Testnet',
   nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
   rpcUrls: {
-    default: { http: ['https://virtual.base.rpc.tenderly.co/ca69877b-531b-4c6b-b5df-fe919c8c84c1'] },
+    default: { http: ['https://virtual.base.rpc.tenderly.co/b029bcf4-36fe-48bf-bc5c-41cabbc76996'] },
   },
   blockExplorers: {
     default: { name: 'Etherscan', url: 'https://etherscan.io' },
