@@ -1,11 +1,29 @@
 import { defineConfig } from "@wagmi/cli";
 import { react } from "@wagmi/cli/plugins";
-import { type Abi } from "viem";
+import { defineChain, type Abi } from "viem";
 import { arbitrum, base, foundry, localhost, mainnet } from "wagmi/chains";
 import BEANSTALK_ABI from "./src/constants/abi/Beanstalk.json";
 import BEANSTALK_PRICE_ABI from "./src/constants/abi/BeanstalkPrice.json";
 import PIPELINE_ABI from "./src/constants/abi/Pipeline.json";
 import DEPOT_ABI from "./src/constants/abi/Depot.json";
+
+export const tenderlyTestnet = defineChain({
+  id: 41337,
+  name: 'Tenderly Base Testnet',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: {
+    default: { http: ['https://virtual.base.rpc.tenderly.co/b029bcf4-36fe-48bf-bc5c-41cabbc76996'] },
+  },
+  blockExplorers: {
+    default: { name: 'Etherscan', url: 'https://etherscan.io' },
+  },
+  contracts: {
+    multicall3: {
+      address: '0xca11bde05977b3631167028862be2a173976ca11',
+      blockCreated: 5022,
+    },
+  },
+})
 
 export default defineConfig(() => {
   const reactHookNames: string[] = [];
@@ -21,6 +39,7 @@ export default defineConfig(() => {
           [arbitrum.id]: "0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70",
           [base.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f",
           [localhost.id]: "0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70", // arbitrum
+          [tenderlyTestnet.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f", // base
           [foundry.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f", // base
         },
       },
@@ -32,6 +51,7 @@ export default defineConfig(() => {
           [arbitrum.id]: "0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7",
           [base.id]: "0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E", // temp address
           [localhost.id]: "0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7", // arbitrum
+          [tenderlyTestnet.id]: "0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E", // base
           [foundry.id]: "0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E", // base
         },
       },
@@ -43,6 +63,7 @@ export default defineConfig(() => {
           [arbitrum.id]: "0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0",
           [base.id]: "0xb1bE000421A9d890cb51EBd9D593De9C0B199419",
           [localhost.id]: "0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0", // arbitrum
+          [tenderlyTestnet.id]: "0xb1bE000421A9d890cb51EBd9D593De9C0B199419", // base
           [foundry.id]: "0xb1bE000421A9d890cb51EBd9D593De9C0B199419", // base
         }
       },
@@ -54,6 +75,7 @@ export default defineConfig(() => {
           [arbitrum.id]: "0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c",
           [base.id]: "0xDEb0f00B711f90e503D3035E890A19693ef27Db9",
           [localhost.id]: "0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c", // arbitrum
+          [tenderlyTestnet.id]: "0xDEb0f00B711f90e503D3035E890A19693ef27Db9", // base
           [foundry.id]: "0xDEb0f00B711f90e503D3035E890A19693ef27Db9", // base
         }
       },

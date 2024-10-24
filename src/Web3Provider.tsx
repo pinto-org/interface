@@ -39,7 +39,6 @@ export const tenderlyTestnet = defineChain({
   },
 })
 
-
 const config = createConfig(
   getDefaultConfig({
     // Your dApps chains
