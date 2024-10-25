@@ -90,39 +90,40 @@ export function useSiloData() {
     );
     const yieldData = index ? yields?.siloYields[0].tokenAPYS[index] : undefined;
 
+    console.log("silotokendata: ", siloTokenData)
     if (siloTokenData) {
       data.set(token, {
-        totalDeposited: TokenValue.fromBlockchain(siloTokenData[0].result || 0n, token.decimals),
-        tokenBDV: TokenValue.fromBlockchain(siloTokenData[1].result || 0n, BEAN.decimals),
-        stemTip: TokenValue.fromBlockchain(siloTokenData[2].result || 0n, BEAN.decimals),
-        depositedBDV: TokenValue.fromBlockchain(siloTokenData[3].result || 0n, BEAN.decimals),
-        germinatingStem: TokenValue.fromBlockchain(siloTokenData[4].result || 0n, BEAN.decimals),
+        totalDeposited: TokenValue.fromBlockchain(siloTokenData[0].result ?? 0n, token.decimals),
+        tokenBDV: TokenValue.fromBlockchain(siloTokenData[1].result ?? 0n, BEAN.decimals),
+        stemTip: TokenValue.fromBlockchain(siloTokenData[2].result ?? 0n, BEAN.decimals),
+        depositedBDV: TokenValue.fromBlockchain(siloTokenData[3].result ?? 0n, BEAN.decimals),
+        germinatingStem: TokenValue.fromBlockchain(siloTokenData[4].result ?? 0n, BEAN.decimals),
         tokenSettings: {
-          deltaStalkEarnedPerSeason: TokenValue.fromBlockchain(siloTokenData[5].result.deltaStalkEarnedPerSeason || 0n, STALK.decimals),
-          encodeType: siloTokenData[5].result.encodeType as string,
+          deltaStalkEarnedPerSeason: TokenValue.fromBlockchain(siloTokenData[5].result?.deltaStalkEarnedPerSeason ?? 0n, STALK.decimals),
+          encodeType: siloTokenData[5].result?.encodeType as string,
           gaugePointImplementation: {
-            target: siloTokenData[5].result.gaugePointImplementation.target as Address, 
-            selector: siloTokenData[5].result.gaugePointImplementation.selector as string, 
-            encodeType: siloTokenData[5].result.gaugePointImplementation.encodeType as string, 
-            data: siloTokenData[5].result.gaugePointImplementation.data as string
+            target: siloTokenData[5].result?.gaugePointImplementation.target as Address, 
+            selector: siloTokenData[5].result?.gaugePointImplementation.selector as string, 
+            encodeType: siloTokenData[5].result?.gaugePointImplementation.encodeType as string, 
+            data: siloTokenData[5].result?.gaugePointImplementation.data as string
           },
-          gaugePoints: siloTokenData[5].result.gaugePoints as bigint,
+          gaugePoints: siloTokenData[5].result?.gaugePoints as bigint,
           liquidityWeightImplementation: {
-            target: siloTokenData[5].result.liquidityWeightImplementation.target as Address, 
-            selector: siloTokenData[5].result.liquidityWeightImplementation.selector as string, 
-            encodeType: siloTokenData[5].result.liquidityWeightImplementation.encodeType as string, 
-            data: siloTokenData[5].result.liquidityWeightImplementation.data as string
+            target: siloTokenData[5].result?.liquidityWeightImplementation.target as Address, 
+            selector: siloTokenData[5].result?.liquidityWeightImplementation.selector as string, 
+            encodeType: siloTokenData[5].result?.liquidityWeightImplementation.encodeType as string, 
+            data: siloTokenData[5].result?.liquidityWeightImplementation.data as string
           },
-          milestoneSeason: siloTokenData[5].result.milestoneSeason as number,
-          milestoneStem: TokenValue.fromBlockchain(siloTokenData[5].result.milestoneStem || 0n, BEAN.decimals),
-          optimalPercentDepositedBdv: TokenValue.fromBlockchain(siloTokenData[5].result.optimalPercentDepositedBdv || 0n, BEAN.decimals),
-          selector: siloTokenData[5].result.selector as string,
-          stalkEarnedPerSeason: TokenValue.fromBlockchain(siloTokenData[5].result.stalkEarnedPerSeason || 0n, SEEDS.decimals),
-          stalkIssuedPerBdv: TokenValue.fromBlockchain(siloTokenData[5].result.stalkIssuedPerBdv || 0n, STALK.decimals),
+          milestoneSeason: siloTokenData[5].result?.milestoneSeason as number,
+          milestoneStem: TokenValue.fromBlockchain(siloTokenData[5].result?.milestoneStem ?? 0n, BEAN.decimals),
+          optimalPercentDepositedBdv: TokenValue.fromBlockchain(siloTokenData[5].result?.optimalPercentDepositedBdv ?? 0n, BEAN.decimals),
+          selector: siloTokenData[5].result?.selector as string,
+          stalkEarnedPerSeason: TokenValue.fromBlockchain(siloTokenData[5].result?.stalkEarnedPerSeason ?? 0n, SEEDS.decimals),
+          stalkIssuedPerBdv: TokenValue.fromBlockchain(siloTokenData[5].result?.stalkIssuedPerBdv ?? 0n, STALK.decimals),
         },
         rewards: {
-          seeds: TokenValue.fromBlockchain(siloTokenData[5].result.stalkEarnedPerSeason || 0n, SEEDS.decimals),
-          stalk: TokenValue.fromBlockchain(siloTokenData[5].result.stalkIssuedPerBdv || 0n, STALK.decimals),
+          seeds: TokenValue.fromBlockchain(siloTokenData[5].result?.stalkEarnedPerSeason ?? 0n, SEEDS.decimals),
+          stalk: TokenValue.fromBlockchain(siloTokenData[5].result?.stalkIssuedPerBdv ?? 0n, STALK.decimals),
         },
         yields: {
           beanAPY: yieldData ? Number(yieldData.beanAPY) : 0,
