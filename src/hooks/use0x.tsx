@@ -22,6 +22,7 @@ export default function use0x(settings: ZeroExQuote) {
         [fantom.id]: 'https://fantom.api.0x.org/swap/v1/quote?',
         [optimism.id]: 'https://optimism.api.0x.org/swap/v1/quote?',
         [polygon.id]: 'https://polygon.api.0x.org/swap/v1/quote?',
+        41337: 'https://base.api.0x.org/swap/v1/quote?',
         [localhost.id]: 'https://base.api.0x.org/swap/v1/quote?',
         [foundry.id]: 'https://base.api.0x.org/swap/v1/quote?'
     }
