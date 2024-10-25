@@ -61,10 +61,6 @@ function Deposit({ siloToken }: SiloDepositForm) {
     };
   }, [tokenIn, siloToken]);
 
-  function changeAmountIn(value: number) {
-    setAmountIn(value)
-  };
-
   const swapData = useSwapEstimate(
     tokenIn,
     siloToken,
@@ -133,7 +129,6 @@ function Deposit({ siloToken }: SiloDepositForm) {
             setBalanceFrom={setBalanceFrom} 
             selectedToken={tokenIn}
             balanceFrom={balanceFrom}
-            setMaxAmount={changeAmountIn}
           />
         </div>
         <div className="flex flex-row justify-between">

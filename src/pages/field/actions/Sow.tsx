@@ -54,10 +54,6 @@ function Sow() {
     isUsingMain
   );
 
-  function changeAmountIn(value: number) {
-    setAmountIn(value)
-  };
-
   function onSubmit() {
     if (!account.address) return;
     const amount = isUsingMain ? TokenValue.fromHuman(amountIn || 0n, tokenIn.decimals) : swapData?.output || TokenValue.ZERO;
@@ -127,7 +123,6 @@ function Sow() {
           setBalanceFrom={setBalanceFrom} 
           selectedToken={tokenIn}
           balanceFrom={balanceFrom}
-          setMaxAmount={changeAmountIn}
         />
       </div>
       <div className="flex flex-row gap-2">

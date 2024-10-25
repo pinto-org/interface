@@ -25,10 +25,6 @@ function Transfer() {
   const [recipient, setRecipient] = useState<string | undefined>();
   const queryClient = useQueryClient();
 
-  function setMaxAmount(value: number) {
-    setAmount(value)
-  };
-
   const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
 
   useEffect(() => {
@@ -105,7 +101,6 @@ function Transfer() {
               setAmount={setAmount}
               setToken={setFromToken} 
               selectedToken={fromToken}
-              setMaxAmount={setMaxAmount}
               useSiloTokens
             />
           </div>

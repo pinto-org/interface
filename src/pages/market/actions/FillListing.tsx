@@ -41,10 +41,6 @@ export default function FillListing() {
     const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.EXTERNAL);
     const [slippage, setSlippage] = useState(0.1);
 
-    function changeAmountIn(value: number) {
-      setAmountIn(value)
-    };
-
     const isUsingMain = tokenIn.address === mainToken.address;
 
     const swapData = useSwapEstimate(
@@ -170,7 +166,6 @@ export default function FillListing() {
                   setBalanceFrom={setBalanceFrom} 
                   selectedToken={tokenIn}
                   balanceFrom={balanceFrom}
-                  setMaxAmount={changeAmountIn}
                 />
               </div>
               <div className="flex flex-row gap-2">

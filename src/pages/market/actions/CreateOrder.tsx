@@ -29,10 +29,6 @@ export default function CreateOrder() {
 
   const queryClient = useQueryClient();
 
-  function changeAmountIn(value: number) {
-    setAmountIn(value);
-  }
-
   const fieldData = useFieldData();
   const podOrders = usePodOrders();
   const queryKey = podOrders.queryKey;
@@ -146,7 +142,6 @@ export default function CreateOrder() {
           setBalanceFrom={setBalanceFrom}
           selectedToken={tokenIn}
           balanceFrom={balanceFrom}
-          setMaxAmount={changeAmountIn}
         />
       </div>
       <div className="flex flex-row gap-2 items-center">

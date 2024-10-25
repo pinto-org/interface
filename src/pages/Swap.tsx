@@ -129,7 +129,6 @@ export default function Swap() {
               setBalanceFrom={setBalanceFrom}
               selectedToken={tokenIn}
               balanceFrom={balanceFrom}
-              setMaxAmount={changeAmountIn}
             />
           </div>
           <div className="flex flex-row justify-center">

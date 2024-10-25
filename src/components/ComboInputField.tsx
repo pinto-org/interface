@@ -18,14 +18,13 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
     setAmount: Dispatch<SetStateAction<any>>,
     useSiloTokens?: boolean,
     isLoading?: boolean,
-    setMaxAmount?: any,
     hideMax?: boolean,
     disableInput?: boolean,
     disableInlineBalance?: boolean,
     balancesToShow?: FarmFromMode[]
 }
 
-function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, amount, setAmount, useSiloTokens, isLoading, setMaxAmount, hideMax, disableInput, disableInlineBalance, balancesToShow}: ComboInputProps) {
+function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, amount, setAmount, useSiloTokens, isLoading, hideMax, disableInput, disableInlineBalance, balancesToShow}: ComboInputProps) {
 
     let maxAmount;
     const { balances } = useFarmerBalances();
@@ -85,7 +84,7 @@ function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, 
                             ${maxAmount?.toHuman("short")}`}
                         </div>
                         {!hideMax && 
-                            <Button type={"button"} size={"sm"} variant={"defaultAlt"} className={"rounded-[0.75rem] text-[1rem] px-1.5 py-1"} onClick={() => setMaxAmount(maxAmount.humanString)}>Max</Button>
+                            <Button type={"button"} size={"sm"} variant={"defaultAlt"} className={"rounded-[0.75rem] text-[1rem] px-1.5 py-1"} onClick={() => setInternalAmount(maxAmount.humanString)}>Max</Button>
                         }
                     </div>
                     }

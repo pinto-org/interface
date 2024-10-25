@@ -27,10 +27,6 @@ function Convert() {
   const [amountIn, setAmountIn] = useState(0);
   const [slippage, setSlippage] = useState(0.1);
 
-  function changeAmountIn(value: number) {
-    setAmountIn(value)
-  };
-
   const queryClient = useQueryClient();
   const { data: farmerDeposits, queryKey: queryKey } = useFarmerDepositedBalances();
   const deposits = farmerDeposits.get(fromToken).deposits;
@@ -111,7 +107,6 @@ function Convert() {
           setAmount={setAmountIn}
           setToken={setFromToken} 
           selectedToken={fromToken}
-          setMaxAmount={changeAmountIn}
           useSiloTokens
         />                        
       </div>

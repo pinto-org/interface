@@ -27,10 +27,6 @@ function Withdraw() {
   const deposits = farmerDeposits.get(fromToken);
   const queryClient = useQueryClient();
 
-  function setMaxAmount(value: number) {
-    setAmount(value)
-  };
-
   const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
 
   useEffect(() => {
@@ -99,7 +95,6 @@ function Withdraw() {
           setAmount={setAmount}
           setToken={setFromToken} 
           selectedToken={fromToken}
-          setMaxAmount={setMaxAmount}
           useSiloTokens
         />
       </div>

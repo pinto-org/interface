@@ -32,10 +32,6 @@ export default function WalletButtonTransfer({ setShowTransfer }: { setShowTrans
     const queryClient = useQueryClient();
     const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
 
-    function changeAmountIn(value: number) {
-      setAmountIn(value)
-    };
-
     useEffect(() => {
         if (isSuccess) {
           // invalidating query results to trigger a refetch
@@ -107,7 +103,6 @@ export default function WalletButtonTransfer({ setShowTransfer }: { setShowTrans
                 setBalanceFrom={setBalanceFrom} 
                 selectedToken={tokenIn}
                 balanceFrom={balanceFrom}
-                setMaxAmount={changeAmountIn}
                 balancesToShow={[FarmFromMode.EXTERNAL, FarmFromMode.INTERNAL]}
             />
         </div>
