@@ -35,7 +35,7 @@ function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, 
     const farmerDeposits = useFarmerDepositedBalances().data;
 
     if (useSiloTokens) {
-        maxAmount = farmerDeposits.get(selectedToken).convertibleAmount;
+        maxAmount = farmerDeposits.get(selectedToken)?.convertibleAmount ?? TokenValue.ZERO;
     } else {
         switch (balanceFrom) {
         case FarmFromMode.EXTERNAL:
@@ -63,7 +63,7 @@ function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, 
                                 type="number"
                                 disabled={disableInput} 
                                 className="flex w-full px-1 text-2xl text-black align-middle focus-visible:outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
-                                value={internalAmount || amount}
+                                value={internalAmount}
                                 onChange={(e) => setInternalAmount(e.target.value)}
                             />
                         }
