@@ -16,6 +16,7 @@ import erc20Transfer from "@/encoders/erc20Transfer";
 import useWellAddLiquidity from "@/hooks/useWellAddLiquidity";
 import sync from "@/encoders/sync";
 import unwrapEth from "@/encoders/unwrapEth";
+import wrapEth from "@/encoders/wrapEth";
 
 export default function useSwapEstimate(
     tokenIn: Token, 
@@ -38,7 +39,7 @@ export default function useSwapEstimate(
     const well = (tokenIn === mainToken || tokenOut === mainToken) ? poolData.pools[0] : undefined;
     const wellData = well ? well.pool : undefined;
     
-    const pipeline = pipelineAddress[chainId];
+    const pipeline = pipelineAddress[chainId as keyof typeof pipelineAddress];
     const recipient = destination === FarmToMode.EXTERNAL ? account.address : pipeline;
 
     const wellOnlySwap = !well ? false : well.tokens.includes(tokenIn) && well.tokens.includes(tokenOut);
@@ -47,6 +48,11 @@ export default function useSwapEstimate(
     const wellSwapLast = !wellOnlySwap && tokenOut === mainToken;
 
     const tokenMid = wellOnlySwap ? undefined : well?.tokens.find((token) => token !== mainToken);
+
+    const isWrapEth = tokenIn.isNative && tokenOut.isWrappedNative;
+    const isUnwrapEth = tokenIn.isWrappedNative && tokenOut.isNative;
+
+    const isWrapUnwrap = isWrapEth || isUnwrapEth;
 
     let wellIn
     let wellOut
@@ -83,7 +89,7 @@ export default function useSwapEstimate(
         wellData?.address,
         slippage,
         mode,
-        disabled || !(!!amount && amount > 0 && !!wellIn && !!wellOut && (wellOnlySwap || wellSwapFirst))
+        disabled || isWrapUnwrap || !(!!amount && amount > 0 && !!wellIn && !!wellOut && (wellOnlySwap || wellSwapFirst))
     );
 
     const zeroExQuote = use0x({
@@ -96,7 +102,7 @@ export default function useSwapEstimate(
         skipValidation: "true",
         mode: mode,
         shouldSellEntireBalance: "true",
-        enabled: !disabled || ((aggOnlySwap || wellSwapFirst || wellSwapLast) && 
+        enabled: !disabled || isWrapUnwrap || ((aggOnlySwap || wellSwapFirst || wellSwapLast) && 
             amountTV.gt(0) &&
             (wellSwapFirst ? (wellQuote1.isLoading === false && 
             wellQuote1.amountOut.gt(0)) : true))
@@ -108,7 +114,7 @@ export default function useSwapEstimate(
      aggOut,
      zeroExQuoteResult,
      slippage,
-     disabled || !lpPool
+     disabled || isWrapUnwrap || !lpPool
     );
 
     const wellQuote2 = useWellSwap(
@@ -118,7 +124,7 @@ export default function useSwapEstimate(
         wellData?.address,
         slippage,
         mode,
-        disabled || !(!!amount && amount > 0 && !!wellIn && !!wellOut && wellSwapLast &&
+        disabled || isWrapUnwrap || !(!!amount && amount > 0 && !!wellIn && !!wellOut && wellSwapLast &&
           (
             zeroExQuoteResult.gt(0) && 
             zeroExQuote.status === 'success' && 
@@ -129,11 +135,39 @@ export default function useSwapEstimate(
 
     const isLoading = wellQuote1.isLoading || zeroExQuote.isLoading || wellAddLiqQuote.isLoading || wellQuote2.isLoading;
 
-    // TRANSFER TO PIPELINE (ETH TRANSFER HAPPENS ON ADVANCEDPIPE VALUE)
-    // ADVANCEDPIPE
-    //// DO THIS STUFF INSIDE ADVANCEDPIPE
-    //// TRANSFER BACK TO BEANSTALK IF NECESSARY
-    if (wellOnlySwap) {
+    if (isWrapEth) {
+        const wrapEthCall = wrapEth(
+            amountTV,
+            destination
+        );
+        return ({
+            output: amountTV,
+            mode: mode,
+            contractToApprove: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+            farmCalls: account.address ? wrapEthCall : undefined,
+            pipeCalls: undefined,
+            callData: account.address ? [
+                wrapEthCall
+            ] : undefined,
+            isLoading: false
+        });
+    } else if (isUnwrapEth) {
+        const unwrapEthCall = unwrapEth(
+            amountTV,
+            source
+        );
+        return ({
+            output: amountTV,
+            mode: mode,
+            contractToApprove: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+            farmCalls: account.address ? unwrapEthCall : undefined,
+            pipeCalls: undefined,
+            callData: account.address ? [
+                unwrapEthCall
+            ] : undefined,
+            isLoading: false
+        });
+    } else if (wellOnlySwap) {
 
         const farmCallData = [];
         const transferToWell = transferToken(
@@ -198,7 +232,7 @@ export default function useSwapEstimate(
         if (!aggIn?.isNative && zeroExQuote.data?.allowanceTarget !== zeroAddress) {
             const transferToPipeline = transferToken(
                 aggIn?.address || zeroAddress,
-                pipelineAddress[chainId],
+                pipelineAddress[chainId as keyof typeof pipelineAddress],
                 amountTV,
                 source,
                 FarmToMode.EXTERNAL
@@ -235,7 +269,7 @@ export default function useSwapEstimate(
             pipeCalls.push(transferToWell);
             // slot 2 if no approval needed, 3 if needed, copy output to subsequent calls
             const wellSync = sync(
-                pipelineAddress[chainId],
+                pipelineAddress[chainId as keyof typeof pipelineAddress],
                 wellAddLiqQuote.amountOut.subSlippage(slippage),
                 lpPool.pool.address || zeroAddress
             ) as AdvancedPipeCall;
@@ -407,7 +441,7 @@ export default function useSwapEstimate(
         if (!aggIn?.isNative && zeroExQuote.data?.allowanceTarget !== zeroAddress) {
             const transferToPipeline = transferToken(
                 aggIn?.address || zeroAddress,
-                pipelineAddress[chainId],
+                pipelineAddress[chainId as keyof typeof pipelineAddress],
                 amountTV,
                 source,
                 FarmToMode.EXTERNAL

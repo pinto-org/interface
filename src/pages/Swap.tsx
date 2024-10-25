@@ -36,6 +36,8 @@ export default function Swap() {
 
   const swapData = useSwapEstimate(tokenIn, tokenOut, amountIn, slippage, "exactInput", balanceFrom, balanceTo);
 
+  const destinationIsEth = tokenOut.isNative;
+
   useEffect(() => {
     if (swapData?.mode === "exactInput") {
       setAmountOut(Number(swapData?.output.toHuman()));
@@ -152,8 +154,14 @@ export default function Swap() {
             />
           </div>
           <div>
-            <Label className="content-center">Send output to:</Label>
-            <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} />
+            {destinationIsEth ?
+              <div className="h-[4.75rem] font-[340] text-[1.25rem] text-pinto-gray-4 content-center">{`${tokenOut.symbol} can only be sent to your Wallet Balance.`}</div>
+            :
+            <>
+              <Label className="content-center">Send output to:</Label>
+              <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} />
+            </>
+            }
           </div>
           <div className="mt-6 flex">
             <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit} className="h-[5.25rem]" />
