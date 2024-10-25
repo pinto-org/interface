@@ -18,659 +18,6 @@ import {
  */
 export const beanstalkAbi = [
   {
-    type: 'error',
-    inputs: [{ name: 'target', internalType: 'address', type: 'address' }],
-    name: 'AddressEmptyCode',
-  },
-  {
-    type: 'error',
-    inputs: [{ name: 'account', internalType: 'address', type: 'address' }],
-    name: 'AddressInsufficientBalance',
-  },
-  { type: 'error', inputs: [], name: 'FailedInnerCall' },
-  {
-    type: 'error',
-    inputs: [{ name: 'value', internalType: 'uint256', type: 'uint256' }],
-    name: 'SafeCastOverflowedUintToInt',
-  },
-  {
-    type: 'error',
-    inputs: [{ name: 'token', internalType: 'address', type: 'address' }],
-    name: 'SafeERC20FailedOperation',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'unripeToken',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'underlyingToken',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'merkleRoot',
-        internalType: 'bytes32',
-        type: 'bytes32',
-        indexed: false,
-      },
-    ],
-    name: 'AddUnripeToken',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'token',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'underlying',
-        internalType: 'int256',
-        type: 'int256',
-        indexed: false,
-      },
-    ],
-    name: 'ChangeUnderlying',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'token',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'amount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'underlying',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'Chop',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'token',
-        internalType: 'contract IERC20',
-        type: 'address',
-        indexed: true,
-      },
-      { name: 'delta', internalType: 'int256', type: 'int256', indexed: false },
-    ],
-    name: 'InternalBalanceChanged',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'token',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'amount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'Pick',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'token',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'underlyingToken',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-    ],
-    name: 'SwitchUnderlyingToken',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'unripeToken', internalType: 'address', type: 'address' },
-      { name: 'amount', internalType: 'uint256', type: 'uint256' },
-    ],
-    name: 'addMigratedUnderlying',
-    outputs: [],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'unripeToken', internalType: 'address', type: 'address' },
-      { name: 'underlyingToken', internalType: 'address', type: 'address' },
-      { name: 'root', internalType: 'bytes32', type: 'bytes32' },
-    ],
-    name: 'addUnripeToken',
-    outputs: [],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'unripeToken', internalType: 'address', type: 'address' },
-      { name: 'account', internalType: 'address', type: 'address' },
-    ],
-    name: 'balanceOfPenalizedUnderlying',
-    outputs: [{ name: 'underlying', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'unripeToken', internalType: 'address', type: 'address' },
-      { name: 'account', internalType: 'address', type: 'address' },
-    ],
-    name: 'balanceOfUnderlying',
-    outputs: [{ name: 'underlying', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'unripeToken', internalType: 'address', type: 'address' },
-      { name: 'amount', internalType: 'uint256', type: 'uint256' },
-      {
-        name: 'fromMode',
-        internalType: 'enum LibTransfer.From',
-        type: 'uint8',
-      },
-      { name: 'toMode', internalType: 'enum LibTransfer.To', type: 'uint8' },
-    ],
-    name: 'chop',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getLockedBeans',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'cumulativeReserves', internalType: 'bytes', type: 'bytes' },
-      { name: 'timestamp', internalType: 'uint40', type: 'uint40' },
-    ],
-    name: 'getLockedBeansFromTwaReserves',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getLockedBeansUnderlyingUnripeBean',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getLockedBeansUnderlyingUnripeLP',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'unripeToken', internalType: 'address', type: 'address' },
-      { name: 'amount', internalType: 'uint256', type: 'uint256' },
-    ],
-    name: 'getPenalizedUnderlying',
-    outputs: [{ name: 'redeem', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'unripeToken', internalType: 'address', type: 'address' }],
-    name: 'getPenalty',
-    outputs: [{ name: 'penalty', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'unripeToken', internalType: 'address', type: 'address' }],
-    name: 'getPercentPenalty',
-    outputs: [{ name: 'penalty', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'unripeToken', internalType: 'address', type: 'address' }],
-    name: 'getRecapFundedPercent',
-    outputs: [{ name: 'percent', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getRecapPaidPercent',
-    outputs: [{ name: 'percent', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getRecapitalized',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'unripeToken', internalType: 'address', type: 'address' }],
-    name: 'getTotalUnderlying',
-    outputs: [{ name: 'underlying', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'unripeToken', internalType: 'address', type: 'address' },
-      { name: 'amount', internalType: 'uint256', type: 'uint256' },
-    ],
-    name: 'getUnderlying',
-    outputs: [
-      { name: 'underlyingAmount', internalType: 'uint256', type: 'uint256' },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'unripeToken', internalType: 'address', type: 'address' }],
-    name: 'getUnderlyingPerUnripeToken',
-    outputs: [
-      { name: 'underlyingPerToken', internalType: 'uint256', type: 'uint256' },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'unripeToken', internalType: 'address', type: 'address' }],
-    name: 'getUnderlyingToken',
-    outputs: [
-      { name: 'underlyingToken', internalType: 'address', type: 'address' },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'unripeToken', internalType: 'address', type: 'address' }],
-    name: 'isUnripe',
-    outputs: [{ name: 'unripe', internalType: 'bool', type: 'bool' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'unripeToken', internalType: 'address', type: 'address' },
-      { name: 'newUnderlyingToken', internalType: 'address', type: 'address' },
-    ],
-    name: 'switchUnderlyingToken',
-    outputs: [],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'error',
-    inputs: [
-      { name: 'bits', internalType: 'uint8', type: 'uint8' },
-      { name: 'value', internalType: 'int256', type: 'int256' },
-    ],
-    name: 'SafeCastOverflowedIntDowncast',
-  },
-  {
-    type: 'error',
-    inputs: [
-      { name: 'bits', internalType: 'uint8', type: 'uint8' },
-      { name: 'value', internalType: 'uint256', type: 'uint256' },
-    ],
-    name: 'SafeCastOverflowedUintDowncast',
-  },
-  { type: 'error', inputs: [], name: 'T' },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      { name: 'id', internalType: 'uint128', type: 'uint128', indexed: false },
-      { name: 'bpf', internalType: 'uint128', type: 'uint128', indexed: false },
-    ],
-    name: 'SetFertilizer',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'tokenAmountIn', internalType: 'uint256', type: 'uint256' },
-      { name: 'barnRaiseToken', internalType: 'address', type: 'address' },
-    ],
-    name: '_getMintFertilizerOut',
-    outputs: [
-      { name: 'fertilizerAmountOut', internalType: 'uint256', type: 'uint256' },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'accounts', internalType: 'address[]', type: 'address[]' },
-      { name: 'ids', internalType: 'uint256[]', type: 'uint256[]' },
-    ],
-    name: 'balanceOfBatchFertilizer',
-    outputs: [
-      {
-        name: '',
-        internalType: 'struct IFertilizer.Balance[]',
-        type: 'tuple[]',
-        components: [
-          { name: 'amount', internalType: 'uint128', type: 'uint128' },
-          { name: 'lastBpf', internalType: 'uint128', type: 'uint128' },
-        ],
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'account', internalType: 'address', type: 'address' },
-      { name: 'ids', internalType: 'uint256[]', type: 'uint256[]' },
-    ],
-    name: 'balanceOfFertilized',
-    outputs: [{ name: 'beans', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'account', internalType: 'address', type: 'address' },
-      { name: 'id', internalType: 'uint256', type: 'uint256' },
-    ],
-    name: 'balanceOfFertilizer',
-    outputs: [
-      {
-        name: '',
-        internalType: 'struct IFertilizer.Balance',
-        type: 'tuple',
-        components: [
-          { name: 'amount', internalType: 'uint128', type: 'uint128' },
-          { name: 'lastBpf', internalType: 'uint128', type: 'uint128' },
-        ],
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'account', internalType: 'address', type: 'address' },
-      { name: 'ids', internalType: 'uint256[]', type: 'uint256[]' },
-    ],
-    name: 'balanceOfUnfertilized',
-    outputs: [{ name: 'beans', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'beansPerFertilizer',
-    outputs: [{ name: 'bpf', internalType: 'uint128', type: 'uint128' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'well', internalType: 'address', type: 'address' }],
-    name: 'beginBarnRaiseMigration',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'ids', internalType: 'uint256[]', type: 'uint256[]' },
-      { name: 'mode', internalType: 'enum LibTransfer.To', type: 'uint8' },
-    ],
-    name: 'claimFertilized',
-    outputs: [],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getActiveFertilizer',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getBarnRaiseToken',
-    outputs: [{ name: '', internalType: 'address', type: 'address' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getBarnRaiseWell',
-    outputs: [{ name: '', internalType: 'address', type: 'address' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getCurrentHumidity',
-    outputs: [{ name: 'humidity', internalType: 'uint128', type: 'uint128' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getEndBpf',
-    outputs: [{ name: 'endBpf', internalType: 'uint128', type: 'uint128' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'id', internalType: 'uint128', type: 'uint128' }],
-    name: 'getFertilizer',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getFertilizers',
-    outputs: [
-      {
-        name: 'fertilizers',
-        internalType: 'struct FertilizerFacet.Supply[]',
-        type: 'tuple[]',
-        components: [
-          { name: 'endBpf', internalType: 'uint128', type: 'uint128' },
-          { name: 'supply', internalType: 'uint256', type: 'uint256' },
-        ],
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getFirst',
-    outputs: [{ name: '', internalType: 'uint128', type: 'uint128' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: '_s', internalType: 'uint128', type: 'uint128' }],
-    name: 'getHumidity',
-    outputs: [{ name: 'humidity', internalType: 'uint128', type: 'uint128' }],
-    stateMutability: 'pure',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getLast',
-    outputs: [{ name: '', internalType: 'uint128', type: 'uint128' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'tokenAmountIn', internalType: 'uint256', type: 'uint256' },
-    ],
-    name: 'getMintFertilizerOut',
-    outputs: [
-      { name: 'fertilizerAmountOut', internalType: 'uint256', type: 'uint256' },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'id', internalType: 'uint128', type: 'uint128' }],
-    name: 'getNext',
-    outputs: [{ name: '', internalType: 'uint128', type: 'uint128' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getTotalRecapDollarsNeeded',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'isFertilizing',
-    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'leftoverBeans',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'tokenAmountIn', internalType: 'uint256', type: 'uint256' },
-      { name: 'minFertilizerOut', internalType: 'uint256', type: 'uint256' },
-      { name: 'minLPTokensOut', internalType: 'uint256', type: 'uint256' },
-    ],
-    name: 'mintFertilizer',
-    outputs: [
-      { name: 'fertilizerAmountOut', internalType: 'uint256', type: 'uint256' },
-    ],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'account', internalType: 'address', type: 'address' },
-      { name: 'amount', internalType: 'uint256', type: 'uint256' },
-    ],
-    name: 'payFertilizer',
-    outputs: [],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'remainingRecapitalization',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'rinsableSprouts',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'rinsedSprouts',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'totalFertilizedBeans',
-    outputs: [{ name: 'beans', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'totalFertilizerBeans',
-    outputs: [{ name: 'beans', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'totalUnfertilizedBeans',
-    outputs: [{ name: 'beans', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
     type: 'event',
     anonymous: false,
     inputs: [
@@ -1230,6 +577,42 @@ export const beanstalkAbi = [
     stateMutability: 'payable',
   },
   {
+    type: 'error',
+    inputs: [{ name: 'target', internalType: 'address', type: 'address' }],
+    name: 'AddressEmptyCode',
+  },
+  {
+    type: 'error',
+    inputs: [{ name: 'account', internalType: 'address', type: 'address' }],
+    name: 'AddressInsufficientBalance',
+  },
+  { type: 'error', inputs: [], name: 'FailedInnerCall' },
+  {
+    type: 'error',
+    inputs: [{ name: 'value', internalType: 'uint256', type: 'uint256' }],
+    name: 'SafeCastOverflowedUintToInt',
+  },
+  {
+    type: 'error',
+    inputs: [{ name: 'token', internalType: 'address', type: 'address' }],
+    name: 'SafeERC20FailedOperation',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      { name: 'user', internalType: 'address', type: 'address', indexed: true },
+      {
+        name: 'token',
+        internalType: 'contract IERC20',
+        type: 'address',
+        indexed: true,
+      },
+      { name: 'delta', internalType: 'int256', type: 'int256', indexed: false },
+    ],
+    name: 'InternalBalanceChanged',
+  },
+  {
     type: 'event',
     anonymous: false,
     inputs: [
@@ -1680,6 +1063,14 @@ export const beanstalkAbi = [
       { name: 'denominator', internalType: 'uint256', type: 'uint256' },
     ],
     name: 'PRBMath__MulDivOverflow',
+  },
+  {
+    type: 'error',
+    inputs: [
+      { name: 'bits', internalType: 'uint8', type: 'uint8' },
+      { name: 'value', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'SafeCastOverflowedUintDowncast',
   },
   {
     type: 'event',
@@ -2501,6 +1892,14 @@ export const beanstalkAbi = [
     stateMutability: 'payable',
   },
   {
+    type: 'error',
+    inputs: [
+      { name: 'bits', internalType: 'uint8', type: 'uint8' },
+      { name: 'value', internalType: 'int256', type: 'int256' },
+    ],
+    name: 'SafeCastOverflowedIntDowncast',
+  },
+  {
     type: 'event',
     anonymous: false,
     inputs: [
@@ -2725,67 +2124,7 @@ export const beanstalkAbi = [
     ],
     stateMutability: 'payable',
   },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'token',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      { name: 'stem', internalType: 'int96', type: 'int96', indexed: false },
-      {
-        name: 'amount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      { name: 'bdv', internalType: 'uint256', type: 'uint256', indexed: false },
-    ],
-    name: 'RemoveDeposit',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'account', internalType: 'address', type: 'address' },
-      { name: 'tokens', internalType: 'address[]', type: 'address[]' },
-      { name: 'stems', internalType: 'int96[]', type: 'int96[]' },
-      { name: 'amounts', internalType: 'uint256[]', type: 'uint256[]' },
-    ],
-    name: 'balanceOfRevitalizedStalk',
-    outputs: [{ name: 'stalk', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'token', internalType: 'address', type: 'address' },
-      { name: 'stem', internalType: 'int96', type: 'int96' },
-      { name: 'amount', internalType: 'uint256', type: 'uint256' },
-    ],
-    name: 'enrootDeposit',
-    outputs: [],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'token', internalType: 'address', type: 'address' },
-      { name: 'stems', internalType: 'int96[]', type: 'int96[]' },
-      { name: 'amounts', internalType: 'uint256[]', type: 'uint256[]' },
-    ],
-    name: 'enrootDeposits',
-    outputs: [],
-    stateMutability: 'payable',
-  },
+  { type: 'error', inputs: [], name: 'T' },
   {
     type: 'function',
     inputs: [
@@ -2957,20 +2296,6 @@ export const beanstalkAbi = [
     name: 'beanToBDV',
     outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'pure',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'amount', internalType: 'uint256', type: 'uint256' }],
-    name: 'unripeBeanToBDV',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'amount', internalType: 'uint256', type: 'uint256' }],
-    name: 'unripeLPToBDV',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
   },
   {
     type: 'function',
@@ -4098,25 +3423,6 @@ export const beanstalkAbi = [
   },
   {
     type: 'function',
-    inputs: [],
-    name: 'getBeanstalkTokens',
-    outputs: [
-      {
-        name: '',
-        internalType: 'struct Tokens',
-        type: 'tuple',
-        components: [
-          { name: 'bean', internalType: 'address', type: 'address' },
-          { name: 'fertilizer', internalType: 'address', type: 'address' },
-          { name: 'urBean', internalType: 'address', type: 'address' },
-          { name: 'urLp', internalType: 'address', type: 'address' },
-        ],
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
     inputs: [
       { name: 'account', internalType: 'address', type: 'address' },
       { name: 'token', internalType: 'address', type: 'address' },
@@ -4585,6 +3891,33 @@ export const beanstalkAbi = [
     anonymous: false,
     inputs: [
       {
+        name: 'account',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'token',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      { name: 'stem', internalType: 'int96', type: 'int96', indexed: false },
+      {
+        name: 'amount',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      { name: 'bdv', internalType: 'uint256', type: 'uint256', indexed: false },
+    ],
+    name: 'RemoveDeposit',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
         name: 'operator',
         internalType: 'address',
         type: 'address',
@@ -5010,367 +4343,6 @@ export const beanstalkAbi = [
     stateMutability: 'view',
   },
   {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'stalk',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'roots',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'MigratedAccountStatus',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'token',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      { name: 'bdv', internalType: 'uint256', type: 'uint256', indexed: false },
-      {
-        name: 'lastStem',
-        internalType: 'int96',
-        type: 'int96',
-        indexed: false,
-      },
-    ],
-    name: 'MigratedAccountTokenStatus',
-  },
-  {
-    type: 'function',
-    inputs: [
-      {
-        name: 'accountStatuses',
-        internalType: 'struct ReseedAccountStatus.AccountStatus[]',
-        type: 'tuple[]',
-        components: [
-          { name: 'account', internalType: 'address', type: 'address' },
-          { name: 'stalk', internalType: 'uint256', type: 'uint256' },
-          { name: 'tokens', internalType: 'address[]', type: 'address[]' },
-          {
-            name: 'mowStatuses',
-            internalType: 'struct MowStatus[]',
-            type: 'tuple[]',
-            components: [
-              { name: 'lastStem', internalType: 'int96', type: 'int96' },
-              { name: 'bdv', internalType: 'uint128', type: 'uint128' },
-            ],
-          },
-          { name: 'lastUpdate', internalType: 'uint32', type: 'uint32' },
-          {
-            name: 'germinatingStalkOdd',
-            internalType: 'uint128',
-            type: 'uint128',
-          },
-          {
-            name: 'germinatingStalkEven',
-            internalType: 'uint128',
-            type: 'uint128',
-          },
-        ],
-      },
-    ],
-    name: 'init',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: false,
-      },
-      { name: 'fid', internalType: 'uint128', type: 'uint128', indexed: false },
-      {
-        name: 'amount',
-        internalType: 'uint128',
-        type: 'uint128',
-        indexed: false,
-      },
-      {
-        name: 'lastBpf',
-        internalType: 'uint128',
-        type: 'uint128',
-        indexed: false,
-      },
-    ],
-    name: 'FertilizerMigrated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'plotIndex',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: true,
-      },
-      {
-        name: 'pods',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'MigratedPlot',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'newShipmentRoutes',
-        internalType: 'struct ShipmentRoute[]',
-        type: 'tuple[]',
-        components: [
-          { name: 'planContract', internalType: 'address', type: 'address' },
-          { name: 'planSelector', internalType: 'bytes4', type: 'bytes4' },
-          {
-            name: 'recipient',
-            internalType: 'enum ShipmentRecipient',
-            type: 'uint8',
-          },
-          { name: 'data', internalType: 'bytes', type: 'bytes' },
-        ],
-        indexed: false,
-      },
-    ],
-    name: 'ShipmentRoutesSet',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getShipmentRoutes',
-    outputs: [
-      {
-        name: '',
-        internalType: 'struct ShipmentRoute[]',
-        type: 'tuple[]',
-        components: [
-          { name: 'planContract', internalType: 'address', type: 'address' },
-          { name: 'planSelector', internalType: 'bytes4', type: 'bytes4' },
-          {
-            name: 'recipient',
-            internalType: 'enum ShipmentRecipient',
-            type: 'uint8',
-          },
-          { name: 'data', internalType: 'bytes', type: 'bytes' },
-        ],
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      {
-        name: 'shipmentRoutes',
-        internalType: 'struct ShipmentRoute[]',
-        type: 'tuple[]',
-        components: [
-          { name: 'planContract', internalType: 'address', type: 'address' },
-          { name: 'planSelector', internalType: 'bytes4', type: 'bytes4' },
-          {
-            name: 'recipient',
-            internalType: 'enum ShipmentRecipient',
-            type: 'uint8',
-          },
-          { name: 'data', internalType: 'bytes', type: 'bytes' },
-        ],
-      },
-    ],
-    name: 'setShipmentRoutes',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'token',
-        internalType: 'contract IERC20',
-        type: 'address',
-        indexed: true,
-      },
-      { name: 'delta', internalType: 'int256', type: 'int256', indexed: false },
-    ],
-    name: 'InternalBalanceMigrated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'lister',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'fieldId',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'index',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'start',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'podAmount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'pricePerPod',
-        internalType: 'uint24',
-        type: 'uint24',
-        indexed: false,
-      },
-      {
-        name: 'maxHarvestableIndex',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'minFillAmount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'mode',
-        internalType: 'enum LibTransfer.To',
-        type: 'uint8',
-        indexed: false,
-      },
-    ],
-    name: 'MigratedPodListing',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'orderer',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      { name: 'id', internalType: 'bytes32', type: 'bytes32', indexed: false },
-      {
-        name: 'beanAmount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'fieldId',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'pricePerPod',
-        internalType: 'uint24',
-        type: 'uint24',
-        indexed: false,
-      },
-      {
-        name: 'maxPlaceInLine',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'minFillAmount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'MigratedPodOrder',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'token',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      { name: 'stem', internalType: 'int96', type: 'int96', indexed: false },
-      {
-        name: 'amount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      { name: 'bdv', internalType: 'uint256', type: 'uint256', indexed: false },
-    ],
-    name: 'AddMigratedDeposit',
-  },
-  {
     type: 'function',
     inputs: [
       { name: 'token', internalType: 'address', type: 'address' },
@@ -5713,7 +4685,6 @@ export const beanstalkAbi = [
           { name: 'lastSopSeason', internalType: 'uint32', type: 'uint32' },
           { name: 'rainStart', internalType: 'uint32', type: 'uint32' },
           { name: 'raining', internalType: 'bool', type: 'bool' },
-          { name: 'fertilizing', internalType: 'bool', type: 'bool' },
           { name: 'sunriseBlock', internalType: 'uint64', type: 'uint64' },
           { name: 'abovePeg', internalType: 'bool', type: 'bool' },
           { name: 'stemStartSeason', internalType: 'uint16', type: 'uint16' },
@@ -5875,7 +4846,6 @@ export const beanstalkAbi = [
           { name: 'lastSopSeason', internalType: 'uint32', type: 'uint32' },
           { name: 'rainStart', internalType: 'uint32', type: 'uint32' },
           { name: 'raining', internalType: 'bool', type: 'bool' },
-          { name: 'fertilizing', internalType: 'bool', type: 'bool' },
           { name: 'sunriseBlock', internalType: 'uint64', type: 'uint64' },
           { name: 'abovePeg', internalType: 'bool', type: 'bool' },
           { name: 'stemStartSeason', internalType: 'uint16', type: 'uint16' },
@@ -5996,6 +4966,29 @@ export const beanstalkAbi = [
     type: 'event',
     anonymous: false,
     inputs: [
+      {
+        name: 'newShipmentRoutes',
+        internalType: 'struct ShipmentRoute[]',
+        type: 'tuple[]',
+        components: [
+          { name: 'planContract', internalType: 'address', type: 'address' },
+          { name: 'planSelector', internalType: 'bytes4', type: 'bytes4' },
+          {
+            name: 'recipient',
+            internalType: 'enum ShipmentRecipient',
+            type: 'uint8',
+          },
+          { name: 'data', internalType: 'bytes', type: 'bytes' },
+        ],
+        indexed: false,
+      },
+    ],
+    name: 'ShipmentRoutesSet',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
       { name: 'season', internalType: 'uint32', type: 'uint32', indexed: true },
       {
         name: 'soil',
@@ -6047,6 +5040,29 @@ export const beanstalkAbi = [
   },
   {
     type: 'function',
+    inputs: [],
+    name: 'getShipmentRoutes',
+    outputs: [
+      {
+        name: '',
+        internalType: 'struct ShipmentRoute[]',
+        type: 'tuple[]',
+        components: [
+          { name: 'planContract', internalType: 'address', type: 'address' },
+          { name: 'planSelector', internalType: 'bytes4', type: 'bytes4' },
+          {
+            name: 'recipient',
+            internalType: 'enum ShipmentRecipient',
+            type: 'uint8',
+          },
+          { name: 'data', internalType: 'bytes', type: 'bytes' },
+        ],
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     inputs: [
       { name: 'account', internalType: 'address', type: 'address' },
       { name: 'mode', internalType: 'enum LibTransfer.To', type: 'uint8' },
@@ -6061,6 +5077,29 @@ export const beanstalkAbi = [
     name: 'seasonTime',
     outputs: [{ name: '', internalType: 'uint32', type: 'uint32' }],
     stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      {
+        name: 'shipmentRoutes',
+        internalType: 'struct ShipmentRoute[]',
+        type: 'tuple[]',
+        components: [
+          { name: 'planContract', internalType: 'address', type: 'address' },
+          { name: 'planSelector', internalType: 'bytes4', type: 'bytes4' },
+          {
+            name: 'recipient',
+            internalType: 'enum ShipmentRecipient',
+            type: 'uint8',
+          },
+          { name: 'data', internalType: 'bytes', type: 'bytes' },
+        ],
+      },
+    ],
+    name: 'setShipmentRoutes',
+    outputs: [],
+    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
@@ -6328,431 +5367,6 @@ export const beanstalkAbi = [
     outputs: [{ name: '', internalType: 'string', type: 'string' }],
     stateMutability: 'view',
   },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'ticketId',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: true,
-      },
-    ],
-    name: 'RetryableTicketCreated',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'receiver', internalType: 'address', type: 'address' },
-      { name: 'L2Beanstalk', internalType: 'address', type: 'address' },
-      { name: 'maxSubmissionCost', internalType: 'uint256', type: 'uint256' },
-      { name: 'maxGas', internalType: 'uint256', type: 'uint256' },
-      { name: 'gasPriceBid', internalType: 'uint256', type: 'uint256' },
-    ],
-    name: 'approveL2Receiver',
-    outputs: [{ name: 'ticketID', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'receiver', internalType: 'address', type: 'address' },
-      { name: 'L2Beanstalk', internalType: 'address', type: 'address' },
-      { name: 'amount', internalType: 'uint256', type: 'uint256' },
-      { name: 'toMode', internalType: 'enum LibTransfer.To', type: 'uint8' },
-      { name: 'maxSubmissionCost', internalType: 'uint256', type: 'uint256' },
-      { name: 'maxGas', internalType: 'uint256', type: 'uint256' },
-      { name: 'gasPriceBid', internalType: 'uint256', type: 'uint256' },
-    ],
-    name: 'migrateL2Beans',
-    outputs: [{ name: 'ticketID', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'receiver',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'amount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'toMode',
-        internalType: 'enum LibTransfer.To',
-        type: 'uint8',
-        indexed: false,
-      },
-    ],
-    name: 'L1BeansMigrated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'owner',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'receiver',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'depositIds',
-        internalType: 'uint256[]',
-        type: 'uint256[]',
-        indexed: false,
-      },
-      {
-        name: 'amounts',
-        internalType: 'uint256[]',
-        type: 'uint256[]',
-        indexed: false,
-      },
-      {
-        name: 'bdvs',
-        internalType: 'uint256[]',
-        type: 'uint256[]',
-        indexed: false,
-      },
-    ],
-    name: 'L1DepositsMigrated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'owner',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'receiver',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'fertIds',
-        internalType: 'uint256[]',
-        type: 'uint256[]',
-        indexed: false,
-      },
-      {
-        name: 'amounts',
-        internalType: 'uint128[]',
-        type: 'uint128[]',
-        indexed: false,
-      },
-      {
-        name: 'lastBpf',
-        internalType: 'uint128',
-        type: 'uint128',
-        indexed: false,
-      },
-    ],
-    name: 'L1FertilizerMigrated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'owner',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'receiver',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'tokens',
-        internalType: 'address[]',
-        type: 'address[]',
-        indexed: false,
-      },
-      {
-        name: 'amounts',
-        internalType: 'uint256[]',
-        type: 'uint256[]',
-        indexed: false,
-      },
-    ],
-    name: 'L1InternalBalancesMigrated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'owner',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'receiver',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'orders',
-        internalType: 'struct L1ReceiverFacet.L1PodOrder[]',
-        type: 'tuple[]',
-        components: [
-          {
-            name: 'podOrder',
-            internalType: 'struct Order.PodOrder',
-            type: 'tuple',
-            components: [
-              { name: 'orderer', internalType: 'address', type: 'address' },
-              { name: 'fieldId', internalType: 'uint256', type: 'uint256' },
-              { name: 'pricePerPod', internalType: 'uint24', type: 'uint24' },
-              {
-                name: 'maxPlaceInLine',
-                internalType: 'uint256',
-                type: 'uint256',
-              },
-              {
-                name: 'minFillAmount',
-                internalType: 'uint256',
-                type: 'uint256',
-              },
-            ],
-          },
-          { name: 'beanAmount', internalType: 'uint256', type: 'uint256' },
-        ],
-        indexed: false,
-      },
-    ],
-    name: 'L1OrdersMigrated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'owner',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'receiver',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'index',
-        internalType: 'uint256[]',
-        type: 'uint256[]',
-        indexed: false,
-      },
-      {
-        name: 'pods',
-        internalType: 'uint256[]',
-        type: 'uint256[]',
-        indexed: false,
-      },
-    ],
-    name: 'L1PlotsMigrated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'owner',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'receiver',
-        internalType: 'address',
-        type: 'address',
-        indexed: false,
-      },
-    ],
-    name: 'ReceiverApproved',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'owner', internalType: 'address', type: 'address' },
-      { name: 'receiver', internalType: 'address', type: 'address' },
-    ],
-    name: 'approveReceiver',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getDepositMerkleRoot',
-    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
-    stateMutability: 'pure',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getFertilizerMerkleRoot',
-    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
-    stateMutability: 'pure',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getInternalBalanceMerkleRoot',
-    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
-    stateMutability: 'pure',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getPlotMerkleRoot',
-    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
-    stateMutability: 'pure',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'owner', internalType: 'address', type: 'address' }],
-    name: 'getReceiver',
-    outputs: [{ name: '', internalType: 'address', type: 'address' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'owner', internalType: 'address', type: 'address' },
-      { name: 'depositIds', internalType: 'uint256[]', type: 'uint256[]' },
-      { name: 'amounts', internalType: 'uint256[]', type: 'uint256[]' },
-      { name: 'bdvs', internalType: 'uint256[]', type: 'uint256[]' },
-      { name: 'proof', internalType: 'bytes32[]', type: 'bytes32[]' },
-    ],
-    name: 'issueDeposits',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'owner', internalType: 'address', type: 'address' },
-      { name: 'fertIds', internalType: 'uint256[]', type: 'uint256[]' },
-      { name: 'amounts', internalType: 'uint128[]', type: 'uint128[]' },
-      { name: 'lastBpf', internalType: 'uint128', type: 'uint128' },
-      { name: 'proof', internalType: 'bytes32[]', type: 'bytes32[]' },
-    ],
-    name: 'issueFertilizer',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'owner', internalType: 'address', type: 'address' },
-      { name: 'tokens', internalType: 'address[]', type: 'address[]' },
-      { name: 'amounts', internalType: 'uint256[]', type: 'uint256[]' },
-      { name: 'proof', internalType: 'bytes32[]', type: 'bytes32[]' },
-    ],
-    name: 'issueInternalBalances',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'owner', internalType: 'address', type: 'address' },
-      { name: 'index', internalType: 'uint256[]', type: 'uint256[]' },
-      { name: 'pods', internalType: 'uint256[]', type: 'uint256[]' },
-      { name: 'proof', internalType: 'bytes32[]', type: 'bytes32[]' },
-    ],
-    name: 'issuePlots',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'receiver', internalType: 'address', type: 'address' },
-      { name: 'amount', internalType: 'uint256', type: 'uint256' },
-      { name: 'toMode', internalType: 'enum LibTransfer.To', type: 'uint8' },
-    ],
-    name: 'recieveL1Beans',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'owner', internalType: 'address', type: 'address' },
-      { name: 'depositIds', internalType: 'uint256[]', type: 'uint256[]' },
-      { name: 'amounts', internalType: 'uint256[]', type: 'uint256[]' },
-      { name: 'bdvs', internalType: 'uint256[]', type: 'uint256[]' },
-      { name: 'proof', internalType: 'bytes32[]', type: 'bytes32[]' },
-    ],
-    name: 'verifyDepositMerkleProof',
-    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
-    stateMutability: 'pure',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'owner', internalType: 'address', type: 'address' },
-      { name: 'fertIds', internalType: 'uint256[]', type: 'uint256[]' },
-      { name: 'amounts', internalType: 'uint128[]', type: 'uint128[]' },
-      { name: 'lastBpf', internalType: 'uint128', type: 'uint128' },
-      { name: 'proof', internalType: 'bytes32[]', type: 'bytes32[]' },
-    ],
-    name: 'verifyFertilizerMerkleProof',
-    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
-    stateMutability: 'pure',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'owner', internalType: 'address', type: 'address' },
-      { name: 'tokens', internalType: 'address[]', type: 'address[]' },
-      { name: 'amounts', internalType: 'uint256[]', type: 'uint256[]' },
-      { name: 'proof', internalType: 'bytes32[]', type: 'bytes32[]' },
-    ],
-    name: 'verifyInternalBalanceMerkleProof',
-    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
-    stateMutability: 'pure',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'owner', internalType: 'address', type: 'address' },
-      { name: 'index', internalType: 'uint256[]', type: 'uint256[]' },
-      { name: 'amounts', internalType: 'uint256[]', type: 'uint256[]' },
-      { name: 'proof', internalType: 'bytes32[]', type: 'bytes32[]' },
-    ],
-    name: 'verifyPlotMerkleProof',
-    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
-    stateMutability: 'pure',
-  },
 ] as const
 
 /**
@@ -6764,7 +5378,7 @@ export const beanstalkAbi = [
  */
 export const beanstalkAddress = {
   1: '0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5',
-  1337: '0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70',
+  1337: '0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f',
   8453: '0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f',
   31337: '0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f',
   41337: '0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f',
@@ -6893,7 +5507,7 @@ export const beanstalkPriceAbi = [
  */
 export const beanstalkPriceAddress = {
   1: '0x4BEd6cb142b7d474242d87F4796387DEB9E1E1B4',
-  1337: '0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7',
+  1337: '0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E',
   8453: '0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E',
   31337: '0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E',
   41337: '0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E',
@@ -7189,7 +5803,7 @@ export const depotAbi = [
  */
 export const depotAddress = {
   1: '0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2',
-  1337: '0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c',
+  1337: '0xDEb0f00B711f90e503D3035E890A19693ef27Db9',
   8453: '0xDEb0f00B711f90e503D3035E890A19693ef27Db9',
   31337: '0xDEb0f00B711f90e503D3035E890A19693ef27Db9',
   41337: '0xDEb0f00B711f90e503D3035E890A19693ef27Db9',
@@ -7333,7 +5947,7 @@ export const pipelineAbi = [
  */
 export const pipelineAddress = {
   1: '0xb1bE0000C6B3C62749b5F0c92480146452D15423',
-  1337: '0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0',
+  1337: '0xb1bE000421A9d890cb51EBd9D593De9C0B199419',
   8453: '0xb1bE000421A9d890cb51EBd9D593De9C0B199419',
   31337: '0xb1bE000421A9d890cb51EBd9D593De9C0B199419',
   41337: '0xb1bE000421A9d890cb51EBd9D593De9C0B199419',
@@ -7369,701 +5983,6 @@ export const useReadBeanstalk_undefined = /*#__PURE__*/ createUseReadContract({
   abi: beanstalkAbi,
   address: beanstalkAddress,
 })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfPenalizedUnderlying"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_BalanceOfPenalizedUnderlying =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'balanceOfPenalizedUnderlying',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfUnderlying"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_BalanceOfUnderlying =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'balanceOfUnderlying',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getLockedBeans"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetLockedBeans =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getLockedBeans',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getLockedBeansFromTwaReserves"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetLockedBeansFromTwaReserves =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getLockedBeansFromTwaReserves',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getLockedBeansUnderlyingUnripeBean"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetLockedBeansUnderlyingUnripeBean =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getLockedBeansUnderlyingUnripeBean',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getLockedBeansUnderlyingUnripeLP"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetLockedBeansUnderlyingUnripeLp =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getLockedBeansUnderlyingUnripeLP',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getPenalizedUnderlying"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetPenalizedUnderlying =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getPenalizedUnderlying',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getPenalty"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetPenalty = /*#__PURE__*/ createUseReadContract({
-  abi: beanstalkAbi,
-  address: beanstalkAddress,
-  functionName: 'getPenalty',
-})
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getPercentPenalty"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetPercentPenalty =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getPercentPenalty',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getRecapFundedPercent"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetRecapFundedPercent =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getRecapFundedPercent',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getRecapPaidPercent"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetRecapPaidPercent =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getRecapPaidPercent',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getRecapitalized"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetRecapitalized =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getRecapitalized',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getTotalUnderlying"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetTotalUnderlying =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getTotalUnderlying',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getUnderlying"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetUnderlying =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getUnderlying',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getUnderlyingPerUnripeToken"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetUnderlyingPerUnripeToken =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getUnderlyingPerUnripeToken',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getUnderlyingToken"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetUnderlyingToken =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getUnderlyingToken',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"isUnripe"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_IsUnripe = /*#__PURE__*/ createUseReadContract({
-  abi: beanstalkAbi,
-  address: beanstalkAddress,
-  functionName: 'isUnripe',
-})
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"_getMintFertilizerOut"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetMintFertilizerOut =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: '_getMintFertilizerOut',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfBatchFertilizer"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_BalanceOfBatchFertilizer =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'balanceOfBatchFertilizer',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfFertilized"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_BalanceOfFertilized =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'balanceOfFertilized',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfFertilizer"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_BalanceOfFertilizer =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'balanceOfFertilizer',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfUnfertilized"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_BalanceOfUnfertilized =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'balanceOfUnfertilized',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"beansPerFertilizer"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_BeansPerFertilizer =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'beansPerFertilizer',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getActiveFertilizer"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetActiveFertilizer =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getActiveFertilizer',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getBarnRaiseToken"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetBarnRaiseToken =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getBarnRaiseToken',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getBarnRaiseWell"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetBarnRaiseWell =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getBarnRaiseWell',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getCurrentHumidity"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetCurrentHumidity =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getCurrentHumidity',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getEndBpf"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetEndBpf = /*#__PURE__*/ createUseReadContract({
-  abi: beanstalkAbi,
-  address: beanstalkAddress,
-  functionName: 'getEndBpf',
-})
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getFertilizer"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetFertilizer =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getFertilizer',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getFertilizers"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetFertilizers =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getFertilizers',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getFirst"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetFirst = /*#__PURE__*/ createUseReadContract({
-  abi: beanstalkAbi,
-  address: beanstalkAddress,
-  functionName: 'getFirst',
-})
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getHumidity"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetHumidity = /*#__PURE__*/ createUseReadContract(
-  { abi: beanstalkAbi, address: beanstalkAddress, functionName: 'getHumidity' },
-)
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getLast"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetLast = /*#__PURE__*/ createUseReadContract({
-  abi: beanstalkAbi,
-  address: beanstalkAddress,
-  functionName: 'getLast',
-})
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getMintFertilizerOut"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetMintFertilizerOut_duplicated =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getMintFertilizerOut',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getNext"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetNext = /*#__PURE__*/ createUseReadContract({
-  abi: beanstalkAbi,
-  address: beanstalkAddress,
-  functionName: 'getNext',
-})
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getTotalRecapDollarsNeeded"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetTotalRecapDollarsNeeded =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getTotalRecapDollarsNeeded',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"isFertilizing"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_IsFertilizing =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'isFertilizing',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"leftoverBeans"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_LeftoverBeans =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'leftoverBeans',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"remainingRecapitalization"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_RemainingRecapitalization =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'remainingRecapitalization',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"rinsableSprouts"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_RinsableSprouts =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'rinsableSprouts',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"rinsedSprouts"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_RinsedSprouts =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'rinsedSprouts',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"totalFertilizedBeans"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_TotalFertilizedBeans =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'totalFertilizedBeans',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"totalFertilizerBeans"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_TotalFertilizerBeans =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'totalFertilizerBeans',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"totalUnfertilizedBeans"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_TotalUnfertilizedBeans =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'totalUnfertilizedBeans',
-  })
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"owner"`
@@ -8811,22 +6730,6 @@ export const useReadBeanstalk_GetPodOrder = /*#__PURE__*/ createUseReadContract(
 )
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"balanceOfRevitalizedStalk"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_BalanceOfRevitalizedStalk =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'balanceOfRevitalizedStalk',
-  })
-
-/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"calculateDeltaBFromReserves"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
@@ -9000,38 +6903,6 @@ export const useReadBeanstalk_BeanToBdv = /*#__PURE__*/ createUseReadContract({
   address: beanstalkAddress,
   functionName: 'beanToBDV',
 })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"unripeBeanToBDV"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_UnripeBeanToBdv =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'unripeBeanToBDV',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"unripeLPToBDV"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_UnripeLpToBdv =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'unripeLPToBDV',
-  })
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"wellBdv"`
@@ -9587,22 +7458,6 @@ export const useReadBeanstalk_GetBeanIndex =
     abi: beanstalkAbi,
     address: beanstalkAddress,
     functionName: 'getBeanIndex',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getBeanstalkTokens"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetBeanstalkTokens =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getBeanstalkTokens',
   })
 
 /**
@@ -10267,22 +8122,6 @@ export const useReadBeanstalk_GetShipmentPlans =
     abi: beanstalkAbi,
     address: beanstalkAddress,
     functionName: 'getShipmentPlans',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getShipmentRoutes"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetShipmentRoutes =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getShipmentRoutes',
   })
 
 /**
@@ -11086,6 +8925,22 @@ export const useReadBeanstalk_WellOracleSnapshot =
   })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getShipmentRoutes"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useReadBeanstalk_GetShipmentRoutes =
+  /*#__PURE__*/ createUseReadContract({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    functionName: 'getShipmentRoutes',
+  })
+
+/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"seasonTime"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
@@ -11525,147 +9380,6 @@ export const useReadBeanstalk_Uri = /*#__PURE__*/ createUseReadContract({
 })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getDepositMerkleRoot"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetDepositMerkleRoot =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getDepositMerkleRoot',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getFertilizerMerkleRoot"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetFertilizerMerkleRoot =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getFertilizerMerkleRoot',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getInternalBalanceMerkleRoot"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetInternalBalanceMerkleRoot =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getInternalBalanceMerkleRoot',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getPlotMerkleRoot"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetPlotMerkleRoot =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'getPlotMerkleRoot',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"getReceiver"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_GetReceiver = /*#__PURE__*/ createUseReadContract(
-  { abi: beanstalkAbi, address: beanstalkAddress, functionName: 'getReceiver' },
-)
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"verifyDepositMerkleProof"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_VerifyDepositMerkleProof =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'verifyDepositMerkleProof',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"verifyFertilizerMerkleProof"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_VerifyFertilizerMerkleProof =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'verifyFertilizerMerkleProof',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"verifyInternalBalanceMerkleProof"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_VerifyInternalBalanceMerkleProof =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'verifyInternalBalanceMerkleProof',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"verifyPlotMerkleProof"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useReadBeanstalk_VerifyPlotMerkleProof =
-  /*#__PURE__*/ createUseReadContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'verifyPlotMerkleProof',
-  })
-
-/**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
@@ -11677,133 +9391,6 @@ export const useReadBeanstalk_VerifyPlotMerkleProof =
 export const useWriteBeanstalk_undefined = /*#__PURE__*/ createUseWriteContract(
   { abi: beanstalkAbi, address: beanstalkAddress },
 )
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"addMigratedUnderlying"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_AddMigratedUnderlying =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'addMigratedUnderlying',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"addUnripeToken"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_AddUnripeToken =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'addUnripeToken',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"chop"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_Chop = /*#__PURE__*/ createUseWriteContract({
-  abi: beanstalkAbi,
-  address: beanstalkAddress,
-  functionName: 'chop',
-})
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"switchUnderlyingToken"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_SwitchUnderlyingToken =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'switchUnderlyingToken',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"beginBarnRaiseMigration"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_BeginBarnRaiseMigration =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'beginBarnRaiseMigration',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"claimFertilized"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_ClaimFertilized =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'claimFertilized',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"mintFertilizer"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_MintFertilizer =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'mintFertilizer',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"payFertilizer"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_PayFertilizer =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'payFertilizer',
-  })
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"pause"`
@@ -12492,38 +10079,6 @@ export const useWriteBeanstalk_PipelineConvert =
   })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"enrootDeposit"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_EnrootDeposit =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'enrootDeposit',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"enrootDeposits"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_EnrootDeposits =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'enrootDeposits',
-  })
-
-/**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"convert"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
@@ -12952,7 +10507,7 @@ export const useWriteBeanstalk_Plant = /*#__PURE__*/ createUseWriteContract({
 })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"init"`
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"gm"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
@@ -12960,10 +10515,10 @@ export const useWriteBeanstalk_Plant = /*#__PURE__*/ createUseWriteContract({
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
-export const useWriteBeanstalk_Init = /*#__PURE__*/ createUseWriteContract({
+export const useWriteBeanstalk_Gm = /*#__PURE__*/ createUseWriteContract({
   abi: beanstalkAbi,
   address: beanstalkAddress,
-  functionName: 'init',
+  functionName: 'gm',
 })
 
 /**
@@ -12983,21 +10538,6 @@ export const useWriteBeanstalk_SetShipmentRoutes =
   })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"gm"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_Gm = /*#__PURE__*/ createUseWriteContract({
-  abi: beanstalkAbi,
-  address: beanstalkAddress,
-  functionName: 'gm',
-})
-
-/**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"sunrise"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
@@ -13013,134 +10553,6 @@ export const useWriteBeanstalk_Sunrise = /*#__PURE__*/ createUseWriteContract({
 })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"approveL2Receiver"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_ApproveL2Receiver =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'approveL2Receiver',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"migrateL2Beans"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_MigrateL2Beans =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'migrateL2Beans',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"approveReceiver"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_ApproveReceiver =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'approveReceiver',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"issueDeposits"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_IssueDeposits =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'issueDeposits',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"issueFertilizer"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_IssueFertilizer =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'issueFertilizer',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"issueInternalBalances"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_IssueInternalBalances =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'issueInternalBalances',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"issuePlots"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_IssuePlots =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'issuePlots',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"recieveL1Beans"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWriteBeanstalk_RecieveL1Beans =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'recieveL1Beans',
-  })
-
-/**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
@@ -13153,134 +10565,6 @@ export const useSimulateBeanstalk_undefined =
   /*#__PURE__*/ createUseSimulateContract({
     abi: beanstalkAbi,
     address: beanstalkAddress,
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"addMigratedUnderlying"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_AddMigratedUnderlying =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'addMigratedUnderlying',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"addUnripeToken"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_AddUnripeToken =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'addUnripeToken',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"chop"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_Chop =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'chop',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"switchUnderlyingToken"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_SwitchUnderlyingToken =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'switchUnderlyingToken',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"beginBarnRaiseMigration"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_BeginBarnRaiseMigration =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'beginBarnRaiseMigration',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"claimFertilized"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_ClaimFertilized =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'claimFertilized',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"mintFertilizer"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_MintFertilizer =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'mintFertilizer',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"payFertilizer"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_PayFertilizer =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'payFertilizer',
   })
 
 /**
@@ -13985,38 +11269,6 @@ export const useSimulateBeanstalk_PipelineConvert =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"enrootDeposit"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_EnrootDeposit =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'enrootDeposit',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"enrootDeposits"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_EnrootDeposits =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'enrootDeposits',
-  })
-
-/**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"convert"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
@@ -14446,7 +11698,7 @@ export const useSimulateBeanstalk_Plant =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"init"`
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"gm"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
  * -
@@ -14454,12 +11706,11 @@ export const useSimulateBeanstalk_Plant =
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
  */
-export const useSimulateBeanstalk_Init =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'init',
-  })
+export const useSimulateBeanstalk_Gm = /*#__PURE__*/ createUseSimulateContract({
+  abi: beanstalkAbi,
+  address: beanstalkAddress,
+  functionName: 'gm',
+})
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"setShipmentRoutes"`
@@ -14478,21 +11729,6 @@ export const useSimulateBeanstalk_SetShipmentRoutes =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"gm"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_Gm = /*#__PURE__*/ createUseSimulateContract({
-  abi: beanstalkAbi,
-  address: beanstalkAddress,
-  functionName: 'gm',
-})
-
-/**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"sunrise"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
@@ -14509,134 +11745,6 @@ export const useSimulateBeanstalk_Sunrise =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"approveL2Receiver"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_ApproveL2Receiver =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'approveL2Receiver',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"migrateL2Beans"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_MigrateL2Beans =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'migrateL2Beans',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"approveReceiver"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_ApproveReceiver =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'approveReceiver',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"issueDeposits"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_IssueDeposits =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'issueDeposits',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"issueFertilizer"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_IssueFertilizer =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'issueFertilizer',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"issueInternalBalances"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_IssueInternalBalances =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'issueInternalBalances',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"issuePlots"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_IssuePlots =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'issuePlots',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link beanstalkAbi}__ and `functionName` set to `"recieveL1Beans"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useSimulateBeanstalk_RecieveL1Beans =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    functionName: 'recieveL1Beans',
-  })
-
-/**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
@@ -14649,112 +11757,6 @@ export const useWatchBeanstalk_undefined =
   /*#__PURE__*/ createUseWatchContractEvent({
     abi: beanstalkAbi,
     address: beanstalkAddress,
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"AddUnripeToken"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_AddUnripeToken =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'AddUnripeToken',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"ChangeUnderlying"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_ChangeUnderlying =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'ChangeUnderlying',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"Chop"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_Chop = /*#__PURE__*/ createUseWatchContractEvent(
-  { abi: beanstalkAbi, address: beanstalkAddress, eventName: 'Chop' },
-)
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"InternalBalanceChanged"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_InternalBalanceChanged =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'InternalBalanceChanged',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"Pick"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_Pick = /*#__PURE__*/ createUseWatchContractEvent(
-  { abi: beanstalkAbi, address: beanstalkAddress, eventName: 'Pick' },
-)
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"SwitchUnderlyingToken"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_SwitchUnderlyingToken =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'SwitchUnderlyingToken',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"SetFertilizer"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_SetFertilizer =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'SetFertilizer',
   })
 
 /**
@@ -14883,6 +11885,22 @@ export const useWatchBeanstalk_TractorVersionSet =
     abi: beanstalkAbi,
     address: beanstalkAddress,
     eventName: 'TractorVersionSet',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"InternalBalanceChanged"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useWatchBeanstalk_InternalBalanceChanged =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    eventName: 'InternalBalanceChanged',
   })
 
 /**
@@ -15221,22 +12239,6 @@ export const useWatchBeanstalk_TransferBatch =
   })
 
 /**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"RemoveDeposit"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_RemoveDeposit =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'RemoveDeposit',
-  })
-
-/**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"ApprovalForAll"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
@@ -15445,6 +12447,22 @@ export const useWatchBeanstalk_AddDeposit =
   })
 
 /**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"RemoveDeposit"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useWatchBeanstalk_RemoveDeposit =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    eventName: 'RemoveDeposit',
+  })
+
+/**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"TransferSingle"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
@@ -15621,150 +12639,6 @@ export const useWatchBeanstalk_Shipped =
   })
 
 /**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"MigratedAccountStatus"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_MigratedAccountStatus =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'MigratedAccountStatus',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"MigratedAccountTokenStatus"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_MigratedAccountTokenStatus =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'MigratedAccountTokenStatus',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"FertilizerMigrated"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_FertilizerMigrated =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'FertilizerMigrated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"MigratedPlot"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_MigratedPlot =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'MigratedPlot',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"ShipmentRoutesSet"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_ShipmentRoutesSet =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'ShipmentRoutesSet',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"InternalBalanceMigrated"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_InternalBalanceMigrated =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'InternalBalanceMigrated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"MigratedPodListing"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_MigratedPodListing =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'MigratedPodListing',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"MigratedPodOrder"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_MigratedPodOrder =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'MigratedPodOrder',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"AddMigratedDeposit"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_AddMigratedDeposit =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'AddMigratedDeposit',
-  })
-
-/**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"BeanToMaxLpGpPerBdvRatioChange"`
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
@@ -15810,6 +12684,22 @@ export const useWatchBeanstalk_SeasonOfPlentyWell =
     abi: beanstalkAbi,
     address: beanstalkAddress,
     eventName: 'SeasonOfPlentyWell',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"ShipmentRoutesSet"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useWatchBeanstalk_ShipmentRoutesSet =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: beanstalkAbi,
+    address: beanstalkAddress,
+    eventName: 'ShipmentRoutesSet',
   })
 
 /**
@@ -15871,134 +12761,6 @@ export const useWatchBeanstalk_Uri = /*#__PURE__*/ createUseWatchContractEvent({
   address: beanstalkAddress,
   eventName: 'URI',
 })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"RetryableTicketCreated"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_RetryableTicketCreated =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'RetryableTicketCreated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"L1BeansMigrated"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_L1BeansMigrated =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'L1BeansMigrated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"L1DepositsMigrated"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_L1DepositsMigrated =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'L1DepositsMigrated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"L1FertilizerMigrated"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_L1FertilizerMigrated =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'L1FertilizerMigrated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"L1InternalBalancesMigrated"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_L1InternalBalancesMigrated =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'L1InternalBalancesMigrated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"L1OrdersMigrated"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_L1OrdersMigrated =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'L1OrdersMigrated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"L1PlotsMigrated"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_L1PlotsMigrated =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'L1PlotsMigrated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link beanstalkAbi}__ and `eventName` set to `"ReceiverApproved"`
- *
- * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
- * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
- * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
- */
-export const useWatchBeanstalk_ReceiverApproved =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: beanstalkAbi,
-    address: beanstalkAddress,
-    eventName: 'ReceiverApproved',
-  })
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link beanstalkPriceAbi}__
