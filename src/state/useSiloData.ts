@@ -90,7 +90,6 @@ export function useSiloData() {
     );
     const yieldData = index ? yields?.siloYields[0].tokenAPYS[index] : undefined;
 
-    console.log("silotokendata: ", siloTokenData)
     if (siloTokenData) {
       data.set(token, {
         totalDeposited: TokenValue.fromBlockchain(siloTokenData[0].result ?? 0n, token.decimals),
