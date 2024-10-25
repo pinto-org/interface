@@ -45,8 +45,6 @@ export default function SiloToken() {
     return <>404</>;
   }
 
-  console.log("silotoken: ", siloTokenData)
-
   return (
     <div className="flex flex-col items-center">
       <div className="flex flex-row w-[80%] gap-14 items-start">
