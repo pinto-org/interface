@@ -76,8 +76,8 @@ module.exports = {
         'pinto-token-select': '0px 1px 8px 0px rgba(233, 240, 246, 1)',
       },
       fontFamily: {
-        pinto: ["Pinto"],
-        roboto: ["Roboto"]
+        pinto: ["Pinto", "system-ui", "sans-serif"],
+        roboto: ["Roboto", "system-ui", "sans-serif"]
       },
       keyframes: {
         "accordion-down": {

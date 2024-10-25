@@ -6,32 +6,37 @@
   @font-face { 
     font-family: "Pinto";
     font-weight: 500;
+    font-display: swap;
     src: 
-      url(src/assets/fonts/Pinto-Regular.woff2) format('woff2');
+      url('@/assets/fonts/Pinto-Regular.woff2') format('woff2');
   }
   @font-face { 
     font-family: "Pinto";
     font-weight: 400;
+    font-display: swap;
     src: 
-      url(src/assets/fonts/Pinto-Book.woff2) format('woff2');
+      url('@/assets/fonts/Pinto-Book.woff2') format('woff2');
   }
   @font-face { 
     font-family: "Pinto";
     font-weight: 300;
+    font-display: swap;
     src: 
-      url(src/assets/fonts/Pinto-Light.woff2) format('woff2');
+      url('@/assets/fonts/Pinto-Light.woff2') format('woff2');
   }
   @font-face { 
     font-family: "Pinto";
     font-weight: 600;
+    font-display: swap;
     src: 
-      url(src/assets/fonts/Pinto-Medium.woff2) format('woff2');
+      url('@/assets/fonts/Pinto-Medium.woff2') format('woff2');
   }
   @font-face {
     font-family: "Roboto";
     font-weight: 300;
+    font-display: swap;
     src:
-      url(src/assets/fonts/Roboto-Light.ttf) format('ttf');
+      url('@/assets/fonts/Roboto-Light.ttf') format('truetype');
   }
 }
 

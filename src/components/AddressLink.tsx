@@ -11,12 +11,12 @@ export default function AddressLink({ address }: { address: string | undefined }
     <>
       {blockExplorer ? (
         <Link to={`${blockExplorer}/address/${address}`}>
-          <div className="font-roboto font-[300] text-[2rem] -tracking-[0.02em] underline text-pinto-green">
+          <div className="font-roboto font-[300] text-[2rem] -tracking-[0.02em] underline decoration-2 text-pinto-green">
             {address}
           </div>
         </Link>
       ) : (
-        <div className="font-roboto font-[300] text-[2rem] -tracking-[0.02em] underline text-pinto-green">
+        <div className="font-roboto font-[300] text-[2rem] -tracking-[0.02em] underline decoration-2 text-pinto-green">
           {address}
         </div>
       )}
