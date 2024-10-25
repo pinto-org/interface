@@ -67,7 +67,7 @@ function Deposit({ siloToken }: SiloDepositForm) {
 
   const swapData = useSwapEstimate(
     tokenIn,
-    siloToken.address === mainToken.address ? mainToken : intToken || ETH,
+    siloToken,
     amountIn,
     slippage,
     "exactInput",
