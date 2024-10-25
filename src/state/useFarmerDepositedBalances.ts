@@ -36,7 +36,7 @@ function useFarmerDepositedBalances() {
 
   const queryKey = [
     "farmerDepositedBalances",
-    { chainId: chainId, variables: [account.address?.toString().toLowerCase(), Number(season.toHuman())] },
+    { chainId: chainId, variables: [account.address?.toString().toLowerCase(), season] },
   ]
 
   const { data: data, refetch: refetch } = useQuery({
@@ -44,7 +44,7 @@ function useFarmerDepositedBalances() {
     queryFn: async () =>
       request(subgraphs[chainId].beanstalk, FarmerSiloBalancesDocument, {
         account: account.address!.toString().toLowerCase(),
-        season: Number(season.toHuman()),
+        season: season,
       }),
       ...querySettings,
       enabled: !!account.address,

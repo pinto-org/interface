@@ -24,7 +24,7 @@ export default function SeasonsButtonPanel({isOpen = false}: {isOpen: boolean}) 
                     <div className="flex flex-col gap-1 mb-2">
                         <div className="font-[400] text-[1.25rem] text-black inline-flex gap-2 items-center">
                             <img src={sunIcon} className={"w-6 h-6"} />
-                            Season {sunData.current.toHuman()}
+                            Season {sunData.current}
                         </div>
                         <div className="font-[300] text-[1rem] text-pinto-gray-4">
                             Seasons are how Pinto keeps time. Each Season is about 1 hour.

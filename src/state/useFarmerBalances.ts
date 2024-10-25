@@ -1,4 +1,4 @@
-import { useAccount, useBalance, useChainId } from "wagmi";
+import { useAccount, useBalance } from "wagmi";
 import { useReadBeanstalk_GetAllBalances } from "@/generated/contractHooks";
 import { TokenValue } from "@/classes/TokenValue";
 import useTokenData from "./useTokenData";
@@ -6,7 +6,6 @@ import { Token } from "@/utils/types";
 
 export function useFarmerBalances() {
   const account = useAccount();
-  const chainId = useChainId();
   const tokens = useTokenData().preferredTokens;
   const preferredTokens = tokens.map(token => token.address);
   const ETH = useTokenData().nativeToken;

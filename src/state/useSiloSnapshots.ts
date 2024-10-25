@@ -35,7 +35,7 @@ export default function useSiloSnapshots() {
             if (!siloSnapshot) return
             const _siloSnapshot = {
                 deltaBeanMints: TokenValue.fromBlockchain(siloSnapshot.deltaBeanMints || 0n, tokenData.mainToken.decimals),
-                season: Number(siloSnapshot.season || 0)
+                season: siloSnapshot.season
             };
             output.push(_siloSnapshot);
         };

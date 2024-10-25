@@ -16,7 +16,7 @@ export default function SeasonsButton({isOpen = false, togglePanel}: {isOpen: bo
           onClick={() => togglePanel()}
         >
           <img src={sunIcon} className="h-6 w-6" />
-          <span>Season {sunData.current.toHuman()}</span>
+          <span>Season {sunData.current}</span>
           <img src={chevronDown} className="h-4 w-4" />
         </Button>
         <SeasonsButtonPanel isOpen={isOpen} />
