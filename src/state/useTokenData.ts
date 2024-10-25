@@ -3,7 +3,7 @@ import { tokens } from "@/constants/tokens";
 import { Abi, erc20Abi } from "viem";
 import { TokenValue } from "@/classes/TokenValue";
 import { Token } from "@/utils/types";
-import { arbitrum, base } from "viem/chains";
+import { base } from "viem/chains";
 
 export default function useTokenData() {
     const chainId = useChainId();

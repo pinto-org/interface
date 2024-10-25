@@ -10,7 +10,8 @@ const settings = {
 
 export function useSunData() {
   // const seasonTime = useReadBeanstalk_SeasonTime(); /// the season that it could be if sunrise was called
-  const time = useReadBeanstalk_Time(settings).data;
+  const sunData = useReadBeanstalk_Time(settings);
+  const time = sunData.data;
 
   return {
     /** The current Season in Beanstalk. */
@@ -25,8 +26,6 @@ export function useSunData() {
     raining: time?.raining || false,
     /** The block of the start of the current Season. */
     sunriseBlock: TokenValue.fromBlockchain(time?.sunriseBlock || 0n, 0),
-    stemStartSeason: time?.stemStartSeason || 0,
-    stemScaleSeason: time?.stemScaleSeason || 0,
     /** Boolean indicating whether the previous Season was above or below peg. */
     abovePeg: time?.abovePeg || false,
     /** The timestamp of the Beanstalk deployment rounded down to the nearest hour. */
