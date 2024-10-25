@@ -4,6 +4,7 @@ import { useFieldData } from "@/state/useFieldData";
 import { Button } from "@/components/ui/Button";
 import PlotsTable from "@/components/PlotsTable";
 import FieldActions from "./field/FieldActions";
+import { Link } from "react-router-dom";
 
 function Field() {
 
@@ -59,7 +60,7 @@ function Field() {
             </div>
           </div>
           <Button asChild variant={"outline"} className="rounded-full text-[1.25rem]">
-            <a href={"/explorer"}>View Data</a>
+            <Link to={"/explorer"}>View Data</Link>
           </Button>
         </div>
         <div>

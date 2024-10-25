@@ -11,6 +11,7 @@ import { Button } from "./ui/Button";
 import { Switch } from "./ui/Switch";
 import TooltipSimple from "./TooltipSimple";
 import { Token } from "@/utils/types";
+import { Link } from "react-router-dom";
 
 export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
 
@@ -138,9 +139,9 @@ export default function PriceButtonPanel({isOpen = false}: {isOpen: boolean}) {
                       </div>
                       <div className="font-[500] text-[1.25rem] text-pinto-gray-5 gap-2 items-center flex flex-row">
                         ${Number(pool.price.toHuman()).toFixed(4)}
-                        <a href={`https://basin.exchange/#/wells/${pool.pool?.address}`} target={"_blank"} className="text-pinto-gray-5 ml-2 -mr-10 group-hover:ml-0 group-hover:mr-0 hover:text-pinto-green-2 hover:cursor-pointer transition-all">
+                        <Link to={`https://basin.exchange/#/wells/${pool.pool?.address}`} target={"_blank"} className="text-pinto-gray-5 ml-2 -mr-10 group-hover:ml-0 group-hover:mr-0 hover:text-pinto-green-2 hover:cursor-pointer transition-all">
                           <ExternalLinkIcon color="currentColor" />
-                        </a>
+                        </Link>
                       </div>
                     </div>
                     <div className="flex flex-row relative">

@@ -12,7 +12,7 @@ import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import DepositsTable from "./silo/DepositsTable";
 import SiloActions from "./silo/SiloActions";
 import GerminationNotice from "./silo/GerminationNotice";
@@ -50,9 +50,9 @@ export default function SiloToken() {
       <div className="flex flex-row w-[80%] gap-14 items-start">
         <div className="flex flex-col w-[80%] gap-8">
           <Button asChild variant={"outline"} className="rounded-full -my-4 h-12 w-12 p-0">
-            <a href={"/silo"}>
+            <Link to={"/silo"}>
               <img src={backArrowIcon} alt="go to previous page" />
-            </a>
+            </Link>
           </Button>
           <div className="inline-flex items-center gap-3">
             <img src={siloToken?.logoURI} className="w-14 h-14" alt={siloToken?.name} />
@@ -68,19 +68,19 @@ export default function SiloToken() {
                 <img src={copyIcon} alt="copy address" />
               </Button>
               <Button asChild variant={"outline"} className="rounded-full h-12 w-12 p-0">
-                <a
-                  href={`https://basin.exchange/#/wells/${siloToken.address}`}
+                <Link
+                  to={`https://basin.exchange/#/wells/${siloToken.address}`}
                   target={"_blank"}
                   className="text-pinto-gray-5 hover:text-pinto-green-2 hover:cursor-pointer transition-all"
                   rel="noreferrer"
                 >
                   <ExternalLinkIcon color="currentColor" />
-                </a>
+                </Link>
               </Button>
               <Button variant={"outline"} className="rounded-full h-12 w-12 p-0">
-                <a href={`https://etherscan.io/address/${siloToken.address}`} target={"_blank"} rel="noreferrer">
+                <Link to={`https://etherscan.io/address/${siloToken.address}`} target={"_blank"} rel="noreferrer">
                   <img src={etherscanIcon} alt="go to etherscan" />
-                </a>
+                </Link>
               </Button>
             </div>
           </div>
@@ -193,12 +193,12 @@ export default function SiloToken() {
                             `}
             </div>
             <div>
-              <a
-                href={"/explorer"}
+              <Link
+                to={"/explorer"}
                 className="font-[400] text-[1.25rem] text-pinto-green-2 hover:underline transition-all"
               >
                 See More Data →
-              </a>
+              </Link>
             </div>
           </div>
         </div>

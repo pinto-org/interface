@@ -18,6 +18,7 @@ import { useEffect } from "react";
 import { BaseError, encodeFunctionData } from "viem";
 import { useAccount, useChainId, useWriteContract } from "wagmi";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 export default function Overview() {
 
@@ -244,21 +245,21 @@ export default function Overview() {
             variant="outline"
             className="flex flex-col text-center bg-white hover:bg-pinto-green-1 hover:border-pinto-green-2 w-full h-[33rem] rounded-full gap-4"
           >
-            <a href={"/silo"}>
+            <Link to={"/silo"}>
               <span className="text-pinto-h1 text-black">Deposit in the Silo</span>
               <span className="text-pinto-body text-pinto-gray-4">Deposits in the Silo receive Stalk and Seeds,</span>
               <span className="text-pinto-body text-pinto-gray-4">
                 and yield additional Pinto when the supply expands.
               </span>
               {Number(avg) > 0 && <span className="text-pinto-h1 text-pinto mt-4">{`${avg}% average vAPY`}</span>}
-            </a>
+            </Link>
           </Button>
           <Button
             asChild
             variant="outline"
             className="flex flex-col text-center bg-white hover:bg-pinto-green-1 hover:border-pinto-green-2 w-full h-[33rem] rounded-full gap-4"
           >
-            <a href={"/field"}>
+            <Link to={"/field"}>
               <span className="text-pinto-h1 text-black">Lend in the Field</span>
               <span className="text-pinto-body text-pinto-gray-4">
                 Assets lent to Pinto are exchanged for Pods, the Pinto debt asset.
@@ -269,7 +270,7 @@ export default function Overview() {
               {podRate.gt(0) && (
                 <span className="text-pinto-h1 text-pinto mt-4">{`${podRate.toHuman()}% interest rate`}</span>
               )}
-            </a>
+            </Link>
           </Button>
         </div>
       )}
