@@ -193,17 +193,6 @@ export default function TransferAll() {
       </div>
       {step <= 1 ? (
         <>
-          <Label>Amount and token to send</Label>
-          {/*<ComboInputField 
-              amount={amountIn}
-              setAmount={setAmountIn}
-              setToken={setTokenIn}
-              setBalanceFrom={setBalanceFrom} 
-              selectedToken={tokenIn}
-              balanceFrom={balanceFrom}
-              setMaxAmount={changeAmountIn}
-              balancesToShow={[FarmFromMode.EXTERNAL, FarmFromMode.INTERNAL]}
-          />*/}
           <Label>Send tokens to</Label>
           <AddressInputField value={destination} setValue={setDestination} />
         </>
