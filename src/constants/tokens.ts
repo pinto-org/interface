@@ -124,7 +124,7 @@ export const tokens: { [chainId: number]: Token[] } = {
             chainId: base.id,
             name: "PINTO:WETH LP",
             symbol: "PINTO:WETH",
-            address: "0x3e110064EFC1915d24EC45f9c04591923d812233",
+            address: "0x3e110022a76aEde1fA51E43913730FE3D4C3cCBC",
             decimals: 18,
             isLP: true,
             logoURI: pintoWethIcon,
@@ -138,7 +138,7 @@ export const tokens: { [chainId: number]: Token[] } = {
             chainId: base.id,
             name: "PINTO:cbETH LP",
             symbol: "PINTO:cbETH",
-            address: "0x3e11110c4B8F9ece9dac99D220EF3CFfF03eD74f",
+            address: "0x3e1111FF07062BbdaE1Af96fAF514133D9CE8Bfe",
             decimals: 18,
             isLP: true,
             logoURI: pintoWstethIcon,
@@ -152,7 +152,7 @@ export const tokens: { [chainId: number]: Token[] } = {
             chainId: base.id,
             name: "PINTO:USDC LP",
             symbol: "PINTO:USDC",
-            address: "0x3e1133FB8eF15e817203409b8379D99Fe968D254",
+            address: "0x3e11334a0D56cA378cdE00a32f53C8cB0a7536b8",
             decimals: 18,
             isLP: true,
             logoURI: pintoWstethIcon,
@@ -166,7 +166,7 @@ export const tokens: { [chainId: number]: Token[] } = {
             chainId: base.id,
             name: "PINTO:cbBTC LP",
             symbol: "PINTO:cbBTC",
-            address: "0x3e1122f7D416aa21B394044eFFfebd976Bbb7a68",
+            address: "0x3e1122C27A21080546E9bca66421c078AF349Cd6",
             decimals: 18,
             isLP: true,
             logoURI: pintoWstethIcon,
@@ -188,7 +188,6 @@ export const tokens: { [chainId: number]: Token[] } = {
             logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png",
             color: "#627EEA",
         },
-        // Other Tokens
         {
             chainId: base.id,
             name: "USDCoin",
@@ -198,14 +197,6 @@ export const tokens: { [chainId: number]: Token[] } = {
             isWhitelisted: true,
             logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png",
             color: "#2775CA"
-        },
-        {
-            chainId: base.id,
-            name: "Tether USD",
-            symbol: "USDT",
-            address: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",
-            decimals: 6,
-            logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
         },
         {
             chainId: base.id,
@@ -226,6 +217,15 @@ export const tokens: { [chainId: number]: Token[] } = {
             isWhitelisted: true,
             logoURI: "https://assets.coingecko.com/coins/images/40143/standard/cbbtc.webp?1726136727",
             color: "#F7931A",
-        }
+        },
+        // Other Tokens
+        {
+            chainId: base.id,
+            name: "Tether USD",
+            symbol: "USDT",
+            address: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",
+            decimals: 6,
+            logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
+        },
     ]
 }

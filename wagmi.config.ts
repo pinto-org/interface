@@ -61,10 +61,10 @@ export default defineConfig(() => {
         address: {
           [mainnet.id]: "0xb1bE0000C6B3C62749b5F0c92480146452D15423",
           [arbitrum.id]: "0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0",
-          [base.id]: "0xb1bE000421A9d890cb51EBd9D593De9C0B199419",
-          [localhost.id]: "0xb1bE000421A9d890cb51EBd9D593De9C0B199419", // base
-          [tenderlyTestnet.id]: "0xb1bE000421A9d890cb51EBd9D593De9C0B199419", // base
-          [foundry.id]: "0xb1bE000421A9d890cb51EBd9D593De9C0B199419", // base
+          [base.id]: "0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0",
+          [localhost.id]: "0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0", // base
+          [tenderlyTestnet.id]: "0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0", // base
+          [foundry.id]: "0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0", // base
         }
       },
       {
@@ -73,10 +73,10 @@ export default defineConfig(() => {
         address: {
           [mainnet.id]: "0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2",
           [arbitrum.id]: "0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c",
-          [base.id]: "0xDEb0f00B711f90e503D3035E890A19693ef27Db9",
-          [localhost.id]: "0xDEb0f00B711f90e503D3035E890A19693ef27Db9", // base
-          [tenderlyTestnet.id]: "0xDEb0f00B711f90e503D3035E890A19693ef27Db9", // base
-          [foundry.id]: "0xDEb0f00B711f90e503D3035E890A19693ef27Db9", // base
+          [base.id]: "0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471",
+          [localhost.id]: "0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471", // base
+          [tenderlyTestnet.id]: "0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471", // base
+          [foundry.id]: "0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471", // base
         }
       },
     ],
