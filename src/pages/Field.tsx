@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import PlotsTable from "@/components/PlotsTable";
 import FieldActions from "./field/FieldActions";
 import { Link } from "react-router-dom";
+import { LeftArrowIcon, UpDownArrowsIcon } from "@/components/Icons";
 
 function Field() {
 
@@ -70,9 +71,29 @@ function Field() {
           <PlotsTable />
         </div>
           </div>
-        <div className="w-[500px] mt-32 p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border">
+        <div className="w-[500px] mt-32 flex flex-col gap-6"> 
+        <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border">
           <FieldActions />
-        </div> 
+        </div>
+        <div className="p-2 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border flex flex-col gap-2">
+              <Button variant="ghost" className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem]">
+                <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
+                    <span className="self-center items-center">
+                        <LeftArrowIcon color={"white"} height={16} width={16} />
+                    </span>
+                </div>
+                Send Pods
+              </Button>
+              <Button variant="ghost" className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem]">
+                <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
+                    <span className="self-center items-center">
+                        <UpDownArrowsIcon color={"white"} height={16} width={16} />
+                    </span>
+                </div>
+                Buy or sell Pods in the Market
+            </Button>
+          </div>
+        </div>
         </div>
     </div>
   );
