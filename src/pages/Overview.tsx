@@ -18,7 +18,7 @@ import { useEffect } from "react";
 import { BaseError, encodeFunctionData } from "viem";
 import { useAccount, useChainId, useWriteContract } from "wagmi";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Overview() {
 
@@ -32,6 +32,8 @@ export default function Overview() {
   const fieldData = useFieldData();
 
   const tokenData = useTokenData();
+
+  const navigate = useNavigate();
 
   const siloPct = siloData.totalStalk.gt(0)
     ? farmerSilo.activeStalkBalance.div(siloData.totalStalk).mul(100)
@@ -195,7 +197,11 @@ export default function Overview() {
                         const userData = farmerDeposits.get(token);
                         const claimableStalk = farmerSilo.grownStalkPerToken.get(token) || TokenValue.ZERO;
                         return (
-                          <TableRow key={`${token.address}_${i}`} className="h-[4.5rem] bg-white hover:bg-white">
+                          <TableRow
+                            className="h-[4.5rem] bg-white hover:bg-pinto-green-1/50 hover:cursor-pointer"
+                            key={`${token.address}_${i}`}
+                            onClick={() => navigate(`/silo/${token.address}`)}
+                          >
                             <TableCell className="text-black font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">
                               <img src={token.logoURI} className="h-8 w-8" alt={`${token.name} logo`} />
                               <div>{token.name}</div>
