@@ -18,6 +18,11 @@ import SiloActions from "./silo/SiloActions";
 import GerminationNotice from "./silo/GerminationNotice";
 
 export default function SiloToken() {
+
+  const chainId = useChainId();
+  const currentChain = config.chains.find((chain) => chain.id === chainId);
+  const blockExplorer = currentChain?.blockExplorers?.default.url ?? 'https://basescan.org';
+
   const { tokenAddress } = useParams();
   const tokenData = useTokenData();
   const siloData = useSiloData();
@@ -69,16 +74,16 @@ export default function SiloToken() {
               </Button>
               <Button asChild variant={"outline"} className="rounded-full h-12 w-12 p-0">
                 <Link
-                  to={`https://basin.exchange/#/wells/${siloToken.address}`}
+                  to={`https://pinto.exchange/#/wells/${siloToken.address}`}
                   target={"_blank"}
-                  className="text-pinto-gray-5 hover:text-pinto-green-2 hover:cursor-pointer transition-all"
+                  className="text-pinto-gray-5 hover:cursor-pointer transition-all"
                   rel="noreferrer"
                 >
-                  <ExternalLinkIcon color="currentColor" />
+                  <ExternalLinkIcon />
                 </Link>
               </Button>
               <Button variant={"outline"} className="rounded-full h-12 w-12 p-0">
-                <Link to={`https://etherscan.io/address/${siloToken.address}`} target={"_blank"} rel="noreferrer">
+                <Link to={`${blockExplorer}/address/${siloToken.address}`} target={"_blank"} rel="noreferrer">
                   <img src={etherscanIcon} alt="go to etherscan" />
                 </Link>
               </Button>

@@ -83,7 +83,7 @@ const MoreNavi = () => {
         <Link href="https://link.to.pinto/bugbounty">Bug Bounty Program</Link>
       </NavigationMenuItem>
       <NavigationMenuItem>
-        <Link href="https://basin.exchange/">Basin</Link>
+        <Link href="https://pinto.exchange/">Basin</Link>
       </NavigationMenuItem>
       <NavigationMenuItem>
         <Link href="https://evmpipeline.org/">Pipeline</Link>
