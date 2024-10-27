@@ -42,7 +42,7 @@ export default function TokenSelectWithBalances({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant={"outline"} className={"inline-flex items-center p-6 gap-1.5 border border-pinto-gray-blue bg-white hover:bg-pinto-green-2/10 drop-shadow-pinto-token-select rounded-full text-black text-[1.25rem] font-[400] leading-[1.3875rem] -tracking-[0.02em]"}>
+        <Button variant={"outline"} className={"inline-flex items-center h-12 px-8 gap-1.5 border border-pinto-gray-blue bg-white hover:bg-pinto-green-1 drop-shadow-pinto-token-select rounded-full text-black text-[1.25rem] font-[400] leading-[1.3875rem] -tracking-[0.02em]"}>
           <img src={selectedToken.logoURI} className="w-6 h-6" />
           <div>{selectedToken.symbol}</div>
           <img src={arrowDown} className="w-4 h-4" />

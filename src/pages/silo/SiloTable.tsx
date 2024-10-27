@@ -1,7 +1,7 @@
 import apyIcon from "@/assets/protocol/APY.svg";
 import pdvIcon from "@/assets/protocol/PDV.png";
-import seedsIcon from "@/assets/protocol/Seed-default.png";
-import stalkIcon from "@/assets/protocol/Stalk-default.png";
+import seedsIcon from "@/assets/protocol/Seed.png";
+import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";

@@ -1,7 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue"
-import stalkIcon from "@/assets/protocol/Stalk-variant.png";
-import seedIcon from "@/assets/protocol/Seed-variant.png";
-import podIcon from "@/assets/protocol/Pod-variant.png";
+import stalkIcon from "@/assets/protocol/Stalk.png";
+import seedIcon from "@/assets/protocol/Seed.png";
+import podIcon from "@/assets/protocol/Pod.png";
 import pdvIcon from "@/assets/protocol/PDV.png";
 import TooltipSimple from "./TooltipSimple";
 import { ReactNode } from "react";
@@ -31,19 +31,19 @@ export default function StatPanel({ mode, mainValue = TokenValue.ZERO, secondary
                 {mode === 'depositedValue' && `$${mainValue.toHuman('short')}`}
                 {mode === 'stalk' &&                         
                     <div className="flex flex-row gap-1 items-center">
-                        <img src={stalkIcon} className={`${size === "large" ? 'h-12 w-12' : 'h-9 w-9'} drop-shadow-md`}/>
+                        <img src={stalkIcon} className={`${size === "large" ? 'h-12 w-12' : 'h-8 w-8'}`}/>
                         <div>{mainValue.toHuman('short')}</div>
                     </div>
                 }
                 {mode === 'seeds' &&                 
                     <div className="flex flex-row gap-1 items-center">
-                        <img src={seedIcon} className={`${size === "large" ? 'h-12 w-12' : 'h-9 w-9'} drop-shadow-md`}/>
+                        <img src={seedIcon} className={`${size === "large" ? 'h-12 w-12' : 'h-8 w-8'}`}/>
                         <div>{mainValue.toHuman('short')}</div>
                     </div>
                 }
                 {mode === 'pods' &&                 
                     <div className="flex flex-row gap-1 items-center">
-                        <img src={podIcon} className={`${size === "large" ? 'h-12 w-12' : 'h-9 w-9'} drop-shadow-md`}/>
+                        <img src={podIcon} className={`${size === "large" ? 'h-12 w-12' : 'h-8 w-8'}`}/>
                         <div>{mainValue.toHuman('short')}</div>
                     </div>
                 }

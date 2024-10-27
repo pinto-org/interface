@@ -64,24 +64,24 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
                         </div>
                     </div>
                     <div className="flex flex-row gap-3 w-full">
-                        <Button onClick={() => { navigate('/market'); togglePanel(); }} variant="ghost" className="bg-pinto-gray-1 hover:hover:bg-pinto-green-2 w-full h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-col gap-4">
-                            <div className="rounded-full bg-pinto-green-2 h-9 w-9 flex justify-evenly">
+                        <Button onClick={() => { navigate('/market'); togglePanel(); }} variant="ghost" className="bg-pinto-gray-1 hover:hover:bg-pinto-green w-full h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-col gap-4">
+                            <div className="rounded-full bg-pinto-green h-9 w-9 flex justify-evenly">
                                 <span className="self-center items-center">
                                     <UpDownArrowsIcon color={"white"} />
                                 </span>
                             </div>
                             Swap
                         </Button>
-                        <Button onClick={() => { navigate('/transfer'); togglePanel(); }} variant="ghost" className="bg-pinto-gray-1 hover:hover:bg-pinto-green-2 w-full h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-col gap-4">
-                            <div className="rounded-full bg-pinto-green-2 h-9 w-9 flex justify-evenly">
+                        <Button onClick={() => { navigate('/transfer'); togglePanel(); }} variant="ghost" className="bg-pinto-gray-1 hover:hover:bg-pinto-green w-full h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-col gap-4">
+                            <div className="rounded-full bg-pinto-green h-9 w-9 flex justify-evenly">
                                 <span className="self-center items-center">
                                     <LeftArrowIcon color={"white"} />
                                 </span>
                             </div>
                             Send
                         </Button>
-                        <Button onClick={() => setShowTransfer(true)} variant="ghost" className="bg-pinto-gray-1 hover:hover:bg-pinto-green-2 w-full h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-col gap-4">
-                            <div className="rounded-full bg-pinto-green-2 h-9 w-9 flex justify-evenly">
+                        <Button onClick={() => setShowTransfer(true)} variant="ghost" className="bg-pinto-gray-1 hover:hover:bg-pinto-green w-full h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-col gap-4">
+                            <div className="rounded-full bg-pinto-green h-9 w-9 flex justify-evenly">
                                 <span className="self-center items-center">
                                     <BackwardArrowDotsIcon color={"white"} />
                                 </span>
@@ -117,7 +117,7 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
                                                 <div className="flex flex-row justify-between items-center">
                                                     <div className="flex flex-col text-left gap-2 my-1">
                                                         <span className="text-[1.25rem] text-pinto-gray-5">{token.symbol}</span>
-                                                        <span className="font-[340] transition-all group-hover:text-pinto-green-2 text-pinto-gray-4 inline-flex gap-1 items-center">
+                                                        <span className="font-[340] transition-all group-hover:text-pinto-green text-pinto-gray-4 inline-flex gap-1 items-center">
                                                         <DonutChart 
                                                             data={{    
                                                                 labels: ['Farm Balance', 'Wallet Balance'],
@@ -225,7 +225,7 @@ export default function WalletButtonPanel({isOpen = false, togglePanel}: {isOpen
                     </div>
                 </CardContent>
                 <CardFooter className="absolute bottom-0 mx-auto left-0 right-0 text-center justify-center flex flex-col gap-4">
-                    <Button variant="ghost" className="inline-flex items-center gap-2 rounded-full text-black bg-pinto-gray-1 hover:hover:bg-pinto-green-2 hover:text-white" onClick={() => { disconnect(); togglePanel(); }}>Disconnect Wallet <CloseIcon color={"currentColor"} /></Button>
+                    <Button variant="ghost" className="inline-flex items-center gap-2 rounded-full text-black bg-pinto-gray-1 hover:hover:bg-pinto-green hover:text-white" onClick={() => { disconnect(); togglePanel(); }}>Disconnect Wallet <CloseIcon color={"currentColor"} /></Button>
                     {totalFlood.gt(0) &&
                         <WalletButtonClaim setShowClaim={setShowClaim} showClaim={showClaim} />
                     }

@@ -219,13 +219,13 @@ export const tokens: { [chainId: number]: Token[] } = {
             color: "#F7931A",
         },
         // Other Tokens
-        {
+        /* {
             chainId: base.id,
             name: "Tether USD",
             symbol: "USDT",
             address: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",
             decimals: 6,
             logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
-        },
+        }, */
     ]
 }

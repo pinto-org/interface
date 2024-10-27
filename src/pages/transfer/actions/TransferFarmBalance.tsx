@@ -1,6 +1,6 @@
 import plotIcon from "@/assets/protocol/Plot.svg";
-import seedsIcon from "@/assets/protocol/Seed-default.png";
-import stalkIcon from "@/assets/protocol/Stalk-default.png";
+import seedsIcon from "@/assets/protocol/Seed.png";
+import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import AddressInputField from "@/components/AddressInputField";
 import AddressLink from "@/components/AddressLink";

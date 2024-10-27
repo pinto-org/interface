@@ -1,6 +1,6 @@
 import { Table, TableBody, TableCell, TableRow } from "./ui/Table";
 import { useFarmerField } from "@/state/useFarmerField";
-import podIcon from "@/assets/protocol/Pod-variant.png";
+import podIcon from "@/assets/protocol/Pod.png";
 import plotIcon from "@/assets/protocol/Plot.svg";
 import { useFieldData } from "@/state/useFieldData";
 

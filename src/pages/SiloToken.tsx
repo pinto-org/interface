@@ -1,8 +1,8 @@
 import copyIcon from "@/assets/misc/Copy.svg";
 import etherscanIcon from "@/assets/misc/Etherscan.png";
 import backArrowIcon from "@/assets/misc/LeftArrow.svg";
-import seedsIcon from "@/assets/protocol/Seed-variant.png";
-import stalkIcon from "@/assets/protocol/Stalk-variant.png";
+import seedsIcon from "@/assets/protocol/Seed.png";
+import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import APYChip from "@/components/APYChip";
 import { ExternalLinkIcon } from "@/components/Icons";
