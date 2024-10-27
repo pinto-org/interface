@@ -6,7 +6,21 @@
   },
   "linter": {
     "enabled": true,
-    "rules": { "recommended": true }
+    "rules": {
+      "recommended": true,
+      "style": {
+        "useImportType": "off",
+        "noUselessElse": "warn",
+        "noNonNullAssertion": "warn"
+      },
+      "suspicious": {
+        "noImplicitAnyLet": "error",
+        "noExplicitAny": "warn"
+      },
+      "complexity": {
+        "noForEach": "warn"
+      }
+    }
   },
   "organizeImports": {
     "enabled": true

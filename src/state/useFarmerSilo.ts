@@ -11,6 +11,7 @@ import { usePriceData } from "./usePriceData";
 import useTokenData from "./useTokenData";
 import { STALK } from "@/constants/internalTokens";
 import { Token } from "@/utils/types";
+import { QueryKey } from "@tanstack/react-query";
 
 export function useFarmerSilo() {
   const account = useAccount();

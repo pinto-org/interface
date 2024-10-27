@@ -14,7 +14,7 @@ export function useFarmerBalances() {
   });
   //@ts-ignore
   const tokenBalances = useReadBeanstalk_GetAllBalances({
-    args: [account.address!, preferredTokens],  
+    args: [account.address ?? "0x", preferredTokens],
     query: {
       staleTime: 1000 * 60 * 2,
       refetchInterval: 1000 * 60 * 3, // 3 minutes, in milliseconds

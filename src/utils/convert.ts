@@ -37,13 +37,13 @@ export function sortCratesByBDVRatio(crates, direction: "asc" | "desc" = "asc") 
 /**
  * Selects the number of crates needed to add up to the desired `amount`.
  */
-export function pickCrates(deposits, amount: TokenValue) {
+export function pickCrates(deposits: any[], amount: TokenValue) {
   let totalAmount = TokenValue.ZERO;
   let totalBDV = TokenValue.ZERO;
   let totalStalk = TokenValue.ZERO;
   let totalSeeds = TokenValue.ZERO;
 
-  const cratesToWithdrawFrom = [];
+  const cratesToWithdrawFrom: any[] = [];
 
   deposits.some((deposit) => {
     const amountToRemoveFromCrate = totalAmount.add(deposit.amount).lte(amount)
@@ -98,7 +98,7 @@ export function sortAndPickCrates(
   toToken?: Token,
 ) {
   if (deposits.length === 0) throw new Error("No crates to pick and sort.");
-  let sortedCrates;
+  let sortedCrates: any[];
 
   if (mode === "convert") {
     if (!toToken) throw new Error("No toToken specified.");
@@ -114,6 +114,8 @@ export function sortAndPickCrates(
         sortCratesByBDVRatio(deposits, "asc");
   } else if (mode === "transfer" || mode === "withdraw") {
     sortedCrates = sortCratesByStem(deposits, "desc");
+  } else {
+    throw new Error("sort and pick crates: Unknown mode.");
   }
 
   const pickedCrates = pickCrates(sortedCrates, fromAmount);
