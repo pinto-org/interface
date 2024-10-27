@@ -89,14 +89,14 @@ export default function SiloToken() {
               <div className="font-[400] text-[1rem] text-black">Current Deposit Rewards</div>
               <div className="flex flex-row gap-3">
                 <div className="inline-flex gap-0.5 items-center">
-                  <img src={stalkIcon} className="w-7 h-7 mt-0.5" alt="Stalk" />
+                  <img src={stalkIcon} className="w-7 h-7" alt="Stalk" />
                   <div className="font-[400] text-[1.5rem] text-black">
                     {(siloTokenData ? siloTokenData.rewards.stalk.mul(1000000) : TokenValue.ZERO).toHuman("short")}{" "}
                     Stalk
                   </div>
                 </div>
                 <div className="inline-flex gap-0.5 items-center">
-                  <img src={seedsIcon} className="w-7 h-7 mt-0.5" alt="Seeds" />
+                  <img src={seedsIcon} className="w-7 h-7" alt="Seeds" />
                   <div className="font-[400] text-[1.5rem] text-black">
                     {(siloTokenData ? siloTokenData.rewards.seeds : TokenValue.ZERO).reDecimal(2).toHuman("short")}{" "}
                     Seeds
@@ -126,7 +126,7 @@ export default function SiloToken() {
                   <div className="flex flex-col">
                     <div className="text-[1rem] font-[400] text-pinto-gray-5">My Stalk</div>
                     <div className="inline-flex items-center gap-1">
-                      <img src={stalkIcon} className="w-6 h-6 mt-0.5" alt="Stalk" />
+                      <img src={stalkIcon} className="w-6 h-6" alt="Stalk" />
                       <div className="font-[400] text-[1.5rem] text-black">
                         {(siloTokenData ? siloTokenData.tokenSettings.stalkIssuedPerBdv.mul(siloTokenData.depositedBDV) : TokenValue.ZERO).reDecimal(2).toHuman("short")}
                       </div>
@@ -135,7 +135,7 @@ export default function SiloToken() {
                   <div className="flex flex-col">
                     <div className="text-[1rem] font-[400] text-pinto-gray-5">My Seeds</div>
                     <div className="inline-flex items-center gap-1">
-                      <img src={seedsIcon} className="w-6 h-6 mt-0.5" alt="Seeds" />
+                      <img src={seedsIcon} className="w-6 h-6" alt="Seeds" />
                       <div className="font-[400] text-[1.5rem] text-black">
                         {(farmerDeposits ? farmerDeposits.seeds : TokenValue.ZERO).reDecimal(2).toHuman("short")}
                       </div>
