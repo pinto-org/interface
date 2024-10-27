@@ -80,7 +80,7 @@ function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, 
                                     ? 'Wallet Balance:' 
                                 : balanceFrom === FarmFromMode.INTERNAL 
                                     ? 'Farm Balance:' 
-                                    : 'Combined Balance:'} 
+                                    : 'Total Balance:'} 
                             ${maxAmount?.toHuman("short")}`}
                         </div>
                         {!hideMax && 

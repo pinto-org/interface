@@ -3,12 +3,13 @@ import { useAccount } from "wagmi";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { FarmFromMode, Token } from "@/utils/types";
 import { Button } from "./ui/Button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/Dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/Dialog";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
 import arrowDown from "@/assets/misc/ChevronDown.svg";
 import { usePriceData } from "@/state/usePriceData";
 import { TokenValue } from "@/classes/TokenValue";
 import { Separator } from "./ui/Separator";
+import SourceBalanceSelect from "./SourceBalanceSelect";
 
 export default function TokenSelectWithBalances({
   setToken,
@@ -52,48 +53,14 @@ export default function TokenSelectWithBalances({
         <DialogHeader>
           <DialogTitle>Select Token</DialogTitle>
           <DialogDescription>
-            <Separator className="w-[31.875rem] -ml-6 top-[4.5rem] absolute"/>
+          {(balanceFrom && setBalanceFrom) &&
+          <div className="mt-4">
+              <SourceBalanceSelect balanceFrom={balanceFrom} setBalanceFrom={selectBalanceFrom} balancesToShow={balancesToShow} />
+              </div>
+            }
+            <Separator className="w-[31.875rem] -ml-6 top-[9rem] absolute"/>
             {account.address ? (
-              <div className="mt-8">
-              {(balanceFrom && setBalanceFrom) &&
-                <ToggleGroup
-                  type="single"
-                  variant="outline"
-                  value={_balanceFrom || FarmFromMode.INTERNAL_EXTERNAL}
-                  onValueChange={(value) => {
-                    if (value) selectBalanceFrom(value as FarmFromMode);
-                  }}
-                  className="my-2"
-                >
-                  {(!balancesToShow || balancesToShow.includes(FarmFromMode.INTERNAL_EXTERNAL)) && 
-                    <ToggleGroupItem
-                      value={FarmFromMode.INTERNAL_EXTERNAL}
-                      aria-label="Select Combined Balance"
-                      className="w-full"
-                    >
-                      Combined Balance
-                    </ToggleGroupItem>
-                  }
-                  {(!balancesToShow || balancesToShow.includes(FarmFromMode.EXTERNAL)) && 
-                    <ToggleGroupItem
-                      value={FarmFromMode.EXTERNAL}
-                      aria-label="Select External Balance"
-                      className="w-full"
-                    >
-                      External Balance
-                    </ToggleGroupItem>
-                  }
-                  {(!balancesToShow || balancesToShow.includes(FarmFromMode.INTERNAL)) && 
-                    <ToggleGroupItem
-                      value={FarmFromMode.INTERNAL}
-                      aria-label="Select Internal Balance"
-                      className="w-full"
-                    >
-                      Internal Balance
-                    </ToggleGroupItem>
-                  }
-                </ToggleGroup>
-              }
+              <div className="mt-12">
                 <ToggleGroup
                   type="single"
                   value={_token as any}
@@ -104,6 +71,7 @@ export default function TokenSelectWithBalances({
                 >
                   {[...balances.keys()].map((token) => {
                     const balance = balances.get(token);
+                    if (!balance) return;
                     const tokenPrice = priceData.tokenPrices.get(token);
                     const price = tokenPrice?.instant ?? TokenValue.ZERO;
                     let balanceAmount;
@@ -118,6 +86,7 @@ export default function TokenSelectWithBalances({
                         balanceAmount = balance.total;
                     }
                     return (
+                      <DialogClose className="flex flex-row w-[105%]">
                       <ToggleGroupItem
                         value={token}
                         aria-label={`Select ${token.name}`}
@@ -139,6 +108,7 @@ export default function TokenSelectWithBalances({
                           </div>
                         </div>
                       </ToggleGroupItem>
+                      </DialogClose>
                     );
                   })}
                 </ToggleGroup>
