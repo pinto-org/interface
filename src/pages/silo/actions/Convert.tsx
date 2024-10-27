@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import TokenSelectDepositedBalances from "@/components/TokenSelectDepositedBalances";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { beanstalkAbi, beanstalkAddress, useReadBeanstalk_GetAmountOut } from "@/generated/contractHooks";
 import { TokenValue } from "@/classes/TokenValue";
 import useTokenData from "@/state/useTokenData";
@@ -15,22 +13,32 @@ import { useChainId } from "wagmi";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { BaseError } from "viem";
+import { Token } from "@/utils/types";
+import TokenSelectWithBalances from "@/components/TokenSelectWithBalances";
 
-function Convert() {
+function Convert({ siloToken }: {siloToken: Token}) {
 
   const chainId = useChainId();
 
-  const BEAN = useTokenData().mainToken;
-  const WELL = useTokenData().lpTokens[0];
-  const [fromToken, setFromToken] = useState(WELL);
-  const [toToken, setToToken] = useState(BEAN);
+  const tokenData = useTokenData();
+  const convertDestinations = [tokenData.mainToken, ...tokenData.lpTokens].filter((token) => token.address.toLowerCase() !== siloToken.address.toLowerCase());
+
+  const [fromToken, setFromToken] = useState(siloToken);
+  const [toToken, setToToken] = useState(convertDestinations[0]);
   const [amountIn, setAmountIn] = useState(0);
   const [slippage, setSlippage] = useState(0.1);
 
   const queryClient = useQueryClient();
   const { data: farmerDeposits, queryKey: queryKey } = useFarmerDepositedBalances();
-  const deposits = farmerDeposits.get(fromToken).deposits;
   
+  const farmerDepositData = farmerDeposits.get(fromToken);
+  const deposits = farmerDepositData?.deposits;
+  const convertData = new Map<Token, TokenValue>();
+  for (const convertDestination of convertDestinations) {
+    const _depositData = farmerDeposits.get(convertDestination);
+    convertData.set(convertDestination, _depositData ? _depositData.convertibleAmount : TokenValue.ZERO);
+  };
+
   //@ts-ignore
   const estimatedAmountOut =
     useReadBeanstalk_GetAmountOut({
@@ -107,14 +115,16 @@ function Convert() {
           setAmount={setAmountIn}
           setToken={setFromToken} 
           selectedToken={fromToken}
-          useSiloTokens
+          tokenAndBalanceMap={convertData}
         />                        
       </div>
       <div className="flex flex-row justify-between">
         <Label className="content-center">Convert to</Label>
-        <TokenSelectDepositedBalances 
+        <TokenSelectWithBalances 
           setToken={setToToken} 
           selectedToken={toToken}
+          tokenAndBalanceMap={convertData}
+          size='small'
         />
       </div>
       <div className="flex flex-row gap-2">

@@ -18,11 +18,7 @@ import { toast } from "sonner";
 import { BaseError } from "viem";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 
-interface SiloDepositForm {
-  siloToken: Token
-}
-
-function Deposit({ siloToken }: SiloDepositForm) {
+function Deposit({ siloToken }: { siloToken: Token }) {
   // silo - deposit
   const chainId = useChainId();
   const depositedBalances = useFarmerDepositedBalances();
@@ -130,13 +126,6 @@ function Deposit({ siloToken }: SiloDepositForm) {
             selectedToken={tokenIn}
             balanceFrom={balanceFrom}
           />
-        </div>
-        <div className="flex flex-row justify-between">
-          {/*<Label className="content-center">Deposit to</Label>
-          <TokenSelectDepositedBalances 
-            setToken={setSiloToken}
-            selectedToken={siloToken}
-          />*/}
         </div>
         <div className="flex flex-row gap-2">
           <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit} submitButtonText="Deposit"/>

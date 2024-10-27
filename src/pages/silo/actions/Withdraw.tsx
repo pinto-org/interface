@@ -3,28 +3,31 @@ import { useAccount, useChainId } from "wagmi";
 import { useWriteContract } from "wagmi";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { TokenValue } from "@/classes/TokenValue";
 import { sortAndPickCrates } from "@/utils/convert";
-import { FarmToMode } from "@/utils/types";
-import useTokenData from "@/state/useTokenData";
+import { FarmToMode, Token } from "@/utils/types";
 import { Label } from "@/components/ui/Label";
 import { ComboInputField } from "@/components/ComboInputField";
 import { toast } from "sonner";
 import { BaseError } from "viem";
 import { useQueryClient } from "@tanstack/react-query";
 
-function Withdraw() {
+function Withdraw({ siloToken }: { siloToken: Token }) {
   const account = useAccount();
   const chainId = useChainId();
   const { data: farmerDeposits, queryKey: queryKey } = useFarmerDepositedBalances();  
-  const BEAN = useTokenData().mainToken;
-  const [fromToken, setFromToken] = useState(BEAN);
+  const [fromToken, setFromToken] = useState(siloToken);
   const [destination, setDestination] = useState(FarmToMode.EXTERNAL);
   const [amount, setAmount] = useState(0);
-  const deposits = farmerDeposits.get(fromToken);
+
+  const farmerDepositData = farmerDeposits.get(fromToken);
+  const deposits = farmerDepositData?.deposits;
+
+  const convertData = new Map<Token, TokenValue>();
+  convertData.set(fromToken, farmerDepositData ? farmerDepositData.convertibleAmount : TokenValue.ZERO);
+ 
   const queryClient = useQueryClient();
 
   const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
@@ -95,7 +98,7 @@ function Withdraw() {
           setAmount={setAmount}
           setToken={setFromToken} 
           selectedToken={fromToken}
-          useSiloTokens
+          tokenAndBalanceMap={convertData}
         />
       </div>
       <div className="flex flex-col">

@@ -6,35 +6,31 @@ import { TokenValue } from "@/classes/TokenValue";
 import useDebounce from "@/utils/useDebounce";
 import { Dispatch, InputHTMLAttributes, SetStateAction, useState } from "react";
 import { Skeleton } from "./ui/Skeleton";
-import TokenSelectDepositedBalances from "./TokenSelectDepositedBalances";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 
 export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
     setToken: Dispatch<SetStateAction<any>>, 
-    selectedToken: Token, 
-    setBalanceFrom?: Dispatch<SetStateAction<any>>, 
-    balanceFrom?: FarmFromMode,
+    selectedToken: Token,
+    tokenAndBalanceMap?: Map<Token, TokenValue>| undefined,
+    setBalanceFrom?: Dispatch<SetStateAction<any>> | undefined, 
+    balanceFrom?: FarmFromMode | undefined,
     amount: any,
     setAmount: Dispatch<SetStateAction<any>>,
-    useSiloTokens?: boolean,
     isLoading?: boolean,
     hideMax?: boolean,
     disableInput?: boolean,
     disableInlineBalance?: boolean,
-    balancesToShow?: FarmFromMode[]
+    balancesToShow?: FarmFromMode[] | undefined
 }
 
-function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, amount, setAmount, useSiloTokens, isLoading, hideMax, disableInput, disableInlineBalance, balancesToShow}: ComboInputProps) {
+function ComboInputField({setToken, selectedToken, tokenAndBalanceMap, setBalanceFrom, balanceFrom, amount, setAmount, isLoading, hideMax, disableInput, disableInlineBalance, balancesToShow}: ComboInputProps) {
 
     let maxAmount;
     const { balances } = useFarmerBalances();
     const depositTokenBalance = balances.get(selectedToken);
     const [internalAmount, setInternalAmount] = useState(amount);
 
-    const farmerDeposits = useFarmerDepositedBalances().data;
-
-    if (useSiloTokens) {
-        maxAmount = farmerDeposits.get(selectedToken)?.convertibleAmount ?? TokenValue.ZERO;
+    if (tokenAndBalanceMap) {
+        maxAmount = tokenAndBalanceMap.get(selectedToken) ?? TokenValue.ZERO;
     } else {
         switch (balanceFrom) {
         case FarmFromMode.EXTERNAL:
@@ -66,12 +62,7 @@ function ComboInputField({setToken, selectedToken, setBalanceFrom, balanceFrom, 
                                 onChange={(e) => setInternalAmount(e.target.value)}
                             />
                         }
-                        {useSiloTokens 
-                            ? <TokenSelectDepositedBalances setToken={setToken} selectedToken={selectedToken} />
-                            : (setBalanceFrom && balanceFrom)
-                                ? <TokenSelectWithBalances setToken={setToken} selectedToken={selectedToken} setBalanceFrom={setBalanceFrom} balanceFrom={balanceFrom} balancesToShow={balancesToShow} />
-                                : <TokenSelectWithBalances setToken={setToken} selectedToken={selectedToken} />
-                        }
+                        <TokenSelectWithBalances setToken={setToken} selectedToken={selectedToken} setBalanceFrom={setBalanceFrom} balanceFrom={balanceFrom} balancesToShow={balancesToShow} tokenAndBalanceMap={tokenAndBalanceMap} />
                     </div>
                     {!disableInlineBalance && 
                     <div className="flex flex-row gap-2 justify-end items-center">

@@ -23,10 +23,10 @@ export default function SiloActions({ token }: SiloToken) {
         <Deposit siloToken={token} />
       </TabsContent>
       <TabsContent value="withdraw">
-        <Withdraw />
+        <Withdraw siloToken={token} />
       </TabsContent>
       <TabsContent value="convert">
-        <Convert />
+        <Convert siloToken={token} />
       </TabsContent>
     </Tabs>
   );
