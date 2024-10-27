@@ -60,7 +60,10 @@ module.exports = {
           'gray-5': '#404040',
           'gray-blue': '#E9F0F6',
           'off-white': '#FCFCFC',
-          'yellow-1': '#FEE18C'
+          'yellow-1': '#FEE18C',
+          'stalk-gold': '#D3B567',
+          'seed-silver': '#7B9387',
+          'pod-bronze': '#9F7F54'
         }
       },
       backgroundImage: {

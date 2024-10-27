@@ -69,7 +69,7 @@ export default function StatPanel({ mode, mainValue = TokenValue.ZERO, secondary
                             }
                         </div>
                         {tooltipContent &&
-                            <TooltipSimple content={tooltipContent} />
+                            <TooltipSimple content={tooltipContent} variant="stalk" />
                         }
                     </>
                 }
@@ -87,7 +87,7 @@ export default function StatPanel({ mode, mainValue = TokenValue.ZERO, secondary
                             }
                         </div>
                         {tooltipContent &&
-                            <TooltipSimple content={tooltipContent} />
+                            <TooltipSimple content={tooltipContent} variant="seed" />
                         }
                     </>
                 }
@@ -95,7 +95,7 @@ export default function StatPanel({ mode, mainValue = TokenValue.ZERO, secondary
                     <>
                         <div className="text-[1.25rem] text-pinto-gray-4 font-[300] leading-none">Next position in line: {secondaryValue.toHuman('short')}</div>
                         {tooltipContent &&
-                            <TooltipSimple content={tooltipContent} />
+                            <TooltipSimple content={tooltipContent} variant="pod" />
                         }
                     </>
                 }
