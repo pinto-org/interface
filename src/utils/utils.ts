@@ -5,6 +5,14 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const generateID = (prefix = '') => {
+  const hash = Math.random().toString(36).slice(-7);
+  return `${prefix}-${hash}`;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+export const noop = () => {};
+
 export function unpackStem(data: string | number | bigint): bigint {
   // Convert input to BigInt if it isn't already
   const dataBigInt = BigInt(data);

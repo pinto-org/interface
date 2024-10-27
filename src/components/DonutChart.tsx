@@ -1,4 +1,4 @@
-import { ReactChart } from 'chartjs-react';
+import { ReactChart } from './ReactChart'; 
 import { PieController, ArcElement, ChartOptions, ChartData } from 'chart.js';
 
 export default function DonutChart({ data }: { data: ChartData }) {

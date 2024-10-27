@@ -5194,16 +5194,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chartjs-react@npm:^4.2.1":
-  version: 4.2.1
-  resolution: "chartjs-react@npm:4.2.1"
-  peerDependencies:
-    chart.js: ">=3.9.0"
-    react: ">=16.8.0"
-  checksum: 10c0/ed8779266ec0a2c0a40ef68c6b04524eafaceca21e5c4cf540045a2450e15938653bddf94a04ce74a425634eaaa1db3c60cb26852839e41dbbc2be3c78acc99d
-  languageName: node
-  linkType: hard
-
 "chokidar@npm:^3.5.3, chokidar@npm:^3.6.0":
   version: 3.6.0
   resolution: "chokidar@npm:3.6.0"
@@ -7121,7 +7111,6 @@ __metadata:
     autoprefixer: "npm:10.4.19"
     buffer: "npm:^6.0.3"
     chart.js: "npm:^4.4.4"
-    chartjs-react: "npm:^4.2.1"
     class-variance-authority: "npm:0.7.0"
     clsx: "npm:2.1.1"
     connectkit: "npm:^1.8.2"
