@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { FarmToMode, Plot } from "@/utils/types";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
-import { useChainId, useWriteContract } from "wagmi";
+import { useAccount, useChainId, useWriteContract } from "wagmi";
 import { TokenValue } from "@/classes/TokenValue";
 import { useFieldData } from "@/state/useFieldData";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
@@ -17,6 +17,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import SimpleInputField from "@/components/SimpleInputField";
 
 export default function CreateListing() {
+  const { address: account } = useAccount();
   const chainId = useChainId();
   const mainToken = useTokenData().mainToken;
   const podListings = usePodListings();
@@ -32,7 +33,7 @@ export default function CreateListing() {
 
   useEffect(() => {
     if (plot[0]) {
-      setAmount(plot[0].pods.toHuman());
+      setAmount(Number(plot[0].pods.toHuman()));
     }
   }, [plot]);
 
@@ -46,7 +47,7 @@ export default function CreateListing() {
   }, [isSuccess, queryKey]);
 
   function onSubmit() {
-    if (!pricePerPod || pricePerPod <= 0 || !expiresIn || !amount || amount <= 0) return;
+    if (!pricePerPod || pricePerPod <= 0 || !expiresIn || !amount || amount <= 0 || !account) return;
 
     const _pricePerPod = TokenValue.fromHuman(pricePerPod, mainToken.decimals);
     const _expiresIn = TokenValue.fromHuman(expiresIn, PODS.decimals);
@@ -61,13 +62,17 @@ export default function CreateListing() {
         abi: beanstalkAbi,
         functionName: "createPodListing",
         args: [
-          index.toBigInt(),
-          start.toBigInt(),
-          _amount.toBigInt(),
-          Number(_pricePerPod),
-          maxHarvestableIndex.toBigInt(),
-          minFill.toBigInt(),
-          Number(balanceTo),
+          {
+            lister: account,
+            fieldId: 0n,
+            index: index.toBigInt(),
+            start: start.toBigInt(),
+            podAmount: _amount.toBigInt(),
+            pricePerPod: Number(_pricePerPod),
+            maxHarvestableIndex: maxHarvestableIndex.toBigInt(),
+            minFillAmount: minFill.toBigInt(),
+            mode: Number(balanceTo),
+          },
         ],
       });
 

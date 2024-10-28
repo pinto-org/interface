@@ -22,6 +22,7 @@ import DEPOT_ABI from "./src/constants/abi/Depot.json";
  */
 import VIEW_SEASON_ABI from "./src/constants/abi/ViewSeason.json";
 import FARMER_ABI from "./src/constants/abi/BeanstalkFarmer.json";
+import VIEW_SILO_ABI from "./src/constants/abi/ViewSilo.json";
 
 
 export const tenderlyTestnet = defineChain({
@@ -74,6 +75,11 @@ export default defineConfig(() => {
       {
         name: "farmer",
         abi: FARMER_ABI satisfies Abi,
+        address: beanstalkAddresses,
+      },
+      {
+        name: "silo",
+        abi: VIEW_SILO_ABI satisfies Abi,
         address: beanstalkAddresses,
       },
       {

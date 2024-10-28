@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { beanstalkAbi, beanstalkAddress, useReadBeanstalk_GetAmountOut } from "@/generated/contractHooks";
+import {
+  beanstalkAbi,
+  beanstalkAddress,
+  useReadBeanstalk_GetAmountOut,
+  useReadSilo_GetAmountOut,
+} from "@/generated/contractHooks";
 import { TokenValue } from "@/classes/TokenValue";
 import useTokenData from "@/state/useTokenData";
 import { Label } from "@/components/ui/Label";
@@ -40,9 +45,8 @@ function Convert({ siloToken }: { siloToken: Token }) {
     convertData.set(convertDestination, _depositData ? _depositData.convertibleAmount : TokenValue.ZERO);
   }
 
-  //@ts-ignore
   const estimatedAmountOut =
-    useReadBeanstalk_GetAmountOut({
+    useReadSilo_GetAmountOut({
       args: [fromToken.address, toToken.address, TokenValue.fromHuman(amountIn || 0, fromToken.decimals).toBigInt()],
       query: {
         enabled: !!amountIn && amountIn > 0,

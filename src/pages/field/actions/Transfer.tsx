@@ -13,11 +13,12 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import ComboPlotInputField from "@/components/ComboPlotInputField";
 import { HashString } from "@/utils/types.generic";
+import { Plot } from "@/utils/types";
 
 function Transfer() {
   const farmerField = useFarmerField();
   const queryKey = farmerField.queryKey;
-  const [plots, setPlots] = useState([]);
+  const [plots, setPlots] = useState<Plot[]>([]);
   const [amount, setAmount] = useState(0);
   const [recipient, setRecipient] = useState<string | undefined>();
 
