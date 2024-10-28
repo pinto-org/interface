@@ -26,7 +26,8 @@
       "suspicious": {
         "noImplicitAnyLet": "error",
         "noExplicitAny": "warn",
-        "noDoubleEquals": "error"
+        "noDoubleEquals": "error",
+        "noArrayIndexKey": "warn",
       },
       "complexity": {
         "noForEach": "off",
@@ -39,7 +40,8 @@
         "noInnerDeclarations": "error",
         "useExhaustiveDependencies": "warn",
         "noUnsafeOptionalChaining": "error",
-        "useHookAtTopLevel": "error"
+        "useHookAtTopLevel": "error",
+        "noUnusedVariables": "warn"
       },
       "a11y": {
         "useKeyWithClickEvents": "off",

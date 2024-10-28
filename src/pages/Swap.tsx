@@ -12,6 +12,7 @@ import useSwapEstimate from "@/hooks/useSwapEstimate";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useTokenData from "@/state/useTokenData";
 import { FarmFromMode, FarmToMode } from "@/utils/types";
+import { HashString } from "@/utils/types.generic";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -67,7 +68,8 @@ export default function Swap() {
   }
 
   async function onSubmit() {
-    if (!swapData || !swapData.callData) return;
+    const swapCallData = swapData?.callData;
+    if (!swapData || !swapCallData) return;
     /* const encoded = encodeFunctionData({
         abi: beanstalkAbi,
         functionName: "advancedFarm",
@@ -79,7 +81,7 @@ export default function Swap() {
         address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
         abi: beanstalkAbi,
         functionName: "advancedFarm",
-        args: [swapData.callData],
+        args: [swapCallData],
         value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
       });
 

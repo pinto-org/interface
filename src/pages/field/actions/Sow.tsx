@@ -83,14 +83,15 @@ function Sow() {
       });
     } else {
       const sow = sowWithMin(amount, minTemp, minSoil, FarmFromMode.INTERNAL) as AdvancedFarmCall;
-      if (swapData?.callData) {
-        swapData?.callData.push(sow);
+      const swapCallData = swapData?.callData;
+      if (swapCallData) {
+        swapCallData.push(sow);
         const tx = () =>
           writeContractAsync({
             address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
             abi: beanstalkAbi,
             functionName: "advancedFarm",
-            args: [swapData?.callData],
+            args: [swapCallData],
             value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
           });
 

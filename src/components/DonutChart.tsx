@@ -1,7 +1,8 @@
-import { ReactChart } from './ReactChart'; 
-import { PieController, ArcElement, ChartOptions, ChartData } from 'chart.js';
+import { ReactChart } from "./ReactChart";
+import { PieController, ArcElement, ChartOptions, ChartData } from "chart.js";
 
 const donutOptions: ChartOptions = {
+  // @ts-ignore
   offset: 0,
 };
 

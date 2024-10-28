@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { Chart } from "chart.js";
 import type { ChartOptions, ChartData, ChartType, Plugin, UpdateMode } from "chart.js";
 import { generateID } from "@/utils/utils";

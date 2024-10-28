@@ -52,7 +52,8 @@ function Harvest() {
         abi: beanstalkAbi,
         functionName: "harvest",
         args: [
-          [plots], //array of plot id(s)
+          0n, // field id
+          plots.map((plot) => BigInt(plot)), //array of plot id(s)
           Number(balanceTo), // FarmToMode
         ],
       });

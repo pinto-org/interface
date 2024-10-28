@@ -1,10 +1,11 @@
-import { encodeFunctionData } from "viem";
+import { Address, encodeFunctionData } from "viem";
 import { TokenValue } from "@/classes/TokenValue";
-import { FarmFromMode } from "@/utils/types";
+import { AdvancedFarmCall, FarmFromMode } from "@/utils/types";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { Clipboard } from "@/classes/Clipboard";
 
 export default function createPodOrder(
+  account: Address,
   amount?: TokenValue,
   pricePerPod?: number,
   maxPlaceInLine?: TokenValue,
@@ -22,11 +23,22 @@ export default function createPodOrder(
   const data = encodeFunctionData({
     abi: beanstalkAbi,
     functionName: "createPodOrder",
-    args: [amount.toBigInt(), pricePerPod, maxPlaceInLine.toBigInt(), minFill.toBigInt(), Number(balanceFrom)],
+    args: [
+      {
+        orderer: account,
+        fieldId: 0n,
+        // amount: amount.toBigInt(),
+        pricePerPod,
+        maxPlaceInLine: maxPlaceInLine.toBigInt(),
+        minFillAmount: minFill.toBigInt(),
+      },
+      amount.toBigInt(),
+      Number(balanceFrom),
+    ],
   });
 
   return {
     callData: data,
     clipboard: clipboard || Clipboard.encode([]),
-  };
+  } satisfies AdvancedFarmCall;
 }

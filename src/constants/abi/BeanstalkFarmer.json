@@ -1,0 +1,134 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "balanceOfStalk",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "balanceOfSop",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint32",
+            "name": "lastRain",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "lastSop",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "roots",
+            "type": "uint256"
+          },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "well",
+                "type": "address"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "uint256",
+                    "name": "plentyPerRoot",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "plenty",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "bytes32[4]",
+                    "name": "_buffer",
+                    "type": "bytes32[4]"
+                  }
+                ],
+                "internalType": "struct PerWellPlenty",
+                "name": "wellsPlenty",
+                "type": "tuple"
+              }
+            ],
+            "internalType": "struct SiloGettersFacet.FarmerSops[]",
+            "name": "farmerSops",
+            "type": "tuple[]"
+          }
+        ],
+        "internalType": "struct SiloGettersFacet.AccountSeasonOfPlenty",
+        "name": "sop",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "balanceOfGrownStalk",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "balanceOfEarnedBeans",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "beans",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

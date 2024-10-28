@@ -35,14 +35,15 @@ function Transfer() {
   }, [isSuccess, queryKey]);
 
   async function onSubmit() {
-    if (!amount || amount <= 0 || !recipient || !isAddress(recipient) || !account.address) return;
+    const userAddress = account.address;
+    if (!amount || amount <= 0 || !recipient || !isAddress(recipient) || !userAddress) return;
 
     const deposits = farmerDeposits.get(fromToken);
 
     const transferData = sortAndPickCrates(
       "transfer",
       TokenValue.fromHuman(amount || 0, fromToken.decimals),
-      deposits.deposits,
+      deposits?.deposits ?? [],
     );
 
     const stems = transferData.crates.map((crate) => crate.stem.toBlockchain());
@@ -54,7 +55,7 @@ function Transfer() {
           address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
           abi: beanstalkAbi,
           functionName: "transferDeposit",
-          args: [account.address, recipient as Address, fromToken.address, stems[0], amounts[0]],
+          args: [userAddress, recipient as Address, fromToken.address, stems[0], amounts[0]],
         });
 
       toast.promise(tx, {
@@ -72,7 +73,7 @@ function Transfer() {
           address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
           abi: beanstalkAbi,
           functionName: "transferDeposits",
-          args: [account.address, recipient as Address, fromToken.address, stems, amounts],
+          args: [userAddress, recipient as Address, fromToken.address, stems, amounts],
         });
 
       toast.promise(tx, {
@@ -102,7 +103,7 @@ function Transfer() {
               setAmount={setAmount}
               setToken={setFromToken}
               selectedToken={fromToken}
-              useSiloTokens
+              // useSiloTokens
             />
           </div>
           <div>

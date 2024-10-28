@@ -20,11 +20,9 @@ import DEPOT_ABI from "./src/constants/abi/Depot.json";
  * TODO: Find a better solution in the future.
  * 
  */
-import VIEW_SILO_ABI from "./src/constants/abi/ViewSilo.json";
-import VIEW_FIELD_ABI from "./src/constants/abi/ViewField.json";
-import VIEW_TOKEN_ABI from "./src/constants/abi/ViewToken.json";
 import VIEW_SEASON_ABI from "./src/constants/abi/ViewSeason.json";
-import VIEW_MARKET_ABI from "./src/constants/abi/ViewMarket.json";
+import FARMER_ABI from "./src/constants/abi/BeanstalkFarmer.json";
+import VIEW_SILO_ABI from "./src/constants/abi/ViewSilo.json";
 
 
 export const tenderlyTestnet = defineChain({
@@ -72,6 +70,16 @@ export default defineConfig(() => {
       {
         name: "seasonFacetView",
         abi: VIEW_SEASON_ABI satisfies Abi,
+        address: beanstalkAddresses,
+      },
+      {
+        name: "farmer",
+        abi: FARMER_ABI satisfies Abi,
+        address: beanstalkAddresses,
+      },
+      {
+        name: "silo",
+        abi: VIEW_SILO_ABI satisfies Abi,
         address: beanstalkAddresses,
       },
       {

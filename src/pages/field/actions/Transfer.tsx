@@ -12,11 +12,13 @@ import { Label } from "@/components/ui/Label";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import ComboPlotInputField from "@/components/ComboPlotInputField";
+import { HashString } from "@/utils/types.generic";
+import { Plot } from "@/utils/types";
 
 function Transfer() {
   const farmerField = useFarmerField();
   const queryKey = farmerField.queryKey;
-  const [plots, setPlots] = useState([]);
+  const [plots, setPlots] = useState<Plot[]>([]);
   const [amount, setAmount] = useState(0);
   const [recipient, setRecipient] = useState<string | undefined>();
 
@@ -35,17 +37,19 @@ function Transfer() {
 
   function onSubmit() {
     const amountTV = TokenValue.fromHuman(amount, PODS.decimals);
-    if (!account.address || !amount || amountTV.lte(0) || !isAddress(recipient || "")) return;
+    const address = account.address;
+    if (!address || !amount || amountTV.lte(0) || !recipient || !isAddress(recipient || "")) return;
 
-    const transfers = [];
+    const transfers: HashString[] = [];
     plots.forEach((plot) => {
       const _amount = plots.length === 1 ? amountTV : plot.pods;
       const transferCall = encodeFunctionData({
         abi: beanstalkAbi,
         functionName: "transferPlot",
         args: [
-          account.address,
-          recipient,
+          address,
+          recipient as `0x${string}`,
+          0n, // field id
           plot.index.toBigInt(), //plot id
           TokenValue.ZERO.toBigInt(), // start
           _amount.toBigInt(), // end

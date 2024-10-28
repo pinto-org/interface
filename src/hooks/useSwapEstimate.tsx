@@ -1,5 +1,5 @@
 import { useAccount, useChainId } from "wagmi";
-import { AdvancedPipeCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
+import { AdvancedFarmCall, AdvancedPipeCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { TokenValue } from "@/classes/TokenValue";
 import useTokenData from "@/state/useTokenData";
 import { PoolData, usePriceData } from "@/state/usePriceData";
@@ -54,10 +54,10 @@ export default function useSwapEstimate(
 
   const isWrapUnwrap = isWrapEth || isUnwrapEth;
 
-  let wellIn;
-  let wellOut;
-  let aggIn;
-  let aggOut;
+  let wellIn: Token | undefined;
+  let wellOut: Token | undefined;
+  let aggIn: Token | undefined;
+  let aggOut: Token | undefined;
 
   if (wellOnlySwap) {
     aggIn = undefined;
@@ -136,7 +136,9 @@ export default function useSwapEstimate(
         !!wellIn &&
         !!wellOut &&
         wellSwapLast &&
-        zeroExQuoteResult.gt(0) && zeroExQuote.status === "success" && zeroExQuote.isPending === false &&
+        zeroExQuoteResult.gt(0) &&
+        zeroExQuote.status === "success" &&
+        zeroExQuote.isPending === false &&
         zeroExQuote.fetchStatus === "idle"
       ),
   );
@@ -166,14 +168,14 @@ export default function useSwapEstimate(
       isLoading: false,
     };
   } else if (wellOnlySwap) {
-    const farmCallData = [];
+    const farmCallData: AdvancedFarmCall[] = [];
     const transferToWell = transferToken(
       wellIn?.address || zeroAddress,
       wellData?.address || zeroAddress,
       amountTV,
       source,
       FarmToMode.EXTERNAL,
-    );
+    ) as AdvancedFarmCall;
     farmCallData.push(transferToWell);
 
     const pipeCalls: AdvancedPipeCall[] = [];
@@ -218,7 +220,7 @@ export default function useSwapEstimate(
       isLoading: isLoading,
     };
   } else if (aggOnlySwap && zeroExQuote.data) {
-    const farmCallData = [];
+    const farmCallData: AdvancedFarmCall[] = [];
     if (!aggIn?.isNative && zeroExQuote.data?.allowanceTarget !== zeroAddress) {
       const transferToPipeline = transferToken(
         aggIn?.address || zeroAddress,
@@ -310,7 +312,8 @@ export default function useSwapEstimate(
       aggIn?.isNative ? amountTV : TokenValue.ZERO,
       aggIn?.isNative ? Clipboard.encode([], amountTV.toBigInt()) : undefined,
     );
-    const postPipeCalls = [];
+    const postPipeCalls: { callData: `0x${string}`; clipboard: `0x${string}` }[] = [];
+
     if (tokenOut.isNative) {
       const unwrap = unwrapEth(
         zeroExQuoteResult,
@@ -332,7 +335,7 @@ export default function useSwapEstimate(
   } else if (wellSwapFirst) {
     if (!wellIn || !wellData || !wellOut || !zeroExQuote.data) return;
 
-    const farmCallData = [];
+    const farmCallData: AdvancedFarmCall[] = [];
     const transferToWell = transferToken(wellIn?.address, wellData?.address, amountTV, source, FarmToMode.EXTERNAL);
     farmCallData.push(transferToWell);
 
@@ -381,7 +384,7 @@ export default function useSwapEstimate(
 
     const advPipeCallData = advancedPipe(pipeCalls, TokenValue.ZERO);
 
-    const postPipeCalls = [];
+    const postPipeCalls: { callData: `0x${string}`; clipboard: `0x${string}` }[] = [];
     if (tokenOut.isNative) {
       const unwrap = unwrapEth(
         zeroExQuoteResult,
@@ -403,7 +406,7 @@ export default function useSwapEstimate(
   } else if (wellSwapLast) {
     if (!wellIn || !wellData || !wellOut || !zeroExQuote.data) return;
 
-    const farmCallData = [];
+    const farmCallData: AdvancedFarmCall[] = [];
     if (!aggIn?.isNative && zeroExQuote.data?.allowanceTarget !== zeroAddress) {
       const transferToPipeline = transferToken(
         aggIn?.address || zeroAddress,

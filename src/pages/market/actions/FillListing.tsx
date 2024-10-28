@@ -75,10 +75,11 @@ export default function FillListing() {
           functionName: "fillPodListing",
           args: [
             {
-              account: listing.farmer.id as Address, // account
+              lister: listing.farmer.id as Address, // account
+              fieldId: 0n, // plotid
               index: TokenValue.fromBlockchain(listing.index, PODS.decimals).toBigInt(), // index
               start: TokenValue.fromBlockchain(0, PODS.decimals).toBigInt(), // start
-              amount: TokenValue.fromBlockchain(listing.amount, PODS.decimals).toBigInt(), // amount
+              podAmount: TokenValue.fromBlockchain(listing.amount, PODS.decimals).toBigInt(), // amount
               pricePerPod: Number(TokenValue.fromBlockchain(listing.pricePerPod, BEAN.decimals)), // pricePerPod
               maxHarvestableIndex: TokenValue.fromBlockchain(listing.maxHarvestableIndex, PODS.decimals).toBigInt(), // maxHarvestableIndex
               minFillAmount: TokenValue.fromBlockchain(listing.minFillAmount, BEAN.decimals).toBigInt(), // minFillAmount, measured in Beans
@@ -111,14 +112,16 @@ export default function FillListing() {
         swapData?.output, // amountIn
         FarmFromMode.INTERNAL,
       ) as AdvancedFarmCall;
-      if (swapData?.callData) {
-        swapData?.callData.push(fillCallData);
+
+      const swapCallData = swapData?.callData;
+      if (swapCallData) {
+        swapCallData.push(fillCallData);
         const tx = () =>
           writeContractAsync({
             address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
             abi: beanstalkAbi,
             functionName: "advancedFarm",
-            args: [swapData?.callData],
+            args: [swapCallData],
             value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
           });
 

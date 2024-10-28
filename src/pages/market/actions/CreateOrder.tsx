@@ -16,11 +16,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { BaseError } from "viem";
-import { useWriteContract } from "wagmi";
+import { useAccount, useWriteContract } from "wagmi";
 import { useChainId } from "wagmi";
 
 export default function CreateOrder() {
   const mainToken = useTokenData().mainToken;
+
+  const { address: account } = useAccount();
 
   const [amountIn, setAmountIn] = useState(0);
   const [tokenIn, setTokenIn] = useState(mainToken);
@@ -62,7 +64,7 @@ export default function CreateOrder() {
   }, [isSuccess, queryKey, queryClient.invalidateQueries]);
 
   function onSubmit() {
-    if (!pricePerPod || !maxPlaceInLine) return;
+    if (!pricePerPod || !maxPlaceInLine || !account) return;
     const _amount = isUsingMain ? TokenValue.fromHuman(amountIn, mainToken.decimals) : swapData?.output;
     const _maxPlaceInLine = TokenValue.fromHuman(maxPlaceInLine, PODS.decimals);
     const _pricePerPod = TokenValue.fromHuman(pricePerPod, mainToken.decimals);
@@ -74,10 +76,14 @@ export default function CreateOrder() {
           abi: beanstalkAbi,
           functionName: "createPodOrder",
           args: [
+            {
+              orderer: account,
+              fieldId: 0n,
+              pricePerPod: Number(_pricePerPod),
+              maxPlaceInLine: _maxPlaceInLine.toBigInt(),
+              minFillAmount: minFill.toBigInt(),
+            },
             _amount.toBigInt(),
-            Number(_pricePerPod),
-            _maxPlaceInLine.toBigInt(),
-            minFill.toBigInt(),
             Number(balanceFrom),
           ],
         });
@@ -93,20 +99,22 @@ export default function CreateOrder() {
       });
     } else {
       const podOrder = createPodOrder(
+        account,
         _amount,
         Number(_pricePerPod),
         _maxPlaceInLine,
         minFill,
         FarmFromMode.INTERNAL,
       ) as AdvancedFarmCall;
-      if (swapData?.callData) {
-        swapData?.callData.push(podOrder);
+      const swapCallData = swapData?.callData;
+      if (swapCallData) {
+        swapCallData.push(podOrder);
         const tx = () =>
           writeContractAsync({
             address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
             abi: beanstalkAbi,
             functionName: "advancedFarm",
-            args: [swapData?.callData],
+            args: [swapCallData],
             value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
           });
 

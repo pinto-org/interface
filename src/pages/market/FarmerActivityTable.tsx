@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { useFarmerMarket } from "@/state/useFarmerMarket";
 import { useFieldData } from "@/state/useFieldData";
 import useTokenData from "@/state/useTokenData";
-import { PODS } from "@/constants/internalTokens";
+import { Order, Listing } from "@/utils/types";
 
 export function FarmerActivityTable() {
   const BEAN = useTokenData().mainToken;
@@ -54,51 +54,47 @@ export function FarmerActivityTable() {
                 second: "2-digit",
                 hourCycle: "h24",
               };
-              let date;
-              let type;
-              let amount;
-              let placeInLine;
-              let price;
-              let total;
-              let fillPct;
-              let expiresIn;
-              let status;
+              let date: Date;
+              let type: string | undefined;
+              let amount: TokenValue;
+              let placeInLine: TokenValue;
+              let price: TokenValue;
+              let total: TokenValue;
+              let fillPct: TokenValue;
+              let expiresIn: TokenValue | undefined;
+              let status: string;
               if (event.type === "ORDER") {
-                const beanAmount = TokenValue.fromBlockchain(event.beanAmount, BEAN.decimals);
-                const beanAmountFilled = TokenValue.fromBlockchain(event.beanAmountFilled, BEAN.decimals);
-                const pricePerPod = TokenValue.fromBlockchain(event.pricePerPod, BEAN.decimals);
+                const ev = event as unknown as Order;
+                const beanAmount = ev.beanAmount;
+                const beanAmountFilled = ev.beanAmountFilled;
+                const pricePerPod = ev.pricePerPod;
                 const podAmount = beanAmount.div(pricePerPod);
                 const remainingPods = beanAmount.sub(beanAmountFilled).div(pricePerPod);
                 date = new Date(Number(event.createdAt) * 1000);
                 type = event.type;
                 amount = podAmount;
-                placeInLine = TokenValue.fromBlockchain(event.maxPlaceInLine, PODS.decimals);
-                price = TokenValue.fromBlockchain(event.pricePerPod, BEAN.decimals);
+                placeInLine = ev.maxPlaceInLine;
+                price = ev.pricePerPod;
                 total = beanAmount;
                 fillPct = beanAmountFilled.div(beanAmount).mul(100);
                 expiresIn = undefined;
                 status = fillPct.gt(99) ? "FILLED" : event.status;
-              } else if (event.type === "LISTING") {
+              } else {
+                const ev = event as unknown as Listing;
                 date = new Date(Number(event.createdAt) * 1000);
                 type = event.type;
-                amount = TokenValue.fromBlockchain(event.originalAmount, PODS.decimals);
-                placeInLine = TokenValue.fromBlockchain(
-                  event.status === "ACTIVE" ? event.index : event.originalIndex,
-                  PODS.decimals,
-                );
-                price = TokenValue.fromBlockchain(event.pricePerPod, BEAN.decimals);
+                amount = ev.originalAmount;
+                placeInLine = ev.status === "ACTIVE" ? ev.index : ev.originalIndex;
+                price = ev.pricePerPod;
                 total = amount.mul(price);
-                fillPct = TokenValue.fromBlockchain(event.filled, PODS.decimals)
-                  .div(TokenValue.fromBlockchain(event.originalAmount, PODS.decimals))
-                  .mul(100);
+                fillPct = ev.filled.div(ev.originalAmount).mul(100);
                 expiresIn =
                   fillPct.lt(99) && event.status === "ACTIVE"
-                    ? TokenValue.fromBlockchain(event.maxHarvestableIndex, PODS.decimals).sub(
-                        fieldData.harvestableIndex,
-                      )
+                    ? ev.maxHarvestableIndex.sub(fieldData.harvestableIndex)
                     : undefined;
                 status = fillPct.gt(99) ? "FILLED" : event.status;
               }
+
               if (i >= newestEventOnPage && i <= oldestEventOnPage)
                 return (
                   <TableRow>
