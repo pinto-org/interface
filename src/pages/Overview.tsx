@@ -21,7 +21,6 @@ import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Overview() {
-
   const account = useAccount();
   const chainId = useChainId();
 
@@ -63,43 +62,44 @@ export default function Overview() {
 
   useEffect(() => {
     if (isSuccess) {
-      const allQueryKeys = [...farmerSilo.queryKeys, ...siloData.queryKeys, fieldData.queryKeys]
+      const allQueryKeys = [...farmerSilo.queryKeys, ...siloData.queryKeys, fieldData.queryKeys];
       // invalidating query results to trigger a refetch
       allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
       farmerField.refetch();
-    };
+    }
   }, [isSuccess]);
 
   async function onSubmit() {
     if (!account.address) return;
-    
+
     const plant = encodeFunctionData({
       abi: beanstalkAbi,
-      functionName: "plant"
+      functionName: "plant",
     });
-    
+
     const tokensToMow = SILO_WHITELIST.map((token) => token.address);
     const mow = encodeFunctionData({
       abi: beanstalkAbi,
       functionName: "mowMultiple",
       args: [account.address, tokensToMow],
     });
-    
-    const tx = () => writeContractAsync({
-      address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-      abi: beanstalkAbi,
-      functionName: "farm",
-      args: [[plant, mow]],
-    });
+
+    const tx = () =>
+      writeContractAsync({
+        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+        abi: beanstalkAbi,
+        functionName: "farm",
+        args: [[plant, mow]],
+      });
 
     toast.promise(tx, {
       loading: "Claiming rewards...",
       success: (data) => {
-        return `Claim complete!`
+        return `Claim complete!`;
       },
       error: (error) => {
-        return ((error as BaseError).shortMessage || `Failed to claim rewards.`)
-      }
+        return (error as BaseError).shortMessage || `Failed to claim rewards.`;
+      },
     });
   }
 
@@ -175,7 +175,10 @@ export default function Overview() {
                     </TableHeader>
                     <TableBody>
                       {(claimableBeans.gt(0) || claimableStalk.gt(0) || claimableSeeds.gt(0)) && (
-                        <TableRow onClick={() => onSubmit()}  className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 hover:cursor-pointer">
+                        <TableRow
+                          onClick={() => onSubmit()}
+                          className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 hover:cursor-pointer"
+                        >
                           <TableCell className="text-pinto-green-2 font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">
                             <img src={claimableIcon} className="h-8 w-8" alt="Claimable Tokens" />
                             <div>Claimable</div>

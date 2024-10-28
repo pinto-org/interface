@@ -75,26 +75,6 @@ export default defineConfig(() => {
         address: beanstalkAddresses,
       },
       {
-        name: "siloFacetView",
-        abi: VIEW_SILO_ABI satisfies Abi,
-        address: beanstalkAddresses,
-      },
-      {
-        name: "fieldFacetView",
-        abi: VIEW_FIELD_ABI satisfies Abi,
-        address: beanstalkAddresses,
-      },
-      {
-        name: "tokenFacetView",
-        abi: VIEW_TOKEN_ABI satisfies Abi,
-        address: beanstalkAddresses,
-      },
-      {
-        name: "marketFacetView",
-        abi: VIEW_MARKET_ABI satisfies Abi,
-        address: beanstalkAddresses,
-      },
-      {
         name: "beanstalkPrice",
         abi: BEANSTALK_PRICE_ABI satisfies Abi,
         address: {

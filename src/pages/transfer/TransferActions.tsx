@@ -28,14 +28,12 @@ export default function TransferActions() {
     <>
       <div className="flex flex-row justify-between">
         <span className={"font-[340] text-[1.25rem] text-pinto-gray-4"}>I want to send:</span>
-          <Button
-            asChild
-            className={`font-[340] text-[1.25rem] text-pinto-green bg-transparent hover:underline hover:bg-transparent ${disableSendAll ? "opacity-50 grayscale pointer-events-none" : ""}`}
-          >
-            <Link to="/transfer/all">
-            Send Everything
-            </Link>
-          </Button>
+        <Button
+          asChild
+          className={`font-[340] text-[1.25rem] text-pinto-green bg-transparent hover:underline hover:bg-transparent ${disableSendAll ? "opacity-50 grayscale pointer-events-none" : ""}`}
+        >
+          <Link to="/transfer/all">Send Everything</Link>
+        </Button>
       </div>
       <Button
         variant="outline"

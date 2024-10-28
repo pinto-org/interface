@@ -1,8 +1,5 @@
 import { PODS } from "@/constants/internalTokens";
-import {
-  beanstalkAbi,
-  beanstalkAddress,
-} from "@/generated/contractHooks";
+import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { TokenValue } from "@/classes/TokenValue";
 import { useChainId, useReadContracts } from "wagmi";
 import { QueryKey } from "@tanstack/react-query";
@@ -52,7 +49,6 @@ const defaultData: FieldData = {
 };
 
 export function useFieldData() {
-
   const chainId = useChainId();
   const protocolAddress = beanstalkAddress[chainId as keyof typeof beanstalkAddress];
   const contract = {

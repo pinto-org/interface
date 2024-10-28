@@ -13,8 +13,8 @@ export default function PlotSelect({
   setPlots,
   type = "multiple",
 }: {
-  setPlots: React.Dispatch<React.SetStateAction<any>>,
-  type?: "single" | "multiple"
+  setPlots: React.Dispatch<React.SetStateAction<any>>;
+  type?: "single" | "multiple";
 }) {
   const account = useAccount();
   const farmerField = useFarmerField();
@@ -33,7 +33,7 @@ export default function PlotSelect({
       const plotIndex = farmerField.plots.findIndex((plot) => plot.index.toHuman() === value);
       plotOutput.push(farmerField.plots[plotIndex]);
       setInternalPlots([value]);
-    };
+    }
     setPlots(plotOutput);
   }
 
@@ -56,7 +56,7 @@ export default function PlotSelect({
               <>
                 <ToggleGroup
                   type={type}
-                  value={type === "single" ? _plots[0] : _plots as any}
+                  value={type === "single" ? _plots[0] : (_plots as any)}
                   onValueChange={(value) => {
                     if (value) selectPlot(value);
                   }}

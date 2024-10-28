@@ -22,7 +22,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const chainId = useChainId();
   const depositedBalances = useFarmerDepositedBalances();
   const queryKey = depositedBalances.queryKey;
-  
+
   const mainToken = useTokenData().mainToken;
   const ETH = useTokenData().nativeToken;
   const [amountIn, setAmountIn] = useState(0);
@@ -31,14 +31,14 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const [intToken, setIntToken] = useState<Token | undefined>(undefined);
   const [pool, setPool] = useState<PoolData | undefined>(undefined);
   const [slippage, setSlippage] = useState(0.5);
-  
+
   const queryClient = useQueryClient();
   const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
 
   const pools = usePriceData().pools;
 
   const useSwap = !(tokenIn.address === mainToken.address || tokenIn.isLP);
-  
+
   useEffect(() => {
     if (siloToken.address === mainToken.address) {
       const intermediateToken = pools[0]?.tokens.find((token) => token.address !== mainToken.address);
@@ -51,9 +51,9 @@ function Deposit({ siloToken }: { siloToken: Token }) {
           setIntToken(intermediateToken);
           setPool(pool);
           break;
-        };
-      };
-    };
+        }
+      }
+    }
   }, [tokenIn, siloToken]);
 
   const swapData = useSwapEstimate(
@@ -65,71 +65,71 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     balanceFrom,
     FarmToMode.INTERNAL,
     useSwap ? pool : undefined,
-    (!useSwap && !intToken)
+    !useSwap && !intToken,
   );
 
   useEffect(() => {
     if (isSuccess) {
       // invalidating query results to trigger a refetch
       queryClient.invalidateQueries({ queryKey });
-    };
+    }
   }, [isSuccess, queryKey]);
 
-    function onSubmit() {
+  function onSubmit() {
     const depositData = deposit(
       siloToken,
       useSwap ? swapData?.output : TokenValue.fromHuman(amountIn, tokenIn.decimals),
-      useSwap ? FarmFromMode.INTERNAL : balanceFrom
+      useSwap ? FarmFromMode.INTERNAL : balanceFrom,
     ) as AdvancedFarmCall;
 
     if (useSwap && swapData?.callData) {
       swapData?.callData.push(depositData);
-    };
+    }
 
-    const callData = useSwap && swapData?.callData ? swapData.callData : [depositData]
-    
-    const tx = () => writeContractAsync({
-      address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-      abi: beanstalkAbi,
-      functionName: "advancedFarm",
-      args: [callData],
-      value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n
-    });
+    const callData = useSwap && swapData?.callData ? swapData.callData : [depositData];
+
+    const tx = () =>
+      writeContractAsync({
+        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+        abi: beanstalkAbi,
+        functionName: "advancedFarm",
+        args: [callData],
+        value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
+      });
 
     toast.promise(tx, {
       loading: "Submitting transaction...",
       success: (data) => {
-        return `Transaction complete!`
+        return `Transaction complete!`;
       },
       error: (error) => {
-        return ((error as BaseError).shortMessage || `Transaction failed.`)
-      }
+        return (error as BaseError).shortMessage || `Transaction failed.`;
+      },
     });
 
-    depositedBalances.refetch()
-
-    };
+    depositedBalances.refetch();
+  }
 
   return (
-      <div className="flex flex-col gap-4">
-        <div>
-          <div className="flex flex-row justify-between items-center">
-            <Label>Amount and Token to use</Label>
-            <SlippageButton slippage={slippage} setSlippage={setSlippage} />
-          </div>
-          <ComboInputField
-            amount={amountIn}
-            setAmount={setAmountIn}
-            setToken={setTokenIn}
-            setBalanceFrom={setBalanceFrom} 
-            selectedToken={tokenIn}
-            balanceFrom={balanceFrom}
-          />
+    <div className="flex flex-col gap-4">
+      <div>
+        <div className="flex flex-row justify-between items-center">
+          <Label>Amount and Token to use</Label>
+          <SlippageButton slippage={slippage} setSlippage={setSlippage} />
         </div>
-        <div className="flex flex-row gap-2">
-          <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit} submitButtonText="Deposit"/>
-        </div>
+        <ComboInputField
+          amount={amountIn}
+          setAmount={setAmountIn}
+          setToken={setTokenIn}
+          setBalanceFrom={setBalanceFrom}
+          selectedToken={tokenIn}
+          balanceFrom={balanceFrom}
+        />
       </div>
+      <div className="flex flex-row gap-2">
+        <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit} submitButtonText="Deposit" />
+      </div>
+    </div>
   );
 }
 

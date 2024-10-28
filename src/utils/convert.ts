@@ -11,8 +11,8 @@ export enum ConvertKind {
   LAMBDA_LAMBDA = 4,
   BEANS_TO_WELL_LP = 5,
   WELL_LP_TO_BEANS = 6,
-  UNRIPE_TO_RIPE = 7
-};
+  UNRIPE_TO_RIPE = 7,
+}
 
 /**
  * Order crates by Stem.
@@ -131,37 +131,26 @@ export function sortAndPickCrates(
 }
 
 export function calculateConvertData(fromToken: Token, toToken: Token, amountIn: TokenValue, minAmountOut: TokenValue) {
-
   if (!fromToken.isLP && toToken.isLP) {
     const encoded = encodeAbiParameters(
-      [ 
-        { type: "uint256", name: "convertKind"},
+      [
+        { type: "uint256", name: "convertKind" },
         { type: "uint256", name: "amountBeans" },
         { type: "uint256", name: "minLP" },
-        { type: "address", name: "pool"}
+        { type: "address", name: "pool" },
       ],
-      [
-        BigInt(ConvertKind.BEANS_TO_WELL_LP),
-        amountIn.toBigInt(),
-        minAmountOut.toBigInt(),
-        toToken.address
-      ]
+      [BigInt(ConvertKind.BEANS_TO_WELL_LP), amountIn.toBigInt(), minAmountOut.toBigInt(), toToken.address],
     );
     return encoded;
   } else if (fromToken.isLP && !toToken.isLP) {
     const encoded = encodeAbiParameters(
-      [ 
-        { type: "uint256", name: "convertKind"},
+      [
+        { type: "uint256", name: "convertKind" },
         { type: "uint256", name: "amountLP" },
         { type: "uint256", name: "minBeans" },
-        { type: "address", name: "pool"}
+        { type: "address", name: "pool" },
       ],
-      [
-        BigInt(ConvertKind.WELL_LP_TO_BEANS),
-        amountIn.toBigInt(),
-        minAmountOut.toBigInt(),
-        fromToken.address
-      ]
+      [BigInt(ConvertKind.WELL_LP_TO_BEANS), amountIn.toBigInt(), minAmountOut.toBigInt(), fromToken.address],
     );
     return encoded;
   } else {

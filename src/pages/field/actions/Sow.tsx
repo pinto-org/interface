@@ -22,7 +22,7 @@ function Sow() {
   const field = useFieldData();
   const queryKeys = field.queryKeys;
   const mainToken = useTokenData().mainToken;
-  
+
   const [amountIn, setAmountIn] = useState(0);
   const [tokenIn, setTokenIn] = useState(mainToken);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.EXTERNAL);
@@ -31,13 +31,12 @@ function Sow() {
   const queryClient = useQueryClient();
 
   const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
-  
+
   useEffect(() => {
     if (isSuccess) {
       // invalidating query results to trigger a refetch
-      field.queryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }))
-      ;
-    };
+      field.queryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
+    }
   }, [isSuccess, queryKeys]);
 
   const isUsingMain = tokenIn.address === mainToken.address;
@@ -51,59 +50,58 @@ function Sow() {
     balanceFrom,
     FarmToMode.INTERNAL,
     undefined,
-    isUsingMain
+    isUsingMain,
   );
 
   function onSubmit() {
     if (!account.address) return;
-    const amount = isUsingMain ? TokenValue.fromHuman(amountIn || 0n, tokenIn.decimals) : swapData?.output || TokenValue.ZERO;
+    const amount = isUsingMain
+      ? TokenValue.fromHuman(amountIn || 0n, tokenIn.decimals)
+      : swapData?.output || TokenValue.ZERO;
     const _minTemperature = TokenValue.fromHuman("0", mainToken.decimals);
-    
+
     const minTemp = _minTemperature.gt(field.temperature.scaled) ? _minTemperature : field.temperature.scaled;
     const minSoil = amount.subSlippage(slippage);
 
     if (isUsingMain) {
-      const tx = () => writeContractAsync({
-        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-        abi: beanstalkAbi,
-        functionName: "sowWithMin",
-        args: [amount.toBigInt(), minTemp.toBigInt(), minSoil.toBigInt(), Number(balanceFrom)],
-      });
+      const tx = () =>
+        writeContractAsync({
+          address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+          abi: beanstalkAbi,
+          functionName: "sowWithMin",
+          args: [amount.toBigInt(), minTemp.toBigInt(), minSoil.toBigInt(), Number(balanceFrom)],
+        });
 
       toast.promise(tx, {
         loading: "Submitting transaction...",
         success: (data) => {
-          return `Transaction complete!`
+          return `Transaction complete!`;
         },
         error: (error) => {
-          return ((error as BaseError).shortMessage || `Transaction failed.`)
-        }
+          return (error as BaseError).shortMessage || `Transaction failed.`;
+        },
       });
     } else {
-      const sow = sowWithMin(
-        amount,
-        minTemp,
-        minSoil,
-        FarmFromMode.INTERNAL
-      ) as AdvancedFarmCall;
+      const sow = sowWithMin(amount, minTemp, minSoil, FarmFromMode.INTERNAL) as AdvancedFarmCall;
       if (swapData?.callData) {
         swapData?.callData.push(sow);
-        const tx = () => writeContractAsync({
-          address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-          abi: beanstalkAbi,
-          functionName: "advancedFarm",
-          args: [swapData?.callData],
-          value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n
-        });
+        const tx = () =>
+          writeContractAsync({
+            address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+            abi: beanstalkAbi,
+            functionName: "advancedFarm",
+            args: [swapData?.callData],
+            value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
+          });
 
         toast.promise(tx, {
           loading: "Submitting transaction...",
           success: (data) => {
-            return `Transaction complete!`
+            return `Transaction complete!`;
           },
           error: (error) => {
-            return ((error as BaseError).shortMessage || `Transaction failed.`)
-          }
+            return (error as BaseError).shortMessage || `Transaction failed.`;
+          },
         });
       }
     }
@@ -120,13 +118,13 @@ function Sow() {
           amount={amountIn}
           setAmount={setAmountIn}
           setToken={setTokenIn}
-          setBalanceFrom={setBalanceFrom} 
+          setBalanceFrom={setBalanceFrom}
           selectedToken={tokenIn}
           balanceFrom={balanceFrom}
         />
       </div>
       <div className="flex flex-row gap-2">
-        <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit} submitButtonText="Sow"/>
+        <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit} submitButtonText="Sow" />
       </div>
     </div>
   );

@@ -19,11 +19,10 @@ import GerminationNotice from "./silo/GerminationNotice";
 import { useChainId, useConfig } from "wagmi";
 
 export default function SiloToken() {
-  
   const config = useConfig();
   const chainId = useChainId();
   const currentChain = config.chains.find((chain) => chain.id === chainId);
-  const blockExplorer = currentChain?.blockExplorers?.default.url ?? 'https://basescan.org';
+  const blockExplorer = currentChain?.blockExplorers?.default.url ?? "https://basescan.org";
 
   const { tokenAddress } = useParams();
   const tokenData = useTokenData();

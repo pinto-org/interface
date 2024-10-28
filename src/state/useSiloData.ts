@@ -17,7 +17,7 @@ const settings = {
   query: {
     staleTime: 1000 * 60 * 2,
     refetchInterval: 1000 * 60 * 3, // 3 minutes, in milliseconds
-  }
+  },
 };
 
 function useReadSiloTokenData(token: Token | undefined) {

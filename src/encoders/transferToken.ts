@@ -5,43 +5,36 @@ import { FarmFromMode, FarmToMode } from "@/utils/types";
 import { Clipboard } from "@/classes/Clipboard";
 
 export default function transferToken(
-    tokenToTransfer?: Address, 
-    destination?: Address, 
-    amount?: TokenValue, 
-    from?: FarmFromMode, 
-    to?: FarmToMode,
-    target?: Address,
-    clipboard?: `0x${string}`
+  tokenToTransfer?: Address,
+  destination?: Address,
+  amount?: TokenValue,
+  from?: FarmFromMode,
+  to?: FarmToMode,
+  target?: Address,
+  clipboard?: `0x${string}`,
 ) {
-    if (!tokenToTransfer || !destination || !amount || !from || !to) {
-        return ({
-            callData: '0x' as `0x${string}`,
-            clipboard: Clipboard.encode([])
-        });
+  if (!tokenToTransfer || !destination || !amount || !from || !to) {
+    return {
+      callData: "0x" as `0x${string}`,
+      clipboard: Clipboard.encode([]),
     };
-    const data = encodeFunctionData({
-        abi: beanstalkAbi,
-        functionName: "transferToken",
-        args: [
-            tokenToTransfer,
-            destination,
-            amount.toBigInt(),
-            Number(from),
-            Number(to)
-        ]
-    });
+  }
+  const data = encodeFunctionData({
+    abi: beanstalkAbi,
+    functionName: "transferToken",
+    args: [tokenToTransfer, destination, amount.toBigInt(), Number(from), Number(to)],
+  });
 
-    if (target) {
-        return ({
-            target: target,
-            callData: data,
-            clipboard: clipboard || Clipboard.encode([])                  
-        });
+  if (target) {
+    return {
+      target: target,
+      callData: data,
+      clipboard: clipboard || Clipboard.encode([]),
     };
-    
-    return({
-        callData: data,
-        clipboard: clipboard || Clipboard.encode([])
-    });
+  }
 
+  return {
+    callData: data,
+    clipboard: clipboard || Clipboard.encode([]),
+  };
 }

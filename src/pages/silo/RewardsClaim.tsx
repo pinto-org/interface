@@ -22,48 +22,49 @@ function RewardsClaim() {
   const { mainToken: BEAN, whitelistedTokens: SILO_WHITELIST } = useTokenData();
   const stalkRewards = siloData.tokenData.get(BEAN).rewards.stalk.mul(10 ** STALK.decimals);
   const seedsRewards = siloData.tokenData.get(BEAN).rewards.seeds;
-  const grownStalk = data.grownStalkReward
+  const grownStalk = data.grownStalkReward;
   const queryClient = useQueryClient();
   const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
 
   useEffect(() => {
     if (isSuccess) {
-      const allQueryKeys = [...data.queryKeys, ...siloData.queryKeys]
+      const allQueryKeys = [...data.queryKeys, ...siloData.queryKeys];
       // invalidating query results to trigger a refetch
       allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
-    };
+    }
   }, [isSuccess]);
 
   async function onSubmit() {
     if (!account.address) return;
-    
+
     const plant = encodeFunctionData({
       abi: beanstalkAbi,
-      functionName: "plant"
+      functionName: "plant",
     });
-    
+
     const tokensToMow = SILO_WHITELIST.map((token) => token.address);
     const mow = encodeFunctionData({
       abi: beanstalkAbi,
       functionName: "mowMultiple",
       args: [account.address, tokensToMow],
     });
-    
-    const tx = () => writeContractAsync({
-      address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-      abi: beanstalkAbi,
-      functionName: "farm",
-      args: [[plant, mow]],
-    });
+
+    const tx = () =>
+      writeContractAsync({
+        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+        abi: beanstalkAbi,
+        functionName: "farm",
+        args: [[plant, mow]],
+      });
 
     toast.promise(tx, {
       loading: "Submitting transaction...",
       success: (data) => {
-        return `Transaction complete!`
+        return `Transaction complete!`;
       },
       error: (error) => {
-        return ((error as BaseError).shortMessage || `Transaction failed.`)
-      }
+        return (error as BaseError).shortMessage || `Transaction failed.`;
+      },
     });
   }
 

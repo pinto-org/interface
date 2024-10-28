@@ -1,6 +1,6 @@
 {
   "files": {
-    "ignore": ["node_modules/**", "dist/", "src/generated/**"],
+    "ignore": ["node_modules/**", "dist/", "src/generated/**", "src/queries/**"],
     "include": ["src/**"]
   },
   "formatter": {

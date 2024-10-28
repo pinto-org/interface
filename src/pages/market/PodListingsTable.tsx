@@ -10,7 +10,6 @@ import useTokenData from "@/state/useTokenData";
 import { PODS } from "@/constants/internalTokens";
 
 export function PodListingsTable() {
-
   const BEAN = useTokenData().mainToken;
 
   const podListings = usePodListings().data?.podListings;
@@ -26,56 +25,65 @@ export function PodListingsTable() {
   const navigate = useNavigate();
 
   function navigateTo(id: string) {
-    navigate(`/podmarket/buy/${id}`)
-  };
+    navigate(`/podmarket/buy/${id}`);
+  }
 
-    return (
-<Card className="h-fit w-full">
-    <CardHeader>
-      <CardTitle>Pod Listings</CardTitle>
-      <CardDescription>The list of pods currently up for sale</CardDescription>
-    </CardHeader>
-    <CardContent>
-    <Table>
-  {/* <TableCaption>Earn yield and participate in protocol governance by depositing whitelisted assets</TableCaption> */}
-  <TableHeader>
-    <TableRow className="hover:bg-white">
-      <TableHead className="w-[200px] transition-colors hover:bg-muted/50">Created At</TableHead>
-      <TableHead className="w-[200px] transition-colors hover:bg-muted/50">Listing</TableHead>
-      <TableHead className="w-[150px] transition-colors hover:bg-muted/50">Place In Line</TableHead>
-      <TableHead className="w-[100px] transition-colors hover:bg-muted/50">Price</TableHead>
-      <TableHead className="w-[110px] transition-colors hover:bg-muted/50">Amount</TableHead>
-      <TableHead className="text-right w-[120px] transition-colors hover:bg-muted/50">Expires In</TableHead>
-    </TableRow>
-  </TableHeader>
-  <TableBody>
-    {podListings?.map((listing, i) => {
-      const id = listing.id.substring(43);
-      const dateOptions: Intl.DateTimeFormatOptions = {
-        year: "2-digit",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hourCycle: "h24"
-      };
-      const createdAt = new Date(Number(listing.createdAt) * 1000)
-      if (i >= newestEventOnPage && i <= oldestEventOnPage)
-        return (
-          <TableRow className="hover:cursor-pointer" onClick={() => navigateTo(listing.index.valueOf())}>
-            <TableCell className="font-medium">{createdAt.toLocaleString(undefined, dateOptions)}</TableCell>
-            <TableCell>{id}</TableCell>
-            <TableCell>{TokenValue.fromBlockchain(listing.index, PODS.decimals).sub(fieldData.harvestableIndex).toHuman("short")}</TableCell>
-            <TableCell>{TokenValue.fromBlockchain(listing.pricePerPod, BEAN.decimals).toHuman()}</TableCell>
-            <TableCell>{TokenValue.fromBlockchain(listing.amount, PODS.decimals).toHuman("short")}</TableCell>
-            <TableCell className="text-right">{TokenValue.fromBlockchain(listing.maxHarvestableIndex, PODS.decimals).sub(fieldData.harvestableIndex).toHuman("short")} PODS</TableCell>
-          </TableRow>
-        )
-    })}
-  </TableBody>
-</Table>
-{totalPages > 1 && (
+  return (
+    <Card className="h-fit w-full">
+      <CardHeader>
+        <CardTitle>Pod Listings</CardTitle>
+        <CardDescription>The list of pods currently up for sale</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          {/* <TableCaption>Earn yield and participate in protocol governance by depositing whitelisted assets</TableCaption> */}
+          <TableHeader>
+            <TableRow className="hover:bg-white">
+              <TableHead className="w-[200px] transition-colors hover:bg-muted/50">Created At</TableHead>
+              <TableHead className="w-[200px] transition-colors hover:bg-muted/50">Listing</TableHead>
+              <TableHead className="w-[150px] transition-colors hover:bg-muted/50">Place In Line</TableHead>
+              <TableHead className="w-[100px] transition-colors hover:bg-muted/50">Price</TableHead>
+              <TableHead className="w-[110px] transition-colors hover:bg-muted/50">Amount</TableHead>
+              <TableHead className="text-right w-[120px] transition-colors hover:bg-muted/50">Expires In</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {podListings?.map((listing, i) => {
+              const id = listing.id.substring(43);
+              const dateOptions: Intl.DateTimeFormatOptions = {
+                year: "2-digit",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hourCycle: "h24",
+              };
+              const createdAt = new Date(Number(listing.createdAt) * 1000);
+              if (i >= newestEventOnPage && i <= oldestEventOnPage)
+                return (
+                  <TableRow className="hover:cursor-pointer" onClick={() => navigateTo(listing.index.valueOf())}>
+                    <TableCell className="font-medium">{createdAt.toLocaleString(undefined, dateOptions)}</TableCell>
+                    <TableCell>{id}</TableCell>
+                    <TableCell>
+                      {TokenValue.fromBlockchain(listing.index, PODS.decimals)
+                        .sub(fieldData.harvestableIndex)
+                        .toHuman("short")}
+                    </TableCell>
+                    <TableCell>{TokenValue.fromBlockchain(listing.pricePerPod, BEAN.decimals).toHuman()}</TableCell>
+                    <TableCell>{TokenValue.fromBlockchain(listing.amount, PODS.decimals).toHuman("short")}</TableCell>
+                    <TableCell className="text-right">
+                      {TokenValue.fromBlockchain(listing.maxHarvestableIndex, PODS.decimals)
+                        .sub(fieldData.harvestableIndex)
+                        .toHuman("short")}{" "}
+                      PODS
+                    </TableCell>
+                  </TableRow>
+                );
+            })}
+          </TableBody>
+        </Table>
+        {totalPages > 1 && (
           <div className="flex items-center justify-end space-x-2 py-4">
             <Button
               variant="outline"
@@ -96,7 +104,7 @@ export function PodListingsTable() {
             </Button>
           </div>
         )}
-</CardContent>
-</Card>     
-    )
+      </CardContent>
+    </Card>
+  );
 }

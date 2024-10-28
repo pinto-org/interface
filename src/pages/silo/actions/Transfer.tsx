@@ -31,9 +31,8 @@ function Transfer() {
     if (isSuccess) {
       // invalidating query results to trigger a refetch
       queryClient.invalidateQueries({ queryKey });
-    };
+    }
   }, [isSuccess, queryKey]);
-
 
   async function onSubmit() {
     if (!amount || amount <= 0 || !recipient || !isAddress(recipient) || !account.address) return;
@@ -50,40 +49,42 @@ function Transfer() {
     const amounts = transferData.crates.map((crate) => crate.amount.toBlockchain());
 
     if (transferData.crates.length === 1) {
-      const tx = () => writeContractAsync({
-        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-        abi: beanstalkAbi,
-        functionName: "transferDeposit",
-        args: [account.address, recipient as Address, fromToken.address, stems[0], amounts[0]],
-      });
+      const tx = () =>
+        writeContractAsync({
+          address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+          abi: beanstalkAbi,
+          functionName: "transferDeposit",
+          args: [account.address, recipient as Address, fromToken.address, stems[0], amounts[0]],
+        });
 
       toast.promise(tx, {
         loading: "Submitting transaction...",
         success: (data) => {
-          return `Transaction complete!`
+          return `Transaction complete!`;
         },
         error: (error) => {
-          return ((error as BaseError).shortMessage || `Transaction failed.`)
-        }
+          return (error as BaseError).shortMessage || `Transaction failed.`;
+        },
       });
     } else if (transferData.crates.length > 1) {
-      const tx = () => writeContractAsync({
-        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-        abi: beanstalkAbi,
-        functionName: "transferDeposits",
-        args: [account.address, recipient as Address, fromToken.address, stems, amounts],
-      });
+      const tx = () =>
+        writeContractAsync({
+          address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+          abi: beanstalkAbi,
+          functionName: "transferDeposits",
+          args: [account.address, recipient as Address, fromToken.address, stems, amounts],
+        });
 
       toast.promise(tx, {
         loading: "Submitting transaction...",
         success: (data) => {
-          return `Transaction complete!`
+          return `Transaction complete!`;
         },
         error: (error) => {
-          return ((error as BaseError).shortMessage || `Transaction failed.`)
-        }
+          return (error as BaseError).shortMessage || `Transaction failed.`;
+        },
       });
-    };
+    }
   }
 
   return (
@@ -96,10 +97,10 @@ function Transfer() {
         <CardContent className="flex flex-col gap-4">
           <div>
             <Label>Amount</Label>
-            <ComboInputField 
+            <ComboInputField
               amount={amount}
               setAmount={setAmount}
-              setToken={setFromToken} 
+              setToken={setFromToken}
               selectedToken={fromToken}
               useSiloTokens
             />

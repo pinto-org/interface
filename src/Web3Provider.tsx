@@ -7,7 +7,7 @@ import { createTestClient, defineChain } from "viem";
 import { mock } from "wagmi/connectors";
 
 export const anvilTestClient = createTestClient({ mode: "anvil", chain: localhost, transport: http() });
-  
+
 export const testConfig = createConfig({
   connectors: [mock({ accounts: ["0xfe42972c584e442c3f0a49cb2930e55d5bf13ba7"] })],
   chains: [localhost],
@@ -18,21 +18,21 @@ export const testConfig = createConfig({
 
 export const tenderlyTestnet = defineChain({
   id: 41337,
-  name: 'Tenderly Base Testnet',
-  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  name: "Tenderly Base Testnet",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
   rpcUrls: {
-    default: { http: ['https://virtual.base.rpc.tenderly.co/b029bcf4-36fe-48bf-bc5c-41cabbc76996'] },
+    default: { http: ["https://virtual.base.rpc.tenderly.co/b029bcf4-36fe-48bf-bc5c-41cabbc76996"] },
   },
   blockExplorers: {
-    default: { name: 'Etherscan', url: 'https://etherscan.io' },
+    default: { name: "Etherscan", url: "https://etherscan.io" },
   },
   contracts: {
     multicall3: {
-      address: '0xca11bde05977b3631167028862be2a173976ca11',
+      address: "0xca11bde05977b3631167028862be2a173976ca11",
       blockCreated: 5022,
     },
   },
-})
+});
 
 const config = createConfig(
   getDefaultConfig({

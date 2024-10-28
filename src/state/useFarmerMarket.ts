@@ -88,6 +88,4 @@ export function useFarmerMarket() {
     const sorted = combined.sort((a, b) => Number(b.createdAt) - Number(a.createdAt));
     return sorted;
   }, [listings, orders]);
-
- 
 }

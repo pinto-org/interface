@@ -64,13 +64,19 @@ export function useFarmerSilo() {
     const depositData = farmerDeposits.get(token);
     depositsBDV = depositsBDV.add(depositData ? depositData.currentBDV : TokenValue.ZERO);
     depositsUSD = depositsUSD.add(depositData ? depositData.currentBDV.mul(currPrice) : TokenValue.ZERO);
-    activeSeeds = activeSeeds.add(depositData ? depositData.deposits.reduce((acc, curr) => acc.add(curr.seeds), TokenValue.ZERO) : TokenValue.ZERO);
+    activeSeeds = activeSeeds.add(
+      depositData ? depositData.deposits.reduce((acc, curr) => acc.add(curr.seeds), TokenValue.ZERO) : TokenValue.ZERO,
+    );
 
     if (floodData.data && tokenData && token.tokens) {
-      const sopToken = floodData.data.farmerSops.find((farmerSop) => farmerSop.well.toLowerCase() === token.address.toLowerCase());
+      const sopToken = floodData.data.farmerSops.find(
+        (farmerSop) => farmerSop.well.toLowerCase() === token.address.toLowerCase(),
+      );
       const backingAssetAddress = token.tokens.find((tokenAddress) => tokenAddress !== BEAN.address);
       if (backingAssetAddress) {
-        const backingAsset = tokenData.preferredTokens.find((preferredToken) => backingAssetAddress.toLowerCase() === preferredToken.address.toLowerCase());
+        const backingAsset = tokenData.preferredTokens.find(
+          (preferredToken) => backingAssetAddress.toLowerCase() === preferredToken.address.toLowerCase(),
+        );
         if (sopToken && backingAsset) {
           const sopData = {
             well: token,
@@ -78,14 +84,13 @@ export function useFarmerSilo() {
             wellsPlenty: {
               plenty: TokenValue.fromBlockchain(sopToken.wellsPlenty.plenty, backingAsset.decimals),
               plentyPerRoot: sopToken.wellsPlenty.plentyPerRoot,
-            }
+            },
           };
           farmerSops.push(sopData);
         }
       }
-    };
+    }
   });
-
 
   const earnedBeansBalance = useReadBeanstalk_BalanceOfEarnedBeans({
     args: [account.address ?? ZERO_ADDRESS],
@@ -95,12 +100,7 @@ export function useFarmerSilo() {
   });
   queryKeys.push(earnedBeansBalance.queryKey);
 
-  const grownStalkReward = Array.from(grownStalkPerToken).reduce(
-    (acc, curr) => acc.add(curr[1]),
-    TokenValue.ZERO,
-  );
-
- 
+  const grownStalkReward = Array.from(grownStalkPerToken).reduce((acc, curr) => acc.add(curr[1]), TokenValue.ZERO);
 
   return {
     activeStalkBalance: TokenValue.fromBlockchain(activeStalkBalance.data || 0n, STALK.decimals),
@@ -114,8 +114,8 @@ export function useFarmerSilo() {
       lastRain: floodData?.data?.lastRain ?? 0,
       lastSop: floodData?.data?.lastSop ?? 0,
       roots: floodData?.data?.roots ?? 0n,
-      farmerSops: farmerSops
+      farmerSops: farmerSops,
     },
-    queryKeys: queryKeys
+    queryKeys: queryKeys,
   };
 }

@@ -5,7 +5,7 @@ export default function AddressLink({ address }: { address: string | undefined }
   const config = useConfig();
   const chainId = useChainId();
   const currentChain = config.chains.find((chain) => chain.id === chainId);
-  const blockExplorer = currentChain?.blockExplorers?.default.url ?? 'https://basescan.org';
+  const blockExplorer = currentChain?.blockExplorers?.default.url ?? "https://basescan.org";
 
   return (
     <>

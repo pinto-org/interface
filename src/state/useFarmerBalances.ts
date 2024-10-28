@@ -7,12 +7,12 @@ import { Token } from "@/utils/types";
 export function useFarmerBalances() {
   const account = useAccount();
   const tokens = useTokenData().preferredTokens;
-  const preferredTokens = tokens.map(token => token.address);
+  const preferredTokens = tokens.map((token) => token.address);
   const ETH = useTokenData().nativeToken;
   const nativeBalance = useBalance({
     address: account.address,
   });
-  
+
   const tokenBalances = useReadBeanstalk_GetAllBalances({
     args: [account.address ?? "0x", preferredTokens],
     query: {
@@ -22,7 +22,7 @@ export function useFarmerBalances() {
     },
   });
 
-  const balances: Map<Token, { internal: TokenValue, external: TokenValue, total: TokenValue }> = new Map();
+  const balances: Map<Token, { internal: TokenValue; external: TokenValue; total: TokenValue }> = new Map();
 
   balances.set(ETH, {
     internal: TokenValue.fromBlockchain(0n, ETH.decimals),
@@ -41,6 +41,6 @@ export function useFarmerBalances() {
   return {
     balances: balances,
     queryKey: tokenBalances.queryKey,
-    refetch: tokenBalances.refetch
+    refetch: tokenBalances.refetch,
   };
 }
