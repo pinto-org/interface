@@ -91,6 +91,7 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
             avoidLayoutShift: true,
             hideNoWalletCTA: true,
             hideQuestionMarkCTA: true,
+            enforceSupportedChains: true
           }}
         >
           {children}
