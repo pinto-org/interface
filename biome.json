@@ -45,7 +45,9 @@
         "useKeyWithClickEvents": "off",
         "noSvgWithoutTitle": "warn",
         "useAltText": "warn",
-        "noBlankTarget": "error"
+        "noBlankTarget": "error",
+        "useValidAriaRole": "warn",
+        "noInteractiveElementToNoninteractiveRole": "warn"
       }
     }
   },
