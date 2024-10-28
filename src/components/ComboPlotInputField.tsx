@@ -30,7 +30,7 @@ export default function ComboPlotInputField({ selectedPlots, setPlots, amount, s
         />
         <PlotSelect type={type} setPlots={setPlots} />
       </div>
-      {selectedPlots.length <div 2 && (
+      {selectedPlots.length && (
         <div className="flex shrink">
           <div
             className="flex cursor-pointer text-[0.8rem] text-muted-foreground hover:text-primary transition-colors"
