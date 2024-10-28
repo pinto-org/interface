@@ -40,10 +40,11 @@ export default function fillPodListing(
     functionName: "fillPodListing",
     args: [
       {
-        account: account, // account
+        lister: account, // account
+        fieldId: 0n,
         index: index.toBigInt(), // index
         start: start.toBigInt(), // start
-        amount: amount.toBigInt(), // amount
+        podAmount: amount.toBigInt(), // amount
         pricePerPod: pricePerPod, // pricePerPod
         maxHarvestableIndex: maxHarvestableIndex.toBigInt(), // maxHarvestableIndex
         minFillAmount: minFillAmount.toBigInt(), // minFillAmount, measured in Beans

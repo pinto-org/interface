@@ -1,7 +1,7 @@
 import { Address, encodeFunctionData } from "viem";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { TokenValue } from "@/classes/TokenValue";
-import { FarmFromMode, FarmToMode } from "@/utils/types";
+import { AdvancedFarmCall, FarmFromMode, FarmToMode } from "@/utils/types";
 import { Clipboard } from "@/classes/Clipboard";
 
 export default function transferToken(
@@ -36,5 +36,5 @@ export default function transferToken(
   return {
     callData: data,
     clipboard: clipboard || Clipboard.encode([]),
-  };
+  } satisfies AdvancedFarmCall;
 }

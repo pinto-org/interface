@@ -5698,6 +5698,113 @@ export const depotAddress = {
 export const depotConfig = { address: depotAddress, abi: depotAbi } as const
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// farmer
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const farmerAbi = [
+  {
+    type: 'function',
+    inputs: [{ name: 'account', internalType: 'address', type: 'address' }],
+    name: 'balanceOfStalk',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'account', internalType: 'address', type: 'address' }],
+    name: 'balanceOfSop',
+    outputs: [
+      {
+        name: 'sop',
+        internalType: 'struct SiloGettersFacet.AccountSeasonOfPlenty',
+        type: 'tuple',
+        components: [
+          { name: 'lastRain', internalType: 'uint32', type: 'uint32' },
+          { name: 'lastSop', internalType: 'uint32', type: 'uint32' },
+          { name: 'roots', internalType: 'uint256', type: 'uint256' },
+          {
+            name: 'farmerSops',
+            internalType: 'struct SiloGettersFacet.FarmerSops[]',
+            type: 'tuple[]',
+            components: [
+              { name: 'well', internalType: 'address', type: 'address' },
+              {
+                name: 'wellsPlenty',
+                internalType: 'struct PerWellPlenty',
+                type: 'tuple',
+                components: [
+                  {
+                    name: 'plentyPerRoot',
+                    internalType: 'uint256',
+                    type: 'uint256',
+                  },
+                  { name: 'plenty', internalType: 'uint256', type: 'uint256' },
+                  {
+                    name: '_buffer',
+                    internalType: 'bytes32[4]',
+                    type: 'bytes32[4]',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'account', internalType: 'address', type: 'address' },
+      { name: 'token', internalType: 'address', type: 'address' },
+    ],
+    name: 'balanceOfGrownStalk',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'account', internalType: 'address', type: 'address' }],
+    name: 'balanceOfEarnedBeans',
+    outputs: [{ name: 'beans', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+] as const
+
+/**
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const farmerAddress = {
+  1: '0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5',
+  1337: '0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f',
+  8453: '0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f',
+  31337: '0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f',
+  41337: '0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f',
+  42161: '0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70',
+} as const
+
+/**
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const farmerConfig = { address: farmerAddress, abi: farmerAbi } as const
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // pipeline
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -13095,6 +13202,80 @@ export const useSimulateDepot_TransferToken =
     abi: depotAbi,
     address: depotAddress,
     functionName: 'transferToken',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link farmerAbi}__
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useReadFarmer_undefined = /*#__PURE__*/ createUseReadContract({
+  abi: farmerAbi,
+  address: farmerAddress,
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link farmerAbi}__ and `functionName` set to `"balanceOfStalk"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useReadFarmer_BalanceOfStalk = /*#__PURE__*/ createUseReadContract(
+  { abi: farmerAbi, address: farmerAddress, functionName: 'balanceOfStalk' },
+)
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link farmerAbi}__ and `functionName` set to `"balanceOfSop"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useReadFarmer_BalanceOfSop = /*#__PURE__*/ createUseReadContract({
+  abi: farmerAbi,
+  address: farmerAddress,
+  functionName: 'balanceOfSop',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link farmerAbi}__ and `functionName` set to `"balanceOfGrownStalk"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useReadFarmer_BalanceOfGrownStalk =
+  /*#__PURE__*/ createUseReadContract({
+    abi: farmerAbi,
+    address: farmerAddress,
+    functionName: 'balanceOfGrownStalk',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link farmerAbi}__ and `functionName` set to `"balanceOfEarnedBeans"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useReadFarmer_BalanceOfEarnedBeans =
+  /*#__PURE__*/ createUseReadContract({
+    abi: farmerAbi,
+    address: farmerAddress,
+    functionName: 'balanceOfEarnedBeans',
   })
 
 /**

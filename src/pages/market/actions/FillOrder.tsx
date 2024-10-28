@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
-import { FarmToMode } from "@/utils/types";
+import { FarmToMode, Plot } from "@/utils/types";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import { useParams } from "react-router-dom";
 import usePodOrders from "@/state/usePodOrders";
@@ -19,7 +19,7 @@ import { useQueryClient } from "@tanstack/react-query";
 export default function FillOrder() {
   const BEAN = useTokenData().mainToken;
 
-  const [plot, setPlot] = useState([]);
+  const [plot, setPlot] = useState<Plot[]>([]);
   const [amount, setAmount] = useState(0);
   const [balanceTo, setBalanceTo] = useState(FarmToMode.INTERNAL);
 
@@ -56,13 +56,14 @@ export default function FillOrder() {
         functionName: "fillPodOrder",
         args: [
           {
-            account: order.farmer.id as Address, // order - account
+            orderer: order.farmer.id as Address, // order - account
+            fieldId: 0n, // plot - fieldId
             maxPlaceInLine: BigInt(order.maxPlaceInLine), // order - maxPlaceInLine
             pricePerPod: Number(order.pricePerPod), // order - pricePerPod
             minFillAmount: BigInt(order.minFillAmount), // order - minFillAmount
           },
           plot[0].index.toBigInt(), // index of plot to sell
-          BigInt(0), // start index within plot
+          0n, // start index within plot
           TokenValue.fromHuman(amount, PODS.decimals).toBigInt(), // amount of pods to sell
           Number(balanceTo), //destination balance
         ],

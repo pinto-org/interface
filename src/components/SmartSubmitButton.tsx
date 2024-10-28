@@ -8,6 +8,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import { Token } from "@/utils/types";
 import useTokenData from "@/state/useTokenData";
 import { toast } from "sonner";
+import { ZERO_ADDRESS } from "@/constants/address";
 
 interface SmartSubmitButton {
   token: Token;
@@ -29,12 +30,12 @@ export default function SmartSubmitButton({
   const queryClient = useQueryClient();
   const ETH = useTokenData().nativeToken;
 
-  const { data: hash, isPending, writeContractAsync } = useWriteContract();
+  const { data: hash, writeContractAsync } = useWriteContract();
   const { data: allowance, queryKey } = useReadContract({
     abi: erc20Abi,
     address: token.address,
     functionName: "allowance",
-    args: [account.address!, beanstalkAddress[chainId as keyof typeof beanstalkAddress]],
+    args: [account.address ?? ZERO_ADDRESS, beanstalkAddress[chainId as keyof typeof beanstalkAddress]],
     query: {
       enabled: !!account.address && !!token && token !== ETH,
     },

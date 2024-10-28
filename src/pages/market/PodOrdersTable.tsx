@@ -12,9 +12,9 @@ export function PodOrdersTable() {
   const BEAN = useTokenData().mainToken;
   const podOrders = usePodOrders().data?.podOrders;
 
-  const filteredOrders = [];
+  const filteredOrders: NonNullable<ReturnType<typeof usePodOrders>["data"]>["podOrders"] = [];
   if (podOrders) {
-    for (let order of podOrders) {
+    for (const order of podOrders) {
       const amount = TokenValue.fromBlockchain(order.beanAmount, BEAN.decimals);
       const amountFilled = TokenValue.fromBlockchain(order.beanAmountFilled, BEAN.decimals);
       const pricePerPod = TokenValue.fromBlockchain(order.pricePerPod, BEAN.decimals);

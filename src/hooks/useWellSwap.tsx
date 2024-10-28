@@ -26,7 +26,7 @@ export default function useWellSwap(
     args: [tokenIn?.address || "0x", tokenOut?.address || "0x", amount?.toBigInt() || 0n],
     query: querySettings,
   });
-  const outputTV = TokenValue.fromBlockchain(estimate?.data || 0n, tokenOut?.decimals || 0);
+  const outputTV = TokenValue.fromBlockchain((estimate?.data as bigint | undefined) || 0n, tokenOut?.decimals || 0);
   const outputSlippage =
     mode === "exactInput" ? outputTV.subSlippage(slippage || 0) : outputTV.addSlippage(slippage || 0);
 

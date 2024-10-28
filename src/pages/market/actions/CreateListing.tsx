@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { FarmToMode } from "@/utils/types";
+import { FarmToMode, Plot } from "@/utils/types";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import { useChainId, useWriteContract } from "wagmi";
 import { TokenValue } from "@/classes/TokenValue";
@@ -23,7 +23,7 @@ export default function CreateListing() {
   const queryKey = podListings.queryKey;
   const queryClient = useQueryClient();
 
-  const [plot, setPlot] = useState([]);
+  const [plot, setPlot] = useState<Plot[]>([]);
   const [amount, setAmount] = useState(0);
   const [expiresIn, setExpiresIn] = useState(0);
   const [pricePerPod, setPricePerPod] = useState(0);

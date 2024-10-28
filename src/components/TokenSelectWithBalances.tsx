@@ -31,7 +31,7 @@ function TokenSelectItem({
   return (
     <DialogClose className="flex flex-row w-[105%]">
       <ToggleGroupItem
-        value={token}
+        value={token.address}
         aria-label={`Select ${token.name}`}
         className="flex flex-row w-[105%] py-2 h-auto justify-between"
       >

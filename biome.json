@@ -39,7 +39,8 @@
         "noInnerDeclarations": "error",
         "useExhaustiveDependencies": "warn",
         "noUnsafeOptionalChaining": "error",
-        "useHookAtTopLevel": "error"
+        "useHookAtTopLevel": "error",
+        "noUnusedVariables": "warn"
       },
       "a11y": {
         "useKeyWithClickEvents": "off",
