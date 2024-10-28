@@ -42,7 +42,7 @@ export default function Overview() {
 
   const placesInLine = farmerField.plots
     .map((plot) => plot.index.sub(fieldData.harvestableIndex))
-    .sort((a, b) => a.sub(b));
+    .sort((a, b) => Number(a.sub(b).toHuman()));
 
   const farmerDeposits = useFarmerDepositedBalances().data;
   const SILO_WHITELIST = tokenData.whitelistedTokens;
@@ -208,17 +208,17 @@ export default function Overview() {
                             </TableCell>
                             <TableCell className="text-right">
                               <div className="text-black font-[400] text-[1rem]">
-                                {userData.amount.toHuman("short")} {token.name}
+                                {userData?.amount.toHuman("short")} {token.name}
                               </div>
                               <div className="inline-flex items-center gap-1">
                                 <img src={pdvIcon} className="h-3 w-5" alt={"PDV"} />
                                 <div className="text-pinto-gray-4 font-[300] text-[1rem]">
-                                  {userData.depositBDV.toHuman("short")}
+                                  {userData?.depositBDV.toHuman("short")}
                                 </div>
                               </div>
                             </TableCell>
                             <TableCell className="text-black font-[400] text-[1rem] text-right">
-                              <div>{userData.stalk.base.toHuman("short")}</div>
+                              <div>{userData?.stalk.base.toHuman("short")}</div>
                               {claimableStalk.gt(0) && (
                                 <div className="text-pinto-gray-4">
                                   Claimable Grown Stalk:{" "}
@@ -227,7 +227,7 @@ export default function Overview() {
                               )}
                             </TableCell>
                             <TableCell className="text-black font-[400] text-[1rem] text-right p-4">
-                              {userData.seeds.toHuman("short")}
+                              {userData?.seeds.toHuman("short") ?? "-"}
                             </TableCell>
                           </TableRow>
                         );

@@ -12,7 +12,7 @@ export function useFarmerBalances() {
   const nativeBalance = useBalance({
     address: account.address,
   });
-  //@ts-ignore
+  
   const tokenBalances = useReadBeanstalk_GetAllBalances({
     args: [account.address ?? "0x", preferredTokens],
     query: {

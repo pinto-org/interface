@@ -92,7 +92,7 @@ export class TokenValue {
     if (!value) {
       throw new Error("Must provide value to BigNumber.fromHuman(value,decimals)");
     }
-    if (decimals == undefined || decimals == null) {
+    if (decimals === undefined || decimals === null) {
       throw new Error("Must provide decimals to BigNumber.fromHuman(value,decimals)");
     }
     let [int, safeDecimals] = value.split(".");

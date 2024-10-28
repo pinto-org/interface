@@ -19,7 +19,7 @@ export function useFarmerField() {
     queryKey: queryKey,
     queryFn: async () =>
       request(subgraphs[chainId].beanstalk, FarmerPlotsDocument, {
-        account: account.address!.toString().toLowerCase(),
+        account: account.address?.toString().toLowerCase() ?? "",
       }),
     enabled: !!account.address,
   });

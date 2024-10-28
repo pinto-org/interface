@@ -1,17 +1,12 @@
 import { WagmiProvider, createConfig, http } from "wagmi";
-import { arbitrum, foundry, localhost, mainnet } from "wagmi/chains";
+import { localhost } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 import { ReactNode } from "react";
 import { createTestClient, defineChain } from "viem";
 import { mock } from "wagmi/connectors";
 
-export const anvilTestClient = 
-  createTestClient({ mode: "anvil", chain: localhost, transport: http() })
-  // alt test acc: 0xe543357d4f0eb174cfc6bed6ef5e7ab5762f1b2b
-  // alt test acc: 0xfe42972c584e442c3f0a49cb2930e55d5bf13ba7
-  // alt test acc: 0x43B9F935c798522aaaCB2bFEa2F407cE5A291e9D
-  // alt test acc: 0xe543357d4f0eb174cfc6bed6ef5e7ab5762f1b2b
+export const anvilTestClient = createTestClient({ mode: "anvil", chain: localhost, transport: http() });
   
 export const testConfig = createConfig({
   connectors: [mock({ accounts: ["0xfe42972c584e442c3f0a49cb2930e55d5bf13ba7"] })],
@@ -54,12 +49,12 @@ const config = createConfig(
       },
     },
     // Required API Keys
-    walletConnectProjectId: 'my-project',
+    walletConnectProjectId: "my-project",
     // Required App Info
     appName: "Pinto",
     // Optional App Info
     appDescription: "A decentralized stablecoin protocol",
-    appUrl: "https://link.to.pinto/", // your app's url
+    appUrl: "https://pinto.money/", // your app's url
     appIcon: "https://link.to.pinto/icon.jpg", // your app's icon, no bigger than 1024x1024px (max. 1MB)
   }),
 );
@@ -67,9 +62,8 @@ const config = createConfig(
 const queryClient = new QueryClient();
 
 export const Web3Provider = ({ children }: { children: ReactNode }) => {
-
   // anvilTestClient.impersonateAccount({ address: "0xfe42972c584e442c3f0a49cb2930e55d5bf13ba7" });
-  
+
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
@@ -88,15 +82,15 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
             "--ck-secondary-button-background": "#FCFCFC",
             "--ck-secondary-button-hover-background": "#EBEBEB",
             "--ck-secondary-button-box-shadow": "0px 0px 0px 1px rgb(217, 217, 217)",
-            "--ck-spinner-color" : "rgb(36 102 69)",
+            "--ck-spinner-color": "rgb(36 102 69)",
             "--ck-qr-border-color": "rgb(217, 217, 217)",
             "--ck-qr-dot-color": "rgb(36 102 69)",
-            "--ck-body-divider": "rgb(217, 217, 217)"
+            "--ck-body-divider": "rgb(217, 217, 217)",
           }}
           options={{
             avoidLayoutShift: true,
             hideNoWalletCTA: true,
-            hideQuestionMarkCTA: true
+            hideQuestionMarkCTA: true,
           }}
         >
           {children}

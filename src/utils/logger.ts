@@ -56,9 +56,11 @@ class Logger {
 
   module(name: string): Logger {
     const m = Logger.modules.has(name) ? Logger.modules.get(name) : new Logger(name);
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     Logger.modules.set(name, m!);
     Logger.debugConfig[name] = Logger.debugConfig[name] ?? Logger.debugConfig.DEFAULT;
 
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     return m!;
   }
 }

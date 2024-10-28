@@ -1,4 +1,8 @@
 {
+  "files": {
+    "ignore": ["node_modules/**", "dist/", "src/generated/**"],
+    "include": ["src/**"]
+  },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
@@ -10,15 +14,38 @@
       "recommended": true,
       "style": {
         "useImportType": "off",
-        "noUselessElse": "warn",
-        "noNonNullAssertion": "warn"
+        "noUselessElse": "off",
+        "noNonNullAssertion": "error",
+        "noInferrableTypes": "off",
+        "useConst": "warn",
+        "noVar": "error",
+        "useTemplate": "warn",
+        "noUnusedTemplateLiteral": "off",
+        "useNumberNamespace": "off"
       },
       "suspicious": {
         "noImplicitAnyLet": "error",
-        "noExplicitAny": "warn"
+        "noExplicitAny": "warn",
+        "noDoubleEquals": "error"
       },
       "complexity": {
-        "noForEach": "warn"
+        "noForEach": "off",
+        "noStaticOnlyClass": "off",
+        "noExtraBooleanCast": "off",
+        "noUselessRename": "off",
+        "useOptionalChain": "warn"
+      },
+      "correctness": {
+        "noInnerDeclarations": "error",
+        "useExhaustiveDependencies": "warn",
+        "noUnsafeOptionalChaining": "error",
+        "useHookAtTopLevel": "error"
+      },
+      "a11y": {
+        "useKeyWithClickEvents": "off",
+        "noSvgWithoutTitle": "warn",
+        "useAltText": "warn",
+        "noBlankTarget": "error"
       }
     }
   },

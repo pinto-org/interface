@@ -40,49 +40,47 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   }, [isSuccess, queryKey]);
 
   function onSubmit() {
-    if (!amount || !destination || !account.address) return;
-    const transferData = sortAndPickCrates(
-      "withdraw",
-      TokenValue.fromHuman(amount || 0, fromToken.decimals),
-      deposits.deposits
-    );
+    if (!amount || !destination || !account.address || !deposits) return;
+    const transferData = sortAndPickCrates("withdraw", TokenValue.fromHuman(amount || 0, fromToken.decimals), deposits);
 
     const stems = transferData.crates.map((crate) => crate.stem.toBlockchain());
     const amounts = transferData.crates.map((crate) => crate.amount.toBlockchain());
 
     if (transferData.crates.length === 1) {
-      const tx = () => writeContractAsync({
-        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-        abi: beanstalkAbi,
-        functionName: "withdrawDeposit",
-        args: [fromToken.address, stems[0], amounts[0], Number(destination)],
-      });
+      const tx = () =>
+        writeContractAsync({
+          address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+          abi: beanstalkAbi,
+          functionName: "withdrawDeposit",
+          args: [fromToken.address, stems[0], amounts[0], Number(destination)],
+        });
 
       toast.promise(tx, {
         loading: "Submitting transaction...",
         success: (data) => {
-          return `Transaction complete!`
+          return `Transaction complete!`;
         },
         error: (error) => {
-          return ((error as BaseError).shortMessage || `Transaction failed.`)
-        }
+          return (error as BaseError).shortMessage || `Transaction failed.`;
+        },
       });
     } else if (transferData.crates.length > 1) {
-      const tx = () => writeContractAsync({
-        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-        abi: beanstalkAbi,
-        functionName: "withdrawDeposits",
-        args: [fromToken.address, stems, amounts, Number(destination)],
-      });
+      const tx = () =>
+        writeContractAsync({
+          address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+          abi: beanstalkAbi,
+          functionName: "withdrawDeposits",
+          args: [fromToken.address, stems, amounts, Number(destination)],
+        });
 
       toast.promise(tx, {
         loading: "Submitting transaction...",
         success: (data) => {
-          return `Transaction complete!`
+          return `Transaction complete!`;
         },
         error: (error) => {
-          return ((error as BaseError).shortMessage || `Transaction failed.`)
-        }
+          return (error as BaseError).shortMessage || `Transaction failed.`;
+        },
       });
     }
   }

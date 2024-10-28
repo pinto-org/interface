@@ -6,7 +6,6 @@ import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { TokenValue } from "@/classes/TokenValue";
 import { AdvancedFarmCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import useTokenData from "@/state/useTokenData";
-import TokenSelectDepositedBalances from "@/components/TokenSelectDepositedBalances";
 import { Label } from "@/components/ui/Label";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import SlippageButton from "@/components/SlippageButton";

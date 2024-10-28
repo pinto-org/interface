@@ -30,7 +30,7 @@ export class DecimalBigNumber {
   constructor(value: bigint, decimals: number);
   constructor(value: bigint | string, decimals?: number) {
     if (typeof value === "string") {
-      const _value = value.trim() === "" || isNaN(Number(value)) ? "0" : value;
+      const _value = value.trim() === "" || Number.isNaN(Number(value)) ? "0" : value;
       const _decimals = decimals === undefined ? this._inferDecimalAmount(value) : this._ensurePositive(decimals);
       const formatted = this._setDecimalAmount(_value, _decimals);
 
@@ -74,7 +74,7 @@ export class DecimalBigNumber {
 
     const paddingRequired = this._ensurePositive(decimals - _decimals.length);
 
-    return integer + "." + _decimals.substring(0, decimals) + "0".repeat(paddingRequired);
+    return `${integer}.${_decimals.substring(0, decimals)}${"0".repeat(paddingRequired)}`;
   }
 
   /**
@@ -349,11 +349,11 @@ export class DecimalBigNumber {
 
   //only works for positive exponents
   public pow(n: number): DecimalBigNumber {
-    if (n == 0) return new DecimalBigNumber("1");
-    else if (n == 1) return this;
+    if (n === 0) return new DecimalBigNumber("1");
+    else if (n === 1) return this;
     else if (this.eq("0") && n !== 0) return new DecimalBigNumber("0");
     else {
-      var z = new DecimalBigNumber(this._value, this._decimals);
+      let z = new DecimalBigNumber(this._value, this._decimals);
       //5300000
       //28090000000000
       //148877000000000000000

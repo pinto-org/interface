@@ -19,8 +19,8 @@ export default function ChainButton() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button                   
-          variant="outline" 
+        <Button
+          variant="outline"
           className={`font-[400] text-[1.25rem] h-10 text-pinto-gray-5 hover:text-pinto-gray-5 rounded-full flex flex-row gap-2 items-center`}
         >
           {chainName ? chainName : "Select Chain"}
@@ -31,13 +31,16 @@ export default function ChainButton() {
           <DialogTitle>Select Chain</DialogTitle>
           <DialogDescription>
             {chains.map((chain) => (
-              <DialogClose asChild>
+              <DialogClose asChild key={`selectChain${chain.id}`}>
                 <Button
                   key={`selectChain${chain.id}`}
-                  onClick={() => { switchChain({ chainId: chain.id }); location.reload() }}
+                  onClick={() => {
+                    switchChain({ chainId: chain.id });
+                    location.reload();
+                  }}
                   type="button"
-                  variant="outline" 
-                  className={`font-[400] text-[1.5rem] p-8 mt-4 w-full text-pinto-gray-5 hover:text-pinto-gray-5 rounded-[1rem] flex flex-row gap-2 items-center ${chainId === chain.id ? 'border-pinto-green bg-pinto-green-2 text-white' : ''}`}
+                  variant="outline"
+                  className={`font-[400] text-[1.5rem] p-8 mt-4 w-full text-pinto-gray-5 hover:text-pinto-gray-5 rounded-[1rem] flex flex-row gap-2 items-center ${chainId === chain.id ? "border-pinto-green bg-pinto-green-2 text-white" : ""}`}
                 >
                   {chain.name}
                 </Button>

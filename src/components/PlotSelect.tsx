@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
 import { useFieldData } from "@/state/useFieldData";
 import { PODS } from "@/constants/internalTokens";
+import { Plot } from "@/utils/types";
 
 export default function PlotSelect({
   setPlots,
@@ -21,7 +22,7 @@ export default function PlotSelect({
   const [_plots, setInternalPlots] = useState<any[]>([]);
 
   function selectPlot(value: any) {
-    const plotOutput = [];
+    const plotOutput: Plot[] = [];
     if (type === "multiple") {
       value.forEach((index: string) => {
         const plotIndex = farmerField.plots.findIndex((plot) => plot.index.toHuman() === index);
@@ -64,6 +65,7 @@ export default function PlotSelect({
                   {farmerField.plots.map((plot) => {
                     return (
                       <ToggleGroupItem
+                        key={`selectPlot${plot.index.toHuman()}`}
                         value={plot.index.toHuman()}
                         aria-label={`Select Plot at ${plot.index.sub(fieldData.harvestableIndex).toHuman("short")}`}
                         className="flex flex-row w-full py-2 h-auto justify-between"

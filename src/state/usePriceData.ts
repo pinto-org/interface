@@ -92,36 +92,42 @@ export function usePriceData() {
     const balances: TokenValue[] = [];
 
     pool.tokens.forEach((token) => {
-      if (token.toLowerCase() === tokenData.mainToken!.address.toLowerCase()) {
-        tokens.push(tokenData.mainToken!);
+      if (token.toLowerCase() === tokenData.mainToken?.address.toLowerCase()) {
+        tokens.push(tokenData.mainToken);
       } else if (tokenData.preferredTokens.length > 0) {
-        const poolToken = tokenData.preferredTokens.find((poolToken) => token.toLowerCase() === poolToken.address.toLowerCase())
+        const poolToken = tokenData.preferredTokens.find(
+          (poolToken) => token.toLowerCase() === poolToken.address.toLowerCase(),
+        );
         if (poolToken) {
           tokens.push(poolToken);
-        };
-      };
+        }
+      }
     });
 
     pool.balances.forEach((balance, index) => {
-      if (!tokens[index]) return
+      if (!tokens[index]) return;
       const poolBalance = TokenValue.fromBlockchain(balance, tokens[index].decimals);
       balances.push(poolBalance);
     });
 
-    const poolTokenInfo = tokenData.lpTokens.find((lpToken) => pool.pool.toLowerCase() === lpToken.address.toLowerCase())!
+    const poolTokenInfo = tokenData.lpTokens.find(
+      (lpToken) => pool.pool.toLowerCase() === lpToken.address.toLowerCase(),
+    );
 
-    const poolData = {
-      pool: poolTokenInfo,
-      tokens: tokens,
-      balances: balances,
-      price: TokenValue.fromBlockchain(pool.price, 6),
-      liquidity: TokenValue.fromBlockchain(pool.liquidity, 6),
-      deltaB: TokenValue.fromBlockchain(pool.deltaB, 6),
-      lpUsd: TokenValue.fromBlockchain(pool.lpUsd, 6),
-      lpBdv: TokenValue.fromBlockchain(pool.lpBdv, 6)
+    if (poolTokenInfo) {
+      const poolData = {
+        pool: poolTokenInfo,
+        tokens: tokens,
+        balances: balances,
+        price: TokenValue.fromBlockchain(pool.price, 6),
+        liquidity: TokenValue.fromBlockchain(pool.liquidity, 6),
+        deltaB: TokenValue.fromBlockchain(pool.deltaB, 6),
+        lpUsd: TokenValue.fromBlockchain(pool.lpUsd, 6),
+        lpBdv: TokenValue.fromBlockchain(pool.lpBdv, 6),
+      };
+
+      pools.push(poolData);
     }
-
-    pools.push(poolData);
   });
 
   const output = {

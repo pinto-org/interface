@@ -11,7 +11,7 @@ import { usePriceData } from "./usePriceData";
 import useTokenData from "./useTokenData";
 import { STALK } from "@/constants/internalTokens";
 import { Token } from "@/utils/types";
-import { QueryKey } from "@tanstack/react-query";
+import { ZERO_ADDRESS } from "@/constants/address";
 
 export function useFarmerSilo() {
   const account = useAccount();
@@ -29,7 +29,7 @@ export function useFarmerSilo() {
   const queryKeys = [];
   // stalk + earnedStalk, NO grown stalk
   const activeStalkBalance = useReadBeanstalk_BalanceOfStalk({
-    args: [account.address!],
+    args: [account.address ?? ZERO_ADDRESS],
     query: {
       enabled: !!account.address,
     },
@@ -37,18 +37,22 @@ export function useFarmerSilo() {
   queryKeys.push(activeStalkBalance.queryKey);
 
   const floodData = useReadBeanstalk_BalanceOfSop({
-    args: [account.address!],
+    args: [account.address || ZERO_ADDRESS],
     query: {
-      enabled: !!account.address
+      enabled: !!account.address,
     },
   });
 
-  const farmerSops: Array<{ well: Token, backingAsset: Token, wellsPlenty: { plenty: TokenValue, plentyPerRoot: bigint }}> = []; 
+  const farmerSops: Array<{
+    well: Token;
+    backingAsset: Token;
+    wellsPlenty: { plenty: TokenValue; plentyPerRoot: bigint };
+  }> = [];
 
   const grownStalkPerToken = new Map();
   SILO_WHITELIST.forEach((token) => {
     const grownStalk = useReadBeanstalk_BalanceOfGrownStalk({
-      args: [account.address!, token.address],
+      args: [account.address ?? ZERO_ADDRESS, token.address],
       query: {
         enabled: !!account.address && !!token.address,
       },
@@ -84,7 +88,7 @@ export function useFarmerSilo() {
 
 
   const earnedBeansBalance = useReadBeanstalk_BalanceOfEarnedBeans({
-    args: [account.address!],
+    args: [account.address ?? ZERO_ADDRESS],
     query: {
       enabled: !!account.address,
     },

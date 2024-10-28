@@ -24,7 +24,7 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 function ComboInputField({setToken, selectedToken, tokenAndBalanceMap, setBalanceFrom, balanceFrom, amount, setAmount, isLoading, hideMax, disableInput, disableInlineBalance, balancesToShow}: ComboInputProps) {
 
-    let maxAmount;
+    let maxAmount: TokenValue;
     const { balances } = useFarmerBalances();
     const depositTokenBalance = balances.get(selectedToken);
     const [internalAmount, setInternalAmount] = useState(amount);
