@@ -1,12 +1,10 @@
 import { useMemo } from "react";
-import { useAccount, useReadContracts } from "wagmi";
+import { useAccount } from "wagmi";
 import {
   useReadFarmer_BalanceOfSop,
   useReadFarmer_BalanceOfStalk,
   useReadFarmer_BalanceOfGrownStalk,
   useReadFarmer_BalanceOfEarnedBeans,
-  beanstalkAddress,
-  beanstalkAbi,
 } from "@/generated/contractHooks";
 import { TokenValue } from "@/classes/TokenValue";
 import useFarmerDepositedBalances from "./useFarmerDepositedBalances";
