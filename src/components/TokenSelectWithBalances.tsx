@@ -63,6 +63,7 @@ export default function TokenSelectWithBalances({
   balanceFrom,
   balancesToShow,
   size,
+  disabled
 }: {
   setToken: React.Dispatch<React.SetStateAction<any>>;
   selectedToken: Token;
@@ -71,6 +72,7 @@ export default function TokenSelectWithBalances({
   balanceFrom?: FarmFromMode | undefined;
   balancesToShow?: FarmFromMode[] | undefined;
   size?: "small" | undefined;
+  disabled?:  boolean | undefined;
 }) {
   const account = useAccount();
   const { balances } = useFarmerBalances();
@@ -93,11 +95,11 @@ export default function TokenSelectWithBalances({
       <DialogTrigger asChild>
         <Button
           variant={"outline"}
-          className={`inline-flex items-center ${size === "small" ? "p-4" : "h-12 px-8"} gap-1.5 border border-pinto-gray-blue bg-white hover:bg-pinto-green-1 drop-shadow-pinto-token-select rounded-full text-black text-[1.25rem] font-[400] leading-[1.3875rem] -tracking-[0.02em]`}
+          className={`${disabled ? 'pointer-events-none' : 'pointer-events-auto'} inline-flex items-center ${size === "small" ? "p-4" : "h-12 px-8"} gap-1.5 border border-pinto-gray-blue bg-white hover:bg-pinto-gray-1 drop-shadow-pinto-token-select rounded-full text-black text-[1.25rem] font-[300] leading-[1.3875rem] tracking-[1px]`}
         >
-          <img src={selectedToken.logoURI} className={`${size === "small" ? "w-5 h-5" : "w-6 h-6"}`} />
+          <img src={selectedToken.logoURI} alt={selectedToken.name} className={`${size === "small" ? "w-5 h-5" : "w-6 h-6"}`} />
           <div>{selectedToken.symbol}</div>
-          <img src={arrowDown} className="w-4 h-4" />
+          {!disabled && <img src={arrowDown} className="w-4 h-4" alt={"open token select dialog"} />}
         </Button>
       </DialogTrigger>
       <DialogContent className="font-pinto overflow-x-clip">
