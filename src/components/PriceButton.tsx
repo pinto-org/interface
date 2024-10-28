@@ -1,6 +1,6 @@
 import { usePriceData } from "@/state/usePriceData";
 import { Button } from "./ui/Button";
-import pintoIcon from "@/assets/tokens/Pinto.png";
+import pintoIcon from "@/assets/tokens/PINTO.png";
 import chevronDown from "@/assets/misc/ChevronDown.svg";
 import PriceButtonPanel from "./PriceButtonPanel";
 
