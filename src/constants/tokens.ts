@@ -1,7 +1,9 @@
 import { Token } from "@/utils/types";
-import pintoIcon from "@/assets/tokens/Pinto.png";
-import pintoWethIcon from "@/assets/tokens/Pinto_wETH.png";
-import pintoWstethIcon from "@/assets/tokens/Pinto_wstETH.png";
+import pintoIcon from "@/assets/tokens/PINTO.png";
+import pintoWethIcon from "@/assets/tokens/PINTO_WETH.png";
+import pintoUsdcIcon from "@/assets/tokens/PINTO_USDC.png";
+import pintoCbbtcIcon from "@/assets/tokens/PINTO_cbBTC.png";
+import pintoCbethIcon from "@/assets/tokens/PINTO_cbETH.png";
 import { arbitrum, base } from "viem/chains";
 
 export const tokens: { [chainId: number]: Token[] } = {
@@ -46,7 +48,7 @@ export const tokens: { [chainId: number]: Token[] } = {
       address: "0xBEa00BbE8b5da39a3F57824a1a13Ec2a8848D74F",
       decimals: 18,
       isLP: true,
-      logoURI: pintoWstethIcon,
+      logoURI: pintoWethIcon,
       color: "#00A3FF",
       tokens: ["0xBEA0005B8599265D41256905A9B3073D397812E4", "0x5979D7b546E38E414F7E9822514be443A4800529"],
     },
@@ -120,7 +122,7 @@ export const tokens: { [chainId: number]: Token[] } = {
       chainId: base.id,
       name: "PINTO:WETH LP",
       symbol: "PINTO:WETH",
-      address: "0x3e110022a76aEde1fA51E43913730FE3D4C3cCBC",
+      address: "0x3e11001CfbB6dE5737327c59E10afAB47B82B5d3",
       decimals: 18,
       isLP: true,
       logoURI: pintoWethIcon,
@@ -131,10 +133,10 @@ export const tokens: { [chainId: number]: Token[] } = {
       chainId: base.id,
       name: "PINTO:cbETH LP",
       symbol: "PINTO:cbETH",
-      address: "0x3e1111FF07062BbdaE1Af96fAF514133D9CE8Bfe",
+      address: "0x3e111115A82dF6190e36ADf0d552880663A4dBF1",
       decimals: 18,
       isLP: true,
-      logoURI: pintoWstethIcon,
+      logoURI: pintoCbethIcon,
       color: "#0052FF",
       tokens: ["0xb170000aeeFa790fa61D6e837d1035906839a3c8", "0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22"],
     },
@@ -142,10 +144,10 @@ export const tokens: { [chainId: number]: Token[] } = {
       chainId: base.id,
       name: "PINTO:USDC LP",
       symbol: "PINTO:USDC",
-      address: "0x3e11334a0D56cA378cdE00a32f53C8cB0a7536b8",
+      address: "0x3e1133aC082716DDC3114bbEFEeD8B1731eA9cb1",
       decimals: 18,
       isLP: true,
-      logoURI: pintoWstethIcon,
+      logoURI: pintoUsdcIcon,
       color: "#00A3FF",
       tokens: ["0xb170000aeeFa790fa61D6e837d1035906839a3c8", "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"],
     },
@@ -153,10 +155,10 @@ export const tokens: { [chainId: number]: Token[] } = {
       chainId: base.id,
       name: "PINTO:cbBTC LP",
       symbol: "PINTO:cbBTC",
-      address: "0x3e1122C27A21080546E9bca66421c078AF349Cd6",
+      address: "0x3e11226fe3d85142B734ABCe6e58918d5828d1b4",
       decimals: 18,
       isLP: true,
-      logoURI: pintoWstethIcon,
+      logoURI: pintoCbbtcIcon,
       color: "#F7931A",
       tokens: ["0xb170000aeeFa790fa61D6e837d1035906839a3c8", "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf"],
     },
@@ -184,15 +186,6 @@ export const tokens: { [chainId: number]: Token[] } = {
       logoURI:
         "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png",
       color: "#2775CA",
-    },
-    {
-      chainId: base.id,
-      name: "Tether USD",
-      symbol: "USDT",
-      address: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",
-      decimals: 6,
-      logoURI:
-        "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
     },
     {
       chainId: base.id,

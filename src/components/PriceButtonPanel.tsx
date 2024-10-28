@@ -4,7 +4,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import useTokenData from "@/state/useTokenData";
 import { ExternalLinkIcon, ForwardArrowIcon, GearIcon } from "./Icons";
 import { Separator } from "./ui/Separator";
-import pintoIconOriginal from "@/assets/tokens/Pinto.png";
+import pintoIconOriginal from "@/assets/tokens/PINTO.png";
 import backArrowIcon from "@/assets/misc/LeftArrow.svg";
 import { useState } from "react";
 import { Button } from "./ui/Button";
