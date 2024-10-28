@@ -5411,7 +5411,7 @@ export const beanstalkPriceConfig = {
 /**
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -5675,23 +5675,23 @@ export const depotAbi = [
 /**
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
 export const depotAddress = {
   1: '0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2',
-  1337: '0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471',
-  8453: '0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471',
-  31337: '0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471',
-  41337: '0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471',
+  1337: '0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933',
+  8453: '0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933',
+  31337: '0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933',
+  41337: '0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933',
   42161: '0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c',
 } as const
 
 /**
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -5704,7 +5704,7 @@ export const depotConfig = { address: depotAddress, abi: depotAbi } as const
 /**
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -5819,23 +5819,23 @@ export const pipelineAbi = [
 /**
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
 export const pipelineAddress = {
   1: '0xb1bE0000C6B3C62749b5F0c92480146452D15423',
-  1337: '0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0',
-  8453: '0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0',
-  31337: '0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0',
-  41337: '0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0',
+  1337: '0xb1bE0001f5a373b69b1E132b420e6D9687155e80',
+  8453: '0xb1bE0001f5a373b69b1E132b420e6D9687155e80',
+  31337: '0xb1bE0001f5a373b69b1E132b420e6D9687155e80',
+  41337: '0xb1bE0001f5a373b69b1E132b420e6D9687155e80',
   42161: '0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0',
 } as const
 
 /**
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -12451,7 +12451,7 @@ export const useReadBeanstalkPrice_Price = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12465,7 +12465,7 @@ export const useReadDepot_undefined = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12480,7 +12480,7 @@ export const useReadDepot_ReadPipe = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12495,7 +12495,7 @@ export const useReadDepot_Version = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12509,7 +12509,7 @@ export const useWriteDepot_undefined = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12524,7 +12524,7 @@ export const useWriteDepot_AdvancedPipe = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12540,7 +12540,7 @@ export const useWriteDepot_BatchTransferErc1155 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12555,7 +12555,7 @@ export const useWriteDepot_EtherPipe = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12570,7 +12570,7 @@ export const useWriteDepot_Farm = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12585,7 +12585,7 @@ export const useWriteDepot_MultiPipe = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12598,7 +12598,7 @@ export const useWriteDepot_PermitDeposit = /*#__PURE__*/ createUseWriteContract(
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12614,7 +12614,7 @@ export const useWriteDepot_PermitDeposits =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12629,7 +12629,7 @@ export const useWriteDepot_PermitErc20 = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12644,7 +12644,7 @@ export const useWriteDepot_PermitErc721 = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12659,7 +12659,7 @@ export const useWriteDepot_PermitToken = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12674,7 +12674,7 @@ export const useWriteDepot_Pipe = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12690,7 +12690,7 @@ export const useWriteDepot_TransferDeposit =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12706,7 +12706,7 @@ export const useWriteDepot_TransferDeposits =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12722,7 +12722,7 @@ export const useWriteDepot_TransferErc1155 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12738,7 +12738,7 @@ export const useWriteDepot_TransferErc721 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12751,7 +12751,7 @@ export const useWriteDepot_TransferToken = /*#__PURE__*/ createUseWriteContract(
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12766,7 +12766,7 @@ export const useSimulateDepot_undefined =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12782,7 +12782,7 @@ export const useSimulateDepot_AdvancedPipe =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12798,7 +12798,7 @@ export const useSimulateDepot_BatchTransferErc1155 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12814,7 +12814,7 @@ export const useSimulateDepot_EtherPipe =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12829,7 +12829,7 @@ export const useSimulateDepot_Farm = /*#__PURE__*/ createUseSimulateContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12845,7 +12845,7 @@ export const useSimulateDepot_MultiPipe =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12861,7 +12861,7 @@ export const useSimulateDepot_PermitDeposit =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12877,7 +12877,7 @@ export const useSimulateDepot_PermitDeposits =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12893,7 +12893,7 @@ export const useSimulateDepot_PermitErc20 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12909,7 +12909,7 @@ export const useSimulateDepot_PermitErc721 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12925,7 +12925,7 @@ export const useSimulateDepot_PermitToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12940,7 +12940,7 @@ export const useSimulateDepot_Pipe = /*#__PURE__*/ createUseSimulateContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12956,7 +12956,7 @@ export const useSimulateDepot_TransferDeposit =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12972,7 +12972,7 @@ export const useSimulateDepot_TransferDeposits =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -12988,7 +12988,7 @@ export const useSimulateDepot_TransferErc1155 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -13004,7 +13004,7 @@ export const useSimulateDepot_TransferErc721 =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f0328c86A1C13D3513C70b75A2cEC829E471)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c)
  */
@@ -13020,7 +13020,7 @@ export const useSimulateDepot_TransferToken =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -13034,7 +13034,7 @@ export const useReadPipeline_undefined = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -13050,7 +13050,7 @@ export const useReadPipeline_SupportsInterface =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -13065,7 +13065,7 @@ export const useReadPipeline_Version = /*#__PURE__*/ createUseReadContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -13079,7 +13079,7 @@ export const useWritePipeline_undefined = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -13095,7 +13095,7 @@ export const useWritePipeline_AdvancedPipe =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -13110,7 +13110,7 @@ export const useWritePipeline_MultiPipe = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -13126,7 +13126,7 @@ export const useWritePipeline_OnErc1155BatchReceived =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -13142,7 +13142,7 @@ export const useWritePipeline_OnErc1155Received =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -13158,7 +13158,7 @@ export const useWritePipeline_OnErc721Received =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -13173,7 +13173,7 @@ export const useWritePipeline_Pipe = /*#__PURE__*/ createUseWriteContract({
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -13188,7 +13188,7 @@ export const useSimulatePipeline_undefined =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -13204,7 +13204,7 @@ export const useSimulatePipeline_AdvancedPipe =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -13220,7 +13220,7 @@ export const useSimulatePipeline_MultiPipe =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -13236,7 +13236,7 @@ export const useSimulatePipeline_OnErc1155BatchReceived =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -13252,7 +13252,7 @@ export const useSimulatePipeline_OnErc1155Received =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
@@ -13268,7 +13268,7 @@ export const useSimulatePipeline_OnErc721Received =
  *
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xb1bE0000C6B3C62749b5F0c92480146452D15423)
  * -
- * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE000a5Dbf61dA9C4162A23958E7B28645c4f0)
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xb1bE0001f5a373b69b1E132b420e6D9687155e80)
  * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0)
  */
