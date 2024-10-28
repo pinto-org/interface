@@ -26,7 +26,8 @@
       "suspicious": {
         "noImplicitAnyLet": "error",
         "noExplicitAny": "warn",
-        "noDoubleEquals": "error"
+        "noDoubleEquals": "error",
+        "noArrayIndexKey": "warn",
       },
       "complexity": {
         "noForEach": "off",

@@ -131,14 +131,16 @@ export default function TokenSelectWithBalances({
                         const balance = tokenAndBalanceMap.get(token);
                         if (!balance) return;
                         const price = TokenValue.ZERO;
-                        return <TokenSelectItem token={token} balanceAmount={balance} price={price} />;
+                        return (
+                          <TokenSelectItem key={token.address} token={token} balanceAmount={balance} price={price} />
+                        );
                       })
                     : [...balances.keys()].map((token) => {
                         const balance = balances.get(token);
                         if (!balance) return;
                         const tokenPrice = priceData.tokenPrices.get(token);
                         const price = tokenPrice?.instant ?? TokenValue.ZERO;
-                        let balanceAmount;
+                        let balanceAmount: TokenValue;
                         switch (_balanceFrom) {
                           case FarmFromMode.EXTERNAL:
                             balanceAmount = balance.external;
@@ -149,7 +151,14 @@ export default function TokenSelectWithBalances({
                           default:
                             balanceAmount = balance.total;
                         }
-                        return <TokenSelectItem token={token} balanceAmount={balanceAmount} price={price} />;
+                        return (
+                          <TokenSelectItem
+                            key={token.address}
+                            token={token}
+                            balanceAmount={balanceAmount}
+                            price={price}
+                          />
+                        );
                       })}
                 </ToggleGroup>
               </div>
