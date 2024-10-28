@@ -9,6 +9,7 @@ import { Toaster } from "sonner";
 
 globalThis.Buffer = Buffer;
 
+// biome-ignore lint/style/noNonNullAssertion: <explanation>
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Web3Provider>
