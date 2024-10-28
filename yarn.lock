@@ -7089,7 +7089,7 @@ __metadata:
     typescript: "npm:5.5.3"
     viem: "npm:^2.21.24"
     vite: "npm:^5.2.11"
-    wagmi: "npm:^2.12.25"
+    wagmi: "npm:^2.12.17"
   languageName: unknown
   linkType: soft
 
@@ -10699,7 +10699,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wagmi@npm:^2.12.25":
+"wagmi@npm:^2.12.17":
   version: 2.12.25
   resolution: "wagmi@npm:2.12.25"
   dependencies:
