@@ -5845,6 +5845,88 @@ export const pipelineConfig = {
 } as const
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// seasonFacetView
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const seasonFacetViewAbi = [
+  {
+    type: 'function',
+    inputs: [],
+    name: 'time',
+    outputs: [
+      {
+        name: '',
+        internalType: 'struct Season',
+        type: 'tuple',
+        components: [
+          { name: 'current', internalType: 'uint32', type: 'uint32' },
+          { name: 'lastSop', internalType: 'uint32', type: 'uint32' },
+          { name: 'lastSopSeason', internalType: 'uint32', type: 'uint32' },
+          { name: 'rainStart', internalType: 'uint32', type: 'uint32' },
+          { name: 'raining', internalType: 'bool', type: 'bool' },
+          { name: 'sunriseBlock', internalType: 'uint64', type: 'uint64' },
+          { name: 'abovePeg', internalType: 'bool', type: 'bool' },
+          { name: 'start', internalType: 'uint256', type: 'uint256' },
+          { name: 'period', internalType: 'uint256', type: 'uint256' },
+          { name: 'timestamp', internalType: 'uint256', type: 'uint256' },
+          { name: '_buffer', internalType: 'bytes32[8]', type: 'bytes32[8]' },
+        ],
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'getSeasonTimestamp',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'seasonTime',
+    outputs: [{ name: '', internalType: 'uint32', type: 'uint32' }],
+    stateMutability: 'view',
+  },
+] as const
+
+/**
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const seasonFacetViewAddress = {
+  1: '0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5',
+  1337: '0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f',
+  8453: '0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f',
+  31337: '0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f',
+  41337: '0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f',
+  42161: '0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70',
+} as const
+
+/**
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const seasonFacetViewConfig = {
+  address: seasonFacetViewAddress,
+  abi: seasonFacetViewAbi,
+} as const
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // React
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -13275,3 +13357,65 @@ export const useSimulatePipeline_OnErc721Received =
 export const useSimulatePipeline_Pipe = /*#__PURE__*/ createUseSimulateContract(
   { abi: pipelineAbi, address: pipelineAddress, functionName: 'pipe' },
 )
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link seasonFacetViewAbi}__
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useReadSeasonFacetView_undefined =
+  /*#__PURE__*/ createUseReadContract({
+    abi: seasonFacetViewAbi,
+    address: seasonFacetViewAddress,
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link seasonFacetViewAbi}__ and `functionName` set to `"time"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useReadSeasonFacetView_Time = /*#__PURE__*/ createUseReadContract({
+  abi: seasonFacetViewAbi,
+  address: seasonFacetViewAddress,
+  functionName: 'time',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link seasonFacetViewAbi}__ and `functionName` set to `"getSeasonTimestamp"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useReadSeasonFacetView_GetSeasonTimestamp =
+  /*#__PURE__*/ createUseReadContract({
+    abi: seasonFacetViewAbi,
+    address: seasonFacetViewAddress,
+    functionName: 'getSeasonTimestamp',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link seasonFacetViewAbi}__ and `functionName` set to `"seasonTime"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useReadSeasonFacetView_SeasonTime =
+  /*#__PURE__*/ createUseReadContract({
+    abi: seasonFacetViewAbi,
+    address: seasonFacetViewAddress,
+    functionName: 'seasonTime',
+  })

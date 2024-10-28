@@ -23,7 +23,11 @@ function Transfer() {
           </div>
         </div>
         <Separator />
-        {mode === "all" ? <TransferAll /> : /* mode === "farmbalance" ? <TransferFarmBalance /> : */ <TransferActions />}
+        {mode === "all" ? (
+          <TransferAll />
+        ) : (
+          /* mode === "farmbalance" ? <TransferFarmBalance /> : */ <TransferActions />
+        )}
       </div>
     </div>
   );

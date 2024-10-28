@@ -1,17 +1,19 @@
 import { APYIcon } from "./Icons";
 
 interface APYChip {
-    apyValue: number,
-    className?: [x: string]
+  apyValue: number;
+  className?: [x: string];
 }
 
 export default function APYChip({ apyValue = 0 }: APYChip) {
-    return (
-        <div className="flex flex-shrink">
-            <div className={`inline-flex items-center gap-1 px-1.5 py-1 bg-pinto-morning text-black font-[400] text-[1rem] border rounded-md border-pinto-yellow-1`}>
-                <APYIcon color="currentColor" width={22} height={22} />
-                <span className="font-[500] text-[1.5rem]">{(apyValue * 100).toFixed(2)}% APY</span>
-            </div>
-        </div>
-    );
-};
+  return (
+    <div className="flex flex-shrink">
+      <div
+        className={`inline-flex items-center gap-1 px-1.5 py-1 bg-pinto-morning text-black font-[400] text-[1rem] border rounded-md border-pinto-yellow-1`}
+      >
+        <APYIcon color="currentColor" width={22} height={22} />
+        <span className="font-[500] text-[1.5rem]">{(apyValue * 100).toFixed(2)}% APY</span>
+      </div>
+    </div>
+  );
+}

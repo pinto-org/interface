@@ -12,7 +12,8 @@ const buttonVariants = cva(
         default: "bg-pinto text-white hover:bg-pinto/80 transition-all",
         defaultAlt: "bg-pinto-green-1 text-pinto-green hover:bg-pinto-green-1/80 transition-all",
         destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
-        outline: "border border-pinto-gray-2 bg-pinto-gray-1 shadow-sm hover:bg-pinto-gray-2/50 hover:text-accent-foreground",
+        outline:
+          "border border-pinto-gray-2 bg-pinto-gray-1 shadow-sm hover:bg-pinto-gray-2/50 hover:text-accent-foreground",
         secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-pinto-gray-2 hover:hover:bg-pinto-gray-2/50",
         link: "text-primary underline-offset-4 hover:underline",

@@ -19,7 +19,7 @@ export function useFarmerField() {
     queryKey: queryKey,
     queryFn: async () =>
       request(subgraphs[chainId].beanstalk, FarmerPlotsDocument, {
-        account: account.address!.toString().toLowerCase(),
+        account: account.address?.toString().toLowerCase() ?? "",
       }),
     enabled: !!account.address,
   });
@@ -97,7 +97,16 @@ export function useFarmerField() {
     });
   }
 
-  const totalPods: TokenValue = !plots ? TokenValue.ZERO : plots.reduce((total: TokenValue, plot) => total.add(plot.pods), TokenValue.ZERO);
+  const totalPods: TokenValue = !plots
+    ? TokenValue.ZERO
+    : plots.reduce((total: TokenValue, plot) => total.add(plot.pods), TokenValue.ZERO);
 
-  return { plots: plots, orders: orders, listings: listings, totalPods: totalPods, queryKey: queryKey, refetch: refetch };
+  return {
+    plots: plots,
+    orders: orders,
+    listings: listings,
+    totalPods: totalPods,
+    queryKey: queryKey,
+    refetch: refetch,
+  };
 }

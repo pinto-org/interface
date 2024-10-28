@@ -2,10 +2,30 @@ import { defineConfig } from "@wagmi/cli";
 import { react } from "@wagmi/cli/plugins";
 import { defineChain, type Abi } from "viem";
 import { arbitrum, base, foundry, localhost, mainnet } from "wagmi/chains";
+import { HashString } from "@/utils/types.generic";
 import BEANSTALK_ABI from "./src/constants/abi/Beanstalk.json";
 import BEANSTALK_PRICE_ABI from "./src/constants/abi/BeanstalkPrice.json";
 import PIPELINE_ABI from "./src/constants/abi/Pipeline.json";
 import DEPOT_ABI from "./src/constants/abi/Depot.json";
+
+/**
+ * Diamond cut fragmented facets
+ * 
+ * This is due to it being so large that when wagmi generates the hooks, 
+ * we get a 'Type instantiation is excessively deep and possibly infinite.' error.
+ * 
+ * Not an ideal solution as there is some duplication in the generated functions, 
+ * but it's necessary to avoid the error.
+ * 
+ * TODO: Find a better solution in the future.
+ * 
+ */
+import VIEW_SILO_ABI from "./src/constants/abi/ViewSilo.json";
+import VIEW_FIELD_ABI from "./src/constants/abi/ViewField.json";
+import VIEW_TOKEN_ABI from "./src/constants/abi/ViewToken.json";
+import VIEW_SEASON_ABI from "./src/constants/abi/ViewSeason.json";
+import VIEW_MARKET_ABI from "./src/constants/abi/ViewMarket.json";
+
 
 export const tenderlyTestnet = defineChain({
   id: 41337,
@@ -25,6 +45,15 @@ export const tenderlyTestnet = defineChain({
   },
 })
 
+const beanstalkAddresses = {
+  [mainnet.id]: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5" as HashString,
+  [arbitrum.id]: "0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70" as  HashString,
+  [base.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString,
+  [localhost.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString, // base
+  [tenderlyTestnet.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString, // base
+  [foundry.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString, // base
+}
+
 export default defineConfig(() => {
   const reactHookNames: string[] = [];
 
@@ -33,19 +62,21 @@ export default defineConfig(() => {
     contracts: [
       {
         name: "beanstalk",
-        abi: BEANSTALK_ABI as Abi,
+        abi: BEANSTALK_ABI satisfies Abi,
         address: {
           [mainnet.id]: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5",
           [arbitrum.id]: "0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70",
-          [base.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f",
-          [localhost.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f", // base
-          [tenderlyTestnet.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f", // base
-          [foundry.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f", // base
+          ...beanstalkAddresses,
         },
       },
       {
+        name: "seasonFacetView",
+        abi: VIEW_SEASON_ABI satisfies Abi,
+        address: beanstalkAddresses,
+      },
+      {
         name: "beanstalkPrice",
-        abi: BEANSTALK_PRICE_ABI as Abi,
+        abi: BEANSTALK_PRICE_ABI satisfies Abi,
         address: {
           [mainnet.id]: "0x4BEd6cb142b7d474242d87F4796387DEB9E1E1B4",
           [arbitrum.id]: "0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7",
@@ -57,7 +88,7 @@ export default defineConfig(() => {
       },
       {
         name: "pipeline",
-        abi: PIPELINE_ABI as Abi,
+        abi: PIPELINE_ABI satisfies Abi,
         address: {
           [mainnet.id]: "0xb1bE0000C6B3C62749b5F0c92480146452D15423",
           [arbitrum.id]: "0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0",
@@ -69,7 +100,7 @@ export default defineConfig(() => {
       },
       {
         name: "depot",
-        abi: DEPOT_ABI as Abi,
+        abi: DEPOT_ABI satisfies Abi,
         address: {
           [mainnet.id]: "0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2",
           [arbitrum.id]: "0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c",

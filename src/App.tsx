@@ -9,7 +9,6 @@ import { Market } from "./pages/Market";
 import Transfer from "./pages/Transfer";
 
 function App() {
-
   return (
     <BrowserRouter>
       <Frame />

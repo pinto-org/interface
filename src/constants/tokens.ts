@@ -37,10 +37,7 @@ export const tokens: { [chainId: number]: Token[] } = {
       isLP: true,
       logoURI: pintoWethIcon,
       color: "#627EEA",
-      tokens: [
-        "0xBEA0005B8599265D41256905A9B3073D397812E4",
-        "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
-      ],
+      tokens: ["0xBEA0005B8599265D41256905A9B3073D397812E4", "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1"],
     },
     {
       chainId: arbitrum.id,
@@ -51,10 +48,7 @@ export const tokens: { [chainId: number]: Token[] } = {
       isLP: true,
       logoURI: pintoWstethIcon,
       color: "#00A3FF",
-      tokens: [
-        "0xBEA0005B8599265D41256905A9B3073D397812E4",
-        "0x5979D7b546E38E414F7E9822514be443A4800529",
-      ],
+      tokens: ["0xBEA0005B8599265D41256905A9B3073D397812E4", "0x5979D7b546E38E414F7E9822514be443A4800529"],
     },
     // Whitelisted Tokens
     {
@@ -126,57 +120,45 @@ export const tokens: { [chainId: number]: Token[] } = {
       chainId: base.id,
       name: "PINTO:WETH LP",
       symbol: "PINTO:WETH",
-      address: "0x3e11001CfbB6dE5737327c59E10afAB47B82B5d3",
+      address: "0x3e110022a76aEde1fA51E43913730FE3D4C3cCBC",
       decimals: 18,
       isLP: true,
       logoURI: pintoWethIcon,
       color: "#627EEA",
-      tokens: [
-        "0xb170000aeeFa790fa61D6e837d1035906839a3c8",
-        "0x4200000000000000000000000000000000000006",
-      ],
+      tokens: ["0xb170000aeeFa790fa61D6e837d1035906839a3c8", "0x4200000000000000000000000000000000000006"],
     },
     {
       chainId: base.id,
       name: "PINTO:cbETH LP",
       symbol: "PINTO:cbETH",
-      address: "0x3e111115A82dF6190e36ADf0d552880663A4dBF1",
+      address: "0x3e1111FF07062BbdaE1Af96fAF514133D9CE8Bfe",
       decimals: 18,
       isLP: true,
       logoURI: pintoWstethIcon,
       color: "#0052FF",
-      tokens: [
-        "0xb170000aeeFa790fa61D6e837d1035906839a3c8",
-        "0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22",
-      ],
-    },
-    {
-      chainId: base.id,
-      name: "PINTO:cbBTC LP",
-      symbol: "PINTO:cbBTC",
-      address: "0x3e11226fe3d85142B734ABCe6e58918d5828d1b4",
-      decimals: 18,
-      isLP: true,
-      logoURI: pintoWstethIcon,
-      color: "#F7931A",
-      tokens: [
-        "0xb170000aeeFa790fa61D6e837d1035906839a3c8",
-        "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf",
-      ],
+      tokens: ["0xb170000aeeFa790fa61D6e837d1035906839a3c8", "0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22"],
     },
     {
       chainId: base.id,
       name: "PINTO:USDC LP",
       symbol: "PINTO:USDC",
-      address: "0x3e1133aC082716DDC3114bbEFEeD8B1731eA9cb1",
+      address: "0x3e11334a0D56cA378cdE00a32f53C8cB0a7536b8",
       decimals: 18,
       isLP: true,
       logoURI: pintoWstethIcon,
       color: "#00A3FF",
-      tokens: [
-        "0xb170000aeeFa790fa61D6e837d1035906839a3c8",
-        "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-      ],
+      tokens: ["0xb170000aeeFa790fa61D6e837d1035906839a3c8", "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"],
+    },
+    {
+      chainId: base.id,
+      name: "PINTO:cbBTC LP",
+      symbol: "PINTO:cbBTC",
+      address: "0x3e1122C27A21080546E9bca66421c078AF349Cd6",
+      decimals: 18,
+      isLP: true,
+      logoURI: pintoWstethIcon,
+      color: "#F7931A",
+      tokens: ["0xb170000aeeFa790fa61D6e837d1035906839a3c8", "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf"],
     },
     // Whitelisted Tokens
     {
@@ -232,5 +214,14 @@ export const tokens: { [chainId: number]: Token[] } = {
       logoURI: "https://assets.coingecko.com/coins/images/40143/standard/cbbtc.webp?1726136727",
       color: "#F7931A",
     },
+    // Other Tokens
+    /* {
+            chainId: base.id,
+            name: "Tether USD",
+            symbol: "USDT",
+            address: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",
+            decimals: 6,
+            logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
+        }, */
   ],
 };

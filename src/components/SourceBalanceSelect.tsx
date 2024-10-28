@@ -2,14 +2,14 @@ import { FarmFromMode } from "@/utils/types";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
 
 interface SourceBalanceSelect {
-  setBalanceFrom: (value: FarmFromMode) => void,
-  balanceFrom: FarmFromMode,
-  balancesToShow?: FarmFromMode[] | undefined
-};
+  setBalanceFrom: (value: FarmFromMode) => void;
+  balanceFrom: FarmFromMode;
+  balancesToShow?: FarmFromMode[] | undefined;
+}
 
 export default function SourceBalanceSelect({ setBalanceFrom, balanceFrom, balancesToShow }: SourceBalanceSelect) {
-
-    const style = "flex flex-col w-full h-[3.25rem] bg-pinto-gray-1 border-pinto-gray-3 text-[1.25rem] -tracking-[0.02em] font-[400] leading-[1.3875rem] text-black whitespace-nowrap"
+  const style =
+    "flex flex-col w-full h-[3.25rem] bg-pinto-gray-1 border-pinto-gray-3 text-[1.25rem] -tracking-[0.02em] font-[400] leading-[1.3875rem] text-black whitespace-nowrap";
 
   return (
     <ToggleGroup
@@ -21,7 +21,7 @@ export default function SourceBalanceSelect({ setBalanceFrom, balanceFrom, balan
       }}
       className="flex flex-row gap-2"
     >
-        {(!balancesToShow || balancesToShow.includes(FarmFromMode.EXTERNAL)) &&
+      {(!balancesToShow || balancesToShow.includes(FarmFromMode.EXTERNAL)) && (
         <ToggleGroupItem
           value={FarmFromMode.EXTERNAL}
           aria-label="Select External Balance"
@@ -30,8 +30,8 @@ export default function SourceBalanceSelect({ setBalanceFrom, balanceFrom, balan
         >
           Wallet Balance
         </ToggleGroupItem>
-        }
-        {(!balancesToShow || balancesToShow.includes(FarmFromMode.INTERNAL)) &&
+      )}
+      {(!balancesToShow || balancesToShow.includes(FarmFromMode.INTERNAL)) && (
         <ToggleGroupItem
           value={FarmFromMode.INTERNAL}
           aria-label="Select Internal Balance"
@@ -39,8 +39,9 @@ export default function SourceBalanceSelect({ setBalanceFrom, balanceFrom, balan
           variant={"outline"}
         >
           Farm Balance
-        </ToggleGroupItem>}
-        {(!balancesToShow || balancesToShow.includes(FarmFromMode.INTERNAL_EXTERNAL)) &&
+        </ToggleGroupItem>
+      )}
+      {(!balancesToShow || balancesToShow.includes(FarmFromMode.INTERNAL_EXTERNAL)) && (
         <ToggleGroupItem
           value={FarmFromMode.INTERNAL_EXTERNAL}
           aria-label="Select Both Balances"
@@ -48,7 +49,8 @@ export default function SourceBalanceSelect({ setBalanceFrom, balanceFrom, balan
           variant={"outline"}
         >
           Both
-        </ToggleGroupItem>}
+        </ToggleGroupItem>
+      )}
     </ToggleGroup>
   );
 }

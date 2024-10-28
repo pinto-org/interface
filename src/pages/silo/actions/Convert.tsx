@@ -16,12 +16,13 @@ import { BaseError } from "viem";
 import { Token } from "@/utils/types";
 import TokenSelectWithBalances from "@/components/TokenSelectWithBalances";
 
-function Convert({ siloToken }: {siloToken: Token}) {
-
+function Convert({ siloToken }: { siloToken: Token }) {
   const chainId = useChainId();
 
   const tokenData = useTokenData();
-  const convertDestinations = [tokenData.mainToken, ...tokenData.lpTokens].filter((token) => token.address.toLowerCase() !== siloToken.address.toLowerCase());
+  const convertDestinations = [tokenData.mainToken, ...tokenData.lpTokens].filter(
+    (token) => token.address.toLowerCase() !== siloToken.address.toLowerCase(),
+  );
 
   const [fromToken, setFromToken] = useState(siloToken);
   const [toToken, setToToken] = useState(convertDestinations[0]);
@@ -30,23 +31,19 @@ function Convert({ siloToken }: {siloToken: Token}) {
 
   const queryClient = useQueryClient();
   const { data: farmerDeposits, queryKey: queryKey } = useFarmerDepositedBalances();
-  
+
   const farmerDepositData = farmerDeposits.get(fromToken);
   const deposits = farmerDepositData?.deposits;
   const convertData = new Map<Token, TokenValue>();
   for (const convertDestination of convertDestinations) {
     const _depositData = farmerDeposits.get(convertDestination);
     convertData.set(convertDestination, _depositData ? _depositData.convertibleAmount : TokenValue.ZERO);
-  };
+  }
 
   //@ts-ignore
   const estimatedAmountOut =
     useReadBeanstalk_GetAmountOut({
-      args: [
-        fromToken.address,
-        toToken.address,
-        TokenValue.fromHuman(amountIn || 0, fromToken.decimals).toBigInt(),
-      ],
+      args: [fromToken.address, toToken.address, TokenValue.fromHuman(amountIn || 0, fromToken.decimals).toBigInt()],
       query: {
         enabled: !!amountIn && amountIn > 0,
       },
@@ -60,11 +57,10 @@ function Convert({ siloToken }: {siloToken: Token}) {
     if (isSuccess) {
       // invalidating query results to trigger a refetch
       queryClient.invalidateQueries({ queryKey });
-    };
+    }
   }, [isSuccess, queryKey]);
 
   async function onSubmit() {
-
     const depositCrates = sortAndPickCrates(
       "convert",
       TokenValue.fromHuman(amountIn, fromToken.decimals),
@@ -79,27 +75,28 @@ function Convert({ siloToken }: {siloToken: Token}) {
       fromToken,
       toToken,
       TokenValue.fromHuman(amountIn, fromToken.decimals),
-      minAmountOut
+      minAmountOut,
     );
-    
+
     if (convertData && stems && stems.length > 0 && amounts && amounts.length > 0) {
-      const tx = () => writeContractAsync({
-        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-        abi: beanstalkAbi,
-        functionName: "convert",
-        args: [convertData, stems, amounts],
-      });
+      const tx = () =>
+        writeContractAsync({
+          address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+          abi: beanstalkAbi,
+          functionName: "convert",
+          args: [convertData, stems, amounts],
+        });
 
       toast.promise(tx, {
         loading: "Submitting transaction...",
         success: (data) => {
-          return `Transaction complete!`
+          return `Transaction complete!`;
         },
         error: (error) => {
-          return ((error as BaseError).shortMessage || `Transaction failed.`)
-        }
+          return (error as BaseError).shortMessage || `Transaction failed.`;
+        },
       });
-    };
+    }
     // const output = calculateConvert(fromToken, toToken, TokenValue.fromHuman(amountIn || 0, fromToken.decimals), deposits.deposits, season);
   }
 
@@ -110,25 +107,30 @@ function Convert({ siloToken }: {siloToken: Token}) {
           <Label>Amount</Label>
           <SlippageButton slippage={slippage} setSlippage={setSlippage} />
         </div>
-        <ComboInputField 
+        <ComboInputField
           amount={amountIn}
           setAmount={setAmountIn}
-          setToken={setFromToken} 
+          setToken={setFromToken}
           selectedToken={fromToken}
           tokenAndBalanceMap={convertData}
-        />                        
+        />
       </div>
       <div className="flex flex-row justify-between">
         <Label className="content-center">Convert to</Label>
-        <TokenSelectWithBalances 
-          setToken={setToToken} 
+        <TokenSelectWithBalances
+          setToken={setToToken}
           selectedToken={toToken}
           tokenAndBalanceMap={convertData}
-          size='small'
+          size="small"
         />
       </div>
       <div className="flex flex-row gap-2">
-        <Button type="button" className="w-full flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem]" onClick={onSubmit} disabled={fromToken.address === toToken.address}>
+        <Button
+          type="button"
+          className="w-full flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem]"
+          onClick={onSubmit}
+          disabled={fromToken.address === toToken.address}
+        >
           Convert
         </Button>
       </div>

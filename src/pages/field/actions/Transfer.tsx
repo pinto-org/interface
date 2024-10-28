@@ -30,13 +30,13 @@ function Transfer() {
     if (isSuccess) {
       // invalidating query results to trigger a refetch
       queryClient.invalidateQueries({ queryKey });
-    };
+    }
   }, [isSuccess, queryKey]);
 
   function onSubmit() {
     const amountTV = TokenValue.fromHuman(amount, PODS.decimals);
-    if (!account.address || !amount || amountTV.lte(0) || !isAddress(recipient || '')) return;
-    
+    if (!account.address || !amount || amountTV.lte(0) || !isAddress(recipient || "")) return;
+
     const transfers = [];
     plots.forEach((plot) => {
       const _amount = plots.length === 1 ? amountTV : plot.pods;
@@ -53,21 +53,22 @@ function Transfer() {
       });
       transfers.push(transferCall);
     });
-    const tx = () => writeContractAsync({
-      address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-      abi: beanstalkAbi,
-      functionName: "farm",
-      args: [transfers],
-    });
+    const tx = () =>
+      writeContractAsync({
+        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+        abi: beanstalkAbi,
+        functionName: "farm",
+        args: [transfers],
+      });
 
     toast.promise(tx, {
       loading: "Submitting transaction...",
       success: (data) => {
-        return `Transaction complete!`
+        return `Transaction complete!`;
       },
       error: (error) => {
-        return ((error as BaseError).shortMessage || `Transaction failed.`)
-      }
+        return (error as BaseError).shortMessage || `Transaction failed.`;
+      },
     });
   }
 
@@ -80,7 +81,7 @@ function Transfer() {
       <CardContent className="flex flex-col gap-4">
         <div>
           <Label>Amount</Label>
-          <ComboPlotInputField 
+          <ComboPlotInputField
             amount={amount}
             selectedPlots={plots}
             setAmount={setAmount}

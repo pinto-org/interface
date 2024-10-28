@@ -17,7 +17,7 @@ import { useQueryClient } from "@tanstack/react-query";
 function Withdraw({ siloToken }: { siloToken: Token }) {
   const account = useAccount();
   const chainId = useChainId();
-  const { data: farmerDeposits, queryKey: queryKey } = useFarmerDepositedBalances();  
+  const { data: farmerDeposits, queryKey: queryKey } = useFarmerDepositedBalances();
   const [fromToken, setFromToken] = useState(siloToken);
   const [destination, setDestination] = useState(FarmToMode.EXTERNAL);
   const [amount, setAmount] = useState(0);
@@ -27,7 +27,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const convertData = new Map<Token, TokenValue>();
   convertData.set(fromToken, farmerDepositData ? farmerDepositData.convertibleAmount : TokenValue.ZERO);
- 
+
   const queryClient = useQueryClient();
 
   const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
@@ -36,53 +36,51 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     if (isSuccess) {
       // invalidating query results to trigger a refetch
       queryClient.invalidateQueries({ queryKey });
-    };
+    }
   }, [isSuccess, queryKey]);
 
   function onSubmit() {
-    if (!amount || !destination || !account.address) return;
-    const transferData = sortAndPickCrates(
-      "withdraw",
-      TokenValue.fromHuman(amount || 0, fromToken.decimals),
-      deposits.deposits
-    );
+    if (!amount || !destination || !account.address || !deposits) return;
+    const transferData = sortAndPickCrates("withdraw", TokenValue.fromHuman(amount || 0, fromToken.decimals), deposits);
 
     const stems = transferData.crates.map((crate) => crate.stem.toBlockchain());
     const amounts = transferData.crates.map((crate) => crate.amount.toBlockchain());
 
     if (transferData.crates.length === 1) {
-      const tx = () => writeContractAsync({
-        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-        abi: beanstalkAbi,
-        functionName: "withdrawDeposit",
-        args: [fromToken.address, stems[0], amounts[0], Number(destination)],
-      });
+      const tx = () =>
+        writeContractAsync({
+          address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+          abi: beanstalkAbi,
+          functionName: "withdrawDeposit",
+          args: [fromToken.address, stems[0], amounts[0], Number(destination)],
+        });
 
       toast.promise(tx, {
         loading: "Submitting transaction...",
         success: (data) => {
-          return `Transaction complete!`
+          return `Transaction complete!`;
         },
         error: (error) => {
-          return ((error as BaseError).shortMessage || `Transaction failed.`)
-        }
+          return (error as BaseError).shortMessage || `Transaction failed.`;
+        },
       });
     } else if (transferData.crates.length > 1) {
-      const tx = () => writeContractAsync({
-        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-        abi: beanstalkAbi,
-        functionName: "withdrawDeposits",
-        args: [fromToken.address, stems, amounts, Number(destination)],
-      });
+      const tx = () =>
+        writeContractAsync({
+          address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+          abi: beanstalkAbi,
+          functionName: "withdrawDeposits",
+          args: [fromToken.address, stems, amounts, Number(destination)],
+        });
 
       toast.promise(tx, {
         loading: "Submitting transaction...",
         success: (data) => {
-          return `Transaction complete!`
+          return `Transaction complete!`;
         },
         error: (error) => {
-          return ((error as BaseError).shortMessage || `Transaction failed.`)
-        }
+          return (error as BaseError).shortMessage || `Transaction failed.`;
+        },
       });
     }
   }
@@ -91,12 +89,12 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     <div className="flex flex-col gap-4">
       <div>
         <div className="h-10 flex items-center">
-        <Label>Amount</Label>
+          <Label>Amount</Label>
         </div>
-        <ComboInputField 
+        <ComboInputField
           amount={amount}
           setAmount={setAmount}
-          setToken={setFromToken} 
+          setToken={setFromToken}
           selectedToken={fromToken}
           tokenAndBalanceMap={convertData}
         />
@@ -107,7 +105,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       </div>
       <div>
         <Button className="w-full flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem]" onClick={onSubmit}>
-            {"Withdraw"}
+          {"Withdraw"}
         </Button>
       </div>
     </div>

@@ -6,6 +6,7 @@ import { subgraphs } from "@/constants/subgraph";
 import { Listing, Order } from "@/utils/types";
 import { TokenValue } from "@/classes/TokenValue";
 import { BEAN, PODS } from "@/constants/internalTokens";
+import { useMemo } from "react";
 
 export function useFarmerMarket() {
   const chainId = useChainId();
@@ -15,9 +16,9 @@ export function useFarmerMarket() {
     queryKey: ["farmerMarketListings", { chainId: chainId, variables: [account.address?.toString().toLowerCase()] }],
     queryFn: async () =>
       request(subgraphs[chainId].beanstalk, FarmerPodListingsDocument, {
-        account: account.address!.toString().toLowerCase(),
+        account: account.address?.toString().toLowerCase() ?? "",
         createdAt_gt: 0,
-        first: 1000
+        first: 1000,
       }),
     enabled: !!account.address,
   });
@@ -26,17 +27,18 @@ export function useFarmerMarket() {
     queryKey: ["farmerMarketOrders", { chainId: chainId, variables: [account.address?.toString().toLowerCase()] }],
     queryFn: async () =>
       request(subgraphs[chainId].beanstalk, FarmerPodOrdersDocument, {
-        account: account.address!.toString().toLowerCase(),
+        account: account.address?.toString().toLowerCase() ?? "",
         createdAt_gt: 0,
-        first: 1000
+        first: 1000,
       }),
     enabled: !!account.address,
   });
 
-  const combined: (Order | Listing)[] = []
+  return useMemo(() => {
+    const combined: (Order | Listing)[] = [];
 
-  orders?.podOrders.forEach((order) => {
-    const output: Order = {
+    orders?.podOrders.forEach((order) => {
+      const output: Order = {
         type: "ORDER",
         beanAmount: TokenValue.fromBlockchain(order.beanAmount, BEAN.decimals),
         beanAmountFilled: TokenValue.fromBlockchain(order.beanAmountFilled, BEAN.decimals),
@@ -52,12 +54,12 @@ export function useFarmerMarket() {
         pricingType: order.pricingType,
         status: order.status,
         updatedAt: Number(order.updatedAt),
-    }
-    combined.push(output)
-  });
+      };
+      combined.push(output);
+    });
 
-  listings?.podListings.forEach((listing) => {
-    const output: Listing = {
+    listings?.podListings.forEach((listing) => {
+      const output: Listing = {
         type: "LISTING",
         amount: TokenValue.fromBlockchain(listing.amount, PODS.decimals),
         creationHash: listing.creationHash,
@@ -79,10 +81,11 @@ export function useFarmerMarket() {
         start: listing.start,
         status: listing.status,
         updatedAt: Number(listing.updatedAt),
-    }
-    combined.push(output)
-  });
+      };
+      combined.push(output);
+    });
 
-  const sorted = combined.sort((a, b) => Number(b.createdAt) - Number(a.createdAt))
-  return sorted
+    const sorted = combined.sort((a, b) => Number(b.createdAt) - Number(a.createdAt));
+    return sorted;
+  }, [listings, orders]);
 }

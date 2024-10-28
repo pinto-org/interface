@@ -7,14 +7,14 @@ import { Token } from "@/utils/types";
 export function useFarmerBalances() {
   const account = useAccount();
   const tokens = useTokenData().preferredTokens;
-  const preferredTokens = tokens.map(token => token.address);
+  const preferredTokens = tokens.map((token) => token.address);
   const ETH = useTokenData().nativeToken;
   const nativeBalance = useBalance({
     address: account.address,
   });
-  //@ts-ignore
+
   const tokenBalances = useReadBeanstalk_GetAllBalances({
-    args: [account.address!, preferredTokens],  
+    args: [account.address ?? "0x", preferredTokens],
     query: {
       staleTime: 1000 * 60 * 2,
       refetchInterval: 1000 * 60 * 3, // 3 minutes, in milliseconds
@@ -22,7 +22,7 @@ export function useFarmerBalances() {
     },
   });
 
-  const balances: Map<Token, { internal: TokenValue, external: TokenValue, total: TokenValue }> = new Map();
+  const balances: Map<Token, { internal: TokenValue; external: TokenValue; total: TokenValue }> = new Map();
 
   balances.set(ETH, {
     internal: TokenValue.fromBlockchain(0n, ETH.decimals),
@@ -41,6 +41,6 @@ export function useFarmerBalances() {
   return {
     balances: balances,
     queryKey: tokenBalances.queryKey,
-    refetch: tokenBalances.refetch
+    refetch: tokenBalances.refetch,
   };
 }

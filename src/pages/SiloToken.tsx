@@ -19,11 +19,10 @@ import GerminationNotice from "./silo/GerminationNotice";
 import { useChainId, useConfig } from "wagmi";
 
 export default function SiloToken() {
-  
   const config = useConfig();
   const chainId = useChainId();
   const currentChain = config.chains.find((chain) => chain.id === chainId);
-  const blockExplorer = currentChain?.blockExplorers?.default.url ?? 'https://basescan.org';
+  const blockExplorer = currentChain?.blockExplorers?.default.url ?? "https://basescan.org";
 
   const { tokenAddress } = useParams();
   const tokenData = useTokenData();
@@ -135,7 +134,12 @@ export default function SiloToken() {
                     <div className="inline-flex items-center gap-1">
                       <img src={stalkIcon} className="w-6 h-6" alt="Stalk" />
                       <div className="font-[400] text-[1.5rem] text-black">
-                        {(siloTokenData ? siloTokenData.tokenSettings.stalkIssuedPerBdv.mul(siloTokenData.depositedBDV) : TokenValue.ZERO).reDecimal(2).toHuman("short")}
+                        {(siloTokenData
+                          ? siloTokenData.tokenSettings.stalkIssuedPerBdv.mul(siloTokenData.depositedBDV)
+                          : TokenValue.ZERO
+                        )
+                          .reDecimal(2)
+                          .toHuman("short")}
                       </div>
                     </div>
                   </div>
@@ -186,7 +190,15 @@ export default function SiloToken() {
               {siloToken.isLP && (
                 <div className="flex flex-col">
                   <div className="font-[400] text-[1rem] text-pinto-gray-5">Target % of LP Deposits</div>
-                  <div className="font-[400] text-[1.5rem] text-black">{Number((siloTokenData ? siloTokenData.tokenSettings.optimalPercentDepositedBdv : TokenValue.ZERO).toHuman()).toFixed(2)}%</div>
+                  <div className="font-[400] text-[1.5rem] text-black">
+                    {Number(
+                      (siloTokenData
+                        ? siloTokenData.tokenSettings.optimalPercentDepositedBdv
+                        : TokenValue.ZERO
+                      ).toHuman(),
+                    ).toFixed(2)}
+                    %
+                  </div>
                 </div>
               )}
             </div>
@@ -209,42 +221,48 @@ export default function SiloToken() {
             </div>
           </div>
         </div>
-        <div className="w-[500px] mt-32 flex flex-col gap-6"> 
+        <div className="w-[500px] mt-32 flex flex-col gap-6">
           <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border">
             <SiloActions token={siloToken} />
           </div>
-          {farmerDeposits && 
-          farmerDeposits?.deposits.map((farmerDeposit) => {
-            if (farmerDeposit.isGerminating) { 
-              return (
-                <GerminationNotice deposit={farmerDeposit} />
-              )
+          {farmerDeposits?.deposits.map((farmerDeposit) => {
+            if (farmerDeposit.isGerminating) {
+              return <GerminationNotice deposit={farmerDeposit} />;
             }
           })}
           <div className="p-2 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border flex flex-col gap-2">
-              <Button variant="ghost" className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem]">
-                <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
-                    <span className="self-center items-center">
-                        <LeftArrowIcon color={"white"} height={16} width={16} />
-                    </span>
-                </div>
-                Send Deposits
-              </Button>
-              <Button variant="ghost" className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem]">
-                <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
-                    <span className="self-center items-center">
-                        <RotateArrowIcon color={"white"} height={16} width={16} />
-                    </span>
-                </div>
-                Update Deposits
+            <Button
+              variant="ghost"
+              className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem]"
+            >
+              <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
+                <span className="self-center items-center">
+                  <LeftArrowIcon color={"white"} height={16} width={16} />
+                </span>
+              </div>
+              Send Deposits
             </Button>
-            <Button variant="ghost" className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem]">
-                <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
-                    <span className="self-center items-center">
-                        <AddCoinsIcon color={"white"} height={16} width={16} />
-                    </span>
-                </div>
-                Collect Grown Stalk
+            <Button
+              variant="ghost"
+              className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem]"
+            >
+              <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
+                <span className="self-center items-center">
+                  <RotateArrowIcon color={"white"} height={16} width={16} />
+                </span>
+              </div>
+              Update Deposits
+            </Button>
+            <Button
+              variant="ghost"
+              className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem]"
+            >
+              <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
+                <span className="self-center items-center">
+                  <AddCoinsIcon color={"white"} height={16} width={16} />
+                </span>
+              </div>
+              Collect Grown Stalk
             </Button>
           </div>
         </div>

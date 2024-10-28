@@ -5,48 +5,57 @@ import { beanstalkAbi } from "@/generated/contractHooks";
 import { Clipboard } from "@/classes/Clipboard";
 
 export default function fillPodListing(
-    account?: Address, // account
-    index?: TokenValue, // index
-    start?: TokenValue, // start
-    amount?: TokenValue, // amount
-    pricePerPod?: number, // pricePerPod
-    maxHarvestableIndex?: TokenValue, // maxHarvestableIndex
-    minFillAmount?: TokenValue, // minFillAmount, measured in Beans
-    mode?: number, // mode
-    amountIn?: TokenValue, // amountIn
-    balanceFrom?: FarmFromMode, // fromMode
-    clipboard?: `0x${string}`
+  account?: Address, // account
+  index?: TokenValue, // index
+  start?: TokenValue, // start
+  amount?: TokenValue, // amount
+  pricePerPod?: number, // pricePerPod
+  maxHarvestableIndex?: TokenValue, // maxHarvestableIndex
+  minFillAmount?: TokenValue, // minFillAmount, measured in Beans
+  mode?: number, // mode
+  amountIn?: TokenValue, // amountIn
+  balanceFrom?: FarmFromMode, // fromMode
+  clipboard?: `0x${string}`,
 ) {
-    if (!account || !index || !start || !amount || !pricePerPod || 
-        !maxHarvestableIndex || !minFillAmount || !mode || !amountIn || !balanceFrom
-    ) {
-        return ({
-            callData: '0x' as `0x${string}`,
-            clipboard: Clipboard.encode([])
-        });
+  if (
+    !account ||
+    !index ||
+    !start ||
+    !amount ||
+    !pricePerPod ||
+    !maxHarvestableIndex ||
+    !minFillAmount ||
+    !mode ||
+    !amountIn ||
+    !balanceFrom
+  ) {
+    return {
+      callData: "0x" as `0x${string}`,
+      clipboard: Clipboard.encode([]),
     };
+  }
 
-    const data = encodeFunctionData({
-        abi: beanstalkAbi,
-        functionName: "fillPodListing",
-        args: [
-            {
-                account: account, // account
-                index: index.toBigInt(), // index
-                start: start.toBigInt(), // start
-                amount: amount.toBigInt(), // amount
-                pricePerPod: pricePerPod, // pricePerPod
-                maxHarvestableIndex: maxHarvestableIndex.toBigInt(), // maxHarvestableIndex
-                minFillAmount: minFillAmount.toBigInt(), // minFillAmount, measured in Beans
-                mode: mode, // mode
-            },
-            amountIn.toBigInt(), // amountIn
-            Number(balanceFrom), // fromMode
-        ]
-    });
+  const data = encodeFunctionData({
+    abi: beanstalkAbi,
+    functionName: "fillPodListing",
+    args: [
+      {
+        account: account, // account
+        index: index.toBigInt(), // index
+        start: start.toBigInt(), // start
+        amount: amount.toBigInt(), // amount
+        pricePerPod: pricePerPod, // pricePerPod
+        maxHarvestableIndex: maxHarvestableIndex.toBigInt(), // maxHarvestableIndex
+        minFillAmount: minFillAmount.toBigInt(), // minFillAmount, measured in Beans
+        mode: mode, // mode
+      },
+      amountIn.toBigInt(), // amountIn
+      Number(balanceFrom), // fromMode
+    ],
+  });
 
-    return ({
-        callData: data,
-        clipboard: clipboard || Clipboard.encode([])
-    });
-};
+  return {
+    callData: data,
+    clipboard: clipboard || Clipboard.encode([]),
+  };
+}

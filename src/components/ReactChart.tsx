@@ -1,14 +1,8 @@
-import React, { useEffect, useRef, useCallback, useState } from 'react';
-import { Chart } from 'chart.js';
-import type {
-  ChartOptions,
-  ChartData,
-  ChartType,
-  Plugin,
-  UpdateMode,
-} from 'chart.js';
-import { generateID } from '@/utils/utils'; 
-import { noop } from '@/utils/utils'; 
+import React, { useEffect, useRef, useCallback, useState } from "react";
+import { Chart } from "chart.js";
+import type { ChartOptions, ChartData, ChartType, Plugin, UpdateMode } from "chart.js";
+import { generateID } from "@/utils/utils";
+import { noop } from "@/utils/utils";
 
 export interface ChartProps {
   data: ChartData;
@@ -21,21 +15,12 @@ export interface ChartProps {
   width?: number;
 }
 
-export const ReactChart = ({
-  id,
-  data,
-  options,
-  type,
-  plugins,
-  updateMode,
-  height,
-  width,
-}: ChartProps) => {
+export const ReactChart = ({ id, data, options, type, plugins, updateMode, height, width }: ChartProps) => {
   const chartInstance = useRef<Chart>({
     update: noop,
     destroy: noop,
   } as Chart);
-  const [CHART_ID] = useState(id || generateID('Chart'));
+  const [CHART_ID] = useState(id || generateID("Chart"));
 
   useEffect(() => {
     chartInstance.current.data = data;
@@ -44,31 +29,21 @@ export const ReactChart = ({
     chartInstance.current.update(updateMode);
   }, [data, options]);
 
-  const nodeRef = useCallback<(node: HTMLCanvasElement | null) => void>(
-    (node) => {
-      chartInstance.current.destroy();
+  const nodeRef = useCallback<(node: HTMLCanvasElement | null) => void>((node) => {
+    chartInstance.current.destroy();
 
-      if (node) {
-        chartInstance.current = new Chart(node, {
-          type,
-          data,
-          options,
-          plugins,
-        });
-      }
-    },
-    [],
-  );
+    if (node) {
+      // @ts-ignore
+      chartInstance.current = new Chart(node, {
+        type,
+        data,
+        options,
+        plugins,
+      });
+    }
+  }, []);
 
-  return (
-    <canvas
-      ref={nodeRef}
-      height={height}
-      width={width}
-      id={CHART_ID}
-      role="chart"
-    />
-  );
+  return <canvas ref={nodeRef} height={height} width={width} id={CHART_ID} role="chart" />;
 };
 
 ReactChart.register = Chart.register || noop;

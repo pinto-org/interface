@@ -17,117 +17,117 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function FillOrder() {
+  const BEAN = useTokenData().mainToken;
 
-    const BEAN = useTokenData().mainToken;
+  const [plot, setPlot] = useState([]);
+  const [amount, setAmount] = useState(0);
+  const [balanceTo, setBalanceTo] = useState(FarmToMode.INTERNAL);
 
-    const [plot, setPlot] = useState([]);
-    const [amount, setAmount] = useState(0);
-    const [balanceTo, setBalanceTo] = useState(FarmToMode.INTERNAL);
+  const chainId = useChainId();
+  const queryClient = useQueryClient();
 
-    const chainId = useChainId();
-    const queryClient = useQueryClient();
+  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
 
-    const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
+  const { id } = useParams();
+  const podOrders = usePodOrders();
+  const allOrders = podOrders.data;
+  const queryKey = podOrders.queryKey;
+  const order = allOrders?.podOrders.find((order) => order.id === id);
 
-    const { id } = useParams();
-    const podOrders = usePodOrders();
-    const allOrders = podOrders.data;
-    const queryKey = podOrders.queryKey;
-    const order = allOrders?.podOrders.find((order) => order.id === id);
+  const amountOrder = TokenValue.fromBlockchain(order?.beanAmount || 0, BEAN.decimals);
+  const amountFilled = TokenValue.fromBlockchain(order?.beanAmountFilled || 0, BEAN.decimals);
+  const pricePerPod = TokenValue.fromBlockchain(order?.pricePerPod || 0, BEAN.decimals);
+  const remainingBeans = amountOrder.sub(amountFilled);
+  const remainingPods = pricePerPod.gt(0) ? remainingBeans.div(pricePerPod) : TokenValue.ZERO;
 
-    const amountOrder = TokenValue.fromBlockchain(order?.beanAmount || 0, BEAN.decimals);
-    const amountFilled = TokenValue.fromBlockchain(order?.beanAmountFilled || 0, BEAN.decimals);
-    const pricePerPod = TokenValue.fromBlockchain(order?.pricePerPod || 0, BEAN.decimals);
-    const remainingBeans = amountOrder.sub(amountFilled);
-    const remainingPods = pricePerPod.gt(0) ? remainingBeans.div(pricePerPod) : TokenValue.ZERO;
+  useEffect(() => {
+    if (isSuccess) {
+      // invalidating query results to trigger a refetch
+      queryClient.invalidateQueries({ queryKey });
+    }
+  }, [isSuccess, queryKey]);
 
-    useEffect(() => {
-      if (isSuccess) {
-        // invalidating query results to trigger a refetch
-        queryClient.invalidateQueries({ queryKey });
-      };
-    }, [isSuccess, queryKey]);
-
-
-    function onSubmit() {
-        if (!order || !plot[0]) return
-        const tx = () => writeContractAsync({        
-          address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-          abi: beanstalkAbi,
-          functionName: "fillPodOrder",
-          args: [
-            {
-              account: order.farmer.id as Address, // order - account
-              maxPlaceInLine: BigInt(order.maxPlaceInLine), // order - maxPlaceInLine
-              pricePerPod: Number(order.pricePerPod), // order - pricePerPod
-              minFillAmount: BigInt(order.minFillAmount), // order - minFillAmount
-            },
-            plot[0].index.toBigInt(), // index of plot to sell
-            BigInt(0), // start index within plot
-            TokenValue.fromHuman(amount, PODS.decimals).toBigInt(), // amount of pods to sell
-            Number(balanceTo) //destination balance
-          ]
-        })
-
-        toast.promise(tx, {
-          loading: "Submitting transaction...",
-          success: (data) => {
-            return `Transaction complete!`
+  function onSubmit() {
+    if (!order || !plot[0]) return;
+    const tx = () =>
+      writeContractAsync({
+        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+        abi: beanstalkAbi,
+        functionName: "fillPodOrder",
+        args: [
+          {
+            account: order.farmer.id as Address, // order - account
+            maxPlaceInLine: BigInt(order.maxPlaceInLine), // order - maxPlaceInLine
+            pricePerPod: Number(order.pricePerPod), // order - pricePerPod
+            minFillAmount: BigInt(order.minFillAmount), // order - minFillAmount
           },
-          error: (error) => {
-            return ((error as BaseError).shortMessage || `Transaction failed.`)
-          }
-        });
-      }
-  
+          plot[0].index.toBigInt(), // index of plot to sell
+          BigInt(0), // start index within plot
+          TokenValue.fromHuman(amount, PODS.decimals).toBigInt(), // amount of pods to sell
+          Number(balanceTo), //destination balance
+        ],
+      });
 
-    return (
-        <div>
-        {!order ? <div>Listing not found.</div> : 
-            <div className="flex flex-col gap-4">
-            <div>
-              <div className="flex flex-row justify-between">
-                  <Label>Buyer</Label>
-                  <div>{order.farmer.id.substring(0, 6)}</div>
-              </div>
-              <div className="flex flex-row justify-between">
-                  <Label>Place in Line</Label>
-                  <div>0 - {TokenValue.fromBlockchain(order.maxPlaceInLine, PODS.decimals).toHuman("short")}</div>
-              </div>
-              <div className="flex flex-row justify-between">
-                  <Label>Pods Requested</Label>
-                  <div>{remainingPods.toHuman("short")}</div>
-              </div>
-              <div className="flex flex-row justify-between">
-                  <Label>Price per Pod</Label>
-                  <div>{pricePerPod.toHuman("short")}</div>
-              </div>
-              <div className="flex flex-row justify-between">
-                  <Label>Beans Remaining</Label>
-                  <div>{remainingBeans.toHuman("short")}</div>
-              </div>
+    toast.promise(tx, {
+      loading: "Submitting transaction...",
+      success: (data) => {
+        return `Transaction complete!`;
+      },
+      error: (error) => {
+        return (error as BaseError).shortMessage || `Transaction failed.`;
+      },
+    });
+  }
+
+  return (
+    <div>
+      {!order ? (
+        <div>Listing not found.</div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          <div>
+            <div className="flex flex-row justify-between">
+              <Label>Buyer</Label>
+              <div>{order.farmer.id.substring(0, 6)}</div>
             </div>
-            <div>
-              <Label>Select Plot</Label>
-              <ComboPlotInputField 
-                amount={amount}
-                selectedPlots={plot}
-                setAmount={setAmount}
-                setPlots={setPlot}
-                type="single"
-              />
+            <div className="flex flex-row justify-between">
+              <Label>Place in Line</Label>
+              <div>0 - {TokenValue.fromBlockchain(order.maxPlaceInLine, PODS.decimals).toHuman("short")}</div>
             </div>
-            <div className="flex flex-col">
-                <Label className="content-center">Destination</Label>
-                <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} />
+            <div className="flex flex-row justify-between">
+              <Label>Pods Requested</Label>
+              <div>{remainingPods.toHuman("short")}</div>
             </div>
-            <div className="flex">
-              <Button type="button" className={`flex grow h-12 rounded-[0.75rem] text-[1.5rem]`} onClick={onSubmit}>
-                {"Submit"}
-              </Button>
+            <div className="flex flex-row justify-between">
+              <Label>Price per Pod</Label>
+              <div>{pricePerPod.toHuman("short")}</div>
+            </div>
+            <div className="flex flex-row justify-between">
+              <Label>Beans Remaining</Label>
+              <div>{remainingBeans.toHuman("short")}</div>
             </div>
           </div>
-        }
+          <div>
+            <Label>Select Plot</Label>
+            <ComboPlotInputField
+              amount={amount}
+              selectedPlots={plot}
+              setAmount={setAmount}
+              setPlots={setPlot}
+              type="single"
+            />
+          </div>
+          <div className="flex flex-col">
+            <Label className="content-center">Destination</Label>
+            <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} />
+          </div>
+          <div className="flex">
+            <Button type="button" className={`flex grow h-12 rounded-[0.75rem] text-[1.5rem]`} onClick={onSubmit}>
+              {"Submit"}
+            </Button>
+          </div>
         </div>
-    )
+      )}
+    </div>
+  );
 }
