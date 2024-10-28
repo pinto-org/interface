@@ -1,7 +1,7 @@
 import { Token } from "@/utils/types";
-import pintoIcon from "@/assets/tokens/PINTO.png";
-import pintoWethIcon from "@/assets/tokens/PINTO_WETH.png";
-import pintoUsdcIcon from "@/assets/tokens/PINTO_USDC.png";
+import pintoIcon from "@/assets/tokens/Pinto.png";
+import pintoWethIcon from "@/assets/tokens/Pinto_wETH.png";
+import pintoUsdcIcon from "@/assets/tokens/Pinto_USDC.png";
 import pintoCbbtcIcon from "@/assets/tokens/PINTO_cbBTC.png";
 import pintoCbethIcon from "@/assets/tokens/PINTO_cbETH.png";
 import { arbitrum, base } from "viem/chains";

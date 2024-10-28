@@ -1,7 +1,7 @@
 import { useSunData } from "@/state/useSunData";
 import { Card, CardContent, CardHeader } from "./ui/Card";
 import sunIcon from "@/assets/protocol/Sun.png";
-import pintoIcon from "@/assets/tokens/PINTO.png";
+import pintoIcon from "@/assets/tokens/Pinto.png";
 import { Separator } from "./ui/Separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/Table";
 import TooltipSimple from "./TooltipSimple";
