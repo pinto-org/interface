@@ -66,6 +66,7 @@ export function useFarmerSilo() {
     args: [account.address ?? ZERO_ADDRESS],
     query: {
       enabled: !!account.address,
+      select: (data) => TokenValue.fromBlockchain(data || 0n, STALK.decimals),
     },
   });
 
@@ -80,6 +81,7 @@ export function useFarmerSilo() {
     args: [account.address ?? ZERO_ADDRESS],
     query: {
       enabled: !!account.address,
+      select: (data) => TokenValue.fromBlockchain(data || 0n, BEAN.decimals),
     },
   });
 
@@ -160,11 +162,11 @@ export function useFarmerSilo() {
   }, [earnedBeansBalance.queryKey, depositsData.queryKeys, activeStalkBalance.queryKey, floodData.queryKey]);
 
   return {
-    activeStalkBalance: TokenValue.fromBlockchain(activeStalkBalance.data || 0n, STALK.decimals),
+    activeStalkBalance: activeStalkBalance.data ?? TokenValue.ZERO,
     activeSeedsBalance: depositsData.activeSeeds,
     depositsBDV: depositsData.depositsBDV,
     depositsUSD: depositsData.depositsUSD,
-    earnedBeansBalance: TokenValue.fromBlockchain(earnedBeansBalance.data || 0n, BEAN.decimals),
+    earnedBeansBalance: earnedBeansBalance.data ?? TokenValue.ZERO,
     grownStalkReward: depositsData.grownStalkReward,
     grownStalkPerToken: depositsData.grownStalkPerToken,
     flood: {
