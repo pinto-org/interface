@@ -19,6 +19,7 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
   isLoading?: boolean;
   hideMax?: boolean;
   disableInput?: boolean;
+  disableClamping?: boolean;
   disableButton?: boolean;
   disableInlineBalance?: boolean;
   balancesToShow?: FarmFromMode[] | undefined;
@@ -35,6 +36,7 @@ function ComboInputField({
   isLoading,
   hideMax,
   disableInput,
+  disableClamping,
   disableButton,
   disableInlineBalance,
   balancesToShow,
@@ -74,11 +76,19 @@ function ComboInputField({
   );
 
   function changeValue(value: string) {
+    if (disableClamping) {
+      setInternalAmount(value);
+      return;
+    }
     const inputTV = value ? TokenValue.fromHuman(value, selectedToken.decimals) : TokenValue.ZERO;
     if (inputTV.gt(maxAmount)) {
       setInternalAmount(maxAmount.toHuman());
     } else {
-      setInternalAmount(inputTV.toHuman());
+      if (!value) {
+        setInternalAmount(undefined);
+      } else {
+        setInternalAmount(inputTV.toHuman());
+      }
     }
   }
 
