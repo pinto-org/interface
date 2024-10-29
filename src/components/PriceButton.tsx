@@ -4,21 +4,25 @@ import pintoIcon from "@/assets/tokens/PINTO.png";
 import chevronDown from "@/assets/misc/ChevronDown.svg";
 import PriceButtonPanel from "./PriceButtonPanel";
 
-export default function PriceButton({ isOpen = false, togglePanel }: { isOpen: boolean; togglePanel: () => void }) {
-  const priceData = usePriceData();
+export default function PriceButton({
+	isOpen = false,
+	togglePanel,
+}: { isOpen: boolean; togglePanel: () => void }) {
+	const priceData = usePriceData();
 
-  return (
-    <>
-      <Button
-        variant="outline"
-        className={`font-[400] text-[1.25rem] h-10 text-pinto-green hover:text-pinto-green rounded-full flex flex-row gap-2 ${isOpen && "border-pinto-green"}`}
-        onClick={() => togglePanel()}
-      >
-        <img src={pintoIcon} className="h-6 w-6" />
-        <span>${Number(priceData.price.toHuman()).toFixed(4)}</span>
-        <img src={chevronDown} className="h-4 w-4" />
-      </Button>
-      <PriceButtonPanel isOpen={isOpen} />
-    </>
-  );
+	return (
+		<>
+			<Button
+				variant="outline-primary"
+				size="default"
+				className={`flex flex-row gap-2 rounded-full ${isOpen && "border-pinto-green"}`}
+				onClick={() => togglePanel()}
+			>
+				<img src={pintoIcon} className="h-6 w-6" alt="pinto icon" />
+				<>${Number(priceData.price.toHuman()).toFixed(4)}</>
+				<img src={chevronDown} className="h-4 w-4" alt="chevron down" />
+			</Button>
+			<PriceButtonPanel isOpen={isOpen} />
+		</>
+	);
 }
