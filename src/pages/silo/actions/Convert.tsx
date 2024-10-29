@@ -117,6 +117,7 @@ function Convert({ siloToken }: { siloToken: Token }) {
           setToken={setFromToken}
           selectedToken={fromToken}
           tokenAndBalanceMap={convertData}
+          disableButton
         />
       </div>
       <div className="flex flex-row justify-between">
