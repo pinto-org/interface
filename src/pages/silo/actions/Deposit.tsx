@@ -24,11 +24,9 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const queryKey = depositedBalances.queryKey;
 
   const mainToken = useTokenData().mainToken;
-  const ETH = useTokenData().nativeToken;
   const [amountIn, setAmountIn] = useState(0);
   const [tokenIn, setTokenIn] = useState(siloToken);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.INTERNAL_EXTERNAL);
-  const [intToken, setIntToken] = useState<Token | undefined>(undefined);
   const [pool, setPool] = useState<PoolData | undefined>(undefined);
   const [slippage, setSlippage] = useState(0.5);
 
@@ -37,24 +35,20 @@ function Deposit({ siloToken }: { siloToken: Token }) {
 
   const pools = usePriceData().pools;
 
-  const useSwap = !(tokenIn.address === mainToken.address || tokenIn.isLP);
+  const useSwap = !(tokenIn.address.toLowerCase() === siloToken.address.toLowerCase());
 
   useEffect(() => {
     if (siloToken.address === mainToken.address) {
-      const intermediateToken = pools[0]?.tokens.find((token) => token.address !== mainToken.address);
-      setIntToken(intermediateToken);
       setPool(undefined);
     } else {
       for (const pool of pools) {
         if (pool.pool?.address && pool.pool?.address === siloToken.address) {
-          const intermediateToken = pool.tokens.find((token) => token.address !== mainToken.address);
-          setIntToken(intermediateToken);
           setPool(pool);
           break;
         }
       }
     }
-  }, [tokenIn, siloToken]);
+  }, [mainToken, pools, siloToken]);
 
   const swapData = useSwapEstimate(
     tokenIn,
@@ -65,17 +59,20 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     balanceFrom,
     FarmToMode.INTERNAL,
     useSwap ? pool : undefined,
-    !useSwap && !intToken,
+    !useSwap,
   );
+
+  console.log("swapdata: ", swapData)
 
   useEffect(() => {
     if (isSuccess) {
       // invalidating query results to trigger a refetch
       queryClient.invalidateQueries({ queryKey });
     }
-  }, [isSuccess, queryKey]);
+  }, [isSuccess, queryKey, queryClient.invalidateQueries]);
 
   function onSubmit() {
+    console.log("USESWAP: ", useSwap, swapData?.output)
     const depositData = deposit(
       siloToken,
       useSwap ? swapData?.output : TokenValue.fromHuman(amountIn, tokenIn.decimals),
