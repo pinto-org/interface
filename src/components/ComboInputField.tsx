@@ -87,7 +87,11 @@ function ComboInputField({
       if (!value) {
         setInternalAmount(undefined);
       } else {
-        setInternalAmount(inputTV.toHuman());
+        if (Number(internalAmount) === Number(inputTV.toHuman())) {
+          setInternalAmount(value);
+        } else {
+          setInternalAmount(inputTV.toHuman());
+        };
       }
     }
   }
