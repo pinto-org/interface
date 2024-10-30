@@ -50,6 +50,7 @@ module.exports = {
         pinto: {
           DEFAULT: "#246645",
           green: "#246645",
+          "red-2": "#FF0000",
           "green-1": "#D8F1E2",
           "green-2": "#00C767",
           "green-3": "#00994D",

@@ -289,3 +289,16 @@ export const RotateArrowIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: 
     />
   </svg>
 );
+
+export const PlusIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: SVGProps) => (
+  <svg width={width} height={height} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M1 8H15" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8 15V1" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+);
+
+export const MinusIcon = ({ color = "#9C9C9C", width = 16, height = 2 }: SVGProps) => (
+  <svg width={width} height={height} viewBox="0 0 16 2" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 1H15" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+)

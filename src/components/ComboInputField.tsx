@@ -3,13 +3,13 @@ import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { usePriceData } from "@/state/usePriceData";
 import { FarmFromMode, Token } from "@/utils/types";
 import useDebounce from "@/utils/useDebounce";
-import { Dispatch, InputHTMLAttributes, SetStateAction, useState } from "react";
+import { Dispatch, InputHTMLAttributes, SetStateAction, useEffect, useState } from "react";
 import TokenSelectWithBalances from "./TokenSelectWithBalances";
 import { Button } from "./ui/Button";
 import { Skeleton } from "./ui/Skeleton";
 
 export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
-  setToken: Dispatch<SetStateAction<Token>>;
+  setToken: Dispatch<SetStateAction<any>>;
   selectedToken: Token;
   tokenAndBalanceMap?: Map<Token, TokenValue> | undefined;
   setBalanceFrom?: Dispatch<SetStateAction<FarmFromMode>> | undefined;
@@ -66,6 +66,12 @@ function ComboInputField({
         maxAmount = depositTokenBalance?.total || TokenValue.ZERO;
     }
   }
+
+  useEffect(() => {
+    if (Number(amount) > Number(maxAmount.toHuman())) {
+      setInternalAmount(maxAmount.humanString)
+    };
+  }, [selectedToken]);
 
   useDebounce(
     () => {
