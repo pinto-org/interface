@@ -4,14 +4,10 @@ import { TokenValue } from "@/classes/TokenValue";
 import { Token } from "./types";
 
 export enum ConvertKind {
-  BEANS_TO_CURVE_LP = 0,
-  CURVE_LP_TO_BEANS = 1,
-  UNRIPE_BEANS_TO_LP = 2,
-  UNRIPE_LP_TO_BEANS = 3,
-  LAMBDA_LAMBDA = 4,
-  BEANS_TO_WELL_LP = 5,
-  WELL_LP_TO_BEANS = 6,
-  UNRIPE_TO_RIPE = 7,
+  LAMBDA_LAMBDA = 0,
+  BEANS_TO_WELL_LP = 1,
+  WELL_LP_TO_BEANS = 2,
+  ANTI_LAMBDA_LAMBDA = 3
 }
 
 /**

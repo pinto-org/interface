@@ -73,9 +73,8 @@ function Convert({ siloToken }: { siloToken: Token }) {
       toToken,
     );
 
-    const stems = depositCrates.crates.map((crate) => crate.stem.toBlockchain());
-    const amounts = depositCrates.crates.map((crate) => crate.amount.toBlockchain());
-
+    const stems: bigint[] = depositCrates.crates.map((crate) => crate.stem.toBigInt());
+    const amounts: bigint[] = depositCrates.crates.map((crate) => crate.amount.toBigInt());
     const convertData = calculateConvertData(
       fromToken,
       toToken,
