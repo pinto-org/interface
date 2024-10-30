@@ -151,6 +151,8 @@
 
 /* Globals */
 * {
+	min-width: 0px;
+	/* margin: 0px; */
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	text-rendering: optimizeLegibility;
@@ -159,4 +161,10 @@
 
 	/** Prevent page overscrolling: https://developer.mozilla.org/en-US/docs/Web/CSS/overscroll-behavior */
 	overscroll-behavior: none;
+}
+
+html,
+body {
+	height: 100%;
+	min-width: 0px;
 }

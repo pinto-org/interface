@@ -5,6 +5,12 @@ module.exports = {
   darkMode: ["class"],
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
+    // also change in src/utils/theme/breakpoints.ts
+    screens: {
+      sm: "768px",
+      md: "900px",
+      lg: "1100px",
+    },
     container: {
       center: true,
       padding: "2rem",
@@ -85,6 +91,10 @@ module.exports = {
       fontFamily: {
         pinto: ["Pinto", "system-ui", "sans-serif"],
         roboto: ["Roboto", "system-ui", "sans-serif"],
+      },
+      gridTemplateColumns: {
+        frame: "350px, 1fr, 200px",
+        frameMobile: "350px,  1fr",
       },
       keyframes: {
         "accordion-down": {
