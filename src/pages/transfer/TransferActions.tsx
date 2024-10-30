@@ -25,7 +25,7 @@ export default function TransferActions() {
   const disableSendAll = totalInternalBalance.eq(0) && farmerSilo.depositsUSD.eq(0) && farmerField.totalPods.eq(0);
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <div className="flex flex-row justify-between">
         <span className={"font-[340] text-[1.25rem] text-pinto-gray-4"}>I want to send:</span>
         <Button
@@ -61,6 +61,6 @@ export default function TransferActions() {
         <span>Pods</span>
         <span>{`${farmerField.totalPods.toHuman()} Pods`}</span>
       </Button>
-    </>
+    </div>
   );
 }
