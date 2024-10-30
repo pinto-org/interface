@@ -1,25 +1,20 @@
-import { useEffect, useState } from "react";
-import {
-  beanstalkAbi,
-  beanstalkAddress,
-  useReadBeanstalk_GetAmountOut,
-  useReadSilo_GetAmountOut,
-} from "@/generated/contractHooks";
 import { TokenValue } from "@/classes/TokenValue";
-import useTokenData from "@/state/useTokenData";
-import { Label } from "@/components/ui/Label";
 import { ComboInputField } from "@/components/ComboInputField";
 import SlippageButton from "@/components/SlippageButton";
-import { Button } from "@/components/ui/Button";
-import { useWriteContract } from "wagmi";
-import { calculateConvertData, sortAndPickCrates } from "@/utils/convert";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
-import { useChainId } from "wagmi";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
-import { BaseError } from "viem";
-import { Token } from "@/utils/types";
 import TokenSelectWithBalances from "@/components/TokenSelectWithBalances";
+import { Button } from "@/components/ui/Button";
+import { Label } from "@/components/ui/Label";
+import { beanstalkAbi, beanstalkAddress, useReadSilo_GetAmountOut } from "@/generated/contractHooks";
+import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import useTokenData from "@/state/useTokenData";
+import { calculateConvertData, sortAndPickCrates } from "@/utils/convert";
+import { Token } from "@/utils/types";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { BaseError } from "viem";
+import { useWriteContract } from "wagmi";
+import { useChainId } from "wagmi";
 
 function Convert({ siloToken }: { siloToken: Token }) {
   const chainId = useChainId();
@@ -39,6 +34,12 @@ function Convert({ siloToken }: { siloToken: Token }) {
 
   const farmerDepositData = farmerDeposits.get(fromToken);
   const deposits = farmerDepositData?.deposits;
+
+  const sourceConvertData = new Map<Token, TokenValue>();
+  if (farmerDepositData) {
+    sourceConvertData.set(siloToken, farmerDepositData?.convertibleAmount);
+  }
+
   const convertData = new Map<Token, TokenValue>();
   for (const convertDestination of convertDestinations) {
     const _depositData = farmerDeposits.get(convertDestination);
@@ -62,7 +63,7 @@ function Convert({ siloToken }: { siloToken: Token }) {
       // invalidating query results to trigger a refetch
       queryClient.invalidateQueries({ queryKey });
     }
-  }, [isSuccess, queryKey]);
+  }, [isSuccess, queryKey, queryClient.invalidateQueries]);
 
   async function onSubmit() {
     const depositCrates = sortAndPickCrates(
@@ -72,9 +73,8 @@ function Convert({ siloToken }: { siloToken: Token }) {
       toToken,
     );
 
-    const stems = depositCrates.crates.map((crate) => crate.stem.toBlockchain());
-    const amounts = depositCrates.crates.map((crate) => crate.amount.toBlockchain());
-
+    const stems: bigint[] = depositCrates.crates.map((crate) => crate.stem.toBigInt());
+    const amounts: bigint[] = depositCrates.crates.map((crate) => crate.amount.toBigInt());
     const convertData = calculateConvertData(
       fromToken,
       toToken,
@@ -116,18 +116,13 @@ function Convert({ siloToken }: { siloToken: Token }) {
           setAmount={setAmountIn}
           setToken={setFromToken}
           selectedToken={fromToken}
-          tokenAndBalanceMap={convertData}
+          tokenAndBalanceMap={sourceConvertData}
           disableButton
         />
       </div>
       <div className="flex flex-row justify-between">
         <Label className="content-center">Convert to</Label>
-        <TokenSelectWithBalances
-          setToken={setToToken}
-          selectedToken={toToken}
-          tokenAndBalanceMap={convertData}
-          size="small"
-        />
+        <TokenSelectWithBalances setToken={setToToken} selectedToken={toToken} tokenAndBalanceMap={convertData} />
       </div>
       <div className="flex flex-row gap-2">
         <Button

@@ -27,7 +27,7 @@
         "noImplicitAnyLet": "error",
         "noExplicitAny": "warn",
         "noDoubleEquals": "error",
-        "noArrayIndexKey": "warn",
+        "noArrayIndexKey": "warn"
       },
       "complexity": {
         "noForEach": "off",

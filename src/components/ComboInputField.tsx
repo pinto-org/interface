@@ -1,24 +1,25 @@
-import { FarmFromMode, Token } from "@/utils/types";
-import TokenSelectWithBalances from "./TokenSelectWithBalances";
-import { Button } from "./ui/Button";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { TokenValue } from "@/classes/TokenValue";
+import { useFarmerBalances } from "@/state/useFarmerBalances";
+import { usePriceData } from "@/state/usePriceData";
+import { FarmFromMode, Token } from "@/utils/types";
 import useDebounce from "@/utils/useDebounce";
 import { Dispatch, InputHTMLAttributes, SetStateAction, useState } from "react";
+import TokenSelectWithBalances from "./TokenSelectWithBalances";
+import { Button } from "./ui/Button";
 import { Skeleton } from "./ui/Skeleton";
-import { usePriceData } from "@/state/usePriceData";
 
 export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
-  setToken: Dispatch<SetStateAction<any>>;
+  setToken: Dispatch<SetStateAction<Token>>;
   selectedToken: Token;
   tokenAndBalanceMap?: Map<Token, TokenValue> | undefined;
-  setBalanceFrom?: Dispatch<SetStateAction<any>> | undefined;
+  setBalanceFrom?: Dispatch<SetStateAction<FarmFromMode>> | undefined;
   balanceFrom?: FarmFromMode | undefined;
   amount: any;
   setAmount: Dispatch<SetStateAction<any>>;
   isLoading?: boolean;
   hideMax?: boolean;
   disableInput?: boolean;
+  disableClamping?: boolean;
   disableButton?: boolean;
   disableInlineBalance?: boolean;
   balancesToShow?: FarmFromMode[] | undefined;
@@ -35,6 +36,7 @@ function ComboInputField({
   isLoading,
   hideMax,
   disableInput,
+  disableClamping,
   disableButton,
   disableInlineBalance,
   balancesToShow,
@@ -45,7 +47,9 @@ function ComboInputField({
   const [internalAmount, setInternalAmount] = useState(amount);
   const tokenPrices = usePriceData();
   const selectedTokenPrice = tokenPrices.tokenPrices.get(selectedToken)?.instant || TokenValue.ZERO;
-  const inputValue = (disableInput ? amount : internalAmount) ? selectedTokenPrice.mul(disableInput ? amount : internalAmount) : undefined;
+  const inputValue = (disableInput ? amount : internalAmount)
+    ? selectedTokenPrice.mul(disableInput ? amount : internalAmount)
+    : undefined;
   const usdValue = inputValue && inputValue.gt(0) ? `$${Number(inputValue.toHuman()).toFixed(2)}` : undefined;
 
   if (tokenAndBalanceMap) {
@@ -72,13 +76,25 @@ function ComboInputField({
   );
 
   function changeValue(value: string) {
+    if (disableClamping) {
+      setInternalAmount(value);
+      return;
+    }
     const inputTV = value ? TokenValue.fromHuman(value, selectedToken.decimals) : TokenValue.ZERO;
     if (inputTV.gt(maxAmount)) {
       setInternalAmount(maxAmount.toHuman());
     } else {
-      setInternalAmount(inputTV.toHuman());
-    };
-  };
+      if (!value) {
+        setInternalAmount(undefined);
+      } else {
+        if (Number(internalAmount) === Number(inputTV.toHuman())) {
+          setInternalAmount(value);
+        } else {
+          setInternalAmount(inputTV.toHuman());
+        };
+      }
+    }
+  }
 
   return (
     <>
@@ -109,33 +125,31 @@ function ComboInputField({
           </div>
           {!disableInlineBalance && (
             <div className="flex flex-row gap-2 justify-between items-center">
-              <div className="font-[340] text-[1rem] text-pinto-gray-4">
-                {usdValue}
-              </div>
+              <div className="font-[340] text-[1rem] text-pinto-gray-4">{usdValue}</div>
               <div className="flex flex-row gap-2 items-center">
-              <div className="text-[1rem] text-black font-[340] leading-[1.11rem] -tracking-[0.02em]">
-                {`${
-                  balanceFrom === FarmFromMode.EXTERNAL
-                    ? "Wallet Balance:"
-                    : balanceFrom === FarmFromMode.INTERNAL
-                      ? "Farm Balance:"
-                      : "Total Balance:"
-                } 
+                <div className="text-[1rem] text-black font-[340] leading-[1.11rem] -tracking-[0.02em]">
+                  {`${
+                    balanceFrom === FarmFromMode.EXTERNAL
+                      ? "Wallet Balance:"
+                      : balanceFrom === FarmFromMode.INTERNAL
+                        ? "Farm Balance:"
+                        : "Total Balance:"
+                  } 
                             ${maxAmount?.toHuman("short")}`}
-              </div>
+                </div>
 
-              {!hideMax && (
-                <Button
-                  type={"button"}
-                  size={"sm"}
-                  variant={"defaultAlt"}
-                  className={"rounded-[0.75rem] text-[1rem] px-1.5 py-1 h-auto"}
-                  onClick={() => setInternalAmount(maxAmount.humanString)}
-                >
-                  Max
-                </Button>
-              )}
-            </div>
+                {!hideMax && (
+                  <Button
+                    type={"button"}
+                    size={"sm"}
+                    variant={"defaultAlt"}
+                    className={"rounded-[0.75rem] text-[1rem] px-1.5 py-1 h-auto"}
+                    onClick={() => setInternalAmount(maxAmount.humanString)}
+                  >
+                    Max
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </div>
