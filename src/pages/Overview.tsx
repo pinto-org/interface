@@ -15,10 +15,10 @@ import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { BaseError, encodeFunctionData } from "viem";
 import { useAccount, useChainId, useWriteContract } from "wagmi";
-import { toast } from "sonner";
-import { Link, useNavigate } from "react-router-dom";
 
 export default function Overview() {
   const account = useAccount();
@@ -102,8 +102,6 @@ export default function Overview() {
       },
     });
   }
-
-  return null;
 
   return (
     <div

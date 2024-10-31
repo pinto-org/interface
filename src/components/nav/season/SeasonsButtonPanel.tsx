@@ -1,15 +1,15 @@
-import { useSunData } from "@/state/useSunData";
-import { Card, CardContent, CardHeader } from "./ui/Card";
 import sunIcon from "@/assets/protocol/Sun.png";
 import pintoIcon from "@/assets/tokens/PINTO.png";
-import { Separator } from "./ui/Separator";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/Table";
-import TooltipSimple from "./TooltipSimple";
+import { TokenValue } from "@/classes/TokenValue";
 import useFieldSnapshots from "@/state/useFieldSnapshots";
 import useSiloSnapshots from "@/state/useSiloSnapshots";
-import { TokenValue } from "@/classes/TokenValue";
-import { Button } from "./ui/Button";
-import { ExternalLinkIcon } from "./Icons";
+import { useSunData } from "@/state/useSunData";
+import { ExternalLinkIcon } from "../../Icons";
+import TooltipSimple from "../../TooltipSimple";
+import { Button } from "../../ui/Button";
+import { Card, CardContent, CardHeader } from "../../ui/Card";
+import { Separator } from "../../ui/Separator";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../ui/Table";
 
 export default function SeasonsButtonPanel({ isOpen = false }: { isOpen: boolean }) {
   const sunData = useSunData();

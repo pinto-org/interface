@@ -3,8 +3,8 @@ import clsx from "clsx";
 import { useEffect, useState } from "react";
 import WalletButton from "../../WalletButton";
 import Backdrop from "../../ui/Backdrop";
-import SeasonsButton from "../SeasonsButton";
 import PriceButton from "../price-button/PriceButton";
+import SeasonsButton from "../season/SeasonsButton";
 import Navi from "./Navi.desktop";
 import MobileNavi from "./Navi.mobile";
 
