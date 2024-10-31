@@ -9,8 +9,10 @@ import Panel from "@/components/ui/Panel";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
+import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
+import clsx from "clsx";
 import { HTMLAttributes } from "react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -18,7 +20,8 @@ import { ExternalLinkIcon, ForwardArrowIcon, GearIcon } from "../Icons";
 import TooltipSimple from "../TooltipSimple";
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/Card";
 import { Separator } from "../ui/Separator";
-import { Switch } from "../ui/Switch";
+import { Switch, SwitchThumb } from "../ui/Switch";
+import Text from "../ui/Text";
 
 function PriceButtonPanel() {
   const priceData = usePriceData();
@@ -42,33 +45,39 @@ function PriceButtonPanel() {
   const [showPrices, setShowPrices] = useState(false);
 
   return (
-    <div>
-      <CardHeader className="transition-all">
+    <>
+      <CardHeader className="transition-all p-0">
         {!showSettings ? (
-          <div className="pb-4">
-            <div className="flex flex-row justify-between items-center">
-              <div className="font-[400] text-[1.25rem] text-black">Price of Pinto</div>
-              <span
-                className="text-pinto-gray-4 hover:text-black transition-colors hover:cursor-pointer"
-                onClick={() => setShowSettings(!showSettings)}
+          <div className="p-6">
+            <div className="flex flex-col gap-2 w-full">
+              <div className="flex flex-row justify-between items-center">
+                <Text variant="body">Price of Pinto</Text>
+                <span
+                  className="text-pinto-gray-4 hover:text-black transition-colors hover:cursor-pointer"
+                  onClick={() => setShowSettings(!showSettings)}
+                >
+                  <GearIcon color={"currentColor"} height={20} width={20} />
+                </span>
+              </div>
+              <Text variant="body-light" color="light">
+                The Pinto price is determined by the ratio and value of assets in each liquidity pool.
+              </Text>
+            </div>
+            <div className="flex flex-row justify-between items-center mt-6">
+              <Text variant="h3" className="inline-flex gap-2 items-center">
+                <IconImage src={pintoIconOriginal} size={9} />
+                <>${formatter.number(priceData.price, { minDecimals: 4, maxDecimals: 4 })}</>
+              </Text>
+              <Text
+                variant="sm"
+                color="green3"
+                className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] inline-flex items-center gap-1"
               >
-                <GearIcon color={"currentColor"} height={20} width={20} />
-              </span>
-            </div>
-            <div className="font-[300] text-[1.25rem] text-pinto-gray-4">
-              The Pinto price is determined by the ratio and value of assets in each liquidity pool.
-            </div>
-            <div className="flex flex-row justify-between items-center mt-4">
-              <div className="font-[400] text-[1.25rem] text-black inline-flex gap-1.5 items-center">
-                <img src={pintoIconOriginal} className={"w-9 h-9"} />
-                <span className={"text-[2rem]"}>${priceData.price.toHuman("short")}</span>
-              </div>
-              <div className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] text-pinto-green font-[400] text-[0.875rem] inline-flex items-center gap-1">
-                Total deltaP: {Number(priceData.deltaB.toHuman()).toFixed(2)}
+                Total deltaP: {formatter.twoDec(priceData.deltaB)}
                 <TooltipSimple />
-              </div>
+              </Text>
             </div>
-            <div className="flex flex-row relative mt-4">
+            <div className="flex flex-row relative pt-6">
               <div
                 className={"h-2 rounded-l-[0.5rem] bg-pinto min-w-2"}
                 style={{ width: `${Number(totalDeltaBar.add(50).toHuman())}%` }}
@@ -104,30 +113,31 @@ function PriceButtonPanel() {
                 style={{ width: `${totalDeltaBar.abs().toHuman()}%` }}
               />
               <div className="left-[50%] absolute -bottom-2 flex flex-col">
-                <div className="flex flex-col text-center -ml-4 mb-1 text-[0.75rem] text-pinto-gray-3 font-[400]">
-                  <span>$1.00</span>
+                <Text variant="xs" color="lighter" className="flex flex-col text-center -ml-4 mb-1">
+                  <span className="hidden sm:block">$1.00</span>
                   <span>peg</span>
-                </div>
+                </Text>
                 <div className="h-6 border-box text-center w-0 bg-white border-pinto-gray-3 border border-dashed" />
               </div>
             </div>
           </div>
         ) : (
-          <div>
+          <div className="flex flex-col p-6 gap-6">
             <Button
               asChild
               variant={"outline"}
-              className="rounded-full h-12 w-12 p-0 hover:cursor-pointer"
+              rounded="full"
+              className="h-12 w-12 p-0 cursor-pointer"
               onClick={() => setShowSettings(!showSettings)}
             >
-              <img src={backArrowIcon} />
+              <IconImage src={backArrowIcon} size={12} />
             </Button>
-            <div className="text-black text-[1.25rem] my-2 font-[500]">Settings</div>
+            <Text variant="body-bold">Settings</Text>
           </div>
         )}
-        <Separator className="w-[38rem] -ml-4" />
+        <Separator className="w-full" />
       </CardHeader>
-      <CardContent className={`overflow-y-auto pt-0 -mt-4 mb-16 max-h-[calc(100vh-28rem)]`}>
+      <CardContent className={`overflow-y-auto mb-16 max-h-[calc(100vh-28rem)]`}>
         {!showSettings ? (
           <div className="flex flex-col gap-4 mt-4 relative">
             {showPrices && (
@@ -172,18 +182,23 @@ function PriceButtonPanel() {
                 return (
                   <div key={`${pool.pool.address}_prices_${i}`} className="flex flex-row justify-between">
                     <div className="inline-flex gap-4 items-center">
-                      <img src={pool.tokens[backingTokenIndex].logoURI} className="w-12 h-12" />
-                      <span className="text-pinto-gray-5 text-[1.25rem] font-[400]">
+                      <IconImage src={pool.tokens[backingTokenIndex].logoURI} size={12} />
+                      <Text variant="body" color="secondary">
                         {pool.tokens[backingTokenIndex].symbol}
-                      </span>
+                      </Text>
                     </div>
                     <div className="flex flex-col items-end">
-                      <div className="text-pinto-gray-5 text-[1.25rem] font-[400]">
-                        Current Price: ${Number(tokenToShow.instant.toHuman()).toFixed(2)}
-                      </div>
-                      <div className="text-pinto-gray-4 text-[1rem] font-[400]">
+                      <Text color="secondary">
+                        <Text as="span" variant="body" color="inherit" className="mr-2">
+                          Current Price:
+                        </Text>
+                        <Text as="span" variant="h4" color="inherit" weight="medium">
+                          {formatter.usd(tokenToShow.instant)}
+                        </Text>
+                      </Text>
+                      <Text variant="sm" color="light" className="mt-0.5">
                         Time Weighted Average Price: ${Number(tokenToShow.twa.toHuman()).toFixed(2)}
-                      </div>
+                      </Text>
                     </div>
                   </div>
                 );
@@ -194,11 +209,13 @@ function PriceButtonPanel() {
                   <CardContent className="p-4 bg-white flex flex-col gap-4">
                     <div className="flex flex-row justify-between items-center">
                       <div className="inline-flex gap-1.5 items-center">
-                        <img src={pool.pool?.logoURI} className="w-[2rem] h-[2rem]" />
-                        <span className="font-[400] text-[1rem] text-pinto-gray-5">{pool.pool?.name || ""}</span>
+                        <IconImage src={pool.pool?.logoURI} size={8} />
+                        <Text variant="sm" color="secondary">
+                          {pool.pool?.symbol || ""}
+                        </Text>
                       </div>
-                      <div className="font-[500] text-[1.25rem] text-pinto-gray-5 gap-2 items-center flex flex-row">
-                        ${Number(pool.price.toHuman()).toFixed(4)}
+                      <Text variant="body-bold" color="secondary" className="gap-2 items-center flex flex-row">
+                        ${formatter.number(pool.price, { minDecimals: 4, maxDecimals: 4 })}
                         <Link
                           to={`https://pinto.exchange/#/wells/${pool.pool?.address}`}
                           target={"_blank"}
@@ -206,7 +223,7 @@ function PriceButtonPanel() {
                         >
                           <ExternalLinkIcon color="currentColor" />
                         </Link>
-                      </div>
+                      </Text>
                     </div>
                     <div className="flex flex-row relative">
                       <div className={"w-full h-2 rounded-l-[0.5rem]"} style={{ background: pool.tokens[0].color }} />
@@ -223,37 +240,48 @@ function PriceButtonPanel() {
                         }}
                       />
                       <div className="left-[50%] absolute -bottom-2 flex flex-col">
-                        <div className="flex flex-col text-center -ml-4 mb-1 text-[0.75rem] text-pinto-gray-3 font-[400]">
+                        <Text variant="xs" color="lighter" className="flex flex-col text-center -ml-4 mb-1">
                           <span>$1.00</span>
                           <span>peg</span>
-                        </div>
-                        <div className="h-6 border-box text-center w-0 bg-white border-pinto-gray-3 border border-dashed" />
+                        </Text>
+                        <div className="h-6 box-border text-center w-0 bg-white border-pinto-gray-3 border border-dashed" />
                       </div>
                     </div>
                     <div className="flex flex-row justify-between">
                       <div className="inline-flex gap-1 items-center">
-                        <img src={pool.tokens[0].logoURI} className="w-[1rem] h-[1rem]" />
-                        <span className="font-[300] text-[1rem] text-pinto-gray-4">
-                          {`${pool.balances[0].toHuman("short")} ${pool.tokens[0].name} (~$${token0BalanceUsd.toHuman("short")})`}
-                        </span>
+                        <IconImage src={pool.tokens[0].logoURI} size={4} />
+                        <Text variant="small" color="light" alignt="left">
+                          {`${pool.balances[0].toHuman("short")} ${pool.tokens[0].symbol} (~$${token0BalanceUsd.toHuman("short")})`}
+                        </Text>
                       </div>
-                      <div className="inline-flex gap-1 items-center">
-                        <img src={pool.tokens[1].logoURI} className="w-[1rem] h-[1rem]" />
-                        <span className="font-[400] text-[1rem] text-pinto-gray-4">
-                          {`${pool.balances[1].toHuman("short")} ${pool.tokens[1].name} (~$${token1BalanceUsd.toHuman("short")})`}
-                        </span>
+                      <div className="inline-flex gap-1 items-center justify-end">
+                        <IconImage src={pool.tokens[1].logoURI} size={4} />
+                        <Text variant="small" color="light" alignt="right">
+                          {`${pool.balances[1].toHuman("short")} ${pool.tokens[1].symbol} (~$${token1BalanceUsd.toHuman("short")})`}
+                        </Text>
                       </div>
                     </div>
                     <div
                       className={`flex flex-row gap-4 justify-center ${expandAll ? "mb-0" : "-mb-10 group-hover:mb-0"} transition-all`}
                     >
-                      <div className="px-2 py-0.5 h-6 bg-pinto-gray-blue rounded-[0.25rem] text-black font-[400] text-[0.875rem]">
-                        Total Liquidity: ${pool.liquidity.toHuman("short")}
-                      </div>
-                      <div className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] text-pinto-green font-[400] text-[0.875rem] inline-flex items-center gap-1">
-                        deltaP: {Number(pool.deltaB.toHuman()).toFixed(0)}
+                      <Text
+                        variant="xs"
+                        weight="normal"
+                        noLineHeight
+                        className="inline-flex items-center px-2 py-0.5 h-6 bg-pinto-gray-blue rounded-[0.25rem]"
+                      >
+                        Total Liquidity: {formatter.usd(pool.liquidity)}
+                      </Text>
+                      <Text
+                        variant="xs"
+                        weight="normal"
+                        color="green3"
+                        noLineHeight
+                        className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] inline-flex items-center gap-1"
+                      >
+                        deltaP: {formatter.twoDec(pool.deltaB)}
                         <TooltipSimple />
-                      </div>
+                      </Text>
                     </div>
                   </CardContent>
                 </Card>
@@ -261,94 +289,116 @@ function PriceButtonPanel() {
             })}
           </div>
         ) : (
-          <div className="flex flex-col gap-4 mt-4 mr-2">
+          <div className="flex flex-col gap-6 p-2 pt-6 box-border">
             <div className="flex flex-row justify-between h-14 items-center">
-              <div className="text-black font-[400] text-[1.25rem] inline-flex items-center gap-1.5">
+              <Text variant="body" className="inline-flex items-center gap-1.5">
                 Use time-weighted average values
                 <TooltipSimple />
-              </div>
+              </Text>
               <Switch
+                style={{
+                  borderWidth: "1px",
+                  height: "56px",
+                  width: "104px",
+                }}
                 checked={useTwa}
                 onCheckedChange={() => setUseTwa(!useTwa)}
-                className="scale-[1.5] border-[1px]"
-              />
+              >
+                <SwitchThumb className="w-[48px] h-[48px] data-[state=checked]:translate-x-[50px] data-[state=unchecked]:translate-x-[2px]" />
+              </Switch>
             </div>
             <div className="flex flex-row justify-between h-14 items-center">
-              <div className="text-black font-[400] text-[1.25rem]">Show deltaP and total liquidity on all Wells</div>
+              <Text variant="body">Show deltaP and total liquidity on all Wells</Text>
               <Switch
+                style={{
+                  borderWidth: "1px",
+                  height: "56px",
+                  width: "104px",
+                }}
                 checked={expandAll}
                 onCheckedChange={() => setExpandAll(!expandAll)}
-                className="scale-[1.5] border-[1px]"
-              />
+              >
+                <SwitchThumb className="w-[48px] h-[48px] data-[state=checked]:translate-x-[50px] data-[state=unchecked]:translate-x-[2px]" />
+              </Switch>
             </div>
           </div>
         )}
       </CardContent>
-      <CardFooter
-        onClick={() => setShowPrices(!showPrices)}
-        className="flex flex-col absolute bottom-0 z-[2] peer bg-pinto-gray-1 pb-4 items-stretch hover:bg-pinto-gray-2 transition-colors hover:cursor-pointer"
-      >
-        <Separator className="w-[38rem] -ml-4 " />
-        <div className="inline-flex items-center">
-          <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
-            {Array.from(priceData.tokenPrices).map((token, i) => {
-              if (!token[0].isWhitelisted) return;
-              return (
-                <div key={`${token[0].address}_marquee1_${i}`}>
-                  {token[0]?.name && (
-                    <div className="inline-flex items-center px-2 gap-1.5">
-                      <img src={token[0].logoURI} className={"w-6 h-6"} />
-                      <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1][useTwa ? "twa" : "instant"] ? token[1][useTwa ? "twa" : "instant"].toHuman() : 0).toFixed(2)}`}</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
-            {Array.from(priceData.tokenPrices).map((token, i) => {
-              if (!token[0].isWhitelisted) return;
-              return (
-                <div key={`${token[0].address}_marquee2_${i}`}>
-                  {token[0]?.name && (
-                    <div className="inline-flex items-center px-2 gap-1.5">
-                      <img src={token[0].logoURI} className={"w-6 h-6"} />
-                      <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1][useTwa ? "twa" : "instant"] ? token[1][useTwa ? "twa" : "instant"].toHuman() : 0).toFixed(2)}`}</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
-            {Array.from(priceData.tokenPrices).map((token, i) => {
-              if (!token[0].isWhitelisted) return;
-              return (
-                <div key={`${token[0].address}_marquee3_${i}`}>
-                  {token[0]?.name && (
-                    <div className="inline-flex items-center px-2 gap-1.5">
-                      <img src={token[0].logoURI} className={"w-6 h-6"} />
-                      <span className="text-nowrap font-[400] text-[1.25rem] text-pinto-gray-5">{`${token[0].symbol}: $${Number(token[1][useTwa ? "twa" : "instant"] ? token[1][useTwa ? "twa" : "instant"].toHuman() : 0).toFixed(2)}`}</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </CardFooter>
-      {!showPrices && (
-        <Button
-          asChild
-          variant={"outline"}
-          className={`rounded-full h-6 w-6 p-0 z-[1] absolute peer-hover:bottom-20 bottom-0 left-[50%] shadow-xl -ml-[0.65rem] border-black transition-all`}
+      {!showPrices && !showSettings && (
+        <CardFooter
+          onClick={() => setShowPrices(!showPrices)}
+          className="flex flex-col absolute bottom-0 z-[2] peer bg-pinto-gray-1 pb-4 items-stretch hover:bg-pinto-gray-2 transition-colors cursor-pointer"
         >
-          <span className="text-black">
-            <ForwardArrowIcon color={"currentColor"} />
+          <Separator className="w-[38rem] -ml-4 " />
+          <div className="inline-flex items-center">
+            <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
+              {Array.from(priceData.tokenPrices).map((token, i) => {
+                if (!token[0].isWhitelisted) return;
+                return (
+                  <div key={`${token[0].address}_marquee1_${i}`}>
+                    {token[0]?.name && (
+                      <div className="inline-flex items-center px-2 gap-1.5">
+                        <IconImage src={token[0].logoURI} size={6} />
+                        <Text variant="body" color="secondary" className="text-nowrap">
+                          {`${token[0].symbol}: ${formatter.usd(token[1][useTwa ? "twa" : "instant"] ? token[1][useTwa ? "twa" : "instant"].toHuman() : 0)}`}
+                        </Text>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
+              {Array.from(priceData.tokenPrices).map((token, i) => {
+                if (!token[0].isWhitelisted) return;
+                return (
+                  <div key={`${token[0].address}_marquee2_${i}`}>
+                    {token[0]?.name && (
+                      <div className="inline-flex items-center px-2 gap-1.5">
+                        <IconImage src={token[0].logoURI} size={6} />
+                        <Text variant="body" color="secondary" className="text-nowrap">
+                          {`${token[0].symbol}: ${formatter.usd(token[1][useTwa ? "twa" : "instant"] ? token[1][useTwa ? "twa" : "instant"].toHuman() : 0)}`}
+                        </Text>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex flex-row min-w-fit max-w-fit mt-4 animate-marquee">
+              {Array.from(priceData.tokenPrices).map((token, i) => {
+                if (!token[0].isWhitelisted) return;
+                return (
+                  <div key={`${token[0].address}_marquee3_${i}`}>
+                    {token[0]?.name && (
+                      <div className="inline-flex items-center px-2 gap-1.5">
+                        <IconImage src={token[0].logoURI} size={6} />
+                        <Text variant="body" color="secondary" className="text-nowrap">
+                          {`${token[0].symbol}: ${formatter.usd(token[1][useTwa ? "twa" : "instant"] ? token[1][useTwa ? "twa" : "instant"].toHuman() : 0)}`}
+                        </Text>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </CardFooter>
+      )}
+      {!showPrices && !showSettings && (
+        <Button
+          variant="outline"
+          noShrink
+          rounded="full"
+          className={`h-6 w-6 p-0 z-[1] absolute peer-hover:bottom-20 bottom-0 left-[50%] shadow-xl -ml-[0.65rem] border-black transition-all`}
+          onClick={() => setShowPrices(true)}
+        >
+          <span className="text-black mr-[1rem]">
+            <ForwardArrowIcon color={"currentColor"} height={16} width={16} />
           </span>
         </Button>
       )}
-    </div>
+    </>
   );
 }
 
@@ -356,19 +406,6 @@ export interface IPriceButton extends HTMLAttributes<HTMLButtonElement> {
   isOpen: boolean;
   togglePanel: () => void;
 }
-
-// const panelStyles = `absolute top-[5rem] transition-all ${isOpen ? "left-[1.5rem]" : "-left-[38rem]"} w-[38rem] overflow-clip h-[calc(100vh-6rem)] z-[51]`;
-
-const PriceButtonTrigger = ({ isOpen, togglePanel, price, ...props }: IPriceButton & { price: TokenValue }) => {
-  const isMobile = useIsMobile();
-  return (
-    <Button variant="outline-primary" size="default" rounded="full" noShrink {...props} onClick={togglePanel}>
-      <IconImage src={pintoIcon} size={6} alt="pinto icon" />
-      <>${Number(price.toHuman()).toFixed(isMobile ? 2 : 4)}</>
-      <IconImage src={chevronDown} size={4} mobileSize={2.5} alt="chevron down" />
-    </Button>
-  );
-};
 
 export default function PriceButton({ isOpen = false, togglePanel, ...props }: IPriceButton) {
   const priceData = usePriceData();
@@ -380,9 +417,19 @@ export default function PriceButton({ isOpen = false, togglePanel, ...props }: I
       isOpen={isOpen}
       toggle={togglePanel}
       side="left"
-      width={38}
+      panelProps={{
+        className: "max-w-panel-price w-panel-price",
+      }}
       trigger={
-        <Button variant="outline-primary" size="default" rounded="full" noShrink {...props} onClick={togglePanel}>
+        <Button
+          variant="outline-primary"
+          size="default"
+          rounded="full"
+          onClick={togglePanel}
+          noShrink
+          {...props}
+          className={cn("flex flex-row gap-2", props.className)}
+        >
           <IconImage src={pintoIcon} size={6} alt="pinto icon" />
           <>${Number(priceData.price.toHuman()).toFixed(isMobile ? 2 : 4)}</>
           <IconImage src={chevronDown} size={4} mobileSize={2.5} alt="chevron down" />

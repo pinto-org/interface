@@ -1,7 +1,6 @@
-import useIsMobile from "@/hooks/display/useIsMobile";
 import { cn } from "@/utils/utils";
 import clsx from "clsx";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import WalletButton from "../../WalletButton";
 import Backdrop from "../../ui/Backdrop";
 import PriceButton from "../PriceButton";
@@ -45,8 +44,8 @@ const Navbar = () => {
 
   return (
     <>
-      <div className={cn("fixed grid p-4 sm:p-6 w-full z-[2] bg-gradient-light", styles.navGrid)}>
-        <div className="flex flex-row gap-2">
+      <div className={cn("fixed grid px-4 pt-4 pb-2 sm:px-6 sm:pt-6 w-full z-[2] bg-gradient-light", styles.navGrid)}>
+        <div className="flex flex-row gap-2 sm:gap-4">
           <div className={`transition-all duration-100 ${priceOpen && "z-[51]"}`}>
             <PriceButton isOpen={priceOpen} togglePanel={() => togglePanel("price")} />
           </div>

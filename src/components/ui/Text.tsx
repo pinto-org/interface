@@ -15,14 +15,16 @@ type PropsToOmit<C extends React.ElementType, P> = keyof (AsProp<C> & P);
 type PolymorphicComponentProp<C extends React.ElementType, Props = {}> = React.PropsWithChildren<Props & AsProp<C>> &
   Omit<React.ComponentPropsWithRef<C>, PropsToOmit<C, Props>>;
 
-// Base Text props without the polymorphic behavior
+export interface IText extends ITextBase {
+  noLineHeight?: boolean;
+}
 
 // Full Text component props with polymorphic behavior
 export type TextProps<C extends React.ElementType = "div"> = PolymorphicComponentProp<C, ITextBase>;
 
 const Text = React.forwardRef(
   <C extends React.ElementType = "div">(
-    { as, className, variant, size, weight, align, color, ...props }: TextProps<C>,
+    { as, className, variant, size, weight, align, color, noLineHeight, ...props }: TextProps<C>,
     ref?: React.ComponentPropsWithRef<C>["ref"],
   ) => {
     const Component = as || "div";
@@ -31,7 +33,11 @@ const Text = React.forwardRef(
       <Component
         ref={ref}
         {...props}
-        className={cn(textConfig.methods.textClass({ variant, size, weight, align, color }), className)}
+        className={cn(
+          textConfig.methods.textClass({ variant, size, weight, align, color }),
+          noLineHeight ? `${textConfig.methods.noLineHeight(variant)}` : textConfig.methods.lineHeight(variant),
+          className,
+        )}
       />
     );
   },

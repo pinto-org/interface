@@ -14,7 +14,8 @@ export type FontVariant =
   | "sm"
   | "sm-light"
   | "sm-bold"
-  | "xs";
+  | "xs"
+  | "inherit";
 
 export type FontSize =
   | "h1" // 54px
@@ -31,9 +32,7 @@ export type TextAlign = "left" | "center" | "right" | "justify" | "start" | "end
 
 export type LetterSpacing = "body-light" | "h3" | "h2" | "h1" | "none";
 
-export type TextColor = "primary" | "secondary" | "light";
-
-type VariantLookup<T> = Record<FontVariant, T>;
+export type TextColor = "primary" | "secondary" | "light" | "lighter" | "green4" | "green3";
 
 export interface ITextBase {
   variant?: FontVariant;
@@ -50,17 +49,22 @@ const textColors = {
 	'primary':     clsx("text-black"),
 	'secondary':   clsx("text-pinto-gray-5"),
 	'light':       clsx("text-pinto-gray-4"),
+	'lighter':     clsx("text-pinto-gray-3"),
+	'green4':      clsx("text-pinto-green-4"),
+	'green3':      clsx("text-pinto-green-3"),
+	"inherit":     clsx("text-inherit"),
 } as const;
 
 // biome-ignore format: keep unformatted for readability
 const fontSize = {
 	xs: 	         clsx("text-[0.875rem]"), 		// 14px
 	sm: 	         clsx("text-[1rem]"), 				// 16px
-	body:          clsx("text-[1.25rem]"), 		// 20px
+	body:          clsx("text-[1.25rem]"), 		  // 20px
 	h4: 	         clsx("text-[1.5rem]"), 			// 24px
 	h3: 	         clsx("text-[2rem]"), 				// 32px
-	h2: 	         clsx("text-[2.25rem]"), 		// 36px
+	h2: 	         clsx("text-[2.25rem]"), 		  // 36px
 	h1: 	         clsx("text-[3.429rem]"), 		// 54.86px
+	inherit:       clsx("text-inherit"),
 } as const;
 
 // biome-ignore format: keep unformatted for readability
@@ -72,6 +76,7 @@ const noLineHeight = {
 	h3: 	         clsx("leading-[2rem]"), 				// 32px
 	h2: 	         clsx("leading-[2.25rem]"), 		// 36px
 	h1: 	         clsx("leading-[3.429rem]"), 		// 54.86px
+	inherit:       clsx("leading-inherit"),
 }
 
 // biome-ignore format: keep unformatted for readability
@@ -84,6 +89,7 @@ const fontLineHeights = {
 	h3:            clsx("leading-[2.2rem]"),
 	h2:            clsx("leading-[2.475rem]"),
 	h1:            clsx("leading-[3.772rem]"),
+	inherit:       clsx("leading-inherit"),
 } as const;
 
 // biome-ignore format: keep unformatted for readability
@@ -92,6 +98,7 @@ const fontWeights = {
 	light:         clsx("font-[340]"),
 	regular:       clsx("font-[400]"),
 	medium:        clsx("font-[500]"),
+	inherit:       clsx("font-inherit"),
 } as const;
 
 // biome-ignore format: keep unformatted for readability
@@ -101,6 +108,7 @@ const letterSpacings = {
 	h2:            clsx("tracking-[.0315rem]"),
 	h1:            clsx("tracking-[-0.069rem]"),
 	none:          clsx("tracking-[0rem]"),
+	inherit:       clsx("tracking-inherit"),
 } as const;
 
 // biome-ignore format: keep unformatted for readability
@@ -118,7 +126,8 @@ export const config = {
 		"sm-bold":      "sm",
 		"sm-light":     "sm",
 		xs:             "xs",
-	} satisfies VariantLookup<FontSize>,
+		inherit:        "inherit",
+	},
 	fontWeight: {
 		h1:             "thin", 		// 300
 		h2:             "thin", 		// 300
@@ -132,14 +141,31 @@ export const config = {
 		sm:             "regular", 	// 400
 		"sm-light":     "light", 		// 340
 		xs:             "light", 		// 340
-	} satisfies VariantLookup<FontWeight>,
+		inherit:        "inherit",
+	},
 	letterSpacing: {
 		h1:             "h1",
 		h2:             "h2",
 		h3:             "h3",
 		"body-light":   "body-light",
 		none:           "none",
-	} satisfies Partial<VariantLookup<LetterSpacing> & { none: LetterSpacing }>,
+		inherit:        "inherit",
+	},
+	lineHeight: {
+		h1:             "h1", 		
+		h2:             "h2", 		
+		h3:             "h3", 		
+		h4:             "h4", 	
+		lg:             "body", 		
+		"body-bold":    "body", 	
+		body:           "body", 	
+		"body-light":   "body", 		
+		"sm-bold":      "sm", 	
+		sm:             "sm", 	
+		"sm-light":     "sm", 		
+		xs:             "xs", 		
+		inherit:        "inherit",
+	}
 } as const;
 
 // -------------------- Functions --------------------
@@ -164,6 +190,14 @@ const getTextColor = (color: TextColor = "primary") => {
   return textColors[color];
 };
 
+const getNoLineHeight = (variant: FontVariant = "sm") => {
+  return noLineHeight[config.lineHeight[variant] ?? "sm"];
+};
+
+const getLineHeight = (variant: FontVariant = "sm") => {
+  return fontLineHeights[config.lineHeight[variant] ?? "sm"];
+};
+
 // -------------------- Functions --------------------
 
 export const deriveTextClassValues = ({
@@ -175,7 +209,7 @@ export const deriveTextClassValues = ({
 }: Partial<ITextBase>) => {
   const classNames: ClassValue[] = [
     fontSize[size ?? config.fontSize[variant] ?? "sm"],
-    fontLineHeights[size ?? config.letterSpacing[variant] ?? "sm"],
+    fontLineHeights[size ?? config.lineHeight[variant] ?? "sm"],
     fontWeights[weight ?? config.fontWeight[variant] ?? "default"],
     letterSpacings[config.letterSpacing[variant] ?? "none"],
     getTextColor(color),
@@ -188,7 +222,7 @@ export const deriveTextClassValues = ({
 export const deriveTextStyles = (variant: FontVariant, sameHeight: boolean = false) => {
   return [
     fontSize[config.fontSize[variant] ?? "sm"],
-    (sameHeight ? noLineHeight : fontLineHeights)[config.letterSpacing[variant] ?? "sm"],
+    (sameHeight ? noLineHeight : fontLineHeights)[config.lineHeight[variant] ?? "sm"],
     fontWeights[config.fontWeight[variant] ?? "default"],
     letterSpacings[config.letterSpacing[variant] ?? "none"],
   ].join(" ");
@@ -199,6 +233,7 @@ export const deriveTextStyles = (variant: FontVariant, sameHeight: boolean = fal
 export const textTheme = {
   size: fontSize,
   lineHeight: fontLineHeights,
+  noLineHeight: noLineHeight,
   weight: fontWeights,
   letterSpacing: letterSpacings,
 } as const;
@@ -215,6 +250,8 @@ export const textConfig = {
     letterSpacing: getLetterSpacing,
     color: getTextColor,
     textClass: deriveTextClassValues,
+    lineHeight: getLineHeight,
+    noLineHeight: getNoLineHeight,
     variant: deriveTextStyles,
   },
 } as const;

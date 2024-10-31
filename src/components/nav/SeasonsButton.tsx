@@ -182,7 +182,9 @@ export default function SeasonsButton({ isOpen = false, togglePanel, ...props }:
       top={5}
       isOpen={isOpen}
       side="left"
-      width={60}
+      panelProps={{
+        className: "max-w-[60rem]",
+      }}
       trigger={
         <Button
           variant="outline-secondary"
