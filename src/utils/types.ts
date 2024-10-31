@@ -35,11 +35,24 @@ export interface InternalToken {
   decimals: number;
 }
 
+export interface DepositCrateData {
+  stem: TokenValue;
+  amount: TokenValue;
+  bdv: TokenValue;
+  stalk: {
+    base: TokenValue;
+    grown: TokenValue;
+    total: TokenValue;
+  };
+  seeds: TokenValue;
+  isGerminating: boolean;
+}
+
 export interface DepositData {
   token: Token;
   stemTipForToken: TokenValue;
-  stem: TokenValue;
   season: number;
+  stem: TokenValue;
   amount: TokenValue;
   depositBdv: TokenValue;
   currentBdv: TokenValue;
