@@ -13,7 +13,11 @@ function App() {
     <BrowserRouter>
       <div className="relative">
         <Navbar />
-        <div className="pt-40 mx-4 mb-4 relative z-[1]">
+        <div
+          // 72px is navbar height on mobile
+          // 124px is navbar height on desktop (includes nested links)
+          className={`relative z-[1] w-screen h-[calc(100vh-72px)] top-[72px] sm:h-[calc(100vh-124px)] sm:top-[124px]`}
+        >
           <Routes>
             {/* <Route index element={<StartPage />} /> */}
             <Route index element={<Overview />} />
