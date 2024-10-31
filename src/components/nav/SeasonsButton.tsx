@@ -183,7 +183,7 @@ export default function SeasonsButton({ isOpen = false, togglePanel, ...props }:
       isOpen={isOpen}
       side="left"
       panelProps={{
-        className: "max-w-[60rem]",
+        className: "max-w-panel-seasons w-panel-seasons",
       }}
       trigger={
         <Button

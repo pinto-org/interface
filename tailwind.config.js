@@ -103,9 +103,11 @@ module.exports = {
       },
       maxWidth: {
         "panel-price": "600px",
+        "panel-seasons": "min(914px, calc(100vw - 48px))",
       },
       width: {
         "panel-price": "600px",
+        "panel-seasons": "min(914px, calc(100vw - 48px))",
       },
       keyframes: {
         "accordion-down": {
