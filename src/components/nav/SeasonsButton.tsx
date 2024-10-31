@@ -4,21 +4,22 @@ import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
 import Panel from "@/components/ui/Panel";
 import Text from "@/components/ui/Text";
-import { useIsMobile } from "@/hooks/display/breakpoints";
 import useFieldSnapshots from "@/state/useFieldSnapshots";
 import useSiloSnapshots from "@/state/useSiloSnapshots";
 import { useSunData } from "@/state/useSunData";
 import { textConfig } from "@/utils/theme";
 import { cn } from "@/utils/utils";
 import clsx from "clsx";
-import { ExternalLinkIcon } from "../../Icons";
-import TooltipSimple from "../../TooltipSimple";
-import { Button } from "../../ui/Button";
-import { CardContent, CardHeader } from "../../ui/Card";
-import IconImage from "../../ui/IconImage";
-import { Separator } from "../../ui/Separator";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../ui/Table";
-interface IPanelContent {
+import { HTMLAttributes } from "react";
+import { ExternalLinkIcon } from "../Icons";
+import TooltipSimple from "../TooltipSimple";
+import { Button } from "../ui/Button";
+import { CardContent, CardHeader } from "../ui/Card";
+import IconImage from "../ui/IconImage";
+import { Separator } from "../ui/Separator";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/Table";
+
+interface SeasonsButtonPanel {
   sunData: ReturnType<typeof useSunData>;
   fieldSnapshots: ReturnType<typeof useFieldSnapshots>;
   siloSnapshots: ReturnType<typeof useSiloSnapshots>;
@@ -31,7 +32,7 @@ const smTextStyles = clsx(...deriveTextStyles("sm"), deriveTextColor("secondary"
 
 // TODO: Add rest of silo adjustments
 
-const PanelContent = ({ sunData, fieldSnapshots, siloSnapshots }: IPanelContent) => {
+const PanelContent = ({ sunData, fieldSnapshots, siloSnapshots }: SeasonsButtonPanel) => {
   return (
     <>
       <CardHeader className="p-0">
@@ -166,66 +167,39 @@ const PanelContent = ({ sunData, fieldSnapshots, siloSnapshots }: IPanelContent)
   );
 };
 
-function SeasonsButtonPanel({
-  isOpen = false,
-  sunData,
-  fieldSnapshots,
-  siloSnapshots,
-}: { isOpen: boolean } & IPanelContent) {
-  return (
-    <Panel top={5} isOpen={isOpen} left={{ from: 60, to: 1.5 }} width={60}>
-      <PanelContent sunData={sunData} fieldSnapshots={fieldSnapshots} siloSnapshots={siloSnapshots} />
-    </Panel>
-  );
-}
-
-interface ISeasonsButton {
+export interface ISeasonsButton extends HTMLAttributes<HTMLButtonElement> {
   isOpen: boolean;
   togglePanel: () => void;
 }
 
-const Trigger = ({ isOpen, season, togglePanel }: ISeasonsButton & { season: number }) => {
-  return (
-    <Button
-      variant="outline-secondary"
-      className={`flex flex-row gap-2 ${isOpen && "border-pinto-green"}`}
-      onClick={() => togglePanel()}
-      noShrink
-      rounded="full"
-    >
-      <IconImage src={sunIcon} size={6} />
-      <div className="hidden sm:block">Season {season}</div>
-      <IconImage src={chevronDown} size={4} mobileSize={2.5} />
-    </Button>
-  );
-};
-
-export default function SeasonsButton({ isOpen = false, togglePanel }: { isOpen: boolean; togglePanel: () => void }) {
+export default function SeasonsButton({ isOpen = false, togglePanel, ...props }: ISeasonsButton) {
   const sunData = useSunData();
   const fieldSnapshots = useFieldSnapshots();
   const siloSnapshots = useSiloSnapshots();
 
-  const mobile = useIsMobile();
-
   return (
-    <>
-      <Button
-        variant="outline-secondary"
-        className={`flex flex-row gap-2 ${isOpen && "border-pinto-green"}`}
-        onClick={() => togglePanel()}
-        noShrink
-        rounded="full"
-      >
-        <IconImage src={sunIcon} size={6} />
-        <div className="hidden sm:block">Season {sunData.current}</div>
-        <IconImage src={chevronDown} size={4} mobileSize={2.5} />
-      </Button>
-      <SeasonsButtonPanel
-        isOpen={isOpen}
-        sunData={sunData}
-        fieldSnapshots={fieldSnapshots}
-        siloSnapshots={siloSnapshots}
-      />
-    </>
+    <Panel
+      top={5}
+      isOpen={isOpen}
+      left={{ from: 60, to: 1.5 }}
+      width={60}
+      trigger={
+        <Button
+          variant="outline-secondary"
+          onClick={() => togglePanel()}
+          noShrink
+          rounded="full"
+          {...props}
+          className={cn(`flex flex-row gap-2 ${isOpen && "border-pinto-green"}`, props.className)}
+        >
+          <IconImage src={sunIcon} size={6} />
+          <div className="hidden sm:block">Season {sunData.current}</div>
+          <IconImage src={chevronDown} size={4} mobileSize={2.5} />
+        </Button>
+      }
+      toggle={togglePanel}
+    >
+      <PanelContent sunData={sunData} fieldSnapshots={fieldSnapshots} siloSnapshots={siloSnapshots} />
+    </Panel>
   );
 }

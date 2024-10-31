@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 
 import { ChevronDownIcon, ChevronUpIcon, Cross2Icon } from "@radix-ui/react-icons";
-import { Link as ReactLink, useLocation, useNavigate } from "react-router-dom";
+import { Link as ReactLink } from "react-router-dom";
 
 import { BurgerIcon } from "@/components/Icons";
-import { backdropStyles } from "@/components/ui/Backdrop";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Drawer, DrawerContent, DrawerOverlay, DrawerTrigger } from "@/components/ui/Drawer";
 import IconImage from "@/components/ui/IconImage";
+import { Sidebar } from "@/components/ui/Panel";
 import Text from "@/components/ui/Text";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import useIsTablet from "@/hooks/display/useIsTablet";
@@ -56,17 +55,13 @@ const MobileNavi = ({ isOpen, mounted, close, unmount, togglePanel }: IMobileNav
     }
   }, [isTablet, isOpen]);
 
-  if ((!isMobile && !isTablet) || !mounted) {
-    return <MobileNavTrigger isOpen={isOpen} togglePanel={togglePanel} />;
-  }
-
   const showMobile = isMobile && mounted;
   const showTablet = isTablet && !isMobile && mounted;
 
   return (
     <>
       {<MobileNavTrigger isOpen={isOpen} togglePanel={togglePanel} />}
-      {showTablet && isOpen ? (
+      {showTablet ? (
         <Card
           className={`fixed top-[5rem] flex flex-col w-[24rem] overflow-clip h-[calc(100vh-6rem)] bg-white/100 z-[51] transition-all ${isOpen ? "right-[1.5rem]" : "-right-[38rem]"}`}
         >

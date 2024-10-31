@@ -1,10 +1,11 @@
+import useIsMobile from "@/hooks/display/useIsMobile";
 import { cn } from "@/utils/utils";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
 import WalletButton from "../../WalletButton";
 import Backdrop from "../../ui/Backdrop";
-import PriceButton from "../price-button/PriceButton";
-import SeasonsButton from "../season/SeasonsButton";
+import PriceButton from "../PriceButton";
+import SeasonsButton from "../SeasonsButton";
 import Navi from "./Navi.desktop";
 import MobileNavi from "./Navi.mobile";
 
@@ -26,8 +27,9 @@ const Navbar = () => {
     setOpenBackdrop(false);
     // Background blur animation duration is 100ms.
     // If we don't wait, the border color will change too early and the animation will look weird.
+    setOpenPanel(undefined);
     setTimeout(() => {
-      setOpenPanel(undefined);
+      //
     }, DURATION);
   };
 
@@ -41,26 +43,20 @@ const Navbar = () => {
     }
   };
 
-  console.log("backdropMounted", backdropMounted);
-
-  useEffect(() => {
-    if (!backdropMounted) {
-      setTimeout(() => {
-        setBackdropMounted(true);
-      }, DURATION);
-    }
-  }, [backdropMounted]);
-
   return (
     <>
       <div className={cn("fixed grid p-4 sm:p-6 w-full z-[2] bg-gradient-light", styles.navGrid)}>
         <div className="flex flex-row gap-2">
-          <div className={`${priceOpen && "z-[51]"}`}>
-            <PriceButton isOpen={priceOpen} togglePanel={() => togglePanel("price")} />
-          </div>
-          <div className={`${seasonsOpen && "z-[51]"}`}>
-            <SeasonsButton isOpen={seasonsOpen} togglePanel={() => togglePanel("seasons")} />
-          </div>
+          <PriceButton
+            isOpen={priceOpen}
+            togglePanel={() => togglePanel("price")}
+            className={`transition-all duration-100 ${priceOpen && "z-[51]"}`}
+          />
+          <SeasonsButton
+            isOpen={seasonsOpen}
+            togglePanel={() => togglePanel("seasons")}
+            className={`transition-all duration-100 ${seasonsOpen && "z-[51]"}`}
+          />
         </div>
         <div className="hidden lg:flex lg:justify-center">
           <Navi />
