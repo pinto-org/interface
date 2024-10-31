@@ -2,8 +2,8 @@ import { Slot } from "@radix-ui/react-slot";
 import { type VariantProps, cva } from "class-variance-authority";
 import * as React from "react";
 
-import { cn } from "@/utils/utils";
 import { deriveTextStyles } from "@/utils/theme";
+import { cn } from "@/utils/utils";
 import clsx from "clsx";
 
 const outlineBase = clsx(
@@ -33,10 +33,15 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: `h-10 w-max px-2 py-2 sm:px-4 sm:py-2 ${deriveTextStyles("body-light")}`,
+        default: `h-10 w-max px-2 py-2 sm:px-4 sm:py-2 ${deriveTextStyles("body-light", true)}`,
         lg: "h-10 rounded-md px-8",
-        sm: `h-8 rounded-md px-3 ${deriveTextStyles("xs")}`,
+        md: `h-10 px-2 py-2 sm:px-4 sm:py-2 ${deriveTextStyles("sm", true)}`,
+        sm: `h-8 rounded-md px-3 ${deriveTextStyles("xs", true)}`,
         icon: "h-9 w-9",
+      },
+      width: {
+        default: "w-max",
+        full: "w-full",
       },
       noShrink: {
         true: "flex-shrink-0",
@@ -62,16 +67,20 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, noShrink = false, rounded, ...props }, ref) => {
+  (
+    { className, variant, size = "default", asChild = false, noShrink = true, rounded, width = "default", ...props },
+    ref,
+  ) => {
     const Comp = asChild ? Slot : "button";
     return (
       <Comp
         className={cn(
           buttonVariants({
             variant,
-            size: size ?? "default",
+            size,
             noShrink: noShrink,
-            rounded: rounded,
+            rounded,
+            width,
             className,
           }),
         )}

@@ -1,10 +1,7 @@
-import { ClassValue } from "clsx";
 import React from "react";
 
-import { FontSize, FontVariant, FontWeight, TextAlign, textConfig } from "@/utils/theme";
+import { ITextBase, textConfig } from "@/utils/theme";
 import { cn } from "@/utils/utils";
-
-const { theme, variantConfig, methods } = textConfig;
 
 // Define a generic type for polymorphic props
 type AsProp<C extends React.ElementType = "div"> = {
@@ -19,36 +16,13 @@ type PolymorphicComponentProp<C extends React.ElementType, Props = {}> = React.P
   Omit<React.ComponentPropsWithRef<C>, PropsToOmit<C, Props>>;
 
 // Base Text props without the polymorphic behavior
-interface TextBaseProps {
-  variant?: FontVariant;
-  size?: FontSize;
-  weight?: FontWeight;
-  align?: TextAlign;
-}
 
 // Full Text component props with polymorphic behavior
-export type TextProps<C extends React.ElementType = "div"> = PolymorphicComponentProp<C, TextBaseProps>;
-
-export const deriveTextClassValues = (props: Partial<TextBaseProps>) => {
-  const variant = props.variant ?? "sm";
-  const size = props.size ?? variantConfig.fontSize[variant] ?? "sm";
-  const weight = props.weight ?? variantConfig.fontWeight[variant] ?? "default";
-  const letterSpacing = variantConfig.letterSpacing[variant] ?? "";
-
-  const classNames: ClassValue[] = [
-    theme.size[size],
-    theme.lineHeight[size],
-    theme.weight[weight],
-    theme.letterSpacing[letterSpacing],
-    methods.align(props.align),
-  ];
-
-  return classNames;
-};
+export type TextProps<C extends React.ElementType = "div"> = PolymorphicComponentProp<C, ITextBase>;
 
 const Text = React.forwardRef(
   <C extends React.ElementType = "div">(
-    { as, className, variant, size, weight, align, ...props }: TextProps<C>,
+    { as, className, variant, size, weight, align, color, ...props }: TextProps<C>,
     ref?: React.ComponentPropsWithRef<C>["ref"],
   ) => {
     const Component = as || "div";
@@ -57,7 +31,7 @@ const Text = React.forwardRef(
       <Component
         ref={ref}
         {...props}
-        className={cn(deriveTextClassValues({ variant, size, weight, align }), "text-black", className)}
+        className={cn(textConfig.methods.textClass({ variant, size, weight, align, color }), className)}
       />
     );
   },

@@ -1,61 +1,76 @@
 import sunIcon from "@/assets/protocol/Sun.png";
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
+import IconImage from "@/components/ui/IconImage";
+import Panel from "@/components/ui/Panel";
+import Text from "@/components/ui/Text";
 import useFieldSnapshots from "@/state/useFieldSnapshots";
 import useSiloSnapshots from "@/state/useSiloSnapshots";
 import { useSunData } from "@/state/useSunData";
+import { textConfig } from "@/utils/theme";
+import { cn } from "@/utils/utils";
+import clsx from "clsx";
 import { ExternalLinkIcon } from "../../Icons";
 import TooltipSimple from "../../TooltipSimple";
 import { Button } from "../../ui/Button";
-import { Card, CardContent, CardHeader } from "../../ui/Card";
+import { CardContent, CardHeader } from "../../ui/Card";
 import { Separator } from "../../ui/Separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../ui/Table";
+interface IPanelContent {
+  sunData: ReturnType<typeof useSunData>;
+  fieldSnapshots: ReturnType<typeof useFieldSnapshots>;
+  siloSnapshots: ReturnType<typeof useSiloSnapshots>;
+}
 
-export default function SeasonsButtonPanel({ isOpen = false }: { isOpen: boolean }) {
-  const sunData = useSunData();
-  const fieldSnapshots = useFieldSnapshots();
-  const siloSnapshots = useSiloSnapshots();
+const deriveTextStyles = textConfig.methods.variant;
+const deriveTextColor = textConfig.methods.color;
 
+const smTextStyles = clsx(...deriveTextStyles("sm"), deriveTextColor("secondary"));
+
+// TODO: Add rest of silo adjustments
+
+const PanelContent = ({ sunData, fieldSnapshots, siloSnapshots }: IPanelContent) => {
   return (
-    <Card
-      className={`absolute top-[5rem] transition-all ${isOpen ? "left-[1.5rem]" : "-left-[60rem]"} w-[60rem] overflow-clip h-[calc(100vh-6rem)] z-[51]`}
-    >
-      <CardHeader>
-        <div className="flex flex-row justify-between">
-          <div className="flex flex-col gap-1 mb-2">
-            <div className="font-[400] text-[1.25rem] text-black inline-flex gap-2 items-center">
-              <img src={sunIcon} className={"w-6 h-6"} />
+    <>
+      <CardHeader className="p-0">
+        <div className="flex flex-row w-full justify-between p-6 box-border gap-2">
+          <div className="flex flex-col gap-2">
+            <Text variant="body" className="inline-flex gap-2 items-center">
+              <IconImage size={6} src={sunIcon} />
               Season {sunData.current}
-            </div>
-            <div className="font-[300] text-[1rem] text-pinto-gray-4">
+            </Text>
+            <Text variant="sm" color="light">
               Seasons are how Pinto keeps time. Each Season is about 1 hour.
-            </div>
-            <div className="font-[300] text-[1rem] text-pinto-gray-4">
+            </Text>
+            <Text variant="sm" color="light">
               Pinto adjusts the supply and various incentives every Season to facilitate price stability.
-            </div>
+            </Text>
           </div>
-          <Button asChild variant={"outline"} className="rounded-full hover:cursor-pointer self-center h-[2.625rem]">
-            <a
+          <Button asChild variant={"outline"} rounded="full" className="self-center bg-white" size="md">
+            <Text
+              variant="sm"
+              as="a"
               href={`/explorer`}
               target={"_blank"}
               rel="noreferrer"
-              className="text-pinto-gray-5 hover:cursor-pointer transition-all gap-2"
+              color="secondary"
+              className="gap-2"
             >
               View more data
               <ExternalLinkIcon color="currentColor" width={16} height={16} />
-            </a>
+            </Text>
           </Button>
         </div>
-        <Separator className="w-[60rem] -ml-4" />
+        <Separator />
       </CardHeader>
       <CardContent className="px-0">
         <Table>
           <TableHeader className="[&_tr]:border-0">
             <TableRow className="h-14 border-0">
-              <TableHead className="text-black font-[400] text-[1rem] w-[15%] p-4">Season</TableHead>
-              <TableHead className="text-black text-right font-[400] text-[1rem] w-[25%]">Pinto Supply</TableHead>
-              <TableHead className="text-black text-right font-[400] text-[1rem] w-[25%]">Silo Adjustments</TableHead>
-              <TableHead className="text-black text-right font-[400] text-[1rem] w-[35%] p-4" colSpan={2}>
+              <TableHead className={cn("w-[15%] p-4", smTextStyles)}>Season</TableHead>
+              <TableHead className={cn("text-right w-[25%]", smTextStyles)}>Pinto Supply</TableHead>
+              <TableHead className={cn("text-right w-[25%]", smTextStyles)}>Silo Adjustments</TableHead>
+              <TableHead className={cn("text-right w-[35%] p-4", smTextStyles)} colSpan={2}>
                 Field Adjustments
               </TableHead>
             </TableRow>
@@ -69,39 +84,47 @@ export default function SeasonsButtonPanel({ isOpen = false }: { isOpen: boolean
                 : TokenValue.ZERO;
               return (
                 <TableRow key={`${snapshot.season}_${i}`} className="h-[4.5rem] bg-white hover:bg-white border-0">
-                  <TableCell className="text-black font-[400] text-[1rem] pl-4 items-center">
-                    {snapshot.season}
-                  </TableCell>
+                  {/**
+                   * Season
+                   */}
+                  <TableCell className={cn("pl-4 items-center", smTextStyles)}>{snapshot.season}</TableCell>
+                  {/**
+                   * Pinto Supply
+                   */}
                   <TableCell className="text-right">
                     <div className="flex flex-col items-end">
-                      <div
-                        className={`inline-flex gap-1 text-[1rem] items-center ${mints.gt(0) ? "text-pinto-green-2" : ""}`}
-                      >
+                      <Text className={`inline-flex gap-1 items-center ${mints.gt(0) ? "text-pinto-green-2" : ""}`}>
                         {mints.gt(0) && <span>+</span>}
-                        <img src={pintoIcon} className="w-4 h-4" />
+                        <IconImage size={4} src={pintoIcon} />
                         <span>{Number(mints.toHuman()).toFixed(0)}</span>
-                      </div>
-                      <span className="text-[0.875rem] font-[300] text-pinto-gray-4">New Pinto</span>
+                      </Text>
+                      <Text variant="xs" color="light">
+                        New Pinto
+                      </Text>
                     </div>
                   </TableCell>
+                  {/**
+                   * Silo Adjustments
+                   */}
+                  {/* TODO: */}
                   <TableCell className="text-black font-[400] text-[1rem] text-right">-</TableCell>
-                  <TableCell className="text-black font-[400] text-[1rem] text-right pr-4">
+                  <TableCell className={cn("text-right pr-4", smTextStyles)}>
                     <div className="flex flex-row gap-4 justify-end">
                       <div className="flex flex-col w-[60%]">
                         {`${snapshot.deltaSoil.gt(0) ? "+ " : snapshot.deltaSoil.lt(0) ? "- " : ""}${Number(snapshot.deltaSoil.abs().toHuman()).toFixed(0)}`}
-                        <span className="text-[0.875rem] font-[300] text-pinto-gray-4 inline-flex gap-0.5 items-center justify-end">
-                          New Soil
+                        <span className="inline-flex gap-0.5 items-center justify-end">
+                          <Text as="span" variant="xs" color="light">
+                            New Soil
+                          </Text>
                           <TooltipSimple
                             variant="gray"
                             content={
                               <>
-                                <div className="text-left">
-                                  Soil is the total number of Pinto that can be lent (Sown).
-                                </div>
-                                <div className="text-left text-pinto-gray-4">
+                                <Text align="left">Soil is the total number of Pinto that can be lent (Sown).</Text>
+                                <Text align="left" color="light">
                                   When the Pinto price is less than $1, the amount of Soil issued is set to the amount
                                   of excess Pinto.
-                                </div>
+                                </Text>
                               </>
                             }
                           />
@@ -114,22 +137,20 @@ export default function SeasonsButtonPanel({ isOpen = false }: { isOpen: boolean
                             {`(${snapshot.deltaTemperature > 0 ? "+" : snapshot.deltaTemperature < 0 ? "-" : ""}${snapshot.deltaTemperature.toFixed(0)}%)`}
                           </span>
                         </span>
-                        <span className="text-[0.875rem] font-[300] text-pinto-gray-4 inline-flex gap-0.5 items-center justify-end">
+                        <Text variant="xs" color="light" className="inline-flex gap-0.5 items-center justify-end">
                           Max Temperature
                           <TooltipSimple
                             variant="gray"
                             content={
                               <>
-                                <div className="text-left">
-                                  Temperature is the interest rate for lending (Sowing) Pinto .
-                                </div>
-                                <div className="text-left text-pinto-gray-4">
+                                <Text align="left">Temperature is the interest rate for lending (Sowing) Pinto .</Text>
+                                <Text color="light" align="left">
                                   Sown Pinto are burned, reducing the Pinto supply.
-                                </div>
+                                </Text>
                               </>
                             }
                           />
-                        </span>
+                        </Text>
                       </div>
                     </div>
                   </TableCell>
@@ -139,6 +160,18 @@ export default function SeasonsButtonPanel({ isOpen = false }: { isOpen: boolean
           </TableBody>
         </Table>
       </CardContent>
-    </Card>
+    </>
+  );
+};
+
+export default function SeasonsButtonPanel({ isOpen = false }: { isOpen: boolean }) {
+  const sunData = useSunData();
+  const fieldSnapshots = useFieldSnapshots();
+  const siloSnapshots = useSiloSnapshots();
+
+  return (
+    <Panel top={5} isOpen={isOpen} left={{ from: 60, to: 1.5 }} width={60}>
+      <PanelContent sunData={sunData} fieldSnapshots={fieldSnapshots} siloSnapshots={siloSnapshots} />
+    </Panel>
   );
 }

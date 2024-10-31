@@ -1,5 +1,4 @@
-import { useIsMobile } from "@/hooks/display/breakpoints";
-import { cn } from "@/utils/utils";
+import useIsMobile from "@/hooks/display/useIsMobile";
 import clsx from "clsx";
 
 export type BackdropProps = {

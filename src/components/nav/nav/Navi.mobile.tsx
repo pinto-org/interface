@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { Drawer, DrawerContent, DrawerOverlay, DrawerTrigger } from "@/components/ui/Drawer";
 import IconImage from "@/components/ui/IconImage";
 import Text from "@/components/ui/Text";
-import { useIsMobile } from "@/hooks/display/breakpoints";
+import useIsMobile from "@/hooks/display/useIsMobile";
 import useIsTablet from "@/hooks/display/useIsTablet";
 import { FontVariant } from "@/utils/theme";
 import { cn } from "@/utils/utils";

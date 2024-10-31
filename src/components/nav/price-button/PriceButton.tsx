@@ -3,7 +3,7 @@ import pintoIcon from "@/assets/tokens/PINTO.png";
 import PriceButtonPanel from "@/components/nav/price-button/PriceButtonPanel";
 import { Button } from "@/components/ui/Button";
 import IconImage from "@/components/ui/IconImage";
-import { useIsMobile } from "@/hooks/display/breakpoints";
+import useIsMobile from "@/hooks/display/useIsMobile";
 import { usePriceData } from "@/state/usePriceData";
 import { HTMLAttributes } from "react";
 
