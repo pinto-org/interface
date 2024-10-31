@@ -1,15 +1,15 @@
 import { usePriceData } from "@/state/usePriceData";
-import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
+import { Card, CardContent, CardFooter, CardHeader } from "../../ui/Card";
 import { TokenValue } from "@/classes/TokenValue";
 import useTokenData from "@/state/useTokenData";
-import { ExternalLinkIcon, ForwardArrowIcon, GearIcon } from "./Icons";
-import { Separator } from "./ui/Separator";
+import { ExternalLinkIcon, ForwardArrowIcon, GearIcon } from "../../Icons";
+import { Separator } from "../../ui/Separator";
 import pintoIconOriginal from "@/assets/tokens/PINTO.png";
 import backArrowIcon from "@/assets/misc/LeftArrow.svg";
 import { useState } from "react";
-import { Button } from "./ui/Button";
-import { Switch } from "./ui/Switch";
-import TooltipSimple from "./TooltipSimple";
+import { Button } from "../../ui/Button";
+import { Switch } from "../../ui/Switch";
+import TooltipSimple from "../../TooltipSimple";
 import { Token } from "@/utils/types";
 import { Link } from "react-router-dom";
 

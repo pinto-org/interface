@@ -3,44 +3,40 @@ import { ClassValue } from "clsx";
 // -------------------- Types --------------------
 
 export type FontVariant =
-	| "h1"
-	| "h2"
-	| "h3"
-	| "h4"
-	| "lg"
-	| "body"
-	| "body-light"
-	| "body-bold"
-	| "sm"
-	| "sm-light"
-	| "sm-bold"
-	| "xs";
+  | "h1"
+  | "h2"
+  | "h3"
+  | "h4"
+  | "lg"
+  | "body"
+  | "body-light"
+  | "body-bold"
+  | "sm"
+  | "sm-light"
+  | "sm-bold"
+  | "xs";
 
 export type FontSize =
-	| "h1" // 54px
-	| "h2" // 36px
-	| "h3" // 32px
-	| "h4" // 24px
-	| "body" // 20px
-	| "sm" // 16px
-	| "xs"; // 14px
+  | "h1" // 54px
+  | "h2" // 36px
+  | "h3" // 32px
+  | "h4" // 24px
+  | "body" // 20px
+  | "sm" // 16px
+  | "xs"; // 14px
 
 export type FontWeight = "thin" | "light" | "regular" | "medium";
 
-export type TextAlign =
-	| "left"
-	| "center"
-	| "right"
-	| "justify"
-	| "start"
-	| "end";
+export type TextAlign = "left" | "center" | "right" | "justify" | "start" | "end";
+
+export type LetterSpacing = "body-light" | "h3" | "h2" | "h1" | "none";
 
 type VariantLookup<T> = Record<FontVariant, T>;
 
 // -------------------- Theme --------------------
 
 // biome-ignore format: keep unformatted for readability
-const fontSize: Record<FontSize, ClassValue> = {
+const fontSize = {
 	xs: 	         "text-[0.875rem]", 		// 14px
 	sm: 	         "text-[1rem]", 				// 16px
 	body:          "text-[1.25rem]", 		// 20px
@@ -52,7 +48,7 @@ const fontSize: Record<FontSize, ClassValue> = {
 
 // biome-ignore format: keep unformatted for readability
 // size * 110%
-const fontLineHeights: Record<FontSize, ClassValue> = {
+const fontLineHeights = {
 	xs:            "leading-[.9625rem]",
 	sm:            "leading-[1.1rem]",
 	body:          "leading-[1.375rem]",
@@ -63,7 +59,7 @@ const fontLineHeights: Record<FontSize, ClassValue> = {
 } as const;
 
 // biome-ignore format: keep unformatted for readability
-const fontWeights: Record<FontWeight, ClassValue> = {
+const fontWeights = {
 	thin:          "font-[300]",
 	light:         "font-[340]",
 	regular:       "font-[400]",
@@ -71,11 +67,12 @@ const fontWeights: Record<FontWeight, ClassValue> = {
 } as const;
 
 // biome-ignore format: keep unformatted for readability
-const letterSpacings: Partial<VariantLookup<ClassValue>> = {
+const letterSpacings = {
 	"body-light":  "tracking-[-0.025rem]",
 	h3:            "tracking-[-.04rem]",
 	h2:            "tracking-[.0315rem]",
 	h1:            "tracking-[-0.069rem]",
+	none:       "tracking-[0rem]",
 } as const;
 
 // biome-ignore format: keep unformatted for readability
@@ -113,55 +110,56 @@ export const config = {
 		h2:             "h2",
 		h3:             "h3",
 		"body-light":   "body-light",
-	} satisfies Partial<VariantLookup<keyof typeof letterSpacings>>,
+		none:           "none",
+	} satisfies Partial<VariantLookup<LetterSpacing> & { none: LetterSpacing }>,
 } as const;
 
 // -------------------- Functions --------------------
 
-const getTextAlign = (align?: TextAlign) => {
-	return align ? `text-align: ${align}` : undefined;
+const getTextAlign = (align: TextAlign = "left") => {
+  return `text-${align}`;
 };
 
 const getTextSize = (size: FontSize = "sm") => {
-	return fontSize[size];
+  return fontSize[size];
 };
 
 const getTextWeight = (weight: FontWeight = "regular") => {
-	return fontWeights[weight];
+  return fontWeights[weight];
 };
 
-const getTextLetterSpacing = (letterSpacing: keyof typeof letterSpacings) => {
-	return letterSpacings[letterSpacing];
+const getLetterSpacing = (letterSpacing: LetterSpacing = "none") => {
+  return letterSpacings[letterSpacing];
 };
 
 // -------------------- Theme --------------------
 
 export const textTheme = {
-	size: fontSize,
-	lineHeight: fontLineHeights,
-	weight: fontWeights,
-	letterSpacing: letterSpacings,
+  size: fontSize,
+  lineHeight: fontLineHeights,
+  weight: fontWeights,
+  letterSpacing: letterSpacings,
 } as const;
 
 export const textConfig = {
-	theme: {
-		...textTheme,
-	},
-	config,
-	methods: {
-		align: getTextAlign,
-		fontSize: getTextSize,
-		fontWeight: getTextWeight,
-		letterSpacing: getTextLetterSpacing,
-	},
+  theme: {
+    ...textTheme,
+  },
+  variantConfig: config,
+  methods: {
+    align: getTextAlign,
+    fontSize: getTextSize,
+    fontWeight: getTextWeight,
+    letterSpacing: getLetterSpacing,
+  },
 } as const;
 
 // -------------------- Functions --------------------
 
 export const deriveTextStyles = (variant: FontVariant) => {
-	return [
-		fontSize[config.fontSize[variant] ?? "sm"],
-		fontWeights[config.fontWeight[variant] ?? "default"],
-		letterSpacings[config.letterSpacing[variant] ?? ""],
-	].join(" ");
+  return [
+    fontSize[config.fontSize[variant] ?? "sm"],
+    fontWeights[config.fontWeight[variant] ?? "default"],
+    letterSpacings[config.letterSpacing[variant] ?? ""],
+  ].join(" ");
 };

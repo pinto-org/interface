@@ -37,7 +37,8 @@
         "noExtraBooleanCast": "off",
         "noUselessRename": "off",
         "useOptionalChain": "warn",
-        "noUselessFragments": "off"
+        "noUselessFragments": "off",
+        "noBannedTypes": "off"
       },
       "correctness": {
         "noInnerDeclarations": "error",

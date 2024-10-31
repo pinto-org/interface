@@ -44,6 +44,9 @@ const buttonVariants = cva(
       rounded: {
         full: "rounded-full",
       },
+      hover: {
+        green4: "hover:border-pinto-green-4",
+      },
     },
     defaultVariants: {
       variant: "default",

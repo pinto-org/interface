@@ -103,6 +103,8 @@ export default function Overview() {
     });
   }
 
+  return null;
+
   return (
     <div
       className={`flex flex-col ${hasDeposits ? "pt-64" : "justify-center text-center min-h-[calc(100vh-15rem)]"} gap-52`}

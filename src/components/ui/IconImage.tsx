@@ -1,29 +1,34 @@
+import React from "react";
 import { cn } from "@/utils/utils";
-import clsx from "clsx";
+import { ChevronUpIcon, ChevronDownIcon, Cross1Icon } from "@radix-ui/react-icons";
 
-export interface IconImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
-  size?: number;
+export interface IconImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, "src"> {
+  size: number;
   mobileSize?: number;
+  src: string | typeof ChevronUpIcon;
 }
 
-const makeIconImageClassName = (size: number, mobileSize?: number) => {
-  const className = `h-${size} w-${size} min-w-${size} min-h-${size} max-h-${size} max-w-${size} flex-shrink-0`;
-  if (mobileSize) {
-    const mobileClassName = `sm:h-${mobileSize} sm:w-${mobileSize} sm:min-w-${mobileSize} sm:min-h-${mobileSize} sm:max-h-${mobileSize} sm:max-w-${mobileSize}`;
-    return clsx(className, mobileClassName);
-  }
-  return className;
+const makeIconImageClassName = (s: number, ms?: number) => {
+  const base = ms ?? s;
+  const className = `h-${base} w-${base} min-w-${base} min-h-${base} max-h-${base} max-w-${base}`;
+
+  return `${className} sm:h-${s} sm:w-${s} sm:min-w-${s} sm:min-h-${s} sm:max-h-${s} sm:max-w-${s}`;
 };
 
-const IconImage = ({ size: _size = 6, mobileSize = 2, ...props }: IconImageProps) => {
-  const size = _size;
-  return (
-    <img
-      className={makeIconImageClassName(size, mobileSize)}
-      {...props}
-      alt={props.alt} // Have this here to prevent ally linter from complaining
-    />
-  );
+const IconImage = ({ size = 6, mobileSize, src, ...props }: IconImageProps) => {
+  if (typeof src === "string") {
+    return (
+      <img
+        {...props}
+        src={src}
+        className={cn(makeIconImageClassName(size, mobileSize), props.className, "flex-shrink-0")}
+        alt={props.alt} // Have this here to prevent ally linter from complaining
+      />
+    );
+  }
+
+  const Icon = src;
+  return <Icon className={cn(makeIconImageClassName(size, mobileSize), props.className, "flex-shrink-0")} />;
 };
 
 export default IconImage;

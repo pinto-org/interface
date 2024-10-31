@@ -17,9 +17,9 @@ export default function SeasonsButton({ isOpen = false, togglePanel }: { isOpen:
         noShrink
         rounded="full"
       >
-        <IconImage src={sunIcon} />
+        <IconImage src={sunIcon} size={6} />
         <div className="hidden sm:block">Season {sunData.current}</div>
-        <IconImage src={chevronDown} size={4} />
+        <IconImage src={chevronDown} size={4} mobileSize={2.5} />
       </Button>
       <SeasonsButtonPanel isOpen={isOpen} />
     </>
