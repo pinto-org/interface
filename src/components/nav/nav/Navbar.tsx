@@ -24,12 +24,7 @@ const Navbar = () => {
 
   const closePanel = () => {
     setOpenBackdrop(false);
-    // Background blur animation duration is 100ms.
-    // If we don't wait, the border color will change too early and the animation will look weird.
     setOpenPanel(undefined);
-    setTimeout(() => {
-      //
-    }, DURATION);
   };
 
   const togglePanel = (panel: Panel) => {
