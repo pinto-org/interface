@@ -18,7 +18,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import type { BaseError } from "viem";
-import { useChainId, useWriteContract } from "wagmi";
+import { useAccount, useChainId, useWriteContract } from "wagmi";
 
 export default function Swap() {
   const BEAN = useTokenData().mainToken;
@@ -30,6 +30,7 @@ export default function Swap() {
   const [tokenOut, setTokenOut] = useState(OUTPUT_TOKEN);
   const [balanceTo, setBalanceTo] = useState(FarmToMode.EXTERNAL);
   const [slippage, setSlippage] = useState(0.1);
+  const account = useAccount();
   const chainId = useChainId();
 
   const queryClient = useQueryClient();
@@ -131,6 +132,7 @@ export default function Swap() {
               setBalanceFrom={setBalanceFrom}
               selectedToken={tokenIn}
               balanceFrom={balanceFrom}
+              disableClamping={!account.address}
             />
           </div>
           <div className="flex flex-row justify-center">

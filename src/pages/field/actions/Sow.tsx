@@ -61,7 +61,7 @@ function Sow() {
     const _minTemperature = TokenValue.fromHuman("0", mainToken.decimals);
 
     const minTemp = _minTemperature.gt(field.temperature.scaled) ? _minTemperature : field.temperature.scaled;
-    const minSoil = amount.subSlippage(slippage);
+    const minSoil = TokenValue.ZERO;
 
     if (isUsingMain) {
       const tx = () =>

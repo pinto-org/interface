@@ -18,3 +18,8 @@ For testing purposes, an API key is provided. Will be removed later
 
 # Start development server
 yarn dev
+```
+
+## License
+
+[MIT](https://github.com/pintomoney/interface/blob/main/LICENSE.txt)
