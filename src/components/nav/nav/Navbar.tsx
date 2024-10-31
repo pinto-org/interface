@@ -48,18 +48,10 @@ const Navbar = () => {
       <div className={cn("fixed grid p-4 sm:p-6 w-full z-[2] bg-gradient-light", styles.navGrid)}>
         <div className="flex flex-row gap-2">
           <div className={`transition-all duration-100 ${priceOpen && "z-[51]"}`}>
-            <PriceButton
-              isOpen={priceOpen}
-              togglePanel={() => togglePanel("price")}
-              // className={`transition-all duration-100 ${priceOpen && "z-[51]"}`}
-            />
+            <PriceButton isOpen={priceOpen} togglePanel={() => togglePanel("price")} />
           </div>
           <div className={`transition-all duration-100 ${seasonsOpen && "z-[51]"}`}>
-            <SeasonsButton
-              isOpen={seasonsOpen}
-              togglePanel={() => togglePanel("seasons")}
-              // className={`transition-all duration-100 ${seasonsOpen && "z-[51]"}`}
-            />
+            <SeasonsButton isOpen={seasonsOpen} togglePanel={() => togglePanel("seasons")} />
           </div>
         </div>
         <div className="hidden lg:flex lg:justify-center">
@@ -79,11 +71,9 @@ const Navbar = () => {
             />
           </div>
         </div>
-        {/* {backdropMounted && ( */}
         <div className="hidden sm:block">
           <Backdrop active={openBackdrop} onClick={closePanel} transitionDuration={DURATION} />
         </div>
-        {/* )} */}
       </div>
     </>
   );

@@ -4,11 +4,6 @@ import { cn } from "@/utils/utils";
 import { useMemo } from "react";
 import { Card } from "./Card";
 
-interface TransitionConfig {
-  from: number;
-  to: number;
-}
-
 export interface ISidebar extends React.ComponentProps<typeof Card> {
   top: number;
   isOpen: boolean;
