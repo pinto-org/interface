@@ -42,7 +42,7 @@ function PriceButtonPanel() {
   const [showPrices, setShowPrices] = useState(false);
 
   return (
-    <>
+    <div>
       <CardHeader className="transition-all">
         {!showSettings ? (
           <div className="pb-4">
@@ -348,7 +348,7 @@ function PriceButtonPanel() {
           </span>
         </Button>
       )}
-    </>
+    </div>
   );
 }
 
@@ -359,6 +359,17 @@ export interface IPriceButton extends HTMLAttributes<HTMLButtonElement> {
 
 // const panelStyles = `absolute top-[5rem] transition-all ${isOpen ? "left-[1.5rem]" : "-left-[38rem]"} w-[38rem] overflow-clip h-[calc(100vh-6rem)] z-[51]`;
 
+const PriceButtonTrigger = ({ isOpen, togglePanel, price, ...props }: IPriceButton & { price: TokenValue }) => {
+  const isMobile = useIsMobile();
+  return (
+    <Button variant="outline-primary" size="default" rounded="full" noShrink {...props} onClick={togglePanel}>
+      <IconImage src={pintoIcon} size={6} alt="pinto icon" />
+      <>${Number(price.toHuman()).toFixed(isMobile ? 2 : 4)}</>
+      <IconImage src={chevronDown} size={4} mobileSize={2.5} alt="chevron down" />
+    </Button>
+  );
+};
+
 export default function PriceButton({ isOpen = false, togglePanel, ...props }: IPriceButton) {
   const priceData = usePriceData();
   const isMobile = useIsMobile();
@@ -368,17 +379,10 @@ export default function PriceButton({ isOpen = false, togglePanel, ...props }: I
       top={5}
       isOpen={isOpen}
       toggle={togglePanel}
-      left={{ from: 60, to: 1.5 }}
+      side="left"
       width={38}
       trigger={
-        <Button
-          variant="outline-primary"
-          size="default"
-          rounded="full"
-          noShrink
-          className={cn(`flex flex-row gap-2 ${isOpen && "border-pinto-green"}`, props.className)}
-          onClick={() => togglePanel()}
-        >
+        <Button variant="outline-primary" size="default" rounded="full" noShrink {...props} onClick={togglePanel}>
           <IconImage src={pintoIcon} size={6} alt="pinto icon" />
           <>${Number(priceData.price.toHuman()).toFixed(isMobile ? 2 : 4)}</>
           <IconImage src={chevronDown} size={4} mobileSize={2.5} alt="chevron down" />

@@ -181,7 +181,7 @@ export default function SeasonsButton({ isOpen = false, togglePanel, ...props }:
     <Panel
       top={5}
       isOpen={isOpen}
-      left={{ from: 60, to: 1.5 }}
+      side="left"
       width={60}
       trigger={
         <Button
