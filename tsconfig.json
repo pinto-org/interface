@@ -20,7 +20,7 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
-    "exactOptionalPropertyTypes": true,
+    "exactOptionalPropertyTypes": false,
     "noImplicitAny": false,
 
     "baseUrl": ".",

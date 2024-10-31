@@ -5,6 +5,12 @@ module.exports = {
   darkMode: ["class"],
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
+    // also change in src/utils/theme/breakpoints.ts
+    screens: {
+      sm: "768px",
+      md: "900px",
+      lg: "1100px",
+    },
     container: {
       center: true,
       padding: "2rem",
@@ -73,6 +79,8 @@ module.exports = {
           "linear-gradient(90deg, rgba(233, 231, 224, 0.2) 0%, rgba(254, 225, 140, 0.2) 0.01%, rgba(241, 248, 140, 0.4) 100%)",
         "pinto-morning-strong":
           "linear-gradient(90deg, #E9E7E0 0%, #FEE18C 52.5%, #F1F88C 100%);",
+        "pinto-mobile-navi":
+          "linear-gradient(90deg, rgba(233, 231, 224, 0.2) 0%, rgba(254, 225, 140, 0.2) 52.5%, rgba(241, 248, 140, 0.2) 100%)",
       },
       borderRadius: {
         lg: `var(--radius)`,
@@ -85,6 +93,10 @@ module.exports = {
       fontFamily: {
         pinto: ["Pinto", "system-ui", "sans-serif"],
         roboto: ["Roboto", "system-ui", "sans-serif"],
+      },
+      gridTemplateColumns: {
+        frame: "350px, 1fr, 200px",
+        frameMobile: "350px,  1fr",
       },
       keyframes: {
         "accordion-down": {

@@ -1,19 +1,26 @@
-import { usePriceData } from "@/state/usePriceData";
-import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
-import { TokenValue } from "@/classes/TokenValue";
-import useTokenData from "@/state/useTokenData";
-import { ExternalLinkIcon, ForwardArrowIcon, GearIcon } from "./Icons";
-import { Separator } from "./ui/Separator";
-import pintoIconOriginal from "@/assets/tokens/Pinto.png";
+import chevronDown from "@/assets/misc/ChevronDown.svg";
 import backArrowIcon from "@/assets/misc/LeftArrow.svg";
-import { useState } from "react";
-import { Button } from "./ui/Button";
-import { Switch } from "./ui/Switch";
-import TooltipSimple from "./TooltipSimple";
+import pintoIcon from "@/assets/tokens/PINTO.png";
+import pintoIconOriginal from "@/assets/tokens/PINTO.png";
+import { TokenValue } from "@/classes/TokenValue";
+import { Button } from "@/components/ui/Button";
+import IconImage from "@/components/ui/IconImage";
+import Panel from "@/components/ui/Panel";
+import useIsMobile from "@/hooks/display/useIsMobile";
+import { usePriceData } from "@/state/usePriceData";
+import useTokenData from "@/state/useTokenData";
 import { Token } from "@/utils/types";
+import { cn } from "@/utils/utils";
+import { HTMLAttributes } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { ExternalLinkIcon, ForwardArrowIcon, GearIcon } from "../Icons";
+import TooltipSimple from "../TooltipSimple";
+import { Card, CardContent, CardFooter, CardHeader } from "../ui/Card";
+import { Separator } from "../ui/Separator";
+import { Switch } from "../ui/Switch";
 
-export default function PriceButtonPanel({ isOpen = false }: { isOpen: boolean }) {
+function PriceButtonPanel() {
   const priceData = usePriceData();
   const tokenData = useTokenData();
 
@@ -35,9 +42,7 @@ export default function PriceButtonPanel({ isOpen = false }: { isOpen: boolean }
   const [showPrices, setShowPrices] = useState(false);
 
   return (
-    <Card
-      className={`absolute top-[5rem] transition-all ${isOpen ? "left-[1.5rem]" : "-left-[38rem]"} w-[38rem] overflow-clip h-[calc(100vh-6rem)] z-[51]`}
-    >
+    <div>
       <CardHeader className="transition-all">
         {!showSettings ? (
           <div className="pb-4">
@@ -343,6 +348,48 @@ export default function PriceButtonPanel({ isOpen = false }: { isOpen: boolean }
           </span>
         </Button>
       )}
-    </Card>
+    </div>
+  );
+}
+
+export interface IPriceButton extends HTMLAttributes<HTMLButtonElement> {
+  isOpen: boolean;
+  togglePanel: () => void;
+}
+
+// const panelStyles = `absolute top-[5rem] transition-all ${isOpen ? "left-[1.5rem]" : "-left-[38rem]"} w-[38rem] overflow-clip h-[calc(100vh-6rem)] z-[51]`;
+
+const PriceButtonTrigger = ({ isOpen, togglePanel, price, ...props }: IPriceButton & { price: TokenValue }) => {
+  const isMobile = useIsMobile();
+  return (
+    <Button variant="outline-primary" size="default" rounded="full" noShrink {...props} onClick={togglePanel}>
+      <IconImage src={pintoIcon} size={6} alt="pinto icon" />
+      <>${Number(price.toHuman()).toFixed(isMobile ? 2 : 4)}</>
+      <IconImage src={chevronDown} size={4} mobileSize={2.5} alt="chevron down" />
+    </Button>
+  );
+};
+
+export default function PriceButton({ isOpen = false, togglePanel, ...props }: IPriceButton) {
+  const priceData = usePriceData();
+  const isMobile = useIsMobile();
+
+  return (
+    <Panel
+      top={5}
+      isOpen={isOpen}
+      toggle={togglePanel}
+      side="left"
+      width={38}
+      trigger={
+        <Button variant="outline-primary" size="default" rounded="full" noShrink {...props} onClick={togglePanel}>
+          <IconImage src={pintoIcon} size={6} alt="pinto icon" />
+          <>${Number(priceData.price.toHuman()).toFixed(isMobile ? 2 : 4)}</>
+          <IconImage src={chevronDown} size={4} mobileSize={2.5} alt="chevron down" />
+        </Button>
+      }
+    >
+      <PriceButtonPanel />
+    </Panel>
   );
 }

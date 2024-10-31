@@ -1,20 +1,21 @@
-import { useAccount, useDisconnect, useEnsAvatar, useEnsName } from "wagmi";
-import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
-import { Avatar } from "connectkit";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { usePriceData } from "@/state/usePriceData";
 import { TokenValue } from "@/classes/TokenValue";
+import { useFarmerBalances } from "@/state/useFarmerBalances";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { usePriceData } from "@/state/usePriceData";
+import { Avatar } from "connectkit";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAccount, useDisconnect, useEnsAvatar, useEnsName } from "wagmi";
+import ChainButton from "./ChainButton";
+import DonutChart from "./DonutChart";
+import { BackwardArrowDotsIcon, ChevronDownIcon, CloseIcon, LeftArrowIcon, UpDownArrowsIcon } from "./Icons";
+import WalletButtonClaim from "./WalletButtonClaim";
+import WalletButtonTransfer from "./WalletButtonTransfer";
 import { Button } from "./ui/Button";
+import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
 import { Separator } from "./ui/Separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/Tabs";
-import { BackwardArrowDotsIcon, ChevronDownIcon, CloseIcon, LeftArrowIcon, UpDownArrowsIcon } from "./Icons";
 import { Toggle } from "./ui/Toggle";
-import { useState } from "react";
-import WalletButtonTransfer from "./WalletButtonTransfer";
-import DonutChart from "./DonutChart";
-import { useNavigate } from "react-router-dom";
-import WalletButtonClaim from "./WalletButtonClaim";
-import { useFarmerSilo } from "@/state/useFarmerSilo";
 
 export default function WalletButtonPanel({
   isOpen = false,
@@ -41,9 +42,17 @@ export default function WalletButtonPanel({
       const internalValue = tokenBalance[1].internal.mul(price).add(totalBalance.internal);
       const externalValue = tokenBalance[1].external.mul(price).add(totalBalance.external);
       const totalValue = tokenBalance[1].total.mul(price).add(totalBalance.total);
-      return { internal: internalValue, external: externalValue, total: totalValue };
+      return {
+        internal: internalValue,
+        external: externalValue,
+        total: totalValue,
+      };
     },
-    { internal: TokenValue.ZERO, external: TokenValue.ZERO, total: TokenValue.ZERO },
+    {
+      internal: TokenValue.ZERO,
+      external: TokenValue.ZERO,
+      total: TokenValue.ZERO,
+    },
   );
 
   const [showTransfer, setShowTransfer] = useState(false);
@@ -279,6 +288,7 @@ export default function WalletButtonPanel({
             </div>
           </CardContent>
           <CardFooter className="absolute bottom-0 mx-auto left-0 right-0 text-center justify-center flex flex-col gap-4">
+            <ChainButton />
             <Button
               variant="ghost"
               className="inline-flex items-center gap-2 rounded-full text-black bg-pinto-gray-1 hover:hover:bg-pinto-green hover:text-white"

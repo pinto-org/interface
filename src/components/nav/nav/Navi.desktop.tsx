@@ -1,12 +1,13 @@
-import { Link as ReactLink, useLocation } from "react-router-dom";
 import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
   navigationMenuTriggerStyle,
-} from "./ui/NavigationMenu";
+} from "@/components/ui/NavigationMenu";
 import { useState } from "react";
+import { Link as ReactLink, useLocation } from "react-router-dom";
+import { navLinks } from "./Navbar";
 
 const Link = ({
   href,
@@ -14,7 +15,13 @@ const Link = ({
   topMenu,
   className,
   ...props
-}: { href?: string; active?: boolean; topMenu?: boolean; className?: string; [x: string]: any }) => {
+}: {
+  href?: string;
+  active?: boolean;
+  topMenu?: boolean;
+  className?: string;
+  [x: string]: any;
+}) => {
   const location = useLocation();
   const isActive =
     active ||
@@ -48,19 +55,19 @@ const AppNavi = () => {
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <Link href="/">Overview</Link>
+          <Link href={navLinks.overview}>Overview</Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="/silo">Silo</Link>
+          <Link href={navLinks.silo}>Silo</Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="/field">Field</Link>
+          <Link href={navLinks.field}>Field</Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="/market">Market</Link>
+          <Link href={navLinks.market}>Market</Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="/explorer">Explorer</Link>
+          <Link href={navLinks.explorer}>Explorer</Link>
         </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>
@@ -72,10 +79,10 @@ const DocNavi = () => {
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <Link href="https://link.to.pinto/whitepaper.pdf">Whitepaper</Link>
+          <Link href={navLinks.whitepaper}>Whitepaper</Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="https://link.to.pinto/docs">Documentation</Link>
+          <Link href={navLinks.docs}>Documentation</Link>
         </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>
@@ -87,22 +94,22 @@ const MoreNavi = () => {
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <Link href="https://link.to.pinto/pintocord">Discord</Link>
+          <Link href={navLinks.discord}>Discord</Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="https://link.to.pinto/github">Github</Link>
+          <Link href={navLinks.github}>Github</Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="https://link.to.pinto/disclosures">Disclosures</Link>
+          <Link href={navLinks.disclosures}>Disclosures</Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="https://link.to.pinto/bugbounty">Bug Bounty Program</Link>
+          <Link href={navLinks.bugbounty}>Bug Bounty Program</Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="https://pinto.exchange/">Basin</Link>
+          <Link href={navLinks.exchange}>Exchange</Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="https://evmpipeline.org/">Pipeline</Link>
+          <Link href={navLinks.pipeline}>Pipeline</Link>
         </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>
@@ -113,11 +120,11 @@ export default function Navi() {
   const [naviTab, setNaviTab] = useState<string | undefined>("app");
 
   return (
-    <div className="flex flex-col items-center justify-center gap-5" onMouseLeave={() => setNaviTab("app")}>
+    <div className="flex flex-col items-center justify-center gap-5 z-[2]" onMouseLeave={() => setNaviTab("app")}>
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
-            <Link href="/lmao" topMenu>
+            <Link href="/" topMenu>
               Home
             </Link>
           </NavigationMenuItem>
