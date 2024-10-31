@@ -38,7 +38,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const useSwap = !(tokenIn.address.toLowerCase() === siloToken.address.toLowerCase());
 
   useEffect(() => {
-    console.log("ineffect2: ", siloToken.address, mainToken.address);
     if (siloToken.address === mainToken.address) {
       setPool(undefined);
     } else {
@@ -64,7 +63,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   );
 
   useEffect(() => {
-    console.log("ISSUCCESS: ", isSuccess);
     if (isSuccess) {
       // invalidating query results to trigger a refetch
       queryClient.invalidateQueries({ queryKey });
@@ -72,7 +70,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   }, [isSuccess, queryKey, queryClient.invalidateQueries]);
 
   function onSubmit() {
-    console.log("USESWAP: ", useSwap, swapData?.output);
     const depositData = deposit(
       siloToken,
       useSwap ? swapData?.output : TokenValue.fromHuman(amountIn, tokenIn.decimals),

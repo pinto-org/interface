@@ -67,6 +67,8 @@ function ComboInputField({
     }
   }
 
+  console.log("amouintIn: ", amount);
+
   useDebounce(
     () => {
       setAmount(internalAmount);
@@ -91,7 +93,7 @@ function ComboInputField({
           setInternalAmount(value);
         } else {
           setInternalAmount(inputTV.toHuman());
-        };
+        }
       }
     }
   }
