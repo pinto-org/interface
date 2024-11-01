@@ -6,7 +6,9 @@
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
-    "lineWidth": 120
+    "lineWidth": 120,
+    "lineEnding": "lf",
+    "indentWidth": 2
   },
   "linter": {
     "enabled": true,
@@ -34,7 +36,9 @@
         "noStaticOnlyClass": "off",
         "noExtraBooleanCast": "off",
         "noUselessRename": "off",
-        "useOptionalChain": "warn"
+        "useOptionalChain": "warn",
+        "noUselessFragments": "off",
+        "noBannedTypes": "off"
       },
       "correctness": {
         "noInnerDeclarations": "error",
@@ -45,7 +49,7 @@
       },
       "a11y": {
         "useKeyWithClickEvents": "off",
-        "noSvgWithoutTitle": "warn",
+        "noSvgWithoutTitle": "off",
         "useAltText": "warn",
         "noBlankTarget": "error",
         "useValidAriaRole": "warn",
