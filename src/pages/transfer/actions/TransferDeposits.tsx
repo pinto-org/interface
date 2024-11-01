@@ -10,7 +10,6 @@ import { type Address, type BaseError, encodeFunctionData } from "viem";
 import { useAccount, useChainId, useWriteContract } from "wagmi";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import StepOne from "./deposits/StepOne";
-import StepTwoMax from "./deposits/StepTwoMax";
 import FinalStep from "./deposits/FinalStep";
 import { sortAndPickCrates } from "@/utils/convert";
 import StepTwo from "./deposits/StepTwo";
@@ -52,19 +51,9 @@ export default function TransferDeposits() {
             case 1:
                 return transferData.length > 0;
             case 2:
-                if (usingMax) {
-                    return !!destination
-                } else {
-                    return false
-                }
-            case 3:
-                if (usingMax) {
-                    return true
-                } else {
-                    return false
-                }
+                return !!destination
             default:
-                return false
+                return true
         }
     }
 
@@ -119,7 +108,7 @@ export default function TransferDeposits() {
       });
 
     toast.promise(tx, {
-      loading: "Transferring everything...",
+      loading: "Transferring deposits...",
       success: (data) => {
         return "Transfer complete!";
       },
@@ -138,34 +127,30 @@ export default function TransferDeposits() {
     <FlowForm
       stepNumber={step}
       setStep={setStep}
-      totalSteps={usingMax ? 3 : 4}
+      totalSteps={3}
       enableNextStep={enableNextStep()}
       onSubmit={onSubmit}
       stepDescription={stepDescription()}
       customBackStepFunction={(usingMax && step === 2) ? () => backToFirstStep() : undefined}
     >
       {step === 1 ? 
-        <StepOne
-          transferData={transferData}
-          setTransferData={setTransferData}
-          usingMax={usingMax}
-          setUsingMax={setUsingMax}
-        />
-        : step === 2 
-            ? usingMax ? 
-              <StepTwoMax 
-                  destination={destination} 
-                  setDestination={setDestination} 
-                  usingMax={usingMax}
-                  setUsingMax={setUsingMax} 
-              />
-              : <StepTwo 
-                  transferData={transferData}
-                  setTransferData={setTransferData}
-                />
-        : step === 3 && usingMax ?
-            <FinalStep destination={destination} />
-        : undefined
+          <StepOne
+            transferData={transferData}
+            setTransferData={setTransferData}
+            usingMax={usingMax}
+            setUsingMax={setUsingMax}
+          />
+        : step === 2 ?
+          <StepTwo 
+            transferData={transferData}
+            setTransferData={setTransferData}
+            destination={destination} 
+            setDestination={setDestination} 
+            usingMax={usingMax}
+            backToFirstStep={backToFirstStep}
+          />
+        : 
+          <FinalStep destination={destination} transferData={transferData} />
     }
     </FlowForm>
   );

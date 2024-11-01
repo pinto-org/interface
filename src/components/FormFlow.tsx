@@ -46,13 +46,13 @@ export default function FlowForm({ children, stepNumber, stepDescription, totalS
       </div>
       <div className="flex flex-col gap-12">
         {children}
-        {enableNextStep &&
         <> 
         <Separator />
         <div className="flex flex-row justify-between">
           <Button
             onClick={handleNextStep}
             variant={!isFinalStep ? 'defaultAlt' : 'default'}
+            disabled={!enableNextStep}
             className="rounded-full font-[400] text-[1.5rem] px-6 h-[3.625rem]"
           >
             {isFinalStep ? "Send" : "Continue"}
@@ -69,7 +69,7 @@ export default function FlowForm({ children, stepNumber, stepDescription, totalS
               </div>
             </Button>
             <Button
-              disabled={isFinalStep}
+              disabled={isFinalStep || !enableNextStep}
               onClick={handleNextStep}
               variant={!isFinalStep ? 'defaultAlt' : 'default'}
               className={`rounded-l-none rounded-r-full border-l h-[3.625rem] px-6 ${!isFinalStep ? "border-l-pinto-green-3" : "border-l-white"}`}
@@ -81,7 +81,6 @@ export default function FlowForm({ children, stepNumber, stepDescription, totalS
           </div>
         </div>
         </>
-        }
       </div>
     </>
   );

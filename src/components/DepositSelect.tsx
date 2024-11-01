@@ -1,5 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
-import { DepositData, Token, TokenDepositData } from "@/utils/types";
+import { DepositData, Token } from "@/utils/types";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useAccount } from "wagmi";
 import { Button } from "./ui/Button";
@@ -13,18 +13,11 @@ import {
   DialogTrigger,
 } from "./ui/Dialog";
 import { Separator } from "./ui/Separator";
-import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
+import { ToggleGroup } from "./ui/ToggleGroup";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import DepositsTable from "@/pages/silo/DepositsTable";
 import { ChevronRightIcon } from "./Icons";
-
-
-export interface DepositTransferData {
-    token: Token, 
-    amount: string, 
-    deposits: DepositData[]
-  }
-
+import { DepositTransferData } from "@/pages/transfer/actions/TransferDeposits";
 
 export default function DepositSelect({
   setTransferData,
@@ -43,6 +36,16 @@ export default function DepositSelect({
     const farmerDeposits = depositedBalances.data.get(token);
 
   const [selected, setSelected] = useState<string[]>([]);
+
+    const totalDeposits = farmerDeposits?.deposits.length ?? 0;
+
+    // Determine button text based on selection state
+    const getButtonText = () => {
+        if (selected.length === 0 || selected.length === totalDeposits) {
+            return "Select specific deposits to send";
+        }
+        return `Selected ${selected.length} deposit${selected.length > 1 ? 's' : ''}`;
+    };
 
   // Function to handle deposit selection
   const handleDepositSelection = (value: string[]) => {
@@ -66,15 +69,29 @@ export default function DepositSelect({
       TokenValue.ZERO
     ).toHuman();
 
-    // Create the DepositTransferData object
-    const transferData: DepositTransferData = {
-      token: token,
-      amount: totalAmount,
-      deposits: selectedDeposits
+      // Create the DepositTransferData object for this token
+      const newTransferData: DepositTransferData = {
+        token: token,
+        amount: totalAmount,
+        deposits: selectedDeposits
     };
 
-    // Update transfer data
-    setTransferData([transferData]);
+    // Update transfer data while preserving other tokens
+    setTransferData(prev => {
+        const tokenIndex = prev.findIndex(item => 
+            item.token.address.toLowerCase() === token.address.toLowerCase()
+        );
+
+        if (tokenIndex === -1) {
+            // Token not found, add it to the array
+            return [...prev, newTransferData];
+        } else {
+            // Token found, update its data
+            return prev.map((item, index) => 
+                index === tokenIndex ? newTransferData : item
+            );
+        }
+    });
   };
 
   return (
@@ -84,8 +101,8 @@ export default function DepositSelect({
           variant={"outline"}
           className={`${disabled ? "pointer-events-none" : "pointer-events-auto"} flex-none items-center ${size === "small" ? "" : "h-8"} gap-2 border border-pinto-gray-2 drop-shadow-none rounded-full text-black text-[1rem] font-[340] leading-[1.1rem]`}
         >
-            {"Select specific deposits to send"} 
-            <ChevronRightIcon color="currentColor" />
+            {getButtonText()} 
+            <ChevronRightIcon color="currentColor" height={16} width={16} />
         </Button>
       </DialogTrigger>
       <DialogContent className="font-pinto overflow-x-clip w-[1325px] max-w-[1325px]">

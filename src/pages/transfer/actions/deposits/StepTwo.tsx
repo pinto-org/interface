@@ -1,18 +1,26 @@
 import { ComboInputField } from "@/components/ComboInputField";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { DepositTransferData } from "../TransferDeposits";
-import { Dispatch, SetStateAction, useCallback, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import { Token } from "@/utils/types";
 import { TokenValue } from "@/classes/TokenValue";
 import DepositSelect from "@/components/DepositSelect";
 import { Label } from "@/components/ui/Label";
+import AddressInputField from "@/components/AddressInputField";
+import { Button } from "@/components/ui/Button";
+import DepositsList from "../../DepositsList";
+import Text from "@/components/ui/Text";
 
 interface StepTwoProps {
     transferData: DepositTransferData[];
     setTransferData: Dispatch<SetStateAction<DepositTransferData[]>>;
+    destination: string | undefined;
+    setDestination: Dispatch<SetStateAction<string | undefined>>;
+    usingMax: boolean;
+    backToFirstStep: () => void;
 }
 
-export default function StepTwo({ transferData, setTransferData }: StepTwoProps) {
+export default function StepTwo({ transferData, setTransferData, destination, setDestination, usingMax, backToFirstStep }: StepTwoProps) {
 
     const depositedBalances = useFarmerDepositedBalances();
     const depositedData = [...depositedBalances.data.entries()]
@@ -24,6 +32,24 @@ export default function StepTwo({ transferData, setTransferData }: StepTwoProps)
             tokenAndBalanceMap.set(deposit.token, deposit.depositData.amount);
         }
     }
+
+    const [customMaxAmounts, setCustomMaxAmounts] = useState<Map<string, TokenValue>>(new Map());
+
+    useEffect(() => {
+        const newMaxAmounts = new Map<string, TokenValue>();
+        
+        transferData.forEach(data => {
+            if (data.deposits.length > 0) {
+                const maxAmount = data.deposits.reduce(
+                    (sum, deposit) => deposit.amount.add(sum),
+                    TokenValue.ZERO
+                );
+                newMaxAmounts.set(data.token.address, maxAmount);
+            }
+        });
+
+        setCustomMaxAmounts(newMaxAmounts);
+    }, [transferData]);
 
     // Handle amount change for a specific transfer data entry
     const handleAmountChange = useCallback((index: number) => (newAmount: string) => {
@@ -67,14 +93,14 @@ export default function StepTwo({ transferData, setTransferData }: StepTwoProps)
             const totalAmount = newTokenDeposits.deposits.reduce(
                 (sum, deposit) => deposit.amount.add(sum),
                 TokenValue.ZERO
-              ).toHuman();
+              );
     
             // Create new transfer data array
             return currentTransferData.map((item, i) => 
                 i === index 
                     ? {
                         token: newToken,
-                        amount: totalAmount,
+                        amount: totalAmount.toHuman(),
                         deposits: newTokenDeposits.deposits
                     }
                     : item
@@ -87,12 +113,47 @@ export default function StepTwo({ transferData, setTransferData }: StepTwoProps)
         setTransferData(newTransferData);
     }, [transferData, calculateNewTransferData, setTransferData]);
 
+    // Track whether input should be disabled for each token
+    const shouldDisableInput = useCallback((token: Token, selectedDeposits: number) => {
+        const totalDeposits = depositedBalances.data.get(token)?.deposits.length ?? 0;
+        return selectedDeposits > 1 && selectedDeposits < totalDeposits;
+    }, [depositedBalances.data]);
+
+    const getAltText = useCallback((token: Token) => {
+        const tokenDepositData = transferData.find((data) => data.token.address.toLowerCase() === token.address.toLowerCase());
+        const maxDeposits = depositedBalances.data.get(token)?.deposits.length;
+
+        if (tokenDepositData && maxDeposits) {
+            const selectedDeposits = tokenDepositData.deposits.length;
+            if (selectedDeposits === 0 || selectedDeposits === maxDeposits) {
+                return `Deposited ${token.name} Balance:`;
+            } else {
+                return `Selected ${token.name} Deposit${selectedDeposits > 1 ? "s" : ""}:`;
+            }
+        }
+    }, [depositedBalances.data, transferData]);
+
     return (
         <div>
-            {transferData.map((data, index) => (
+            {usingMax && (
+                <div className="flex flex-row justify-end -mt-[4.75rem]">
+          <Button
+          type="button"
+            className={`font-[340] text-[1.25rem] text-pinto-green-4 bg-transparent hover:underline hover:bg-transparent`}
+            onClick={backToFirstStep}
+            >
+            {!usingMax ? "Send all Deposits" : "Send only some of my Deposits"}
+        </Button>
+        </div>
+)}
+<div className="flex flex-col gap-12">
+            {usingMax ? 
+                <DepositsList />
+    
+: transferData.map((data, index) => (
                 <div 
                     className="flex flex-col gap-2" 
-                    key={`depositSelect_${data.token.address}_${index}`}
+                    key={`depositSelect_${data.token.address}`}
                 >
                     <div className="flex flex-row items-center justify-between">
                         <Label className="font-[400]">
@@ -110,10 +171,26 @@ export default function StepTwo({ transferData, setTransferData }: StepTwoProps)
                         amount={data.amount}
                         setAmount={(amount) => handleAmountChange(index)(amount)}
                         tokenAndBalanceMap={tokenAndBalanceMap}
-                        altText={`Deposited ${data.token.name} Balance:`}
+                        altText={getAltText(data.token)}
+                        customMaxAmount={customMaxAmounts.get(data.token.address)}
+                        disableInput={shouldDisableInput(data.token, data.deposits.length)}
+                        disableDebounce
+                        disableButton
+                        mode="deposits"
                     />
+                    {Number(data.amount) > 0 && Number(data.amount) < Number(customMaxAmounts.get(data.token.address)?.toHuman()) && data.deposits.length > 1 && (
+                    <span className="font-[340] text-[1rem] leading-[110%] text-pinto-gray-4">Deposits with the least Grown Stalk will be sent first.</span>
+                )}
                 </div>
             ))}
+            <div className="flex flex-col gap-2">
+                <Label>Send deposits to</Label>
+                <AddressInputField 
+                value={destination}
+                setValue={setDestination}
+                />
+            </div>
+            </div>
         </div>
     )
 }
