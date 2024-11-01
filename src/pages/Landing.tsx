@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import * as THREE from "three";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useLoader } from "@react-three/fiber";
 import Slide from "./landing/Slide";
 import SlideProgressSlider from "./landing/SlideProgressSlider";
 
@@ -14,8 +14,14 @@ export default function App() {
   };
 
   return (
-    <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
-      <Canvas camera={{ position: [0, 0, 100], fov: 80 }}>
+    <div style={{ width: "100vw", height: "80vh", position: "relative" }}>
+      <Canvas
+        camera={{ position: [0, 0, 100], fov: 80 }}
+        onCreated={({ gl }) => {
+          gl.outputColorSpace = THREE.SRGBColorSpace; // Ensure sRGB is used
+          gl.toneMapping = THREE.NoToneMapping; // Disable tone mapping
+        }}
+      >
         <Slide
           ref={slideRef1}
           imageUrl="src/assets/landing/tree.png"

@@ -63,9 +63,13 @@ const SlideShaderMaterial = shaderMaterial(
     uniform sampler2D uMap;
     varying vec2 vUv;
 
+    vec4 gammaCorrection(vec4 color) {
+      return vec4(pow(color.rgb, vec3(1.0 / 2.2)), color.a); // Convert to linear
+    }
+
     void main() {
       vec4 texColor = texture2D(uMap, vUv);
-      gl_FragColor = texColor;
+      gl_FragColor = gammaCorrection(texColor);
     }
   `
 );
@@ -73,17 +77,19 @@ const SlideShaderMaterial = shaderMaterial(
 // Extend so that the material is recognized
 extend({ SlideShaderMaterial });
 
+//this needs to be updated to include types
 declare global {
   namespace JSX {
     interface IntrinsicElements {
       slideShaderMaterial: Object3DNode<
-        THREE.ShaderMaterial & {
-          uniforms: SlideShaderMaterialUniforms & {
-            uMap: { value: THREE.Texture | null };
-          };
-        },
+        typeof SlideShaderMaterial,
         typeof SlideShaderMaterial
-      >;
+      > & {
+        uMap?: THREE.Texture;
+        uProgress?: number;
+        uAnimationPhase?: number;
+        transparent?: boolean;
+      };
     }
   }
 }
@@ -107,8 +113,10 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
     const texture = useMemo(() => {
       const loader = new THREE.TextureLoader();
       const tex = loader.load(imageUrl);
+      tex.colorSpace = THREE.SRGBColorSpace;
       tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
       tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
       return tex;
     }, [imageUrl]);
 

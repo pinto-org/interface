@@ -57,6 +57,9 @@ const slideShaderProps: SlideShaderProps = {
     void main() {
       gl_FragColor = texture2D(map, vUv);
     }
+
+    #include <tonemapping_fragment>
+    #include <encodings_fragment>
   `,
 };
 
