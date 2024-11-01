@@ -11,12 +11,33 @@ interface FlowFormProps {
     stepDescription: string;
     onSubmit: () => void;
     setStep: (step: number) => void;
+    customBackStepFunction?: (() => void) | undefined;
+    customNextStepFunction?: (() => void) | undefined;
 }
 
-export default function FlowForm({ children, stepNumber, stepDescription, totalSteps, enableNextStep, onSubmit, setStep }: FlowFormProps) {
+export default function FlowForm({ children, stepNumber, stepDescription, totalSteps, enableNextStep, onSubmit, setStep, customBackStepFunction, customNextStepFunction }: FlowFormProps) {
 
     const isFirstStep = stepNumber === 1;
     const isFinalStep = stepNumber === totalSteps;
+
+    const handleNextStep = () => {
+      if (isFinalStep) {
+          onSubmit();
+      } else if (customNextStepFunction) {
+          customNextStepFunction();
+      } else {
+          setStep(stepNumber + 1);
+      }
+  };
+
+  const handlePreviousStep = () => {
+      if (customBackStepFunction) {
+          customBackStepFunction();
+      } else {
+          setStep(stepNumber - 1);
+      }
+  };
+
 
   return (
     <>
@@ -30,16 +51,16 @@ export default function FlowForm({ children, stepNumber, stepDescription, totalS
         <Separator />
         <div className="flex flex-row justify-between">
           <Button
-            onClick={() => (!isFinalStep ? setStep(stepNumber + 1) : onSubmit())}
+            onClick={handleNextStep}
             variant={!isFinalStep ? 'defaultAlt' : 'default'}
             className="rounded-full font-[400] text-[1.5rem] px-6 h-[3.625rem]"
           >
-            {isFirstStep ? "Continue" : "Send"}
+            {isFinalStep ? "Send" : "Continue"}
           </Button>
           <div className="flex flex-row items-center">
             <Button
               disabled={isFirstStep}
-              onClick={() => setStep(stepNumber - 1)}
+              onClick={handlePreviousStep}
               variant={!isFinalStep ? 'defaultAlt' : 'default'}
               className="rounded-l-full rounded-r-none h-[3.625rem] px-6"
             >
@@ -49,7 +70,7 @@ export default function FlowForm({ children, stepNumber, stepDescription, totalS
             </Button>
             <Button
               disabled={isFinalStep}
-              onClick={() => setStep(stepNumber + 1)}
+              onClick={handleNextStep}
               variant={!isFinalStep ? 'defaultAlt' : 'default'}
               className={`rounded-l-none rounded-r-full border-l h-[3.625rem] px-6 ${!isFinalStep ? "border-l-pinto-green-3" : "border-l-white"}`}
             >

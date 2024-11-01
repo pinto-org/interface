@@ -3,13 +3,13 @@ import seedsIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { Label } from "@/components/ui/Label";
 import AddressLink from "@/components/AddressLink";
-import AllFarmBalances from '../../FarmBalancesList';
 import { useFarmerBalances } from '@/state/useFarmerBalances';
 import { useFarmerSilo } from '@/state/useFarmerSilo';
 import { useFarmerField } from '@/state/useFarmerField';
 import useFarmerDepositedBalances from '@/state/useFarmerDepositedBalances';
 import { TokenValue } from '@/classes/TokenValue';
 import { usePriceData } from '@/state/usePriceData';
+import FarmBalancesList from "../../FarmBalancesList";
 
 interface StepTwoProps {
     destination: string | undefined;
@@ -40,7 +40,7 @@ export default function StepTwo({ destination }: StepTwoProps) {
     {hasBalance && (
       <div className="flex flex-col">
         <Label className="font-[340] text-[1.25rem]">Value in my Farm Balance:</Label>
-        <AllFarmBalances />
+        <FarmBalancesList />
       </div>
     )}
     {hasPlots && (

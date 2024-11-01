@@ -4,6 +4,7 @@ import { useChainId, useConfig } from "wagmi";
 import TransferActions from "./transfer/TransferActions";
 import TransferAll from "./transfer/actions/TransferAll";
 import TransferFarmBalance from "./transfer/actions/TransferFarmBalance";
+import TransferDeposits from "./transfer/actions/TransferDeposits";
 
 function Transfer() {
   const { mode } = useParams();
@@ -23,7 +24,7 @@ function Transfer() {
           </div>
         </div>
         <Separator />
-        {mode === "all" ? <TransferAll /> : mode === "farmbalance" ? <TransferFarmBalance /> : <TransferActions />}
+        {mode === "all" ? <TransferAll /> : mode === "farmbalance" ? <TransferFarmBalance /> : mode === "deposits" ? <TransferDeposits /> : <TransferActions />}
       </div>
     </div>
   );

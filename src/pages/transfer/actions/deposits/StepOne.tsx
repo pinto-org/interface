@@ -1,0 +1,67 @@
+import { Dispatch, SetStateAction, useCallback, useEffect } from 'react';
+import { Button } from '@/components/ui/Button';
+import useFarmerDepositedBalances from '@/state/useFarmerDepositedBalances';
+import DepositBalanceSelect from '@/components/DepositBalanceSelect';
+import { DepositTransferData } from '../TransferDeposits';
+
+interface StepOneProps {
+    transferData: DepositTransferData[];
+    setTransferData: Dispatch<SetStateAction<DepositTransferData[]>>;
+    usingMax: boolean;
+    setUsingMax: Dispatch<SetStateAction<boolean>>;
+};
+
+export default function StepOne({ transferData, setTransferData, usingMax, setUsingMax }: StepOneProps) {
+
+  const farmerDeposits = useFarmerDepositedBalances();
+
+  const handleDepositedTokenSelect = useCallback((tokens: string[]) => {
+    const newTransferData: DepositTransferData[] = [];
+    for (const tokenAddress of tokens) {
+      const token = [...farmerDeposits.data.keys()].find((depositedToken) => depositedToken.address.toLowerCase() === tokenAddress.toLowerCase());
+      if (!token) continue;
+      const tokenDepositData = farmerDeposits.data.get(token);
+      if (tokenDepositData && tokenDepositData.amount.gt(0)) {
+        const tokenData = {
+          token: token,
+          amount: tokenDepositData.amount.toHuman(),
+          deposits: tokenDepositData.deposits
+        }
+        newTransferData.push(tokenData)
+      };
+    };
+    setTransferData(newTransferData);
+  }, [farmerDeposits, setTransferData])
+
+  
+  useEffect(() => {
+    const tokenAddresses: string[] = [];
+    if (usingMax) {
+      for (const depositData of farmerDeposits.data) {
+        if (depositData[1].amount.gt(0)) {
+          tokenAddresses.push(depositData[0].address)
+        }
+      };
+    }
+    handleDepositedTokenSelect(tokenAddresses)
+  }, [usingMax])  
+
+  return (
+    <>
+    <div className="flex flex-row justify-end -mt-[4.75rem]">
+      <Button
+        className={`font-[340] text-[1.25rem] text-pinto-green-4 bg-transparent hover:underline hover:bg-transparent`}
+        onClick={() => setUsingMax(!usingMax)}
+      >
+        {!usingMax ? "Send all Deposits" : "Send only some of my Deposits"}
+      </Button>
+      </div>
+      <div className="flex flex-wrap gap-x-4">
+      <DepositBalanceSelect 
+        depositTransferData={transferData}
+        setDepositedTokensToTransfer={handleDepositedTokenSelect}
+      />
+      </div>
+    </>
+    )
+};

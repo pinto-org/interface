@@ -7,6 +7,7 @@ import { Dispatch, InputHTMLAttributes, SetStateAction, useEffect, useState } fr
 import TokenSelectWithBalances from "./TokenSelectWithBalances";
 import { Button } from "./ui/Button";
 import { Skeleton } from "./ui/Skeleton";
+import depositIcon from "@/assets/protocol/Deposit.svg";
 
 export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
   setToken: Dispatch<SetStateAction<any>>;
@@ -23,6 +24,8 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
   disableButton?: boolean;
   disableInlineBalance?: boolean;
   balancesToShow?: FarmFromMode[] | undefined;
+  mode?: "deposits";
+  altText?: string;
 }
 
 function ComboInputField({
@@ -40,6 +43,8 @@ function ComboInputField({
   disableButton,
   disableInlineBalance,
   balancesToShow,
+  mode,
+  altText
 }: ComboInputProps) {
   let maxAmount: TokenValue;
   const { balances } = useFarmerBalances();
@@ -133,15 +138,16 @@ function ComboInputField({
             <div className="flex flex-row gap-2 justify-between items-center">
               <div className="font-[340] text-[1rem] text-pinto-gray-4">{usdValue}</div>
               <div className="flex flex-row gap-2 items-center">
-                <div className="text-[1rem] text-black font-[340] leading-[1.11rem] -tracking-[0.02em]">
-                  {`${
+                <div className="text-[1rem] text-black font-[340] leading-[1.11rem] -tracking-[0.02em] flex flex-row gap-2">
+                  {altText && <img src={depositIcon} alt={"Deposit"} />}
+                  {`${altText ? altText : 
                     balanceFrom === FarmFromMode.EXTERNAL
                       ? "Wallet Balance:"
                       : balanceFrom === FarmFromMode.INTERNAL
                         ? "Farm Balance:"
                         : "Total Balance:"
-                  } 
-                            ${maxAmount?.toHuman("short")}`}
+                  }
+                  ${maxAmount?.toHuman("short")}`}
                 </div>
 
                 {!hideMax && (

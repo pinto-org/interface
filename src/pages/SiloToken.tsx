@@ -156,7 +156,9 @@ export default function SiloToken() {
               </div>
             </div>
           </div>
-          <DepositsTable token={siloToken} />
+          <div className="border border-pinto-gray-2 rounded-[1rem] overflow-clip mt-2">
+            <DepositsTable token={siloToken} />
+          </div>
           <div className="flex flex-col gap-8">
             <div className="font-[400] text-[2rem] text-pinto-gray-5">About {siloToken.name}</div>
             <div className="flex flex-row items-center justify-start gap-28">

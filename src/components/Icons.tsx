@@ -142,6 +142,14 @@ export const ChevronDownIcon = ({ color = "#9C9C9C", width = 15, height = 15, cl
   </svg>
 );
 
+export const ChevronRightIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: SVGProps) => (
+  <svg width={width} height={height} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g id="Group">
+    <path id="Path" d="M6.6665 10.667L9.33317 8.00033L6.6665 5.33366" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+</svg>
+);
+
 export const CloseIcon = ({ color = "#9C9C9C", width = 9, height = 10 }: SVGProps) => (
   <svg width={width} height={height} viewBox="0 0 9 10" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path

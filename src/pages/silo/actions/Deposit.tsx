@@ -62,8 +62,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     !useSwap,
   );
 
-  console.log("swapdata: ", swapData)
-
   useEffect(() => {
     if (isSuccess) {
       // invalidating query results to trigger a refetch
@@ -72,7 +70,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   }, [isSuccess, queryKey, queryClient.invalidateQueries]);
 
   function onSubmit() {
-    console.log("USESWAP: ", useSwap, swapData?.output)
     const depositData = deposit(
       siloToken,
       useSwap ? swapData?.output : TokenValue.fromHuman(amountIn, tokenIn.decimals),

@@ -47,11 +47,14 @@ export default function TransferActions() {
       </Button>
       <Button
         variant="outline"
+        asChild
         disabled={farmerSilo.depositsUSD.eq(0)}
-        className="font-[400] text-[1.25rem] py-10 px-6 w-full text-black hover:text-black disabled:opacity-50 rounded-full justify-between bg-white shadow-none"
+        className={`font-[400] text-[1.25rem] py-10 px-6 w-full text-black hover:text-black disabled:opacity-50 rounded-full justify-between bg-white shadow-none ${farmerSilo.depositsUSD.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
       >
+                <Link to="/transfer/deposits">
         <span>Silo deposits</span>
         <span>{`$${Number(farmerSilo.depositsUSD.toHuman()).toFixed(2)}`}</span>
+        </Link>
       </Button>
       <Button
         variant="outline"
