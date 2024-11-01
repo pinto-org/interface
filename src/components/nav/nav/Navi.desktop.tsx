@@ -25,7 +25,11 @@ const Link = ({
   const location = useLocation();
   const isActive =
     active ||
-    (href === "/" ? href === location.pathname : href ? location.pathname.includes(href?.substring(1)) : false);
+    (href === "/"
+      ? href === location.pathname
+      : href
+        ? location.pathname.includes(href?.substring(1))
+        : false);
 
   if (href) {
     return (
@@ -34,7 +38,11 @@ const Link = ({
         active={isActive}
         className={`${className} ${topMenu ? `text-[1.5rem] data-[active]:text-black` : `text-[1.25rem]`} font-[400] hover:cursor-pointer`}
       >
-        <ReactLink to={href} className={navigationMenuTriggerStyle()} {...props} />
+        <ReactLink
+          to={href}
+          className={navigationMenuTriggerStyle()}
+          {...props}
+        />
       </NavigationMenuLink>
     );
   }
@@ -117,10 +125,13 @@ const MoreNavi = () => {
 };
 
 export default function Navi() {
-  const [naviTab, setNaviTab] = useState<string | undefined>("app");
+  const [naviTab, setNaviTab] = useState<string | undefined>("landing");
 
   return (
-    <div className="flex flex-col items-center justify-center gap-5 z-[2]" onMouseLeave={() => setNaviTab("app")}>
+    <div
+      className="flex flex-col items-center justify-center gap-5 z-[2]"
+      onMouseLeave={() => setNaviTab("landing")}
+    >
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>

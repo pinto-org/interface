@@ -39,13 +39,28 @@ const Navbar = () => {
 
   return (
     <>
-      <div className={cn("fixed grid px-4 pt-4 pb-2 sm:px-6 sm:pt-6 w-full z-[2] bg-gradient-light", styles.navGrid)}>
+      <div
+        className={cn(
+          "fixed grid px-4 pt-4 pb-2 sm:px-6 sm:pt-6 w-full z-[2] bg-gradient-light",
+          styles.navGrid
+        )}
+      >
         <div className="flex flex-row gap-2 sm:gap-4">
-          <div className={`transition-all duration-100 ${priceOpen && "z-[51]"}`}>
-            <PriceButton isOpen={priceOpen} togglePanel={() => togglePanel("price")} />
+          <div
+            className={`transition-all duration-100 ${priceOpen && "z-[51]"}`}
+          >
+            <PriceButton
+              isOpen={priceOpen}
+              togglePanel={() => togglePanel("price")}
+            />
           </div>
-          <div className={`transition-all duration-100 ${seasonsOpen && "z-[51]"}`}>
-            <SeasonsButton isOpen={seasonsOpen} togglePanel={() => togglePanel("seasons")} />
+          <div
+            className={`transition-all duration-100 ${seasonsOpen && "z-[51]"}`}
+          >
+            <SeasonsButton
+              isOpen={seasonsOpen}
+              togglePanel={() => togglePanel("seasons")}
+            />
           </div>
         </div>
         <div className="hidden lg:flex lg:justify-center">
@@ -53,7 +68,10 @@ const Navbar = () => {
         </div>
         <div className={`flex flex-row justify-end gap-2`}>
           <div className={`${walletOpen && "z-[51]"}`}>
-            <WalletButton isOpen={walletOpen} togglePanel={() => togglePanel("wallet")} />
+            <WalletButton
+              isOpen={walletOpen}
+              togglePanel={() => togglePanel("wallet")}
+            />
           </div>
           <div className={`lg:hidden ${mobileNaviOpen && "z-[51]"}`}>
             <MobileNavi
@@ -66,7 +84,11 @@ const Navbar = () => {
           </div>
         </div>
         <div className="hidden sm:block">
-          <Backdrop active={openBackdrop} onClick={closePanel} transitionDuration={DURATION} />
+          <Backdrop
+            active={openBackdrop}
+            onClick={closePanel}
+            transitionDuration={DURATION}
+          />
         </div>
       </div>
     </>
@@ -76,11 +98,14 @@ const Navbar = () => {
 export default Navbar;
 
 const styles = {
-  navGrid: clsx("grid-cols-[220px_1fr] sm:grid-cols-[350px_1fr] lg:grid-cols-[350px_1fr_200px] grid-rows-1"),
+  navGrid: clsx(
+    "grid-cols-[220px_1fr] sm:grid-cols-[350px_1fr] lg:grid-cols-[350px_1fr_200px] grid-rows-1"
+  ),
 } as const;
 
 export const navLinks = {
-  overview: "/",
+  landing: "/",
+  overview: "/overview",
   silo: "/silo",
   field: "/field",
   market: "/market",
