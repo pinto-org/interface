@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/Button";
 import { Separator } from "@/components/ui/Separator";
-import { ChevronDownIcon } from "@/components/Icons";
+import { ChevronDownIcon, RightArrowIcon } from "@/components/Icons";
+
 import { ReactNode } from "react";
 
 interface FlowFormProps {
@@ -13,9 +14,10 @@ interface FlowFormProps {
     setStep: (step: number) => void;
     customBackStepFunction?: (() => void) | undefined;
     customNextStepFunction?: (() => void) | undefined;
+    disableTopSeparator?: boolean;
 }
 
-export default function FlowForm({ children, stepNumber, stepDescription, totalSteps, enableNextStep, onSubmit, setStep, customBackStepFunction, customNextStepFunction }: FlowFormProps) {
+export default function FlowForm({ children, stepNumber, stepDescription, totalSteps, enableNextStep, onSubmit, setStep, customBackStepFunction, customNextStepFunction, disableTopSeparator }: FlowFormProps) {
 
     const isFirstStep = stepNumber === 1;
     const isFinalStep = stepNumber === totalSteps;
@@ -41,13 +43,15 @@ export default function FlowForm({ children, stepNumber, stepDescription, totalS
 
   return (
     <>
-      <div className="font-[400] text-[1.25rem] leading-[110%] text-pinto-gray-5">
-        {`${stepNumber} → ${stepDescription}`}
+      <div className="font-[400] text-[1.25rem] leading-[110%] text-pinto-gray-5 flex flex-row items-center">
+        <span className="pr-1">{stepNumber}</span>
+        <RightArrowIcon color="currentColor" />
+        <span className="pl-4">{stepDescription}</span>
       </div>
       <div className="flex flex-col gap-12">
         {children}
         <> 
-        <Separator />
+        {!disableTopSeparator && <Separator />}
         <div className="flex flex-row justify-between">
           <Button
             onClick={handleNextStep}
@@ -62,7 +66,7 @@ export default function FlowForm({ children, stepNumber, stepDescription, totalS
               disabled={isFirstStep}
               onClick={handlePreviousStep}
               variant={!isFinalStep ? 'defaultAlt' : 'default'}
-              className="rounded-l-full rounded-r-none h-[3.625rem] px-6"
+              className="rounded-l-full rounded-r-none h-[3.625rem] px-6 disabled:bg-pinto-green-1"
             >
               <div className="scale-[2]">
                 <ChevronDownIcon color={"currentColor"} />

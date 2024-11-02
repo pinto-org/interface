@@ -559,6 +559,18 @@ export const MinusIcon = ({ color = "#9C9C9C", width = 16, height = 2 }: SVGProp
 </svg>
 )
 
+export const RightArrowIcon = ({ color = "#9C9C9C", width = 24, height = 24 }: SVGProps) => (
+	<svg width={width} height={height} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+		<g id="Group">
+			<g id="Group_2">
+				<path id="Path" d="M19 12H5" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+				<path id="Path_2" d="M14 17L19 12" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+				<path id="Path_3" d="M14 7L19 12" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+			</g>
+		</g>
+	</svg>
+)
+
 export interface IconProps {
 	size?: number;
 	color?: string;

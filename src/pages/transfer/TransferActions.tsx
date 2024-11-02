@@ -13,6 +13,8 @@ export default function TransferActions() {
   const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
 
+  console.log("farmerfield: ", farmerField)
+
   const totalInternalBalance = Array.from(farmerBalance.balances).reduce(
     (total: TokenValue, tokenBalance) =>
       total.add(
@@ -38,7 +40,7 @@ export default function TransferActions() {
       <Button
         variant="outline"
         asChild
-        className={`font-[400] text-[1.25rem] py-10 px-6 w-full text-black hover:text-black rounded-full justify-between bg-white shadow-none ${totalInternalBalance.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
+        className={`font-[400] text-[1.25rem] md:py-10 md:px-6 w-full text-black hover:text-black rounded-full justify-between bg-white shadow-none ${totalInternalBalance.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
       >
         <Link to="/transfer/farmbalance">
           <span>Tokens from my Farm Balance</span>
@@ -49,7 +51,7 @@ export default function TransferActions() {
         variant="outline"
         asChild
         disabled={farmerSilo.depositsUSD.eq(0)}
-        className={`font-[400] text-[1.25rem] py-10 px-6 w-full text-black hover:text-black disabled:opacity-50 rounded-full justify-between bg-white shadow-none ${farmerSilo.depositsUSD.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
+        className={`font-[400] text-[1.25rem] md:py-10 md:px-6 w-full text-black hover:text-black disabled:opacity-50 rounded-full justify-between bg-white shadow-none ${farmerSilo.depositsUSD.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
       >
                 <Link to="/transfer/deposits">
         <span>Silo deposits</span>
@@ -58,11 +60,14 @@ export default function TransferActions() {
       </Button>
       <Button
         variant="outline"
+        asChild
         disabled={farmerField.totalPods.eq(0)}
-        className="font-[400] text-[1.25rem] py-10 px-6 w-full text-black hover:text-black disabled:opacity-50 rounded-full justify-between bg-white shadow-none"
+        className={`font-[400] text-[1.25rem] md:py-10 md:px-6 w-full text-black hover:text-black disabled:opacity-50 rounded-full justify-between bg-white shadow-none ${farmerField.totalPods.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
       >
+                        <Link to="/transfer/pods">
         <span>Pods</span>
         <span>{`${farmerField.totalPods.toHuman()} Pods`}</span>
+        </Link>
       </Button>
     </div>
   );

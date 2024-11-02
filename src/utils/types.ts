@@ -119,21 +119,21 @@ export interface SiloTokenData {
 }
 
 export interface Plot {
-  beansPerPod: TokenValue;
-  createdAt: number;
-  creationHash: string;
   fullyHarvested: boolean;
   harvestablePods: TokenValue;
   harvestedPods: TokenValue;
-  id: string;
-  index: TokenValue;
-  listing: string;
   pods: TokenValue;
-  season: number;
-  source: string;
-  sourceHash: string;
-  updatedAt: number;
-  updatedAtBlock: number;
+  index: TokenValue;
+  beansPerPod?: TokenValue;
+  createdAt?: number;
+  creationHash?: string;
+  id?: string;
+  listing?: string;
+  season?: number;
+  source?: string;
+  sourceHash?: string;
+  updatedAt?: number;
+  updatedAtBlock?: number;
 }
 
 export interface Order {

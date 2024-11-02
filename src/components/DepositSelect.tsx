@@ -15,7 +15,7 @@ import {
 import { Separator } from "./ui/Separator";
 import { ToggleGroup } from "./ui/ToggleGroup";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
-import DepositsTable from "@/pages/silo/DepositsTable";
+import DepositsTable from "@/components/DepositsTable";
 import { ChevronRightIcon } from "./Icons";
 import { DepositTransferData } from "@/pages/transfer/actions/TransferDeposits";
 
