@@ -29,3 +29,7 @@ export function unpackStem(data: string | number | bigint): bigint {
 
   return stem;
 }
+
+export const isDev = () => {
+  return import.meta.env.DEV;
+};
