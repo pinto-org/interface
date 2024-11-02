@@ -7,7 +7,9 @@ export const truncateAddress = (address: string | HashString | undefined, option
   return `${address.substring(0, 6)}...${options?.suffix ? address.substring(address.length - 4) : ""}`;
 };
 
-export const stringEq = (a: string | number | TokenValue | bigint, b: string | number | TokenValue | bigint) => {
+type Stringable = string | number | TokenValue | bigint;
+
+export const stringEq = (a: Stringable, b: Stringable) => {
   const aVal = a instanceof TokenValue ? a.toHuman() : a;
   const bVal = b instanceof TokenValue ? b.toHuman() : b;
 

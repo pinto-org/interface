@@ -1,10 +1,10 @@
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/Popover";
-import { Label } from "./ui/Label";
-import { Input } from "./ui/Input";
-import { useState } from "react";
-import useDebounce from "@/utils/useDebounce";
 import settingsIcon from "@/assets/misc/Settings.svg";
+import useDebounce from "@/utils/useDebounce";
+import { useState } from "react";
 import { Button } from "./ui/Button";
+import { Input } from "./ui/Input";
+import { Label } from "./ui/Label";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/Popover";
 
 export default function SlippageButton({
   slippage,

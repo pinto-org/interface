@@ -1,9 +1,9 @@
-import { WagmiProvider, createConfig, http } from "wagmi";
-import { localhost } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 import { ReactNode } from "react";
 import { createTestClient, defineChain } from "viem";
+import { http, WagmiProvider, createConfig } from "wagmi";
+import { localhost } from "wagmi/chains";
 import { mock } from "wagmi/connectors";
 
 export const anvilTestClient = createTestClient({ mode: "anvil", chain: localhost, transport: http() });
@@ -59,6 +59,8 @@ const config = createConfig(
   }),
 );
 
+export const web3Config = config;
+
 const queryClient = new QueryClient();
 
 export const Web3Provider = ({ children }: { children: ReactNode }) => {
@@ -91,7 +93,7 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
             avoidLayoutShift: true,
             hideNoWalletCTA: true,
             hideQuestionMarkCTA: true,
-            enforceSupportedChains: true
+            enforceSupportedChains: true,
           }}
         >
           {children}

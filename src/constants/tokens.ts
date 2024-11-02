@@ -218,3 +218,5 @@ export const tokens: { [chainId: number]: Token[] } = {
         }, */
   ],
 };
+
+export const PINTO = tokens[base.id][0];
