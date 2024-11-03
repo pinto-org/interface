@@ -67,8 +67,6 @@ export default function StepOne({ transferData, setTransferData }: StepOneProps)
     [plots, setTransferData],
   );
 
-  console.log("transferData: ", transferData);
-
   return (
     <div className="flex flex-col gap-4">
       <Label>Which Plots do you want to send?</Label>

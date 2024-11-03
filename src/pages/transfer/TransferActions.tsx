@@ -13,8 +13,6 @@ export default function TransferActions() {
   const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
 
-  console.log("farmerfield: ", farmerField);
-
   const totalInternalBalance = Array.from(farmerBalance.balances).reduce(
     (total: TokenValue, tokenBalance) =>
       total.add(
