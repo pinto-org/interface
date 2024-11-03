@@ -125,7 +125,6 @@ function DefaultConvert() {
         },
       });
     }
-    // const output = calculateConvert(fromToken, toToken, TokenValue.fromHuman(amountIn || 0, fromToken.decimals), deposits.deposits, season);
   }
 
   return (
@@ -292,17 +291,18 @@ const ConvertProvider = ({ children, siloToken }: { children: React.ReactNode; s
 const ConvertSwitch = () => {
   const { convertType } = useConvertContext();
 
-  if (convertType === "convert") {
-    return <DefaultConvert />;
-  }
+  // if (convertType === "convert") {
+  //   return <DefaultConvert />;
+  // }
 
-  return <PipelineConvert />;
+  // return <PipelineConvert />;
 };
 
 const Convert = ({ siloToken }: BaseConvertProps) => {
   return (
     <ConvertProvider siloToken={siloToken}>
-      <ConvertSwitch />
+      <DefaultConvert />
+      {/* <ConvertSwitch /> */}
     </ConvertProvider>
   );
 };
