@@ -161,7 +161,7 @@ export function calculateConvert(
     amount: pickedCrates.totalAmount,
     bdv: pickedCrates.totalBDV,
     stalk: pickedCrates.totalStalk,
-    seeds: fromToken.getSeeds(pickedCrates.totalBDV),
+    seeds: silo.get(fromToken)?.rewards?.seeds || TokenValue.ZERO,
     actions: [],
     crates: pickedCrates.crates,
   };

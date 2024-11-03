@@ -67,8 +67,6 @@ function ComboInputField({
     }
   }
 
-  console.log("amouintIn: ", amount);
-
   useDebounce(
     () => {
       setAmount(internalAmount);
