@@ -34,7 +34,7 @@ export default function FinalStep({ destination, transferData }: FinalStepProps)
         {`Deposits being sent: ${depositIds.join(", ")}`}
     </div>
     <div>
-      <Label>To the following address</Label>
+      <Label className="font-[340] text-[1.25rem]">To the following address</Label>
       <AddressLink address={destination} />
     </div>
   </>

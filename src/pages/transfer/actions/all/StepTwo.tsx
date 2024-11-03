@@ -1,4 +1,4 @@
-import plotIcon from "@/assets/protocol/Plot.svg";
+import podIcon from "@/assets/protocol/Pod.png";
 import seedsIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { Label } from "@/components/ui/Label";
@@ -52,7 +52,7 @@ export default function StepTwo({ destination }: StepTwoProps) {
             className={"flex flex-row gap-1.5 items-center font-[340] text-[2rem] text-pinto-gray-5"}
           >
             <span>{plot.pods.reDecimal(2).toHuman()}</span>
-            <img src={plotIcon} className="h-8 w-8" alt="Plot" />
+            <img src={podIcon} className="h-8 w-8" alt="Plot" />
             <span>Pods</span>
             <span className={"text-pinto-gray-3"}>@</span>
             <span className="font-[340] text-[2rem] text-pinto-gray-5">
@@ -102,7 +102,7 @@ export default function StepTwo({ destination }: StepTwoProps) {
       </div>
     )}
     <div>
-      <Label>To the following address</Label>
+    <Label className="font-[340] text-[1.25rem]">To the following address</Label>
       <AddressLink address={destination} />
     </div>
   </div>
