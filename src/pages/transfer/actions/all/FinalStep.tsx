@@ -9,8 +9,8 @@ import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
-import FarmBalancesList from "../../FarmBalancesList";
 import DepositsList from "../../DepositsList";
+import FarmBalancesList from "../../FarmBalancesList";
 
 interface StepTwoProps {
   destination: string | undefined;

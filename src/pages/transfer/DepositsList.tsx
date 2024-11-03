@@ -83,7 +83,9 @@ export default function DepositsList({ transferData }: { transferData?: DepositT
   return (
     <div className="ml-8">
       <div className="flex flex-row justify-between items-center py-1">
-        <Label className="font-[340] text-[1.25rem]">{isSingleDeposit && depositsToShow[0] ? `Deposited ${depositsToShow[0].token.symbol}` : "Amount"}</Label>
+        <Label className="font-[340] text-[1.25rem]">
+          {isSingleDeposit && depositsToShow[0] ? `Deposited ${depositsToShow[0].token.symbol}` : "Amount"}
+        </Label>
         <div className="flex flex-col">
           {depositsToShow.map((tokenDeposit) => {
             if (tokenDeposit.deposit.amount.eq(0)) return;
