@@ -29,8 +29,10 @@ export default function FinalStep({ destination, transferData }: FinalStepProps)
 
   return (
     <>
+      <div className="flex flex-col gap-6">
       <Label className="font-[340] text-[1.25rem]">I'm sending</Label>
       <DepositsList transferData={transferData} />
+      </div>
       <div className="flex flex-row gap-2 font-[400] text-[1.25rem] leading-[110%] text-pinto-gray-4">
         <img src={depositIcon} alt="Deposits" />
         {`Deposits being sent: ${depositIds.join(", ")}`}
