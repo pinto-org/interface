@@ -10,6 +10,7 @@ import { useAccount, useChainId, useWriteContract } from "wagmi";
 import StepOne from "./pods/StepOne";
 import { useFarmerField } from "@/state/useFarmerField";
 import StepTwo from "./pods/StepTwo";
+import FinalStep from "./pods/FinalStep";
 
 
 export interface PodTransferData {
@@ -45,7 +46,13 @@ export default function TransferPods() {
           case 1:
               return transferData.length > 0;
           case 2:
-              return !!destination
+              if (!!destination) {
+                if (transferData.length === 1) {
+                  return transferData[0].end.gt(transferData[0].start)
+                }
+                return true
+              }
+              return false
           default:
               return true
       }
@@ -126,8 +133,17 @@ export default function TransferPods() {
             setTransferData={setTransferData}
           />
         : step === 2 ?
-          <StepTwo />
-          : undefined
+          <StepTwo 
+            transferData={transferData}
+            setTransferData={setTransferData}
+            destination={destination}
+            setDestination={setDestination}
+          />
+          : 
+          <FinalStep
+            transferData={transferData}
+            destination={destination}
+          />
     }
     </FlowForm>
   );

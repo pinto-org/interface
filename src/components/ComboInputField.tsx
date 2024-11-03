@@ -1,9 +1,9 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { usePriceData } from "@/state/usePriceData";
-import { FarmFromMode, Token } from "@/utils/types";
+import { FarmFromMode, Plot, Token } from "@/utils/types";
 import useDebounce from "@/utils/useDebounce";
-import { Dispatch, InputHTMLAttributes, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, InputHTMLAttributes, SetStateAction, useEffect, useMemo, useState } from "react";
 import TokenSelectWithBalances from "./TokenSelectWithBalances";
 import { Button } from "./ui/Button";
 import { Skeleton } from "./ui/Skeleton";
@@ -13,15 +13,25 @@ import seedIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
+import PlotSelect from "./PlotSelect";
+import { PODS } from "@/constants/internalTokens";
+import plotIcon from "@/assets/protocol/Plot.svg";
 
 export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
-  setToken: Dispatch<SetStateAction<any>>;
-  selectedToken: Token;
-  tokenAndBalanceMap?: Map<Token, TokenValue> | undefined;
-  setBalanceFrom?: Dispatch<SetStateAction<FarmFromMode>> | undefined;
-  balanceFrom?: FarmFromMode | undefined;
+  // Token mode props
+  setToken?: Dispatch<SetStateAction<Token>>;
+  selectedToken?: Token;
+  tokenAndBalanceMap?: Map<Token, TokenValue>; // Optional
+  setBalanceFrom?: Dispatch<SetStateAction<FarmFromMode>>; // Optional
+  balanceFrom?: FarmFromMode; // Optional
+  balancesToShow?: FarmFromMode[]; // Optional
+
+  // Common required props
   amount: any;
-  setAmount: Dispatch<SetStateAction<any>>;
+  setAmount?: Dispatch<SetStateAction<any>>;
+  handleAmountChange?: (value: string) => void;
+
+  // Common optional props
   isLoading?: boolean;
   hideMax?: boolean;
   disableInput?: boolean;
@@ -29,10 +39,14 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
   disableButton?: boolean;
   disableDebounce?: boolean;
   disableInlineBalance?: boolean;
-  balancesToShow?: FarmFromMode[] | undefined;
-  mode?: "deposits";
+  mode?: "deposits" | "plots";
   altText?: string;
   customMaxAmount?: TokenValue;
+
+  // Plot mode props (required when mode is "plots")
+  selectedPlots?: Plot[];
+  setPlots?: Dispatch<SetStateAction<Plot[]>>;
+  plotSelectionType?: "single" | "multiple";
 }
 
 function ComboInputField({
@@ -43,6 +57,7 @@ function ComboInputField({
   balanceFrom,
   amount,
   setAmount,
+  handleAmountChange,
   isLoading,
   hideMax,
   disableInput,
@@ -53,59 +68,82 @@ function ComboInputField({
   balancesToShow,
   mode,
   altText,
-  customMaxAmount
+  customMaxAmount,
+  selectedPlots,
+  setPlots,
+  plotSelectionType
 }: ComboInputProps) {
-  let maxAmount: TokenValue;
   const tokenData = useTokenData();
   const { balances } = useFarmerBalances();
-  const farmerTokenBalance = balances.get(selectedToken);
+  const farmerTokenBalance = selectedToken ? balances.get(selectedToken) : undefined;
 
   const depositedBalances = useFarmerDepositedBalances();
-  const farmerDepositedTokenBalance = depositedBalances.data.get(selectedToken);
+  const farmerDepositedTokenBalance = selectedToken ? depositedBalances.data.get(selectedToken) : undefined;
 
   const [internalAmount, setInternalAmount] = useState(amount);
   const [isUserInput, setIsUserInput] = useState(false);
 
   const tokenPrices = usePriceData();
-  const selectedTokenPrice = tokenPrices.tokenPrices.get(selectedToken)?.instant || TokenValue.ZERO;
+  const selectedTokenPrice = selectedToken ? tokenPrices.tokenPrices.get(selectedToken)?.instant || TokenValue.ZERO : TokenValue.ZERO;
   const protocolTokenPrice = tokenPrices.tokenPrices.get(tokenData.mainToken)?.instant || TokenValue.ZERO;
 
-  const pct = (() => {
+  // Helper function to safely get decimals
+  const getDecimals = () => {
+    if (mode === "plots") return PODS.decimals; // Default for plots
+    return selectedToken?.decimals ?? 18; // Default to 18 if token not selected
+  };
+
+  useEffect(() => {
+    setInternalAmount(amount)
+  }, [amount]);
+
+  const pct = useMemo(() => {
+    if (mode === "plots") return TokenValue.ONE;
     if (!farmerDepositedTokenBalance || !farmerDepositedTokenBalance.amount.gt(0)) {
       return TokenValue.ZERO;
     }
     const currentAmount = TokenValue.fromHuman(
       (disableInput ? amount : internalAmount) || "0",
-      selectedToken.decimals
+      getDecimals()
     );
     if (currentAmount.eq(0)) {
       return TokenValue.ZERO;
     }
     return currentAmount.div(farmerDepositedTokenBalance.amount);
-  })();
-  
-  const depositedTokenValue = farmerDepositedTokenBalance ? farmerDepositedTokenBalance.currentBDV.mul(pct).mul(protocolTokenPrice) : TokenValue.ZERO;
+  }, [mode, farmerDepositedTokenBalance, disableInput, amount, internalAmount]);
+
+  const depositedTokenValue = farmerDepositedTokenBalance 
+    ? farmerDepositedTokenBalance.currentBDV.mul(pct).mul(protocolTokenPrice) 
+    : TokenValue.ZERO;
 
   const inputValue = (disableInput ? amount : internalAmount)
-    ? mode === "deposits" ? depositedTokenValue : selectedTokenPrice.mul(disableInput ? amount : internalAmount)
+    ? mode === "deposits" ? depositedTokenValue : selectedTokenPrice.mul(TokenValue.fromHuman(disableInput ? amount : internalAmount, getDecimals()))
     : undefined;
 
-  if (customMaxAmount) {
-    maxAmount = customMaxAmount;
-  } else if (tokenAndBalanceMap) {
-    maxAmount = tokenAndBalanceMap.get(selectedToken) ?? TokenValue.ZERO;
-  } else {
-    switch (balanceFrom) {
-      case FarmFromMode.EXTERNAL:
-        maxAmount = farmerTokenBalance?.external || TokenValue.ZERO;
-        break;
-      case FarmFromMode.INTERNAL:
-        maxAmount = farmerTokenBalance?.internal || TokenValue.ZERO;
-        break;
-      default:
-        maxAmount = farmerTokenBalance?.total || TokenValue.ZERO;
-    }
-  }
+    const maxAmount = useMemo(() => {
+      if (mode === "plots" && selectedPlots) {
+        return selectedPlots.reduce((total, plot) => total.add(plot.pods), TokenValue.ZERO);
+      }
+  
+      if (customMaxAmount) {
+        return customMaxAmount;
+      }
+      
+      if (tokenAndBalanceMap && selectedToken) {
+        return tokenAndBalanceMap.get(selectedToken) ?? TokenValue.ZERO;
+      }
+      
+      if (!farmerTokenBalance) return TokenValue.ZERO;
+  
+      switch (balanceFrom) {
+        case FarmFromMode.EXTERNAL:
+          return farmerTokenBalance.external || TokenValue.ZERO;
+        case FarmFromMode.INTERNAL:
+          return farmerTokenBalance.internal || TokenValue.ZERO;
+        default:
+          return farmerTokenBalance.total || TokenValue.ZERO;
+      }
+    }, [mode, selectedPlots, customMaxAmount, tokenAndBalanceMap, selectedToken, balanceFrom, farmerTokenBalance]);
 
   useEffect(() => {
     if (Number(amount) > Number(maxAmount.toHuman())) {
@@ -116,7 +154,7 @@ function ComboInputField({
   useEffect(() => {
     if (customMaxAmount && !isUserInput) {
       const currentAmount = internalAmount ? 
-        TokenValue.fromHuman(internalAmount.toString(), selectedToken.decimals) : 
+        TokenValue.fromHuman(internalAmount.toString(), getDecimals()) : 
         TokenValue.ZERO;
 
       // Only update if the current amount is greater than max
@@ -124,12 +162,30 @@ function ComboInputField({
         setInternalAmount(customMaxAmount.toHuman());
       }
     }
-  }, [customMaxAmount, selectedToken.decimals]);
+  }, [customMaxAmount]);
+
+  useEffect(() => {
+    if (mode === "plots" && selectedPlots?.length) {
+      const plotAmount = selectedPlots.reduce((total, plot) => total.add(plot.pods), TokenValue.ZERO);
+      setInternalAmount(plotAmount.toHuman());
+      if (setAmount) {
+        setAmount(plotAmount.toHuman());
+      }
+      if (handleAmountChange) {
+        handleAmountChange(plotAmount.toHuman())
+      }
+    }
+  }, [mode, selectedPlots, setAmount, handleAmountChange]);
 
   useDebounce(
     () => {
       if (isUserInput) {
-        setAmount(internalAmount);
+        if (setAmount) {
+          setAmount(internalAmount);
+        }
+        if (handleAmountChange) {
+          handleAmountChange(internalAmount)
+        }
         setIsUserInput(false);
       }
     },
@@ -144,24 +200,19 @@ function ComboInputField({
       return;
     }
 
-    // Handle empty input
     if (!value || value === "") {
-      setInternalAmount(undefined);
+      setInternalAmount('');
       return;
     }
 
-    const inputTV = value ? TokenValue.fromHuman(value, selectedToken.decimals) : TokenValue.ZERO;
+    const inputTV = TokenValue.fromHuman(value, getDecimals());
     if (inputTV.gt(maxAmount)) {
       setInternalAmount(maxAmount.toHuman());
     } else {
-      if (!value) {
-        setInternalAmount(undefined);
+      if (Number(internalAmount) === Number(inputTV.toHuman())) {
+        setInternalAmount(value);
       } else {
-        if (Number(internalAmount) === Number(inputTV.toHuman())) {
-          setInternalAmount(value);
-        } else {
-          setInternalAmount(inputTV.toHuman());
-        };
+        setInternalAmount(inputTV.toHuman());
       }
     }
   }
@@ -170,6 +221,17 @@ function ComboInputField({
     const currentAmount = disableInput ? amount : internalAmount;
     return currentAmount && Number(currentAmount) > 0;
   };
+
+    // Format plot IDs for display
+    const plotIdsToShow = useMemo(() => {
+      if (!selectedPlots?.length) return "";
+  
+      const sortedPlots = [...selectedPlots].sort((a, b) => 
+        Number(a.index.sub(b.index).toHuman())
+      );
+      
+      return sortedPlots.map(plot => plot.index.toString()).join(", ");
+    }, [selectedPlots]);
 
   return (
     <>
@@ -187,21 +249,33 @@ function ComboInputField({
                 value={disableInput ? amount : internalAmount}
                 onChange={(e) => changeValue(e.target.value)}
               />
+            )}         
+            {mode === "plots" ? (
+            setPlots && ( 
+              <PlotSelect 
+                type={plotSelectionType || "single"}
+                selectedPlots={selectedPlots}
+                setPlots={setPlots}
+              />
+            )
+            ) : (
+              setToken && selectedToken && ( 
+                <TokenSelectWithBalances
+                  setToken={setToken}
+                  selectedToken={selectedToken}
+                  setBalanceFrom={setBalanceFrom}
+                  balanceFrom={balanceFrom}
+                  balancesToShow={balancesToShow}
+                  tokenAndBalanceMap={tokenAndBalanceMap}
+                  disabled={disableButton}
+                />
+              )
             )}
-            <TokenSelectWithBalances
-              setToken={setToken}
-              selectedToken={selectedToken}
-              setBalanceFrom={setBalanceFrom}
-              balanceFrom={balanceFrom}
-              balancesToShow={balancesToShow}
-              tokenAndBalanceMap={tokenAndBalanceMap}
-              disabled={disableButton}
-            />
           </div>
           {!disableInlineBalance && (
             <div className="flex flex-row gap-2 justify-between items-center">
               <div className="font-[340] text-[1rem] text-pinto-gray-4 flex flex-row gap-2 items-center">
-                {shouldShowAdditionalInfo() && formatter.usd(inputValue)}
+                {shouldShowAdditionalInfo() && mode !== "plots" && formatter.usd(inputValue)}
                 {mode === "deposits" && shouldShowAdditionalInfo() && (
                   <>
                     <span className="flex flex-row gap-1 items-center">
@@ -214,10 +288,20 @@ function ComboInputField({
                     </span>
                   </>
                 )}
+                {mode === "plots" && selectedPlots && selectedPlots?.length > 1 && (
+                  <span className="flex flex-row gap-1 items-center">
+                    {`Plot${selectedPlots.length > 1 ? 's' : ''}: ${plotIdsToShow}`}
+                  </span>
+                )}
               </div>
               <div className="flex flex-row gap-2 items-center">
-                <div className="text-[1rem] text-black font-[340] leading-[1.11rem] -tracking-[0.02em] flex flex-row gap-2">
-                  {altText && <img src={depositIcon} alt={"Deposit"} />}
+                <div className="text-[1rem] text-black font-[340] leading-[1.11rem] -tracking-[0.02em] flex flex-row gap-2 items-center">
+                  {altText && 
+                    mode === "deposits" && <img src={depositIcon} alt={"Deposit"} />
+                  }
+                  {altText &&
+                    mode === "plots" && <img src={plotIcon} alt={"Plots"} />
+                  }
                   {`${altText ? altText : 
                     balanceFrom === FarmFromMode.EXTERNAL
                       ? "Wallet Balance:"
