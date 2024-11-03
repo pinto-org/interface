@@ -13,7 +13,7 @@ export default function TransferActions() {
   const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
 
-  console.log("farmerfield: ", farmerField)
+  console.log("farmerfield: ", farmerField);
 
   const totalInternalBalance = Array.from(farmerBalance.balances).reduce(
     (total: TokenValue, tokenBalance) =>
@@ -53,9 +53,9 @@ export default function TransferActions() {
         disabled={farmerSilo.depositsUSD.eq(0)}
         className={`font-[400] text-[1.25rem] md:py-10 md:px-6 w-full text-black hover:text-black disabled:opacity-50 rounded-full justify-between bg-white shadow-none ${farmerSilo.depositsUSD.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
       >
-                <Link to="/transfer/deposits">
-        <span>Silo deposits</span>
-        <span>{`$${Number(farmerSilo.depositsUSD.toHuman()).toFixed(2)}`}</span>
+        <Link to="/transfer/deposits">
+          <span>Silo deposits</span>
+          <span>{`$${Number(farmerSilo.depositsUSD.toHuman()).toFixed(2)}`}</span>
         </Link>
       </Button>
       <Button
@@ -64,9 +64,9 @@ export default function TransferActions() {
         disabled={farmerField.totalPods.eq(0)}
         className={`font-[400] text-[1.25rem] md:py-10 md:px-6 w-full text-black hover:text-black disabled:opacity-50 rounded-full justify-between bg-white shadow-none ${farmerField.totalPods.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
       >
-                        <Link to="/transfer/pods">
-        <span>Pods</span>
-        <span>{`${farmerField.totalPods.toHuman()} Pods`}</span>
+        <Link to="/transfer/pods">
+          <span>Pods</span>
+          <span>{`${farmerField.totalPods.toHuman()} Pods`}</span>
         </Link>
       </Button>
     </div>

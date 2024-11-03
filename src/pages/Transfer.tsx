@@ -3,8 +3,8 @@ import { useParams } from "react-router-dom";
 import { useChainId, useConfig } from "wagmi";
 import TransferActions from "./transfer/TransferActions";
 import TransferAll from "./transfer/actions/TransferAll";
-import TransferFarmBalance from "./transfer/actions/TransferFarmBalance";
 import TransferDeposits from "./transfer/actions/TransferDeposits";
+import TransferFarmBalance from "./transfer/actions/TransferFarmBalance";
 import TransferPods from "./transfer/actions/TransferPods";
 
 function Transfer() {
@@ -25,7 +25,17 @@ function Transfer() {
           </div>
         </div>
         <Separator />
-        {mode === "all" ? <TransferAll /> : mode === "farmbalance" ? <TransferFarmBalance /> : mode === "deposits" ? <TransferDeposits /> : mode === "pods" ? <TransferPods /> : <TransferActions />}
+        {mode === "all" ? (
+          <TransferAll />
+        ) : mode === "farmbalance" ? (
+          <TransferFarmBalance />
+        ) : mode === "deposits" ? (
+          <TransferDeposits />
+        ) : mode === "pods" ? (
+          <TransferPods />
+        ) : (
+          <TransferActions />
+        )}
       </div>
     </div>
   );

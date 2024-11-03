@@ -1,12 +1,12 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
-import { DepositData, Token } from "@/utils/types";
 import depositIcon from "@/assets/protocol/Deposit.svg";
-import { usePriceData } from "@/state/usePriceData";
 import { TokenValue } from "@/classes/TokenValue";
-import { ToggleGroupItem } from "@/components/ui/ToggleGroup";
-import React from "react";
 import { CheckmarkIcon } from "@/components/Icons";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
+import { ToggleGroupItem } from "@/components/ui/ToggleGroup";
+import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { usePriceData } from "@/state/usePriceData";
+import { DepositData, Token } from "@/utils/types";
+import React from "react";
 
 interface DepositsTable {
   token: Token;
@@ -32,11 +32,13 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
       >
         <TableCell className="text-black font-[400]">
           <div className="gap-2 pl-2 flex items-center">
-            {useToggle && 
-            <div className={`w-6 h-6 border rounded-full flex items-center justify-center ${isSelected ? "border-pinto-green-4 bg-pinto-green-1 text-pinto-green-4" : "border-black bg-transparent"}`}>
+            {useToggle && (
+              <div
+                className={`w-6 h-6 border rounded-full flex items-center justify-center ${isSelected ? "border-pinto-green-4 bg-pinto-green-1 text-pinto-green-4" : "border-black bg-transparent"}`}
+              >
                 {isSelected && <CheckmarkIcon color="currentColor" width={16} height={16} />}
-            </div>
-            }
+              </div>
+            )}
             <img src={depositIcon} alt="deposit icon" />
             {deposit.stem.toHuman()}
           </div>
@@ -49,15 +51,14 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
           <div>{deposit.stalk.base.toHuman("short")}</div>
           {deposit.stalk.grown.gt(0) && (
             <div className="text-pinto-gray-4">
-              Claimable Grown Stalk:{" "}
-              <span className="text-pinto-green-2">+{deposit.stalk.grown.toHuman("short")}</span>
+              Claimable Grown Stalk: <span className="text-pinto-green-2">+{deposit.stalk.grown.toHuman("short")}</span>
             </div>
           )}
         </TableCell>
         <TableCell className="text-right text-black p-4">{deposit.seeds.toHuman("short")}</TableCell>
       </TableRow>
     );
-  }
+  },
 );
 
 export default function DepositsTable({ token, selected, useToggle }: DepositsTable) {
@@ -87,20 +88,24 @@ export default function DepositsTable({ token, selected, useToggle }: DepositsTa
         ) : (
           tokenData.deposits.map((deposit) => {
             if (useToggle) {
-            return (
-              <ToggleGroupItem
-                value={deposit.stem.toHuman()}
-                aria-label={`Select ${token.name}`}
-                key={`toggle_${deposit.stem.toHuman()}`}
-                asChild
-              >
-                <DepositRow deposit={deposit} price={priceData.price} token={token} useToggle isSelected={selected?.includes(deposit.stem.toHuman())} />
-              </ToggleGroupItem>
-              )
+              return (
+                <ToggleGroupItem
+                  value={deposit.stem.toHuman()}
+                  aria-label={`Select ${token.name}`}
+                  key={`toggle_${deposit.stem.toHuman()}`}
+                  asChild
+                >
+                  <DepositRow
+                    deposit={deposit}
+                    price={priceData.price}
+                    token={token}
+                    useToggle
+                    isSelected={selected?.includes(deposit.stem.toHuman())}
+                  />
+                </ToggleGroupItem>
+              );
             }
-            return (
-              <DepositRow deposit={deposit} price={priceData.price} token={token} key={deposit.stem.toHuman()} />
-            )
+            return <DepositRow deposit={deposit} price={priceData.price} token={token} key={deposit.stem.toHuman()} />;
           })
         )}
       </TableBody>

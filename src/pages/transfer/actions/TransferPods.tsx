@@ -1,22 +1,20 @@
-
 import { TokenValue } from "@/classes/TokenValue";
 import FlowForm from "@/components/FormFlow";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import { useFarmerField } from "@/state/useFarmerField";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { type Address, type BaseError, encodeFunctionData } from "viem";
 import { useAccount, useChainId, useWriteContract } from "wagmi";
-import StepOne from "./pods/StepOne";
-import { useFarmerField } from "@/state/useFarmerField";
-import StepTwo from "./pods/StepTwo";
 import FinalStep from "./pods/FinalStep";
-
+import StepOne from "./pods/StepOne";
+import StepTwo from "./pods/StepTwo";
 
 export interface PodTransferData {
-  id: TokenValue,
-  start: TokenValue,
-  end: TokenValue,
+  id: TokenValue;
+  start: TokenValue;
+  end: TokenValue;
 }
 
 export default function TransferPods() {
@@ -32,31 +30,31 @@ export default function TransferPods() {
 
   const stepDescription = () => {
     switch (step) {
-        case 1:
-            return "Select Plots"
-        case 2:
-            return "Specify amount and address"
-        default:
-            return "Confirm send"
-        }
-  }
+      case 1:
+        return "Select Plots";
+      case 2:
+        return "Specify amount and address";
+      default:
+        return "Confirm send";
+    }
+  };
 
   const enableNextStep = () => {
-      switch (step) {
-          case 1:
-              return transferData.length > 0;
-          case 2:
-              if (!!destination) {
-                if (transferData.length === 1) {
-                  return transferData[0].end.gt(transferData[0].start)
-                }
-                return true
-              }
-              return false
-          default:
-              return true
-      }
-  }
+    switch (step) {
+      case 1:
+        return transferData.length > 0;
+      case 2:
+        if (!!destination) {
+          if (transferData.length === 1) {
+            return transferData[0].end.gt(transferData[0].start);
+          }
+          return true;
+        }
+        return false;
+      default:
+        return true;
+    }
+  };
 
   const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
 
@@ -127,24 +125,18 @@ export default function TransferPods() {
       stepDescription={stepDescription()}
       disableTopSeparator={step === 1}
     >
-      {step === 1 ? 
-          <StepOne 
-            transferData={transferData}
-            setTransferData={setTransferData}
-          />
-        : step === 2 ?
-          <StepTwo 
-            transferData={transferData}
-            setTransferData={setTransferData}
-            destination={destination}
-            setDestination={setDestination}
-          />
-          : 
-          <FinalStep
-            transferData={transferData}
-            destination={destination}
-          />
-    }
+      {step === 1 ? (
+        <StepOne transferData={transferData} setTransferData={setTransferData} />
+      ) : step === 2 ? (
+        <StepTwo
+          transferData={transferData}
+          setTransferData={setTransferData}
+          destination={destination}
+          setDestination={setDestination}
+        />
+      ) : (
+        <FinalStep transferData={transferData} destination={destination} />
+      )}
     </FlowForm>
   );
 }

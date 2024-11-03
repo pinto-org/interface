@@ -1,23 +1,22 @@
-
 import { TokenValue } from "@/classes/TokenValue";
 import FlowForm from "@/components/FormFlow";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { sortAndPickCrates } from "@/utils/convert";
 import { DepositData, type Token } from "@/utils/types";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { type Address, type BaseError, encodeFunctionData } from "viem";
 import { useAccount, useChainId, useWriteContract } from "wagmi";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
-import StepOne from "./deposits/StepOne";
 import FinalStep from "./deposits/FinalStep";
-import { sortAndPickCrates } from "@/utils/convert";
+import StepOne from "./deposits/StepOne";
 import StepTwo from "./deposits/StepTwo";
 
 export interface DepositTransferData {
-  token: Token, 
-  amount: string, 
-  deposits: DepositData[]
+  token: Token;
+  amount: string;
+  deposits: DepositData[];
 }
 
 export default function TransferDeposits() {
@@ -34,36 +33,36 @@ export default function TransferDeposits() {
 
   const stepDescription = () => {
     switch (step) {
-        case 1:
-            return "Select Deposited tokens to send"
-        case 2:
-            if (usingMax) {
-                return "Specify recipient address"
-            }
-            return "Specify amount and address"
-        default:
-            return "Confirm send"
+      case 1:
+        return "Select Deposited tokens to send";
+      case 2:
+        if (usingMax) {
+          return "Specify recipient address";
         }
+        return "Specify amount and address";
+      default:
+        return "Confirm send";
     }
+  };
 
-    const enableNextStep = () => {
-        switch (step) {
-            case 1:
-                return transferData.length > 0;
-            case 2:
-                return !!destination
-            default:
-                return true
-        }
+  const enableNextStep = () => {
+    switch (step) {
+      case 1:
+        return transferData.length > 0;
+      case 2:
+        return !!destination;
+      default:
+        return true;
     }
+  };
 
   const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
 
   useEffect(() => {
     if (usingMax && step === 1) {
-        setStep(2)
-    };
-  }, [usingMax, step])
+      setStep(2);
+    }
+  }, [usingMax, step]);
 
   useEffect(() => {
     if (isSuccess) {
@@ -80,24 +79,20 @@ export default function TransferDeposits() {
 
     // Deposit Transfers
     for (const depositData of transferData) {
-        const amountTV = TokenValue.fromHuman(depositData.amount, depositData.token.decimals);
-        if (amountTV.eq(0)) continue;
+      const amountTV = TokenValue.fromHuman(depositData.amount, depositData.token.decimals);
+      if (amountTV.eq(0)) continue;
 
-        const crateData = sortAndPickCrates(
-          "transfer",
-          amountTV,
-          depositData.deposits,
-        );
+      const crateData = sortAndPickCrates("transfer", amountTV, depositData.deposits);
 
-        const stems = crateData.crates.map((crate) => crate.stem.toBigInt());
-        const amounts = crateData.crates.map((crate) => crate.amount.toBigInt());
-        const depositTransferCall = encodeFunctionData({
-          abi: beanstalkAbi,
-          functionName: "transferDeposits",
-          args: [account.address, destination as Address, depositData.token.address, stems, amounts],
-        });
-        farmData.push(depositTransferCall);
-      }
+      const stems = crateData.crates.map((crate) => crate.stem.toBigInt());
+      const amounts = crateData.crates.map((crate) => crate.amount.toBigInt());
+      const depositTransferCall = encodeFunctionData({
+        abi: beanstalkAbi,
+        functionName: "transferDeposits",
+        args: [account.address, destination as Address, depositData.token.address, stems, amounts],
+      });
+      farmData.push(depositTransferCall);
+    }
 
     const tx = () =>
       writeContractAsync({
@@ -119,9 +114,9 @@ export default function TransferDeposits() {
   }
 
   function backToFirstStep() {
-    setStep(1)
-    setUsingMax(false)
-  };
+    setStep(1);
+    setUsingMax(false);
+  }
 
   return (
     <FlowForm
@@ -131,27 +126,27 @@ export default function TransferDeposits() {
       enableNextStep={enableNextStep()}
       onSubmit={onSubmit}
       stepDescription={stepDescription()}
-      customBackStepFunction={(usingMax && step === 2) ? () => backToFirstStep() : undefined}
+      customBackStepFunction={usingMax && step === 2 ? () => backToFirstStep() : undefined}
     >
-      {step === 1 ? 
-          <StepOne
-            transferData={transferData}
-            setTransferData={setTransferData}
-            usingMax={usingMax}
-            setUsingMax={setUsingMax}
-          />
-        : step === 2 ?
-          <StepTwo 
-            transferData={transferData}
-            setTransferData={setTransferData}
-            destination={destination} 
-            setDestination={setDestination} 
-            usingMax={usingMax}
-            backToFirstStep={backToFirstStep}
-          />
-        : 
-          <FinalStep destination={destination} transferData={transferData} />
-    }
+      {step === 1 ? (
+        <StepOne
+          transferData={transferData}
+          setTransferData={setTransferData}
+          usingMax={usingMax}
+          setUsingMax={setUsingMax}
+        />
+      ) : step === 2 ? (
+        <StepTwo
+          transferData={transferData}
+          setTransferData={setTransferData}
+          destination={destination}
+          setDestination={setDestination}
+          usingMax={usingMax}
+          backToFirstStep={backToFirstStep}
+        />
+      ) : (
+        <FinalStep destination={destination} transferData={transferData} />
+      )}
     </FlowForm>
   );
 }

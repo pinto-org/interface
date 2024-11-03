@@ -1,3 +1,4 @@
+import FlowForm from "@/components/FormFlow";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
@@ -10,9 +11,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { type Address, type BaseError, encodeFunctionData } from "viem";
 import { useAccount, useChainId, useWriteContract } from "wagmi";
-import FlowForm from "@/components/FormFlow";
-import StepOne from "./all/StepOne";
 import FinalStep from "./all/FinalStep";
+import StepOne from "./all/StepOne";
 
 export default function TransferAll() {
   const account = useAccount();
@@ -20,9 +20,7 @@ export default function TransferAll() {
 
   const [step, setStep] = useState(1);
 
-  const stepDescription = step === 1 ?
-    'Send everything, specify address'
-    : 'Confirm send'
+  const stepDescription = step === 1 ? "Send everything, specify address" : "Confirm send";
 
   const [destination, setDestination] = useState<string | undefined>();
 
@@ -143,9 +141,11 @@ export default function TransferAll() {
       onSubmit={onSubmit}
       stepDescription={stepDescription}
     >
-      {step === 1 ? 
+      {step === 1 ? (
         <StepOne destination={destination} setDestination={setDestination} />
-        : <FinalStep destination={destination} />}
+      ) : (
+        <FinalStep destination={destination} />
+      )}
     </FlowForm>
   );
 }

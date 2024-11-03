@@ -1,19 +1,18 @@
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { Token } from "@/utils/types";
 
-export default function FarmBalancesList({ transferData }: { transferData?: { token: Token, amount: string }[] }) {
-  
+export default function FarmBalancesList({ transferData }: { transferData?: { token: Token; amount: string }[] }) {
   const farmerBalances = useFarmerBalances();
-  const tokenData: { token: Token, amount: string }[] = [];
+  const tokenData: { token: Token; amount: string }[] = [];
   if (!transferData) {
     for (const data of farmerBalances.balances) {
-      tokenData.push({ token: data[0], amount: data[1].internal.reDecimal(2).toHuman() })
+      tokenData.push({ token: data[0], amount: data[1].internal.reDecimal(2).toHuman() });
     }
   } else {
     for (const data of transferData) {
-      tokenData.push({ token: data.token, amount: data.amount })
+      tokenData.push({ token: data.token, amount: data.amount });
     }
-  };
+  }
 
   return (
     <div className="flex flex-wrap gap-x-4">

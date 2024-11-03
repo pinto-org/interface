@@ -1,26 +1,34 @@
-import { useEffect, useState } from "react";
-import { useAccount } from "wagmi";
-import { useFarmerField } from "@/state/useFarmerField";
-import { TokenValue } from "@/classes/TokenValue";
-import { Button } from "./ui/Button";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/Dialog";
-import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
-import { useFieldData } from "@/state/useFieldData";
-import { PODS } from "@/constants/internalTokens";
-import { Plot } from "@/utils/types";
-import podIcon from "@/assets/protocol/Pod.png";
-import { Separator } from "./ui/Separator";
 import arrowDown from "@/assets/misc/ChevronDown.svg";
 import plotIcon from "@/assets/protocol/Plot.svg";
+import podIcon from "@/assets/protocol/Pod.png";
+import { TokenValue } from "@/classes/TokenValue";
+import { PODS } from "@/constants/internalTokens";
+import { useFarmerField } from "@/state/useFarmerField";
+import { useFieldData } from "@/state/useFieldData";
+import { Plot } from "@/utils/types";
+import { useEffect, useState } from "react";
+import { useAccount } from "wagmi";
 import { CheckmarkIcon } from "./Icons";
+import { Button } from "./ui/Button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/Dialog";
+import { Separator } from "./ui/Separator";
+import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
 
-function PlotSelectItem({ 
-  plot, 
+function PlotSelectItem({
+  plot,
   harvestableIndex,
   type,
-  selectedPlots
-}: { 
-  plot: Plot; 
+  selectedPlots,
+}: {
+  plot: Plot;
   harvestableIndex: TokenValue;
   type: "single" | "multiple";
   selectedPlots: string[];
@@ -34,7 +42,9 @@ function PlotSelectItem({
       className="flex flex-row w-[105%] py-2 h-auto justify-between"
     >
       <div className="flex flex-row items-center gap-4">
-        <div className={`w-6 h-6 border rounded-full flex items-center justify-center ${isSelected ? "border-pinto-green-4 bg-pinto-green-1 text-pinto-green-4" : "border-black bg-transparent"}`}>
+        <div
+          className={`w-6 h-6 border rounded-full flex items-center justify-center ${isSelected ? "border-pinto-green-4 bg-pinto-green-1 text-pinto-green-4" : "border-black bg-transparent"}`}
+        >
           {isSelected && <CheckmarkIcon color="currentColor" width={16} height={16} />}
         </div>
         <img src={podIcon} alt="Pod" className="w-12 h-12" />
@@ -56,11 +66,7 @@ function PlotSelectItem({
     </ToggleGroupItem>
   );
 
-  return type === "single" ? (
-    <DialogClose className="flex flex-row w-[105%]">
-      {content}
-    </DialogClose>
-  ) : content;
+  return type === "single" ? <DialogClose className="flex flex-row w-[105%]">{content}</DialogClose> : content;
 }
 
 export default function PlotSelect({
@@ -68,7 +74,7 @@ export default function PlotSelect({
   type = "multiple",
   size,
   disabled,
-  selectedPlots 
+  selectedPlots,
 }: {
   setPlots: React.Dispatch<React.SetStateAction<Plot[]>>;
   type?: "single" | "multiple";
@@ -80,14 +86,14 @@ export default function PlotSelect({
   const farmerField = useFarmerField();
   const fieldData = useFieldData();
 
-    const [_plots, setInternalPlots] = useState<string[]>([]);
+  const [_plots, setInternalPlots] = useState<string[]>([]);
 
-    useEffect(() => {
-      if (selectedPlots) {
-      const defaultPlots = selectedPlots?.map(plot => plot.index.toHuman()) || [];
-      setInternalPlots(defaultPlots)
+  useEffect(() => {
+    if (selectedPlots) {
+      const defaultPlots = selectedPlots?.map((plot) => plot.index.toHuman()) || [];
+      setInternalPlots(defaultPlots);
     }
-    }, [selectedPlots])
+  }, [selectedPlots]);
 
   function selectPlot(value: string | string[]) {
     const plotOutput: Plot[] = [];
@@ -104,26 +110,28 @@ export default function PlotSelect({
     setPlots(plotOutput);
   }
 
-  const displayText = _plots.length === 0
-    ? "Select Plots"
-    : _plots.length === 1
-      ? <div className="flex flex-row gap-1">
-          <span>Pods</span>
-          <span className="text-pinto-gray-4">@</span>
-          <span>{`${TokenValue.fromHuman(_plots[0], PODS.decimals).sub(fieldData.harvestableIndex).toHuman("short")} in Line`}</span>
-        </div>
-      : /* `${_plots.length} Plots` */ "Pods";
+  const displayText =
+    _plots.length === 0 ? (
+      "Select Plots"
+    ) : _plots.length === 1 ? (
+      <div className="flex flex-row gap-1">
+        <span>Pods</span>
+        <span className="text-pinto-gray-4">@</span>
+        <span>{`${TokenValue.fromHuman(_plots[0], PODS.decimals).sub(fieldData.harvestableIndex).toHuman("short")} in Line`}</span>
+      </div>
+    ) : (
+      /* `${_plots.length} Plots` */ "Pods"
+    );
 
-      const plotItems = farmerField.plots.map((plot) => (
-        <PlotSelectItem
-          key={`selectPlot${plot.index.toHuman()}`}
-          plot={plot}
-          harvestableIndex={fieldData.harvestableIndex}
-          type={type}
-          selectedPlots={_plots}
-        />
-      ));
-    
+  const plotItems = farmerField.plots.map((plot) => (
+    <PlotSelectItem
+      key={`selectPlot${plot.index.toHuman()}`}
+      plot={plot}
+      harvestableIndex={fieldData.harvestableIndex}
+      type={type}
+      selectedPlots={_plots}
+    />
+  ));
 
   return (
     <Dialog>
@@ -132,11 +140,7 @@ export default function PlotSelect({
           variant={"outline"}
           className={`${disabled ? "pointer-events-none" : "pointer-events-auto"} flex-none items-center ${size === "small" ? "" : "h-12"} gap-1.5 border border-pinto-gray-blue bg-white hover:bg-pinto-gray-1 drop-shadow-pinto-token-select rounded-full text-black text-[1.25rem] font-[300] leading-[1.3875rem] tracking-[1px]`}
         >
-          <img 
-            src={podIcon} 
-            alt="Pods" 
-            className={`${size === "small" ? "w-5 h-5" : "w-6 h-6"}`} 
-          />
+          <img src={podIcon} alt="Pods" className={`${size === "small" ? "w-5 h-5" : "w-6 h-6"}`} />
           {displayText}
           {!disabled && <img src={arrowDown} className="w-4 h-4" alt="open plot select dialog" />}
         </Button>
@@ -173,7 +177,6 @@ export default function PlotSelect({
                     {plotItems}
                   </ToggleGroup>
                 )}
-
               </div>
             ) : (
               "Connect your wallet to see your Plots"

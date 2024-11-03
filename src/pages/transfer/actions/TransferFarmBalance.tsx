@@ -1,4 +1,3 @@
-
 import { TokenValue } from "@/classes/TokenValue";
 import FlowForm from "@/components/FormFlow";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
@@ -9,8 +8,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { type Address, type BaseError, encodeFunctionData } from "viem";
 import { useAccount, useChainId, useWriteContract } from "wagmi";
-import StepOne from "./farmbalance/StepOne";
 import FinalStep from "./farmbalance/FinalStep";
+import StepOne from "./farmbalance/StepOne";
 
 export default function TransferFarmBalance() {
   const account = useAccount();
@@ -19,17 +18,18 @@ export default function TransferFarmBalance() {
 
   const [step, setStep] = useState(1);
   const [destination, setDestination] = useState<string | undefined>();
-  const [transferData, setTransferData] = useState<{ token: Token, amount: string }[]>([]);
+  const [transferData, setTransferData] = useState<{ token: Token; amount: string }[]>([]);
   const [balanceTo, setBalanceTo] = useState<FarmToMode>(FarmToMode.INTERNAL);
 
   const [usingMax, setUsingMax] = useState(false);
 
-  const totalAmount = useMemo(() => transferData.reduce((total, tokenData) => Number(tokenData.amount) + total, 0), [transferData]);
+  const totalAmount = useMemo(
+    () => transferData.reduce((total, tokenData) => Number(tokenData.amount) + total, 0),
+    [transferData],
+  );
 
-  const stepDescription = step === 1 ?
-    usingMax ? "Specify recipient" 
-    : "Specify amount, token and recipient address"
-    : "Confirm send"
+  const stepDescription =
+    step === 1 ? (usingMax ? "Specify recipient" : "Specify amount, token and recipient address") : "Confirm send";
 
   const farmerBalances = useFarmerBalances();
 
@@ -94,18 +94,20 @@ export default function TransferFarmBalance() {
       onSubmit={onSubmit}
       stepDescription={stepDescription}
     >
-      {step === 1 ? 
+      {step === 1 ? (
         <StepOne
           transferData={transferData}
-          setTransferData={setTransferData} 
-          destination={destination} 
+          setTransferData={setTransferData}
+          destination={destination}
           setDestination={setDestination}
           balanceTo={balanceTo}
           setBalanceTo={setBalanceTo}
           usingMax={usingMax}
           setUsingMax={setUsingMax}
         />
-        : <FinalStep transferData={transferData} destination={destination} balanceTo={balanceTo} />}
+      ) : (
+        <FinalStep transferData={transferData} destination={destination} balanceTo={balanceTo} />
+      )}
     </FlowForm>
   );
 }
