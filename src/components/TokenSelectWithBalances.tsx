@@ -34,7 +34,7 @@ function TokenSelectItem({
       <ToggleGroupItem
         value={token.address}
         aria-label={`Select ${token.name}`}
-        className="flex flex-row w-[105%] py-2 h-auto justify-between"
+        className="flex flex-row w-[105%] py-4 h-auto justify-between data-[state=on]:bg-transparent hover:bg-pinto-gray-1 data-[state=on]:hover:bg-pinto-gray-1"
       >
         <div className="flex flex-row items-center gap-4">
           <img src={token.logoURI} alt={token.name} className="w-12 h-12" />
@@ -115,7 +115,7 @@ export default function TokenSelectWithBalances({
       <DialogContent className="font-pinto overflow-x-clip">
         <DialogHeader>
           <DialogTitle>
-            <span>Select Token</span>
+            <span className="font-[400] text-[1.25rem]">Select Token</span>
             {balanceFrom && setBalanceFrom && (
               <div className="mt-6">
                 <SourceBalanceSelect
@@ -129,7 +129,7 @@ export default function TokenSelectWithBalances({
           </DialogTitle>
           <DialogDescription>
             {account.address ? (
-              <div className="mt-6">
+              <div className="mt-2">
                 <ToggleGroup
                   type="single"
                   value={_token.address}

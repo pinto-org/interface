@@ -39,7 +39,7 @@ function PlotSelectItem({
     <ToggleGroupItem
       value={plot.index.toHuman()}
       aria-label={`Select Plot at ${plot.index.sub(harvestableIndex).toHuman("short")}`}
-      className="flex flex-row w-[105%] py-2 h-auto justify-between"
+      className="flex flex-row w-[105%] py-4 h-auto justify-between data-[state=on]:bg-transparent hover:bg-pinto-gray-1 data-[state=on]:hover:bg-pinto-gray-1"
     >
       <div className="flex flex-row items-center gap-4">
         <div
@@ -148,12 +148,12 @@ export default function PlotSelect({
       <DialogContent className="font-pinto overflow-x-clip">
         <DialogHeader>
           <DialogTitle>
-            <span>Select Plot{type === "multiple" ? "s" : ""}</span>
+            <span className="font-[400] text-[1.25rem]">Select Plot{type === "multiple" ? "s" : ""}</span>
             <Separator className="w-[120%] -ml-6 mt-6" />
           </DialogTitle>
           <DialogDescription>
             {account.address ? (
-              <div className="mt-6">
+              <div className="mt-2">
                 {type === "multiple" ? (
                   <ToggleGroup
                     type="multiple"
