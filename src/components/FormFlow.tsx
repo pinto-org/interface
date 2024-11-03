@@ -76,7 +76,7 @@ export default function FlowForm({ children, stepNumber, stepDescription, totalS
               disabled={isFinalStep || !enableNextStep}
               onClick={handleNextStep}
               variant={!isFinalStep ? 'defaultAlt' : 'default'}
-              className={`rounded-l-none rounded-r-full border-l h-[3.25rem] px-6 w-[3.25rem] disabled:bg-pinto-green-1 ${!isFinalStep ? "border-l-pinto-green-3" : "border-l-white"}`}
+              className={`rounded-l-none rounded-r-full border-l h-[3.25rem] px-6 w-[3.25rem] disabled:bg-pinto-green-1 ${!isFinalStep ? "border-l-pinto-green-3" : "border-l-white  disabled:bg-pinto"}`}
             >
               <div className="rotate-180 scale-[1.65] mt-1">
                 <ChevronDownIcon color={"currentColor"} />
