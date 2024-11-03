@@ -27,7 +27,7 @@ function Field() {
             </div>
             <a
               href={"https://link.to.pinto/explanation"}
-              className="font-[400] text-xl text-pinto-green-2 hover:cursor-pointer hover:underline"
+              className="font-[400] text-xl text-pinto-green-4 hover:cursor-pointer hover:underline"
             >
               How do my Pods reach the front of the Pod Line?
             </a>
