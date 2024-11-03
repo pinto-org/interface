@@ -1,5 +1,6 @@
 import { TokenValue } from "@/classes/TokenValue";
 import PlotsTable from "@/components/PlotsTable";
+import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import { ToggleGroup } from "@/components/ui/ToggleGroup";
 import { useFarmerField } from "@/state/useFarmerField";
@@ -67,17 +68,32 @@ export default function StepOne({ transferData, setTransferData }: StepOneProps)
     [plots, setTransferData],
   );
 
+  const selectAllPlots = useCallback(() => {
+    const plotIndexes = plots.map((plot) => plot.index.toHuman());
+    handlePlotSelection(plotIndexes);
+  }, [plots, handlePlotSelection]);
+
   return (
-    <div className="flex flex-col gap-4">
-      <Label>Which Plots do you want to send?</Label>
-      <ToggleGroup
-        type="multiple"
-        value={selected}
-        onValueChange={handlePlotSelection}
-        className="flex flex-col w-auto h-auto justify-between gap-2"
-      >
-        <PlotsTable selected={selected} useToggle />
-      </ToggleGroup>
-    </div>
+    <>
+      <div className="flex flex-row justify-end -mt-[5rem]">
+        <Button
+          className={`font-[340] text-[1.25rem] text-pinto-green-4 bg-transparent hover:underline hover:bg-transparent`}
+          onClick={() => selectAllPlots()}
+        >
+          Select all Plots
+        </Button>
+      </div>
+      <div className="flex flex-col gap-4">
+        <Label>Which Plots do you want to send?</Label>
+        <ToggleGroup
+          type="multiple"
+          value={selected}
+          onValueChange={handlePlotSelection}
+          className="flex flex-col w-auto h-auto justify-between gap-2"
+        >
+          <PlotsTable selected={selected} useToggle />
+        </ToggleGroup>
+      </div>
+    </>
   );
 }

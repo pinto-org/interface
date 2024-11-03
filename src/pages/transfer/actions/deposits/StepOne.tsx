@@ -51,7 +51,7 @@ export default function StepOne({ transferData, setTransferData, usingMax, setUs
 
   return (
     <>
-      <div className="flex flex-row justify-end -mt-[4.75rem]">
+      <div className="flex flex-row justify-end -mt-[5rem]">
         <Button
           className={`font-[340] text-[1.25rem] text-pinto-green-4 bg-transparent hover:underline hover:bg-transparent`}
           onClick={() => setUsingMax(!usingMax)}
