@@ -11,11 +11,10 @@ interface FinalStepProps {
 export default function FinalStep({ destination, transferData }: FinalStepProps) {
     if (!destination || transferData.length === 0) return null;
 
-    console.log("data: ", transferData)
     return (
         <div className="flex flex-col gap-6">
             <div>
-            <Label className="font-[340] text-[1.25rem]">I'm sending</Label>
+            <Label className="font-[340] text-[1.25rem] mb-2">I'm sending</Label>
             <div className="flex flex-col gap-4">
                 {transferData.map((transfer) => {
                     const podAmount = transfer.end.sub(transfer.start);

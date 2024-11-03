@@ -48,7 +48,7 @@ export default function StepTwo({
     }, [selectedPlots]);
 
     const handleRangeChange = useCallback((newRange: number[]) => {
-        if (selectedPlots.length === 0) return;
+        if (selectedPlots.length === 0 || selectedPlots.length > 1) return;
         const plot = selectedPlots[0];
         const newStart = TokenValue.fromHuman(newRange[0], PODS.decimals);
         const newEnd = TokenValue.fromHuman(newRange[1], PODS.decimals);
@@ -100,9 +100,11 @@ export default function StepTwo({
         }]
 
         const batchUpdate = () => {
-            setRange(newRange);
-            setTransferData(newData);
             setAmount(newAmount);
+            if (selectedPlots.length === 1) {
+                setRange(newRange);
+                setTransferData(newData);
+            }
         };
         batchUpdate();
     }, [selectedPlots, setTransferData]);
