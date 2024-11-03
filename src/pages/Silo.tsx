@@ -20,7 +20,7 @@ function Silo() {
     farmerSilo.depositsUSD.gt(0) || farmerSilo.activeStalkBalance.gt(0) || farmerSilo.activeSeedsBalance.gt(0);
 
   return (
-    <PageContainer className="">
+    <PageContainer>
       <div className="flex flex-col w-full items-center">
         <div className="flex flex-col w-full gap-4 sm:gap-12">
           <div className="flex flex-col gap-2">

@@ -91,7 +91,7 @@ function ComboInputField({
           setInternalAmount(value);
         } else {
           setInternalAmount(inputTV.toHuman());
-        };
+        }
       }
     }
   }
