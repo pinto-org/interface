@@ -122,9 +122,9 @@ export default function StepTwo({
                 altText="Plot Size:"
             />
             <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium">
+                <Label>
                     Send plots to
-                </label>
+                </Label>
                 <AddressInputField
                     value={destination}
                     setValue={setDestination}

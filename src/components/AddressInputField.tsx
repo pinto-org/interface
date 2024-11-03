@@ -55,7 +55,7 @@ export default function AddressInputField({ value, setValue }: AddressInputField
           onChange={(e) => {
             validateAddress(e.target.value);
           }}
-          className={`h-16 px-6 py-4 text-[2rem] bg-white ${isValid === false ? "border-pinto-red-2 focus-visible:ring-pinto-red-2" : ""}`}
+          className={`h-16 px-6 py-4 text-[2rem] bg-white ${isValid === false ? "border-pinto-red-2 focus-visible:ring-transparent" : ""}`}
           placeholder={`Enter ${currentChain?.name ?? ""} address`}
         />
       )}

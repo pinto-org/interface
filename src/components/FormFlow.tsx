@@ -57,7 +57,7 @@ export default function FlowForm({ children, stepNumber, stepDescription, totalS
             onClick={handleNextStep}
             variant={!isFinalStep ? 'defaultAlt' : 'default'}
             disabled={!enableNextStep}
-            className="rounded-full font-[400] text-[1.5rem] px-6 h-[3.625rem]"
+            className="rounded-full font-[400] text-[1.5rem] md:px-6 md:py-4 h-[3.625rem]"
           >
             {isFinalStep ? "Send" : "Continue"}
           </Button>
@@ -66,9 +66,9 @@ export default function FlowForm({ children, stepNumber, stepDescription, totalS
               disabled={isFirstStep}
               onClick={handlePreviousStep}
               variant={!isFinalStep ? 'defaultAlt' : 'default'}
-              className="rounded-l-full rounded-r-none h-[3.625rem] px-6 disabled:bg-pinto-green-1"
+              className="rounded-l-full rounded-r-none h-[3.25rem] px-6 w-[3.25rem] disabled:bg-pinto-green-1"
             >
-              <div className="scale-[2]">
+              <div className="scale-[1.65] -mt-0.5">
                 <ChevronDownIcon color={"currentColor"} />
               </div>
             </Button>
@@ -76,9 +76,9 @@ export default function FlowForm({ children, stepNumber, stepDescription, totalS
               disabled={isFinalStep || !enableNextStep}
               onClick={handleNextStep}
               variant={!isFinalStep ? 'defaultAlt' : 'default'}
-              className={`rounded-l-none rounded-r-full border-l h-[3.625rem] px-6 disabled:bg-pinto-green-1 ${!isFinalStep ? "border-l-pinto-green-3" : "border-l-white"}`}
+              className={`rounded-l-none rounded-r-full border-l h-[3.25rem] px-6 w-[3.25rem] disabled:bg-pinto-green-1 ${!isFinalStep ? "border-l-pinto-green-3" : "border-l-white"}`}
             >
-              <div className="rotate-180 scale-[2] mt-1.5">
+              <div className="rotate-180 scale-[1.65] mt-1">
                 <ChevronDownIcon color={"currentColor"} />
               </div>
             </Button>
