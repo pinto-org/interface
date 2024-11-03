@@ -15,7 +15,7 @@ interface StepTwoProps {
     destination: string | undefined;
 }
 
-export default function StepTwo({ destination }: StepTwoProps) {
+export default function FinalStep({ destination }: StepTwoProps) {
 
     const farmerBalances = useFarmerBalances();
     const balancesToSend = [...farmerBalances.balances].map(([token, balance]) => ({ token, balance }));

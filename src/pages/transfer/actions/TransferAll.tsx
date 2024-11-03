@@ -12,7 +12,7 @@ import { type Address, type BaseError, encodeFunctionData } from "viem";
 import { useAccount, useChainId, useWriteContract } from "wagmi";
 import FlowForm from "@/components/FormFlow";
 import StepOne from "./all/StepOne";
-import StepTwo from "./all/StepTwo";
+import FinalStep from "./all/FinalStep";
 
 export default function TransferAll() {
   const account = useAccount();
@@ -145,7 +145,7 @@ export default function TransferAll() {
     >
       {step === 1 ? 
         <StepOne destination={destination} setDestination={setDestination} />
-        : <StepTwo destination={destination} />}
+        : <FinalStep destination={destination} />}
     </FlowForm>
   );
 }

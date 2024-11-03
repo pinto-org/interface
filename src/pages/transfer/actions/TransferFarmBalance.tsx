@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { type Address, type BaseError, encodeFunctionData } from "viem";
 import { useAccount, useChainId, useWriteContract } from "wagmi";
 import StepOne from "./farmbalance/StepOne";
-import StepTwo from "./farmbalance/StepTwo";
+import FinalStep from "./farmbalance/FinalStep";
 
 export default function TransferFarmBalance() {
   const account = useAccount();
@@ -105,7 +105,7 @@ export default function TransferFarmBalance() {
           usingMax={usingMax}
           setUsingMax={setUsingMax}
         />
-        : <StepTwo transferData={transferData} destination={destination} balanceTo={balanceTo} />}
+        : <FinalStep transferData={transferData} destination={destination} balanceTo={balanceTo} />}
     </FlowForm>
   );
 }

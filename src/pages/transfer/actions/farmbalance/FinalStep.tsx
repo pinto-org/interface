@@ -9,7 +9,7 @@ interface StepTwoProps {
   transferData: { token: Token, amount: string }[];
 }
 
-export default function StepTwo({ balanceTo, destination, transferData }: StepTwoProps) {
+export default function FinalStep({ balanceTo, destination, transferData }: StepTwoProps) {
   return (
     <div className="flex flex-col gap-8">
     <div className="flex flex-col">
