@@ -23,8 +23,9 @@ const Navbar = () => {
   const walletOpen = openPanel === "wallet";
   const mobileNaviOpen = openPanel === "mobile-navi";
 
-  const ref1 = useRef(null);
-  const ref2 = useRef(null);
+  const walletRef = useRef<HTMLDivElement>(null);
+  const walletHelperRef = useRef<HTMLDivElement>(null);
+  const [isHovering, setIsHovering] = useState(false);
 
   const closePanel = () => {
     setOpenBackdrop(false);
@@ -55,9 +56,19 @@ const Navbar = () => {
         <div className="hidden lg:flex lg:justify-center">
           <Navi />
         </div>
-        <div className={`flex flex-row justify-end gap-2`}>
-          <div className={`${walletOpen && "z-[51]"}`}>
-            <WalletButton isOpen={walletOpen} togglePanel={() => togglePanel("wallet")} ref={ref1} />
+        <div className="flex flex-row justify-end gap-2">
+          <div className={`${walletOpen && "z-[51]"}`} ref={walletRef}>
+            <WalletButton 
+              isOpen={walletOpen} 
+              togglePanel={() => togglePanel("wallet")}
+              onMouseEnter={() => setIsHovering(true)}
+              onMouseLeave={() => setIsHovering(false)}
+              className={cn(
+                "transition-colors",
+                isHovering ? "text-pinto-green border-pinto-green hover:text-pinto-green hover:border-pinto-green"
+                : ""
+              )} 
+            />
           </div>
           <div className={`lg:hidden ${mobileNaviOpen && "z-[51]"}`}>
             <MobileNavi
@@ -72,14 +83,23 @@ const Navbar = () => {
         <div className="hidden sm:block">
           <Backdrop active={openBackdrop} onClick={closePanel} transitionDuration={DURATION} />
         </div>
-        <div className="absolute top-[150%] left-[75%]" ref={ref2}>
+        <div 
+          ref={walletHelperRef}
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+          className={`absolute top-[150%] left-[75%] text-gray-600 peer-hover:text-blue-500 hover:text-blue-500 transition-colors cursor-pointer ${isHovering ? "bg-red" : ""}`}
+          >
           View your Farm Balance
         </div>
         <ConnectingLine 
-          refs={[ref1, ref2]}
+          refs={[walletRef, walletHelperRef]}
           straight={true}
           dotted={false}
           margin={10}
+          normalColor="#6B7280"
+          hoverColor="#3B82F6"
+          isHovered={isHovering}
+          startPositionY={0.25}
         />
       </div>
     </>

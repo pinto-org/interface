@@ -11,10 +11,11 @@ import { ComponentPropsWithoutRef, forwardRef } from "react";
 
 interface WalletButtonProps extends ComponentPropsWithoutRef<'div'> {
   isOpen: boolean; 
-  togglePanel: () => void
+  togglePanel: () => void;
+  className?: string;
 }
 
-const WalletButton = forwardRef<HTMLButtonElement, WalletButtonProps>(({ isOpen = false, togglePanel }, ref) => {
+const WalletButton = forwardRef<HTMLButtonElement, WalletButtonProps>(({ isOpen = false, togglePanel, className }, ref) => {
   const { address } = useAccount();
   const modal = useModal();
   const isTablet = useIsTablet();
@@ -29,7 +30,7 @@ const WalletButton = forwardRef<HTMLButtonElement, WalletButtonProps>(({ isOpen 
         variant="outline-secondary"
         noShrink
         rounded="full"
-        className={`flex flex-row gap-2 items-center ${isOpen && "border-pinto-green"}`}
+        className={`flex flex-row gap-2 items-center ${isOpen && "border-pinto-green"} ${className}`}
         ref={ref}
       >
         {ensAvatar && <Avatar address={address} size={28} />}
