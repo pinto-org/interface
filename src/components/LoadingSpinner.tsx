@@ -1,7 +1,6 @@
-import { generateID } from '@/utils/utils';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const LoadingSpinner = ({
+const FrameAnimator = ({
   size = 40,
   duration = 100,
   repeat = true,
@@ -9,28 +8,34 @@ const LoadingSpinner = ({
   onComplete = () => {}
 }) => {
   const [currentFrame, setCurrentFrame] = useState(0);
+  const [nextFrame, setNextFrame] = useState(1);
+  const [blendAmount, setBlendAmount] = useState(0);
   
-  // Generate frames array from the SVG files
   const frames = Array.from({ length: 8 }, (_, i) => ({
     src: `/src/assets/misc/Spinner-${i + 1}.svg`,
-    duration: duration
+    duration
   }));
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (currentFrame < frames.length - 1) {
-        setCurrentFrame(prev => prev + 1);
-      } else {
-        if (repeat) {
-          setCurrentFrame(0);
-        } else {
-          onComplete();
+    const frameInterval = setInterval(() => {
+      setBlendAmount(prev => {
+        const next = prev + 0.1;
+        if (next >= 1) {
+          // Update frames when blend is complete
+          setCurrentFrame(nextFrame);
+          setNextFrame(nextFrame < frames.length - 1 ? nextFrame + 1 : 0);
+          
+          if (!repeat && nextFrame === 0) {
+            onComplete();
+          }
+          return 0;
         }
-      }
-    }, duration);
+        return next;
+      });
+    }, duration / 10);
 
-    return () => clearTimeout(timeout);
-  }, [currentFrame, frames.length, repeat, duration, onComplete]);
+    return () => clearInterval(frameInterval);
+  }, [currentFrame, nextFrame, frames.length, duration, repeat, onComplete]);
 
   return (
     <div 
@@ -41,21 +46,32 @@ const LoadingSpinner = ({
       <div className="hidden">
         {frames.map((frame, index) => (
           <img 
-            key={generateID('spinner')}
+            key={`preload-${index}`}
             src={frame.src} 
             alt={`preload ${index}`}
           />
         ))}
       </div>
 
-      {/* Current frame */}
-      <img
-        src={frames[currentFrame].src}
-        alt={`spinner frame ${currentFrame + 1}`}
-        className="w-full h-full object-contain"
-      />
+      <div className="relative w-full h-full">
+        {/* Current frame */}
+        <img
+          src={frames[currentFrame].src}
+          alt={`spinner frame ${currentFrame + 1}`}
+          className="w-full h-full object-contain absolute inset-0"
+          style={{ opacity: 1 - blendAmount }}
+        />
+
+        {/* Next frame */}
+        <img
+          src={frames[nextFrame].src}
+          alt={`spinner frame ${nextFrame + 1}`}
+          className="w-full h-full object-contain absolute inset-0 mix-blend-multiply"
+          style={{ opacity: blendAmount }}
+        />
+      </div>
     </div>
   );
 };
 
-export default LoadingSpinner;
+export default FrameAnimator;
