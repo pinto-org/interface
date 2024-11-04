@@ -60,7 +60,7 @@ function Sow() {
       : swapData?.output || TokenValue.ZERO;
     const _minTemperature = TokenValue.fromHuman("0", mainToken.decimals);
 
-    const minTemp = _minTemperature.gt(field.temperature.scaled) ? _minTemperature : field.temperature.scaled;
+    const minTemp = _minTemperature.gt(field.temperature.scaled) ? _minTemperature.subSlippage(slippage) : field.temperature.scaled.subSlippage(slippage);
     const minSoil = TokenValue.ZERO;
 
     if (isUsingMain) {

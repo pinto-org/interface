@@ -1,19 +1,27 @@
+import { TokenValue } from "@/classes/TokenValue";
+import { ZERO_ADDRESS } from "@/constants/address";
+import { PODS } from "@/constants/internalTokens";
+import { subgraphs } from "@/constants/subgraph";
+import { useReadBeanstalk_GetPlotsFromAccount } from "@/generated/contractHooks";
+import { FarmerPlotsDocument } from "@/generated/gql/graphql";
+import { Listing, Order, Plot } from "@/utils/types";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 import { useAccount, useChainId } from "wagmi";
-import { FarmerPlotsDocument } from "@/generated/gql/graphql";
-import { TokenValue } from "@/classes/TokenValue";
+import { useFieldData } from "./useFieldData";
 import useTokenData from "./useTokenData";
-import { PODS } from "@/constants/internalTokens";
-import { subgraphs } from "@/constants/subgraph";
-import { Listing, Order, Plot } from "@/utils/types";
 
 export function useFarmerField() {
   const chainId = useChainId();
   const account = useAccount();
+  const harvestableIndex = useFieldData().harvestableIndex;
   const BEAN = useTokenData().mainToken;
 
   const queryKey = ["farmerField", { chainId: chainId, variables: [account.address?.toString().toLowerCase()] }];
+
+  const plots: Plot[] = [];
+  const orders: Order[] = [];
+  const listings: Listing[] = [];
 
   const { data: data, refetch: refetch } = useQuery({
     queryKey: queryKey,
@@ -24,9 +32,55 @@ export function useFarmerField() {
     enabled: !!account.address,
   });
 
-  const plots: Plot[] = [];
-  const orders: Order[] = [];
-  const listings: Listing[] = [];
+  useReadBeanstalk_GetPlotsFromAccount({
+    args: [account.address ?? ZERO_ADDRESS, 0],
+    query: {
+      enabled: !!account.address || !!harvestableIndex || !data,
+      select: (data) => {
+        data.forEach((data) => {
+          const startIndex = TokenValue.fromBigInt(data.index, PODS.decimals);
+          const plot = TokenValue.fromBigInt(data.pods, PODS.decimals);
+          let pods: TokenValue;
+          let harvestablePods: TokenValue;
+          let harvestedPods: TokenValue;
+
+          // Fully harvestable
+          if (startIndex.add(plot).lte(harvestableIndex)) {
+            pods = TokenValue.ZERO;
+            harvestablePods = plot;
+            harvestedPods = TokenValue.ZERO;
+          }
+
+          // Partially harvestable
+          else if (startIndex.lt(harvestableIndex)) {
+            const partialAmount = harvestableIndex.sub(startIndex);
+
+            pods = plot.sub(partialAmount);
+            harvestablePods = partialAmount;
+            harvestedPods = plot.sub(partialAmount);
+          }
+
+          // Unharvestable
+          else {
+            pods = plot;
+            harvestablePods = TokenValue.ZERO;
+            harvestedPods = plot;
+          }
+
+          const output: Plot = {
+            plot: plot,
+            index: startIndex,
+            id: startIndex.toHuman(),
+            pods: pods,
+            harvestablePods: harvestablePods,
+            harvestedPods: harvestedPods,
+            fullyHarvested: false,
+          };
+          plots.push(output);
+        });
+      },
+    },
+  });
 
   if (data && data.farmer) {
     data.farmer.plots.forEach((plot) => {

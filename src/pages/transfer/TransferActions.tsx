@@ -25,12 +25,12 @@ export default function TransferActions() {
   const disableSendAll = totalInternalBalance.eq(0) && farmerSilo.depositsUSD.eq(0) && farmerField.totalPods.eq(0);
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <div className="flex flex-row justify-between">
         <span className={"font-[340] text-[1.25rem] text-pinto-gray-4"}>I want to send:</span>
         <Button
           asChild
-          className={`font-[340] text-[1.25rem] text-pinto-green bg-transparent hover:underline hover:bg-transparent ${disableSendAll ? "opacity-50 grayscale pointer-events-none" : ""}`}
+          className={`font-[340] text-[1.25rem] text-pinto-green-4 bg-transparent hover:underline hover:bg-transparent ${disableSendAll ? "opacity-50 grayscale pointer-events-none" : ""}`}
         >
           <Link to="/transfer/all">Send Everything</Link>
         </Button>
@@ -38,7 +38,7 @@ export default function TransferActions() {
       <Button
         variant="outline"
         asChild
-        className={`font-[400] text-[1.25rem] py-10 px-6 w-full text-black hover:text-black rounded-full justify-between bg-white shadow-none ${totalInternalBalance.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
+        className={`font-[400] text-[1.25rem] md:py-10 md:px-6 w-full text-black hover:text-black rounded-full justify-between bg-white shadow-none ${totalInternalBalance.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
       >
         <Link to="/transfer/farmbalance">
           <span>Tokens from my Farm Balance</span>
@@ -47,20 +47,26 @@ export default function TransferActions() {
       </Button>
       <Button
         variant="outline"
+        asChild
         disabled={farmerSilo.depositsUSD.eq(0)}
-        className="font-[400] text-[1.25rem] py-10 px-6 w-full text-black hover:text-black disabled:opacity-50 rounded-full justify-between bg-white shadow-none"
+        className={`font-[400] text-[1.25rem] md:py-10 md:px-6 w-full text-black hover:text-black disabled:opacity-50 rounded-full justify-between bg-white shadow-none ${farmerSilo.depositsUSD.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
       >
-        <span>Silo deposits</span>
-        <span>{`$${Number(farmerSilo.depositsUSD.toHuman()).toFixed(2)}`}</span>
+        <Link to="/transfer/deposits">
+          <span>Silo deposits</span>
+          <span>{`$${Number(farmerSilo.depositsUSD.toHuman()).toFixed(2)}`}</span>
+        </Link>
       </Button>
       <Button
         variant="outline"
+        asChild
         disabled={farmerField.totalPods.eq(0)}
-        className="font-[400] text-[1.25rem] py-10 px-6 w-full text-black hover:text-black disabled:opacity-50 rounded-full justify-between bg-white shadow-none"
+        className={`font-[400] text-[1.25rem] md:py-10 md:px-6 w-full text-black hover:text-black disabled:opacity-50 rounded-full justify-between bg-white shadow-none ${farmerField.totalPods.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
       >
-        <span>Pods</span>
-        <span>{`${farmerField.totalPods.toHuman()} Pods`}</span>
+        <Link to="/transfer/pods">
+          <span>Pods</span>
+          <span>{`${farmerField.totalPods.toHuman()} Pods`}</span>
+        </Link>
       </Button>
-    </>
+    </div>
   );
 }

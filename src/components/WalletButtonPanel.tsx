@@ -91,7 +91,7 @@ export default function WalletButtonPanel({
                   togglePanel();
                 }}
                 variant="ghost"
-                className="bg-pinto-gray-1 hover:hover:bg-pinto-green w-full h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-col gap-4"
+                className="bg-pinto-gray-1 hover:hover:bg-pinto-green flex-1 h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-col gap-4"
               >
                 <div className="rounded-full bg-pinto-green h-9 w-9 flex justify-evenly">
                   <span className="self-center items-center">
@@ -106,7 +106,7 @@ export default function WalletButtonPanel({
                   togglePanel();
                 }}
                 variant="ghost"
-                className="bg-pinto-gray-1 hover:hover:bg-pinto-green w-full h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-col gap-4"
+                className="bg-pinto-gray-1 hover:hover:bg-pinto-green flex-1 h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-col gap-4"
               >
                 <div className="rounded-full bg-pinto-green h-9 w-9 flex justify-evenly">
                   <span className="self-center items-center">
@@ -118,7 +118,7 @@ export default function WalletButtonPanel({
               <Button
                 onClick={() => setShowTransfer(true)}
                 variant="ghost"
-                className="bg-pinto-gray-1 hover:hover:bg-pinto-green w-full h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-col gap-4"
+                className="bg-pinto-gray-1 hover:hover:bg-pinto-green flex-1 h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-col gap-4"
               >
                 <div className="rounded-full bg-pinto-green h-9 w-9 flex justify-evenly">
                   <span className="self-center items-center">

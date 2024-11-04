@@ -30,6 +30,10 @@ export function unpackStem(data: string | number | bigint): bigint {
   return stem;
 }
 
+export const isDev = () => {
+  return import.meta.env.DEV;
+};
+
 export function exists<T>(value: T | undefined | null): value is NonNullable<T> {
   return value !== undefined && value !== null;
 }
