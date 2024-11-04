@@ -1,21 +1,21 @@
+import { TokenValue } from "@/classes/TokenValue";
+import { ComboInputField } from "@/components/ComboInputField";
+import SlippageButton from "@/components/SlippageButton";
+import SmartSubmitButton from "@/components/SmartSubmitButton";
+import { Label } from "@/components/ui/Label";
+import deposit from "@/encoders/deposit";
+import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import useSwapEstimate from "@/hooks/useSwapEstimate";
+import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { PoolData, usePriceData } from "@/state/usePriceData";
+import useTokenData from "@/state/useTokenData";
+import { AdvancedFarmCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { useWriteContract } from "wagmi";
-import { useChainId } from "wagmi";
-import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
-import { TokenValue } from "@/classes/TokenValue";
-import { AdvancedFarmCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
-import useTokenData from "@/state/useTokenData";
-import { Label } from "@/components/ui/Label";
-import SmartSubmitButton from "@/components/SmartSubmitButton";
-import SlippageButton from "@/components/SlippageButton";
-import { ComboInputField } from "@/components/ComboInputField";
-import { PoolData, usePriceData } from "@/state/usePriceData";
-import useSwapEstimate from "@/hooks/useSwapEstimate";
-import deposit from "@/encoders/deposit";
 import { toast } from "sonner";
 import { BaseError } from "viem";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useWriteContract } from "wagmi";
+import { useChainId } from "wagmi";
 
 function Deposit({ siloToken }: { siloToken: Token }) {
   // silo - deposit
@@ -62,8 +62,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     !useSwap,
   );
 
-  console.log("swapdata: ", swapData)
-
   useEffect(() => {
     if (isSuccess) {
       // invalidating query results to trigger a refetch
@@ -72,7 +70,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   }, [isSuccess, queryKey, queryClient.invalidateQueries]);
 
   function onSubmit() {
-    console.log("USESWAP: ", useSwap, swapData?.output)
     const depositData = deposit(
       siloToken,
       useSwap ? swapData?.output : TokenValue.fromHuman(amountIn, tokenIn.decimals),

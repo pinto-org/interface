@@ -3,7 +3,9 @@ import pdvIcon from "@/assets/protocol/PDV.png";
 import seedsIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
+import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
+import Text from "@/components/ui/Text";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
@@ -19,7 +21,7 @@ function SiloTable() {
   const navigate = useNavigate();
 
   return (
-    <div className="border border-pinto-gray-2 rounded-[1rem] overflow-clip mt-2">
+    <div className="border border-pinto-gray-2 rounded-[1rem] overflow-clip">
       <Table>
         <TableHeader>
           <TableRow className="bg-pinto-gray-1 hover:bg-pinto-gray-1 h-14">
@@ -41,10 +43,10 @@ function SiloTable() {
                 key={`silo_table_${token.address}`}
                 onClick={() => navigate(`/silo/${token.address}`)}
               >
-                <TableCell className="text-black font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">
-                  <img src={token.logoURI} alt={token.name} className="h-8 w-8" />
-                  <div>{token.name}</div>
-                </TableCell>
+                <Text as={TableCell} className="inline-flex items-center gap-2 p-4">
+                  <IconImage src={token.logoURI} alt={token.name} size={8} />
+                  {token.name}
+                </Text>
                 <TableCell>
                   <div className="inline-flex items-center gap-3">
                     <div className="inline-flex gap-1 px-1.5 py-1 bg-pinto-green-1 text-pinto-green font-[400] text-[1rem] rounded-[0.65em]">

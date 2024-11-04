@@ -15,6 +15,9 @@ module.exports = {
       center: true,
       padding: "2rem",
       screens: {
+        sm: "768px",
+        md: "900px",
+        lg: "1100px",
         "2xl": "1400px",
       },
     },
@@ -58,7 +61,7 @@ module.exports = {
           green: "#246645",
           "green-1": "#D8F1E2",
           "green-2": "#00C767",
-          "green-3": "#00994D",
+          "green-3": "#246645",
           "green-4": "#007339",
           "off-green": "#9A9F6C",
           "gray-1": "#F8F8F8",
@@ -98,6 +101,14 @@ module.exports = {
         frame: "350px, 1fr, 200px",
         frameMobile: "350px,  1fr",
       },
+      maxWidth: {
+        "panel-price": "600px",
+        "panel-seasons": "min(914px, calc(100vw - 48px))",
+      },
+      width: {
+        "panel-price": "600px",
+        "panel-seasons": "min(914px, calc(100vw - 48px))",
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
@@ -115,7 +126,7 @@ module.exports = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        marquee: "marquee 12s linear infinite",
+        marquee: "marquee 24s linear infinite",
       },
     },
   },

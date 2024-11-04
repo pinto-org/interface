@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const generateID = (prefix = '') => {
+export const generateID = (prefix = "") => {
   const hash = Math.random().toString(36).slice(-7);
   return `${prefix}-${hash}`;
 };
@@ -33,3 +33,18 @@ export function unpackStem(data: string | number | bigint): bigint {
 export const isDev = () => {
   return import.meta.env.DEV;
 };
+
+export function exists<T>(value: T | undefined | null): value is NonNullable<T> {
+  return value !== undefined && value !== null;
+}
+
+export function existsNot(value: any): value is undefined | null {
+  return !exists(value);
+}
+
+export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
+  // use BN here to avoid floating point errors
+  const length = Number(BigInt(array.length) / BigInt(chunkSize));
+
+  return Array.from({ length: length }, (_, index) => array.slice(index * chunkSize, (index + 1) * chunkSize));
+}

@@ -1,14 +1,14 @@
+import { TokenValue } from "@/classes/TokenValue";
+import { ZERO_ADDRESS } from "@/constants/address";
+import { beanstalkAddress } from "@/generated/contractHooks";
+import useTokenData from "@/state/useTokenData";
+import { Token } from "@/utils/types";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { toast } from "sonner";
 import { BaseError, erc20Abi } from "viem";
 import { useAccount, useChainId, useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
-import { beanstalkAddress } from "@/generated/contractHooks";
 import { Button } from "./ui/Button";
-import { useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { TokenValue } from "@/classes/TokenValue";
-import { Token } from "@/utils/types";
-import useTokenData from "@/state/useTokenData";
-import { toast } from "sonner";
-import { ZERO_ADDRESS } from "@/constants/address";
 
 interface SmartSubmitButton {
   token: Token;
@@ -57,7 +57,7 @@ export default function SmartSubmitButton({
       ? true
       : Number(amount) > Number(TokenValue.fromBlockchain(allowance || 0, token.decimals).toHuman());
 
-  function approveOrRun() {
+  async function approveOrRun() {
     if (needsApproval) {
       const tx = () =>
         writeContractAsync({
@@ -89,7 +89,11 @@ export default function SmartSubmitButton({
       type={"button"}
       disabled={isConfirming}
       className={`flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem] ${className}`}
-      onClick={() => approveOrRun()}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        approveOrRun();
+      }}
     >
       {isConfirming
         ? "Sending Transaction"

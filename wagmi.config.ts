@@ -7,6 +7,7 @@ import BEANSTALK_ABI from "./src/constants/abi/Beanstalk.json";
 import BEANSTALK_PRICE_ABI from "./src/constants/abi/BeanstalkPrice.json";
 import PIPELINE_ABI from "./src/constants/abi/Pipeline.json";
 import DEPOT_ABI from "./src/constants/abi/Depot.json";
+import JUNCTION_ABI from "./src/constants/abi/Junction.json";
 
 /**
  * Diamond cut fragmented facets
@@ -23,6 +24,7 @@ import DEPOT_ABI from "./src/constants/abi/Depot.json";
 import VIEW_SEASON_ABI from "./src/constants/abi/ViewSeason.json";
 import FARMER_ABI from "./src/constants/abi/BeanstalkFarmer.json";
 import VIEW_SILO_ABI from "./src/constants/abi/ViewSilo.json";
+import { JUNCTION_ADDRESS } from "@/constants/address";
 
 
 export const tenderlyTestnet = defineChain({
@@ -105,6 +107,11 @@ export default defineConfig(() => {
           [tenderlyTestnet.id]: "0xb1bE0001f5a373b69b1E132b420e6D9687155e80", // base
           [foundry.id]: "0xb1bE0001f5a373b69b1E132b420e6D9687155e80", // base
         }
+      },
+      {
+        name: "junction",
+        abi: JUNCTION_ABI satisfies Abi,
+        address: JUNCTION_ADDRESS,
       },
       {
         name: "depot",
