@@ -14,10 +14,8 @@ import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { Link, useParams } from "react-router-dom";
-import DepositsTable from "../components/DepositsTable";
-import SiloActions from "./silo/SiloActions";
 import { useChainId, useConfig } from "wagmi";
-import DepositsTable from "./silo/DepositsTable";
+import DepositsTable from "../components/DepositsTable";
 import GerminationNotice from "./silo/GerminationNotice";
 import SiloActions from "./silo/SiloActions";
 
