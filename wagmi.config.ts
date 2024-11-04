@@ -54,7 +54,7 @@ const beanstalkAddresses = {
   [foundry.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString, // base
 }
 
-export default defineConfig(() => {
+const config = defineConfig(() => {
   const reactHookNames: string[] = [];
 
   return {
@@ -143,3 +143,11 @@ export default defineConfig(() => {
     ],
   };
 });
+
+declare module 'wagmi' {
+  interface Register {
+    config: typeof config
+  }
+}
+
+export default config;

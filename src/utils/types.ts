@@ -195,3 +195,5 @@ export interface AdvancedFarmCall {
   callData: `0x${string}`;
   clipboard: `0x${string}`;
 }
+
+export type AddressMap<T> = { [k: string]: T };
