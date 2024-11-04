@@ -85,10 +85,11 @@ export default function DevPage() {
       setLoading(null);
     }
   };
+  
+  const { lpTokens } = useTokenData();
 
   const getWellsList = () => {
     // Import tokens from your token data
-    const { lpTokens } = useTokenData();
     
     // Filter for LP tokens which are the wells
     return lpTokens.map(token => ({
