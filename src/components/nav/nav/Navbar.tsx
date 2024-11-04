@@ -1,12 +1,13 @@
 import { cn } from "@/utils/utils";
 import clsx from "clsx";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import WalletButton from "../../WalletButton";
 import Backdrop from "../../ui/Backdrop";
 import PriceButton from "../PriceButton";
 import SeasonsButton from "../SeasonsButton";
 import Navi from "./Navi.desktop";
 import MobileNavi from "./Navi.mobile";
+import ConnectingLine from "@/components/ConnectingLine";
 
 type Panel = "price" | "seasons" | "wallet" | "mobile-navi";
 
@@ -21,6 +22,9 @@ const Navbar = () => {
   const seasonsOpen = openPanel === "seasons";
   const walletOpen = openPanel === "wallet";
   const mobileNaviOpen = openPanel === "mobile-navi";
+
+  const ref1 = useRef(null);
+  const ref2 = useRef(null);
 
   const closePanel = () => {
     setOpenBackdrop(false);
@@ -53,7 +57,7 @@ const Navbar = () => {
         </div>
         <div className={`flex flex-row justify-end gap-2`}>
           <div className={`${walletOpen && "z-[51]"}`}>
-            <WalletButton isOpen={walletOpen} togglePanel={() => togglePanel("wallet")} />
+            <WalletButton isOpen={walletOpen} togglePanel={() => togglePanel("wallet")} ref={ref1} />
           </div>
           <div className={`lg:hidden ${mobileNaviOpen && "z-[51]"}`}>
             <MobileNavi
@@ -68,6 +72,15 @@ const Navbar = () => {
         <div className="hidden sm:block">
           <Backdrop active={openBackdrop} onClick={closePanel} transitionDuration={DURATION} />
         </div>
+        <div className="absolute top-[150%] left-[75%]" ref={ref2}>
+          View your Farm Balance
+        </div>
+        <ConnectingLine 
+          refs={[ref1, ref2]}
+          straight={true}
+          dotted={false}
+          margin={10}
+        />
       </div>
     </>
   );

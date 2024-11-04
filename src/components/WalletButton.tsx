@@ -7,8 +7,14 @@ import WalletButtonPanel from "./WalletButtonPanel";
 import { truncateAddress } from "@/utils/string";
 import useIsTablet from "@/hooks/display/useIsTablet";
 import IconImage from "./ui/IconImage";
+import { ComponentPropsWithoutRef, forwardRef } from "react";
 
-export default function WalletButton({ isOpen = false, togglePanel }: { isOpen: boolean; togglePanel: () => void }) {
+interface WalletButtonProps extends ComponentPropsWithoutRef<'div'> {
+  isOpen: boolean; 
+  togglePanel: () => void
+}
+
+const WalletButton = forwardRef<HTMLButtonElement, WalletButtonProps>(({ isOpen = false, togglePanel }, ref) => {
   const { address } = useAccount();
   const modal = useModal();
   const isTablet = useIsTablet();
@@ -24,6 +30,7 @@ export default function WalletButton({ isOpen = false, togglePanel }: { isOpen: 
         noShrink
         rounded="full"
         className={`flex flex-row gap-2 items-center ${isOpen && "border-pinto-green"}`}
+        ref={ref}
       >
         {ensAvatar && <Avatar address={address} size={28} />}
         <>{ensName ? ensName : address ? `${truncateAddress(address, { suffix: !isTablet })}` : "Connect"}</>
@@ -32,4 +39,6 @@ export default function WalletButton({ isOpen = false, togglePanel }: { isOpen: 
       <WalletButtonPanel isOpen={isOpen} togglePanel={togglePanel} />
     </>
   );
-}
+})
+
+export default WalletButton
