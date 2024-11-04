@@ -69,6 +69,11 @@ const AppNavi = () => {
         <NavigationMenuItem>
           <Link href={navLinks.explorer}>Explorer</Link>
         </NavigationMenuItem>
+        {import.meta.env.DEV && (
+          <NavigationMenuItem>
+            <Link href="/dev">Dev</Link>
+          </NavigationMenuItem>
+        )}
       </NavigationMenuList>
     </NavigationMenu>
   );
