@@ -35,11 +35,24 @@ export interface InternalToken {
   decimals: number;
 }
 
+export interface DepositCrateData {
+  stem: TokenValue;
+  amount: TokenValue;
+  bdv: TokenValue;
+  stalk: {
+    base: TokenValue;
+    grown: TokenValue;
+    total: TokenValue;
+  };
+  seeds: TokenValue;
+  isGerminating: boolean;
+}
+
 export interface DepositData {
   token: Token;
   stemTipForToken: TokenValue;
-  stem: TokenValue;
   season: number;
+  stem: TokenValue;
   amount: TokenValue;
   depositBdv: TokenValue;
   currentBdv: TokenValue;
@@ -108,21 +121,21 @@ export interface SiloTokenData {
 export type SiloTokenDataMap = Map<Token, SiloTokenData>;
 
 export interface Plot {
-  beansPerPod: TokenValue;
-  createdAt: number;
-  creationHash: string;
   fullyHarvested: boolean;
   harvestablePods: TokenValue;
   harvestedPods: TokenValue;
-  id: string;
-  index: TokenValue;
-  listing: string;
   pods: TokenValue;
-  season: number;
-  source: string;
-  sourceHash: string;
-  updatedAt: number;
-  updatedAtBlock: number;
+  index: TokenValue;
+  beansPerPod?: TokenValue;
+  createdAt?: number;
+  creationHash?: string;
+  id?: string;
+  listing?: string;
+  season?: number;
+  source?: string;
+  sourceHash?: string;
+  updatedAt?: number;
+  updatedAtBlock?: number;
 }
 
 export interface Order {
@@ -182,3 +195,5 @@ export interface AdvancedFarmCall {
   callData: `0x${string}`;
   clipboard: `0x${string}`;
 }
+
+export type AddressMap<T> = { [k: string]: T };

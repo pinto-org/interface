@@ -141,7 +141,7 @@ export default function WalletButtonClaim({
         <Separator className="w-full" />
         <div className="flex flex-row justify-between items-center w-full ">
           <div className="font-[340] text-[1.25rem] text-pinto-gray-4">Receive proceeds to:</div>
-          <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} size={"small"} />
+          <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} variant="small" />
         </div>
         <Button
           onClick={() => onSubmit()}

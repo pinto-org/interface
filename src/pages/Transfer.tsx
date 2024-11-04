@@ -3,7 +3,9 @@ import { useParams } from "react-router-dom";
 import { useChainId, useConfig } from "wagmi";
 import TransferActions from "./transfer/TransferActions";
 import TransferAll from "./transfer/actions/TransferAll";
+import TransferDeposits from "./transfer/actions/TransferDeposits";
 import TransferFarmBalance from "./transfer/actions/TransferFarmBalance";
+import TransferPods from "./transfer/actions/TransferPods";
 
 function Transfer() {
   const { mode } = useParams();
@@ -13,7 +15,7 @@ function Transfer() {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="flex flex-col gap-6 w-[80%] max-w-4xl">
+      <div className="flex flex-col gap-12 w-[80%] max-w-4xl">
         <div className="flex flex-col gap-2">
           <div className="inline-flex gap-2 items-center">
             <span className="font-[300] text-[3.5rem] text-black">Send tokens</span>
@@ -25,8 +27,14 @@ function Transfer() {
         <Separator />
         {mode === "all" ? (
           <TransferAll />
+        ) : mode === "farmbalance" ? (
+          <TransferFarmBalance />
+        ) : mode === "deposits" ? (
+          <TransferDeposits />
+        ) : mode === "pods" ? (
+          <TransferPods />
         ) : (
-          /* mode === "farmbalance" ? <TransferFarmBalance /> : */ <TransferActions />
+          <TransferActions />
         )}
       </div>
     </div>

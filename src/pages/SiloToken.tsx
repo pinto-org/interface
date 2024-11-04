@@ -14,6 +14,8 @@ import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { Link, useParams } from "react-router-dom";
+import DepositsTable from "../components/DepositsTable";
+import SiloActions from "./silo/SiloActions";
 import { useChainId, useConfig } from "wagmi";
 import DepositsTable from "./silo/DepositsTable";
 import GerminationNotice from "./silo/GerminationNotice";
@@ -158,18 +160,27 @@ export default function SiloToken() {
                 </div>
               </div>
             </div>
+          </div>
+          <div className="border border-pinto-gray-2 rounded-[1rem] overflow-clip mt-2">
             <DepositsTable token={siloToken} />
-            <div className="flex flex-col gap-8">
-              <div className="font-[400] text-[2rem] text-pinto-gray-5">About {siloToken.name}</div>
-              <div className="flex flex-row items-center justify-start gap-28">
-                <div className="flex flex-col">
-                  <div className="font-[400] text-[1rem] text-pinto-gray-5">Total Value Deposited</div>
-                  <div className="font-[400] text-[1.5rem] text-black">
-                    $
-                    {(siloTokenData ? siloTokenData.depositedBDV : TokenValue.ZERO)
-                      .mul(priceData.price)
-                      .toHuman("short")}
-                  </div>
+          </div>
+          <div className="flex flex-col gap-8">
+            <div className="font-[400] text-[2rem] text-pinto-gray-5">About {siloToken.name}</div>
+            <div className="flex flex-row items-center justify-start gap-28">
+              <div className="flex flex-col">
+                <div className="font-[400] text-[1rem] text-pinto-gray-5">Total Value Deposited</div>
+                <div className="font-[400] text-[1.5rem] text-black">
+                  $
+                  {(siloTokenData ? siloTokenData.depositedBDV : TokenValue.ZERO).mul(priceData.price).toHuman("short")}
+                </div>
+              </div>
+              <div className="flex flex-col">
+                <div className="font-[400] text-[1rem] text-pinto-gray-5">% of Value Deposited</div>
+                <div className="font-[400] text-[1.5rem] text-black">
+                  {`${(siloTokenData ? siloTokenData.depositedBDV : TokenValue.ZERO)
+                    .div(siloTVD.gt(0) ? siloTVD : TokenValue.ONE)
+                    .mul(100)
+                    .toHuman("short")}%`}
                 </div>
                 <div className="flex flex-col">
                   <div className="font-[400] text-[1rem] text-pinto-gray-5">% of Value Deposited</div>

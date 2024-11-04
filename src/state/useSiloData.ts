@@ -4,7 +4,7 @@ import { SEEDS, STALK } from "@/constants/internalTokens";
 import { subgraphs } from "@/constants/subgraph";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { SiloYieldsDocument } from "@/generated/gql/graphql";
-import { useChainConstant } from "@/utils/chain";
+import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { SiloTokenData, Token } from "@/utils/types";
 import { QueryKey, useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
@@ -123,7 +123,7 @@ function useReadSiloTokenData(token: Token | undefined) {
 
 export function useSiloData() {
   const chainId = useChainId();
-  const protocolAddress = useChainConstant(beanstalkAddress);
+  const protocolAddress = useProtocolAddress();
 
   const { data: stalkTotal = 0n } = useReadContract({
     address: protocolAddress,
@@ -187,7 +187,7 @@ export function useSiloData() {
     }
 
     return {
-      tokenData: data.size !== SILO_WHITELIST.length ? new Map() : data,
+      tokenData: data.size !== SILO_WHITELIST.length ? new Map<Token, SiloTokenData>() : data,
       queryKeys: keys,
     };
     // }, [wlTokenData0, SILO_WHITELIST, yields]);
@@ -199,3 +199,16 @@ export function useSiloData() {
     totalEarnedBeans: TokenValue.fromBlockchain(earnedBeansTotal, BEAN.decimals),
   };
 }
+
+const bdvABI = [
+  {
+    inputs: [
+      { internalType: "address", name: "token", type: "address" },
+      { internalType: "uint256", name: "amount", type: "uint256" },
+    ],
+    name: "bdv",
+    outputs: [{ internalType: "uint256", name: "_bdv", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
