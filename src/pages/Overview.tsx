@@ -252,7 +252,7 @@ export default function Overview() {
           <Button
             asChild
             variant="outline"
-            className="flex flex-col text-center bg-white hover:bg-pinto-green-1 hover:border-pinto-green-2 w-full h-[33rem] rounded-full gap-4"
+            className="flex flex-col text-center bg-white hover:bg-pinto-green-1 hover:border-pinto-green-2 flex-1 h-[33rem] rounded-full gap-4"
           >
             <Link to={"/silo"}>
               <span className="text-pinto-h1 text-black">Deposit in the Silo</span>
@@ -266,7 +266,7 @@ export default function Overview() {
           <Button
             asChild
             variant="outline"
-            className="flex flex-col text-center bg-white hover:bg-pinto-green-1 hover:border-pinto-green-2 w-full h-[33rem] rounded-full gap-4"
+            className="flex flex-col text-center bg-white hover:bg-pinto-green-1 hover:border-pinto-green-2 flex-1 h-[33rem] rounded-full gap-4"
           >
             <Link to={"/field"}>
               <span className="text-pinto-h1 text-black">Lend in the Field</span>

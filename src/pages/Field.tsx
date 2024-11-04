@@ -1,14 +1,22 @@
 import { Separator } from "@/components/ui/Separator";
 import fieldIcon from "@/assets/protocol/Field.png";
+import podIcon from "@/assets/protocol/Pod.png";
 import { useFieldData } from "@/state/useFieldData";
 import { Button } from "@/components/ui/Button";
 import PlotsTable from "@/components/PlotsTable";
 import FieldActions from "./field/FieldActions";
 import { Link } from "react-router-dom";
 import { LeftArrowIcon, UpDownArrowsIcon } from "@/components/Icons";
+import Text from "@/components/ui/Text";
+import { useFarmerField } from "@/state/useFarmerField";
+import { TokenValue } from "@/classes/TokenValue";
+import { formatter } from "@/utils/format";
 
 function Field() {
   const fieldData = useFieldData();
+  const farmerField = useFarmerField();
+
+  const totalPods = farmerField.plots.reduce((total, plot) => total.add(plot.pods), TokenValue.ZERO);
 
   return (
     <div className="flex flex-col items-center">
@@ -16,7 +24,7 @@ function Field() {
         <div className="flex flex-col w-[80%] gap-8">
           <div className="flex flex-col gap-2">
             <div className="inline-flex gap-2 items-center">
-              <img src={fieldIcon} className="h-12 w-11" />
+              <img src={fieldIcon} className="h-12 w-11" alt={"field"} />
               <span className="font-[300] text-[3.5rem] text-black">Field</span>
             </div>
             <div className="font-[400] text-xl text-pinto-gray-4">
@@ -65,7 +73,13 @@ function Field() {
             </Button>
           </div>
           <div>
-            <div className="text-black text-[2rem] font-[400] mb-8">My Pods</div>
+            <div className="flex flex-row justify-between">
+              <div className="text-black text-[2rem] font-[400] mb-8">My Pods</div>
+              <div className="flex flex-row gap-2 items-center">
+                <img src={podIcon} className="w-8 h-8" alt={"total pods"} />
+                <Text variant="h3">{formatter.number(totalPods)}</Text>
+              </div>
+            </div>
             <PlotsTable />
           </div>
         </div>

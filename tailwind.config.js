@@ -76,6 +76,7 @@ module.exports = {
           "stalk-gold": "#D3B567",
           "seed-silver": "#7B9387",
           "pod-bronze": "#9F7F54",
+          "red-2": "#FF0000",
         },
       },
       backgroundImage: {
