@@ -317,6 +317,17 @@ export const CloseIcon = ({
 	</svg>
 );
 
+export const CloseIconAlt = ({
+	color = "#9C9C9C",
+	width = 32,
+	height = 32,
+}: SVGProps) => (
+	<svg width={width} height={height} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+		<path d="M9.33334 9.33325L22.6667 22.6666" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M9.33334 22.6666L22.6667 9.33325" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+	</svg>
+);
+
 export const UpRightArrowIcon = ({
 	color = "#9C9C9C",
 	width = 12,
