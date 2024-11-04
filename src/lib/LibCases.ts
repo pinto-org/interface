@@ -117,10 +117,10 @@ export class LibCases {
   // ---------- Constants ----------
 
   // this will eventually become dynamic
-  static MAX_BEAN_MAX_LP_GP_PER_BDV_RATIO = 100e18;
+  static MAX_BEAN_MAX_LP_GP_PER_BDV_RATIO = BigInt(100e18);
 
   // this will eventually become dynamic
-  static MIN_BEAN_MAX_LP_GP_PER_BDV_RATIO = 50e18;
+  static MIN_BEAN_MAX_LP_GP_PER_BDV_RATIO = BigInt(50e18);
 
   static BEAN_MAX_LP_GP_RATIO_RANGE =
     LibCases.MAX_BEAN_MAX_LP_GP_PER_BDV_RATIO - LibCases.MIN_BEAN_MAX_LP_GP_PER_BDV_RATIO;
@@ -337,8 +337,8 @@ export class LibCases {
     twaDeltaB: bigint,
     instantaneousDeltaB: bigint,
   ) {
-    // 1/3 -> silo, 1/3 -> field, 1/3 -> fertilizer
-    const podsHarvested = beansMinted / 3n;
+    // 1/2 -> silo, 1/2 -> field
+    const podsHarvested = beansMinted / 2n;
 
     const maxSoil = podsHarvested / (maxTemperature / 100n + 1n);
 
