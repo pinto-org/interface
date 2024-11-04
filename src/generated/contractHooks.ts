@@ -5805,6 +5805,159 @@ export const farmerAddress = {
 export const farmerConfig = { address: farmerAddress, abi: farmerAbi } as const
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// junction
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const junctionAbi = [
+  {
+    type: 'function',
+    inputs: [
+      { name: 'a', internalType: 'uint256', type: 'uint256' },
+      { name: 'b', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'add',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'pure',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'selector', internalType: 'uint256', type: 'uint256' },
+      { name: 'options', internalType: 'bytes32[]', type: 'bytes32[]' },
+    ],
+    name: 'bytes32Switch',
+    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
+    stateMutability: 'pure',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'condition', internalType: 'bool', type: 'bool' }],
+    name: 'check',
+    outputs: [],
+    stateMutability: 'pure',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'a', internalType: 'uint256', type: 'uint256' },
+      { name: 'b', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'div',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'pure',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'a', internalType: 'uint256', type: 'uint256' },
+      { name: 'b', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'eq',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'pure',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'a', internalType: 'uint256', type: 'uint256' },
+      { name: 'b', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'gt',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'pure',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'a', internalType: 'uint256', type: 'uint256' },
+      { name: 'b', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'gte',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'pure',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'a', internalType: 'uint256', type: 'uint256' },
+      { name: 'b', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'lt',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'pure',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'a', internalType: 'uint256', type: 'uint256' },
+      { name: 'b', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'lte',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'pure',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'a', internalType: 'uint256', type: 'uint256' },
+      { name: 'b', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'mod',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'pure',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'a', internalType: 'uint256', type: 'uint256' },
+      { name: 'b', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'mul',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'pure',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'a', internalType: 'uint256', type: 'uint256' },
+      { name: 'b', internalType: 'uint256', type: 'uint256' },
+      { name: 'c', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'mulDiv',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'pure',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'a', internalType: 'uint256', type: 'uint256' },
+      { name: 'b', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'neq',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'pure',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'a', internalType: 'uint256', type: 'uint256' },
+      { name: 'b', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'sub',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'pure',
+  },
+] as const
+
+export const junctionAddress =
+  '0x5A5A5AF07D8a389472AdC1E60aA71BAC89Fcff8b' as const
+
+export const junctionConfig = {
+  address: junctionAddress,
+  abi: junctionAbi,
+} as const
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // pipeline
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -13327,6 +13480,141 @@ export const useReadFarmer_BalanceOfEarnedBeans =
     address: farmerAddress,
     functionName: 'balanceOfEarnedBeans',
   })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link junctionAbi}__
+ */
+export const useReadJunction_undefined = /*#__PURE__*/ createUseReadContract({
+  abi: junctionAbi,
+  address: junctionAddress,
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link junctionAbi}__ and `functionName` set to `"add"`
+ */
+export const useReadJunction_Add = /*#__PURE__*/ createUseReadContract({
+  abi: junctionAbi,
+  address: junctionAddress,
+  functionName: 'add',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link junctionAbi}__ and `functionName` set to `"bytes32Switch"`
+ */
+export const useReadJunction_Bytes32Switch =
+  /*#__PURE__*/ createUseReadContract({
+    abi: junctionAbi,
+    address: junctionAddress,
+    functionName: 'bytes32Switch',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link junctionAbi}__ and `functionName` set to `"check"`
+ */
+export const useReadJunction_Check = /*#__PURE__*/ createUseReadContract({
+  abi: junctionAbi,
+  address: junctionAddress,
+  functionName: 'check',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link junctionAbi}__ and `functionName` set to `"div"`
+ */
+export const useReadJunction_Div = /*#__PURE__*/ createUseReadContract({
+  abi: junctionAbi,
+  address: junctionAddress,
+  functionName: 'div',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link junctionAbi}__ and `functionName` set to `"eq"`
+ */
+export const useReadJunction_Eq = /*#__PURE__*/ createUseReadContract({
+  abi: junctionAbi,
+  address: junctionAddress,
+  functionName: 'eq',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link junctionAbi}__ and `functionName` set to `"gt"`
+ */
+export const useReadJunction_Gt = /*#__PURE__*/ createUseReadContract({
+  abi: junctionAbi,
+  address: junctionAddress,
+  functionName: 'gt',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link junctionAbi}__ and `functionName` set to `"gte"`
+ */
+export const useReadJunction_Gte = /*#__PURE__*/ createUseReadContract({
+  abi: junctionAbi,
+  address: junctionAddress,
+  functionName: 'gte',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link junctionAbi}__ and `functionName` set to `"lt"`
+ */
+export const useReadJunction_Lt = /*#__PURE__*/ createUseReadContract({
+  abi: junctionAbi,
+  address: junctionAddress,
+  functionName: 'lt',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link junctionAbi}__ and `functionName` set to `"lte"`
+ */
+export const useReadJunction_Lte = /*#__PURE__*/ createUseReadContract({
+  abi: junctionAbi,
+  address: junctionAddress,
+  functionName: 'lte',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link junctionAbi}__ and `functionName` set to `"mod"`
+ */
+export const useReadJunction_Mod = /*#__PURE__*/ createUseReadContract({
+  abi: junctionAbi,
+  address: junctionAddress,
+  functionName: 'mod',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link junctionAbi}__ and `functionName` set to `"mul"`
+ */
+export const useReadJunction_Mul = /*#__PURE__*/ createUseReadContract({
+  abi: junctionAbi,
+  address: junctionAddress,
+  functionName: 'mul',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link junctionAbi}__ and `functionName` set to `"mulDiv"`
+ */
+export const useReadJunction_MulDiv = /*#__PURE__*/ createUseReadContract({
+  abi: junctionAbi,
+  address: junctionAddress,
+  functionName: 'mulDiv',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link junctionAbi}__ and `functionName` set to `"neq"`
+ */
+export const useReadJunction_Neq = /*#__PURE__*/ createUseReadContract({
+  abi: junctionAbi,
+  address: junctionAddress,
+  functionName: 'neq',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link junctionAbi}__ and `functionName` set to `"sub"`
+ */
+export const useReadJunction_Sub = /*#__PURE__*/ createUseReadContract({
+  abi: junctionAbi,
+  address: junctionAddress,
+  functionName: 'sub',
+})
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link pipelineAbi}__

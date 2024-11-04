@@ -66,7 +66,7 @@ export default function TokenSelectWithBalances({
   size,
   disabled,
 }: {
-  setToken: React.Dispatch<React.SetStateAction<Token>>;
+  setToken: React.Dispatch<React.SetStateAction<Token>> | ((token: Token) => void);
   selectedToken: Token;
   tokenAndBalanceMap?: Map<Token, TokenValue> | undefined;
   setBalanceFrom?: React.Dispatch<React.SetStateAction<FarmFromMode>> | undefined;

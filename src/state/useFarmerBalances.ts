@@ -1,10 +1,10 @@
-import { useAccount, useBalance, useReadContract } from "wagmi";
-import { beanstalkAddress, useReadBeanstalk_GetAllBalances, beanstalkAbi } from "@/generated/contractHooks";
 import { TokenValue } from "@/classes/TokenValue";
-import useTokenData from "./useTokenData";
-import { Token } from "@/utils/types";
-import { useChainAddress } from "@/utils/chain";
 import { ZERO_ADDRESS } from "@/constants/address";
+import { beanstalkAbi, beanstalkAddress, useReadBeanstalk_GetAllBalances } from "@/generated/contractHooks";
+import { useChainAddress } from "@/utils/chain";
+import { Token } from "@/utils/types";
+import { useAccount, useBalance, useReadContract } from "wagmi";
+import useTokenData from "./useTokenData";
 
 const settings = {
   staleTime: 1000 * 60 * 2,
@@ -16,11 +16,15 @@ const emptyMap = new Map<Token, { internal: TokenValue; external: TokenValue; to
 export function useFarmerBalances() {
   const account = useAccount();
   const tokens = useTokenData().preferredTokens;
-  const preferredTokens = tokens.map((token) => token.address);
+  const lpTokens = useTokenData().lpTokens;
   const ETH = useTokenData().nativeToken;
+
   const nativeBalance = useBalance({
     address: account.address,
   });
+
+  const balanceTokens = [...tokens, ...lpTokens];
+  const addresses = balanceTokens.map((token) => token.address);
 
   const diamondAddress = useChainAddress(beanstalkAddress);
 
@@ -32,10 +36,10 @@ export function useFarmerBalances() {
     address: diamondAddress,
     abi: beanstalkAbi,
     functionName: "getAllBalances",
-    args: [account.address ?? ZERO_ADDRESS, preferredTokens],
+    args: [account.address ?? ZERO_ADDRESS, addresses],
     query: {
       ...settings,
-      enabled: !!account.address,
+      enabled: !!account.address && !!balanceTokens.length,
       select: (data) => {
         const balances: Map<Token, { internal: TokenValue; external: TokenValue; total: TokenValue }> = new Map();
 
@@ -45,11 +49,12 @@ export function useFarmerBalances() {
           total: TokenValue.fromBlockchain(nativeBalance.data?.value || 0n, ETH.decimals),
         });
 
-        data.forEach((token, index) => {
-          balances.set(tokens[index], {
-            internal: TokenValue.fromBlockchain(token.internalBalance, tokens[index].decimals),
-            external: TokenValue.fromBlockchain(token.externalBalance, tokens[index].decimals),
-            total: TokenValue.fromBlockchain(token.totalBalance, tokens[index].decimals),
+        data.forEach((tokenBal, index) => {
+          const token = balanceTokens[index];
+          balances.set(token, {
+            internal: TokenValue.fromBlockchain(tokenBal.internalBalance, token.decimals),
+            external: TokenValue.fromBlockchain(tokenBal.externalBalance, token.decimals),
+            total: TokenValue.fromBlockchain(tokenBal.totalBalance, token.decimals),
           });
         });
 

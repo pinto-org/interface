@@ -1,17 +1,17 @@
-import { QueryKey, useQuery } from "@tanstack/react-query";
-import request from "graphql-request";
-import { useChainId, useReadContract, useReadContracts } from "wagmi";
+import { TokenValue } from "@/classes/TokenValue";
+import { ZERO_ADDRESS } from "@/constants/address";
+import { SEEDS, STALK } from "@/constants/internalTokens";
+import { subgraphs } from "@/constants/subgraph";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { SiloYieldsDocument } from "@/generated/gql/graphql";
-import { TokenValue } from "@/classes/TokenValue";
-import useTokenData from "./useTokenData";
-import { SEEDS, STALK } from "@/constants/internalTokens";
-import { Address, Omit } from "viem";
-import { subgraphs } from "@/constants/subgraph";
-import { SiloTokenData, Token } from "@/utils/types";
-import { ZERO_ADDRESS } from "@/constants/address";
-import { useMemo } from "react";
 import { useChainConstant } from "@/utils/chain";
+import { SiloTokenData, Token } from "@/utils/types";
+import { QueryKey, useQuery } from "@tanstack/react-query";
+import request from "graphql-request";
+import { useMemo } from "react";
+import { Address, Omit } from "viem";
+import { useChainId, useReadContract, useReadContracts } from "wagmi";
+import useTokenData from "./useTokenData";
 
 const settings = {
   query: {
@@ -145,7 +145,6 @@ export function useSiloData() {
     queryKey: ["siloYields", { chainId: chainId }],
     queryFn: async () => request(subgraphs[chainId].beanstalk, SiloYieldsDocument),
     select: (data) => {
-      console.log("yields: ", data);
       return data;
     },
     ...settings,

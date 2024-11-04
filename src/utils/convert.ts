@@ -1,14 +1,24 @@
-import { encodeAbiParameters } from "viem";
-import { SEEDS, STALK, BEAN } from "@/constants/internalTokens";
 import { TokenValue } from "@/classes/TokenValue";
 import { DepositCrateData, DepositData, Token } from "./types";
+import { BEAN, SEEDS, STALK } from "@/constants/internalTokens";
+import { encodeAbiParameters } from "viem";
+import { DepositData, SiloTokenDataMap, Token } from "./types";
 
 export enum ConvertKind {
   LAMBDA_LAMBDA = 0,
   BEANS_TO_WELL_LP = 1,
   WELL_LP_TO_BEANS = 2,
-  ANTI_LAMBDA_LAMBDA = 3
+  ANTI_LAMBDA_LAMBDA = 3,
 }
+
+export type ConvertDetails = {
+  amount: TokenValue;
+  bdv: TokenValue;
+  stalk: TokenValue;
+  seeds: TokenValue;
+  actions: [];
+  crates: DepositData[];
+};
 
 /**
  * Order crates by Stem.
@@ -121,6 +131,38 @@ export function sortAndPickCrates(
     bdv: pickedCrates.totalBDV,
     stalk: pickedCrates.totalStalk,
     seeds: pickedCrates.totalSeeds,
+    actions: [],
+    crates: pickedCrates.crates,
+  };
+}
+
+export function calculateConvert(
+  fromToken: Token,
+  toToken: Token,
+  fromAmount: TokenValue,
+  deposits: DepositData[],
+  silo: SiloTokenDataMap,
+): ConvertDetails {
+  if (deposits.length === 0) throw new Error("No crates to withdraw from");
+  const sortedCrates =
+    !fromToken.isLP && toToken.isLP
+      ? /// BEAN -> LP: oldest crates are best. Grown stalk is equivalent
+        /// on both sides of the convert, but having more seeds in older crates
+        /// allows you to accrue stalk faster after convert.
+        /// Note that during this convert, BDV is approx. equal after the convert.
+        sortCratesByStem(deposits, "asc")
+      : /// X -> LP: use the crates with the lowest [BDV/Amount] ratio first.
+        /// Since LP deposits can have varying BDV, the best option for the Farmer
+        /// is to increase the BDV of their existing lowest-BDV crates.
+        sortCratesByBDVRatio(deposits, "asc");
+
+  const pickedCrates = pickCrates(sortedCrates, fromAmount);
+
+  return {
+    amount: pickedCrates.totalAmount,
+    bdv: pickedCrates.totalBDV,
+    stalk: pickedCrates.totalStalk,
+    seeds: silo.get(fromToken)?.rewards?.seeds || TokenValue.ZERO,
     actions: [],
     crates: pickedCrates.crates,
   };
