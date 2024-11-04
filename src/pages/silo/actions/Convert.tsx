@@ -93,7 +93,7 @@ function DefaultConvert() {
     const depositCrates = sortAndPickCrates(
       "convert",
       TokenValue.fromHuman(amountIn, fromToken.decimals),
-      deposits,
+      deposits.deposits,
       toToken,
     );
 

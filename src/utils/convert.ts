@@ -1,8 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
-import { DepositCrateData, DepositData, Token } from "./types";
 import { BEAN, SEEDS, STALK } from "@/constants/internalTokens";
 import { encodeAbiParameters } from "viem";
-import { DepositData, SiloTokenDataMap, Token } from "./types";
+import { DepositCrateData, DepositData, SiloTokenDataMap, Token } from "./types";
 
 export enum ConvertKind {
   LAMBDA_LAMBDA = 0,
@@ -17,7 +16,7 @@ export type ConvertDetails = {
   stalk: TokenValue;
   seeds: TokenValue;
   actions: [];
-  crates: DepositData[];
+  crates: DepositCrateData[];
 };
 
 /**
