@@ -1,4 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { DepositCrateData, DepositData, Token } from "./types";
 import { BEAN, SEEDS, STALK } from "@/constants/internalTokens";
 import { encodeAbiParameters } from "viem";
 import { DepositData, SiloTokenDataMap, Token } from "./types";
@@ -22,15 +23,15 @@ export type ConvertDetails = {
 /**
  * Order crates by Stem.
  */
-export function sortCratesByStem(crates, direction: "asc" | "desc" = "desc") {
+export function sortCratesByStem(crates: DepositData[], direction: "asc" | "desc" = "desc") {
   const m = direction === "asc" ? -1 : 1;
-  return [...crates].sort((a, b) => m * b.stem.sub(a.stem));
+  return [...crates].sort((a, b) => Number.parseFloat(b.stem.sub(a.stem).mul(m).toHuman()));
 }
 
 /**
  * Order crates by BDV.
  */
-export function sortCratesByBDVRatio(crates, direction: "asc" | "desc" = "asc") {
+export function sortCratesByBDVRatio(crates: DepositData[], direction: "asc" | "desc" = "asc") {
   const m = direction === "asc" ? -1 : 1;
   return [...crates].sort((a, b) => {
     const _a: TokenValue = a.depositBdv.div(a.amount);
@@ -42,13 +43,13 @@ export function sortCratesByBDVRatio(crates, direction: "asc" | "desc" = "asc") 
 /**
  * Selects the number of crates needed to add up to the desired `amount`.
  */
-export function pickCrates(deposits: any[], amount: TokenValue) {
+export function pickCrates(deposits: DepositData[], amount: TokenValue) {
   let totalAmount = TokenValue.ZERO;
   let totalBDV = TokenValue.ZERO;
   let totalStalk = TokenValue.ZERO;
   let totalSeeds = TokenValue.ZERO;
 
-  const cratesToWithdrawFrom: any[] = [];
+  const cratesToWithdrawFrom: DepositCrateData[] = [];
 
   deposits.some((deposit) => {
     const amountToRemoveFromCrate = totalAmount.add(deposit.amount).lte(amount)
@@ -99,11 +100,11 @@ export function pickCrates(deposits: any[], amount: TokenValue) {
 export function sortAndPickCrates(
   mode: "convert" | "transfer" | "withdraw",
   fromAmount: TokenValue,
-  deposits,
+  deposits: DepositData[],
   toToken?: Token,
 ) {
   if (deposits.length === 0) throw new Error("No crates to pick and sort.");
-  let sortedCrates: any[];
+  let sortedCrates: DepositData[];
 
   if (mode === "convert") {
     if (!toToken) throw new Error("No toToken specified.");

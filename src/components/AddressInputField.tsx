@@ -34,7 +34,7 @@ export default function AddressInputField({ value, setValue }: AddressInputField
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-2">
       {value ? (
         <div className="flex flex-row justify-between w-full border h-16 border-pinto-gray-2 bg-pinto-gray-1 rounded-md px-6 py-4 items-center">
           <div className="flex flex-row gap-6 items-center">
@@ -55,13 +55,13 @@ export default function AddressInputField({ value, setValue }: AddressInputField
           onChange={(e) => {
             validateAddress(e.target.value);
           }}
-          className="h-16 px-6 py-4 text-[2rem] bg-white"
+          className={`h-16 px-6 py-4 text-[2rem] bg-white ${isValid === false ? "border-pinto-red-2 focus-visible:ring-transparent" : ""}`}
           placeholder={`Enter ${currentChain?.name ?? ""} address`}
         />
       )}
-      <div className="justify-self-end h-[1.25rem] text-[1.25rem] font-[400] text-pinto-gray-4">
+      <div className="text-right h-[1.25rem] text-[1.25rem] font-[400] text-pinto-gray-4">
         {isValid ? "Valid Address" : isValid === false ? "Invalid Address" : ""}
       </div>
-    </>
+    </div>
   );
 }
