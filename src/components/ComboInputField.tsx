@@ -42,7 +42,7 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
   altText?: string;
   customMaxAmount?: TokenValue;
 
-  // Plot mode props
+  // Plot mode props (required when mode is "plots")
   selectedPlots?: Plot[];
   setPlots?: Dispatch<SetStateAction<Plot[]>>;
   plotSelectionType?: "single" | "multiple";
