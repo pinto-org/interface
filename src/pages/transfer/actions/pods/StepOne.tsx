@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import { ToggleGroup } from "@/components/ui/ToggleGroup";
 import { useFarmerField } from "@/state/useFarmerField";
-import { Dispatch, SetStateAction, useCallback, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import { PodTransferData } from "../TransferPods";
 
 interface Plot {
@@ -33,6 +33,17 @@ interface StepOneProps {
 export default function StepOne({ transferData, setTransferData }: StepOneProps) {
   const [selected, setSelected] = useState<string[]>();
   const { plots } = useFarmerField();
+
+  useEffect(() => {
+    const _newPlots: string[] = [];
+    for (const data of transferData) {
+      const _plot = plots.find((plot) => plot.index.eq(data.id));
+      if (_plot) {
+        _newPlots.push(_plot.index.toHuman());
+      }
+    }
+    setSelected(_newPlots);
+  }, []);
 
   const handlePlotSelection = useCallback(
     (value: string[]) => {
