@@ -101,10 +101,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
       toast.dismiss(loadingToast);
       toast.success("Successfully deposited.");
 
-      qc.invalidateQueries({ queryKey: depositedBalances.queryKey });
-      qc.invalidateQueries({ queryKey: farmerBalances.queryKey });
-      setAmountIn(0);
-
       return txn;
     } catch (e: unknown) {
       console.error(e);

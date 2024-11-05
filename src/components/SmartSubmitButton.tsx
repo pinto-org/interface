@@ -84,7 +84,7 @@ export default function SmartSubmitButton({
         },
       });
     } else {
-      submitFunction();
+      await submitFunction();
     }
   }
 
