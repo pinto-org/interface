@@ -53,17 +53,14 @@ export const useSeedGauge = () => {
 
   const { whitelistedTokens } = useTokenData();
 
-  const {
-    data: bean2MaxLpRatioScaled,
-    ...bean2MaxLpRatioScaledQuery
-  } = useReadContract({
+  const { data: bean2MaxLpRatioScaled, ...bean2MaxLpRatioScaledQuery } = useReadContract({
     address: protocolAddress,
     abi: getBeanToMaxLpGpPerBdvRatioScaledABI,
     functionName: "getBeanToMaxLpGpPerBdvRatioScaled",
     args: [],
   });
 
-  const { data: gaugePointsPerBdv, ...gaugePointsQuery  } = useReadContracts({
+  const { data: gaugePointsPerBdv, ...gaugePointsQuery } = useReadContracts({
     contracts: whitelistedTokens.map((token) => ({
       address: protocolAddress,
       abi: gaugePointsPerBdvABI,
@@ -96,7 +93,7 @@ export const useSeedGauge = () => {
     const map: AddressMap<BaseTokenSeedGaugeInfo> = {};
     let totalRelevantBDV = 0n;
 
-    whitelistedTokens.forEach((token, i) => {
+    whitelistedTokens.forEach((token) => {
       const tokenIndex = getTokenIndex(token);
       const gaugePoint = gaugePointsPerBdv[tokenIndex];
       const wlTokenData = tokenData.get(token);

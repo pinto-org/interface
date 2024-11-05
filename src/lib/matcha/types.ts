@@ -1,3 +1,4 @@
+import { HashString } from "@/utils/types.generic";
 import { Address } from "viem";
 
 export interface ZeroExAPI {
@@ -255,7 +256,7 @@ export interface ZeroExQuoteResponse {
   /**
    * The call data
    */
-  data: string;
+  data: HashString;
   /**
    * The price which must be met or else the entire transaction will revert. This price is influenced by the slippagePercentage parameter.
    * On-chain sources may encounter price movements from quote to settlement.

@@ -199,16 +199,3 @@ export function useSiloData() {
     totalEarnedBeans: TokenValue.fromBlockchain(earnedBeansTotal, BEAN.decimals),
   };
 }
-
-const bdvABI = [
-  {
-    inputs: [
-      { internalType: "address", name: "token", type: "address" },
-      { internalType: "uint256", name: "amount", type: "uint256" },
-    ],
-    name: "bdv",
-    outputs: [{ internalType: "uint256", name: "_bdv", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;
