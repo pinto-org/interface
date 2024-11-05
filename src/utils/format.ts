@@ -61,8 +61,7 @@ export const formatPDV = (val: NumberPrimitive) => {
 
 export const formatPct = (val: NumberPrimitive) => {
   if (val === undefined || val === null) return "0.00%";
-  const normalised = val instanceof TokenValue ? val : TokenValue.fromHuman(val, 0);
-  const formatted = formatNum(normalised.div(100), {
+  const formatted = formatNum(val, {
     minDecimals: 2,
     maxDecimals: 2,
     defaultValue: "0.00",
@@ -99,3 +98,7 @@ export const formatter = {
   noDec: formatNoDecimals,
   twoDec: format2Decimals,
 };
+
+export function truncateHex(hex: string, left: number = 4, right: number = 3) {
+  return `${hex.slice(0, left)}...${hex.slice(-right)}`;
+}

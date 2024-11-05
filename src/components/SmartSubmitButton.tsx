@@ -62,7 +62,6 @@ export default function SmartSubmitButton({
 
   async function approveOrRun() {
     if (needsApproval) {
-      const amt = TokenValue.fromHuman(amount, token.decimals).toBigInt();
       const tx = () =>
         writeContractAsync({
           abi: erc20Abi,

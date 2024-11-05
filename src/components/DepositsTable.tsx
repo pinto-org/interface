@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ToggleGroupItem } from "@/components/ui/ToggleGroup";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { usePriceData } from "@/state/usePriceData";
+import { truncateHex } from "@/utils/format";
 import { DepositData, Token } from "@/utils/types";
 import React from "react";
 
@@ -40,7 +41,7 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
               </div>
             )}
             <img src={depositIcon} alt="deposit icon" />
-            {deposit.stem.toHuman()}
+            {truncateHex(deposit.idHex)}
           </div>
         </TableCell>
         <TableCell className="text-right text-black">

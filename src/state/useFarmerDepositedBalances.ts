@@ -5,13 +5,14 @@ import { useChainAddress } from "@/utils/chain";
 import { DepositData, Token, TokenDepositData } from "@/utils/types";
 import { unpackStem } from "@/utils/utils";
 import { useMemo } from "react";
-import { Address } from "viem";
+import { Address, toHex } from "viem";
 import { useAccount, useReadContract } from "wagmi";
 import { useSiloData } from "./useSiloData";
 import { useSunData } from "./useSunData";
 import useTokenData from "./useTokenData";
 
 interface DepositQuery {
+  id: bigint;
   season?: number | undefined;
   stem: bigint;
   token: Address;
@@ -56,6 +57,7 @@ function useFarmerDepositedBalances() {
     for (const depositData of dataFromContract ?? []) {
       for (const [index, depositId] of depositData.depositIds.entries()) {
         farmerDeposits.push({
+          id: depositId,
           season: undefined,
           stem: unpackStem(depositId),
           token: depositData.token,
@@ -92,6 +94,10 @@ function useFarmerDepositedBalances() {
           depositBDV = depositBDV.add(_depositBDV);
           currentBDV = currentBDV.add(_currentBDV).reDecimal(BEAN.decimals);
           depositData.push({
+            /** The ID of this Deposit */
+            id: deposit.id,
+            /** The ID of this Deposit, as a hex string. */
+            idHex: toHex(deposit.id).toString(),
             /** Token contained within the crate. */
             token: token,
             /** The current stem tip for this token, for calculation of grownStalk. */

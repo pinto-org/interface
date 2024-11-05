@@ -33,18 +33,17 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const [pool, setPool] = useState<PoolData | undefined>(undefined);
   const [slippage, setSlippage] = useState(0.5);
 
+  const qc = useQueryClient();
+
   const { writeContractAsync } = useWriteContract({
     mutation: {
-      onSuccess: async () => {
-        await farmerBalances.refetch();
-        await depositedBalances.refetch();
-        await qc.invalidateQueries({ queryKey: depositedBalances.queryKey });
-        await qc.invalidateQueries({ queryKey: farmerBalances.queryKey });
-        // setAmountIn(0);
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: depositedBalances.queryKey });
+        qc.invalidateQueries({ queryKey: farmerBalances.queryKey });
+        setAmountIn(0);
       },
     },
   });
-  const qc = useQueryClient();
 
   const useSwap = !(tokenIn.address.toLowerCase() === siloToken.address.toLowerCase());
 
@@ -105,12 +104,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     } catch (e: unknown) {
       console.error(e);
       toast.dismiss(loadingToast);
-      toast.error(e instanceof Error ? e.message ?? "Transaction failed." : "Transaction failed.");
-      if (e instanceof Error) {
-        throw new Error(e.message ?? "Transaction failed.");
-      } else {
-        throw new Error("Transaction failed.");
-      }
+      toast.error(e instanceof Error ? e.message : "Transaction failed.");
     }
   };
 
@@ -133,12 +127,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
       <div className="flex flex-row gap-2">
         <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit} submitButtonText="Deposit" />
       </div>
-      <Button onClick={async () => await qc.invalidateQueries({ queryKey: depositedBalances.queryKey })}>
-        invalidate depositedBalances
-      </Button>
-      <Button onClick={async () => await qc.invalidateQueries({ queryKey: farmerBalances.queryKey })}>
-        invalidate farmerBalances
-      </Button>
     </div>
   );
 }
