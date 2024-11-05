@@ -27,7 +27,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const pools = usePriceData().pools;
   const mainToken = useTokenData().mainToken;
 
-  const [amountIn, setAmountIn] = useState(0);
+  const [amountIn, setAmountIn] = useState("0");
   const [tokenIn, setTokenIn] = useState(siloToken);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.INTERNAL_EXTERNAL);
   const [pool, setPool] = useState<PoolData | undefined>(undefined);
@@ -40,7 +40,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
       onSuccess: () => {
         qc.invalidateQueries({ queryKey: depositedBalances.queryKey });
         qc.invalidateQueries({ queryKey: farmerBalances.queryKey });
-        setAmountIn(0);
+        setAmountIn("0");
       },
     },
   });
@@ -63,7 +63,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const swapData = useSwapEstimate(
     tokenIn,
     siloToken,
-    amountIn,
+    Number(amountIn),
     slippage,
     "exactInput",
     balanceFrom,
