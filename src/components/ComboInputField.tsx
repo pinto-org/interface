@@ -19,7 +19,7 @@ import { Skeleton } from "./ui/Skeleton";
 
 export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
   // Token mode props
-  setToken?: Dispatch<SetStateAction<Token>>;
+  setToken?: Dispatch<SetStateAction<Token>> | ((token: Token) => void);
   selectedToken?: Token;
   tokenAndBalanceMap?: Map<Token, TokenValue>; // Optional
   setBalanceFrom?: Dispatch<SetStateAction<FarmFromMode>>; // Optional

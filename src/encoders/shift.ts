@@ -1,7 +1,7 @@
-import { Abi, Address, encodeFunctionData } from "viem";
-import BASIN_WELL_ABI from "@/constants/abi/BasinWell.json";
-import { TokenValue } from "@/classes/TokenValue";
 import { Clipboard } from "@/classes/Clipboard";
+import { TokenValue } from "@/classes/TokenValue";
+import { basinWellABI } from "@/constants/abi/basinWellABI";
+import { Abi, Address, encodeFunctionData } from "viem";
 
 export default function shift(
   tokenOut?: Address,
@@ -17,7 +17,7 @@ export default function shift(
     };
   }
   const data = encodeFunctionData({
-    abi: BASIN_WELL_ABI as Abi,
+    abi: basinWellABI as Abi,
     functionName: "shift",
     args: [tokenOut, minAmountOut?.toBigInt() || 0n, recipient],
   });
