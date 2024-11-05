@@ -1,22 +1,22 @@
-import { useAccount, useChainId } from "wagmi";
-import { AdvancedFarmCall, AdvancedPipeCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
-import { TokenValue } from "@/classes/TokenValue";
-import useTokenData from "@/state/useTokenData";
-import { PoolData, usePriceData } from "@/state/usePriceData";
-import use0x from "@/hooks/use0x";
-import { zeroAddress } from "viem";
 import { Clipboard } from "@/classes/Clipboard";
-import { beanstalkAddress, pipelineAddress } from "@/generated/contractHooks";
-import transferToken from "@/encoders/transferToken";
-import shift from "@/encoders/shift";
-import erc20Approve from "@/encoders/erc20Approve";
+import { TokenValue } from "@/classes/TokenValue";
 import advancedPipe from "@/encoders/advancedPipe";
-import useWellSwap from "@/hooks/useWellSwap";
+import erc20Approve from "@/encoders/erc20Approve";
 import erc20Transfer from "@/encoders/erc20Transfer";
-import useWellAddLiquidity from "@/hooks/useWellAddLiquidity";
+import shift from "@/encoders/shift";
 import sync from "@/encoders/sync";
+import transferToken from "@/encoders/transferToken";
 import unwrapEth from "@/encoders/unwrapEth";
 import wrapEth from "@/encoders/wrapEth";
+import { beanstalkAddress, pipelineAddress } from "@/generated/contractHooks";
+import use0x from "@/hooks/use0x";
+import useWellAddLiquidity from "@/hooks/useWellAddLiquidity";
+import useWellSwap from "@/hooks/useWellSwap";
+import { PoolData, usePriceData } from "@/state/usePriceData";
+import useTokenData from "@/state/useTokenData";
+import { AdvancedFarmCall, AdvancedPipeCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
+import { zeroAddress } from "viem";
+import { useAccount, useChainId } from "wagmi";
 
 export default function useSwapEstimate(
   tokenIn: Token,
@@ -47,7 +47,10 @@ export default function useSwapEstimate(
   const wellSwapFirst = !wellOnlySwap && tokenIn === mainToken;
   const wellSwapLast = !wellOnlySwap && tokenOut === mainToken;
 
-  const tokenMid = (tokenOut.isLP && lpPool) ? lpPool.tokens.find((token) => token !== mainToken) : well?.tokens.find((token) => token !== mainToken);
+  const tokenMid =
+    tokenOut.isLP && lpPool
+      ? lpPool.tokens.find((token) => token !== mainToken)
+      : well?.tokens.find((token) => token !== mainToken);
 
   const isWrapEth = tokenIn.isNative && tokenOut.isWrappedNative;
   const isUnwrapEth = tokenIn.isWrappedNative && tokenOut.isNative;
@@ -91,10 +94,13 @@ export default function useSwapEstimate(
     wellData?.address,
     slippage,
     mode,
-    disabled || isStraightDeposit || isWrapUnwrap || !(!!amount && amount > 0 && !!wellIn && !!wellOut && (wellOnlySwap || wellSwapFirst)),
+    disabled ||
+      isStraightDeposit ||
+      isWrapUnwrap ||
+      !(!!amount && amount > 0 && !!wellIn && !!wellOut && (wellOnlySwap || wellSwapFirst)),
   );
 
-  const zeroExQuote = use0x({
+  const _zeroExQuote = use0x({
     buyToken: aggOut?.address || zeroAddress,
     sellToken: aggIn?.address || zeroAddress,
     buyAmount:
@@ -114,6 +120,7 @@ export default function useSwapEstimate(
         amountTV.gt(0) &&
         (wellSwapFirst ? wellQuote1.isLoading === false && wellQuote1.amountOut.gt(0) : true)),
   });
+  const zeroExQuote = _zeroExQuote?.[0];
   const zeroExQuoteResult = TokenValue.fromBlockchain(zeroExQuote?.data?.buyAmount || 0, aggOut?.decimals || 0);
 
   const wellAddLiqQuote = useWellAddLiquidity(
@@ -172,24 +179,20 @@ export default function useSwapEstimate(
       isLoading: false,
     };
   } else if (isStraightDeposit) {
-    if (!lpPool || !tokenIn) return
+    if (!lpPool || !tokenIn) return;
     const farmCallData: AdvancedFarmCall[] = [];
     const transferToPipeline = transferToken(
-        tokenIn.address,
-        pipelineAddress[chainId as keyof typeof pipelineAddress],
-        amountTV,
-        source,
-        FarmToMode.EXTERNAL,
-      );
+      tokenIn.address,
+      pipelineAddress[chainId as keyof typeof pipelineAddress],
+      amountTV,
+      source,
+      FarmToMode.EXTERNAL,
+    );
     farmCallData.push(transferToPipeline);
 
     const pipeCalls: AdvancedPipeCall[] = [];
     // slot 0
-    const transferToWell = erc20Transfer(
-      lpPool.pool.address,
-      amountTV,
-      tokenIn.address,
-    ) as AdvancedPipeCall;
+    const transferToWell = erc20Transfer(lpPool.pool.address, amountTV, tokenIn.address) as AdvancedPipeCall;
     pipeCalls.push(transferToWell);
     // slot 1, copy output to subsequent calls
     const wellSync = sync(
@@ -228,7 +231,6 @@ export default function useSwapEstimate(
       callData: account.address ? [...farmCallData, advPipeCallData] : undefined,
       isLoading: isLoading,
     };
-
   } else if (wellOnlySwap) {
     const farmCallData: AdvancedFarmCall[] = [];
     const transferToWell = transferToken(

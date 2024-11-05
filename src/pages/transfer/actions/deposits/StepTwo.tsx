@@ -170,7 +170,9 @@ export default function StepTwo({
               </div>
               <ComboInputField
                 key={`depositInput_${data.token.address}_${index}`}
-                setToken={(token) => handleTokenChange(index)(token)}
+                setToken={() => {
+                  return handleTokenChange(index);
+                }}
                 selectedToken={data.token}
                 amount={data.amount}
                 setAmount={(amount) => handleAmountChange(index)(amount)}

@@ -1,7 +1,7 @@
-import { Abi, Address } from "viem";
-import BASIN_WELL_ABI from "@/constants/abi/BasinWell.json";
 import { TokenValue } from "@/classes/TokenValue";
+import { basinWellABI } from "@/constants/abi/basinWellABI";
 import { Token } from "@/utils/types";
+import { Abi, Address } from "viem";
 import { useReadContract } from "wagmi";
 
 export default function useWellSwap(
@@ -20,7 +20,7 @@ export default function useWellSwap(
   };
 
   const estimate = useReadContract({
-    abi: BASIN_WELL_ABI as Abi,
+    abi: basinWellABI as Abi,
     address: wellAddress || "0x",
     functionName: mode === "exactInput" ? "getSwapOut" : "getSwapIn",
     args: [tokenIn?.address || "0x", tokenOut?.address || "0x", amount?.toBigInt() || 0n],

@@ -163,6 +163,10 @@ function DefaultConvert() {
 
 const PipelineConvert = () => {
   const { siloToken, convertDestinations, targetToken, setTargetToken } = useConvertContext();
+  const { data: farmerDeposits } = useFarmerDepositedBalances();
+  const farmerDeposit = farmerDeposits.get(siloToken);
+
+  const [amountIn, setAmountIn] = useState(0);
   const [slippage, setSlippage] = useState(0.1);
 
   return (
@@ -172,14 +176,15 @@ const PipelineConvert = () => {
           <Label>Amount</Label>
           <SlippageButton slippage={slippage} setSlippage={setSlippage} />
         </div>
-        {/* <ComboInputField
+        <ComboInputField
           amount={amountIn}
           setAmount={setAmountIn}
-          setToken={setFromToken}
-          selectedToken={fromToken}
-          tokenAndBalanceMap={sourceConvertData}
+          selectedToken={siloToken}
+          customMaxAmount={farmerDeposit?.convertibleAmount || TokenValue.ZERO}
+          altText="Deposited Balance"
+          mode="deposits"
           disableButton
-        /> */}
+        />
       </div>
       <div className="flex flex-row justify-between">
         <Label className="content-center">Convert to</Label>
