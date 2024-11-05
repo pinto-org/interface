@@ -182,27 +182,6 @@ const parsePlotsFromSG = (response: FarmerPlotsQuery) => {
   return plots;
 };
 
-// data.farmer.plots.forEach((plot) => {
-//   const output: Plot = {
-//     beansPerPod: TokenValue.fromBlockchain(plot.beansPerPod, BEAN.decimals),
-//     createdAt: Number(plot.createdAt),
-//     creationHash: plot.creationHash,
-//     fullyHarvested: plot.fullyHarvested,
-//     harvestablePods: TokenValue.fromBlockchain(plot.harvestablePods, PODS.decimals),
-//     harvestedPods: TokenValue.fromBlockchain(plot.harvestedPods, PODS.decimals),
-//     id: plot.id,
-//     index: TokenValue.fromBlockchain(plot.index, PODS.decimals),
-//     listing: String(plot.listing),
-//     pods: TokenValue.fromBlockchain(plot.pods, PODS.decimals),
-//     season: Number(plot.season),
-//     source: plot.source,
-//     sourceHash: plot.sourceHash,
-//     updatedAt: Number(plot.updatedAt),
-//     updatedAtBlock: Number(plot.updatedAtBlock),
-//   };
-//   plots.push(output);
-// });
-
 const parseListings = (response: FarmerPlotsQuery) => {
   const listings: Listing[] = [];
 
