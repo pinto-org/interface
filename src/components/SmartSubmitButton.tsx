@@ -38,6 +38,9 @@ export default function SmartSubmitButton({
     args: [account.address ?? ZERO_ADDRESS, beanstalkAddress[chainId as keyof typeof beanstalkAddress]],
     query: {
       enabled: !!account.address && !!token && token !== ETH,
+      select: (data) => {
+        return data;
+      },
     },
   });
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
@@ -49,7 +52,7 @@ export default function SmartSubmitButton({
       // invalidating query results to trigger a refetch
       queryClient.invalidateQueries({ queryKey });
     }
-  }, [isConfirmed, queryKey]);
+  }, [isConfirmed]);
 
   const needsApproval = token.isNative
     ? false
@@ -80,7 +83,7 @@ export default function SmartSubmitButton({
         },
       });
     } else {
-      submitFunction();
+      await submitFunction();
     }
   }
 

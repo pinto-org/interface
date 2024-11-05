@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
-import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from "react";
+import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
+import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AllFarmBalances from "../../FarmBalancesList";
 
 interface StepOneProps {
@@ -29,6 +30,27 @@ interface StepOneProps {
   setUsingMax: Dispatch<SetStateAction<boolean>>;
 }
 
+const variants = {
+  hidden: {
+    opacity: 0,
+    transition: {
+      opacity: { duration: 0.2 },
+    },
+  },
+  visible: {
+    opacity: 1,
+    transition: {
+      opacity: { duration: 0.2 },
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      opacity: { duration: 0.2 },
+    },
+  },
+};
+
 export default function StepOne({
   transferData,
   setTransferData,
@@ -39,60 +61,46 @@ export default function StepOne({
   usingMax,
   setUsingMax,
 }: StepOneProps) {
-  const farmerBalances = useFarmerBalances();
+  // Get available tokens and balances
+  const { balances } = useFarmerBalances();
+
   const tokenAndBalanceMap = useMemo(() => {
     const map = new Map<Token, TokenValue>();
-    for (const farmerBalance of farmerBalances.balances) {
-      if (farmerBalance[1].internal.gt(0)) {
-        map.set(farmerBalance[0], farmerBalance[1].internal);
+    for (const [token, balance] of balances) {
+      if (balance.internal.gt(0)) {
+        map.set(token, balance.internal);
       }
     }
     return map;
-  }, [farmerBalances.balances]);
+  }, [balances]);
 
-  const numberOfValidTokens = useMemo(() => [...tokenAndBalanceMap].length, [tokenAndBalanceMap]);
+  const availableTokens = useMemo(() => [...tokenAndBalanceMap.keys()], [tokenAndBalanceMap]);
+  const numberOfValidTokens = availableTokens.length;
 
-  const [selectedTokens, setSelectedTokens] = useState<Token[]>([]);
-
+  // Initialize if no data is present
   useEffect(() => {
-    const newTransferData: { token: Token; amount: string }[] = [];
-    for (const token of selectedTokens) {
-      const existingData = transferData.find(
-        (tokenData) => tokenData.token.address.toLowerCase() === token.address.toLowerCase(),
-      );
-      if (existingData) {
-        newTransferData.push(existingData);
-      } else {
-        const balance = tokenAndBalanceMap.get(token);
-        if (!balance) continue;
-        newTransferData.push({ token: token, amount: balance.toHuman() });
-      }
-    }
-    setTransferData(newTransferData);
-  }, [selectedTokens, setTransferData, tokenAndBalanceMap]);
-
-  useEffect(() => {
-    if (tokenAndBalanceMap.size > 0 && transferData.length === 0) {
-      const firstToken = [...tokenAndBalanceMap.keys()][0];
+    if (transferData.length === 0 && availableTokens.length > 0) {
+      const firstToken = availableTokens[0];
       const firstBalance = tokenAndBalanceMap.get(firstToken);
-      if (firstToken && firstBalance) {
-        setSelectedTokens([firstToken]);
+      if (firstBalance) {
+        setTransferData([{ token: firstToken, amount: firstBalance.toHuman() }]);
       }
     }
-  }, [tokenAndBalanceMap, transferData.length]);
+  }, [availableTokens, tokenAndBalanceMap]);
 
-  useEffect(() => {
-    if (usingMax) {
-      const tokenAddresses: Token[] = [];
-      for (const tokenData of tokenAndBalanceMap) {
-        tokenAddresses.push(tokenData[0]);
-      }
-      setSelectedTokens(tokenAddresses);
-    } else {
-      setSelectedTokens([[...tokenAndBalanceMap.keys()][0]]);
+  const handleMaxToggle = useCallback(() => {
+    if (!usingMax) {
+      // Switching to max mode - set all tokens
+      const allTokensData = availableTokens.map((token) => ({
+        token,
+        amount: tokenAndBalanceMap.get(token)?.toHuman() || "0",
+      }));
+      setTransferData(allTokensData);
     }
-  }, [usingMax, tokenAndBalanceMap]);
+    setUsingMax(!usingMax);
+  }, [usingMax, availableTokens, tokenAndBalanceMap, setTransferData, setUsingMax]);
 
+  // Handlers
   const handleAmountChange = useCallback(
     (index: number) => (newAmount: string) => {
       setTransferData((prev) => prev.map((item, i) => (i === index ? { ...item, amount: newAmount } : item)));
@@ -103,91 +111,135 @@ export default function StepOne({
   const handleTokenChange = useCallback(
     (index: number) => (newToken: Token) => {
       setTransferData((prev) => {
-        // Check if the new token already exists in another position
-        const existingIndex = prev.findIndex(
+        // Check for duplicates
+        const isDuplicate = prev.some(
           (item, i) => i !== index && item.token.address.toLowerCase() === newToken.address.toLowerCase(),
         );
 
-        if (existingIndex !== -1) {
-          // Remove the duplicate entry and update the selected tokens accordingly
-          const updatedData = prev.filter((_, i) => i !== index);
-          setSelectedTokens(updatedData.map((item) => item.token));
-          return updatedData;
+        if (isDuplicate) {
+          // Remove duplicate entry
+          return prev.filter((_, i) => i !== index);
         }
 
-        // If no duplicate, update normally
-        const updatedData = prev.map((item, i) => (i === index ? { ...item, token: newToken } : item));
-        setSelectedTokens(updatedData.map((item) => item.token));
-        return updatedData;
+        // Update token and set default balance
+        const balance = tokenAndBalanceMap.get(newToken)?.toHuman() || "0";
+        return prev.map((item, i) => (i === index ? { ...item, token: newToken, amount: balance } : item));
       });
     },
-    [setTransferData],
+    [tokenAndBalanceMap, setTransferData],
   );
 
   const handleRemoveLastItem = useCallback(() => {
-    setSelectedTokens((prev) => prev.slice(0, -1));
-  }, []);
+    setTransferData((prev) => prev.slice(0, -1));
+  }, [setTransferData]);
+
+  const handleAddToken = useCallback(
+    (tokens: Token[]) => {
+      setTransferData((prev) => {
+        const newTokens = tokens.filter(
+          (token) => !prev.some((item) => item.token.address.toLowerCase() === token.address.toLowerCase()),
+        );
+
+        const newData = newTokens.map((token) => ({
+          token,
+          amount: tokenAndBalanceMap.get(token)?.toHuman() || "0",
+        }));
+
+        return [...prev, ...newData];
+      });
+    },
+    [tokenAndBalanceMap, setTransferData],
+  );
 
   return (
-    <>
-      <div className="flex flex-row justify-end -mt-[5rem]">
+    <motion.div className="flex flex-col gap-6">
+      <motion.div className="flex flex-row justify-end -mt-[5rem]">
         <Button
-          className={`font-[340] text-[1.25rem] text-pinto-green-4 bg-transparent hover:underline hover:bg-transparent`}
-          onClick={() => setUsingMax(!usingMax)}
+          className="font-[340] text-[1.25rem] text-pinto-green-4 bg-transparent hover:underline hover:bg-transparent"
+          onClick={handleMaxToggle}
         >
           {!usingMax ? "Send all Farm Balance tokens" : "Send only some of my Farm Balance"}
         </Button>
-      </div>
-      {usingMax ? (
-        <div className="flex flex-col gap-2">
-          <Label>Amounts and tokens in my Farm Balance to send</Label>
-          <AllFarmBalances />
-        </div>
-      ) : (
-        transferData.map((tokenData, index) => (
-          <div key={`farmbalancetransfer_${tokenData.token.address}`}>
-            <ComboInputField
-              amount={tokenData.amount}
-              setAmount={handleAmountChange(index)}
-              setToken={handleTokenChange(index)}
-              selectedToken={tokenData.token}
-              balanceFrom={FarmFromMode.INTERNAL}
-              tokenAndBalanceMap={tokenAndBalanceMap}
-            />
-          </div>
-        ))
-      )}
-      {!usingMax && (
-        <div className="flex flex-row gap-4">
-          {transferData.length > 1 && (
-            <Button
-              variant="outline"
-              className={`font-[340] text-[1.25rem] bg-white leading-[1.375rem] h-12 px-4 rounded-full text-black w-auto gap-2`}
-              onClick={handleRemoveLastItem}
-            >
-              <MinusIcon color={"currentColor"} /> {`Remove ${transferData[transferData.length - 1].token.symbol}`}
-            </Button>
-          )}
-          {numberOfValidTokens > 1 && numberOfValidTokens !== transferData.length && (
-            <div className="flex">
-              <MultiTokenSelectWithBalances
-                setTokens={setSelectedTokens}
-                selectedTokens={selectedTokens}
-                tokenAndBalanceMap={tokenAndBalanceMap}
-                customTitle="Select token(s) in your Farm Balance to send"
-              />
-            </div>
-          )}
-        </div>
-      )}
-      <div className="flex flex-col gap-2">
+      </motion.div>
+
+      <AnimatePresence mode="popLayout">
+        {usingMax ? (
+          <motion.div
+            key="max-balance"
+            variants={variants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="flex flex-col gap-2"
+          >
+            <Label>Amounts and tokens in my Farm Balance to send</Label>
+            <AllFarmBalances />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="transfer-inputs"
+            variants={variants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="flex flex-col gap-4"
+          >
+            <AnimatePresence mode="popLayout">
+              {transferData.map((tokenData, index) => (
+                <motion.div
+                  key={`farmbalancetransfer_${tokenData.token.address}`}
+                  variants={variants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="w-full"
+                >
+                  <ComboInputField
+                    amount={tokenData.amount}
+                    setAmount={handleAmountChange(index)}
+                    setToken={handleTokenChange(index)}
+                    selectedToken={tokenData.token}
+                    balanceFrom={FarmFromMode.INTERNAL}
+                    tokenAndBalanceMap={tokenAndBalanceMap}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+
+            <motion.div variants={variants} initial="hidden" animate="visible" className="flex flex-row gap-4">
+              {transferData.length > 1 && (
+                <Button
+                  variant="outline"
+                  className="font-[340] text-[1.25rem] bg-white leading-[1.375rem] h-12 px-4 rounded-full text-black w-auto gap-2"
+                  onClick={handleRemoveLastItem}
+                >
+                  <MinusIcon color="currentColor" /> {`Remove ${transferData[transferData.length - 1].token.symbol}`}
+                </Button>
+              )}
+              {numberOfValidTokens > 1 && numberOfValidTokens !== transferData.length && (
+                <div className="flex">
+                  <MultiTokenSelectWithBalances
+                    setTokens={handleAddToken}
+                    selectedTokens={transferData.map((data) => data.token)}
+                    tokenAndBalanceMap={tokenAndBalanceMap}
+                    customTitle="Select token(s) in your Farm Balance to send"
+                  />
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div variants={variants} initial="hidden" animate="visible" className="flex flex-col gap-2">
         <Label>Send tokens to</Label>
         <AddressInputField value={destination} setValue={setDestination} />
-      </div>
-      <div className="flex flex-col gap-4 items-start">
+      </motion.div>
+
+      <motion.div variants={variants} initial="hidden" animate="visible" className="flex flex-col gap-4 items-start">
         <Label>I want to send these tokens to the recipient's:</Label>
         <DestinationBalanceSelect balanceTo={balanceTo} setBalanceTo={setBalanceTo} variant="transferFlow" />
-      </div>
-    </>
+      </motion.div>
+    </motion.div>
   );
 }

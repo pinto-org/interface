@@ -5,6 +5,7 @@ import * as React from "react";
 const pageContainerVariants = cva("flex flex-col w-full min-w-0", {
   variants: {
     variant: {
+      md: "sm:max-w-[896px]",
       lg: "sm:max-w-[1132px]",
       xl: "sm:max-w-[1550px]",
     },

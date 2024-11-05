@@ -1,6 +1,6 @@
 import { TokenValue } from "@/classes/TokenValue";
 
-type NumberPrimitive = string | number | TokenValue | undefined | null;
+type NumberPrimitive = string | number | TokenValue | bigint | undefined | null;
 
 interface IMinValue {
   minValue?: number;
@@ -59,6 +59,18 @@ export const formatPDV = (val: NumberPrimitive) => {
   return `${formatNum(val || TokenValue.ZERO, { minDecimals: 2, maxDecimals: 2, defaultValue: "0.00", minValue: 0.01 })} PDV`;
 };
 
+export const formatPct = (val: NumberPrimitive) => {
+  if (val === undefined || val === null) return "0.00%";
+  const formatted = formatNum(val, {
+    minDecimals: 2,
+    maxDecimals: 2,
+    defaultValue: "0.00",
+    minValue: 0.01,
+    allowZero: true,
+  });
+  return `${formatted}%`;
+};
+
 export const formatNoDecimals = (val: NumberPrimitive) => {
   return formatNum(val || TokenValue.ZERO, {
     minDecimals: 0,
@@ -82,6 +94,11 @@ export const formatter = {
   number: formatNum,
   usd: formatUSD,
   pdv: formatPDV,
+  pct: formatPct,
   noDec: formatNoDecimals,
   twoDec: format2Decimals,
 };
+
+export function truncateHex(hex: string, left: number = 4, right: number = 3) {
+  return `${hex.slice(0, left)}...${hex.slice(-right)}`;
+}

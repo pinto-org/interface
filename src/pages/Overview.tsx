@@ -49,7 +49,7 @@ export default function Overview() {
 
   const claimableBeans = farmerSilo.earnedBeansBalance;
   const claimableStalk = farmerSilo.grownStalkReward;
-  const claimableSeeds = claimableBeans.mul(siloData.tokenData.get(mainToken)?.rewards.seeds ?? 0n);
+  const claimableSeeds = claimableBeans.mul(siloData.tokenData.get(mainToken)?.rewards.seeds ?? TokenValue.ZERO);
 
   const hasDeposits = Array.from(farmerDeposits.entries()).find((token) => token[1].deposits.length > 0);
 
