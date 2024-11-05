@@ -3,13 +3,34 @@ import * as THREE from "three";
 import { extend, useFrame, Object3DNode } from "@react-three/fiber";
 import { shaderMaterial } from "@react-three/drei";
 
-// Shader material definition
-interface SlideShaderMaterialUniforms {
-  uProgress: { value: number };
-  uAnimationPhase: { value: number };
-  uMap: { value: THREE.Texture | null };
+// Typescript declarations
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      slideShaderMaterial: Object3DNode<
+        typeof SlideShaderMaterial,
+        typeof SlideShaderMaterial
+      > & {
+        uMap?: THREE.Texture;
+        uProgress?: number;
+        uAnimationPhase?: number;
+        transparent?: boolean;
+        onMaxAnimationTimeCalculated?: (time: number) => void;
+      };
+    }
+  }
 }
 
+interface SlideProps {
+  imageUrl: string;
+  width: number;
+  height: number;
+  animationPhase: "in" | "out";
+  progress: number;
+  onMaxAnimationTimeCalculated?: (time: number) => void;
+}
+
+// Shader material definition
 const SlideShaderMaterial = shaderMaterial(
   {
     uProgress: 0,
@@ -77,33 +98,20 @@ const SlideShaderMaterial = shaderMaterial(
 // Extend so that the material is recognized
 extend({ SlideShaderMaterial });
 
-//this needs to be updated to include types
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      slideShaderMaterial: Object3DNode<
-        typeof SlideShaderMaterial,
-        typeof SlideShaderMaterial
-      > & {
-        uMap?: THREE.Texture;
-        uProgress?: number;
-        uAnimationPhase?: number;
-        transparent?: boolean;
-      };
-    }
-  }
-}
-
-interface SlideProps {
-  imageUrl: string;
-  width: number;
-  height: number;
-  animationPhase: "in" | "out";
-  progress: number;
-}
-
+// functional slide react component
+// is of type forwardRef, which allows the parent to perform imperative actions on the mesh
 const Slide = forwardRef<THREE.Mesh, SlideProps>(
-  ({ imageUrl, width, height, animationPhase, progress }, ref) => {
+  (
+    {
+      imageUrl,
+      width,
+      height,
+      animationPhase,
+      progress,
+      onMaxAnimationTimeCalculated,
+    },
+    ref
+  ) => {
     const meshRef = useRef<THREE.Mesh>(null);
     const materialRef = useRef<any>(null);
 
@@ -131,6 +139,8 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
         height * 2
       );
 
+      let maxAnimationTime = 0;
+
       // Convert to non-indexed geometry
       const nonIndexedPlane = plane.toNonIndexed();
 
@@ -145,11 +155,11 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
       const aControl1 = new Float32Array(vertexCount * 3);
       const aEndPosition = new Float32Array(vertexCount * 3);
 
-      const minDuration = 0.8;
-      const maxDuration = 1.2;
-      const maxDelayX = 0.9;
-      const maxDelayY = 0.125;
-      const stretch = 0.11;
+      const minDuration = 0.3;
+      const maxDuration = 0.7;
+      const maxDelayX = 0.4;
+      const maxDelayY = 0.0;
+      const stretch = 0.15;
 
       const startPosition = new THREE.Vector3();
       const control0 = new THREE.Vector3();
@@ -189,6 +199,7 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
 
         // Animation timings
         const duration = THREE.MathUtils.randFloat(minDuration, maxDuration);
+
         const delayX = THREE.MathUtils.mapLinear(
           centroid.x,
           -width * 0.5,
@@ -213,11 +224,31 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
                 0.0
               );
 
+        let tDelay = delayX + delayY * stretch * duration;
+        let tDuration = duration;
+
+        // Ensure tDelay + tDuration ≤ 1
+        if (tDelay + tDuration > 1) {
+          const excessTime = tDelay + tDuration - 1;
+          tDelay -= (tDelay / (tDelay + tDuration)) * excessTime;
+          tDuration -= (tDuration / (tDelay + tDuration)) * excessTime;
+        }
+
+        // Track the maximum animation time
+        if (tDelay + tDuration > maxAnimationTime) {
+          maxAnimationTime = tDelay + tDuration;
+        }
+
         for (let v = 0; v < 3; v++) {
           const vIndex = faceOffset + v;
           aAnimation[vIndex * 2] =
             delayX + delayY + Math.random() * stretch * duration;
           aAnimation[vIndex * 2 + 1] = duration;
+        }
+
+        // Call the callback with the maximum animation time
+        if (onMaxAnimationTimeCalculated) {
+          onMaxAnimationTimeCalculated(maxAnimationTime);
         }
 
         // Positions
@@ -273,6 +304,7 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
       return nonIndexedPlane;
     }, [width, height, animationPhase]);
 
+    // updates the material every rendered frame
     useFrame(() => {
       if (materialRef.current) {
         materialRef.current.uniforms.uProgress.value = progress;
@@ -282,6 +314,7 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
     });
 
     return (
+      // forwardRef in Slide component allows Slide to perform imperative actions on the mesh - the parent can modify properties of the mesh directly
       <mesh ref={meshRef} geometry={geometry}>
         <slideShaderMaterial
           ref={materialRef}
