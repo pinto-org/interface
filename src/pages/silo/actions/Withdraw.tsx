@@ -1,18 +1,18 @@
-import { useEffect, useState } from "react";
-import { useAccount, useChainId } from "wagmi";
-import { useWriteContract } from "wagmi";
+import { TokenValue } from "@/classes/TokenValue";
+import { ComboInputField } from "@/components/ComboInputField";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import { Button } from "@/components/ui/Button";
+import { Label } from "@/components/ui/Label";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
-import { TokenValue } from "@/classes/TokenValue";
 import { sortAndPickCrates } from "@/utils/convert";
 import { FarmToMode, Token } from "@/utils/types";
-import { Label } from "@/components/ui/Label";
-import { ComboInputField } from "@/components/ComboInputField";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { BaseError } from "viem";
-import { useQueryClient } from "@tanstack/react-query";
+import { useAccount, useChainId } from "wagmi";
+import { useWriteContract } from "wagmi";
 
 function Withdraw({ siloToken }: { siloToken: Token }) {
   const account = useAccount();
@@ -52,7 +52,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
           address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
           abi: beanstalkAbi,
           functionName: "withdrawDeposit",
-          args: [fromToken.address, stems[0], amounts[0], Number(destination)],
+          args: [fromToken.address, BigInt(stems[0]), BigInt(amounts[0]), Number(destination)],
         });
 
       toast.promise(tx, {
@@ -70,7 +70,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
           address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
           abi: beanstalkAbi,
           functionName: "withdrawDeposits",
-          args: [fromToken.address, stems, amounts, Number(destination)],
+          args: [fromToken.address, stems.map((s) => BigInt(s)), amounts.map((a) => BigInt(a)), Number(destination)],
         });
 
       toast.promise(tx, {

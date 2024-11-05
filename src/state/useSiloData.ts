@@ -71,49 +71,49 @@ function useReadSiloTokenData(token: Token | undefined) {
       enabled: Boolean(token?.address),
       select: (siloTokenData) => {
         return {
-          totalDeposited: TokenValue.fromBlockchain(siloTokenData[0].result ?? 0n, token?.decimals ?? 0),
-          tokenBDV: TokenValue.fromBlockchain(siloTokenData[1].result ?? 0n, BEAN.decimals),
-          stemTip: TokenValue.fromBlockchain(siloTokenData[2].result ?? 0n, BEAN.decimals),
-          depositedBDV: TokenValue.fromBlockchain(siloTokenData[3].result ?? 0n, BEAN.decimals),
-          germinatingStem: TokenValue.fromBlockchain(siloTokenData[4].result ?? 0n, BEAN.decimals),
+          totalDeposited: TokenValue.fromBlockchain(siloTokenData?.[0]?.result ?? 0n, token?.decimals ?? 0),
+          tokenBDV: TokenValue.fromBlockchain(siloTokenData?.[1]?.result ?? 0n, BEAN.decimals),
+          stemTip: TokenValue.fromBlockchain(siloTokenData?.[2]?.result ?? 0n, BEAN.decimals),
+          depositedBDV: TokenValue.fromBlockchain(siloTokenData?.[3]?.result ?? 0n, BEAN.decimals),
+          germinatingStem: TokenValue.fromBlockchain(siloTokenData?.[4]?.result ?? 0n, BEAN.decimals),
           tokenSettings: {
             deltaStalkEarnedPerSeason: TokenValue.fromBlockchain(
-              siloTokenData[5].result?.deltaStalkEarnedPerSeason ?? 0n,
+              siloTokenData?.[5]?.result?.deltaStalkEarnedPerSeason ?? 0n,
               STALK.decimals,
             ),
-            encodeType: siloTokenData[5].result?.encodeType as string,
+            encodeType: siloTokenData?.[5]?.result?.encodeType as string,
             gaugePointImplementation: {
-              target: siloTokenData[5].result?.gaugePointImplementation.target as Address,
-              selector: siloTokenData[5].result?.gaugePointImplementation.selector as string,
-              encodeType: siloTokenData[5].result?.gaugePointImplementation.encodeType as string,
-              data: siloTokenData[5].result?.gaugePointImplementation.data as string,
+              target: siloTokenData?.[5]?.result?.gaugePointImplementation.target as Address,
+              selector: siloTokenData?.[5]?.result?.gaugePointImplementation.selector as string,
+              encodeType: siloTokenData?.[5]?.result?.gaugePointImplementation.encodeType as string,
+              data: siloTokenData?.[5]?.result?.gaugePointImplementation.data as string,
             },
-            gaugePoints: siloTokenData[5].result?.gaugePoints as bigint,
+            gaugePoints: siloTokenData?.[5]?.result?.gaugePoints as bigint,
             liquidityWeightImplementation: {
-              target: siloTokenData[5].result?.liquidityWeightImplementation.target as Address,
-              selector: siloTokenData[5].result?.liquidityWeightImplementation.selector as string,
-              encodeType: siloTokenData[5].result?.liquidityWeightImplementation.encodeType as string,
-              data: siloTokenData[5].result?.liquidityWeightImplementation.data as string,
+              target: siloTokenData?.[5]?.result?.liquidityWeightImplementation.target as Address,
+              selector: siloTokenData?.[5]?.result?.liquidityWeightImplementation.selector as string,
+              encodeType: siloTokenData?.[5]?.result?.liquidityWeightImplementation.encodeType as string,
+              data: siloTokenData?.[5]?.result?.liquidityWeightImplementation.data as string,
             },
-            milestoneSeason: siloTokenData[5].result?.milestoneSeason as number,
-            milestoneStem: TokenValue.fromBlockchain(siloTokenData[5].result?.milestoneStem ?? 0n, BEAN.decimals),
+            milestoneSeason: siloTokenData?.[5]?.result?.milestoneSeason as number,
+            milestoneStem: TokenValue.fromBlockchain(siloTokenData?.[5]?.result?.milestoneStem ?? 0n, BEAN.decimals),
             optimalPercentDepositedBdv: TokenValue.fromBlockchain(
-              siloTokenData[5].result?.optimalPercentDepositedBdv ?? 0n,
+              siloTokenData?.[5]?.result?.optimalPercentDepositedBdv ?? 0n,
               BEAN.decimals,
             ),
-            selector: siloTokenData[5].result?.selector as string,
+            selector: siloTokenData?.[5]?.result?.selector as string,
             stalkEarnedPerSeason: TokenValue.fromBlockchain(
-              siloTokenData[5].result?.stalkEarnedPerSeason ?? 0n,
+              siloTokenData?.[5]?.result?.stalkEarnedPerSeason ?? 0n,
               SEEDS.decimals,
             ),
             stalkIssuedPerBdv: TokenValue.fromBlockchain(
-              siloTokenData[5].result?.stalkIssuedPerBdv ?? 0n,
+              siloTokenData?.[5]?.result?.stalkIssuedPerBdv ?? 0n,
               STALK.decimals,
             ),
           },
           rewards: {
-            seeds: TokenValue.fromBlockchain(siloTokenData[5].result?.stalkEarnedPerSeason ?? 0n, SEEDS.decimals),
-            stalk: TokenValue.fromBlockchain(siloTokenData[5].result?.stalkIssuedPerBdv ?? 0n, STALK.decimals),
+            seeds: TokenValue.fromBlockchain(siloTokenData?.[5]?.result?.stalkEarnedPerSeason ?? 0n, SEEDS.decimals),
+            stalk: TokenValue.fromBlockchain(siloTokenData?.[5]?.result?.stalkIssuedPerBdv ?? 0n, STALK.decimals),
           },
         } as Omit<SiloTokenData, "yields">;
       },
@@ -144,9 +144,6 @@ export function useSiloData() {
   const { data: yields } = useQuery({
     queryKey: ["siloYields", { chainId: chainId }],
     queryFn: async () => request(subgraphs[chainId].beanstalk, SiloYieldsDocument),
-    select: (data) => {
-      return data;
-    },
     ...settings,
   });
 
@@ -190,7 +187,6 @@ export function useSiloData() {
       tokenData: data.size !== SILO_WHITELIST.length ? new Map<Token, SiloTokenData>() : data,
       queryKeys: keys,
     };
-    // }, [wlTokenData0, SILO_WHITELIST, yields]);
   }, [wlTokenData0, wlTokenData1, wlTokenData2, wlTokenData3, wlTokenData4, SILO_WHITELIST, yields]);
 
   return {
@@ -199,16 +195,3 @@ export function useSiloData() {
     totalEarnedBeans: TokenValue.fromBlockchain(earnedBeansTotal, BEAN.decimals),
   };
 }
-
-const bdvABI = [
-  {
-    inputs: [
-      { internalType: "address", name: "token", type: "address" },
-      { internalType: "uint256", name: "amount", type: "uint256" },
-    ],
-    name: "bdv",
-    outputs: [{ internalType: "uint256", name: "_bdv", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;

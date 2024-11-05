@@ -5777,6 +5777,26 @@ export const farmerAbi = [
     outputs: [{ name: 'beans', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
   },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'account', internalType: 'address', type: 'address' },
+      { name: 'fieldId', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'getPlotsFromAccount',
+    outputs: [
+      {
+        name: 'plots',
+        internalType: 'struct FieldFacet.Plot[]',
+        type: 'tuple[]',
+        components: [
+          { name: 'index', internalType: 'uint256', type: 'uint256' },
+          { name: 'pods', internalType: 'uint256', type: 'uint256' },
+        ],
+      },
+    ],
+    stateMutability: 'view',
+  },
 ] as const
 
 /**
@@ -13479,6 +13499,22 @@ export const useReadFarmer_BalanceOfEarnedBeans =
     abi: farmerAbi,
     address: farmerAddress,
     functionName: 'balanceOfEarnedBeans',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link farmerAbi}__ and `functionName` set to `"getPlotsFromAccount"`
+ *
+ * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5)
+ * -
+ * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f)
+ * -
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70)
+ */
+export const useReadFarmer_GetPlotsFromAccount =
+  /*#__PURE__*/ createUseReadContract({
+    abi: farmerAbi,
+    address: farmerAddress,
+    functionName: 'getPlotsFromAccount',
   })
 
 /**

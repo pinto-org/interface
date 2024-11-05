@@ -19,7 +19,7 @@ import { Skeleton } from "./ui/Skeleton";
 
 export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
   // Token mode props
-  setToken?: Dispatch<SetStateAction<Token>>;
+  setToken?: Dispatch<SetStateAction<Token>> | ((token: Token) => void);
   selectedToken?: Token;
   tokenAndBalanceMap?: Map<Token, TokenValue>; // Optional
   setBalanceFrom?: Dispatch<SetStateAction<FarmFromMode>>; // Optional
@@ -223,6 +223,11 @@ function ComboInputField({
     return currentAmount && Number(currentAmount) > 0;
   };
 
+  const handleSetMax = () => {
+    setInternalAmount(maxAmount.humanString);
+    setAmount?.(maxAmount.humanString);
+  };
+
   // Format plot IDs for display
   const plotIdsToShow = useMemo(() => {
     if (!selectedPlots?.length) return "";
@@ -244,7 +249,7 @@ function ComboInputField({
                 min={0}
                 type="number"
                 disabled={disableInput}
-                className="flex w-full pr-1 text-2xl text-black font-[400] align-middle focus-visible:outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="flex w-full pr-1 text-[2rem] leading-[2.2rem] text-black font-[400] align-middle focus-visible:outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 value={disableInput ? amount : internalAmount}
                 onChange={(e) => changeValue(e.target.value)}
               />
@@ -310,7 +315,12 @@ function ComboInputField({
                     size={"sm"}
                     variant={"defaultAlt"}
                     className={"rounded-[0.75rem] text-[1rem] px-1.5 py-1 h-auto"}
-                    onClick={() => setInternalAmount(maxAmount.humanString)}
+                    onClick={() => {
+                      if (handleAmountChange) {
+                        handleAmountChange(maxAmount.humanString);
+                      }
+                      setInternalAmount(maxAmount.humanString);
+                    }}
                   >
                     Max
                   </Button>

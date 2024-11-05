@@ -151,64 +151,25 @@ export const ChevronRightIcon = ({ color = "#9C9C9C", width = 16, height = 16 }:
         id="Path"
         d="M6.6665 10.667L9.33317 8.00033L6.6665 5.33366"
         stroke={color}
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </g>
   </svg>
 );
 
-export const CloseIconAlt = ({
-	color = "#9C9C9C",
-	width = 32,
-	height = 32,
-}: SVGProps) => (
-	<svg width={width} height={height} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-		<path d="M9.33334 9.33325L22.6667 22.6666" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-		<path d="M9.33334 22.6666L22.6667 9.33325" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-	</svg>
-);
-
-export const UpRightArrowIcon = ({
-	color = "#9C9C9C",
-	width = 12,
-	height = 13,
-}: SVGProps) => (
-	<svg
-		width={width}
-		height={height}
-		viewBox="0 0 12 13"
-		fill="none"
-		xmlns="http://www.w3.org/2000/svg"
-	>
-		<path
-			d="M10.95 1.54688L1.05005 11.4469"
-			stroke={color}
-			strokeWidth="1.5"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-		/>
-		<path
-			d="M4 1.5L10.95 1.549L11 8.5"
-			stroke={color}
-			strokeWidth="1.5"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-		/>
-	</svg>
-
-export const CloseIcon = ({ color = "#9C9C9C", width = 9, height = 10 }: SVGProps) => (
-  <svg width={width} height={height} viewBox="0 0 9 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+export const CloseIconAlt = ({ color = "#9C9C9C", width = 32, height = 32 }: SVGProps) => (
+  <svg width={width} height={height} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
-      d="M1.16675 1.66675L7.83341 8.33341"
+      d="M9.33334 9.33325L22.6667 22.6666"
       stroke={color}
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <path
-      d="M1.16675 8.33341L7.83341 1.66675"
+      d="M9.33334 22.6666L22.6667 9.33325"
       stroke={color}
       strokeWidth="1.5"
       strokeLinecap="round"
@@ -230,35 +191,54 @@ export const UpRightArrowIcon = ({ color = "#9C9C9C", width = 12, height = 13 }:
   </svg>
 );
 
+export const CloseIcon = ({ color = "#9C9C9C", width = 9, height = 10 }: SVGProps) => (
+  <svg width={width} height={height} viewBox="0 0 9 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M1.16675 1.66675L7.83341 8.33341"
+      stroke={color}
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M1.16675 8.33341L7.83341 1.66675"
+      stroke={color}
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 export const CheckmarkIcon = ({ color = "#9C9C9C", width = 24, height = 24 }: SVGProps) => (
   <svg width={width} height={height} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M5.5 11L10.5 16L19.5 7" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M5.5 11L10.5 16L19.5 7" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
 export const APYIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: SVGProps) => (
   <svg width={width} height={height} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
-      fill-rule="evenodd"
-      clip-rule="evenodd"
+      fillRule="evenodd"
+      clipRule="evenodd"
       d="M8.00005 10.6676C8.00005 9.19421 9.19446 7.99981 10.6678 7.99981C9.19446 7.99981 8.00005 6.8054 8.00005 5.33203C8.00005 6.8054 6.80565 7.99981 5.33228 7.99981C6.80565 7.99981 8.00005 9.19421 8.00005 10.6676Z"
       stroke={color}
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
     <path
-      fill-rule="evenodd"
-      clip-rule="evenodd"
+      fillRule="evenodd"
+      clipRule="evenodd"
       d="M12.6267 5.37276C12.6267 4.26773 13.5225 3.37193 14.6275 3.37193C13.5225 3.37193 12.6267 2.47612 12.6267 1.37109C12.6267 2.47612 11.7309 3.37193 10.6259 3.37193C11.1565 3.37193 11.6654 3.58273 12.0407 3.95796C12.4159 4.33319 12.6267 4.84211 12.6267 5.37276V5.37276Z"
       stroke={color}
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
     <path
       d="M14.0026 7.33165V11.3333C14.0026 12.8067 12.8082 14.0011 11.3348 14.0011H4.66534C3.19196 14.0011 1.99756 12.8067 1.99756 11.3333V4.66387C1.99756 3.1905 3.19196 1.99609 4.66534 1.99609H8.667"
       stroke={color}
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
   </svg>
 );
@@ -268,38 +248,38 @@ export const AddCoinsIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: SVG
     <path
       d="M5.33333 11.9974C3.49267 11.9974 2 11.4007 2 10.6641"
       stroke={color}
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
-    <path d="M1.99984 5.33594V10.6693" stroke={color} stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M1.99984 5.33594V10.6693" stroke={color} strokeLinecap="round" strokeLinejoin="round" />
     <path
       d="M7.3335 10C7.3335 10.7367 8.8255 11.3333 10.6668 11.3333C12.5082 11.3333 14.0002 10.7367 14.0002 10"
       stroke={color}
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
-    <path d="M8.66683 5.33594V7.0026" stroke={color} stroke-linecap="round" stroke-linejoin="round" />
-    <path d="M11.3335 3.33333H14.0002" stroke={color} stroke-linecap="round" stroke-linejoin="round" />
-    <path d="M12.6668 4.66667V2" stroke={color} stroke-linecap="round" stroke-linejoin="round" />
-    <path d="M13.9998 10V12.6667" stroke={color} stroke-linecap="round" stroke-linejoin="round" />
-    <path d="M7.33333 10V12.6667" stroke={color} stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M8.66683 5.33594V7.0026" stroke={color} strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M11.3335 3.33333H14.0002" stroke={color} strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M12.6668 4.66667V2" stroke={color} strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M13.9998 10V12.6667" stroke={color} strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M7.33333 10V12.6667" stroke={color} strokeLinecap="round" strokeLinejoin="round" />
     <path
       d="M14.0002 9.9974C14.0002 9.26073 12.5082 8.66406 10.6668 8.66406C8.8255 8.66406 7.3335 9.26073 7.3335 9.9974"
       stroke={color}
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
     <path
       d="M7.3335 12.6641C7.3335 13.4007 8.8255 13.9974 10.6668 13.9974C12.5082 13.9974 14.0002 13.4007 14.0002 12.6641"
       stroke={color}
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
     <path
       d="M5.33333 9.33333C3.49267 9.33333 2 8.73667 2 8"
       stroke={color}
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
     <ellipse
       cx="5.33333"
@@ -307,8 +287,8 @@ export const AddCoinsIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: SVG
       rx="3.33333"
       ry="1.33333"
       stroke={color}
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
   </svg>
 );
@@ -318,44 +298,44 @@ export const RotateArrowIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: 
     <path
       d="M8.39307 4.0026L9.7264 2.66927L8.39307 1.33594"
       stroke={color}
-      stroke-width="1.5"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
     <path
       d="M7.60628 12L6.27295 13.3333L7.60628 14.6667"
       stroke={color}
-      stroke-width="1.5"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
     <path
       d="M11.7827 4.25C12.7393 5.214 13.3333 6.53733 13.3333 8.00267C13.3333 10.948 10.9453 13.336 8.00001 13.336C7.47601 13.336 6.97134 13.2573 6.49268 13.1167"
       stroke={color}
-      stroke-width="1.5"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
     <path
       d="M4.16917 11.7132C3.23984 10.7532 2.6665 9.44654 2.6665 8.00521C2.6665 5.05987 5.0545 2.67188 7.99984 2.67188C8.52384 2.67188 9.0285 2.75054 9.50717 2.89121"
       stroke={color}
-      stroke-width="1.5"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
   </svg>
 );
 
 export const PlusIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: SVGProps) => (
   <svg width={width} height={height} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M1 8H15" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-    <path d="M8 15V1" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M1 8H15" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M8 15V1" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
 export const MinusIcon = ({ color = "#9C9C9C", width = 16, height = 2 }: SVGProps) => (
   <svg width={width} height={height} viewBox="0 0 16 2" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M1 1H15" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M1 1H15" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
@@ -363,22 +343,22 @@ export const RightArrowIcon = ({ color = "#9C9C9C", width = 24, height = 24 }: S
   <svg width={width} height={height} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <g id="Group">
       <g id="Group_2">
-        <path id="Path" d="M19 12H5" stroke={color} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        <path id="Path" d="M19 12H5" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         <path
           id="Path_2"
           d="M14 17L19 12"
           stroke={color}
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <path
           id="Path_3"
           d="M14 7L19 12"
           stroke={color}
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </g>
     </g>
@@ -403,7 +383,7 @@ export const BurgerIcon = ({ size = 6, color = "#000000", ...props }: IconProps)
       height={size * 4}
       className={cn(props.className)}
     >
-      <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
     </svg>
   );
 };

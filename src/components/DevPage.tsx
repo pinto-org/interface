@@ -1,12 +1,12 @@
+import useTokenData from "@/state/useTokenData";
 import { isDev } from "@/utils/utils";
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { Card } from "./ui/Card";
-import { Button } from "./ui/Button";
-import { Input } from "./ui/Input";
-import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
-import useTokenData from "@/state/useTokenData";
+import { Button } from "./ui/Button";
+import { Card } from "./ui/Card";
+import { Input } from "./ui/Input";
 
 interface TaskResponse {
   success: boolean;
@@ -31,6 +31,8 @@ export default function DevPage() {
     token: "",
   });
 
+  const { lpTokens } = useTokenData();
+
   // Update addresses when account changes
   useEffect(() => {
     setMintAddress(address || "");
@@ -43,10 +45,7 @@ export default function DevPage() {
     return <Navigate to="/" replace />;
   }
 
-  const executeTask = async (
-    taskName: string,
-    params?: Record<string, any>
-  ): Promise<void> => {
+  const executeTask = async (taskName: string, params?: Record<string, any>): Promise<void> => {
     setLoading(taskName);
     try {
       // Merge the provided params with the default network param
@@ -75,9 +74,7 @@ export default function DevPage() {
       console.error("Failed to execute task:", error);
       // Check if the error is due to server not running
       if (error instanceof TypeError && error.message.includes("fetch")) {
-        toast.error(
-          "Server not running, from protocol dir run `yarn hardhat-server`"
-        );
+        toast.error("Server not running, from protocol dir run `yarn hardhat-server`");
       } else {
         toast.error(`Failed to execute ${taskName}`);
       }
@@ -85,52 +82,36 @@ export default function DevPage() {
       setLoading(null);
     }
   };
-  
-  const { lpTokens } = useTokenData();
 
   const getWellsList = () => {
     // Import tokens from your token data
-    
+
     // Filter for LP tokens which are the wells
-    return lpTokens.map(token => ({
+    return lpTokens.map((token) => ({
       name: token.name,
-      address: token.address
+      address: token.address,
     }));
   };
 
   return (
     <div className="flex flex-col items-center">
       <div className="flex flex-col gap-6 w-[80%]">
-        <h1 className="font-[300] text-[3.5rem] text-black">
-          Development Page
-        </h1>
+        <h1 className="font-[300] text-[3.5rem] text-black">Development Page</h1>
 
         {/* Simple Actions */}
         <Card className="p-6">
           <h2 className="text-2xl mb-4">Basic Actions</h2>
           <div className="flex flex-wrap gap-4">
-            <Button
-              onClick={() => executeTask("callSunrise")}
-              disabled={loading === "callSunrise"}
-            >
+            <Button onClick={() => executeTask("callSunrise")} disabled={loading === "callSunrise"}>
               Call Sunrise
             </Button>
-            <Button
-              onClick={() => executeTask("skipMorningAuction")}
-              disabled={loading === "skipMorningAuction"}
-            >
+            <Button onClick={() => executeTask("skipMorningAuction")} disabled={loading === "skipMorningAuction"}>
               Skip Morning Auction
             </Button>
-            <Button
-              onClick={() => executeTask("megaDeploy")}
-              disabled={loading === "megaDeploy"}
-            >
+            <Button onClick={() => executeTask("megaDeploy")} disabled={loading === "megaDeploy"}>
               Mega Deploy
             </Button>
-            <Button
-              onClick={() => executeTask("forceFlood")}
-              disabled={loading === "forceFlood"}
-            >
+            <Button onClick={() => executeTask("forceFlood")} disabled={loading === "forceFlood"}>
               Force Flood
             </Button>
           </div>
@@ -176,9 +157,7 @@ export default function DevPage() {
                       amount: mintAmount,
                     })
                   }
-                  disabled={
-                    !usdcAddress || !mintAmount || loading === "mintUsdc"
-                  }
+                  disabled={!usdcAddress || !mintAmount || loading === "mintUsdc"}
                 >
                   Mint USDC
                 </Button>
@@ -191,8 +170,7 @@ export default function DevPage() {
         <Card className="p-6">
           <h2 className="text-2xl mb-4">Token Balance Management</h2>
           <div className="text-sm text-gray-500 mb-4">
-            Available tokens: PINTO, WETH, USDC, cbBTC, cbETH, wstETH. You can
-            use either token symbols or addresses.
+            Available tokens: PINTO, WETH, USDC, cbBTC, cbETH, wstETH. You can use either token symbols or addresses.
           </div>
           <div className="flex flex-col gap-2">
             <Input
@@ -208,24 +186,17 @@ export default function DevPage() {
             <Input
               placeholder="Amount"
               value={tokenBalance.amount}
-              onChange={(e) =>
-                setTokenBalance((prev) => ({ ...prev, amount: e.target.value }))
-              }
+              onChange={(e) => setTokenBalance((prev) => ({ ...prev, amount: e.target.value }))}
             />
             <Input
               placeholder="Token Address or Name"
               value={tokenBalance.token}
-              onChange={(e) =>
-                setTokenBalance((prev) => ({ ...prev, token: e.target.value }))
-              }
+              onChange={(e) => setTokenBalance((prev) => ({ ...prev, token: e.target.value }))}
             />
             <Button
               onClick={() => executeTask("setTokenBalance", tokenBalance)}
               disabled={
-                !tokenBalance.receiver ||
-                !tokenBalance.amount ||
-                !tokenBalance.token ||
-                loading === "setTokenBalance"
+                !tokenBalance.receiver || !tokenBalance.amount || !tokenBalance.token || loading === "setTokenBalance"
               }
             >
               Set Token Balance
@@ -247,11 +218,7 @@ export default function DevPage() {
               ))}
             </div>
             <div className="flex flex-col gap-2">
-              <Input
-                placeholder="Well Address"
-                value={wellAddress}
-                onChange={(e) => setWellAddress(e.target.value)}
-              />
+              <Input placeholder="Well Address" value={wellAddress} onChange={(e) => setWellAddress(e.target.value)} />
               <Input
                 placeholder="Amounts (comma-separated)"
                 value={wellAmounts}
@@ -271,12 +238,7 @@ export default function DevPage() {
                       receiver: receiverAddress,
                     })
                   }
-                  disabled={
-                    !wellAddress ||
-                    !wellAmounts ||
-                    !receiverAddress ||
-                    loading === "addLiquidity"
-                  }
+                  disabled={!wellAddress || !wellAmounts || !receiverAddress || loading === "addLiquidity"}
                 >
                   Add Liquidity
                 </Button>
@@ -286,9 +248,7 @@ export default function DevPage() {
                       receiver: receiverAddress,
                     })
                   }
-                  disabled={
-                    !receiverAddress || loading === "addLiquidityToAllWells"
-                  }
+                  disabled={!receiverAddress || loading === "addLiquidityToAllWells"}
                 >
                   Add Liquidity To All Wells
                 </Button>

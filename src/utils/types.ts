@@ -50,6 +50,8 @@ export interface DepositCrateData {
 
 export interface DepositData {
   token: Token;
+  id: bigint;
+  idHex: string;
   stemTipForToken: TokenValue;
   season: number;
   stem: TokenValue;

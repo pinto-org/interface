@@ -5,9 +5,11 @@ import { TokenValue } from "@/classes/TokenValue";
 import { PODS } from "@/constants/internalTokens";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFieldData } from "@/state/useFieldData";
+import { formatter } from "@/utils/format";
 import { Plot } from "@/utils/types";
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
+import CheckmarkCircle from "./CheckmarkCircle";
 import { CheckmarkIcon } from "./Icons";
 import { Button } from "./ui/Button";
 import {
@@ -20,6 +22,7 @@ import {
   DialogTrigger,
 } from "./ui/Dialog";
 import { Separator } from "./ui/Separator";
+import Text from "./ui/Text";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
 
 function PlotSelectItem({
@@ -42,22 +45,15 @@ function PlotSelectItem({
       className="flex flex-row w-[105%] py-4 h-auto justify-between data-[state=on]:bg-transparent hover:bg-pinto-gray-1 data-[state=on]:hover:bg-pinto-gray-1"
     >
       <div className="flex flex-row items-center gap-4">
-        <div
-          className={`w-6 h-6 border rounded-full flex items-center justify-center ${isSelected ? "border-pinto-green-4 bg-pinto-green-1 text-pinto-green-4" : "border-black bg-transparent"}`}
-        >
-          {isSelected && <CheckmarkIcon color="currentColor" width={16} height={16} />}
-        </div>
+        <CheckmarkCircle isSelected={isSelected} />
         <img src={podIcon} alt="Pod" className="w-12 h-12" />
         <div className="flex flex-col gap-1">
           <div className="flex justify-start font-[400] text-[1.25rem] text-pinto-gray-5">PODS</div>
-          <div className="flex justify-start font-[340] text-[1rem] text-pinto-gray-4">
-            {`Index: ${plot.index.toHuman()}`}
-          </div>
         </div>
       </div>
-      <div className="flex flex-col">
+      <div className="flex flex-col gap-1">
         <div className="flex justify-end font-[340] text-[1.5rem] text-black">
-          {plot.pods?.gt(0) ? Number(plot.pods.toHuman()).toFixed(4) : 0}
+          {plot.pods?.gt(0) ? formatter.number(plot.pods) : 0}
         </div>
         <div className="flex justify-end font-[340] text-[1rem] text-pinto-gray-4">
           {`@ ${plot.index.sub(harvestableIndex).toHuman("short")} in Line`}
@@ -138,10 +134,10 @@ export default function PlotSelect({
       <DialogTrigger asChild>
         <Button
           variant={"outline"}
-          className={`${disabled ? "pointer-events-none" : "pointer-events-auto"} flex-none items-center ${size === "small" ? "" : "h-12"} gap-1.5 border border-pinto-gray-blue bg-white hover:bg-pinto-gray-1 drop-shadow-pinto-token-select rounded-full text-black text-[1.25rem] font-[300] leading-[1.3875rem] tracking-[1px]`}
+          className={`${disabled ? "pointer-events-none" : "pointer-events-auto"} flex-none items-center ${size === "small" ? "" : "h-12"} gap-1.5 border border-pinto-gray-blue bg-white hover:bg-pinto-gray-1 drop-shadow-pinto-token-select rounded-full`}
         >
           <img src={podIcon} alt="Pods" className={`${size === "small" ? "w-5 h-5" : "w-6 h-6"}`} />
-          {displayText}
+          <Text variant="body-light">{displayText}</Text>
           {!disabled && <img src={arrowDown} className="w-4 h-4" alt="open plot select dialog" />}
         </Button>
       </DialogTrigger>

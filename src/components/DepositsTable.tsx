@@ -5,8 +5,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ToggleGroupItem } from "@/components/ui/ToggleGroup";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { usePriceData } from "@/state/usePriceData";
+import { truncateHex } from "@/utils/format";
 import { DepositData, Token } from "@/utils/types";
 import React from "react";
+import CheckmarkCircle from "./CheckmarkCircle";
 
 interface DepositsTable {
   token: Token;
@@ -32,15 +34,9 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
       >
         <TableCell className="text-black font-[400]">
           <div className="gap-2 pl-2 flex items-center">
-            {useToggle && (
-              <div
-                className={`w-6 h-6 border rounded-full flex items-center justify-center ${isSelected ? "border-pinto-green-4 bg-pinto-green-1 text-pinto-green-4" : "border-black bg-transparent"}`}
-              >
-                {isSelected && <CheckmarkIcon color="currentColor" width={16} height={16} />}
-              </div>
-            )}
+            {useToggle && <CheckmarkCircle isSelected={isSelected} />}
             <img src={depositIcon} alt="deposit icon" />
-            {deposit.stem.toHuman()}
+            {truncateHex(deposit.idHex)}
           </div>
         </TableCell>
         <TableCell className="text-right text-black">

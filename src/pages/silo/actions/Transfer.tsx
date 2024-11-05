@@ -1,19 +1,19 @@
-import { useEffect, useState } from "react";
-import { type Address, BaseError, isAddress } from "viem";
-import { useAccount, useChainId } from "wagmi";
-import { useWriteContract } from "wagmi";
+import { TokenValue } from "@/classes/TokenValue";
+import { ComboInputField } from "@/components/ComboInputField";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
-import { TokenValue } from "@/classes/TokenValue";
-import { sortAndPickCrates } from "@/utils/convert";
 import useTokenData from "@/state/useTokenData";
-import { Label } from "@/components/ui/Label";
-import { ComboInputField } from "@/components/ComboInputField";
-import { toast } from "sonner";
+import { sortAndPickCrates } from "@/utils/convert";
 import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { type Address, BaseError, isAddress } from "viem";
+import { useAccount, useChainId } from "wagmi";
+import { useWriteContract } from "wagmi";
 
 function Transfer() {
   const account = useAccount();
@@ -55,7 +55,7 @@ function Transfer() {
           address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
           abi: beanstalkAbi,
           functionName: "transferDeposit",
-          args: [userAddress, recipient as Address, fromToken.address, stems[0], amounts[0]],
+          args: [userAddress, recipient as Address, fromToken.address, BigInt(stems[0]), BigInt(amounts[0])],
         });
 
       toast.promise(tx, {
@@ -73,7 +73,13 @@ function Transfer() {
           address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
           abi: beanstalkAbi,
           functionName: "transferDeposits",
-          args: [userAddress, recipient as Address, fromToken.address, stems, amounts],
+          args: [
+            userAddress,
+            recipient as Address,
+            fromToken.address,
+            stems.map((stem) => BigInt(stem)),
+            amounts.map((amount) => BigInt(amount)),
+          ],
         });
 
       toast.promise(tx, {

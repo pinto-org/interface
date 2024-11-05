@@ -32,8 +32,8 @@ export const tokens: { [chainId: number]: Token[] } = {
     // Well LP Tokens
     {
       chainId: arbitrum.id,
-      name: "BEAN:WETH LP",
-      symbol: "BEAN:WETH",
+      name: "BEANWETH LP",
+      symbol: "BEANWETH",
       address: "0xBeA00Aa8130aCaD047E137ec68693C005f8736Ce",
       decimals: 18,
       isLP: true,
@@ -43,8 +43,8 @@ export const tokens: { [chainId: number]: Token[] } = {
     },
     {
       chainId: arbitrum.id,
-      name: "BEAN:wstETH LP",
-      symbol: "BEAN:wstETH",
+      name: "BEANwstETH LP",
+      symbol: "BEANwstETH",
       address: "0xBEa00BbE8b5da39a3F57824a1a13Ec2a8848D74F",
       decimals: 18,
       isLP: true,
@@ -120,8 +120,8 @@ export const tokens: { [chainId: number]: Token[] } = {
     // Well LP Tokens
     {
       chainId: base.id,
-      name: "PINTO:WETH LP",
-      symbol: "PINTO:WETH",
+      name: "PINTOWETH LP",
+      symbol: "PINTOWETH",
       address: "0x3e11001CfbB6dE5737327c59E10afAB47B82B5d3",
       decimals: 18,
       isLP: true,
@@ -131,8 +131,8 @@ export const tokens: { [chainId: number]: Token[] } = {
     },
     {
       chainId: base.id,
-      name: "PINTO:cbETH LP",
-      symbol: "PINTO:cbETH",
+      name: "PINTOcbETH LP",
+      symbol: "PINTOcbETH",
       address: "0x3e111115A82dF6190e36ADf0d552880663A4dBF1",
       decimals: 18,
       isLP: true,
@@ -142,8 +142,8 @@ export const tokens: { [chainId: number]: Token[] } = {
     },
     {
       chainId: base.id,
-      name: "PINTO:USDC LP",
-      symbol: "PINTO:USDC",
+      name: "PINTOUSDC LP",
+      symbol: "PINTOUSDC",
       address: "0x3e1133aC082716DDC3114bbEFEeD8B1731eA9cb1",
       decimals: 18,
       isLP: true,
@@ -153,8 +153,8 @@ export const tokens: { [chainId: number]: Token[] } = {
     },
     {
       chainId: base.id,
-      name: "PINTO:cbBTC LP",
-      symbol: "PINTO:cbBTC",
+      name: "PINTOcbBTC LP",
+      symbol: "PINTOcbBTC",
       address: "0x3e11226fe3d85142B734ABCe6e58918d5828d1b4",
       decimals: 18,
       isLP: true,
@@ -178,7 +178,7 @@ export const tokens: { [chainId: number]: Token[] } = {
     // Other Tokens
     {
       chainId: base.id,
-      name: "USDCoin",
+      name: "USD Coin",
       symbol: "USDC",
       address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
       decimals: 6,
