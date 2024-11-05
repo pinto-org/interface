@@ -4,11 +4,13 @@ import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import AddressLink from "@/components/AddressLink";
 import { Label } from "@/components/ui/Label";
+import Text from "@/components/ui/Text";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
+import { formatter } from "@/utils/format";
 import DepositsList from "../../DepositsList";
 import FarmBalancesList from "../../FarmBalancesList";
 
@@ -35,42 +37,45 @@ export default function FinalStep({ destination }: StepTwoProps) {
     depositsToSend.reduce((total, depositToSend) => total + depositToSend.deposit.deposits.length, 0) > 0;
 
   return (
-    <div className="flex flex-col gap-8">
-      <Label className="font-[340] text-[1.25rem] -mb-4">I'm sending</Label>
-      {hasBalance && (
-        <div className="flex flex-col">
-          <Label className="font-[340] text-[1.25rem]">Value in my Farm Balance:</Label>
-          <FarmBalancesList />
-        </div>
-      )}
-      {hasPlots && (
-        <div className="flex flex-col">
-          <Label className="font-[340] text-[1.25rem]">My Plots:</Label>
-          {farmerField.plots.map((plot) => (
-            <div
-              key={`farmerField_plots_${plot.index.toHuman()}`}
-              className={"flex flex-row gap-1.5 items-center font-[340] text-[2rem] text-pinto-gray-5"}
-            >
-              <span>{plot.pods.reDecimal(2).toHuman()}</span>
-              <img src={podIcon} className="h-8 w-8" alt="Plot" />
-              <span>Pods</span>
-              <span className={"text-pinto-gray-3"}>@</span>
-              <span className="font-[340] text-[2rem] text-pinto-gray-5">
-                {plot.index.reDecimal(2).toHuman()} in Line
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-      {hasDeposits && (
+    <div className="flex flex-col gap-6">
+      <Label className="font-[400] text-[1.25rem]">I'm sending</Label>
+      <div className="flex flex-col gap-8">
+        {hasBalance && (
+          <div className="flex flex-col">
+            <Label className="font-[340] text-[1.25rem]">Value in my Farm Balance:</Label>
+            <FarmBalancesList />
+          </div>
+        )}
+        {hasPlots && (
+          <div className="flex flex-col">
+            <Label className="font-[340] text-[1.25rem]">My Plots:</Label>
+            {farmerField.plots.map((plot) => (
+              <Text
+                key={`farmerField_plots_${plot.index.toHuman()}`}
+                variant="h3"
+                color={"secondary"}
+                as="div"
+                className="flex flex-row gap-1.5 place-self-end"
+              >
+                <span>{formatter.number(plot.pods)}</span>
+                <img src={podIcon} className="h-8 w-8" alt="Plot" />
+                <span>Pods</span>
+                <span className={"text-pinto-gray-3"}>@</span>
+                <span>{formatter.number(plot.index)} in Line</span>
+              </Text>
+            ))}
+          </div>
+        )}
+        {hasDeposits && (
+          <div>
+            <Label className="font-[340] text-[1.25rem]">My Deposits:</Label>
+            <DepositsList />
+          </div>
+        )}
         <div>
-          <Label className="font-[340] text-[1.25rem]">My Deposits:</Label>
-          <DepositsList />
+          <Label className="font-[340] text-[1.25rem]">To the following address</Label>
+          <AddressLink address={destination} />
         </div>
-      )}
-      <div>
-        <Label className="font-[340] text-[1.25rem]">To the following address</Label>
-        <AddressLink address={destination} />
       </div>
     </div>
   );

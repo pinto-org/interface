@@ -168,29 +168,29 @@ export default function StepTwo({
                 <Label className="font-[400]">Amount of Deposited {data.token.name} to send</Label>
                 <DepositSelect setTransferData={setTransferData} token={data.token} />
               </div>
-              <ComboInputField
-                key={`depositInput_${data.token.address}_${index}`}
-                setToken={() => {
-                  return handleTokenChange(index);
-                }}
-                selectedToken={data.token}
-                amount={data.amount}
-                setAmount={(amount) => handleAmountChange(index)(amount)}
-                tokenAndBalanceMap={tokenAndBalanceMap}
-                altText={getAltText(data.token)}
-                customMaxAmount={customMaxAmounts.get(data.token.address)}
-                disableInput={shouldDisableInput(data.token, data.deposits.length)}
-                disableDebounce
-                disableButton
-                mode="deposits"
-              />
-              {Number(data.amount) > 0 &&
-                Number(data.amount) < Number(customMaxAmounts.get(data.token.address)?.toHuman()) &&
-                data.deposits.length > 1 && (
-                  <span className="font-[340] text-[1rem] leading-[110%] text-pinto-gray-4">
-                    Deposits with the least Grown Stalk will be sent first.
-                  </span>
-                )}
+              <div className="flex flex-col gap-4">
+                <ComboInputField
+                  key={`depositInput_${data.token.address}_${index}`}
+                  setToken={(token) => handleTokenChange(index)(token)}
+                  selectedToken={data.token}
+                  amount={data.amount}
+                  setAmount={(amount) => handleAmountChange(index)(amount)}
+                  tokenAndBalanceMap={tokenAndBalanceMap}
+                  altText={getAltText(data.token)}
+                  customMaxAmount={customMaxAmounts.get(data.token.address)}
+                  disableInput={shouldDisableInput(data.token, data.deposits.length)}
+                  disableDebounce
+                  disableButton
+                  mode="deposits"
+                />
+                {Number(data.amount) > 0 &&
+                  Number(data.amount) < Number(customMaxAmounts.get(data.token.address)?.toHuman()) &&
+                  data.deposits.length > 1 && (
+                    <Text variant="sm-light" color="light">
+                      Deposits with the least Grown Stalk will be sent first.
+                    </Text>
+                  )}
+              </div>
             </div>
           ))
         )}
