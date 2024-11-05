@@ -66,7 +66,7 @@ function Field() {
                   The length of the queue for Pods to mature
                 </Text>
               </div>
-              <Text variant="h3">{fieldData.podIndex.sub(fieldData.harvestableIndex).toHuman("short")}</Text>
+              <Text variant="h3">{formatter.number(fieldData.podIndex.sub(fieldData.harvestableIndex))}</Text>
             </div>
           </div>
           <div className="flex rounded-[1.25rem] p-4 bg-pinto-off-white border-pinto-gray-2 border w-full h-96">
