@@ -51,7 +51,6 @@ const MIN_BEAN_MAX_LP = LibCases.MIN_BEAN_MAX_LP_GP_PER_BDV_RATIO * BigInt(1e18)
 export const useSeedGauge = () => {
   const protocolAddress = useProtocolAddress();
   const { tokenData } = useSiloData();
-  console.log("tokenData: ", tokenData);
 
   const { whitelistedTokens } = useTokenData();
 

@@ -144,8 +144,6 @@ interface ISiloTokenAbout extends IBaseSiloToken {
 const SiloTokenAbout = ({ siloToken, price, siloTokenData, siloTVD, liquidityTVD }: ISiloTokenAbout) => {
   const seedGauge = useSeedGauge();
 
-  console.log(seedGauge.data);
-
   const gaugeData = seedGauge.data.gaugeData[getTokenIndex(siloToken)];
 
   const currentDepositedRatio = gaugeData?.currentPctDepositedBdv?.mul(100);

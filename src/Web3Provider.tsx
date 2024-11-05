@@ -9,23 +9,23 @@ import { mock } from "wagmi/connectors";
 
 // serialize BigInts
 (BigInt.prototype as any).toJSON = function () {
-  return { type: "BigInt", value: this.toString() };
+  return this.toString();
 };
 
 // Deserialize tagged BigInts
-const originalParse = JSON.parse;
-JSON.parse = (text: string) => {
-  return originalParse(text, (_, value) => {
-    if (value && typeof value === "object" && value.type === "BigInt" && typeof value.value === "string") {
-      try {
-        return BigInt(value.value);
-      } catch {
-        return value;
-      }
-    }
-    return value;
-  });
-};
+// const originalParse = JSON.parse;
+// JSON.parse = (text: string) => {
+//   return originalParse(text, (_, value) => {
+//     if (value && typeof value === "object" && value.type === "BigInt" && typeof value.value === "string") {
+//       try {
+//         return BigInt(value.value);
+//       } catch {
+//         return value;
+//       }
+//     }
+//     return value;
+//   });
+// };
 
 declare module "wagmi" {
   interface Register {

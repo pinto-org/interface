@@ -46,8 +46,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   });
   const qc = useQueryClient();
 
-  console.log("qc: ", qc);
-
   const useSwap = !(tokenIn.address.toLowerCase() === siloToken.address.toLowerCase());
 
   useEffect(() => {

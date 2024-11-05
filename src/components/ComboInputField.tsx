@@ -76,7 +76,6 @@ function ComboInputField({
   const tokenData = useTokenData();
   const { balances } = useFarmerBalances();
   const farmerTokenBalance = selectedToken ? balances.get(selectedToken) : undefined;
-  console.log("farmerTokenBalance: ", farmerTokenBalance);
 
   const depositedBalances = useFarmerDepositedBalances();
   const farmerDepositedTokenBalance = selectedToken ? depositedBalances.data.get(selectedToken) : undefined;

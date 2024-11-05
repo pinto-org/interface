@@ -21,5 +21,5 @@ export default function wrapEth(amount?: TokenValue, balanceTo?: FarmToMode, cli
   return {
     callData: data,
     clipboard: clipboard || Clipboard.encode([], amount.toBigInt()),
-  } as AdvancedFarmCall;
+  };
 }
