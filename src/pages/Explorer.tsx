@@ -12,12 +12,11 @@ function Explorer() {
     setMainTab(tabIdx);
   };
 
-  // TODO: need color change on hover
   return (
     <PageContainer>
       <div className="flex flex-col w-full items-center">
-        <div className="flex flex-col w-full gap-4 sm:gap-12">
-          <div className="flex flex-col gap-2">
+        <div className="flex flex-col w-full gap-8">
+          <div className="flex flex-col gap-2 ml-4">
             <Text variant="h1">Explorer</Text>
             <div className="flex gap-10 mt-8">
               {MAIN_TABS.map((tabName: string, idx: number) => (
@@ -25,7 +24,8 @@ function Explorer() {
                   key={tabName}
                   variant="h3"
                   color={mainTab === idx ? "primary" : "light"}
-                  className="cursor-pointer"
+                  data-state={mainTab === idx ? "active" : "inactive"}
+                  className="cursor-pointer data-[state=inactive]:hover:text-pinto-green-3"
                   onClick={() => handleMainTabClick(idx)}
                 >
                   {tabName}
