@@ -8,7 +8,7 @@ import sync from "@/encoders/sync";
 import wellRemoveLiquidity from "@/encoders/wellRemoveLiquidity";
 import { PoolData } from "@/state/usePriceData";
 import { calculateConvert } from "@/utils/convert";
-import { AdvancedPipeCall, DepositData, SiloTokenDataMap, Token } from "@/utils/types";
+import { AdvancedPipeCall, DepositCrateData, DepositData, SiloTokenDataMap, Token } from "@/utils/types";
 import { HashString } from "@/utils/types.generic";
 import { getPintoIndex } from "@/utils/well";
 import { multicall } from "@wagmi/core";
@@ -149,7 +149,7 @@ export class PipelineConvert {
     };
   }
 
-  private static async fetchEq2EqRemoveLiquidityOut(well: PoolData, pickedDeposits: DepositData[]) {
+  private static async fetchEq2EqRemoveLiquidityOut(well: PoolData, pickedDeposits: DepositCrateData[]) {
     const [token0, token1] = well.tokens;
     const multicallContracts = Utils.constructMulticall.removeLiquidityEqual(well, pickedDeposits);
 

@@ -1,9 +1,9 @@
-import { Abi, Address } from "viem";
-import BASIN_WELL_ABI from "@/constants/abi/BasinWell.json";
 import { TokenValue } from "@/classes/TokenValue";
-import { useReadContract } from "wagmi";
-import { Token } from "@/utils/types";
+import { basinWellABI } from "@/constants/abi/basinWellABI";
 import { PoolData } from "@/state/usePriceData";
+import { Token } from "@/utils/types";
+import { Abi, Address } from "viem";
+import { useReadContract } from "wagmi";
 
 export default function useWellAddLiquidity(
   well?: PoolData,
@@ -24,7 +24,7 @@ export default function useWellAddLiquidity(
   const amounts = well?.tokens.map((token) => (token.address === tokenIn?.address ? amount : TokenValue.ZERO));
 
   const estimate = useReadContract({
-    abi: BASIN_WELL_ABI as Abi,
+    abi: basinWellABI as Abi,
     address: well?.pool.address || "0x",
     functionName: "getAddLiquidityOut",
     args: [amounts],

@@ -2,7 +2,7 @@
 
 import { TokenValue } from "@/classes/TokenValue";
 import { PoolData } from "@/state/usePriceData";
-import { DepositData } from "@/utils/types";
+import { DepositCrateData, DepositData } from "@/utils/types";
 import { chunkArray } from "@/utils/utils";
 import { ContractFunctionParameters } from "viem";
 
@@ -44,7 +44,7 @@ function constructAddLiquidityMulticall(well: PoolData, amountsIn: TokenValue[][
   return chunkArray(contracts, MAX_PER_CALL);
 }
 
-function constructRemoveLiquidityMulticall(well: PoolData, deposits: DepositData[]) {
+function constructRemoveLiquidityMulticall(well: PoolData, deposits: DepositCrateData[]) {
   const contracts: ContractFunctionParameters<typeof BasinWellABI>[] = [];
 
   const address = well.pool.address as `0x${string}`;

@@ -52,6 +52,9 @@ const buttonVariants = cva(
       hover: {
         green4: "hover:border-pinto-green-4",
       },
+      noPadding: {
+        true: "p-0 sm:p-0",
+      },
     },
     defaultVariants: {
       variant: "default",
@@ -68,7 +71,17 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    { className, variant, size = "default", asChild = false, noShrink = true, rounded, width = "default", ...props },
+    {
+      className,
+      variant,
+      size = "default",
+      asChild = false,
+      noShrink = true,
+      noPadding = false,
+      rounded,
+      width = "default",
+      ...props
+    },
     ref,
   ) => {
     const Comp = asChild ? Slot : "button";
@@ -79,6 +92,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             variant,
             size,
             noShrink: noShrink,
+            noPadding,
             rounded,
             width,
             className,

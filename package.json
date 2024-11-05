@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "wagmi:generate": "wagmi generate --config wagmi.config.ts",
     "generate": "wagmi generate && graphql-codegen",
     "build": "wagmi generate && tsc && vite build",
     "lint": "biome check .",
@@ -45,7 +46,7 @@
     "tailwindcss-animate": "1.0.7",
     "vaul": "^1.1.0",
     "viem": "^2.21.24",
-    "wagmi": "^2.12.17"
+    "wagmi": "2.12.17"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.8.0",
@@ -56,7 +57,7 @@
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.2.1",
-    "@wagmi/cli": "^2.1.16",
+    "@wagmi/cli": "2.1.16",
     "autoprefixer": "10.4.19",
     "buffer": "^6.0.3",
     "postcss": "8.4.39",
