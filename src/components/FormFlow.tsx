@@ -31,7 +31,7 @@ export default function FlowForm({
 }: FlowFormProps) {
   const isFirstStep = stepNumber === 1;
   const isFinalStep = stepNumber === totalSteps;
-  const [direction, setDirection] = useState(1);
+  const [direction, setDirection] = useState(-1);
 
   const handleNextStep = () => {
     setDirection(1);
