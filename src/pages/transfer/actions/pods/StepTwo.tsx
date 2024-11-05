@@ -73,7 +73,6 @@ export default function StepTwo({ transferData, setTransferData, destination, se
   const handleAmountChange = useCallback(
     (value: string) => {
       const newAmount = value;
-      console.log("AMOUNT CHANGED!", value);
 
       if (selectedPlots.length === 0) return;
 
@@ -117,7 +116,7 @@ export default function StepTwo({ transferData, setTransferData, destination, se
           setPlots={setSelectedPlots}
           plotSelectionType="multiple"
           amount={amount}
-          handleAmountChange={handleAmountChange}
+          setAmount={handleAmountChange}
           disableInput={selectedPlots.length > 1}
           altText={selectedPlots.length > 1 ? "Balance:" : "Plot Balance:"}
         />

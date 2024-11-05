@@ -37,7 +37,7 @@ function DefaultConvert() {
   );
 
   const [fromToken, setFromToken] = useState(siloToken);
-  const [amountIn, setAmountIn] = useState(0);
+  const [amountIn, setAmountIn] = useState("");
   const [slippage, setSlippage] = useState(0.1);
 
   const queryClient = useQueryClient();
@@ -68,7 +68,7 @@ function DefaultConvert() {
     useReadSilo_GetAmountOut({
       args: [fromToken.address, toToken.address, TokenValue.fromHuman(amountIn || 0, fromToken.decimals).toBigInt()],
       query: {
-        enabled: !!amountIn && amountIn > 0,
+        enabled: !!amountIn && Number(amountIn) > 0,
       },
     }).data || 0n;
 
@@ -166,7 +166,7 @@ const PipelineConvert = () => {
   const { data: farmerDeposits } = useFarmerDepositedBalances();
   const farmerDeposit = farmerDeposits.get(siloToken);
 
-  const [amountIn, setAmountIn] = useState(0);
+  const [amountIn, setAmountIn] = useState("0");
   const [slippage, setSlippage] = useState(0.1);
 
   return (
