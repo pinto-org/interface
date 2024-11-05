@@ -4,6 +4,7 @@ import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import AddressLink from "@/components/AddressLink";
 import { Label } from "@/components/ui/Label";
+import Text from "@/components/ui/Text";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerField } from "@/state/useFarmerField";
@@ -49,16 +50,19 @@ export default function FinalStep({ destination }: StepTwoProps) {
           <div className="flex flex-col">
             <Label className="font-[340] text-[1.25rem]">My Plots:</Label>
             {farmerField.plots.map((plot) => (
-              <div
+              <Text
                 key={`farmerField_plots_${plot.index.toHuman()}`}
-                className={"flex flex-row gap-1.5 items-center font-[340] text-[2rem] text-pinto-gray-5 place-self-end"}
+                variant="h3"
+                color={"secondary"}
+                as="div"
+                className="flex flex-row gap-1.5 place-self-end"
               >
                 <span>{formatter.number(plot.pods)}</span>
                 <img src={podIcon} className="h-8 w-8" alt="Plot" />
                 <span>Pods</span>
                 <span className={"text-pinto-gray-3"}>@</span>
-                <span className="font-[340] text-[2rem] text-pinto-gray-5">{formatter.number(plot.index)} in Line</span>
-              </div>
+                <span>{formatter.number(plot.index)} in Line</span>
+              </Text>
             ))}
           </div>
         )}

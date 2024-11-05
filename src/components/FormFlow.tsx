@@ -17,6 +17,12 @@ interface FlowFormProps {
   disableTopSeparator?: boolean;
 }
 
+const bottomVariants = {
+  initial: { height: 0, opacity: 0 },
+  animate: { height: "auto", opacity: 1 },
+  exit: { height: 0, opacity: 0 },
+};
+
 export default function FlowForm({
   children,
   stepNumber,
@@ -66,12 +72,6 @@ export default function FlowForm({
       x: direction > 0 ? 200 : -200,
       opacity: 0,
     },
-  };
-
-  const bottomVariants = {
-    initial: { height: 0, opacity: 0 },
-    animate: { height: "auto", opacity: 1 },
-    exit: { height: 0, opacity: 0 },
   };
 
   return (
