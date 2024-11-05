@@ -3,6 +3,7 @@ import { usePriceData } from "@/state/usePriceData";
 import { Token } from "@/utils/types";
 import { Address } from "viem";
 import { useAccount } from "wagmi";
+import CheckmarkCircle from "./CheckmarkCircle";
 import { CheckmarkIcon, PlusIcon } from "./Icons";
 import { Button } from "./ui/Button";
 import {
@@ -35,11 +36,7 @@ function TokenSelectItem({
       className="flex flex-row w-[105%] py-4 h-auto justify-between data-[state=on]:bg-transparent hover:bg-pinto-gray-1 data-[state=on]:hover:bg-pinto-gray-1"
     >
       <div className="flex flex-row items-center gap-4">
-        <div
-          className={`w-6 h-6 border rounded-full flex items-center justify-center ${isSelected ? "border-pinto-green-4 bg-pinto-green-1 text-pinto-green-4" : "border-black bg-transparent"}`}
-        >
-          {isSelected && <CheckmarkIcon color="currentColor" width={16} height={16} />}
-        </div>
+        <CheckmarkCircle isSelected={isSelected} />
         <img src={token.logoURI} alt={token.name} className="w-12 h-12" />
         <div className="flex flex-col gap-1">
           <div className="flex justify-start font-[400] text-[1.25rem] text-pinto-gray-5">{token.symbol}</div>

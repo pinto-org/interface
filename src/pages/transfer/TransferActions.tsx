@@ -1,9 +1,12 @@
+import podIcon from "@/assets/protocol/Pod.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { Button } from "@/components/ui/Button";
+import IconImage from "@/components/ui/IconImage";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
+import { formatter } from "@/utils/format";
 import { Link } from "react-router-dom";
 
 export default function TransferActions() {
@@ -26,11 +29,11 @@ export default function TransferActions() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-row justify-between">
+      <div className="flex flex-row justify-between items-center">
         <span className={"font-[340] text-[1.25rem] text-pinto-gray-4"}>I want to send:</span>
         <Button
           asChild
-          className={`font-[340] text-[1.25rem] text-pinto-green-4 bg-transparent hover:underline hover:bg-transparent ${disableSendAll ? "opacity-50 grayscale pointer-events-none" : ""}`}
+          className={`font-[340] text-[1.25rem] sm:pr-0 text-pinto-green-4 bg-transparent hover:underline hover:bg-transparent ${disableSendAll ? "opacity-50 grayscale pointer-events-none" : ""}`}
         >
           <Link to="/transfer/all">Send Everything</Link>
         </Button>
@@ -42,7 +45,7 @@ export default function TransferActions() {
       >
         <Link to="/transfer/farmbalance">
           <span>Tokens from my Farm Balance</span>
-          <span>{`$${Number(totalInternalBalance.toHuman()).toFixed(2)}`}</span>
+          <span>{formatter.usd(totalInternalBalance)}</span>
         </Link>
       </Button>
       <Button
@@ -53,18 +56,21 @@ export default function TransferActions() {
       >
         <Link to="/transfer/deposits">
           <span>Silo deposits</span>
-          <span>{`$${Number(farmerSilo.depositsUSD.toHuman()).toFixed(2)}`}</span>
+          <span>{formatter.usd(farmerSilo.depositsUSD)}</span>
         </Link>
       </Button>
       <Button
         variant="outline"
         asChild
         disabled={farmerField.totalPods.eq(0)}
-        className={`font-[400] text-[1.25rem] md:py-10 md:px-6 w-full text-black hover:text-black disabled:opacity-50 rounded-full justify-between bg-white shadow-none ${farmerField.totalPods.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
+        className={`font-[400] text-[1.25rem] items-center md:py-10 md:px-6 w-full text-black hover:text-black disabled:opacity-50 rounded-full justify-between bg-white shadow-none ${farmerField.totalPods.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
       >
         <Link to="/transfer/pods">
           <span>Pods</span>
-          <span>{`${farmerField.totalPods.toHuman()} Pods`}</span>
+          <div className="flex flex-row gap-1 items-center">
+            <IconImage src={podIcon} size={6} />
+            <span>{`${formatter.twoDec(farmerField.totalPods)} Pods`}</span>
+          </div>
         </Link>
       </Button>
     </div>

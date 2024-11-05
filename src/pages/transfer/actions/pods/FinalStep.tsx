@@ -1,6 +1,8 @@
 import podIcon from "@/assets/protocol/Pod.png";
 import AddressLink from "@/components/AddressLink";
 import { Label } from "@/components/ui/Label";
+import Text from "@/components/ui/Text";
+import { formatter } from "@/utils/format";
 import { PodTransferData } from "../TransferPods";
 
 interface FinalStepProps {
@@ -21,18 +23,19 @@ export default function FinalStep({ destination, transferData }: FinalStepProps)
             const plotIndex = transfer.id;
 
             return (
-              <div
+              <Text
                 key={`transfer_plot_${plotIndex.toHuman()}`}
-                className="flex flex-row gap-1.5 items-center font-[340] text-[2rem] text-pinto-gray-5"
+                variant="h3"
+                color={"secondary"}
+                as="div"
+                className="flex flex-row gap-1.5 place-self-end"
               >
-                <span>{podAmount.reDecimal(2).toHuman()}</span>
+                <span>{formatter.number(podAmount)}</span>
                 <img src={podIcon} className="h-8 w-8" alt="Plot" />
                 <span>Pods</span>
-                <span className="text-pinto-gray-3">@</span>
-                <span className="font-[340] text-[2rem] text-pinto-gray-5">
-                  {plotIndex.add(transfer.start).reDecimal(2).toHuman()} in Line
-                </span>
-              </div>
+                <span className={"text-pinto-gray-3"}>@</span>
+                <span>{formatter.number(plotIndex.add(transfer.start))} in Line</span>
+              </Text>
             );
           })}
         </div>

@@ -249,7 +249,7 @@ function ComboInputField({
                 min={0}
                 type="number"
                 disabled={disableInput}
-                className="flex w-full pr-1 text-2xl text-black font-[400] align-middle focus-visible:outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="flex w-full pr-1 text-[2rem] leading-[2.2rem] text-black font-[400] align-middle focus-visible:outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 value={disableInput ? amount : internalAmount}
                 onChange={(e) => changeValue(e.target.value)}
               />
@@ -315,7 +315,12 @@ function ComboInputField({
                     size={"sm"}
                     variant={"defaultAlt"}
                     className={"rounded-[0.75rem] text-[1rem] px-1.5 py-1 h-auto"}
-                    onClick={handleSetMax}
+                    onClick={() => {
+                      if (handleAmountChange) {
+                        handleAmountChange(maxAmount.humanString);
+                      }
+                      setInternalAmount(maxAmount.humanString);
+                    }}
                   >
                     Max
                   </Button>

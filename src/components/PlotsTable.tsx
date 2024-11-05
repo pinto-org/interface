@@ -6,8 +6,10 @@ import { useFieldData } from "@/state/useFieldData";
 import { formatter } from "@/utils/format";
 import { Plot } from "@/utils/types";
 import React from "react";
+import CheckmarkCircle from "./CheckmarkCircle";
 import { CheckmarkIcon } from "./Icons";
 import { Table, TableBody, TableCell, TableRow } from "./ui/Table";
+import Text from "./ui/Text";
 import { ToggleGroupItem } from "./ui/ToggleGroup";
 
 interface PlotRowProps {
@@ -27,25 +29,22 @@ const PlotRow = React.forwardRef<HTMLTableRowElement, PlotRowProps & React.HTMLA
       >
         <TableCell className="text-black font-[400]">
           <div className="gap-2 flex items-center -ml-2">
-            {useToggle && (
-              <div
-                className={`w-6 h-6 border rounded-full flex items-center justify-center ${isSelected ? "border-pinto-green-4 bg-pinto-green-1 text-pinto-green-4" : "border-black bg-transparent"}`}
-              >
-                {isSelected && <CheckmarkIcon color="currentColor" width={16} height={16} />}
-              </div>
-            )}
+            {useToggle && <CheckmarkCircle isSelected={isSelected} />}
             <img src={plotIcon} className="h-6 w-6" alt="Plot" />
-            <div>Plot {plot.id}</div>
+            <Text variant="body-light">Plot {plot.id}</Text>
           </div>
         </TableCell>
         <TableCell className="text-right pr-0">
-          <div className="text-black font-[400] text-[1rem] inline-flex items-center gap-1.5">
+          <div className="inline-flex items-center gap-1.5">
             <img src={podIcon} className="h-6 w-6" alt="Pods" />
-            {formatter.number(plot.pods)}
-            {" Pods"}
-            <span className="text-pinto-gray-4">at</span>
-            {formatter.number(plot.index.sub(harvestableIndex))}
-            {" in the Pod Line"}
+            <Text variant="body-light">{`${formatter.number(plot.pods)} Pods`}</Text>
+            <Text variant="body-light" color="light">
+              {` at `}
+            </Text>
+            <Text variant="body-light">
+              {formatter.number(plot.index.sub(harvestableIndex))}
+              {" in the Pod Line"}
+            </Text>
           </div>
         </TableCell>
       </TableRow>

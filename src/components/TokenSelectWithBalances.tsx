@@ -18,6 +18,7 @@ import {
   DialogTrigger,
 } from "./ui/Dialog";
 import { Separator } from "./ui/Separator";
+import Text from "./ui/Text";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
 
 function TokenSelectItem({
@@ -101,14 +102,14 @@ export default function TokenSelectWithBalances({
       <DialogTrigger asChild>
         <Button
           variant={"outline"}
-          className={`${disabled ? "pointer-events-none" : "pointer-events-auto"} flex-none items-center ${size === "small" ? "" : "h-12"} gap-1.5 border border-pinto-gray-blue bg-white hover:bg-pinto-gray-1 drop-shadow-pinto-token-select rounded-full text-black text-[1.25rem] font-[300] leading-[1.3875rem] tracking-[1px]`}
+          className={`${disabled ? "pointer-events-none" : "pointer-events-auto"} flex-none items-center ${size === "small" ? "" : "h-12"} gap-1.5 border border-pinto-gray-blue bg-white hover:bg-pinto-gray-1 drop-shadow-pinto-token-select rounded-full`}
         >
           <img
             src={selectedToken.logoURI}
             alt={selectedToken.name}
             className={`${size === "small" ? "w-5 h-5" : "w-6 h-6"}`}
           />
-          <div>{selectedToken.symbol}</div>
+          <Text variant="body-light">{selectedToken.symbol}</Text>
           {!disabled && <img src={arrowDown} className="w-4 h-4" alt={"open token select dialog"} />}
         </Button>
       </DialogTrigger>
