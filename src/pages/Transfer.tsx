@@ -1,5 +1,6 @@
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
+import Text from "@/components/ui/Text";
 import { useParams } from "react-router-dom";
 import { mode } from "viem/chains";
 import { useChainId, useConfig } from "wagmi";
@@ -19,13 +20,12 @@ function Transfer() {
     <PageContainer variant="md">
       <div className="flex flex-col items-center">
         <div className="flex flex-col gap-12 w-full">
-          <div className="flex flex-col gap-2">
-            <div className="inline-flex gap-2 items-center">
-              <span className="font-[300] text-[3.5rem] text-black">Send tokens</span>
-            </div>
-            <div className="font-[400] text-xl text-pinto-gray-4">
-              {`Move tokens to a different address${currentChain ? ` on ${currentChain.name}.` : "."}`}
-            </div>
+          <div className="flex flex-col gap-4">
+            <Text variant="h1">Send tokens</Text>
+            <Text
+              variant="body"
+              color="light"
+            >{`Move tokens to a different address${currentChain ? ` on ${currentChain.name}.` : "."}`}</Text>
           </div>
           <Separator />
           {mode === "all" ? (

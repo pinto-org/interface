@@ -77,7 +77,7 @@ export default function StepOne({ transferData, setTransferData }: StepOneProps)
     <>
       <div className="flex flex-row justify-end -mt-[5rem]">
         <Button
-          className={`font-[340] text-[1.25rem] text-pinto-green-4 bg-transparent hover:underline hover:bg-transparent`}
+          className={`font-[340] sm:pr-0 text-[1.25rem] text-pinto-green-4 bg-transparent hover:underline hover:bg-transparent`}
           onClick={() => selectAllPlots()}
         >
           Select all Plots

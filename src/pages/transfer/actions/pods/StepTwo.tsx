@@ -116,16 +116,19 @@ export default function StepTwo({ transferData, setTransferData, destination, se
 
   return (
     <div className="flex flex-col gap-6">
-      <ComboInputField
-        mode="plots"
-        selectedPlots={selectedPlots}
-        setPlots={setSelectedPlots}
-        plotSelectionType="multiple"
-        amount={amount}
-        handleAmountChange={handleAmountChange}
-        disableInput={selectedPlots.length > 1}
-        altText="Plot Size:"
-      />
+      <div className="flex flex-col gap-2">
+        <Label>Amount to send</Label>
+        <ComboInputField
+          mode="plots"
+          selectedPlots={selectedPlots}
+          setPlots={setSelectedPlots}
+          plotSelectionType="multiple"
+          amount={amount}
+          handleAmountChange={handleAmountChange}
+          disableInput={selectedPlots.length > 1}
+          altText={selectedPlots.length > 1 ? "Balance:" : "Plot Balance:"}
+        />
+      </div>
       <div className="flex flex-col gap-2">
         <Label>Send plots to</Label>
         <AddressInputField value={destination} setValue={setDestination} />

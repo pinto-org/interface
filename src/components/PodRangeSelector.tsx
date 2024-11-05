@@ -47,7 +47,7 @@ export default function PodRangeSelector({ plot, range, handleRangeChange }: Pod
 
   return (
     <div className="flex flex-col gap-12">
-      <div className="flex flex-col flex-grow gap-4">
+      <div className="flex flex-col flex-grow gap-6">
         <div className="flex flex-row justify-between items-center">
           <Label>What range of Pods in your Plot do you want to send?</Label>
           <Label className="text-[1rem] leading-[110%] text-black">
