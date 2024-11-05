@@ -20,7 +20,7 @@ export default function StepTwo({ transferData, setTransferData, destination, se
   const { plots } = useFarmerField();
   const [selectedPlots, setSelectedPlots] = useState<Plot[]>([]);
   const [amount, setAmount] = useState<string>("0");
-  const [range, setRange] = useState<number[]>([0, 0]);
+  const [range, setRange] = useState<[TokenValue, TokenValue]>([TokenValue.ZERO, TokenValue.ZERO]);
 
   useEffect(() => {
     const _newPlots: Plot[] = [];
@@ -36,18 +36,16 @@ export default function StepTwo({ transferData, setTransferData, destination, se
   useEffect(() => {
     if (selectedPlots.length === 1) {
       const plot = selectedPlots[0];
-      const min = Number(plot.index.toHuman());
-      const max = Number(plot.index.add(plot.pods).toHuman());
-      setRange([min, max]);
+      setRange([plot.index, plot.index.add(plot.pods)]);
     }
   }, [selectedPlots]);
 
   const handleRangeChange = useCallback(
-    (newRange: number[]) => {
+    (newRange: TokenValue[]) => {
       if (selectedPlots.length === 0 || selectedPlots.length > 1) return;
       const plot = selectedPlots[0];
-      const newStart = TokenValue.fromHuman(newRange[0], PODS.decimals);
-      const newEnd = TokenValue.fromHuman(newRange[1], PODS.decimals);
+      const newStart = newRange[0];
+      const newEnd = newRange[1];
 
       const relativeStart = newStart.sub(plot.index);
       const relativeEnd = newEnd.sub(plot.index);
@@ -60,13 +58,10 @@ export default function StepTwo({ transferData, setTransferData, destination, se
         },
       ];
 
-      const [start, end] = newRange;
-      const startValue = TokenValue.fromHuman(start, PODS.decimals);
-      const endValue = TokenValue.fromHuman(end, PODS.decimals);
-      const newAmount = endValue.sub(startValue).toHuman();
+      const newAmount = newEnd.sub(newStart).toHuman();
 
       const batchUpdate = () => {
-        setRange(newRange);
+        setRange([newStart, newEnd]);
         setTransferData(newData);
         setAmount(newAmount);
       };
@@ -78,21 +73,17 @@ export default function StepTwo({ transferData, setTransferData, destination, se
   const handleAmountChange = useCallback(
     (value: string) => {
       const newAmount = value;
+      console.log("AMOUNT CHANGED!", value);
 
       if (selectedPlots.length === 0) return;
 
       const plot = selectedPlots[0];
-      const startIndex = Number(plot.index.toHuman());
       const amountValue = TokenValue.fromHuman(newAmount || "0", PODS.decimals);
-      const newEnd = startIndex + Number(amountValue.toHuman());
+      const newEnd = plot.index.add(amountValue);
 
-      const newRange = [startIndex, newEnd];
-
-      const newStart = TokenValue.fromHuman(newRange[0], PODS.decimals);
-      const newEndTV = TokenValue.fromHuman(newRange[1], PODS.decimals);
-
+      const newStart = plot.index;
       const relativeStart = newStart.sub(plot.index);
-      const relativeEnd = newEndTV.sub(plot.index);
+      const relativeEnd = newEnd.sub(plot.index);
 
       const newData = [
         {
@@ -105,7 +96,7 @@ export default function StepTwo({ transferData, setTransferData, destination, se
       const batchUpdate = () => {
         setAmount(newAmount);
         if (selectedPlots.length === 1) {
-          setRange(newRange);
+          setRange([newStart, newEnd]);
           setTransferData(newData);
         }
       };
@@ -113,6 +104,8 @@ export default function StepTwo({ transferData, setTransferData, destination, se
     },
     [selectedPlots, setTransferData],
   );
+
+  console.log("range: ", range);
 
   return (
     <div className="flex flex-col gap-6">

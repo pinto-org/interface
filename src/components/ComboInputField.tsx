@@ -310,7 +310,12 @@ function ComboInputField({
                     size={"sm"}
                     variant={"defaultAlt"}
                     className={"rounded-[0.75rem] text-[1rem] px-1.5 py-1 h-auto"}
-                    onClick={() => setInternalAmount(maxAmount.humanString)}
+                    onClick={() => {
+                      if (handleAmountChange) {
+                        handleAmountChange(maxAmount.humanString);
+                      }
+                      setInternalAmount(maxAmount.humanString);
+                    }}
                   >
                     Max
                   </Button>
