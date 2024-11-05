@@ -223,6 +223,11 @@ function ComboInputField({
     return currentAmount && Number(currentAmount) > 0;
   };
 
+  const handleSetMax = () => {
+    setInternalAmount(maxAmount.humanString);
+    setAmount?.(maxAmount.humanString);
+  };
+
   // Format plot IDs for display
   const plotIdsToShow = useMemo(() => {
     if (!selectedPlots?.length) return "";

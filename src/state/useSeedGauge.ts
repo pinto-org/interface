@@ -1,6 +1,7 @@
 import { exists } from "@/utils/utils";
 import { useMemo } from "react";
 
+import { DecimalBigNumber } from "@/classes/DecimalBigNumber";
 import { TokenValue } from "@/classes/TokenValue";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { LibCases } from "@/lib/LibCases";
@@ -38,7 +39,7 @@ export interface TokenSeedGaugeInfo extends BaseTokenSeedGaugeInfo {
   /**
    * the current percentage of all BDV deposited in the silo
    */
-  currentPctDepositedBdv: bigint;
+  currentPctDepositedBdv: TokenValue;
 }
 
 const EMPTY_TOKEN_SEED_GAUGE_INFO: AddressMap<TokenSeedGaugeInfo> = {};
@@ -53,17 +54,19 @@ export const useSeedGauge = () => {
 
   const { whitelistedTokens } = useTokenData();
 
-  const {
-    data: bean2MaxLpRatioScaled,
-    ...bean2MaxLpRatioScaledQuery
-  } = useReadContract({
+  const { data: bean2MaxLpRatioScaled, ...bean2MaxLpRatioScaledQuery } = useReadContract({
     address: protocolAddress,
     abi: getBeanToMaxLpGpPerBdvRatioScaledABI,
     functionName: "getBeanToMaxLpGpPerBdvRatioScaled",
     args: [],
+    query: {
+      select: (data) => {
+        return TokenValue.fromBlockchain(data, 18);
+      },
+    },
   });
 
-  const { data: gaugePointsPerBdv, ...gaugePointsQuery  } = useReadContracts({
+  const { data: gaugePointsPerBdv, ...gaugePointsQuery } = useReadContracts({
     contracts: whitelistedTokens.map((token) => ({
       address: protocolAddress,
       abi: gaugePointsPerBdvABI,
@@ -96,7 +99,7 @@ export const useSeedGauge = () => {
     const map: AddressMap<BaseTokenSeedGaugeInfo> = {};
     let totalRelevantBDV = 0n;
 
-    whitelistedTokens.forEach((token, i) => {
+    whitelistedTokens.forEach((token) => {
       const tokenIndex = getTokenIndex(token);
       const gaugePoint = gaugePointsPerBdv[tokenIndex];
       const wlTokenData = tokenData.get(token);
@@ -126,12 +129,12 @@ export const useSeedGauge = () => {
       Object.entries(map).map(([tokenIndex, data]) => {
         const tokenDatas: TokenSeedGaugeInfo = {
           ...data,
-          currentPctDepositedBdv: 0n,
+          currentPctDepositedBdv: TokenValue.ZERO,
         };
 
         if (data.isAllocatedGP) {
           const pct = data.totalBdv.div(totalRelevantBDV).div(100);
-          tokenDatas.currentPctDepositedBdv = pct.toBigInt();
+          tokenDatas.currentPctDepositedBdv = pct;
         }
 
         return [tokenIndex, tokenDatas] as const;

@@ -144,9 +144,6 @@ export function useSiloData() {
   const { data: yields } = useQuery({
     queryKey: ["siloYields", { chainId: chainId }],
     queryFn: async () => request(subgraphs[chainId].beanstalk, SiloYieldsDocument),
-    select: (data) => {
-      return data;
-    },
     ...settings,
   });
 
@@ -190,7 +187,6 @@ export function useSiloData() {
       tokenData: data.size !== SILO_WHITELIST.length ? new Map<Token, SiloTokenData>() : data,
       queryKeys: keys,
     };
-    // }, [wlTokenData0, SILO_WHITELIST, yields]);
   }, [wlTokenData0, wlTokenData1, wlTokenData2, wlTokenData3, wlTokenData4, SILO_WHITELIST, yields]);
 
   return {
@@ -199,16 +195,3 @@ export function useSiloData() {
     totalEarnedBeans: TokenValue.fromBlockchain(earnedBeansTotal, BEAN.decimals),
   };
 }
-
-const bdvABI = [
-  {
-    inputs: [
-      { internalType: "address", name: "token", type: "address" },
-      { internalType: "uint256", name: "amount", type: "uint256" },
-    ],
-    name: "bdv",
-    outputs: [{ internalType: "uint256", name: "_bdv", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;

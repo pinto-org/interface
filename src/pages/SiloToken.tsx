@@ -13,10 +13,13 @@ import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { usePriceData } from "@/state/usePriceData";
+import { useSeedGauge } from "@/state/useSeedGauge";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
-import { SiloTokenData, Token } from "@/utils/types";
+import { stringEq } from "@/utils/string";
+import { getTokenIndex } from "@/utils/token";
+import { SiloTokenData, Token, TokenDepositData } from "@/utils/types";
 import { Link, useParams } from "react-router-dom";
 import { useChainId, useConfig } from "wagmi";
 import DepositsTable from "../components/DepositsTable";
@@ -24,22 +27,122 @@ import GerminationNotice from "./silo/GerminationNotice";
 import SiloActions from "./silo/SiloActions";
 
 export default function SiloToken() {
-  const config = useConfig();
-  const chainId = useChainId();
-  const currentChain = config.chains.find((chain) => chain.id === chainId);
-  const blockExplorer = currentChain?.blockExplorers?.default.url ?? "https://basescan.org";
-
   const { tokenAddress } = useParams();
   const tokenData = useTokenData();
   const siloData = useSiloData();
   const priceData = usePriceData();
   const depositedBalances = useFarmerDepositedBalances();
 
-  const siloToken = tokenData.whitelistedTokens.find(
-    (token) => token.address.toLowerCase() === tokenAddress?.toLowerCase(),
-  );
+  const siloToken = tokenData.whitelistedTokens.find((token) => stringEq(token.address, tokenAddress ?? ""));
   const siloTokenData = siloToken ? siloData.tokenData.get(siloToken) : undefined;
   const farmerDeposits = siloToken ? depositedBalances.data.get(siloToken) : undefined;
+
+  if (!siloToken) {
+    return <>404</>;
+  }
+
+  return (
+    // Add pt-4 to container b/c backbutton overflows to the top for some reason.
+    <PageContainer variant="xl">
+      <div className="flex flex-col gap-8 justify-start">
+        <SiloTokenHeader siloToken={siloToken} />
+        <div className="flex flex-col lg:flex-row gap-16">
+          <div className="flex flex-col items-center flex-shrink-1">
+            <div className="flex flex-col w-full gap-14 items-start">
+              <div className="flex flex-col w-full gap-6">
+                <SiloTokenSubHeader siloTokenData={siloTokenData} />
+                <Separator />
+                <div className="pt-6">
+                  <FarmerSiloTokenDeposits
+                    siloToken={siloToken}
+                    siloTokenData={siloTokenData}
+                    farmerDeposits={farmerDeposits}
+                    price={priceData.price}
+                  />
+                </div>
+              </div>
+              <div className="w-full border border-pinto-gray-2 rounded-[1rem] overflow-clip">
+                <DepositsTable token={siloToken} />
+              </div>
+              <SiloTokenAbout siloToken={siloToken} price={priceData.price} siloData={siloData} />
+            </div>
+          </div>
+          <div className="w-full lg:max-w-[518px] lg:min-w-[425px] lg:-mt-2">
+            <SiloTokenActions siloToken={siloToken} farmerDeposits={farmerDeposits} />
+          </div>
+        </div>
+      </div>
+    </PageContainer>
+  );
+}
+
+interface IBaseSiloToken {
+  siloToken: Token;
+}
+
+interface ISiloTokenActions extends IBaseSiloToken {
+  farmerDeposits: TokenDepositData | undefined;
+}
+
+const SiloTokenActions = ({ siloToken, farmerDeposits }: ISiloTokenActions) => {
+  return (
+    <div className="flex flex-col w-full gap-6">
+      <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border">
+        <SiloActions token={siloToken} />
+      </div>
+      {farmerDeposits?.deposits.map((farmerDeposit) => {
+        if (farmerDeposit.isGerminating) {
+          return <GerminationNotice deposit={farmerDeposit} />;
+        }
+        return null;
+      })}
+      <div className="p-2 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border flex flex-col gap-2">
+        <Button
+          variant="ghost"
+          className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem]"
+        >
+          <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
+            <span className="self-center items-center">
+              <LeftArrowIcon color={"white"} height={16} width={16} />
+            </span>
+          </div>
+          Send Deposits
+        </Button>
+        <Button
+          variant="ghost"
+          className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem]"
+        >
+          <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
+            <span className="self-center items-center">
+              <RotateArrowIcon color={"white"} height={16} width={16} />
+            </span>
+          </div>
+          Update Deposits
+        </Button>
+        <Button
+          variant="ghost"
+          className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem]"
+        >
+          <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
+            <span className="self-center items-center">
+              <AddCoinsIcon color={"white"} height={16} width={16} />
+            </span>
+          </div>
+          Collect Grown Stalk
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+interface ISiloTokenAbout extends IBaseSiloToken {
+  price: TokenValue;
+  siloData: ReturnType<typeof useSiloData>;
+}
+
+const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
+  const seedGauge = useSeedGauge();
+  const siloTokenData = siloData.tokenData.get(siloToken);
 
   const siloTVD = [...siloData.tokenData]
     .map(([token, data]) => ({ token, data }))
@@ -52,211 +155,160 @@ export default function SiloToken() {
       TokenValue.ZERO,
     );
 
-  if (!siloToken) {
-    return <>404</>;
-  }
+  const gaugeData = seedGauge.data.gaugeData[getTokenIndex(siloToken)];
+  const liquidityRatio = siloTokenData?.depositedBDV.div(liquidityTVD.gt(0) ? liquidityTVD : TokenValue.ONE).mul(100);
+  const optimalDepositedRatio = gaugeData?.optimalPctDepositedBdv;
+
+  const depositedBDV = siloTokenData?.depositedBDV;
+  const tvdUSD = depositedBDV?.mul(price);
+  const depositedRatio = depositedBDV?.div(siloTVD.gt(0) ? siloTVD : TokenValue.ONE).mul(100);
 
   return (
-    <PageContainer variant="xl">
-      <div className="flex flex-col items-center">
-        <div className="flex flex-col w-full gap-14 items-start">
-          <div className="flex flex-col w-full gap-8">
-            <SiloTokenHeader siloToken={siloToken} siloTokenData={siloTokenData} />
-            <Separator />
-            <div className="flex flex-row items-center justify-between">
-              <div className="flex flex-col">
-                <div className="font-[400] text-[1rem] text-black">My Deposits</div>
-                <div className="flex flex-row gap-3">
-                  <div className="flex flex-col">
-                    <div className="inline-flex gap-2 items-center">
-                      <img src={siloToken.logoURI} className="w-9 h-9" alt={siloToken.name} />
-                      <div className="font-[400] text-[2rem] text-black">
-                        {`${(farmerDeposits ? farmerDeposits.amount : TokenValue.ZERO).toHuman("short")} ${siloToken.name}`}
-                      </div>
-                    </div>
-                    <div className="font-[300] text-[1.5rem] text-pinto-gray-4">
-                      {`$${(farmerDeposits ? farmerDeposits.depositBDV : TokenValue.ZERO).mul(priceData.price).reDecimal(2).toHuman()}`}
-                    </div>
-                  </div>
-                  <div className="inline-flex ml-24 gap-8 items-center">
-                    <div className="flex flex-col">
-                      <div className="text-[1rem] font-[400] text-pinto-gray-5">My Stalk</div>
-                      <div className="inline-flex items-center gap-1">
-                        <img src={stalkIcon} className="w-6 h-6" alt="Stalk" />
-                        <div className="font-[400] text-[1.5rem] text-black">
-                          {(siloTokenData
-                            ? siloTokenData.tokenSettings.stalkIssuedPerBdv.mul(siloTokenData.depositedBDV)
-                            : TokenValue.ZERO
-                          )
-                            .reDecimal(2)
-                            .toHuman("short")}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col">
-                      <div className="text-[1rem] font-[400] text-pinto-gray-5">My Seeds</div>
-                      <div className="inline-flex items-center gap-1">
-                        <img src={seedsIcon} className="w-6 h-6" alt="Seeds" />
-                        <div className="font-[400] text-[1.5rem] text-black">
-                          {(farmerDeposits ? farmerDeposits.seeds : TokenValue.ZERO).reDecimal(2).toHuman("short")}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+    <div className="flex w-full flex-col gap-8">
+      <Text variant="h3" color="secondary">
+        About {siloToken.name}
+      </Text>
+      <div className={`grid gap-8 w-full grid-cols-[repeat(auto-fill,_minmax(200px,_1fr))]`}>
+        <div>
+          <Text variant="sm-light" color="secondary">
+            Total Value Deposited
+          </Text>
+          <Text variant="h4" className="pt-1">
+            {formatter.usd(tvdUSD)}
+          </Text>
+        </div>
+        <div>
+          <Text variant="sm-light" color="secondary">
+            % of Value Deposited
+          </Text>
+          <Text variant="h4" className="pt-1">
+            {formatter.pct(depositedRatio)}
+          </Text>
+        </div>
+        {siloToken.isLP ? (
+          <div>
+            <Text variant="sm-light" color="secondary">
+              % of LP Deposits
+            </Text>
+            <Text variant="h4" className="pt-1">
+              {formatter.pct(liquidityRatio)}
+            </Text>
           </div>
-          <div className="border border-pinto-gray-2 rounded-[1rem] overflow-clip mt-2">
-            <DepositsTable token={siloToken} />
+        ) : null}
+        {siloToken.isLP ? (
+          <div className="flex flex-col">
+            <Text variant="sm-light" color="secondary">
+              Target % of LP Deposits
+            </Text>
+            <Text variant="h4" className="pt-1">
+              {formatter.pct(optimalDepositedRatio)}
+            </Text>
           </div>
-          <div className="flex flex-col gap-8">
-            <div className="font-[400] text-[2rem] text-pinto-gray-5">About {siloToken.name}</div>
-            <div className="flex flex-row items-center justify-start gap-28">
-              <div className="flex flex-col">
-                <div className="font-[400] text-[1rem] text-pinto-gray-5">Total Value Deposited</div>
-                <div className="font-[400] text-[1.5rem] text-black">
-                  $
-                  {(siloTokenData ? siloTokenData.depositedBDV : TokenValue.ZERO).mul(priceData.price).toHuman("short")}
-                </div>
-              </div>
-              <div className="flex flex-col">
-                <div className="font-[400] text-[1rem] text-pinto-gray-5">% of Value Deposited</div>
-                <div className="font-[400] text-[1.5rem] text-black">
-                  {`${(siloTokenData ? siloTokenData.depositedBDV : TokenValue.ZERO)
-                    .div(siloTVD.gt(0) ? siloTVD : TokenValue.ONE)
-                    .mul(100)
-                    .toHuman("short")}%`}
-                </div>
-                <div className="flex flex-col">
-                  <div className="font-[400] text-[1rem] text-pinto-gray-5">% of Value Deposited</div>
-                  <div className="font-[400] text-[1.5rem] text-black">
-                    {`${(siloTokenData ? siloTokenData.depositedBDV : TokenValue.ZERO)
-                      .div(siloTVD.gt(0) ? siloTVD : TokenValue.ONE)
-                      .mul(100)
-                      .toHuman("short")}%`}
-                  </div>
-                </div>
-                {siloToken.isLP && (
-                  <div className="flex flex-col">
-                    <div className="font-[400] text-[1rem] text-pinto-gray-5">% of LP Deposits</div>
-                    <div className="font-[400] text-[1.5rem] text-black">
-                      {`${(siloTokenData ? siloTokenData.depositedBDV : TokenValue.ZERO)
-                        .div(liquidityTVD.gt(0) ? liquidityTVD : TokenValue.ONE)
-                        .mul(100)
-                        .toHuman("short")}%`}
-                    </div>
-                  </div>
-                )}
-                {siloToken.isLP && (
-                  <div className="flex flex-col">
-                    <div className="font-[400] text-[1rem] text-pinto-gray-5">Target % of LP Deposits</div>
-                    <div className="font-[400] text-[1.5rem] text-black">
-                      {Number(
-                        (siloTokenData
-                          ? siloTokenData.tokenSettings.optimalPercentDepositedBdv
-                          : TokenValue.ZERO
-                        ).toHuman(),
-                      ).toFixed(2)}
-                      %
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="font-[400] text-[1.25rem] text-pinto-gray-3">
-                {siloToken.isLP
-                  ? `${siloToken.name} is a liquidity pool token on the Basin decentralized exchange. 
-                            You can deposit ETH, DAI, USDC, XX, and your assets will be swapped and deposited into the liquidity pool
-                            to provide liquidity for this pair.
-                            `
-                  : `${siloToken.name} is the token that powers the ${siloToken.name} protocol.
-                            `}
-              </div>
-              <div>
-                <Link
-                  to={"/explorer"}
-                  className="font-[400] text-[1.25rem] text-pinto-green-2 hover:underline transition-all"
-                >
-                  See More Data →
-                </Link>
-              </div>
-            </div>
+        ) : null}
+      </div>
+      <Text variant="body-light" color="lighter">
+        {siloToken.isLP
+          ? `${siloToken.name} is a liquidity pool token on the Basin decentralized exchange. 
+                  You can deposit ETH, DAI, USDC, XX, and your assets will be swapped and deposited into the liquidity pool
+                  to provide liquidity for this pair.
+                  `
+          : `${siloToken.name} is the token that powers the ${siloToken.name} protocol.
+                  `}
+      </Text>
+      <Text variant="body" as={Link} to="/explorer" className="text-pinto-green-2 hover:underline transition-all">
+        See More Data →
+      </Text>
+    </div>
+  );
+};
+
+interface IFarmerSiloTokenDeposits extends IBaseSiloToken {
+  siloTokenData: SiloTokenData | undefined;
+  farmerDeposits: TokenDepositData | undefined;
+  price: TokenValue;
+}
+
+const FarmerSiloTokenDeposits = ({ siloToken, siloTokenData, farmerDeposits, price }: IFarmerSiloTokenDeposits) => {
+  return (
+    <div className="flex flex-row gap-16">
+      <div className="flex flex-col gap-2">
+        <Text variant="sm">My Deposits</Text>
+        <div className="inline-flex gap-2 items-center">
+          <IconImage src={siloToken.logoURI} size={9} alt={siloToken.name} />
+          <Text variant="h3">
+            {formatter.twoDec(farmerDeposits?.amount)} {siloToken.name}
+          </Text>
+        </div>
+        <Text variant="h4" weight="thin" color="secondary">
+          {formatter.usd(farmerDeposits?.depositBDV.mul(price))}
+        </Text>
+      </div>
+      <div className="inline-flex gap-8 items-center">
+        <div className="flex flex-col gap-2">
+          <Text variant="sm" color="secondary">
+            My Stalk
+          </Text>
+          <Text variant="h4" className="inline-flex items-center gap-2">
+            <IconImage src={stalkIcon} size={6} nudge={2} alt="Stalk" />
+            {formatter.twoDec(siloTokenData?.tokenSettings.stalkIssuedPerBdv.mul(siloTokenData.depositedBDV))}
+          </Text>
+        </div>
+        <div className="flex flex-col gap-2">
+          <Text variant="sm" color="secondary">
+            My Seeds
+          </Text>
+          <Text variant="h4" className="inline-flex items-center gap-2">
+            <IconImage src={seedsIcon} size={6} nudge={2} alt="Seeds" />
+            {formatter.twoDec(farmerDeposits?.seeds)}
+          </Text>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SiloTokenSubHeader = ({ siloTokenData }: { siloTokenData: SiloTokenData | undefined }) => {
+  const stalkRewards = siloTokenData?.rewards.stalk.mul(1000000);
+  const seedRewards = siloTokenData?.rewards.seeds;
+
+  return (
+    <div className="flex flex-row items-center justify-between">
+      <div className="flex flex-col gap-2">
+        <Text variant="sm">Current Deposit Rewards</Text>
+        <div className="flex flex-row gap-3">
+          <div className="inline-flex gap-1 items-center">
+            <IconImage src={stalkIcon} size={6} nudge={2} alt="Stalk" />
+            <Text variant="h4">{formatter.twoDec(stalkRewards)} Stalk</Text>
           </div>
-          <div className="w-[500px] mt-32 flex flex-col gap-6">
-            <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border">
-              <SiloActions token={siloToken} />
-            </div>
-            {farmerDeposits?.deposits.map((farmerDeposit) => {
-              if (farmerDeposit.isGerminating) {
-                return <GerminationNotice deposit={farmerDeposit} />;
-              }
-            })}
-            <div className="p-2 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border flex flex-col gap-2">
-              <Button
-                variant="ghost"
-                className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem]"
-              >
-                <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
-                  <span className="self-center items-center">
-                    <LeftArrowIcon color={"white"} height={16} width={16} />
-                  </span>
-                </div>
-                Send Deposits
-              </Button>
-              <Button
-                variant="ghost"
-                className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem]"
-              >
-                <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
-                  <span className="self-center items-center">
-                    <RotateArrowIcon color={"white"} height={16} width={16} />
-                  </span>
-                </div>
-                Update Deposits
-              </Button>
-              <Button
-                variant="ghost"
-                className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem]"
-              >
-                <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
-                  <span className="self-center items-center">
-                    <AddCoinsIcon color={"white"} height={16} width={16} />
-                  </span>
-                </div>
-                Collect Grown Stalk
-              </Button>
-            </div>
+          <div className="inline-flex gap-1 items-center">
+            <IconImage src={seedsIcon} size={6} nudge={2} alt="Seeds" />
+            <Text variant="h4">{formatter.twoDec(seedRewards)} Seed</Text>
           </div>
         </div>
       </div>
-    </PageContainer>
+      <APYChip apyValue={siloTokenData ? siloTokenData.yields.beanAPY : 0} />
+    </div>
   );
-}
+};
 
-interface ISiloTokenHeader {
-  siloToken: Token;
-  siloTokenData: SiloTokenData | undefined;
-}
-
-const SiloTokenHeader = ({ siloToken, siloTokenData }: ISiloTokenHeader) => {
+const SiloTokenHeader = ({ siloToken }: IBaseSiloToken) => {
   const config = useConfig();
   const chainId = useChainId();
   const currentChain = config.chains.find((chain) => chain.id === chainId);
   const blockExplorer = currentChain?.blockExplorers?.default.url ?? "https://basescan.org";
 
-  const stalkRewards = siloTokenData?.rewards.stalk.mul(1000000);
-  const seedRewards = siloTokenData?.rewards.seeds;
-
   return (
-    <div className="flex flex-col w-full gap-8">
-      <Button asChild variant={"outline"} rounded="full" noPadding className="-my-4 h-12 w-12">
+    <div className="flex flex-col w-full gap-6">
+      <Button variant={"outline"} rounded="full" noPadding className="h-12 w-12">
         <Link to={"/silo"}>
           <img src={backArrowIcon} alt="go to previous page" />
         </Link>
       </Button>
       <div className="inline-flex items-center gap-3">
-        <IconImage src={siloToken?.logoURI} size={12} alt={siloToken?.name} />
-        <Text variant="h1">{siloToken?.name}</Text>
+        <div className="inline-flex gap-3 items-center whitespace-nowrap">
+          <IconImage src={siloToken?.logoURI} size={12} alt={siloToken?.name} />
+          <Text variant="h1">{siloToken?.name}</Text>
+        </div>
         <div className="inline-flex gap-2">
           <Button
             variant="outline"
@@ -285,23 +337,6 @@ const SiloTokenHeader = ({ siloToken, siloTokenData }: ISiloTokenHeader) => {
             </Link>
           </Button>
         </div>
-      </div>
-
-      <div className="flex flex-row items-center justify-between">
-        <div className="flex flex-col gap-2">
-          <Text variant="sm">Current Deposit Rewards</Text>
-          <div className="flex flex-row gap-3">
-            <div className="inline-flex gap-1 items-center">
-              <IconImage src={stalkIcon} size={6} alt="Stalk" />
-              <Text variant="h4">{formatter.twoDec(stalkRewards)} Stalk</Text>
-            </div>
-            <div className="inline-flex gap-1 items-center">
-              <IconImage src={seedsIcon} size={6} alt="Seeds" />
-              <Text variant="h4">{formatter.twoDec(seedRewards)} Seed</Text>
-            </div>
-          </div>
-        </div>
-        <APYChip apyValue={siloTokenData ? siloTokenData.yields.beanAPY : 0} />
       </div>
     </div>
   );
