@@ -1,13 +1,18 @@
 import { defineConfig } from "@wagmi/cli";
 import { react } from "@wagmi/cli/plugins";
-import { defineChain, type Abi } from "viem";
+import { defineChain, parseAbi, type Abi } from "viem";
 import { arbitrum, base, foundry, localhost, mainnet } from "wagmi/chains";
 import { HashString } from "@/utils/types.generic";
-import BEANSTALK_ABI from "./src/constants/abi/Beanstalk.json";
-import BEANSTALK_PRICE_ABI from "./src/constants/abi/BeanstalkPrice.json";
-import PIPELINE_ABI from "./src/constants/abi/Pipeline.json";
-import DEPOT_ABI from "./src/constants/abi/Depot.json";
-import JUNCTION_ABI from "./src/constants/abi/Junction.json";
+
+import { diamondABI } from "./src/constants/abi/diamondABI";
+import { diamondPriceABI } from "@/constants/abi/diamondPriceABI";
+
+import { pipelineABI } from "@/constants/abi/PipelineABI";
+import { depotABI } from "@/constants/abi/depotABI";
+import { junctionABI } from "@/constants/abi/junctionABI";
+
+import { JUNCTION_ADDRESS } from "@/constants/address";
+
 
 /**
  * Diamond cut fragmented facets
@@ -21,10 +26,9 @@ import JUNCTION_ABI from "./src/constants/abi/Junction.json";
  * TODO: Find a better solution in the future.
  * 
  */
-import VIEW_SEASON_ABI from "./src/constants/abi/ViewSeason.json";
-import FARMER_ABI from "./src/constants/abi/BeanstalkFarmer.json";
-import VIEW_SILO_ABI from "./src/constants/abi/ViewSilo.json";
-import { JUNCTION_ADDRESS } from "@/constants/address";
+import { viewSeasonABI } from "@/constants/abi/viewSeasonABI";
+import { diamondFarmerABI } from "@/constants/abi/diamondFarmerABI";
+import { viewSiloABI } from "@/constants/abi/viewSiloABI";
 
 
 export const tenderlyTestnet = defineChain({
@@ -62,7 +66,7 @@ const config = defineConfig(() => {
     contracts: [
       {
         name: "beanstalk",
-        abi: BEANSTALK_ABI satisfies Abi,
+        abi: diamondABI as Abi,
         address: {
           [mainnet.id]: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5",
           [arbitrum.id]: "0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70",
@@ -71,22 +75,22 @@ const config = defineConfig(() => {
       },
       {
         name: "seasonFacetView",
-        abi: VIEW_SEASON_ABI satisfies Abi,
+        abi: viewSeasonABI as Abi,
         address: beanstalkAddresses,
       },
       {
         name: "farmer",
-        abi: FARMER_ABI satisfies Abi,
+        abi: diamondFarmerABI as Abi,
         address: beanstalkAddresses,
       },
       {
         name: "silo",
-        abi: VIEW_SILO_ABI satisfies Abi,
+        abi: viewSiloABI as Abi,
         address: beanstalkAddresses,
       },
       {
         name: "beanstalkPrice",
-        abi: BEANSTALK_PRICE_ABI satisfies Abi,
+        abi: diamondPriceABI as Abi,
         address: {
           [mainnet.id]: "0x4BEd6cb142b7d474242d87F4796387DEB9E1E1B4",
           [arbitrum.id]: "0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7",
@@ -98,7 +102,7 @@ const config = defineConfig(() => {
       },
       {
         name: "pipeline",
-        abi: PIPELINE_ABI satisfies Abi,
+        abi: pipelineABI as Abi,
         address: {
           [mainnet.id]: "0xb1bE0000C6B3C62749b5F0c92480146452D15423",
           [arbitrum.id]: "0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0",
@@ -110,12 +114,12 @@ const config = defineConfig(() => {
       },
       {
         name: "junction",
-        abi: JUNCTION_ABI satisfies Abi,
+        abi: junctionABI as Abi,
         address: JUNCTION_ADDRESS,
       },
       {
         name: "depot",
-        abi: DEPOT_ABI satisfies Abi,
+        abi: depotABI as Abi,
         address: {
           [mainnet.id]: "0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2",
           [arbitrum.id]: "0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c",

@@ -1,17 +1,17 @@
-import { useEffect, useState } from "react";
-import { useAccount, useChainId, useWriteContract } from "wagmi";
+import { TokenValue } from "@/classes/TokenValue";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { useFarmerField } from "@/state/useFarmerField";
-import { TokenValue } from "@/classes/TokenValue";
+import { usePriceData } from "@/state/usePriceData";
+import useTokenData from "@/state/useTokenData";
 import { FarmToMode } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { BaseError } from "viem";
-import useTokenData from "@/state/useTokenData";
-import { usePriceData } from "@/state/usePriceData";
+import { useAccount, useChainId, useWriteContract } from "wagmi";
 
 function Harvest() {
   const chainId = useChainId();
@@ -26,14 +26,18 @@ function Harvest() {
   const queryClient = useQueryClient();
 
   const { plots: fieldPlots, queryKey } = useFarmerField();
-  let harvestableAmount = TokenValue.ZERO;
-  const plots: string[] = [];
-  fieldPlots.forEach((plot) => {
-    if (harvestableAmount.gt(0)) {
-      plots.push(plot.id);
-    }
-    harvestableAmount = harvestableAmount.add(plot.harvestablePods);
-  });
+
+  const { plots, harvestableAmount } = useMemo(() => {
+    let harvestable = TokenValue.ZERO;
+    const _plots: string[] = [];
+    fieldPlots.forEach((plot) => {
+      if (harvestable.gt(0) && plot.id) {
+        _plots.push(plot.id);
+      }
+      harvestable = harvestable.add(plot.harvestablePods);
+    });
+    return { plots: _plots, harvestableAmount: harvestable };
+  }, [fieldPlots]);
 
   const [balanceTo, setBalanceTo] = useState(FarmToMode.EXTERNAL);
 

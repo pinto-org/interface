@@ -1,7 +1,7 @@
-import { Abi, Address, encodeFunctionData } from "viem";
-import BASIN_WELL_ABI from "@/constants/abi/BasinWell.json";
-import { TokenValue } from "@/classes/TokenValue";
 import { Clipboard } from "@/classes/Clipboard";
+import { TokenValue } from "@/classes/TokenValue";
+import { basinWellABI } from "@/constants/abi/basinWellABI";
+import { Abi, Address, encodeFunctionData } from "viem";
 
 export default function sync(
   recipient?: Address,
@@ -16,7 +16,7 @@ export default function sync(
     };
   }
   const data = encodeFunctionData({
-    abi: BASIN_WELL_ABI as Abi,
+    abi: basinWellABI as Abi,
     functionName: "sync",
     args: [recipient, minLpAmountOut?.toBigInt() || 0n],
   });

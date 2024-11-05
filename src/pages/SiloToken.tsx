@@ -7,12 +7,16 @@ import { TokenValue } from "@/classes/TokenValue";
 import APYChip from "@/components/APYChip";
 import { AddCoinsIcon, ExternalLinkIcon, LeftArrowIcon, RotateArrowIcon } from "@/components/Icons";
 import { Button } from "@/components/ui/Button";
+import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
+import Text from "@/components/ui/Text";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
+import { formatter } from "@/utils/format";
+import { SiloTokenData, Token } from "@/utils/types";
 import { Link, useParams } from "react-router-dom";
 import { useChainId, useConfig } from "wagmi";
 import DepositsTable from "../components/DepositsTable";
@@ -55,65 +59,9 @@ export default function SiloToken() {
   return (
     <PageContainer variant="xl">
       <div className="flex flex-col items-center">
-        <div className="flex flex-row w-[80%] gap-14 items-start">
-          <div className="flex flex-col w-[80%] gap-8">
-            <Button asChild variant={"outline"} className="rounded-full -my-4 h-12 w-12 p-0">
-              <Link to={"/silo"}>
-                <img src={backArrowIcon} alt="go to previous page" />
-              </Link>
-            </Button>
-            <div className="inline-flex items-center gap-3">
-              <img src={siloToken?.logoURI} className="w-14 h-14" alt={siloToken?.name} />
-              <span className="text-black font-[300] text-[3.5rem]">{siloToken?.name}</span>
-              <div className="inline-flex gap-2">
-                <Button
-                  variant={"outline"}
-                  className="rounded-full h-12 w-12 p-0"
-                  onClick={() => {
-                    navigator.clipboard.writeText(siloToken.address);
-                  }}
-                >
-                  <img src={copyIcon} alt="copy address" />
-                </Button>
-                <Button asChild variant={"outline"} className="rounded-full h-12 w-12 p-0">
-                  <Link
-                    to={`https://pinto.exchange/#/wells/${siloToken.address}`}
-                    target={"_blank"}
-                    className="text-pinto-gray-5 hover:cursor-pointer transition-all"
-                    rel="noreferrer"
-                  >
-                    <ExternalLinkIcon />
-                  </Link>
-                </Button>
-                <Button variant={"outline"} className="rounded-full h-12 w-12 p-0">
-                  <Link to={`${blockExplorer}/address/${siloToken.address}`} target={"_blank"} rel="noreferrer">
-                    <img src={etherscanIcon} alt="go to etherscan" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-            <div className="flex flex-row items-center justify-between">
-              <div className="flex flex-col">
-                <div className="font-[400] text-[1rem] text-black">Current Deposit Rewards</div>
-                <div className="flex flex-row gap-3">
-                  <div className="inline-flex gap-0.5 items-center">
-                    <img src={stalkIcon} className="w-7 h-7" alt="Stalk" />
-                    <div className="font-[400] text-[1.5rem] text-black">
-                      {(siloTokenData ? siloTokenData.rewards.stalk.mul(1000000) : TokenValue.ZERO).toHuman("short")}{" "}
-                      Stalk
-                    </div>
-                  </div>
-                  <div className="inline-flex gap-0.5 items-center">
-                    <img src={seedsIcon} className="w-7 h-7" alt="Seeds" />
-                    <div className="font-[400] text-[1.5rem] text-black">
-                      {(siloTokenData ? siloTokenData.rewards.seeds : TokenValue.ZERO).reDecimal(2).toHuman("short")}{" "}
-                      Seeds
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <APYChip apyValue={siloTokenData ? siloTokenData.yields.beanAPY : 0} />
-            </div>
+        <div className="flex flex-col w-full gap-14 items-start">
+          <div className="flex flex-col w-full gap-8">
+            <SiloTokenHeader siloToken={siloToken} siloTokenData={siloTokenData} />
             <Separator />
             <div className="flex flex-row items-center justify-between">
               <div className="flex flex-col">
@@ -284,3 +232,77 @@ export default function SiloToken() {
     </PageContainer>
   );
 }
+
+interface ISiloTokenHeader {
+  siloToken: Token;
+  siloTokenData: SiloTokenData | undefined;
+}
+
+const SiloTokenHeader = ({ siloToken, siloTokenData }: ISiloTokenHeader) => {
+  const config = useConfig();
+  const chainId = useChainId();
+  const currentChain = config.chains.find((chain) => chain.id === chainId);
+  const blockExplorer = currentChain?.blockExplorers?.default.url ?? "https://basescan.org";
+
+  const stalkRewards = siloTokenData?.rewards.stalk.mul(1000000);
+  const seedRewards = siloTokenData?.rewards.seeds;
+
+  return (
+    <div className="flex flex-col w-full gap-8">
+      <Button asChild variant={"outline"} rounded="full" noPadding className="-my-4 h-12 w-12">
+        <Link to={"/silo"}>
+          <img src={backArrowIcon} alt="go to previous page" />
+        </Link>
+      </Button>
+      <div className="inline-flex items-center gap-3">
+        <IconImage src={siloToken?.logoURI} size={12} alt={siloToken?.name} />
+        <Text variant="h1">{siloToken?.name}</Text>
+        <div className="inline-flex gap-2">
+          <Button
+            variant="outline"
+            rounded="full"
+            noPadding
+            className="h-12 w-12"
+            onClick={() => {
+              navigator.clipboard.writeText(siloToken.address);
+            }}
+          >
+            <IconImage src={copyIcon} size={6} alt="copy address" />
+          </Button>
+          <Button asChild variant={"outline"} noPadding rounded="full" className="h-12 w-12">
+            <Link
+              to={`https://pinto.exchange/#/wells/${chainId}/${siloToken.address}`}
+              target={"_blank"}
+              className="text-pinto-gray-5 hover:cursor-pointer transition-all"
+              rel="noreferrer"
+            >
+              <ExternalLinkIcon />
+            </Link>
+          </Button>
+          <Button asChild variant={"outline"} rounded="full" noPadding className="h-12 w-12">
+            <Link to={`${blockExplorer}/address/${siloToken.address}`} target={"_blank"} rel="noreferrer">
+              <IconImage src={etherscanIcon} size={6} alt="go to basescan" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-col gap-2">
+          <Text variant="sm">Current Deposit Rewards</Text>
+          <div className="flex flex-row gap-3">
+            <div className="inline-flex gap-1 items-center">
+              <IconImage src={stalkIcon} size={6} alt="Stalk" />
+              <Text variant="h4">{formatter.twoDec(stalkRewards)} Stalk</Text>
+            </div>
+            <div className="inline-flex gap-1 items-center">
+              <IconImage src={seedsIcon} size={6} alt="Seeds" />
+              <Text variant="h4">{formatter.twoDec(seedRewards)} Seed</Text>
+            </div>
+          </div>
+        </div>
+        <APYChip apyValue={siloTokenData ? siloTokenData.yields.beanAPY : 0} />
+      </div>
+    </div>
+  );
+};
