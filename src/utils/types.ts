@@ -87,6 +87,8 @@ export interface SiloTokenData {
   stemTip: TokenValue;
   depositedBDV: TokenValue;
   germinatingStem: TokenValue;
+  germinatingBDV: TokenValue;
+  germinatingAmount: TokenValue;
   tokenSettings: {
     deltaStalkEarnedPerSeason: TokenValue;
     encodeType: string;

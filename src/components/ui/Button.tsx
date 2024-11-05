@@ -48,6 +48,7 @@ const buttonVariants = cva(
       },
       rounded: {
         full: "rounded-full",
+        some: "rounded-[0.75rem]",
       },
       hover: {
         green4: "hover:border-pinto-green-4",
@@ -91,12 +92,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           buttonVariants({
             variant,
             size,
-            noShrink: noShrink,
+            noShrink,
             noPadding,
             rounded,
             width,
-            className,
           }),
+          className,
         )}
         ref={ref}
         {...props}

@@ -343,3 +343,5 @@ export class TokenValue {
     return TokenValue.fromHuman(newString, decimals);
   }
 }
+
+export { TokenValue as TV };

@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/Label";
 import Text from "@/components/ui/Text";
 import { beanstalkAbi, beanstalkAddress, useReadSilo_GetAmountOut } from "@/generated/contractHooks";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { PoolData, usePriceData } from "@/state/usePriceData";
+import { useSeedGauge } from "@/state/useSeedGauge";
 import useTokenData from "@/state/useTokenData";
 import { calculateConvertData, sortAndPickCrates } from "@/utils/convert";
 import { stringEq } from "@/utils/string";
@@ -25,6 +27,8 @@ import { useChainId } from "wagmi";
 interface BaseConvertProps {
   siloToken: Token;
 }
+
+// ------------------------------ DEFAULT CONVERT ------------------------------
 
 function DefaultConvert() {
   const { siloToken, setTargetToken: setToToken, targetToken: toToken } = useConvertContext();
@@ -74,14 +78,13 @@ function DefaultConvert() {
 
   const minAmountOut = TokenValue.fromBlockchain(estimatedAmountOut, toToken.decimals).subSlippage(slippage);
 
-  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
-
-  useEffect(() => {
-    if (isSuccess) {
-      // invalidating query results to trigger a refetch
-      queryClient.invalidateQueries({ queryKey });
-    }
-  }, [isSuccess, queryKey, queryClient.invalidateQueries]);
+  const { writeContractAsync } = useWriteContract({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey });
+      },
+    },
+  });
 
   async function onSubmit() {
     const deposits = farmerDeposits.get(fromToken);
@@ -161,10 +164,26 @@ function DefaultConvert() {
   );
 }
 
+// ------------------------------ PIPELINE CONVERT ------------------------------
+
 const PipelineConvert = () => {
   const { siloToken, convertDestinations, targetToken, setTargetToken } = useConvertContext();
+
   const { data: farmerDeposits } = useFarmerDepositedBalances();
-  const farmerDeposit = farmerDeposits.get(siloToken);
+  const seedGauge = useSeedGauge();
+
+  const sourceConvertData = useMemo(() => {
+    const farmerDepositData = farmerDeposits.get(siloToken);
+    const _sourceConvertData = new Map<Token, TokenValue>();
+
+    if (farmerDepositData) {
+      _sourceConvertData.set(siloToken, farmerDepositData?.convertibleAmount);
+    }
+
+    return _sourceConvertData;
+  }, [farmerDeposits, siloToken]);
+
+  const farmerDeposit = useMemo(() => farmerDeposits.get(siloToken), [farmerDeposits, siloToken]);
 
   const [amountIn, setAmountIn] = useState(0);
   const [slippage, setSlippage] = useState(0.1);
@@ -179,7 +198,9 @@ const PipelineConvert = () => {
         <ComboInputField
           amount={amountIn}
           setAmount={setAmountIn}
+          setToken={() => {}}
           selectedToken={siloToken}
+          tokenAndBalanceMap={sourceConvertData}
           customMaxAmount={farmerDeposit?.convertibleAmount || TokenValue.ZERO}
           altText="Deposited Balance"
           mode="deposits"
@@ -191,18 +212,15 @@ const PipelineConvert = () => {
         <ConvertTokenSelect />
       </div>
       <div className="flex flex-row gap-2">
-        <Button
-          type="button"
-          className="w-full flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem]"
-          // onClick={onSubmit}
-          // disabled={fromToken.address === toToken.address}
-        >
+        <Button type="button" rounded="some" className="w-full flex grow h-[3.75rem] text-[1.5rem]">
           Convert
         </Button>
       </div>
     </div>
   );
 };
+
+// ------------------------------ TOKEN SELECT ------------------------------
 
 export interface IConvertTokenSelect {
   tokens: Token[];
@@ -236,6 +254,8 @@ const ConvertTokenSelect = () => {
   );
 };
 
+// ------------------------------ CONTEXT ------------------------------
+
 type ConvertType = "convert" | "pipeline-convert";
 
 interface ConvertContext {
@@ -256,9 +276,15 @@ const useConvertContext = () => {
   return context;
 };
 
+const getConvertableTargets = (pools: PoolData[], siloToken: Token) => {};
+
 const ConvertProvider = ({ children, siloToken }: { children: React.ReactNode; siloToken: Token }) => {
+  const priceData = usePriceData();
   const tokenData = useTokenData();
 
+  const pools = priceData.pools;
+
+  const [allTargets, setAllTargets] = useState<Token[]>([]);
   const [convertType, setConvertType] = useState<ConvertType>("convert");
   const [targetToken, setTargetToken] = useState<Token>(
     siloToken.isMain
@@ -293,21 +319,22 @@ const ConvertProvider = ({ children, siloToken }: { children: React.ReactNode; s
   );
 };
 
+// ------------------------------ COMPONENT ------------------------------
+
 const ConvertSwitch = () => {
   const { convertType } = useConvertContext();
 
-  // if (convertType === "convert") {
-  //   return <DefaultConvert />;
-  // }
+  if (convertType === "convert") {
+    return <DefaultConvert />;
+  }
 
-  // return <PipelineConvert />;
+  return <PipelineConvert />;
 };
 
 const Convert = ({ siloToken }: BaseConvertProps) => {
   return (
     <ConvertProvider siloToken={siloToken}>
-      <DefaultConvert />
-      {/* <ConvertSwitch /> */}
+      <ConvertSwitch />
     </ConvertProvider>
   );
 };
