@@ -3,7 +3,9 @@ import { ZERO_ADDRESS } from "@/constants/address";
 import { beanstalkAbi, beanstalkAddress, useReadBeanstalk_GetAllBalances } from "@/generated/contractHooks";
 import { useChainAddress } from "@/utils/chain";
 import { Token } from "@/utils/types";
+import { useEffect } from "react";
 import { useAccount, useBalance, useReadContract } from "wagmi";
+import { useSunData } from "./useSunData";
 import useTokenData from "./useTokenData";
 
 const settings = {
@@ -15,6 +17,7 @@ const emptyMap = new Map<Token, { internal: TokenValue; external: TokenValue; to
 
 export function useFarmerBalances() {
   const account = useAccount();
+  const season = useSunData().current;
   const tokens = useTokenData().preferredTokens;
   const lpTokens = useTokenData().lpTokens;
   const ETH = useTokenData().nativeToken;
@@ -32,11 +35,13 @@ export function useFarmerBalances() {
     data: tokenBalances = emptyMap,
     refetch,
     queryKey,
+    ...rest
   } = useReadContract({
     address: diamondAddress,
     abi: beanstalkAbi,
     functionName: "getAllBalances",
     args: [account.address ?? ZERO_ADDRESS, addresses],
+    scopeKey: ["season", season].join(" "),
     query: {
       ...settings,
       enabled: !!account.address && !!balanceTokens.length,
@@ -62,6 +67,10 @@ export function useFarmerBalances() {
       },
     },
   });
+
+  useEffect(() => {
+    console.log("farmer balances: ", rest.fetchStatus);
+  }, [rest.fetchStatus]);
 
   return {
     balances: tokenBalances,

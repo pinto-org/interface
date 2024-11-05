@@ -1,6 +1,7 @@
 import { exists } from "@/utils/utils";
 import { useMemo } from "react";
 
+import { DecimalBigNumber } from "@/classes/DecimalBigNumber";
 import { TokenValue } from "@/classes/TokenValue";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { LibCases } from "@/lib/LibCases";
@@ -38,7 +39,7 @@ export interface TokenSeedGaugeInfo extends BaseTokenSeedGaugeInfo {
   /**
    * the current percentage of all BDV deposited in the silo
    */
-  currentPctDepositedBdv: bigint;
+  currentPctDepositedBdv: TokenValue;
 }
 
 const EMPTY_TOKEN_SEED_GAUGE_INFO: AddressMap<TokenSeedGaugeInfo> = {};
@@ -50,6 +51,7 @@ const MIN_BEAN_MAX_LP = LibCases.MIN_BEAN_MAX_LP_GP_PER_BDV_RATIO * BigInt(1e18)
 export const useSeedGauge = () => {
   const protocolAddress = useProtocolAddress();
   const { tokenData } = useSiloData();
+  console.log("tokenData: ", tokenData);
 
   const { whitelistedTokens } = useTokenData();
 
@@ -58,6 +60,11 @@ export const useSeedGauge = () => {
     abi: getBeanToMaxLpGpPerBdvRatioScaledABI,
     functionName: "getBeanToMaxLpGpPerBdvRatioScaled",
     args: [],
+    query: {
+      select: (data) => {
+        return TokenValue.fromBlockchain(data, 18);
+      },
+    },
   });
 
   const { data: gaugePointsPerBdv, ...gaugePointsQuery } = useReadContracts({
@@ -123,12 +130,12 @@ export const useSeedGauge = () => {
       Object.entries(map).map(([tokenIndex, data]) => {
         const tokenDatas: TokenSeedGaugeInfo = {
           ...data,
-          currentPctDepositedBdv: 0n,
+          currentPctDepositedBdv: TokenValue.ZERO,
         };
 
         if (data.isAllocatedGP) {
           const pct = data.totalBdv.div(totalRelevantBDV).div(100);
-          tokenDatas.currentPctDepositedBdv = pct.toBigInt();
+          tokenDatas.currentPctDepositedBdv = pct;
         }
 
         return [tokenIndex, tokenDatas] as const;

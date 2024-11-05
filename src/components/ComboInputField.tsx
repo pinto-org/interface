@@ -76,6 +76,7 @@ function ComboInputField({
   const tokenData = useTokenData();
   const { balances } = useFarmerBalances();
   const farmerTokenBalance = selectedToken ? balances.get(selectedToken) : undefined;
+  console.log("farmerTokenBalance: ", farmerTokenBalance);
 
   const depositedBalances = useFarmerDepositedBalances();
   const farmerDepositedTokenBalance = selectedToken ? depositedBalances.data.get(selectedToken) : undefined;
@@ -223,6 +224,11 @@ function ComboInputField({
     return currentAmount && Number(currentAmount) > 0;
   };
 
+  const handleSetMax = () => {
+    setInternalAmount(maxAmount.humanString);
+    setAmount?.(maxAmount.humanString);
+  };
+
   // Format plot IDs for display
   const plotIdsToShow = useMemo(() => {
     if (!selectedPlots?.length) return "";
@@ -310,7 +316,7 @@ function ComboInputField({
                     size={"sm"}
                     variant={"defaultAlt"}
                     className={"rounded-[0.75rem] text-[1rem] px-1.5 py-1 h-auto"}
-                    onClick={() => setInternalAmount(maxAmount.humanString)}
+                    onClick={handleSetMax}
                   >
                     Max
                   </Button>

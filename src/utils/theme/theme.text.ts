@@ -104,8 +104,9 @@ const fontWeights = {
 // biome-ignore format: keep unformatted for readability
 const letterSpacings = {
 	"body-light":  clsx("tracking-[-0.025rem]"),
-	h3:            clsx("tracking-[-.04rem]"),
-	h2:            clsx("tracking-[.0315rem]"),
+	h4:            clsx("tracking-[-0.003rem]"),
+	h3:            clsx("tracking-[-0.04rem]"),
+	h2:            clsx("tracking-[-0.0315rem]"),
 	h1:            clsx("tracking-[-0.069rem]"),
 	none:          clsx("tracking-[0rem]"),
 	inherit:       clsx("tracking-inherit"),
@@ -147,6 +148,7 @@ export const config = {
 		h1:             "h1",
 		h2:             "h2",
 		h3:             "h3",
+		h4:             "h4",
 		"body-light":   "body-light",
 		none:           "none",
 		inherit:        "inherit",

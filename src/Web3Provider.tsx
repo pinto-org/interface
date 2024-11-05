@@ -1,10 +1,17 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 import { ReactNode } from "react";
 import { createTestClient, defineChain } from "viem";
 import { http, WagmiProvider, createConfig } from "wagmi";
 import { localhost } from "wagmi/chains";
 import { mock } from "wagmi/connectors";
+
+declare module "wagmi" {
+  interface Register {
+    config: typeof config;
+  }
+}
 
 export const anvilTestClient = createTestClient({ mode: "anvil", chain: localhost, transport: http() });
 
@@ -67,7 +74,7 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
   // anvilTestClient.impersonateAccount({ address: "0xfe42972c584e442c3f0a49cb2930e55d5bf13ba7" });
 
   return (
-    <WagmiProvider config={config}>
+    <WagmiProvider config={web3Config}>
       <QueryClientProvider client={queryClient}>
         <ConnectKitProvider
           customTheme={{
@@ -98,6 +105,7 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
         >
           {children}
         </ConnectKitProvider>
+        <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </WagmiProvider>
   );
