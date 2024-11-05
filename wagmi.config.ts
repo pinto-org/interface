@@ -133,7 +133,7 @@ const config = defineConfig(() => {
     plugins: [
       react({
         getHookName({ contractName, type, itemName }) {
-          const capitalize = (word: string) => {
+          function capitalize(word: string) {
             return word.charAt(0).toUpperCase() + word.slice(1);
           }
           let hookName: `use${string}` = `use${capitalize(type)}${contractName}_${itemName}`;
