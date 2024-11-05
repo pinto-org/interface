@@ -67,7 +67,7 @@ export default function SiloToken() {
               <SiloTokenAbout siloToken={siloToken} price={priceData.price} siloData={siloData} />
             </div>
           </div>
-          <div className="w-full lg:max-w-[518px] lg:min-w-[450px] lg:-mt-2">
+          <div className="w-full lg:max-w-[518px] lg:min-w-[425px] lg:-mt-2">
             <SiloTokenActions siloToken={siloToken} farmerDeposits={farmerDeposits} />
           </div>
         </div>
