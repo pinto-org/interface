@@ -13,7 +13,7 @@ function Explorer() {
   };
 
   return (
-    <PageContainer>
+    <PageContainer variant="xl">
       <div className="flex flex-col w-full items-center">
         <div className="flex flex-col w-full gap-8">
           <div className="flex flex-col gap-2 ml-4">
