@@ -133,8 +133,12 @@ export const useSeedGauge = () => {
         };
 
         if (data.isAllocatedGP) {
-          const pct = data.totalBdv.div(totalRelevantBDV).div(100);
-          tokenDatas.currentPctDepositedBdv = pct;
+          if (data.totalBdv.eq(0) || totalRelevantBDV === 0n) {
+            tokenDatas.currentPctDepositedBdv = TokenValue.ZERO;
+          } else {
+            const pct = data.totalBdv.div(totalRelevantBDV).div(100);
+            tokenDatas.currentPctDepositedBdv = pct;
+          }
         }
 
         return [tokenIndex, tokenDatas] as const;
