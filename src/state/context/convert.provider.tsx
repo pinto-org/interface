@@ -9,7 +9,7 @@ import { AddressMap, Token } from "@/utils/types";
 import { Prettify } from "@/utils/types.generic";
 
 import { keyBy } from "lodash";
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 interface SiloTokenState {
   /**
@@ -46,6 +46,10 @@ type SiloTokenConvertPath = {
    */
   token: Token;
   /**
+   * The seed reward for the target token
+   */
+  seedReward: TV;
+  /**
    * Whether the conversion is enabled.
    * For example: Since we don't use gen-convert for LP<>NON_LP converts,
    * converting from NON_LP -> LP is not supported when deltaB < 0.
@@ -72,8 +76,6 @@ const usePrepareConvertContext = () => {
   const pools = priceData.pools;
   const maxLPToken = seedGauge.data.maxLPToken;
   const whitelist = tokenData.whitelistedTokens;
-
-  const loading = silo.tokenData.size !== whitelist.length || !pools.length || !maxLPToken || priceData.price.isZero;
 
   const poolMap = useMemo(() => keyBy(pools, (p) => getTokenIndex(p.pool)), [pools]);
 
@@ -106,6 +108,8 @@ const usePrepareConvertContext = () => {
     }, {});
   }, [whitelist, silo.tokenData, poolMap, maxLPToken]);
 
+  const loading = silo.tokenData.size !== whitelist.length || !pools.length || !maxLPToken || priceData.price.isZero;
+
   useEffect(() => {
     if (loading) return;
 
@@ -124,6 +128,7 @@ const usePrepareConvertContext = () => {
 
         const data: SiloTokenConvertPath = {
           token: target,
+          seedReward: targetState.rewards.seeds,
           enabled: fromState.convertable && targetState.convertable,
           deltaSeedRewards: targetState.rewards.seeds.sub(fromState.rewards.seeds),
         };
@@ -152,15 +157,26 @@ const usePrepareConvertContext = () => {
     setConvertState(state);
   }, [loading, tokenConvertState, whitelist, deltaB]);
 
-  return {
-    convertState,
-    loading,
-  } as const;
+  const getTargetTokens = useCallback(
+    (siloToken: Token) => {
+      return whitelist.filter((t) => !stringEq(t.address, siloToken.address));
+    },
+    [whitelist],
+  );
+
+  return useMemo(
+    () => ({
+      convertState,
+      maxLPToken,
+      getTargetTokens,
+    }),
+    [convertState, maxLPToken, getTargetTokens],
+  );
 };
 
 const ConvertContext = createContext<ReturnType<typeof usePrepareConvertContext> | null>(null);
 
-export const useConvertContext = () => {
+export const useConvertState = () => {
   const context = useContext(ConvertContext);
   if (!context) throw new Error("useConvertContext must be used within a ConvertProvider");
   return context;

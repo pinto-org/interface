@@ -156,7 +156,7 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
     );
 
   const gaugeData = seedGauge.data.gaugeData[getTokenIndex(siloToken)];
-  const liquidityRatio = siloTokenData?.depositedBDV.div(liquidityTVD.gt(0) ? liquidityTVD : TokenValue.ONE).mul(100);
+  const liquidityRatio = siloTokenData?.depositedBDV.div(liquidityTVD.gt(0) ? liquidityTVD : TokenValue.ONE);
   const optimalDepositedRatio = gaugeData?.optimalPctDepositedBdv;
 
   const depositedBDV = siloTokenData?.depositedBDV;
@@ -191,8 +191,7 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
               % of LP Deposits
             </Text>
             <Text variant="h4" className="pt-1">
-              {/* {formatter.pct(liquidityRatio)} */}
-              12.34%
+              {formatter.pct(liquidityRatio)}
             </Text>
           </div>
         ) : null}
@@ -202,8 +201,7 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
               Target % of LP Deposits
             </Text>
             <Text variant="h4" className="pt-1">
-              {/* {formatter.pct(optimalDepositedRatio)} */}
-              12.34%
+              {formatter.pct(optimalDepositedRatio)}
             </Text>
           </div>
         ) : null}
