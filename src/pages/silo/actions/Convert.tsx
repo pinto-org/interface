@@ -1,33 +1,48 @@
 import arrowDown from "@/assets/misc/ChevronDown.svg";
 import { TokenValue } from "@/classes/TokenValue";
+import { TV } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import SlippageButton from "@/components/SlippageButton";
 import TokenSelectWithBalances from "@/components/TokenSelectWithBalances";
-import { Button } from "@/components/ui/Button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/Dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTrigger } from "@/components/ui/Dialog";
 import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
+import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
+import VerticalAccordion from "@/components/ui/VerticalAccordion";
+import { SEEDS } from "@/constants/internalTokens";
 import { beanstalkAbi, beanstalkAddress, useReadSilo_GetAmountOut } from "@/generated/contractHooks";
+import ConvertProvider, {
+  SiloTokenConvertPath,
+  SiloTokenConvertState,
+  useConvertState,
+} from "@/state/context/convert.provider";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { calculateConvertData, sortAndPickCrates } from "@/utils/convert";
+import { formatter } from "@/utils/format";
 import { stringEq } from "@/utils/string";
-import { Token } from "@/utils/types";
+import { getTokenIndex, isProtocolToken } from "@/utils/token";
+import { AddressMap, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
-import React from "react";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import _ from "lodash";
 import { toast } from "sonner";
 import { BaseError } from "viem";
 import { useWriteContract } from "wagmi";
 import { useChainId } from "wagmi";
 
+import { Button } from "@/components/ui/Button";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+
 interface BaseConvertProps {
   siloToken: Token;
 }
 
+// ------------------------------ DEFAULT CONVERT ------------------------------
+
 function DefaultConvert() {
-  const { siloToken, setTargetToken: setToToken, targetToken: toToken } = useConvertContext();
+  const { siloToken, setTargetToken: setToToken, targetToken: toToken } = useSiloConvertContext();
   const chainId = useChainId();
   const tokenData = useTokenData();
 
@@ -74,14 +89,13 @@ function DefaultConvert() {
 
   const minAmountOut = TokenValue.fromBlockchain(estimatedAmountOut, toToken.decimals).subSlippage(slippage);
 
-  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
-
-  useEffect(() => {
-    if (isSuccess) {
-      // invalidating query results to trigger a refetch
-      queryClient.invalidateQueries({ queryKey });
-    }
-  }, [isSuccess, queryKey, queryClient.invalidateQueries]);
+  const { writeContractAsync } = useWriteContract({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey });
+      },
+    },
+  });
 
   async function onSubmit() {
     const deposits = farmerDeposits.get(fromToken);
@@ -161,10 +175,25 @@ function DefaultConvert() {
   );
 }
 
+// ------------------------------ PIPELINE CONVERT ------------------------------
+
 const PipelineConvert = () => {
-  const { siloToken, convertDestinations, targetToken, setTargetToken } = useConvertContext();
+  const { siloToken, allTargets, targetToken, setTargetToken } = useSiloConvertContext();
+
   const { data: farmerDeposits } = useFarmerDepositedBalances();
-  const farmerDeposit = farmerDeposits.get(siloToken);
+
+  const sourceConvertData = useMemo(() => {
+    const farmerDepositData = farmerDeposits.get(siloToken);
+    const _sourceConvertData = new Map<Token, TokenValue>();
+
+    if (farmerDepositData) {
+      _sourceConvertData.set(siloToken, farmerDepositData?.convertibleAmount);
+    }
+
+    return _sourceConvertData;
+  }, [farmerDeposits, siloToken]);
+
+  const farmerDeposit = useMemo(() => farmerDeposits.get(siloToken), [farmerDeposits, siloToken]);
 
   const [amountIn, setAmountIn] = useState("0");
   const [slippage, setSlippage] = useState(0.1);
@@ -179,7 +208,9 @@ const PipelineConvert = () => {
         <ComboInputField
           amount={amountIn}
           setAmount={setAmountIn}
+          setToken={() => {}}
           selectedToken={siloToken}
+          tokenAndBalanceMap={sourceConvertData}
           customMaxAmount={farmerDeposit?.convertibleAmount || TokenValue.ZERO}
           altText="Deposited Balance"
           mode="deposits"
@@ -188,15 +219,10 @@ const PipelineConvert = () => {
       </div>
       <div className="flex flex-row justify-between">
         <Label className="content-center">Convert to</Label>
-        <ConvertTokenSelect />
+        <SiloConvertTokenSelect />
       </div>
       <div className="flex flex-row gap-2">
-        <Button
-          type="button"
-          className="w-full flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem]"
-          // onClick={onSubmit}
-          // disabled={fromToken.address === toToken.address}
-        >
+        <Button type="button" rounded="some" className="w-full flex grow h-[3.75rem] text-[1.5rem]">
           Convert
         </Button>
       </div>
@@ -204,51 +230,19 @@ const PipelineConvert = () => {
   );
 };
 
-export interface IConvertTokenSelect {
-  tokens: Token[];
-  selectedToken: Token;
-  subheader?: React.ReactNode;
-  setToken: React.Dispatch<React.SetStateAction<Token>> | ((token: Token) => void);
-}
-
-const ConvertTokenSelect = () => {
-  const { convertDestinations, targetToken } = useConvertContext();
-
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          rounded="full"
-          className="shadow-[0px_1px_8px_0px_#E9F0F6] border-[#E9F0F6] bg-white/100"
-        >
-          <div className="flex flex-row items-center gap-1">
-            <IconImage src={targetToken.logoURI} size={6} />
-            <Text variant="body-light">{targetToken.symbol}</Text>
-            <IconImage src={arrowDown} size={3} alt={"open token select dialog"} />
-          </div>
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <div className="flex flex-col gap-4">d</div>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-type ConvertType = "convert" | "pipeline-convert";
+// ------------------------------ CONTEXT ------------------------------
 
 interface ConvertContext {
   targetToken: Token;
+  siloTokenConvertState: SiloTokenConvertState;
   siloToken: Token;
-  convertType: ConvertType;
-  convertDestinations: Token[];
-  setTargetToken: (token: Token) => void;
+  allTargets: Token[];
+  setTargetToken: React.Dispatch<React.SetStateAction<Token>>;
 }
 
 const ConvertContext = createContext<ConvertContext | null>(null);
 
-const useConvertContext = () => {
+const useSiloConvertContext = () => {
   const context = useContext(ConvertContext);
   if (!context) {
     throw new Error("useConvertContext must be used within a ConvertProvider");
@@ -256,60 +250,179 @@ const useConvertContext = () => {
   return context;
 };
 
-const ConvertProvider = ({ children, siloToken }: { children: React.ReactNode; siloToken: Token }) => {
+const SiloConvertProvider = ({ children, siloToken }: { children: React.ReactNode; siloToken: Token }) => {
+  const { getTargetTokens, maxLPToken, convertState } = useConvertState();
+
   const tokenData = useTokenData();
-
-  const [convertType, setConvertType] = useState<ConvertType>("convert");
   const [targetToken, setTargetToken] = useState<Token>(
-    siloToken.isMain
-      ? tokenData.lpTokens[0] // change me to best convertable LP
-      : tokenData.mainToken,
+    siloToken.isMain ? maxLPToken || tokenData.lpTokens[0] : tokenData.mainToken,
   );
 
-  const convertDestinations = useMemo(
-    () => [tokenData.mainToken, ...tokenData.lpTokens].filter((tk) => !stringEq(tk.address, siloToken.address)),
-    [tokenData, siloToken],
-  );
+  const allTargets = useMemo(() => getTargetTokens(siloToken), [getTargetTokens, siloToken]);
 
-  const handleSetTargetToken = useCallback(
-    (token: Token) => {
-      setTargetToken(token);
-
-      if (token.isLP && siloToken.isLP) {
-        setConvertType("pipeline-convert");
-      } else {
-        setConvertType("convert");
-      }
-    },
-    [siloToken],
-  );
+  const tokenConvertState = useMemo(() => convertState[getTokenIndex(siloToken)], [convertState, siloToken]);
 
   return (
     <ConvertContext.Provider
-      value={{ siloToken, convertDestinations, targetToken, convertType, setTargetToken: handleSetTargetToken }}
+      value={{
+        siloTokenConvertState: tokenConvertState,
+        siloToken,
+        allTargets,
+        targetToken,
+        setTargetToken,
+      }}
     >
       {children}
     </ConvertContext.Provider>
   );
 };
 
+// -----------------------------------------------------------------------
+// ------------------------------ COMPONENT ------------------------------
+// -----------------------------------------------------------------------
+
 const ConvertSwitch = () => {
-  const { convertType } = useConvertContext();
+  const { siloToken, targetToken } = useSiloConvertContext();
 
-  // if (convertType === "convert") {
-  //   return <DefaultConvert />;
-  // }
+  if (siloToken.isLP && targetToken.isLP) {
+    return <PipelineConvert />;
+  }
 
-  // return <PipelineConvert />;
+  return <DefaultConvert />;
 };
 
 const Convert = ({ siloToken }: BaseConvertProps) => {
   return (
-    <ConvertProvider siloToken={siloToken}>
-      <DefaultConvert />
-      {/* <ConvertSwitch /> */}
+    <ConvertProvider>
+      <SiloConvertProvider siloToken={siloToken}>
+        <ConvertSwitch />
+      </SiloConvertProvider>
     </ConvertProvider>
   );
 };
 
 export default Convert;
+
+// ------------------------------ Token Select ------------------------------
+
+interface IConvertTokenSelect {
+  tokens: Token[];
+  selectedToken: Token;
+  subheader?: React.ReactNode;
+  setToken: React.Dispatch<React.SetStateAction<Token>> | ((token: Token) => void);
+}
+interface DivorcedConvertState {
+  up: SiloTokenConvertPath[];
+  down: SiloTokenConvertPath[];
+}
+
+interface IConvertFrame {
+  title: string;
+  price: TV;
+  convertState: DivorcedConvertState;
+}
+
+const sortByPintoThenSeedsDesc = (a: SiloTokenConvertPath, b: SiloTokenConvertPath) => {
+  if (isProtocolToken(a.token)) return -1;
+  if (isProtocolToken(b.token)) return 1;
+  return b.seedReward.toNumber() - a.seedReward.toNumber();
+};
+
+const ConvertFrame = ({ title, convertState }: IConvertFrame) => {};
+
+const LPConvertFrame = ({ title, price, convertState: { up, down } }: IConvertFrame) => {
+  const sorted = up.sort(sortByPintoThenSeedsDesc);
+};
+
+const getDivorcedState = (paths: AddressMap<SiloTokenConvertPath>) => {
+  const divorced = Object.values(paths).reduce<DivorcedConvertState>(
+    (prev, path) => {
+      prev[path?.deltaSeedRewards.gte(0) ? "up" : "down"].push(path);
+      return prev;
+    },
+    { up: [], down: [] },
+  );
+
+  return divorced;
+};
+
+const SiloConvertTokenSelect = () => {
+  // Context
+  const { siloToken, targetToken, siloTokenConvertState } = useSiloConvertContext();
+
+  // Local STate
+  const [open, setOpen] = useState(true);
+  const [showOtherTokens, setShowOtherTokens] = useState(false);
+  const [divorced, setDivorced] = useState<DivorcedConvertState>(getDivorcedState(siloTokenConvertState.paths));
+
+  // Handlers
+  const handleOpenDialog = (toOpenState: boolean) => {
+    setOpen(toOpenState);
+    if (!toOpenState && showOtherTokens) {
+      setShowOtherTokens(false);
+    }
+  };
+
+  // Effects
+  useEffect(() => {
+    if (!open && showOtherTokens) {
+      setShowOtherTokens(false);
+    }
+  }, [open, showOtherTokens]);
+
+  useEffect(() => {
+    setDivorced(getDivorcedState(siloTokenConvertState.paths));
+  }, [siloTokenConvertState.paths]);
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenDialog}>
+      <DialogTrigger asChild>
+        <Button variant="outline-gray-shadow" size="xl" rounded="full">
+          <div className="flex flex-row items-center gap-1">
+            <IconImage src={targetToken.logoURI} size={6} />
+            <Text variant="body-light">{targetToken.symbol}</Text>
+            <IconImage src={arrowDown} size={3} alt={"open token select dialog"} />
+          </div>
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="w-full max-w-dialog-600 min-w-dialog-600 gap-3 p-0">
+        <div className="flex flex-col gap-6 p-6">
+          {/* Header */}
+          <DialogHeader>
+            <Text variant="body">Select a token</Text>
+          </DialogHeader>
+          {/* Subheader */}
+          <div className="flex flex-row justify-between">
+            <Text variant="body-light" color="light" className="inline-flex items-center gap-1">
+              Currently Deposited:
+              <IconImage nudge={1} src={siloToken.logoURI} size={6} className="ml-1" />
+              <Text as="span" variant="body-light" color="secondary">
+                {siloToken.name}
+              </Text>
+            </Text>
+            <Text variant="h4" weight="light" className="inline-flex items-center gap-2">
+              <IconImage nudge={1} src={SEEDS.logoURI} size={6} />
+              {formatter.twoDec(siloTokenConvertState?.rewards.seeds)}
+            </Text>
+          </div>
+          <Separator />
+          {/* Token list */}
+          <div className="flex flex-col">
+            {divorced.up.length ? (
+              <div>asdf</div>
+            ) : (
+              <div className="flex flex-col h-[140px] sm:h-[240px] justify-center items-center">
+                <Text variant="sm" color="light">
+                  Converting to any other token from Pinto will result in a loss.
+                </Text>
+              </div>
+            )}
+            {/* <VerticalAccordion title="Show other tokens" open={showOtherTokens} onOpenChange={setShowOtherTokens}>
+              
+            </VerticalAccordion> */}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};

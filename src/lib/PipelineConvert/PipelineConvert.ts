@@ -402,6 +402,52 @@ function validateSlippage(slippage: number) {
   }
 }
 
+/**
+ * Ask Ryan about checkbox for grown stalk penalization
+ *
+ * - calculateDeltaBFromReserves
+ * args: [
+ *  wellAddress,
+ *  [reserves],
+ *  lookback: 0
+ * ]
+ * 
+ * to get max convertable amount, use proportional ratio for deltaB & amounts
+ *
+ * 1. get the amountout of non-bean token from well 1
+ * 2. get quote for all of non bean from well 1 to non-bean well 2 to get rate
+ * 
+ * 3. fetch calculateDeltaBFromReserves() for well 1 & well 2
+ * 
+ * - deltaB1 before - deltaB1 after
+ * - deltaB2 before - deltaB2 after
+ * - total deltaB impact = deltaB1.t + deltaB2.t
+ * 
+ * convert capacities
+ * - getWellConvertCapacity() for well 1 & well 2
+ * - getOverallConvertCapacity() for overall
+ * 
+ * Only converts that convert towards peg use up convert capacity bucket
+ * 
+ * 
+   function calculateStalkPenalty(
+        DeltaBStorage memory dbs,
+        uint256 bdvConverted,
+        uint256 overallConvertCapacity,
+        address inputToken,
+        address outputToken
+    )
+        external
+        view
+        returns (
+            uint256 stalkPenaltyBdv,
+            uint256 overallConvertCapacityUsed,
+            uint256 inputTokenAmountUsed,
+            uint256 outputTokenAmountUsed
+        );
+ * 
+ */
+
 const ABI = [
   {
     inputs: [

@@ -64,14 +64,29 @@ function useReadSiloTokenData(token: Token | undefined) {
         functionName: "tokenSettings",
         args: [token?.address ?? ZERO_ADDRESS],
       },
+      {
+        address: protocolAddress,
+        abi: beanstalkAbi,
+        functionName: "getTotalGerminatingAmount",
+        args: [token?.address ?? ZERO_ADDRESS],
+      },
+      {
+        address: protocolAddress,
+        abi: beanstalkAbi,
+        functionName: "getTotalGerminatingBdv",
+        args: [token?.address ?? ZERO_ADDRESS],
+      },
     ],
     scopeKey: token?.address,
     query: {
       ...settings.query,
       enabled: Boolean(token?.address),
       select: (siloTokenData) => {
+        // should never happen
+        if (!token) return {} as Omit<SiloTokenData, "yields">;
+
         return {
-          totalDeposited: TokenValue.fromBlockchain(siloTokenData?.[0]?.result ?? 0n, token?.decimals ?? 0),
+          totalDeposited: TokenValue.fromBlockchain(siloTokenData?.[0]?.result ?? 0n, token.decimals),
           tokenBDV: TokenValue.fromBlockchain(siloTokenData?.[1]?.result ?? 0n, BEAN.decimals),
           stemTip: TokenValue.fromBlockchain(siloTokenData?.[2]?.result ?? 0n, BEAN.decimals),
           depositedBDV: TokenValue.fromBlockchain(siloTokenData?.[3]?.result ?? 0n, BEAN.decimals),
@@ -115,6 +130,8 @@ function useReadSiloTokenData(token: Token | undefined) {
             seeds: TokenValue.fromBlockchain(siloTokenData?.[5]?.result?.stalkEarnedPerSeason ?? 0n, SEEDS.decimals),
             stalk: TokenValue.fromBlockchain(siloTokenData?.[5]?.result?.stalkIssuedPerBdv ?? 0n, STALK.decimals),
           },
+          germinatingAmount: TokenValue.fromBlockchain(siloTokenData?.[6]?.result ?? 0n, token.decimals),
+          germinatingBDV: TokenValue.fromBlockchain(siloTokenData?.[7]?.result ?? 0n, BEAN.decimals),
         } as Omit<SiloTokenData, "yields">;
       },
     },

@@ -4103,6 +4103,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/lodash@npm:^4":
+  version: 4.17.13
+  resolution: "@types/lodash@npm:4.17.13"
+  checksum: 10c0/c3d0b7efe7933ac0369b99f2f7bff9240d960680fdb74b41ed4bd1b3ca60cca1e31fe4046d9abbde778f941a41bc2a75eb629abf8659fa6c27b66efbbb0802a9
+  languageName: node
+  linkType: hard
+
 "@types/ms@npm:*":
   version: 0.7.34
   resolution: "@types/ms@npm:0.7.34"
@@ -7283,6 +7290,7 @@ __metadata:
     "@rollup/plugin-strip": "npm:^3.0.4"
     "@tanstack/react-query": "npm:^5.59.13"
     "@tanstack/react-query-devtools": "npm:5.51.1"
+    "@types/lodash": "npm:^4"
     "@types/node": "npm:^22.0.0"
     "@types/react": "npm:^18.3.1"
     "@types/react-dom": "npm:^18.3.0"
@@ -7298,6 +7306,7 @@ __metadata:
     framer-motion: "npm:^11.11.11"
     graphql: "npm:16.9.0"
     graphql-request: "npm:7.1.0"
+    lodash: "npm:^4.17.21"
     postcss: "npm:8.4.39"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"

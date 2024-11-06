@@ -52,7 +52,7 @@ const textColors = {
 	'lighter':     clsx("text-pinto-gray-3"),
 	'green4':      clsx("text-pinto-green-4"),
 	'green3':      clsx("text-pinto-green-3"),
-	"inherit":     clsx("text-inherit"),
+	"inherit":     clsx("text-current"),
 } as const;
 
 // biome-ignore format: keep unformatted for readability

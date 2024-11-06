@@ -8,7 +8,7 @@ export const truncateAddress = (address: string | HashString | undefined, option
   return `${address.substring(0, 6)}...${options?.suffix ? address.substring(address.length - 4) : ""}`;
 };
 
-type Stringable = string | number | TokenValue | bigint | undefined | null;
+type Stringable = HashString | string | number | TokenValue | bigint | undefined | null;
 
 export const stringEq = (a: Stringable, b: Stringable) => {
   if (!exists(a) || !exists(b)) return false;

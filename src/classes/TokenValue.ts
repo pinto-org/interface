@@ -342,4 +342,12 @@ export class TokenValue {
 
     return TokenValue.fromHuman(newString, decimals);
   }
+
+  ////// Getters //////
+
+  get isZero(): boolean {
+    return this.eq(0n);
+  }
 }
+
+export { TokenValue as TV };
