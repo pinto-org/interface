@@ -17,9 +17,14 @@ import { useCallback } from "react";
 // TODO: This might be more than needed
 ReactChart.register(LineController, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend);
 
+export interface LineChartData {
+  value: number;
+  timestamp: Date;
+}
+
 // TODO: add configurable gradient here
-interface LineChartProps {
-  data: ChartData;
+export interface LineChartProps {
+  data: LineChartData[];
   options?: ChartOptions;
 }
 
@@ -27,7 +32,7 @@ export default function LineChart({ data, options }: LineChartProps) {
   const chartData = useCallback(
     (ctx: CanvasRenderingContext2D | null): ChartData => {
       // Create the line gradient
-      let gradient: CanvasGradient;
+      let gradient: CanvasGradient | undefined = undefined;
       if (ctx) {
         gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
         gradient.addColorStop(0, "rgba(255, 0, 0, 1)");
@@ -35,17 +40,17 @@ export default function LineChart({ data, options }: LineChartProps) {
       }
 
       return {
-        labels: ["Test1", "Test2", "test3"], // remove later
-        datasets: data.datasets.map((d) => {
-          return {
+        labels: data.map((d) => d.timestamp),
+        datasets: [
+          {
+            data: data.map((d) => d.value),
             borderColor: gradient,
             borderWidth: 2,
             // Hide default points, custom are implemented in afterDraw plugin
             pointRadius: 0,
             pointHoverRadius: 0,
-            ...d,
-          };
-        }),
+          },
+        ],
       };
     },
     [data],
@@ -89,7 +94,25 @@ export default function LineChart({ data, options }: LineChartProps) {
       axis: "x",
       intersect: false,
     },
-    onHover: () => {},
+    scales: {
+      x: {
+        grid: {
+          display: false,
+        },
+        border: {
+          display: false,
+        },
+      },
+      y: {
+        grid: {
+          display: false,
+        },
+        border: {
+          display: false,
+        },
+        position: "right",
+      },
+    },
     ...options,
   };
 
