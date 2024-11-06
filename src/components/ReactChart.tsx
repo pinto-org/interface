@@ -27,23 +27,26 @@ export const ReactChart = ({ id, data, options, type, plugins, updateMode, heigh
     chartInstance.current.options = options;
 
     chartInstance.current.update(updateMode);
-  }, [data, options]);
+  }, [data, options, updateMode]);
 
-  const nodeRef = useCallback<(node: HTMLCanvasElement | null) => void>((node) => {
-    chartInstance.current.destroy();
+  const nodeRef = useCallback<(node: HTMLCanvasElement | null) => void>(
+    (node) => {
+      chartInstance.current.destroy();
 
-    if (node) {
-      // @ts-ignore
-      chartInstance.current = new Chart(node, {
-        type,
-        data,
-        options,
-        plugins,
-      });
-    }
-  }, []);
+      if (node) {
+        // @ts-ignore
+        chartInstance.current = new Chart(node, {
+          type,
+          data,
+          options,
+          plugins,
+        });
+      }
+    },
+    [type, data, options, plugins],
+  );
 
-  return <canvas ref={nodeRef} height={height} width={width} id={CHART_ID} role="chart" />;
+  return <canvas ref={nodeRef} height={height} width={width} id={CHART_ID} />;
 };
 
 ReactChart.register = Chart.register || noop;
