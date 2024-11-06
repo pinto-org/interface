@@ -24,7 +24,7 @@ export default function CreateOrder() {
 
   const { address: account } = useAccount();
 
-  const [amountIn, setAmountIn] = useState(0);
+  const [amountIn, setAmountIn] = useState("0");
   const [tokenIn, setTokenIn] = useState(mainToken);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.EXTERNAL);
   const [slippage, setSlippage] = useState(0.1);
@@ -47,7 +47,7 @@ export default function CreateOrder() {
   const swapData = useSwapEstimate(
     tokenIn,
     mainToken,
-    amountIn,
+    Number(amountIn),
     slippage,
     "exactInput",
     balanceFrom,

@@ -63,6 +63,7 @@ export default function StepOne({
 }: StepOneProps) {
   // Get available tokens and balances
   const { balances } = useFarmerBalances();
+  const [selectedTokens, setSelectedTokens] = useState<Token[]>([]);
 
   const tokenAndBalanceMap = useMemo(() => {
     const map = new Map<Token, TokenValue>();
@@ -151,6 +152,10 @@ export default function StepOne({
     [tokenAndBalanceMap, setTransferData],
   );
 
+  useEffect(() => {
+    handleAddToken(selectedTokens);
+  }, [handleAddToken, selectedTokens]);
+
   return (
     <motion.div className="flex flex-col gap-6">
       <motion.div className="flex flex-row justify-end -mt-[5rem]">
@@ -219,7 +224,7 @@ export default function StepOne({
               {numberOfValidTokens > 1 && numberOfValidTokens !== transferData.length && (
                 <div className="flex">
                   <MultiTokenSelectWithBalances
-                    setTokens={handleAddToken}
+                    setTokens={setSelectedTokens}
                     selectedTokens={transferData.map((data) => data.token)}
                     tokenAndBalanceMap={tokenAndBalanceMap}
                     customTitle="Select token(s) in your Farm Balance to send"
