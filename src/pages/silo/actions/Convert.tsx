@@ -305,13 +305,12 @@ export default Convert;
 
 // ------------------------------ Token Select ------------------------------
 
-export interface IConvertTokenSelect {
+interface IConvertTokenSelect {
   tokens: Token[];
   selectedToken: Token;
   subheader?: React.ReactNode;
   setToken: React.Dispatch<React.SetStateAction<Token>> | ((token: Token) => void);
 }
-
 interface ConvertableTokensState {
   up: SiloTokenConvertPath[];
   down: SiloTokenConvertPath[];
@@ -400,7 +399,6 @@ const SiloConvertTokenSelect = () => {
               {formatter.twoDec(siloTokenSeedRewards)}
             </Text>
           </div>
-
           <Separator />
           {/* Token list */}
           <div className="flex flex-col">
