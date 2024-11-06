@@ -40,7 +40,7 @@ interface SiloTokenState {
   };
 }
 
-type SiloTokenConvertPath = {
+export type SiloTokenConvertPath = {
   /**
    * The token to convert to
    */
