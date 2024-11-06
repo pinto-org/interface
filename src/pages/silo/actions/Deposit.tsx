@@ -120,7 +120,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
           setAmount={setAmountIn}
           setToken={setTokenIn}
           setBalanceFrom={setBalanceFrom}
-          handleAmountChange={(v) => setAmountIn(Number(v))}
           selectedToken={tokenIn}
           balanceFrom={balanceFrom}
         />
