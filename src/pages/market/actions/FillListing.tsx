@@ -1,24 +1,24 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Label } from "@/components/ui/Label";
-import { AdvancedFarmCall, FarmFromMode, FarmToMode } from "@/utils/types";
-import { useParams } from "react-router-dom";
-import usePodListings from "@/state/usePodListings";
-import { useFieldData } from "@/state/useFieldData";
 import { TokenValue } from "@/classes/TokenValue";
-import { useWriteContract } from "wagmi";
-import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
-import { useChainId } from "wagmi";
-import { Address, BaseError } from "viem";
-import SmartSubmitButton from "@/components/SmartSubmitButton";
-import { PODS } from "@/constants/internalTokens";
-import useTokenData from "@/state/useTokenData";
 import { ComboInputField } from "@/components/ComboInputField";
 import SlippageButton from "@/components/SlippageButton";
-import useSwapEstimate from "@/hooks/useSwapEstimate";
+import SmartSubmitButton from "@/components/SmartSubmitButton";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Label } from "@/components/ui/Label";
+import { PODS } from "@/constants/internalTokens";
 import fillPodListing from "@/encoders/fillPodListing";
+import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import useSwapEstimate from "@/hooks/useSwapEstimate";
+import { useFieldData } from "@/state/useFieldData";
+import usePodListings from "@/state/usePodListings";
+import useTokenData from "@/state/useTokenData";
+import { AdvancedFarmCall, FarmFromMode, FarmToMode } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { toast } from "sonner";
+import { Address, BaseError } from "viem";
+import { useWriteContract } from "wagmi";
+import { useChainId } from "wagmi";
 
 export default function FillListing() {
   const BEAN = useTokenData().mainToken;
@@ -35,7 +35,7 @@ export default function FillListing() {
 
   const mainToken = useTokenData().mainToken;
 
-  const [amountIn, setAmountIn] = useState(0);
+  const [amountIn, setAmountIn] = useState("0");
   const [tokenIn, setTokenIn] = useState(mainToken);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.EXTERNAL);
   const [slippage, setSlippage] = useState(0.1);
@@ -45,7 +45,7 @@ export default function FillListing() {
   const swapData = useSwapEstimate(
     tokenIn,
     mainToken,
-    amountIn,
+    Number(amountIn),
     slippage,
     "exactInput",
     balanceFrom,

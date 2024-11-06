@@ -7,7 +7,8 @@
     "dev": "vite",
     "wagmi:generate": "wagmi generate --config wagmi.config.ts",
     "generate": "wagmi generate && graphql-codegen",
-    "build": "wagmi generate && tsc && vite build",
+    "build": "yarn generate && tsc && vite build",
+    "build:netlify": "./scripts/build-netlify.sh",
     "lint": "biome check .",
     "preview": "vite preview"
   },

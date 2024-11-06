@@ -20,7 +20,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   const { data: farmerDeposits, queryKey: queryKey } = useFarmerDepositedBalances();
   const [fromToken, setFromToken] = useState(siloToken);
   const [destination, setDestination] = useState(FarmToMode.EXTERNAL);
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState("0");
 
   const farmerDepositData = farmerDeposits.get(fromToken);
   const deposits = farmerDepositData?.deposits;

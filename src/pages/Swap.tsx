@@ -23,10 +23,10 @@ import { useAccount, useChainId, useWriteContract } from "wagmi";
 export default function Swap() {
   const BEAN = useTokenData().mainToken;
   const OUTPUT_TOKEN = useTokenData().preferredTokens[1];
-  const [amountIn, setAmountIn] = useState(0);
+  const [amountIn, setAmountIn] = useState("0");
   const [tokenIn, setTokenIn] = useState(BEAN);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.EXTERNAL);
-  const [amountOut, setAmountOut] = useState(0);
+  const [amountOut, setAmountOut] = useState("0");
   const [tokenOut, setTokenOut] = useState(OUTPUT_TOKEN);
   const [balanceTo, setBalanceTo] = useState(FarmToMode.EXTERNAL);
   const [slippage, setSlippage] = useState(0.1);
@@ -36,19 +36,19 @@ export default function Swap() {
   const queryClient = useQueryClient();
   const { queryKey } = useFarmerBalances();
 
-  const swapData = useSwapEstimate(tokenIn, tokenOut, amountIn, slippage, "exactInput", balanceFrom, balanceTo);
+  const swapData = useSwapEstimate(tokenIn, tokenOut, Number(amountIn), slippage, "exactInput", balanceFrom, balanceTo);
 
   const destinationIsEth = tokenOut.isNative;
 
   useEffect(() => {
     if (swapData?.mode === "exactInput") {
-      setAmountOut(Number(swapData?.output.toHuman()));
+      setAmountOut(swapData?.output.toHuman());
     } else if (swapData?.mode === "exactOutput") {
-      setAmountIn(Number(swapData?.output.toHuman()));
+      setAmountIn(swapData?.output.toHuman());
     }
   }, [swapData?.output, swapData?.mode]);
 
-  function changeAmountIn(value: number) {
+  function changeAmountIn(value: string) {
     setAmountIn(value);
   }
 
