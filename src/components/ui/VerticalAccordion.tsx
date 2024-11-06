@@ -35,6 +35,7 @@ const Component = ({ children }: IChildren) => {
   const [contentHeight, setContentHeight] = useState(0);
   const [isAnimationComplete, setIsAnimationComplete] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLDivElement>(null);
 
   // Measure content height when content changes
   useEffect(() => {
@@ -65,13 +66,21 @@ const Component = ({ children }: IChildren) => {
   return (
     <div className="inline-block">
       <div
-        className={cn("transition-[max-height] duration-250 ease-in-out overflow-hidden", !hideTriggerOnOpen && "mb-2")}
+        className={cn("transition-[max-height] duration-275 ease-in-out overflow-hidden", !hideTriggerOnOpen && "mb-2")}
         style={{ maxHeight: open ? `${contentHeight}px` : "0px" }}
         onTransitionEnd={handleTransitionEnd}
       >
         <div ref={contentRef}>{children}</div>
       </div>
-      {(!hideTriggerOnOpen || !isAnimationComplete) && <VerticalAccordionTrigger />}
+      <div
+        ref={buttonRef}
+        className={cn(
+          "transition-all duration-275 ease-in-out",
+          hideTriggerOnOpen && isAnimationComplete && open && "opacity-0 h-0 overflow-hidden",
+        )}
+      >
+        <VerticalAccordionTrigger />
+      </div>
     </div>
   );
 };

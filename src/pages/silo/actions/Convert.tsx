@@ -339,12 +339,7 @@ const ConvertTokenSelect = () => {
           <Separator />
           {/* Token list */}
           <div className="flex flex-col">
-            <VerticalAccordion
-              title="Show other tokens"
-              // hideTriggerOnOpen
-              open={showOtherTokens}
-              onOpenChange={setShowOtherTokens}
-            >
+            <VerticalAccordion title="Show other tokens" open={showOtherTokens} onOpenChange={setShowOtherTokens}>
               <div className="flex flex-col h-[140px] sm:h-[240px] justify-center items-center">
                 <Text variant="sm" color="light">
                   Converting to any other token from Pinto will result in a loss.
