@@ -4,9 +4,21 @@ import type { ChartOptions, ChartData, ChartType, Plugin, UpdateMode } from "cha
 import { generateID } from "@/utils/utils";
 import { noop } from "@/utils/utils";
 
+type ChartInputFunction<T> = (chart: Chart, ctx: CanvasRenderingContext2D | null) => T;
+type ReactChartInput<T> = T | ChartInputFunction<T>;
+
+// biome-ignore lint/suspicious/noExplicitAny: needed for type check
+function isInputFunctionType<T>(value: any): value is ChartInputFunction<T> {
+  return typeof value === "function";
+}
+
+function getChartInputFn<T>(valueOrFn: ReactChartInput<T>): (chart: Chart, ctx: CanvasRenderingContext2D | null) => T {
+  return isInputFunctionType(valueOrFn) ? valueOrFn : () => valueOrFn;
+}
+
 export interface ChartProps {
-  data: ChartData;
-  options: ChartOptions;
+  data: ReactChartInput<ChartData>;
+  options: ReactChartInput<ChartOptions>;
   type: ChartType;
   plugins?: Plugin[];
   updateMode?: UpdateMode;
@@ -22,23 +34,27 @@ export const ReactChart = ({ id, data, options, type, plugins, updateMode, heigh
   } as Chart);
   const [CHART_ID] = useState(id || generateID("Chart"));
 
-  useEffect(() => {
-    chartInstance.current.data = data;
-    chartInstance.current.options = options;
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
-    chartInstance.current.update(updateMode);
+  useEffect(() => {
+    if (ctxRef.current) {
+      chartInstance.current.data = getChartInputFn(data)(chartInstance.current, ctxRef.current);
+      chartInstance.current.options = getChartInputFn(options)(chartInstance.current, ctxRef.current);
+      chartInstance.current.update(updateMode);
+    }
   }, [data, options, updateMode]);
 
   const nodeRef = useCallback<(node: HTMLCanvasElement | null) => void>(
     (node) => {
       chartInstance.current.destroy();
+      ctxRef.current = null;
 
       if (node) {
-        // @ts-ignore
+        ctxRef.current = node.getContext("2d");
         chartInstance.current = new Chart(node, {
           type,
-          data,
-          options,
+          data: getChartInputFn(data)(chartInstance.current, ctxRef.current),
+          options: getChartInputFn(options)(chartInstance.current, ctxRef.current),
           plugins,
         });
       }

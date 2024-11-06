@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Text from "../ui/Text";
 import { formatDate } from "@/utils/format";
+import LineChart from "./LineChart";
 
 interface SeasonalChartProps {
   title: string;
@@ -32,6 +33,17 @@ export default function SeasonalChart({ title, valueFormatter: formatter }: Seas
           {formatDate(displayData.timestamp)}
         </Text>
       </div>
+
+      <LineChart
+        data={{
+          datasets: [
+            {
+              label: "Sample Data", // Wont display anywhere, remove later
+              data: [123, 234, 345, 456, 345, 234, 123, 1234, 56],
+            },
+          ],
+        }}
+      />
     </div>
   );
 }
