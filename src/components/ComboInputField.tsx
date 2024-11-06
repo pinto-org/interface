@@ -16,6 +16,7 @@ import PlotSelect from "./PlotSelect";
 import TokenSelectWithBalances from "./TokenSelectWithBalances";
 import { Button } from "./ui/Button";
 import { Skeleton } from "./ui/Skeleton";
+import Text from "./ui/Text";
 
 export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
   // Token mode props
@@ -310,7 +311,9 @@ function ComboInputField({
                     className="rounded-[0.75rem] text-[1rem] px-1.5 py-1 h-auto"
                     onClick={handleSetMax}
                   >
-                    Max
+                    <Text variant="sm-light" className="px-1.5 py-1" color="green3">
+                      Max
+                    </Text>
                   </Button>
                 )}
               </div>

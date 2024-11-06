@@ -77,6 +77,7 @@ export const formatNoDecimals = (val: NumberPrimitive) => {
     maxDecimals: 0,
     defaultValue: "0",
     minValue: 0.01,
+    allowZero: true,
   });
 };
 

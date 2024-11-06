@@ -156,7 +156,7 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
     );
 
   const gaugeData = seedGauge.data.gaugeData[getTokenIndex(siloToken)];
-  const liquidityRatio = siloTokenData?.depositedBDV.div(liquidityTVD.gt(0) ? liquidityTVD : TokenValue.ONE).mul(100);
+  const liquidityRatio = siloTokenData?.depositedBDV.div(liquidityTVD.gt(0) ? liquidityTVD : TokenValue.ONE);
   const optimalDepositedRatio = gaugeData?.optimalPctDepositedBdv;
 
   const depositedBDV = siloTokenData?.depositedBDV;
@@ -304,7 +304,7 @@ const SiloTokenHeader = ({ siloToken }: IBaseSiloToken) => {
           <img src={backArrowIcon} alt="go to previous page" />
         </Link>
       </Button>
-      <div className="inline-flex items-center gap-3">
+      <div className="inline-flex items-center flex-wrap gap-3">
         <div className="inline-flex gap-3 items-center whitespace-nowrap">
           <IconImage src={siloToken?.logoURI} size={12} alt={siloToken?.name} />
           <Text variant="h1">{siloToken?.name}</Text>
