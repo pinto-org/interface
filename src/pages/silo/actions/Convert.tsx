@@ -4,21 +4,35 @@ import { ComboInputField } from "@/components/ComboInputField";
 import SlippageButton from "@/components/SlippageButton";
 import TokenSelectWithBalances from "@/components/TokenSelectWithBalances";
 import { Button } from "@/components/ui/Button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/Dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/Dialog";
 import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
+import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
+import VerticalAccordion from "@/components/ui/VerticalAccordion";
+import { SEEDS } from "@/constants/internalTokens";
 import { beanstalkAbi, beanstalkAddress, useReadSilo_GetAmountOut } from "@/generated/contractHooks";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { PoolData, usePriceData } from "@/state/usePriceData";
 import { useSeedGauge } from "@/state/useSeedGauge";
+import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { calculateConvertData, sortAndPickCrates } from "@/utils/convert";
+import { formatter } from "@/utils/format";
 import { stringEq } from "@/utils/string";
-import { Token } from "@/utils/types";
+import { getTokenIndex } from "@/utils/token";
+import { AddressMap, SiloTokenData, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
-import React from "react";
+import _ from "lodash";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React from "react";
 import { toast } from "sonner";
 import { BaseError } from "viem";
 import { useWriteContract } from "wagmi";
@@ -167,7 +181,7 @@ function DefaultConvert() {
 // ------------------------------ PIPELINE CONVERT ------------------------------
 
 const PipelineConvert = () => {
-  const { siloToken, convertDestinations, targetToken, setTargetToken } = useConvertContext();
+  const { siloToken, allTargets, targetToken, setTargetToken } = useConvertContext();
 
   const { data: farmerDeposits } = useFarmerDepositedBalances();
   const seedGauge = useSeedGauge();
@@ -229,17 +243,70 @@ export interface IConvertTokenSelect {
   setToken: React.Dispatch<React.SetStateAction<Token>> | ((token: Token) => void);
 }
 
+interface IConvertTokenSelectRow {
+  token: Token;
+  seedReward: TokenValue;
+  deltaSeedReward: TokenValue;
+}
+
+interface ConvertableTokensState {
+  up: IConvertTokenSelectRow[];
+  down: IConvertTokenSelectRow[];
+}
+
 const ConvertTokenSelect = () => {
-  const { convertDestinations, targetToken } = useConvertContext();
+  const { siloToken, allTargets, targetToken, wlTokenData } = useConvertContext();
+  const tokenData = useTokenData();
+  const [open, setOpen] = useState(true);
+  const [showOtherTokens, setShowOtherTokens] = useState(false);
+
+  const handleOpenDialog = (toOpenState: boolean) => {
+    setOpen(toOpenState);
+    if (!toOpenState && showOtherTokens) {
+      setShowOtherTokens(false);
+    }
+  };
+
+  const pintoSelected = stringEq(targetToken.address, tokenData.mainToken.address);
+
+  const siloTokenSeedRewards = wlTokenData[getTokenIndex(siloToken)]?.silo.rewards.seeds;
+
+  const rows = allTargets.reduce<ConvertableTokensState>(
+    (prev, token) => {
+      const tokenSilo = wlTokenData[getTokenIndex(token)].silo;
+      const seedReward = tokenSilo.rewards.seeds;
+
+      const deltaSeedReward = seedReward.sub(siloTokenSeedRewards);
+
+      const row: IConvertTokenSelectRow = {
+        token,
+        seedReward,
+        deltaSeedReward,
+      };
+
+      prev[deltaSeedReward.gte(0) ? "up" : "down"].push(row);
+
+      return prev;
+    },
+    { up: [], down: [] },
+  );
+
+  useEffect(() => {
+    if (!open && showOtherTokens) {
+      setShowOtherTokens(false);
+    }
+  }, [open, showOtherTokens]);
+
+  const NonLP2LP = () => {
+    return <div>asdf</div>;
+  };
+
+  const WhitelistedLPToOther = () => {};
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={handleOpenDialog}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          rounded="full"
-          className="shadow-[0px_1px_8px_0px_#E9F0F6] border-[#E9F0F6] bg-white/100"
-        >
+        <Button variant="outline-gray-shadow" size="xl" rounded="full">
           <div className="flex flex-row items-center gap-1">
             <IconImage src={targetToken.logoURI} size={6} />
             <Text variant="body-light">{targetToken.symbol}</Text>
@@ -247,8 +314,55 @@ const ConvertTokenSelect = () => {
           </div>
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <div className="flex flex-col gap-4">d</div>
+      <DialogContent className="w-full max-w-dialog-600 min-w-dialog-600 gap-3 p-0">
+        {/* Header */}
+        <div className="flex flex-col gap-6 p-6">
+          <DialogHeader>
+            <Text variant="body">Select a token</Text>
+          </DialogHeader>
+          <div className="flex flex-col gap-6">
+            {/* Subheader */}
+            <div className="flex flex-row justify-between">
+              <Text variant="body-light" color="light" className="inline-flex items-center gap-1">
+                Currently Deposited:
+                <IconImage nudge={1} src={siloToken.logoURI} size={6} className="ml-1" />
+                <Text as="span" variant="body-light" color="secondary">
+                  {siloToken.name}
+                </Text>
+              </Text>
+              <Text variant="h4" weight="light" className="inline-flex items-center gap-2">
+                <IconImage nudge={1} src={SEEDS.logoURI} size={6} />
+                {formatter.twoDec(siloTokenSeedRewards)}
+              </Text>
+            </div>
+          </div>
+          <Separator />
+          {/* Token list */}
+          <div className="flex flex-col">
+            <VerticalAccordion
+              title="Show other tokens"
+              // hideTriggerOnOpen
+              open={showOtherTokens}
+              onOpenChange={setShowOtherTokens}
+            >
+              <div className="flex flex-col h-[140px] sm:h-[240px] justify-center items-center">
+                <Text variant="sm" color="light">
+                  Converting to any other token from Pinto will result in a loss.
+                </Text>
+              </div>
+            </VerticalAccordion>
+
+            {/* {!!rows.up.length ? (
+              <div>asdf</div>
+            ) : (
+              <div className="flex flex-col h-[140px] sm:h-[240px] justify-center items-center">
+                <Text variant="sm" color="light">
+                  Converting to any other token from Pinto will result in a loss.
+                </Text>
+              </div>
+            )} */}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -262,7 +376,8 @@ interface ConvertContext {
   targetToken: Token;
   siloToken: Token;
   convertType: ConvertType;
-  convertDestinations: Token[];
+  allTargets: Token[];
+  wlTokenData: AddressMap<{ silo: SiloTokenData; pool?: PoolData }>;
   setTargetToken: (token: Token) => void;
 }
 
@@ -276,15 +391,13 @@ const useConvertContext = () => {
   return context;
 };
 
-const getConvertableTargets = (pools: PoolData[], siloToken: Token) => {};
-
 const ConvertProvider = ({ children, siloToken }: { children: React.ReactNode; siloToken: Token }) => {
   const priceData = usePriceData();
   const tokenData = useTokenData();
+  const siloData = useSiloData();
 
   const pools = priceData.pools;
 
-  const [allTargets, setAllTargets] = useState<Token[]>([]);
   const [convertType, setConvertType] = useState<ConvertType>("convert");
   const [targetToken, setTargetToken] = useState<Token>(
     siloToken.isMain
@@ -292,10 +405,39 @@ const ConvertProvider = ({ children, siloToken }: { children: React.ReactNode; s
       : tokenData.mainToken,
   );
 
-  const convertDestinations = useMemo(
-    () => [tokenData.mainToken, ...tokenData.lpTokens].filter((tk) => !stringEq(tk.address, siloToken.address)),
-    [tokenData, siloToken],
-  );
+  const { allTargets, wlTokenData } = useMemo(() => {
+    const all = [tokenData.mainToken, ...tokenData.lpTokens];
+    const filteredTargets = all.filter((tk) => !stringEq(tk.address, siloToken.address));
+
+    const poolMap = _.keyBy(pools, (pool) => getTokenIndex(pool.pool));
+
+    const targetsData = all.reduce<AddressMap<{ silo: SiloTokenData; pool?: PoolData }>>((prev, token) => {
+      const siloTokenData = siloData.tokenData.get(token);
+      const tokenIndex = getTokenIndex(token);
+      const siloTokenPoolData = poolMap[tokenIndex];
+
+      // Filter out whitelisted tokens that we cannot convert to
+      if (siloTokenData?.depositedBDV.gt(0)) {
+        prev[tokenIndex] = {
+          silo: siloTokenData,
+          pool: siloTokenPoolData,
+        };
+      }
+
+      return prev;
+    }, {});
+
+    const bySeedRewardsDesc = filteredTargets.sort((a, b) => {
+      const aData = targetsData[getTokenIndex(a)];
+      const bData = targetsData[getTokenIndex(b)];
+      return bData.silo.rewards.seeds.toNumber() - aData.silo.rewards.seeds.toNumber();
+    });
+
+    return {
+      wlTokenData: targetsData,
+      allTargets: bySeedRewardsDesc,
+    };
+  }, [tokenData, siloToken, pools, siloData]);
 
   const handleSetTargetToken = useCallback(
     (token: Token) => {
@@ -312,7 +454,14 @@ const ConvertProvider = ({ children, siloToken }: { children: React.ReactNode; s
 
   return (
     <ConvertContext.Provider
-      value={{ siloToken, convertDestinations, targetToken, convertType, setTargetToken: handleSetTargetToken }}
+      value={{
+        siloToken,
+        allTargets,
+        wlTokenData,
+        targetToken,
+        convertType,
+        setTargetToken: handleSetTargetToken,
+      }}
     >
       {children}
     </ConvertContext.Provider>

@@ -106,10 +106,14 @@ module.exports = {
       maxWidth: {
         "panel-price": "600px",
         "panel-seasons": "min(914px, calc(100vw - 48px))",
+        "dialog-600": "min(600px, calc(100vw - 32px))",
       },
       width: {
         "panel-price": "600px",
         "panel-seasons": "min(914px, calc(100vw - 48px))",
+      },
+      minWidth: {
+        "dialog-600": "min(600px, calc(100vw - 32px))",
       },
       keyframes: {
         "accordion-down": {

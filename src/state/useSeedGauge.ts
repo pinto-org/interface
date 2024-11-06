@@ -116,10 +116,10 @@ export const useSeedGauge = () => {
       }
 
       const { totalDeposited, tokenBDV: bdvOne, tokenSettings } = wlTokenData;
-      console.log(token.symbol, {
-        totalDeposited,
-        bdvOne,
-      });
+      // console.log(token.symbol, {
+      //   totalDeposited,
+      //   bdvOne,
+      // });
 
       const optimalPctDepositedBdv = tokenSettings.optimalPercentDepositedBdv;
       const allocatedGP = optimalPctDepositedBdv.gt(0);

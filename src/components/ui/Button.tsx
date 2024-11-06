@@ -14,6 +14,11 @@ const primaryBase = clsx("text-pinto-green hover:text-pinto-green");
 
 const secondaryBase = clsx("text-pinto-gray-5 hover:text-pinto-gray-5");
 
+const outlineShadowBase = clsx(
+  // E9F0F6 is pinto-gray-blue
+  "shadow-[0px_1px_8px_0px_#E9F0F6] border-pinto-gray-blue bg-white/100 hover:bg-pinto-gray-1",
+);
+
 const roundedBase = clsx("rounded-full");
 
 const buttonVariants = cva(
@@ -28,12 +33,14 @@ const buttonVariants = cva(
         "outline-rounded": `${outlineBase} ${roundedBase}`,
         "outline-primary": `${outlineBase} ${primaryBase}`,
         "outline-secondary": `${outlineBase} ${secondaryBase}`,
+        "outline-gray-shadow": `${outlineBase} ${outlineShadowBase}`,
         secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-pinto-gray-2 hover:hover:bg-pinto-gray-2/50",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
         default: `h-10 w-max px-2 py-2 sm:px-4 sm:py-2 ${deriveTextStyles("body-light", true)}`,
+        xl: `h-12 px-3 py-3 sm:px-4 sm:py-3 ${deriveTextStyles("body-light", true)}`,
         lg: "h-10 rounded-md px-8",
         md: `h-10 px-2 py-2 sm:px-4 sm:py-2 ${deriveTextStyles("sm", true)}`,
         sm: `h-8 rounded-md px-3 ${deriveTextStyles("xs", true)}`,

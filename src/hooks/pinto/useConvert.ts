@@ -1,6 +1,6 @@
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
-import { Token } from "graphql";
+import { Token } from "@/utils/types";
 
 export default function useConvert() {
   const tokenData = useTokenData();
