@@ -66,7 +66,7 @@ const Component = ({ children }: IChildren) => {
   return (
     <div className="inline-block">
       <div
-        className={cn("transition-[max-height] duration-275 ease-in-out overflow-hidden", !hideTriggerOnOpen && "mb-2")}
+        className={cn("transition-[max-height] duration-275 ease-in-out overflow-hidden")}
         style={{ maxHeight: open ? `${contentHeight}px` : "0px" }}
         onTransitionEnd={handleTransitionEnd}
       >
