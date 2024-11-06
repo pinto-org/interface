@@ -90,6 +90,21 @@ export const format2Decimals = (val: NumberPrimitive) => {
   });
 };
 
+export const formatDate = (date: Date) => {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const year = String(date.getFullYear()).slice(-2);
+
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const period = hours >= 12 ? "pm" : "am";
+
+  hours = hours % 12 || 12;
+  const formattedTime = `${hours}:${minutes}${period}`;
+
+  return `${month}/${day}/${year} • ${formattedTime}`;
+};
+
 export const formatter = {
   number: formatNum,
   usd: formatUSD,
@@ -97,6 +112,7 @@ export const formatter = {
   pct: formatPct,
   noDec: formatNoDecimals,
   twoDec: format2Decimals,
+  date: formatDate,
 };
 
 export function truncateHex(hex: string, left: number = 4, right: number = 3) {

@@ -1,7 +1,9 @@
+import SeasonalChart from "@/components/charts/SeasonalChart";
 import { ReactChart } from "@/components/ReactChart";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
+import { formatter } from "@/utils/format";
 import { ArcElement, BarController, BarElement, CategoryScale, LinearScale, PieController } from "chart.js";
 import { useState } from "react";
 
@@ -38,6 +40,12 @@ function Explorer() {
             </div>
           </div>
           <Separator />
+
+          <SeasonalChart
+            title="Pinto Price"
+            valueFormatter={(v) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`}
+          />
+
           {/* Test chart. Actual charts should ultimately go in separate components */}
           <div className="w-[25%]">
             <ReactChart
