@@ -16,6 +16,7 @@ interface StatPanel {
   tooltipContent?: ReactNode;
   size?: "large" | "small" | undefined;
   variant?: "overview" | "silo";
+  className?: string;
 }
 
 export default function StatPanel({
@@ -25,9 +26,21 @@ export default function StatPanel({
   tooltipContent,
   size = "small",
   variant = "overview",
+  className,
 }: StatPanel) {
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div
+      className={`flex flex-col items-center gap-2 ${className}`}
+      data-action-target={
+        mode === "depositedValue"
+          ? "silo-stats"
+          : mode === "stalk"
+            ? "stalk-stats"
+            : mode === "seeds"
+              ? "seeds-stats"
+              : "pods-stats"
+      }
+    >
       <Text variant="body">
         {mode === "depositedValue" && "My deposited value"}
         {mode === "stalk" && "My Stalk"}

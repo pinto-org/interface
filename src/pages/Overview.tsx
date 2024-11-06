@@ -1,12 +1,14 @@
 import claimableIcon from "@/assets/protocol/Claimable.png";
 import pdvIcon from "@/assets/protocol/PDV.png";
 import { TokenValue } from "@/classes/TokenValue";
+import { ActionButton } from "@/components/ActionButton";
 import PlotsTable from "@/components/PlotsTable";
 import StatPanel from "@/components/StatPanel";
 import { Button } from "@/components/ui/Button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import useFarmerActions from "@/hooks/useFarmerActions";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
@@ -26,6 +28,7 @@ export default function Overview() {
 
   const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
+  const farmerActions = useFarmerActions();
 
   const siloData = useSiloData();
   const fieldData = useFieldData();
@@ -68,6 +71,77 @@ export default function Overview() {
       farmerField.refetch();
     }
   }, [isSuccess]);
+
+  // Render action buttons based on available actions
+  const renderActionButtons = () => {
+    const buttons: any[] = [];
+
+    if (farmerActions.canClaimRewards) {
+      buttons.push(
+        <ActionButton
+          key="claim"
+          text="Claim your rewards"
+          onClick={() => onSubmit()}
+          targetData="claimable-rewards"
+          position="right"
+          offsetX={100}
+          offsetY={-300}
+        />,
+      );
+    }
+
+    /*
+    if (farmerActions.canDeposit && farmerActions.optimalDepositToken) {
+      buttons.push(
+        <ActionButton
+          key="deposit"
+          text={`Deposit ${farmerActions.optimalDepositToken.token.symbol} for optimal rewards`}
+          onClick={() => navigate(`/silo/${farmerActions.optimalDepositToken?.token.address}`)}
+          targetSelector=".silo-stats"
+          position="right"
+          offsetX={24}
+          offsetY={24}
+        />,
+      );
+    } */
+
+    if (farmerActions.canConvert && farmerActions.convertibleDeposits.length > 0) {
+      const firstConversion = farmerActions.convertibleDeposits[0];
+      const fromToken = firstConversion.from;
+      const toToken = firstConversion.to[0].token;
+      buttons.push(
+        <ActionButton
+          key="convert"
+          text={`Convert ${fromToken.symbol} to ${toToken.symbol} for better rewards`}
+          onClick={() => navigate(`/silo/${firstConversion.from.address}`)}
+          targetData={[`token-row-${fromToken.address}`, `token-row-${toToken.address}`]}
+          position="left"
+          offsetX={50}
+          offsetY={-90}
+          lineSettings={{
+            straight: false,
+            margin: 0,
+          }}
+        />,
+      );
+    }
+
+    if (farmerActions.canHarvest) {
+      buttons.push(
+        <ActionButton
+          key="harvest"
+          text="Harvest your mature pods"
+          onClick={() => navigate("/field")}
+          targetData="pods-stats"
+          position="right"
+          offsetX={100}
+          offsetY={-200}
+        />,
+      );
+    }
+
+    return buttons;
+  };
 
   async function onSubmit() {
     if (!account.address) return;
@@ -178,6 +252,7 @@ export default function Overview() {
                         <TableRow
                           onClick={() => onSubmit()}
                           className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 hover:cursor-pointer"
+                          data-action-target="claimable-rewards"
                         >
                           <TableCell className="text-pinto-green-2 font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">
                             <img src={claimableIcon} className="h-8 w-8" alt="Claimable Tokens" />
@@ -201,9 +276,10 @@ export default function Overview() {
                         const claimableStalk = farmerSilo.grownStalkPerToken.get(token) || TokenValue.ZERO;
                         return (
                           <TableRow
-                            className="h-[4.5rem] bg-white hover:bg-pinto-green-1/50 hover:cursor-pointer"
+                            className={`h-[4.5rem] bg-white hover:bg-pinto-green-1/50 hover:cursor-pointer .${token.symbol}-row`}
                             key={`${token.address}_${i}`}
                             onClick={() => navigate(`/silo/${token.address}`)}
+                            data-action-target={`token-row-${token.address}`}
                           >
                             <TableCell className="text-black font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">
                               <img src={token.logoURI} className="h-8 w-8" alt={`${token.name} logo`} />
@@ -283,6 +359,7 @@ export default function Overview() {
           </Button>
         </div>
       )}
+      {renderActionButtons()}
     </div>
   );
 }
