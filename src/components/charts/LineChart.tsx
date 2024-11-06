@@ -1,14 +1,13 @@
 import {
-  ActiveElement,
   CategoryScale,
   Chart,
   ChartData,
-  ChartEvent,
   ChartOptions,
   Legend,
   LinearScale,
   LineController,
   LineElement,
+  Plugin,
   PointElement,
   Tooltip,
 } from "chart.js";
@@ -26,7 +25,7 @@ interface LineChartProps {
 
 export default function LineChart({ data, options }: LineChartProps) {
   const chartData = useCallback(
-    (_chart: Chart, ctx: CanvasRenderingContext2D | null): ChartData => {
+    (ctx: CanvasRenderingContext2D | null): ChartData => {
       // Create the line gradient
       let gradient: CanvasGradient;
       if (ctx) {
@@ -41,8 +40,9 @@ export default function LineChart({ data, options }: LineChartProps) {
           return {
             borderColor: gradient,
             borderWidth: 2,
-            pointRadius: 0, // Hide default points
-            pointHoverRadius: 6, // Highlight on hover
+            // Hide default points, custom are implemented in afterDraw plugin
+            pointRadius: 0,
+            pointHoverRadius: 0,
             ...d,
           };
         }),
@@ -51,45 +51,47 @@ export default function LineChart({ data, options }: LineChartProps) {
     [data],
   );
 
-  const chartOptions = useCallback(
-    (chart: Chart, ctx: CanvasRenderingContext2D | null): ChartOptions => ({
-      responsive: true,
-      plugins: {
-        tooltip: {
-          enabled: false, // Hide default tooltip
-        },
-      },
-      interaction: {
-        mode: "nearest", // Highlight the nearest point
-        axis: "x",
-        intersect: false,
-      },
-      onHover: (_event: ChartEvent, chartElement: ActiveElement[]) => {
-        if (!ctx) {
-          return;
-        }
-        const point = chartElement[0];
-        if (point) {
-          const index = point.index;
-          const meta = chart.getDatasetMeta(0);
-          const dataPoint = meta.data[index];
+  const hoverPlugin: Plugin = {
+    id: "customLineHover",
+    afterDraw: (chart: Chart) => {
+      const ctx = chart.ctx;
+      const activeElements = chart.getActiveElements();
+      console.log("im here", activeElements.length);
+      if (ctx && activeElements.length > 0) {
+        const point = activeElements[0];
+        const index = point.index;
+        const meta = chart.getDatasetMeta(0);
+        const dataPoint = meta.data[index];
 
-          // Draw vertical dotted line
-          ctx.save();
-          ctx.beginPath();
-          ctx.setLineDash([5, 5]);
-          ctx.moveTo(dataPoint.x, chart.chartArea.top);
-          ctx.lineTo(dataPoint.x, chart.chartArea.bottom);
-          ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
-          ctx.lineWidth = 1;
-          ctx.stroke();
-          ctx.restore();
-        }
-      },
-      ...options,
-    }),
-    [options],
-  );
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash([8, 8]);
+        ctx.moveTo(dataPoint.x, chart.chartArea.top);
+        ctx.lineTo(dataPoint.x, chart.chartArea.bottom);
+        // TODO: color should be set according to what point on the gradient this is
+        ctx.strokeStyle = "#D9AD0F";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+      }
+    },
+  };
 
-  return <ReactChart type="line" data={chartData} options={chartOptions} />;
+  const chartOptions: ChartOptions = {
+    responsive: true,
+    plugins: {
+      tooltip: {
+        enabled: false,
+      },
+    },
+    interaction: {
+      mode: "nearest", // Highlight the nearest point
+      axis: "x",
+      intersect: false,
+    },
+    onHover: () => {},
+    ...options,
+  };
+
+  return <ReactChart type="line" data={chartData} options={chartOptions} plugins={[hoverPlugin]} />;
 }
