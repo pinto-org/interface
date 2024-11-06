@@ -24,7 +24,7 @@ import { calculateConvertData, sortAndPickCrates } from "@/utils/convert";
 import { formatter } from "@/utils/format";
 import { stringEq } from "@/utils/string";
 import { getTokenIndex, isProtocolToken } from "@/utils/token";
-import { Token } from "@/utils/types";
+import { AddressMap, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import _ from "lodash";
 import { toast } from "sonner";
@@ -311,7 +311,7 @@ interface IConvertTokenSelect {
   subheader?: React.ReactNode;
   setToken: React.Dispatch<React.SetStateAction<Token>> | ((token: Token) => void);
 }
-interface ConvertableTokensState {
+interface DivorcedConvertState {
   up: SiloTokenConvertPath[];
   down: SiloTokenConvertPath[];
 }
@@ -319,7 +319,7 @@ interface ConvertableTokensState {
 interface IConvertFrame {
   title: string;
   price: TV;
-  convertState: ConvertableTokensState;
+  convertState: DivorcedConvertState;
 }
 
 const sortByPintoThenSeedsDesc = (a: SiloTokenConvertPath, b: SiloTokenConvertPath) => {
@@ -334,12 +334,28 @@ const LPConvertFrame = ({ title, price, convertState: { up, down } }: IConvertFr
   const sorted = up.sort(sortByPintoThenSeedsDesc);
 };
 
+const getDivorcedState = (paths: AddressMap<SiloTokenConvertPath>) => {
+  const divorced = Object.values(paths).reduce<DivorcedConvertState>(
+    (prev, path) => {
+      prev[path?.deltaSeedRewards.gte(0) ? "up" : "down"].push(path);
+      return prev;
+    },
+    { up: [], down: [] },
+  );
+
+  return divorced;
+};
+
 const SiloConvertTokenSelect = () => {
-  const { siloToken, allTargets, targetToken, siloTokenConvertState } = useSiloConvertContext();
-  const tokenData = useTokenData();
+  // Context
+  const { siloToken, targetToken, siloTokenConvertState } = useSiloConvertContext();
+
+  // Local STate
   const [open, setOpen] = useState(true);
   const [showOtherTokens, setShowOtherTokens] = useState(false);
+  const [divorced, setDivorced] = useState<DivorcedConvertState>(getDivorcedState(siloTokenConvertState.paths));
 
+  // Handlers
   const handleOpenDialog = (toOpenState: boolean) => {
     setOpen(toOpenState);
     if (!toOpenState && showOtherTokens) {
@@ -347,26 +363,16 @@ const SiloConvertTokenSelect = () => {
     }
   };
 
-  const pintoSelected = stringEq(targetToken.address, tokenData.mainToken.address);
-
-  const siloTokenSeedRewards = siloTokenConvertState?.rewards.seeds;
-
-  const rows = allTargets.reduce<ConvertableTokensState>(
-    (prev, token) => {
-      const path = siloTokenConvertState.paths[getTokenIndex(token)];
-
-      prev[path?.deltaSeedRewards.gte(0) ? "up" : "down"].push(path);
-
-      return prev;
-    },
-    { up: [], down: [] },
-  );
-
+  // Effects
   useEffect(() => {
     if (!open && showOtherTokens) {
       setShowOtherTokens(false);
     }
   }, [open, showOtherTokens]);
+
+  useEffect(() => {
+    setDivorced(getDivorcedState(siloTokenConvertState.paths));
+  }, [siloTokenConvertState.paths]);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenDialog}>
@@ -396,13 +402,13 @@ const SiloConvertTokenSelect = () => {
             </Text>
             <Text variant="h4" weight="light" className="inline-flex items-center gap-2">
               <IconImage nudge={1} src={SEEDS.logoURI} size={6} />
-              {formatter.twoDec(siloTokenSeedRewards)}
+              {formatter.twoDec(siloTokenConvertState?.rewards.seeds)}
             </Text>
           </div>
           <Separator />
           {/* Token list */}
           <div className="flex flex-col">
-            {rows.up.length ? (
+            {divorced.up.length ? (
               <div>asdf</div>
             ) : (
               <div className="flex flex-col h-[140px] sm:h-[240px] justify-center items-center">
