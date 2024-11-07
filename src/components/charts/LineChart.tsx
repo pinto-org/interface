@@ -61,7 +61,6 @@ export default function LineChart({ data, options }: LineChartProps) {
     afterDraw: (chart: Chart) => {
       const ctx = chart.ctx;
       const activeElements = chart.getActiveElements();
-      console.log("im here", activeElements.length);
       if (ctx && activeElements.length > 0) {
         const point = activeElements[0];
         const index = point.index;
@@ -101,6 +100,31 @@ export default function LineChart({ data, options }: LineChartProps) {
         },
         border: {
           display: false,
+        },
+        ticks: {
+          minRotation: 0,
+          maxRotation: 0,
+          callback: (_value, index, values) => {
+            const date = data[index].timestamp;
+            const tickLabel = `${date.getMonth() + 1}/${date.getDate()}`;
+
+            // Always show the first and last label
+            if (index === 0 || index === values.length - 1) {
+              return tickLabel;
+            }
+
+            // Evenly distribute remaining labels. Determine appropriate spacing by number of available dates
+            const numMiddle = values.length - 2;
+            const dividers = 5;
+            const avgToSkip = (numMiddle - dividers) / (dividers + 1);
+            const nextIdx = Math.floor(avgToSkip * (1 + Math.floor((index - 2) / avgToSkip)));
+            console.log(avgToSkip, index, nextIdx);
+
+            if ((index - 1) % nextIdx === 0) {
+              return tickLabel;
+            }
+            return "";
+          },
         },
       },
       y: {
