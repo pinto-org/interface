@@ -12,6 +12,7 @@ interface SeasonalChartData {
 interface SeasonalChartProps {
   title: string;
   valueFormatter: (value: number) => string;
+  tickValueFormatter?: (value: number) => string;
 }
 
 // TEMP testing data. eventually this component will accept some data getter function
@@ -30,7 +31,7 @@ async function getData() {
   return data;
 }
 
-export default function SeasonalChart({ title, valueFormatter }: SeasonalChartProps) {
+export default function SeasonalChart({ title, valueFormatter, tickValueFormatter }: SeasonalChartProps) {
   const [allData, setAllData] = useState<SeasonalChartData[] | null>(null);
   const [displayData, setDisplayData] = useState<SeasonalChartData | null>(null);
 
@@ -48,7 +49,7 @@ export default function SeasonalChart({ title, valueFormatter }: SeasonalChartPr
   );
 
   return (
-    <div className="rounded-[20px] p-4 sm:p-6" style={{ backgroundColor: "#F8F8F8" }}>
+    <div className="rounded-[20px] p-4 sm:p-6 sm:pb-4" style={{ backgroundColor: "#F8F8F8" }}>
       <Text variant="body" color="light">
         {title}
       </Text>
@@ -68,7 +69,10 @@ export default function SeasonalChart({ title, valueFormatter }: SeasonalChartPr
             </Text>
           </div>
 
-          <LineChart data={allData.map((d) => ({ value: d.value, timestamp: d.timestamp }))} />
+          <LineChart
+            data={allData.map((d) => ({ value: d.value, timestamp: d.timestamp }))}
+            valueFormatter={tickValueFormatter}
+          />
         </>
       )}
     </div>

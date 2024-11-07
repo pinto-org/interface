@@ -37,10 +37,22 @@ function Explorer() {
           </div>
           <Separator />
 
-          <SeasonalChart
-            title="Pinto Price"
-            valueFormatter={(v) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`}
-          />
+          <div className="flex flex-row w-full space-x-4">
+            <div className="w-1/2">
+              <SeasonalChart
+                title="Pinto Price"
+                valueFormatter={(v) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`}
+                tickValueFormatter={(v) => `$${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`}
+              />
+            </div>
+            <div className="w-1/2">
+              <SeasonalChart
+                title="Pinto Price"
+                valueFormatter={(v) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`}
+                tickValueFormatter={(v) => `$${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </PageContainer>

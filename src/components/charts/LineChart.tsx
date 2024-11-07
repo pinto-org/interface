@@ -1,8 +1,18 @@
-import { Chart, ChartData, ChartOptions, LinearScale, LineController, LineElement, Plugin } from "chart.js";
+import {
+  CategoryScale,
+  Chart,
+  ChartData,
+  ChartOptions,
+  LinearScale,
+  LineController,
+  LineElement,
+  Plugin,
+  PointElement,
+} from "chart.js";
 import { ReactChart } from "../ReactChart";
 import { useCallback } from "react";
 
-ReactChart.register(LineController, LineElement, LinearScale);
+ReactChart.register(LineController, LineElement, LinearScale, CategoryScale, PointElement);
 
 export interface LineChartData {
   value: number;
@@ -12,10 +22,10 @@ export interface LineChartData {
 // TODO: add configurable gradient here
 export interface LineChartProps {
   data: LineChartData[];
-  options?: ChartOptions;
+  valueFormatter?: (value: number) => string;
 }
 
-export default function LineChart({ data, options }: LineChartProps) {
+export default function LineChart({ data, valueFormatter }: LineChartProps) {
   const chartData = useCallback(
     (ctx: CanvasRenderingContext2D | null): ChartData => {
       // Create the line gradient
@@ -83,7 +93,7 @@ export default function LineChart({ data, options }: LineChartProps) {
       // Tick padding must be uniform, undo it here
       padding: {
         left: 0,
-        right: -50,
+        right: -35,
         top: 0,
         bottom: -15,
       },
@@ -142,14 +152,17 @@ export default function LineChart({ data, options }: LineChartProps) {
           display: false,
         },
         ticks: {
-          padding: 50,
+          padding: 35,
+          callback: (value) => {
+            const num = typeof value === "string" ? Number(value) : value;
+            return valueFormatter?.(num) ?? value;
+          },
         },
         position: "right",
         beginAtZero: true,
         min: 0,
       },
     },
-    ...options,
   };
 
   return <ReactChart type="line" data={chartData} options={chartOptions} plugins={[hoverPlugin]} />;
