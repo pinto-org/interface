@@ -80,6 +80,7 @@ export interface TokenDepositData {
   };
   seeds: TokenValue;
   deposits: DepositData[];
+  convertibleDeposits: DepositData[];
 }
 
 export interface SiloTokenData {
@@ -126,9 +127,10 @@ export interface SiloTokenData {
 export type SiloTokenDataMap = Map<Token, SiloTokenData>;
 
 export interface Plot {
-  fullyHarvested: boolean;
-  harvestablePods: TokenValue;
+  fullyHarvested?: boolean;
+  unharvestablePods?: TokenValue;
   harvestedPods: TokenValue;
+  harvestablePods: TokenValue;
   pods: TokenValue;
   index: TokenValue;
   beansPerPod?: TokenValue;

@@ -45,18 +45,20 @@ export const formatNum = (val: NumberPrimitive, options?: FormatNumOptions) => {
     }
   }
 
-  return Number(normalised).toLocaleString("en-US", {
+  return new Intl.NumberFormat("en-US", {
+    notation: "standard",
     minimumFractionDigits: options?.minDecimals || 0,
     maximumFractionDigits: options?.maxDecimals || 2,
-  });
+    useGrouping: true,
+  }).format(num);
 };
 
 export const formatUSD = (val: NumberPrimitive) => {
-  return `$${formatNum(val || TokenValue.ZERO, { minDecimals: 2, maxDecimals: 2, defaultValue: "0.00", minValue: 0.01 })}`;
+  return `$${formatNum(val || TokenValue.ZERO, { minDecimals: 2, maxDecimals: 2, defaultValue: "0.00", minValue: 0.01, allowZero: true })}`;
 };
 
 export const formatPDV = (val: NumberPrimitive) => {
-  return `${formatNum(val || TokenValue.ZERO, { minDecimals: 2, maxDecimals: 2, defaultValue: "0.00", minValue: 0.01 })} PDV`;
+  return `${formatNum(val || TokenValue.ZERO, { minDecimals: 2, maxDecimals: 2, defaultValue: "0.00", minValue: 0.01, allowZero: true })} PDV`;
 };
 
 export const formatPct = (val: NumberPrimitive) => {
@@ -81,13 +83,15 @@ export const formatNoDecimals = (val: NumberPrimitive) => {
   });
 };
 
-export const format2Decimals = (val: NumberPrimitive) => {
+export type Format2DecimalsOptions = IAllowZero;
+
+export const format2Decimals = (val: NumberPrimitive, options?: IAllowZero) => {
   return formatNum(val || TokenValue.ZERO, {
     minDecimals: 2,
     maxDecimals: 2,
     defaultValue: "0.00",
     minValue: 0.01,
-    allowZero: true,
+    allowZero: options?.allowZero || true,
   });
 };
 

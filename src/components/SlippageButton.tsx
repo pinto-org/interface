@@ -1,5 +1,5 @@
 import settingsIcon from "@/assets/misc/Settings.svg";
-import useDebounce from "@/utils/useDebounce";
+import { useDebouncedEffect } from "@/utils/useDebounce";
 import { useState } from "react";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
@@ -12,7 +12,7 @@ export default function SlippageButton({
 }: { slippage: number; setSlippage: React.Dispatch<React.SetStateAction<number>> }) {
   const [internalAmount, setInternalAmount] = useState(slippage);
 
-  useDebounce(
+  useDebouncedEffect(
     () => {
       setSlippage(internalAmount);
     },

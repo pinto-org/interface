@@ -47,7 +47,7 @@ export default function SiloToken() {
       <div className="flex flex-col gap-8 justify-start">
         <SiloTokenHeader siloToken={siloToken} />
         <div className="flex flex-col lg:flex-row gap-16">
-          <div className="flex flex-col items-center flex-shrink-1">
+          <div className="flex flex-col items-center flex-shrink-1 w-full">
             <div className="flex flex-col w-full gap-14 items-start">
               <div className="flex flex-col w-full gap-6">
                 <SiloTokenSubHeader siloTokenData={siloTokenData} />

@@ -10,7 +10,7 @@ import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { FarmFromMode, Plot, Token } from "@/utils/types";
-import useDebounce from "@/utils/useDebounce";
+import { useDebouncedEffect } from "@/utils/useDebounce";
 import { Dispatch, InputHTMLAttributes, SetStateAction, useCallback, useEffect, useMemo, useState } from "react";
 import PlotSelect from "./PlotSelect";
 import TokenSelectWithBalances from "./TokenSelectWithBalances";
@@ -39,7 +39,7 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
   disableButton?: boolean;
   disableDebounce?: boolean;
   disableInlineBalance?: boolean;
-  mode?: "deposits" | "plots";
+  mode?: "deposits" | "plots" | "balance";
   altText?: string;
   customMaxAmount?: TokenValue;
 
@@ -154,6 +154,18 @@ function ComboInputField({
     }
   }, [mode, selectedPlots, customMaxAmount, tokenAndBalanceMap, selectedToken, balanceFrom, farmerTokenBalance]);
 
+  const balance = useMemo(() => {
+    if (mode === "plots" && selectedPlots) {
+      return selectedPlots.reduce((total, plot) => total.add(plot.pods), TokenValue.ZERO);
+    }
+    if (mode === "balance") {
+      if (tokenAndBalanceMap && selectedToken) {
+        return tokenAndBalanceMap.get(selectedToken) ?? TokenValue.ZERO;
+      }
+    }
+    return maxAmount;
+  }, [mode, selectedPlots, tokenAndBalanceMap, selectedToken, maxAmount]);
+
   useEffect(() => {
     if (internalAmount.gt(maxAmount)) {
       setInternalAmount(maxAmount);
@@ -179,7 +191,7 @@ function ComboInputField({
     }
   }, [mode, selectedPlots, setAmount]);
 
-  useDebounce(
+  useDebouncedEffect(
     () => {
       if (isUserInput) {
         if (setAmount) {
@@ -222,6 +234,7 @@ function ComboInputField({
   };
 
   const handleSetMax = () => {
+    if (disableInput) return;
     setInternalAmount(maxAmount);
     setDisplayValue(maxAmount.toHuman());
     setAmount?.(maxAmount.toHuman());
@@ -245,7 +258,7 @@ function ComboInputField({
                 min={0}
                 type="number"
                 disabled={disableInput}
-                className="flex w-full pr-1 text-[2rem] leading-[2.2rem] text-black font-[400] align-middle focus-visible:outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="flex w-full pr-1 text-[2rem] h-[2.2rem] leading-[2.2rem] text-black font-[400] align-middle focus-visible:outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 value={disableInput ? amount : displayValue}
                 onChange={(e) => changeValue(e.target.value)}
               />
@@ -301,14 +314,16 @@ function ComboInputField({
                         : balanceFrom === FarmFromMode.INTERNAL
                           ? "Farm Balance:"
                           : "Total Balance:"
-                  } ${maxAmount.toHuman("short")}`}
+                  } ${balance.toHuman("short")}`}
                 </div>
                 {!hideMax && (
                   <Button
                     type="button"
                     size="sm"
                     variant="defaultAlt"
-                    className="rounded-[0.75rem] text-[1rem] px-1.5 py-1 h-auto"
+                    noPadding
+                    rounded="some"
+                    className="h-auto"
                     onClick={handleSetMax}
                   >
                     <Text variant="sm-light" className="px-1.5 py-1" color="green3">
