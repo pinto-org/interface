@@ -104,6 +104,7 @@ export default function LineChart({ data, options }: LineChartProps) {
         ticks: {
           minRotation: 0,
           maxRotation: 0,
+          autoSkip: false,
           callback: (_value, index, values) => {
             const date = data[index].timestamp;
             const tickLabel = `${date.getMonth() + 1}/${date.getDate()}`;
@@ -117,10 +118,15 @@ export default function LineChart({ data, options }: LineChartProps) {
             const numMiddle = values.length - 2;
             const dividers = 5;
             const avgToSkip = (numMiddle - dividers) / (dividers + 1);
-            const nextIdx = Math.floor(avgToSkip * (1 + Math.floor((index - 2) / avgToSkip)));
-            console.log(avgToSkip, index, nextIdx);
+            const tickIndices: number[] = [];
+            for (let i = 0; i < values.length - 2; ++i) {
+              const next = Math.ceil((tickIndices.length + 1) * (avgToSkip + 1));
+              if (i === next) {
+                tickIndices.push(next + 1);
+              }
+            }
 
-            if ((index - 1) % nextIdx === 0) {
+            if (tickIndices.includes(index)) {
               return tickLabel;
             }
             return "";
