@@ -26,7 +26,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-pinto text-white hover:bg-pinto/80 transition-all",
+        default: "bg-pinto-green-4 text-white hover:bg-pinto-green-4/90 transition-all",
         defaultAlt: "bg-pinto-green-1 text-pinto-green hover:bg-pinto-green-1/80 transition-all",
         destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         outline: outlineBase,
@@ -40,6 +40,7 @@ const buttonVariants = cva(
       },
       size: {
         default: `h-10 w-max px-2 py-2 sm:px-4 sm:py-2 ${deriveTextStyles("body-light", true)}`,
+        xxl: `px-3 py-2 sm:px-6 sm:py-4 ${deriveTextStyles("h4", true)} font-[500]`,
         xl: `h-12 px-3 py-3 sm:px-4 sm:py-3 ${deriveTextStyles("body-light", true)}`,
         lg: "h-10 rounded-md px-8",
         md: `h-10 px-2 py-2 sm:px-4 sm:py-2 ${deriveTextStyles("sm", true)}`,
