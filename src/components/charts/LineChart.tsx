@@ -10,7 +10,7 @@ import {
   PointElement,
 } from "chart.js";
 import { ReactChart } from "../ReactChart";
-import { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 
 ReactChart.register(LineController, LineElement, LinearScale, CategoryScale, PointElement);
 
@@ -29,7 +29,7 @@ export interface LineChartProps {
   onMouseOver?: (index: number) => void;
 }
 
-export default function LineChart({ data, makeLineGradients, valueFormatter, onMouseOver }: LineChartProps) {
+export const LineChart = React.memo(({ data, makeLineGradients, valueFormatter, onMouseOver }: LineChartProps) => {
   const chartData = useCallback(
     (ctx: CanvasRenderingContext2D | null): ChartData => {
       return {
@@ -144,6 +144,9 @@ export default function LineChart({ data, makeLineGradients, valueFormatter, onM
         },
       },
       y: {
+        position: "right",
+        beginAtZero: true,
+        min: 0,
         grid: {
           display: false,
         },
@@ -157,12 +160,10 @@ export default function LineChart({ data, makeLineGradients, valueFormatter, onM
             return valueFormatter?.(num) ?? value;
           },
         },
-        position: "right",
-        beginAtZero: true,
-        min: 0,
       },
     },
   };
 
   return <ReactChart type="line" data={chartData} options={chartOptions} plugins={[hoverPlugin]} />;
-}
+});
+export default LineChart;

@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Text from "../ui/Text";
 import { formatDate } from "@/utils/format";
-import LineChart, { MakeGradientFunction } from "./LineChart";
+import LineChart, { LineChartData, MakeGradientFunction } from "./LineChart";
 
 interface SeasonalChartData {
   value: number;
@@ -58,6 +58,17 @@ export default function SeasonalChart({ title, valueFormatter, tickValueFormatte
     ],
   );
 
+  const chartData = useMemo<LineChartData[]>(() => {
+    if (allData) {
+      return allData.map((d) => ({ value: d.value, timestamp: d.timestamp }));
+    }
+    return [];
+  }, [allData]);
+
+  const lineGradients = useMemo<MakeGradientFunction[]>(() => {
+    return [gradientFunction];
+  }, []);
+
   const handleMouseOver = useCallback(
     (index: number) => {
       if (allData) {
@@ -89,8 +100,8 @@ export default function SeasonalChart({ title, valueFormatter, tickValueFormatte
           </div>
 
           <LineChart
-            data={allData.map((d) => ({ value: d.value, timestamp: d.timestamp }))}
-            makeLineGradients={[gradientFunction]}
+            data={chartData}
+            makeLineGradients={lineGradients}
             valueFormatter={tickValueFormatter}
             onMouseOver={handleMouseOver}
           />
