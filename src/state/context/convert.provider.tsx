@@ -119,12 +119,12 @@ const usePrepareConvertContext = () => {
         };
 
         // Disable converts from PINTO -> LP when deltaB < 0
-        if (!fromToken.isLP && deltaB.lt(0)) {
+        if (!fromToken.isLP && target.isLP && deltaB.lt(0)) {
           data.enabled = false;
         }
 
         // Disable converts LP -> PINTO when deltaB > 0
-        if (target.isLP && deltaB.gt(0)) {
+        if (target.isLP && !fromToken.isLP && deltaB.gt(0)) {
           data.enabled = false;
         }
 

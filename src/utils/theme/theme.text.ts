@@ -70,6 +70,17 @@ const fontSize = {
 } as const;
 
 // biome-ignore format: keep unformatted for readability
+const lineHeightsREM = {
+	xs: 	         "0.875rem", 		// 14px
+	sm: 	         "1rem", 				// 16px
+	body:          "1.25rem", 		// 20px
+	h4: 	         "1.5rem", 			// 24px
+	h3: 	         "2rem", 				// 32px
+	h2: 	         "2.25rem", 		// 36px
+	h1: 	         "3.429rem",
+} as const;
+
+// biome-ignore format: keep unformatted for readability
 const noLineHeight = {
 	xs: 	         clsx("leading-[0.875rem]"), 		// 14px
 	sm: 	         clsx("leading-[1rem]"), 				// 16px
@@ -247,6 +258,9 @@ export const textConfig = {
     ...textTheme,
   },
   variantConfig: config,
+  values: {
+    lineHeights: lineHeightsREM,
+  },
   methods: {
     align: getTextAlign,
     fontSize: getTextSize,

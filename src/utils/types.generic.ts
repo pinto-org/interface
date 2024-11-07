@@ -5,6 +5,10 @@ export type Lookup<T> = Record<string, T>;
 
 export type MayNull<T> = T | null | undefined;
 
+export type MayPromise<T> = T | Promise<T>;
+
+export type AnyFn = (...args: any[]) => any;
+
 // Objects
 export type ExactPartial<T, U> = {
   [P in Extract<keyof T, U>]?: T[P];

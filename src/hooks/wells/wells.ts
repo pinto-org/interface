@@ -1,4 +1,4 @@
-import { usePriceData } from "@/state/usePriceData";
+import { PoolData, usePriceData } from "@/state/usePriceData";
 import { getTokenIndex } from "@/utils/token";
 import { Token } from "@/utils/types";
 import { keyBy } from "lodash";
@@ -10,7 +10,7 @@ export function useWells() {
   return useMemo(() => keyBy(priceData.pools, (p) => getTokenIndex(p.pool)), [priceData.pools]);
 }
 
-export function useWell(token: Token) {
+export function useWell(token: Token): PoolData | undefined {
   const wells = useWells();
 
   return useMemo(() => wells[getTokenIndex(token)], [wells, token]);
