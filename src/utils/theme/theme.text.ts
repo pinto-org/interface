@@ -32,7 +32,7 @@ export type TextAlign = "left" | "center" | "right" | "justify" | "start" | "end
 
 export type LetterSpacing = "body-light" | "h3" | "h2" | "h1" | "none";
 
-export type TextColor = "primary" | "secondary" | "light" | "lighter" | "green4" | "green3";
+export type TextColor = "primary" | "secondary" | "light" | "lighter" | "green4" | "green3" | "success" | "error";
 
 export interface ITextBase {
   variant?: FontVariant;
@@ -52,6 +52,8 @@ const textColors = {
 	'lighter':     clsx("text-pinto-gray-3"),
 	'green4':      clsx("text-pinto-green-4"),
 	'green3':      clsx("text-pinto-green-3"),
+	'success':     clsx("text-pinto-green-2"),
+	'error':       clsx("text-pinto-red-2"),
 	"inherit":     clsx("text-current"),
 } as const;
 

@@ -308,7 +308,9 @@ function ComboInputField({
                     type="button"
                     size="sm"
                     variant="defaultAlt"
-                    className="rounded-[0.75rem] text-[1rem] px-1.5 py-1 h-auto"
+                    noPadding
+                    rounded="some"
+                    className="h-auto"
                     onClick={handleSetMax}
                   >
                     <Text variant="sm-light" className="px-1.5 py-1" color="green3">

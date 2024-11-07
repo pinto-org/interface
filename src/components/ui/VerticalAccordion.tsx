@@ -13,7 +13,9 @@ interface Context {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
+  disableOpen?: boolean;
   hideTriggerOnOpen?: boolean;
+  marginOnOpen?: boolean;
 }
 
 export interface VerticalAccordionProps extends Context {
@@ -31,7 +33,7 @@ const useVerticalAccordionContext = (): Context => {
 };
 
 const Component = ({ children }: IChildren) => {
-  const { open, hideTriggerOnOpen } = useVerticalAccordionContext();
+  const { open, hideTriggerOnOpen, marginOnOpen } = useVerticalAccordionContext();
   const [contentHeight, setContentHeight] = useState(0);
   const [isAnimationComplete, setIsAnimationComplete] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -76,6 +78,7 @@ const Component = ({ children }: IChildren) => {
         ref={buttonRef}
         className={cn(
           "transition-all duration-275 ease-in-out",
+          marginOnOpen && open ? "mt-2" : "mt-0",
           hideTriggerOnOpen && isAnimationComplete && open && "opacity-0 h-0 overflow-hidden",
         )}
       >
@@ -86,16 +89,21 @@ const Component = ({ children }: IChildren) => {
 };
 
 const VerticalAccordionTrigger = React.forwardRef<HTMLButtonElement, Omit<ButtonProps, "children">>((props, ref) => {
-  const { open, onOpenChange, title } = useVerticalAccordionContext();
+  const { open, title, disableOpen, onOpenChange } = useVerticalAccordionContext();
 
   return (
     <Button
       ref={ref}
-      onClick={() => onOpenChange(!open)}
+      onClick={() => {
+        if (!disableOpen) {
+          onOpenChange(!open);
+        }
+      }}
       rounded="some"
       width="full"
       className={cn(
         `flex flex-row bg-pinto-gray-1 hover:bg-pinto-gray-2/40 p-2 ${deriveTextStyles("sm", true)}`,
+        disableOpen && "cursor-default hover:pg-pinto-gray-1",
         props.className,
       )}
     >
@@ -104,7 +112,7 @@ const VerticalAccordionTrigger = React.forwardRef<HTMLButtonElement, Omit<Button
         <IconImage
           src={ChevronDownIcon}
           size={4}
-          className={cn("transition-transform duration-250", open && "rotate-180")}
+          className={cn("transition-transform duration-250", open && "rotate-180 relative top-0.5")}
         />
       </div>
     </Button>
@@ -115,12 +123,20 @@ const VerticalAccordionProvider = ({ children, ...props }: Context & IChildren) 
   return <VerticalAccordionContext.Provider value={props}>{children}</VerticalAccordionContext.Provider>;
 };
 
-const VerticalAccordion = ({ children, title, open, onOpenChange, hideTriggerOnOpen }: VerticalAccordionProps) => {
+const VerticalAccordion = ({
+  children,
+  title,
+  open,
+  onOpenChange,
+  hideTriggerOnOpen,
+  marginOnOpen,
+}: VerticalAccordionProps) => {
   return (
     <VerticalAccordionProvider
       title={title}
       open={open}
       hideTriggerOnOpen={hideTriggerOnOpen}
+      marginOnOpen={marginOnOpen}
       onOpenChange={onOpenChange}
     >
       <Component>{children}</Component>
