@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Text from "../ui/Text";
 import { formatDate } from "@/utils/format";
-import LineChart from "./LineChart";
+import LineChart, { MakeGradientFunction } from "./LineChart";
 
 interface SeasonalChartData {
   value: number;
@@ -14,6 +14,16 @@ interface SeasonalChartProps {
   valueFormatter: (value: number) => string;
   tickValueFormatter?: (value: number) => string;
 }
+
+const gradientFunction: MakeGradientFunction = (ctx: CanvasRenderingContext2D | null) => {
+  if (ctx) {
+    const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
+    gradient.addColorStop(0, "#F2F6F9");
+    gradient.addColorStop(0.495, "#00C767");
+    gradient.addColorStop(1, "#246645");
+    return gradient;
+  }
+};
 
 // TEMP testing data. eventually this component will accept some data getter function
 // The actual method will need to provide some pagination logic
@@ -44,7 +54,7 @@ export default function SeasonalChart({ title, valueFormatter, tickValueFormatte
       })();
     },
     [
-      /*TODO: getData (when it becomes a prop)*/
+      /*TODO(ss): getData (when it becomes a prop)*/
     ],
   );
 
@@ -71,6 +81,7 @@ export default function SeasonalChart({ title, valueFormatter, tickValueFormatte
 
           <LineChart
             data={allData.map((d) => ({ value: d.value, timestamp: d.timestamp }))}
+            makeLineGradients={[gradientFunction]}
             valueFormatter={tickValueFormatter}
           />
         </>

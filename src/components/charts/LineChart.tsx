@@ -15,34 +15,28 @@ import { useCallback } from "react";
 ReactChart.register(LineController, LineElement, LinearScale, CategoryScale, PointElement);
 
 export interface LineChartData {
+  // TODO(ss): number[]
   value: number;
   timestamp: Date;
 }
 
-// TODO: add configurable gradient here
+export type MakeGradientFunction = (ctx: CanvasRenderingContext2D | null) => CanvasGradient | undefined;
+
 export interface LineChartProps {
   data: LineChartData[];
+  makeLineGradients: MakeGradientFunction[];
   valueFormatter?: (value: number) => string;
 }
 
-export default function LineChart({ data, valueFormatter }: LineChartProps) {
+export default function LineChart({ data, makeLineGradients, valueFormatter }: LineChartProps) {
   const chartData = useCallback(
     (ctx: CanvasRenderingContext2D | null): ChartData => {
-      // Create the line gradient
-      let gradient: CanvasGradient | undefined = undefined;
-      if (ctx) {
-        gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
-        gradient.addColorStop(0, "#F2F6F9");
-        gradient.addColorStop(0.495, "#00C767");
-        gradient.addColorStop(1, "#246645");
-      }
-
       return {
         labels: data.map((d) => d.timestamp),
         datasets: [
           {
             data: data.map((d) => d.value),
-            borderColor: gradient,
+            borderColor: makeLineGradients[0](ctx),
             borderWidth: 3.41,
             // Hide default points, custom are implemented in afterDraw plugin
             pointRadius: 0,
@@ -51,7 +45,7 @@ export default function LineChart({ data, valueFormatter }: LineChartProps) {
         ],
       };
     },
-    [data],
+    [data, makeLineGradients],
   );
 
   const hoverPlugin: Plugin = {
@@ -70,7 +64,6 @@ export default function LineChart({ data, valueFormatter }: LineChartProps) {
         ctx.setLineDash([8, 8]);
         ctx.moveTo(dataPoint.x, chart.chartArea.top);
         ctx.lineTo(dataPoint.x, chart.chartArea.bottom);
-        // TODO: color should be set according to what point on the gradient this is
         ctx.strokeStyle = "#D9AD0F";
         ctx.lineWidth = 2;
         ctx.stroke();
