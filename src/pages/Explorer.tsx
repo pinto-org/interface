@@ -48,6 +48,7 @@ function Explorer() {
             <div className="w-1/2">
               <SeasonalChart
                 title="Pinto Price"
+                fillArea
                 valueFormatter={(v) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`}
                 tickValueFormatter={(v) => `$${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`}
               />
