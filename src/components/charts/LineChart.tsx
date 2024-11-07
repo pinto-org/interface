@@ -17,8 +17,7 @@ import React, { useCallback, useEffect, useMemo } from "react";
 ReactChart.register(LineController, LineElement, LinearScale, CategoryScale, PointElement, Filler);
 
 export interface LineChartData {
-  // TODO(ss): number[]
-  value: number;
+  values: number[];
   timestamp: Date;
 }
 
@@ -42,18 +41,16 @@ export const LineChart = React.memo(
       (ctx: CanvasRenderingContext2D | null): ChartData => {
         return {
           labels: data.map((d) => d.timestamp),
-          datasets: [
-            {
-              data: data.map((d) => d.value),
-              borderColor: makeLineGradients[0](ctx, 1),
-              borderWidth: 3.41,
-              fill: !!makeAreaGradients,
-              backgroundColor: makeAreaGradients?.[0](ctx, 1),
-              // Hide default points, custom are implemented in afterDraw plugin
-              pointRadius: 0,
-              pointHoverRadius: 0,
-            },
-          ],
+          datasets: data[0].values.map((_, idx: number) => ({
+            data: data.map((d) => d.values[idx]),
+            borderColor: makeLineGradients[idx](ctx, 1),
+            borderWidth: 3.41,
+            fill: !!makeAreaGradients,
+            backgroundColor: makeAreaGradients?.[idx](ctx, 1),
+            // Hide default points, custom are implemented in afterDraw plugin
+            pointRadius: 0,
+            pointHoverRadius: 0,
+          })),
         };
       },
       [data, makeLineGradients, makeAreaGradients],

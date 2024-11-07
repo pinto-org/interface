@@ -34,7 +34,7 @@ const lineGradientFn: MakeGradientFunction = (ctx: CanvasRenderingContext2D | nu
   }
 };
 
-const areaGradientFn: MakeGradientFunction = (ctx: CanvasRenderingContext2D | null, position: number) => {
+const areaGradientFn: MakeGradientFunction = (ctx: CanvasRenderingContext2D | null, _position: number) => {
   if (ctx) {
     const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
     const colors = ["rgba(233, 231, 224, 0.49)", "#FEE18C", "#F1F88C"];
@@ -87,7 +87,7 @@ export default function SeasonalChart({ title, valueFormatter, tickValueFormatte
 
   const chartData = useMemo<LineChartData[]>(() => {
     if (allData) {
-      return allData.map((d) => ({ value: d.value, timestamp: d.timestamp }));
+      return allData.map((d) => ({ values: [d.value], timestamp: d.timestamp }));
     }
     return [];
   }, [allData]);
