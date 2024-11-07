@@ -24,7 +24,7 @@ async function getData() {
   for (let i = 0; i < 30; i++) {
     const date = new Date(startDate);
     date.setDate(startDate.getDate() + i);
-    const value = parseFloat((Math.random() * (1.2 - 0.8) + 0.8).toFixed(6));
+    const value = parseFloat((Math.random() * (1.1 - 0.9) + 0.9).toFixed(6));
     data.push({ value, season: 23456 + i, timestamp: date });
   }
   return data;
