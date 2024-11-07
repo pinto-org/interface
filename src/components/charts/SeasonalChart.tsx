@@ -16,11 +16,29 @@ interface SeasonalChartProps {
 }
 
 // Draws a dynamic gradient depending on mouse position in the chart
-const gradientFunction: MakeGradientFunction = (ctx: CanvasRenderingContext2D | null, position: number) => {
+const lineGradientFn: MakeGradientFunction = (ctx: CanvasRenderingContext2D | null, position: number) => {
   if (ctx) {
     const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
     const colors = ["#F2F6F9", "#00C767", "#246645", "#00C767", "#F2F6F9"];
     const positions = [position - 1, position - 0.5, position, position + 0.5, position + 1];
+    for (let i = 0; i < positions.length; ++i) {
+      if (positions[i] >= 0 && positions[i] <= 1) {
+        gradient.addColorStop(positions[i], colors[i]);
+      } else if (positions[i] > 1 && positions[i - 1] < 1) {
+        gradient.addColorStop(1, colors[i]);
+      } else if (positions[i] < 0 && positions[i + 1] > 0) {
+        gradient.addColorStop(0, colors[i]);
+      }
+    }
+    return gradient;
+  }
+};
+
+const areaGradientFn: MakeGradientFunction = (ctx: CanvasRenderingContext2D | null, position: number) => {
+  if (ctx) {
+    const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
+    const colors = ["rgba(233, 231, 224, 0.49)", "#FEE18C", "#F1F88C"];
+    const positions = [0, 0.5, 1];
     for (let i = 0; i < positions.length; ++i) {
       if (positions[i] >= 0 && positions[i] <= 1) {
         gradient.addColorStop(positions[i], colors[i]);
@@ -75,7 +93,11 @@ export default function SeasonalChart({ title, valueFormatter, tickValueFormatte
   }, [allData]);
 
   const lineGradients = useMemo<MakeGradientFunction[]>(() => {
-    return [gradientFunction];
+    return [lineGradientFn];
+  }, []);
+
+  const areaGradients = useMemo<MakeGradientFunction[]>(() => {
+    return [areaGradientFn];
   }, []);
 
   const handleMouseOver = useCallback(
@@ -111,6 +133,7 @@ export default function SeasonalChart({ title, valueFormatter, tickValueFormatte
           <LineChart
             data={chartData}
             makeLineGradients={lineGradients}
+            makeAreaGradients={areaGradients}
             valueFormatter={tickValueFormatter}
             onMouseOver={handleMouseOver}
           />
