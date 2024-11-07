@@ -105,8 +105,6 @@ function DefaultConvert({ siloToken, farmerDepositMap }: ConvertProps) {
     return TV.fromBlockchain(estimatedAmountOut, targetToken.decimals).subSlippage(slippage);
   }, [estimatedAmountOut, targetToken, slippage]);
 
-  console.log("convertData", convertData);
-
   useEffect(() => {
     if (amountIn && Number(amountIn) > 0) {
       setConvertData(

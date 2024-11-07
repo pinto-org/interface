@@ -129,7 +129,7 @@ export type SiloTokenDataMap = Map<Token, SiloTokenData>;
 export interface Plot {
   fullyHarvested?: boolean;
   unharvestablePods?: TokenValue;
-  harvestedPods?: TokenValue;
+  harvestedPods: TokenValue;
   harvestablePods: TokenValue;
   pods: TokenValue;
   index: TokenValue;
