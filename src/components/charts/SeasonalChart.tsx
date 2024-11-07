@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Text from "../ui/Text";
 import { formatDate } from "@/utils/format";
 import LineChart, { MakeGradientFunction } from "./LineChart";
@@ -58,6 +58,15 @@ export default function SeasonalChart({ title, valueFormatter, tickValueFormatte
     ],
   );
 
+  const handleMouseOver = useCallback(
+    (index: number) => {
+      if (allData) {
+        setDisplayData(allData[index]);
+      }
+    },
+    [allData],
+  );
+
   return (
     <div className="rounded-[20px] p-4 sm:p-6 sm:pb-4" style={{ backgroundColor: "#F8F8F8" }}>
       <Text variant="body" color="light">
@@ -83,6 +92,7 @@ export default function SeasonalChart({ title, valueFormatter, tickValueFormatte
             data={allData.map((d) => ({ value: d.value, timestamp: d.timestamp }))}
             makeLineGradients={[gradientFunction]}
             valueFormatter={tickValueFormatter}
+            onMouseOver={handleMouseOver}
           />
         </>
       )}

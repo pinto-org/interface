@@ -26,9 +26,10 @@ export interface LineChartProps {
   data: LineChartData[];
   makeLineGradients: MakeGradientFunction[];
   valueFormatter?: (value: number) => string;
+  onMouseOver?: (index: number) => void;
 }
 
-export default function LineChart({ data, makeLineGradients, valueFormatter }: LineChartProps) {
+export default function LineChart({ data, makeLineGradients, valueFormatter, onMouseOver }: LineChartProps) {
   const chartData = useCallback(
     (ctx: CanvasRenderingContext2D | null): ChartData => {
       return {
@@ -59,15 +60,20 @@ export default function LineChart({ data, makeLineGradients, valueFormatter }: L
         const meta = chart.getDatasetMeta(0);
         const dataPoint = meta.data[index];
 
+        // Draw vertical line
         ctx.save();
         ctx.beginPath();
         ctx.setLineDash([8, 8]);
-        ctx.moveTo(dataPoint.x, chart.chartArea.top);
+        // chartArea.top is not corresponding to the top of the canvas element
+        ctx.moveTo(dataPoint.x, chart.chartArea.top - 50);
         ctx.lineTo(dataPoint.x, chart.chartArea.bottom);
         ctx.strokeStyle = "#D9AD0F";
         ctx.lineWidth = 2;
         ctx.stroke();
         ctx.restore();
+
+        // Report selection to parent
+        onMouseOver?.(index);
       }
     },
   };
