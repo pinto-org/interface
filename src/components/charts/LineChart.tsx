@@ -28,6 +28,7 @@ export type MakeGradientFunction = (
 
 export interface LineChartProps {
   data: LineChartData[];
+  size: "small" | "large";
   makeLineGradients: MakeGradientFunction[];
   // If not provided, do not fill area
   makeAreaGradients?: MakeGradientFunction[];
@@ -36,7 +37,7 @@ export interface LineChartProps {
 }
 
 export const LineChart = React.memo(
-  ({ data, makeLineGradients, makeAreaGradients, valueFormatter, onMouseOver }: LineChartProps) => {
+  ({ data, size, makeLineGradients, makeAreaGradients, valueFormatter, onMouseOver }: LineChartProps) => {
     const chartData = useCallback(
       (ctx: CanvasRenderingContext2D | null): ChartData => {
         return {
@@ -256,6 +257,7 @@ export const LineChart = React.memo(
           },
           ticks: {
             padding: 35,
+            maxTicksLimit: 5,
             callback: (value) => {
               const num = typeof value === "string" ? Number(value) : value;
               return valueFormatter?.(num) ?? value;
@@ -270,7 +272,30 @@ export const LineChart = React.memo(
       [gradientPlugin, verticalLinePlugin, selectionPointPlugin, selectionCallbackPlugin],
     );
 
-    return <ReactChart type="line" data={chartData} options={chartOptions} plugins={allPlugins} />;
+    const chartDimensions = useMemo(() => {
+      if (size === "small") {
+        return {
+          w: 3,
+          h: 1,
+        };
+      } else {
+        return {
+          w: 6,
+          h: 1,
+        };
+      }
+    }, [size]);
+
+    return (
+      <ReactChart
+        type="line"
+        data={chartData}
+        options={chartOptions}
+        plugins={allPlugins}
+        width={chartDimensions.w}
+        height={chartDimensions.h}
+      />
+    );
   },
 );
 export default LineChart;

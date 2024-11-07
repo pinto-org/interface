@@ -11,6 +11,7 @@ interface SeasonalChartData {
 
 interface SeasonalChartProps {
   title: string;
+  size: "small" | "large";
   valueFormatter: (value: number) => string;
   tickValueFormatter?: (value: number) => string;
   fillArea?: boolean;
@@ -67,7 +68,13 @@ async function getData() {
   return data;
 }
 
-export default function SeasonalChart({ title, valueFormatter, tickValueFormatter, fillArea }: SeasonalChartProps) {
+export default function SeasonalChart({
+  title,
+  size,
+  valueFormatter,
+  tickValueFormatter,
+  fillArea,
+}: SeasonalChartProps) {
   const [allData, setAllData] = useState<SeasonalChartData[] | null>(null);
   const [displayData, setDisplayData] = useState<SeasonalChartData | null>(null);
   const [selectedTimeTab, setSelectedTimeTab] = useState(0);
@@ -152,6 +159,7 @@ export default function SeasonalChart({ title, valueFormatter, tickValueFormatte
 
           <LineChart
             data={chartData}
+            size={size}
             makeLineGradients={lineGradients}
             makeAreaGradients={areaGradients}
             valueFormatter={tickValueFormatter}
