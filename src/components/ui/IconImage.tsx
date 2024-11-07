@@ -1,5 +1,6 @@
 import { cn } from "@/utils/utils";
 import { ChevronUpIcon } from "@radix-ui/react-icons";
+import { IconProps } from "@radix-ui/react-icons/dist/types";
 import clsx from "clsx";
 import React from "react";
 
@@ -15,7 +16,7 @@ export interface IconImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageEl
   /**
    *
    */
-  src: string | typeof ChevronUpIcon;
+  src: string | React.ForwardRefExoticComponent<IconProps & React.RefAttributes<SVGSVGElement>>;
   /**
    * amount to nudge the icon up. defaults to 0.
    * number in px

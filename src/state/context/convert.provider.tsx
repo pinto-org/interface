@@ -1,5 +1,6 @@
 import { TV } from "@/classes/TokenValue";
-import { usePriceData } from "@/state/usePriceData";
+import { useWells } from "@/hooks/wells/wells";
+import { PoolData, usePriceData } from "@/state/usePriceData";
 import { useSeedGauge } from "@/state/useSeedGauge";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
@@ -8,7 +9,6 @@ import { getTokenIndex } from "@/utils/token";
 import { AddressMap, Token } from "@/utils/types";
 import { Prettify } from "@/utils/types.generic";
 
-import { keyBy } from "lodash";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 interface SiloTokenState {
@@ -34,10 +34,7 @@ interface SiloTokenState {
   /**
    * The pool data for the token
    */
-  pool?: {
-    deltaB: TV;
-    price: TV;
-  };
+  pool?: PoolData;
 }
 
 export type SiloTokenConvertPath = {
@@ -67,9 +64,8 @@ const usePrepareConvertContext = () => {
   const priceData = usePriceData();
   const tokenData = useTokenData();
   const seedGauge = useSeedGauge();
+  const wells = useWells();
   const silo = useSiloData();
-
-  const [convertState, setConvertState] = useState<AddressMap<SiloTokenConvertState>>({});
 
   const deltaB = priceData.deltaB;
 
@@ -77,13 +73,10 @@ const usePrepareConvertContext = () => {
   const maxLPToken = seedGauge.data.maxLPToken;
   const whitelist = tokenData.whitelistedTokens;
 
-  const poolMap = useMemo(() => keyBy(pools, (p) => getTokenIndex(p.pool)), [pools]);
-
   const tokenConvertState = useMemo(() => {
     return whitelist.reduce<AddressMap<SiloTokenState>>((acc, token) => {
       const tokenIndex = getTokenIndex(token);
       const siloTokenData = silo.tokenData.get(token);
-      const pool = poolMap[tokenIndex];
 
       if (siloTokenData) {
         const data: SiloTokenState = {
@@ -91,29 +84,21 @@ const usePrepareConvertContext = () => {
           isMaxLP: stringEq(token.address, maxLPToken?.address),
           rewards: siloTokenData.rewards,
           convertable: siloTokenData.depositedBDV.gt(0),
-          pool: undefined,
+          pool: wells[tokenIndex] ?? undefined,
         };
 
-        if (pool) {
-          data.pool = {
-            deltaB: pool.deltaB,
-            price: pool.price,
-          };
-        }
-
-        acc[token.address] = data;
+        acc[tokenIndex] = data;
       }
 
       return acc;
     }, {});
-  }, [whitelist, silo.tokenData, poolMap, maxLPToken]);
+  }, [whitelist, silo.tokenData, wells, maxLPToken]);
 
   const loading = silo.tokenData.size !== whitelist.length || !pools.length || !maxLPToken || priceData.price.isZero;
 
-  useEffect(() => {
-    if (loading) return;
-
+  const convertState = useMemo(() => {
     const state: AddressMap<SiloTokenConvertState> = {};
+    if (loading) return state;
 
     for (const fromState of Object.values(tokenConvertState)) {
       const fromToken = fromState.token;
@@ -133,13 +118,13 @@ const usePrepareConvertContext = () => {
           deltaSeedRewards: targetState.rewards.seeds.sub(fromState.rewards.seeds),
         };
 
-        // Disable converts from PINTO -> LP when deltaB < 0
-        if (!fromToken.isLP && deltaB.lt(0)) {
+        // Disable converts from PINTO -> LP when LP pool deltaB < 0
+        if (fromToken.isMain && targetState.pool?.deltaB.lt(0)) {
           data.enabled = false;
         }
 
-        // Disable converts LP -> PINTO when deltaB > 0
-        if (target.isLP && deltaB.gt(0)) {
+        // Disable converts LP -> PINTO when pool deltaB < 0
+        if (target.isMain && fromState.pool?.deltaB.gt(0)) {
           data.enabled = false;
         }
 
@@ -154,23 +139,15 @@ const usePrepareConvertContext = () => {
       };
     }
 
-    setConvertState(state);
+    return state;
   }, [loading, tokenConvertState, whitelist, deltaB]);
-
-  const getTargetTokens = useCallback(
-    (siloToken: Token) => {
-      return whitelist.filter((t) => !stringEq(t.address, siloToken.address));
-    },
-    [whitelist],
-  );
 
   return useMemo(
     () => ({
       convertState,
       maxLPToken,
-      getTargetTokens,
     }),
-    [convertState, maxLPToken, getTargetTokens],
+    [convertState, maxLPToken],
   );
 };
 
