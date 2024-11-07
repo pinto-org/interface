@@ -1,9 +1,9 @@
+import { TokenValue } from "@/classes/TokenValue";
 import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
-import { TokenValue } from "@/classes/TokenValue";
-import { useChainId, useReadContracts } from "wagmi";
 import { QueryKey } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { useChainId, useReadContracts } from "wagmi";
 
 export interface FieldData {
   harvestableIndex: TokenValue;
@@ -20,7 +20,7 @@ export interface FieldData {
     max: TokenValue;
     scaled: TokenValue;
   };
-  queryKeys: QueryKey;
+  queryKeys: QueryKey[];
 }
 
 const settings = {
@@ -110,11 +110,22 @@ export function useFieldData() {
             max: TokenValue.fromBlockchain(maxTemperature, PODS.decimals),
             scaled: TokenValue.fromBlockchain(temperature, PODS.decimals),
           },
-          queryKeys: calls.queryKey,
+          // queryKeys: calls.queryKey,
         };
       },
     },
   });
 
-  return useMemo(() => calls.data ?? defaultData, [calls.data]);
+  // return calls.data;
+
+  return useMemo(() => {
+    if (calls.data) {
+      return {
+        ...calls.data,
+        queryKeys: [calls.queryKey],
+      };
+    }
+
+    return defaultData;
+  }, [calls.data, calls.queryKey]);
 }

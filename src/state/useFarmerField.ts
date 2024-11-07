@@ -8,7 +8,7 @@ import { FarmerPlotsDocument, FarmerPlotsQuery } from "@/generated/gql/graphql";
 import { Listing, Order, Plot } from "@/utils/types";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useAccount, useChainId } from "wagmi";
 import { useFieldData } from "./useFieldData";
 
@@ -41,13 +41,25 @@ export function useFarmerField() {
   const plotsQuery = useReadFarmer_GetPlotsFromAccount({
     args: [account.address ?? ZERO_ADDRESS, 0n],
     query: {
-      enabled: !!account.address && !!harvestableIndex,
-      select: (response) => parsePlotsFromChain(response, harvestableIndex),
+      enabled: !!account.address,
     },
   });
 
+  const plotsQueryData = useMemo(() => {
+    if (plotsQuery.data?.length && harvestableIndex) {
+      return parsePlotsFromChain(plotsQuery.data, harvestableIndex);
+    }
+
+    return {
+      plots: [],
+      totalPods: TokenValue.ZERO,
+      totalUnharvestablePods: TokenValue.ZERO,
+      totalHarvestablePods: TokenValue.ZERO,
+    };
+  }, [plotsQuery, harvestableIndex]);
+
   const combinedPlotsData = useMemo(() => {
-    const plotsChain = plotsQuery.data?.plots ?? [];
+    const plotsChain = plotsQueryData?.plots ?? [];
     const plotsSG = plotsSGQuery.data?.plots ?? [];
 
     const plots: Plot[] = [];
@@ -74,7 +86,7 @@ export function useFarmerField() {
     plots.sort((a, b) => a.index.sub(b.index).toNumber());
 
     return plots;
-  }, [plotsQuery.data, plotsSGQuery.data?.plots]);
+  }, [plotsQueryData, plotsSGQuery.data?.plots]);
 
   const refetch = useCallback(async () => {
     return Promise.all([plotsSGQuery.refetch(), plotsQuery.refetch()]);
@@ -85,18 +97,13 @@ export function useFarmerField() {
       plots: combinedPlotsData,
       orders: plotsSGQuery.data?.orders ?? [],
       listings: plotsSGQuery.data?.listings ?? [],
-      totalPods: plotsQuery.data?.totalPods ?? TokenValue.ZERO,
+      totalPods: plotsQueryData?.totalPods ?? TokenValue.ZERO,
+      totalUnharvestablePods: plotsQueryData?.totalUnharvestablePods ?? TokenValue.ZERO,
+      totalHarvestablePods: plotsQueryData?.totalHarvestablePods ?? TokenValue.ZERO,
       queryKey: queryKey,
       refetch,
     };
-  }, [
-    combinedPlotsData,
-    plotsSGQuery.data?.orders,
-    plotsSGQuery.data?.listings,
-    plotsQuery.data?.totalPods,
-    queryKey,
-    refetch,
-  ]);
+  }, [combinedPlotsData, plotsSGQuery.data?.orders, plotsSGQuery.data?.listings, plotsQueryData, queryKey, refetch]);
 }
 
 type PlotsResponse = {
@@ -108,19 +115,22 @@ const parsePlotsFromChain = (response: readonly PlotsResponse[], harvestableInde
   const plots: Plot[] = [];
 
   let totalPods: TokenValue = TokenValue.ZERO;
+  let totalUnharvestablePods: TokenValue = TokenValue.ZERO;
+  let totalHarvestablePods: TokenValue = TokenValue.ZERO;
+
   response.forEach((plotData) => {
     const startIndex = TokenValue.fromBigInt(plotData.index, PODS.decimals);
     const plot = TokenValue.fromBigInt(plotData.pods, PODS.decimals);
 
     let pods: TokenValue;
     let harvestablePods: TokenValue;
-    let harvestedPods: TokenValue;
+    let unharvestablePods: TokenValue;
 
     // Fully harvestable
     if (startIndex.add(plot).lte(harvestableIndex)) {
-      pods = TokenValue.ZERO;
+      pods = plot;
       harvestablePods = plot;
-      harvestedPods = TokenValue.ZERO;
+      unharvestablePods = TokenValue.ZERO;
     }
 
     // Partially harvestable
@@ -129,30 +139,32 @@ const parsePlotsFromChain = (response: readonly PlotsResponse[], harvestableInde
 
       pods = plot.sub(partialAmount);
       harvestablePods = partialAmount;
-      harvestedPods = plot.sub(partialAmount);
+      unharvestablePods = plot.sub(partialAmount);
     }
 
     // Unharvestable
     else {
       pods = plot;
       harvestablePods = TokenValue.ZERO;
-      harvestedPods = plot;
+      unharvestablePods = plot;
     }
 
     totalPods = totalPods.add(pods);
+    totalUnharvestablePods = totalUnharvestablePods.add(unharvestablePods);
+    totalHarvestablePods = totalHarvestablePods.add(harvestablePods);
 
     const output: Plot = {
-      fullyHarvested: false,
-      harvestedPods,
-      harvestablePods,
-      pods,
+      harvestedPods: TokenValue.ZERO,
+      harvestablePods, // harvestable pods
+      unharvestablePods, // unharvestable pods
+      pods, // total pods (harvestable + unharvestable)
       index: startIndex,
       id: startIndex.toHuman(),
     };
     plots.push(output);
   });
 
-  return { plots, totalPods };
+  return { plots, totalPods, totalUnharvestablePods, totalHarvestablePods };
 };
 
 const parsePlotsFromSG = (response: FarmerPlotsQuery) => {

@@ -1,4 +1,4 @@
-import { FontVariant, textConfig } from "@/utils/theme";
+import { FontVariant } from "@/utils/theme";
 import { cn } from "@/utils/utils";
 
 function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
@@ -10,10 +10,4 @@ export interface ISkeletonText extends React.HTMLAttributes<HTMLDivElement> {
   variant: FontVariant;
 }
 
-const { methods } = textConfig;
-
-const SkeletonText = ({ width, variant }: ISkeletonText) => {
-  return <Skeleton className={cn(`h-[${methods.lineHeight(variant)}]`, `w-[${width}rem]`)} />;
-};
-
-export { Skeleton, SkeletonText };
+export { Skeleton };

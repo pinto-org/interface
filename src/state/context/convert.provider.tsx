@@ -118,13 +118,13 @@ const usePrepareConvertContext = () => {
           deltaSeedRewards: targetState.rewards.seeds.sub(fromState.rewards.seeds),
         };
 
-        // Disable converts from PINTO -> LP when deltaB < 0
-        if (!fromToken.isLP && target.isLP && deltaB.lt(0)) {
+        // Disable converts from PINTO -> LP when LP pool deltaB < 0
+        if (fromToken.isMain && targetState.pool?.deltaB.lt(0)) {
           data.enabled = false;
         }
 
-        // Disable converts LP -> PINTO when deltaB > 0
-        if (target.isLP && !fromToken.isLP && deltaB.gt(0)) {
+        // Disable converts LP -> PINTO when pool deltaB < 0
+        if (target.isMain && fromState.pool?.deltaB.gt(0)) {
           data.enabled = false;
         }
 

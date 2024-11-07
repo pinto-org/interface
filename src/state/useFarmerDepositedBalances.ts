@@ -1,12 +1,14 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { STALK } from "@/constants/internalTokens";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useChainAddress } from "@/utils/chain";
 import { DepositData, Token, TokenDepositData } from "@/utils/types";
 import { unpackStem } from "@/utils/utils";
 import { useMemo } from "react";
 import { Address, toHex } from "viem";
 import { useAccount, useReadContract } from "wagmi";
+import { getTokenIndex } from "./../utils/token";
 import { useSiloData } from "./useSiloData";
 import { useSunData } from "./useSunData";
 import useTokenData from "./useTokenData";
@@ -25,8 +27,6 @@ const querySettings = {
   refetchInterval: 1000 * 60 * 3, // 3 minutes, in milliseconds
 };
 
-const emptyMap: Map<Token, TokenDepositData> = new Map();
-
 function useFarmerDepositedBalances() {
   const account = useAccount();
   const season = useSunData().current;
@@ -34,6 +34,8 @@ function useFarmerDepositedBalances() {
   const BEAN = useTokenData().mainToken;
   const SILO_WHITELIST = useTokenData().whitelistedTokens;
   const diamondAddress = useChainAddress(beanstalkAddress);
+
+  const tokenMap = useTokenMap();
 
   const {
     data: dataFromContract,
@@ -50,6 +52,19 @@ function useFarmerDepositedBalances() {
       enabled: !!account.address,
     },
   });
+
+  const depositsByToken = useMemo(() => {
+    const deposits: Map<Token, DepositQuery[]> = new Map();
+
+    for (const deposit of dataFromContract ?? []) {
+      const token = tokenMap[getTokenIndex(deposit.token)];
+
+      for (const [index, depositId] of deposit.depositIds.entries()) {
+        // const addr =
+        // const token = tokenMap[]
+      }
+    }
+  }, [dataFromContract, tokenMap]);
 
   const datas = useMemo(() => {
     const farmerDeposits: DepositQuery[] = [];
@@ -76,9 +91,10 @@ function useFarmerDepositedBalances() {
       let currentBDV = TokenValue.fromBlockchain(0n, BEAN.decimals);
       const depositData: DepositData[] = [];
       const siloTokenData = silo.tokenData.get(token);
+
       farmerDeposits.forEach((deposit) => {
         const isToken = deposit.token.toLowerCase() === token.address.toLowerCase();
-        if (isToken && deposit.depositedBDV > 2n && siloTokenData) {
+        if (isToken && siloTokenData) {
           const isGerminating = deposit.stem >= siloTokenData.germinatingStem.toBigInt();
           const _depositBDV = TokenValue.fromBlockchain(deposit.depositedBDV, BEAN.decimals);
           const depositStem = TokenValue.fromBlockchain(deposit.stem, BEAN.decimals);
@@ -134,6 +150,7 @@ function useFarmerDepositedBalances() {
         },
         seeds: depositData.reduce((total, deposit) => deposit.seeds.add(total), TokenValue.ZERO),
         deposits: depositData,
+        convertibleDeposits: [],
       });
     });
 

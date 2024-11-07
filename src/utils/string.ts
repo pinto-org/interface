@@ -18,3 +18,12 @@ export const stringEq = (a: Stringable, b: Stringable) => {
 
   return aVal.toString().toLowerCase() === bVal.toString().toLowerCase();
 };
+
+export const stringToNumber = (val: string) => {
+  if (!val) return 0;
+  if (val === ".") return 0;
+  if (val === "e") return 0;
+  if (val.toLowerCase() === "nan") return 0;
+
+  return Number(val);
+};
