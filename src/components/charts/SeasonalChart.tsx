@@ -15,6 +15,7 @@ interface SeasonalChartProps {
   tickValueFormatter?: (value: number) => string;
 }
 
+// Draws a dynamic gradient depending on mouse position in the chart
 const gradientFunction: MakeGradientFunction = (ctx: CanvasRenderingContext2D | null, position: number) => {
   if (ctx) {
     const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
@@ -80,7 +81,7 @@ export default function SeasonalChart({ title, valueFormatter, tickValueFormatte
   const handleMouseOver = useCallback(
     (index: number) => {
       if (allData) {
-        setDisplayData(allData[index]);
+        setDisplayData(allData[index ?? allData.length - 1]);
       }
     },
     [allData],

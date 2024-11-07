@@ -11,7 +11,7 @@ import {
   PointElement,
 } from "chart.js";
 import { ReactChart } from "../ReactChart";
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 
 ReactChart.register(LineController, LineElement, LinearScale, CategoryScale, PointElement);
 
@@ -53,90 +53,125 @@ export const LineChart = React.memo(({ data, makeLineGradients, valueFormatter, 
     [data, makeLineGradients],
   );
 
-  // TODO: separate plugins
-  const hoverPlugin: Plugin = {
-    id: "customLineHover",
-    afterDraw: (chart: Chart) => {
-      const ctx = chart.ctx;
-      const activeElements = chart.getActiveElements();
-      if (ctx && activeElements.length > 0) {
-        const point = activeElements[0];
-        const index = point.index;
-        const meta = chart.getDatasetMeta(0);
-        const dataPoint = meta.data[index];
+  const gradientPlugin: Plugin = useMemo<Plugin>(
+    () => ({
+      id: "customGradientShift",
+      afterDraw: (chart: Chart) => {
+        const ctx = chart.ctx;
+        if (ctx) {
+          const activeElements = chart.getActiveElements();
+          let relativeX = 1;
+          if (activeElements.length > 0) {
+            const dataPoint = chart.getDatasetMeta(0).data[activeElements[0].index];
+            relativeX = (dataPoint.x - chart.chartArea.left) / chart.chartArea.width;
+          }
 
-        const { x, y } = dataPoint;
-
-        // Update line gradient(s)
-        const relativeX = (x - chart.chartArea.left) / chart.chartArea.width;
-        for (let i = 0; i < chart.data.datasets.length; ++i) {
-          chart.data.datasets[i].borderColor = makeLineGradients[i](ctx, relativeX);
+          for (let i = 0; i < chart.data.datasets.length; ++i) {
+            chart.data.datasets[i].borderColor = makeLineGradients[i](ctx, relativeX);
+          }
+          chart.update("none");
         }
-        chart.update("none");
+      },
+    }),
+    [makeLineGradients],
+  );
 
-        // Draw vertical line
-        ctx.save();
-        ctx.beginPath();
-        ctx.setLineDash([8, 8]);
-        // chartArea.top is not corresponding to the top of the canvas element
-        ctx.moveTo(x, chart.chartArea.top - 50);
-        ctx.lineTo(x, chart.chartArea.bottom);
-        ctx.strokeStyle = "#D9AD0F";
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.restore();
+  const verticalLinePlugin: Plugin = useMemo<Plugin>(
+    () => ({
+      id: "customVerticalLine",
+      afterDraw: (chart: Chart) => {
+        const ctx = chart.ctx;
+        const activeElements = chart.getActiveElements();
+        if (ctx && activeElements.length > 0) {
+          const dataPoint = chart.getDatasetMeta(0).data[activeElements[0].index];
 
-        // Draw rounded rect around selected point
-        ctx.save();
-        ctx.fillStyle = "#D9AD0F";
-        ctx.strokeStyle = "#D9AD0F";
-        ctx.lineWidth = 2;
+          // Draw vertical line
+          ctx.save();
+          ctx.beginPath();
+          ctx.setLineDash([8, 8]);
+          // chartArea.top is not corresponding to the top of the canvas element
+          ctx.moveTo(dataPoint.x, chart.chartArea.top - 50);
+          ctx.lineTo(dataPoint.x, chart.chartArea.bottom);
+          ctx.strokeStyle = "#D9AD0F";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.restore();
+        }
+      },
+    }),
+    [],
+  );
 
-        const rectWidth = 12;
-        const rectHeight = 12;
-        const cornerRadius = 5;
+  const selectionPointPlugin: Plugin = useMemo<Plugin>(
+    () => ({
+      id: "customSelectPoint",
+      afterDraw: (chart: Chart) => {
+        const ctx = chart.ctx;
+        const activeElements = chart.getActiveElements();
+        if (ctx && activeElements.length > 0) {
+          const dataPoint = chart.getDatasetMeta(0).data[activeElements[0].index];
+          const { x, y } = dataPoint;
 
-        ctx.beginPath();
-        ctx.moveTo(x - rectWidth / 2 + cornerRadius, y - rectHeight / 2);
-        ctx.lineTo(x + rectWidth / 2 - cornerRadius, y - rectHeight / 2);
-        ctx.quadraticCurveTo(
-          x + rectWidth / 2,
-          y - rectHeight / 2,
-          x + rectWidth / 2,
-          y - rectHeight / 2 + cornerRadius,
-        );
-        ctx.lineTo(x + rectWidth / 2, y + rectHeight / 2 - cornerRadius);
-        ctx.quadraticCurveTo(
-          x + rectWidth / 2,
-          y + rectHeight / 2,
-          x + rectWidth / 2 - cornerRadius,
-          y + rectHeight / 2,
-        );
-        ctx.lineTo(x - rectWidth / 2 + cornerRadius, y + rectHeight / 2);
-        ctx.quadraticCurveTo(
-          x - rectWidth / 2,
-          y + rectHeight / 2,
-          x - rectWidth / 2,
-          y + rectHeight / 2 - cornerRadius,
-        );
-        ctx.lineTo(x - rectWidth / 2, y - rectHeight / 2 + cornerRadius);
-        ctx.quadraticCurveTo(
-          x - rectWidth / 2,
-          y - rectHeight / 2,
-          x - rectWidth / 2 + cornerRadius,
-          y - rectHeight / 2,
-        );
-        ctx.closePath();
+          // Draw rounded rect around selected point
+          ctx.save();
+          ctx.fillStyle = "#D9AD0F";
+          ctx.strokeStyle = "#D9AD0F";
+          ctx.lineWidth = 2;
 
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
+          const rectWidth = 12;
+          const rectHeight = 12;
+          const cornerRadius = 5;
 
-        // Report selection to parent
-        onMouseOver?.(index);
-      }
-    },
-  };
+          ctx.beginPath();
+          ctx.moveTo(x - rectWidth / 2 + cornerRadius, y - rectHeight / 2);
+          ctx.lineTo(x + rectWidth / 2 - cornerRadius, y - rectHeight / 2);
+          ctx.quadraticCurveTo(
+            x + rectWidth / 2,
+            y - rectHeight / 2,
+            x + rectWidth / 2,
+            y - rectHeight / 2 + cornerRadius,
+          );
+          ctx.lineTo(x + rectWidth / 2, y + rectHeight / 2 - cornerRadius);
+          ctx.quadraticCurveTo(
+            x + rectWidth / 2,
+            y + rectHeight / 2,
+            x + rectWidth / 2 - cornerRadius,
+            y + rectHeight / 2,
+          );
+          ctx.lineTo(x - rectWidth / 2 + cornerRadius, y + rectHeight / 2);
+          ctx.quadraticCurveTo(
+            x - rectWidth / 2,
+            y + rectHeight / 2,
+            x - rectWidth / 2,
+            y + rectHeight / 2 - cornerRadius,
+          );
+          ctx.lineTo(x - rectWidth / 2, y - rectHeight / 2 + cornerRadius);
+          ctx.quadraticCurveTo(
+            x - rectWidth / 2,
+            y - rectHeight / 2,
+            x - rectWidth / 2 + cornerRadius,
+            y - rectHeight / 2,
+          );
+          ctx.closePath();
+
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+        }
+      },
+    }),
+    [],
+  );
+
+  const selectionCallbackPlugin: Plugin = useMemo<Plugin>(
+    () => ({
+      id: "selectionCallback",
+      afterDraw: (chart: Chart) => {
+        onMouseOver?.(chart.getActiveElements()[0]?.index);
+      },
+    }),
+    [onMouseOver],
+  );
 
   const chartOptions: ChartOptions = {
     responsive: true,
@@ -224,6 +259,11 @@ export const LineChart = React.memo(({ data, makeLineGradients, valueFormatter, 
     },
   };
 
-  return <ReactChart type="line" data={chartData} options={chartOptions} plugins={[hoverPlugin]} />;
+  const allPlugins = useMemo<Plugin[]>(
+    () => [gradientPlugin, verticalLinePlugin, selectionPointPlugin, selectionCallbackPlugin],
+    [gradientPlugin, verticalLinePlugin, selectionPointPlugin, selectionCallbackPlugin],
+  );
+
+  return <ReactChart type="line" data={chartData} options={chartOptions} plugins={allPlugins} />;
 });
 export default LineChart;
