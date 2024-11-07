@@ -15,12 +15,20 @@ interface SeasonalChartProps {
   tickValueFormatter?: (value: number) => string;
 }
 
-const gradientFunction: MakeGradientFunction = (ctx: CanvasRenderingContext2D | null) => {
+const gradientFunction: MakeGradientFunction = (ctx: CanvasRenderingContext2D | null, position: number) => {
   if (ctx) {
     const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
-    gradient.addColorStop(0, "#F2F6F9");
-    gradient.addColorStop(0.495, "#00C767");
-    gradient.addColorStop(1, "#246645");
+    const colors = ["#F2F6F9", "#00C767", "#246645", "#00C767", "#F2F6F9"];
+    const positions = [position - 1, position - 0.5, position, position + 0.5, position + 1];
+    for (let i = 0; i < positions.length; ++i) {
+      if (positions[i] >= 0 && positions[i] <= 1) {
+        gradient.addColorStop(positions[i], colors[i]);
+      } else if (positions[i] > 1 && positions[i - 1] < 1) {
+        gradient.addColorStop(1, colors[i]);
+      } else if (positions[i] < 0 && positions[i + 1] > 0) {
+        gradient.addColorStop(0, colors[i]);
+      }
+    }
     return gradient;
   }
 };

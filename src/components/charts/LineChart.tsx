@@ -2,6 +2,7 @@ import {
   CategoryScale,
   Chart,
   ChartData,
+  ChartEvent,
   ChartOptions,
   LinearScale,
   LineController,
@@ -20,7 +21,10 @@ export interface LineChartData {
   timestamp: Date;
 }
 
-export type MakeGradientFunction = (ctx: CanvasRenderingContext2D | null) => CanvasGradient | undefined;
+export type MakeGradientFunction = (
+  ctx: CanvasRenderingContext2D | null,
+  position: number,
+) => CanvasGradient | undefined;
 
 export interface LineChartProps {
   data: LineChartData[];
@@ -37,7 +41,7 @@ export const LineChart = React.memo(({ data, makeLineGradients, valueFormatter, 
         datasets: [
           {
             data: data.map((d) => d.value),
-            borderColor: makeLineGradients[0](ctx),
+            borderColor: makeLineGradients[0](ctx, 1),
             borderWidth: 3.41,
             // Hide default points, custom are implemented in afterDraw plugin
             pointRadius: 0,
@@ -49,6 +53,7 @@ export const LineChart = React.memo(({ data, makeLineGradients, valueFormatter, 
     [data, makeLineGradients],
   );
 
+  // TODO: separate plugins
   const hoverPlugin: Plugin = {
     id: "customLineHover",
     afterDraw: (chart: Chart) => {
@@ -61,6 +66,13 @@ export const LineChart = React.memo(({ data, makeLineGradients, valueFormatter, 
         const dataPoint = meta.data[index];
 
         const { x, y } = dataPoint;
+
+        // Update line gradient(s)
+        const relativeX = (x - chart.chartArea.left) / chart.chartArea.width;
+        for (let i = 0; i < chart.data.datasets.length; ++i) {
+          chart.data.datasets[i].borderColor = makeLineGradients[i](ctx, relativeX);
+        }
+        chart.update("none");
 
         // Draw vertical line
         ctx.save();
