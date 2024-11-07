@@ -3,16 +3,14 @@ import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
 import { formatter } from "@/utils/format";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 const MAIN_TABS = ["Pinto", "Silo", "Field", "Seasons", "All"];
 
 function Explorer() {
   const [mainTab, setMainTab] = useState(0);
 
-  const handleMainTabClick = (tabIdx: number) => {
-    setMainTab(tabIdx);
-  };
+  const handleMainTabClickWrapper = useCallback((idx: number) => () => setMainTab(idx), []);
 
   return (
     <PageContainer variant="xl">
@@ -28,7 +26,7 @@ function Explorer() {
                   color={mainTab === idx ? "primary" : "light"}
                   data-state={mainTab === idx ? "active" : "inactive"}
                   className="cursor-pointer data-[state=inactive]:hover:text-pinto-green-3"
-                  onClick={() => handleMainTabClick(idx)}
+                  onClick={handleMainTabClickWrapper(idx)}
                 >
                   {tabName}
                 </Text>

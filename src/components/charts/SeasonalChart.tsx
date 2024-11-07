@@ -16,6 +16,8 @@ interface SeasonalChartProps {
   fillArea?: boolean;
 }
 
+const TIME_TABS = ["Week", "Month", "All Time"];
+
 // Draws dynamic gradient with the given colors at the given positions.
 // Positions outside of range [0, 1] are truncated or ignored when appropriate.
 const positionalGradient = (ctx: CanvasRenderingContext2D, colors: string[], positions: number[]) => {
@@ -68,6 +70,7 @@ async function getData() {
 export default function SeasonalChart({ title, valueFormatter, tickValueFormatter, fillArea }: SeasonalChartProps) {
   const [allData, setAllData] = useState<SeasonalChartData[] | null>(null);
   const [displayData, setDisplayData] = useState<SeasonalChartData | null>(null);
+  const [selectedTimeTab, setSelectedTimeTab] = useState(0);
 
   useEffect(
     () => {
@@ -81,6 +84,8 @@ export default function SeasonalChart({ title, valueFormatter, tickValueFormatte
       /*TODO(ss): getData (when it becomes a prop)*/
     ],
   );
+
+  const handleTimeTabClickWrapper = useCallback((idx: number) => () => setSelectedTimeTab(idx), []);
 
   const chartData = useMemo<LineChartData[]>(() => {
     if (allData) {
@@ -110,9 +115,25 @@ export default function SeasonalChart({ title, valueFormatter, tickValueFormatte
 
   return (
     <div className="rounded-[20px] p-4 sm:p-6 sm:pb-4" style={{ backgroundColor: "#F8F8F8" }}>
-      <Text variant="body" color="light">
-        {title}
-      </Text>
+      <div className="flex justify-between">
+        <Text variant="body" color="light">
+          {title}
+        </Text>
+        <div className="flex gap-4 sm:gap-8">
+          {TIME_TABS.map((tabName: string, idx: number) => (
+            <Text
+              key={tabName}
+              variant="body"
+              color={selectedTimeTab === idx ? "green3" : "light"}
+              data-state={selectedTimeTab === idx ? "active" : "inactive"}
+              className="cursor-pointer data-[state=inactive]:hover:text-pinto-green-4"
+              onClick={handleTimeTabClickWrapper(idx)}
+            >
+              {tabName}
+            </Text>
+          ))}
+        </div>
+      </div>
 
       {!allData && !displayData && "spinner goes here"}
       {allData && displayData && (
