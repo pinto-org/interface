@@ -26,7 +26,6 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number) {
       > = {
         primaryPropertyName: "beanHourlySnapshots",
         idField: "id",
-        paginateField: "season",
         paginateDirection: "asc",
         loopCallback: (
           value1000: Partial<Pick<BeanHourlySnapshot, keyof BeanHourlySnapshot>>,
@@ -40,7 +39,7 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number) {
           }
         },
       };
-      return paginateSubgraph(subgraphs[chainId].bean, BeanSeasonalPriceDocument, variables, paginateSettings);
+      return await paginateSubgraph(subgraphs[chainId].bean, BeanSeasonalPriceDocument, variables, paginateSettings);
     },
     select: (data) => {
       return data.map((r) => ({
