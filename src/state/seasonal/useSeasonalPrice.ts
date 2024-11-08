@@ -1,11 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { subgraphs } from "@/constants/subgraph";
 import { useSunData } from "../useSunData";
 import { useChainId } from "wagmi";
 import { BeanHourlySnapshot, BeanSeasonalPriceDocument, BeanSeasonalPriceQuery } from "@/generated/gql/graphql";
 import { paginateSubgraph, PaginationSettings } from "@/utils/paginateSubgraph";
+import { SeasonalChartData } from "@/components/charts/SeasonalChart";
 
-export default function useSeasonalPrice(fromSeason: number, toSeason: number) {
+export default function useSeasonalPrice(fromSeason: number, toSeason: number): UseQueryResult<SeasonalChartData[]> {
   const currentSeason = useSunData().current;
   // const chainId = useChainId(); // TODO(ss): put this back eventually
   const chainId = 1337;
@@ -15,6 +16,7 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number) {
     to: toSeason,
   };
 
+  // TODO(ss): Potential improvement if a larger result is available, no need to query a smaller (i.e. all -> month)
   return useQuery({
     queryKey: ["seasonalPrices", { chainId: chainId, season: currentSeason, variables }],
     queryFn: async () => {
@@ -43,7 +45,7 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number) {
     select: (data) => {
       return data.map((r) => ({
         season: Number(r.season),
-        price: Number(r.price),
+        value: Number(r.price),
         timestamp: new Date(Number(r.timestamp) * 1000),
       }));
     },
