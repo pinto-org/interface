@@ -41,7 +41,7 @@ interface BaseConvertProps {
   siloToken: Token;
 }
 
-type ConvertProps = BaseConvertProps & {
+interface ConvertProps extends BaseConvertProps {
   farmerDepositMap: Map<Token, TV>;
   queryClient: ReturnType<typeof useQueryClient>;
   farmerDeposits: ReturnType<typeof useFarmerDepositedBalances>["data"];
@@ -50,7 +50,7 @@ type ConvertProps = BaseConvertProps & {
   sourceWell: PoolData | undefined;
   targetWell: PoolData | undefined;
   onSuccess: () => void;
-};
+}
 
 // ------------------------------ DEFAULT CONVERT ------------------------------
 
