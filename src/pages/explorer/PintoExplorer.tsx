@@ -4,6 +4,9 @@ import { useSunData } from "@/state/useSunData";
 import { formatter } from "@/utils/format";
 import { useCallback, useState } from "react";
 
+const price6dFormatter = (v: number) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`;
+const price2dFormatter = (v: number) => `$${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`;
+
 const PintoExplorer = () => {
   const [priceTimeTab, setPriceTimeTab] = useState(TimeTab.Week);
   const [liquidityTimeTab, setLiquidityTimeTab] = useState(TimeTab.Week);
@@ -39,8 +42,8 @@ const PintoExplorer = () => {
             dataFn={priceDataFn}
             activeTab={priceTimeTab}
             onTimeTabChange={setPriceTimeTab}
-            valueFormatter={(v) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`}
-            tickValueFormatter={(v) => `$${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`}
+            valueFormatter={price6dFormatter}
+            tickValueFormatter={price2dFormatter}
           />
         </div>
         <div className="w-1/2">
@@ -51,8 +54,8 @@ const PintoExplorer = () => {
             dataFn={priceDataFn}
             activeTab={liquidityTimeTab}
             onTimeTabChange={setLiquidityTimeTab}
-            valueFormatter={(v) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`}
-            tickValueFormatter={(v) => `$${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`}
+            valueFormatter={price6dFormatter}
+            tickValueFormatter={price2dFormatter}
           />
         </div>
       </div>
@@ -62,8 +65,8 @@ const PintoExplorer = () => {
         dataFn={priceDataFn}
         activeTab={supplyTimeTab}
         onTimeTabChange={setSupplyTimeTab}
-        valueFormatter={(v) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`}
-        tickValueFormatter={(v) => `$${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`}
+        valueFormatter={price6dFormatter}
+        tickValueFormatter={price2dFormatter}
       />
     </>
   );

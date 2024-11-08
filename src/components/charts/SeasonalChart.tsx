@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Text from "../ui/Text";
 import { formatDate } from "@/utils/format";
 import LineChart, { LineChartData, MakeGradientFunction } from "./LineChart";
@@ -60,7 +60,7 @@ interface SeasonalChartProps {
   fillArea?: boolean;
 }
 
-export default function SeasonalChart({
+const SeasonalChart = ({
   title,
   size,
   dataFn,
@@ -69,7 +69,7 @@ export default function SeasonalChart({
   valueFormatter,
   tickValueFormatter,
   fillArea,
-}: SeasonalChartProps) {
+}: SeasonalChartProps) => {
   const [allData, setAllData] = useState<SeasonalChartData[] | null>(null);
   const [displayData, setDisplayData] = useState<SeasonalChartData | null>(null);
 
@@ -156,4 +156,5 @@ export default function SeasonalChart({
       )}
     </div>
   );
-}
+};
+export default SeasonalChart;
