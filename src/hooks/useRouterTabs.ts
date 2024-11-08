@@ -1,62 +1,70 @@
-import { SyntheticEvent, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
+interface UseRouterTabsOptions {
+  onTabChange?: (value: string) => void;
+  replace?: boolean;
+  scrollToTop?: boolean;
+}
+
 const useRouterTabs = (
-  /**
-   * An array of url slugs corresponding to tab indices.
-   * These are the URLs that will trigger each respective tab.
-   * Leave empty to disable search param behavior.
-   */
-  slugs?: string[],
-  /**
-   * The URL key used to store the slug.
-   * @default 'tab'
-   */
+  slugs: readonly string[],
   key: string = "tab",
-  /**
-   * default tab value
-   */
-  defaultValue: number = 0,
+  defaultIndex: number = 0,
+  options: UseRouterTabsOptions = {},
 ) => {
-  /// Search params
+  const { onTabChange, replace = true, scrollToTop = false } = options;
+
   const [params, update] = useSearchParams();
-  const currSlug = params.get(key);
 
-  /// Lookup tab index if slugs provided
-  const getTabIndex = useCallback(
-    (slug: string | null | undefined) => {
-      /// If `slug` exists in `slugToIndex`...
-      if (slug && slugs && slugs.length > 0) {
-        const index = slugs.indexOf(slug);
-        if (index > -1) return index;
-      }
-      return defaultValue; // default tab
-    },
-    [defaultValue, slugs],
-  );
+  // Get current slug from URL
+  const getCurrentSlug = useCallback(() => {
+    return params.get(key) ?? slugs[defaultIndex];
+  }, [params, key, slugs, defaultIndex]);
 
-  /// Init state
-  const [tab, setTab] = useState(getTabIndex(params.get(key)));
+  // Initialize tab state
+  const [tab, setTab] = useState(getCurrentSlug());
 
-  /// Setup tab state
+  // Handle tab changes
   const handleChangeTab = useCallback(
-    (_event: SyntheticEvent, newIndex: number) => {
-      if (slugs?.[newIndex]) {
-        // create new url param from existing params
+    (value: string) => {
+      if (slugs.includes(value)) {
+        // Update URL if slug is valid
         const updatedParams = new URLSearchParams(params);
-        updatedParams.set(key, slugs[newIndex]);
-        update(updatedParams);
+        updatedParams.set(key, value);
+
+        update(updatedParams, { replace });
+
+        // Call onChange callback if provided
+        onTabChange?.(value);
+
+        // Handle scroll to top
+        if (scrollToTop) {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
       } else {
-        setTab(newIndex);
+        // Handle invalid slug
+        console.warn(`Invalid tab value: ${value}`);
+        setTab(slugs[defaultIndex]);
       }
     },
-    [key, params, slugs, update],
+    [key, params, slugs, update, defaultIndex, onTabChange, replace, scrollToTop],
   );
 
-  /// Handle external navigation
+  // Handle external navigation
   useEffect(() => {
-    setTab(getTabIndex(currSlug));
-  }, [currSlug, getTabIndex]);
+    const currentSlug = getCurrentSlug();
+    if (currentSlug !== tab) {
+      setTab(currentSlug);
+    }
+  }, [getCurrentSlug, tab]);
+
+  // Validate initial state
+  useEffect(() => {
+    if (!slugs.includes(tab)) {
+      handleChangeTab(slugs[defaultIndex]);
+    }
+  }, [tab, slugs, defaultIndex, handleChangeTab]);
 
   return [tab, handleChangeTab] as const;
 };

@@ -35,6 +35,7 @@ import { useDebounceValue, useDebouncedEffect } from "@/utils/useDebounce";
 import { cn, exists, noop } from "@/utils/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
 
@@ -441,6 +442,7 @@ const PipelineConvert = ({
 
 interface ConvertContext {
   targetToken: Token;
+  mode?: string;
   setTargetToken: React.Dispatch<React.SetStateAction<Token>>;
 }
 
@@ -454,18 +456,44 @@ const useSiloConvertContext = () => {
   return context;
 };
 
+const useConvertUrlSearchParams = () => {
+  const tokenMap = useTokenMap();
+  const [params] = useSearchParams();
+
+  const [token, setToken] = useState<Token | undefined>(undefined);
+  const [mode, setMode] = useState<string | undefined>(undefined);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Only run on mount
+  useEffect(() => {
+    const tokenValue = params.get("target");
+    const modeValue = params.get("mode");
+
+    if (tokenValue) {
+      setToken(tokenMap[getTokenIndex(tokenValue)]);
+    }
+    if (modeValue) {
+      setMode(modeValue);
+    }
+  }, []);
+
+  return { token, mode };
+};
+
 const SiloConvertProvider = ({ children, siloToken }: { children: React.ReactNode; siloToken: Token }) => {
   const { maxLPToken } = useConvertState();
 
+  const { token, mode } = useConvertUrlSearchParams();
+
   const tokenData = useTokenData();
   const [targetToken, setTargetToken] = useState<Token>(
-    siloToken.isLP ? tokenData.mainToken : maxLPToken || tokenData.lpTokens[0],
+    token ? token : siloToken.isLP ? tokenData.mainToken : maxLPToken || tokenData.lpTokens[0],
   );
 
   return (
     <ConvertContext.Provider
       value={{
         targetToken,
+        mode,
         setTargetToken,
       }}
     >
@@ -640,7 +668,7 @@ const SiloConvertTokenSelectComponent = ({ siloToken }: BaseConvertProps) => {
 
     return {
       tokenConvertState: tokenState,
-      divorcedState: getDivorcedState(tokenState.paths),
+      divorcedState: getDivorcedState(tokenState?.paths ?? []),
     };
   }, [convertState, siloToken]);
 
