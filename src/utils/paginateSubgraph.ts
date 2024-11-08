@@ -7,8 +7,7 @@ const PAGE_SIZE = 1000;
 export interface PaginationSettings<R, T, K extends keyof T, V> {
   primaryPropertyName: Extract<K, string>;
   idField: Extract<keyof R, string>;
-  paginateDirection: "asc" | "desc";
-  loopCallback: (value1000: R, prevVars: V) => V | undefined;
+  nextVars: (value1000: R, prevVars: V) => V | undefined;
 }
 
 type ResultObject<T, K extends keyof T, R> = {
@@ -47,7 +46,7 @@ export const paginateSubgraph = async <R, T, V extends Variables = Variables>(
     }
     prevPageIds = pageIds;
 
-    vars = settings.loopCallback(results[k][PAGE_SIZE - 1], vars);
+    vars = settings.nextVars(results[k][PAGE_SIZE - 1], vars);
   }
 
   return allResults;

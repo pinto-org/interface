@@ -26,8 +26,7 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number) {
       > = {
         primaryPropertyName: "beanHourlySnapshots",
         idField: "id",
-        paginateDirection: "asc",
-        loopCallback: (
+        nextVars: (
           value1000: Partial<Pick<BeanHourlySnapshot, keyof BeanHourlySnapshot>>,
           prevVars: typeof variables,
         ) => {
