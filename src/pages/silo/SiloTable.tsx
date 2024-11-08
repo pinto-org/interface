@@ -57,6 +57,7 @@ function SiloTable() {
                 className="h-[4.5rem] bg-white hover:bg-pinto-green-1/50 hover:cursor-pointer"
                 key={`silo_table_${token.address}`}
                 onClick={() => navigate(`/silo/${token.address}`)}
+                data-action-target={`token-row-${token.address}`}
               >
                 <Text as={TableCell} className="inline-flex items-center gap-2 p-4">
                   <IconImage src={token.logoURI} alt={token.name} size={8} />

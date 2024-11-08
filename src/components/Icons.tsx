@@ -107,6 +107,18 @@ export const LeftArrowIcon = ({ color = "#9C9C9C", width = 17, height = 12 }: SV
   </svg>
 );
 
+export const UpArrowIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: SVGProps) => (
+  <svg width={width} height={height} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M7.99992 12.6666V3.33325M7.99992 3.33325L3.33325 7.99992M7.99992 3.33325L12.6666 7.99992"
+      stroke={color}
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 export const BackwardArrowDotsIcon = ({ color = "#9C9C9C", width = 25, height = 24 }: SVGProps) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} fill="none">
     <path
@@ -156,6 +168,15 @@ export const ChevronRightIcon = ({ color = "#9C9C9C", width = 16, height = 16 }:
         strokeLinejoin="round"
       />
     </g>
+  </svg>
+);
+
+export const ChevronLeftIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: SVGProps) => (
+  <svg width={width} height={height} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      d="M15.707 4.293a1 1 0 0 0-1.414 0l-7 7a1 1 0 0 0 0 1.414l7 7a1 1 0 0 0 1.414-1.414L9.414 12l6.293-6.293a1 1 0 0 0 0-1.414z"
+      fill={color}
+    />
   </svg>
 );
 
