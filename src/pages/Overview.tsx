@@ -260,15 +260,14 @@ const Overview = () => {
                     endCapColor={convertTo.color}
                     component={
                       <div>
-                        <Text
+                        <div
                           data-action-target="convert"
-                          variant="body-light"
-                          className="text-pinto-gray-3 transition-colors cursor-pointer convert-hover"
+                          className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
                           style={{ "--convert-color": convertFrom.color }}
                           onClick={() => navigate(getSiloConvertUrl(convertFrom, convertTo))}
                         >
                           {`Convert ${convertFrom.name}`}
-                        </Text>
+                        </div>
                       </div>
                     }
                   />

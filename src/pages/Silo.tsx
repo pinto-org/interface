@@ -90,17 +90,33 @@ function Silo() {
                   dotted={true}
                   startCapColor={convertFrom.color}
                   endCapColor={convertTo.color}
+                  componentOffsetHeight={20}
                   component={
-                    <div>
-                      <Text
+                    <div className="group flex flex-col group max-w-[250px] cursor-pointer place-items-end gap-2">
+                      <div
                         data-action-target="convert"
-                        variant="body-light"
-                        className="text-pinto-gray-3 transition-colors cursor-pointer convert-hover"
+                        className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
                         style={{ "--convert-color": convertFrom.color }}
                         onClick={() => navigate(getSiloConvertUrl(convertFrom, convertTo))}
                       >
                         {`Convert ${convertFrom.name}`}
-                      </Text>
+                      </div>
+                      <div className="flex flex-col gap-4">
+                        <Text
+                          data-action-target="convert"
+                          variant="sm-light"
+                          className="text-pinto-green-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          {`Convert ${convertFrom.name} for ${convertTo.name}`}
+                        </Text>
+                        <Text
+                          data-action-target="convert"
+                          variant="sm-light"
+                          className="text-pinto-green-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          {"Arbitrage the increased Seed reward for a gain in Seed."}
+                        </Text>
+                      </div>
                     </div>
                   }
                 />

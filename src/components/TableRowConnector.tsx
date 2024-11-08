@@ -16,6 +16,7 @@ interface TableRowConnectorProps {
   endCapColor?: string;
   component?: ReactNode;
   componentOffset?: number;
+  componentOffsetHeight?: number;
   showArrow?: boolean;
   animationDuration?: number;
 }
@@ -41,6 +42,7 @@ const TableRowConnector = ({
   endCapColor = "#246645",
   component,
   componentOffset = 16,
+  componentOffsetHeight,
 }: TableRowConnectorProps) => {
   const [path, setPath] = useState<{ startCap: string; line: string; endCap: string; fullPath: string }>({
     startCap: "",
@@ -146,7 +148,10 @@ const TableRowConnector = ({
           ref={componentRef}
           style={{
             position: "absolute",
-            top: dimensions.top + dimensions.height / 2 - (componentRef.current?.offsetHeight || 0) / 2,
+            top:
+              dimensions.top +
+              dimensions.height / 2 -
+              (componentOffsetHeight || componentRef.current?.offsetHeight || 0) / 2,
             left: dimensions.left - (componentRef.current?.offsetWidth || 0) - componentOffset,
             zIndex: 11,
             pointerEvents: "auto",
