@@ -79,6 +79,20 @@ interface TokenTotalGains {
   };
 }
 
+interface WalletBalanceValue {
+  external: TokenValue;
+  internal: TokenValue;
+  total: TokenValue;
+  byToken: Map<
+    Token,
+    {
+      external: TokenValue;
+      internal: TokenValue;
+      total: TokenValue;
+    }
+  >;
+}
+
 interface FarmerActions {
   // Silo-related actions
   canDeposit: boolean;
@@ -123,7 +137,7 @@ interface FarmerActions {
   totalValue: {
     silo: TokenValue;
     field: TokenValue;
-    wallet: TokenValue;
+    wallet: WalletBalanceValue;
     rewards: {
       stalk: TokenValue;
       seeds: TokenValue;
@@ -466,7 +480,12 @@ export default function useFarmerActions(): FarmerActions {
         totalValue: {
           silo: TokenValue.ZERO,
           field: TokenValue.ZERO,
-          wallet: TokenValue.ZERO,
+          wallet: {
+            external: TokenValue.ZERO,
+            internal: TokenValue.ZERO,
+            total: TokenValue.ZERO,
+            byToken: new Map(),
+          },
           rewards: {
             stalk: TokenValue.ZERO,
             seeds: TokenValue.ZERO,
@@ -533,11 +552,45 @@ export default function useFarmerActions(): FarmerActions {
       farmerDeposits.data,
     );
 
-    // Calculate total value in wallet
-    const walletValue = Array.from(tokensWithValue.values()).reduce(
-      (total, value) => total.add(value),
-      TokenValue.ZERO,
-    );
+    // Calculate wallet values by token
+    const walletValuesByToken = new Map<
+      Token,
+      {
+        external: TokenValue;
+        internal: TokenValue;
+        total: TokenValue;
+      }
+    >();
+
+    let totalExternalValue = TokenValue.ZERO;
+    let totalInternalValue = TokenValue.ZERO;
+
+    for (const [token, balance] of farmerBalances.balances) {
+      const price = priceData.tokenPrices.get(token)?.instant;
+      if (price) {
+        const externalValue = balance.external.mul(price);
+        const internalValue = balance.internal.mul(price);
+        const totalValue = externalValue.add(internalValue);
+
+        if (externalValue.gt(0) || internalValue.gt(0)) {
+          walletValuesByToken.set(token, {
+            external: externalValue,
+            internal: internalValue,
+            total: totalValue,
+          });
+
+          totalExternalValue = totalExternalValue.add(externalValue);
+          totalInternalValue = totalInternalValue.add(internalValue);
+        }
+      }
+    }
+
+    const walletValue: WalletBalanceValue = {
+      external: totalExternalValue,
+      internal: totalInternalValue,
+      total: totalExternalValue.add(totalInternalValue),
+      byToken: walletValuesByToken,
+    };
 
     // Calculate pod value
     const podValue = farmerField.plots

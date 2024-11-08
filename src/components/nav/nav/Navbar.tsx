@@ -1,7 +1,11 @@
 import HelperLink from "@/components/HelperLink";
+import useFarmerActions from "@/hooks/useFarmerActions";
+import { useFarmerBalances } from "@/state/useFarmerBalances";
+import { formatter } from "@/utils/format";
 import { cn } from "@/utils/utils";
 import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
+import { useAccount } from "wagmi";
 import WalletButton from "../../WalletButton";
 import Backdrop from "../../ui/Backdrop";
 import PriceButton from "../PriceButton";
@@ -18,12 +22,17 @@ const Navbar = () => {
   const [openBackdrop, setOpenBackdrop] = useState(false);
   const [backdropMounted, setBackdropMounted] = useState(true);
 
+  const account = useAccount();
+  const farmerActions = useFarmerActions();
+  const hasInternal = farmerActions.totalValue.wallet.internal.gt(0);
+  const usdValue = farmerActions.totalValue.wallet.total;
+
   const priceOpen = openPanel === "price";
   const seasonsOpen = openPanel === "seasons";
   const walletOpen = openPanel === "wallet";
   const mobileNaviOpen = openPanel === "mobile-navi";
 
-  const [isHovering, setIsHovering] = useState(false);
+  const walletButton = useRef<HTMLButtonElement>(null);
 
   const closePanel = () => {
     setOpenBackdrop(false);
@@ -62,16 +71,7 @@ const Navbar = () => {
         <div className="flex flex-row justify-end">
           <div className={`${walletOpen && "z-[51]"}`}>
             <div data-action-target={"wallet-button"}>
-              <WalletButton
-                isOpen={walletOpen}
-                togglePanel={() => togglePanel("wallet")}
-                className={cn(
-                  "transition-colors",
-                  isHovering
-                    ? "text-pinto-green border-pinto-green hover:text-pinto-green hover:border-pinto-green"
-                    : "",
-                )}
-              />
+              <WalletButton isOpen={walletOpen} togglePanel={() => togglePanel("wallet")} ref={walletButton} />
             </div>
           </div>
           <div className={`lg:hidden ${mobileNaviOpen && "z-[51]"}`}>
@@ -88,9 +88,15 @@ const Navbar = () => {
           </div>
           {!openPanel && (
             <HelperLink
-              onClick={() => togglePanel("wallet")}
-              text={"View your Farm Balance"}
-              className="absolute top-[128px] right-[312px]"
+              onClick={() => {
+                walletButton.current?.click();
+              }}
+              text={
+                !account.address
+                  ? "Connect your Wallet"
+                  : `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet ${hasInternal ? "+ Farm Balances" : "Balance"}`
+              }
+              className="absolute top-[150px] right-[240px]"
               sourceAnchor="top"
               targetAnchor="left"
               dataTarget="wallet-button"
