@@ -7,7 +7,7 @@ import { cn } from "@/utils/utils";
 import clsx from "clsx";
 
 const outlineBase = clsx(
-  "border border-pinto-gray-2 bg-pinto-gray-1 shadow-sm hover:bg-pinto-gray-2/50 hover:text-accent-foreground",
+  "border border-pinto-gray-2 bg-pinto-gray-1 shadow-sm hover:bg-pinto-gray-2/50 hover:text-accent-foreground"
 );
 
 const primaryBase = clsx("text-pinto-green hover:text-pinto-green");
@@ -22,13 +22,16 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-pinto text-white hover:bg-pinto/80 transition-all",
-        defaultAlt: "bg-pinto-green-1 text-pinto-green hover:bg-pinto-green-1/80 transition-all",
-        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        defaultAlt:
+          "bg-pinto-green-1 text-pinto-green hover:bg-pinto-green-1/80 transition-all",
+        destructive:
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         outline: outlineBase,
         "outline-rounded": `${outlineBase} ${roundedBase}`,
         "outline-primary": `${outlineBase} ${primaryBase}`,
         "outline-secondary": `${outlineBase} ${secondaryBase}`,
-        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+        secondary:
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-pinto-gray-2 hover:hover:bg-pinto-gray-2/50",
         link: "text-primary underline-offset-4 hover:underline",
       },
@@ -57,7 +60,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  },
+  }
 );
 
 export interface ButtonProps
@@ -68,8 +71,17 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    { className, variant, size = "default", asChild = false, noShrink = true, rounded, width = "default", ...props },
-    ref,
+    {
+      className,
+      variant,
+      size = "default",
+      asChild = false,
+      noShrink = true,
+      rounded,
+      width = "default",
+      ...props
+    },
+    ref
   ) => {
     const Comp = asChild ? Slot : "button";
     return (
@@ -82,13 +94,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             rounded,
             width,
             className,
-          }),
+          })
         )}
         ref={ref}
         {...props}
       />
     );
-  },
+  }
 );
 Button.displayName = "Button";
 

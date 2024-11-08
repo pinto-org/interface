@@ -50,7 +50,7 @@ const SlideShaderMaterial = shaderMaterial(
 
     vec3 cubicBezier(vec3 p0, vec3 c0, vec3 c1, vec3 p1, float t) {
       float tn = 1.0 - t;
-      return tn * tn * tn * p0 + 3.0 * tn * tn * t * c0 + 3.0 * tn * t * t * c1 + t * t * t * p1;
+      return tn * tn * tn * p0 + 3.5 * tn * tn * t * c0 + 3.5 * tn * t * t * c1 + t * t * t * p1;
     }
 
     float easeInOutCubic(float t) {
@@ -139,7 +139,7 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
         height * 2
       );
 
-      let maxAnimationTime = 0;
+      let maxAnimationTime = 0.3;
 
       // Convert to non-indexed geometry
       const nonIndexedPlane = plane.toNonIndexed();
@@ -157,7 +157,7 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
 
       const minDuration = 0.3;
       const maxDuration = 0.7;
-      const maxDelayX = 0.4;
+      const maxDelayX = 0.2999;
       const maxDelayY = 0.0;
       const stretch = 0.15;
 
@@ -228,7 +228,7 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
         let tDuration = duration;
 
         // Ensure tDelay + tDuration ≤ 1
-        if (tDelay + tDuration > 1) {
+        if (tDelay + tDuration > 0.3) {
           const excessTime = tDelay + tDuration - 1;
           tDelay -= (tDelay / (tDelay + tDuration)) * excessTime;
           tDuration -= (tDuration / (tDelay + tDuration)) * excessTime;
