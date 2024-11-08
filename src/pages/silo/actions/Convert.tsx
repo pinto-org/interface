@@ -19,6 +19,7 @@ import { useReadSilo_GetAmountOut } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useWell, useWellUnderlying } from "@/hooks/wells/wells";
+import { PipelineConvert as GenConvert } from "@/lib/PipelineConvert/PipelineConvert";
 import ConvertProvider, { SiloTokenConvertPath, useConvertState } from "@/state/context/convert.provider";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
@@ -32,7 +33,7 @@ import { getTokenIndex, isProtocolToken } from "@/utils/token";
 import { AddressMap, Token } from "@/utils/types";
 import { useDebounceValue, useDebouncedEffect } from "@/utils/useDebounce";
 import { cn, exists, noop } from "@/utils/utils";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
@@ -288,15 +289,120 @@ function DefaultConvert({
 
 // ------------------------------ PIPELINE CONVERT ------------------------------
 
-const PipelineConvert = ({ siloToken, farmerDepositMap }: ConvertProps) => {
-  const { data: farmerDeposits } = useFarmerDepositedBalances();
-  const { targetToken } = useSiloConvertContext();
-  const prices = usePriceData();
+/**
+ * Ask Ryan about checkbox for grown stalk penalization
+ *
+ * - calculateDeltaBFromReserves
+ * args: [
+ *  wellAddress,
+ *  [reserves],
+ *  lookback: 0
+ * ]
+ * 
+ * to get max convertable amount, use proportional ratio for deltaB & amounts
+ *
+ * 1. get the amountout of non-bean token from well 1
+ * 2. get quote for all of non bean from well 1 to non-bean well 2 to get rate
+ * 
+ * 3. fetch calculateDeltaBFromReserves() for well 1 & well 2
+ * 
+ * - deltaB1 before - deltaB1 after
+ * - deltaB2 before - deltaB2 after
+ * - total deltaB impact = deltaB1.t + deltaB2.t
+ * 
+ * convert capacities
+ * - getWellConvertCapacity() for well 1 & well 2
+ * - getOverallConvertCapacity() for overall
+ * 
+ * Only converts that convert towards peg use up convert capacity bucket
+ * 
+ * 
+   function calculateStalkPenalty(
+        DeltaBStorage memory dbs,
+        uint256 bdvConverted,
+        uint256 overallConvertCapacity,
+        address inputToken,
+        address outputToken
+    )
+        external
+        view
+        returns (
+            uint256 stalkPenaltyBdv,
+            uint256 overallConvertCapacityUsed,
+            uint256 inputTokenAmountUsed,
+            uint256 outputTokenAmountUsed
+        );
+ * 
+ */
 
-  const farmerDeposit = useMemo(() => farmerDeposits.get(siloToken), [farmerDeposits, siloToken]);
+interface UseFarmerPipelineConvertProps {
+  siloToken: Token;
+  targetToken: Token;
+  pools: ReturnType<typeof usePriceData>["pools"];
+  farmerDeposits: ReturnType<typeof useFarmerDepositedBalances>["data"];
+  sourceWell: ReturnType<typeof useWell>;
+  targetWell: ReturnType<typeof useWell>;
+}
+
+const emptyResult = {
+  amountsOut: [],
+  summedAmounts: [TV.ZERO, TV.ZERO],
+};
+
+const useFarmerPipelineConvert = (
+  siloToken: Token,
+  targetToken: Token,
+  pools: ReturnType<typeof usePriceData>["pools"],
+  farmerDeposits: ReturnType<typeof useFarmerDepositedBalances>["data"],
+  sourceWell: ReturnType<typeof useWell>,
+  targetWell: ReturnType<typeof useWell>,
+) => {
+  const account = useAccount();
+  const silo = useSiloData();
+
+  const query = useQuery({
+    queryKey: ["farmer-pipeline-convert", account.address, siloToken.address, targetToken.address],
+    queryFn: async () => {
+      const tokenData = farmerDeposits.get(siloToken);
+      const allAmount = tokenData?.convertibleAmount ?? TV.ZERO;
+      const deposits = tokenData?.convertibleDeposits ?? [];
+
+      if (!sourceWell || !targetWell || allAmount.isZero || !deposits.length) {
+        return { ...emptyResult };
+      }
+
+      const convertDetails = calculateConvert(siloToken, targetToken, allAmount, deposits, silo.tokenData);
+      const amountsOut = await GenConvert.fetchEq2EqRemoveLiquidityOut(sourceWell, convertDetails.crates);
+      console.log("[useFarmerPipelineConvert] amountsOut: ", amountsOut);
+      return amountsOut;
+    },
+  });
+
+  return query;
+};
+
+interface PipelineConvertProps extends ConvertProps {
+  pools: ReturnType<typeof usePriceData>["pools"];
+}
+
+const PipelineConvert = ({
+  siloToken,
+  farmerDepositMap,
+  farmerDeposits,
+  queryClient,
+  sourceWell,
+  targetWell,
+  tokenPrices,
+  siloTokenData,
+  pools,
+  onSuccess,
+}: PipelineConvertProps) => {
+  const { targetToken } = useSiloConvertContext();
 
   const [amountIn, setAmountIn] = useState("0");
   const [slippage, setSlippage] = useState(0.1);
+
+  // const maxConvOut = useFarmerPipelineConvert(siloToken, targetToken, pools, farmerDeposits, sourceWell, targetWell);
 
   return (
     <div className="flex flex-col gap-4">
@@ -307,12 +413,12 @@ const PipelineConvert = ({ siloToken, farmerDepositMap }: ConvertProps) => {
         </div>
         <ComboInputField
           amount={amountIn}
+          setToken={noop}
           setAmount={setAmountIn}
-          setToken={() => {}}
           selectedToken={siloToken}
           tokenAndBalanceMap={farmerDepositMap}
-          customMaxAmount={farmerDeposit?.convertibleAmount || TV.ZERO}
           altText="Deposited Balance:"
+          mode="balance"
           disableButton
         />
       </div>
@@ -320,7 +426,7 @@ const PipelineConvert = ({ siloToken, farmerDepositMap }: ConvertProps) => {
         amount={TV.ZERO} // fix me
         siloToken={siloToken}
         targetToken={targetToken}
-        prices={prices.tokenPrices}
+        prices={tokenPrices}
       />
       <div className="flex flex-row gap-2">
         <Button type="button" rounded="some" className="w-full flex grow h-[3.75rem] text-[1.5rem]">
@@ -375,12 +481,11 @@ const SiloConvertProvider = ({ children, siloToken }: { children: React.ReactNod
 const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
   const { targetToken } = useSiloConvertContext();
 
-  const farmerDeposits = useFarmerDepositedBalances();
-  const { queryKeys: priceQueryKeys, tokenPrices } = usePriceData();
-  const { queryKeys: farmerSiloQueryKeys } = useFarmerSilo(); // fix me: inefficient fetching...
+  const farmerDepositsQuery = useFarmerDepositedBalances();
+  const farmerDeposits = farmerDepositsQuery.data;
+  const { queryKeys: priceQueryKeys, tokenPrices, pools } = usePriceData();
+  const { queryKeys: farmerSiloQueryKeys } = useFarmerSilo(); // Fix me: inefficient fetching...
   const { tokenData: siloTokenData } = useSiloData();
-
-  const [depositMap, setDepositMap] = useState<Map<Token, TV>>(new Map());
 
   const queryClient = useQueryClient();
 
@@ -388,40 +493,39 @@ const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
   const targetWell = useWell(targetToken);
 
   const onSuccess = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: farmerDeposits.queryKey });
+    queryClient.invalidateQueries({ queryKey: farmerDepositsQuery.queryKey });
     for (const queryKey of priceQueryKeys) {
       queryClient.invalidateQueries({ queryKey });
     }
     for (const queryKey of farmerSiloQueryKeys) {
       queryClient.invalidateQueries({ queryKey });
     }
-  }, [queryClient, farmerDeposits.queryKey, priceQueryKeys, farmerSiloQueryKeys]);
+  }, [queryClient, farmerDepositsQuery.queryKey, priceQueryKeys, farmerSiloQueryKeys]);
 
-  useEffect(() => {
+  const depositMap = useMemo(() => {
     const map = new Map<Token, TV>();
-
-    for (const token of farmerDeposits.data.keys()) {
-      const farmerDepositData = farmerDeposits.data.get(token);
+    for (const token of farmerDeposits.keys()) {
+      const farmerDepositData = farmerDeposits.get(token);
       if (farmerDepositData) {
         map.set(token, farmerDepositData.convertibleAmount);
       }
     }
-
-    setDepositMap(map);
-  }, [farmerDeposits.data]);
+    return map;
+  }, [farmerDeposits]);
 
   if (siloToken.isLP && targetToken.isLP) {
     return (
       <PipelineConvert
         siloToken={siloToken}
         farmerDepositMap={depositMap}
-        farmerDeposits={farmerDeposits.data}
+        farmerDeposits={farmerDeposits}
         queryClient={queryClient}
         sourceWell={sourceWell}
         targetWell={targetWell}
         onSuccess={onSuccess}
         tokenPrices={tokenPrices}
         siloTokenData={siloTokenData}
+        pools={pools}
       />
     );
   }
@@ -430,7 +534,7 @@ const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
     <DefaultConvert
       siloToken={siloToken}
       farmerDepositMap={depositMap}
-      farmerDeposits={farmerDeposits.data}
+      farmerDeposits={farmerDeposits}
       queryClient={queryClient}
       sourceWell={sourceWell}
       targetWell={targetWell}
@@ -751,3 +855,5 @@ const ConvertSelectRow = ({ path, closeDialog }: { path: SiloTokenConvertPath; c
     </div>
   );
 };
+
+// ------------------------------ PIPELINE CONVERT ------------------------------
