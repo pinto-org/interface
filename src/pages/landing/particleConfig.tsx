@@ -67,8 +67,8 @@ const particleConfig: ISourceOptions = {
           number: {
             density: {
               enable: true,
-              height: 1250,
-              width: 1250,
+              height: 1200,
+              width: 1200,
             },
             value: 100,
           },
@@ -114,8 +114,8 @@ const particleConfig: ISourceOptions = {
           number: {
             density: {
               enable: true,
-              height: 1250,
-              width: 1250,
+              height: 1200,
+              width: 1200,
             },
             value: 100,
           },
@@ -184,8 +184,8 @@ const particleConfig: ISourceOptions = {
           number: {
             density: {
               enable: true,
-              height: 1250,
-              width: 1250,
+              height: 1200,
+              width: 1200,
             },
             value: 100,
           },
@@ -231,8 +231,8 @@ const particleConfig: ISourceOptions = {
           number: {
             density: {
               enable: true,
-              height: 1250,
-              width: 1250,
+              height: 1200,
+              width: 1200,
             },
             value: 100,
           },
@@ -324,8 +324,8 @@ const particleConfig: ISourceOptions = {
           number: {
             density: {
               enable: true,
-              height: 1250,
-              width: 1250,
+              height: 1200,
+              width: 1200,
             },
             value: 100,
           },
@@ -367,8 +367,8 @@ const particleConfig: ISourceOptions = {
           number: {
             density: {
               enable: true,
-              height: 1250,
-              width: 1250,
+              height: 1200,
+              width: 1200,
             },
             value: 200,
           },
@@ -416,7 +416,7 @@ const particleConfig: ISourceOptions = {
           },
           modes: {
             grab: {
-              distance: 400,
+              distance: 200,
               links: {
                 opacity: 1,
               },

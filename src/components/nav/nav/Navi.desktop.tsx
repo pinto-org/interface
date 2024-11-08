@@ -136,7 +136,7 @@ export default function Navi() {
         <NavigationMenuList>
           <NavigationMenuItem>
             <Link href="/" topMenu>
-              Home
+              About
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem onMouseEnter={() => setNaviTab("app")}>
