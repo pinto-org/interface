@@ -88,8 +88,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
 
   const renderClaimableRow = () => (
     <TableRow
-      onClick={onClaimRewards}
-      className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 hover:cursor-pointer text-pinto-green-4/70"
+      className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 text-pinto-green-4/70"
       data-action-target="claimable-rewards"
       ref={rewardsRef}
     >

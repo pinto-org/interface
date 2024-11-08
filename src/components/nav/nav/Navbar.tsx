@@ -94,6 +94,7 @@ const Navbar = () => {
               sourceAnchor="top"
               targetAnchor="left"
               dataTarget="wallet-button"
+              fixed
             />
           )}
         </div>

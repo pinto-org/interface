@@ -19,6 +19,7 @@ interface HelperLinkProps extends HTMLAttributes<HTMLDivElement> {
   dotted?: boolean;
   sourceOffset?: number;
   targetOffset?: number;
+  fixed?: boolean;
 }
 
 export default function HelperLink({
@@ -35,6 +36,7 @@ export default function HelperLink({
   dotted = false,
   sourceOffset = 8,
   targetOffset = 8,
+  fixed = false,
   ...props
 }: HelperLinkProps) {
   const [isHovered, setIsHovered] = useState(false);
@@ -95,6 +97,7 @@ export default function HelperLink({
         dotted={dotted}
         sourceOffset={sourceOffset}
         targetOffset={targetOffset}
+        fixed={fixed}
       />
     </>
   );
