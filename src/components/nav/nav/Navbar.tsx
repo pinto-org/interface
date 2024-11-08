@@ -1,5 +1,4 @@
-import ActionButton from "@/components/ActionButton";
-import ConnectingLine from "@/components/ConnectingLine";
+import HelperLink from "@/components/HelperLink";
 import { cn } from "@/utils/utils";
 import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
@@ -24,15 +23,7 @@ const Navbar = () => {
   const walletOpen = openPanel === "wallet";
   const mobileNaviOpen = openPanel === "mobile-navi";
 
-  const walletRef = useRef<HTMLButtonElement>(null);
-  const [walletButtonMounted, setWalletButtonMounted] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
-
-  useEffect(() => {
-    if (walletRef.current) {
-      setWalletButtonMounted(true);
-    }
-  }, []);
 
   const closePanel = () => {
     setOpenBackdrop(false);
@@ -70,17 +61,18 @@ const Navbar = () => {
         </div>
         <div className="flex flex-row justify-end">
           <div className={`${walletOpen && "z-[51]"}`}>
-            <WalletButton
-              isOpen={walletOpen}
-              ref={walletRef}
-              togglePanel={() => togglePanel("wallet")}
-              onMouseEnter={() => setIsHovering(true)}
-              onMouseLeave={() => setIsHovering(false)}
-              className={cn(
-                "transition-colors",
-                isHovering ? "text-pinto-green border-pinto-green hover:text-pinto-green hover:border-pinto-green" : "",
-              )}
-            />
+            <div data-action-target={"wallet-button"}>
+              <WalletButton
+                isOpen={walletOpen}
+                togglePanel={() => togglePanel("wallet")}
+                className={cn(
+                  "transition-colors",
+                  isHovering
+                    ? "text-pinto-green border-pinto-green hover:text-pinto-green hover:border-pinto-green"
+                    : "",
+                )}
+              />
+            </div>
           </div>
           <div className={`lg:hidden ${mobileNaviOpen && "z-[51]"}`}>
             <MobileNavi
@@ -94,16 +86,14 @@ const Navbar = () => {
           <div className="hidden sm:block">
             <Backdrop active={openBackdrop} onClick={closePanel} transitionDuration={DURATION} />
           </div>
-
-          {walletButtonMounted && walletRef.current && !openPanel && (
-            <ActionButton
+          {!openPanel && (
+            <HelperLink
               onClick={() => togglePanel("wallet")}
               text={"View your Farm Balance"}
               className="absolute top-[128px] right-[312px]"
-              targetRef={walletRef}
               sourceAnchor="top"
               targetAnchor="left"
-              diagonal={true}
+              dataTarget="wallet-button"
             />
           )}
         </div>

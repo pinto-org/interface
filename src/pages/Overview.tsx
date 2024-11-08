@@ -1,6 +1,6 @@
 import { TokenValue } from "@/classes/TokenValue";
-import ActionButton from "@/components/ActionButton";
 import FarmerDepositsTable from "@/components/FarmerDepositsTable";
+import HelperLink from "@/components/HelperLink";
 import PlotsTable from "@/components/PlotsTable";
 import StatPanel from "@/components/StatPanel";
 import TableRowConnector from "@/components/TableRowConnector";
@@ -14,7 +14,7 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useFieldData } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
-import { RefObject, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Overview() {
@@ -26,10 +26,6 @@ export default function Overview() {
   const priceData = usePriceData();
   const navigate = useNavigate();
 
-  // Refs for action button targets
-  const convertRef = useRef<HTMLDivElement>(null);
-  const podsRef = useRef<HTMLDivElement>(null);
-  const rewardsRef = useRef<HTMLTableRowElement>(null);
   const [currentTab, setCurrentTab] = useState("deposits");
   const [hoveredButton, setHoveredButton] = useState("");
 
@@ -64,6 +60,9 @@ export default function Overview() {
   const convertEnabled = farmerActions.convertDeposits.enabled;
   const convertFrom = farmerActions.convertDeposits.bestConversion.from;
   const convertTo = farmerActions.convertDeposits.bestConversion.to;
+
+  // Claim
+  const claimEnabled = farmerActions.claimRewards.enabled;
 
   type StatPanelModes = "stalk" | "pods" | "seeds" | "depositedValue";
 
@@ -105,7 +104,6 @@ export default function Overview() {
 
   const podData = {
     mode: "pods" as StatPanelModes,
-    ref: podsRef,
     mainValue: farmerField.totalPods,
     mainValueChange: farmerActions.harvestPods.outputs.podGain,
     secondaryValue: placesInLine[0],
@@ -119,24 +117,29 @@ export default function Overview() {
     >
       {hasDeposits ? (
         <>
-          <div className="flex flex-col justify-center relative action-container">
+          {/* Important: Make sure action-container has position: relative */}
+          <div className="flex flex-col justify-center relative action-container" style={{ position: "relative" }}>
             <div className="flex flex-col items-center">
-              <StatPanel {...depositedValueData} size={"large"} />
+              {/* Add data-action-target to the StatPanel container */}
+              <div data-action-target="stats">
+                <StatPanel {...depositedValueData} size={"large"} />
+              </div>
             </div>
             <div className="grid grid-flow-col grid-cols-3 mt-20 gap-[4.5rem] w-[60%] self-center whitespace-nowrap">
               <StatPanel {...stalkData} />
               <StatPanel {...seedData} />
               <StatPanel {...podData} />
+              {podData.mainValue && (
+                <HelperLink
+                  onClick={() => navigate(podData.mainValueChange?.gt(0) ? "/field/harvest" : "/field/sow")}
+                  text={podData.mainValueChange?.gt(0) ? "Harvest Pods" : "Sow (Lend) in the Field for Pods"}
+                  className={`absolute -mt-[100px] ${podData.mainValueChange?.gt(0) ? "right-[280px]" : "right-[140px]"} z-20`}
+                  dataTarget="pods-stats"
+                  sourceAnchor="left"
+                  targetAnchor="right"
+                />
+              )}
             </div>
-            <ActionButton
-              onClick={() => navigate(podData.mainValue?.gt(0) ? "/field/harvest" : "/field/sow")}
-              text={podData.mainValue?.gt(0) ? "Harvest Pods" : "Sow (Lend) in the Field for Pods"}
-              className="absolute -mt-[180px] ml-[240px]"
-              dataTarget="pods-stats"
-              sourceAnchor="left"
-              targetAnchor="right"
-              diagonal={true}
-            />
           </div>
           <div className="flex flex-col items-center">
             <Tabs
@@ -159,59 +162,54 @@ export default function Overview() {
                   My Pods
                 </TabsTrigger>
               </TabsList>
+              {convertEnabled && convertFrom && convertTo && currentTab === "deposits" && (
+                <HelperLink
+                  onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })}
+                  text="Convert Available"
+                  dataTarget="convert"
+                  className="absolute -ml-[246px] -mt-[24px]"
+                  sourceAnchor="bottom"
+                  targetAnchor="top"
+                  onMouseEnter={() => setHoveredButton("convert")}
+                  onMouseLeave={() => setHoveredButton("")}
+                />
+              )}
+              {currentTab === "deposits" && claimEnabled && (
+                <HelperLink
+                  onClick={() => console.log("yey!")}
+                  text="Claim Pinto, Stalk and Seed"
+                  dataTarget="claimable-rewards"
+                  className="absolute right-[145px] -mt-[24px]"
+                  sourceAnchor="bottom"
+                  targetAnchor="right"
+                  onMouseEnter={() => setHoveredButton("claim")}
+                  onMouseLeave={() => setHoveredButton("")}
+                />
+              )}
               <TabsContent className="mt-6" value="deposits">
-                <div className="relative overflow-visible" ref={convertRef}>
-                  <FarmerDepositsTable rewardsRef={rewardsRef} />
+                <div className="relative overflow-visible">
+                  <FarmerDepositsTable />
                   {convertEnabled && convertFrom && convertTo && (
-                    <>
-                      <ActionButton
-                        onMouseEnter={() => setHoveredButton("convert")}
-                        onMouseLeave={() => setHoveredButton("")}
-                        onClick={() =>
-                          navigate(`/silo/${convertFrom.address}/convert?to=${convertTo.address}&useMax=true`)
-                        }
-                        text="Convert Available"
-                        targetRef={convertRef}
-                        className="absolute -top-12 -left-60"
-                        sourceAnchor="bottom"
-                        targetAnchor="top"
-                        diagonal={true}
-                      />
-                      <div ref={convertRef}>
-                        <TableRowConnector
-                          fromTarget={`token-row-${convertFrom.address}`}
-                          toTarget={`token-row-${convertTo.address}`}
-                          color="#246645"
-                          extensionLength={40}
-                          dotted={true}
-                          startCapColor={convertFrom.color}
-                          endCapColor={convertTo.color}
-                          component={
-                            <div>
-                              <Text
-                                data-action-target="convert"
-                                variant="body-light"
-                                className={`text-pinto-gray-3 hover:text-pinto-green-4 transition-colors cursor-pointer`}
-                                onClick={() => navigate(`silo/${convertFrom.address}/convert?to=${convertTo.address}`)}
-                              >{`Convert ${convertFrom.name}`}</Text>
-                            </div>
-                          }
-                        />
-                      </div>
-                    </>
-                  )}
-                  <div onMouseEnter={() => setHoveredButton("claim")} onMouseLeave={() => setHoveredButton("")}>
-                    <ActionButton
-                      onClick={() => console.log("clicked")}
-                      text={"Claim Pinto, Stalk and Seed"}
-                      dataTarget="claimable-rewards"
-                      targetRef={rewardsRef}
-                      className="absolute -top-12 -right-60"
-                      sourceAnchor="bottom"
-                      targetAnchor="right"
-                      diagonal={true}
+                    <TableRowConnector
+                      fromTarget={`token-row-${convertFrom.address}`}
+                      toTarget={`token-row-${convertTo.address}`}
+                      color="#246645"
+                      extensionLength={40}
+                      dotted={true}
+                      startCapColor={convertFrom.color}
+                      endCapColor={convertTo.color}
+                      component={
+                        <div>
+                          <Text
+                            data-action-target="convert"
+                            variant="body-light"
+                            className={`text-pinto-gray-3 hover:text-pinto-green-4 transition-colors cursor-pointer`}
+                            onClick={() => navigate(`silo/${convertFrom.address}/convert?to=${convertTo.address}`)}
+                          >{`Convert ${convertFrom.name}`}</Text>
+                        </div>
+                      }
                     />
-                  </div>
+                  )}
                 </div>
               </TabsContent>
               <TabsContent className="mt-6" value="pods">

@@ -58,6 +58,8 @@ const TableRowConnector = ({
   const componentRef = useRef<HTMLDivElement>(null);
   const [componentWidth, setComponentWidth] = useState(0);
 
+  const [isUpward, setIsUpward] = useState(false);
+
   useEffect(() => {
     if (componentRef.current) {
       const observer = new ResizeObserver((entries) => {
@@ -83,6 +85,10 @@ const TableRowConnector = ({
 
       const sourceY = sourceRect.top - containerRect.top + sourceRect.height / 2;
       const targetY = targetRect.top - containerRect.top + targetRect.height / 2;
+
+      // Determine if the line is pointing upward
+      setIsUpward(targetY < sourceY);
+
       const startX = sourceRect.left - containerRect.left - offset;
       const adjustedLeft = startX - extensionLength;
 
@@ -161,7 +167,7 @@ const TableRowConnector = ({
         className="transition-all"
       >
         <defs>
-          <linearGradient id="myGradient" gradientTransform="rotate(90)">
+          <linearGradient id="myGradient" gradientTransform={`rotate(${isUpward ? "-90" : "90"})`}>
             <stop offset="25%" stopColor={startCapColor || color} />
             <stop offset="75%" stopColor={endCapColor || color} />
           </linearGradient>
