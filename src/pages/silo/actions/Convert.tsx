@@ -21,7 +21,8 @@ import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useWell, useWellUnderlying } from "@/hooks/wells/wells";
 import ConvertProvider, { SiloTokenConvertPath, useConvertState } from "@/state/context/convert.provider";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
-import { usePriceData } from "@/state/usePriceData";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { PoolData, usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { ConvertDetails, calculateConvert, calculateConvertData, sortAndPickCrates } from "@/utils/convert";
@@ -32,7 +33,7 @@ import { AddressMap, Token } from "@/utils/types";
 import { useDebounceValue, useDebouncedEffect } from "@/utils/useDebounce";
 import { cn, exists, noop } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
 
@@ -42,6 +43,13 @@ interface BaseConvertProps {
 
 interface ConvertProps extends BaseConvertProps {
   farmerDepositMap: Map<Token, TV>;
+  queryClient: ReturnType<typeof useQueryClient>;
+  farmerDeposits: ReturnType<typeof useFarmerDepositedBalances>["data"];
+  tokenPrices: ReturnType<typeof usePriceData>["tokenPrices"];
+  siloTokenData: ReturnType<typeof useSiloData>["tokenData"];
+  sourceWell: PoolData | undefined;
+  targetWell: PoolData | undefined;
+  onSuccess: () => void;
 }
 
 // ------------------------------ DEFAULT CONVERT ------------------------------
@@ -52,34 +60,27 @@ const selectMaxConvert = (value: bigint, token: Token) => {
 
 const DEBOUNCE_MS = 150;
 
-function DefaultConvert({ siloToken, farmerDepositMap }: ConvertProps) {
+function DefaultConvert({
+  siloToken,
+  farmerDepositMap,
+  farmerDeposits,
+  queryClient,
+  sourceWell,
+  targetWell,
+  tokenPrices,
+  siloTokenData,
+  onSuccess,
+}: ConvertProps) {
   const { targetToken } = useSiloConvertContext();
-  const queryClient = useQueryClient();
 
   const protocolAddress = useProtocolAddress();
   const account = useAccount();
-  const prices = usePriceData();
-  const silo = useSiloData();
-
-  const { data: farmerDeposits, queryKey: farmerDepositsQK } = useFarmerDepositedBalances();
-  const sourceWell = useWell(siloToken);
-  const targetWell = useWell(targetToken);
 
   const [convertData, setConvertData] = useState<ConvertDetails | undefined>(undefined);
   const [amountIn, setAmountIn] = useState("0");
   const [slippage, setSlippage] = useState(0.1);
 
-  const { writeContractAsync } = useWriteContract({
-    mutation: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: estimateQuery.queryKey });
-        queryClient.invalidateQueries({ queryKey: farmerDepositsQK });
-        setAmountIn("0");
-      },
-    },
-  });
-
-  const { data: maxConvert = TV.ZERO } = useReadContract({
+  const { data: maxConvert = TV.ZERO, ...maxConvertQuery } = useReadContract({
     abi: diamondABI,
     address: protocolAddress,
     functionName: "getMaxAmountIn",
@@ -103,16 +104,32 @@ function DefaultConvert({ siloToken, farmerDepositMap }: ConvertProps) {
     },
   });
 
+  const { writeContractAsync } = useWriteContract({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: maxConvertQuery.queryKey });
+        queryClient.invalidateQueries({ queryKey: estimateQuery.queryKey });
+        onSuccess();
+        setAmountIn("0");
+      },
+    },
+  });
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Reset amount in when target token changes
+  useEffect(() => {
+    setAmountIn("0");
+  }, [targetToken]);
+
   useDebouncedEffect(
     () => {
-      if (amountIn && Number(amountIn) > 0) {
+      if (stringToNumber(amountIn) > 0) {
         setConvertData(
           calculateConvert(
             siloToken,
             targetToken,
             TV.fromHuman(amountIn, siloToken.decimals),
             farmerDeposits?.get(siloToken)?.convertibleDeposits || [],
-            silo.tokenData,
+            siloTokenData,
           ),
         );
       } else {
@@ -230,12 +247,7 @@ function DefaultConvert({ siloToken, farmerDepositMap }: ConvertProps) {
       {!canConvert || canExceedMax ? (
         <Warning>{!canConvert ? getConvertWarning() : getMaxConvertWarning()}</Warning>
       ) : null}
-      <ConvertTokenOutput
-        amount={minAmountOut}
-        siloToken={siloToken}
-        targetToken={targetToken}
-        prices={prices.tokenPrices}
-      />
+      <ConvertTokenOutput amount={minAmountOut} siloToken={siloToken} targetToken={targetToken} prices={tokenPrices} />
       {convertData ? (
         <OutputDisplay title="I receive">
           <OutputDisplay.Item label="Amount">
@@ -362,26 +374,71 @@ const SiloConvertProvider = ({ children, siloToken }: { children: React.ReactNod
 
 const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
   const { targetToken } = useSiloConvertContext();
-  const { data: farmerDeposits } = useFarmerDepositedBalances();
 
-  const depositMap = useMemo(() => {
+  const farmerDeposits = useFarmerDepositedBalances();
+  const { queryKeys: priceQueryKeys, tokenPrices } = usePriceData();
+  const { queryKeys: farmerSiloQueryKeys } = useFarmerSilo(); // fix me: inefficient fetching...
+  const { tokenData: siloTokenData } = useSiloData();
+
+  const [depositMap, setDepositMap] = useState<Map<Token, TV>>(new Map());
+
+  const queryClient = useQueryClient();
+
+  const sourceWell = useWell(siloToken);
+  const targetWell = useWell(targetToken);
+
+  const onSuccess = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: farmerDeposits.queryKey });
+    for (const queryKey of priceQueryKeys) {
+      queryClient.invalidateQueries({ queryKey });
+    }
+    for (const queryKey of farmerSiloQueryKeys) {
+      queryClient.invalidateQueries({ queryKey });
+    }
+  }, [queryClient, farmerDeposits.queryKey, priceQueryKeys, farmerSiloQueryKeys]);
+
+  useEffect(() => {
     const map = new Map<Token, TV>();
 
-    for (const token of farmerDeposits.keys()) {
-      const farmerDepositData = farmerDeposits.get(token);
+    for (const token of farmerDeposits.data.keys()) {
+      const farmerDepositData = farmerDeposits.data.get(token);
       if (farmerDepositData) {
         map.set(token, farmerDepositData.convertibleAmount);
       }
     }
 
-    return map;
-  }, [farmerDeposits]);
+    setDepositMap(map);
+  }, [farmerDeposits.data]);
 
   if (siloToken.isLP && targetToken.isLP) {
-    return <PipelineConvert siloToken={siloToken} farmerDepositMap={depositMap} />;
+    return (
+      <PipelineConvert
+        siloToken={siloToken}
+        farmerDepositMap={depositMap}
+        farmerDeposits={farmerDeposits.data}
+        queryClient={queryClient}
+        sourceWell={sourceWell}
+        targetWell={targetWell}
+        onSuccess={onSuccess}
+        tokenPrices={tokenPrices}
+        siloTokenData={siloTokenData}
+      />
+    );
   }
 
-  return <DefaultConvert siloToken={siloToken} farmerDepositMap={depositMap} />;
+  return (
+    <DefaultConvert
+      siloToken={siloToken}
+      farmerDepositMap={depositMap}
+      farmerDeposits={farmerDeposits.data}
+      queryClient={queryClient}
+      sourceWell={sourceWell}
+      targetWell={targetWell}
+      onSuccess={onSuccess}
+      tokenPrices={tokenPrices}
+      siloTokenData={siloTokenData}
+    />
+  );
 };
 
 const Convert = ({ siloToken }: BaseConvertProps) => {
