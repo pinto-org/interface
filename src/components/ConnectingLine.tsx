@@ -1,271 +1,180 @@
-import { RefObject, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-type Point = {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-  startIndex: number;
-  endIndex: number;
-};
-
-type EdgePoints = {
-  startX: number;
-  startY: number;
-  endX: number;
-  endY: number;
-};
+export type AnchorPoint = "top" | "bottom" | "left" | "right" | "center";
 
 interface ConnectingLineProps {
-  refs: RefObject<HTMLElement>[];
-  straight?: boolean;
-  dotted?: boolean;
-  margin?: number;
-  straightLineOffset?: number;
-  normalColor?: string;
-  hoverColor?: string;
+  sourceRef: React.RefObject<HTMLElement>;
+  targetRef: React.RefObject<HTMLElement>;
+  dataTarget?: string;
+  strokeWidth?: number;
+  diagonal?: boolean;
+  sourceAnchor?: AnchorPoint;
+  targetAnchor?: AnchorPoint;
+  offset?: number;
   isHovered?: boolean;
-  startPositionY?: number; // Default to 0.5 for center
-  endPositionY?: number; // Default to 0.5 for center
+}
+
+interface Dimensions {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
 }
 
 export default function ConnectingLine({
-  refs = [],
-  straight = false,
-  dotted = false,
-  margin = 0,
-  straightLineOffset = 10,
-  normalColor = "black",
-  hoverColor = "#3b82f6",
+  sourceRef,
+  targetRef,
+  dataTarget,
+  strokeWidth = 1,
+  diagonal = false,
+  sourceAnchor = "center",
+  targetAnchor = "center",
+  offset = 0,
   isHovered = false,
-  startPositionY = 0.5,
-  endPositionY = 0.5,
 }: ConnectingLineProps) {
-  const [paths, setPaths] = useState<Point[]>([]);
-  const [svgPosition, setSvgPosition] = useState({ top: 0, left: 0, width: 0, height: 0 });
+  const [path, setPath] = useState("");
+  const [dimensions, setDimensions] = useState<Dimensions>({
+    top: 0,
+    left: 0,
+    width: 0,
+    height: 0,
+  });
 
-  const findEdgePoints = (
-    startRect: DOMRect,
-    endRect: DOMRect,
-    startPositionY: number = 0.5,
-    endPositionY: number = 0.5,
-  ): EdgePoints => {
-    const startCenterX = startRect.left + startRect.width / 2;
-    const startCenterY = startRect.top + startRect.height / 2;
-    const endCenterX = endRect.left + endRect.width / 2;
-    const endCenterY = endRect.top + endRect.height / 2;
-
-    const angle = Math.atan2(endCenterY - startCenterY, endCenterX - startCenterX);
-    const isMoreHorizontal = Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle));
-    const isEndToRight = endCenterX > startCenterX;
-
-    const horizontalPoints = {
-      startX: isEndToRight ? startRect.right + margin : startRect.left - margin,
-      startY: startRect.top + startRect.height * startPositionY,
-      endX: isEndToRight ? endRect.left - margin : endRect.right + margin,
-      endY: endRect.top + endRect.height * endPositionY, // Using endPositionY
+  const getAnchorPoint = (rect: DOMRect, anchor: AnchorPoint, containerRect: DOMRect) => {
+    const points = {
+      top: {
+        x: rect.left - containerRect.left + rect.width / 2,
+        y: rect.top - containerRect.top - offset,
+      },
+      bottom: {
+        x: rect.left - containerRect.left + rect.width / 2,
+        y: rect.bottom - containerRect.top + offset,
+      },
+      left: {
+        x: rect.left - containerRect.left - offset,
+        y: rect.top - containerRect.top + rect.height / 2,
+      },
+      right: {
+        x: rect.right - containerRect.left + offset,
+        y: rect.top - containerRect.top + rect.height / 2,
+      },
+      center: {
+        x: rect.left - containerRect.left + rect.width / 2,
+        y: rect.top - containerRect.top + rect.height / 2,
+      },
     };
-
-    const verticalPoints = {
-      startX: startCenterX,
-      startY: startCenterY > endCenterY ? startRect.top - margin : startRect.bottom + margin,
-      endX: endCenterX,
-      endY: startCenterY > endCenterY ? endRect.bottom + margin : endRect.top - margin,
-    };
-
-    return isMoreHorizontal ? horizontalPoints : verticalPoints;
-  };
-
-  const getPathsBetweenPoints = (
-    startX: number,
-    startY: number,
-    endX: number,
-    endY: number,
-    startIndex: number,
-    endIndex: number,
-  ): Point[] => {
-    if (straight) {
-      const isEndToRight = endX > startX;
-      const straightStartX = isEndToRight ? startX + straightLineOffset : startX - straightLineOffset;
-      const straightEndX = isEndToRight ? endX - straightLineOffset : endX + straightLineOffset;
-
-      return [
-        {
-          x1: startX,
-          y1: startY,
-          x2: straightStartX,
-          y2: startY,
-          startIndex,
-          endIndex,
-        },
-        {
-          x1: straightStartX,
-          y1: startY,
-          x2: straightEndX,
-          y2: endY,
-          startIndex,
-          endIndex,
-        },
-        {
-          x1: straightEndX,
-          y1: endY,
-          x2: endX,
-          y2: endY,
-          startIndex,
-          endIndex,
-        },
-      ];
-    }
-
-    const midX = startX + (endX - startX) / 2;
-
-    return [
-      {
-        x1: startX,
-        y1: startY,
-        x2: midX,
-        y2: startY,
-        startIndex,
-        endIndex,
-      },
-      {
-        x1: midX,
-        y1: startY,
-        x2: midX,
-        y2: endY,
-        startIndex,
-        endIndex,
-      },
-      {
-        x1: midX,
-        y1: endY,
-        x2: endX,
-        y2: endY,
-        startIndex,
-        endIndex,
-      },
-    ];
-  };
-
-  const isValidRef = (ref: RefObject<HTMLElement>): boolean => {
-    return ref?.current instanceof HTMLElement;
-  };
-
-  const calculateSVGBounds = (rects: DOMRect[]): void => {
-    const minX = Math.min(...rects.map((r) => r.left));
-    const minY = Math.min(...rects.map((r) => r.top));
-    const maxX = Math.max(...rects.map((r) => r.right));
-    const maxY = Math.max(...rects.map((r) => r.bottom));
-
-    setSvgPosition({
-      top: minY,
-      left: minX,
-      width: maxX - minX,
-      height: maxY - minY,
-    });
-  };
-
-  const updateLinePosition = (): void => {
-    const hasValidRefs = refs.length >= 2 && refs.every(isValidRef);
-    if (!hasValidRefs) return;
-
-    requestAnimationFrame(() => {
-      const allPaths: Point[] = [];
-      const allRects: DOMRect[] = [];
-
-      const connections = refs.length - 1;
-      for (let i = 0; i < connections; i++) {
-        const startElement = refs[i].current;
-        const endElement = refs[i + 1].current;
-
-        if (!startElement || !endElement) continue;
-
-        const startRect = startElement.getBoundingClientRect();
-        const endRect = endElement.getBoundingClientRect();
-
-        allRects.push(startRect, endRect);
-
-        const { startX, startY, endX, endY } = findEdgePoints(startRect, endRect, startPositionY, endPositionY);
-        const pathSegments = getPathsBetweenPoints(startX, startY, endX, endY, i, i + 1);
-        allPaths.push(...pathSegments);
-      }
-
-      calculateSVGBounds(allRects);
-      setPaths(allPaths);
-    });
+    return points[anchor];
   };
 
   useEffect(() => {
-    const handleResize = (): void => {
-      updateLinePosition();
-    };
+    function updateConnector() {
+      if (!sourceRef.current) return;
 
-    const handleScroll = (): void => {
-      updateLinePosition();
-    };
+      // Get target element either from ref or data attribute
+      const targetElement = targetRef
+        ? targetRef.current
+        : document.querySelector(`[data-action-target="${dataTarget}"]`);
 
-    // Create ResizeObserver for each ref
-    const observers: ResizeObserver[] = [];
+      if (!targetElement) return;
 
-    refs.forEach((ref) => {
-      if (ref.current) {
-        const observer = new ResizeObserver(() => {
-          updateLinePosition();
-        });
+      const containerElement = sourceRef.current.closest(".action-container");
+      if (!containerElement) return;
 
-        observer.observe(ref.current);
-        observers.push(observer);
+      const containerRect = containerElement.getBoundingClientRect();
+      const sourceRect = sourceRef.current.getBoundingClientRect();
+      const targetRect = targetElement.getBoundingClientRect();
+
+      // Get anchor points
+      const source = getAnchorPoint(sourceRect, sourceAnchor, containerRect);
+      const destination = getAnchorPoint(targetRect, targetAnchor, containerRect);
+
+      // Set dimensions relative to container
+      const top = Math.min(source.y, destination.y);
+      const left = Math.min(source.x, destination.x);
+      const width = Math.abs(destination.x - source.x);
+      const height = Math.abs(destination.y - source.y);
+
+      setDimensions({
+        top,
+        left,
+        width: Math.max(width, 1),
+        height: Math.max(height, 1),
+      });
+
+      // Calculate path coordinates relative to SVG viewbox
+      const pathStartX = source.x - left;
+      const pathStartY = source.y - top;
+      const pathEndX = destination.x - left;
+      const pathEndY = destination.y - top;
+
+      if (diagonal) {
+        setPath(`M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathEndY}`);
+      } else {
+        // For non-diagonal paths, determine which anchor points are being used
+        // to decide the path layout
+        let path = "";
+
+        if (sourceAnchor === "right" && targetAnchor === "left") {
+          // If connecting right to left, use a three-segment path
+          const midX = pathStartX + (pathEndX - pathStartX) / 2;
+          path = `M ${pathStartX} ${pathStartY} 
+                 L ${midX} ${pathStartY} 
+                 L ${midX} ${pathEndY} 
+                 L ${pathEndX} ${pathEndY}`;
+        } else if (sourceAnchor === "bottom" && targetAnchor === "top") {
+          // If connecting bottom to top, extend the vertical line
+          path = `M ${pathStartX} ${pathStartY} 
+                 L ${pathStartX} ${pathEndY}`;
+        } else {
+          // For all other cases, ensure the horizontal segment extends fully
+          const midY = pathStartY + (pathEndY - pathStartY) / 2;
+          path = `M ${pathStartX} ${pathStartY} 
+                 L ${pathStartX} ${midY} 
+                 L ${pathEndX} ${midY} 
+                 L ${pathEndX} ${pathEndY}`;
+        }
+        setPath(path);
       }
-    });
+    }
 
-    // Initial position
-    updateLinePosition();
+    updateConnector();
 
-    // Event listeners
-    window.addEventListener("resize", handleResize);
-    window.addEventListener("scroll", handleScroll, true);
+    const resizeObserver = new ResizeObserver(updateConnector);
+    const scrollContainer = sourceRef.current?.closest(".relative");
+
+    if (scrollContainer) {
+      resizeObserver.observe(scrollContainer);
+      scrollContainer.addEventListener("scroll", updateConnector);
+    }
 
     return () => {
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("scroll", handleScroll, true);
-      observers.forEach((observer) => observer.disconnect());
+      if (scrollContainer) {
+        resizeObserver.disconnect();
+        scrollContainer.removeEventListener("scroll", updateConnector);
+      }
     };
-  }, [refs, straight, margin, straightLineOffset]);
+  }, [diagonal, sourceRef, targetRef, sourceAnchor, targetAnchor, offset]);
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        pointerEvents: "none",
-        zIndex: 50,
-      }}
-    >
+    <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-10">
       <svg
+        className={`absolute ${isHovered ? "text-pinto-green-4" : "text-pinto-gray-3"} transition-colors`}
         style={{
-          position: "absolute",
-          top: `${svgPosition.top}px`,
-          left: `${svgPosition.left}px`,
-          width: `${svgPosition.width}px`,
-          height: `${svgPosition.height}px`,
+          top: dimensions.top,
+          left: dimensions.left,
+          width: dimensions.width,
+          height: dimensions.height,
         }}
       >
-        {paths.map((path, index) => (
-          <line
-            key={index}
-            x1={path.x1 - svgPosition.left}
-            y1={path.y1 - svgPosition.top}
-            x2={path.x2 - svgPosition.left}
-            y2={path.y2 - svgPosition.top}
-            stroke={isHovered ? hoverColor : normalColor}
-            strokeWidth={1}
-            strokeDasharray={dotted ? "6 4" : "none"}
-            className="transition-all duration-300 ease-in-out"
-          />
-        ))}
+        <path
+          d={path}
+          stroke={"currentColor"}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          style={{ vectorEffect: "non-scaling-stroke" }}
+        />
       </svg>
     </div>
   );

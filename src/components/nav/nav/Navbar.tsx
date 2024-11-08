@@ -1,13 +1,14 @@
+import ActionButton from "@/components/ActionButton";
+import ConnectingLine from "@/components/ConnectingLine";
 import { cn } from "@/utils/utils";
 import clsx from "clsx";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import WalletButton from "../../WalletButton";
 import Backdrop from "../../ui/Backdrop";
 import PriceButton from "../PriceButton";
 import SeasonsButton from "../SeasonsButton";
 import Navi from "./Navi.desktop";
 import MobileNavi from "./Navi.mobile";
-import ConnectingLine from "@/components/ConnectingLine";
 
 type Panel = "price" | "seasons" | "wallet" | "mobile-navi";
 
@@ -23,9 +24,15 @@ const Navbar = () => {
   const walletOpen = openPanel === "wallet";
   const mobileNaviOpen = openPanel === "mobile-navi";
 
-  const walletRef = useRef<HTMLDivElement>(null);
-  const walletHelperRef = useRef<HTMLDivElement>(null);
+  const walletRef = useRef<HTMLButtonElement>(null);
+  const [walletButtonMounted, setWalletButtonMounted] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+
+  useEffect(() => {
+    if (walletRef.current) {
+      setWalletButtonMounted(true);
+    }
+  }, []);
 
   const closePanel = () => {
     setOpenBackdrop(false);
@@ -44,7 +51,12 @@ const Navbar = () => {
 
   return (
     <>
-      <div className={cn("fixed grid px-4 pt-4 pb-2 sm:px-6 sm:pt-6 w-full z-[2] bg-gradient-light", styles.navGrid)}>
+      <div
+        className={cn(
+          "fixed grid px-4 pt-4 pb-2 sm:px-6 sm:pt-6 w-full z-[2] bg-gradient-light action-container",
+          styles.navGrid,
+        )}
+      >
         <div className="flex flex-row gap-2 sm:gap-4">
           <div className={`transition-all duration-100 ${priceOpen && "z-[51]"}`}>
             <PriceButton isOpen={priceOpen} togglePanel={() => togglePanel("price")} />
@@ -56,18 +68,18 @@ const Navbar = () => {
         <div className="hidden lg:flex lg:justify-center">
           <Navi />
         </div>
-        <div className="flex flex-row justify-end gap-2">
-          <div className={`${walletOpen && "z-[51]"}`} ref={walletRef}>
-            <WalletButton 
-              isOpen={walletOpen} 
+        <div className="flex flex-row justify-end">
+          <div className={`${walletOpen && "z-[51]"}`}>
+            <WalletButton
+              isOpen={walletOpen}
+              ref={walletRef}
               togglePanel={() => togglePanel("wallet")}
               onMouseEnter={() => setIsHovering(true)}
               onMouseLeave={() => setIsHovering(false)}
               className={cn(
                 "transition-colors",
-                isHovering ? "text-pinto-green border-pinto-green hover:text-pinto-green hover:border-pinto-green"
-                : ""
-              )} 
+                isHovering ? "text-pinto-green border-pinto-green hover:text-pinto-green hover:border-pinto-green" : "",
+              )}
             />
           </div>
           <div className={`lg:hidden ${mobileNaviOpen && "z-[51]"}`}>
@@ -79,28 +91,22 @@ const Navbar = () => {
               unmount={() => setBackdropMounted(false)}
             />
           </div>
+          <div className="hidden sm:block">
+            <Backdrop active={openBackdrop} onClick={closePanel} transitionDuration={DURATION} />
+          </div>
+
+          {walletButtonMounted && walletRef.current && !openPanel && (
+            <ActionButton
+              onClick={() => togglePanel("wallet")}
+              text={"View your Farm Balance"}
+              className="absolute top-[128px] right-[312px]"
+              targetRef={walletRef}
+              sourceAnchor="top"
+              targetAnchor="left"
+              diagonal={true}
+            />
+          )}
         </div>
-        <div className="hidden sm:block">
-          <Backdrop active={openBackdrop} onClick={closePanel} transitionDuration={DURATION} />
-        </div>
-        <div 
-          ref={walletHelperRef}
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
-          className={`absolute top-[150%] left-[75%] text-gray-600 peer-hover:text-blue-500 hover:text-blue-500 transition-colors cursor-pointer ${isHovering ? "bg-red" : ""}`}
-          >
-          View your Farm Balance
-        </div>
-        <ConnectingLine 
-          refs={[walletRef, walletHelperRef]}
-          straight={true}
-          dotted={false}
-          margin={10}
-          normalColor="#6B7280"
-          hoverColor="#3B82F6"
-          isHovered={isHovering}
-          startPositionY={0.25}
-        />
       </div>
     </>
   );

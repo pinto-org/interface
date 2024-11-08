@@ -4,26 +4,9 @@ import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import { ToggleGroup } from "@/components/ui/ToggleGroup";
 import { useFarmerField } from "@/state/useFarmerField";
+import { Plot } from "@/utils/types";
 import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import { PodTransferData } from "../TransferPods";
-
-interface Plot {
-  fullyHarvested: boolean;
-  harvestablePods: TokenValue;
-  harvestedPods: TokenValue;
-  pods: TokenValue;
-  index: TokenValue;
-  beansPerPod?: TokenValue;
-  createdAt?: number;
-  creationHash?: string;
-  id?: string;
-  listing?: string;
-  season?: number;
-  source?: string;
-  sourceHash?: string;
-  updatedAt?: number;
-  updatedAtBlock?: number;
-}
 
 interface StepOneProps {
   transferData: PodTransferData[];

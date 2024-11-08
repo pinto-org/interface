@@ -4,14 +4,21 @@ import Withdraw from "./actions/Withdraw";
 import Convert from "./actions/Convert";
 import { Separator } from "@/components/ui/Separator";
 import { Token } from "@/utils/types";
+import { useNavigate, useParams } from "react-router-dom";
 
 interface SiloToken {
   token: Token;
 }
 
 export default function SiloActions({ token }: SiloToken) {
+  const { action } = useParams();
+  const navigate = useNavigate();
+
   return (
-    <Tabs defaultValue="deposit" className="w-full">
+    <Tabs defaultValue="deposit" className="w-full"
+    value={!action ? "deposit" : action}
+    onValueChange={(value) => navigate(`/silo/${token.address}/${value}`)}
+>
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="deposit">Deposit</TabsTrigger>
         <TabsTrigger value="withdraw">Withdraw</TabsTrigger>

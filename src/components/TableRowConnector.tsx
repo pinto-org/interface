@@ -1,4 +1,6 @@
-import { ReactNode, useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { ReactNode, RefObject, useEffect, useRef, useState } from "react";
+import { ChevronLeftIcon, ChevronRightIcon } from "./Icons";
 
 interface TableRowConnectorProps {
   fromTarget: string;
@@ -7,12 +9,22 @@ interface TableRowConnectorProps {
   extensionLength?: number;
   strokeWidth?: number;
   capHeight?: number;
-  offset?: number; // Offset from row
-  dotted?: boolean; // Enable dotted line
-  dashArray?: string; // Custom dash array pattern
+  offset?: number;
+  dotted?: boolean;
+  dashArray?: string;
   startCapColor?: string;
   endCapColor?: string;
   component?: ReactNode;
+  componentOffset?: number;
+  showArrow?: boolean;
+  animationDuration?: number;
+}
+
+interface Dimensions {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
 }
 
 const TableRowConnector = ({
@@ -24,22 +36,37 @@ const TableRowConnector = ({
   capHeight = 72,
   offset = 2,
   dotted = false,
-  dashArray = "4 4", // Default dash pattern
+  dashArray = "4 4",
   startCapColor = "#246645",
   endCapColor = "#246645",
   component,
+  componentOffset = 16,
 }: TableRowConnectorProps) => {
-  const [path, setPath] = useState<{ startCap: string; line: string; endCap: string }>({
+  const [path, setPath] = useState<{ startCap: string; line: string; endCap: string; fullPath: string }>({
     startCap: "",
     line: "",
     endCap: "",
+    fullPath: "",
   });
-  const [dimensions, setDimensions] = useState({
+  const [dimensions, setDimensions] = useState<Dimensions>({
     top: 0,
     left: 0,
     width: 0,
     height: 0,
   });
+
+  const componentRef = useRef<HTMLDivElement>(null);
+  const [componentWidth, setComponentWidth] = useState(0);
+
+  useEffect(() => {
+    if (componentRef.current) {
+      const observer = new ResizeObserver((entries) => {
+        setComponentWidth(entries[0].contentRect.width);
+      });
+      observer.observe(componentRef.current);
+      return () => observer.disconnect();
+    }
+  }, [component]);
 
   useEffect(() => {
     function updateConnector() {
@@ -54,69 +81,46 @@ const TableRowConnector = ({
       const sourceRect = sourceRow.getBoundingClientRect();
       const targetRect = targetRow.getBoundingClientRect();
 
-      // Calculate positions relative to the container, accounting for offsets
       const sourceY = sourceRect.top - containerRect.top + sourceRect.height / 2;
       const targetY = targetRect.top - containerRect.top + targetRect.height / 2;
       const startX = sourceRect.left - containerRect.left - offset;
+      const adjustedLeft = startX - extensionLength;
 
-      // Adjust SVG dimensions to account for caps and offsets
       const top = Math.min(sourceY, targetY) - capHeight / 2;
       const height = Math.abs(targetY - sourceY) + capHeight;
 
       setDimensions({
         top,
-        left: startX - extensionLength,
-        width: extensionLength + 10,
+        left: adjustedLeft,
+        width: extensionLength + componentOffset,
         height,
       });
 
-      // Calculate x positions accounting for offsets
       const pathStartX = extensionLength - offset;
       const pathEndX = offset;
       const pathStartY = sourceY - top;
       const pathEndY = targetY - top;
 
-      // Create the path with vertical caps and offsets
       const startCap = `
         M ${pathStartX} ${pathStartY - capHeight / 2}
         L ${pathStartX} ${pathStartY + capHeight / 2}
       `;
 
-      const line = `
-        M ${pathStartX} ${pathStartY}
-        L ${pathEndX} ${pathStartY}
-        L ${pathEndX} ${pathEndY}
-        L ${pathStartX} ${pathEndY}
-      `;
+      const line = `M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathStartY} L ${pathEndX} ${pathEndY} L ${pathStartX} ${pathEndY}`;
 
       const endCap = `
         M ${pathStartX} ${pathEndY - capHeight / 2}
         L ${pathStartX} ${pathEndY + capHeight / 2}
       `;
 
-      setPath({ startCap: startCap, line: line, endCap: endCap });
+      // Create full path for arrow animation
+      const fullPath = `M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathStartY} L ${pathEndX} ${pathEndY} L ${pathStartX} ${pathEndY}`;
+
+      setPath({ startCap, line, endCap, fullPath });
     }
 
     updateConnector();
-
-    window.addEventListener("resize", updateConnector);
-    window.addEventListener("scroll", updateConnector);
-
-    const observer = new MutationObserver(updateConnector);
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-    });
-
-    return () => {
-      window.removeEventListener("resize", updateConnector);
-      window.removeEventListener("scroll", updateConnector);
-      observer.disconnect();
-    };
-  }, [fromTarget, toTarget, extensionLength, capHeight, offset]);
-
-  if (!path) return null;
+  }, [fromTarget, toTarget, extensionLength, capHeight, offset, componentWidth, component, componentOffset]);
 
   return (
     <div
@@ -129,9 +133,22 @@ const TableRowConnector = ({
         pointerEvents: "none",
         zIndex: 10,
       }}
+      className={"contrast-0 opacity-50 hover:contrast-100 hover:opacity-100 transition-all"}
     >
       {component && (
-        <div style={{ position: "relative", top: dimensions.top * 2, left: dimensions.width }}>{component}</div>
+        <div
+          ref={componentRef}
+          style={{
+            position: "absolute",
+            top: dimensions.top + dimensions.height / 2 - (componentRef.current?.offsetHeight || 0) / 2,
+            left: dimensions.left - (componentRef.current?.offsetWidth || 0) - componentOffset,
+            transform: "translateY(-50%)",
+            zIndex: 11,
+            pointerEvents: "auto",
+          }}
+        >
+          {component}
+        </div>
       )}
       <svg
         style={{
@@ -141,20 +158,15 @@ const TableRowConnector = ({
           width: dimensions.width,
           height: dimensions.height,
         }}
+        className="transition-all"
       >
         <defs>
           <linearGradient id="myGradient" gradientTransform="rotate(90)">
-            <stop offset="25%" stop-color={startCapColor || color} />
-            <stop offset="75%" stop-color={endCapColor || color} />
+            <stop offset="25%" stopColor={startCapColor || color} />
+            <stop offset="75%" stopColor={endCapColor || color} />
           </linearGradient>
         </defs>
-        <path
-          d={path.startCap}
-          stroke={startCapColor || color}
-          strokeWidth={strokeWidth}
-          fill="none"
-          strokeDasharray={undefined}
-        />
+        <path d={path.startCap} stroke={startCapColor || color} strokeWidth={strokeWidth} fill="none" />
         <path
           d={path.line}
           stroke={"url('#myGradient')"}
@@ -162,14 +174,41 @@ const TableRowConnector = ({
           fill="none"
           strokeDasharray={dotted ? dashArray : undefined}
         />
-        <path
-          d={path.endCap}
-          stroke={endCapColor || color}
-          strokeWidth={strokeWidth}
-          fill="none"
-          strokeDasharray={undefined}
-        />
+        <path d={path.endCap} stroke={endCapColor || color} strokeWidth={strokeWidth} fill="none" />
       </svg>
+      <div
+        style={{
+          position: "absolute",
+          top: dimensions.top,
+          left: dimensions.left,
+          width: dimensions.width,
+          height: dimensions.height,
+        }}
+      >
+        <motion.div
+          initial={{ offsetDistance: "0%", color: startCapColor }}
+          animate={{
+            offsetDistance: "100%",
+            color: endCapColor,
+          }}
+          transition={{
+            duration: 4,
+            ease: "linear",
+            repeat: Infinity,
+          }}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: 16,
+            height: 16,
+            offsetPath: `path('${path.fullPath}')`,
+            scale: 1.5,
+          }}
+        >
+          <ChevronRightIcon color="currentColor" className="left-2" />
+        </motion.div>
+      </div>
     </div>
   );
 };

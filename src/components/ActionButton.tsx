@@ -1,209 +1,99 @@
-import ConnectingLine from "@/components/ConnectingLine";
-import { Button } from "@/components/ui/Button";
-import { createRef, forwardRef, useEffect, useRef, useState } from "react";
+import { HTMLAttributes, ReactNode, RefObject, useEffect, useRef, useState } from "react";
+import ConnectingLine, { AnchorPoint } from "./ConnectingLine";
 import Text from "./ui/Text";
 
-type Position = "left" | "right" | "top" | "bottom";
-
-interface ConnectingLineSettings {
-  straight?: boolean;
-  dotted?: boolean;
-  margin?: number;
-  normalColor?: string;
-  hoverColor?: string;
-  isHovered?: boolean;
-}
-
-interface ActionButtonProps {
-  text: string;
+interface ActionButtonProps extends HTMLAttributes<HTMLDivElement> {
   onClick: () => void;
-  targetData: string | string[];
-  position: Position;
-  offsetX: number;
-  offsetY: number;
-  lineSettings?: ConnectingLineSettings;
+  // Allow either text string or a React component
+  text?: string;
+  component?: ReactNode;
+  targetRef?: RefObject<HTMLElement> | undefined; // At least one of these must be supplied
+  dataTarget?: string; // At least one of these must be supplied
+  color?: string;
+  hoverColor?: string;
+  diagonal?: boolean;
+  sourceAnchor?: AnchorPoint;
+  targetAnchor?: AnchorPoint;
+  offset?: number;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
-const calculateButtonPosition = (
-  targetRect: DOMRect,
-  buttonRect: DOMRect | undefined,
-  position: Position,
-  offsetX: number,
-  offsetY: number,
-) => {
-  if (!buttonRect) return { top: 0, left: 0 };
+export default function ActionButton({
+  onClick,
+  text,
+  component,
+  targetRef,
+  dataTarget,
+  className = "",
+  diagonal = false,
+  sourceAnchor = "bottom", // Line starts from bottom of source
+  targetAnchor = "top", // Line ends at top of target
+  offset = 8, // 8px spacing between line and components
+  onMouseEnter,
+  onMouseLeave,
+  ...props
+}: ActionButtonProps) {
+  const [isHovered, setIsHovered] = useState(false);
+  const buttonRef = useRef<HTMLDivElement>(null);
 
-  switch (position) {
-    case "left":
-      return {
-        top: targetRect.top + (targetRect.height - buttonRect.height) / 2 + offsetY,
-        left: targetRect.left - buttonRect.width - offsetX,
-      };
-    case "right":
-      return {
-        top: targetRect.top + (targetRect.height - buttonRect.height) / 2 + offsetY,
-        left: targetRect.right + offsetX,
-      };
-    case "top":
-      return {
-        top: targetRect.top - buttonRect.height - offsetY,
-        left: targetRect.left + (targetRect.width - buttonRect.width) / 2 + offsetX,
-      };
-    case "bottom":
-      return {
-        top: targetRect.bottom + offsetY,
-        left: targetRect.left + (targetRect.width - buttonRect.width) / 2 + offsetX,
-      };
-    default:
-      return { top: 0, left: 0 };
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    onMouseEnter?.();
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    onMouseLeave?.();
+  };
+
+  if (!targetRef?.current) {
+    return null;
   }
-};
 
-const getConnectorPositions = (position: Position, targetIndex: number) => {
-  switch (position) {
-    case "left":
-      return { startPositionY: 0.5, endPositionY: 0.5 };
-    case "right":
-      return { startPositionY: 0.5, endPositionY: 0.5 };
-    case "top":
-      return {
-        startPositionY: targetIndex === 0 ? 0.8 : 1,
-        endPositionY: 0,
-      };
-    case "bottom":
-      return {
-        startPositionY: targetIndex === 0 ? 0.2 : 0,
-        endPositionY: 1,
-      };
-  }
-};
-
-const defaultLineSettings: ConnectingLineSettings = {
-  straight: true,
-  dotted: false,
-  margin: 0,
-  normalColor: "#246645",
-  hoverColor: "#246645",
-};
-
-export const ActionButton = forwardRef<HTMLDivElement, ActionButtonProps>(
-  ({ text, onClick, targetData, position, offsetX = 32, offsetY = 32, lineSettings = {} }, forwardedRef) => {
-    const [isHovered, setIsHovered] = useState(false);
-    const [buttonPosition, setButtonPosition] = useState({ top: 0, left: 0 });
-
-    const buttonRef = useRef<HTMLDivElement | null>(null);
-    const targetRefs = useRef<Array<React.RefObject<HTMLElement>>>(
-      Array.isArray(targetData) ? targetData.map(() => createRef<HTMLElement>()) : [createRef<HTMLElement>()],
-    );
-
-    // Merge default and custom line settings, allowing hover state override
-    const finalLineSettings = {
-      ...defaultLineSettings,
-      ...lineSettings,
-      // Only use component's hover state if isHovered wasn't explicitly set in lineSettings
-      isHovered: "isHovered" in lineSettings ? lineSettings.isHovered : isHovered,
-    };
-
-    const updatePosition = () => {
-      // Convert targetData to array of selectors
-      const dataSelectors = Array.isArray(targetData) ? targetData : [targetData];
-
-      // Find elements using data attributes
-      const targets = dataSelectors.map((dataAttr) =>
-        document.querySelector<HTMLElement>(`[data-action-target="${dataAttr}"]`),
+  // Render either the custom component or the default Text component
+  const renderContent = () => {
+    if (component) {
+      return (
+        <div
+          ref={buttonRef}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onClick={onClick}
+          className={`cursor-pointer ${className}`}
+        >
+          {component}
+        </div>
       );
-
-      const primaryTarget = targets[0];
-      if (!primaryTarget) return;
-
-      const targetRect = primaryTarget.getBoundingClientRect();
-      const buttonRect = buttonRef.current?.getBoundingClientRect();
-
-      const newPosition = calculateButtonPosition(targetRect, buttonRect, position, offsetX, offsetY);
-      setButtonPosition({
-        top: newPosition.top + window.scrollY,
-        left: newPosition.left + window.scrollX,
-      });
-
-      // Update target refs
-      targets.forEach((target, index) => {
-        if (target && targetRefs.current[index]) {
-          Object.defineProperty(targetRefs.current[index], "current", {
-            value: target,
-            writable: true,
-          });
-        }
-      });
-    };
-
-    useEffect(() => {
-      updatePosition();
-
-      const handleUpdate = () => {
-        requestAnimationFrame(updatePosition);
-      };
-
-      window.addEventListener("resize", handleUpdate);
-      window.addEventListener("scroll", handleUpdate);
-
-      // Update position when content potentially affects layout
-      const observer = new MutationObserver(handleUpdate);
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-      });
-
-      return () => {
-        window.removeEventListener("resize", handleUpdate);
-        window.removeEventListener("scroll", handleUpdate);
-        observer.disconnect();
-      };
-    }, [targetData, position, offsetX, offsetY]);
+    }
 
     return (
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, pointerEvents: "none" }}>
-        <div
-          ref={(el) => {
-            buttonRef.current = el;
-            if (typeof forwardedRef === "function") {
-              forwardedRef(el);
-            } else if (forwardedRef) {
-              forwardedRef.current = el;
-            }
-          }}
-          onClick={onClick}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          className={`
-            absolute rounded-full font-[400] text-[1.25rem]
-            transition-all duration-200 transform
-          `}
-          style={{
-            top: buttonPosition.top,
-            left: buttonPosition.left,
-            zIndex: 50,
-            pointerEvents: "auto",
-          }}
-        >
-          {text}
-        </div>
-
-        {buttonRef.current &&
-          targetRefs.current.map(
-            (targetRef, index) =>
-              targetRef.current && (
-                <ConnectingLine
-                  key={index}
-                  refs={[buttonRef, targetRef]}
-                  {...finalLineSettings}
-                  {...getConnectorPositions(position, index)}
-                />
-              ),
-          )}
-      </div>
+      <Text
+        ref={buttonRef}
+        onClick={onClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        variant="body-light"
+        className={`text-pinto-gray-3 hover:text-pinto-green-4 transition-colors cursor-pointer ${className}`}
+      >
+        {text}
+      </Text>
     );
-  },
-);
+  };
 
-ActionButton.displayName = "ActionButton";
+  return (
+    <>
+      {renderContent()}
+      <ConnectingLine
+        sourceRef={buttonRef}
+        targetRef={targetRef}
+        dataTarget={dataTarget}
+        sourceAnchor={sourceAnchor}
+        targetAnchor={targetAnchor}
+        offset={offset}
+        isHovered={isHovered}
+        diagonal={diagonal}
+      />
+    </>
+  );
+}

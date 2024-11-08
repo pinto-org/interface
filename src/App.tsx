@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import DevPage from "./components/DevPage";
 import Navbar from "./components/nav/nav/Navbar";
 import Field from "./pages/Field";
 import { Market } from "./pages/Market";
@@ -7,7 +8,6 @@ import Silo from "./pages/Silo";
 import SiloToken from "./pages/SiloToken";
 import Swap from "./pages/Swap";
 import Transfer from "./pages/Transfer";
-import DevPage from "./components/DevPage";
 
 function App() {
   return (
@@ -24,7 +24,11 @@ function App() {
             <Route index element={<Overview />} />
             <Route path="/silo" element={<Silo />} />
             <Route path="/silo/:tokenAddress" element={<SiloToken />} />
+            <Route path="/silo/:tokenAddress/:action" element={<SiloToken />} />
+            <Route path="/silo/:tokenAddress/:action" element={<SiloToken />} />
+            <Route path="/silo/:tokenAddress/:action" element={<SiloToken />} />
             <Route path="/field" element={<Field />} />
+            <Route path="/field/:action" element={<Field />} />
             <Route path="/podmarket" element={<Market />} />
             <Route path="/podmarket/:mode" element={<Market />} />
             <Route path="/podmarket/:mode/:id" element={<Market />} />

@@ -8,6 +8,7 @@ import Text from "@/components/ui/Text";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFieldData } from "@/state/useFieldData";
 import { formatter } from "@/utils/format";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import FieldActions from "./field/FieldActions";
 
@@ -16,6 +17,10 @@ function Field() {
   const farmerField = useFarmerField();
 
   const totalPods = farmerField.plots.reduce((total, plot) => total.add(plot.pods), TokenValue.ZERO);
+
+  useEffect(() => {
+    window.scroll(0, 0);
+  }, []);
 
   return (
     <div className="flex flex-col items-center">

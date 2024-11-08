@@ -1,183 +1,117 @@
-import claimableIcon from "@/assets/protocol/Claimable.png";
-import pdvIcon from "@/assets/protocol/PDV.png";
 import { TokenValue } from "@/classes/TokenValue";
-import { ActionButton } from "@/components/ActionButton";
+import ActionButton from "@/components/ActionButton";
+import FarmerDepositsTable from "@/components/FarmerDepositsTable";
 import PlotsTable from "@/components/PlotsTable";
 import StatPanel from "@/components/StatPanel";
 import TableRowConnector from "@/components/TableRowConnector";
 import { Button } from "@/components/ui/Button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import Text from "@/components/ui/Text";
-import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useFieldData } from "@/state/useFieldData";
+import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
-import useTokenData from "@/state/useTokenData";
-import { useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { RefObject, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { BaseError, encodeFunctionData } from "viem";
-import { useAccount, useChainId, useWriteContract } from "wagmi";
 
 export default function Overview() {
-  const account = useAccount();
-  const chainId = useChainId();
-
   const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
   const farmerActions = useFarmerActions();
-
   const siloData = useSiloData();
   const fieldData = useFieldData();
-
-  const tokenData = useTokenData();
-
+  const priceData = usePriceData();
   const navigate = useNavigate();
 
+  // Refs for action button targets
+  const convertRef = useRef<HTMLDivElement>(null);
+  const podsRef = useRef<HTMLDivElement>(null);
+  const rewardsRef = useRef<HTMLTableRowElement>(null);
+  const [currentTab, setCurrentTab] = useState("deposits");
+  const [hoveredButton, setHoveredButton] = useState("");
+
+  // Calculate key stats
   const siloPct = siloData.totalStalk.gt(0)
     ? farmerSilo.activeStalkBalance.div(siloData.totalStalk).mul(100)
     : TokenValue.ZERO;
+  const claimSiloPct = siloData.totalStalk.gt(0)
+    ? farmerSilo.activeStalkBalance.add(farmerActions.claimRewards.outputs.stalkGain).div(siloData.totalStalk).mul(100)
+    : TokenValue.ZERO;
   const stalkPerSeason = farmerSilo.activeSeedsBalance.div(10000);
-
   const placesInLine = farmerField.plots
     .map((plot) => plot.index.sub(fieldData.harvestableIndex))
     .sort((a, b) => Number(a.sub(b).toHuman()));
 
   const farmerDeposits = useFarmerDepositedBalances().data;
-  const SILO_WHITELIST = tokenData.whitelistedTokens;
-  const mainToken = tokenData.mainToken;
-
-  const claimableBeans = farmerSilo.earnedBeansBalance;
-  const claimableStalk = farmerSilo.grownStalkReward;
-  const claimableSeeds = claimableBeans.mul(siloData.tokenData.get(mainToken)?.rewards.seeds ?? TokenValue.ZERO);
-
   const hasDeposits = Array.from(farmerDeposits.entries()).find((token) => token[1].deposits.length > 0);
 
+  // Calculate APY stats
   const podRate = fieldData.temperature.max;
   const siloTokens = Array.from(siloData.tokenData.entries());
-  const avg = (siloTokens.reduce((total, token) => token[1].yields.beanAPY + total, 0) / siloTokens.length).toFixed(2);
+  const avgAPY = (siloTokens.reduce((total, token) => token[1].yields.beanAPY + total, 0) / siloTokens.length).toFixed(
+    2,
+  );
 
-  const queryClient = useQueryClient();
-  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
-
+  // Scroll back to top when mounting
   useEffect(() => {
-    if (isSuccess) {
-      const allQueryKeys = [...farmerSilo.queryKeys, ...siloData.queryKeys, fieldData.queryKeys];
-      // invalidating query results to trigger a refetch
-      allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
-      farmerField.refetch();
-    }
-  }, [isSuccess]);
+    window.scroll(0, 0);
+  }, []);
 
-  // Render action buttons based on available actions
-  const renderActionButtons = () => {
-    const buttons: any[] = [];
+  // Convert from
+  const convertEnabled = farmerActions.convertDeposits.enabled;
+  const convertFrom = farmerActions.convertDeposits.bestConversion.from;
+  const convertTo = farmerActions.convertDeposits.bestConversion.to;
 
-    if (farmerActions.canClaimRewards) {
-      buttons.push(
-        <ActionButton
-          key="claim"
-          text="Claim your rewards"
-          onClick={() => onSubmit()}
-          targetData="claimable-rewards"
-          position="right"
-          offsetX={100}
-          offsetY={-300}
-        />,
-      );
-    }
+  type StatPanelModes = "stalk" | "pods" | "seeds" | "depositedValue";
 
-    /*
-    if (farmerActions.canDeposit && farmerActions.optimalDepositToken) {
-      buttons.push(
-        <ActionButton
-          key="deposit"
-          text={`Deposit ${farmerActions.optimalDepositToken.token.symbol} for optimal rewards`}
-          onClick={() => navigate(`/silo/${farmerActions.optimalDepositToken?.token.address}`)}
-          targetSelector=".silo-stats"
-          position="right"
-          offsetX={24}
-          offsetY={24}
-        />,
-      );
-    } */
-
-    if (farmerActions.canConvert && farmerActions.convertibleDeposits.length > 0) {
-      const firstConversion = farmerActions.convertibleDeposits[0];
-      const fromToken = firstConversion.from;
-      const toToken = firstConversion.to[0].token;
-      buttons.push(
-        <ActionButton
-          key="convert"
-          text={`Convert ${fromToken.symbol} to ${toToken.symbol} for better rewards`}
-          onClick={() => navigate(`/silo/${firstConversion.from.address}`)}
-          targetData={[`token-row-${fromToken.address}`, `token-row-${toToken.address}`]}
-          position="left"
-          offsetX={50}
-          offsetY={-90}
-          lineSettings={{
-            straight: false,
-            margin: 0,
-          }}
-        />,
-      );
-    }
-
-    if (farmerActions.canHarvest) {
-      buttons.push(
-        <ActionButton
-          key="harvest"
-          text="Harvest your mature pods"
-          onClick={() => navigate("/field")}
-          targetData="pods-stats"
-          position="right"
-          offsetX={100}
-          offsetY={-200}
-        />,
-      );
-    }
-
-    return buttons;
+  const depositedValueData = {
+    mode: "depositedValue" as StatPanelModes,
+    mainValue: farmerSilo.depositsUSD,
+    mainValueChange: farmerActions.claimRewards.outputs.bdvGain.mul(priceData.price),
+    secondaryValue: farmerSilo.depositsBDV,
+    actionValue: farmerActions.claimRewards.outputs.bdvGain,
+    showActionValues: hoveredButton === "claim",
   };
 
-  async function onSubmit() {
-    if (!account.address) return;
+  const stalkData = {
+    mode: "stalk" as StatPanelModes,
+    mainValue: farmerSilo.activeStalkBalance,
+    mainValueChange: farmerActions.claimRewards.outputs.stalkGain,
+    actionValue: claimSiloPct.sub(siloPct),
+    secondaryValue: siloPct,
+    tooltipContent:
+      "Your ownership of the Stalk supply determines the portion of Pinto supply increases that you earn.",
+    showActionValues: hoveredButton === "claim",
+  };
 
-    const plant = encodeFunctionData({
-      abi: beanstalkAbi,
-      functionName: "plant",
-    });
+  const seedData = {
+    mode: "seeds" as StatPanelModes,
+    mainValue: farmerSilo.activeSeedsBalance,
+    mainValueChange:
+      hoveredButton === "convert"
+        ? farmerActions.convertDeposits.bestConversion.outputs.seedGain
+        : farmerActions.claimRewards.outputs.seedGain,
+    actionValue:
+      hoveredButton === "convert"
+        ? farmerActions.convertDeposits.bestConversion.outputs.seedGain
+        : farmerActions.claimRewards.outputs.seedGain,
+    secondaryValue: stalkPerSeason,
+    tooltipContent: "Seeds grow Stalk every Season, creating the time weighted staking mechanism that is the Silo.",
+    showActionValues: hoveredButton === "convert" || hoveredButton === "claim",
+  };
 
-    const tokensToMow = SILO_WHITELIST.map((token) => token.address);
-    const mow = encodeFunctionData({
-      abi: beanstalkAbi,
-      functionName: "mowMultiple",
-      args: [account.address, tokensToMow],
-    });
-
-    const tx = () =>
-      writeContractAsync({
-        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-        abi: beanstalkAbi,
-        functionName: "farm",
-        args: [[plant, mow]],
-      });
-
-    toast.promise(tx, {
-      loading: "Claiming rewards...",
-      success: (data) => {
-        return `Claim complete!`;
-      },
-      error: (error) => {
-        return (error as BaseError).shortMessage || `Failed to claim rewards.`;
-      },
-    });
-  }
+  const podData = {
+    mode: "pods" as StatPanelModes,
+    ref: podsRef,
+    mainValue: farmerField.totalPods,
+    mainValueChange: farmerActions.harvestPods.outputs.podGain,
+    secondaryValue: placesInLine[0],
+    tooltipContent: "The number of Pods that need to Harvest before your next place in the Pod Line.",
+    showActionValues: hoveredButton === "harvest",
+  };
 
   return (
     <div
@@ -185,163 +119,104 @@ export default function Overview() {
     >
       {hasDeposits ? (
         <>
-          <div>
+          <div className="flex flex-col justify-center relative action-container">
             <div className="flex flex-col items-center">
-              <StatPanel
-                mode={"depositedValue"}
-                mainValue={farmerSilo.depositsUSD}
-                secondaryValue={farmerSilo.depositsBDV}
-                size={"large"}
-              />
+              <StatPanel {...depositedValueData} size={"large"} />
             </div>
-            <div className="flex flex-row justify-center mt-20 gap-16">
-              <StatPanel
-                mode={"stalk"}
-                mainValue={farmerSilo.activeStalkBalance}
-                secondaryValue={siloPct}
-                tooltipContent={
-                  "Your ownership of the Stalk supply determines the portion of Pinto supply increases that you earn."
-                }
-              />
-              <StatPanel
-                mode={"seeds"}
-                mainValue={farmerSilo.activeSeedsBalance}
-                secondaryValue={stalkPerSeason}
-                tooltipContent={
-                  "Seeds grow Stalk every Season, creating the time weighted staking mechanism that is the Silo."
-                }
-              />
-              <StatPanel
-                mode={"pods"}
-                mainValue={farmerField.totalPods}
-                secondaryValue={placesInLine[0]}
-                tooltipContent={"The number of Pods that need to Harvest before your next place in the Pod Line."}
-              />
+            <div className="grid grid-flow-col grid-cols-3 mt-20 gap-[4.5rem] w-[60%] self-center whitespace-nowrap">
+              <StatPanel {...stalkData} />
+              <StatPanel {...seedData} />
+              <StatPanel {...podData} />
             </div>
+            <ActionButton
+              onClick={() => navigate(podData.mainValue?.gt(0) ? "/field/harvest" : "/field/sow")}
+              text={podData.mainValue?.gt(0) ? "Harvest Pods" : "Sow (Lend) in the Field for Pods"}
+              className="absolute -mt-[180px] ml-[240px]"
+              dataTarget="pods-stats"
+              sourceAnchor="left"
+              targetAnchor="right"
+              diagonal={true}
+            />
           </div>
           <div className="flex flex-col items-center">
-            <Tabs defaultValue="deposits" className="w-[1150px]">
+            <Tabs
+              defaultValue="deposits"
+              className="w-[1150px]"
+              value={currentTab}
+              onValueChange={(value) => setCurrentTab(value)}
+            >
               <TabsList className="h-0 bg-transparent p-0 border-0">
                 <TabsTrigger
-                  className="pr-3 pl-0 font-[400] text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
+                  className="p-3 -ml-3 font-[400] text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
                   value="deposits"
                 >
                   My Deposits
                 </TabsTrigger>
                 <TabsTrigger
-                  className="pl-3 pr-0 font-[400] text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
+                  className="p-3 font-[400] text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
                   value="pods"
                 >
                   My Pods
                 </TabsTrigger>
               </TabsList>
               <TabsContent className="mt-6" value="deposits">
-                <div className="relative">
-                  <div className="border border-pinto-gray-2 rounded-[1rem] overflow-clip relative">
-                    <Table>
-                      {/* <TableCaption>Your deposits will appear here</TableCaption> */}
-                      <TableHeader className="overflow-x-clip">
-                        <TableRow className="bg-pinto-gray-1 hover:bg-pinto-gray-1 h-14">
-                          <TableHead className="text-black font-[400] text-[1rem] w-1/4 p-4">Deposited Asset</TableHead>
-                          <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4">
-                            Amount Deposited
-                          </TableHead>
-                          <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4">Stalk</TableHead>
-                          <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4 p-4">
-                            Seeds
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {(claimableBeans.gt(0) || claimableStalk.gt(0) || claimableSeeds.gt(0)) && (
-                          <TableRow
-                            onClick={() => onSubmit()}
-                            className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 hover:cursor-pointer"
-                            data-action-target="claimable-rewards"
-                          >
-                            <TableCell className="text-pinto-green-2 font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">
-                              <img src={claimableIcon} className="h-8 w-8" alt="Claimable Tokens" />
-                              <div>Claimable</div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <div className="text-pinto-green-2 font-[400] text-[1rem]">
-                                {claimableBeans.toHuman("short")} {mainToken.name}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-pinto-green-2 font-[400] text-[1rem] text-right">
-                              <div>{claimableStalk.toHuman("short")}</div>
-                            </TableCell>
-                            <TableCell className="text-pinto-green-2 font-[400] text-[1rem] text-right p-4">
-                              {claimableSeeds.toHuman("short")}
-                            </TableCell>
-                          </TableRow>
-                        )}
-                        {SILO_WHITELIST.map((token, i) => {
-                          const userData = farmerDeposits.get(token);
-                          const claimableStalk = farmerSilo.grownStalkPerToken.get(token) || TokenValue.ZERO;
-                          return (
-                            <TableRow
-                              className={`h-[4.5rem] bg-white hover:bg-pinto-green-1/50 hover:cursor-pointer .${token.symbol}-row`}
-                              key={`${token.address}_${i}`}
-                              onClick={() => navigate(`/silo/${token.address}`)}
-                              data-action-target={`token-row-${token.address}`}
-                            >
-                              <TableCell className="text-black font-[400] text-[1rem] p-4 inline-flex items-center gap-1.5">
-                                <img src={token.logoURI} className="h-8 w-8" alt={`${token.name} logo`} />
-                                <div>{token.name}</div>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <div className="text-black font-[400] text-[1rem]">
-                                  {userData?.amount.toHuman("short")} {token.name}
-                                </div>
-                                <div className="inline-flex items-center gap-1">
-                                  <img src={pdvIcon} className="h-3 w-5" alt={"PDV"} />
-                                  <div className="text-pinto-gray-4 font-[300] text-[1rem]">
-                                    {userData?.depositBDV.toHuman("short")}
-                                  </div>
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-black font-[400] text-[1rem] text-right">
-                                <div>{userData?.stalk.base.toHuman("short")}</div>
-                                {claimableStalk.gt(0) && (
-                                  <div className="text-pinto-gray-4">
-                                    Claimable Grown Stalk:{" "}
-                                    <span className="text-pinto-green-2">+{claimableStalk.toHuman("short")}</span>
-                                  </div>
-                                )}
-                              </TableCell>
-                              <TableCell className="text-black font-[400] text-[1rem] text-right p-4">
-                                {userData?.seeds.toHuman("short") ?? "-"}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
-                  {farmerActions.convertibleDeposits.map((deposit, i) => {
-                    if (i > 0) return;
-                    const fromToken = deposit.from;
-                    const toToken = deposit.to[0].token;
-                    return (
-                      <TableRowConnector
-                        key={`connection-${i}`}
-                        fromTarget={`token-row-${fromToken.address}`}
-                        toTarget={`token-row-${toToken.address}`}
-                        color="#246645"
-                        extensionLength={40}
-                        dotted={true}
-                        startCapColor={fromToken.color}
-                        endCapColor={toToken.color}
-                        component={<Text>{`Convert ${fromToken.name}`}</Text>}
+                <div className="relative overflow-visible" ref={convertRef}>
+                  <FarmerDepositsTable rewardsRef={rewardsRef} />
+                  {convertEnabled && convertFrom && convertTo && (
+                    <>
+                      <ActionButton
+                        onMouseEnter={() => setHoveredButton("convert")}
+                        onMouseLeave={() => setHoveredButton("")}
+                        onClick={() =>
+                          navigate(`/silo/${convertFrom.address}/convert?to=${convertTo.address}&useMax=true`)
+                        }
+                        text="Convert Available"
+                        targetRef={convertRef}
+                        className="absolute -top-12 -left-60"
+                        sourceAnchor="bottom"
+                        targetAnchor="top"
+                        diagonal={true}
                       />
-                    );
-                  })}
+                      <div ref={convertRef}>
+                        <TableRowConnector
+                          fromTarget={`token-row-${convertFrom.address}`}
+                          toTarget={`token-row-${convertTo.address}`}
+                          color="#246645"
+                          extensionLength={40}
+                          dotted={true}
+                          startCapColor={convertFrom.color}
+                          endCapColor={convertTo.color}
+                          component={
+                            <div>
+                              <Text
+                                data-action-target="convert"
+                                variant="body-light"
+                                className={`text-pinto-gray-3 hover:text-pinto-green-4 transition-colors cursor-pointer`}
+                                onClick={() => navigate(`silo/${convertFrom.address}/convert?to=${convertTo.address}`)}
+                              >{`Convert ${convertFrom.name}`}</Text>
+                            </div>
+                          }
+                        />
+                      </div>
+                    </>
+                  )}
+                  <div onMouseEnter={() => setHoveredButton("claim")} onMouseLeave={() => setHoveredButton("")}>
+                    <ActionButton
+                      onClick={() => console.log("clicked")}
+                      text={"Claim Pinto, Stalk and Seed"}
+                      dataTarget="claimable-rewards"
+                      targetRef={rewardsRef}
+                      className="absolute -top-12 -right-60"
+                      sourceAnchor="bottom"
+                      targetAnchor="right"
+                      diagonal={true}
+                    />
+                  </div>
                 </div>
               </TabsContent>
               <TabsContent className="mt-6" value="pods">
                 <div className="overflow-clip">
-                  <PlotsTable />
+                  <PlotsTable showClaimable />
                 </div>
               </TabsContent>
             </Tabs>
@@ -360,7 +235,7 @@ export default function Overview() {
               <span className="text-pinto-body text-pinto-gray-4">
                 and yield additional Pinto when the supply expands.
               </span>
-              {Number(avg) > 0 && <span className="text-pinto-h1 text-pinto mt-4">{`${avg}% average vAPY`}</span>}
+              {Number(avgAPY) > 0 && <span className="text-pinto-h1 text-pinto mt-4">{`${avgAPY}% average vAPY`}</span>}
             </Link>
           </Button>
           <Button
