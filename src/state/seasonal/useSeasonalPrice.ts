@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import request from "graphql-request";
 import { subgraphs } from "@/constants/subgraph";
 import { useSunData } from "../useSunData";
 import { useChainId } from "wagmi";
@@ -16,33 +15,35 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number) {
     to: toSeason,
   };
 
-  const paginateSettings: PaginationSettings<BeanSeasonalPriceQuery, "beanHourlySnapshots", typeof variables> = {
-    primaryPropertyName: "beanHourlySnapshots",
-    paginateField: "season",
-    paginateDirection: "asc",
-    loopCallback: (
-      value1000: Partial<Pick<BeanHourlySnapshot, keyof BeanHourlySnapshot>>,
-      prevVars: typeof variables,
-    ) => ({
-      from: Number(value1000.season),
-      to: prevVars.to,
-    }),
-  };
-
-  // Ideally order direction can be removed from the generated graphql
-  // Specify paginate field
-  // Specify order asc/desc
-  // Specify pagination callback (accepts 1000th entry and returns new variables)
-
   return useQuery({
     queryKey: ["seasonalPrices", { chainId: chainId, season: currentSeason, variables }],
     queryFn: async () => {
-      // return request(subgraphs[chainId].bean, BeanSeasonalPriceDocument, variables);
+      const paginateSettings: PaginationSettings<
+        BeanHourlySnapshot,
+        BeanSeasonalPriceQuery,
+        "beanHourlySnapshots",
+        typeof variables
+      > = {
+        primaryPropertyName: "beanHourlySnapshots",
+        idField: "id",
+        paginateField: "season",
+        paginateDirection: "asc",
+        loopCallback: (
+          value1000: Partial<Pick<BeanHourlySnapshot, keyof BeanHourlySnapshot>>,
+          prevVars: typeof variables,
+        ) => {
+          if (value1000) {
+            return {
+              from: Number(value1000.season),
+              to: prevVars.to,
+            };
+          }
+        },
+      };
       return paginateSubgraph(subgraphs[chainId].bean, BeanSeasonalPriceDocument, variables, paginateSettings);
     },
     select: (data) => {
-      const results = data.beanHourlySnapshots;
-      return results.map((r) => ({
+      return data.map((r) => ({
         season: Number(r.season),
         price: Number(r.price),
         timestamp: new Date(Number(r.timestamp) * 1000),

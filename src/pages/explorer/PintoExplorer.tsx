@@ -15,7 +15,7 @@ const PintoExplorer = () => {
   // const season = useSunData().current; // TODO(ss): put this back eventually
   const season = 25826;
   const priceData = useSeasonalPrice(season - 10, season);
-  console.log(priceData.data, priceData.isLoading, priceData.error, priceData.isError);
+  console.log("h", priceData.data, priceData.isLoading, priceData.error, priceData.isError);
 
   const priceDataFn = useCallback(() => {
     /// Test data implementation ///
