@@ -8,7 +8,6 @@ import { formatter } from "@/utils/format";
 import { Plot } from "@/utils/types";
 import React from "react";
 import CheckmarkCircle from "./CheckmarkCircle";
-import { CheckmarkIcon } from "./Icons";
 import { Table, TableBody, TableCell, TableRow } from "./ui/Table";
 import Text from "./ui/Text";
 import { ToggleGroupItem } from "./ui/ToggleGroup";

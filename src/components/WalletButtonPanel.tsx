@@ -2,6 +2,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
+import { formatter } from "@/utils/format";
 import { Avatar } from "connectkit";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -71,17 +72,19 @@ export default function WalletButtonPanel({
                 {ensName ? ensName : address ? `${address.substring(0, 7)}...${address.substring(38, 42)}` : ""}
               </span>
             </div>
-            <span className="font-[300] text-[3.425rem] text-pinto-gray-5 leading-none">{`$${Number(totalBalance.total.toHuman()).toFixed(2)}`}</span>
+            <span className="font-[300] text-[3.425rem] text-pinto-gray-5 leading-none">
+              {formatter.usd(totalBalance.total)}
+            </span>
             <div className="flex flex-col gap-2">
               <div className="font-[340] text-[1rem] text-pinto-gray-4 inline-flex gap-1 items-center leading-none">
                 <div className="rounded-full bg-pinto w-3 h-3" />
                 <div>Wallet Balance:</div>
-                <div className="text-pinto-gray-5">{`$${Number(totalBalance.external.toHuman()).toFixed(2)}`}</div>
+                <div className="text-pinto-gray-5">{formatter.usd(totalBalance.external)}</div>
               </div>
               <div className="font-[340] text-[1rem] text-pinto-gray-4 inline-flex gap-1 items-center leading-none">
                 <div className="rounded-full bg-pinto-yellow-1 w-3 h-3" />
                 <div>Farm Balance:</div>
-                <div className="text-pinto-gray-5">{`$${Number(totalBalance.internal.toHuman()).toFixed(2)}`}</div>
+                <div className="text-pinto-gray-5">{formatter.usd(totalBalance.internal)}</div>
               </div>
             </div>
             <div className="flex flex-row gap-3 w-full">
@@ -187,7 +190,9 @@ export default function WalletButtonPanel({
                                     />
                                   </span>
                                 </div>
-                                <span className="text-[1.5rem] font-[500] text-pinto-gray-5">{`$${Number(balances.total.mul(price).toHuman()).toFixed(2)}`}</span>
+                                <span className="text-[1.5rem] font-[500] text-pinto-gray-5">
+                                  {formatter.usd(balances.total.mul(price))}
+                                </span>
                               </div>
                               <div className="font-[340] text-[1rem] mt-2 text-pinto-gray-4 inline-flex justify-between gap-1 items-center leading-none">
                                 <div className="inline-flex gap-1 items-center">
@@ -238,7 +243,9 @@ export default function WalletButtonPanel({
                                     {`${balances.external.toHuman("short")} ${token.symbol}`}
                                   </span>
                                 </div>
-                                <span className="text-[1.5rem] font-[500] text-pinto-gray-5">{`$${Number(balances.external.mul(price).toHuman()).toFixed(2)}`}</span>
+                                <span className="text-[1.5rem] font-[500] text-pinto-gray-5">
+                                  {formatter.usd(balances.external.mul(price))}
+                                </span>
                               </div>
                             </div>
                           </Toggle>
@@ -275,7 +282,9 @@ export default function WalletButtonPanel({
                                     {`${balances.internal.toHuman("short")} ${token.symbol}`}
                                   </span>
                                 </div>
-                                <span className="text-[1.5rem] font-[500] text-pinto-gray-5">{`$${Number(balances.internal.mul(price).toHuman()).toFixed(2)}`}</span>
+                                <span className="text-[1.5rem] font-[500] text-pinto-gray-5">
+                                  {formatter.usd(balances.internal.mul(price))}
+                                </span>
                               </div>
                             </div>
                           </Toggle>

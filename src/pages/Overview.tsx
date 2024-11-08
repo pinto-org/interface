@@ -1,4 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
+import EmptyTable from "@/components/EmptyTable";
 import FarmerDepositsTable from "@/components/FarmerDepositsTable";
 import HelperLink from "@/components/HelperLink";
 import PlotsTable from "@/components/PlotsTable";
@@ -40,8 +41,10 @@ const Overview = () => {
   const priceData = usePriceData();
   const navigate = useNavigate();
 
-  const hasDepositsOrPods = farmerActions.totalValue.silo.add(farmerActions.totalValue.field);
-  const hasOnlyPods = farmerActions.totalValue.silo.eq(0) && farmerActions.totalValue.field.gt(0);
+  const hasDeposits = farmerActions.totalValue.silo.gt(0);
+  const hasPods = farmerActions.totalValue.field.gt(0);
+  const hasDepositsOrPods = hasDeposits || hasPods;
+  const hasOnlyPods = hasPods && !hasDeposits;
 
   // State
   const [currentTab, setCurrentTab] = useState(hasOnlyPods ? "pods" : "deposits");
@@ -243,37 +246,45 @@ const Overview = () => {
             />
           )}
           <TabsContent className="mt-8" value="deposits">
-            <div className="relative overflow-visible">
-              <FarmerDepositsTable hovering={hoveredButton === "claim"} />
-              {convertEnabled && convertFrom && convertTo && (
-                <TableRowConnector
-                  fromTarget={`token-row-${convertFrom.address}`}
-                  toTarget={`token-row-${convertTo.address}`}
-                  color="#246645"
-                  extensionLength={40}
-                  dotted={true}
-                  startCapColor={convertFrom.color}
-                  endCapColor={convertTo.color}
-                  component={
-                    <div>
-                      <Text
-                        data-action-target="convert"
-                        variant="body-light"
-                        className="text-pinto-gray-3 hover:text-pinto-green-4 transition-colors cursor-pointer"
-                        onClick={() => navigate(getSiloConvertUrl(convertFrom, convertTo))}
-                      >
-                        {`Convert ${convertFrom.name}`}
-                      </Text>
-                    </div>
-                  }
-                />
-              )}
-            </div>
+            {hasDeposits ? (
+              <div className="relative overflow-visible">
+                <FarmerDepositsTable hovering={hoveredButton === "claim"} />
+                {convertEnabled && convertFrom && convertTo && (
+                  <TableRowConnector
+                    fromTarget={`token-row-${convertFrom.address}`}
+                    toTarget={`token-row-${convertTo.address}`}
+                    color="#246645"
+                    extensionLength={40}
+                    dotted={true}
+                    startCapColor={convertFrom.color}
+                    endCapColor={convertTo.color}
+                    component={
+                      <div>
+                        <Text
+                          data-action-target="convert"
+                          variant="body-light"
+                          className="text-pinto-gray-3 hover:text-pinto-green-4 transition-colors cursor-pointer"
+                          onClick={() => navigate(getSiloConvertUrl(convertFrom, convertTo))}
+                        >
+                          {`Convert ${convertFrom.name}`}
+                        </Text>
+                      </div>
+                    }
+                  />
+                )}
+              </div>
+            ) : (
+              <EmptyTable type="deposits" />
+            )}
           </TabsContent>
           <TabsContent className="mt-8" value="pods">
-            <div className="overflow-clip">
-              <PlotsTable showClaimable />
-            </div>
+            {hasPods ? (
+              <div className="overflow-clip">
+                <PlotsTable showClaimable />
+              </div>
+            ) : (
+              <EmptyTable type="plots" />
+            )}
           </TabsContent>
         </Tabs>
       </div>
@@ -282,9 +293,9 @@ const Overview = () => {
 
   return (
     <div
-      className={`flex flex-col ${hasDepositsOrPods.gt(0) ? "pt-[276px]" : "justify-center text-center min-h-[calc(100vh-15rem)]"} gap-52`}
+      className={`flex flex-col ${hasDepositsOrPods ? "pt-[276px]" : "justify-center text-center min-h-[calc(100vh-15rem)]"} gap-52`}
     >
-      {hasDepositsOrPods.gt(0) ? renderContent() : renderEmptyState()}
+      {hasDepositsOrPods ? renderContent() : renderEmptyState()}
     </div>
   );
 };
