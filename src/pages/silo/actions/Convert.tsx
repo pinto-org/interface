@@ -136,6 +136,11 @@ function DefaultConvert({ siloToken, farmerDepositMap }: ConvertProps) {
     },
   });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Reset amount in when target token changes
+  useEffect(() => {
+    setAmountIn("0");
+  }, [targetToken]);
+
   useDebouncedEffect(
     () => {
       if (amountIn && Number(amountIn) > 0) {
@@ -173,13 +178,8 @@ function DefaultConvert({ siloToken, farmerDepositMap }: ConvertProps) {
         targetToken,
       );
 
-      console.log("depositCrates", depositCrates);
-
       const stems: bigint[] = depositCrates.crates.map((crate) => crate.stem.toBigInt());
       const amounts: bigint[] = depositCrates.crates.map((crate) => crate.amount.toBigInt());
-
-      console.log("stems", stems);
-      console.log("amounts", amounts);
 
       const convertData = calculateConvertData(
         siloToken,

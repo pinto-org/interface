@@ -101,8 +101,10 @@ export default function TokenSelectWithBalances({
     <Dialog>
       <DialogTrigger asChild>
         <Button
-          variant={"outline"}
-          className={`${disabled ? "pointer-events-none" : "pointer-events-auto"} flex-none items-center ${size === "small" ? "" : "h-12"} gap-1.5 border border-pinto-gray-blue bg-white hover:bg-pinto-gray-1 drop-shadow-pinto-token-select rounded-full`}
+          variant="outline-gray-shadow"
+          size="xl"
+          rounded="full"
+          className={`${disabled ? "pointer-events-none" : "pointer-events-auto"} flex-none items-center ${size === "small" ? "" : "h-12"} gap-1`}
         >
           <img
             src={selectedToken.logoURI}

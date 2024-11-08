@@ -326,7 +326,7 @@ function ComboInputField({
                     className="h-auto"
                     onClick={handleSetMax}
                   >
-                    <Text variant="sm-light" className="px-1.5 py-1" color="green3">
+                    <Text variant="sm" className="px-1.5 py-1" color="green3">
                       Max
                     </Text>
                   </Button>

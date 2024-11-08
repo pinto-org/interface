@@ -1,5 +1,6 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { SEEDS, STALK } from "@/constants/internalTokens";
+import { PINTO } from "@/constants/tokens";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useChainAddress } from "@/utils/chain";
@@ -78,10 +79,10 @@ function useFarmerDepositedBalances() {
       const depositData: DepositData[] = [];
       const convertibleDeposits: DepositData[] = [];
 
-      let amount = TokenValue.ZERO;
-      let convertibleAmount = TokenValue.ZERO;
-      let depositBDV = TokenValue.ZERO;
-      let currentBDV = TokenValue.ZERO;
+      let amount = TokenValue.fromBlockchain(0n, token.decimals);
+      let convertibleAmount = TokenValue.fromBlockchain(0n, token.decimals);
+      let depositBDV = TokenValue.fromBlockchain(0n, BEAN.decimals);
+      let currentBDV = TokenValue.fromBlockchain(0n, PINTO.decimals);
       let totalBaseStalk: TokenValue = TokenValue.fromBlockchain(0n, STALK.decimals);
       let totalGrownStalk: TokenValue = TokenValue.fromBlockchain(0n, STALK.decimals);
       let totalStalk: TokenValue = TokenValue.fromBlockchain(0n, STALK.decimals);
