@@ -148,7 +148,6 @@ const TableRowConnector = ({
             position: "absolute",
             top: dimensions.top + dimensions.height / 2 - (componentRef.current?.offsetHeight || 0) / 2,
             left: dimensions.left - (componentRef.current?.offsetWidth || 0) - componentOffset,
-            transform: "translateY(-50%)",
             zIndex: 11,
             pointerEvents: "auto",
           }}
