@@ -1,10 +1,10 @@
 import HelperLink from "@/components/HelperLink";
 import useFarmerActions from "@/hooks/useFarmerActions";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { formatter } from "@/utils/format";
 import { cn } from "@/utils/utils";
 import clsx from "clsx";
-import { useEffect, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { matchPath, useMatch } from "react-router-dom";
 import { useAccount } from "wagmi";
 import WalletButton from "../../WalletButton";
 import Backdrop from "../../ui/Backdrop";
@@ -26,6 +26,10 @@ const Navbar = () => {
   const farmerActions = useFarmerActions();
   const hasInternal = farmerActions.totalValue.wallet.internal.gt(0);
   const usdValue = farmerActions.totalValue.wallet.total;
+
+  const isRoot = useMatch("/");
+  const isSilo = useMatch("/silo");
+  const showHelperLink = useMemo(() => Boolean(isRoot || isSilo), [isRoot, isSilo]);
 
   const priceOpen = openPanel === "price";
   const seasonsOpen = openPanel === "seasons";
@@ -86,7 +90,7 @@ const Navbar = () => {
           <div className="hidden sm:block">
             <Backdrop active={openBackdrop} onClick={closePanel} transitionDuration={DURATION} />
           </div>
-          {!openPanel && (
+          {!openPanel && showHelperLink && (
             <HelperLink
               onClick={() => {
                 walletButton.current?.click();
