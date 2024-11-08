@@ -36,7 +36,7 @@ export interface LineChartProps {
   onMouseOver?: (index: number) => void;
 }
 
-export const LineChart = React.memo(
+const LineChart = React.memo(
   ({ data, size, makeLineGradients, makeAreaGradients, valueFormatter, onMouseOver }: LineChartProps) => {
     const chartData = useCallback(
       (ctx: CanvasRenderingContext2D | null): ChartData => {

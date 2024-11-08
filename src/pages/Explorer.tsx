@@ -1,31 +1,15 @@
-import SeasonalChart, { SeasonalChartData } from "@/components/charts/SeasonalChart";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
-import { formatter } from "@/utils/format";
 import { useCallback, useState } from "react";
+import PintoExplorer from "./explorer/PintoExplorer";
 
 const MAIN_TABS = ["Pinto", "Silo", "Field", "Seasons", "All"];
 
-// TEMP testing data function.
-async function getTestData(rangeType: number) {
-  const data: SeasonalChartData[] = [];
-  const startDate = new Date();
-  startDate.setDate(1);
-
-  for (let i = 0; i < 40 * 2 ** rangeType; i++) {
-    const date = new Date(startDate);
-    date.setDate(startDate.getDate() + i);
-    const value = parseFloat((Math.random() * (1.1 - 0.9) + 0.9).toFixed(6));
-    data.push({ value, season: 23456 + i, timestamp: date });
-  }
-  return data;
-}
-
-function Explorer() {
+const Explorer = () => {
   const [mainTab, setMainTab] = useState(0);
 
-  const handleMainTabClickWrapper = useCallback((idx: number) => () => setMainTab(idx), []);
+  const handleMainTabClickFactory = useCallback((idx: number) => () => setMainTab(idx), []);
 
   return (
     <PageContainer variant="xl">
@@ -41,7 +25,7 @@ function Explorer() {
                   color={mainTab === idx ? "primary" : "light"}
                   data-state={mainTab === idx ? "active" : "inactive"}
                   className="cursor-pointer data-[state=inactive]:hover:text-pinto-green-3"
-                  onClick={handleMainTabClickWrapper(idx)}
+                  onClick={handleMainTabClickFactory(idx)}
                 >
                   {tabName}
                 </Text>
@@ -49,39 +33,10 @@ function Explorer() {
             </div>
           </div>
           <Separator />
-
-          <div className="flex flex-row w-full space-x-8">
-            <div className="w-1/2">
-              <SeasonalChart
-                title="Pinto Price"
-                size="small"
-                dataFn={getTestData}
-                valueFormatter={(v) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`}
-                tickValueFormatter={(v) => `$${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`}
-              />
-            </div>
-            <div className="w-1/2">
-              <SeasonalChart
-                title="Pinto Price"
-                size="small"
-                fillArea
-                dataFn={getTestData}
-                valueFormatter={(v) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`}
-                tickValueFormatter={(v) => `$${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`}
-              />
-            </div>
-          </div>
-          <SeasonalChart
-            title="Pinto Price"
-            size="large"
-            dataFn={getTestData}
-            valueFormatter={(v) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`}
-            tickValueFormatter={(v) => `$${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`}
-          />
+          <PintoExplorer />
         </div>
       </div>
     </PageContainer>
   );
-}
-
+};
 export default Explorer;

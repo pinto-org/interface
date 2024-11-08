@@ -5,29 +5,30 @@ import { useSunData } from "../useSunData";
 import { useChainId } from "wagmi";
 import { BeanSeasonalPriceDocument } from "@/generated/gql/graphql";
 
-export default function useSeasonalPrice(fromSeason: number, toSeason: number | undefined) {
+export default function useSeasonalPrice(fromSeason: number, toSeason: number) {
   const currentSeason = useSunData().current;
-  const chainId = useChainId();
+  // const chainId = useChainId(); // TODO(ss): put this back eventually
+  const chainId = 1337;
 
   const variables = {
     from: fromSeason,
-    to: toSeason ?? currentSeason,
+    to: toSeason,
   };
 
-  const query = useQuery({
+  return useQuery({
     queryKey: ["seasonalPrices", { chainId: chainId, season: currentSeason, variables }],
-    queryFn: async () => request(subgraphs[chainId].bean, BeanSeasonalPriceDocument, variables),
+    queryFn: async () => {
+      return request(subgraphs[chainId].bean, BeanSeasonalPriceDocument, variables);
+    },
     select: (data) => {
       const results = data.beanHourlySnapshots;
       return results.map((r) => ({
         season: Number(r.season),
         price: Number(r.price),
-        timestamp: new Date(r.timestamp),
+        timestamp: new Date(Number(r.timestamp) * 1000),
       }));
     },
     enabled: !!variables.to,
     staleTime: Infinity,
   });
-
-  return query.data ?? [];
 }

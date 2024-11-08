@@ -3,28 +3,6 @@ import Text from "../ui/Text";
 import { formatDate } from "@/utils/format";
 import LineChart, { LineChartData, MakeGradientFunction } from "./LineChart";
 
-export interface SeasonalChartData {
-  value: number;
-  season: number;
-  timestamp: Date;
-}
-
-interface SeasonalChartProps {
-  title: string;
-  size: "small" | "large";
-  dataFn: (rangeType: TimeTab) => Promise<SeasonalChartData[]>;
-  valueFormatter: (value: number) => string;
-  tickValueFormatter?: (value: number) => string;
-  fillArea?: boolean;
-}
-
-enum TimeTab {
-  Week = 0,
-  Month = 1,
-  AllTime = 2,
-}
-const TIME_TABS = ["Week", "Month", "All Time"];
-
 // Draws dynamic gradient with the given colors at the given positions.
 // Positions outside of range [0, 1] are truncated or ignored when appropriate.
 const positionalGradient = (ctx: CanvasRenderingContext2D, colors: string[], positions: number[]) => {
@@ -58,10 +36,34 @@ const areaGradientFn: MakeGradientFunction = (ctx: CanvasRenderingContext2D | nu
   }
 };
 
+export interface SeasonalChartData {
+  value: number;
+  season: number;
+  timestamp: Date;
+}
+
+export enum TimeTab {
+  Week = 0,
+  Month = 1,
+  AllTime = 2,
+}
+const TIME_TABS = ["Week", "Month", "All Time"];
+
+interface SeasonalChartProps {
+  title: string;
+  size: "small" | "large";
+  dataFn: () => SeasonalChartData[];
+  onTimeTabChange?: (newSelection: TimeTab) => void;
+  valueFormatter: (value: number) => string;
+  tickValueFormatter?: (value: number) => string;
+  fillArea?: boolean;
+}
+
 export default function SeasonalChart({
   title,
   size,
   dataFn,
+  onTimeTabChange,
   valueFormatter,
   tickValueFormatter,
   fillArea,
@@ -71,18 +73,18 @@ export default function SeasonalChart({
   const [selectedTimeTab, setSelectedTimeTab] = useState<TimeTab>(TimeTab.Week);
 
   useEffect(() => {
-    (async () => {
-      const data = await dataFn(selectedTimeTab);
-      setAllData(data);
-      setDisplayData(data[data.length - 1]);
-    })();
-  }, [selectedTimeTab, dataFn]);
+    const data = dataFn();
+    setAllData(data);
+    setDisplayData(data[data.length - 1]);
+  }, [dataFn]);
 
-  const handleTimeTabClickWrapper = useCallback(
+  const handleTimeTabClickFactory = useCallback(
     (idx: number) => () => {
       setSelectedTimeTab(idx);
+      // Alert the parent
+      onTimeTabChange?.(idx);
     },
-    [],
+    [onTimeTabChange],
   );
 
   const chartData = useMemo<LineChartData[]>(() => {
@@ -125,7 +127,7 @@ export default function SeasonalChart({
               color={selectedTimeTab === idx ? "green3" : "light"}
               data-state={selectedTimeTab === idx ? "active" : "inactive"}
               className="cursor-pointer data-[state=inactive]:hover:text-pinto-green-4"
-              onClick={handleTimeTabClickWrapper(idx)}
+              onClick={handleTimeTabClickFactory(idx)}
             >
               {tabName}
             </Text>
