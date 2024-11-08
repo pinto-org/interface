@@ -67,8 +67,6 @@ const usePrepareConvertContext = () => {
   const wells = useWells();
   const silo = useSiloData();
 
-  const deltaB = priceData.deltaB;
-
   const pools = priceData.pools;
   const maxLPToken = seedGauge.data.maxLPToken;
   const whitelist = tokenData.whitelistedTokens;
@@ -119,12 +117,12 @@ const usePrepareConvertContext = () => {
         };
 
         // Disable converts from PINTO -> LP when LP pool deltaB < 0
-        if (fromToken.isMain && targetState.pool?.deltaB.lt(0)) {
+        if (fromToken.isMain && target.isLP && targetState.pool?.deltaB.lte(0)) {
           data.enabled = false;
         }
 
         // Disable converts LP -> PINTO when pool deltaB < 0
-        if (target.isMain && fromState.pool?.deltaB.gt(0)) {
+        if (target.isMain && fromToken.isLP && fromState.pool?.deltaB.gte(0)) {
           data.enabled = false;
         }
 
@@ -140,7 +138,7 @@ const usePrepareConvertContext = () => {
     }
 
     return state;
-  }, [loading, tokenConvertState, whitelist, deltaB]);
+  }, [loading, tokenConvertState, whitelist]);
 
   return useMemo(
     () => ({

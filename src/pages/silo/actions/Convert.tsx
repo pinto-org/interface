@@ -2,18 +2,18 @@ import arrowDown from "@/assets/misc/ChevronDown.svg";
 import { TV } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import { RightArrowIcon } from "@/components/Icons";
+import OutputDisplay from "@/components/OutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
 import { Button } from "@/components/ui/Button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
 import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
 import { Separator } from "@/components/ui/Separator";
-
 import Text from "@/components/ui/Text";
 import VerticalAccordion from "@/components/ui/VerticalAccordion";
 import Warning from "@/components/ui/Warning";
 import { diamondABI } from "@/constants/abi/diamondABI";
-import { SEEDS } from "@/constants/internalTokens";
+import { SEEDS, STALK } from "@/constants/internalTokens";
 import { PINTOcbBTC } from "@/constants/tokens";
 import { useReadSilo_GetAmountOut } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
@@ -21,22 +21,21 @@ import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useWell, useWellUnderlying } from "@/hooks/wells/wells";
 import ConvertProvider, { SiloTokenConvertPath, useConvertState } from "@/state/context/convert.provider";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
-import { usePriceData } from "@/state/usePriceData";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { PoolData, usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { ConvertDetails, calculateConvert, calculateConvertData, sortAndPickCrates } from "@/utils/convert";
 import { formatter } from "@/utils/format";
-import { stringEq } from "@/utils/string";
+import { stringEq, stringToNumber } from "@/utils/string";
 import { getTokenIndex, isProtocolToken } from "@/utils/token";
 import { AddressMap, Token } from "@/utils/types";
-import { useDebounceValue } from "@/utils/useDebounce";
-import { cn } from "@/utils/utils";
+import { useDebounceValue, useDebouncedEffect } from "@/utils/useDebounce";
+import { cn, exists, noop } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { BaseError } from "viem";
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
-import { useChainId } from "wagmi";
 
 interface BaseConvertProps {
   siloToken: Token;
@@ -44,6 +43,13 @@ interface BaseConvertProps {
 
 interface ConvertProps extends BaseConvertProps {
   farmerDepositMap: Map<Token, TV>;
+  queryClient: ReturnType<typeof useQueryClient>;
+  farmerDeposits: ReturnType<typeof useFarmerDepositedBalances>["data"];
+  tokenPrices: ReturnType<typeof usePriceData>["tokenPrices"];
+  siloTokenData: ReturnType<typeof useSiloData>["tokenData"];
+  sourceWell: PoolData | undefined;
+  targetWell: PoolData | undefined;
+  onSuccess: () => void;
 }
 
 // ------------------------------ DEFAULT CONVERT ------------------------------
@@ -52,30 +58,29 @@ const selectMaxConvert = (value: bigint, token: Token) => {
   return TV.fromBlockchain(value, token.decimals);
 };
 
-function DefaultConvert({ siloToken, farmerDepositMap }: ConvertProps) {
+const DEBOUNCE_MS = 150;
+
+function DefaultConvert({
+  siloToken,
+  farmerDepositMap,
+  farmerDeposits,
+  queryClient,
+  sourceWell,
+  targetWell,
+  tokenPrices,
+  siloTokenData,
+  onSuccess,
+}: ConvertProps) {
   const { targetToken } = useSiloConvertContext();
-  const account = useAccount();
+
   const protocolAddress = useProtocolAddress();
-  const chainId = useChainId();
-  const prices = usePriceData();
-  const tokenData = useTokenData();
-  const silo = useSiloData();
-
-  const sourceWell = useWell(siloToken);
-  const targetWell = useWell(targetToken);
-
-  const [fromToken, setFromToken] = useState(siloToken);
-  const [amountIn, setAmountIn] = useState("");
-  const [slippage, setSlippage] = useState(0.1);
+  const account = useAccount();
 
   const [convertData, setConvertData] = useState<ConvertDetails | undefined>(undefined);
+  const [amountIn, setAmountIn] = useState("0");
+  const [slippage, setSlippage] = useState(0.1);
 
-  const depositAmount = farmerDepositMap.get(siloToken);
-
-  const queryClient = useQueryClient();
-  const { data: farmerDeposits, queryKey: farmerDepositsQK } = useFarmerDepositedBalances();
-
-  const { data: maxConvert = TV.ZERO } = useReadContract({
+  const { data: maxConvert = TV.ZERO, ...maxConvertQuery } = useReadContract({
     abi: diamondABI,
     address: protocolAddress,
     functionName: "getMaxAmountIn",
@@ -88,100 +93,134 @@ function DefaultConvert({ siloToken, farmerDepositMap }: ConvertProps) {
     },
   });
 
-  const canConvert = maxConvert.gt(0);
-
-  const canExceedMax = depositAmount?.gt(maxConvert);
-
-  const debouncedAmountIn = useDebounceValue(amountIn, 100);
-
-  const { data: estimatedAmountOut = 0n, ...estimateQuery } = useReadSilo_GetAmountOut({
-    args: [fromToken.address, targetToken.address, TV.fromHuman(debouncedAmountIn || 0, fromToken.decimals).toBigInt()],
+  const debouncedAmountIn = useDebounceValue(amountIn, DEBOUNCE_MS);
+  const { data: minAmountOut = TV.ZERO, ...estimateQuery } = useReadSilo_GetAmountOut({
+    args: [siloToken.address, targetToken.address, TV.fromHuman(debouncedAmountIn || 0, siloToken.decimals).toBigInt()],
     query: {
       enabled: !!amountIn && Number(amountIn) > 0 && !!account.address,
-    },
-  });
-
-  const minAmountOut = useMemo(() => {
-    return TV.fromBlockchain(estimatedAmountOut, targetToken.decimals).subSlippage(slippage);
-  }, [estimatedAmountOut, targetToken, slippage]);
-
-  useEffect(() => {
-    if (amountIn && Number(amountIn) > 0) {
-      setConvertData(
-        calculateConvert(
-          fromToken,
-          targetToken,
-          TV.fromHuman(amountIn, fromToken.decimals),
-          farmerDeposits?.get(fromToken)?.deposits || [],
-          silo.tokenData,
-        ),
-      );
-    }
-  }, [amountIn]);
-
-  // console.log(convertData);
-
-  const { writeContractAsync } = useWriteContract({
-    mutation: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: estimateQuery.queryKey });
-        queryClient.invalidateQueries({ queryKey: farmerDepositsQK });
+      select: (estAmountOut) => {
+        return TV.fromBlockchain(estAmountOut ?? 0n, targetToken.decimals).subSlippage(slippage);
       },
     },
   });
 
-  async function onSubmit() {
-    const deposits = farmerDeposits.get(fromToken);
+  const { writeContractAsync } = useWriteContract({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: maxConvertQuery.queryKey });
+        queryClient.invalidateQueries({ queryKey: estimateQuery.queryKey });
+        onSuccess();
+        setAmountIn("0");
+      },
+    },
+  });
 
-    if (!deposits) {
-      throw new Error("No deposits found");
-    }
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Reset amount in when target token changes
+  useEffect(() => {
+    setAmountIn("0");
+  }, [targetToken]);
 
-    const depositCrates = sortAndPickCrates(
-      "convert",
-      TV.fromHuman(amountIn, fromToken.decimals),
-      deposits.deposits,
-      targetToken,
-    );
+  useDebouncedEffect(
+    () => {
+      if (stringToNumber(amountIn) > 0) {
+        setConvertData(
+          calculateConvert(
+            siloToken,
+            targetToken,
+            TV.fromHuman(amountIn, siloToken.decimals),
+            farmerDeposits?.get(siloToken)?.convertibleDeposits || [],
+            siloTokenData,
+          ),
+        );
+      } else {
+        setConvertData(undefined);
+      }
+    },
+    [amountIn],
+    DEBOUNCE_MS,
+  );
 
-    const stems: bigint[] = depositCrates.crates.map((crate) => crate.stem.toBigInt());
-    const amounts: bigint[] = depositCrates.crates.map((crate) => crate.amount.toBigInt());
-    const convertData = calculateConvertData(
-      fromToken,
-      targetToken,
-      TV.fromHuman(amountIn, fromToken.decimals),
-      minAmountOut,
-    );
+  const onSubmit = async () => {
+    let loadingToast: string | number | undefined = undefined;
+    try {
+      const deposits = farmerDeposits.get(siloToken);
 
-    if (convertData && stems && stems.length > 0 && amounts && amounts.length > 0) {
-      const tx = () =>
-        writeContractAsync({
-          address: protocolAddress,
-          abi: diamondABI,
-          functionName: "convert",
-          args: [convertData, stems, amounts],
-        });
+      if (!account.address) throw new Error("Signer required");
+      if (!deposits) throw new Error("No deposits found");
 
-      toast.promise(tx, {
-        loading: "Submitting transaction...",
-        success: (_data) => {
-          return `Transaction complete!`;
-        },
-        error: (error) => {
-          return (error as BaseError).shortMessage || `Transaction failed.`;
-        },
+      loadingToast = toast.loading("Submitting transaction...");
+
+      const depositCrates = sortAndPickCrates(
+        "convert",
+        TV.fromHuman(amountIn, siloToken.decimals),
+        deposits.convertibleDeposits,
+        targetToken,
+      );
+
+      const stems: bigint[] = depositCrates.crates.map((crate) => crate.stem.toBigInt());
+      const amounts: bigint[] = depositCrates.crates.map((crate) => crate.amount.toBigInt());
+
+      const convertData = calculateConvertData(
+        siloToken,
+        targetToken,
+        TV.fromHuman(amountIn, siloToken.decimals),
+        minAmountOut,
+      );
+
+      if (!convertData || !stems.length || !amounts.length) {
+        throw new Error("Invalid convert data");
+      }
+
+      const txn = await writeContractAsync({
+        address: protocolAddress,
+        abi: diamondABI,
+        functionName: "convert",
+        args: [convertData, stems, amounts],
       });
+
+      toast.dismiss(loadingToast);
+      toast.success("Successfully converted.");
+
+      return txn;
+    } catch (e) {
+      console.error(e);
+      if (exists(loadingToast)) {
+        toast.dismiss(loadingToast);
+      }
+      toast.error(e instanceof Error ? e.message : "Transaction failed.");
+      return e;
     }
-  }
+  };
 
   const getConvertWarning = () => {
     const lowerOrGreater = targetToken.isLP ? "greater" : "less";
     const well = siloToken.isLP ? sourceWell : targetWell;
-    const message = `${siloToken.symbol} can only be Converted to ${targetToken.symbol} when deltaB in the ${well?.pool.symbol} WELL is ${lowerOrGreater} than 0.`;
+    const wellSymbol = well?.pool.symbol;
+    const message = `${siloToken.symbol} can only be Converted to ${targetToken.symbol} when deltaB in the ${wellSymbol} WELL is ${lowerOrGreater} than 0.`;
     return message;
   };
 
+  const getMaxConvertWarning = () => {
+    const maxConvertFormatted = formatter.number(maxConvert, {
+      minDecimals: 2,
+      maxDecimals: warningMessageDecimals,
+      minValue: 0.000001,
+    });
+    return `Converting any more than ${maxConvertFormatted} ${siloToken.symbol} will result in a loss of Stalk and Seed`;
+  };
+
   const warningMessageDecimals = maxConvert.gt(0) ? 2 : 6;
+  const canConvert = maxConvert.gt(0);
+  const farmerConvertibleAmount = farmerDepositMap.get(siloToken);
+  const canExceedMax = farmerConvertibleAmount?.gt(maxConvert);
+
+  const disabled =
+    !stringToNumber(amountIn) ||
+    stringEq(siloToken.address, targetToken.address) ||
+    maxConvert?.lte(0) ||
+    minAmountOut.lte(0) ||
+    !account.address ||
+    !convertData;
 
   return (
     <div className="flex flex-col gap-6">
@@ -195,37 +234,52 @@ function DefaultConvert({ siloToken, farmerDepositMap }: ConvertProps) {
         <ComboInputField
           disableInput={!canConvert || !account.address}
           amount={amountIn}
+          setToken={noop}
           customMaxAmount={maxConvert}
           setAmount={setAmountIn}
-          setToken={setFromToken}
-          selectedToken={fromToken}
+          selectedToken={siloToken}
           tokenAndBalanceMap={farmerDepositMap}
           altText="Deposited Balance:"
           mode="balance"
           disableButton
         />
       </div>
-      <Text>{maxConvert.toHuman()}</Text>
-      {canConvert && canExceedMax && (
-        <Warning>
-          {`Converting any more than ${formatter.number(maxConvert, { minDecimals: 2, maxDecimals: warningMessageDecimals, minValue: 0.000001 })} ${siloToken.symbol} will result in a loss of Stalk and Seed`}
-        </Warning>
-      )}
-      {!canConvert && <Warning>{getConvertWarning()}</Warning>}
-      <ConvertTokenOutput
-        amount={minAmountOut}
-        siloToken={siloToken}
-        targetToken={targetToken}
-        prices={prices.tokenPrices}
-      />
+      {!canConvert || canExceedMax ? (
+        <Warning>{!canConvert ? getConvertWarning() : getMaxConvertWarning()}</Warning>
+      ) : null}
+      <ConvertTokenOutput amount={minAmountOut} siloToken={siloToken} targetToken={targetToken} prices={tokenPrices} />
+      {convertData ? (
+        <OutputDisplay title="I receive">
+          <OutputDisplay.Item label="Amount">
+            <OutputDisplay.Value
+              value={formatAmountOut(minAmountOut, targetToken)}
+              token={targetToken}
+              suffix={targetToken.symbol}
+            />
+          </OutputDisplay.Item>
+          <OutputDisplay.Item label="Stalk">
+            <OutputDisplay.Value
+              value={formatter.twoDec(convertData.stalk)}
+              suffix="Stalk"
+              delta={convertData?.stalk.toNumber()}
+              token={STALK}
+              showArrow
+            />
+          </OutputDisplay.Item>
+          <OutputDisplay.Item label="Seed">
+            <OutputDisplay.Value
+              value={formatter.twoDec(convertData.seeds)}
+              suffix="Seed"
+              delta={convertData.seeds.toNumber()}
+              token={SEEDS}
+              showArrow
+            />
+          </OutputDisplay.Item>
+        </OutputDisplay>
+      ) : null}
       <div className="flex flex-row gap-2">
-        <Button
-          type="button"
-          className="w-full flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem]"
-          onClick={onSubmit}
-          disabled={!amountIn || !maxConvert || fromToken.address === targetToken.address}
-        >
-          Def Convert
+        <Button type="button" rounded="full" width="full" size="xxl" onClick={onSubmit} disabled={disabled}>
+          Convert
         </Button>
       </div>
     </div>
@@ -320,26 +374,71 @@ const SiloConvertProvider = ({ children, siloToken }: { children: React.ReactNod
 
 const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
   const { targetToken } = useSiloConvertContext();
-  const { data: farmerDeposits } = useFarmerDepositedBalances();
 
-  const depositMap = useMemo(() => {
+  const farmerDeposits = useFarmerDepositedBalances();
+  const { queryKeys: priceQueryKeys, tokenPrices } = usePriceData();
+  const { queryKeys: farmerSiloQueryKeys } = useFarmerSilo(); // fix me: inefficient fetching...
+  const { tokenData: siloTokenData } = useSiloData();
+
+  const [depositMap, setDepositMap] = useState<Map<Token, TV>>(new Map());
+
+  const queryClient = useQueryClient();
+
+  const sourceWell = useWell(siloToken);
+  const targetWell = useWell(targetToken);
+
+  const onSuccess = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: farmerDeposits.queryKey });
+    for (const queryKey of priceQueryKeys) {
+      queryClient.invalidateQueries({ queryKey });
+    }
+    for (const queryKey of farmerSiloQueryKeys) {
+      queryClient.invalidateQueries({ queryKey });
+    }
+  }, [queryClient, farmerDeposits.queryKey, priceQueryKeys, farmerSiloQueryKeys]);
+
+  useEffect(() => {
     const map = new Map<Token, TV>();
 
-    for (const token of farmerDeposits.keys()) {
-      const farmerDepositData = farmerDeposits.get(token);
+    for (const token of farmerDeposits.data.keys()) {
+      const farmerDepositData = farmerDeposits.data.get(token);
       if (farmerDepositData) {
         map.set(token, farmerDepositData.convertibleAmount);
       }
     }
 
-    return map;
-  }, [farmerDeposits]);
+    setDepositMap(map);
+  }, [farmerDeposits.data]);
 
   if (siloToken.isLP && targetToken.isLP) {
-    return <PipelineConvert siloToken={siloToken} farmerDepositMap={depositMap} />;
+    return (
+      <PipelineConvert
+        siloToken={siloToken}
+        farmerDepositMap={depositMap}
+        farmerDeposits={farmerDeposits.data}
+        queryClient={queryClient}
+        sourceWell={sourceWell}
+        targetWell={targetWell}
+        onSuccess={onSuccess}
+        tokenPrices={tokenPrices}
+        siloTokenData={siloTokenData}
+      />
+    );
   }
 
-  return <DefaultConvert siloToken={siloToken} farmerDepositMap={depositMap} />;
+  return (
+    <DefaultConvert
+      siloToken={siloToken}
+      farmerDepositMap={depositMap}
+      farmerDeposits={farmerDeposits.data}
+      queryClient={queryClient}
+      sourceWell={sourceWell}
+      targetWell={targetWell}
+      onSuccess={onSuccess}
+      tokenPrices={tokenPrices}
+      siloTokenData={siloTokenData}
+    />
+  );
 };
 
 const Convert = ({ siloToken }: BaseConvertProps) => {

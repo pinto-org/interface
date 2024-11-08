@@ -250,7 +250,7 @@ const FarmerSiloTokenDeposits = ({ siloToken, siloTokenData, farmerDeposits, pri
           </Text>
           <Text variant="h4" className="inline-flex items-center gap-2">
             <IconImage src={stalkIcon} size={6} nudge={2} alt="Stalk" />
-            {formatter.twoDec(siloTokenData?.tokenSettings.stalkIssuedPerBdv.mul(siloTokenData.depositedBDV))}
+            {formatter.twoDec(farmerDeposits?.stalk.total)}
           </Text>
         </div>
         <div className="flex flex-col gap-2">
