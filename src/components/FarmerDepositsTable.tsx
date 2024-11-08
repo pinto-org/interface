@@ -45,6 +45,8 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
   const claimableStalk = farmerActions.totalValue.rewards.stalk;
   const claimableSeeds = farmerActions.totalValue.rewards.seeds;
 
+  const canClaim = farmerActions.claimRewards.enabled;
+
   const grownStalkPerToken = farmerSilo.grownStalkPerToken;
 
   useEffect(() => {
@@ -135,7 +137,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
   );
 
   return (
-    <div className="relative action-container overflow-visible">
+    <div className={`relative action-container overflow-visible ${hovering && canClaim && "mb-[4.5rem]"}`}>
       <div className="border border-pinto-gray-2 rounded-[1rem] overflow-clip">
         <Table>
           <TableHeader>
@@ -157,9 +159,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
             </TableRow>
           </TableHeader>
           <TableBody>
-            {!hovering &&
-              (claimableBeans.gt(0) || claimableStalk.gt(0) || claimableSeeds.gt(0)) &&
-              renderClaimableRow()}
+            {!hovering && canClaim && renderClaimableRow()}
             {tokenData.whitelistedTokens.map((token, i) => {
               const userData = farmerDeposits.get(token);
               const grownStalk = grownStalkPerToken.get(token) || TokenValue.ZERO;

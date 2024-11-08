@@ -188,7 +188,7 @@ export default function Overview() {
               )}
               <TabsContent className="mt-6" value="deposits">
                 <div className="relative overflow-visible">
-                  <FarmerDepositsTable />
+                  <FarmerDepositsTable hovering={hoveredButton === "claim"} />
                   {convertEnabled && convertFrom && convertTo && (
                     <TableRowConnector
                       fromTarget={`token-row-${convertFrom.address}`}
