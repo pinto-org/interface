@@ -36,7 +36,7 @@ const PlotRow = React.forwardRef<HTMLTableRowElement, PlotRowProps & React.HTMLA
           <TableCell className="text-pinto-green-2 items-center">
             <div className="flex items-center gap-1.5 -ml-2">
               <img src={claimableIcon} className="h-8 w-8" alt="Claimable Tokens" />
-              <Text variant="body-light">Plot {plot.id}</Text>
+              <Text variant="body-light">Plot {plot.index.blockchainString}</Text>
             </div>
           </TableCell>
           <TableCell className="text-pinto-green-2 text-right pr-0">
@@ -57,7 +57,7 @@ const PlotRow = React.forwardRef<HTMLTableRowElement, PlotRowProps & React.HTMLA
           <div className="gap-2 flex items-center -ml-2">
             {useToggle && <CheckmarkCircle isSelected={isSelected} />}
             <img src={plotIcon} className="h-6 w-6" alt="Plot" />
-            <Text variant="body-light">Plot {plot.id}</Text>
+            <Text variant="body-light">Plot {plot.index.blockchainString}</Text>
           </div>
         </TableCell>
         <TableCell className="text-right pr-0">
