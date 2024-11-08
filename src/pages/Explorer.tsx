@@ -1,4 +1,4 @@
-import SeasonalChart from "@/components/charts/SeasonalChart";
+import SeasonalChart, { SeasonalChartData } from "@/components/charts/SeasonalChart";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
@@ -6,6 +6,21 @@ import { formatter } from "@/utils/format";
 import { useCallback, useState } from "react";
 
 const MAIN_TABS = ["Pinto", "Silo", "Field", "Seasons", "All"];
+
+// TEMP testing data function.
+async function getTestData(rangeType: number) {
+  const data: SeasonalChartData[] = [];
+  const startDate = new Date();
+  startDate.setDate(1);
+
+  for (let i = 0; i < 40 * 2 ** rangeType; i++) {
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + i);
+    const value = parseFloat((Math.random() * (1.1 - 0.9) + 0.9).toFixed(6));
+    data.push({ value, season: 23456 + i, timestamp: date });
+  }
+  return data;
+}
 
 function Explorer() {
   const [mainTab, setMainTab] = useState(0);
@@ -40,6 +55,7 @@ function Explorer() {
               <SeasonalChart
                 title="Pinto Price"
                 size="small"
+                dataFn={getTestData}
                 valueFormatter={(v) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`}
                 tickValueFormatter={(v) => `$${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`}
               />
@@ -49,6 +65,7 @@ function Explorer() {
                 title="Pinto Price"
                 size="small"
                 fillArea
+                dataFn={getTestData}
                 valueFormatter={(v) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`}
                 tickValueFormatter={(v) => `$${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`}
               />
@@ -57,6 +74,7 @@ function Explorer() {
           <SeasonalChart
             title="Pinto Price"
             size="large"
+            dataFn={getTestData}
             valueFormatter={(v) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`}
             tickValueFormatter={(v) => `$${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`}
           />

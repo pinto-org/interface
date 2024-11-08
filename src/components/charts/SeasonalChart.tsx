@@ -3,7 +3,7 @@ import Text from "../ui/Text";
 import { formatDate } from "@/utils/format";
 import LineChart, { LineChartData, MakeGradientFunction } from "./LineChart";
 
-interface SeasonalChartData {
+export interface SeasonalChartData {
   value: number;
   season: number;
   timestamp: Date;
@@ -12,11 +12,17 @@ interface SeasonalChartData {
 interface SeasonalChartProps {
   title: string;
   size: "small" | "large";
+  dataFn: (rangeType: TimeTab) => Promise<SeasonalChartData[]>;
   valueFormatter: (value: number) => string;
   tickValueFormatter?: (value: number) => string;
   fillArea?: boolean;
 }
 
+enum TimeTab {
+  Week = 0,
+  Month = 1,
+  AllTime = 2,
+}
 const TIME_TABS = ["Week", "Month", "All Time"];
 
 // Draws dynamic gradient with the given colors at the given positions.
@@ -52,47 +58,32 @@ const areaGradientFn: MakeGradientFunction = (ctx: CanvasRenderingContext2D | nu
   }
 };
 
-// TEMP testing data. eventually this component will accept some data getter function
-// The actual method will need to provide some pagination logic
-async function getData() {
-  const data: SeasonalChartData[] = [];
-  const startDate = new Date();
-  startDate.setDate(1);
-
-  for (let i = 0; i < 30; i++) {
-    const date = new Date(startDate);
-    date.setDate(startDate.getDate() + i);
-    const value = parseFloat((Math.random() * (1.1 - 0.9) + 0.9).toFixed(6));
-    data.push({ value, season: 23456 + i, timestamp: date });
-  }
-  return data;
-}
-
 export default function SeasonalChart({
   title,
   size,
+  dataFn,
   valueFormatter,
   tickValueFormatter,
   fillArea,
 }: SeasonalChartProps) {
   const [allData, setAllData] = useState<SeasonalChartData[] | null>(null);
   const [displayData, setDisplayData] = useState<SeasonalChartData | null>(null);
-  const [selectedTimeTab, setSelectedTimeTab] = useState(0);
+  const [selectedTimeTab, setSelectedTimeTab] = useState<TimeTab>(TimeTab.Week);
 
-  useEffect(
-    () => {
-      (async () => {
-        const data = await getData();
-        setAllData(data);
-        setDisplayData(data[data.length - 1]);
-      })();
+  useEffect(() => {
+    (async () => {
+      const data = await dataFn(selectedTimeTab);
+      setAllData(data);
+      setDisplayData(data[data.length - 1]);
+    })();
+  }, [selectedTimeTab, dataFn]);
+
+  const handleTimeTabClickWrapper = useCallback(
+    (idx: number) => () => {
+      setSelectedTimeTab(idx);
     },
-    [
-      /*TODO(ss): getData (when it becomes a prop)*/
-    ],
+    [],
   );
-
-  const handleTimeTabClickWrapper = useCallback((idx: number) => () => setSelectedTimeTab(idx), []);
 
   const chartData = useMemo<LineChartData[]>(() => {
     if (allData) {
