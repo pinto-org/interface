@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
 import { Separator } from "@/components/ui/Separator";
-
 import Text from "@/components/ui/Text";
 import VerticalAccordion from "@/components/ui/VerticalAccordion";
 import Warning from "@/components/ui/Warning";
@@ -35,9 +34,7 @@ import { cn, exists, noop } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { BaseError } from "viem";
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
-import { useChainId } from "wagmi";
 
 interface BaseConvertProps {
   siloToken: Token;
@@ -69,7 +66,7 @@ function DefaultConvert({ siloToken, farmerDepositMap }: ConvertProps) {
   const targetWell = useWell(targetToken);
 
   const [convertData, setConvertData] = useState<ConvertDetails | undefined>(undefined);
-  const [amountIn, setAmountIn] = useState("");
+  const [amountIn, setAmountIn] = useState("0");
   const [slippage, setSlippage] = useState(0.1);
 
   const { writeContractAsync } = useWriteContract({
