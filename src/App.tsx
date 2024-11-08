@@ -25,8 +25,6 @@ function App() {
             <Route path="/silo" element={<Silo />} />
             <Route path="/silo/:tokenAddress" element={<SiloToken />} />
             <Route path="/silo/:tokenAddress/:action" element={<SiloToken />} />
-            <Route path="/silo/:tokenAddress/:action" element={<SiloToken />} />
-            <Route path="/silo/:tokenAddress/:action" element={<SiloToken />} />
             <Route path="/field" element={<Field />} />
             <Route path="/field/:action" element={<Field />} />
             <Route path="/podmarket" element={<Market />} />

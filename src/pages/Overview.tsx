@@ -14,6 +14,7 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useFieldData } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
+import { getSiloConvertUrl } from "@/utils/url";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -204,7 +205,7 @@ export default function Overview() {
                             data-action-target="convert"
                             variant="body-light"
                             className={`text-pinto-gray-3 hover:text-pinto-green-4 transition-colors cursor-pointer`}
-                            onClick={() => navigate(`silo/${convertFrom.address}/convert?to=${convertTo.address}`)}
+                            onClick={() => navigate(getSiloConvertUrl(convertFrom, convertTo))}
                           >{`Convert ${convertFrom.name}`}</Text>
                         </div>
                       }
