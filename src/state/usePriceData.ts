@@ -54,7 +54,8 @@ export function usePriceData() {
     },
   );
 
-  const price = useReadBeanstalkPrice_Price(settings).data;
+  const priceQuery = useReadBeanstalkPrice_Price(settings);
+  const price = priceQuery.data;
 
   const result = useReadContracts({
     contracts: contractCalls,
@@ -165,6 +166,7 @@ export function usePriceData() {
     return {
       ...priceResults,
       tokenPrices,
+      queryKeys: [priceQuery.queryKey, result.queryKey],
     };
-  }, [priceResults, tokenPrices]);
+  }, [priceResults, tokenPrices, priceQuery.queryKey, result.queryKey]);
 }
