@@ -24,7 +24,7 @@ const documents = {
     "fragment PodOrder on PodOrder {\n  id\n  farmer {\n    id\n  }\n  historyID\n  pricingType\n  pricePerPod\n  pricingFunction\n  maxPlaceInLine\n  minFillAmount\n  beanAmount\n  podAmountFilled\n  beanAmountFilled\n  status\n  createdAt\n  updatedAt\n  creationHash\n}": types.PodOrderFragmentDoc,
     "query SiloSnapshots($first: Int!) {\n  siloHourlySnapshots(first: $first, orderBy: season, orderDirection: desc) {\n    deltaBeanMints\n    season\n  }\n}": types.SiloSnapshotsDocument,
     "query SiloYields {\n  siloYields(\n    orderBy: season\n    orderDirection: desc\n    where: {emaWindow: ROLLING_30_DAY}\n    first: 1\n  ) {\n    beansPerSeasonEMA\n    beta\n    createdAt\n    season\n    id\n    u\n    whitelistedTokens\n    emaWindow\n    tokenAPYS {\n      beanAPY\n      stalkAPY\n      season\n      createdAt\n      token\n    }\n  }\n}": types.SiloYieldsDocument,
-    "query BeanSeasonalPrice($from: Int, $to: Int, $first: Int) {\n  beanHourlySnapshots(\n    where: {season_gte: $from, season_lte: $to}\n    orderBy: season\n    orderDirection: desc\n  ) {\n    id\n    season\n    price\n    timestamp\n  }\n}": types.BeanSeasonalPriceDocument,
+    "query BeanSeasonalPrice($from: Int, $to: Int) {\n  beanHourlySnapshots(\n    where: {season_gte: $from, season_lte: $to}\n    first: 1000\n    orderBy: season\n    orderDirection: asc\n  ) {\n    id\n    season\n    price\n    timestamp\n  }\n}": types.BeanSeasonalPriceDocument,
 };
 
 /**
@@ -88,7 +88,7 @@ export function graphql(source: "query SiloYields {\n  siloYields(\n    orderBy:
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "query BeanSeasonalPrice($from: Int, $to: Int, $first: Int) {\n  beanHourlySnapshots(\n    where: {season_gte: $from, season_lte: $to}\n    orderBy: season\n    orderDirection: desc\n  ) {\n    id\n    season\n    price\n    timestamp\n  }\n}"): (typeof documents)["query BeanSeasonalPrice($from: Int, $to: Int, $first: Int) {\n  beanHourlySnapshots(\n    where: {season_gte: $from, season_lte: $to}\n    orderBy: season\n    orderDirection: desc\n  ) {\n    id\n    season\n    price\n    timestamp\n  }\n}"];
+export function graphql(source: "query BeanSeasonalPrice($from: Int, $to: Int) {\n  beanHourlySnapshots(\n    where: {season_gte: $from, season_lte: $to}\n    first: 1000\n    orderBy: season\n    orderDirection: asc\n  ) {\n    id\n    season\n    price\n    timestamp\n  }\n}"): (typeof documents)["query BeanSeasonalPrice($from: Int, $to: Int) {\n  beanHourlySnapshots(\n    where: {season_gte: $from, season_lte: $to}\n    first: 1000\n    orderBy: season\n    orderDirection: asc\n  ) {\n    id\n    season\n    price\n    timestamp\n  }\n}"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

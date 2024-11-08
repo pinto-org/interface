@@ -1,8 +1,9 @@
-query BeanSeasonalPrice($from: Int, $to: Int, $first: Int) {
+query BeanSeasonalPrice($from: Int, $to: Int) {
   beanHourlySnapshots(
     where: { season_gte: $from, season_lte: $to }
+    first: 1000
     orderBy: season
-    orderDirection: desc
+    orderDirection: asc
   ) {
     id
     season
