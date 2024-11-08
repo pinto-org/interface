@@ -126,7 +126,7 @@ const StatPanel = ({
   );
 
   return (
-    <div className="relative">
+    <div className={`relative ${mainValue.eq(0) ? "opacity-[0.4]" : "opacity-100"}`}>
       <div className={`flex flex-col items-center gap-2 ${className}`}>
         <div data-action-target={`${mode}-stats`}>
           <Text variant="body">{`My ${mode === "stalk" ? "Stalk" : mode === "seeds" ? "Seed" : mode === "pods" ? "Pods" : "deposited value"}`}</Text>
