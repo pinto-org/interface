@@ -53,6 +53,7 @@ interface SeasonalChartProps {
   title: string;
   size: "small" | "large";
   dataFn: () => SeasonalChartData[];
+  activeTab: TimeTab;
   onTimeTabChange?: (newSelection: TimeTab) => void;
   valueFormatter: (value: number) => string;
   tickValueFormatter?: (value: number) => string;
@@ -63,6 +64,7 @@ export default function SeasonalChart({
   title,
   size,
   dataFn,
+  activeTab,
   onTimeTabChange,
   valueFormatter,
   tickValueFormatter,
@@ -70,7 +72,6 @@ export default function SeasonalChart({
 }: SeasonalChartProps) {
   const [allData, setAllData] = useState<SeasonalChartData[] | null>(null);
   const [displayData, setDisplayData] = useState<SeasonalChartData | null>(null);
-  const [selectedTimeTab, setSelectedTimeTab] = useState<TimeTab>(TimeTab.Week);
 
   useEffect(() => {
     const data = dataFn();
@@ -78,14 +79,7 @@ export default function SeasonalChart({
     setDisplayData(data[data.length - 1]);
   }, [dataFn]);
 
-  const handleTimeTabClickFactory = useCallback(
-    (idx: number) => () => {
-      setSelectedTimeTab(idx);
-      // Alert the parent
-      onTimeTabChange?.(idx);
-    },
-    [onTimeTabChange],
-  );
+  const handleChangeTabFactory = useCallback((idx: TimeTab) => () => onTimeTabChange?.(idx), [onTimeTabChange]);
 
   const chartData = useMemo<LineChartData[]>(() => {
     if (allData) {
@@ -124,10 +118,10 @@ export default function SeasonalChart({
             <Text
               key={tabName}
               variant="body"
-              color={selectedTimeTab === idx ? "green3" : "light"}
-              data-state={selectedTimeTab === idx ? "active" : "inactive"}
+              color={activeTab === idx ? "green3" : "light"}
+              data-state={activeTab === idx ? "active" : "inactive"}
               className="cursor-pointer data-[state=inactive]:hover:text-pinto-green-4"
-              onClick={handleTimeTabClickFactory(idx)}
+              onClick={handleChangeTabFactory(idx)}
             >
               {tabName}
             </Text>

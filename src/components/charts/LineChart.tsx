@@ -2,7 +2,6 @@ import {
   CategoryScale,
   Chart,
   ChartData,
-  ChartEvent,
   ChartOptions,
   Filler,
   LinearScale,
@@ -12,7 +11,7 @@ import {
   PointElement,
 } from "chart.js";
 import { ReactChart } from "../ReactChart";
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 
 ReactChart.register(LineController, LineElement, LinearScale, CategoryScale, PointElement, Filler);
 
