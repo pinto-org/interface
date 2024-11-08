@@ -204,7 +204,7 @@ function DefaultConvert({ siloToken, farmerDepositMap }: ConvertProps) {
     !stringToNumber(amountIn) ||
     stringEq(siloToken.address, targetToken.address) ||
     maxConvert?.lte(0) ||
-    minAmountOut.lte(0) || 
+    minAmountOut.lte(0) ||
     !account.address ||
     !convertData;
 
