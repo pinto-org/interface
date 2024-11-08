@@ -36,6 +36,38 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 import { toast } from "sonner";
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
 
+/**
+ *
+ * PINTOcbETH 2 PINTO
+ *
+ * PINTOcbETH:
+ * - 33,726.39 PINTOcbETH LP
+ * - SEED: 189,684.55
+ * - STALK: 0.28
+ *
+ * - 001: 2254   173635  173635
+ * - 003: 216.23 16050   16050
+ *
+ * PINTO:
+ * - 31,010.61 PINTO
+ * - SEED: 160,582.66
+ * - STALK: 0.11
+ *
+ * - 001: 1000   5178    5178
+ * - e49: 25011  129513  129513
+ * - 523: 5000   25892   25892
+ *
+ *
+ * diff:
+ * 24,964.40 PINTO
+ * 16,067.36 Stalk
+ * 0.67 Seed
+ *
+ *
+ *
+ *
+ */
+
 interface BaseConvertProps {
   siloToken: Token;
 }
@@ -69,17 +101,7 @@ function DefaultConvert({ siloToken, farmerDepositMap }: ConvertProps) {
   const [amountIn, setAmountIn] = useState("0");
   const [slippage, setSlippage] = useState(0.1);
 
-  const { writeContractAsync } = useWriteContract({
-    mutation: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: estimateQuery.queryKey });
-        queryClient.invalidateQueries({ queryKey: farmerDepositsQK });
-        setAmountIn("0");
-      },
-    },
-  });
-
-  const { data: maxConvert = TV.ZERO } = useReadContract({
+  const { data: maxConvert = TV.ZERO, ...maxConvertQuery } = useReadContract({
     abi: diamondABI,
     address: protocolAddress,
     functionName: "getMaxAmountIn",
@@ -99,6 +121,17 @@ function DefaultConvert({ siloToken, farmerDepositMap }: ConvertProps) {
       enabled: !!amountIn && Number(amountIn) > 0 && !!account.address,
       select: (estAmountOut) => {
         return TV.fromBlockchain(estAmountOut ?? 0n, targetToken.decimals).subSlippage(slippage);
+      },
+    },
+  });
+
+  const { writeContractAsync } = useWriteContract({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: maxConvertQuery.queryKey });
+        queryClient.invalidateQueries({ queryKey: estimateQuery.queryKey });
+        queryClient.invalidateQueries({ queryKey: farmerDepositsQK });
+        setAmountIn("0");
       },
     },
   });
@@ -140,8 +173,13 @@ function DefaultConvert({ siloToken, farmerDepositMap }: ConvertProps) {
         targetToken,
       );
 
+      console.log("depositCrates", depositCrates);
+
       const stems: bigint[] = depositCrates.crates.map((crate) => crate.stem.toBigInt());
       const amounts: bigint[] = depositCrates.crates.map((crate) => crate.amount.toBigInt());
+
+      console.log("stems", stems);
+      console.log("amounts", amounts);
 
       const convertData = calculateConvertData(
         siloToken,
@@ -362,20 +400,21 @@ const SiloConvertProvider = ({ children, siloToken }: { children: React.ReactNod
 
 const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
   const { targetToken } = useSiloConvertContext();
-  const { data: farmerDeposits } = useFarmerDepositedBalances();
+  const farmer = useFarmerDepositedBalances();
+  const [depositMap, setDepositMap] = useState<Map<Token, TV>>(new Map());
 
-  const depositMap = useMemo(() => {
+  useEffect(() => {
     const map = new Map<Token, TV>();
 
-    for (const token of farmerDeposits.keys()) {
-      const farmerDepositData = farmerDeposits.get(token);
+    for (const token of farmer.data.keys()) {
+      const farmerDepositData = farmer.data.get(token);
       if (farmerDepositData) {
         map.set(token, farmerDepositData.convertibleAmount);
       }
     }
 
-    return map;
-  }, [farmerDeposits]);
+    setDepositMap(map);
+  }, [farmer.data]);
 
   if (siloToken.isLP && targetToken.isLP) {
     return <PipelineConvert siloToken={siloToken} farmerDepositMap={depositMap} />;

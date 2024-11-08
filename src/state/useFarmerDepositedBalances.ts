@@ -1,5 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
-import { STALK } from "@/constants/internalTokens";
+import { SEEDS, STALK } from "@/constants/internalTokens";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useChainAddress } from "@/utils/chain";
@@ -35,11 +35,7 @@ function useFarmerDepositedBalances() {
 
   const tokenMap = useTokenMap();
 
-  const {
-    data: depositsByToken,
-    refetch,
-    queryKey,
-  } = useReadContract({
+  const { data, refetch, queryKey } = useReadContract({
     address: diamondAddress,
     abi: beanstalkAbi,
     functionName: "getDepositsForAccount",
@@ -48,34 +44,30 @@ function useFarmerDepositedBalances() {
     query: {
       ...querySettings,
       enabled: !!account.address,
-      select: (data) => {
-        const deposits: Map<string, DepositQuery[]> = new Map();
-        for (const deposit of data) {
-          const tokenDeposits: DepositQuery[] = deposit.depositIds.map((depositId, index) => {
-            const stem = unpackStem(depositId);
-            const tokenDeposit = deposit.tokenDeposits[index];
-            return {
-              id: depositId,
-              stem: stem,
-              depositedAmount: tokenDeposit.amount,
-              depositedBDV: tokenDeposit.bdv,
-            };
-          });
-
-          deposits.set(getTokenIndex(deposit.token), tokenDeposits);
-        }
-        return deposits;
-      },
     },
   });
 
+  const depositsByToken = useMemo(() => {
+    const deposits: Map<string, DepositQuery[]> = new Map();
+    for (const deposit of data ?? []) {
+      const tokenDeposits: DepositQuery[] = deposit.depositIds.map((depositId, index) => {
+        const stem = unpackStem(depositId);
+        const tokenDeposit = deposit.tokenDeposits[index];
+        return {
+          id: depositId,
+          stem: stem,
+          depositedAmount: tokenDeposit.amount,
+          depositedBDV: tokenDeposit.bdv,
+        };
+      });
+
+      deposits.set(getTokenIndex(deposit.token), tokenDeposits);
+    }
+    return deposits;
+  }, [data]);
+
   const depositsData = useMemo(() => {
     const output: Map<Token, TokenDepositData> = new Map();
-
-    let amount = TokenValue.ZERO;
-    let convertibleAmount = TokenValue.ZERO;
-    let depositBDV = TokenValue.ZERO;
-    let currentBDV = TokenValue.ZERO;
 
     depositsByToken?.forEach((tokenDeposits, tokenIndex) => {
       const token = tokenMap[tokenIndex];
@@ -86,10 +78,14 @@ function useFarmerDepositedBalances() {
       const depositData: DepositData[] = [];
       const convertibleDeposits: DepositData[] = [];
 
-      let totalBaseStalk: TokenValue = TokenValue.ZERO;
-      let totalGrownStalk: TokenValue = TokenValue.ZERO;
-      let totalStalk: TokenValue = TokenValue.ZERO;
-      let totalSeeds: TokenValue = TokenValue.ZERO;
+      let amount = TokenValue.ZERO;
+      let convertibleAmount = TokenValue.ZERO;
+      let depositBDV = TokenValue.ZERO;
+      let currentBDV = TokenValue.ZERO;
+      let totalBaseStalk: TokenValue = TokenValue.fromBlockchain(0n, STALK.decimals);
+      let totalGrownStalk: TokenValue = TokenValue.fromBlockchain(0n, STALK.decimals);
+      let totalStalk: TokenValue = TokenValue.fromBlockchain(0n, STALK.decimals);
+      let totalSeeds: TokenValue = TokenValue.fromBlockchain(0n, SEEDS.decimals);
 
       tokenDeposits.forEach((deposit) => {
         const isGerminating = deposit.stem >= siloTokenData.germinatingStem.toBigInt();
