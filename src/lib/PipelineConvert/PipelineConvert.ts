@@ -149,7 +149,7 @@ export class PipelineConvert {
     };
   }
 
-  private static async fetchEq2EqRemoveLiquidityOut(well: PoolData, pickedDeposits: DepositCrateData[]) {
+  static async fetchEq2EqRemoveLiquidityOut(well: PoolData, pickedDeposits: DepositCrateData[]) {
     const [token0, token1] = well.tokens;
     const multicallContracts = Utils.constructMulticall.removeLiquidityEqual(well, pickedDeposits);
 
@@ -401,6 +401,8 @@ function validateSlippage(slippage: number) {
     throw new Error("Invalid slippage");
   }
 }
+
+export const useFarmerPipelineConvert = ({ siloToken }: { siloToken: Token }) => {};
 
 /**
  * Ask Ryan about checkbox for grown stalk penalization

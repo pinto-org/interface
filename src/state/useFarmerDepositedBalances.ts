@@ -154,11 +154,13 @@ function useFarmerDepositedBalances() {
     return output;
   }, [depositsByToken, silo.tokenData, tokenMap, BEAN.decimals]);
 
-  return {
-    data: depositsData,
-    queryKey: queryKey,
-    refetch,
-  };
+  return useMemo(() => {
+    return {
+      data: depositsData,
+      queryKey: queryKey,
+      refetch,
+    };
+  }, [depositsData, queryKey, refetch]);
 }
 
 export default useFarmerDepositedBalances;
