@@ -1,15 +1,22 @@
 import { TokenValue } from "@/classes/TokenValue";
 import StatPanel from "@/components/StatPanel";
+import TableRowConnector from "@/components/TableRowConnector";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
+import useFarmerActions from "@/hooks/useFarmerActions";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
+import { getSiloConvertUrl } from "@/utils/url";
+import { useNavigate } from "react-router-dom";
 import SiloTable from "./silo/SiloTable";
 
 function Silo() {
   const farmerSilo = useFarmerSilo();
   const siloData = useSiloData();
+  const farmerActions = useFarmerActions();
+
+  const navigate = useNavigate();
 
   const earnedStalk = farmerSilo.grownStalkReward;
   const earnedSeeds = Array.from(farmerSilo.grownStalkPerToken)
@@ -18,6 +25,11 @@ function Silo() {
 
   const enableStatPanels =
     farmerSilo.depositsUSD.gt(0) || farmerSilo.activeStalkBalance.gt(0) || farmerSilo.activeSeedsBalance.gt(0);
+
+  // Action states
+  const convertEnabled = farmerActions.convertDeposits.enabled;
+  const convertFrom = farmerActions.convertDeposits.bestConversion.from;
+  const convertTo = farmerActions.convertDeposits.bestConversion.to;
 
   return (
     <PageContainer>
@@ -67,7 +79,33 @@ function Silo() {
             <Text variant="body-light" color="light">
               These are deposits which are currently incentivized by Pinto.
             </Text>
-            <SiloTable />
+            <div className="relative action-container">
+              <SiloTable />
+              {convertEnabled && convertFrom && convertTo && (
+                <TableRowConnector
+                  fromTarget={`token-row-${convertFrom.address}`}
+                  toTarget={`token-row-${convertTo.address}`}
+                  color="#246645"
+                  extensionLength={40}
+                  dotted={true}
+                  startCapColor={convertFrom.color}
+                  endCapColor={convertTo.color}
+                  component={
+                    <div>
+                      <Text
+                        data-action-target="convert"
+                        variant="body-light"
+                        className="text-pinto-gray-3 transition-colors cursor-pointer convert-hover"
+                        style={{ "--convert-color": convertFrom.color }}
+                        onClick={() => navigate(getSiloConvertUrl(convertFrom, convertTo))}
+                      >
+                        {`Convert ${convertFrom.name}`}
+                      </Text>
+                    </div>
+                  }
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>

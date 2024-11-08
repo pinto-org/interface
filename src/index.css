@@ -129,6 +129,9 @@
 		font-weight: 400;
 		line-height: 22px;
 	}
+	.convert-hover:hover {
+        color: var(--convert-color);
+    }
 }
 
 @layer base {

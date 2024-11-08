@@ -226,7 +226,7 @@ const Overview = () => {
               onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })}
               text="Convert Available"
               dataTarget="convert"
-              className="absolute -ml-[246px] -mt-[24px]"
+              className="absolute -ml-[246px] -mt-[8px]"
               sourceAnchor="bottom"
               targetAnchor="top"
               onMouseEnter={() => setHoveredButton("convert")}
@@ -238,7 +238,7 @@ const Overview = () => {
               onClick={() => console.log("yey!")}
               text="Claim Pinto, Stalk and Seed"
               dataTarget="claimable-rewards"
-              className="absolute right-[145px] -mt-[24px]"
+              className="absolute right-[145px] -mt-[8px]"
               sourceAnchor="bottom"
               targetAnchor="right"
               onMouseEnter={() => setHoveredButton("claim")}
@@ -263,7 +263,8 @@ const Overview = () => {
                         <Text
                           data-action-target="convert"
                           variant="body-light"
-                          className="text-pinto-gray-3 hover:text-pinto-green-4 transition-colors cursor-pointer"
+                          className="text-pinto-gray-3 transition-colors cursor-pointer convert-hover"
+                          style={{ "--convert-color": convertFrom.color }}
                           onClick={() => navigate(getSiloConvertUrl(convertFrom, convertTo))}
                         >
                           {`Convert ${convertFrom.name}`}
