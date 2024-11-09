@@ -7,7 +7,6 @@ import ParticlesBackground, {
 } from "./landing/ParticlesBackground";
 import { Button } from "../components/ui/Button";
 import { useNavigate } from "react-router-dom";
-import { cn } from "@/utils/utils";
 
 export default function Landing() {
   const [progress, setProgress] = useState(0);
@@ -29,7 +28,7 @@ export default function Landing() {
     "src/assets/landing/wheat.png",
     "src/assets/landing/cow.png",
     "src/assets/landing/abacus.png",
-    "src/assets/landing/tabernacle.png",
+    "src/assets/landing/ark.png",
     "src/assets/landing/bimetal-coins.png",
     "src/assets/landing/clayledger.png",
     "src/assets/landing/aqueduct.png",
@@ -42,11 +41,11 @@ export default function Landing() {
     "src/assets/landing/USD.png",
     "src/assets/landing/computer.png",
     "src/assets/landing/skyscraper.png",
-    "src/assets/landing/peace.png",
+    // "src/assets/landing/peace.png",
     "src/assets/landing/btcpinto.png",
   ];
 
-  // if the image is wheat, load in theme 5
+  // if the image is wheat, load in themes
   useEffect(() => {
     if (images[currentIndex].includes("wheat.png") && theme !== "1") {
       particlesBackgroundRef.current?.loadTheme("1"); // Directly load the theme
@@ -60,16 +59,10 @@ export default function Landing() {
     if (images[currentIndex].includes("nuke") && theme !== "4") {
       particlesBackgroundRef.current?.loadTheme("4"); // Directly load the theme
     }
-    if (images[currentIndex].includes("peace") && theme !== "5") {
+    if (images[currentIndex].includes("skyscraper") && theme !== "5") {
       particlesBackgroundRef.current?.loadTheme("5"); // Directly load the theme
     }
   }, [currentIndex]);
-
-  /*
-  - fix width of tsparticles
-  - create blog post cards below
-  - create blog post page
-  */
 
   // Refs to Slides - forwardRef for Mesh (we can manipulate the mesh here if we want - not necessary)
   const slideRef1 = useRef<THREE.Mesh>(null);
@@ -126,9 +119,6 @@ export default function Landing() {
     navigate("/overview");
   };
 
-  // we'll need to control zooming into the pinto when we reach the last image in the array
-  // I think it could be confusing to enter the application immediately afterwards? - but perhaps not
-  // this is simply camera control.
   return (
     <div className="space-y-8 relative z-10">
       {/* Main Section with Canvas and Button */}

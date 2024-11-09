@@ -10,8 +10,7 @@ import React, {
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadFull } from "tsparticles";
 import particleConfig from "./particleConfig";
-import { Container, tsParticles } from "@tsparticles/engine";
-import { loadPolygonMaskPlugin } from "@tsparticles/plugin-polygon-mask";
+import { Container } from "@tsparticles/engine";
 
 export interface ParticlesBackgroundHandle {
   loadTheme: (theme: string) => void;
@@ -58,10 +57,6 @@ const ParticlesBackground = React.memo(
       containerRef.current = container;
       container.loadTheme("default");
     }, []);
-
-    (async () => {
-      await loadPolygonMaskPlugin(tsParticles);
-    })();
 
     return (
       <Particles

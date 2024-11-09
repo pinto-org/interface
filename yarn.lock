@@ -4393,15 +4393,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tsparticles/plugin-polygon-mask@npm:^3.5.0":
-  version: 3.5.0
-  resolution: "@tsparticles/plugin-polygon-mask@npm:3.5.0"
-  dependencies:
-    "@tsparticles/engine": "npm:^3.5.0"
-  checksum: 10c0/79c515eae93dccbc8e028c3ca544dc1dc490e897a4c69096b08aad5b4c2c2490956c3fcc921b915c3f0757da66d1f20d25cde64e2c51e0a3f420182969fa03e0
-  languageName: node
-  linkType: hard
-
 "@tsparticles/react@npm:^3.0.0":
   version: 3.0.0
   resolution: "@tsparticles/react@npm:3.0.0"
@@ -8002,7 +7993,6 @@ __metadata:
     "@tanstack/react-query": "npm:^5.59.13"
     "@tanstack/react-query-devtools": "npm:5.51.1"
     "@tsparticles/engine": "npm:^3.5.0"
-    "@tsparticles/plugin-polygon-mask": "npm:^3.5.0"
     "@tsparticles/react": "npm:^3.0.0"
     "@types/node": "npm:^22.0.0"
     "@types/react": "npm:^18.3.1"
