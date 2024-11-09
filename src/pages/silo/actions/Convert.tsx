@@ -16,7 +16,6 @@ import { basinWellABI } from "@/constants/abi/basinWellABI";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { SEEDS, STALK } from "@/constants/internalTokens";
 import { PINTO, PINTOcbBTC } from "@/constants/tokens";
-import { decodeAdvancedFarmResult } from "@/encoders/advancedFarm";
 import { useReadSilo_GetAmountOut } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
