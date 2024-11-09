@@ -3,10 +3,11 @@ import { ZERO_ADDRESS } from "@/constants/address";
 import { beanstalkAddress } from "@/generated/contractHooks";
 import useTokenData from "@/state/useTokenData";
 import { Token } from "@/utils/types";
+import { isDev } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { BaseError, erc20Abi } from "viem";
+import { BaseError, erc20Abi, maxUint256 } from "viem";
 import { useAccount, useChainId, useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { Button } from "./ui/Button";
 
@@ -69,7 +70,7 @@ export default function SmartSubmitButton({
           functionName: "approve",
           args: [
             beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-            TokenValue.fromHuman(amount, token.decimals).toBigInt(),
+            isDev() ? maxUint256 : TokenValue.fromHuman(amount, token.decimals).toBigInt(),
           ],
         });
 

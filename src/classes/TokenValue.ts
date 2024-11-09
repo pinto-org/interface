@@ -2,7 +2,7 @@ import { formatUnits, parseUnits, toHex } from "viem";
 import { DecimalBigNumber } from "./DecimalBigNumber";
 
 const blocker = {};
-const maxUint256 = 2 ** 256 - 1;
+const maxUint256 = 2n ** 256n - 1n;
 
 export class TokenValue {
   static ZERO = TokenValue.fromHuman(0, 0);
@@ -135,7 +135,7 @@ export class TokenValue {
   }
 
   toNumber(): number {
-    return Number(this.value.toBigInt());
+    return Number(this.toHuman());
   }
 
   /**
