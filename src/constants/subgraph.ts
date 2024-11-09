@@ -13,4 +13,9 @@ export const subgraphs: { [chainId: number]: { beanstalk: string; bean: string }
     beanstalk: "https://graph.bean.money/beanstalk",
     bean: "https://graph.bean.money/bean",
   },
+  // Pointing tenderly testnet to beanstalk subgraphs, since there is no data on pinto ones
+  [41337]: {
+    beanstalk: "https://graph.bean.money/beanstalk",
+    bean: "https://graph.bean.money/bean",
+  },
 };
