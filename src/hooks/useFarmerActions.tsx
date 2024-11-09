@@ -741,7 +741,7 @@ export default function useFarmerActions(): FarmerActions {
       },
 
       convertDeposits: {
-        enabled: bestConversion.from !== undefined,
+        enabled: bestConversion.from !== undefined && bestConversion.outputs.seedGain.gt(0.01),
         deposits: convertibleDeposits,
         bestConversion: {
           ...bestConversion,

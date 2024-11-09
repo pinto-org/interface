@@ -35,6 +35,7 @@ function Silo() {
   const convertFrom = farmerActions.convertDeposits.bestConversion.from;
   const convertTo = farmerActions.convertDeposits.bestConversion.to;
   const claimEnabled = farmerActions.claimRewards.enabled;
+  const bestDeposit = farmerActions.optimalDepositToken?.token;
 
   const statPanelData: Record<"stalk" | "seeds" | "depositedValue", StatPanelData> = {
     depositedValue: {
@@ -147,6 +148,35 @@ function Silo() {
                   targetAnchor="right"
                   onMouseEnter={() => setHoveredButton("claim")}
                   onMouseLeave={() => setHoveredButton("")}
+                />
+              )}
+              {!convertEnabled && bestDeposit && (
+                <TableRowConnector
+                  toTarget={`token-row-${bestDeposit.address}`}
+                  color="#246645"
+                  mode="singleLine"
+                  extensionLength={40}
+                  dotted={true}
+                  endCapColor={bestDeposit.color}
+                  componentOffsetHeight={22}
+                  component={
+                    <div className="group flex flex-col group max-w-[250px] cursor-pointer place-items-end gap-2">
+                      <div
+                        data-action-target="convert"
+                        className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
+                        // @ts-ignore
+                        style={{ "--convert-color": bestDeposit.color }}
+                        onClick={() => navigate(`/silo/${bestDeposit.address}`)}
+                      >
+                        {`Deposit ${bestDeposit.name}`}
+                      </div>
+                      <div className="flex flex-col gap-4">
+                        <Text data-action-target="convert" variant="sm-light" className="text-pinto-gray-4 text-end">
+                          {`${bestDeposit.name} currently has the highest incentive for Depositors.`}
+                        </Text>
+                      </div>
+                    </div>
+                  }
                 />
               )}
             </div>
