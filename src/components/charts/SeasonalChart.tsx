@@ -4,6 +4,8 @@ import { formatDate } from "@/utils/format";
 import LineChart, { LineChartData, MakeGradientFunction } from "./LineChart";
 import { useSunData } from "@/state/useSunData";
 import { UseQueryResult } from "@tanstack/react-query";
+import { CloseIconAlt } from "../Icons";
+import LoadingSpinner from "@/components/LoadingSpinner.tsx";
 
 // Draws dynamic gradient with the given colors at the given positions.
 // Positions outside of range [0, 1] are truncated or ignored when appropriate.
@@ -143,7 +145,6 @@ const SeasonalChart = ({
     [allData],
   );
 
-  // TODO: add display for booleans dataHook.isLoading, dataHook.isError
   return (
     <div className="rounded-[20px] p-4 sm:p-6 sm:pb-4" style={{ backgroundColor: "#F8F8F8" }}>
       <div className="flex justify-between">
@@ -166,29 +167,55 @@ const SeasonalChart = ({
         </div>
       </div>
 
-      {!allData && !displayData && "spinner goes here"}
+      {!allData && !displayData && (
+        <>
+          {/* Keep sizing the same as when there is data. Allows centering spinner/error vertically */}
+          <div
+            className={`relative w-full flex items-center justify-center ${size === "small" ? "aspect-3/1" : "aspect-6/1"}`}
+            style={{
+              paddingBottom: `calc(85px + ${size === "small" ? "33.33%" : "16.67%"})`,
+              height: "0",
+            }}
+          >
+            <div className="absolute inset-0 flex items-center justify-center">
+              {dataHook.isLoading && <LoadingSpinner size={200} />}
+              {dataHook.isError && (
+                <>
+                  <CloseIconAlt color={"red"} />
+                  <Text variant="body" color="green-3">
+                    An error has occurred
+                  </Text>
+                </>
+              )}
+            </div>
+          </div>
+        </>
+      )}
       {allData && displayData && (
         <>
-          <Text variant="h3" color="green3">
-            {valueFormatter(displayData.value)}
-          </Text>
-          <div className="flex flex-col gap-2 mt-3">
-            <Text variant="sm-light" color="light">
-              Season {displayData.season}
+          <div className="h-[85px]">
+            <Text variant="h3" color="green3">
+              {valueFormatter(displayData.value)}
             </Text>
-            <Text variant="sm-light" color="light">
-              {formatDate(displayData.timestamp)}
-            </Text>
+            <div className="flex flex-col gap-2 mt-3">
+              <Text variant="sm-light" color="light">
+                Season {displayData.season}
+              </Text>
+              <Text variant="sm-light" color="light">
+                {formatDate(displayData.timestamp)}
+              </Text>
+            </div>
           </div>
-
-          <LineChart
-            data={chartData}
-            size={size}
-            makeLineGradients={lineGradients}
-            makeAreaGradients={areaGradients}
-            valueFormatter={tickValueFormatter}
-            onMouseOver={handleMouseOver}
-          />
+          <div className={size === "small" ? "aspect-3/1" : "aspect-6/1"}>
+            <LineChart
+              data={chartData}
+              size={size}
+              makeLineGradients={lineGradients}
+              makeAreaGradients={areaGradients}
+              valueFormatter={tickValueFormatter}
+              onMouseOver={handleMouseOver}
+            />
+          </div>
         </>
       )}
     </div>

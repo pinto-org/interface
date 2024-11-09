@@ -20,6 +20,11 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number): 
   return useQuery({
     queryKey: ["seasonalPrices", { chainId: chainId, season: currentSeason, variables }],
     queryFn: async () => {
+      // TEMP for testing loading/error state
+      if (variables.from === 0) {
+        throw new Error("errro");
+      }
+      await new Promise((res) => setTimeout(res, 70));
       const paginateSettings: PaginationSettings<
         BeanHourlySnapshot,
         BeanSeasonalPriceQuery,
