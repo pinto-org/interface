@@ -10,7 +10,7 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
-import { StatPanelData, StatPanelModes } from "@/utils/types";
+import { StatPanelData } from "@/utils/types";
 import { getSiloConvertUrl } from "@/utils/url";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -27,12 +27,6 @@ function Silo() {
   const navigate = useNavigate();
 
   const [hoveredButton, setHoveredButton] = useState("");
-
-  const earnedStalk = farmerSilo.grownStalkReward;
-  const earnedSeeds = Array.from(farmerSilo.grownStalkPerToken)
-    .map((token) => token[1].mul(siloData.tokenData.get(token[0])?.rewards.seeds ?? TokenValue.ZERO))
-    .reduce((acc, curr) => acc.add(curr), TokenValue.ZERO);
-
   const enableStatPanels =
     farmerSilo.depositsUSD.gt(0) || farmerSilo.activeStalkBalance.gt(0) || farmerSilo.activeSeedsBalance.gt(0);
 
@@ -48,20 +42,21 @@ function Silo() {
       mainValue: farmerSilo.depositsUSD,
       mainValueChange: farmerActions.claimRewards.outputs.bdvGain.mul(priceData.price),
       secondaryValue: farmerSilo.depositsBDV,
+      actionValue: farmerActions.claimRewards.outputs.bdvGain,
       showActionValues: hoveredButton === "claim",
     },
     stalk: {
       mode: "stalk",
       mainValue: farmerSilo.activeStalkBalance,
       mainValueChange: farmerActions.claimRewards.outputs.stalkGain,
-      secondaryValue: TokenValue.ONE,
+      secondaryValue: farmerActions.claimRewards.outputs.stalkGain,
       showActionValues: hoveredButton === "claim",
     },
     seeds: {
       mode: "seeds",
       mainValue: farmerSilo.activeSeedsBalance,
       mainValueChange: farmerActions.claimRewards.outputs.seedGain,
-      secondaryValue: TokenValue.ONE,
+      secondaryValue: farmerActions.claimRewards.outputs.seedGain,
       showActionValues: hoveredButton === "claim",
     },
   };

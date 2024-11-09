@@ -100,13 +100,13 @@ const StatPanel = ({
         </>
       )}
       {mode === "stalk" && variant === "silo" && (
-        <>
+        <div className={`${showActionValues ? "opacity-0" : "opacity-100"}`}>
           Claimable Stalk:
           <Text as="span" variant="inherit" color="green4" className="pl-2">
             {secondaryValue.gt(0) ? "+" : ""}
             {formatter.noDec(secondaryValue)}
           </Text>
-        </>
+        </div>
       )}
       {mode === "seeds" && variant === "overview" && (
         <span className="inline-flex gap-1">
@@ -119,13 +119,13 @@ const StatPanel = ({
         </span>
       )}
       {mode === "seeds" && variant === "silo" && (
-        <>
+        <div className={`${showActionValues ? "opacity-0" : "opacity-100"}`}>
           Claimable Seed:
           <Text as="span" variant="inherit" color="green4" className="pl-2">
             {secondaryValue.gt(0) ? "+" : ""}
             {formatter.noDec(secondaryValue)}
           </Text>
-        </>
+        </div>
       )}
       {mode === "pods" && `Next position in line: ${secondaryValue.toHuman("short")}`}
     </Text>
