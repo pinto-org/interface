@@ -14,6 +14,8 @@ interface TaskResponse {
   data?: any;
 }
 
+type ServerStatus = "running" | "not-running" | "checking";
+
 export default function DevPage() {
   const { address } = useAccount();
   const [loading, setLoading] = useState<string | null>(null);
@@ -32,6 +34,27 @@ export default function DevPage() {
   });
 
   const { lpTokens } = useTokenData();
+
+  const [serverStatus, setServerStatus] = useState<ServerStatus>("checking");
+
+  useEffect(() => {
+    const checkServer = async () => {
+      try {
+        const response = await fetch("http://localhost:3002/execute-task", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ task: "ping" }),
+        });
+        setServerStatus("running");
+      } catch (error) {
+        setServerStatus("not-running");
+      }
+    };
+
+    checkServer();
+  }, []);
 
   // Update addresses when account changes
   useEffect(() => {
@@ -97,6 +120,11 @@ export default function DevPage() {
     <div className="flex flex-col items-center">
       <div className="flex flex-col gap-6 w-[80%]">
         <h1 className="font-[300] text-[3.5rem] text-black">Development Page</h1>
+        {serverStatus === "not-running" && (
+          <div className="text-pinto-red-2 text-xl mb-4 p-4 border border-pinto-red-2 rounded-lg">
+            Server not running. Please run `yarn hardhat-server` from the protocol directory.
+          </div>
+        )}
 
         {/* Simple Actions */}
         <Card className="p-6">
