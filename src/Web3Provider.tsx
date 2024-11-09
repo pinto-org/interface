@@ -19,7 +19,7 @@ declare module "wagmi" {
 }
 
 const LOCAL_RPC_URL = "http://127.0.0.1:8545";
-const TENDERLY_RPC_URL = "https://virtual.base.rpc.tenderly.co/f4ed3231-f6f7-4583-bfb3-89631a3a01d0";
+const TENDERLY_RPC_URL = "https://virtual.base.rpc.tenderly.co/85c75a4b-5646-48a8-9d61-eaebc9ef4382";
 
 export const localfork = defineChain({
   ...base,
