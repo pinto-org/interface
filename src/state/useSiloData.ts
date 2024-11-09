@@ -175,12 +175,13 @@ export function useSiloData() {
   const wlTokenData2 = useReadSiloTokenData(SILO_WHITELIST?.[2]);
   const wlTokenData3 = useReadSiloTokenData(SILO_WHITELIST?.[3]);
   const wlTokenData4 = useReadSiloTokenData(SILO_WHITELIST?.[4]);
+  const wlTokenData5 = useReadSiloTokenData(SILO_WHITELIST?.[5]);
 
   const wlTokenDatas = useMemo(() => {
     const keys: QueryKey[] = [];
     const data: Map<Token, SiloTokenData> = new Map();
 
-    const wl = [wlTokenData0, wlTokenData1, wlTokenData2, wlTokenData3, wlTokenData4];
+    const wl = [wlTokenData0, wlTokenData1, wlTokenData2, wlTokenData3, wlTokenData4, wlTokenData5];
 
     for (const [i, { data: wlTokenData, queryKey }] of wl.entries()) {
       const token = SILO_WHITELIST[i];

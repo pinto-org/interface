@@ -166,7 +166,7 @@ export const tokens: { [chainId: number]: Token[] } = {
     },
     {
       chainId: base.id,
-      name: "PINTOwSOL LP",
+      name: "PINTOWSOL LP",
       symbol: "PINTOWSOL",
       address: "0x3e11444c7650234c748D743D8d374fcE2eE5E6C9",
       decimals: 18,

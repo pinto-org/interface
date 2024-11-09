@@ -37,9 +37,10 @@ function useGrownStalkPerTokenQueries() {
   const wl2Data = useGrownStalkPerTokenQuery(tokens?.[2]);
   const wl3Data = useGrownStalkPerTokenQuery(tokens?.[3]);
   const wl4Data = useGrownStalkPerTokenQuery(tokens?.[4]);
+  const wl5Data = useGrownStalkPerTokenQuery(tokens?.[5]);
 
   return useMemo(() => {
-    const datas = [wl0Data, wl1Data, wl2Data, wl3Data, wl4Data];
+    const datas = [wl0Data, wl1Data, wl2Data, wl3Data, wl4Data, wl5Data];
     const map = new Map<Token, ReturnType<typeof useGrownStalkPerTokenQuery>>();
 
     for (const [i, token] of tokens.entries()) {
