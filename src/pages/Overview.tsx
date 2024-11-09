@@ -15,21 +15,10 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useFieldData } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
+import { StatPanelData } from "@/utils/types";
 import { getSiloConvertUrl } from "@/utils/url";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
-// Types
-type StatPanelModes = "stalk" | "pods" | "seeds" | "depositedValue";
-type StatPanelData = {
-  mode: StatPanelModes;
-  mainValue: TokenValue;
-  mainValueChange?: TokenValue;
-  secondaryValue: TokenValue;
-  actionValue?: TokenValue;
-  tooltipContent?: string;
-  showActionValues: boolean;
-};
 
 const Overview = () => {
   // Hooks
@@ -90,7 +79,7 @@ const Overview = () => {
   console.log("farmerActions: ", farmerActions);
 
   // Stat panel data
-  const statPanelData: Record<StatPanelModes, StatPanelData> = {
+  const statPanelData: Record<"stalk" | "pods" | "seeds" | "depositedValue", StatPanelData> = {
     depositedValue: {
       mode: "depositedValue",
       mainValue: farmerSilo.depositsUSD,

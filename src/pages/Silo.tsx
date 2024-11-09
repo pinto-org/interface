@@ -1,4 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
+import HelperLink from "@/components/HelperLink";
 import StatPanel from "@/components/StatPanel";
 import TableRowConnector from "@/components/TableRowConnector";
 import PageContainer from "@/components/ui/PageContainer";
@@ -6,8 +7,12 @@ import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
+import useTokenData from "@/state/useTokenData";
+import { StatPanelData, StatPanelModes } from "@/utils/types";
 import { getSiloConvertUrl } from "@/utils/url";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SiloTable from "./silo/SiloTable";
 
@@ -15,8 +20,13 @@ function Silo() {
   const farmerSilo = useFarmerSilo();
   const siloData = useSiloData();
   const farmerActions = useFarmerActions();
+  const tokenData = useTokenData();
+  const priceData = usePriceData();
+  const mainToken = tokenData.mainToken;
 
   const navigate = useNavigate();
+
+  const [hoveredButton, setHoveredButton] = useState("");
 
   const earnedStalk = farmerSilo.grownStalkReward;
   const earnedSeeds = Array.from(farmerSilo.grownStalkPerToken)
@@ -30,6 +40,31 @@ function Silo() {
   const convertEnabled = farmerActions.convertDeposits.enabled;
   const convertFrom = farmerActions.convertDeposits.bestConversion.from;
   const convertTo = farmerActions.convertDeposits.bestConversion.to;
+  const claimEnabled = farmerActions.claimRewards.enabled;
+
+  const statPanelData: Record<"stalk" | "seeds" | "depositedValue", StatPanelData> = {
+    depositedValue: {
+      mode: "depositedValue",
+      mainValue: farmerSilo.depositsUSD,
+      mainValueChange: farmerActions.claimRewards.outputs.bdvGain.mul(priceData.price),
+      secondaryValue: farmerSilo.depositsBDV,
+      showActionValues: hoveredButton === "claim",
+    },
+    stalk: {
+      mode: "stalk",
+      mainValue: farmerSilo.activeStalkBalance,
+      mainValueChange: farmerActions.claimRewards.outputs.stalkGain,
+      secondaryValue: TokenValue.ONE,
+      showActionValues: hoveredButton === "claim",
+    },
+    seeds: {
+      mode: "seeds",
+      mainValue: farmerSilo.activeSeedsBalance,
+      mainValueChange: farmerActions.claimRewards.outputs.seedGain,
+      secondaryValue: TokenValue.ONE,
+      showActionValues: hoveredButton === "claim",
+    },
+  };
 
   return (
     <PageContainer>
@@ -45,30 +80,15 @@ function Silo() {
           {enableStatPanels && (
             <div className="hidden sm:flex flex-col gap-12">
               <div className="flex flex-col items-center">
-                <StatPanel
-                  mode={"depositedValue"}
-                  mainValue={farmerSilo.depositsUSD}
-                  secondaryValue={farmerSilo.depositsBDV}
-                  size={"large"}
-                />
+                <StatPanel {...statPanelData.depositedValue} size={"large"} />
               </div>
               <div className="flex w-full items-center justify-center">
                 <div className="flex flex-row gap-18">
                   <div className="px-4">
-                    <StatPanel
-                      mode={"stalk"}
-                      mainValue={farmerSilo.activeStalkBalance}
-                      secondaryValue={earnedStalk}
-                      variant={"silo"}
-                    />
+                    <StatPanel {...statPanelData.stalk} variant={"silo"} />
                   </div>
                   <div className="px-4">
-                    <StatPanel
-                      mode={"seeds"}
-                      mainValue={farmerSilo.activeSeedsBalance}
-                      secondaryValue={earnedSeeds}
-                      variant={"silo"}
-                    />
+                    <StatPanel {...statPanelData.seeds} variant={"silo"} />
                   </div>
                 </div>
               </div>
@@ -80,7 +100,7 @@ function Silo() {
               These are deposits which are currently incentivized by Pinto.
             </Text>
             <div className="relative action-container">
-              <SiloTable />
+              <SiloTable hovering={hoveredButton === "claim"} />
               {convertEnabled && convertFrom && convertTo && (
                 <TableRowConnector
                   fromTarget={`token-row-${convertFrom.address}`}
@@ -120,6 +140,18 @@ function Silo() {
                       </div>
                     </div>
                   }
+                />
+              )}
+              {claimEnabled && (
+                <HelperLink
+                  onClick={() => console.log("claim!")}
+                  text={"Claim Pinto, Stalk and Seed"}
+                  className={`absolute -mt-[380px] -right-[280px] z-20`}
+                  dataTarget={`token-row-${mainToken.address}`}
+                  sourceAnchor="left"
+                  targetAnchor="right"
+                  onMouseEnter={() => setHoveredButton("claim")}
+                  onMouseLeave={() => setHoveredButton("")}
                 />
               )}
             </div>
