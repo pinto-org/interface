@@ -8,15 +8,13 @@ import { SeasonalChartData } from "@/components/charts/SeasonalChart";
 
 export default function useSeasonalPrice(fromSeason: number, toSeason: number): UseQueryResult<SeasonalChartData[]> {
   const currentSeason = useSunData().current;
-  // const chainId = useChainId(); // TODO(ss): put this back eventually
-  const chainId = 1337;
+  const chainId = useChainId();
 
   const variables = {
     from: fromSeason,
     to: toSeason,
   };
 
-  // TODO(ss): Potential improvement if a larger result is available, no need to query a smaller (i.e. all -> month)
   return useQuery({
     queryKey: ["seasonalPrices", { chainId: chainId, season: currentSeason, variables }],
     queryFn: async () => {
