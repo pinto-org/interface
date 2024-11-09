@@ -76,8 +76,6 @@ const Overview = () => {
   const convertTo = farmerActions.convertDeposits.bestConversion.to;
   const claimEnabled = farmerActions.claimRewards.enabled;
 
-  console.log("farmerActions: ", farmerActions);
-
   // Stat panel data
   const statPanelData: Record<"stalk" | "pods" | "seeds" | "depositedValue", StatPanelData> = {
     depositedValue: {
