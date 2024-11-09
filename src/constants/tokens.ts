@@ -1,8 +1,10 @@
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import pintoUsdcIcon from "@/assets/tokens/PINTO_USDC.png";
 import pintoWethIcon from "@/assets/tokens/PINTO_WETH.png";
+import pintoWsolIcon from "@/assets/tokens/PINTO_WSOL.png";
 import pintoCbbtcIcon from "@/assets/tokens/PINTO_cbBTC.png";
 import pintoCbethIcon from "@/assets/tokens/PINTO_cbETH.png";
+import wsolIcon from "@/assets/tokens/WSOL.png";
 import { Token } from "@/utils/types";
 import { arbitrum, base } from "viem/chains";
 
@@ -162,6 +164,17 @@ export const tokens: { [chainId: number]: Token[] } = {
       color: "#F7931A",
       tokens: ["0xb170000aeeFa790fa61D6e837d1035906839a3c8", "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf"],
     },
+    {
+      chainId: base.id,
+      name: "PINTOwSOL LP",
+      symbol: "PINTOWSOL",
+      address: "0x3e11444c7650234c748D743D8d374fcE2eE5E6C9",
+      decimals: 18,
+      isLP: true,
+      logoURI: pintoWsolIcon,
+      color: "#9945FF",
+      tokens: ["0xb170000aeeFa790fa61D6e837d1035906839a3c8", "0x1C61629598e4a901136a81BC138E5828dc150d67"],
+    },
     // Whitelisted Tokens
     {
       chainId: base.id,
@@ -175,7 +188,6 @@ export const tokens: { [chainId: number]: Token[] } = {
         "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png",
       color: "#627EEA",
     },
-    // Other Tokens
     {
       chainId: base.id,
       name: "USD Coin",
@@ -206,6 +218,16 @@ export const tokens: { [chainId: number]: Token[] } = {
       isWhitelisted: true,
       logoURI: "https://assets.coingecko.com/coins/images/40143/standard/cbbtc.webp?1726136727",
       color: "#F7931A",
+    },
+    {
+      chainId: base.id,
+      name: "Wrapped SOL (Wormhole)",
+      symbol: "WSOL",
+      address: "0x1C61629598e4a901136a81BC138E5828dc150d67",
+      decimals: 9,
+      isWhitelisted: true,
+      logoURI: wsolIcon,
+      color: "#9945FF",
     },
     // Other Tokens
     /* {
