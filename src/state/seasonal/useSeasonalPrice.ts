@@ -43,6 +43,7 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number): 
           }
         },
       };
+      console.log("sending request to subgraph: ", subgraphs[chainId].bean);
       return await paginateSubgraph(subgraphs[chainId].bean, BeanSeasonalPriceDocument, variables, paginateSettings);
     },
     select: (data) => {
