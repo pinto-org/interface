@@ -249,7 +249,7 @@ const LineChart = React.memo(
         },
         y: {
           position: "right",
-          min: minData * 0.97,
+          min: minData - (maxData - minData) * 0.1,
           max: maxData,
           grid: {
             display: false,
