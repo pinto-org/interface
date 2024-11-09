@@ -137,7 +137,7 @@ function PriceButtonPanel() {
         )}
         <Separator className="w-full" />
       </CardHeader>
-      <CardContent className={`overflow-y-auto mb-16 max-h-[calc(100vh-28rem)]`}>
+      <CardContent className={`overflow-y-auto overflow-x-visible mb-16 max-h-[calc(100vh-28rem)]`}>
         {!showSettings ? (
           <div className="flex flex-col gap-4 mt-4 relative">
             {showPrices && (
