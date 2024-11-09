@@ -51,7 +51,7 @@ const Overview = () => {
   const [hoveredButton, setHoveredButton] = useState("");
 
   // Memoized calculations
-  const { siloPct, claimSiloPct, stalkPerSeason, placesInLine, avgAPY } = useMemo(() => {
+  const { siloPct, claimSiloPct, harvestSiloPct, stalkPerSeason, placesInLine, avgAPY } = useMemo(() => {
     const siloPct = siloData.totalStalk.gt(0)
       ? farmerSilo.activeStalkBalance.div(siloData.totalStalk).mul(100)
       : TokenValue.ZERO;
@@ -61,6 +61,10 @@ const Overview = () => {
           .add(farmerActions.claimRewards.outputs.stalkGain)
           .div(siloData.totalStalk)
           .mul(100)
+      : TokenValue.ZERO;
+
+    const harvestSiloPct = siloData.totalStalk.gt(0)
+      ? farmerSilo.activeStalkBalance.add(farmerActions.harvestPods.outputs.stalkGain).div(siloData.totalStalk).mul(100)
       : TokenValue.ZERO;
 
     const stalkPerSeason = farmerSilo.activeSeedsBalance.div(10000);
@@ -74,7 +78,7 @@ const Overview = () => {
       siloTokens.reduce((total, token) => token[1].yields.beanAPY + total, 0) / siloTokens.length
     ).toFixed(2);
 
-    return { siloPct, claimSiloPct, stalkPerSeason, placesInLine, avgAPY };
+    return { siloPct, claimSiloPct, harvestSiloPct, stalkPerSeason, placesInLine, avgAPY };
   }, [farmerSilo, farmerField, farmerActions, siloData, fieldData]);
 
   // Action states
@@ -83,25 +87,36 @@ const Overview = () => {
   const convertTo = farmerActions.convertDeposits.bestConversion.to;
   const claimEnabled = farmerActions.claimRewards.enabled;
 
+  console.log("farmerActions: ", farmerActions);
+
   // Stat panel data
   const statPanelData: Record<StatPanelModes, StatPanelData> = {
     depositedValue: {
       mode: "depositedValue",
       mainValue: farmerSilo.depositsUSD,
-      mainValueChange: farmerActions.claimRewards.outputs.bdvGain.mul(priceData.price),
+      mainValueChange:
+        hoveredButton === "claim"
+          ? farmerActions.claimRewards.outputs.bdvGain.mul(priceData.price)
+          : farmerActions.harvestPods.outputs.bdvGain.mul(priceData.price),
       secondaryValue: farmerSilo.depositsBDV,
-      actionValue: farmerActions.claimRewards.outputs.bdvGain,
-      showActionValues: hoveredButton === "claim",
+      actionValue:
+        hoveredButton === "claim"
+          ? farmerActions.claimRewards.outputs.bdvGain
+          : farmerActions.harvestPods.outputs.bdvGain,
+      showActionValues: hoveredButton === "claim" || hoveredButton === "harvest",
     },
     stalk: {
       mode: "stalk",
       mainValue: farmerSilo.activeStalkBalance,
-      mainValueChange: farmerActions.claimRewards.outputs.stalkGain,
-      actionValue: claimSiloPct.sub(siloPct),
+      mainValueChange:
+        hoveredButton === "claim"
+          ? farmerActions.claimRewards.outputs.stalkGain
+          : farmerActions.harvestPods.outputs.stalkGain,
+      actionValue: hoveredButton === "claim" ? claimSiloPct.sub(siloPct) : harvestSiloPct.sub(siloPct),
       secondaryValue: siloPct,
       tooltipContent:
         "Your ownership of the Stalk supply determines the portion of Pinto supply increases that you earn.",
-      showActionValues: hoveredButton === "claim",
+      showActionValues: hoveredButton === "claim" || hoveredButton === "harvest",
     },
     seeds: {
       mode: "seeds",
@@ -109,18 +124,22 @@ const Overview = () => {
       mainValueChange:
         hoveredButton === "convert"
           ? farmerActions.convertDeposits.bestConversion.outputs.seedGain
-          : farmerActions.claimRewards.outputs.seedGain,
+          : hoveredButton === "claim"
+            ? farmerActions.claimRewards.outputs.seedGain
+            : farmerActions.harvestPods.outputs.seedGain,
       actionValue:
         hoveredButton === "convert"
           ? farmerActions.convertDeposits.bestConversion.outputs.seedGain
-          : farmerActions.claimRewards.outputs.seedGain,
+          : hoveredButton === "claim"
+            ? farmerActions.claimRewards.outputs.seedGain
+            : farmerActions.harvestPods.outputs.seedGain,
       secondaryValue: stalkPerSeason,
       tooltipContent: "Seeds grow Stalk every Season, creating the time weighted staking mechanism that is the Silo.",
-      showActionValues: hoveredButton === "convert" || hoveredButton === "claim",
+      showActionValues: hoveredButton !== "",
     },
     pods: {
       mode: "pods",
-      mainValue: farmerField.totalPods,
+      mainValue: farmerField.totalUnharvestablePods.add(farmerField.totalHarvestablePods),
       mainValueChange: farmerActions.harvestPods.outputs.podGain,
       secondaryValue: placesInLine[0],
       tooltipContent: "The number of Pods that need to Harvest before your next place in the Pod Line.",
@@ -183,12 +202,14 @@ const Overview = () => {
           <StatPanel {...(hasOnlyPods ? statPanelData.seeds : statPanelData.pods)} />
           {statPanelData.pods.mainValue && !hasOnlyPods && (
             <HelperLink
-              onClick={() => navigate(statPanelData.pods.mainValueChange?.gt(0) ? "/field/harvest" : "/field/sow")}
-              text={statPanelData.pods.mainValueChange?.gt(0) ? "Harvest Pods" : "Sow (Lend) in the Field for Pods"}
-              className={`absolute -mt-[100px] ${statPanelData.pods.mainValueChange?.gt(0) ? "right-[280px]" : "right-[140px]"} z-20`}
+              onClick={() => navigate(statPanelData.pods.mainValueChange?.lt(0) ? "/field/harvest" : "/field/sow")}
+              text={statPanelData.pods.mainValueChange?.lt(0) ? "Harvest Pods" : "Sow (Lend) in the Field for Pods"}
+              className={`absolute -mt-[100px] ${statPanelData.pods.mainValueChange?.lt(0) ? "right-[280px]" : "right-[140px]"} z-20`}
               dataTarget="pods-stats"
               sourceAnchor="left"
               targetAnchor="right"
+              onMouseEnter={() => setHoveredButton("harvest")}
+              onMouseLeave={() => setHoveredButton("")}
             />
           )}
           {hasOnlyPods && (
@@ -263,6 +284,7 @@ const Overview = () => {
                         <div
                           data-action-target="convert"
                           className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
+                          // @ts-ignore
                           style={{ "--convert-color": convertFrom.color }}
                           onClick={() => navigate(getSiloConvertUrl(convertFrom, convertTo))}
                         >

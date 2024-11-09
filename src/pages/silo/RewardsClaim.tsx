@@ -20,7 +20,7 @@ function RewardsClaim() {
   const data = useFarmerSilo();
   const siloData = useSiloData();
   const { mainToken: BEAN, whitelistedTokens: SILO_WHITELIST } = useTokenData();
-  const stalkRewards = siloData.tokenData.get(BEAN)?.rewards.stalk.mul(10 ** STALK.decimals);
+  const stalkRewards = siloData.tokenData.get(BEAN)?.rewards.stalk;
   const seedsRewards = siloData.tokenData.get(BEAN)?.rewards.seeds;
   const grownStalk = data.grownStalkReward;
   const queryClient = useQueryClient();

@@ -124,7 +124,7 @@ function useReadSiloTokenData(token: Token | undefined) {
             stalkIssuedPerBdv: TokenValue.fromBlockchain(
               siloTokenData?.[5]?.result?.stalkIssuedPerBdv ?? 0n,
               STALK.decimals,
-            ),
+            ).mul(10 ** BEAN.decimals),
           },
           rewards: {
             seeds: TokenValue.fromBlockchain(siloTokenData?.[5]?.result?.stalkEarnedPerSeason ?? 0n, SEEDS.decimals),

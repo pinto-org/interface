@@ -96,6 +96,7 @@ function Silo() {
                       <div
                         data-action-target="convert"
                         className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
+                        // @ts-ignore
                         style={{ "--convert-color": convertFrom.color }}
                         onClick={() => navigate(getSiloConvertUrl(convertFrom, convertTo))}
                       >

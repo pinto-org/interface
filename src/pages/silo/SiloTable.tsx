@@ -74,7 +74,7 @@ function SiloTable() {
                     <div className="inline-flex gap-1 items-center">
                       <img src={stalkIcon} alt={"stalk"} className="w-[1rem] h-[1rem]" />
                       <Text variant="sm" className="opacity-70">
-                        {formatter.noDec(data.rewards.stalk.mul(10 ** SEEDS.decimals))} Stalk
+                        {formatter.noDec(data.rewards.stalk)} Stalk
                       </Text>
                     </div>
                     <div className="inline-flex gap-1 items-center">

@@ -268,7 +268,7 @@ const FarmerSiloTokenDeposits = ({ siloToken, siloTokenData, farmerDeposits, pri
 };
 
 const SiloTokenSubHeader = ({ siloTokenData }: { siloTokenData: SiloTokenData | undefined }) => {
-  const stalkRewards = siloTokenData?.rewards.stalk.mul(1000000);
+  const stalkRewards = siloTokenData?.rewards.stalk;
   const seedRewards = siloTokenData?.rewards.seeds;
 
   return (
