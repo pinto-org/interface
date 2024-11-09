@@ -195,8 +195,14 @@ function DefaultConvert({
 
       if (!account.address) throw new Error("Signer required");
       if (!deposits) throw new Error("No deposits found");
+      if (minAmountOut.lte(0)) throw new Error("No convert quote");
 
-      toast.loading("Submitting transaction...");
+      const formattedAmountIn = formatter.token(debouncedAmountIn, siloToken);
+      const formattedAmountOut = formatter.token(minAmountOut, targetToken);
+
+      toast.loading(
+        `Converting ${formattedAmountIn} ${siloToken.symbol} for ${formattedAmountOut} ${targetToken.symbol}`,
+      );
 
       const depositCrates = sortAndPickCrates(
         "convert",
@@ -463,6 +469,7 @@ const PipelineConvert = ({
     if (receipt.isSuccess) {
       setAmountIn("0");
       toast.dismiss();
+      toast.success("Convert successful");
       onSuccess();
     }
   }, [receipt.isSuccess]);
