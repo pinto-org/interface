@@ -56,5 +56,7 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number): 
     },
     enabled: !!variables.to,
     staleTime: Infinity,
+    retry: 1,
+    retryDelay: 2000,
   });
 }

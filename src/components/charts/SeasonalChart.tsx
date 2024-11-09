@@ -101,7 +101,6 @@ const SeasonalChart = ({
   // const season = useSunData().current; // TODO(ss): put this back eventually
   const season = 25826;
   const dataHook = useDataHook(Math.max(0, season - tabToSeasonalLookback(activeTab)), season);
-  // console.log("h", dataHook.data, dataHook.isLoading, dataHook.error, dataHook.isError);
 
   useEffect(() => {
     if (dataHook.data && !allData) {
