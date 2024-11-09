@@ -1,4 +1,3 @@
-import claimableIcon from "@/assets/protocol/Claimable.png";
 import plotIcon from "@/assets/protocol/Plot.svg";
 import podIcon from "@/assets/protocol/Pod.png";
 import { TokenValue } from "@/classes/TokenValue";
@@ -8,6 +7,7 @@ import { formatter } from "@/utils/format";
 import { Plot } from "@/utils/types";
 import React from "react";
 import CheckmarkCircle from "./CheckmarkCircle";
+import { RightArrowIcon } from "./Icons";
 import { Table, TableBody, TableCell, TableRow } from "./ui/Table";
 import Text from "./ui/Text";
 import { ToggleGroupItem } from "./ui/ToggleGroup";
@@ -34,12 +34,14 @@ const PlotRow = React.forwardRef<HTMLTableRowElement, PlotRowProps & React.HTMLA
           {...props}
         >
           <TableCell className="text-pinto-green-2 items-center">
-            <div className="flex items-center gap-1.5 -ml-2">
-              <img src={claimableIcon} className="h-8 w-8" alt="Claimable Tokens" />
+            <div className="flex items-center gap-1.5">
+              <div className="h-8 w-8 bg-pinto-green-4 rounded-full flex justify-center items-center text-white rotate-90">
+                <RightArrowIcon color="currentColor" />
+              </div>
               <Text variant="body-light">Plot {plot.index.blockchainString}</Text>
             </div>
           </TableCell>
-          <TableCell className="text-pinto-green-2 text-right pr-0">
+          <TableCell className="text-pinto-green-2 text-right">
             <div className="inline-flex items-center">
               <Text variant="body-light">{formatter.number(harvestablePods)} Harvestable Pods</Text>
             </div>
