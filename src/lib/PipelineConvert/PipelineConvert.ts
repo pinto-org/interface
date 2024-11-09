@@ -1,7 +1,7 @@
 import { web3Config } from "@/Web3Provider";
 import { Clipboard } from "@/classes/Clipboard";
 import { TokenValue } from "@/classes/TokenValue";
-import { JUNCTION_ADDRESS, PIPELINE_ADDRESS } from "@/constants/address";
+import { PIPELINE_ADDRESS } from "@/constants/address";
 import encoders from "@/encoders";
 import erc20Approve from "@/encoders/erc20Approve";
 import erc20Transfer from "@/encoders/erc20Transfer";
@@ -32,6 +32,14 @@ export interface PipelineConvertQuote {
     addLiquidity: Awaited<ReturnType<typeof PipelineConvert.fetchEq2EqAddLiquidityOut>>;
   };
 }
+
+export type PipelineConvertDepositResult<T = TokenValue> = {
+  toStem: T;
+  fromAmount: T;
+  toAmount: T;
+  fromBdv: T;
+  toBdv: T;
+};
 
 /**
  * Utility class for constructing pipeline converts
@@ -76,16 +84,11 @@ export class PipelineConvert {
     const convertDetails = calculateConvert(sourceLP, targetLP, amountIn, deposits, siloTokenData);
     // const convertDetails = sortAndPickCrates("withdraw", amountIn, deposits, targetLP);
 
-    console.debug("[PipelineConvert] convertDetails: ", convertDetails);
-
     // Remove Liquidity
     const removeLPResult = await PipelineConvert.fetchEq2EqRemoveLiquidityOut(sourceWell, convertDetails.crates);
 
     const sourceIndexes = getPintoIndex(sourceWell);
     const targetIndexes = getPintoIndex(sourceWell);
-
-    console.log("sourceIndexes: ", sourceIndexes);
-    console.log("targetIndexes: ", targetIndexes);
 
     if (!sourceIndexes || !targetIndexes) {
       throw new Error("Cannot determine token indexes");
@@ -95,20 +98,13 @@ export class PipelineConvert {
     const sellToken = sourceWell.tokens[sourceIndexes.nonPinto];
     const buyToken = targetWell.tokens[targetIndexes.nonPinto];
 
-    console.log("sellToken: ", sellToken);
-    console.log("buyToken: ", buyToken);
-
     const params = removeLPResult.amountsOut.map((amounts) => {
       const nonBeanAmount = amounts[sourceIndexes.nonPinto];
 
       return this.generateSwapQuoteParams(buyToken, sellToken, nonBeanAmount, swapSlippage);
     });
 
-    console.log("params: ", params);
-
     const swapQuotes = await ZeroX.quote(params);
-
-    console.log("swapQuotes: ", swapQuotes);
 
     // Add Liquidity
     const denominator = removeLPResult.summedAmounts[sourceIndexes.nonPinto];
@@ -127,11 +123,7 @@ export class PipelineConvert {
       return addLiquidityAmountsIn;
     });
 
-    console.log("depositAmountsIn: ", depositAmountsIn);
-
     const addLiquidityResults = await PipelineConvert.fetchEq2EqAddLiquidityOut(targetWell, depositAmountsIn);
-
-    console.log("addLiquidityResults: ", addLiquidityResults);
 
     const convertResults = convertDetails.crates.map((deposit, i) => {
       const amountOut = addLiquidityResults.amountsOut[i];
@@ -159,11 +151,6 @@ export class PipelineConvert {
       };
     });
 
-    console.log("convertResults: ", convertResults);
-    console.log("amountOut: ", addLiquidityResults.summedAmounts);
-
-    console.debug("[PipelineConvert] convertResults: ", convertResults);
-
     const encodePrepared = convertResults.map((result) => {
       return {
         stem: result.deposit.stem,
@@ -171,9 +158,6 @@ export class PipelineConvert {
         advPipeCalls: result.advPipeCalls,
       };
     });
-
-    console.log("sourceWell.pool: ", sourceWell.pool);
-    console.log("targetWell.pool: ", targetWell.pool);
 
     return {
       convertDetails,
@@ -397,7 +381,7 @@ export class PipelineConvert {
     },
   };
 
-  static decodeStaticResults(results: string[]) {
+  static decodeStaticResults(results: string[]): PipelineConvertDepositResult<bigint>[] {
     try {
       const data = results.map((result) => {
         const decoded = decodeFunctionResult<typeof ABI>({
