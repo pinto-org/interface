@@ -37,6 +37,9 @@ export interface LineChartProps {
 
 const LineChart = React.memo(
   ({ data, size, makeLineGradients, makeAreaGradients, valueFormatter, onMouseOver }: LineChartProps) => {
+    const minData = data.reduce((acc, next) => Math.min(acc, ...next.values), Number.MAX_SAFE_INTEGER);
+    const maxData = data.reduce((acc, next) => Math.max(acc, ...next.values), Number.MIN_SAFE_INTEGER);
+
     const chartData = useCallback(
       (ctx: CanvasRenderingContext2D | null): ChartData => {
         return {
@@ -246,8 +249,8 @@ const LineChart = React.memo(
         },
         y: {
           position: "right",
-          beginAtZero: true,
-          min: 0,
+          min: minData * 0.97,
+          max: maxData,
           grid: {
             display: false,
           },
@@ -256,7 +259,7 @@ const LineChart = React.memo(
           },
           ticks: {
             padding: 35,
-            maxTicksLimit: 5,
+            maxTicksLimit: 2,
             callback: (value) => {
               const num = typeof value === "string" ? Number(value) : value;
               return valueFormatter?.(num) ?? value;
