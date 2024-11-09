@@ -18,3 +18,15 @@ export const isProtocolToken = (token: Token | Address | string) => {
   }
   return stringEq(token, PINTO.address);
 };
+
+type TokenIsh = { address: Address; symbol: string } | Token;
+
+/**
+ * @param a - The first token
+ * @param b - The second token
+ * @returns True if the tokens share the same address and symbol, false otherwise
+ */
+export const tokensEqual = (a: TokenIsh | undefined, b: TokenIsh | undefined) => {
+  if (!a || !b) return false;
+  return stringEq(a.address, b.address) && stringEq(a.symbol, b.symbol);
+};

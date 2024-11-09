@@ -6,6 +6,8 @@ import pintoCbethIcon from "@/assets/tokens/PINTO_cbETH.png";
 import { Token } from "@/utils/types";
 import { arbitrum, base } from "viem/chains";
 
+const defaultChain = base.id;
+
 export const tokens: { [chainId: number]: Token[] } = {
   [arbitrum.id]: [
     // Protocol Token
@@ -219,6 +221,13 @@ export const tokens: { [chainId: number]: Token[] } = {
   ],
 };
 
-export const PINTO = tokens[base.id][0];
-
-export const PINTOcbBTC = tokens[base.id][5];
+export const PINTO = tokens[defaultChain][0];
+export const ETH = tokens[defaultChain][1];
+export const PINTOWETH = tokens[defaultChain][2];
+export const PINTOCBETH = tokens[defaultChain][3];
+export const PINTOUSDC = tokens[defaultChain][4];
+export const PINTOCBBTC = tokens[defaultChain][5];
+export const WETH = tokens[defaultChain][6];
+export const USDC = tokens[defaultChain][7];
+export const CBETH = tokens[defaultChain][8];
+export const CBBTC = tokens[defaultChain][9];

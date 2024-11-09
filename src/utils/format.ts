@@ -1,4 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { CBBTC, PINTOCBBTC } from "@/constants/tokens";
+import { tokensEqual } from "./token";
+import { Token } from "./types";
 
 type NumberPrimitive = string | number | TokenValue | bigint | undefined | null;
 
@@ -95,6 +98,29 @@ export const format2Decimals = (val: NumberPrimitive, options?: IAllowZero) => {
   });
 };
 
+function normalizeTokenAmount(val: NumberPrimitive, token: Token) {
+  if (val instanceof TokenValue) {
+    return val.toNumber();
+  }
+  if (typeof val === "bigint") {
+    return TokenValue.fromBlockchain(val, token.decimals).toNumber();
+  }
+  return Number(val);
+}
+
+export const formatTokenAmount = (val: NumberPrimitive, token: Token) => {
+  if (tokensEqual(token, CBBTC) || tokensEqual(token, PINTOCBBTC)) {
+    return formatNum(normalizeTokenAmount(val, token), {
+      minDecimals: 6,
+      maxDecimals: 6,
+      defaultValue: "0.00",
+      minValue: 0.000001,
+      allowZero: true,
+    });
+  }
+  return format2Decimals(normalizeTokenAmount(val, token), { allowZero: true });
+};
+
 export const formatter = {
   number: formatNum,
   usd: formatUSD,
@@ -102,6 +128,7 @@ export const formatter = {
   pct: formatPct,
   noDec: formatNoDecimals,
   twoDec: format2Decimals,
+  token: formatTokenAmount,
 };
 
 export function truncateHex(hex: string, left: number = 4, right: number = 3) {

@@ -2,6 +2,7 @@ import arrowDown from "@/assets/misc/ChevronDown.svg";
 import { TV } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import { RightArrowIcon } from "@/components/Icons";
+import FrameAnimator from "@/components/LoadingSpinner";
 import OutputDisplay from "@/components/OutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
 import { Button } from "@/components/ui/Button";
@@ -15,8 +16,9 @@ import Warning from "@/components/ui/Warning";
 import { basinWellABI } from "@/constants/abi/basinWellABI";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { SEEDS, STALK } from "@/constants/internalTokens";
-import { PINTO, PINTOcbBTC } from "@/constants/tokens";
+import { PINTO, PINTOCBBTC } from "@/constants/tokens";
 import { useReadSilo_GetAmountOut } from "@/generated/contractHooks";
+import useDelayedLoading from "@/hooks/display/useDelayedLoading";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useWell, useWellUnderlying } from "@/hooks/wells/wells";
@@ -42,6 +44,7 @@ import { AddressMap, Token } from "@/utils/types";
 import { useDebounceValue, useDebouncedEffect } from "@/utils/useDebounce";
 import { cn, noop } from "@/utils/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { result } from "lodash";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -95,6 +98,8 @@ function DefaultConvert({
   const [amountIn, setAmountIn] = useState("0");
   const [slippage, setSlippage] = useState(0.1);
 
+  const { loading, setLoadingTrue, setLoadingFalse } = useDelayedLoading();
+
   const { data: maxConvert = TV.ZERO, ...maxConvertQuery } = useReadContract({
     abi: diamondABI,
     address: protocolAddress,
@@ -107,32 +112,6 @@ function DefaultConvert({
       select: (max) => selectMaxConvert(max ?? 0n, siloToken),
     },
   });
-
-  const convertCapacity = useReadContract({
-    abi: diamondABI,
-    address: protocolAddress,
-    functionName: "getOverallConvertCapacity",
-    args: [],
-  });
-
-  const wellConvertCapacity = useReadContract({
-    abi: diamondABI,
-    address: protocolAddress,
-    functionName: "getWellConvertCapacity",
-    args: [siloToken.isMain ? targetToken.address : siloToken.address],
-  });
-
-  useEffect(() => {
-    if (convertCapacity.data) {
-      console.log("convertCapacity: ", TV.fromBlockchain(convertCapacity.data, 6).toNumber());
-    }
-  }, [convertCapacity.data]);
-
-  useEffect(() => {
-    if (wellConvertCapacity.data) {
-      console.log("wellConvertCapacity: ", TV.fromBlockchain(wellConvertCapacity.data, 6).toNumber());
-    }
-  }, [wellConvertCapacity.data]);
 
   const debouncedAmountIn = useDebounceValue(amountIn, DEBOUNCE_MS);
   const { data: minAmountOut = TV.ZERO, ...estimateQuery } = useReadSilo_GetAmountOut({
@@ -149,38 +128,41 @@ function DefaultConvert({
     },
   });
 
+  useEffect(() => {
+    if (estimateQuery.isFetching) {
+      setLoadingTrue();
+    } else if (!estimateQuery.isFetching) {
+      setLoadingFalse();
+    }
+  }, [estimateQuery.isFetching, setLoadingTrue, setLoadingFalse]);
+
   const { data: hash, writeContractAsync } = useWriteContract();
 
-  const {
-    data: receipt,
-    isSuccess: isConfirmed,
-    isLoading: isConfirming,
-    error: receiptError,
-    failureReason,
-  } = useWaitForTransactionReceipt({
+  const receipt = useWaitForTransactionReceipt({
     hash,
+    pollingInterval: 2_000,
     query: {
       enabled: !!hash,
     },
   });
 
   useEffect(() => {
-    if (receipt && isConfirmed) {
+    if (receipt.isSuccess) {
+      setAmountIn("0");
       toast.dismiss();
       queryClient.invalidateQueries({ queryKey: maxConvertQuery.queryKey });
       queryClient.invalidateQueries({ queryKey: estimateQuery.queryKey });
       onSuccess();
-      setAmountIn("0");
+      toast.success("Convert successful");
     }
-  }, [receipt, isConfirmed, failureReason, receiptError]);
+  }, [receipt.isSuccess]);
 
   useEffect(() => {
-    if (receiptError) {
+    if (receipt.error) {
       toast.dismiss();
-      console.log("receipt: ", receiptError);
-      toast.error(receiptError instanceof Error ? receiptError?.message : "Transaction failed.");
+      toast.error(receipt.error instanceof Error ? receipt.error?.message : "Transaction failed.");
     }
-  }, [receiptError]);
+  }, [receipt.error]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Reset amount in when target token changes
   useEffect(() => {
@@ -277,10 +259,11 @@ function DefaultConvert({
     !stringToNumber(amountIn) ||
     stringEq(siloToken.address, targetToken.address) ||
     maxConvert?.lte(0) ||
-    minAmountOut.lte(0) ||
+    minAmountOut?.lte(0) ||
     !account.address ||
     !convertData ||
-    isConfirming;
+    receipt.isLoading ||
+    amountIn !== debouncedAmountIn;
 
   return (
     <div className="flex flex-col gap-6">
@@ -307,12 +290,21 @@ function DefaultConvert({
       {!canConvert || canExceedMax ? (
         <Warning>{!canConvert ? getConvertWarning() : getMaxConvertWarning()}</Warning>
       ) : null}
-      <ConvertTokenOutput amount={minAmountOut} siloToken={siloToken} targetToken={targetToken} prices={tokenPrices} />
-      {convertData ? (
+      <ConvertTokenOutput
+        amount={minAmountOut || TV.ZERO}
+        siloToken={siloToken}
+        targetToken={targetToken}
+        prices={tokenPrices}
+      />
+      {loading ? (
+        <div className="flex flex-col w-full h-[181px] items-center justify-center">
+          <FrameAnimator size={64} />
+        </div>
+      ) : convertData ? (
         <OutputDisplay title="I receive">
           <OutputDisplay.Item label="Amount">
             <OutputDisplay.Value
-              value={formatAmountOut(minAmountOut, targetToken)}
+              value={formatter.token(minAmountOut, targetToken)}
               token={targetToken}
               suffix={targetToken.symbol}
             />
@@ -337,11 +329,9 @@ function DefaultConvert({
           </OutputDisplay.Item>
         </OutputDisplay>
       ) : null}
-      <div className="flex flex-row gap-2">
-        <Button type="button" rounded="full" width="full" size="xxl" onClick={onSubmit} disabled={disabled}>
-          Convert
-        </Button>
-      </div>
+      <Button type="button" rounded="full" width="full" size="xxl" onClick={onSubmit} disabled={disabled}>
+        Convert
+      </Button>
     </div>
   );
 }
@@ -377,19 +367,21 @@ const PipelineConvert = ({
   const config = useConfig();
   const chainId = useResolvedChainId();
 
+  const { loading, setLoadingTrue, setLoadingFalse } = useDelayedLoading();
+
   const debouncedAmountIn = useDebounceValue(amountIn, DEBOUNCE_MS);
 
-  const convertibleDeposits = farmerDeposits?.get(siloToken)?.convertibleDeposits;
+  const tokenDeposits = farmerDeposits?.get(siloToken);
+  const convertibleDeposits = tokenDeposits?.convertibleDeposits;
+  const maxConvertible = tokenDeposits?.convertibleAmount;
 
-  const { data, isLoading } = useQuery({
+  const { data: quote, ...quoteQuery } = useQuery({
     queryKey: ["pipeline-convert", chainId, account.address, siloToken.address, targetToken.address, debouncedAmountIn],
     queryFn: async () => {
       if (!account.address || !convertibleDeposits?.length || stringToNumber(debouncedAmountIn) <= 0) return;
       if (!sourceWell || !targetWell) return;
 
-      console.log("famerDeposits: ", farmerDeposits);
-
-      console.log("convertibleDeposits: ", convertibleDeposits);
+      setLoadingTrue();
 
       const res = await genConvert
         .fetchEq2Eq(
@@ -414,30 +406,31 @@ const PipelineConvert = ({
     staleTime: 1000 * 20, // 20 seconds
   });
 
-  const simQuery2 = useQuery({
-    queryKey: ["pipe-convert-sim", data?.encoded],
+  const { data: simulation, ...simulateQuery } = useQuery({
+    queryKey: ["pipe-convert-sim", siloToken.address, targetToken.address, quote?.encoded],
     queryFn: async () => {
-      if (!data?.encoded.length) {
-        throw new Error("No encoded data to simulate");
-      }
-      const res = await simulateContract(config.getClient({ chainId: 1337 }), {
-        address: protocolAddress,
-        abi: diamondABI,
-        functionName: "advancedFarm",
-        args: [data?.encoded ?? []],
-        account: account.address,
-        blockTag: "latest",
-      }).catch((e) => {
+      try {
+        if (!quote?.encoded.length) {
+          throw new Error("No encoded data to simulate");
+        }
+        return simulateContract(config.getClient({ chainId: 1337 }), {
+          address: protocolAddress,
+          abi: diamondABI,
+          functionName: "advancedFarm",
+          args: [quote?.encoded ?? []],
+          account: account.address,
+          blockTag: "latest",
+        }).then((res) => res.result);
+      } catch (e: any) {
         console.error("Error simulating pipeline convert: ", e);
-        throw new Error(e.message || e.shortMessage);
-      });
-
-      return res.result;
+        throw new Error(e.message || e.shortMessage || "Error simulating pipeline convert");
+      } finally {
+        setLoadingFalse();
+      }
     },
-    enabled: !!data?.encoded.length && stringToNumber(debouncedAmountIn) > 0 && data?.amountOut.gt(0),
+    enabled: !!quote?.encoded.length && stringToNumber(debouncedAmountIn) > 0 && quote?.amountOut.gt(0),
     select: (rpcResult) => {
       const decodedFarmResult = GenConvert.decodeStaticResults(rpcResult as string[]);
-      console.log("decodedFarmResult: ", decodedFarmResult);
       return decodedFarmResult.map((result) => ({
         toStem: TV.fromBigInt(result.toStem, PINTO.decimals),
         fromAmount: TV.fromBigInt(result.fromAmount, siloToken.decimals),
@@ -447,6 +440,78 @@ const PipelineConvert = ({
       }));
     },
   });
+
+  const convertData = usePipelineConvertResults({
+    siloTokenData,
+    siloToken,
+    quote,
+    results: simulation,
+    targetStemTip: siloTokenData.get(targetToken)?.stemTip,
+  });
+
+  const { data: hash, writeContractAsync } = useWriteContract();
+
+  const receipt = useWaitForTransactionReceipt({
+    hash,
+    pollingInterval: 2_000,
+    query: {
+      enabled: !!hash,
+    },
+  });
+
+  useEffect(() => {
+    if (receipt.isSuccess) {
+      setAmountIn("0");
+      toast.dismiss();
+      onSuccess();
+    }
+  }, [receipt.isSuccess]);
+
+  useEffect(() => {
+    if (receipt.error) {
+      toast.dismiss();
+      toast.error(receipt.error instanceof Error ? receipt.error.message : "Transaction failed.");
+    }
+  }, [receipt.error]);
+
+  const onSubmit = async () => {
+    try {
+      const depositData = farmerDeposits.get(siloToken);
+
+      if (!account.address || !depositData) throw new Error("Signer required");
+      if (!convertData || !quote) throw new Error("No convert quote");
+      if (depositData.convertibleAmount.lt(TV.fromHuman(debouncedAmountIn, siloToken.decimals))) {
+        throw new Error("Amount exceeds balance");
+      }
+
+      const formattedAmountIn = formatter.token(debouncedAmountIn, siloToken);
+      const formattedAmountOut = formatter.token(convertData?.amountOut, targetToken);
+
+      toast.loading(
+        `Converting ${formattedAmountIn} ${siloToken.symbol} for ${formattedAmountOut} ${targetToken.symbol}`,
+      );
+
+      await writeContractAsync({
+        address: protocolAddress,
+        abi: diamondABI,
+        functionName: "advancedFarm",
+        args: [quote?.encoded ?? []],
+      });
+    } catch (e) {
+      console.error("Error submitting pipeline convert: ", e);
+      return e;
+    }
+  };
+
+  const isLoading = quoteQuery.isFetching || simulateQuery.isFetching || loading;
+
+  const disabled =
+    !quote ||
+    isLoading ||
+    !convertData ||
+    receipt.isLoading ||
+    convertData?.amountOut.lte(0) ||
+    maxConvertible?.lt(stringToNumber(amountIn));
 
   return (
     <div className="flex flex-col gap-4">
@@ -467,49 +532,119 @@ const PipelineConvert = ({
         />
       </div>
       <ConvertTokenOutput
-        amount={TV.ZERO} // fix me
+        amount={quote?.amountOut || TV.ZERO}
         siloToken={siloToken}
         targetToken={targetToken}
         prices={tokenPrices}
       />
+      {isLoading ? (
+        <div className="flex flex-col w-full h-[181px] items-center justify-center">
+          <FrameAnimator size={64} />
+        </div>
+      ) : convertData ? (
+        <OutputDisplay title="I receive">
+          <OutputDisplay.Item label="Amount">
+            <OutputDisplay.Value
+              value={formatter.token(convertData.amountOut, targetToken)}
+              token={targetToken}
+              suffix={targetToken.symbol}
+            />
+          </OutputDisplay.Item>
+          <OutputDisplay.Item label="Stalk">
+            <OutputDisplay.Value
+              value={formatter.twoDec(convertData.deltaStalk)}
+              suffix="Stalk"
+              delta={convertData.deltaStalk.toNumber()}
+              token={STALK}
+              showArrow
+            />
+          </OutputDisplay.Item>
+          <OutputDisplay.Item label="Seed">
+            <OutputDisplay.Value
+              value={formatter.twoDec(convertData.deltaSeed)}
+              suffix="Seed"
+              delta={convertData.deltaSeed.toNumber()}
+              token={SEEDS}
+              showArrow
+            />
+          </OutputDisplay.Item>
+        </OutputDisplay>
+      ) : null}
       <div className="flex flex-row gap-2">
-        <Button type="button" rounded="some" className="w-full flex grow h-[3.75rem] text-[1.5rem]">
-          Gen Convert
+        <Button type="button" rounded="full" width="full" size="xxl" onClick={onSubmit} disabled={disabled}>
+          Convert
         </Button>
       </div>
     </div>
   );
 };
 
-const getPipelineConvertResults = (
-  quote: PipelineConvertQuote | undefined,
-  results: PipelineConvertDepositResult<TV>[] | undefined,
-  targetStemTip: TV | undefined,
-) => {
-  if (!quote || !results || !targetStemTip) return;
+type PipeelineConvertDisplay = {
+  deltaStalk: TV;
+  deltaSeed: TV;
+  amountOut: TV;
+};
 
-  let totalDeltaBaseStalk = TV.fromHuman("0", STALK.decimals);
-  let totalDeltaGrownStalk = TV.fromHuman("0", STALK.decimals);
-  let totalDeltaSeed = TV.fromHuman("0", SEEDS.decimals);
+const usePipelineConvertResults = ({
+  siloTokenData,
+  siloToken,
+  quote,
+  results,
+  targetStemTip,
+}: Pick<PipelineConvertProps, "siloTokenData" | "siloToken"> & {
+  quote: PipelineConvertQuote | undefined;
+  results: PipelineConvertDepositResult<TV>[] | undefined;
+  targetStemTip: TV | undefined;
+}): PipeelineConvertDisplay | undefined => {
+  const { targetToken } = useSiloConvertContext();
 
-  const pickedCrates = quote.convertDetails.crates;
+  return useMemo(() => {
+    if (!quote || !results || !targetStemTip) return;
 
-  if (pickedCrates.length !== results.length) {
-    throw new Error("crates mismatch decoding pipeline convert results");
-  }
+    let totalDeltaBaseStalk = TV.fromHuman("0", STALK.decimals);
+    let totalDeltaGrownStalk = TV.fromHuman("0", STALK.decimals);
+    let totalDeltaSeed = TV.fromHuman("0", SEEDS.decimals);
 
-  // for (const [i,  result] of results.entries()) {
-  //   const deposit = pickedCrates[i];
-  //   if (!deposit) {
-  //     continue;
-  //   }
+    const pickedCrates = quote.convertDetails.crates;
 
-  //   const toBDV = result.toBdv;
-  //   const deltaStem = targetStemTip.sub(result.toStem);
+    const sourceRewards = siloTokenData.get(siloToken)?.rewards;
+    const targetRewards = siloTokenData.get(targetToken)?.rewards;
 
-  //   const baseStalkAfter =
+    if (pickedCrates.length !== results.length || !sourceRewards || !targetRewards) {
+      return;
+    }
 
-  // }
+    for (const [i, result] of results.entries()) {
+      const deposit = pickedCrates[i];
+      if (!deposit) continue;
+
+      const toBDV = result.toBdv;
+      const deltaStem = targetStemTip.sub(result.toStem);
+
+      const baseStalkAfter = targetRewards.stalk.mul(toBDV) || TV.ZERO;
+      const grownStalkAfter = TV.fromBlockchain(deltaStem.mul(result.toBdv).blockchainString, STALK.decimals);
+
+      const deltaBaseStalk = baseStalkAfter.sub(deposit.stalk.base);
+      const deltaGrownStalk = grownStalkAfter.sub(deposit.stalk.grown);
+
+      totalDeltaBaseStalk = totalDeltaBaseStalk.add(deltaBaseStalk);
+      totalDeltaGrownStalk = totalDeltaGrownStalk.add(deltaGrownStalk);
+
+      const afterSeed = targetRewards.seeds.mul(toBDV);
+      const deltaSeed = afterSeed.sub(deposit.seeds);
+      totalDeltaSeed = totalDeltaSeed.add(deltaSeed);
+    }
+
+    const totalDeltaStalk = totalDeltaBaseStalk.add(totalDeltaGrownStalk);
+
+    return {
+      deltaGrownStalk: totalDeltaGrownStalk,
+      deltaBaseStalk: totalDeltaBaseStalk,
+      deltaStalk: totalDeltaStalk,
+      deltaSeed: totalDeltaSeed,
+      amountOut: quote.amountOut,
+    };
+  }, [results, quote, targetStemTip, siloTokenData, siloToken, targetToken]);
 };
 
 // ------------------------------ CONTEXT ------------------------------
@@ -585,8 +720,8 @@ const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
 
   const farmerDepositsQuery = useFarmerDepositedBalances();
   const farmerDeposits = farmerDepositsQuery.data;
-  const { queryKeys: priceQueryKeys, tokenPrices, pools } = usePriceData();
-  const { queryKeys: farmerSiloQueryKeys } = useFarmerSilo(); // Fix me: inefficient fetching...
+  const { tokenPrices, pools, queryKeys: priceQueryKeys } = usePriceData();
+  const farmerSilo = useFarmerSilo(); // Fix me: inefficient fetching...
   const { tokenData: siloTokenData } = useSiloData();
 
   const queryClient = useQueryClient();
@@ -599,10 +734,10 @@ const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
     for (const queryKey of priceQueryKeys) {
       queryClient.invalidateQueries({ queryKey });
     }
-    for (const queryKey of farmerSiloQueryKeys) {
+    for (const queryKey of farmerSilo.queryKeys) {
       queryClient.invalidateQueries({ queryKey });
     }
-  }, [queryClient, farmerDepositsQuery.queryKey, priceQueryKeys, farmerSiloQueryKeys]);
+  }, [queryClient, farmerDepositsQuery.queryKey, priceQueryKeys, farmerSilo.queryKeys]);
 
   const depositMap = useMemo(() => {
     const map = new Map<Token, TV>();
@@ -615,7 +750,9 @@ const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
     return map;
   }, [farmerDeposits]);
 
-  if (siloToken.isLP && targetToken.isLP && sourceWell && targetWell) {
+  const bothLP = siloToken.isLP && targetToken.isLP;
+
+  if (bothLP && sourceWell && targetWell) {
     return (
       <PipelineConvert
         siloToken={siloToken}
@@ -661,23 +798,6 @@ export default Convert;
 
 // ------------------------------ Convert Output ------------------------------
 
-const formatAmountOut = (amount: TV, token: Token) => {
-  const isPINTOcbBTC = stringEq(token.address, PINTOcbBTC.address);
-
-  if (!isPINTOcbBTC || amount.gt(0.1)) {
-    return formatter.twoDec(amount);
-  }
-  if (amount.isZero) {
-    return "0.00";
-  }
-  return formatter.number(amount, {
-    allowZero: true,
-    minDecimals: 8,
-    maxDecimals: 8,
-    minValue: 0.00000001,
-  });
-};
-
 const ConvertTokenOutput = ({
   amount,
   siloToken,
@@ -691,6 +811,9 @@ const ConvertTokenOutput = ({
 }) => {
   const usd = prices.get(targetToken)?.instant?.mul(amount || TV.ZERO);
 
+  const displayAmount = useDebounceValue(formatter.token(amount, targetToken), 50);
+  const displayUsd = useDebounceValue(formatter.usd(usd), 50);
+
   return (
     <div className="flex flex-col w-full py-4 gap-2">
       <Text variant="body-light" color="light">
@@ -699,12 +822,12 @@ const ConvertTokenOutput = ({
       <div className="flex flex-col w-full gap-1">
         <div className="flex flex-row items-center justify-between w-full">
           <div className="flex flex-col gap-1">
-            <Text variant="h3">{formatAmountOut(amount, targetToken)}</Text>
+            <Text variant="h3">{displayAmount}</Text>
           </div>
           <SiloConvertTokenSelect siloToken={siloToken} />
         </div>
         <Text variant="sm-light" color="light">
-          {formatter.usd(usd)}
+          {displayUsd}
         </Text>
       </div>
     </div>
