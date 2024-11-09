@@ -7,8 +7,11 @@ import { paginateSubgraph, PaginationSettings } from "@/utils/paginateSubgraph";
 import { SeasonalChartData } from "@/components/charts/SeasonalChart";
 
 export default function useSeasonalPrice(fromSeason: number, toSeason: number): UseQueryResult<SeasonalChartData[]> {
+  console.log("in useSeasonalPrice");
   const currentSeason = useSunData().current;
   const chainId = useChainId();
+  console.log("got chainId", chainId);
+  console.log("using vars", fromSeason, toSeason);
 
   const variables = {
     from: fromSeason,
