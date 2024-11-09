@@ -53,20 +53,22 @@ const StatPanel = ({
           ? formatter.usd(showActionValues && mainValueChange ? mainValue.add(mainValueChange) : mainValue)
           : formatter.number(showActionValues && mainValueChange ? mainValue.add(mainValueChange) : mainValue)}
       </Text>
-      {showActionValues && mainValueChange?.gt(0) && (
+      {showActionValues && mainValueChange && mainValueChange?.abs().gt(0.001) && (
         <Text
           variant={size === "large" ? "h1" : "h3"}
           className={`ml-2 ${
-            mode === "depositedValue"
-              ? "text-pinto-green-4"
-              : mode === "stalk"
-                ? "text-pinto-stalk-gold"
-                : mode === "seeds"
-                  ? "text-pinto-seed-silver"
-                  : "text-pinto-pod-bronze"
+            mainValueChange.lt(0)
+              ? "text-pinto-gray-4"
+              : mode === "depositedValue"
+                ? "text-pinto-green-4"
+                : mode === "stalk"
+                  ? "text-pinto-stalk-gold"
+                  : mode === "seeds"
+                    ? "text-pinto-seed-silver"
+                    : "text-pinto-pod-bronze"
           }`}
         >
-          {mainValueChange.gt(0) ? "+ " : ""}
+          {mainValueChange.gt(0) ? "+" : ""}
           {formatter.number(mainValueChange)}
         </Text>
       )}
@@ -78,9 +80,13 @@ const StatPanel = ({
       {mode === "depositedValue" && (
         <span className="inline-flex items-center gap-1">
           <img src={getIcon(mode)} className="h-4 w-6" alt={mode.toUpperCase()} />
-          {formatter.pdv(secondaryValue)}
-          {showActionValues && actionValue && (
-            <span className="text-pinto-green-4">{`+${formatter.number(actionValue)}`}</span>
+          {showActionValues && actionValue ? (
+            <>
+              <span>{formatter.pdv(secondaryValue.add(actionValue))}</span>
+              <span className="text-pinto-green-4">{`+${formatter.number(actionValue)}`}</span>
+            </>
+          ) : (
+            <span>{formatter.pdv(secondaryValue)}</span>
           )}
         </span>
       )}
@@ -94,13 +100,13 @@ const StatPanel = ({
         </>
       )}
       {mode === "stalk" && variant === "silo" && (
-        <>
+        <div className={`${showActionValues ? "opacity-0" : "opacity-100"}`}>
           Claimable Stalk:
           <Text as="span" variant="inherit" color="green4" className="pl-2">
-            {secondaryValue.gt(0) ? "+ " : ""}
+            {secondaryValue.gt(0) ? "+" : ""}
             {formatter.noDec(secondaryValue)}
           </Text>
-        </>
+        </div>
       )}
       {mode === "seeds" && variant === "overview" && (
         <span className="inline-flex gap-1">
@@ -113,13 +119,13 @@ const StatPanel = ({
         </span>
       )}
       {mode === "seeds" && variant === "silo" && (
-        <>
+        <div className={`${showActionValues ? "opacity-0" : "opacity-100"}`}>
           Claimable Seed:
           <Text as="span" variant="inherit" color="green4" className="pl-2">
-            {secondaryValue.gt(0) ? "+ " : ""}
+            {secondaryValue.gt(0) ? "+" : ""}
             {formatter.noDec(secondaryValue)}
           </Text>
-        </>
+        </div>
       )}
       {mode === "pods" && `Next position in line: ${secondaryValue.toHuman("short")}`}
     </Text>
