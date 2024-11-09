@@ -37,6 +37,8 @@ export default function DevPage() {
 
   const [serverStatus, setServerStatus] = useState<ServerStatus>("checking");
 
+  const [approvalAddress, setApprovalAddress] = useState(address || "");
+
   useEffect(() => {
     const checkServer = async () => {
       try {
@@ -281,6 +283,29 @@ export default function DevPage() {
                   Add Liquidity To All Wells
                 </Button>
               </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Token Approvals */}
+        <Card className="p-6">
+          <h2 className="text-2xl mb-4">Token Approvals</h2>
+          <div className="flex flex-col gap-4">
+            <div className="text-sm text-gray-500">
+              Approves all non-PINTO tokens for whitelisted wells using the specified account.
+            </div>
+            <div className="flex flex-col gap-2">
+              <Input
+                placeholder="Account Address"
+                value={approvalAddress}
+                onChange={(e) => setApprovalAddress(e.target.value)}
+              />
+              <Button
+                onClick={() => executeTask("approveTokens", { account: approvalAddress })}
+                disabled={!approvalAddress || loading === "approveTokens"}
+              >
+                Approve All Tokens
+              </Button>
             </div>
           </div>
         </Card>
