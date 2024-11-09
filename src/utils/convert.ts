@@ -101,7 +101,7 @@ export function sortAndPickCrates(
   fromAmount: TokenValue,
   deposits: DepositData[],
   toToken?: Token,
-) {
+): ConvertDetails {
   if (deposits.length === 0) throw new Error("No crates to pick and sort.");
   let sortedCrates: DepositData[];
 

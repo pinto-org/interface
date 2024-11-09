@@ -3,7 +3,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { PoolData } from "@/state/usePriceData";
 import { DepositCrateData, DepositData } from "@/utils/types";
-import { chunkArray } from "@/utils/utils";
+import { chunk } from "lodash";
 import { ContractFunctionParameters } from "viem";
 
 const MAX_PER_CALL = 20;
@@ -41,7 +41,7 @@ function constructAddLiquidityMulticall(well: PoolData, amountsIn: TokenValue[][
     });
   });
 
-  return chunkArray(contracts, MAX_PER_CALL);
+  return chunk(contracts, MAX_PER_CALL);
 }
 
 function constructRemoveLiquidityMulticall(well: PoolData, deposits: DepositCrateData[]) {
@@ -54,11 +54,11 @@ function constructRemoveLiquidityMulticall(well: PoolData, deposits: DepositCrat
       address,
       abi: BasinWellABI,
       functionName: "getRemoveLiquidityOut",
-      args: [BigInt(deposit.amount.blockchainString)],
+      args: [deposit.amount.toBigInt()],
     });
   });
 
-  return chunkArray(contracts, MAX_PER_CALL);
+  return [...chunk(contracts, MAX_PER_CALL)] as const;
 }
 
 const PipelineConvertUtils = {

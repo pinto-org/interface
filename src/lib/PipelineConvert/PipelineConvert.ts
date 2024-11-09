@@ -2,12 +2,13 @@ import { web3Config } from "@/Web3Provider";
 import { Clipboard } from "@/classes/Clipboard";
 import { TokenValue } from "@/classes/TokenValue";
 import { JUNCTION_ADDRESS, PIPELINE_ADDRESS } from "@/constants/address";
+import encoders from "@/encoders";
 import erc20Approve from "@/encoders/erc20Approve";
 import erc20Transfer from "@/encoders/erc20Transfer";
 import sync from "@/encoders/sync";
 import wellRemoveLiquidity from "@/encoders/wellRemoveLiquidity";
 import { PoolData } from "@/state/usePriceData";
-import { calculateConvert } from "@/utils/convert";
+import { ConvertDetails, calculateConvert, sortAndPickCrates } from "@/utils/convert";
 import { AdvancedPipeCall, DepositCrateData, DepositData, SiloTokenDataMap, Token } from "@/utils/types";
 import { HashString } from "@/utils/types.generic";
 import { getPintoIndex } from "@/utils/well";
@@ -16,6 +17,21 @@ import { Address, decodeFunctionResult } from "viem";
 import { ZeroX } from "../matcha/ZeroX";
 import { MinimumViableSwapQuote } from "../matcha/types";
 import Utils from "./utils";
+
+export interface PipelineConvertQuote {
+  encoded: ReturnType<typeof encoders.silo.pipelineConvert>;
+  convertDetails: ConvertDetails;
+  results: {
+    deposit: DepositCrateData;
+    advPipeCalls: AdvancedPipeCall[];
+    amountOut: TokenValue;
+  }[];
+  amountOut: TokenValue;
+  details: {
+    removeLiquidity: Awaited<ReturnType<typeof PipelineConvert.fetchEq2EqRemoveLiquidityOut>>;
+    addLiquidity: Awaited<ReturnType<typeof PipelineConvert.fetchEq2EqAddLiquidityOut>>;
+  };
+}
 
 /**
  * Utility class for constructing pipeline converts
@@ -42,7 +58,7 @@ export class PipelineConvert {
     swapSlippage: number,
     addLiquiditySlippage: number,
     siloTokenData: SiloTokenDataMap,
-  ) {
+  ): Promise<PipelineConvertQuote> {
     validateDeposits(deposits);
     validateAmountIn(amountIn);
     validateSlippage(swapSlippage);
@@ -58,14 +74,18 @@ export class PipelineConvert {
     const targetLP = targetWell.pool;
 
     const convertDetails = calculateConvert(sourceLP, targetLP, amountIn, deposits, siloTokenData);
+    // const convertDetails = sortAndPickCrates("withdraw", amountIn, deposits, targetLP);
 
     console.debug("[PipelineConvert] convertDetails: ", convertDetails);
 
     // Remove Liquidity
     const removeLPResult = await PipelineConvert.fetchEq2EqRemoveLiquidityOut(sourceWell, convertDetails.crates);
 
-    const sourceIndexes = getPintoIndex(sourceWell.pool);
-    const targetIndexes = getPintoIndex(sourceWell.pool);
+    const sourceIndexes = getPintoIndex(sourceWell);
+    const targetIndexes = getPintoIndex(sourceWell);
+
+    console.log("sourceIndexes: ", sourceIndexes);
+    console.log("targetIndexes: ", targetIndexes);
 
     if (!sourceIndexes || !targetIndexes) {
       throw new Error("Cannot determine token indexes");
@@ -75,13 +95,20 @@ export class PipelineConvert {
     const sellToken = sourceWell.tokens[sourceIndexes.nonPinto];
     const buyToken = targetWell.tokens[targetIndexes.nonPinto];
 
+    console.log("sellToken: ", sellToken);
+    console.log("buyToken: ", buyToken);
+
     const params = removeLPResult.amountsOut.map((amounts) => {
       const nonBeanAmount = amounts[sourceIndexes.nonPinto];
 
       return this.generateSwapQuoteParams(buyToken, sellToken, nonBeanAmount, swapSlippage);
     });
 
+    console.log("params: ", params);
+
     const swapQuotes = await ZeroX.quote(params);
+
+    console.log("swapQuotes: ", swapQuotes);
 
     // Add Liquidity
     const denominator = removeLPResult.summedAmounts[sourceIndexes.nonPinto];
@@ -100,7 +127,11 @@ export class PipelineConvert {
       return addLiquidityAmountsIn;
     });
 
+    console.log("depositAmountsIn: ", depositAmountsIn);
+
     const addLiquidityResults = await PipelineConvert.fetchEq2EqAddLiquidityOut(targetWell, depositAmountsIn);
+
+    console.log("addLiquidityResults: ", addLiquidityResults);
 
     const convertResults = convertDetails.crates.map((deposit, i) => {
       const amountOut = addLiquidityResults.amountsOut[i];
@@ -128,12 +159,31 @@ export class PipelineConvert {
       };
     });
 
+    console.log("convertResults: ", convertResults);
+    console.log("amountOut: ", addLiquidityResults.summedAmounts);
+
     console.debug("[PipelineConvert] convertResults: ", convertResults);
+
+    const encodePrepared = convertResults.map((result) => {
+      return {
+        stem: result.deposit.stem,
+        amount: result.deposit.amount,
+        advPipeCalls: result.advPipeCalls,
+      };
+    });
+
+    console.log("sourceWell.pool: ", sourceWell.pool);
+    console.log("targetWell.pool: ", targetWell.pool);
 
     return {
       convertDetails,
       results: convertResults,
+      encoded: encoders.silo.pipelineConvert(sourceWell.pool, targetWell.pool, encodePrepared),
       amountOut: addLiquidityResults.summedAmounts,
+      details: {
+        removeLiquidity: removeLPResult,
+        addLiquidity: addLiquidityResults,
+      },
     };
   }
 
@@ -152,7 +202,6 @@ export class PipelineConvert {
   static async fetchEq2EqRemoveLiquidityOut(well: PoolData, pickedDeposits: DepositCrateData[]) {
     const [token0, token1] = well.tokens;
     const multicallContracts = Utils.constructMulticall.removeLiquidityEqual(well, pickedDeposits);
-
     const response = await Promise.all(
       multicallContracts.map((contracts) => multicall(web3Config, { contracts, allowFailure: false })),
     );
@@ -168,7 +217,7 @@ export class PipelineConvert {
     );
 
     // prettier-ignore
-    console.debug("[PipelineConvert] fetchEq2EqRemoveLiquidityOut: ", {
+    console.log("[PipelineConvert] fetchEq2EqRemoveLiquidityOut: ", {
       well: well.pool.name,
       wellAddress: well.pool.address,
       deposits: pickedDeposits,
@@ -182,7 +231,7 @@ export class PipelineConvert {
     };
   }
 
-  private static async fetchEq2EqAddLiquidityOut(well: PoolData, amountsIn: TokenValue[][]) {
+  static async fetchEq2EqAddLiquidityOut(well: PoolData, amountsIn: TokenValue[][]) {
     const results = await Promise.all(
       Utils.constructMulticall
         .addLiquidity(well, amountsIn)
@@ -335,27 +384,17 @@ export class PipelineConvert {
       };
     },
     // Junction methods
-    // gte: (value: TokenValue, compareTo: TokenValue, clipboard: string = Clipboard.encode([])): AdvancedPipeStruct => {
-    //   return {
-    //     target: PipelineConvert.sdk.contracts.junction.address,
-    //     // value >= compare
-    //     callData: PipelineConvert.sdk.contracts.junction.interface.encodeFunctionData("gte", [
-    //       value.toBigNumber(),
-    //       compareTo.toBigNumber(),
-    //     ]),
-    //     clipboard,
-    //   };
-    // },
-    // check: (
-    //   // index of the math or logic operation in the pipe
-    //   index: number,
-    // ): AdvancedPipeCall => {
-    //   return {
-    //     target: JUNCTION_ADDRESS,
-    //     callData: PipelineConvert.sdk.contracts.junction.interface.encodeFunctionData("check", [false]),
-    //     clipboard: Clipboard.encodeSlot(index, 0, 0),
-    //   };
-    // },
+    gte: (value: TokenValue, compareTo: TokenValue, clipboard: HashString = Clipboard.encode([])): AdvancedPipeCall => {
+      return encoders.junction.gte(value, compareTo, clipboard);
+    },
+    check: (
+      // index of the math or logic operation in the pipe
+      index: number,
+      // copy slot
+      copySlot: number,
+    ): AdvancedPipeCall => {
+      return encoders.junction.check(index, copySlot);
+    },
   };
 
   static decodeStaticResults(results: string[]) {
@@ -381,6 +420,32 @@ export class PipelineConvert {
       throw e;
     }
   }
+
+  static getEmptyResult(): PipelineConvertQuote {
+    return {
+      convertDetails: {
+        amount: TokenValue.ZERO,
+        bdv: TokenValue.ZERO,
+        stalk: TokenValue.ZERO,
+        seeds: TokenValue.ZERO,
+        actions: [],
+        crates: [],
+      },
+      encoded: [],
+      results: [],
+      amountOut: TokenValue.ZERO,
+      details: {
+        removeLiquidity: {
+          amountsOut: [],
+          summedAmounts: [TokenValue.ZERO, TokenValue.ZERO],
+        },
+        addLiquidity: {
+          amountsOut: [],
+          summedAmounts: TokenValue.ZERO,
+        },
+      },
+    };
+  }
 }
 
 // validation
@@ -401,8 +466,6 @@ function validateSlippage(slippage: number) {
     throw new Error("Invalid slippage");
   }
 }
-
-export const useFarmerPipelineConvert = ({ siloToken }: { siloToken: Token }) => {};
 
 /**
  * Ask Ryan about checkbox for grown stalk penalization

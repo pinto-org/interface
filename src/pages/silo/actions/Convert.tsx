@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
 import VerticalAccordion from "@/components/ui/VerticalAccordion";
 import Warning from "@/components/ui/Warning";
+import { basinWellABI } from "@/constants/abi/basinWellABI";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { SEEDS, STALK } from "@/constants/internalTokens";
 import { PINTOcbBTC } from "@/constants/tokens";
@@ -20,24 +21,34 @@ import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useWell, useWellUnderlying } from "@/hooks/wells/wells";
 import { PipelineConvert as GenConvert } from "@/lib/PipelineConvert/PipelineConvert";
+import { ZeroX } from "@/lib/matcha/ZeroX";
 import ConvertProvider, { SiloTokenConvertPath, useConvertState } from "@/state/context/convert.provider";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { PoolData, usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
+import { bigIntGt } from "@/utils/bigint";
+import { useResolvedChainId } from "@/utils/chain";
 import { ConvertDetails, calculateConvert, calculateConvertData, sortAndPickCrates } from "@/utils/convert";
 import { formatter } from "@/utils/format";
 import { stringEq, stringToNumber } from "@/utils/string";
 import { getTokenIndex, isProtocolToken } from "@/utils/token";
 import { AddressMap, Token } from "@/utils/types";
 import { useDebounceValue, useDebouncedEffect } from "@/utils/useDebounce";
-import { cn, exists, noop } from "@/utils/utils";
+import { cn, noop } from "@/utils/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { useAccount, useReadContract, useWriteContract } from "wagmi";
+import {
+  useAccount,
+  useConfig,
+  useReadContract,
+  useSimulateContract,
+  useWaitForTransactionReceipt,
+  useWriteContract,
+} from "wagmi";
 
 interface BaseConvertProps {
   siloToken: Token;
@@ -49,8 +60,6 @@ interface ConvertProps extends BaseConvertProps {
   farmerDeposits: ReturnType<typeof useFarmerDepositedBalances>["data"];
   tokenPrices: ReturnType<typeof usePriceData>["tokenPrices"];
   siloTokenData: ReturnType<typeof useSiloData>["tokenData"];
-  sourceWell: PoolData | undefined;
-  targetWell: PoolData | undefined;
   onSuccess: () => void;
 }
 
@@ -62,6 +71,11 @@ const selectMaxConvert = (value: bigint, token: Token) => {
 
 const DEBOUNCE_MS = 150;
 
+interface DefaultConvertProps extends ConvertProps {
+  sourceWell: PoolData | undefined;
+  targetWell: PoolData | undefined;
+}
+
 function DefaultConvert({
   siloToken,
   farmerDepositMap,
@@ -72,7 +86,7 @@ function DefaultConvert({
   tokenPrices,
   siloTokenData,
   onSuccess,
-}: ConvertProps) {
+}: DefaultConvertProps) {
   const { targetToken } = useSiloConvertContext();
 
   const protocolAddress = useProtocolAddress();
@@ -95,9 +109,39 @@ function DefaultConvert({
     },
   });
 
+  const convertCapacity = useReadContract({
+    abi: diamondABI,
+    address: protocolAddress,
+    functionName: "getOverallConvertCapacity",
+    args: [],
+  });
+
+  const wellConvertCapacity = useReadContract({
+    abi: diamondABI,
+    address: protocolAddress,
+    functionName: "getWellConvertCapacity",
+    args: [siloToken.isMain ? targetToken.address : siloToken.address],
+  });
+
+  useEffect(() => {
+    if (convertCapacity.data) {
+      console.log("convertCapacity: ", TV.fromBlockchain(convertCapacity.data, 6).toNumber());
+    }
+  }, [convertCapacity.data]);
+
+  useEffect(() => {
+    if (wellConvertCapacity.data) {
+      console.log("wellConvertCapacity: ", TV.fromBlockchain(wellConvertCapacity.data, 6).toNumber());
+    }
+  }, [wellConvertCapacity.data]);
+
   const debouncedAmountIn = useDebounceValue(amountIn, DEBOUNCE_MS);
   const { data: minAmountOut = TV.ZERO, ...estimateQuery } = useReadSilo_GetAmountOut({
-    args: [siloToken.address, targetToken.address, TV.fromHuman(debouncedAmountIn || 0, siloToken.decimals).toBigInt()],
+    args: [
+      siloToken.address,
+      targetToken.address,
+      BigInt(TV.fromHuman(debouncedAmountIn || 0, siloToken.decimals).blockchainString),
+    ],
     query: {
       enabled: !!amountIn && Number(amountIn) > 0 && !!account.address,
       select: (estAmountOut) => {
@@ -106,16 +150,38 @@ function DefaultConvert({
     },
   });
 
-  const { writeContractAsync } = useWriteContract({
-    mutation: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: maxConvertQuery.queryKey });
-        queryClient.invalidateQueries({ queryKey: estimateQuery.queryKey });
-        onSuccess();
-        setAmountIn("0");
-      },
+  const { data: hash, writeContractAsync } = useWriteContract();
+
+  const {
+    data: receipt,
+    isSuccess: isConfirmed,
+    isLoading: isConfirming,
+    error: receiptError,
+    failureReason,
+  } = useWaitForTransactionReceipt({
+    hash,
+    query: {
+      enabled: !!hash,
     },
   });
+
+  useEffect(() => {
+    if (receipt && isConfirmed) {
+      toast.dismiss();
+      queryClient.invalidateQueries({ queryKey: maxConvertQuery.queryKey });
+      queryClient.invalidateQueries({ queryKey: estimateQuery.queryKey });
+      onSuccess();
+      setAmountIn("0");
+    }
+  }, [receipt, isConfirmed, failureReason, receiptError]);
+
+  useEffect(() => {
+    if (receiptError) {
+      toast.dismiss();
+      console.log("receipt: ", receiptError);
+      toast.error(receiptError instanceof Error ? receiptError?.message : "Transaction failed.");
+    }
+  }, [receiptError]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Reset amount in when target token changes
   useEffect(() => {
@@ -143,14 +209,13 @@ function DefaultConvert({
   );
 
   const onSubmit = async () => {
-    let loadingToast: string | number | undefined = undefined;
     try {
       const deposits = farmerDeposits.get(siloToken);
 
       if (!account.address) throw new Error("Signer required");
       if (!deposits) throw new Error("No deposits found");
 
-      loadingToast = toast.loading("Submitting transaction...");
+      toast.loading("Submitting transaction...");
 
       const depositCrates = sortAndPickCrates(
         "convert",
@@ -173,22 +238,15 @@ function DefaultConvert({
         throw new Error("Invalid convert data");
       }
 
-      const txn = await writeContractAsync({
+      await writeContractAsync({
         address: protocolAddress,
         abi: diamondABI,
         functionName: "convert",
         args: [convertData, stems, amounts],
       });
-
-      toast.dismiss(loadingToast);
-      toast.success("Successfully converted.");
-
-      return txn;
     } catch (e) {
       console.error(e);
-      if (exists(loadingToast)) {
-        toast.dismiss(loadingToast);
-      }
+      toast.dismiss();
       toast.error(e instanceof Error ? e.message : "Transaction failed.");
       return e;
     }
@@ -212,8 +270,8 @@ function DefaultConvert({
   };
 
   const warningMessageDecimals = maxConvert.gt(0) ? 2 : 6;
-  const canConvert = maxConvert.gt(0);
   const farmerConvertibleAmount = farmerDepositMap.get(siloToken);
+  const canConvert = maxConvert.gt(0);
   const canExceedMax = farmerConvertibleAmount?.gt(maxConvert);
 
   const disabled =
@@ -222,7 +280,8 @@ function DefaultConvert({
     maxConvert?.lte(0) ||
     minAmountOut.lte(0) ||
     !account.address ||
-    !convertData;
+    !convertData ||
+    isConfirming;
 
   return (
     <div className="flex flex-col gap-6">
@@ -234,7 +293,7 @@ function DefaultConvert({
           <SlippageButton slippage={slippage} setSlippage={setSlippage} />
         </div>
         <ComboInputField
-          disableInput={!canConvert || !account.address}
+          disableInput={!canConvert || !account.address || !farmerConvertibleAmount?.gt(0)}
           amount={amountIn}
           setToken={noop}
           customMaxAmount={maxConvert}
@@ -290,101 +349,13 @@ function DefaultConvert({
 
 // ------------------------------ PIPELINE CONVERT ------------------------------
 
-/**
- * Ask Ryan about checkbox for grown stalk penalization
- *
- * - calculateDeltaBFromReserves
- * args: [
- *  wellAddress,
- *  [reserves],
- *  lookback: 0
- * ]
- * 
- * to get max convertable amount, use proportional ratio for deltaB & amounts
- *
- * 1. get the amountout of non-bean token from well 1
- * 2. get quote for all of non bean from well 1 to non-bean well 2 to get rate
- * 
- * 3. fetch calculateDeltaBFromReserves() for well 1 & well 2
- * 
- * - deltaB1 before - deltaB1 after
- * - deltaB2 before - deltaB2 after
- * - total deltaB impact = deltaB1.t + deltaB2.t
- * 
- * convert capacities
- * - getWellConvertCapacity() for well 1 & well 2
- * - getOverallConvertCapacity() for overall
- * 
- * Only converts that convert towards peg use up convert capacity bucket
- * 
- * 
-   function calculateStalkPenalty(
-        DeltaBStorage memory dbs,
-        uint256 bdvConverted,
-        uint256 overallConvertCapacity,
-        address inputToken,
-        address outputToken
-    )
-        external
-        view
-        returns (
-            uint256 stalkPenaltyBdv,
-            uint256 overallConvertCapacityUsed,
-            uint256 inputTokenAmountUsed,
-            uint256 outputTokenAmountUsed
-        );
- * 
- */
-
-interface UseFarmerPipelineConvertProps {
-  siloToken: Token;
-  targetToken: Token;
-  pools: ReturnType<typeof usePriceData>["pools"];
-  farmerDeposits: ReturnType<typeof useFarmerDepositedBalances>["data"];
-  sourceWell: ReturnType<typeof useWell>;
-  targetWell: ReturnType<typeof useWell>;
-}
-
-const emptyResult = {
-  amountsOut: [],
-  summedAmounts: [TV.ZERO, TV.ZERO],
-};
-
-const useFarmerPipelineConvert = (
-  siloToken: Token,
-  targetToken: Token,
-  pools: ReturnType<typeof usePriceData>["pools"],
-  farmerDeposits: ReturnType<typeof useFarmerDepositedBalances>["data"],
-  sourceWell: ReturnType<typeof useWell>,
-  targetWell: ReturnType<typeof useWell>,
-) => {
-  const account = useAccount();
-  const silo = useSiloData();
-
-  const query = useQuery({
-    queryKey: ["farmer-pipeline-convert", account.address, siloToken.address, targetToken.address],
-    queryFn: async () => {
-      const tokenData = farmerDeposits.get(siloToken);
-      const allAmount = tokenData?.convertibleAmount ?? TV.ZERO;
-      const deposits = tokenData?.convertibleDeposits ?? [];
-
-      if (!sourceWell || !targetWell || allAmount.isZero || !deposits.length) {
-        return { ...emptyResult };
-      }
-
-      const convertDetails = calculateConvert(siloToken, targetToken, allAmount, deposits, silo.tokenData);
-      const amountsOut = await GenConvert.fetchEq2EqRemoveLiquidityOut(sourceWell, convertDetails.crates);
-      console.log("[useFarmerPipelineConvert] amountsOut: ", amountsOut);
-      return amountsOut;
-    },
-  });
-
-  return query;
-};
-
 interface PipelineConvertProps extends ConvertProps {
   pools: ReturnType<typeof usePriceData>["pools"];
+  sourceWell: PoolData;
+  targetWell: PoolData;
 }
+
+const genConvert = new GenConvert();
 
 const PipelineConvert = ({
   siloToken,
@@ -399,11 +370,168 @@ const PipelineConvert = ({
   onSuccess,
 }: PipelineConvertProps) => {
   const { targetToken } = useSiloConvertContext();
+  const account = useAccount();
+  const protocolAddress = useProtocolAddress();
 
   const [amountIn, setAmountIn] = useState("0");
   const [slippage, setSlippage] = useState(0.1);
+  const config = useConfig();
+  const chainId = useResolvedChainId();
 
-  // const maxConvOut = useFarmerPipelineConvert(siloToken, targetToken, pools, farmerDeposits, sourceWell, targetWell);
+  // siloToken: Token,
+  // targetToken: Token,
+  // pools: ReturnType<typeof usePriceData>["pools"],
+  // farmerDeposits: ReturnType<typeof useFarmerDepositedBalances>["data"],
+  // sourceWell: ReturnType<typeof useWell>,
+  // targetWell: ReturnType<typeof useWell>,
+
+  // useFarmerPipelineConvertMax(siloToken, targetToken, pools, farmerDeposits, sourceWell, targetWell);
+
+  const debouncedAmountIn = useDebounceValue(amountIn, DEBOUNCE_MS);
+
+  const convertibleDeposits = farmerDeposits?.get(siloToken)?.convertibleDeposits;
+
+  const convertCapacity = useReadContract({
+    abi: diamondABI,
+    address: protocolAddress,
+    functionName: "getOverallConvertCapacity",
+    args: [],
+  });
+
+  const sourceConvertCapacity = useReadContract({
+    abi: diamondABI,
+    address: protocolAddress,
+    functionName: "getWellConvertCapacity",
+    args: [siloToken.address],
+  });
+
+  const targetConvertCapacity = useReadContract({
+    abi: diamondABI,
+    address: protocolAddress,
+    functionName: "getWellConvertCapacity",
+    args: [targetToken.address],
+  });
+
+  // decodePipeStuff();`
+
+  useEffect(() => {
+    if (convertCapacity.data) {
+      console.log("convertCapacity: ", TV.fromBlockchain(convertCapacity.data, 6).toNumber());
+    }
+  }, [convertCapacity.data]);
+
+  useEffect(() => {
+    if (sourceConvertCapacity.data) {
+      console.log("sourceConvertCapacity: ", TV.fromBlockchain(sourceConvertCapacity.data, 6).toNumber());
+    }
+  }, [sourceConvertCapacity.data]);
+
+  useEffect(() => {
+    if (targetConvertCapacity.data) {
+      console.log("targetConvertCapacity: ", TV.fromBlockchain(targetConvertCapacity.data, 6).toNumber());
+    }
+  }, [targetConvertCapacity.data]);
+
+  // const maxConvOut = useFarmerPipelineConvertMax(siloToken, targetToken, pools, farmerDeposits, sourceWell, targetWell);
+  const { data, isLoading } = useQuery({
+    queryKey: ["pipeline-convert", chainId, account.address, siloToken.address, targetToken.address, debouncedAmountIn],
+    queryFn: async () => {
+      if (!account.address || !convertibleDeposits?.length || stringToNumber(debouncedAmountIn) <= 0) return;
+      if (!sourceWell || !targetWell) return;
+
+      console.log("famerDeposits: ", farmerDeposits);
+
+      console.log("convertibleDeposits: ", convertibleDeposits);
+
+      const res = await genConvert
+        .fetchEq2Eq(
+          sourceWell,
+          targetWell,
+          convertibleDeposits,
+          TV.fromHuman(debouncedAmountIn, siloToken.decimals),
+          slippage / 100,
+          slippage,
+          siloTokenData,
+        )
+        .catch((e) => {
+          console.error("Error fetching pipeline convert: ", e);
+          return GenConvert.getEmptyResult();
+        });
+
+      return res;
+    },
+    enabled: !!account.address && !!convertibleDeposits?.length && stringToNumber(debouncedAmountIn) > 0,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
+    staleTime: 1000 * 20, // 20 seconds
+  });
+
+  const simQuery2 = useSimulateContract({
+    address: protocolAddress,
+    abi: diamondABI,
+    functionName: "advancedFarm",
+    args: [data?.encoded ?? []],
+    chainId: 1337,
+    account: account.address,
+    blockTag: "latest",
+    query: {
+      enabled: !!data?.encoded.length && stringToNumber(debouncedAmountIn) > 0 && !!account.address,
+    },
+  });
+
+  useEffect(() => {
+    console.log("simQuery2 loading: ", simQuery2.isLoading);
+    console.log("simQuery2: ", simQuery2.data);
+    console.log("simQuery2 error: ", simQuery2.error);
+  }, [simQuery2.isLoading, simQuery2.data, simQuery2.error]);
+
+  // const simQuery = useQuery({
+  //   queryKey: ["pipe-convert-sim", data?.encoded],
+  //   queryFn: async () => {
+  //     if (!data?.encoded.length) return;
+  //     console.log("data: ", data);
+  //     console.log("simulating pipeline convert");
+  //     const res = await simulateContract(config.getClient(), {
+  //       address: protocolAddress,
+  //       abi: diamondABI,
+  //       functionName: "advancedFarm",
+  //       args: [data?.encoded],
+  //     }).catch((e) => {
+  //       console.error("Error simulating pipeline convert: ", e);
+  //       return 123;
+  //     });
+
+  //     console.log("simQuery res: ", res);
+
+  //     return res;
+  //   },
+  //   enabled: !!data?.encoded.length && stringToNumber(debouncedAmountIn) > 0 && data?.amountOut.gt(0),
+  // });
+
+  // const simulated = useSimulateContract({
+  //   address: protocolAddress,
+  //   abi: diamondABI,
+  //   functionName: "advancedFarm",
+  //   args: [args],
+  //   query: {
+  //     enabled: !!(data?.encoded.length || 0 > 1000),
+  //   },
+  // });
+
+  // decodePipeStuff();
+  // const simulated = useSimulateContract({
+  //   address: protocolAddress,
+  //   abi: diamondABI,
+  //   functionName: "advancedFarm",
+  //   args: [data?.encoded ?? []],
+  //   query: {
+  //     enabled: !!data?.encoded.length && stringToNumber(debouncedAmountIn) > 0 && data?.amountOut.gt(0),
+  //   },
+  // });
+
+  // console.log("loading: ", simulated.isLoading);
+  // console.log("simulated data: ", simulated.data);
+  // console.log("simulated.error: ", simulated.error);
 
   return (
     <div className="flex flex-col gap-4">
@@ -508,6 +636,7 @@ const SiloConvertProvider = ({ children, siloToken }: { children: React.ReactNod
 
 const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
   const { targetToken } = useSiloConvertContext();
+  const td = useTokenData();
 
   const farmerDepositsQuery = useFarmerDepositedBalances();
   const farmerDeposits = farmerDepositsQuery.data;
@@ -541,7 +670,7 @@ const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
     return map;
   }, [farmerDeposits]);
 
-  if (siloToken.isLP && targetToken.isLP) {
+  if (siloToken.isLP && targetToken.isLP && sourceWell && targetWell) {
     return (
       <PipelineConvert
         siloToken={siloToken}
@@ -885,3 +1014,39 @@ const ConvertSelectRow = ({ path, closeDialog }: { path: SiloTokenConvertPath; c
 };
 
 // ------------------------------ PIPELINE CONVERT ------------------------------
+
+const transferTokenABI = [
+  {
+    inputs: [
+      {
+        internalType: "contract IERC20",
+        name: "token",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "recipient",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        internalType: "enum LibTransfer.From",
+        name: "fromMode",
+        type: "uint8",
+      },
+      {
+        internalType: "enum LibTransfer.To",
+        name: "toMode",
+        type: "uint8",
+      },
+    ],
+    name: "transferToken",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+] as const;
