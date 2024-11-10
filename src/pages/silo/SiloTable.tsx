@@ -50,8 +50,12 @@ function SiloTable({ hovering }: { hovering: boolean }) {
             const germinatingBDV = data?.germinatingBDV;
             const totalBDV = depositedBDV?.add(germinatingBDV ?? TokenValue.ZERO);
 
+            const currentBDV = userData ? userData.currentBDV : TokenValue.ZERO;
+            const depositBDV = userData ? userData.depositBDV : TokenValue.ZERO;
+            const amount = userData ? userData.amount : TokenValue.ZERO;
+
             // const germinatingBDV = data?.
-            if (!data || !userData) return;
+            if (!data) return;
             return (
               <TableRow
                 className="h-[4.5rem] bg-white hover:bg-pinto-green-1/50 hover:cursor-pointer"
@@ -93,9 +97,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                     <div className="inline-flex items-center gap-1 text-pinto-green-4">
                       <UpArrowIcon color={"currentColor"} width={20} height={20} />
                       <IconImage src={token.logoURI} size={6} />
-                      <div className="font-[400] text-[1rem]">
-                        {formatter.number(userData?.amount.add(gains.beanGain))}
-                      </div>
+                      <div className="font-[400] text-[1rem]">{formatter.number(amount.add(gains.beanGain))}</div>
                       <span className="text-black opacity-70">{token.name}</span>
                     </div>
                   ) : (
@@ -114,25 +116,25 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                         <span className="inline-flex items-center gap-1 text-pinto-green-4">
                           <UpArrowIcon color={"currentColor"} width={20} height={20} />
                           <Text variant="sm" align="right" color="green4">
-                            {formatter.usd(userData.currentBDV.add(gains.bdvGain).mul(priceData.price))}
+                            {formatter.usd(currentBDV.add(gains.bdvGain).mul(priceData.price))}
                           </Text>
                         </span>
                         <div className="inline-flex items-center gap-1">
                           <img src={pdvIcon} alt={"pdv"} className="h-3 w-5" />
                           <Text variant="sm-thin" align="right" color="light">
-                            {formatter.pdv(userData.depositBDV.add(gains.bdvGain))}
+                            {formatter.pdv(depositBDV.add(gains.bdvGain))}
                           </Text>
                         </div>
                       </>
                     ) : (
                       <>
                         <Text variant="sm" align="right" className="opacity-70">
-                          {formatter.usd(userData.currentBDV.mul(priceData.price))}
+                          {formatter.usd(currentBDV.mul(priceData.price))}
                         </Text>
                         <div className="inline-flex items-center gap-1">
                           <img src={pdvIcon} alt={"pdv"} className="h-3 w-5" />
                           <Text variant="sm-thin" align="right" color="light">
-                            {formatter.pdv(userData.depositBDV)}
+                            {formatter.pdv(depositBDV)}
                           </Text>
                         </div>
                       </>
