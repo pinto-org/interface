@@ -17,6 +17,7 @@ interface SmartSubmitButton {
   submitFunction: () => void;
   submitButtonText?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 export default function SmartSubmitButton({
@@ -25,6 +26,7 @@ export default function SmartSubmitButton({
   submitFunction,
   submitButtonText,
   className,
+  disabled,
 }: SmartSubmitButton) {
   const account = useAccount();
   const chainId = useChainId();
@@ -91,8 +93,11 @@ export default function SmartSubmitButton({
   return (
     <Button
       type={"button"}
-      disabled={isConfirming}
-      className={`flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem] ${className}`}
+      disabled={disabled || isConfirming}
+      rounded="full"
+      size="xxl"
+      width="full"
+      className={`${className}`}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();

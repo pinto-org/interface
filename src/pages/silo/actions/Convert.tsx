@@ -13,28 +13,26 @@ import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
 import VerticalAccordion from "@/components/ui/VerticalAccordion";
 import Warning from "@/components/ui/Warning";
-import { basinWellABI } from "@/constants/abi/basinWellABI";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { SEEDS, STALK } from "@/constants/internalTokens";
-import { PINTO, PINTOCBBTC } from "@/constants/tokens";
+import { PINTO } from "@/constants/tokens";
 import { useReadSilo_GetAmountOut } from "@/generated/contractHooks";
 import useDelayedLoading from "@/hooks/display/useDelayedLoading";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
+import useTransaction from "@/hooks/useTransaction";
 import { useWell, useWellUnderlying } from "@/hooks/wells/wells";
 import {
   PipelineConvert as GenConvert,
   PipelineConvertDepositResult,
   PipelineConvertQuote,
 } from "@/lib/PipelineConvert/PipelineConvert";
-import { ZeroX } from "@/lib/matcha/ZeroX";
 import ConvertProvider, { SiloTokenConvertPath, useConvertState } from "@/state/context/convert.provider";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { PoolData, usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
-import { bigIntGt } from "@/utils/bigint";
 import { useResolvedChainId } from "@/utils/chain";
 import { ConvertDetails, calculateConvert, calculateConvertData, sortAndPickCrates } from "@/utils/convert";
 import { formatter } from "@/utils/format";
@@ -44,11 +42,9 @@ import { AddressMap, Token } from "@/utils/types";
 import { useDebounceValue, useDebouncedEffect } from "@/utils/useDebounce";
 import { cn, noop } from "@/utils/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { result } from "lodash";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { decodeFunctionData, decodeFunctionResult } from "viem";
 import { simulateContract } from "viem/actions";
 import { useAccount, useConfig, useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 
@@ -136,33 +132,15 @@ function DefaultConvert({
     }
   }, [estimateQuery.isFetching, setLoadingTrue, setLoadingFalse]);
 
-  const { data: hash, writeContractAsync } = useWriteContract();
-
-  const receipt = useWaitForTransactionReceipt({
-    hash,
-    pollingInterval: 2_000,
-    query: {
-      enabled: !!hash,
-    },
-  });
-
-  useEffect(() => {
-    if (receipt.isSuccess) {
+  const { writeContractAsync, isConfirming } = useTransaction({
+    successMessage: "Convert successful",
+    successCallback: () => {
       setAmountIn("0");
-      toast.dismiss();
       queryClient.invalidateQueries({ queryKey: maxConvertQuery.queryKey });
       queryClient.invalidateQueries({ queryKey: estimateQuery.queryKey });
       onSuccess();
-      toast.success("Convert successful");
-    }
-  }, [receipt.isSuccess]);
-
-  useEffect(() => {
-    if (receipt.error) {
-      toast.dismiss();
-      toast.error(receipt.error instanceof Error ? receipt.error?.message : "Transaction failed.");
-    }
-  }, [receipt.error]);
+    },
+  });
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Reset amount in when target token changes
   useEffect(() => {
@@ -189,7 +167,7 @@ function DefaultConvert({
     DEBOUNCE_MS,
   );
 
-  const onSubmit = async () => {
+  const onSubmit = useCallback(async () => {
     try {
       const deposits = farmerDeposits.get(siloToken);
 
@@ -206,7 +184,7 @@ function DefaultConvert({
 
       const depositCrates = sortAndPickCrates(
         "convert",
-        TV.fromHuman(amountIn, siloToken.decimals),
+        TV.fromHuman(debouncedAmountIn, siloToken.decimals),
         deposits.convertibleDeposits,
         targetToken,
       );
@@ -217,7 +195,7 @@ function DefaultConvert({
       const convertData = calculateConvertData(
         siloToken,
         targetToken,
-        TV.fromHuman(amountIn, siloToken.decimals),
+        TV.fromHuman(debouncedAmountIn, siloToken.decimals),
         minAmountOut,
       );
 
@@ -225,7 +203,7 @@ function DefaultConvert({
         throw new Error("Invalid convert data");
       }
 
-      await writeContractAsync({
+      return writeContractAsync({
         address: protocolAddress,
         abi: diamondABI,
         functionName: "convert",
@@ -233,11 +211,19 @@ function DefaultConvert({
       });
     } catch (e) {
       console.error(e);
-      toast.dismiss();
-      toast.error(e instanceof Error ? e.message : "Transaction failed.");
+      toast.error(e instanceof Error ? e.message : "Convert failed");
       return e;
     }
-  };
+  }, [
+    writeContractAsync,
+    protocolAddress,
+    account.address,
+    farmerDeposits,
+    siloToken,
+    targetToken,
+    debouncedAmountIn,
+    minAmountOut,
+  ]);
 
   const getConvertWarning = () => {
     const lowerOrGreater = targetToken.isLP ? "greater" : "less";
@@ -268,7 +254,7 @@ function DefaultConvert({
     minAmountOut?.lte(0) ||
     !account.address ||
     !convertData ||
-    receipt.isLoading ||
+    isConfirming ||
     amountIn !== debouncedAmountIn;
 
   return (
@@ -348,15 +334,15 @@ interface PipelineConvertProps extends ConvertProps {
   pools: ReturnType<typeof usePriceData>["pools"];
   sourceWell: PoolData;
   targetWell: PoolData;
+  genConvert: GenConvert;
 }
-
-const genConvert = new GenConvert();
 
 const PipelineConvert = ({
   siloToken,
   farmerDepositMap,
   farmerDeposits,
   queryClient,
+  genConvert,
   sourceWell,
   targetWell,
   tokenPrices,
@@ -391,8 +377,6 @@ const PipelineConvert = ({
 
       const res = await genConvert
         .fetchEq2Eq(
-          sourceWell,
-          targetWell,
           convertibleDeposits,
           TV.fromHuman(debouncedAmountIn, siloToken.decimals),
           slippage,
@@ -455,31 +439,15 @@ const PipelineConvert = ({
     targetStemTip: siloTokenData.get(targetToken)?.stemTip,
   });
 
-  const { data: hash, writeContractAsync } = useWriteContract();
-
-  const receipt = useWaitForTransactionReceipt({
-    hash,
-    pollingInterval: 2_000,
-    query: {
-      enabled: !!hash,
-    },
-  });
-
-  useEffect(() => {
-    if (receipt.isSuccess) {
+  const { writeContractAsync, isConfirming } = useTransaction({
+    successCallback: () => {
       setAmountIn("0");
       toast.dismiss();
       toast.success("Convert successful");
       onSuccess();
-    }
-  }, [receipt.isSuccess]);
-
-  useEffect(() => {
-    if (receipt.error) {
-      toast.dismiss();
-      toast.error(receipt.error instanceof Error ? receipt.error.message : "Transaction failed.");
-    }
-  }, [receipt.error]);
+    },
+    successMessage: "Convert successful",
+  });
 
   const onSubmit = async () => {
     try {
@@ -516,7 +484,7 @@ const PipelineConvert = ({
     !quote ||
     isLoading ||
     !convertData ||
-    receipt.isLoading ||
+    isConfirming ||
     convertData?.amountOut.lte(0) ||
     maxConvertible?.lt(stringToNumber(amountIn));
 
@@ -724,17 +692,24 @@ const SiloConvertProvider = ({ children, siloToken }: { children: React.ReactNod
 
 const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
   const { targetToken } = useSiloConvertContext();
+  const protocolAddress = useProtocolAddress();
 
   const farmerDepositsQuery = useFarmerDepositedBalances();
   const farmerDeposits = farmerDepositsQuery.data;
   const { tokenPrices, pools, queryKeys: priceQueryKeys } = usePriceData();
   const farmerSilo = useFarmerSilo(); // Fix me: inefficient fetching...
   const { tokenData: siloTokenData } = useSiloData();
+  const config = useConfig();
 
   const queryClient = useQueryClient();
 
   const sourceWell = useWell(siloToken);
   const targetWell = useWell(targetToken);
+
+  const genConvert = useMemo(() => {
+    if (!sourceWell || !targetWell) return;
+    return new GenConvert(protocolAddress, sourceWell, targetWell, config);
+  }, [protocolAddress, sourceWell, targetWell, config]);
 
   const onSuccess = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: farmerDepositsQuery.queryKey });
@@ -759,9 +734,10 @@ const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
 
   const bothLP = siloToken.isLP && targetToken.isLP;
 
-  if (bothLP && sourceWell && targetWell) {
+  if (bothLP && sourceWell && targetWell && genConvert) {
     return (
       <PipelineConvert
+        genConvert={genConvert}
         siloToken={siloToken}
         farmerDepositMap={depositMap}
         farmerDeposits={farmerDeposits}
