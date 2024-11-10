@@ -8,9 +8,7 @@ import StatPanel from "@/components/StatPanel";
 import TableRowConnector from "@/components/TableRowConnector";
 import { Button } from "@/components/ui/Button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
-import Text from "@/components/ui/Text";
 import useFarmerActions from "@/hooks/useFarmerActions";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useFieldData } from "@/state/useFieldData";
@@ -192,11 +190,15 @@ const Overview = () => {
             <HelperLink
               onClick={() => navigate(statPanelData.pods.mainValueChange?.lt(0) ? "/field/harvest" : "/field/sow")}
               text={statPanelData.pods.mainValueChange?.lt(0) ? "Harvest Pods" : "Sow (Lend) in the Field for Pods"}
-              className={`absolute -mt-[100px] ${statPanelData.pods.mainValueChange?.lt(0) ? "right-[280px]" : "right-[140px]"} z-20`}
+              className={`absolute -mt-[54px] ${statPanelData.pods.mainValueChange?.lt(0) ? "right-[378px]" : "right-[228px]"} z-20`}
               dataTarget="pods-stats"
               sourceAnchor="left"
               targetAnchor="right"
-              onMouseEnter={() => setHoveredButton("harvest")}
+              source90Degree={true}
+              perpLength={10}
+              onMouseEnter={() => {
+                setHoveredButton(statPanelData.pods.mainValueChange?.gte(0) ? "" : "harvest");
+              }}
               onMouseLeave={() => setHoveredButton("")}
             />
           )}
@@ -204,10 +206,12 @@ const Overview = () => {
             <HelperLink
               onClick={() => navigate("/silo")}
               text={"Make your first Deposit in the Silo for Stalk and Seed"}
-              className={`absolute -mt-[100px] left-[32px] z-20`}
+              className={`absolute -mt-[64px] left-[32px] z-20`}
               dataTarget="depositedValue-stats"
               sourceAnchor="right"
-              targetAnchor="left"
+              targetAnchor="top-left"
+              source90Degree={true}
+              perpLength={5}
             />
           )}
         </div>
@@ -230,7 +234,7 @@ const Overview = () => {
               My Pods
             </TabsTrigger>
           </TabsList>
-          {convertEnabled && convertFrom && convertTo && currentTab === "deposits" && (
+          {/*convertEnabled && convertFrom && convertTo && currentTab === "deposits" && (
             <HelperLink
               onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })}
               text="Convert Available"
@@ -241,16 +245,18 @@ const Overview = () => {
               onMouseEnter={() => setHoveredButton("convert")}
               onMouseLeave={() => setHoveredButton("")}
             />
-          )}
+          )*/}
           {currentTab === "deposits" && claimEnabled && (
             <ClaimRewards
               trigger={
                 <HelperLink
                   text="Claim Pinto, Stalk and Seed"
                   dataTarget="claimable-rewards"
-                  className="absolute right-[145px] -mt-[8px]"
-                  sourceAnchor="bottom"
+                  className="absolute right-[60px] mt-[60px]"
+                  sourceAnchor="left"
                   targetAnchor="right"
+                  source90Degree={true}
+                  perpLength={10}
                   onMouseEnter={() => setHoveredButton("claim")}
                   onMouseLeave={() => setHoveredButton("")}
                 />

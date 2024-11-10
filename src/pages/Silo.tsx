@@ -144,10 +144,12 @@ function Silo() {
                   trigger={
                     <HelperLink
                       text={"Claim Pinto, Stalk and Seed"}
-                      className={`absolute -mt-[380px] -right-[280px] z-20`}
+                      className={`absolute -mt-[390px] -right-[320px] z-20`}
                       dataTarget={`token-row-${mainToken.address}`}
                       sourceAnchor="left"
                       targetAnchor="right"
+                      source90Degree={true}
+                      perpLength={10}
                       onMouseEnter={() => setHoveredButton("claim")}
                       onMouseLeave={() => setHoveredButton("")}
                     />

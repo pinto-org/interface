@@ -25,6 +25,7 @@ const Navbar = () => {
   const account = useAccount();
   const farmerActions = useFarmerActions();
   const hasInternal = farmerActions.totalValue.wallet.internal.gt(0);
+  const hasFlood = farmerActions.floodAssets.enabled;
   const usdValue = farmerActions.totalValue.wallet.total;
 
   const isRoot = useMatch("/");
@@ -98,11 +99,15 @@ const Navbar = () => {
               text={
                 !account.address
                   ? "Connect your Wallet"
-                  : `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet ${hasInternal ? "+ Farm Balances" : "Balance"}`
+                  : hasFlood
+                    ? "Claim assets from Flood"
+                    : `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet ${hasInternal ? "+ Farm Balances" : "Balance"}`
               }
-              className="absolute top-[150px] right-[240px]"
-              sourceAnchor="top"
+              className={`absolute top-[150px] right-[340px]`}
+              sourceAnchor="right"
               targetAnchor="left"
+              source90Degree={true}
+              perpLength={5}
               dataTarget="wallet-button"
               fixed
             />
