@@ -2,7 +2,6 @@ import { TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import SlippageButton from "@/components/SlippageButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
-import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import deposit from "@/encoders/deposit";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
@@ -64,31 +63,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     successCallback: onSuccess,
   });
 
-  // const receipt = useWaitForTransactionReceipt({
-  //   hash,
-  //   pollingInterval: 2_000,
-  //   query: {
-  //     enabled: !!hash,
-  //   },
-  // });
-
-  // useEffect(() => {
-  //   if (receipt.isSuccess) {
-  //     setAmountIn("0");
-  //     toast.dismiss();
-  //     qc.invalidateQueries({ queryKey: depositedBalances.queryKey });
-  //     qc.invalidateQueries({ queryKey: farmerBalances.queryKey });
-  //     toast.success("Deposit successful");
-  //   }
-  // }, [receipt.isSuccess]);
-
-  // useEffect(() => {
-  //   if (receipt.error) {
-  //     toast.dismiss();
-  //     toast.error(receipt.error instanceof Error ? receipt.error?.message : "Transaction failed.");
-  //   }
-  // }, [receipt.error]);
-
   const swapData = useSwapEstimate(
     tokenIn,
     siloToken,
@@ -119,7 +93,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
       const callData = useSwap && swapData?.callData ? swapData.callData : [depositData];
       const value = tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n;
 
-      const depositAmount = useSwap ? formatter.token(swapData?.output, siloToken) : amountIn;
+      const depositAmount = formatter.token(useSwap ? swapData?.output : amountIn, siloToken);
 
       toast.loading(`Depositing ${depositAmount} ${tokenIn.symbol}...`);
 
@@ -131,7 +105,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
         value: value,
       });
     } catch (e: unknown) {
-      console.log("ERROR in submit!!!!!!!!! ");
       console.error(e);
       toast.dismiss();
       toast.error(e instanceof Error ? e.message : "Transaction failed.");

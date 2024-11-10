@@ -7,11 +7,14 @@ type TxnReceipt = UseWaitForTransactionReceiptReturnType["data"];
 
 export interface UseTransactionParams {
   /**
-   * message to be shown on error.
+   * message to be shown on error. Overrides the error message from the error returned txn submissions.
+   * If this is not provided, the error message from the error returned txn submissions will be used.
+   * If the error cannot be parsed, "Transaction failed" will be shown on the toast.
    */
   errorMessage?: string;
   /**
    * message to be shown on successful transaction.
+   * If this is not provided, "Transaction successful" will be shown on the toast.
    */
   successMessage?: string;
   /**
@@ -20,7 +23,8 @@ export interface UseTransactionParams {
   successCallback?: (receipt: TxnReceipt) => void;
   /**
    * callback to override the default error behavior.
-   * @returns true if the error toast was sent & this hook doesn't have to handle it.
+   * Use this parameter to handle errors in a custom way.
+   * @returns true if the error was handled & toast was sent. (This hook doesn't have to handle it.)
    */
   onError?: (e: any) => boolean | undefined;
 }
@@ -28,7 +32,7 @@ export interface UseTransactionParams {
 const sendErrorToast = (error: any, errMessage?: string) => {
   let errorMessage: string;
   if ("shortMessage" in error) {
-    errorMessage = error.shortMessage;
+    errorMessage = error.shortMessage; // baseError type from wagmi
   } else if (errMessage) {
     errorMessage = errMessage;
   } else if (error instanceof Error) {
@@ -46,13 +50,15 @@ export default function useTransaction({
   successCallback,
   onError,
 }: UseTransactionParams) {
-  // Set of hashes that are waiting for confirmation
+  // Set of hashes that are waiting for confirmation.
+  // Keep a reference of hashes to prevent toasts being shown more than once.
   const hashes = useRef<Set<HashString> | null>(null);
 
   // Initialize hook on mount
   useEffect(() => {
     hashes.current = new Set<HashString>();
     return () => {
+      // cleanup
       hashes.current = null;
     };
   }, []);
@@ -65,7 +71,7 @@ export default function useTransaction({
     mutation: {
       onError: (error) => {
         if (onError) return onError(error);
-        // if txn is has been prepared but not submitted, there will be no hash, so send it here.
+        // if txn is has been prepared but not submitted and it errors, there is no hash. Handle it here.
         sendErrorToast(error, errorMessage);
       },
     },
@@ -79,29 +85,24 @@ export default function useTransaction({
   // Add hash to cached hashes when a new hash is set.
   useEffect(() => {
     if (!hash || !hashes?.current || hashes.current.has(hash)) return;
-    console.log("adding hash...: ", hash);
     hashes.current.add(hash);
   }, [hash]);
 
-  // on Successful confirmation of transaction
-  // We don't include successCallback to avoid needing to wrap it in a useCallback before passing it in as a prop.
+  // On Successful confirmation of transaction
   // biome-ignore lint/correctness/useExhaustiveDependencies: Run only when hash changes or txn was successful.
   useEffect(() => {
     if (receipt.isSuccess && hash && hashes.current && hashes.current.has(hash)) {
-      console.log("SUCCESS: deleting hash...: ", hash);
       hashes.current.delete(hash);
-      console.log("SUCCESS: hashes: ", hashes.current);
       successCallback?.(receipt.data);
       toast.dismiss();
       toast.success(successMessage ?? "Transaction successful");
     }
   }, [receipt.isSuccess, hash]);
 
+  // on Error
   useEffect(() => {
     if (!receipt.error) return;
     if (hash && hashes.current && hashes.current.has(hash)) {
-      // console.log("ERROR: receipt.error: ", receipt.error);
-      console.log("ERROR: deleting hash...: ", hash);
       hashes.current.delete(hash);
       toast.dismiss();
 
