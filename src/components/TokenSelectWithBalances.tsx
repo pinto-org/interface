@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/Dialog";
+import { ScrollArea } from "./ui/ScrollArea";
 import { Separator } from "./ui/Separator";
 import Text from "./ui/Text";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
@@ -131,8 +132,8 @@ export default function TokenSelectWithBalances({
             <Separator className="w-[120%] -ml-6 mt-6" />
           </DialogTitle>
           <DialogDescription>
-            {account.address ? (
-              <div className="mt-2">
+            <ScrollArea className="h-[600px] -mx-4 mt-2">
+              <div className="mx-4">
                 <ToggleGroup
                   type="single"
                   value={_token.address}
@@ -177,9 +178,7 @@ export default function TokenSelectWithBalances({
                       })}
                 </ToggleGroup>
               </div>
-            ) : (
-              "Connect your wallet to see your Balances"
-            )}
+            </ScrollArea>
           </DialogDescription>
         </DialogHeader>
       </DialogContent>

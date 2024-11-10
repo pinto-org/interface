@@ -3,7 +3,7 @@ import { ZERO_ADDRESS } from "@/constants/address";
 import { beanstalkAbi, beanstalkAddress, useReadBeanstalk_GetAllBalances } from "@/generated/contractHooks";
 import { useChainAddress } from "@/utils/chain";
 import { Token } from "@/utils/types";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useAccount, useBalance, useReadContract } from "wagmi";
 import { useSunData } from "./useSunData";
 import useTokenData from "./useTokenData";
@@ -56,14 +56,22 @@ export function useFarmerBalances() {
       total: TokenValue.fromBlockchain(nativeBalance.data?.value || 0n, ETH.decimals),
     });
 
-    data?.forEach((tokenBal, index) => {
-      const token = balanceTokens[index];
-      balances.set(token, {
-        internal: TokenValue.fromBlockchain(tokenBal.internalBalance, token.decimals),
-        external: TokenValue.fromBlockchain(tokenBal.externalBalance, token.decimals),
-        total: TokenValue.fromBlockchain(tokenBal.totalBalance, token.decimals),
-      });
-    });
+    for (const [index, token] of balanceTokens.entries()) {
+      if (data?.[index]) {
+        const tokenBalance = data[index];
+        balances.set(token, {
+          internal: TokenValue.fromBlockchain(tokenBalance.internalBalance, token.decimals),
+          external: TokenValue.fromBlockchain(tokenBalance.externalBalance, token.decimals),
+          total: TokenValue.fromBlockchain(tokenBalance.totalBalance, token.decimals),
+        });
+      } else {
+        balances.set(token, {
+          internal: TokenValue.ZERO,
+          external: TokenValue.ZERO,
+          total: TokenValue.ZERO,
+        });
+      }
+    }
 
     return balances;
   }, [nativeBalance.data, data, balanceTokens, ETH]);

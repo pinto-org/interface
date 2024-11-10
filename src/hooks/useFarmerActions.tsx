@@ -732,7 +732,7 @@ export default function useFarmerActions(): FarmerActions {
       },
 
       floodAssets: {
-        enabled: floodAssets.length > 0,
+        enabled: totalFloodValue.gt(0),
         assets: floodAssets,
         totalValue: totalFloodValue,
       },
