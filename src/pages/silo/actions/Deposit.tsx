@@ -101,7 +101,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
         address: diamondAddress,
         abi: advFarmABI,
         functionName: "advancedFarm",
-        args: [[...callData]],
+        args: [callData],
         value: value,
       });
     } catch (e: unknown) {
