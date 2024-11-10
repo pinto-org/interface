@@ -2,27 +2,29 @@ import { TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import SlippageButton from "@/components/SlippageButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
-import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import deposit from "@/encoders/deposit";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useSwapEstimate from "@/hooks/useSwapEstimate";
+import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { PoolData, usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
-import { stringEq } from "@/utils/string";
+import { formatter } from "@/utils/format";
+import { stringEq, stringToNumber } from "@/utils/string";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useWriteContract } from "wagmi";
+import { useAccount } from "wagmi";
 
 function Deposit({ siloToken }: { siloToken: Token }) {
   // silo - deposit
   const diamondAddress = useProtocolAddress();
   const farmerBalances = useFarmerBalances();
   const depositedBalances = useFarmerDepositedBalances();
+  const account = useAccount();
 
   const pools = usePriceData().pools;
   const mainToken = useTokenData().mainToken;
@@ -34,16 +36,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const [slippage, setSlippage] = useState(0.5);
 
   const qc = useQueryClient();
-
-  const { writeContractAsync } = useWriteContract({
-    mutation: {
-      onSuccess: () => {
-        qc.invalidateQueries({ queryKey: depositedBalances.queryKey });
-        qc.invalidateQueries({ queryKey: farmerBalances.queryKey });
-        setAmountIn("0");
-      },
-    },
-  });
 
   const useSwap = !(tokenIn.address.toLowerCase() === siloToken.address.toLowerCase());
 
@@ -60,6 +52,17 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     }
   }, [mainToken, pools, siloToken]);
 
+  const onSuccess = useCallback(() => {
+    setAmountIn("0");
+    qc.invalidateQueries({ queryKey: depositedBalances.queryKey });
+    qc.invalidateQueries({ queryKey: farmerBalances.queryKey });
+  }, [qc, depositedBalances, farmerBalances]);
+
+  const { isConfirming, writeContractAsync } = useTransaction({
+    successMessage: "Deposit successful",
+    successCallback: onSuccess,
+  });
+
   const swapData = useSwapEstimate(
     tokenIn,
     siloToken,
@@ -73,8 +76,10 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   );
 
   const onSubmit = async () => {
-    const loadingToast = toast.loading("Submitting transaction...");
     try {
+      if (!account.address) {
+        throw new Error("No account connected");
+      }
       const depositData = deposit(
         siloToken,
         useSwap ? swapData?.output : TokenValue.fromHuman(amountIn, tokenIn.decimals),
@@ -86,27 +91,28 @@ function Deposit({ siloToken }: { siloToken: Token }) {
       }
 
       const callData = useSwap && swapData?.callData ? swapData.callData : [depositData];
-
       const value = tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n;
 
-      const txn = await writeContractAsync({
+      const depositAmount = formatter.token(useSwap ? swapData?.output : amountIn, siloToken);
+
+      toast.loading(`Depositing ${depositAmount} ${tokenIn.symbol}...`);
+
+      return writeContractAsync({
         address: diamondAddress,
         abi: advFarmABI,
         functionName: "advancedFarm",
         args: [callData],
         value: value,
       });
-
-      toast.dismiss(loadingToast);
-      toast.success("Successfully deposited.");
-
-      return txn;
     } catch (e: unknown) {
       console.error(e);
-      toast.dismiss(loadingToast);
+      toast.dismiss();
       toast.error(e instanceof Error ? e.message : "Transaction failed.");
+      throw e;
     }
   };
+
+  const disabled = !stringToNumber(amountIn) || !account.address || isConfirming;
 
   return (
     <div className="flex flex-col gap-4">
@@ -125,7 +131,13 @@ function Deposit({ siloToken }: { siloToken: Token }) {
         />
       </div>
       <div className="flex flex-row gap-2">
-        <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit} submitButtonText="Deposit" />
+        <SmartSubmitButton
+          token={tokenIn}
+          disabled={disabled}
+          amount={amountIn}
+          submitFunction={onSubmit}
+          submitButtonText="Deposit"
+        />
       </div>
     </div>
   );
