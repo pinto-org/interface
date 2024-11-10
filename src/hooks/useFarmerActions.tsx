@@ -39,7 +39,7 @@ interface ConvertibleDeposit {
 
 interface UpdateOutput extends ActionOutput {
   currentBDV: TokenValue;
-  newBDV: TokenValue;
+  depositBDV: TokenValue;
   bdvIncrease: TokenValue;
   stalkFromBDVIncrease: TokenValue;
   seedsFromBDVIncrease: TokenValue;
@@ -382,12 +382,14 @@ function calculateConvertibleDeposits(
 
 // Helper function to calculate update gains for a token's deposits
 function calculateUpdateGains(depositData: TokenDepositData, siloTokenData: SiloTokenData): UpdateOutput {
-  // Get current total BDV of deposits
+  // Get deposit BDV
+  const depositBDV = depositData.depositBDV;
+
+  // Get new current BDV based on current token BDV
   const currentBDV = depositData.currentBDV;
-  // Get new potential BDV based on current token BDV
-  const newBDV = depositData.amount.mul(siloTokenData.tokenBDV);
+
   // Calculate BDV increase
-  const bdvIncrease = newBDV.sub(currentBDV);
+  const bdvIncrease = currentBDV.sub(depositBDV);
 
   // Calculate stalk gains from BDV increase
   const stalkFromBDVIncrease = bdvIncrease.mul(siloTokenData.tokenSettings.stalkIssuedPerBdv);
@@ -400,8 +402,8 @@ function calculateUpdateGains(depositData: TokenDepositData, siloTokenData: Silo
     stalkGain: stalkFromBDVIncrease,
     seedGain: seedsFromBDVIncrease,
     podGain: TokenValue.ZERO, // No pod changes from updates
+    depositBDV,
     currentBDV,
-    newBDV,
     bdvIncrease,
     stalkFromBDVIncrease,
     seedsFromBDVIncrease,
@@ -620,8 +622,8 @@ export default function useFarmerActions(): FarmerActions {
       // Get update gains for this token
       const updateGains = calculateUpdateGains(depositData, siloTokenData);
 
-      // Skip if no gains possible
-      if (!updateGains.bdvGain.gt(0)) return;
+      // Skip if bdvGain is less than minimum threshold (0.000001)
+      if (!updateGains.bdvGain.gt(0.000001)) return;
 
       hasUpdatableDeposits = true;
 

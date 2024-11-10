@@ -1,4 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
+import ClaimRewards from "@/components/ClaimRewards";
 import EmptyTable from "@/components/EmptyTable";
 import FarmerDepositsTable from "@/components/FarmerDepositsTable";
 import HelperLink from "@/components/HelperLink";
@@ -242,15 +243,18 @@ const Overview = () => {
             />
           )}
           {currentTab === "deposits" && claimEnabled && (
-            <HelperLink
-              onClick={() => console.log("yey!")}
-              text="Claim Pinto, Stalk and Seed"
-              dataTarget="claimable-rewards"
-              className="absolute right-[145px] -mt-[8px]"
-              sourceAnchor="bottom"
-              targetAnchor="right"
-              onMouseEnter={() => setHoveredButton("claim")}
-              onMouseLeave={() => setHoveredButton("")}
+            <ClaimRewards
+              trigger={
+                <HelperLink
+                  text="Claim Pinto, Stalk and Seed"
+                  dataTarget="claimable-rewards"
+                  className="absolute right-[145px] -mt-[8px]"
+                  sourceAnchor="bottom"
+                  targetAnchor="right"
+                  onMouseEnter={() => setHoveredButton("claim")}
+                  onMouseLeave={() => setHoveredButton("")}
+                />
+              }
             />
           )}
           <TabsContent className="mt-8" value="deposits">

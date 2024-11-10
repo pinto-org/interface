@@ -1,4 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
+import ClaimRewards from "@/components/ClaimRewards";
 import HelperLink from "@/components/HelperLink";
 import StatPanel from "@/components/StatPanel";
 import TableRowConnector from "@/components/TableRowConnector";
@@ -139,15 +140,18 @@ function Silo() {
                 />
               )}
               {claimEnabled && (
-                <HelperLink
-                  onClick={() => console.log("claim!")}
-                  text={"Claim Pinto, Stalk and Seed"}
-                  className={`absolute -mt-[380px] -right-[280px] z-20`}
-                  dataTarget={`token-row-${mainToken.address}`}
-                  sourceAnchor="left"
-                  targetAnchor="right"
-                  onMouseEnter={() => setHoveredButton("claim")}
-                  onMouseLeave={() => setHoveredButton("")}
+                <ClaimRewards
+                  trigger={
+                    <HelperLink
+                      text={"Claim Pinto, Stalk and Seed"}
+                      className={`absolute -mt-[380px] -right-[280px] z-20`}
+                      dataTarget={`token-row-${mainToken.address}`}
+                      sourceAnchor="left"
+                      targetAnchor="right"
+                      onMouseEnter={() => setHoveredButton("claim")}
+                      onMouseLeave={() => setHoveredButton("")}
+                    />
+                  }
                 />
               )}
               {!convertEnabled && bestDeposit && (

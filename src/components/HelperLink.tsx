@@ -5,7 +5,7 @@ import HelperLinkLine from "./HelperLinkLine";
 import Text from "./ui/Text";
 
 interface HelperLinkProps extends HTMLAttributes<HTMLDivElement> {
-  onClick: () => void;
+  onClick?: () => void;
   // Allow either text string or a React component
   text?: string;
   component?: ReactNode;

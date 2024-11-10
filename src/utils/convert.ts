@@ -1,6 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { BEAN, SEEDS, STALK } from "@/constants/internalTokens";
 import { encodeAbiParameters } from "viem";
+import { stringEq } from "./string";
 import { DepositCrateData, DepositData, SiloTokenDataMap, Token } from "./types";
 
 export enum ConvertKind {
@@ -188,6 +189,16 @@ export function calculateConvertData(fromToken: Token, toToken: Token, amountIn:
         { type: "address", name: "pool" },
       ],
       [BigInt(ConvertKind.WELL_LP_TO_BEANS), amountIn.toBigInt(), minAmountOut.toBigInt(), fromToken.address],
+    );
+    return encoded;
+  } else if (stringEq(fromToken.address, toToken.address)) {
+    const encoded = encodeAbiParameters(
+      [
+        { type: "uint256", name: "convertKind" },
+        { type: "uint256", name: "amount" },
+        { type: "address", name: "token" },
+      ],
+      [BigInt(ConvertKind.LAMBDA_LAMBDA), amountIn.toBigInt(), fromToken.address],
     );
     return encoded;
   } else {
