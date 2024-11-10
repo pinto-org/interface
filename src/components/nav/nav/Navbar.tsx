@@ -1,4 +1,5 @@
 import HelperLink from "@/components/HelperLink";
+import { ScrollHideComponent } from "@/components/ScrollHideComponent";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import { formatter } from "@/utils/format";
 import { cn } from "@/utils/utils";
@@ -25,6 +26,7 @@ const Navbar = () => {
   const account = useAccount();
   const farmerActions = useFarmerActions();
   const hasInternal = farmerActions.totalValue.wallet.internal.gt(0);
+  const hasFlood = farmerActions.floodAssets.enabled;
   const usdValue = farmerActions.totalValue.wallet.total;
 
   const isRoot = useMatch("/");
@@ -91,21 +93,27 @@ const Navbar = () => {
             <Backdrop active={openBackdrop} onClick={closePanel} transitionDuration={DURATION} />
           </div>
           {!openPanel && showHelperLink && (
-            <HelperLink
-              onClick={() => {
-                walletButton.current?.click();
-              }}
-              text={
-                !account.address
-                  ? "Connect your Wallet"
-                  : `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet ${hasInternal ? "+ Farm Balances" : "Balance"}`
-              }
-              className="absolute top-[150px] right-[240px]"
-              sourceAnchor="top"
-              targetAnchor="left"
-              dataTarget="wallet-button"
-              fixed
-            />
+            <ScrollHideComponent>
+              <HelperLink
+                onClick={() => {
+                  walletButton.current?.click();
+                }}
+                text={
+                  !account.address
+                    ? "Connect your Wallet"
+                    : hasFlood
+                      ? "Claim assets from Flood"
+                      : `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet ${hasInternal ? "+ Farm Balances" : "Balance"}`
+                }
+                className={`absolute top-[150px] right-[340px]`}
+                sourceAnchor="right"
+                targetAnchor="left"
+                source90Degree={true}
+                perpLength={5}
+                dataTarget="wallet-button"
+                fixed
+              />
+            </ScrollHideComponent>
           )}
         </div>
       </div>

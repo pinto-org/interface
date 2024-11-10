@@ -1,25 +1,40 @@
 import { generateID } from "@/utils/utils";
-import { color } from "framer-motion";
 import { HTMLAttributes, ReactNode, useState } from "react";
 import HelperLinkLine from "./HelperLinkLine";
 import Text from "./ui/Text";
 
+type AnchorPoint =
+  | "top"
+  | "right"
+  | "bottom"
+  | "left"
+  | "center"
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right";
+
 interface HelperLinkProps extends HTMLAttributes<HTMLDivElement> {
-  onClick: () => void;
-  // Allow either text string or a React component
+  onClick?: () => void;
   text?: string;
   component?: ReactNode;
-  dataTarget: string; //  Must be supplied
+  dataTarget: string;
   hoverColor?: string;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
-  sourceAnchor?: "top" | "right" | "bottom" | "left" | "center";
-  targetAnchor?: "top" | "right" | "bottom" | "left" | "center";
+  sourceAnchor?: AnchorPoint;
+  targetAnchor?: AnchorPoint;
   strokeWidth?: number;
   dotted?: boolean;
   sourceOffset?: number;
   targetOffset?: number;
   fixed?: boolean;
+  straightLength?: number;
+  source90Degree?: boolean;
+  target90Degree?: boolean;
+  perpLength?: number;
+  lineAngle?: number;
+  componentRotateWithLine?: boolean;
 }
 
 export default function HelperLink({
@@ -37,6 +52,12 @@ export default function HelperLink({
   sourceOffset = 8,
   targetOffset = 8,
   fixed = false,
+  straightLength = 20,
+  source90Degree = false,
+  target90Degree = false,
+  perpLength = 20,
+  lineAngle,
+  componentRotateWithLine = false,
   ...props
 }: HelperLinkProps) {
   const [isHovered, setIsHovered] = useState(false);
@@ -98,6 +119,10 @@ export default function HelperLink({
         sourceOffset={sourceOffset}
         targetOffset={targetOffset}
         fixed={fixed}
+        straightLength={straightLength}
+        source90Degree={source90Degree}
+        target90Degree={target90Degree}
+        perpLength={perpLength}
       />
     </>
   );

@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
-import { ReactNode, RefObject, useEffect, useRef, useState } from "react";
-import { ChevronLeftIcon, ChevronRightIcon } from "./Icons";
+import { ReactNode, useEffect, useRef, useState } from "react";
+import { ChevronRightIcon } from "./Icons";
 
 interface TableRowConnectorProps {
-  fromTarget: string;
+  fromTarget?: string;
   toTarget: string;
   color?: string;
   extensionLength?: number;
@@ -19,6 +19,7 @@ interface TableRowConnectorProps {
   componentOffsetHeight?: number;
   showArrow?: boolean;
   animationDuration?: number;
+  mode?: "connect" | "singleLine";
 }
 
 interface Dimensions {
@@ -43,6 +44,7 @@ const TableRowConnector = ({
   component,
   componentOffset = 16,
   componentOffsetHeight,
+  mode = "connect",
 }: TableRowConnectorProps) => {
   const [path, setPath] = useState<{ startCap: string; line: string; endCap: string; fullPath: string }>({
     startCap: "",
@@ -57,38 +59,77 @@ const TableRowConnector = ({
     height: 0,
   });
 
-  const componentRef = useRef<HTMLDivElement>(null);
+  const componentRef = useRef<HTMLDivElement | null>(null);
   const [componentWidth, setComponentWidth] = useState(0);
-
   const [isUpward, setIsUpward] = useState(false);
 
   useEffect(() => {
-    if (componentRef.current) {
+    const currentRef = componentRef.current;
+    if (currentRef) {
       const observer = new ResizeObserver((entries) => {
         setComponentWidth(entries[0].contentRect.width);
       });
-      observer.observe(componentRef.current);
+      observer.observe(currentRef);
       return () => observer.disconnect();
     }
   }, [component]);
 
   useEffect(() => {
     function updateConnector() {
-      const sourceRow = document.querySelector(`[data-action-target="${fromTarget}"]`);
       const targetRow = document.querySelector(`[data-action-target="${toTarget}"]`);
-      if (!sourceRow || !targetRow) return;
+      if (!targetRow) return;
 
-      const tableContainer = sourceRow.closest(".relative");
+      const tableContainer = targetRow.closest(".relative");
       if (!tableContainer) return;
 
       const containerRect = tableContainer.getBoundingClientRect();
-      const sourceRect = sourceRow.getBoundingClientRect();
       const targetRect = targetRow.getBoundingClientRect();
 
+      if (mode === "singleLine") {
+        const targetY = targetRect.top - containerRect.top + targetRect.height / 2;
+        const targetX = targetRect.left - containerRect.left - offset;
+        const startX = targetX - extensionLength;
+
+        // Match dimensions with connect mode
+        setDimensions({
+          top: targetY - capHeight / 2,
+          left: startX,
+          width: extensionLength + componentOffset,
+          height: capHeight,
+        });
+
+        const pathEndX = extensionLength - offset;
+
+        // Draw the horizontal line from left to right
+        const line = `M 0 ${capHeight / 2} L ${pathEndX} ${capHeight / 2}`;
+
+        // Match endcap dimensions with connect mode
+        const endCap = `
+          M ${pathEndX} ${capHeight / 2 - capHeight / 2}
+          L ${pathEndX} ${capHeight / 2 + capHeight / 2}
+        `;
+
+        // Full path for animation
+        const fullPath = `M 0 ${capHeight / 2} L ${pathEndX} ${capHeight / 2}`;
+
+        setPath({
+          startCap: "",
+          line,
+          endCap,
+          fullPath,
+        });
+
+        return;
+      }
+
+      // Original connect mode logic
+      const sourceRow = document.querySelector(`[data-action-target="${fromTarget}"]`);
+      if (!sourceRow) return;
+
+      const sourceRect = sourceRow.getBoundingClientRect();
       const sourceY = sourceRect.top - containerRect.top + sourceRect.height / 2;
       const targetY = targetRect.top - containerRect.top + targetRect.height / 2;
 
-      // Determine if the line is pointing upward
       setIsUpward(targetY < sourceY);
 
       const startX = sourceRect.left - containerRect.left - offset;
@@ -105,7 +146,6 @@ const TableRowConnector = ({
       });
 
       const pathStartX = extensionLength - offset;
-      const pathEndX = offset;
       const pathStartY = sourceY - top;
       const pathEndY = targetY - top;
 
@@ -114,21 +154,55 @@ const TableRowConnector = ({
         L ${pathStartX} ${pathStartY + capHeight / 2}
       `;
 
-      const line = `M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathStartY} L ${pathEndX} ${pathEndY} L ${pathStartX} ${pathEndY}`;
+      const line = `M ${pathStartX} ${pathStartY} L ${offset} ${pathStartY} L ${offset} ${pathEndY} L ${pathStartX} ${pathEndY}`;
 
       const endCap = `
         M ${pathStartX} ${pathEndY - capHeight / 2}
         L ${pathStartX} ${pathEndY + capHeight / 2}
       `;
 
-      // Create full path for arrow animation
-      const fullPath = `M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathStartY} L ${pathEndX} ${pathEndY} L ${pathStartX} ${pathEndY}`;
+      const fullPath = `M ${pathStartX} ${pathStartY} L ${offset} ${pathStartY} L ${offset} ${pathEndY} L ${pathStartX} ${pathEndY}`;
 
       setPath({ startCap, line, endCap, fullPath });
     }
 
     updateConnector();
-  }, [fromTarget, toTarget, extensionLength, capHeight, offset, componentWidth, component, componentOffset]);
+
+    const resizeObserver = new ResizeObserver(updateConnector);
+    const targetElement = document.querySelector(`[data-action-target="${toTarget}"]`);
+
+    if (targetElement) {
+      resizeObserver.observe(targetElement);
+    }
+
+    if (mode === "connect" && fromTarget) {
+      const sourceElement = document.querySelector(`[data-action-target="${fromTarget}"]`);
+      if (sourceElement) {
+        resizeObserver.observe(sourceElement);
+      }
+    }
+
+    return () => resizeObserver.disconnect();
+  }, [fromTarget, toTarget, extensionLength, capHeight, offset, componentWidth, component, componentOffset, mode]);
+
+  // Handle component mounting to the DOM
+  const ComponentWrapper = component ? (
+    <div
+      ref={componentRef}
+      style={{
+        position: "absolute",
+        top:
+          dimensions.top +
+          dimensions.height / 2 -
+          (componentOffsetHeight || (componentRef.current?.offsetHeight ?? 0)) / 2,
+        left: dimensions.left - (componentRef.current?.offsetWidth ?? 0) - componentOffset,
+        zIndex: 11,
+        pointerEvents: "auto",
+      }}
+    >
+      {component}
+    </div>
+  ) : null;
 
   return (
     <div
@@ -141,25 +215,9 @@ const TableRowConnector = ({
         pointerEvents: "none",
         zIndex: 10,
       }}
-      className={"contrast-0 opacity-50 hover:contrast-100 hover:opacity-100 transition-all"}
+      className="contrast-0 opacity-50 hover:contrast-100 hover:opacity-100 transition-all"
     >
-      {component && (
-        <div
-          ref={componentRef}
-          style={{
-            position: "absolute",
-            top:
-              dimensions.top +
-              dimensions.height / 2 -
-              (componentOffsetHeight || componentRef.current?.offsetHeight || 0) / 2,
-            left: dimensions.left - (componentRef.current?.offsetWidth || 0) - componentOffset,
-            zIndex: 11,
-            pointerEvents: "auto",
-          }}
-        >
-          {component}
-        </div>
-      )}
+      {ComponentWrapper}
       <svg
         style={{
           position: "absolute",
@@ -176,15 +234,19 @@ const TableRowConnector = ({
             <stop offset="75%" stopColor={endCapColor || color} />
           </linearGradient>
         </defs>
-        <path d={path.startCap} stroke={startCapColor || color} strokeWidth={strokeWidth} fill="none" />
-        <path
-          d={path.line}
-          stroke={"url('#myGradient')"}
-          strokeWidth={strokeWidth}
-          fill="none"
-          strokeDasharray={dotted ? dashArray : undefined}
-        />
-        <path d={path.endCap} stroke={endCapColor || color} strokeWidth={strokeWidth} fill="none" />
+        {mode === "connect" && path.startCap && (
+          <path d={path.startCap} stroke={startCapColor || color} strokeWidth={strokeWidth} fill="none" />
+        )}
+        {path.line && (
+          <path
+            d={path.line}
+            stroke={mode === "connect" ? "url('#myGradient')" : endCapColor || color}
+            strokeWidth={strokeWidth}
+            fill="none"
+            strokeDasharray={dotted ? dashArray : undefined}
+          />
+        )}
+        {path.endCap && <path d={path.endCap} stroke={endCapColor || color} strokeWidth={strokeWidth} fill="none" />}
       </svg>
       <div
         style={{
@@ -196,13 +258,13 @@ const TableRowConnector = ({
         }}
       >
         <motion.div
-          initial={{ offsetDistance: "0%", color: startCapColor }}
+          initial={{ offsetDistance: "0%", color: mode === "connect" ? startCapColor : endCapColor }}
           animate={{
             offsetDistance: "100%",
             color: endCapColor,
           }}
           transition={{
-            duration: 4,
+            duration: mode === "connect" ? 4 : 2,
             ease: "linear",
             repeat: Infinity,
           }}

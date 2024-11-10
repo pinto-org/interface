@@ -1,6 +1,15 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 
-type AnchorPoint = "top" | "right" | "bottom" | "left" | "center";
+type AnchorPoint =
+  | "top"
+  | "right"
+  | "bottom"
+  | "left"
+  | "center"
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right";
 
 interface HelperLinkLineProps {
   fromTarget: string;
@@ -15,7 +24,13 @@ interface HelperLinkLineProps {
   sourceOffset?: number;
   targetOffset?: number;
   isHovered?: boolean;
-  fixed?: boolean; // New prop to support fixed positioning
+  fixed?: boolean;
+  straightLength?: number;
+  source90Degree?: boolean;
+  target90Degree?: boolean;
+  perpLength?: number;
+  lineAngle?: number; // Angle in degrees for the entire line
+  componentRotateWithLine?: boolean; // Whether the component should rotate with the line
 }
 
 interface Dimensions {
@@ -23,6 +38,11 @@ interface Dimensions {
   left: number;
   width: number;
   height: number;
+}
+
+interface Point {
+  x: number;
+  y: number;
 }
 
 const HelperLinkLine = ({
@@ -38,7 +58,11 @@ const HelperLinkLine = ({
   sourceOffset = 0,
   targetOffset = 0,
   isHovered = false,
-  fixed = false, // Default to false for backward compatibility
+  fixed = false,
+  straightLength = 20,
+  source90Degree = false,
+  target90Degree = false,
+  perpLength = 20,
 }: HelperLinkLineProps) => {
   const [path, setPath] = useState<string>("");
   const [dimensions, setDimensions] = useState<Dimensions>({
@@ -48,55 +72,153 @@ const HelperLinkLine = ({
     height: 0,
   });
 
-  const componentRef = useRef<HTMLDivElement>(null);
+  const componentRef = useRef<HTMLDivElement | null>(null);
   const observerRef = useRef<MutationObserver | null>(null);
   const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const calculateOffsetPoint = (
-    point: { x: number; y: number },
-    anchor: AnchorPoint,
-    targetPoint: { x: number; y: number },
-    offset: number,
-  ) => {
-    if (offset === 0) return point;
-
-    const dx = targetPoint.x - point.x;
-    const dy = targetPoint.y - point.y;
-    const length = Math.sqrt(dx * dx + dy * dy);
-
-    const normalizedDx = dx / length;
-    const normalizedDy = dy / length;
-
-    return {
-      x: point.x + normalizedDx * offset,
-      y: point.y + normalizedDy * offset,
-    };
+  const applyOffset = (point: Point, anchor: AnchorPoint, offset: number): Point => {
+    switch (anchor) {
+      case "top":
+      case "top-left":
+      case "top-right":
+        return { ...point, y: point.y - offset };
+      case "bottom":
+      case "bottom-left":
+      case "bottom-right":
+        return { ...point, y: point.y + offset };
+      case "left":
+        return { ...point, x: point.x - offset };
+      case "right":
+        return { ...point, x: point.x + offset };
+      default: // center - no offset
+        return point;
+    }
   };
 
-  const getAnchorPoint = (rect: DOMRect, anchor: AnchorPoint, containerRect: DOMRect) => {
-    const points = {
+  const calculate90DegreePath = (point: Point, end: Point, anchor: AnchorPoint): Point => {
+    switch (anchor) {
+      case "top-left": {
+        return {
+          x: point.x - perpLength,
+          y: point.y - perpLength,
+        };
+      }
+      case "top-right": {
+        return {
+          x: point.x + perpLength,
+          y: point.y - perpLength,
+        };
+      }
+      case "bottom-left": {
+        return {
+          x: point.x - perpLength,
+          y: point.y + perpLength,
+        };
+      }
+      case "bottom-right": {
+        return {
+          x: point.x + perpLength,
+          y: point.y + perpLength,
+        };
+      }
+      case "top": {
+        return { x: point.x, y: point.y - perpLength };
+      }
+      case "bottom": {
+        return { x: point.x, y: point.y + perpLength };
+      }
+      case "left": {
+        return { x: point.x - perpLength, y: point.y };
+      }
+      case "right": {
+        return { x: point.x + perpLength, y: point.y };
+      }
+      default: {
+        const dx = end.x - point.x;
+        const dy = end.y - point.y;
+        if (Math.abs(dx) > Math.abs(dy)) {
+          return { x: point.x + Math.sign(dx) * perpLength, y: point.y };
+        } else {
+          return { x: point.x, y: point.y + Math.sign(dy) * perpLength };
+        }
+      }
+    }
+  };
+
+  const getAnchorPoint = (rect: DOMRect, anchor: AnchorPoint, containerRect: DOMRect): Point => {
+    const adjustedLeft = rect.left - (fixed ? 0 : containerRect.left);
+    const adjustedTop = rect.top - (fixed ? 0 : containerRect.top);
+
+    const points: Record<AnchorPoint, Point> = {
+      "top-left": {
+        x: adjustedLeft,
+        y: adjustedTop,
+      },
+      "top-right": {
+        x: adjustedLeft + rect.width,
+        y: adjustedTop,
+      },
+      "bottom-left": {
+        x: adjustedLeft,
+        y: adjustedTop + rect.height,
+      },
+      "bottom-right": {
+        x: adjustedLeft + rect.width,
+        y: adjustedTop + rect.height,
+      },
       top: {
-        x: rect.left - (fixed ? 0 : containerRect.left) + rect.width / 2,
-        y: rect.top - (fixed ? 0 : containerRect.top),
+        x: adjustedLeft + rect.width / 2,
+        y: adjustedTop,
       },
       right: {
-        x: rect.right - (fixed ? 0 : containerRect.left),
-        y: rect.top - (fixed ? 0 : containerRect.top) + rect.height / 2,
+        x: adjustedLeft + rect.width,
+        y: adjustedTop + rect.height / 2,
       },
       bottom: {
-        x: rect.left - (fixed ? 0 : containerRect.left) + rect.width / 2,
-        y: rect.bottom - (fixed ? 0 : containerRect.top),
+        x: adjustedLeft + rect.width / 2,
+        y: adjustedTop + rect.height,
       },
       left: {
-        x: rect.left - (fixed ? 0 : containerRect.left),
-        y: rect.top - (fixed ? 0 : containerRect.top) + rect.height / 2,
+        x: adjustedLeft,
+        y: adjustedTop + rect.height / 2,
       },
       center: {
-        x: rect.left - (fixed ? 0 : containerRect.left) + rect.width / 2,
-        y: rect.top - (fixed ? 0 : containerRect.top) + rect.height / 2,
+        x: adjustedLeft + rect.width / 2,
+        y: adjustedTop + rect.height / 2,
       },
     };
     return points[anchor];
+  };
+
+  const calculatePath = (start: Point, end: Point): string => {
+    const points: Point[] = [start];
+
+    if (source90Degree) {
+      const sourcePerp = calculate90DegreePath(start, end, sourceAnchor);
+      points.push(sourcePerp);
+    }
+
+    if (target90Degree) {
+      const targetPerp = calculate90DegreePath(end, start, targetAnchor);
+      points.push(targetPerp);
+    }
+
+    points.push(end);
+
+    if (points.length > 2) {
+      const midIndex = Math.floor(points.length / 2);
+      const beforeMid = points[midIndex - 1];
+      const afterMid = points[midIndex];
+      const middlePoint = {
+        x: (beforeMid.x + afterMid.x) / 2,
+        y: (beforeMid.y + afterMid.y) / 2,
+      };
+      points.splice(midIndex, 0, middlePoint);
+    }
+
+    return points.reduce((path, point, index) => {
+      return path + (index === 0 ? `M ${point.x} ${point.y}` : ` L ${point.x} ${point.y}`);
+    }, "");
   };
 
   const updateConnector = () => {
@@ -108,28 +230,30 @@ const HelperLinkLine = ({
     const sourceRect = sourceElement.getBoundingClientRect();
     const targetRect = targetElement.getBoundingClientRect();
 
-    if (sourceRect.width === 0 || sourceRect.height === 0 || targetRect.width === 0 || targetRect.height === 0)
-      return false;
-
-    // For fixed positioning, use viewport coordinates
     const containerRect = fixed
       ? new DOMRect(0, 0, window.innerWidth, window.innerHeight)
       : sourceElement.closest(".relative")?.getBoundingClientRect() || new DOMRect();
 
     if (!containerRect) return false;
 
-    // For fixed positioning, use viewport-relative coordinates
     const sourcePoint = getAnchorPoint(sourceRect, sourceAnchor, containerRect);
     const targetPoint = getAnchorPoint(targetRect, targetAnchor, containerRect);
 
-    const adjustedSourcePoint = calculateOffsetPoint(sourcePoint, sourceAnchor, targetPoint, sourceOffset);
-    const adjustedTargetPoint = calculateOffsetPoint(targetPoint, targetAnchor, sourcePoint, targetOffset);
+    const adjustedSourcePoint = applyOffset(sourcePoint, sourceAnchor, sourceOffset);
+    const adjustedTargetPoint = applyOffset(targetPoint, targetAnchor, targetOffset);
 
     const padding = strokeWidth * 2;
-    const left = Math.min(adjustedSourcePoint.x, adjustedTargetPoint.x) - padding;
-    const top = Math.min(adjustedSourcePoint.y, adjustedTargetPoint.y) - padding;
-    const width = Math.abs(adjustedTargetPoint.x - adjustedSourcePoint.x) + padding * 2;
-    const height = Math.abs(adjustedTargetPoint.y - adjustedSourcePoint.y) + padding * 2;
+    const extraSpace = Math.max(source90Degree || target90Degree ? perpLength : 0, straightLength);
+
+    const minX = Math.min(adjustedSourcePoint.x, adjustedTargetPoint.x);
+    const minY = Math.min(adjustedSourcePoint.y, adjustedTargetPoint.y);
+    const maxX = Math.max(adjustedSourcePoint.x, adjustedTargetPoint.x);
+    const maxY = Math.max(adjustedSourcePoint.y, adjustedTargetPoint.y);
+
+    const left = minX - padding - extraSpace;
+    const top = minY - padding - extraSpace;
+    const width = maxX - minX + padding * 2 + extraSpace * 2;
+    const height = maxY - minY + padding * 2 + extraSpace * 2;
 
     setDimensions({
       top,
@@ -143,9 +267,9 @@ const HelperLinkLine = ({
     const pathEndX = adjustedTargetPoint.x - left;
     const pathEndY = adjustedTargetPoint.y - top;
 
-    const newPath = `M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathEndY}`;
-    setPath(newPath);
+    const newPath = calculatePath({ x: pathStartX, y: pathStartY }, { x: pathEndX, y: pathEndY });
 
+    setPath(newPath);
     return true;
   };
 
@@ -171,7 +295,7 @@ const HelperLinkLine = ({
         }
       };
 
-      observerRef.current = new MutationObserver((mutations) => {
+      observerRef.current = new MutationObserver(() => {
         if (updateTimerRef.current) {
           clearTimeout(updateTimerRef.current);
         }
@@ -199,7 +323,6 @@ const HelperLinkLine = ({
     if (sourceElement) resizeObserver.observe(sourceElement);
     if (targetElement) resizeObserver.observe(targetElement);
 
-    // Add scroll event listener for fixed positioning
     if (fixed) {
       const handleScroll = () => {
         if (updateTimerRef.current) {
@@ -221,7 +344,19 @@ const HelperLinkLine = ({
       }
       resizeObserver.disconnect();
     };
-  }, [fromTarget, toTarget]);
+  }, [
+    fromTarget,
+    toTarget,
+    sourceAnchor,
+    targetAnchor,
+    fixed,
+    sourceOffset,
+    targetOffset,
+    straightLength,
+    source90Degree,
+    target90Degree,
+    perpLength,
+  ]);
 
   if (!path) return null;
 
@@ -265,7 +400,7 @@ const HelperLinkLine = ({
       >
         <path
           d={path}
-          stroke={"currentColor"}
+          stroke="currentColor"
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={dotted ? dashArray : undefined}
