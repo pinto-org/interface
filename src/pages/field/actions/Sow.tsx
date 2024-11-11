@@ -1,3 +1,4 @@
+import { Clipboard } from "@/classes/Clipboard";
 import { TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import SlippageButton from "@/components/SlippageButton";
@@ -84,7 +85,15 @@ function Sow() {
         },
       });
     } else {
-      const sow = sowWithMin(amount, minTemp, minSoil, FarmFromMode.INTERNAL) as AdvancedFarmCall;
+      const sow = sowWithMin(
+        amount,
+        minTemp,
+        minSoil,
+        FarmFromMode.INTERNAL,
+        swapData?.pipeOutputSlot && swapData.farmCalls
+          ? Clipboard.encodeSlot(swapData.farmCalls.length || 0, swapData.pipeOutputSlot, 0)
+          : undefined,
+      ) as AdvancedFarmCall;
       const swapCallData = swapData?.callData;
       if (swapCallData) {
         swapCallData.push(sow);
@@ -95,6 +104,7 @@ function Sow() {
             functionName: "advancedFarm",
             args: [swapCallData],
             value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
+            gas: 4000000n,
           });
 
         toast.promise(tx, {

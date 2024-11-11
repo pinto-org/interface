@@ -1,3 +1,4 @@
+import { Clipboard } from "@/classes/Clipboard";
 import { TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import SlippageButton from "@/components/SlippageButton";
@@ -84,6 +85,9 @@ function Deposit({ siloToken }: { siloToken: Token }) {
         siloToken,
         useSwap ? swapData?.output : TokenValue.fromHuman(amountIn, tokenIn.decimals),
         useSwap ? FarmFromMode.INTERNAL : balanceFrom,
+        swapData?.pipeOutputSlot && swapData.farmCalls
+          ? Clipboard.encodeSlot(swapData.farmCalls.length || 0, swapData.pipeOutputSlot, 1)
+          : undefined,
       );
 
       if (useSwap && swapData?.callData) {
@@ -105,6 +109,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
         functionName: "advancedFarm",
         args: [callData],
         value: value,
+        gas: 4000000n,
       });
     } catch (e: unknown) {
       console.error(e);

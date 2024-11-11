@@ -41,3 +41,8 @@ export function exists<T>(value: T | undefined | null): value is NonNullable<T> 
 export function existsNot(value: any): value is undefined | null {
   return !exists(value);
 }
+
+export function calculatePipeCallClipboardSlot(pipeCallLength: number, slot: number) {
+  if (!pipeCallLength || !slot) return 0;
+  return 2 + pipeCallLength + (1 + slot * 2);
+}
