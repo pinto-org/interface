@@ -20,6 +20,14 @@ export type ConvertDetails = {
   crates: DepositCrateData[];
 };
 
+export interface PickedCratesDetails {
+  totalAmount: TokenValue;
+  totalBDV: TokenValue;
+  totalStalk: TokenValue;
+  totalSeeds: TokenValue;
+  crates: DepositCrateData[];
+}
+
 /**
  * Order crates by Stem.
  */
@@ -43,7 +51,7 @@ export function sortCratesByBDVRatio(crates: DepositData[], direction: "asc" | "
 /**
  * Selects the number of crates needed to add up to the desired `amount`.
  */
-export function pickCrates(deposits: DepositData[], amount: TokenValue) {
+export function pickCrates(deposits: DepositData[], amount: TokenValue): PickedCratesDetails {
   let totalAmount = TokenValue.ZERO;
   let totalBDV = TokenValue.ZERO;
   let totalStalk = TokenValue.ZERO;

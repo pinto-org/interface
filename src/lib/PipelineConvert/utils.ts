@@ -8,7 +8,7 @@ import { abiSnippets } from "@/constants/abiSnippets";
 
 const MAX_PER_CALL = 20;
 
-const { getRemoveLiquidityOut, getAddLiquidityOut } = abiSnippets.wells;
+const { getRemoveLiquidityOut, getAddLiquidityOut, getRemoveLiquidityOneTokenOut } = abiSnippets.wells;
 
 function constructAddLiquidityMulticall(
   well: PoolData,
@@ -32,13 +32,13 @@ function constructAddLiquidityMulticall(
 
 function constructRemoveLiquidityMulticall(
   well: PoolData,
-  deposits: DepositCrateData[],
+  crates: DepositCrateData[],
 ): ContractFunctionParameters<typeof getRemoveLiquidityOut>[][] {
   const contracts: ContractFunctionParameters<typeof getRemoveLiquidityOut>[] = [];
 
   const address = well.pool.address as `0x${string}`;
 
-  deposits.forEach((deposit) => {
+  crates.forEach((deposit) => {
     contracts.push({
       address,
       abi: getRemoveLiquidityOut,
@@ -50,10 +50,25 @@ function constructRemoveLiquidityMulticall(
   return chunk(contracts, MAX_PER_CALL);
 }
 
+function constructSingleSidedLiquidityMulticall(well: PoolData, tokenIndex: number, crates: DepositCrateData[]) {
+  const contracts: ContractFunctionParameters<typeof getRemoveLiquidityOneTokenOut>[] = [];
+  for (const crate of crates) {
+    contracts.push({
+      address: well.pool.address,
+      abi: getRemoveLiquidityOneTokenOut,
+      functionName: "getRemoveLiquidityOneTokenOut",
+      args: [crate.amount.toBigInt(), well.tokens[tokenIndex].address],
+    });
+  }
+
+  return chunk(contracts, MAX_PER_CALL);
+}
+
 const PipelineConvertUtils = {
   constructMulticall: {
     addLiquidity: constructAddLiquidityMulticall,
     removeLiquidityEqual: constructRemoveLiquidityMulticall,
+    removeLiquidityOneToken: constructSingleSidedLiquidityMulticall,
   },
 };
 

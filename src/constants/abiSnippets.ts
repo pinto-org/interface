@@ -39,6 +39,19 @@ const getRemoveLiquidityOut = [
   },
 ] as const;
 
+const getRemoveLiquidityOneTokenOut = [
+  {
+    inputs: [
+      { internalType: "uint256", name: "lpAmountIn", type: "uint256" },
+      { internalType: "contract IERC20", name: "tokenOut", type: "address" },
+    ],
+    name: "getRemoveLiquidityOneTokenOut",
+    outputs: [{ internalType: "uint256", name: "tokenAmountOut", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
+
 const getAddLiquidityOut = [
   {
     inputs: [{ internalType: "uint256[]", name: "tokenAmountsIn", type: "uint256[]" }],
@@ -49,10 +62,24 @@ const getAddLiquidityOut = [
   },
 ] as const;
 
+const balanceOfStalk = [
+  {
+    inputs: [{ internalType: "address", name: "account", type: "address" }],
+    name: "balanceOfStalk",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
+
 export const abiSnippets = {
   pipelineConvert,
   wells: {
+    getRemoveLiquidityOneTokenOut,
     getRemoveLiquidityOut,
     getAddLiquidityOut,
+  },
+  farmer: {
+    balanceOfStalk,
   },
 } as const;
