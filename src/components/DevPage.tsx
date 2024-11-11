@@ -39,6 +39,9 @@ export default function DevPage() {
 
   const [approvalAddress, setApprovalAddress] = useState(address || "");
 
+  const [singleSidedAddress, setSingleSidedAddress] = useState(address || "");
+  const [singleSidedAmounts, setSingleSidedAmounts] = useState("");
+
   useEffect(() => {
     const checkServer = async () => {
       try {
@@ -305,6 +308,38 @@ export default function DevPage() {
                 disabled={!approvalAddress || loading === "approveTokens"}
               >
                 Approve All Tokens
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h2 className="text-2xl mb-4">Single-Sided Deposits</h2>
+          <div className="flex flex-col gap-4">
+            <div className="text-sm text-gray-500">
+              Deposits non-PINTO tokens into wells and then into beanstalk. Enter amounts in order: WETH,CBETH,CBTC,USDC,WSOL
+            </div>
+            <div className="flex flex-col gap-2">
+              <Input
+                placeholder="Account Address"
+                value={singleSidedAddress}
+                onChange={(e) => setSingleSidedAddress(e.target.value)}
+              />
+              <Input
+                placeholder="Amounts (comma-separated)"
+                value={singleSidedAmounts}
+                onChange={(e) => setSingleSidedAmounts(e.target.value)}
+              />
+              <Button
+                onClick={() =>
+                  executeTask("singleSidedDeposits", {
+                    account: singleSidedAddress,
+                    amounts: singleSidedAmounts,
+                  })
+                }
+                disabled={!singleSidedAddress || !singleSidedAmounts || loading === "singleSidedDeposits"}
+              >
+                Execute Single-Sided Deposits
               </Button>
             </div>
           </div>
