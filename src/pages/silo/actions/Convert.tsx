@@ -28,6 +28,7 @@ import {
   PipelineConvertQuote,
 } from "@/lib/PipelineConvert/PipelineConvert";
 import ConvertProvider, { SiloTokenConvertPath, useConvertState } from "@/state/context/convert.provider";
+import { useOverallConvertCapacity, useWellConvertCapacity } from "@/state/useConvertCapacity";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { PoolData, usePriceData } from "@/state/usePriceData";
@@ -354,6 +355,7 @@ const PipelineConvert = ({
   const account = useAccount();
   const protocolAddress = useProtocolAddress();
 
+  const [minCapacity, setMinCapacity] = useState(0);
   const [amountIn, setAmountIn] = useState("0");
   const [slippage, setSlippage] = useState(0.1);
   const config = useConfig();
@@ -368,6 +370,47 @@ const PipelineConvert = ({
   const convertibleDeposits = tokenDeposits?.convertibleDeposits;
   const maxConvertible = tokenDeposits?.convertibleAmount;
 
+  const queryConvertCapacityEnabled = stringToNumber(amountIn) > 0;
+
+  const { data: overallConvertCapacity } = useOverallConvertCapacity(queryConvertCapacityEnabled);
+  const { data: sourceWellConvertCapacity } = useWellConvertCapacity(
+    sourceWell.pool.address,
+    queryConvertCapacityEnabled,
+  );
+  const { data: targetWellConvertCapacity } = useWellConvertCapacity(
+    targetWell.pool.address,
+    queryConvertCapacityEnabled,
+  );
+
+  useEffect(() => {
+    if (overallConvertCapacity) {
+      console.log("overallConvertCapacity", overallConvertCapacity);
+    }
+  }, [overallConvertCapacity]);
+
+  useEffect(() => {
+    if (sourceWellConvertCapacity) {
+      console.log("sourceWellConvertCapacity", sourceWellConvertCapacity);
+    }
+  }, [sourceWellConvertCapacity]);
+
+  useEffect(() => {
+    if (targetWellConvertCapacity) {
+      console.log("targetWellConvertCapacity", targetWellConvertCapacity);
+    }
+  }, [targetWellConvertCapacity]);
+
+  // useEffect(() => {
+  //   if (!overallConvertCapacity || !sourceWellConvertCapacity) return;
+
+  //   const min = Math.min(
+  //     Number(overallConvertCapacity),
+  //     Number(sourceWellConvertCapacity),
+  //     // Number(targetWellConvertCapacity),
+  //   );
+  //   setMinCapacity(min);
+  // }, [overallConvertCapacity, sourceWellConvertCapacity]);
+
   const { data: quote, ...quoteQuery } = useQuery({
     queryKey: ["pipeline-convert", chainId, account.address, siloToken.address, targetToken.address, debouncedAmountIn],
     queryFn: async () => {
@@ -380,13 +423,13 @@ const PipelineConvert = ({
         .quote(convertibleDeposits, TV.fromHuman(debouncedAmountIn, siloToken.decimals), slippage, slippage / 100)
         .catch((e) => {
           console.error("Error fetching pipeline convert: ", e);
+          setLoadingFalse();
           return GenConvert.getEmptyResult();
         });
 
       return res;
     },
     enabled: !!account.address && !!convertibleDeposits?.length && stringToNumber(debouncedAmountIn) > 0,
-    refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
     staleTime: 1000 * 20, // 20 seconds
   });

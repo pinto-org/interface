@@ -15,7 +15,7 @@ export const useOverallConvertCapacity = (enabled?: boolean) => {
     abi: abi,
     functionName: "getOverallConvertCapacity",
     query: {
-      enabled: exists(enabled) ?? true,
+      enabled: enabled ?? true,
       refetchOnWindowFocus: true,
       refetchInterval: 1000 * 20, // 20 seconds
     },
@@ -38,7 +38,7 @@ export const useWellConvertCapacity = (well: Address, enabled?: boolean) => {
     functionName: "getWellConvertCapacity",
     args: [well],
     query: {
-      enabled: exists(enabled) ?? true,
+      enabled: enabled ?? true,
       refetchOnWindowFocus: true,
       refetchInterval: 1000 * 20, // 20 seconds
     },
