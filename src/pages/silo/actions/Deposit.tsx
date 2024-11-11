@@ -95,7 +95,9 @@ function Deposit({ siloToken }: { siloToken: Token }) {
 
       const depositAmount = formatter.token(useSwap ? swapData?.output : amountIn, siloToken);
 
-      toast.loading(`Depositing ${depositAmount} ${tokenIn.symbol}...`);
+      const formattedAmountIn = formatter.token(amountIn, tokenIn);
+
+      toast.loading(`Depositing ${formattedAmountIn} ${tokenIn.symbol} for ${depositAmount} ${siloToken.symbol}...`);
 
       return writeContractAsync({
         address: diamondAddress,

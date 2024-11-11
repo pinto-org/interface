@@ -46,7 +46,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { simulateContract } from "viem/actions";
-import { useAccount, useConfig, useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { useAccount, useChainId, useConfig, useReadContract } from "wagmi";
 
 interface BaseConvertProps {
   siloToken: Token;
@@ -357,7 +357,8 @@ const PipelineConvert = ({
   const [amountIn, setAmountIn] = useState("0");
   const [slippage, setSlippage] = useState(0.1);
   const config = useConfig();
-  const chainId = useResolvedChainId();
+  // const chainId = useResolvedChainId();
+  const chainId = useChainId();
 
   const { loading, setLoadingTrue, setLoadingFalse } = useDelayedLoading();
 
@@ -376,13 +377,7 @@ const PipelineConvert = ({
       setLoadingTrue();
 
       const res = await genConvert
-        .fetchEq2Eq(
-          convertibleDeposits,
-          TV.fromHuman(debouncedAmountIn, siloToken.decimals),
-          slippage,
-          slippage,
-          siloTokenData,
-        )
+        .quote(convertibleDeposits, TV.fromHuman(debouncedAmountIn, siloToken.decimals), slippage, slippage / 100)
         .catch((e) => {
           console.error("Error fetching pipeline convert: ", e);
           return GenConvert.getEmptyResult();
@@ -397,13 +392,13 @@ const PipelineConvert = ({
   });
 
   const { data: simulation, ...simulateQuery } = useQuery({
-    queryKey: ["pipe-convert-sim", siloToken.address, targetToken.address, quote?.encoded],
+    queryKey: ["pipe-convert-sim", chainId, siloToken.address, targetToken.address, quote?.encoded],
     queryFn: async () => {
       try {
         if (!quote?.encoded.length) {
           throw new Error("No encoded data to simulate");
         }
-        return simulateContract(config.getClient({ chainId: 1337 }), {
+        return simulateContract(config.getClient({ chainId }), {
           address: protocolAddress,
           abi: diamondABI,
           functionName: "advancedFarm",
@@ -418,7 +413,7 @@ const PipelineConvert = ({
         setLoadingFalse();
       }
     },
-    enabled: !!quote?.encoded.length && stringToNumber(debouncedAmountIn) > 0 && quote?.amountOut.gt(0),
+    enabled: !!quote?.encoded.length && stringToNumber(debouncedAmountIn) > 0 && quote?.totalAmountOut.gt(0),
     select: (rpcResult) => {
       const decodedFarmResult = GenConvert.decodeStaticResults(rpcResult as string[]);
       return decodedFarmResult.map((result) => ({
@@ -507,7 +502,7 @@ const PipelineConvert = ({
         />
       </div>
       <ConvertTokenOutput
-        amount={quote?.amountOut || TV.ZERO}
+        amount={quote?.totalAmountOut || TV.ZERO}
         siloToken={siloToken}
         targetToken={targetToken}
         prices={tokenPrices}
@@ -580,7 +575,7 @@ const usePipelineConvertResults = ({
     let totalDeltaGrownStalk = TV.fromHuman("0", STALK.decimals);
     let totalDeltaSeed = TV.fromHuman("0", SEEDS.decimals);
 
-    const pickedCrates = quote.convertDetails.crates;
+    const pickedCrates = quote.pickedCrates.crates;
 
     const sourceRewards = siloTokenData.get(siloToken)?.rewards;
     const targetRewards = siloTokenData.get(targetToken)?.rewards;
@@ -617,7 +612,7 @@ const usePipelineConvertResults = ({
       deltaBaseStalk: totalDeltaBaseStalk,
       deltaStalk: totalDeltaStalk,
       deltaSeed: totalDeltaSeed,
-      amountOut: quote.amountOut,
+      amountOut: quote.totalAmountOut,
     };
   }, [results, quote, targetStemTip, siloTokenData, siloToken, targetToken]);
 };
