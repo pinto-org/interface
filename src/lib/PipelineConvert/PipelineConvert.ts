@@ -1,45 +1,53 @@
-import { Clipboard } from "@/classes/Clipboard";
 import { TokenValue } from "@/classes/TokenValue";
 import { abiSnippets } from "@/constants/abiSnippets";
-import { PIPELINE_ADDRESS } from "@/constants/address";
-import encoders from "@/encoders";
-import erc20Approve from "@/encoders/erc20Approve";
-import erc20Transfer from "@/encoders/erc20Transfer";
-import sync from "@/encoders/sync";
-import wellRemoveLiquidity from "@/encoders/wellRemoveLiquidity";
+import { PINTOWSOL } from "@/constants/tokens";
 import { PoolData } from "@/state/usePriceData";
-import { ConvertDetails, calculateConvert } from "@/utils/convert";
-import { AdvancedPipeCall, DepositCrateData, DepositData, SiloTokenDataMap, Token } from "@/utils/types";
+import { DepositData } from "@/utils/types";
 import { HashString, Prettify } from "@/utils/types.generic";
-import { getPintoIndex } from "@/utils/well";
-import { Config, multicall } from "@wagmi/core";
+import { Config } from "@wagmi/core";
 import { Address, decodeFunctionResult } from "viem";
-import { ZeroX } from "../matcha/ZeroX";
-import { MinimumViableSwapQuote } from "../matcha/types";
-import Utils from "./utils";
+import { tokensEqual } from "./../../utils/token";
+import { PipelineConvertStrategy, PipelineConvertStrategyQuoteResult } from "./strategies/PipelineConvertStrategy";
+import { Lp2LPEqual2EqualPipelineConvertStrategy } from "./strategies/strategy.lp2lpEqual2Equal";
+import { LP2LPOneSidedSameTokenPipelineConvertStrategy } from "./strategies/strategy.lp2lpOneSidedSameToken";
 
 const { pipelineConvert: pipelineConvertABI } = abiSnippets;
 
-export type PipelineConvertQuote = Prettify<{
-  encoded: ReturnType<typeof encoders.silo.pipelineConvert>;
-  convertDetails: ConvertDetails;
-  results: {
-    deposit: DepositCrateData;
-    advPipeCalls: AdvancedPipeCall[];
-    amountOut: TokenValue;
-  }[];
-  amountOut: TokenValue;
-  details: {
-    removeLiquidity: Awaited<ReturnType<PipelineConvert["fetchEq2EqRemoveLiquidityOut"]>>;
-    addLiquidity: Awaited<ReturnType<PipelineConvert["fetchEq2EqAddLiquidityOut"]>>;
-  };
-}>;
+/**
+ * The result of a pipeline convert quote.
+ */
+export type PipelineConvertQuote = Prettify<
+  PipelineConvertStrategyQuoteResult & {
+    encoded: readonly {
+      callData: `0x${string}`;
+      clipboard: `0x${string}`;
+    }[];
+  }
+>;
 
+/**
+ * The result of a pipeline convert from on-chain.
+ */
 export type PipelineConvertDepositResult<T = TokenValue> = {
+  /**
+   * The updated stem of the Silo token we are converting to.
+   */
   toStem: T;
+  /**
+   * The amount of the source Silo token we are converting from.
+   */
   fromAmount: T;
+  /**
+   * The amount of the target Silo token we are converting to.
+   */
   toAmount: T;
+  /**
+   * bdv of the source Silo token we are attempting to convert from.
+   */
   fromBdv: T;
+  /**
+   * bdv of the target Silo token after the convert.
+   */
   toBdv: T;
 };
 
@@ -47,17 +55,29 @@ export type PipelineConvertDepositResult<T = TokenValue> = {
  * Utility class for constructing pipeline converts
  */
 export class PipelineConvert {
-  /// Remove Equal 2 Add Equal
-  // 1. Remove in equal parts from Well 1
-  // 2. Swap non-bean token of well 1 for non-bean token of well 2
-  // 3. Add in equal parts to well 2
-
-  private readonly diamondAddress: string;
+  /**
+   * The address of the pinto diamond
+   */
+  readonly diamondAddress: Address;
+  /**
+   * The well to convert from
+   */
   readonly sourceWell: PoolData;
+  /**
+   * The well to convert to
+   */
   readonly targetWell: PoolData;
+  /**
+   * The wagmi config
+   */
   readonly config: Config;
 
-  constructor(_diamondAddress: string, _sourceWell: PoolData, _targetWell: PoolData, _config: Config) {
+  /**
+   * The strategy to use for the pipeline convert.
+   */
+  strategy: PipelineConvertStrategy | undefined;
+
+  constructor(_diamondAddress: Address, _sourceWell: PoolData, _targetWell: PoolData, _config: Config) {
     this.diamondAddress = _diamondAddress;
     this.sourceWell = _sourceWell;
     this.targetWell = _targetWell;
@@ -65,337 +85,58 @@ export class PipelineConvert {
   }
 
   /**
-   * Estimates the result of a Remove Equal 2 Add Equal pipeline convert
+   * Estimates the result of a pipeline convert
    * @param sourceWell Well to remove liquidity from
    * @param targetWell Well to add liquidity to
    * @param siloTokenBalance Silo token balance of the user
    * @param amountIn Amount of sourceWell.lpToken to remove
    * @param slippage Slippage tolerance for swap
    */
-  async fetchEq2Eq(
+  async quote(
     deposits: DepositData[],
     amountIn: TokenValue,
     swapSlippage: number,
     addLiquiditySlippage: number,
-    siloTokenData: SiloTokenDataMap,
   ): Promise<PipelineConvertQuote> {
-    validateHasDeposits(deposits);
-    validateAmountIn(amountIn);
-    validateSlippage(swapSlippage);
+    await this.determineStrategy();
+    this.validateStrategy();
 
-    console.debug("[PipelineConvert] estimateRemoveEqual2AddEqual", {
-      sourceWell: this.sourceWell,
-      targetWell: this.targetWell,
-      amountIn: amountIn.toHuman(),
-      swapSlippage,
-    });
+    const quote = await this.strategy.quote(deposits, amountIn, swapSlippage, addLiquiditySlippage);
 
-    const sourceLP = this.sourceWell.pool;
-    const targetLP = this.targetWell.pool;
-
-    // calculate convert details
-    const convertDetails = calculateConvert(sourceLP, targetLP, amountIn, deposits, siloTokenData);
-
-    // Remove Liquidity
-    const removeLPResult = await this.fetchEq2EqRemoveLiquidityOut(convertDetails.crates);
-
-    const sourceIndexes = getPintoIndex(this.sourceWell);
-    const targetIndexes = getPintoIndex(this.sourceWell);
-
-    if (!sourceIndexes || !targetIndexes) {
-      throw new Error("Cannot determine token indexes");
-    }
-
-    // Swap
-    const sellToken = this.sourceWell.tokens[sourceIndexes.nonPinto];
-    const buyToken = this.targetWell.tokens[targetIndexes.nonPinto];
-
-    const params = removeLPResult.amountsOut.map((amounts) => {
-      const nonBeanAmount = amounts[sourceIndexes.nonPinto];
-
-      return this.generateSwapQuoteParams(buyToken, sellToken, nonBeanAmount, swapSlippage);
-    });
-
-    const swapQuotes = await ZeroX.quote(params);
-
-    // Add Liquidity
-    const denominator = removeLPResult.summedAmounts[sourceIndexes.nonPinto];
-
-    const depositAmountsIn = removeLPResult.amountsOut.map((tokenAmountsOut, i) => {
-      const pintoOut = removeLPResult.amountsOut[i][sourceIndexes.pinto];
-      const nonPintoOut = tokenAmountsOut[sourceIndexes.nonPinto];
-
-      const ratio = nonPintoOut.div(denominator);
-
-      const buyAmount = TokenValue.fromBlockchain(swapQuotes[i].buyAmount, buyToken.decimals);
-
-      const addLiquidityAmountsIn = [pintoOut, buyAmount.mul(ratio)];
-
-      if (targetIndexes.pinto === 1) {
-        addLiquidityAmountsIn.reverse();
-      }
-
-      return addLiquidityAmountsIn;
-    });
-
-    const addLiquidityResults = await this.fetchEq2EqAddLiquidityOut(depositAmountsIn);
-
-    const convertResults = convertDetails.crates.map((deposit, i) => {
-      const amountOut = addLiquidityResults.amountsOut[i];
-      const advPipeCalls = PipelineConvert.buildEq2EqAdvancedPipe({
-        source: {
-          well: this.sourceWell,
-          amountIn: deposit.amount,
-          minAmountsOut: removeLPResult.amountsOut[i],
-        },
-        swap: {
-          buyToken: buyToken,
-          sellToken: sellToken,
-          quote: swapQuotes[i],
-        },
-        target: {
-          well: this.targetWell,
-          amountOut: amountOut.subSlippage(addLiquiditySlippage),
-        },
-      });
-
-      return {
-        deposit,
-        advPipeCalls,
-        amountOut,
-      };
-    });
-
-    const encodePrepared = convertResults.map((result) => {
-      return {
-        stem: result.deposit.stem,
-        amount: result.deposit.amount,
-        advPipeCalls: result.advPipeCalls,
-      };
-    });
-
-    const encoded = encoders.silo.pipelineConvert(this.sourceWell.pool, this.targetWell.pool, encodePrepared);
+    const encoded = this.strategy.encodeConvertResults(quote.results);
 
     return {
-      convertDetails,
-      results: convertResults,
+      ...quote,
       encoded,
-      amountOut: addLiquidityResults.summedAmounts,
-      details: {
-        removeLiquidity: removeLPResult,
-        addLiquidity: addLiquidityResults,
-      },
-    };
-  }
-
-  private generateSwapQuoteParams(buyToken: Token, sellToken: Token, sellAmount: TokenValue, slippage: number) {
-    return {
-      sellToken: sellToken.address as Address,
-      buyToken: buyToken.address as Address,
-      sellAmount: sellAmount.blockchainString,
-      takerAddress: PIPELINE_ADDRESS as Address,
-      shouldSellEntireBalance: "true",
-      skipValidation: "true",
-      slippagePercentage: slippage.toString(),
-    };
-  }
-
-  private async fetchEq2EqRemoveLiquidityOut(pickedDeposits: DepositCrateData[]) {
-    const [token0, token1] = this.sourceWell.tokens;
-    const multicallContracts = Utils.constructMulticall.removeLiquidityEqual(this.sourceWell, pickedDeposits);
-    const response = await Promise.all(
-      multicallContracts.map((contracts) => multicall(this.config, { contracts: contracts, allowFailure: false })),
-    );
-
-    const rawResults = response.flat() as bigint[][];
-    const amountsOut = rawResults.map(([amountIndex0, amountIndex1]) => [
-      TokenValue.fromBlockchain(amountIndex0, token0.decimals),
-      TokenValue.fromBlockchain(amountIndex1, token1.decimals),
-    ]);
-    const summedAmounts = amountsOut.reduce(
-      ([total0, total1], [amount0, amount1]) => [total0.add(amount0), total1.add(amount1)],
-      [TokenValue.fromHuman("0", token0.decimals), TokenValue.fromHuman("0", token1.decimals)],
-    );
-
-    console.log("[PipelineConvert] fetchEq2EqRemoveLiquidityOut: ", {
-      well: this.sourceWell.pool.name,
-      wellAddress: this.sourceWell.pool.address,
-      deposits: pickedDeposits,
-      amountsOut,
-      summedAmounts,
-    });
-
-    return {
-      amountsOut,
-      summedAmounts,
-    };
-  }
-
-  private async fetchEq2EqAddLiquidityOut(amountsIn: TokenValue[][]) {
-    const results = await Promise.all(
-      Utils.constructMulticall
-        .addLiquidity(this.targetWell, amountsIn)
-        .map((contracts) => multicall(this.config, { contracts, allowFailure: false })),
-    );
-    const rawResults = results.flat() as bigint[];
-    const amountsOut = rawResults.map((r) => TokenValue.fromBlockchain(r, this.targetWell.pool.decimals));
-
-    const summedAmounts = amountsOut.reduce<TokenValue>(
-      (prev, curr) => prev.add(curr),
-      TokenValue.fromHuman(0, this.targetWell.pool.decimals),
-    );
-
-    console.debug("[PipelineConvert] fetchEq2EqAddLiquidityOut: ", {
-      well: this.targetWell,
-      wellAddress: this.targetWell.pool.address,
-      amountsIn,
-      amountsOut,
-      summedAmounts,
-    });
-
-    return {
-      amountsOut,
-      summedAmounts,
     };
   }
 
   /**
-   * Builds the advanced pipe calls for a Remove Equal 2 Add Equal pipeline convert
+   * Determines the strategy to use for the pipeline convert.
+   *
+   * TODO: Add other strategies here. Eventually this should be dynamic based on the deltaBs/reserves/convertCapacities of the wells.
    */
-  private static buildEq2EqAdvancedPipe(params: {
-    source: {
-      well: PoolData;
-      amountIn: TokenValue;
-      minAmountsOut: TokenValue[];
-    };
-    swap: {
-      buyToken: Token;
-      sellToken: Token;
-      quote: MinimumViableSwapQuote;
-    };
-    target: {
-      well: PoolData;
-      amountOut: TokenValue;
-    };
-  }) {
-    const { source, swap, target } = params;
+  async determineStrategy() {
+    // B/c there is no WSOL liquidity other than Basin, we only support the single-sided Pinto liquidity strategy for now for this well.
+    if (tokensEqual(this.sourceWell.pool, PINTOWSOL) || tokensEqual(this.targetWell.pool, PINTOWSOL)) {
+      return new LP2LPOneSidedSameTokenPipelineConvertStrategy(
+        "main",
+        "main",
+        this.sourceWell,
+        this.targetWell,
+        this.config,
+      );
+    }
 
-    const sellTokenIndex = source.well.tokens.findIndex(
-      (t) => t.address.toLowerCase() === swap.sellToken.address.toLowerCase(),
-    );
-
-    const pipe: AdvancedPipeCall[] = [];
-
-    // 0: approve from.well.lpToken to use from.well.lpToken
-    pipe.push(PipelineConvert.snippets.erc20Approve(source.well.pool, source.well.pool.address));
-
-    // 1: remove liquidity from from.well
-    pipe.push(
-      PipelineConvert.snippets.removeLiquidity(source.well, source.amountIn, source.minAmountsOut, PIPELINE_ADDRESS),
-    );
-
-    // 2: Approve swap contract to spend sellToken
-    pipe.push(PipelineConvert.snippets.erc20Approve(swap.sellToken, swap.quote.allowanceTarget));
-
-    // 3: Swap non-bean token of well 1 for non-bean token of well 2
-    pipe.push({
-      target: swap.quote.to as `0x${string}`,
-      callData: swap.quote.data as `0x${string}`,
-      clipboard: Clipboard.encode([]),
-    });
-
-    // 4: transfer swap result to target well
-    pipe.push(
-      PipelineConvert.snippets.erc20Transfer(
-        swap.buyToken,
-        target.well.pool.address,
-        TokenValue.ZERO, // overriden w/ clipboard
-        Clipboard.encodeSlot(3, 0, 1),
-      ),
-    );
-
-    // 5: transfer from from.well.tokens[non-bean index] to target well
-    pipe.push(
-      PipelineConvert.snippets.erc20Transfer(
-        source.well.tokens[sellTokenIndex === 1 ? 0 : 1],
-        target.well.pool.address,
-        TokenValue.MAX_UINT256, // overriden w/ clipboard
-        Clipboard.encodeSlot(1, 2, 1),
-      ),
-    );
-
-    // 6. Call Sync on target well
-    pipe.push(
-      PipelineConvert.snippets.wellSync(
-        target.well,
-        PIPELINE_ADDRESS, // set recipient to pipeline
-        target.amountOut, // min LP Out
-      ),
-    );
-
-    return pipe;
+    return new Lp2LPEqual2EqualPipelineConvertStrategy(this.sourceWell, this.targetWell, this.config);
   }
 
-  // ---------- static methods ----------
-  private static snippets = {
-    // ERC20 Token Methods
-    erc20Approve: (
-      token: Token,
-      spender: HashString,
-      amount: TokenValue = TokenValue.MAX_UINT256,
-      clipboard: HashString = Clipboard.encode([]),
-    ): AdvancedPipeCall => {
-      return {
-        ...erc20Approve(spender, amount, token.address, clipboard),
-        target: token.address,
-      };
-    },
-    erc20Transfer: (
-      token: Token,
-      recipient: HashString,
-      amount: TokenValue,
-      clipboard: HashString = Clipboard.encode([]),
-    ): AdvancedPipeCall => {
-      return {
-        ...erc20Transfer(recipient, amount, token.address, clipboard),
-        target: token.address,
-      };
-    },
-    // // Well Methods
-    removeLiquidity: (
-      well: PoolData,
-      amountIn: TokenValue,
-      minAmountsOut: TokenValue[],
-      recipient: Address,
-      clipboard: HashString = Clipboard.encode([]),
-    ): AdvancedPipeCall => {
-      return wellRemoveLiquidity(well, amountIn, minAmountsOut, recipient, clipboard);
-    },
-    wellSync: (
-      well: PoolData,
-      recipient: Address,
-      amount: TokenValue,
-      clipboard: HashString = Clipboard.encode([]),
-    ): AdvancedPipeCall => {
-      return {
-        ...sync(recipient, amount, well.pool.address, clipboard),
-        target: well.pool.address,
-      };
-    },
-    // Junction methods
-    gte: (value: TokenValue, compareTo: TokenValue, clipboard: HashString = Clipboard.encode([])): AdvancedPipeCall => {
-      return encoders.junction.gte(value, compareTo, clipboard);
-    },
-    check: (
-      // index of the math or logic operation in the pipe
-      index: number,
-      // copy slot
-      copySlot: number,
-    ): AdvancedPipeCall => {
-      return encoders.junction.check(index, copySlot);
-    },
-  };
+  /// ------------------------------ Static Methods ------------------------------ ///
 
+  /**
+   * Decodes the static results returned from either a successful pipeline convert txn or simulation.
+   * @param results - The results to decode.
+   */
   static decodeStaticResults(results: string[]): PipelineConvertDepositResult<bigint>[] {
     try {
       const data = results.map((result) => {
@@ -420,19 +161,21 @@ export class PipelineConvert {
     }
   }
 
+  /**
+   * Returns an empty pipeline convert quote.
+   */
   static getEmptyResult(): PipelineConvertQuote {
     return {
-      convertDetails: {
-        amount: TokenValue.ZERO,
-        bdv: TokenValue.ZERO,
-        stalk: TokenValue.ZERO,
-        seeds: TokenValue.ZERO,
-        actions: [],
+      pickedCrates: {
+        totalAmount: TokenValue.ZERO,
+        totalBDV: TokenValue.ZERO,
+        totalStalk: TokenValue.ZERO,
+        totalSeeds: TokenValue.ZERO,
         crates: [],
       },
       encoded: [],
       results: [],
-      amountOut: TokenValue.ZERO,
+      totalAmountOut: TokenValue.ZERO,
       details: {
         removeLiquidity: {
           amountsOut: [],
@@ -445,23 +188,14 @@ export class PipelineConvert {
       },
     };
   }
-}
 
-// validation
-function validateAmountIn(amountIn: TokenValue) {
-  if (amountIn.lte(0)) {
-    throw new Error("Cannot convert 0 or less tokens");
-  }
-}
+  /// ------------------------------ Private Methods ------------------------------ ///
 
-function validateHasDeposits(deposits: DepositData[]) {
-  if (!deposits.length) {
-    throw new Error("No convertible deposits");
-  }
-}
-
-function validateSlippage(slippage: number) {
-  if (slippage < 0) {
-    throw new Error("Invalid slippage");
+  /**
+   * Validates that the strategy is set.
+   */
+  private validateStrategy(): asserts this is { strategy: NonNullable<{ strategy: PipelineConvertStrategy }> } {
+    if (this.strategy) return;
+    throw new Error("Expected PipelineConvertStrategy to be determined but got undefined");
   }
 }
