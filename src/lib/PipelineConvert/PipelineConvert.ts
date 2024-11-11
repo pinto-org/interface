@@ -119,7 +119,7 @@ export class PipelineConvert {
   async determineStrategy() {
     // B/c there is no WSOL liquidity other than Basin, we only support the single-sided Pinto liquidity strategy for now for this well.
     if (tokensEqual(this.sourceWell.pool, PINTOWSOL) || tokensEqual(this.targetWell.pool, PINTOWSOL)) {
-      return new LP2LPOneSidedSameTokenPipelineConvertStrategy(
+      this.strategy = new LP2LPOneSidedSameTokenPipelineConvertStrategy(
         "main",
         "main",
         this.sourceWell,
@@ -128,7 +128,7 @@ export class PipelineConvert {
       );
     }
 
-    return new Lp2LPEqual2EqualPipelineConvertStrategy(this.sourceWell, this.targetWell, this.config);
+    this.strategy = new Lp2LPEqual2EqualPipelineConvertStrategy(this.sourceWell, this.targetWell, this.config);
   }
 
   /// ------------------------------ Static Methods ------------------------------ ///
