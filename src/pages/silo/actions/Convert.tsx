@@ -414,6 +414,9 @@ const PipelineConvert = ({
       }
     },
     enabled: !!quote?.encoded.length && stringToNumber(debouncedAmountIn) > 0 && quote?.totalAmountOut.gt(0),
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
+    staleTime: 1000 * 20, // 20 seconds
     select: (rpcResult) => {
       const decodedFarmResult = GenConvert.decodeStaticResults(rpcResult as string[]);
       return decodedFarmResult.map((result) => ({
