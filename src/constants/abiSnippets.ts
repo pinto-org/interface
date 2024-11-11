@@ -62,11 +62,24 @@ const getAddLiquidityOut = [
   },
 ] as const;
 
+const balanceOfStalk = [
+  {
+    inputs: [{ internalType: "address", name: "account", type: "address" }],
+    name: "balanceOfStalk",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
+
 export const abiSnippets = {
   pipelineConvert,
   wells: {
     getRemoveLiquidityOneTokenOut,
     getRemoveLiquidityOut,
     getAddLiquidityOut,
+  },
+  farmer: {
+    balanceOfStalk,
   },
 } as const;

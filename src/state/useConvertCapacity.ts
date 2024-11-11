@@ -1,5 +1,4 @@
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { exists } from "@/utils/utils";
 import { Address } from "viem";
 import { useReadContract } from "wagmi";
 

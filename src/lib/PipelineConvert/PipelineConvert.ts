@@ -1,8 +1,10 @@
+import { Clipboard } from "@/classes/Clipboard";
 import { TokenValue } from "@/classes/TokenValue";
 import { abiSnippets } from "@/constants/abiSnippets";
 import { PINTOWSOL } from "@/constants/tokens";
+import encoders from "@/encoders";
 import { PoolData } from "@/state/usePriceData";
-import { DepositData } from "@/utils/types";
+import { AdvancedPipeCall, DepositData } from "@/utils/types";
 import { HashString, Prettify } from "@/utils/types.generic";
 import { Config } from "@wagmi/core";
 import { Address, decodeFunctionResult } from "viem";
@@ -13,17 +15,18 @@ import { LP2LPOneSidedSameTokenPipelineConvertStrategy } from "./strategies/stra
 
 const { pipelineConvert: pipelineConvertABI } = abiSnippets;
 
+interface EncodedPipelineConvert {
+  encoded: readonly {
+    target: `0x${string}`;
+    callData: `0x${string}`;
+    clipboard: `0x${string}`;
+  }[];
+}
+
 /**
  * The result of a pipeline convert quote.
  */
-export type PipelineConvertQuote = Prettify<
-  PipelineConvertStrategyQuoteResult & {
-    encoded: readonly {
-      callData: `0x${string}`;
-      clipboard: `0x${string}`;
-    }[];
-  }
->;
+export type PipelineConvertQuote = Prettify<PipelineConvertStrategyQuoteResult & EncodedPipelineConvert>;
 
 /**
  * The result of a pipeline convert from on-chain.
@@ -187,6 +190,34 @@ export class PipelineConvert {
         },
       },
     };
+  }
+
+  static safeWrapEncodePipelineConvert(
+    encoded: EncodedPipelineConvert["encoded"],
+    protocolAddress: Address,
+    balanceOfStalk: TokenValue,
+    account: Address,
+  ) {
+    const pipe: AdvancedPipeCall[] = [];
+
+    const convertCallsMaxIndex = encoded.length - 1;
+
+    for (const encoding of encoded) {
+      pipe.push({
+        ...encoding,
+        target: protocolAddress,
+      });
+    }
+
+    // pipe.push(
+    //   encoders.junction.gte(TokenValue.ZERO, balanceOfStalk, Clipboard.encodeSlot(convertCallsMaxIndex + 1, 0, 0)),
+    // );
+
+    // pipe.push(encoders.junction.check(convertCallsMaxIndex + 2, 0));
+
+    const pipeEncoded = encoders.advancedPipe(pipe);
+
+    return [pipeEncoded] as const;
   }
 
   /// ------------------------------ Private Methods ------------------------------ ///

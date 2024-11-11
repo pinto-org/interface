@@ -336,6 +336,7 @@ interface PipelineConvertProps extends ConvertProps {
   sourceWell: PoolData;
   targetWell: PoolData;
   genConvert: GenConvert;
+  stalkBalance: ReturnType<typeof useFarmerSilo>["activeStalkBalance"];
 }
 
 const PipelineConvert = ({
@@ -348,6 +349,7 @@ const PipelineConvert = ({
   targetWell,
   tokenPrices,
   siloTokenData,
+  stalkBalance,
   pools,
   onSuccess,
 }: PipelineConvertProps) => {
@@ -371,7 +373,6 @@ const PipelineConvert = ({
   const maxConvertible = tokenDeposits?.convertibleAmount;
 
   const queryConvertCapacityEnabled = stringToNumber(amountIn) > 0;
-
   const { data: overallConvertCapacity } = useOverallConvertCapacity(queryConvertCapacityEnabled);
   const { data: sourceWellConvertCapacity } = useWellConvertCapacity(
     sourceWell.pool.address,
@@ -399,17 +400,6 @@ const PipelineConvert = ({
       console.log("targetWellConvertCapacity", targetWellConvertCapacity);
     }
   }, [targetWellConvertCapacity]);
-
-  // useEffect(() => {
-  //   if (!overallConvertCapacity || !sourceWellConvertCapacity) return;
-
-  //   const min = Math.min(
-  //     Number(overallConvertCapacity),
-  //     Number(sourceWellConvertCapacity),
-  //     // Number(targetWellConvertCapacity),
-  //   );
-  //   setMinCapacity(min);
-  // }, [overallConvertCapacity, sourceWellConvertCapacity]);
 
   const { data: quote, ...quoteQuery } = useQuery({
     queryKey: ["pipeline-convert", chainId, account.address, siloToken.address, targetToken.address, debouncedAmountIn],
@@ -507,11 +497,18 @@ const PipelineConvert = ({
         `Converting ${formattedAmountIn} ${siloToken.symbol} for ${formattedAmountOut} ${targetToken.symbol}`,
       );
 
+      const wrappedEncoded = GenConvert.safeWrapEncodePipelineConvert(
+        quote.encoded,
+        protocolAddress,
+        stalkBalance,
+        account.address,
+      );
+
       await writeContractAsync({
         address: protocolAddress,
         abi: diamondABI,
         functionName: "advancedFarm",
-        args: [quote?.encoded ?? []],
+        args: [quote.encoded],
       });
     } catch (e) {
       console.error("Error submitting pipeline convert: ", e);
@@ -788,6 +785,7 @@ const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
         onSuccess={onSuccess}
         tokenPrices={tokenPrices}
         siloTokenData={siloTokenData}
+        stalkBalance={farmerSilo.activeStalkBalance}
         pools={pools}
       />
     );
