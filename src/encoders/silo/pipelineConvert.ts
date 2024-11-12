@@ -27,7 +27,6 @@ export function pipelineConvert(sourceLP: Token, targetLP: Token, data: IPipelin
     });
 
     return {
-      target: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as `0x${string}`,
       callData: callData,
       clipboard: args.clipboard || Clipboard.encode([]),
     };

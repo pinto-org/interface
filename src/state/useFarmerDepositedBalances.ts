@@ -94,7 +94,7 @@ function useFarmerDepositedBalances() {
         const depositStem = TokenValue.fromBlockchain(deposit.stem, BEAN.decimals);
         const baseStalk = isGerminating
           ? TokenValue.fromBlockchain(0n, STALK.decimals)
-          : _depositBDV.mul(siloTokenData.rewards.seeds);
+          : _depositBDV.mul(siloTokenData.rewards.stalk);
         const grownStalk = _depositBDV.mul(siloTokenData.stemTip.sub(depositStem)).div(10000);
         const seeds = _depositBDV.mul(siloTokenData.rewards.seeds);
         const depositAmount = TokenValue.fromBlockchain(deposit.depositedAmount, token.decimals);

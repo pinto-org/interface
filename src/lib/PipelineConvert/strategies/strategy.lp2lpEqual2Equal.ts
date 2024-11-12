@@ -30,6 +30,8 @@ class Eq2EQStrategy extends PipelineConvertStrategy {
     this.validateSlippage(swapSlippage);
     this.validateSlippage(addLiquiditySlippage);
 
+    console.log("deposits: ", deposits);
+
     // use crates with the lowest bdv/amount ratio first.
     const sortedCrates = sortCratesByBDVRatio(deposits, "asc");
     const pickedCrates = pickCrates(sortedCrates, amountIn);
