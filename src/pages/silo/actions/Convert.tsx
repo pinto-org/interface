@@ -633,24 +633,51 @@ const usePipelineConvertResults = ({
       const deposit = pickedCrates[i];
       if (!deposit) continue;
 
+      console.log("--------------------------------");
+      console.log("result", result);
+      console.log("crate: ", deposit);
       const toBDV = result.toBdv;
-      const deltaStem = targetStemTip.sub(result.toStem);
+      console.log("toBDV", toBDV);
 
-      const baseStalkAfter = targetRewards.stalk.mul(toBDV) || TV.ZERO;
+      const deltaStem = targetStemTip.sub(result.toStem);
+      console.log("targetStemtip: ", targetStemTip);
+      console.log("deltaStem", deltaStem);
+
+      const baseStalkAfter = targetRewards.stalk.mul(toBDV);
+      console.log("baseStalkBefore: ", deposit.stalk.base);
+      console.log("targetRewards.stalk", targetRewards.stalk);
+      console.log("baseStalkAfter", baseStalkAfter);
+
       const grownStalkAfter = TV.fromBlockchain(deltaStem.mul(result.toBdv).blockchainString, STALK.decimals);
+      console.log("grownStalkBefore: ", deposit.stalk.grown);
+      console.log("grownStalkAfter", grownStalkAfter);
 
       const deltaBaseStalk = baseStalkAfter.sub(deposit.stalk.base);
       const deltaGrownStalk = grownStalkAfter.sub(deposit.stalk.grown);
 
+      console.log("deltaBaseStalk", deltaBaseStalk);
+      console.log("deltaGrownStalk", deltaGrownStalk);
+
       totalDeltaBaseStalk = totalDeltaBaseStalk.add(deltaBaseStalk);
       totalDeltaGrownStalk = totalDeltaGrownStalk.add(deltaGrownStalk);
+
+      console.log("totalDeltaBaseStalk", totalDeltaBaseStalk);
+      console.log("totalDeltaGrownStalk", totalDeltaGrownStalk);
 
       const afterSeed = targetRewards.seeds.mul(toBDV);
       const deltaSeed = afterSeed.sub(deposit.seeds);
       totalDeltaSeed = totalDeltaSeed.add(deltaSeed);
+
+      console.log("afterSeed", afterSeed);
+      console.log("deltaSeed", deltaSeed);
+      console.log("totalDeltaSeed", totalDeltaSeed);
     }
 
     const totalDeltaStalk = totalDeltaBaseStalk.add(totalDeltaGrownStalk);
+    console.log("totalDeltaSeed", totalDeltaSeed);
+    console.log("totalDeltaStalk", totalDeltaStalk);
+
+    console.log("--------------------------------\n\n");
 
     return {
       deltaGrownStalk: totalDeltaGrownStalk,

@@ -64,17 +64,17 @@ export function pickCrates(deposits: DepositData[], amount: TokenValue): PickedC
       ? deposit.amount
       : amount.sub(totalAmount);
     const cratePct = amountToRemoveFromCrate.div(deposit.amount);
-    const crateBDV = cratePct.mul(deposit.depositBdv).reDecimal(BEAN.decimals);
-    const crateSeeds = cratePct.mul(deposit.seeds).reDecimal(SEEDS.decimals);
+    const crateBDV = cratePct.mul(deposit.depositBdv);
+    const crateSeeds = cratePct.mul(deposit.seeds);
 
-    const baseStalk = cratePct.mul(deposit.stalk.base).reDecimal(STALK.decimals);
-    const grownStalk = cratePct.mul(deposit.stalk.grown).reDecimal(STALK.decimals);
-    const crateStalk = cratePct.mul(deposit.stalk.total).reDecimal(STALK.decimals);
+    const baseStalk = cratePct.mul(deposit.stalk.base);
+    const grownStalk = cratePct.mul(deposit.stalk.grown);
+    const crateStalk = cratePct.mul(deposit.stalk.total);
 
     totalAmount = totalAmount.add(amountToRemoveFromCrate);
     totalBDV = totalBDV.add(crateBDV);
-    totalStalk = totalStalk.add(crateStalk);
     totalSeeds = totalSeeds.add(crateSeeds);
+    totalStalk = totalStalk.add(crateStalk);
 
     cratesToWithdrawFrom.push({
       stem: deposit.stem,
