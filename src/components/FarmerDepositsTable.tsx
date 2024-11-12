@@ -14,7 +14,7 @@ import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { BaseError, encodeFunctionData } from "viem";
@@ -55,6 +55,25 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
       allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
     }
   }, [isSuccess]);
+
+  // Sort tokens with PINTO first, then by BDV
+  const sortedTokens = useMemo(() => {
+    return tokenData.whitelistedTokens.sort((a, b) => {
+      // PINTO is always first
+      if (a.address === mainToken.address) return -1;
+      if (b.address === mainToken.address) return 1;
+
+      // Get deposit data for both tokens
+      const aDeposit = farmerDeposits.get(a);
+      const bDeposit = farmerDeposits.get(b);
+
+      const aBdv = aDeposit?.depositBDV ?? TokenValue.ZERO;
+      const bBdv = bDeposit?.depositBDV ?? TokenValue.ZERO;
+
+      // Sort by BDV in descending order
+      return Number(bBdv.sub(aBdv).toHuman());
+    });
+  }, [farmerDeposits, tokenData.whitelistedTokens, mainToken]);
 
   async function onClaimRewards() {
     if (!account.address) return;
@@ -159,7 +178,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
           </TableHeader>
           <TableBody>
             {!hovering && canClaim && renderClaimableRow()}
-            {tokenData.whitelistedTokens.map((token, i) => {
+            {sortedTokens.map((token, i) => {
               const userData = farmerDeposits.get(token);
               const grownStalk = grownStalkPerToken.get(token) || TokenValue.ZERO;
 
