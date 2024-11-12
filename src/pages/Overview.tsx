@@ -81,48 +81,30 @@ const Overview = () => {
       mode: "depositedValue",
       mainValue: farmerSilo.depositsUSD,
       mainValueChange:
-        hoveredButton === "claim"
-          ? farmerActions.claimRewards.outputs.bdvGain.mul(priceData.price)
-          : farmerActions.harvestPods.outputs.bdvGain.mul(priceData.price),
+        hoveredButton === "harvest" ? farmerActions.harvestPods.outputs.bdvGain.mul(priceData.price) : undefined,
       secondaryValue: farmerSilo.depositsBDV,
-      actionValue:
-        hoveredButton === "claim"
-          ? farmerActions.claimRewards.outputs.bdvGain
-          : farmerActions.harvestPods.outputs.bdvGain,
-      showActionValues: hoveredButton === "claim" || hoveredButton === "harvest",
+      actionValue: hoveredButton === "harvest" ? farmerActions.harvestPods.outputs.bdvGain : undefined,
+      showActionValues: hoveredButton === "harvest",
       tooltipContent: "Your Pinto Denominated Value in the Silo.",
     },
     stalk: {
       mode: "stalk",
       mainValue: farmerSilo.activeStalkBalance,
-      mainValueChange:
-        hoveredButton === "claim"
-          ? farmerActions.claimRewards.outputs.stalkGain
-          : farmerActions.harvestPods.outputs.stalkGain,
-      actionValue: hoveredButton === "claim" ? claimSiloPct.sub(siloPct) : harvestSiloPct.sub(siloPct),
+      mainValueChange: hoveredButton === "harvest" ? farmerActions.harvestPods.outputs.stalkGain : undefined,
+      actionValue: hoveredButton === "harvest" ? harvestSiloPct.sub(siloPct) : undefined,
       secondaryValue: siloPct,
       tooltipContent:
         "Your ownership of the Stalk supply determines the portion of Pinto supply increases that you earn.",
-      showActionValues: hoveredButton === "claim" || hoveredButton === "harvest",
+      showActionValues: hoveredButton === "harvest",
     },
     seeds: {
       mode: "seeds",
       mainValue: farmerSilo.activeSeedsBalance,
-      mainValueChange:
-        hoveredButton === "convert"
-          ? farmerActions.convertDeposits.bestConversion.outputs.seedGain
-          : hoveredButton === "claim"
-            ? farmerActions.claimRewards.outputs.seedGain
-            : farmerActions.harvestPods.outputs.seedGain,
-      actionValue:
-        hoveredButton === "convert"
-          ? farmerActions.convertDeposits.bestConversion.outputs.seedGain
-          : hoveredButton === "claim"
-            ? farmerActions.claimRewards.outputs.seedGain
-            : farmerActions.harvestPods.outputs.seedGain,
+      mainValueChange: hoveredButton === "harvest" ? farmerActions.harvestPods.outputs.seedGain : undefined,
+      actionValue: hoveredButton === "harvest" ? farmerActions.harvestPods.outputs.seedGain : undefined,
       secondaryValue: stalkPerSeason,
       tooltipContent: "Seeds grow Stalk every Season, creating an opportunity cost to leaving the Silo.",
-      showActionValues: hoveredButton !== "",
+      showActionValues: hoveredButton === "harvest",
     },
     pods: {
       mode: "pods",
