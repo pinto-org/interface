@@ -1,5 +1,4 @@
 import { type ISourceOptions } from "@tsparticles/engine";
-import circlesvg from "/public/circle.svg";
 
 const particleConfig: ISourceOptions = {
   fullScreen: {

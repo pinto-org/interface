@@ -8,6 +8,7 @@ import SiloToken from "./pages/SiloToken";
 import Swap from "./pages/Swap";
 import Transfer from "./pages/Transfer";
 import Landing from "./pages/Landing";
+import LaunchArticle from "./pages/landing/LaunchArticle";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         >
           <Routes>
             <Route index element={<Landing />} />
+            <Route path="/announcing-pinto" element={<LaunchArticle />} />
             <Route path="/overview" element={<Overview />} />
             <Route path="/silo" element={<Silo />} />
             <Route path="/silo/:tokenAddress" element={<SiloToken />} />
