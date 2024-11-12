@@ -296,7 +296,7 @@ const Overview = () => {
 
   return (
     <div
-      className={`flex flex-col ${hasDepositsOrPods ? "pt-[276px]" : "justify-center text-center min-h-[calc(100vh-15rem)]"} gap-52`}
+      className={`flex flex-col ${hasDepositsOrPods ? "pt-[170px]" : "justify-center text-center min-h-[calc(100vh-15rem)]"} gap-52 pb-20`}
     >
       {hasDepositsOrPods ? renderContent() : renderEmptyState()}
     </div>
