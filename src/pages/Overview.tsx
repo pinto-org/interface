@@ -90,6 +90,7 @@ const Overview = () => {
           ? farmerActions.claimRewards.outputs.bdvGain
           : farmerActions.harvestPods.outputs.bdvGain,
       showActionValues: hoveredButton === "claim" || hoveredButton === "harvest",
+      tooltipContent: "Your Pinto Denominated Value in the Silo.",
     },
     stalk: {
       mode: "stalk",
@@ -120,7 +121,7 @@ const Overview = () => {
             ? farmerActions.claimRewards.outputs.seedGain
             : farmerActions.harvestPods.outputs.seedGain,
       secondaryValue: stalkPerSeason,
-      tooltipContent: "Seeds grow Stalk every Season, creating the time weighted staking mechanism that is the Silo.",
+      tooltipContent: "Seeds grow Stalk every Season, creating an opportunity cost to leaving the Silo.",
       showActionValues: hoveredButton !== "",
     },
     pods: {
@@ -128,7 +129,8 @@ const Overview = () => {
       mainValue: farmerField.totalUnharvestablePods.add(farmerField.totalHarvestablePods),
       mainValueChange: farmerActions.harvestPods.outputs.podGain,
       secondaryValue: placesInLine[0],
-      tooltipContent: "The number of Pods that need to Harvest before your next place in the Pod Line.",
+      tooltipContent:
+        "The number of Pods that need to become redeemable before your next Plot reaches the front of the Pod Line.",
       showActionValues: hoveredButton === "harvest",
     },
   };

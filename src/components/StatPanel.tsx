@@ -132,20 +132,23 @@ const StatPanel = ({
   );
 
   return (
-    <div className={`relative ${mainValue.eq(0) ? "opacity-[0.4]" : "opacity-100"}`}>
+    <div className={`relative`}>
       <div className={`flex flex-col items-center gap-2 ${className}`}>
-        <div data-action-target={`${mode}-stats`}>
+        <div data-action-target={`${mode}-stats`} className={mainValue.eq(0) ? "opacity-[0.4]" : "opacity-100"}>
           <Text variant="body">{`My ${mode === "stalk" ? "Stalk" : mode === "seeds" ? "Seed" : mode === "pods" ? "Pods" : "deposited value"}`}</Text>
         </div>
-        <Text variant={size === "large" ? "h1" : "h3"}>
+        <Text variant={size === "large" ? "h1" : "h3"} className={mainValue.eq(0) ? "opacity-[0.4]" : "opacity-100"}>
           <ValueDisplay />
         </Text>
         <div className="flex flex-row gap-1 items-center">
-          <SecondaryDisplay />
+          <div className={mainValue.eq(0) ? "opacity-[0.4]" : "opacity-100"}>
+            <SecondaryDisplay />
+          </div>
           {tooltipContent && (
             <TooltipSimple
               content={tooltipContent}
-              variant={mode === "stalk" ? "stalk" : mode === "seeds" ? "seed" : "pod"}
+              variant={mode === "stalk" ? "stalk" : mode === "seeds" ? "seed" : mode === "pods" ? "pod" : "gray"}
+              opaque={mainValue.eq(0)}
             />
           )}
         </div>
