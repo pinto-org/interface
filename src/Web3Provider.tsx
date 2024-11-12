@@ -4,7 +4,7 @@ import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 import { ReactNode } from "react";
 import { createTestClient, defineChain } from "viem";
 import { http, WagmiProvider, createConfig } from "wagmi";
-import { localhost } from "wagmi/chains";
+import { base, localhost } from "wagmi/chains";
 import { mock } from "wagmi/connectors";
 
 // serialize BigInts
@@ -18,13 +18,15 @@ declare module "wagmi" {
   }
 }
 
-export const anvilTestClient = createTestClient({ mode: "anvil", chain: localhost, transport: http() });
+const LOCAL_RPC_URL = "http://127.0.0.1:8545";
+const TENDERLY_RPC_URL = "https://virtual.base.rpc.tenderly.co/85c75a4b-5646-48a8-9d61-eaebc9ef4382";
 
-export const testConfig = createConfig({
-  connectors: [mock({ accounts: ["0xfe42972c584e442c3f0a49cb2930e55d5bf13ba7"] })],
-  chains: [localhost],
-  client() {
-    return anvilTestClient;
+export const localfork = defineChain({
+  ...base,
+  id: 1337,
+  name: "Local Fork",
+  rpcUrls: {
+    default: { http: [LOCAL_RPC_URL] },
   },
 });
 
@@ -33,7 +35,7 @@ export const tenderlyTestnet = defineChain({
   name: "Tenderly Base Testnet",
   nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
   rpcUrls: {
-    default: { http: ["https://virtual.base.rpc.tenderly.co/b029bcf4-36fe-48bf-bc5c-41cabbc76996"] },
+    default: { http: [TENDERLY_RPC_URL] },
   },
   blockExplorers: {
     default: { name: "Etherscan", url: "https://etherscan.io" },
@@ -46,14 +48,25 @@ export const tenderlyTestnet = defineChain({
   },
 });
 
+export const anvilTestClient = createTestClient({ mode: "anvil", chain: localhost, transport: http() });
+
+// export const testConfig = createConfig({
+//   connectors: [mock({ accounts: ["0xfe42972c584e442c3f0a49cb2930e55d5bf13ba7"] })],
+//   chains: [localfork],
+//   client() {
+//     return anvilTestClient;
+//   },
+// });
+
 const config = createConfig(
   getDefaultConfig({
     // Your dApps chains
-    chains: [tenderlyTestnet, localhost],
+    chains: [tenderlyTestnet, localfork, base],
     transports: {
       // RPC URL for each chain
       [tenderlyTestnet.id]: http(),
-      [localhost.id]: http(),
+      [localfork.id]: http(),
+      [base.id]: http(),
     },
     batch: {
       multicall: {

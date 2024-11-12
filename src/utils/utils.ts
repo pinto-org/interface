@@ -42,9 +42,7 @@ export function existsNot(value: any): value is undefined | null {
   return !exists(value);
 }
 
-export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
-  // use BN here to avoid floating point errors
-  const length = Number(BigInt(array.length) / BigInt(chunkSize));
-
-  return Array.from({ length: length }, (_, index) => array.slice(index * chunkSize, (index + 1) * chunkSize));
+export function calculatePipeCallClipboardSlot(pipeCallLength: number, slot: number) {
+  if (!pipeCallLength || !slot) return 0;
+  return 2 + pipeCallLength + (1 + slot * 2);
 }

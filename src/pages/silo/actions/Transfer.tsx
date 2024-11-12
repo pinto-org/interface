@@ -21,7 +21,7 @@ function Transfer() {
   const { data: farmerDeposits, queryKey: queryKey } = useFarmerDepositedBalances();
   const BEAN = useTokenData().mainToken;
   const [fromToken, setFromToken] = useState(BEAN);
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState("0");
   const [recipient, setRecipient] = useState<string | undefined>();
   const queryClient = useQueryClient();
 
@@ -36,7 +36,7 @@ function Transfer() {
 
   async function onSubmit() {
     const userAddress = account.address;
-    if (!amount || amount <= 0 || !recipient || !isAddress(recipient) || !userAddress) return;
+    if (!amount || Number(amount) <= 0 || !recipient || !isAddress(recipient) || !userAddress) return;
 
     const deposits = farmerDeposits.get(fromToken);
 

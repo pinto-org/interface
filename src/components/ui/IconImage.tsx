@@ -1,5 +1,6 @@
 import { cn } from "@/utils/utils";
-import { ChevronDownIcon, ChevronUpIcon, Cross1Icon } from "@radix-ui/react-icons";
+import { ChevronUpIcon } from "@radix-ui/react-icons";
+import { IconProps } from "@radix-ui/react-icons/dist/types";
 import clsx from "clsx";
 import React from "react";
 
@@ -15,7 +16,7 @@ export interface IconImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageEl
   /**
    *
    */
-  src: string | typeof ChevronUpIcon;
+  src: string | React.ForwardRefExoticComponent<IconProps & React.RefAttributes<SVGSVGElement>>;
   /**
    * amount to nudge the icon up. defaults to 0.
    * number in px
@@ -31,6 +32,12 @@ const makeIconImageClassName = (s: number, ms?: number) => {
 };
 
 const nudgeProps = {
+  [-6]: clsx("relative bottom-[-0.375rem]"), // -6px
+  [-5]: clsx("relative bottom-[-0.3125rem]"), // -5px
+  [-4]: clsx("relative bottom-[-0.25rem]"), // -4px
+  [-3]: clsx("relative bottom-[-0.1875rem]"), // -3px
+  [-2]: clsx("relative bottom-[-0.125rem]"), // -2px
+  [-1]: clsx("relative bottom-[-0.0625rem]"), // -1px
   0: clsx(""), // 0px
   1: clsx("relative bottom-[0.0625rem]"), // 1px
   2: clsx("relative bottom-[0.125rem]"), // 2px

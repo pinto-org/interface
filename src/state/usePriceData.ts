@@ -54,7 +54,8 @@ export function usePriceData() {
     },
   );
 
-  const price = useReadBeanstalkPrice_Price(settings).data;
+  const priceQuery = useReadBeanstalkPrice_Price(settings);
+  const price = priceQuery.data;
 
   const result = useReadContracts({
     contracts: contractCalls,
@@ -85,22 +86,7 @@ export function usePriceData() {
     },
   });
 
-  const tokenPrices = useMemo(() => {
-    const map = result?.data;
-    if (!map) return new Map();
-
-    const wrappedNativePrice = map.get(wrappedNativeToken);
-    map.set(nativeToken, wrappedNativePrice ?? { instant: TokenValue.ZERO, twa: TokenValue.ZERO });
-
-    map.set(tokenData.mainToken, {
-      instant: TokenValue.fromBlockchain(price?.price || 0n, tokenData.mainToken.decimals),
-      twa: TokenValue.ZERO,
-    });
-
-    return map;
-  }, [result?.data, price, wrappedNativeToken, nativeToken, tokenData.mainToken]);
-
-  const datas = useMemo(() => {
+  const priceResults = useMemo(() => {
     const pools: PoolData[] = [];
     price?.ps.forEach((pool) => {
       const tokens: Token[] = [];
@@ -150,10 +136,37 @@ export function usePriceData() {
       liquidity: TokenValue.fromBlockchain(price?.liquidity || 0n, 4),
       price: TokenValue.fromBlockchain(price?.price || 0n, 6),
       pools: pools.sort((a, b) => Number(b.liquidity.sub(a.liquidity).toHuman())),
-      tokenPrices: tokenPrices,
     };
     return output;
-  }, [price, tokenData.mainToken, tokenData.lpTokens, tokenData.preferredTokens, tokenPrices]);
+  }, [price, tokenData.mainToken, tokenData.lpTokens, tokenData.preferredTokens]);
 
-  return datas;
+  const tokenPrices = useMemo(() => {
+    const map = result?.data;
+    if (!map) return new Map<Token, { instant: TokenValue; twa: TokenValue }>();
+
+    const wrappedNativePrice = map.get(wrappedNativeToken);
+    map.set(nativeToken, wrappedNativePrice ?? { instant: TokenValue.ZERO, twa: TokenValue.ZERO });
+
+    map.set(tokenData.mainToken, {
+      instant: TokenValue.fromBlockchain(price?.price || 0n, tokenData.mainToken.decimals),
+      twa: TokenValue.ZERO,
+    });
+
+    for (const pool of priceResults.pools) {
+      map.set(pool.pool, {
+        instant: pool.lpUsd,
+        twa: TokenValue.ZERO, // TODO: do we need twa?
+      });
+    }
+
+    return map;
+  }, [result?.data, price, wrappedNativeToken, nativeToken, tokenData.mainToken, priceResults.pools]);
+
+  return useMemo(() => {
+    return {
+      ...priceResults,
+      tokenPrices,
+      queryKeys: [priceQuery.queryKey, result.queryKey],
+    };
+  }, [priceResults, tokenPrices, priceQuery.queryKey, result.queryKey]);
 }

@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/Dialog";
+import { ScrollArea } from "./ui/ScrollArea";
 import { Separator } from "./ui/Separator";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
 
@@ -102,8 +103,8 @@ export default function MultiTokenSelectWithBalances({
             <Separator className="w-[120%] -ml-6 mt-6" />
           </DialogTitle>
           <DialogDescription>
-            {account.address ? (
-              <div className="mt-2">
+            <ScrollArea className="h-[600px] -mx-4 mt-2">
+              <div className="mx-4">
                 <ToggleGroup
                   type="multiple"
                   value={selectedTokenAddresses}
@@ -136,9 +137,7 @@ export default function MultiTokenSelectWithBalances({
                   >{`Select ${selectedTokens.length} token${selectedTokens.length > 1 ? "s" : ""} from my Farm Balance`}</Button>
                 </DialogClose>
               </div>
-            ) : (
-              "Connect your wallet to see your Balances"
-            )}
+            </ScrollArea>
           </DialogDescription>
         </DialogHeader>
       </DialogContent>

@@ -1,6 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { BEAN, SEEDS, STALK } from "@/constants/internalTokens";
 import { encodeAbiParameters } from "viem";
+import { stringEq } from "./string";
 import { DepositCrateData, DepositData, SiloTokenDataMap, Token } from "./types";
 
 export enum ConvertKind {
@@ -18,6 +19,14 @@ export type ConvertDetails = {
   actions: [];
   crates: DepositCrateData[];
 };
+
+export interface PickedCratesDetails {
+  totalAmount: TokenValue;
+  totalBDV: TokenValue;
+  totalStalk: TokenValue;
+  totalSeeds: TokenValue;
+  crates: DepositCrateData[];
+}
 
 /**
  * Order crates by Stem.
@@ -42,7 +51,7 @@ export function sortCratesByBDVRatio(crates: DepositData[], direction: "asc" | "
 /**
  * Selects the number of crates needed to add up to the desired `amount`.
  */
-export function pickCrates(deposits: DepositData[], amount: TokenValue) {
+export function pickCrates(deposits: DepositData[], amount: TokenValue): PickedCratesDetails {
   let totalAmount = TokenValue.ZERO;
   let totalBDV = TokenValue.ZERO;
   let totalStalk = TokenValue.ZERO;
@@ -55,17 +64,17 @@ export function pickCrates(deposits: DepositData[], amount: TokenValue) {
       ? deposit.amount
       : amount.sub(totalAmount);
     const cratePct = amountToRemoveFromCrate.div(deposit.amount);
-    const crateBDV = cratePct.mul(deposit.depositBdv).reDecimal(BEAN.decimals);
-    const crateSeeds = cratePct.mul(deposit.seeds).reDecimal(SEEDS.decimals);
+    const crateBDV = cratePct.mul(deposit.depositBdv);
+    const crateSeeds = cratePct.mul(deposit.seeds);
 
-    const baseStalk = cratePct.mul(deposit.stalk.base).reDecimal(STALK.decimals);
-    const grownStalk = cratePct.mul(deposit.stalk.grown).reDecimal(STALK.decimals);
-    const crateStalk = cratePct.mul(deposit.stalk.total).reDecimal(STALK.decimals);
+    const baseStalk = cratePct.mul(deposit.stalk.base);
+    const grownStalk = cratePct.mul(deposit.stalk.grown);
+    const crateStalk = cratePct.mul(deposit.stalk.total);
 
     totalAmount = totalAmount.add(amountToRemoveFromCrate);
     totalBDV = totalBDV.add(crateBDV);
-    totalStalk = totalStalk.add(crateStalk);
     totalSeeds = totalSeeds.add(crateSeeds);
+    totalStalk = totalStalk.add(crateStalk);
 
     cratesToWithdrawFrom.push({
       stem: deposit.stem,
@@ -101,7 +110,7 @@ export function sortAndPickCrates(
   fromAmount: TokenValue,
   deposits: DepositData[],
   toToken?: Token,
-) {
+): ConvertDetails {
   if (deposits.length === 0) throw new Error("No crates to pick and sort.");
   let sortedCrates: DepositData[];
 
@@ -188,6 +197,16 @@ export function calculateConvertData(fromToken: Token, toToken: Token, amountIn:
         { type: "address", name: "pool" },
       ],
       [BigInt(ConvertKind.WELL_LP_TO_BEANS), amountIn.toBigInt(), minAmountOut.toBigInt(), fromToken.address],
+    );
+    return encoded;
+  } else if (stringEq(fromToken.address, toToken.address)) {
+    const encoded = encodeAbiParameters(
+      [
+        { type: "uint256", name: "convertKind" },
+        { type: "uint256", name: "amount" },
+        { type: "address", name: "token" },
+      ],
+      [BigInt(ConvertKind.LAMBDA_LAMBDA), amountIn.toBigInt(), fromToken.address],
     );
     return encoded;
   } else {

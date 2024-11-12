@@ -1,11 +1,20 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { Separator } from "@/components/ui/Separator";
-import Sow from "./actions/Sow";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import { useNavigate, useParams } from "react-router-dom";
 import Harvest from "./actions/Harvest";
+import Sow from "./actions/Sow";
 
 export default function FieldActions() {
+  const { action } = useParams();
+  const navigate = useNavigate();
+
   return (
-    <Tabs defaultValue="sow" className="w-full">
+    <Tabs
+      defaultValue="sow"
+      className="w-full"
+      value={!action ? "sow" : action}
+      onValueChange={(value) => navigate(`/field/${value}`)}
+    >
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="sow">Sow</TabsTrigger>
         <TabsTrigger value="harvest">Harvest</TabsTrigger>

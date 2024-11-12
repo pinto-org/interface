@@ -63,7 +63,7 @@ module.exports = {
           "green-1": "#D8F1E2",
           "green-2": "#00C767",
           "green-3": "#246645",
-          "green-4": "#007339",
+          "green-4": "#387F5C",
           "off-green": "#9A9F6C",
           "gray-1": "#F8F8F8",
           "gray-2": "#D9D9D9",
@@ -106,10 +106,14 @@ module.exports = {
       maxWidth: {
         "panel-price": "600px",
         "panel-seasons": "min(914px, calc(100vw - 48px))",
+        "dialog-600": "min(600px, calc(100vw - 32px))",
       },
       width: {
         "panel-price": "600px",
         "panel-seasons": "min(914px, calc(100vw - 48px))",
+      },
+      minWidth: {
+        "dialog-600": "min(600px, calc(100vw - 32px))",
       },
       keyframes: {
         "accordion-down": {

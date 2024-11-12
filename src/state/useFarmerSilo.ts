@@ -1,19 +1,19 @@
-import { useMemo } from "react";
-import { useAccount } from "wagmi";
+import { TokenValue } from "@/classes/TokenValue";
+import { ZERO_ADDRESS } from "@/constants/address";
+import { STALK } from "@/constants/internalTokens";
 import {
+  useReadFarmer_BalanceOfEarnedBeans,
+  useReadFarmer_BalanceOfGrownStalk,
   useReadFarmer_BalanceOfSop,
   useReadFarmer_BalanceOfStalk,
-  useReadFarmer_BalanceOfGrownStalk,
-  useReadFarmer_BalanceOfEarnedBeans,
 } from "@/generated/contractHooks";
-import { TokenValue } from "@/classes/TokenValue";
+import { Token } from "@/utils/types";
+import { QueryKey } from "@tanstack/react-query";
+import { useMemo } from "react";
+import { useAccount } from "wagmi";
 import useFarmerDepositedBalances from "./useFarmerDepositedBalances";
 import { usePriceData } from "./usePriceData";
 import useTokenData from "./useTokenData";
-import { STALK } from "@/constants/internalTokens";
-import { Token } from "@/utils/types";
-import { ZERO_ADDRESS } from "@/constants/address";
-import { QueryKey } from "@tanstack/react-query";
 
 function useGrownStalkPerTokenQuery(token: Token | undefined) {
   const account = useAccount();
@@ -37,9 +37,10 @@ function useGrownStalkPerTokenQueries() {
   const wl2Data = useGrownStalkPerTokenQuery(tokens?.[2]);
   const wl3Data = useGrownStalkPerTokenQuery(tokens?.[3]);
   const wl4Data = useGrownStalkPerTokenQuery(tokens?.[4]);
+  const wl5Data = useGrownStalkPerTokenQuery(tokens?.[5]);
 
   return useMemo(() => {
-    const datas = [wl0Data, wl1Data, wl2Data, wl3Data, wl4Data];
+    const datas = [wl0Data, wl1Data, wl2Data, wl3Data, wl4Data, wl5Data];
     const map = new Map<Token, ReturnType<typeof useGrownStalkPerTokenQuery>>();
 
     for (const [i, token] of tokens.entries()) {

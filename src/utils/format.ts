@@ -1,4 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { CBBTC, PINTOCBBTC } from "@/constants/tokens";
+import { tokensEqual } from "./token";
+import { Token } from "./types";
 
 type NumberPrimitive = string | number | TokenValue | bigint | undefined | null;
 
@@ -45,18 +48,20 @@ export const formatNum = (val: NumberPrimitive, options?: FormatNumOptions) => {
     }
   }
 
-  return Number(normalised).toLocaleString("en-US", {
+  return new Intl.NumberFormat("en-US", {
+    notation: "standard",
     minimumFractionDigits: options?.minDecimals || 0,
     maximumFractionDigits: options?.maxDecimals || 2,
-  });
+    useGrouping: true,
+  }).format(num);
 };
 
 export const formatUSD = (val: NumberPrimitive) => {
-  return `$${formatNum(val || TokenValue.ZERO, { minDecimals: 2, maxDecimals: 2, defaultValue: "0.00", minValue: 0.01 })}`;
+  return `$${formatNum(val || TokenValue.ZERO, { minDecimals: 2, maxDecimals: 2, defaultValue: "0.00", minValue: 0.01, allowZero: true })}`;
 };
 
 export const formatPDV = (val: NumberPrimitive) => {
-  return `${formatNum(val || TokenValue.ZERO, { minDecimals: 2, maxDecimals: 2, defaultValue: "0.00", minValue: 0.01 })} PDV`;
+  return `${formatNum(val || TokenValue.ZERO, { minDecimals: 2, maxDecimals: 2, defaultValue: "0.00", minValue: 0.01, allowZero: true })} PDV`;
 };
 
 export const formatPct = (val: NumberPrimitive) => {
@@ -77,16 +82,19 @@ export const formatNoDecimals = (val: NumberPrimitive) => {
     maxDecimals: 0,
     defaultValue: "0",
     minValue: 0.01,
+    allowZero: true,
   });
 };
 
-export const format2Decimals = (val: NumberPrimitive) => {
+export type Format2DecimalsOptions = IAllowZero;
+
+export const format2Decimals = (val: NumberPrimitive, options?: IAllowZero) => {
   return formatNum(val || TokenValue.ZERO, {
     minDecimals: 2,
     maxDecimals: 2,
     defaultValue: "0.00",
     minValue: 0.01,
-    allowZero: true,
+    allowZero: options?.allowZero || true,
   });
 };
 
@@ -105,6 +113,29 @@ export const formatDate = (date: Date) => {
   return `${month}/${day}/${year} • ${formattedTime}`;
 };
 
+function normalizeTokenAmount(val: NumberPrimitive, token: Token) {
+  if (val instanceof TokenValue) {
+    return val.toNumber();
+  }
+  if (typeof val === "bigint") {
+    return TokenValue.fromBlockchain(val, token.decimals).toNumber();
+  }
+  return Number(val);
+}
+
+export const formatTokenAmount = (val: NumberPrimitive, token: Token) => {
+  if (tokensEqual(token, CBBTC) || tokensEqual(token, PINTOCBBTC)) {
+    return formatNum(normalizeTokenAmount(val, token), {
+      minDecimals: 6,
+      maxDecimals: 6,
+      defaultValue: "0.00",
+      minValue: 0.000001,
+      allowZero: true,
+    });
+  }
+  return format2Decimals(normalizeTokenAmount(val, token), { allowZero: true });
+};
+
 export const formatter = {
   number: formatNum,
   usd: formatUSD,
@@ -113,6 +144,7 @@ export const formatter = {
   noDec: formatNoDecimals,
   twoDec: format2Decimals,
   date: formatDate,
+  token: formatTokenAmount,
 };
 
 export function truncateHex(hex: string, left: number = 4, right: number = 3) {

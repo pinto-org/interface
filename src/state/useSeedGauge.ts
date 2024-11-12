@@ -1,8 +1,8 @@
 import { exists } from "@/utils/utils";
 import { useMemo } from "react";
 
-import { DecimalBigNumber } from "@/classes/DecimalBigNumber";
-import { TokenValue } from "@/classes/TokenValue";
+import { TV, TokenValue } from "@/classes/TokenValue";
+import { PINTO } from "@/constants/tokens";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { LibCases } from "@/lib/LibCases";
 import { getTokenIndex } from "@/utils/token";
@@ -39,7 +39,12 @@ export interface TokenSeedGaugeInfo extends BaseTokenSeedGaugeInfo {
   /**
    * the current percentage of all BDV deposited in the silo
    */
-  currentPctDepositedBdv: TokenValue;
+  currentDepositedBdvRatio: TokenValue;
+  /**
+   * the current percentage of all LP BDV deposited in the silo.
+   * Only for LP tokens
+   */
+  currentDepositedLPBDVRatio?: TokenValue;
 }
 
 const EMPTY_TOKEN_SEED_GAUGE_INFO: AddressMap<TokenSeedGaugeInfo> = {};
@@ -91,55 +96,87 @@ export const useSeedGauge = () => {
     return [bean2MaxLpRatioScaledQuery.queryKey, gaugePointsQuery.queryKey];
   }, [bean2MaxLpRatioScaledQuery.queryKey, gaugePointsQuery.queryKey]);
 
-  const gaugeData = useMemo(() => {
-    if (!exists(bean2MaxLpRatioScaled) || !exists(gaugePointsPerBdv)) {
-      return EMPTY_TOKEN_SEED_GAUGE_INFO;
+  const { gaugeData, maxLPToken } = useMemo(() => {
+    if (!exists(bean2MaxLpRatioScaled) || !exists(gaugePointsPerBdv) || !tokenData.size) {
+      return {
+        gaugeData: EMPTY_TOKEN_SEED_GAUGE_INFO,
+        maxLPToken: undefined,
+      };
     }
 
     const map: AddressMap<BaseTokenSeedGaugeInfo> = {};
-    let totalRelevantBDV = 0n;
+    let totalRelevantBDV = TV.fromHuman(0, PINTO.decimals);
+    let totalRelevantLPBDV = TV.fromHuman(0, PINTO.decimals);
+
+    let maxLP = whitelistedTokens[0];
 
     whitelistedTokens.forEach((token) => {
       const tokenIndex = getTokenIndex(token);
       const gaugePoint = gaugePointsPerBdv[tokenIndex];
       const wlTokenData = tokenData.get(token);
-      if (!wlTokenData) return;
+      if (!wlTokenData) {
+        console.log("no token data");
+        return;
+      }
 
       const { totalDeposited, tokenBDV: bdvOne, tokenSettings } = wlTokenData;
 
       const optimalPctDepositedBdv = tokenSettings.optimalPercentDepositedBdv;
       const allocatedGP = optimalPctDepositedBdv.gt(0);
-      const totalDepositedBDV = bdvOne.mul(totalDeposited);
+      const totalBDV = bdvOne.mul(totalDeposited);
 
       if (allocatedGP) {
-        totalRelevantBDV += totalDepositedBDV.toBigInt();
+        totalRelevantBDV = totalRelevantBDV.add(totalBDV);
+        if (token.isLP) {
+          totalRelevantLPBDV = totalRelevantLPBDV.add(totalBDV);
+        }
+      }
+
+      const tokenGaugePointsPerBdv = TV.fromBlockchain(gaugePoint, 18);
+      const tokenGaugePoints = TV.fromBlockchain(tokenSettings.gaugePoints, 18);
+
+      const maxLPEntry = map[getTokenIndex(maxLP)];
+
+      if (token.isLP && (!maxLP.isLP || maxLPEntry?.gaugePointsPerBdv.lt(tokenGaugePointsPerBdv))) {
+        maxLP = token;
       }
 
       map[tokenIndex] = {
         token,
         optimalPctDepositedBdv,
-        totalBdv: totalDepositedBDV,
-        gaugePointsPerBdv: TokenValue.fromBlockchain(gaugePoint, 18),
-        gaugePoints: TokenValue.fromBlockchain(tokenSettings.gaugePoints, 18),
+        totalBdv: totalBDV,
+        gaugePointsPerBdv: tokenGaugePointsPerBdv,
+        gaugePoints: tokenGaugePoints,
         isAllocatedGP: allocatedGP,
       };
     });
 
-    return Object.fromEntries(
+    const entries = Object.fromEntries(
       Object.entries(map).map(([tokenIndex, data]) => {
-        const tokenDatas: TokenSeedGaugeInfo = {
+        const info: TokenSeedGaugeInfo = {
           ...data,
-          currentPctDepositedBdv: TokenValue.ZERO,
+          currentDepositedLPBDVRatio: TV.ZERO,
+          currentDepositedBdvRatio: TV.ZERO,
         };
 
-        if (data.isAllocatedGP) {
-          const pct = data.totalBdv.div(totalRelevantBDV).div(100);
-          tokenDatas.currentPctDepositedBdv = pct;
+        if (data.isAllocatedGP && totalRelevantBDV.gt(0) && totalRelevantLPBDV.gt(0)) {
+          const gpRatio = data.totalBdv.div(totalRelevantBDV);
+          info.currentDepositedBdvRatio = gpRatio;
+
+          if (data.token.isLP) {
+            const lpRatio = data.totalBdv.div(totalRelevantLPBDV);
+            info.currentDepositedLPBDVRatio = lpRatio;
+          }
         }
 
-        return [tokenIndex, tokenDatas] as const;
+        return [tokenIndex, info] as const;
       }),
     );
+
+    return {
+      gaugeData: entries,
+      maxLPToken: maxLP,
+    };
   }, [bean2MaxLpRatioScaled, tokenData, whitelistedTokens, gaugePointsPerBdv]);
 
   const isLoading = bean2MaxLpRatioScaledQuery.isLoading || gaugePointsQuery.isLoading;
@@ -153,11 +190,12 @@ export const useSeedGauge = () => {
           min: MIN_BEAN_MAX_LP,
         },
         gaugeData,
+        maxLPToken,
       },
       queryKeys,
       isLoading,
     };
-  }, [isLoading, bean2MaxLpRatioScaled, gaugeData, queryKeys]);
+  }, [isLoading, bean2MaxLpRatioScaled, gaugeData, queryKeys, maxLPToken]);
 };
 
 // ---------------------------------------------------------------------------------------------------------------------

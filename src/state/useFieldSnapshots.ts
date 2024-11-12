@@ -1,18 +1,19 @@
-import { beanstalkAddress } from "@/generated/contractHooks";
-import { useQuery } from "@tanstack/react-query";
-import { useChainId } from "wagmi";
-import request from "graphql-request";
-import { FieldSnapshotsDocument } from "@/generated/gql/graphql";
-import { useSunData } from "./useSunData";
 import { TokenValue } from "@/classes/TokenValue";
 import { PODS } from "@/constants/internalTokens";
-import useTokenData from "./useTokenData";
 import { subgraphs } from "@/constants/subgraph";
+import { beanstalkAddress } from "@/generated/contractHooks";
+import { FieldSnapshotsDocument } from "@/generated/gql/graphql";
+import { useQuery } from "@tanstack/react-query";
+import request from "graphql-request";
+import { arbitrum } from "viem/chains";
+import { useChainId } from "wagmi";
+import { useSunData } from "./useSunData";
+import useTokenData from "./useTokenData";
 
 export default function useFieldSnapshots() {
   const season = useSunData().current;
   const chainId = useChainId();
-  const fieldId = beanstalkAddress[chainId as keyof typeof beanstalkAddress];
+  const fieldId = beanstalkAddress[arbitrum.id as keyof typeof beanstalkAddress];
   const tokenData = useTokenData();
 
   const query = useQuery({

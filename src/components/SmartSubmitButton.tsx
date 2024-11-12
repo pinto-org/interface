@@ -3,10 +3,11 @@ import { ZERO_ADDRESS } from "@/constants/address";
 import { beanstalkAddress } from "@/generated/contractHooks";
 import useTokenData from "@/state/useTokenData";
 import { Token } from "@/utils/types";
+import { isDev } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { BaseError, erc20Abi } from "viem";
+import { BaseError, erc20Abi, maxUint256 } from "viem";
 import { useAccount, useChainId, useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { Button } from "./ui/Button";
 
@@ -16,6 +17,7 @@ interface SmartSubmitButton {
   submitFunction: () => void;
   submitButtonText?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 export default function SmartSubmitButton({
@@ -24,6 +26,7 @@ export default function SmartSubmitButton({
   submitFunction,
   submitButtonText,
   className,
+  disabled,
 }: SmartSubmitButton) {
   const account = useAccount();
   const chainId = useChainId();
@@ -69,7 +72,7 @@ export default function SmartSubmitButton({
           functionName: "approve",
           args: [
             beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-            TokenValue.fromHuman(amount, token.decimals).toBigInt(),
+            isDev() ? maxUint256 : TokenValue.fromHuman(amount, token.decimals).toBigInt(),
           ],
         });
 
@@ -90,8 +93,11 @@ export default function SmartSubmitButton({
   return (
     <Button
       type={"button"}
-      disabled={isConfirming}
-      className={`flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem] ${className}`}
+      disabled={disabled || isConfirming}
+      rounded="full"
+      size="xxl"
+      width="full"
+      className={`${className}`}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();

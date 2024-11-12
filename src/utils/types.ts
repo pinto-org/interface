@@ -33,6 +33,7 @@ export interface InternalToken {
   name: string;
   symbol: string;
   decimals: number;
+  logoURI: string;
 }
 
 export interface DepositCrateData {
@@ -79,6 +80,7 @@ export interface TokenDepositData {
   };
   seeds: TokenValue;
   deposits: DepositData[];
+  convertibleDeposits: DepositData[];
 }
 
 export interface SiloTokenData {
@@ -87,6 +89,8 @@ export interface SiloTokenData {
   stemTip: TokenValue;
   depositedBDV: TokenValue;
   germinatingStem: TokenValue;
+  germinatingBDV: TokenValue;
+  germinatingAmount: TokenValue;
   tokenSettings: {
     deltaStalkEarnedPerSeason: TokenValue;
     encodeType: string;
@@ -123,9 +127,10 @@ export interface SiloTokenData {
 export type SiloTokenDataMap = Map<Token, SiloTokenData>;
 
 export interface Plot {
-  fullyHarvested: boolean;
-  harvestablePods: TokenValue;
+  fullyHarvested?: boolean;
+  unharvestablePods?: TokenValue;
   harvestedPods: TokenValue;
+  harvestablePods: TokenValue;
   pods: TokenValue;
   index: TokenValue;
   beansPerPod?: TokenValue;
@@ -199,3 +204,13 @@ export interface AdvancedFarmCall {
 }
 
 export type AddressMap<T> = { [k: string]: T };
+
+export type StatPanelData = {
+  mode: "stalk" | "pods" | "seeds" | "depositedValue";
+  mainValue: TokenValue;
+  mainValueChange?: TokenValue;
+  secondaryValue: TokenValue;
+  actionValue?: TokenValue;
+  tooltipContent?: string;
+  showActionValues: boolean;
+};

@@ -2695,6 +2695,32 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@radix-ui/react-collapsible@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "@radix-ui/react-collapsible@npm:1.1.1"
+  dependencies:
+    "@radix-ui/primitive": "npm:1.1.0"
+    "@radix-ui/react-compose-refs": "npm:1.1.0"
+    "@radix-ui/react-context": "npm:1.1.1"
+    "@radix-ui/react-id": "npm:1.1.0"
+    "@radix-ui/react-presence": "npm:1.1.1"
+    "@radix-ui/react-primitive": "npm:2.0.0"
+    "@radix-ui/react-use-controllable-state": "npm:1.1.0"
+    "@radix-ui/react-use-layout-effect": "npm:1.1.0"
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-dom": "*"
+    react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: 10c0/e3a510c8f3a31709add35c31e3e108a2bc4db2df06e9e50cb5f25144b1cf9596b8118ad2618f851fa7c1498e057938f641a842a6770b5b7b6cd068cd2b4914f1
+  languageName: node
+  linkType: hard
+
 "@radix-ui/react-collection@npm:1.1.0":
   version: 1.1.0
   resolution: "@radix-ui/react-collection@npm:1.1.0"
@@ -3185,6 +3211,33 @@ __metadata:
     "@types/react-dom":
       optional: true
   checksum: 10c0/ce367d3033a12d639a8d445d2efa090aa4bc5a78125be568f8c8e4e59f30afd51b585a90031ec18cdba19afbaf1974633dbc0c2c3d2a14d9eb1bfea2ddbe5369
+  languageName: node
+  linkType: hard
+
+"@radix-ui/react-scroll-area@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@radix-ui/react-scroll-area@npm:1.2.0"
+  dependencies:
+    "@radix-ui/number": "npm:1.1.0"
+    "@radix-ui/primitive": "npm:1.1.0"
+    "@radix-ui/react-compose-refs": "npm:1.1.0"
+    "@radix-ui/react-context": "npm:1.1.1"
+    "@radix-ui/react-direction": "npm:1.1.0"
+    "@radix-ui/react-presence": "npm:1.1.1"
+    "@radix-ui/react-primitive": "npm:2.0.0"
+    "@radix-ui/react-use-callback-ref": "npm:1.1.0"
+    "@radix-ui/react-use-layout-effect": "npm:1.1.0"
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-dom": "*"
+    react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: 10c0/e33eca1b9f254003a08b2647add9278b1d90dd2e9128cbdd73b310e9363c4461d7149fd973e81ddcbdbf420b040b8fe864684919c58956a5f6e84fff2d1340b9
   languageName: node
   linkType: hard
 
@@ -4100,6 +4153,13 @@ __metadata:
   version: 4.0.9
   resolution: "@types/js-yaml@npm:4.0.9"
   checksum: 10c0/24de857aa8d61526bbfbbaa383aa538283ad17363fcd5bb5148e2c7f604547db36646440e739d78241ed008702a8920665d1add5618687b6743858fae00da211
+  languageName: node
+  linkType: hard
+
+"@types/lodash@npm:^4":
+  version: 4.17.13
+  resolution: "@types/lodash@npm:4.17.13"
+  checksum: 10c0/c3d0b7efe7933ac0369b99f2f7bff9240d960680fdb74b41ed4bd1b3ca60cca1e31fe4046d9abbde778f941a41bc2a75eb629abf8659fa6c27b66efbbb0802a9
   languageName: node
   linkType: hard
 
@@ -7266,11 +7326,13 @@ __metadata:
     "@hookform/resolvers": "npm:^3.9.0"
     "@netlify/functions": "npm:^2.8.1"
     "@parcel/watcher": "npm:2.4.1"
+    "@radix-ui/react-collapsible": "npm:^1.1.1"
     "@radix-ui/react-dialog": "npm:1.1.1"
     "@radix-ui/react-icons": "npm:1.3.0"
     "@radix-ui/react-label": "npm:^2.1.0"
     "@radix-ui/react-navigation-menu": "npm:^1.2.0"
     "@radix-ui/react-popover": "npm:^1.1.1"
+    "@radix-ui/react-scroll-area": "npm:^1.2.0"
     "@radix-ui/react-select": "npm:2.1.1"
     "@radix-ui/react-separator": "npm:^1.1.0"
     "@radix-ui/react-slider": "npm:^1.2.0"
@@ -7283,6 +7345,7 @@ __metadata:
     "@rollup/plugin-strip": "npm:^3.0.4"
     "@tanstack/react-query": "npm:^5.59.13"
     "@tanstack/react-query-devtools": "npm:5.51.1"
+    "@types/lodash": "npm:^4"
     "@types/node": "npm:^22.0.0"
     "@types/react": "npm:^18.3.1"
     "@types/react-dom": "npm:^18.3.0"
@@ -7298,6 +7361,7 @@ __metadata:
     framer-motion: "npm:^11.11.11"
     graphql: "npm:16.9.0"
     graphql-request: "npm:7.1.0"
+    lodash: "npm:^4.17.21"
     postcss: "npm:8.4.39"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"

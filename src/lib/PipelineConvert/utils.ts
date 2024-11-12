@@ -1,70 +1,74 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
-
 import { TokenValue } from "@/classes/TokenValue";
 import { PoolData } from "@/state/usePriceData";
-import { DepositCrateData, DepositData } from "@/utils/types";
-import { chunkArray } from "@/utils/utils";
+import { DepositCrateData } from "@/utils/types";
+import { chunk } from "lodash";
 import { ContractFunctionParameters } from "viem";
+
+import { abiSnippets } from "@/constants/abiSnippets";
 
 const MAX_PER_CALL = 20;
 
-const BasinWellABI = [
-  // get remove liquidity out
-  {
-    inputs: [{ internalType: "uint256", name: "lpAmountIn", type: "uint256" }],
-    name: "getRemoveLiquidityOut",
-    outputs: [{ internalType: "uint256[]", name: "tokenAmountsOut", type: "uint256[]" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  // add liquidity out
-  {
-    inputs: [{ internalType: "uint256[]", name: "tokenAmountsIn", type: "uint256[]" }],
-    name: "getAddLiquidityOut",
-    outputs: [{ internalType: "uint256", name: "lpAmountOut", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;
+const { getRemoveLiquidityOut, getAddLiquidityOut, getRemoveLiquidityOneTokenOut } = abiSnippets.wells;
 
-function constructAddLiquidityMulticall(well: PoolData, amountsIn: TokenValue[][]) {
-  const contracts: ContractFunctionParameters<typeof BasinWellABI>[] = [];
+function constructAddLiquidityMulticall(
+  well: PoolData,
+  amountsIn: TokenValue[][],
+): ContractFunctionParameters<typeof getAddLiquidityOut>[][] {
+  const contracts: ContractFunctionParameters<typeof getAddLiquidityOut>[] = [];
 
   const address = well.pool.address as `0x${string}`;
 
   amountsIn.forEach((amounts) => {
     contracts.push({
       address,
-      abi: BasinWellABI,
+      abi: getAddLiquidityOut,
       functionName: "getAddLiquidityOut",
       args: [amounts.map((v) => BigInt(v.blockchainString))],
     });
   });
 
-  return chunkArray(contracts, MAX_PER_CALL);
+  return chunk(contracts, MAX_PER_CALL);
 }
 
-function constructRemoveLiquidityMulticall(well: PoolData, deposits: DepositCrateData[]) {
-  const contracts: ContractFunctionParameters<typeof BasinWellABI>[] = [];
+function constructRemoveLiquidityMulticall(
+  well: PoolData,
+  crates: DepositCrateData[],
+): ContractFunctionParameters<typeof getRemoveLiquidityOut>[][] {
+  const contracts: ContractFunctionParameters<typeof getRemoveLiquidityOut>[] = [];
 
   const address = well.pool.address as `0x${string}`;
 
-  deposits.forEach((deposit) => {
+  crates.forEach((deposit) => {
     contracts.push({
       address,
-      abi: BasinWellABI,
+      abi: getRemoveLiquidityOut,
       functionName: "getRemoveLiquidityOut",
-      args: [BigInt(deposit.amount.blockchainString)],
+      args: [deposit.amount.toBigInt()],
     });
   });
 
-  return chunkArray(contracts, MAX_PER_CALL);
+  return chunk(contracts, MAX_PER_CALL);
+}
+
+function constructSingleSidedLiquidityMulticall(well: PoolData, tokenIndex: number, crates: DepositCrateData[]) {
+  const contracts: ContractFunctionParameters<typeof getRemoveLiquidityOneTokenOut>[] = [];
+  for (const crate of crates) {
+    contracts.push({
+      address: well.pool.address,
+      abi: getRemoveLiquidityOneTokenOut,
+      functionName: "getRemoveLiquidityOneTokenOut",
+      args: [crate.amount.toBigInt(), well.tokens[tokenIndex].address],
+    });
+  }
+
+  return chunk(contracts, MAX_PER_CALL);
 }
 
 const PipelineConvertUtils = {
   constructMulticall: {
     addLiquidity: constructAddLiquidityMulticall,
     removeLiquidityEqual: constructRemoveLiquidityMulticall,
+    removeLiquidityOneToken: constructSingleSidedLiquidityMulticall,
   },
 };
 
