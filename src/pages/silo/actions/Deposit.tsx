@@ -16,11 +16,15 @@ import { formatter } from "@/utils/format";
 import { stringEq, stringToNumber } from "@/utils/string";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
+import { estimateGas } from "@wagmi/core";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
+import { useConfig } from "wagmi";
 
 function Deposit({ siloToken }: { siloToken: Token }) {
+  const config = useConfig();
   // silo - deposit
   const diamondAddress = useProtocolAddress();
   const farmerBalances = useFarmerBalances();
@@ -35,6 +39,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.INTERNAL_EXTERNAL);
   const [pool, setPool] = useState<PoolData | undefined>(undefined);
   const [slippage, setSlippage] = useState(0.5);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const qc = useQueryClient();
 
@@ -81,6 +86,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
       if (!account.address) {
         throw new Error("No account connected");
       }
+      setIsSubmitting(true);
       const depositData = deposit(
         siloToken,
         useSwap ? swapData?.output : TokenValue.fromHuman(amountIn, tokenIn.decimals),
@@ -98,28 +104,38 @@ function Deposit({ siloToken }: { siloToken: Token }) {
       const value = tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n;
 
       const depositAmount = formatter.token(useSwap ? swapData?.output : amountIn, siloToken);
-
       const formattedAmountIn = formatter.token(amountIn, tokenIn);
 
       toast.loading(`Depositing ${formattedAmountIn} ${tokenIn.symbol} for ${depositAmount} ${siloToken.symbol}...`);
 
+      const _gas = await estimateGas(config, {
+        to: diamondAddress,
+        data: encodeFunctionData({
+          abi: advFarmABI,
+          functionName: "advancedFarm",
+          args: [callData],
+        }),
+        value: value,
+      });
+      setIsSubmitting(false);
       return writeContractAsync({
         address: diamondAddress,
         abi: advFarmABI,
         functionName: "advancedFarm",
         args: [callData],
         value: value,
-        gas: 4000000n,
+        gas: _gas ? (_gas * 120n) / 100n : undefined,
       });
     } catch (e: unknown) {
       console.error(e);
+      setIsSubmitting(false);
       toast.dismiss();
       toast.error(e instanceof Error ? e.message : "Transaction failed.");
       throw e;
     }
   };
 
-  const disabled = !stringToNumber(amountIn) || !account.address || isConfirming;
+  const disabled = !stringToNumber(amountIn) || !account.address || isSubmitting || isConfirming;
 
   return (
     <div className="flex flex-col gap-4">
