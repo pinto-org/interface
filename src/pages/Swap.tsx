@@ -34,7 +34,7 @@ export default function Swap() {
   const chainId = useChainId();
 
   const queryClient = useQueryClient();
-  const { queryKey } = useFarmerBalances();
+  const { queryKeys } = useFarmerBalances();
 
   const swapData = useSwapEstimate(tokenIn, tokenOut, Number(amountIn), slippage, "exactInput", balanceFrom, balanceTo);
 
@@ -57,9 +57,9 @@ export default function Swap() {
   useEffect(() => {
     if (isSuccess) {
       // invalidating query results to trigger a refetch
-      queryClient.invalidateQueries({ queryKey });
+      queryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
     }
-  }, [isSuccess, queryKey, queryClient]);
+  }, [isSuccess, queryKeys, queryClient]);
 
   function invertTokens() {
     const newTokenIn = tokenOut;

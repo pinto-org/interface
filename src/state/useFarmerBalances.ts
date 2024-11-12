@@ -74,11 +74,11 @@ export function useFarmerBalances() {
     }
 
     return balances;
-  }, [nativeBalance.data, data, balanceTokens, ETH]);
+  }, [nativeBalance.data, nativeBalance.data?.value, data, balanceTokens, ETH]);
 
   return {
     balances: balanceData,
-    queryKey: queryKey,
+    queryKeys: [queryKey, nativeBalance.queryKey],
     refetch: refetch,
   };
 }

@@ -65,9 +65,13 @@ const Navbar = () => {
       setBackdropMounted(true);
       setOpenBackdrop(true);
       if (panel === "wallet") {
-        queryClient.invalidateQueries({
-          queryKey: [...priceData.queryKeys, ...farmerSilo.queryKeys, farmerBalances.queryKey, farmerDeposits.queryKey],
-        });
+        const allQueryKeys = [
+          ...priceData.queryKeys,
+          ...farmerSilo.queryKeys,
+          ...farmerBalances.queryKeys,
+          farmerDeposits.queryKey,
+        ];
+        allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
       }
       setOpenPanel(panel);
     }
