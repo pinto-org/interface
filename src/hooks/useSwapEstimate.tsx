@@ -56,6 +56,8 @@ export default function useSwapEstimate(
   const isWrapEth = tokenIn.isNative && tokenOut.isWrappedNative;
   const isUnwrapEth = tokenIn.isWrappedNative && tokenOut.isNative;
 
+  const isWrapping = tokenIn.isNative && tokenMid?.isWrappedNative;
+
   const isStraightDeposit = lpPool?.tokens.includes(tokenIn) && tokenOut.isLP;
 
   const isWrapUnwrap = isWrapEth || isUnwrapEth;
@@ -98,6 +100,7 @@ export default function useSwapEstimate(
     disabled ||
       isStraightDeposit ||
       isWrapUnwrap ||
+      isWrapping ||
       !(!!amount && amount > 0 && !!wellIn && !!wellOut && (wellOnlySwap || wellSwapFirst)),
   );
 
@@ -115,8 +118,9 @@ export default function useSwapEstimate(
     shouldSellEntireBalance: "true",
     enabled:
       !disabled ||
-      isStraightDeposit ||
-      isWrapUnwrap ||
+      !isStraightDeposit ||
+      !isWrapUnwrap ||
+      !isWrapping ||
       ((aggOnlySwap || wellSwapFirst || wellSwapLast) &&
         amountTV.gt(0) &&
         (wellSwapFirst ? wellQuote1.isLoading === false && wellQuote1.amountOut.gt(0) : true)),
@@ -127,7 +131,9 @@ export default function useSwapEstimate(
   const wellAddLiqQuote = useWellAddLiquidity(
     lpPool,
     isStraightDeposit ? tokenIn : aggOut,
-    isStraightDeposit ? TokenValue.fromHuman(amount, tokenIn.decimals) : zeroExQuoteResult,
+    isStraightDeposit || (isWrapping && tokenOut.isLP)
+      ? TokenValue.fromHuman(amount, tokenIn.decimals)
+      : zeroExQuoteResult,
     slippage,
     disabled || isWrapUnwrap || !lpPool,
   );
@@ -325,7 +331,7 @@ export default function useSwapEstimate(
         lpPool.pool.address,
         zeroExQuoteResult,
         aggOut?.address,
-        Clipboard.encodeSlot(zeroX?.allowanceTarget !== zeroAddress ? 1 : 0, 0, 1),
+        isWrapping ? undefined : Clipboard.encodeSlot(zeroX?.allowanceTarget !== zeroAddress ? 1 : 0, 0, 1),
       ) as AdvancedPipeCall;
       pipeCalls.push(transferToWell);
       // slot 2 if no approval needed, 3 if needed, copy output to subsequent calls
@@ -400,8 +406,8 @@ export default function useSwapEstimate(
       pipeCalls: account.address ? pipeCalls : undefined,
       pipeOutputSlot: lpPool
         ? zeroX?.allowanceTarget !== zeroAddress
-          ? calculatePipeCallClipboardSlot(pipeCalls.length, 3)
-          : calculatePipeCallClipboardSlot(pipeCalls.length, 2)
+          ? calculatePipeCallClipboardSlot(pipeCalls.length, 3) - (isWrapping ? 1 : 0)
+          : calculatePipeCallClipboardSlot(pipeCalls.length, 2) - (isWrapping ? 1 : 0)
         : zeroX?.allowanceTarget !== zeroAddress
           ? calculatePipeCallClipboardSlot(pipeCalls.length, 1)
           : calculatePipeCallClipboardSlot(pipeCalls.length, 0),
@@ -516,7 +522,7 @@ export default function useSwapEstimate(
       wellData?.address,
       zeroExQuoteResult,
       aggOut?.address,
-      Clipboard.encodeSlot(zeroX?.allowanceTarget !== zeroAddress ? 1 : 0, 0, 1),
+      isWrapping ? undefined : Clipboard.encodeSlot(zeroX?.allowanceTarget !== zeroAddress ? 1 : 0, 0, 1),
     ) as AdvancedPipeCall;
     pipeCalls.push(transferToWell);
 
