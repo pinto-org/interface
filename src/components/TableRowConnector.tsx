@@ -229,9 +229,9 @@ const TableRowConnector = ({
         className="transition-all"
       >
         <defs>
-          <linearGradient id="myGradient" gradientTransform={`rotate(${isUpward ? "-90" : "90"})`}>
-            <stop offset="25%" stopColor={startCapColor || color} />
-            <stop offset="75%" stopColor={endCapColor || color} />
+          <linearGradient id="myGradient" gradientTransform={`rotate(90)`}>
+            <stop offset="25%" stopColor={isUpward ? endCapColor : startCapColor || color} />
+            <stop offset="75%" stopColor={isUpward ? startCapColor : endCapColor || color} />
           </linearGradient>
         </defs>
         {mode === "connect" && path.startCap && (
