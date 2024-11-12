@@ -56,13 +56,13 @@ const PlotRow = React.forwardRef<HTMLTableRowElement, PlotRowProps & React.HTMLA
         className={`h-[4.5rem] bg-transparent items-center ${useToggle ? "hover:bg-pinto-green-1/50 hover:cursor-pointer" : ""}`}
       >
         <TableCell className="text-black font-[400]">
-          <div className="gap-2 flex items-center -ml-2">
+          <div className="gap-2 flex items-center">
             {useToggle && <CheckmarkCircle isSelected={isSelected} />}
             <img src={plotIcon} className="h-6 w-6" alt="Plot" />
             <Text variant="body-light">Plot {plot.index.blockchainString}</Text>
           </div>
         </TableCell>
-        <TableCell className="text-right pr-0">
+        <TableCell className="text-right">
           <div className="inline-flex items-center gap-1.5">
             <img src={podIcon} className="h-6 w-6" alt="Pods" />
             <Text variant="body-light">{`${formatter.number(plot.pods)} Pods`}</Text>
