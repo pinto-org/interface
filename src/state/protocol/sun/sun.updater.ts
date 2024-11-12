@@ -1,5 +1,5 @@
-import { TV } from "@/classes/TokenValue";
-import { useReadSeasonFacetView_Time } from "@/generated/contractHooks";
+import { useReadSeasonFacetView_SeasonTime, useReadSeasonFacetView_Time } from "@/generated/contractHooks";
+import { exists } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { DateTime } from "luxon";
@@ -9,6 +9,7 @@ import {
   seasonAtom,
   seasonQueryKeyAtom,
   seasonSunriseAtom,
+  seasonTimeAtom,
   setAwaitingSunriseAtom,
   sunriseRemainingAtom,
 } from "./sun.atoms";
@@ -24,11 +25,21 @@ const settings = {
 
 const useFetchSun = () => {
   const [seasonData, setSeasonData] = useAtom(seasonAtom);
+  const [seasonTime, setSeasonTime] = useAtom(seasonTimeAtom);
   const setSeasonQueryKey = useSetAtom(seasonQueryKeyAtom);
 
   const sunData = useReadSeasonFacetView_Time({
     query: settings.query,
   });
+
+  const seasonTimeQuery = useReadSeasonFacetView_SeasonTime({
+    query: settings.query,
+  });
+
+  useEffect(() => {
+    if (!exists(seasonTimeQuery.data)) return;
+    setSeasonTime(seasonTimeQuery.data);
+  }, [seasonTimeQuery.data, setSeasonTime]);
 
   useEffect(() => {
     if (!sunData.data) return;
@@ -52,7 +63,7 @@ const useFetchSun = () => {
     setSeasonQueryKey(sunData.queryKey);
   }, [sunData.queryKey, setSeasonQueryKey]);
 
-  return { seasonData, refetch: sunData.refetch };
+  return { seasonData, seasonTime, refetch: sunData.refetch };
 };
 
 export const useInvalidateSunData = () => {

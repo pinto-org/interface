@@ -5,6 +5,11 @@ import { QueryKey } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useChainId, useReadContracts } from "wagmi";
 
+export interface FieldTemperature {
+  max: TokenValue;
+  scaled: TokenValue;
+}
+
 export interface FieldData {
   harvestableIndex: TokenValue;
   podIndex: TokenValue;
@@ -16,10 +21,7 @@ export interface FieldData {
     thisSowTime: number;
     temp: number;
   };
-  temperature: {
-    max: TokenValue;
-    scaled: TokenValue;
-  };
+  temperature: FieldTemperature;
   queryKeys: QueryKey[];
 }
 
