@@ -17,7 +17,6 @@ const { pipelineConvert: pipelineConvertABI } = abiSnippets;
 
 interface EncodedPipelineConvert {
   encoded: readonly {
-    target: `0x${string}`;
     callData: `0x${string}`;
     clipboard: `0x${string}`;
   }[];
@@ -192,6 +191,9 @@ export class PipelineConvert {
     };
   }
 
+  /**
+   * Adds a check at the end of the advanced farm call to ensure no loss of stalk.
+   */
   static safeWrapEncodePipelineConvert(
     encoded: EncodedPipelineConvert["encoded"],
     protocolAddress: Address,
@@ -200,24 +202,21 @@ export class PipelineConvert {
   ) {
     const pipe: AdvancedPipeCall[] = [];
 
-    const convertCallsMaxIndex = encoded.length - 1;
+    const stalkBal = encoders.farmerSilo.balanceOfStalk(account);
 
-    for (const encoding of encoded) {
-      pipe.push({
-        ...encoding,
-        target: protocolAddress,
-      });
-    }
+    pipe.push({
+      callData: stalkBal.callData,
+      clipboard: stalkBal.clipboard,
+      target: protocolAddress,
+    });
 
-    // pipe.push(
-    //   encoders.junction.gte(TokenValue.ZERO, balanceOfStalk, Clipboard.encodeSlot(convertCallsMaxIndex + 1, 0, 0)),
-    // );
+    pipe.push(encoders.junction.gte(TokenValue.ZERO, balanceOfStalk, Clipboard.encodeSlot(0, 0, 0)));
 
-    // pipe.push(encoders.junction.check(convertCallsMaxIndex + 2, 0));
+    pipe.push(encoders.junction.check(1, 0));
 
-    const pipeEncoded = encoders.advancedPipe(pipe);
+    const pipeEncoded = encoders.advancedPipe(pipe, TokenValue.ZERO);
 
-    return [pipeEncoded] as const;
+    return [...encoded, pipeEncoded] as const;
   }
 
   /// ------------------------------ Private Methods ------------------------------ ///

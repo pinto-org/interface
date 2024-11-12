@@ -5,6 +5,7 @@ import { Address, encodeFunctionData } from "viem";
 export default function balanceOfStalk(account: Address) {
   const callData = encodeFunctionData({
     abi: abiSnippets.farmer.balanceOfStalk,
+    functionName: "balanceOfStalk",
     args: [account],
   });
 

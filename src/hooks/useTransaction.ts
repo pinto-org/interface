@@ -40,6 +40,7 @@ const sendErrorToast = (error: any, errMessage?: string) => {
   } else {
     errorMessage = "Transaction failed";
   }
+  console.error(error);
   toast.dismiss();
   toast.error(errorMessage);
 };
