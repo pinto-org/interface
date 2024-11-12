@@ -153,8 +153,8 @@ export default function DevPage() {
   };
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="flex flex-col gap-6 w-[80%]">
+    <div className="min-h-screen flex flex-col items-center">
+      <div className="flex flex-col gap-6 w-[80%] mb-20">
         <h1 className="font-[300] text-[3.5rem] text-black">Development Page</h1>
         {serverStatus === "not-running" && (
           <div className="text-pinto-red-2 text-xl mb-4 p-4 border border-pinto-red-2 rounded-lg">
