@@ -7,12 +7,15 @@ import { useAccount } from "wagmi";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { Input } from "./ui/Input";
+import { usePriceData } from "@/state/usePriceData";
 
 interface TaskResponse {
   success: boolean;
   message: string;
   data?: any;
 }
+
+type ServerStatus = "running" | "not-running" | "checking";
 
 export default function DevPage() {
   const { address } = useAccount();
@@ -32,6 +35,37 @@ export default function DevPage() {
   });
 
   const { lpTokens } = useTokenData();
+
+  const [serverStatus, setServerStatus] = useState<ServerStatus>("checking");
+
+  const [approvalAddress, setApprovalAddress] = useState(address || "");
+
+  const [singleSidedAddress, setSingleSidedAddress] = useState(address || "");
+  const [singleSidedAmounts, setSingleSidedAmounts] = useState("");
+
+  const priceData = usePriceData();
+  const tokenData = useTokenData();
+
+  const [selectedPercent, setSelectedPercent] = useState<number>(10);
+
+  useEffect(() => {
+    const checkServer = async () => {
+      try {
+        const response = await fetch("http://localhost:3002/execute-task", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ task: "ping" }),
+        });
+        setServerStatus("running");
+      } catch (error) {
+        setServerStatus("not-running");
+      }
+    };
+
+    checkServer();
+  }, []);
 
   // Update addresses when account changes
   useEffect(() => {
@@ -93,10 +127,38 @@ export default function DevPage() {
     }));
   };
 
+  const calculatePercentAmounts = (percent: number) => {
+    console.log("priceData", priceData.pools);
+    const tokenOrder = ["WETH", "cbETH", "cbBTC", "USDC", "WSOL"];
+    const amounts = tokenOrder.map((symbol) => {
+      const pool = priceData.pools.find((p) => p.tokens.some((token) => token.symbol === symbol));
+
+      if (!pool) {
+        console.log("pool for token not found:", symbol);
+        return "0";
+      }
+
+      const tokenIndex = pool.tokens.findIndex((token) => token.symbol === symbol);
+      if (tokenIndex === -1) return "0";
+
+      const percentAmount = pool.balances[tokenIndex].mul(percent / 100);
+      console.log(`calculated ${percent}%:`, percentAmount.toHuman(), " for token ", symbol);
+      return percentAmount.toHuman();
+    });
+
+    setSingleSidedAmounts(amounts.join(","));
+    setSelectedPercent(percent);
+  };
+
   return (
-    <div className="flex flex-col items-center">
-      <div className="flex flex-col gap-6 w-[80%]">
+    <div className="min-h-screen flex flex-col items-center">
+      <div className="flex flex-col gap-6 w-[80%] mb-20">
         <h1 className="font-[300] text-[3.5rem] text-black">Development Page</h1>
+        {serverStatus === "not-running" && (
+          <div className="text-pinto-red-2 text-xl mb-4 p-4 border border-pinto-red-2 rounded-lg">
+            Server not running. Please run `yarn hardhat-server` from the protocol directory.
+          </div>
+        )}
 
         {/* Simple Actions */}
         <Card className="p-6">
@@ -253,6 +315,77 @@ export default function DevPage() {
                   Add Liquidity To All Wells
                 </Button>
               </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Token Approvals */}
+        <Card className="p-6">
+          <h2 className="text-2xl mb-4">Token Approvals</h2>
+          <div className="flex flex-col gap-4">
+            <div className="text-sm text-gray-500">
+              Approves all non-PINTO tokens for whitelisted wells using the specified account.
+            </div>
+            <div className="flex flex-col gap-2">
+              <Input
+                placeholder="Account Address"
+                value={approvalAddress}
+                onChange={(e) => setApprovalAddress(e.target.value)}
+              />
+              <Button
+                onClick={() => executeTask("approveTokens", { account: approvalAddress })}
+                disabled={!approvalAddress || loading === "approveTokens"}
+              >
+                Approve All Tokens
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h2 className="text-2xl mb-4">Single-Sided Deposits</h2>
+          <div className="flex flex-col gap-4">
+            <div className="text-sm text-gray-500">
+              Deposits non-PINTO tokens into wells and then into beanstalk. Enter amounts in order:
+              WETH,cbETH,cbBTC,USDC,WSOL
+            </div>
+            <div className="flex flex-col gap-2">
+              <Input
+                placeholder="Account Address"
+                value={singleSidedAddress}
+                onChange={(e) => setSingleSidedAddress(e.target.value)}
+              />
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Amounts (comma-separated)"
+                  value={singleSidedAmounts}
+                  onChange={(e) => setSingleSidedAmounts(e.target.value)}
+                  className="flex-1"
+                />
+                <div className="flex gap-1">
+                  {[1, 5, 10, 50, 100].map((percent) => (
+                    <Button
+                      key={percent}
+                      onClick={() => calculatePercentAmounts(percent)}
+                      variant={selectedPercent === percent ? "default" : "outline"}
+                      className="px-3"
+                    >
+                      {percent}%
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              <Button
+                onClick={() =>
+                  executeTask("singleSidedDeposits", {
+                    account: singleSidedAddress,
+                    amounts: singleSidedAmounts,
+                  })
+                }
+                disabled={!singleSidedAddress || !singleSidedAmounts || loading === "singleSidedDeposits"}
+              >
+                Execute Single-Sided Deposits
+              </Button>
             </div>
           </div>
         </Card>
