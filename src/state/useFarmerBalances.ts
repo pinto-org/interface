@@ -21,7 +21,7 @@ export interface FarmerBalance {
 
 export function useFarmerBalances() {
   const account = useAccount();
-  const season = useSunData().current;
+  const season = useSunData().data.current;
   const tokens = useTokenData().preferredTokens;
   const lpTokens = useTokenData().lpTokens;
   const ETH = useTokenData().nativeToken;
