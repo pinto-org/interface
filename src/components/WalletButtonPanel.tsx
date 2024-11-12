@@ -4,7 +4,7 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { formatter } from "@/utils/format";
 import { Avatar } from "connectkit";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAccount, useDisconnect, useEnsAvatar, useEnsName } from "wagmi";
 import ChainButton from "./ChainButton";
@@ -21,7 +21,14 @@ import { Toggle } from "./ui/Toggle";
 export default function WalletButtonPanel({
   isOpen = false,
   togglePanel,
-}: { isOpen: boolean; togglePanel: () => void }) {
+  showClaim,
+  setShowClaim,
+}: {
+  isOpen: boolean;
+  togglePanel: () => void;
+  showClaim: boolean;
+  setShowClaim: Dispatch<SetStateAction<boolean>>;
+}) {
   const { address } = useAccount();
   const { data: ensName } = useEnsName({ address });
   const { data: ensAvatar } = useEnsAvatar({ name: ensName as string });
@@ -57,7 +64,6 @@ export default function WalletButtonPanel({
   );
 
   const [showTransfer, setShowTransfer] = useState(false);
-  const [showClaim, setShowClaim] = useState(false);
 
   return (
     <Card

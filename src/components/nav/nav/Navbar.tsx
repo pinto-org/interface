@@ -20,6 +20,7 @@ const DURATION = 150;
 
 const Navbar = () => {
   const [openPanel, setOpenPanel] = useState<Panel | undefined>();
+  const [showClaim, setShowClaim] = useState(false);
   const [openBackdrop, setOpenBackdrop] = useState(false);
   const [backdropMounted, setBackdropMounted] = useState(true);
 
@@ -48,6 +49,7 @@ const Navbar = () => {
   const togglePanel = (panel: Panel) => {
     if (openPanel === panel) {
       closePanel();
+      setShowClaim(false);
     } else {
       setBackdropMounted(true);
       setOpenBackdrop(true);
@@ -77,7 +79,13 @@ const Navbar = () => {
         <div className="flex flex-row justify-end">
           <div className={`${walletOpen && "z-[51]"}`}>
             <div data-action-target={"wallet-button"}>
-              <WalletButton isOpen={walletOpen} togglePanel={() => togglePanel("wallet")} ref={walletButton} />
+              <WalletButton
+                isOpen={walletOpen}
+                togglePanel={() => togglePanel("wallet")}
+                ref={walletButton}
+                showClaim={showClaim}
+                setShowClaim={setShowClaim}
+              />
             </div>
           </div>
           <div className={`lg:hidden ${mobileNaviOpen && "z-[51]"}`}>
@@ -96,7 +104,10 @@ const Navbar = () => {
             <ScrollHideComponent>
               <HelperLink
                 onClick={() => {
-                  walletButton.current?.click();
+                  if (hasFlood) {
+                    setShowClaim(true);
+                  }
+                  togglePanel("wallet");
                 }}
                 text={
                   !account.address
