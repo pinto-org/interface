@@ -109,7 +109,6 @@ function DefaultConvert({
     },
   });
 
-
   useEffect(() => {
     if (initAmountSet || mode !== "max" || !maxConvertQuery.isFetched) return;
     const convertible = farmerDeposits?.get(siloToken)?.convertibleAmount;
@@ -390,6 +389,7 @@ const PipelineConvert = ({
       const res = await genConvert
         .quote(convertibleDeposits, TV.fromHuman(debouncedAmountIn, siloToken.decimals), slippage, slippage / 100)
         .catch((e) => {
+          toast.error("Failed to fetch convert quote.");
           console.error("Error fetching pipeline convert: ", e);
           setLoadingFalse();
           return GenConvert.getEmptyResult();
@@ -425,6 +425,7 @@ const PipelineConvert = ({
         setLoadingFalse();
         return response.result;
       } catch (e: any) {
+        toast.error("Failed to simulate convert.");
         console.error("Error simulating pipeline convert: ", e);
         setLoadingFalse();
         throw new Error(e.message || e.shortMessage || "Error simulating pipeline convert");
