@@ -1,6 +1,6 @@
 import React, { useRef, useMemo, forwardRef, useEffect } from "react";
 import * as THREE from "three";
-import { extend, useFrame, Object3DNode, RootState } from "@react-three/fiber";
+import { extend, useFrame, Object3DNode } from "@react-three/fiber";
 import SlideShaderMaterial from "./utils/SlideShaderMaterial";
 import { createSlideGeometry } from "./utils/createSlideGeometry";
 
@@ -16,6 +16,7 @@ declare global {
         uProgress?: number;
         uAnimationPhase?: number;
         transparent?: boolean;
+        opacity: number;
         onMaxAnimationTimeCalculated?: (time: number) => void;
       };
     }
@@ -31,9 +32,8 @@ interface SlideProps {
   height: number;
   animationPhase: "in" | "out";
   progress: number;
-  // cameraPosition: THREE.Vector3;
+  opacity: number;
   onMaxAnimationTimeCalculated?: (time: number) => void;
-  shouldFadeBitcoin: boolean;
 }
 
 // functional slide react component
@@ -46,7 +46,7 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
       animationPhase,
       progress,
       onMaxAnimationTimeCalculated,
-      shouldFadeBitcoin,
+      opacity,
     },
     ref
   ) => {
@@ -78,35 +78,34 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
       [width, height, animationPhase]
     );
 
-    // updates the material every rendered frame to animate the transition
-    useFrame((state: RootState) => {
+    // Update material properties on each frame
+    useFrame(() => {
       if (materialRef.current) {
         materialRef.current.uniforms.uProgress.value = progress;
         materialRef.current.uniforms.uAnimationPhase.value =
           animationPhaseValue;
+        materialRef.current.transparent = true; // Ensure transparency
+        materialRef.current.opacity = opacity; // Update opacity value
       }
     });
 
-    // effect to set the uShouldFadeBitcoin uniform if it's the last image
+    // Use effect to initialize opacity properly
     useEffect(() => {
-      if (
-        materialRef.current &&
-        materialRef.current.uniforms.uShouldFadeBitcoin
-      ) {
-        // Set the uShouldFadeBitcoin uniform when shouldFadeBitcoin changes
-        materialRef.current.uniforms.uShouldFadeBitcoin.value =
-          shouldFadeBitcoin ? 1.0 : 0.0;
+      if (materialRef.current) {
+        materialRef.current.opacity = opacity;
+        materialRef.current.transparent = true; // Make sure transparency is enabled
       }
-    }, [shouldFadeBitcoin]);
+    }, [opacity]);
 
     return (
       <mesh ref={meshRef} geometry={geometry}>
         <slideShaderMaterial
+          opacity={opacity}
           ref={materialRef}
           uMap={texture}
           uProgress={progress}
           uAnimationPhase={animationPhaseValue}
-          transparent
+          transparent={true}
         />
       </mesh>
     );

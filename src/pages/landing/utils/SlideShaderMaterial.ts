@@ -11,6 +11,7 @@ const SlideShaderMaterial = shaderMaterial(
     uMap: null,
     uShouldFadeBitcoin: 0,
     uTime: 0,
+    opacity: 1,
   },
   vertexShader,
   fragmentShader

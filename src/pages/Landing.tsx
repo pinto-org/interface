@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import * as THREE from "three";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
 import Slide from "./landing/Slide";
 import ParticlesBackground, {
   ParticlesBackgroundHandle,
@@ -9,19 +9,47 @@ import { Button } from "../components/ui/Button";
 import { useNavigate } from "react-router-dom";
 import CoinModel from "./landing/utils/CoinModel";
 import EnvironmentSetup from "./landing/utils/EnvironmentSetup";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export default function Landing() {
+  // DECLARATIONS FOR STATE
   const [progress, setProgress] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextIndex, setNextIndex] = useState(1);
   const [maxAnimationTime, setMaxAnimationTime] = useState(1); // Default to 1
-  const [theme, setTheme] = useState("default");
-  const [animationTimer, setAnimationTimer] = useState(800);
+  const [animationTimer, setAnimationTimer] = useState(400);
+  const [opacity, setOpacity] = useState(1);
+  const [showMetallicCoin, setShowMetallicCoin] = useState(false);
 
+  // SLIDE REFS
+  const slideRef1 = useRef<THREE.Mesh>(null);
+  const slideRef2 = useRef<THREE.Mesh>(null);
+  const slidesGroupRef = useRef<THREE.Group>(null); // Reference to the group
+
+  // PRELOADED MODELS
+  const preloadedGLTF = useLoader(
+    GLTFLoader,
+    "src/assets/landing/pintosimple.glb"
+  );
+
+  // TS PARTICLES BACKGROUND REF
   const particlesBackgroundRef = useRef<ParticlesBackgroundHandle>(null);
+
+  // ZOOM FLAG
   const zoomRef = useRef(false);
 
-  // Images to animate through
+  // NAVIGATION HOOK
+  const navigate = useNavigate();
+
+  // NAVIATION HANDLERS
+  const handleLaunchAppClick = () => {
+    navigate("/overview");
+  };
+  const handleLaunchArticleClick = () => {
+    navigate("/announcing-pinto");
+  };
+
+  // IMAGE ARRAY
   const images = [
     "src/assets/landing/tree.png",
     "src/assets/landing/tree.png",
@@ -48,67 +76,77 @@ export default function Landing() {
     // "src/assets/landing/peace.png",
     "src/assets/landing/btcpinto.png",
   ];
-
-  // update speed & particle background
+  // EFFECT TO UPDATE ANIMATION SPEED, PARTICLE BACKGROUND THEME, AND CAMERA ZOOM
   useEffect(() => {
-    if (images[currentIndex].includes("wheat.png") && theme !== "1") {
+    if (images[currentIndex].includes("wheat.png")) {
       particlesBackgroundRef.current?.loadTheme("1"); // Directly load the theme
-      setAnimationTimer(550);
+      // setAnimationTimer(550);
+      setAnimationTimer(400);
     }
-    if (images[currentIndex].includes("bimetal-coins.png") && theme !== "2") {
+    if (images[currentIndex].includes("bimetal-coins.png")) {
       particlesBackgroundRef.current?.loadTheme("2"); // Directly load the theme
-      setAnimationTimer(500);
+      // setAnimationTimer(500);
+      setAnimationTimer(400);
     }
-    if (images[currentIndex].includes("banknote.png") && theme !== "3") {
+    if (images[currentIndex].includes("banknote.png")) {
       particlesBackgroundRef.current?.loadTheme("3"); // Directly load the theme
       setAnimationTimer(400);
     }
-    if (images[currentIndex].includes("nuke") && theme !== "4") {
+    if (images[currentIndex].includes("nuke")) {
       particlesBackgroundRef.current?.loadTheme("4"); // Directly load the theme
     }
-    if (images[currentIndex].includes("skyscraper") && theme !== "5") {
+    if (images[currentIndex].includes("skyscraper")) {
       particlesBackgroundRef.current?.loadTheme("5"); // Directly load the theme
+      setTimeout(() => {
+        setShowMetallicCoin(true);
+      }, 200);
     }
-  }, [currentIndex]);
-
-  // Trigger zoom effect when btcpinto is active
-  useEffect(() => {
     if (images[currentIndex].includes("btcpinto")) {
-      zoomRef.current = true; // Set zoom flag
+      setOpacity(0); // Start hiding slides immediately
+
+      // Instead of setTimeout, start animations immediately
+      let fadeOutStartTime = performance.now();
+      const fadeOutDuration = 1000;
+
+      const fadeOutAnimation = () => {
+        const elapsed = performance.now() - fadeOutStartTime;
+        const newOpacity = Math.max(1 - elapsed / fadeOutDuration, 0);
+        setOpacity(newOpacity);
+
+        if (newOpacity > 0) {
+          requestAnimationFrame(fadeOutAnimation);
+        }
+      };
+
+      requestAnimationFrame(fadeOutAnimation);
     } else {
       zoomRef.current = false; // Reset zoom flag
+      // setShowMetallicCoin(false); // Reset metallic coin visibility
     }
   }, [currentIndex]);
 
-  // Three.js canvas with Camera Control
+  // CAMREA ZOOM EFFECT
   const CameraZoom = () => {
     const { camera } = useThree();
-    const initialPosition = new THREE.Vector3(0, 0, 100); // Initial camera position
-    const targetPosition = new THREE.Vector3(0, 0, 40); // Target camera position, with x-offset for panning
+    const initialPosition = new THREE.Vector3(0, 0, 160); // Initial camera position
+    const targetPosition = new THREE.Vector3(9, 0, 80); // Target camera position, with x-offset for panning
 
     useEffect(() => {
       if (zoomRef.current) {
-        // Reset to initial camera and look-at positions
         camera.position.copy(initialPosition);
       }
     }, [camera]);
 
     useFrame(() => {
       if (zoomRef.current) {
-        // Smoothly interpolate camera position and look-at target
-        camera.position.lerp(targetPosition, 0.02); // Smooth zoom and pan
+        camera.position.lerp(targetPosition, 0.07); // Smooth zoom and pan
       }
     });
 
     return null;
   };
 
-  // Refs to Slides - forwardRef for Mesh (we can manipulate the mesh here if we want - not necessary)
-  const slideRef1 = useRef<THREE.Mesh>(null);
-  const slideRef2 = useRef<THREE.Mesh>(null);
-
-  // UseEffect - Animation
-  // This UseEffect will run every time the maxAnimationTime, currentIndex or nextIndex changes
+  //  EFFECT TO CONTROL ANIMATION PROGRESSION
   useEffect(() => {
     // Exit early if we've reached or surpassed the last image
     if (nextIndex >= images.length) {
@@ -122,7 +160,7 @@ export default function Landing() {
       const elapsed = performance.now() - startTime;
       const totalDuration = animationTimer;
       const adjustedDuration = totalDuration * maxAnimationTime;
-      const newProgress = Math.min(elapsed / adjustedDuration, 1);
+      const newProgress = elapsed / adjustedDuration;
       setProgress(newProgress);
 
       if (newProgress < 1) {
@@ -152,28 +190,18 @@ export default function Landing() {
     };
   }, [maxAnimationTime, currentIndex, nextIndex]);
 
-  // navigation for buttons
-  const navigate = useNavigate();
-  const handleLaunchAppClick = () => {
-    navigate("/overview");
-  };
-  const handleLaunchArticleClick = () => {
-    navigate("/announcing-pinto");
-  };
-
   return (
     <div className="space-y-8 relative z-10">
-      {/* Main Section with Canvas and Button */}
       <div
         style={{
           width: "100vw",
           height: "80vh",
-          position: "relative", // relative positioning for the container
+          position: "relative",
           display: "flex",
           backgroundColor: "#FEFDF4",
         }}
       >
-        {/* Memoized Particles Background */}
+        {/* Memoized TSParticles Background */}
         <ParticlesBackground ref={particlesBackgroundRef} />
 
         {/* Three.js Canvas with Transparent Background */}
@@ -192,42 +220,48 @@ export default function Landing() {
           }}
         >
           <EnvironmentSetup />
-          <CameraZoom /> {/* Add CameraZoom inside Canvas */}
+          <CameraZoom />
           <ambientLight intensity={0.5} />
           {/* Directional light from the front-right and above */}
           <directionalLight
             position={[0, 15, 10]} // Positioned above and slightly in front of the coin
-            intensity={20} // Strong enough to create a noticeable gradient effect
+            intensity={30} // Strong enough to create a noticeable gradient effect
+          />
+          <directionalLight
+            position={[0, 70, 100]} // Positioned above and slightly in front of the coin
+            intensity={30} // Strong enough to create a noticeable gradient effect
           />
           {/* Coin Model */}
-          {images[currentIndex].includes("btcpinto") && (
-            <CoinModel position={[0, 0, 0]} />
+          {showMetallicCoin && preloadedGLTF && (
+            <CoinModel gltf={preloadedGLTF} />
           )}
           {/* Adjust the position to fit in the scene */}
-          <Slide
-            ref={slideRef1}
-            imageUrl={images[currentIndex]}
-            width={60}
-            height={60}
-            animationPhase="out"
-            progress={progress}
-            // cameraPosition={camera.position}
-            onMaxAnimationTimeCalculated={(time) => setMaxAnimationTime(time)}
-            shouldFadeBitcoin={images[currentIndex].includes("btcpinto")}
-          />
-          {nextIndex < images.length && (
+          <group ref={slidesGroupRef}>
             <Slide
-              ref={slideRef2}
-              imageUrl={images[nextIndex]}
+              ref={slideRef1}
+              imageUrl={images[currentIndex]}
               width={60}
               height={60}
-              animationPhase="in"
+              animationPhase="out"
               progress={progress}
-              // cameraPosition={Camera.position}
+              opacity={opacity} // Pass opacity down
               onMaxAnimationTimeCalculated={(time) => setMaxAnimationTime(time)}
-              shouldFadeBitcoin={images[currentIndex].includes("btcpinto")}
             />
-          )}
+            {nextIndex < images.length && (
+              <Slide
+                ref={slideRef2}
+                imageUrl={images[nextIndex]}
+                width={60}
+                height={60}
+                animationPhase="in"
+                progress={progress}
+                opacity={opacity} // Pass opacity down
+                onMaxAnimationTimeCalculated={(time) =>
+                  setMaxAnimationTime(time)
+                }
+              />
+            )}
+          </group>
         </Canvas>
 
         {/* Wrapper div for button positioned at the bottom of the view */}

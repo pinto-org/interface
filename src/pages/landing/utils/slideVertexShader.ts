@@ -8,7 +8,6 @@ attribute vec3 aStartPosition;
 attribute vec3 aControl0;
 attribute vec3 aControl1;
 attribute vec3 aEndPosition;
-
 varying vec2 vUv;
 varying vec3 vNormal;
 

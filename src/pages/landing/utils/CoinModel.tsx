@@ -5,23 +5,31 @@ import { TextureLoader, MeshStandardMaterial, Color } from "three";
 import * as THREE from "three";
 
 type CoinModelProps = {
+  gltf: any;
   position?: [number, number, number];
   scale?: [number, number, number];
+  rotation?: [number, number, number];
 };
 
 const CoinModel: React.FC<CoinModelProps> = ({
-  position = [0, 0, 0],
-  scale = [20, 20, 20],
+  gltf,
+  position = [7.7, 0, 50],
+  scale = [6.5, 6.5, 6.5],
+  rotation = [0, 0, 0],
 }) => {
   // Load the model using GLTFLoader
-  const gltf = useLoader(GLTFLoader, "src/assets/landing/pintosimple.glb");
   const modelRef = useRef<any>();
-
   const iconTexture = useLoader(
     TextureLoader,
     "src/assets/landing/pintoPDVnoDrop.png"
   );
   const iconPlaneRef = useRef<any>();
+
+  // what can i figure out right now?
+  // how to render the metallic pinto on top of the image in the slide
+
+  // are there other ways than trying to jimmy rig it so that the coin appears on top of the image?
+  // what is the best way to do this?
 
   // Use an effect to replace the materials after the model is loaded
   useEffect(() => {
@@ -63,7 +71,7 @@ const CoinModel: React.FC<CoinModelProps> = ({
                 center.y,
                 center.z + 1
               ); // Slightly offset on the z-axis to avoid z-fighting
-              const scaleMultiplier = 18; // Scale down the icon plane to fit the coin face
+              const scaleMultiplier = 4; // Scale down the icon plane to fit the coin face
               iconPlaneRef.current.scale.set(
                 size.x * scaleMultiplier,
                 size.y * scaleMultiplier,
@@ -74,7 +82,7 @@ const CoinModel: React.FC<CoinModelProps> = ({
         }
       });
     }
-  }, [gltf]); // Ensure the effect runs after the model is loaded
+  }, [gltf, position]); // Ensure the effect runs after the model is loaded
 
   // Use `useFrame` to rotate the model on every frame
   useFrame(() => {
@@ -89,8 +97,9 @@ const CoinModel: React.FC<CoinModelProps> = ({
       <primitive
         ref={modelRef}
         object={gltf.scene}
-        position={position as any}
+        position={position}
         scale={scale}
+        rotation={rotation}
       />
 
       <mesh ref={iconPlaneRef} position={[0, 0, 0]}>
