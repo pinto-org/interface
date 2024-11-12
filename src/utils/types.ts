@@ -1,4 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { SeasonalChartData } from "@/components/charts/SeasonalChart";
 import { Address } from "viem";
 
 export enum FarmFromMode {
@@ -213,4 +214,10 @@ export type StatPanelData = {
   actionValue?: TokenValue;
   tooltipContent?: string;
   showActionValues: boolean;
+};
+
+export type UseSeasonalResult = {
+  data: SeasonalChartData[] | undefined;
+  isLoading: boolean;
+  isError: boolean;
 };
