@@ -1,4 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { DateTime } from "luxon";
 import { Address } from "viem";
 
 export enum FarmFromMode {
@@ -213,4 +214,9 @@ export type StatPanelData = {
   actionValue?: TokenValue;
   tooltipContent?: string;
   showActionValues: boolean;
+};
+
+export type BlockInfo = {
+  blockNumber: number;
+  timestamp: DateTime;
 };

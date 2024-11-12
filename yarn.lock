@@ -4163,6 +4163,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/luxon@npm:^3.4.2":
+  version: 3.4.2
+  resolution: "@types/luxon@npm:3.4.2"
+  checksum: 10c0/d835467de3daf7e17ba78b50bb5a14efd94272439ca067990d71332a54b311544459c69623eddd243b511b28d70194c9591a9ee8cf9c038962c965f991affd7e
+  languageName: node
+  linkType: hard
+
 "@types/ms@npm:*":
   version: 0.7.34
   resolution: "@types/ms@npm:0.7.34"
@@ -7346,6 +7353,7 @@ __metadata:
     "@tanstack/react-query": "npm:^5.59.13"
     "@tanstack/react-query-devtools": "npm:5.51.1"
     "@types/lodash": "npm:^4"
+    "@types/luxon": "npm:^3.4.2"
     "@types/node": "npm:^22.0.0"
     "@types/react": "npm:^18.3.1"
     "@types/react-dom": "npm:^18.3.0"
@@ -7361,7 +7369,9 @@ __metadata:
     framer-motion: "npm:^11.11.11"
     graphql: "npm:16.9.0"
     graphql-request: "npm:7.1.0"
+    jotai: "npm:^2.10.2"
     lodash: "npm:^4.17.21"
+    luxon: "npm:^3.5.0"
     postcss: "npm:8.4.39"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
@@ -7732,6 +7742,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jotai@npm:^2.10.2":
+  version: 2.10.2
+  resolution: "jotai@npm:2.10.2"
+  peerDependencies:
+    "@types/react": ">=17.0.0"
+    react: ">=17.0.0"
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    react:
+      optional: true
+  checksum: 10c0/4eb13ed91c669fea1df0daef1f50acb5c839772425d913dc3b03a392847a8d49e391934b18e9342743b0da1dcf92cf23c025af1c0860ff92d45f56544021d632
+  languageName: node
+  linkType: hard
+
 "js-tokens@npm:^3.0.0 || ^4.0.0, js-tokens@npm:^4.0.0":
   version: 4.0.0
   resolution: "js-tokens@npm:4.0.0"
@@ -8084,6 +8109,13 @@ __metadata:
   dependencies:
     yallist: "npm:^3.0.2"
   checksum: 10c0/89b2ef2ef45f543011e38737b8a8622a2f8998cddf0e5437174ef8f1f70a8b9d14a918ab3e232cb3ba343b7abddffa667f0b59075b2b80e6b4d63c3de6127482
+  languageName: node
+  linkType: hard
+
+"luxon@npm:^3.5.0":
+  version: 3.5.0
+  resolution: "luxon@npm:3.5.0"
+  checksum: 10c0/335789bba95077db831ef99894edadeb23023b3eb2137a1b56acd0d290082b691cf793143d69e30bc069ec95f0b49f36419f48e951c68014f19ffe12045e3494
   languageName: node
   linkType: hard
 

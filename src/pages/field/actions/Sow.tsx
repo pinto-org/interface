@@ -7,21 +7,23 @@ import { Label } from "@/components/ui/Label";
 import sowWithMin from "@/encoders/sowWithMin";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useSwapEstimate from "@/hooks/useSwapEstimate";
+import useTransaction from "@/hooks/useTransaction";
+import { useFarmerField } from "@/state/useFarmerField";
 import { useFieldData } from "@/state/useFieldData";
 import useTokenData from "@/state/useTokenData";
 import { AdvancedFarmCall, FarmFromMode, FarmToMode } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { BaseError } from "viem";
-import { useAccount, useWriteContract } from "wagmi";
+import { useAccount } from "wagmi";
 import { useChainId } from "wagmi";
 
 function Sow() {
   const account = useAccount();
   const chainId = useChainId();
   const field = useFieldData();
-  const queryKeys = field.queryKeys;
+  const { queryKey: farmerFieldQueryKey } = useFarmerField();
   const mainToken = useTokenData().mainToken;
 
   const [amountIn, setAmountIn] = useState("0");
@@ -31,14 +33,14 @@ function Sow() {
 
   const queryClient = useQueryClient();
 
-  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
-
-  useEffect(() => {
-    if (isSuccess) {
+  const { writeContractAsync, isConfirming } = useTransaction({
+    successCallback: () => {
+      setAmountIn("0");
       // invalidating query results to trigger a refetch
       field.queryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
-    }
-  }, [isSuccess, queryKeys]);
+      queryClient.invalidateQueries({ queryKey: farmerFieldQueryKey });
+    },
+  });
 
   const isUsingMain = tokenIn.address === mainToken.address;
 
@@ -55,50 +57,42 @@ function Sow() {
   );
 
   function onSubmit() {
-    if (!account.address) return;
-    const amount = isUsingMain
-      ? TokenValue.fromHuman(amountIn || 0n, tokenIn.decimals)
-      : swapData?.output || TokenValue.ZERO;
-    const _minTemperature = TokenValue.fromHuman("0", mainToken.decimals);
+    try {
+      if (!account.address) {
+        throw new Error("Signer required");
+      }
 
-    const minTemp = _minTemperature.gt(field.temperature.scaled)
-      ? _minTemperature.subSlippage(slippage)
-      : field.temperature.scaled.subSlippage(slippage);
-    const minSoil = TokenValue.ZERO;
+      const amount = isUsingMain
+        ? TokenValue.fromHuman(amountIn || 0n, tokenIn.decimals)
+        : swapData?.output || TokenValue.ZERO;
+      const _minTemperature = TokenValue.fromHuman("0", mainToken.decimals);
 
-    if (isUsingMain) {
-      const tx = () =>
-        writeContractAsync({
+      const minTemp = _minTemperature.gt(field.temperature.scaled)
+        ? _minTemperature.subSlippage(slippage)
+        : field.temperature.scaled.subSlippage(slippage);
+      const minSoil = TokenValue.ZERO;
+
+      if (isUsingMain) {
+        return writeContractAsync({
           address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
           abi: beanstalkAbi,
           functionName: "sowWithMin",
           args: [amount.toBigInt(), minTemp.toBigInt(), minSoil.toBigInt(), Number(balanceFrom)],
         });
-
-      toast.promise(tx, {
-        loading: "Submitting transaction...",
-        success: (data) => {
-          return `Transaction complete!`;
-        },
-        error: (error) => {
-          return (error as BaseError).shortMessage || `Transaction failed.`;
-        },
-      });
-    } else {
-      const sow = sowWithMin(
-        amount,
-        minTemp,
-        minSoil,
-        FarmFromMode.INTERNAL,
-        swapData?.pipeOutputSlot && swapData.farmCalls
-          ? Clipboard.encodeSlot(swapData.farmCalls.length || 0, swapData.pipeOutputSlot, 0)
-          : undefined,
-      ) as AdvancedFarmCall;
-      const swapCallData = swapData?.callData;
-      if (swapCallData) {
-        swapCallData.push(sow);
-        const tx = () =>
-          writeContractAsync({
+      } else {
+        const sow = sowWithMin(
+          amount,
+          minTemp,
+          minSoil,
+          FarmFromMode.INTERNAL,
+          swapData?.pipeOutputSlot && swapData.farmCalls
+            ? Clipboard.encodeSlot(swapData.farmCalls.length || 0, swapData.pipeOutputSlot, 0)
+            : undefined,
+        ) as AdvancedFarmCall;
+        const swapCallData = swapData?.callData;
+        if (swapCallData) {
+          swapCallData.push(sow);
+          return writeContractAsync({
             address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
             abi: beanstalkAbi,
             functionName: "advancedFarm",
@@ -106,17 +100,13 @@ function Sow() {
             value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
             gas: 4000000n,
           });
-
-        toast.promise(tx, {
-          loading: "Submitting transaction...",
-          success: (data) => {
-            return `Transaction complete!`;
-          },
-          error: (error) => {
-            return (error as BaseError).shortMessage || `Transaction failed.`;
-          },
-        });
+        }
       }
+    } catch (e) {
+      console.error(e);
+      toast.dismiss();
+      toast.error((e as BaseError).shortMessage || "Transaction failed.");
+      throw e;
     }
   }
 
@@ -134,6 +124,7 @@ function Sow() {
           setBalanceFrom={setBalanceFrom}
           selectedToken={tokenIn}
           balanceFrom={balanceFrom}
+          disableButton={isConfirming}
         />
       </div>
       <div className="flex flex-row gap-2">
