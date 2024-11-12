@@ -1,11 +1,16 @@
 import HelperLink from "@/components/HelperLink";
 import { ScrollHideComponent } from "@/components/ScrollHideComponent";
 import useFarmerActions from "@/hooks/useFarmerActions";
+import { useFarmerBalances } from "@/state/useFarmerBalances";
+import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { usePriceData } from "@/state/usePriceData";
 import { formatter } from "@/utils/format";
 import { cn } from "@/utils/utils";
+import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useMemo, useRef, useState } from "react";
-import { matchPath, useMatch } from "react-router-dom";
+import { useMatch } from "react-router-dom";
 import { useAccount } from "wagmi";
 import WalletButton from "../../WalletButton";
 import Backdrop from "../../ui/Backdrop";
@@ -24,7 +29,15 @@ const Navbar = () => {
   const [backdropMounted, setBackdropMounted] = useState(true);
 
   const account = useAccount();
+
+  const queryClient = useQueryClient();
+
   const farmerActions = useFarmerActions();
+  const farmerBalances = useFarmerBalances();
+  const farmerDeposits = useFarmerDepositedBalances();
+  const priceData = usePriceData();
+  const farmerSilo = useFarmerSilo();
+
   const hasInternal = farmerActions.totalValue.wallet.internal.gt(0);
   const hasFlood = farmerActions.floodAssets.enabled;
   const usdValue = farmerActions.totalValue.wallet.total;
@@ -51,6 +64,11 @@ const Navbar = () => {
     } else {
       setBackdropMounted(true);
       setOpenBackdrop(true);
+      if (panel === "wallet") {
+        queryClient.invalidateQueries({
+          queryKey: [...priceData.queryKeys, ...farmerSilo.queryKeys, farmerBalances.queryKey, farmerDeposits.queryKey],
+        });
+      }
       setOpenPanel(panel);
     }
   };
