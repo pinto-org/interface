@@ -4,11 +4,7 @@ import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { QueryKey } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useChainId, useReadContracts } from "wagmi";
-
-export interface FieldTemperature {
-  max: TokenValue;
-  scaled: TokenValue;
-}
+import { FieldTemperature } from "./protocol/field";
 
 export interface FieldData {
   harvestableIndex: TokenValue;
