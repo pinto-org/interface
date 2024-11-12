@@ -48,7 +48,7 @@ const StatPanel = ({
       {mode !== "depositedValue" && (
         <img src={getIcon(mode)} className={`${size === "large" ? "h-12 w-12" : "h-8 w-8"}`} alt={mode.toUpperCase()} />
       )}
-      <Text as="span" variant="inherit">
+      <Text as="span" variant="inherit" className="tracking-[0.01em]">
         {mode === "depositedValue"
           ? formatter.usd(showActionValues && mainValueChange ? mainValue.add(mainValueChange) : mainValue)
           : formatter.number(showActionValues && mainValueChange ? mainValue.add(mainValueChange) : mainValue)}
