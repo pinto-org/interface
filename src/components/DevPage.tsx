@@ -129,20 +129,18 @@ export default function DevPage() {
 
   const calculatePercentAmounts = (percent: number) => {
     console.log("priceData", priceData.pools);
-    const tokenOrder = ['WETH', 'cbETH', 'cbBTC', 'USDC', 'WSOL'];
-    const amounts = tokenOrder.map(symbol => {
-      const pool = priceData.pools.find(p => 
-        p.tokens.some(token => token.symbol === symbol)
-      );
+    const tokenOrder = ["WETH", "cbETH", "cbBTC", "USDC", "WSOL"];
+    const amounts = tokenOrder.map((symbol) => {
+      const pool = priceData.pools.find((p) => p.tokens.some((token) => token.symbol === symbol));
 
       if (!pool) {
         console.log("pool for token not found:", symbol);
         return "0";
       }
 
-      const tokenIndex = pool.tokens.findIndex(token => token.symbol === symbol);
+      const tokenIndex = pool.tokens.findIndex((token) => token.symbol === symbol);
       if (tokenIndex === -1) return "0";
-      
+
       const percentAmount = pool.balances[tokenIndex].mul(percent / 100);
       console.log(`calculated ${percent}%:`, percentAmount.toHuman(), " for token ", symbol);
       return percentAmount.toHuman();
@@ -348,7 +346,8 @@ export default function DevPage() {
           <h2 className="text-2xl mb-4">Single-Sided Deposits</h2>
           <div className="flex flex-col gap-4">
             <div className="text-sm text-gray-500">
-              Deposits non-PINTO tokens into wells and then into beanstalk. Enter amounts in order: WETH,cbETH,cbBTC,USDC,WSOL
+              Deposits non-PINTO tokens into wells and then into beanstalk. Enter amounts in order:
+              WETH,cbETH,cbBTC,USDC,WSOL
             </div>
             <div className="flex flex-col gap-2">
               <Input
