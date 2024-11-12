@@ -2,6 +2,7 @@ import React from "react";
 
 import { ITextBase, textConfig } from "@/utils/theme";
 import { cn } from "@/utils/utils";
+import IconImage from "./IconImage";
 
 // Define a generic type for polymorphic props
 type AsProp<C extends React.ElementType = "div"> = {
@@ -24,7 +25,7 @@ export type TextProps<C extends React.ElementType = "div"> = PolymorphicComponen
 
 const Text = React.forwardRef(
   <C extends React.ElementType = "div">(
-    { as, className, variant, size, weight, align, color, noLineHeight, ...props }: TextProps<C>,
+    { as, variant, size, weight, align, color, noLineHeight, beforeIcon, loadingWidth, ...props }: TextProps<C>,
     ref?: React.ComponentPropsWithRef<C>["ref"],
   ) => {
     const Component = as || "div";
@@ -36,9 +37,12 @@ const Text = React.forwardRef(
         className={cn(
           textConfig.methods.textClass({ variant, size, weight, align, color }),
           noLineHeight ? `${textConfig.methods.noLineHeight(variant)}` : textConfig.methods.lineHeight(variant),
-          className,
+          props.className,
         )}
-      />
+      >
+        {beforeIcon && <IconImage src={beforeIcon.src} size={beforeIcon.size} />}
+        {props.children}
+      </Component>
     );
   },
 );

@@ -1,254 +1,166 @@
-import { useAccount, useChainId, useReadContract } from "wagmi";
 import { TokenValue } from "@/classes/TokenValue";
+import { SEEDS, STALK } from "@/constants/internalTokens";
+import { PINTO } from "@/constants/tokens";
+import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import { useTokenMap } from "@/hooks/pinto/useTokenMap";
+import { useChainAddress } from "@/utils/chain";
+import { DepositData, Token, TokenDepositData } from "@/utils/types";
+import { unpackStem } from "@/utils/utils";
+import { useMemo } from "react";
+import { Address, toHex } from "viem";
+import { useAccount, useReadContract } from "wagmi";
+import { getTokenIndex } from "./../utils/token";
 import { useSiloData } from "./useSiloData";
 import { useSunData } from "./useSunData";
 import useTokenData from "./useTokenData";
-import { STALK } from "@/constants/internalTokens";
-import { DepositData, Token, TokenDepositData } from "@/utils/types";
-import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
-import { unpackStem } from "@/utils/utils";
-import { Address } from "viem";
-import { useChainAddress } from "@/utils/chain";
 
 interface DepositQuery {
+  id: bigint;
   season?: number | undefined;
   stem: bigint;
-  token: Address;
   depositedAmount: bigint;
   depositedBDV: bigint;
 }
 
 const querySettings = {
-  staleTime: 1000 * 60 * 2,
+  staleTime: 1000 * 60 * 3,
   refetchInterval: 1000 * 60 * 3, // 3 minutes, in milliseconds
 };
 
-const emptyMap: Map<Token, TokenDepositData> = new Map();
-
 function useFarmerDepositedBalances() {
   const account = useAccount();
-  const chainId = useChainId();
   const season = useSunData().current;
   const silo = useSiloData();
   const BEAN = useTokenData().mainToken;
-  const SILO_WHITELIST = useTokenData().whitelistedTokens;
   const diamondAddress = useChainAddress(beanstalkAddress);
 
-  const queryKey = [
-    "farmerDepositedBalances",
-    { chainId: chainId, variables: [account.address?.toString().toLowerCase(), season] },
-  ];
+  const tokenMap = useTokenMap();
 
-  const { data: dataFromContract = emptyMap, refetch } = useReadContract({
+  const { data, refetch, queryKey } = useReadContract({
     address: diamondAddress,
     abi: beanstalkAbi,
     functionName: "getDepositsForAccount",
     args: [account.address as Address],
+    scopeKey: ["season", season].join(" "),
     query: {
       ...querySettings,
       enabled: !!account.address,
-      select: (data) => {
-        const farmerDeposits: DepositQuery[] = [];
-
-        for (const depositData of data) {
-          for (const [index, depositId] of depositData.depositIds.entries()) {
-            farmerDeposits.push({
-              season: undefined,
-              stem: unpackStem(depositId),
-              token: depositData.token,
-              depositedAmount: depositData.tokenDeposits[index].amount,
-              depositedBDV: depositData.tokenDeposits[index].bdv,
-            });
-          }
-        }
-
-        const output: Map<Token, TokenDepositData> = new Map();
-
-        SILO_WHITELIST.forEach((token) => {
-          let amount = TokenValue.fromBlockchain(0n, token.decimals);
-          let convertibleAmount = TokenValue.fromBlockchain(0n, token.decimals);
-          let depositBDV = TokenValue.fromBlockchain(0n, BEAN.decimals);
-          let currentBDV = TokenValue.fromBlockchain(0n, BEAN.decimals);
-          const depositData: DepositData[] = [];
-          const siloTokenData = silo.tokenData.get(token);
-          farmerDeposits.forEach((deposit) => {
-            const isToken = deposit.token.toLowerCase() === token.address.toLowerCase();
-            if (isToken && deposit.depositedBDV > 2n && siloTokenData) {
-              const isGerminating = deposit.stem >= siloTokenData.germinatingStem.toBigInt();
-              const _depositBDV = TokenValue.fromBlockchain(deposit.depositedBDV, BEAN.decimals);
-              const depositStem = TokenValue.fromBlockchain(deposit.stem, BEAN.decimals);
-              const baseStalk = isGerminating
-                ? TokenValue.fromBlockchain(0n, STALK.decimals)
-                : _depositBDV.mul(siloTokenData.rewards.seeds);
-              const grownStalk = _depositBDV.mul(siloTokenData.stemTip.sub(depositStem)).div(10000);
-              const seeds = _depositBDV.mul(siloTokenData.rewards.seeds);
-              const depositAmount = TokenValue.fromBlockchain(deposit.depositedAmount, token.decimals);
-              const _currentBDV = depositAmount.mul(siloTokenData.tokenBDV);
-              amount = amount.add(depositAmount);
-              convertibleAmount = convertibleAmount.add(isGerminating ? TokenValue.ZERO : depositAmount);
-              depositBDV = depositBDV.add(_depositBDV);
-              currentBDV = currentBDV.add(_currentBDV).reDecimal(BEAN.decimals);
-              depositData.push({
-                /** Token contained within the crate. */
-                token: token,
-                /** The current stem tip for this token, for calculation of grownStalk. */
-                stemTipForToken: siloTokenData.stemTip,
-                /** The stem (identifier) of this Deposit. */
-                stem: depositStem,
-                /** The Season this Deposit ocurred. */
-                season: deposit.season ?? 0,
-                /** The amount of tokens Deposited. */
-                amount: depositAmount,
-                /** The BDV of this Deposit at the time of Deposit. */
-                depositBdv: depositBDV,
-                /** The current BDV of this Deposit. */
-                currentBdv: currentBDV,
-                stalk: {
-                  base: baseStalk,
-                  grown: grownStalk,
-                  total: baseStalk.add(grownStalk),
-                },
-                seeds: seeds,
-                isGerminating: isGerminating,
-              });
-            }
-          });
-          output.set(token, {
-            amount: amount,
-            convertibleAmount: convertibleAmount,
-            currentBDV: currentBDV,
-            depositBDV: depositBDV,
-            stalk: {
-              base: depositData.reduce((total, deposit) => deposit.stalk.base.add(total), TokenValue.ZERO),
-              grown: depositData.reduce((total, deposit) => deposit.stalk.grown.add(total), TokenValue.ZERO),
-              total: depositData.reduce((total, deposit) => deposit.stalk.total.add(total), TokenValue.ZERO),
-            },
-            seeds: depositData.reduce((total, deposit) => deposit.seeds.add(total), TokenValue.ZERO),
-            deposits: depositData,
-          });
-        });
-
-        return output;
-      },
     },
   });
 
-  return {
-    data: dataFromContract,
-    queryKey: queryKey,
-    refetch,
-  };
+  const depositsByToken = useMemo(() => {
+    const deposits: Map<string, DepositQuery[]> = new Map();
+    for (const deposit of data ?? []) {
+      const tokenDeposits: DepositQuery[] = deposit.depositIds.map((depositId, index) => {
+        const stem = unpackStem(depositId);
+        const tokenDeposit = deposit.tokenDeposits[index];
+        return {
+          id: depositId,
+          stem: stem,
+          depositedAmount: tokenDeposit.amount,
+          depositedBDV: tokenDeposit.bdv,
+        };
+      });
+
+      deposits.set(getTokenIndex(deposit.token), tokenDeposits);
+    }
+    return deposits;
+  }, [data]);
+
+  const depositsData = useMemo(() => {
+    const output: Map<Token, TokenDepositData> = new Map();
+
+    depositsByToken?.forEach((tokenDeposits, tokenIndex) => {
+      const token = tokenMap[tokenIndex];
+      const siloTokenData = silo.tokenData.get(token);
+
+      if (!token || !siloTokenData) return;
+
+      const depositData: DepositData[] = [];
+      const convertibleDeposits: DepositData[] = [];
+
+      let amount = TokenValue.fromBlockchain(0n, token.decimals);
+      let convertibleAmount = TokenValue.fromBlockchain(0n, token.decimals);
+      let depositBDV = TokenValue.fromBlockchain(0n, BEAN.decimals);
+      let currentBDV = TokenValue.fromBlockchain(0n, PINTO.decimals);
+      let totalBaseStalk: TokenValue = TokenValue.fromBlockchain(0n, STALK.decimals);
+      let totalGrownStalk: TokenValue = TokenValue.fromBlockchain(0n, STALK.decimals);
+      let totalStalk: TokenValue = TokenValue.fromBlockchain(0n, STALK.decimals);
+      let totalSeeds: TokenValue = TokenValue.fromBlockchain(0n, SEEDS.decimals);
+
+      tokenDeposits.forEach((deposit) => {
+        const isGerminating = deposit.stem >= siloTokenData.germinatingStem.toBigInt();
+        const _depositBDV = TokenValue.fromBlockchain(deposit.depositedBDV, BEAN.decimals);
+        const depositStem = TokenValue.fromBlockchain(deposit.stem, BEAN.decimals);
+        const baseStalk = isGerminating
+          ? TokenValue.fromBlockchain(0n, STALK.decimals)
+          : _depositBDV.mul(siloTokenData.rewards.stalk);
+        const grownStalk = _depositBDV.mul(siloTokenData.stemTip.sub(depositStem)).div(10000);
+        const seeds = _depositBDV.mul(siloTokenData.rewards.seeds);
+        const depositAmount = TokenValue.fromBlockchain(deposit.depositedAmount, token.decimals);
+        const _currentBDV = depositAmount.mul(siloTokenData.tokenBDV);
+
+        totalBaseStalk = totalBaseStalk.add(baseStalk);
+        totalGrownStalk = totalGrownStalk.add(grownStalk);
+        totalStalk = totalStalk.add(baseStalk.add(grownStalk));
+        totalSeeds = totalSeeds.add(seeds);
+
+        amount = amount.add(depositAmount);
+        depositBDV = depositBDV.add(_depositBDV);
+        currentBDV = currentBDV.add(_currentBDV).reDecimal(BEAN.decimals);
+
+        const thisDeposit: DepositData = {
+          id: deposit.id,
+          idHex: toHex(deposit.id).toString(),
+          token: token,
+          stemTipForToken: siloTokenData.stemTip,
+          stem: depositStem,
+          season: deposit.season ?? 0,
+          amount: depositAmount,
+          depositBdv: _depositBDV,
+          currentBdv: _currentBDV,
+          stalk: {
+            base: baseStalk,
+            grown: grownStalk,
+            total: baseStalk.add(grownStalk),
+          },
+          seeds: seeds,
+          isGerminating: isGerminating,
+        };
+
+        depositData.push(thisDeposit);
+        if (!isGerminating) {
+          convertibleAmount = convertibleAmount.add(depositAmount);
+          convertibleDeposits.push(thisDeposit);
+        }
+      });
+
+      output.set(token, {
+        amount: amount,
+        convertibleAmount: convertibleAmount,
+        currentBDV: currentBDV,
+        depositBDV: depositBDV,
+        stalk: {
+          base: totalBaseStalk,
+          grown: totalGrownStalk,
+          total: totalStalk,
+        },
+        seeds: totalSeeds,
+        deposits: depositData,
+        convertibleDeposits: convertibleDeposits,
+      });
+    });
+
+    return output;
+  }, [depositsByToken, silo.tokenData, tokenMap, BEAN.decimals]);
+
+  return useMemo(() => {
+    return {
+      data: depositsData,
+      queryKey: queryKey,
+      refetch,
+    };
+  }, [depositsData, queryKey, refetch]);
 }
 
 export default useFarmerDepositedBalances;
-
-// const { data: data, refetch: refetch } = useQuery({
-//   queryKey: queryKey,
-//   queryFn: async () =>
-//     request(subgraphs[chainId].beanstalk, FarmerSiloBalancesDocument, {
-//       account: account.address?.toString().toLowerCase() ?? "",
-//       season: season,
-//     }),
-//   ...querySettings,
-//   enabled: !!account.address,
-// });
-
-// const { data: dataFromContract, refetch: refetchContract } = useReadBeanstalk_GetDepositsForAccount({
-//   args: [account.address as Address],
-//   query: {
-//     ...querySettings,
-//     enabled: !!account.address && !(data && data.farmer)
-//   },
-// });
-
-// const farmerDeposits: DepositQuery[] = [];
-
-// if (data?.farmer) {
-//   for (const deposit of data.farmer.deposited) {
-//     farmerDeposits.push({
-//       season: deposit.season ?? undefined,
-//       stem: deposit.stem ? BigInt(deposit.stem) : 0n,
-//       token: deposit.token,
-//       depositedAmount: BigInt(deposit.depositedAmount),
-//       depositedBDV: BigInt(deposit.depositedBDV),
-//     })
-//   }
-// } else if (dataFromContract) {
-//   for (const depositData of dataFromContract) {
-//     for (const [index, depositId] of depositData.depositIds.entries()) {
-//       farmerDeposits.push({
-//         season: undefined,
-//         stem: unpackStem(depositId),
-//         token: depositData.token,
-//         depositedAmount: depositData.tokenDeposits[index].amount,
-//         depositedBDV: depositData.tokenDeposits[index].bdv,
-//       })
-//     }
-//   }
-// }
-
-// const output: Map<Token, TokenDepositData> = new Map();
-
-// SILO_WHITELIST.forEach((token) => {
-//   let amount = TokenValue.fromBlockchain(0n, token.decimals);
-//   let convertibleAmount = TokenValue.fromBlockchain(0n, token.decimals);
-//   let depositBDV = TokenValue.fromBlockchain(0n, BEAN.decimals);
-//   let currentBDV = TokenValue.fromBlockchain(0n, BEAN.decimals);
-//   const depositData: DepositData[] = [];
-//   const siloTokenData = silo.tokenData.get(token);
-//   farmerDeposits.forEach((deposit) => {
-//     const isToken = deposit.token.toLowerCase() === token.address.toLowerCase();
-//     if (isToken && deposit.depositedBDV > 2n && siloTokenData) {
-//       const isGerminating = deposit.stem >= siloTokenData.germinatingStem.toBigInt();
-//       const _depositBDV = TokenValue.fromBlockchain(deposit.depositedBDV, BEAN.decimals);
-//       const depositStem = TokenValue.fromBlockchain(deposit.stem, BEAN.decimals);
-//       const baseStalk = isGerminating
-//         ? TokenValue.fromBlockchain(0n, STALK.decimals)
-//         : _depositBDV.mul(siloTokenData.rewards.seeds);
-//       const grownStalk = _depositBDV.mul(siloTokenData.stemTip.sub(depositStem)).div(10000);
-//       const seeds = _depositBDV.mul(siloTokenData.rewards.seeds);
-//       const depositAmount = TokenValue.fromBlockchain(deposit.depositedAmount, token.decimals);
-//       const _currentBDV = depositAmount.mul(siloTokenData.tokenBDV);
-//       amount = amount.add(depositAmount);
-//       convertibleAmount = convertibleAmount.add(isGerminating ? TokenValue.ZERO : depositAmount);
-//       depositBDV = depositBDV.add(_depositBDV);
-//       currentBDV = currentBDV.add(_currentBDV).reDecimal(BEAN.decimals);
-//       depositData.push({
-//         /** Token contained within the crate. */
-//         token: token,
-//         /** The current stem tip for this token, for calculation of grownStalk. */
-//         stemTipForToken: siloTokenData.stemTip,
-//         /** The stem (identifier) of this Deposit. */
-//         stem: depositStem,
-//         /** The Season this Deposit ocurred. */
-//         season: deposit.season ?? 0,
-//         /** The amount of tokens Deposited. */
-//         amount: depositAmount,
-//         /** The BDV of this Deposit at the time of Deposit. */
-//         depositBdv: depositBDV,
-//         /** The current BDV of this Deposit. */
-//         currentBdv: currentBDV,
-//         stalk: {
-//           base: baseStalk,
-//           grown: grownStalk,
-//           total: baseStalk.add(grownStalk),
-//         },
-//         seeds: seeds,
-//         isGerminating: isGerminating,
-//       });
-//     }
-//   });
-//   output.set(token, {
-//     amount: amount,
-//     convertibleAmount: convertibleAmount,
-//     currentBDV: currentBDV,
-//     depositBDV: depositBDV,
-//     stalk: {
-//       base: depositData.reduce((total, deposit) => deposit.stalk.base.add(total), TokenValue.ZERO),
-//       grown: depositData.reduce((total, deposit) => deposit.stalk.grown.add(total), TokenValue.ZERO),
-//       total: depositData.reduce((total, deposit) => deposit.stalk.total.add(total), TokenValue.ZERO),
-//     },
-//     seeds: depositData.reduce((total, deposit) => deposit.seeds.add(total), TokenValue.ZERO),
-//     deposits: depositData,
-//   });
-// });

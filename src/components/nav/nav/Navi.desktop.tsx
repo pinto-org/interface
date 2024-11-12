@@ -36,7 +36,7 @@ const Link = ({
       <NavigationMenuLink
         asChild
         active={isActive}
-        className={`${className} ${topMenu ? `text-[1.5rem] data-[active]:text-black` : `text-[1.25rem]`} font-[400] hover:cursor-pointer`}
+        className={`${className} ${topMenu ? `text-[1.5rem] data-[active]:text-black` : `text-[1.25rem] data-[active]:text-pinto-green-4`} font-[400] hover:cursor-pointer`}
       >
         <ReactLink
           to={href}
@@ -77,6 +77,11 @@ const AppNavi = () => {
         <NavigationMenuItem>
           <Link href={navLinks.explorer}>Explorer</Link>
         </NavigationMenuItem>
+        {import.meta.env.DEV && (
+          <NavigationMenuItem>
+            <Link href="/dev">Dev</Link>
+          </NavigationMenuItem>
+        )}
       </NavigationMenuList>
     </NavigationMenu>
   );

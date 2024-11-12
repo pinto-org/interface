@@ -1,18 +1,18 @@
-import { BaseError, encodeFunctionData } from "viem";
+import { TokenValue } from "@/classes/TokenValue";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Label } from "@/components/ui/Label";
+import { STALK } from "@/constants/internalTokens";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
-import { TokenValue } from "@/classes/TokenValue";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { toast } from "sonner";
+import { BaseError, encodeFunctionData } from "viem";
 import { useAccount, useWriteContract } from "wagmi";
 import { useChainId } from "wagmi";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
-import { STALK } from "@/constants/internalTokens";
-import { useEffect } from "react";
 
 function RewardsClaim() {
   const chainId = useChainId();
@@ -20,8 +20,8 @@ function RewardsClaim() {
   const data = useFarmerSilo();
   const siloData = useSiloData();
   const { mainToken: BEAN, whitelistedTokens: SILO_WHITELIST } = useTokenData();
-  const stalkRewards = siloData.tokenData.get(BEAN).rewards.stalk.mul(10 ** STALK.decimals);
-  const seedsRewards = siloData.tokenData.get(BEAN).rewards.seeds;
+  const stalkRewards = siloData.tokenData.get(BEAN)?.rewards.stalk;
+  const seedsRewards = siloData.tokenData.get(BEAN)?.rewards.seeds;
   const grownStalk = data.grownStalkReward;
   const queryClient = useQueryClient();
   const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
@@ -81,11 +81,11 @@ function RewardsClaim() {
         </div>
         <div className="flex flex-row justify-between">
           <Label>Earned Stalk</Label>
-          <div>{data.earnedBeansBalance.mul(stalkRewards).toHuman("short")}</div>
+          <div>{data.earnedBeansBalance.mul(stalkRewards ?? TokenValue.ZERO).toHuman("short")}</div>
         </div>
         <div className="flex flex-row justify-between">
           <Label>Plantable Seeds</Label>
-          <div>{data.earnedBeansBalance.mul(seedsRewards).toHuman("short")}</div>
+          <div>{data.earnedBeansBalance.mul(seedsRewards ?? TokenValue.ZERO).toHuman("short")}</div>
         </div>
         <div className="flex flex-row justify-between">
           <Label>Grown Stalk</Label>

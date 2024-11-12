@@ -1,17 +1,17 @@
-import { QueryKey, useQuery } from "@tanstack/react-query";
-import request from "graphql-request";
-import { useChainId, useReadContract, useReadContracts } from "wagmi";
+import { TokenValue } from "@/classes/TokenValue";
+import { ZERO_ADDRESS } from "@/constants/address";
+import { SEEDS, STALK } from "@/constants/internalTokens";
+import { subgraphs } from "@/constants/subgraph";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { SiloYieldsDocument } from "@/generated/gql/graphql";
-import { TokenValue } from "@/classes/TokenValue";
-import useTokenData from "./useTokenData";
-import { SEEDS, STALK } from "@/constants/internalTokens";
-import { Address, Omit } from "viem";
-import { subgraphs } from "@/constants/subgraph";
+import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { SiloTokenData, Token } from "@/utils/types";
-import { ZERO_ADDRESS } from "@/constants/address";
+import { QueryKey, useQuery } from "@tanstack/react-query";
+import request from "graphql-request";
 import { useMemo } from "react";
-import { useChainConstant } from "@/utils/chain";
+import { Address, Omit } from "viem";
+import { useChainId, useReadContract, useReadContracts } from "wagmi";
+import useTokenData from "./useTokenData";
 
 const settings = {
   query: {
@@ -64,57 +64,76 @@ function useReadSiloTokenData(token: Token | undefined) {
         functionName: "tokenSettings",
         args: [token?.address ?? ZERO_ADDRESS],
       },
+      {
+        address: protocolAddress,
+        abi: beanstalkAbi,
+        functionName: "getTotalGerminatingAmount",
+        args: [token?.address ?? ZERO_ADDRESS],
+      },
+      {
+        address: protocolAddress,
+        abi: beanstalkAbi,
+        functionName: "getTotalGerminatingBdv",
+        args: [token?.address ?? ZERO_ADDRESS],
+      },
     ],
     scopeKey: token?.address,
     query: {
       ...settings.query,
       enabled: Boolean(token?.address),
       select: (siloTokenData) => {
+        // should never happen
+        if (!token) return {} as Omit<SiloTokenData, "yields">;
+
         return {
-          totalDeposited: TokenValue.fromBlockchain(siloTokenData[0].result ?? 0n, token?.decimals ?? 0),
-          tokenBDV: TokenValue.fromBlockchain(siloTokenData[1].result ?? 0n, BEAN.decimals),
-          stemTip: TokenValue.fromBlockchain(siloTokenData[2].result ?? 0n, BEAN.decimals),
-          depositedBDV: TokenValue.fromBlockchain(siloTokenData[3].result ?? 0n, BEAN.decimals),
-          germinatingStem: TokenValue.fromBlockchain(siloTokenData[4].result ?? 0n, BEAN.decimals),
+          totalDeposited: TokenValue.fromBlockchain(siloTokenData?.[0]?.result ?? 0n, token.decimals),
+          tokenBDV: TokenValue.fromBlockchain(siloTokenData?.[1]?.result ?? 0n, BEAN.decimals),
+          stemTip: TokenValue.fromBlockchain(siloTokenData?.[2]?.result ?? 0n, BEAN.decimals),
+          depositedBDV: TokenValue.fromBlockchain(siloTokenData?.[3]?.result ?? 0n, BEAN.decimals),
+          germinatingStem: TokenValue.fromBlockchain(siloTokenData?.[4]?.result ?? 0n, BEAN.decimals),
           tokenSettings: {
             deltaStalkEarnedPerSeason: TokenValue.fromBlockchain(
-              siloTokenData[5].result?.deltaStalkEarnedPerSeason ?? 0n,
+              siloTokenData?.[5]?.result?.deltaStalkEarnedPerSeason ?? 0n,
               STALK.decimals,
             ),
-            encodeType: siloTokenData[5].result?.encodeType as string,
+            encodeType: siloTokenData?.[5]?.result?.encodeType as string,
             gaugePointImplementation: {
-              target: siloTokenData[5].result?.gaugePointImplementation.target as Address,
-              selector: siloTokenData[5].result?.gaugePointImplementation.selector as string,
-              encodeType: siloTokenData[5].result?.gaugePointImplementation.encodeType as string,
-              data: siloTokenData[5].result?.gaugePointImplementation.data as string,
+              target: siloTokenData?.[5]?.result?.gaugePointImplementation.target as Address,
+              selector: siloTokenData?.[5]?.result?.gaugePointImplementation.selector as string,
+              encodeType: siloTokenData?.[5]?.result?.gaugePointImplementation.encodeType as string,
+              data: siloTokenData?.[5]?.result?.gaugePointImplementation.data as string,
             },
-            gaugePoints: siloTokenData[5].result?.gaugePoints as bigint,
+            gaugePoints: siloTokenData?.[5]?.result?.gaugePoints as bigint,
             liquidityWeightImplementation: {
-              target: siloTokenData[5].result?.liquidityWeightImplementation.target as Address,
-              selector: siloTokenData[5].result?.liquidityWeightImplementation.selector as string,
-              encodeType: siloTokenData[5].result?.liquidityWeightImplementation.encodeType as string,
-              data: siloTokenData[5].result?.liquidityWeightImplementation.data as string,
+              target: siloTokenData?.[5]?.result?.liquidityWeightImplementation.target as Address,
+              selector: siloTokenData?.[5]?.result?.liquidityWeightImplementation.selector as string,
+              encodeType: siloTokenData?.[5]?.result?.liquidityWeightImplementation.encodeType as string,
+              data: siloTokenData?.[5]?.result?.liquidityWeightImplementation.data as string,
             },
-            milestoneSeason: siloTokenData[5].result?.milestoneSeason as number,
-            milestoneStem: TokenValue.fromBlockchain(siloTokenData[5].result?.milestoneStem ?? 0n, BEAN.decimals),
+            milestoneSeason: siloTokenData?.[5]?.result?.milestoneSeason as number,
+            milestoneStem: TokenValue.fromBlockchain(siloTokenData?.[5]?.result?.milestoneStem ?? 0n, BEAN.decimals),
             optimalPercentDepositedBdv: TokenValue.fromBlockchain(
-              siloTokenData[5].result?.optimalPercentDepositedBdv ?? 0n,
+              siloTokenData?.[5]?.result?.optimalPercentDepositedBdv ?? 0n,
               BEAN.decimals,
             ),
-            selector: siloTokenData[5].result?.selector as string,
+            selector: siloTokenData?.[5]?.result?.selector as string,
             stalkEarnedPerSeason: TokenValue.fromBlockchain(
-              siloTokenData[5].result?.stalkEarnedPerSeason ?? 0n,
+              siloTokenData?.[5]?.result?.stalkEarnedPerSeason ?? 0n,
               SEEDS.decimals,
             ),
             stalkIssuedPerBdv: TokenValue.fromBlockchain(
-              siloTokenData[5].result?.stalkIssuedPerBdv ?? 0n,
+              siloTokenData?.[5]?.result?.stalkIssuedPerBdv ?? 0n,
               STALK.decimals,
-            ),
+            ).mul(10 ** BEAN.decimals),
           },
           rewards: {
-            seeds: TokenValue.fromBlockchain(siloTokenData[5].result?.stalkEarnedPerSeason ?? 0n, SEEDS.decimals),
-            stalk: TokenValue.fromBlockchain(siloTokenData[5].result?.stalkIssuedPerBdv ?? 0n, STALK.decimals),
+            seeds: TokenValue.fromBlockchain(siloTokenData?.[5]?.result?.stalkEarnedPerSeason ?? 0n, SEEDS.decimals),
+            stalk: TokenValue.fromBlockchain(siloTokenData?.[5]?.result?.stalkIssuedPerBdv ?? 0n, STALK.decimals).mul(
+              10 ** BEAN.decimals,
+            ),
           },
+          germinatingAmount: TokenValue.fromBlockchain(siloTokenData?.[6]?.result ?? 0n, token.decimals),
+          germinatingBDV: TokenValue.fromBlockchain(siloTokenData?.[7]?.result ?? 0n, BEAN.decimals),
         } as Omit<SiloTokenData, "yields">;
       },
     },
@@ -123,7 +142,7 @@ function useReadSiloTokenData(token: Token | undefined) {
 
 export function useSiloData() {
   const chainId = useChainId();
-  const protocolAddress = useChainConstant(beanstalkAddress);
+  const protocolAddress = useProtocolAddress();
 
   const { data: stalkTotal = 0n } = useReadContract({
     address: protocolAddress,
@@ -144,10 +163,6 @@ export function useSiloData() {
   const { data: yields } = useQuery({
     queryKey: ["siloYields", { chainId: chainId }],
     queryFn: async () => request(subgraphs[chainId].beanstalk, SiloYieldsDocument),
-    select: (data) => {
-      console.log("yields: ", data);
-      return data;
-    },
     ...settings,
   });
 
@@ -160,12 +175,13 @@ export function useSiloData() {
   const wlTokenData2 = useReadSiloTokenData(SILO_WHITELIST?.[2]);
   const wlTokenData3 = useReadSiloTokenData(SILO_WHITELIST?.[3]);
   const wlTokenData4 = useReadSiloTokenData(SILO_WHITELIST?.[4]);
+  const wlTokenData5 = useReadSiloTokenData(SILO_WHITELIST?.[5]);
 
   const wlTokenDatas = useMemo(() => {
     const keys: QueryKey[] = [];
     const data: Map<Token, SiloTokenData> = new Map();
 
-    const wl = [wlTokenData0, wlTokenData1, wlTokenData2, wlTokenData3, wlTokenData4];
+    const wl = [wlTokenData0, wlTokenData1, wlTokenData2, wlTokenData3, wlTokenData4, wlTokenData5];
 
     for (const [i, { data: wlTokenData, queryKey }] of wl.entries()) {
       const token = SILO_WHITELIST[i];
@@ -188,10 +204,9 @@ export function useSiloData() {
     }
 
     return {
-      tokenData: data.size !== SILO_WHITELIST.length ? new Map() : data,
+      tokenData: data.size !== SILO_WHITELIST.length ? new Map<Token, SiloTokenData>() : data,
       queryKeys: keys,
     };
-    // }, [wlTokenData0, SILO_WHITELIST, yields]);
   }, [wlTokenData0, wlTokenData1, wlTokenData2, wlTokenData3, wlTokenData4, SILO_WHITELIST, yields]);
 
   return {

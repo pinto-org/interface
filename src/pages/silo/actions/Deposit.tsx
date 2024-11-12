@@ -1,48 +1,56 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { useWriteContract } from "wagmi";
-import { useChainId } from "wagmi";
-import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import { Clipboard } from "@/classes/Clipboard";
 import { TokenValue } from "@/classes/TokenValue";
-import { AdvancedFarmCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
-import useTokenData from "@/state/useTokenData";
-import { Label } from "@/components/ui/Label";
-import SmartSubmitButton from "@/components/SmartSubmitButton";
-import SlippageButton from "@/components/SlippageButton";
 import { ComboInputField } from "@/components/ComboInputField";
-import { PoolData, usePriceData } from "@/state/usePriceData";
-import useSwapEstimate from "@/hooks/useSwapEstimate";
+import SlippageButton from "@/components/SlippageButton";
+import SmartSubmitButton from "@/components/SmartSubmitButton";
+import { Label } from "@/components/ui/Label";
 import deposit from "@/encoders/deposit";
-import { toast } from "sonner";
-import { BaseError } from "viem";
+import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import useSwapEstimate from "@/hooks/useSwapEstimate";
+import useTransaction from "@/hooks/useTransaction";
+import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { PoolData, usePriceData } from "@/state/usePriceData";
+import useTokenData from "@/state/useTokenData";
+import { formatter } from "@/utils/format";
+import { stringEq, stringToNumber } from "@/utils/string";
+import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
+import { useQueryClient } from "@tanstack/react-query";
+import { estimateGas } from "@wagmi/core";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { encodeFunctionData } from "viem";
+import { useAccount } from "wagmi";
+import { useConfig } from "wagmi";
 
 function Deposit({ siloToken }: { siloToken: Token }) {
+  const config = useConfig();
   // silo - deposit
-  const chainId = useChainId();
+  const diamondAddress = useProtocolAddress();
+  const farmerBalances = useFarmerBalances();
   const depositedBalances = useFarmerDepositedBalances();
-  const queryKey = depositedBalances.queryKey;
+  const account = useAccount();
 
+  const pools = usePriceData().pools;
   const mainToken = useTokenData().mainToken;
-  const [amountIn, setAmountIn] = useState(0);
+
+  const [amountIn, setAmountIn] = useState("0");
   const [tokenIn, setTokenIn] = useState(siloToken);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.INTERNAL_EXTERNAL);
   const [pool, setPool] = useState<PoolData | undefined>(undefined);
   const [slippage, setSlippage] = useState(0.5);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const queryClient = useQueryClient();
-  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
-
-  const pools = usePriceData().pools;
+  const qc = useQueryClient();
 
   const useSwap = !(tokenIn.address.toLowerCase() === siloToken.address.toLowerCase());
 
   useEffect(() => {
-    if (siloToken.address === mainToken.address) {
+    if (stringEq(siloToken.address, mainToken.address)) {
       setPool(undefined);
     } else {
       for (const pool of pools) {
-        if (pool.pool?.address && pool.pool?.address === siloToken.address) {
+        if (stringEq(pool.pool?.address, siloToken.address)) {
           setPool(pool);
           break;
         }
@@ -50,10 +58,21 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     }
   }, [mainToken, pools, siloToken]);
 
+  const onSuccess = useCallback(() => {
+    setAmountIn("0");
+    qc.invalidateQueries({ queryKey: depositedBalances.queryKey });
+    qc.invalidateQueries({ queryKey: farmerBalances.queryKey });
+  }, [qc, depositedBalances, farmerBalances]);
+
+  const { isConfirming, writeContractAsync } = useTransaction({
+    successMessage: "Deposit successful",
+    successCallback: onSuccess,
+  });
+
   const swapData = useSwapEstimate(
     tokenIn,
     siloToken,
-    amountIn,
+    Number(amountIn),
     slippage,
     "exactInput",
     balanceFrom,
@@ -62,50 +81,61 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     !useSwap,
   );
 
-  console.log("swapdata: ", swapData)
+  const onSubmit = async () => {
+    try {
+      if (!account.address) {
+        throw new Error("No account connected");
+      }
+      setIsSubmitting(true);
+      const depositData = deposit(
+        siloToken,
+        useSwap ? swapData?.output : TokenValue.fromHuman(amountIn, tokenIn.decimals),
+        useSwap ? FarmFromMode.INTERNAL : balanceFrom,
+        swapData?.pipeOutputSlot && swapData.farmCalls
+          ? Clipboard.encodeSlot(swapData.farmCalls.length || 0, swapData.pipeOutputSlot, 1)
+          : undefined,
+      );
 
-  useEffect(() => {
-    if (isSuccess) {
-      // invalidating query results to trigger a refetch
-      queryClient.invalidateQueries({ queryKey });
-    }
-  }, [isSuccess, queryKey, queryClient.invalidateQueries]);
+      if (useSwap && swapData?.callData) {
+        swapData?.callData.push(depositData);
+      }
 
-  function onSubmit() {
-    console.log("USESWAP: ", useSwap, swapData?.output)
-    const depositData = deposit(
-      siloToken,
-      useSwap ? swapData?.output : TokenValue.fromHuman(amountIn, tokenIn.decimals),
-      useSwap ? FarmFromMode.INTERNAL : balanceFrom,
-    ) as AdvancedFarmCall;
+      const callData = useSwap && swapData?.callData ? swapData.callData : [depositData];
+      const value = tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n;
 
-    if (useSwap && swapData?.callData) {
-      swapData?.callData.push(depositData);
-    }
+      const depositAmount = formatter.token(useSwap ? swapData?.output : amountIn, siloToken);
+      const formattedAmountIn = formatter.token(amountIn, tokenIn);
 
-    const callData = useSwap && swapData?.callData ? swapData.callData : [depositData];
+      toast.loading(`Depositing ${formattedAmountIn} ${tokenIn.symbol} for ${depositAmount} ${siloToken.symbol}...`);
 
-    const tx = () =>
-      writeContractAsync({
-        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-        abi: beanstalkAbi,
+      const _gas = await estimateGas(config, {
+        to: diamondAddress,
+        data: encodeFunctionData({
+          abi: advFarmABI,
+          functionName: "advancedFarm",
+          args: [callData],
+        }),
+        value: value,
+      });
+      setIsSubmitting(false);
+      return writeContractAsync({
+        address: diamondAddress,
+        abi: advFarmABI,
         functionName: "advancedFarm",
         args: [callData],
-        value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
+        value: value,
+        gas: _gas ? (_gas * 120n) / 100n : undefined,
       });
+    } catch (e: unknown) {
+      console.error(e);
+      setIsSubmitting(false);
+      toast.dismiss();
+      toast.error(e instanceof Error ? e.message : "Transaction failed.");
+      throw e;
+    }
+  };
 
-    toast.promise(tx, {
-      loading: "Submitting transaction...",
-      success: (data) => {
-        return `Transaction complete!`;
-      },
-      error: (error) => {
-        return (error as BaseError).shortMessage || `Transaction failed.`;
-      },
-    });
-
-    depositedBalances.refetch();
-  }
+  const disabled = !stringToNumber(amountIn) || !account.address || isSubmitting || isConfirming;
 
   return (
     <div className="flex flex-col gap-4">
@@ -124,10 +154,36 @@ function Deposit({ siloToken }: { siloToken: Token }) {
         />
       </div>
       <div className="flex flex-row gap-2">
-        <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit} submitButtonText="Deposit" />
+        <SmartSubmitButton
+          token={tokenIn}
+          disabled={disabled}
+          amount={amountIn}
+          submitFunction={onSubmit}
+          submitButtonText="Deposit"
+        />
       </div>
     </div>
   );
 }
 
 export default Deposit;
+
+const advFarmABI = [
+  {
+    type: "function",
+    inputs: [
+      {
+        name: "data",
+        internalType: "struct AdvancedFarmCall[]",
+        type: "tuple[]",
+        components: [
+          { name: "callData", internalType: "bytes", type: "bytes" },
+          { name: "clipboard", internalType: "bytes", type: "bytes" },
+        ],
+      },
+    ],
+    name: "advancedFarm",
+    outputs: [{ name: "results", internalType: "bytes[]", type: "bytes[]" }],
+    stateMutability: "payable",
+  },
+] as const;

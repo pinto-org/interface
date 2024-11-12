@@ -1,7 +1,7 @@
 import { Token } from "@/utils/types";
-import { Button } from "./ui/Button";
-import useDebounce from "@/utils/useDebounce";
+import { useDebouncedEffect } from "@/utils/useDebounce";
 import { Dispatch, InputHTMLAttributes, SetStateAction, useState } from "react";
+import { Button } from "./ui/Button";
 
 export interface SimpleInputProps extends InputHTMLAttributes<HTMLInputElement> {
   amount: any;
@@ -11,7 +11,7 @@ export interface SimpleInputProps extends InputHTMLAttributes<HTMLInputElement> 
 
 export default function SimpleInputField({ amount, setAmount, token }: SimpleInputProps) {
   const [internalAmount, setInternalAmount] = useState(amount);
-  useDebounce(
+  useDebouncedEffect(
     () => {
       setAmount(internalAmount);
     },

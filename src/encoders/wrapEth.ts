@@ -1,8 +1,8 @@
-import { encodeFunctionData } from "viem";
-import { TokenValue } from "@/classes/TokenValue";
-import { FarmToMode } from "@/utils/types";
-import { beanstalkAbi } from "@/generated/contractHooks";
 import { Clipboard } from "@/classes/Clipboard";
+import { TokenValue } from "@/classes/TokenValue";
+import { beanstalkAbi } from "@/generated/contractHooks";
+import { AdvancedFarmCall, FarmToMode } from "@/utils/types";
+import { encodeFunctionData } from "viem";
 
 export default function wrapEth(amount?: TokenValue, balanceTo?: FarmToMode, clipboard?: `0x${string}`) {
   if (!amount || !balanceTo) {

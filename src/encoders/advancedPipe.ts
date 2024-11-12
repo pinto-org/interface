@@ -1,8 +1,8 @@
-import { encodeFunctionData } from "viem";
-import { TokenValue } from "@/classes/TokenValue";
-import { AdvancedPipeCall } from "@/utils/types";
-import { beanstalkAbi } from "@/generated/contractHooks";
 import { Clipboard } from "@/classes/Clipboard";
+import { TokenValue } from "@/classes/TokenValue";
+import { beanstalkAbi } from "@/generated/contractHooks";
+import { AdvancedPipeCall } from "@/utils/types";
+import { encodeFunctionData } from "viem";
 
 export default function advancedPipe(
   pipeCallData?: AdvancedPipeCall[],

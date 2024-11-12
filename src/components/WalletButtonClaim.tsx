@@ -1,20 +1,20 @@
-import { Button } from "./ui/Button";
-import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
-import { Separator } from "./ui/Separator";
-import { useEffect, useState } from "react";
-import { FarmToMode, Token } from "@/utils/types";
-import { ForwardArrowIcon } from "./Icons";
-import { useAccount, useChainId, useWriteContract } from "wagmi";
-import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { TokenValue } from "@/classes/TokenValue";
-import { Address, BaseError, encodeFunctionData } from "viem";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import DestinationBalanceSelect from "./DestinationBalanceSelect";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
+import { FarmToMode, Token } from "@/utils/types";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Address, BaseError, encodeFunctionData } from "viem";
+import { useAccount, useChainId, useWriteContract } from "wagmi";
+import DestinationBalanceSelect from "./DestinationBalanceSelect";
+import { ForwardArrowIcon } from "./Icons";
+import { Button } from "./ui/Button";
+import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
+import { Separator } from "./ui/Separator";
 
 export default function WalletButtonClaim({
   setShowClaim,
@@ -113,10 +113,10 @@ export default function WalletButtonClaim({
               <div className="flex flex-col gap-6 mt-6">
                 {farmerSilo.flood.farmerSops.map((sopData, index) => {
                   const amount = sopData.wellsPlenty.plenty;
+                  if (amount.eq(0)) return;
                   const token = sopData.backingAsset;
                   const price = priceData.tokenPrices.get(token);
                   const value = amount.mul(price ? price.instant : 0);
-
                   return (
                     <div key={index} className="flex flex-row justify-between">
                       <div className="flex flex-row gap-4 items-center">
@@ -141,7 +141,7 @@ export default function WalletButtonClaim({
         <Separator className="w-full" />
         <div className="flex flex-row justify-between items-center w-full ">
           <div className="font-[340] text-[1.25rem] text-pinto-gray-4">Receive proceeds to:</div>
-          <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} size={"small"} />
+          <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} variant="small" />
         </div>
         <Button
           onClick={() => onSubmit()}

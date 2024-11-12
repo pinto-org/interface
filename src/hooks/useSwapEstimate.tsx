@@ -1,22 +1,23 @@
-import { useAccount, useChainId } from "wagmi";
-import { AdvancedFarmCall, AdvancedPipeCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
-import { TokenValue } from "@/classes/TokenValue";
-import useTokenData from "@/state/useTokenData";
-import { PoolData, usePriceData } from "@/state/usePriceData";
-import use0x from "@/hooks/use0x";
-import { zeroAddress } from "viem";
 import { Clipboard } from "@/classes/Clipboard";
-import { beanstalkAddress, pipelineAddress } from "@/generated/contractHooks";
-import transferToken from "@/encoders/transferToken";
-import shift from "@/encoders/shift";
-import erc20Approve from "@/encoders/erc20Approve";
+import { TokenValue } from "@/classes/TokenValue";
 import advancedPipe from "@/encoders/advancedPipe";
-import useWellSwap from "@/hooks/useWellSwap";
+import erc20Approve from "@/encoders/erc20Approve";
 import erc20Transfer from "@/encoders/erc20Transfer";
-import useWellAddLiquidity from "@/hooks/useWellAddLiquidity";
+import shift from "@/encoders/shift";
 import sync from "@/encoders/sync";
+import transferToken from "@/encoders/transferToken";
 import unwrapEth from "@/encoders/unwrapEth";
 import wrapEth from "@/encoders/wrapEth";
+import { beanstalkAddress, pipelineAddress } from "@/generated/contractHooks";
+import use0x from "@/hooks/use0x";
+import useWellAddLiquidity from "@/hooks/useWellAddLiquidity";
+import useWellSwap from "@/hooks/useWellSwap";
+import { PoolData, usePriceData } from "@/state/usePriceData";
+import useTokenData from "@/state/useTokenData";
+import { AdvancedFarmCall, AdvancedPipeCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
+import { calculatePipeCallClipboardSlot } from "@/utils/utils";
+import { zeroAddress } from "viem";
+import { useAccount, useChainId } from "wagmi";
 
 export default function useSwapEstimate(
   tokenIn: Token,
@@ -47,10 +48,15 @@ export default function useSwapEstimate(
   const wellSwapFirst = !wellOnlySwap && tokenIn === mainToken;
   const wellSwapLast = !wellOnlySwap && tokenOut === mainToken;
 
-  const tokenMid = (tokenOut.isLP && lpPool) ? lpPool.tokens.find((token) => token !== mainToken) : well?.tokens.find((token) => token !== mainToken);
+  const tokenMid =
+    tokenOut.isLP && lpPool
+      ? lpPool.tokens.find((token) => token !== mainToken)
+      : well?.tokens.find((token) => token !== mainToken);
 
   const isWrapEth = tokenIn.isNative && tokenOut.isWrappedNative;
   const isUnwrapEth = tokenIn.isWrappedNative && tokenOut.isNative;
+
+  const isWrapping = tokenIn.isNative && tokenMid?.isWrappedNative;
 
   const isStraightDeposit = lpPool?.tokens.includes(tokenIn) && tokenOut.isLP;
 
@@ -91,7 +97,11 @@ export default function useSwapEstimate(
     wellData?.address,
     slippage,
     mode,
-    disabled || isStraightDeposit || isWrapUnwrap || !(!!amount && amount > 0 && !!wellIn && !!wellOut && (wellOnlySwap || wellSwapFirst)),
+    disabled ||
+      isStraightDeposit ||
+      isWrapUnwrap ||
+      isWrapping ||
+      !(!!amount && amount > 0 && !!wellIn && !!wellOut && (wellOnlySwap || wellSwapFirst)),
   );
 
   const zeroExQuote = use0x({
@@ -108,18 +118,22 @@ export default function useSwapEstimate(
     shouldSellEntireBalance: "true",
     enabled:
       !disabled ||
-      isStraightDeposit ||
-      isWrapUnwrap ||
+      !isStraightDeposit ||
+      !isWrapUnwrap ||
+      !isWrapping ||
       ((aggOnlySwap || wellSwapFirst || wellSwapLast) &&
         amountTV.gt(0) &&
         (wellSwapFirst ? wellQuote1.isLoading === false && wellQuote1.amountOut.gt(0) : true)),
   });
-  const zeroExQuoteResult = TokenValue.fromBlockchain(zeroExQuote?.data?.buyAmount || 0, aggOut?.decimals || 0);
+  const zeroX = zeroExQuote?.data?.[0];
+  const zeroExQuoteResult = TokenValue.fromBlockchain(zeroX?.buyAmount || 0, aggOut?.decimals || 0);
 
   const wellAddLiqQuote = useWellAddLiquidity(
     lpPool,
     isStraightDeposit ? tokenIn : aggOut,
-    isStraightDeposit ? TokenValue.fromHuman(amount, tokenIn.decimals) : zeroExQuoteResult,
+    isStraightDeposit || (isWrapping && tokenOut.isLP)
+      ? TokenValue.fromHuman(amount, tokenIn.decimals)
+      : zeroExQuoteResult,
     slippage,
     disabled || isWrapUnwrap || !lpPool,
   );
@@ -157,6 +171,7 @@ export default function useSwapEstimate(
       contractToApprove: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
       farmCalls: account.address ? wrapEthCall : undefined,
       pipeCalls: undefined,
+      pipeOutputSlot: undefined,
       callData: account.address ? [wrapEthCall] : undefined,
       isLoading: false,
     };
@@ -168,28 +183,25 @@ export default function useSwapEstimate(
       contractToApprove: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
       farmCalls: account.address ? unwrapEthCall : undefined,
       pipeCalls: undefined,
+      pipeOutputSlot: undefined,
       callData: account.address ? [unwrapEthCall] : undefined,
       isLoading: false,
     };
   } else if (isStraightDeposit) {
-    if (!lpPool || !tokenIn) return
+    if (!lpPool || !tokenIn) return;
     const farmCallData: AdvancedFarmCall[] = [];
     const transferToPipeline = transferToken(
-        tokenIn.address,
-        pipelineAddress[chainId as keyof typeof pipelineAddress],
-        amountTV,
-        source,
-        FarmToMode.EXTERNAL,
-      );
+      tokenIn.address,
+      pipelineAddress[chainId as keyof typeof pipelineAddress],
+      amountTV,
+      source,
+      FarmToMode.EXTERNAL,
+    );
     farmCallData.push(transferToPipeline);
 
     const pipeCalls: AdvancedPipeCall[] = [];
     // slot 0
-    const transferToWell = erc20Transfer(
-      lpPool.pool.address,
-      amountTV,
-      tokenIn.address,
-    ) as AdvancedPipeCall;
+    const transferToWell = erc20Transfer(lpPool.pool.address, amountTV, tokenIn.address) as AdvancedPipeCall;
     pipeCalls.push(transferToWell);
     // slot 1, copy output to subsequent calls
     const wellSync = sync(
@@ -225,10 +237,10 @@ export default function useSwapEstimate(
       contractToApprove: wellData?.address,
       farmCalls: account.address ? farmCallData : undefined,
       pipeCalls: account.address ? pipeCalls : undefined,
+      pipeOutputSlot: calculatePipeCallClipboardSlot(pipeCalls.length, 1),
       callData: account.address ? [...farmCallData, advPipeCallData] : undefined,
       isLoading: isLoading,
     };
-
   } else if (wellOnlySwap) {
     const farmCallData: AdvancedFarmCall[] = [];
     const transferToWell = transferToken(
@@ -278,12 +290,13 @@ export default function useSwapEstimate(
       contractToApprove: wellData?.address,
       farmCalls: account.address ? farmCallData : undefined,
       pipeCalls: account.address ? pipeCalls : undefined,
+      pipeOutputSlot: calculatePipeCallClipboardSlot(pipeCalls.length, 0),
       callData: account.address ? [...farmCallData, advPipeCallData] : undefined,
       isLoading: isLoading,
     };
   } else if (aggOnlySwap && zeroExQuote.data) {
     const farmCallData: AdvancedFarmCall[] = [];
-    if (!aggIn?.isNative && zeroExQuote.data?.allowanceTarget !== zeroAddress) {
+    if (!aggIn?.isNative && zeroX?.allowanceTarget !== zeroAddress) {
       const transferToPipeline = transferToken(
         aggIn?.address || zeroAddress,
         pipelineAddress[chainId as keyof typeof pipelineAddress],
@@ -295,10 +308,10 @@ export default function useSwapEstimate(
     }
 
     const pipeCalls: AdvancedPipeCall[] = [];
-    const needApproval = zeroExQuote.data?.allowanceTarget && zeroExQuote.data?.allowanceTarget !== zeroAddress;
+    const needApproval = zeroX?.allowanceTarget && zeroX.allowanceTarget !== zeroAddress;
     if (needApproval) {
       const approveZeroEx = erc20Approve(
-        zeroExQuote.data?.allowanceTarget || zeroAddress,
+        zeroX?.allowanceTarget || zeroAddress,
         amountTV,
         aggIn?.address,
       ) as AdvancedPipeCall;
@@ -307,8 +320,8 @@ export default function useSwapEstimate(
     // swap call, 0x already gives us encoded calldata, no need to use encodeFunctionData
     // slot 0 if no approval needed, 1 if needed, copy the output to subsequent calls
     pipeCalls.push({
-      target: zeroExQuote.data?.to || zeroAddress,
-      callData: zeroExQuote.data?.data || zeroAddress,
+      target: zeroX?.to || zeroAddress,
+      callData: zeroX?.data || zeroAddress,
       clipboard: Clipboard.encode([], aggIn?.isNative ? amountTV.toBigInt() : undefined),
     });
 
@@ -318,7 +331,7 @@ export default function useSwapEstimate(
         lpPool.pool.address,
         zeroExQuoteResult,
         aggOut?.address,
-        Clipboard.encodeSlot(zeroExQuote.data?.allowanceTarget !== zeroAddress ? 1 : 0, 0, 1),
+        isWrapping ? undefined : Clipboard.encodeSlot(zeroX?.allowanceTarget !== zeroAddress ? 1 : 0, 0, 1),
       ) as AdvancedPipeCall;
       pipeCalls.push(transferToWell);
       // slot 2 if no approval needed, 3 if needed, copy output to subsequent calls
@@ -333,10 +346,10 @@ export default function useSwapEstimate(
         beanstalkAddress[chainId as keyof typeof beanstalkAddress],
         wellAddLiqQuote.amountOut.subSlippage(slippage),
         lpPool.pool.address || zeroAddress,
-        Clipboard.encodeSlot(zeroExQuote.data?.allowanceTarget !== zeroAddress ? 3 : 2, 0, 1),
+        Clipboard.encodeSlot(zeroX?.allowanceTarget !== zeroAddress ? 3 : 2, 0, 1),
       ) as AdvancedPipeCall;
       pipeCalls.push(approveTransfer);
-      // slot 4 if no approval needed, 5 if needed, copy output to subsequent calls
+      // slot 4 if no approval needed, 5 if needed
       const transferToBeanstalk = transferToken(
         lpPool.pool.address || zeroAddress,
         account.address || zeroAddress,
@@ -344,7 +357,7 @@ export default function useSwapEstimate(
         FarmFromMode.EXTERNAL,
         FarmToMode.INTERNAL,
         beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-        Clipboard.encodeSlot(zeroExQuote.data.allowanceTarget !== zeroAddress ? 3 : 2, 0, 2),
+        Clipboard.encodeSlot(zeroX?.allowanceTarget !== zeroAddress ? 3 : 2, 0, 2),
       ) as AdvancedPipeCall;
       pipeCalls.push(transferToBeanstalk);
     } else {
@@ -353,10 +366,10 @@ export default function useSwapEstimate(
         beanstalkAddress[chainId as keyof typeof beanstalkAddress],
         zeroExQuoteResult,
         aggOut?.address || zeroAddress,
-        Clipboard.encodeSlot(zeroExQuote.data.allowanceTarget !== zeroAddress ? 1 : 0, 0, 1),
+        Clipboard.encodeSlot(zeroX?.allowanceTarget !== zeroAddress ? 1 : 0, 0, 1),
       ) as AdvancedPipeCall;
       pipeCalls.push(approveTransfer);
-      // slot 2 if no approval needed, 3 if needed, copy output to subsequent calls
+      // slot 2 if no approval needed, 3 if needed
       const transferToBeanstalk = transferToken(
         aggOut?.address || zeroAddress,
         account.address || zeroAddress,
@@ -364,7 +377,7 @@ export default function useSwapEstimate(
         FarmFromMode.EXTERNAL,
         aggOut?.isWrappedNative && tokenOut.isNative ? FarmToMode.INTERNAL : destination,
         beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-        Clipboard.encodeSlot(zeroExQuote.data.allowanceTarget !== zeroAddress ? 1 : 0, 0, 2),
+        Clipboard.encodeSlot(zeroX?.allowanceTarget !== zeroAddress ? 1 : 0, 0, 2),
       ) as AdvancedPipeCall;
       pipeCalls.push(transferToBeanstalk);
     }
@@ -391,6 +404,13 @@ export default function useSwapEstimate(
       contractToApprove: wellData?.address,
       farmCalls: account.address ? farmCallData : undefined,
       pipeCalls: account.address ? pipeCalls : undefined,
+      pipeOutputSlot: lpPool
+        ? zeroX?.allowanceTarget !== zeroAddress
+          ? calculatePipeCallClipboardSlot(pipeCalls.length, 3) - (isWrapping ? 1 : 0)
+          : calculatePipeCallClipboardSlot(pipeCalls.length, 2) - (isWrapping ? 1 : 0)
+        : zeroX?.allowanceTarget !== zeroAddress
+          ? calculatePipeCallClipboardSlot(pipeCalls.length, 1)
+          : calculatePipeCallClipboardSlot(pipeCalls.length, 0),
       callData: account.address ? [...farmCallData, advPipeCallData, ...postPipeCalls] : undefined,
       isLoading: isLoading,
     };
@@ -408,7 +428,7 @@ export default function useSwapEstimate(
 
     // slot 1 in pipeCall
     const approveZeroEx = erc20Approve(
-      zeroExQuote.data?.allowanceTarget || zeroAddress,
+      zeroX?.allowanceTarget || zeroAddress,
       wellQuote1.amountOut,
       aggIn?.address,
       Clipboard.encodeSlot(0, 0, 1), // copy slot 0 into approval step
@@ -418,8 +438,8 @@ export default function useSwapEstimate(
     // swap call, 0x already gives us encoded calldata, no need to use encodeFunctionData
     // slot 2 in pipeCall
     pipeCalls.push({
-      target: zeroExQuote.data?.to || zeroAddress,
-      callData: zeroExQuote.data?.data || zeroAddress,
+      target: zeroX?.to || zeroAddress,
+      callData: zeroX?.data || zeroAddress,
       clipboard: Clipboard.encode([]),
     });
 
@@ -451,7 +471,7 @@ export default function useSwapEstimate(
       const unwrap = unwrapEth(
         zeroExQuoteResult,
         FarmFromMode.INTERNAL,
-        Clipboard.encodeSlot(0 + farmCallData.length, 12, 0),
+        Clipboard.encodeSlot(0 + farmCallData.length, calculatePipeCallClipboardSlot(pipeCalls.length, 2), 0),
       );
       postPipeCalls.push(unwrap);
     }
@@ -462,13 +482,14 @@ export default function useSwapEstimate(
       contractToApprove: wellData?.address,
       farmCalls: account.address ? farmCallData : undefined,
       pipeCalls: account.address ? pipeCalls : undefined,
+      pipeOutputSlot: calculatePipeCallClipboardSlot(pipeCalls.length, 2),
       callData: account.address ? [...farmCallData, advPipeCallData, ...postPipeCalls] : undefined,
       isLoading: isLoading,
     };
   } else if (wellSwapLast) {
     if (!wellIn || !wellData || !wellOut || !zeroExQuote.data) return;
     const farmCallData: AdvancedFarmCall[] = [];
-    if (!aggIn?.isNative && zeroExQuote.data?.allowanceTarget !== zeroAddress) {
+    if (!aggIn?.isNative && zeroX?.allowanceTarget !== zeroAddress) {
       const transferToPipeline = transferToken(
         aggIn?.address || zeroAddress,
         pipelineAddress[chainId as keyof typeof pipelineAddress],
@@ -480,9 +501,9 @@ export default function useSwapEstimate(
     }
 
     const pipeCalls: AdvancedPipeCall[] = [];
-    if (zeroExQuote.data?.allowanceTarget && zeroExQuote.data?.allowanceTarget !== zeroAddress) {
+    if (zeroX?.allowanceTarget && zeroX.allowanceTarget !== zeroAddress) {
       const approveZeroEx = erc20Approve(
-        zeroExQuote.data?.allowanceTarget || zeroAddress,
+        zeroX?.allowanceTarget || zeroAddress,
         amountTV,
         aggIn?.address,
       ) as AdvancedPipeCall;
@@ -491,8 +512,8 @@ export default function useSwapEstimate(
     // swap call, 0x already gives us encoded calldata, no need to use encodeFunctionData
     // slot 0 if no approval needed, 1 if needed, copy the output to subsequent calls
     pipeCalls.push({
-      target: zeroExQuote.data?.to || zeroAddress,
-      callData: zeroExQuote.data?.data || zeroAddress,
+      target: zeroX?.to || zeroAddress,
+      callData: zeroX?.data || zeroAddress,
       clipboard: Clipboard.encode([], aggIn?.isNative ? amountTV.toBigInt() : undefined),
     });
 
@@ -501,7 +522,7 @@ export default function useSwapEstimate(
       wellData?.address,
       zeroExQuoteResult,
       aggOut?.address,
-      Clipboard.encodeSlot(zeroExQuote.data?.allowanceTarget !== zeroAddress ? 1 : 0, 0, 1),
+      isWrapping ? undefined : Clipboard.encodeSlot(zeroX?.allowanceTarget !== zeroAddress ? 1 : 0, 0, 1),
     ) as AdvancedPipeCall;
     pipeCalls.push(transferToWell);
 
@@ -520,7 +541,7 @@ export default function useSwapEstimate(
         beanstalkAddress[chainId as keyof typeof beanstalkAddress],
         wellQuote2.amountOut,
         wellOut?.address || zeroAddress,
-        Clipboard.encodeSlot(zeroExQuote.data.allowanceTarget !== zeroAddress ? 3 : 2, 0, 1),
+        Clipboard.encodeSlot(zeroX?.allowanceTarget !== zeroAddress ? 3 : 2, 0, 1),
       ) as AdvancedPipeCall;
       pipeCalls.push(approveTransfer);
 
@@ -531,7 +552,7 @@ export default function useSwapEstimate(
         FarmFromMode.EXTERNAL,
         FarmToMode.INTERNAL,
         beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-        Clipboard.encodeSlot(zeroExQuote.data.allowanceTarget !== zeroAddress ? 3 : 2, 0, 2),
+        Clipboard.encodeSlot(zeroX?.allowanceTarget !== zeroAddress ? 3 : 2, 0, 2),
       ) as AdvancedPipeCall;
       pipeCalls.push(transferToBeanstalk);
     }
@@ -547,6 +568,10 @@ export default function useSwapEstimate(
       contractToApprove: wellData?.address,
       farmCalls: account.address ? farmCallData : undefined,
       pipeCalls: account.address ? pipeCalls : undefined,
+      pipeOutputSlot:
+        zeroX?.allowanceTarget !== zeroAddress
+          ? calculatePipeCallClipboardSlot(pipeCalls.length, 3)
+          : calculatePipeCallClipboardSlot(pipeCalls.length, 2),
       callData: account.address ? [...farmCallData, advPipeCallData] : undefined,
       isLoading: isLoading,
     };

@@ -32,7 +32,7 @@ export type TextAlign = "left" | "center" | "right" | "justify" | "start" | "end
 
 export type LetterSpacing = "body-light" | "h3" | "h2" | "h1" | "none";
 
-export type TextColor = "primary" | "secondary" | "light" | "lighter" | "green4" | "green3";
+export type TextColor = "primary" | "secondary" | "light" | "lighter" | "green4" | "green3" | "success" | "error";
 
 export interface ITextBase {
   variant?: FontVariant;
@@ -52,7 +52,9 @@ const textColors = {
 	'lighter':     clsx("text-pinto-gray-3"),
 	'green4':      clsx("text-pinto-green-4"),
 	'green3':      clsx("text-pinto-green-3"),
-	"inherit":     clsx("text-inherit"),
+	'success':     clsx("text-pinto-green-2"),
+	'error':       clsx("text-pinto-red-2"),
+	"inherit":     clsx("text-current"),
 } as const;
 
 // biome-ignore format: keep unformatted for readability
@@ -65,6 +67,17 @@ const fontSize = {
 	h2: 	         clsx("text-[2.25rem]"), 		  // 36px
 	h1: 	         clsx("text-[3.429rem]"), 		// 54.86px
 	inherit:       clsx("text-inherit"),
+} as const;
+
+// biome-ignore format: keep unformatted for readability
+const lineHeightsREM = {
+	xs: 	         "0.875rem", 		// 14px
+	sm: 	         "1rem", 				// 16px
+	body:          "1.25rem", 		// 20px
+	h4: 	         "1.5rem", 			// 24px
+	h3: 	         "2rem", 				// 32px
+	h2: 	         "2.25rem", 		// 36px
+	h1: 	         "3.429rem",
 } as const;
 
 // biome-ignore format: keep unformatted for readability
@@ -104,8 +117,9 @@ const fontWeights = {
 // biome-ignore format: keep unformatted for readability
 const letterSpacings = {
 	"body-light":  clsx("tracking-[-0.025rem]"),
-	h3:            clsx("tracking-[-.04rem]"),
-	h2:            clsx("tracking-[.0315rem]"),
+	h4:            clsx("tracking-[-0.003rem]"),
+	h3:            clsx("tracking-[-0.04rem]"),
+	h2:            clsx("tracking-[-0.0315rem]"),
 	h1:            clsx("tracking-[-0.069rem]"),
 	none:          clsx("tracking-[0rem]"),
 	inherit:       clsx("tracking-inherit"),
@@ -147,6 +161,7 @@ export const config = {
 		h1:             "h1",
 		h2:             "h2",
 		h3:             "h3",
+		h4:             "h4",
 		"body-light":   "body-light",
 		none:           "none",
 		inherit:        "inherit",
@@ -243,6 +258,9 @@ export const textConfig = {
     ...textTheme,
   },
   variantConfig: config,
+  values: {
+    lineHeights: lineHeightsREM,
+  },
   methods: {
     align: getTextAlign,
     fontSize: getTextSize,

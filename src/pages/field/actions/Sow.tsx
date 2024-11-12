@@ -1,18 +1,19 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
-import { useFieldData } from "@/state/useFieldData";
+import { Clipboard } from "@/classes/Clipboard";
 import { TokenValue } from "@/classes/TokenValue";
-import { AdvancedFarmCall, FarmFromMode, FarmToMode } from "@/utils/types";
-import useTokenData from "@/state/useTokenData";
-import { Label } from "@/components/ui/Label";
 import { ComboInputField } from "@/components/ComboInputField";
 import SlippageButton from "@/components/SlippageButton";
-import useSwapEstimate from "@/hooks/useSwapEstimate";
+import SmartSubmitButton from "@/components/SmartSubmitButton";
+import { Label } from "@/components/ui/Label";
 import sowWithMin from "@/encoders/sowWithMin";
+import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import useSwapEstimate from "@/hooks/useSwapEstimate";
+import { useFieldData } from "@/state/useFieldData";
+import useTokenData from "@/state/useTokenData";
+import { AdvancedFarmCall, FarmFromMode, FarmToMode } from "@/utils/types";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { BaseError } from "viem";
-import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { useAccount, useWriteContract } from "wagmi";
 import { useChainId } from "wagmi";
 
@@ -23,7 +24,7 @@ function Sow() {
   const queryKeys = field.queryKeys;
   const mainToken = useTokenData().mainToken;
 
-  const [amountIn, setAmountIn] = useState(0);
+  const [amountIn, setAmountIn] = useState("0");
   const [tokenIn, setTokenIn] = useState(mainToken);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.EXTERNAL);
   const [slippage, setSlippage] = useState(0.1);
@@ -44,7 +45,7 @@ function Sow() {
   const swapData = useSwapEstimate(
     tokenIn,
     mainToken,
-    amountIn,
+    Number(amountIn),
     slippage,
     "exactInput",
     balanceFrom,
@@ -60,7 +61,9 @@ function Sow() {
       : swapData?.output || TokenValue.ZERO;
     const _minTemperature = TokenValue.fromHuman("0", mainToken.decimals);
 
-    const minTemp = _minTemperature.gt(field.temperature.scaled) ? _minTemperature : field.temperature.scaled;
+    const minTemp = _minTemperature.gt(field.temperature.scaled)
+      ? _minTemperature.subSlippage(slippage)
+      : field.temperature.scaled.subSlippage(slippage);
     const minSoil = TokenValue.ZERO;
 
     if (isUsingMain) {
@@ -82,7 +85,15 @@ function Sow() {
         },
       });
     } else {
-      const sow = sowWithMin(amount, minTemp, minSoil, FarmFromMode.INTERNAL) as AdvancedFarmCall;
+      const sow = sowWithMin(
+        amount,
+        minTemp,
+        minSoil,
+        FarmFromMode.INTERNAL,
+        swapData?.pipeOutputSlot && swapData.farmCalls
+          ? Clipboard.encodeSlot(swapData.farmCalls.length || 0, swapData.pipeOutputSlot, 0)
+          : undefined,
+      ) as AdvancedFarmCall;
       const swapCallData = swapData?.callData;
       if (swapCallData) {
         swapCallData.push(sow);
@@ -93,6 +104,7 @@ function Sow() {
             functionName: "advancedFarm",
             args: [swapCallData],
             value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
+            gas: 4000000n,
           });
 
         toast.promise(tx, {

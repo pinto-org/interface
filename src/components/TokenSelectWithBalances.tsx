@@ -17,7 +17,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/Dialog";
+import { ScrollArea } from "./ui/ScrollArea";
 import { Separator } from "./ui/Separator";
+import Text from "./ui/Text";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
 
 function TokenSelectItem({
@@ -34,7 +36,7 @@ function TokenSelectItem({
       <ToggleGroupItem
         value={token.address}
         aria-label={`Select ${token.name}`}
-        className="flex flex-row w-[105%] py-2 h-auto justify-between"
+        className="flex flex-row w-[105%] py-4 h-auto justify-between data-[state=on]:bg-transparent hover:bg-pinto-gray-1 data-[state=on]:hover:bg-pinto-gray-1"
       >
         <div className="flex flex-row items-center gap-4">
           <img src={token.logoURI} alt={token.name} className="w-12 h-12" />
@@ -66,7 +68,7 @@ export default function TokenSelectWithBalances({
   size,
   disabled,
 }: {
-  setToken: React.Dispatch<React.SetStateAction<Token>>;
+  setToken: React.Dispatch<React.SetStateAction<Token>> | ((token: Token) => void);
   selectedToken: Token;
   tokenAndBalanceMap?: Map<Token, TokenValue> | undefined;
   setBalanceFrom?: React.Dispatch<React.SetStateAction<FarmFromMode>> | undefined;
@@ -100,22 +102,24 @@ export default function TokenSelectWithBalances({
     <Dialog>
       <DialogTrigger asChild>
         <Button
-          variant={"outline"}
-          className={`${disabled ? "pointer-events-none" : "pointer-events-auto"} flex-none items-center ${size === "small" ? "" : "h-12"} gap-1.5 border border-pinto-gray-blue bg-white hover:bg-pinto-gray-1 drop-shadow-pinto-token-select rounded-full text-black text-[1.25rem] font-[300] leading-[1.3875rem] tracking-[1px]`}
+          variant="outline-gray-shadow"
+          size="xl"
+          rounded="full"
+          className={`${disabled ? "pointer-events-none" : "pointer-events-auto"} flex-none items-center ${size === "small" ? "" : "h-12"} gap-1`}
         >
           <img
             src={selectedToken.logoURI}
             alt={selectedToken.name}
             className={`${size === "small" ? "w-5 h-5" : "w-6 h-6"}`}
           />
-          <div>{selectedToken.symbol}</div>
+          <Text variant="body-light">{selectedToken.symbol}</Text>
           {!disabled && <img src={arrowDown} className="w-4 h-4" alt={"open token select dialog"} />}
         </Button>
       </DialogTrigger>
       <DialogContent className="font-pinto overflow-x-clip">
         <DialogHeader>
           <DialogTitle>
-            <span>Select Token</span>
+            <span className="font-[400] text-[1.25rem]">Select Token</span>
             {balanceFrom && setBalanceFrom && (
               <div className="mt-6">
                 <SourceBalanceSelect
@@ -128,8 +132,8 @@ export default function TokenSelectWithBalances({
             <Separator className="w-[120%] -ml-6 mt-6" />
           </DialogTitle>
           <DialogDescription>
-            {account.address ? (
-              <div className="mt-6">
+            <ScrollArea className="h-[600px] -mx-4 mt-2">
+              <div className="mx-4">
                 <ToggleGroup
                   type="single"
                   value={_token.address}
@@ -174,9 +178,7 @@ export default function TokenSelectWithBalances({
                       })}
                 </ToggleGroup>
               </div>
-            ) : (
-              "Connect your wallet to see your Balances"
-            )}
+            </ScrollArea>
           </DialogDescription>
         </DialogHeader>
       </DialogContent>

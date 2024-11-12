@@ -2,7 +2,7 @@ import { formatUnits, parseUnits, toHex } from "viem";
 import { DecimalBigNumber } from "./DecimalBigNumber";
 
 const blocker = {};
-const maxUint256 = 2 ** 256 - 1;
+const maxUint256 = 2n ** 256n - 1n;
 
 export class TokenValue {
   static ZERO = TokenValue.fromHuman(0, 0);
@@ -107,7 +107,7 @@ export class TokenValue {
     return TokenValue.fromBigInt(result, decimals);
   }
 
-  private static fromBigInt(value: bigint, decimals: number): TokenValue {
+  static fromBigInt(value: bigint, decimals: number): TokenValue {
     return new TokenValue(blocker, value, decimals);
   }
 
@@ -132,6 +132,10 @@ export class TokenValue {
 
   toBlockchain(): string {
     return this.value.toBigInt().toString();
+  }
+
+  toNumber(): number {
+    return Number(this.toHuman());
   }
 
   /**
@@ -193,7 +197,7 @@ export class TokenValue {
     const n = this.toDBN(num).reDecimal(this.decimals);
     return TokenValue.from(this.value.mod(n));
   }
-  mul(num: TokenValue | number) {
+  mul(num: TokenValue | number | bigint) {
     return TokenValue.from(this.value.mul(this.toDBN(num)).reDecimal(this.decimals));
   }
   mulMod(num: TokenValue | number, denominator: TokenValue | number): TokenValue {
@@ -338,4 +342,12 @@ export class TokenValue {
 
     return TokenValue.fromHuman(newString, decimals);
   }
+
+  ////// Getters //////
+
+  get isZero(): boolean {
+    return this.eq(0n);
+  }
 }
+
+export { TokenValue as TV };

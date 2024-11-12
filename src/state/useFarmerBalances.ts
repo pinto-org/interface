@@ -1,65 +1,83 @@
-import { useAccount, useBalance, useReadContract } from "wagmi";
-import { beanstalkAddress, useReadBeanstalk_GetAllBalances, beanstalkAbi } from "@/generated/contractHooks";
 import { TokenValue } from "@/classes/TokenValue";
-import useTokenData from "./useTokenData";
-import { Token } from "@/utils/types";
-import { useChainAddress } from "@/utils/chain";
 import { ZERO_ADDRESS } from "@/constants/address";
+import { beanstalkAbi, beanstalkAddress, useReadBeanstalk_GetAllBalances } from "@/generated/contractHooks";
+import { useChainAddress } from "@/utils/chain";
+import { Token } from "@/utils/types";
+import { useMemo } from "react";
+import { useAccount, useBalance, useReadContract } from "wagmi";
+import { useSunData } from "./useSunData";
+import useTokenData from "./useTokenData";
 
 const settings = {
   staleTime: 1000 * 60 * 2,
   refetchInterval: 1000 * 60 * 3, // 3 minutes, in milliseconds
 };
 
-const emptyMap = new Map<Token, { internal: TokenValue; external: TokenValue; total: TokenValue }>();
+export interface FarmerBalance {
+  internal: TokenValue;
+  external: TokenValue;
+  total: TokenValue;
+}
 
 export function useFarmerBalances() {
   const account = useAccount();
+  const season = useSunData().current;
   const tokens = useTokenData().preferredTokens;
-  const preferredTokens = tokens.map((token) => token.address);
+  const lpTokens = useTokenData().lpTokens;
   const ETH = useTokenData().nativeToken;
+
   const nativeBalance = useBalance({
     address: account.address,
   });
 
+  const balanceTokens = useMemo(() => [...tokens, ...lpTokens], [tokens, lpTokens]);
+  const addresses = balanceTokens.map((token) => token.address);
+
   const diamondAddress = useChainAddress(beanstalkAddress);
 
-  const {
-    data: tokenBalances = emptyMap,
-    refetch,
-    queryKey,
-  } = useReadContract({
+  const { data, refetch, queryKey } = useReadContract({
     address: diamondAddress,
     abi: beanstalkAbi,
     functionName: "getAllBalances",
-    args: [account.address ?? ZERO_ADDRESS, preferredTokens],
+    args: [account.address ?? ZERO_ADDRESS, addresses],
+    scopeKey: ["season", season].join(" "),
     query: {
       ...settings,
-      enabled: !!account.address,
-      select: (data) => {
-        const balances: Map<Token, { internal: TokenValue; external: TokenValue; total: TokenValue }> = new Map();
-
-        balances.set(ETH, {
-          internal: TokenValue.fromBlockchain(0n, ETH.decimals),
-          external: TokenValue.fromBlockchain(nativeBalance.data?.value || 0n, ETH.decimals),
-          total: TokenValue.fromBlockchain(nativeBalance.data?.value || 0n, ETH.decimals),
-        });
-
-        data.forEach((token, index) => {
-          balances.set(tokens[index], {
-            internal: TokenValue.fromBlockchain(token.internalBalance, tokens[index].decimals),
-            external: TokenValue.fromBlockchain(token.externalBalance, tokens[index].decimals),
-            total: TokenValue.fromBlockchain(token.totalBalance, tokens[index].decimals),
-          });
-        });
-
-        return balances;
-      },
+      enabled: !!account.address && !!balanceTokens.length,
     },
   });
 
+  const balanceData = useMemo(() => {
+    const balances: Map<Token, FarmerBalance> = new Map();
+
+    balances.set(ETH, {
+      internal: TokenValue.fromBlockchain(0n, ETH.decimals),
+      external: TokenValue.fromBlockchain(nativeBalance.data?.value || 0n, ETH.decimals),
+      total: TokenValue.fromBlockchain(nativeBalance.data?.value || 0n, ETH.decimals),
+    });
+
+    for (const [index, token] of balanceTokens.entries()) {
+      if (data?.[index]) {
+        const tokenBalance = data[index];
+        balances.set(token, {
+          internal: TokenValue.fromBlockchain(tokenBalance.internalBalance, token.decimals),
+          external: TokenValue.fromBlockchain(tokenBalance.externalBalance, token.decimals),
+          total: TokenValue.fromBlockchain(tokenBalance.totalBalance, token.decimals),
+        });
+      } else {
+        balances.set(token, {
+          internal: TokenValue.ZERO,
+          external: TokenValue.ZERO,
+          total: TokenValue.ZERO,
+        });
+      }
+    }
+
+    return balances;
+  }, [nativeBalance.data, data, balanceTokens, ETH]);
+
   return {
-    balances: tokenBalances,
+    balances: balanceData,
     queryKey: queryKey,
     refetch: refetch,
   };

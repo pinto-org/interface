@@ -1,6 +1,12 @@
+import HelperLink from "@/components/HelperLink";
+import { ScrollHideComponent } from "@/components/ScrollHideComponent";
+import useFarmerActions from "@/hooks/useFarmerActions";
+import { formatter } from "@/utils/format";
 import { cn } from "@/utils/utils";
 import clsx from "clsx";
-import { useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { matchPath, useMatch } from "react-router-dom";
+import { useAccount } from "wagmi";
 import WalletButton from "../../WalletButton";
 import Backdrop from "../../ui/Backdrop";
 import PriceButton from "../PriceButton";
@@ -17,10 +23,25 @@ const Navbar = () => {
   const [openBackdrop, setOpenBackdrop] = useState(false);
   const [backdropMounted, setBackdropMounted] = useState(true);
 
+  const account = useAccount();
+  const farmerActions = useFarmerActions();
+  const hasInternal = farmerActions.totalValue.wallet.internal.gt(0);
+  const hasFlood = farmerActions.floodAssets.enabled;
+  const usdValue = farmerActions.totalValue.wallet.total;
+
+  const isRoot = useMatch("/");
+  const isSilo = useMatch("/silo");
+  const showHelperLink = useMemo(
+    () => Boolean(isRoot || isSilo),
+    [isRoot, isSilo]
+  );
+
   const priceOpen = openPanel === "price";
   const seasonsOpen = openPanel === "seasons";
   const walletOpen = openPanel === "wallet";
   const mobileNaviOpen = openPanel === "mobile-navi";
+
+  const walletButton = useRef<HTMLButtonElement>(null);
 
   const closePanel = () => {
     setOpenBackdrop(false);
@@ -41,7 +62,7 @@ const Navbar = () => {
     <>
       <div
         className={cn(
-          "fixed grid px-4 pt-4 pb-2 sm:px-6 sm:pt-6 w-full z-[2] bg-gradient-light",
+          "fixed grid px-4 pt-4 pb-2 sm:px-6 sm:pt-6 w-full z-[2] bg-gradient-light action-container",
           styles.navGrid
         )}
       >
@@ -66,12 +87,15 @@ const Navbar = () => {
         <div className="hidden lg:flex lg:justify-center">
           <Navi />
         </div>
-        <div className={`flex flex-row justify-end gap-2`}>
+        <div className="flex flex-row justify-end">
           <div className={`${walletOpen && "z-[51]"}`}>
-            <WalletButton
-              isOpen={walletOpen}
-              togglePanel={() => togglePanel("wallet")}
-            />
+            <div data-action-target={"wallet-button"}>
+              <WalletButton
+                isOpen={walletOpen}
+                togglePanel={() => togglePanel("wallet")}
+                ref={walletButton}
+              />
+            </div>
           </div>
           <div className={`lg:hidden ${mobileNaviOpen && "z-[51]"}`}>
             <MobileNavi
@@ -82,13 +106,36 @@ const Navbar = () => {
               unmount={() => setBackdropMounted(false)}
             />
           </div>
-        </div>
-        <div className="hidden sm:block">
-          <Backdrop
-            active={openBackdrop}
-            onClick={closePanel}
-            transitionDuration={DURATION}
-          />
+          <div className="hidden sm:block">
+            <Backdrop
+              active={openBackdrop}
+              onClick={closePanel}
+              transitionDuration={DURATION}
+            />
+          </div>
+          {!openPanel && showHelperLink && (
+            <ScrollHideComponent>
+              <HelperLink
+                onClick={() => {
+                  walletButton.current?.click();
+                }}
+                text={
+                  !account.address
+                    ? "Connect your Wallet"
+                    : hasFlood
+                      ? "Claim assets from Flood"
+                      : `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet ${hasInternal ? "+ Farm Balances" : "Balance"}`
+                }
+                className={`absolute top-[150px] right-[340px]`}
+                sourceAnchor="right"
+                targetAnchor="left"
+                source90Degree={true}
+                perpLength={5}
+                dataTarget="wallet-button"
+                fixed
+              />
+            </ScrollHideComponent>
+          )}
         </div>
       </div>
     </>

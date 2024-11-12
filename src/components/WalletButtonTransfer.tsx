@@ -1,20 +1,20 @@
+import { TokenValue } from "@/classes/TokenValue";
+import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useTokenData from "@/state/useTokenData";
+import { FarmFromMode, FarmToMode } from "@/utils/types";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Address, BaseError } from "viem";
+import { useAccount, useChainId, useWriteContract } from "wagmi";
 import { ComboInputField } from "./ComboInputField";
+import { LeftArrowIcon, UpDownArrowsIcon } from "./Icons";
+import SmartSubmitButton from "./SmartSubmitButton";
 import { Button } from "./ui/Button";
 import { CardContent, CardFooter, CardHeader } from "./ui/Card";
-import { Separator } from "./ui/Separator";
-import { useEffect, useState } from "react";
-import { FarmFromMode, FarmToMode } from "@/utils/types";
-import { LeftArrowIcon, UpDownArrowsIcon } from "./Icons";
 import { Label } from "./ui/Label";
-import { useAccount, useChainId, useWriteContract } from "wagmi";
-import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
-import { TokenValue } from "@/classes/TokenValue";
-import { Address, BaseError } from "viem";
-import { toast } from "sonner";
-import SmartSubmitButton from "./SmartSubmitButton";
-import { useQueryClient } from "@tanstack/react-query";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
+import { Separator } from "./ui/Separator";
 
 export default function WalletButtonTransfer({
   setShowTransfer,
@@ -25,7 +25,7 @@ export default function WalletButtonTransfer({
   const { queryKey } = useFarmerBalances();
 
   const mainToken = useTokenData().mainToken;
-  const [amountIn, setAmountIn] = useState(0);
+  const [amountIn, setAmountIn] = useState("0");
   const [tokenIn, setTokenIn] = useState(mainToken);
   const [balanceFrom, setBalanceFrom] = useState<FarmFromMode>(FarmFromMode.EXTERNAL);
 
@@ -40,7 +40,7 @@ export default function WalletButtonTransfer({
   }, [isSuccess, queryKey]);
 
   async function onSubmit() {
-    if (!chainId || !account.address || !amountIn || amountIn <= 0) return;
+    if (!chainId || !account.address || !amountIn || Number(amountIn) <= 0) return;
 
     const fromMode = balanceFrom;
     const toMode = balanceFrom === FarmFromMode.EXTERNAL ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL;

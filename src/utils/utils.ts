@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const generateID = (prefix = '') => {
+export const generateID = (prefix = "") => {
   const hash = Math.random().toString(36).slice(-7);
   return `${prefix}-${hash}`;
 };
@@ -28,4 +28,21 @@ export function unpackStem(data: string | number | bigint): bigint {
   }
 
   return stem;
+}
+
+export const isDev = () => {
+  return import.meta.env.DEV;
+};
+
+export function exists<T>(value: T | undefined | null): value is NonNullable<T> {
+  return value !== undefined && value !== null;
+}
+
+export function existsNot(value: any): value is undefined | null {
+  return !exists(value);
+}
+
+export function calculatePipeCallClipboardSlot(pipeCallLength: number, slot: number) {
+  if (!pipeCallLength || !slot) return 0;
+  return 2 + pipeCallLength + (1 + slot * 2);
 }

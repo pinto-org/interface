@@ -66,7 +66,7 @@ const PanelContent = ({ sunData, fieldSnapshots, siloSnapshots }: SeasonsButtonP
         </div>
         <Separator />
       </CardHeader>
-      <CardContent className="px-0">
+      <CardContent className="px-0 overflow-x-visible">
         <Table>
           <TableHeader className="[&_tr]:border-0">
             <TableRow className="h-14 border-0">
@@ -183,7 +183,7 @@ export default function SeasonsButton({ isOpen = false, togglePanel, ...props }:
       isOpen={isOpen}
       side="left"
       panelProps={{
-        className: "max-w-panel-seasons w-panel-seasons",
+        className: "max-w-panel-seasons w-panel-seasons overflow-x-visible",
       }}
       trigger={
         <Button

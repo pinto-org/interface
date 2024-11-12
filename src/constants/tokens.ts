@@ -1,10 +1,14 @@
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import pintoUsdcIcon from "@/assets/tokens/PINTO_USDC.png";
 import pintoWethIcon from "@/assets/tokens/PINTO_WETH.png";
+import pintoWsolIcon from "@/assets/tokens/PINTO_WSOL.png";
 import pintoCbbtcIcon from "@/assets/tokens/PINTO_cbBTC.png";
 import pintoCbethIcon from "@/assets/tokens/PINTO_cbETH.png";
+import wsolIcon from "@/assets/tokens/WSOL.png";
 import { Token } from "@/utils/types";
 import { arbitrum, base } from "viem/chains";
+
+const defaultChain = base.id;
 
 export const tokens: { [chainId: number]: Token[] } = {
   [arbitrum.id]: [
@@ -32,8 +36,8 @@ export const tokens: { [chainId: number]: Token[] } = {
     // Well LP Tokens
     {
       chainId: arbitrum.id,
-      name: "BEAN:WETH LP",
-      symbol: "BEAN:WETH",
+      name: "BEANWETH LP",
+      symbol: "BEANWETH",
       address: "0xBeA00Aa8130aCaD047E137ec68693C005f8736Ce",
       decimals: 18,
       isLP: true,
@@ -43,8 +47,8 @@ export const tokens: { [chainId: number]: Token[] } = {
     },
     {
       chainId: arbitrum.id,
-      name: "BEAN:wstETH LP",
-      symbol: "BEAN:wstETH",
+      name: "BEANwstETH LP",
+      symbol: "BEANwstETH",
       address: "0xBEa00BbE8b5da39a3F57824a1a13Ec2a8848D74F",
       decimals: 18,
       isLP: true,
@@ -120,8 +124,8 @@ export const tokens: { [chainId: number]: Token[] } = {
     // Well LP Tokens
     {
       chainId: base.id,
-      name: "PINTO:WETH LP",
-      symbol: "PINTO:WETH",
+      name: "PINTOWETH LP",
+      symbol: "PINTOWETH",
       address: "0x3e11001CfbB6dE5737327c59E10afAB47B82B5d3",
       decimals: 18,
       isLP: true,
@@ -131,8 +135,8 @@ export const tokens: { [chainId: number]: Token[] } = {
     },
     {
       chainId: base.id,
-      name: "PINTO:cbETH LP",
-      symbol: "PINTO:cbETH",
+      name: "PINTOcbETH LP",
+      symbol: "PINTOcbETH",
       address: "0x3e111115A82dF6190e36ADf0d552880663A4dBF1",
       decimals: 18,
       isLP: true,
@@ -142,8 +146,8 @@ export const tokens: { [chainId: number]: Token[] } = {
     },
     {
       chainId: base.id,
-      name: "PINTO:USDC LP",
-      symbol: "PINTO:USDC",
+      name: "PINTOUSDC LP",
+      symbol: "PINTOUSDC",
       address: "0x3e1133aC082716DDC3114bbEFEeD8B1731eA9cb1",
       decimals: 18,
       isLP: true,
@@ -153,14 +157,25 @@ export const tokens: { [chainId: number]: Token[] } = {
     },
     {
       chainId: base.id,
-      name: "PINTO:cbBTC LP",
-      symbol: "PINTO:cbBTC",
+      name: "PINTOcbBTC LP",
+      symbol: "PINTOcbBTC",
       address: "0x3e11226fe3d85142B734ABCe6e58918d5828d1b4",
       decimals: 18,
       isLP: true,
       logoURI: pintoCbbtcIcon,
       color: "#F7931A",
       tokens: ["0xb170000aeeFa790fa61D6e837d1035906839a3c8", "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf"],
+    },
+    {
+      chainId: base.id,
+      name: "PINTOWSOL LP",
+      symbol: "PINTOWSOL",
+      address: "0x3e11444c7650234c748D743D8d374fcE2eE5E6C9",
+      decimals: 18,
+      isLP: true,
+      logoURI: pintoWsolIcon,
+      color: "#9945FF",
+      tokens: ["0xb170000aeeFa790fa61D6e837d1035906839a3c8", "0x1C61629598e4a901136a81BC138E5828dc150d67"],
     },
     // Whitelisted Tokens
     {
@@ -175,10 +190,9 @@ export const tokens: { [chainId: number]: Token[] } = {
         "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png",
       color: "#627EEA",
     },
-    // Other Tokens
     {
       chainId: base.id,
-      name: "USDCoin",
+      name: "USD Coin",
       symbol: "USDC",
       address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
       decimals: 6,
@@ -207,6 +221,16 @@ export const tokens: { [chainId: number]: Token[] } = {
       logoURI: "https://assets.coingecko.com/coins/images/40143/standard/cbbtc.webp?1726136727",
       color: "#F7931A",
     },
+    {
+      chainId: base.id,
+      name: "Wrapped SOL (Wormhole)",
+      symbol: "WSOL",
+      address: "0x1C61629598e4a901136a81BC138E5828dc150d67",
+      decimals: 9,
+      isWhitelisted: true,
+      logoURI: wsolIcon,
+      color: "#9945FF",
+    },
     // Other Tokens
     /* {
             chainId: base.id,
@@ -218,3 +242,23 @@ export const tokens: { [chainId: number]: Token[] } = {
         }, */
   ],
 };
+
+// Protocol Token
+export const PINTO = tokens[defaultChain][0];
+
+// Native Chain Token
+export const ETH = tokens[defaultChain][1];
+
+// Well LP Tokens
+export const PINTOWETH = tokens[defaultChain][2];
+export const PINTOCBETH = tokens[defaultChain][3];
+export const PINTOUSDC = tokens[defaultChain][4];
+export const PINTOCBBTC = tokens[defaultChain][5];
+export const PINTOWSOL = tokens[defaultChain][6];
+
+// Underlying Tokens
+export const WETH = tokens[defaultChain][7];
+export const USDC = tokens[defaultChain][8];
+export const CBETH = tokens[defaultChain][9];
+export const CBBTC = tokens[defaultChain][10];
+export const WSOL = tokens[defaultChain][11];

@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import DevPage from "./components/DevPage";
 import Navbar from "./components/nav/nav/Navbar";
 import Field from "./pages/Field";
 import { Market } from "./pages/Market";
@@ -26,13 +27,16 @@ function App() {
             <Route path="/overview" element={<Overview />} />
             <Route path="/silo" element={<Silo />} />
             <Route path="/silo/:tokenAddress" element={<SiloToken />} />
+            <Route path="/silo/:tokenAddress/:action" element={<SiloToken />} />
             <Route path="/field" element={<Field />} />
+            <Route path="/field/:action" element={<Field />} />
             <Route path="/podmarket" element={<Market />} />
             <Route path="/podmarket/:mode" element={<Market />} />
             <Route path="/podmarket/:mode/:id" element={<Market />} />
             <Route path="/market" element={<Swap />} />
             <Route path="/transfer" element={<Transfer />} />
             <Route path="/transfer/:mode" element={<Transfer />} />
+            {import.meta.env.DEV && <Route path="/dev" element={<DevPage />} />}
           </Routes>
         </div>
       </div>

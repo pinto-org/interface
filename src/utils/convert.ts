@@ -1,27 +1,45 @@
-import { encodeAbiParameters } from "viem";
-import { SEEDS, STALK, BEAN } from "@/constants/internalTokens";
 import { TokenValue } from "@/classes/TokenValue";
-import { Token } from "./types";
+import { BEAN, SEEDS, STALK } from "@/constants/internalTokens";
+import { encodeAbiParameters } from "viem";
+import { stringEq } from "./string";
+import { DepositCrateData, DepositData, SiloTokenDataMap, Token } from "./types";
 
 export enum ConvertKind {
   LAMBDA_LAMBDA = 0,
   BEANS_TO_WELL_LP = 1,
   WELL_LP_TO_BEANS = 2,
-  ANTI_LAMBDA_LAMBDA = 3
+  ANTI_LAMBDA_LAMBDA = 3,
+}
+
+export type ConvertDetails = {
+  amount: TokenValue;
+  bdv: TokenValue;
+  stalk: TokenValue;
+  seeds: TokenValue;
+  actions: [];
+  crates: DepositCrateData[];
+};
+
+export interface PickedCratesDetails {
+  totalAmount: TokenValue;
+  totalBDV: TokenValue;
+  totalStalk: TokenValue;
+  totalSeeds: TokenValue;
+  crates: DepositCrateData[];
 }
 
 /**
  * Order crates by Stem.
  */
-export function sortCratesByStem(crates, direction: "asc" | "desc" = "desc") {
+export function sortCratesByStem(crates: DepositData[], direction: "asc" | "desc" = "desc") {
   const m = direction === "asc" ? -1 : 1;
-  return [...crates].sort((a, b) => m * b.stem.sub(a.stem));
+  return [...crates].sort((a, b) => Number.parseFloat(b.stem.sub(a.stem).mul(m).toHuman()));
 }
 
 /**
  * Order crates by BDV.
  */
-export function sortCratesByBDVRatio(crates, direction: "asc" | "desc" = "asc") {
+export function sortCratesByBDVRatio(crates: DepositData[], direction: "asc" | "desc" = "asc") {
   const m = direction === "asc" ? -1 : 1;
   return [...crates].sort((a, b) => {
     const _a: TokenValue = a.depositBdv.div(a.amount);
@@ -33,30 +51,30 @@ export function sortCratesByBDVRatio(crates, direction: "asc" | "desc" = "asc") 
 /**
  * Selects the number of crates needed to add up to the desired `amount`.
  */
-export function pickCrates(deposits: any[], amount: TokenValue) {
+export function pickCrates(deposits: DepositData[], amount: TokenValue): PickedCratesDetails {
   let totalAmount = TokenValue.ZERO;
   let totalBDV = TokenValue.ZERO;
   let totalStalk = TokenValue.ZERO;
   let totalSeeds = TokenValue.ZERO;
 
-  const cratesToWithdrawFrom: any[] = [];
+  const cratesToWithdrawFrom: DepositCrateData[] = [];
 
   deposits.some((deposit) => {
     const amountToRemoveFromCrate = totalAmount.add(deposit.amount).lte(amount)
       ? deposit.amount
       : amount.sub(totalAmount);
     const cratePct = amountToRemoveFromCrate.div(deposit.amount);
-    const crateBDV = cratePct.mul(deposit.depositBdv).reDecimal(BEAN.decimals);
-    const crateSeeds = cratePct.mul(deposit.seeds).reDecimal(SEEDS.decimals);
+    const crateBDV = cratePct.mul(deposit.depositBdv);
+    const crateSeeds = cratePct.mul(deposit.seeds);
 
-    const baseStalk = cratePct.mul(deposit.stalk.base).reDecimal(STALK.decimals);
-    const grownStalk = cratePct.mul(deposit.stalk.grown).reDecimal(STALK.decimals);
-    const crateStalk = cratePct.mul(deposit.stalk.total).reDecimal(STALK.decimals);
+    const baseStalk = cratePct.mul(deposit.stalk.base);
+    const grownStalk = cratePct.mul(deposit.stalk.grown);
+    const crateStalk = cratePct.mul(deposit.stalk.total);
 
     totalAmount = totalAmount.add(amountToRemoveFromCrate);
     totalBDV = totalBDV.add(crateBDV);
-    totalStalk = totalStalk.add(crateStalk);
     totalSeeds = totalSeeds.add(crateSeeds);
+    totalStalk = totalStalk.add(crateStalk);
 
     cratesToWithdrawFrom.push({
       stem: deposit.stem,
@@ -90,11 +108,11 @@ export function pickCrates(deposits: any[], amount: TokenValue) {
 export function sortAndPickCrates(
   mode: "convert" | "transfer" | "withdraw",
   fromAmount: TokenValue,
-  deposits,
+  deposits: DepositData[],
   toToken?: Token,
-) {
+): ConvertDetails {
   if (deposits.length === 0) throw new Error("No crates to pick and sort.");
-  let sortedCrates: any[];
+  let sortedCrates: DepositData[];
 
   if (mode === "convert") {
     if (!toToken) throw new Error("No toToken specified.");
@@ -126,6 +144,38 @@ export function sortAndPickCrates(
   };
 }
 
+export function calculateConvert(
+  fromToken: Token,
+  toToken: Token,
+  fromAmount: TokenValue,
+  deposits: DepositData[],
+  silo: SiloTokenDataMap,
+): ConvertDetails {
+  if (deposits.length === 0) throw new Error("No crates to withdraw from");
+  const sortedCrates =
+    !fromToken.isLP && toToken.isLP
+      ? /// BEAN -> LP: oldest crates are best. Grown stalk is equivalent
+        /// on both sides of the convert, but having more seeds in older crates
+        /// allows you to accrue stalk faster after convert.
+        /// Note that during this convert, BDV is approx. equal after the convert.
+        sortCratesByStem(deposits, "asc")
+      : /// X -> LP: use the crates with the lowest [BDV/Amount] ratio first.
+        /// Since LP deposits can have varying BDV, the best option for the Farmer
+        /// is to increase the BDV of their existing lowest-BDV crates.
+        sortCratesByBDVRatio(deposits, "asc");
+
+  const pickedCrates = pickCrates(sortedCrates, fromAmount);
+
+  return {
+    amount: pickedCrates.totalAmount,
+    bdv: pickedCrates.totalBDV,
+    stalk: pickedCrates.totalStalk,
+    seeds: silo.get(fromToken)?.rewards?.seeds || TokenValue.ZERO,
+    actions: [],
+    crates: pickedCrates.crates,
+  };
+}
+
 export function calculateConvertData(fromToken: Token, toToken: Token, amountIn: TokenValue, minAmountOut: TokenValue) {
   if (!fromToken.isLP && toToken.isLP) {
     const encoded = encodeAbiParameters(
@@ -147,6 +197,16 @@ export function calculateConvertData(fromToken: Token, toToken: Token, amountIn:
         { type: "address", name: "pool" },
       ],
       [BigInt(ConvertKind.WELL_LP_TO_BEANS), amountIn.toBigInt(), minAmountOut.toBigInt(), fromToken.address],
+    );
+    return encoded;
+  } else if (stringEq(fromToken.address, toToken.address)) {
+    const encoded = encodeAbiParameters(
+      [
+        { type: "uint256", name: "convertKind" },
+        { type: "uint256", name: "amount" },
+        { type: "address", name: "token" },
+      ],
+      [BigInt(ConvertKind.LAMBDA_LAMBDA), amountIn.toBigInt(), fromToken.address],
     );
     return encoded;
   } else {
