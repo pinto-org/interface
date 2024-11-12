@@ -99,7 +99,7 @@ const SeasonalChart = ({
   const [displayData, setDisplayData] = useState<SeasonalChartData | null>(null);
 
   // const season = useSunData().current; // TODO(ss): put this back eventually
-  const season = 25826;
+  const season = 25942;
   const dataHook = useDataHook(Math.max(0, season - tabToSeasonalLookback(activeTab)), season);
 
   useEffect(() => {

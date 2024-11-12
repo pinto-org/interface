@@ -7,11 +7,9 @@ import { paginateSubgraph, PaginationSettings } from "@/utils/paginateSubgraph";
 import { SeasonalChartData } from "@/components/charts/SeasonalChart";
 
 export default function useSeasonalPrice(fromSeason: number, toSeason: number): UseQueryResult<SeasonalChartData[]> {
-  console.log("in useSeasonalPrice");
-  const currentSeason = useSunData().current;
+  // const currentSeason = useSunData().current; // TODO(ss): put this back eventually
+  const currentSeason = 25942;
   const chainId = useChainId();
-  console.log("got chainId", chainId);
-  console.log("using vars", fromSeason, toSeason);
 
   const variables = {
     from: fromSeason,
@@ -21,7 +19,7 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number): 
   return useQuery({
     queryKey: ["seasonalPrices", { chainId: chainId, season: currentSeason, variables }],
     queryFn: async () => {
-      // TEMP for testing loading/error state
+      // TEMP for testing loading/error state (TODO(ss): remove)
       if (variables.from === 0) {
         throw new Error("errro");
       }
@@ -46,15 +44,30 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number): 
           }
         },
       };
-      console.log("sending request to subgraph: ", subgraphs[chainId].bean);
       return await paginateSubgraph(subgraphs[chainId].bean, BeanSeasonalPriceDocument, variables, paginateSettings);
     },
     select: (data) => {
-      return data.map((r) => ({
-        season: Number(r.season),
-        value: Number(r.price),
-        timestamp: new Date(Number(r.timestamp) * 1000),
-      }));
+      // TODO(ss): this part can be put in a shared utility
+      return data.map((r) => {
+        const season = Number(r.season);
+        if (season !== currentSeason) {
+          // For previous seasons, the presented data is upon the season's completion,
+          // add 1 hour to created timestamp.
+          const snapshotCreatedDate = new Date(Number(r.timestamp) * 1000);
+          const snapshotEndDate = new Date(snapshotCreatedDate.getTime() + 60 * 60 * 1000);
+          return {
+            season,
+            value: Number(r.price),
+            timestamp: snapshotEndDate,
+          };
+        } else {
+          return {
+            season,
+            value: Number(r.price),
+            timestamp: new Date(),
+          };
+        }
+      });
     },
     enabled: !!variables.to,
     staleTime: Infinity,
