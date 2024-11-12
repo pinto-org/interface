@@ -10,7 +10,7 @@ import { useFarmerField } from "@/state/useFarmerField";
 import { useFieldData } from "@/state/useFieldData";
 import { formatter } from "@/utils/format";
 import { useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import FieldActions from "./field/FieldActions";
 
 function Field() {
@@ -73,24 +73,36 @@ function Field() {
               <Button
                 variant="ghost"
                 className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem]"
+                disabled={totalPods.isZero}
+                onClick={(e) => {
+                  if (totalPods.isZero) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
+                }}
               >
-                <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
-                  <span className="self-center items-center">
-                    <LeftArrowIcon color={"white"} height={16} width={16} />
-                  </span>
-                </div>
-                Send Pods
+                <NavLink to="/transfer/pods" className="flex flex-row gap-2 items-center">
+                  <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
+                    <span className="self-center items-center">
+                      <LeftArrowIcon color={"white"} height={16} width={16} />
+                    </span>
+                  </div>
+                  Send Pods
+                </NavLink>
               </Button>
               <Button
+                asChild
                 variant="ghost"
                 className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem]"
               >
-                <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
-                  <span className="self-center items-center">
-                    <UpDownArrowsIcon color={"white"} height={16} width={16} />
-                  </span>
-                </div>
-                Buy or sell Pods in the Market
+                <NavLink to="/podmarket" className="flex flex-row gap-2 items-center">
+                  <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
+                    <span className="self-center items-center">
+                      <UpDownArrowsIcon color={"white"} height={16} width={16} />
+                    </span>
+                  </div>
+                  Buy or sell Pods in the Market
+                </NavLink>
               </Button>
             </div>
           </div>
