@@ -184,7 +184,7 @@ const Overview = () => {
             <StatPanel {...(hasOnlyPods ? statPanelData.pods : statPanelData.depositedValue)} size="large" />
           </div>
         </div>
-        <div className="grid grid-flow-col grid-cols-3 mt-20 gap-[4.5rem] w-[960px] self-center whitespace-nowrap">
+        <div className="grid grid-flow-col grid-cols-3 mt-[4.5rem] gap-[4.5rem] self-center whitespace-nowrap">
           <StatPanel {...(hasOnlyPods ? statPanelData.depositedValue : statPanelData.stalk)} />
           <StatPanel {...(hasOnlyPods ? statPanelData.stalk : statPanelData.seeds)} />
           <StatPanel {...(hasOnlyPods ? statPanelData.seeds : statPanelData.pods)} />
