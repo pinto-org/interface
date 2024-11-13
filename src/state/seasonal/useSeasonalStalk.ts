@@ -45,13 +45,17 @@ export default function useSeasonalStalk(fromSeason: number, toSeason: number): 
   });
 
   const historicalSelect = (_queryClient: QueryClient, _queryKey: QueryKey) => (data: SiloHourlySnapshot[]) => {
-    return data.map((v) => {
-      // For previous seasons, the presented data is upon the season's completion,
-      // add 1 hour to created timestamp.
-      const snapshotCreatedHour = new Date(Number(v.createdAt) * 1000);
-      const snapshotEndHour = new Date(snapshotCreatedHour.getTime() + 60 * 60 * 1000);
-      return entryData(v, snapshotEndHour);
-    });
+    return data
+      .map((v, idx) => {
+        // Data is presented at the time of season completion.
+        // The final season is part of this result, but extraneous and reselected as the current season.
+        let seasonEnd: Date;
+        if (idx < data.length - 1) {
+          seasonEnd = new Date(Number(data[idx].createdAt) * 1000);
+          return entryData(v, seasonEnd);
+        }
+      })
+      .filter((v) => v !== undefined);
   };
 
   const currentSelect = (queryClient: QueryClient, queryKey: QueryKey) => (data: SiloHourlySnapshot[]) => {
@@ -65,8 +69,7 @@ export default function useSeasonalStalk(fromSeason: number, toSeason: number): 
   return useSeasonalQueries("seasonalPrice", {
     fromSeason,
     toSeason,
-    // TODO(ss): put this back
-    queryVars: { silo: "0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70" ?? beanstalkAddress[chainId] },
+    queryVars: { silo: beanstalkAddress[chainId] },
     historicalQueryFnFactory: queryFnFactory,
     historicalSelect,
     currentQueryFnFactory: queryFnFactory,

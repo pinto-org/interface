@@ -1,48 +1,53 @@
+import { SeasonalChartData } from "@/components/charts/SeasonalChart";
 import { UseSeasonalResult } from "@/utils/types";
 import { QueryClient, QueryKey, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useChainId } from "wagmi";
 
 export type SeasonalExtraVars = {
-  [key: string]: any;
-}
+  [key: string]: unknown;
+};
 
 export type SeasonalQueryVars = {
   from: number;
   to: number;
 } & SeasonalExtraVars;
 
-export type SeasonalQueryConfig = {
+export type SeasonalQueryConfig<T> = {
   fromSeason: number;
   toSeason: number;
   queryVars: SeasonalExtraVars;
-  historicalQueryFnFactory: QueryFnFactory;
-  historicalSelect: SelectFn;
-  currentQueryFnFactory: QueryFnFactory;
-  currentSelect: SelectFn;
-}
+  historicalQueryFnFactory: QueryFnFactory<T>;
+  historicalSelect: SelectFn<T>;
+  currentQueryFnFactory: QueryFnFactory<T>;
+  currentSelect: SelectFn<T>;
+};
 
-type QueryFnFactory = (vars: SeasonalQueryVars) => () => Promise<any>;
-type SelectFn = (queryClient: QueryClient, queryKey: QueryKey) => (data: any) => any;
+type QueryFnFactory<T> = (vars: SeasonalQueryVars) => () => Promise<T[]>;
+type SelectFn<T> = (queryClient: QueryClient, queryKey: QueryKey) => (data: T[]) => SeasonalChartData[];
 
-export default function useSeasonalQueries(keyName: string, queryConfig: SeasonalQueryConfig): UseSeasonalResult {
+export default function useSeasonalQueries<T>(keyName: string, queryConfig: SeasonalQueryConfig<T>): UseSeasonalResult {
   const queryClient = useQueryClient();
   // const currentSeason = useSunData().current; // TODO(ss): put this back eventually
   const currentSeason = 25942;
   const chainId = useChainId();
 
+  // Current season should be discarded from historical in the select step
   const historicalVars = {
     from: queryConfig.fromSeason,
-    to: queryConfig.toSeason - 1,
-    ...queryConfig.queryVars
+    to: queryConfig.toSeason,
+    ...queryConfig.queryVars,
   };
 
   const currentVars = {
     from: queryConfig.toSeason,
     to: queryConfig.toSeason,
-    ...queryConfig.queryVars
+    ...queryConfig.queryVars,
   };
 
-  const historicalQueryKey = [`historical_${keyName}`, { chainId: chainId, season: currentSeason, variables: historicalVars }];
+  const historicalQueryKey = [
+    `historical_${keyName}`,
+    { chainId: chainId, season: currentSeason, variables: historicalVars },
+  ];
   const historical = useQuery({
     queryKey: historicalQueryKey,
     queryFn: queryConfig.historicalQueryFnFactory(historicalVars),

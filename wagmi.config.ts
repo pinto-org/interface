@@ -53,7 +53,7 @@ const beanstalkAddresses = {
   [mainnet.id]: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5" as HashString,
   [arbitrum.id]: "0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70" as  HashString,
   [base.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString,
-  [localhost.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString, // base
+  [localhost.id]: "0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70" as HashString, // beanstalk arb
   [tenderlyTestnet.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString, // base
   [foundry.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString, // base
 }

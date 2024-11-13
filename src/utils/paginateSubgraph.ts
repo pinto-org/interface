@@ -1,6 +1,5 @@
 import { TypedQueryDocumentNode } from "graphql";
 import request, { RequestDocument } from "graphql-request";
-import { Variables } from "node_modules/graphql-request/build/legacy/helpers/types";
 
 const PAGE_SIZE = 1000;
 
@@ -19,7 +18,7 @@ type ResultObject<T, K extends keyof T, R> = {
 // result set is exhausted.
 // The provided `document` must specify `first: 1000` and an orderBy/orderDirection.
 // The actual pagination logic is specified by the caller in `settings.loopCallback`.
-export const paginateSubgraph = async <R, T, V extends Variables = Variables>(
+export const paginateSubgraph = async <R, T, V>(
   settings: PaginationSettings<R, T, keyof T, V>,
   url: string,
   document: RequestDocument | TypedQueryDocumentNode<T, V>,

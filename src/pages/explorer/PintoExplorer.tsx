@@ -20,7 +20,7 @@ const PintoExplorer = () => {
         </div>
         <div className="w-1/2">
           <SeasonalChart
-            title="Pinto Price"
+            title="Total Liquidity"
             size="small"
             fillArea
             useDataHook={useSeasonalPrice}
@@ -29,13 +29,28 @@ const PintoExplorer = () => {
           />
         </div>
       </div>
-      <SeasonalChart
-        title="Pinto Price"
-        size="large"
-        useDataHook={useSeasonalPrice}
-        valueFormatter={price6dFormatter}
-        tickValueFormatter={price2dFormatter}
-      />
+      <div className="flex flex-row w-full space-x-8">
+        <div className="w-1/2">
+          <SeasonalChart
+            title="Pinto Supply"
+            size="small"
+            fillArea
+            useDataHook={useSeasonalPrice}
+            valueFormatter={price6dFormatter}
+            tickValueFormatter={price2dFormatter}
+          />
+        </div>
+        <div className="w-1/2">
+          <SeasonalChart
+            title="Market Capitalization"
+            size="small"
+            fillArea
+            useDataHook={useSeasonalPrice}
+            valueFormatter={price6dFormatter}
+            tickValueFormatter={price2dFormatter}
+          />
+        </div>
+      </div>
     </>
   );
 };

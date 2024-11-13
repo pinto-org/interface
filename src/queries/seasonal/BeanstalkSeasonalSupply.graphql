@@ -1,0 +1,13 @@
+query BeanstalkSeasonalSupply($from: Int, $to: Int) {
+  seasons(
+    where: { season_gte: $from, season_lte: $to }
+    first: $first
+    orderBy: season
+    orderDirection: desc
+  ) {
+    id
+    season
+    beans
+    createdAt
+  }
+}
