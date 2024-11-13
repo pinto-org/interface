@@ -17,9 +17,7 @@ import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useConfig } from "wagmi";
 import { useAccount, useChainId } from "wagmi";
-import OutputDisplay from "@/components/OutputDisplay";
-import { SEEDS, STALK } from "@/constants/internalTokens";
-import { useSiloData } from "@/state/useSiloData";
+import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 
 function Withdraw({ siloToken }: { siloToken: Token }) {
   const config = useConfig();
@@ -30,7 +28,6 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   const [destination, setDestination] = useState(FarmToMode.EXTERNAL);
   const [amount, setAmount] = useState("0");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { tokenData: siloTokenData } = useSiloData();
 
   const farmerDepositData = farmerDeposits.get(fromToken);
   const deposits = farmerDepositData?.deposits;
@@ -119,7 +116,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       stalkLost: transferData.stalk,
       seedsLost: transferData.seeds,
     };
-  }, [amount, deposits, fromToken, siloTokenData]);
+  }, [amount, deposits, fromToken.decimals]);
 
   const withdrawOutput = getWithdrawOutput();
 
@@ -143,33 +140,13 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
         <DestinationBalanceSelect setBalanceTo={setDestination} balanceTo={destination} />
       </div>
       {withdrawOutput && (
-        <OutputDisplay title="I receive">
-          <OutputDisplay.Item label="Amount">
-            <OutputDisplay.Value
-              value={formatter.token(withdrawOutput.amount, fromToken)}
-              token={fromToken}
-              suffix={fromToken.symbol}
-            />
-          </OutputDisplay.Item>
-          <OutputDisplay.Item label="Stalk">
-            <OutputDisplay.Value
-              value={formatter.twoDec(withdrawOutput.stalkLost)}
-              suffix="Stalk"
-              delta={-withdrawOutput.stalkLost.toNumber()}
-              token={STALK}
-              showArrow
-            />
-          </OutputDisplay.Item>
-          <OutputDisplay.Item label="Seed">
-            <OutputDisplay.Value
-              value={formatter.twoDec(withdrawOutput.seedsLost)}
-              suffix="Seed"
-              delta={-withdrawOutput.seedsLost.toNumber()}
-              token={SEEDS}
-              showArrow
-            />
-          </OutputDisplay.Item>
-        </OutputDisplay>
+        <SiloOutputDisplay
+          amount={withdrawOutput.amount}
+          token={fromToken}
+          stalk={withdrawOutput.stalkLost}
+          seeds={withdrawOutput.seedsLost}
+          showNegativeDeltas
+        />
       )}
       <div>
         <Button
