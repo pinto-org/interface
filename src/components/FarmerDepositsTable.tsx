@@ -41,9 +41,9 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
   const queryClient = useQueryClient();
   const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
 
-  const claimableBeans = farmerActions.totalValue.rewards.earnedBeans;
-  const claimableStalk = farmerActions.totalValue.rewards.stalk;
-  const claimableSeeds = farmerActions.totalValue.rewards.seeds;
+  const claimableBeans = farmerActions.claimRewards.outputs.beanGain;
+  const claimableStalk = farmerActions.claimRewards.outputs.stalkGain;
+  const claimableSeeds = farmerActions.claimRewards.outputs.seedGain;
 
   const canClaim = farmerActions.claimRewards.enabled;
 
@@ -187,13 +187,18 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                 update: farmerActions.tokenTotals.get(token)?.sources.update,
               };
 
-              const gains = {
-                beanGain: (data.rewards?.beanGain || TokenValue.ZERO).add(data.update?.beanGain || TokenValue.ZERO),
-                bdvGain: (data.rewards?.bdvGain || TokenValue.ZERO).add(data.update?.bdvGain || TokenValue.ZERO),
-                seedGain: (data.rewards?.seedGain || TokenValue.ZERO).add(data.update?.seedGain || TokenValue.ZERO),
-                stalkGain: (data.rewards?.stalkGain || TokenValue.ZERO)
-                  .add(data.update?.stalkGain || TokenValue.ZERO)
-                  .add(grownStalk),
+              const rewardGains = {
+                beanGain: data.rewards?.beanGain || TokenValue.ZERO,
+                bdvGain: data.rewards?.bdvGain || TokenValue.ZERO,
+                seedGain: data.rewards?.seedGain || TokenValue.ZERO,
+                stalkGain: data.rewards?.stalkGain || TokenValue.ZERO,
+              };
+
+              const updateGains = {
+                beanGain: data.update?.beanGain || TokenValue.ZERO,
+                bdvGain: data.update?.bdvGain || TokenValue.ZERO,
+                seedGain: data.update?.seedGain || TokenValue.ZERO,
+                stalkGain: data.update?.stalkGain || TokenValue.ZERO,
               };
 
               return (
@@ -211,7 +216,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col items-end">
-                      {!hovering || gains.bdvGain.lt(0.01) ? (
+                      {!hovering || (rewardGains.beanGain.lt(0.01) && updateGains.bdvGain.lt(0.01)) ? (
                         <>
                           <div className="inline-flex items-center gap-1">
                             <IconImage src={token.logoURI} size={4} />
@@ -225,31 +230,38 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                         </>
                       ) : (
                         <>
-                          <div className="inline-flex items-center gap-1 text-pinto-green-4">
-                            <UpArrowIcon color={"currentColor"} />
+                          <div
+                            className={`inline-flex items-center gap-1 ${rewardGains.beanGain.gt(0) ? "text-pinto-green-4" : ""}`}
+                          >
+                            {rewardGains.beanGain.gt(0) && <UpArrowIcon color={"currentColor"} />}
                             <IconImage src={token.logoURI} size={4} />
                             <div className="font-[400] text-[1rem]">
-                              {formatter.number(userData?.amount.add(gains.beanGain))} {token.name}
+                              {formatter.number(userData?.amount.add(rewardGains.beanGain))} {token.name}
                             </div>
                           </div>
                           <div className="text-pinto-gray-4 font-[300] text-[1rem]">
-                            {formatter.usd(userData?.depositBDV.add(gains.bdvGain).mul(priceData.price))}
+                            {formatter.usd(
+                              userData?.depositBDV
+                                .add(rewardGains.bdvGain.add(updateGains.bdvGain))
+                                .mul(priceData.price),
+                            )}
                           </div>
                         </>
                       )}
                     </div>
                   </TableCell>
                   <TableCell className="text-black font-[400] text-[1rem] text-right">
-                    {!hovering || gains.stalkGain.lt(0.01) ? (
+                    {!hovering ||
+                    (rewardGains.stalkGain.lt(0.01) && updateGains.stalkGain.lt(0.01) && grownStalk.lt(0.01)) ? (
                       <div className="flex flex-col items-end">
                         <div className="inline-flex items-center gap-1">
                           <IconImage src={stalkIcon} size={4} />
-                          <div>{formatter.number(userData?.stalk.base.add(gains.stalkGain))}</div>
+                          <div>{formatter.number(userData?.stalk.base)}</div>
                         </div>
-                        {gains.stalkGain.gt(0.01) && (
+                        {grownStalk.gt(0.01) && (
                           <div className="text-pinto-gray-4">
                             Claimable Grown Stalk:{" "}
-                            <span className="text-pinto-green-4/70">+{formatter.number(gains.stalkGain)}</span>
+                            <span className="text-pinto-green-4/70">+{formatter.number(grownStalk)}</span>
                           </div>
                         )}
                       </div>
@@ -258,19 +270,24 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                         <div className="inline-flex items-center gap-1">
                           <UpArrowIcon color={"currentColor"} />
                           <IconImage src={stalkIcon} size={4} />
-                          <div>{formatter.number(userData?.stalk.base.add(gains.stalkGain))}</div>
+                          <div>
+                            {formatter.number(
+                              userData?.stalk.base
+                                .add(grownStalk)
+                                .add(rewardGains.stalkGain.add(updateGains.stalkGain)),
+                            )}
+                          </div>
                         </div>
                         {data.update?.stalkFromBDVIncrease.gt(0.01) && (
                           <div>
-                            Bonus Stalk for updating PDV:{" "}
-                            <span>{formatter.number(data.update?.stalkFromBDVIncrease)}</span>
+                            Bonus Stalk for updating PDV: <span>{formatter.number(updateGains.bdvGain)}</span>
                           </div>
                         )}
                       </div>
                     )}
                   </TableCell>
                   <TableCell className="text-black font-[400] text-[1rem] text-right p-4">
-                    {!hovering || gains.seedGain.lt(0.01) ? (
+                    {!hovering || (rewardGains.seedGain.lt(0.01) && updateGains.seedGain.lt(0.01)) ? (
                       <div className="flex flex-col items-end">
                         <div className="inline-flex items-center gap-1">
                           <IconImage src={seedIcon} size={4} />
@@ -282,12 +299,13 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                         <div className="inline-flex items-center gap-1">
                           <UpArrowIcon color={"currentColor"} />
                           <IconImage src={seedIcon} size={4} />
-                          <div>{formatter.number(userData?.seeds.add(gains.seedGain))}</div>
+                          <div>
+                            {formatter.number(userData?.seeds.add(rewardGains.seedGain.add(updateGains.seedGain)))}
+                          </div>
                         </div>
                         {data.update?.seedsFromBDVIncrease.gt(0.01) && (
                           <div>
-                            Bonus Seed for updating PDV:{" "}
-                            <span>{formatter.number(data.update?.seedsFromBDVIncrease)}</span>
+                            Bonus Seed for updating PDV: <span>{formatter.number(updateGains.seedGain)}</span>
                           </div>
                         )}
                       </div>
