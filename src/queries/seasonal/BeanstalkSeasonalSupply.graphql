@@ -1,9 +1,9 @@
 query BeanstalkSeasonalSupply($from: Int, $to: Int) {
   seasons(
     where: { season_gte: $from, season_lte: $to }
-    first: $first
+    first: 1000
     orderBy: season
-    orderDirection: desc
+    orderDirection: asc
   ) {
     id
     season

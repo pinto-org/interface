@@ -2,6 +2,7 @@ import SeasonalChart from "@/components/charts/SeasonalChart";
 import useSeasonalStalk from "@/state/seasonal/useSeasonalStalk";
 import { formatter, numberAbbr } from "@/utils/format";
 
+// TODO(ss): put these in a shared location
 const number0dFormatter = (v: number) => `${formatter.number(v, { minDecimals: 0, maxDecimals: 0 })}`;
 const largeNumberFormatter = numberAbbr;
 

@@ -1,9 +1,13 @@
 import SeasonalChart from "@/components/charts/SeasonalChart";
 import useSeasonalPrice from "@/state/seasonal/useSeasonalPrice";
-import { formatter } from "@/utils/format";
+import useSeasonalSupply from "@/state/seasonal/useSeasonalSupply";
+import { formatter, numberAbbr } from "@/utils/format";
 
+// TODO(ss): put these in a shared location
 const price6dFormatter = (v: number) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`;
 const price2dFormatter = (v: number) => `$${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`;
+const number0dFormatter = (v: number) => `${formatter.number(v, { minDecimals: 0, maxDecimals: 0 })}`;
+const largeNumberFormatter = numberAbbr;
 
 const PintoExplorer = () => {
   return (
@@ -35,9 +39,9 @@ const PintoExplorer = () => {
             title="Pinto Supply"
             size="small"
             fillArea
-            useDataHook={useSeasonalPrice}
-            valueFormatter={price6dFormatter}
-            tickValueFormatter={price2dFormatter}
+            useDataHook={useSeasonalSupply}
+            valueFormatter={number0dFormatter}
+            tickValueFormatter={largeNumberFormatter}
           />
         </div>
         <div className="w-1/2">

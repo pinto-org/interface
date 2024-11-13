@@ -43,7 +43,7 @@ export default function useSeasonalStalk(fromSeason: number, toSeason: number): 
     timestamp,
   });
 
-  return useSeasonalQueries("seasonalPrice", {
+  return useSeasonalQueries("seasonalStalk", {
     fromSeason,
     toSeason,
     queryVars: { silo: beanstalkAddress[chainId] },
