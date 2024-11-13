@@ -74,7 +74,6 @@ const StatPanel = ({
     </div>
   );
 
-  console.log("SECONDARY VALUE: ", secondaryValue);
   const SecondaryDisplay = () => (
     <Text color="light" size="body" weight="thin">
       {mode === "depositedValue" && (

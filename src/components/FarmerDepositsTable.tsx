@@ -105,54 +105,59 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
     });
   }
 
-  const renderClaimableRow = () => (
-    <TableRow
-      className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 text-pinto-green-4/70"
-      data-action-target="claimable-rewards"
-      ref={rewardsRef}
-    >
-      <TableCell>
-        <div className="flex flex-row items-center gap-1.5 ml-2">
-          <div className="h-8 w-8 bg-pinto-green-4 rounded-full flex justify-center items-center text-white rotate-90">
-            <RightArrowIcon color="currentColor" />
-          </div>
-          <Text variant="small" color="green4">
-            Claimable
-          </Text>
-        </div>
-      </TableCell>
-      <TableCell className="text-right">
-        <div className="flex flex-col items-end">
-          <div className="inline-flex items-center gap-1">
-            <IconImage src={mainToken.logoURI} size={4} />
+  const renderClaimableRow = () => {
+    const plantData = farmerActions.tokenTotals.get(mainToken);
+    const plantBeanGain = plantData?.sources.plant?.beanGain || TokenValue.ZERO;
+    if (plantBeanGain.lte(0.001)) return;
+    return (
+      <TableRow
+        className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 text-pinto-green-4/70"
+        data-action-target="claimable-rewards"
+        ref={rewardsRef}
+      >
+        <TableCell>
+          <div className="flex flex-row items-center gap-1.5 ml-2">
+            <div className="h-8 w-8 bg-pinto-green-4 rounded-full flex justify-center items-center text-white rotate-90">
+              <RightArrowIcon color="currentColor" />
+            </div>
             <Text variant="small" color="green4">
-              {formatter.number(claimableBeans)} {mainToken.name}
+              Claimable
             </Text>
           </div>
-        </div>
-      </TableCell>
-      <TableCell className="text-right">
-        <div className="flex flex-col items-end">
-          <div className="inline-flex items-center gap-1">
-            <IconImage src={stalkIcon} size={4} />
-            <Text variant="small" color="green4">
-              {formatter.number(claimableStalk)}
-            </Text>
+        </TableCell>
+        <TableCell className="text-right">
+          <div className="flex flex-col items-end">
+            <div className="inline-flex items-center gap-1">
+              <IconImage src={mainToken.logoURI} size={4} />
+              <Text variant="small" color="green4">
+                {formatter.number(plantData?.sources.plant?.beanGain || TokenValue.ZERO)} {mainToken.name}
+              </Text>
+            </div>
           </div>
-        </div>
-      </TableCell>
-      <TableCell>
-        <div className="flex flex-col items-end text-right mr-2">
-          <div className="inline-flex items-center gap-1">
-            <IconImage src={seedIcon} size={4} />
-            <Text variant="small" color="green4">
-              {formatter.number(claimableSeeds)}
-            </Text>
+        </TableCell>
+        <TableCell className="text-right">
+          <div className="flex flex-col items-end">
+            <div className="inline-flex items-center gap-1">
+              <IconImage src={stalkIcon} size={4} />
+              <Text variant="small" color="green4">
+                {formatter.number(plantData?.sources.plant?.stalkGain || TokenValue.ZERO)}
+              </Text>
+            </div>
           </div>
-        </div>
-      </TableCell>
-    </TableRow>
-  );
+        </TableCell>
+        <TableCell>
+          <div className="flex flex-col items-end text-right mr-2">
+            <div className="inline-flex items-center gap-1">
+              <IconImage src={seedIcon} size={4} />
+              <Text variant="small" color="green4">
+                {formatter.number(plantData?.sources.plant?.seedGain || TokenValue.ZERO)}
+              </Text>
+            </div>
+          </div>
+        </TableCell>
+      </TableRow>
+    );
+  };
 
   return (
     <div className={`relative action-container overflow-visible ${hovering && canClaim && "mb-[4.5rem]"}`}>
@@ -183,7 +188,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
               const grownStalk = grownStalkPerToken.get(token) || TokenValue.ZERO;
 
               const data = {
-                rewards: farmerActions.tokenTotals.get(token)?.sources.rewards,
+                rewards: farmerActions.tokenTotals.get(token)?.sources.mow,
                 update: farmerActions.tokenTotals.get(token)?.sources.update,
               };
 
