@@ -165,7 +165,16 @@ export default function DevPage() {
           <h2 className="text-2xl mb-4">Basic Actions</h2>
           <div className="flex flex-wrap gap-4">
             <Button onClick={() => executeTask("callSunrise")} disabled={loading === "callSunrise"}>
-              Call Sunrise
+              Sunrise
+            </Button>
+            <Button
+              onClick={async () => {
+                await executeTask("callSunrise");
+                await executeTask("callSunrise");
+              }}
+              disabled={loading === "callSunrise"}
+            >
+              Double Sunrise
             </Button>
             <Button onClick={() => executeTask("skipMorningAuction")} disabled={loading === "skipMorningAuction"}>
               Skip Morning Auction
