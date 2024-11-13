@@ -140,7 +140,7 @@ export default function Navi() {
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
-            <Link href="/" topMenu>
+            <Link href="/?fromNav=true" topMenu>
               About
             </Link>
           </NavigationMenuItem>

@@ -1,8 +1,12 @@
-import React from "react";
 import { Environment } from "@react-three/drei";
 
 const EnvironmentSetup = () => {
-  return <Environment preset="forest" />;
+  return (
+    <Environment
+      environmentRotation={[0.75, Math.PI / 2, 0.75]}
+      preset="warehouse"
+    />
+  );
 };
 
 export default EnvironmentSetup;
