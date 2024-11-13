@@ -50,8 +50,6 @@ const Navbar = () => {
   const usdValue = farmerActions.totalValue.wallet.total;
 
   const isRoot = useMatch("/");
-  const isSilo = useMatch("/silo");
-  const showHelperLink = useMemo(() => Boolean(isRoot || isSilo), [isRoot, isSilo]);
 
   const priceOpen = openPanel === "price";
   const seasonsOpen = openPanel === "seasons";
@@ -138,7 +136,7 @@ const Navbar = () => {
           <div className="hidden sm:block">
             <Backdrop active={openBackdrop} onClick={closePanel} transitionDuration={DURATION} />
           </div>
-          {!openPanel && showHelperLink && (
+          {!openPanel && isRoot && (
             <ScrollHideComponent>
               <HelperLink
                 onClick={() => {
