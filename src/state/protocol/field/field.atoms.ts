@@ -39,10 +39,10 @@ export const fieldWeatherAtom = atomWithImmer<FieldWeather>({
 // Combine all field atoms into a single atom. Not preferred, but useful for convenience.
 export const fieldAtom = atom<Field>((get) => {
   return {
+    weather: get(fieldWeatherAtom),
+    temperature: get(fieldTemperatureAtom),
+    totalSoil: get(fieldTotalSoilAtom).totalSoil,
     ...get(fieldPodlineAtom),
-    ...get(fieldWeatherAtom),
-    ...get(fieldTemperatureAtom),
-    ...get(fieldTotalSoilAtom),
   };
 });
 

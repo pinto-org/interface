@@ -1,13 +1,18 @@
 import { useReadSeasonFacetView_SeasonTime, useReadSeasonFacetView_Time } from "@/generated/contractHooks";
 import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
+import useSoil from "@/state/useSoil";
+import { useMorning, useSunData } from "@/state/useSunData";
+import useTemperature from "@/state/useTemperature";
 import { exists } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { DateTime } from "luxon";
 import { useCallback, useEffect } from "react";
-import { getMorningResult, getNextExpectedSunrise } from ".";
+import { getDiffNow, getMorningResult, getNextExpectedSunrise, getNowRounded } from ".";
+import { fieldTemperatureAtom } from "../field/field.atoms";
 import {
   morningAtom,
+  morningDurationAtom,
   morningRemainingAtom,
   seasonAtom,
   seasonSunriseAtom,
@@ -105,10 +110,6 @@ export const useSetRemainingUntilSunrise = () => {
   return useSetAtom(sunriseRemainingAtom);
 };
 
-export const useRemainingUntilSunrise = () => {
-  return useAtomValue(sunriseRemainingAtom);
-};
-
 const useUpdateRemainingUntilSunrise = (next: DateTime, awaiting: boolean) => {
   // use atom here instead of updating the redux tree for performance reasons
   const setRemaining = useSetRemainingUntilSunrise();
@@ -125,7 +126,7 @@ const useUpdateRemainingUntilSunrise = (next: DateTime, awaiting: boolean) => {
         } else {
           setRemaining(remaining);
         }
-      }, 5000);
+      }, 1000);
       return () => clearInterval(i);
     }
   }, [awaiting, next, setRemaining, setAwaitingSunrise]);
@@ -163,3 +164,85 @@ export const useUpdateSunData = () => {
     return () => clearInterval(i);
   }, [awaiting, season, setSeasonSunrise, setRemainingUntilSunrise, seasons.refetch]);
 };
+
+export function useUpdateMorning() {
+  const setRemaining = useSetAtom(morningRemainingAtom);
+  const setDuration = useSetAtom(morningDurationAtom);
+  const setScaledTemperature = useSetAtom(fieldTemperatureAtom);
+  const setMorning = useSetAtom(morningAtom);
+
+  const morning = useMorning();
+  const season = useSunData();
+  const nextMorningInterval = morning.next;
+  const morningIndex = morning.index;
+  const isMorning = morning.isMorning;
+
+  const [_, { calculate: calculateTemperature }] = useTemperature();
+  const [_soilData, calculateNextSoil] = useSoil();
+
+  useEffect(() => {
+    if (!isMorning) return;
+    const { abovePeg, sunriseBlock, timestamp: sTimestamp } = season;
+
+    const intervalId = setInterval(async () => {
+      const now = getNowRounded();
+      const _remaining = getDiffNow(nextMorningInterval, now);
+      if (now.toSeconds() === nextMorningInterval.toSeconds() || _remaining.as("seconds") <= 0) {
+        const morningResult = getMorningResult({
+          timestamp: sTimestamp,
+          blockNumber: sunriseBlock,
+        });
+
+        const scaledTemp = calculateTemperature(morningIndex + 1);
+        const nextSoil = abovePeg ? calculateNextSoil(morningIndex) : undefined;
+
+        console.debug("[protocol/sun/useUpdateMorning]: new block: ", {
+          temp: scaledTemp.toNumber(),
+          soil: nextSoil?.toNumber() || "N/A",
+          blockNumber: morningResult.blockNumber,
+          index: morningResult.index,
+          isMorning: morningResult.isMorning,
+        });
+
+        /// If we are transitioning out of the morning state, refetch the max Temperature from the subgraph.
+        /// This is to make sure that when transitioning out of the morning state, the max Temperature chart
+        /// shows the maxTemperature for the current season, not the previous season.
+        if (!morningResult.isMorning && morningResult.index === 25) {
+          // triggerQuery(); // todo here...
+        }
+
+        setScaledTemperature((draft) => {
+          draft.scaled = scaledTemp;
+        });
+        setMorning((draft) => {
+          draft.blockNumber = morningResult.blockNumber;
+          draft.index = morningResult.index;
+          draft.next = morningResult.next;
+          draft.isMorning = morningResult.isMorning;
+        });
+        // update the time remaining for the next interval
+        setRemaining(morningResult.remaining);
+        // update the duration of the morning. We update this as well to keep the timers in sync.
+        setDuration(sTimestamp.diff(getNowRounded()));
+      } else {
+        setRemaining(_remaining);
+        setDuration(sTimestamp.diff(getNowRounded()));
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [
+    isMorning,
+    morningIndex,
+    season,
+    nextMorningInterval,
+    calculateNextSoil,
+    calculateTemperature,
+    setRemaining,
+    setScaledTemperature,
+    setMorning,
+    setDuration,
+  ]);
+}

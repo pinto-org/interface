@@ -1,5 +1,5 @@
 import { TV } from "@/classes/TokenValue";
-import { INTERVALS_PER_MORNING } from "@/constants/morning";
+import { Prettify } from "@/utils/types.generic";
 import { QueryKey } from "@tanstack/react-query";
 
 export interface FieldTemperature {
@@ -24,7 +24,15 @@ export interface FieldPodLine {
   podLine: TV;
 }
 
-export type Field = FieldPodLine & FieldWeather & FieldTemperature & FieldSoil;
+export type Field = Prettify<
+  FieldPodLine & {
+    weather: FieldWeather;
+  } & {
+    temperature: FieldTemperature;
+  } & {
+    totalSoil: TV;
+  }
+>;
 
 /**
  * Query keys for the field.

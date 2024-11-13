@@ -72,11 +72,14 @@ module.exports = {
           "gray-5": "#404040",
           "gray-blue": "#E9F0F6",
           "off-white": "#FCFCFC",
-          "yellow-1": "#FEE18C",
+          "morning-yellow-0": "#E9E7E0",
+          "morning-yellow-1": "#FEE18C",
+          "morning-yellow-2": "#F1F88C",
           "stalk-gold": "#D3B567",
           "seed-silver": "#7B9387",
           "pod-bronze": "#9F7F54",
           "red-2": "#FF0000",
+          morning: "#D9AD0F",
         },
       },
       backgroundImage: {
@@ -86,11 +89,16 @@ module.exports = {
           "linear-gradient(90deg, #E9E7E0 0%, #FEE18C 52.5%, #F1F88C 100%);",
         "pinto-mobile-navi":
           "linear-gradient(90deg, rgba(233, 231, 224, 0.2) 0%, rgba(254, 225, 140, 0.2) 52.5%, rgba(241, 248, 140, 0.2) 100%)",
+        "morning-border":
+          "linear-gradient(90deg, #E9E7E0 0%, #FEE18C 52.5%, #F1F88C 100%)",
+        "morning-light":
+          "linear-gradient(90deg, rgba(233, 231, 224, 0.2) 0%, rgba(254, 225, 140, 0.2) 0.01%, rgba(241, 248, 140, 0.4) 100%)",
       },
       borderRadius: {
-        lg: `var(--radius)`,
-        md: `calc(var(--radius) - 2px)`,
-        sm: "calc(var(--radius) - 4px)",
+        xl: "calc(var(--radius) + 8px)", // 20px
+        lg: `var(--radius)`, //12px
+        md: `calc(var(--radius) - 2px)`, //10px
+        sm: "calc(var(--radius) - 4px)", //8px
       },
       dropShadow: {
         "pinto-token-select": "0px 1px 8px 0px rgba(233, 240, 246, 1)",

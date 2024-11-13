@@ -3,11 +3,11 @@ import { diamondABI } from "@/constants/abi/diamondABI";
 import { PODS } from "@/constants/internalTokens";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
-import { QueryKey, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useCallback, useEffect } from "react";
+import { exists } from "@/utils/utils";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAtomValue, useSetAtom } from "jotai";
+import { useEffect } from "react";
 import { useReadContract, useReadContracts } from "wagmi";
-import { FieldQueryKeys } from ".";
 import { getDiffNow, getNowRounded } from "../sun";
 import { morningAtom } from "../sun/sun.atoms";
 import {
@@ -37,8 +37,76 @@ const SOIL_UPDATE_INTERVAL = 4;
 
 const FIELD_REFRESH_MS = 2000;
 
-const useProtocolTemperatureQuery = () => {
+// ---------------------------------------- Podline ----------------------------------------
+const useUpdatePodline = () => {
   const diamond = useProtocolAddress();
+  const setPodLine = useSetAtom(fieldPodlineAtom);
+
+  const query = useReadContracts({
+    contracts: [
+      { address: diamond, abi: diamondABI, functionName: "harvestableIndex", args: [0n] },
+      { address: diamond, abi: diamondABI, functionName: "podIndex", args: [0n] },
+    ],
+    scopeKey: "field",
+    query: settings.query,
+  });
+
+  useUpdateQueryKeys(fieldQueryKeysAtom, query.queryKey, "podLine");
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies:
+  useEffect(() => {
+    const data = query.data;
+    if (!exists(data)) return;
+    const harvestableIndex = data[0].result;
+    const podIndex = data[1].result;
+    const podLine = exists(podIndex) && exists(harvestableIndex) ? podIndex - harvestableIndex : undefined;
+
+    console.log("[protocol/field/useUpdatePodline]: data", {
+      harvestableIndex,
+      podIndex,
+      podLine,
+    });
+
+    setPodLine({
+      harvestableIndex: TV.fromBlockchain(harvestableIndex ?? 0n, PODS.decimals),
+      podIndex: TV.fromBlockchain(podIndex ?? 0n, PODS.decimals),
+      podLine: TV.fromBlockchain(podLine ?? 0n, PODS.decimals),
+    });
+  }, [query.data]);
+
+  return query;
+};
+
+// ---------------------------------------- Total Soil ----------------------------------------
+const useUpdateTotalSoil = () => {
+  const diamond = useProtocolAddress();
+  const setTotalSoil = useSetAtom(fieldTotalSoilAtom);
+
+  const query = useReadContract({
+    address: diamond,
+    abi: soilABI,
+    functionName: "totalSoil",
+    scopeKey: "field",
+    query: settings.query,
+  });
+
+  useUpdateQueryKeys(fieldQueryKeysAtom, query.queryKey, "soil");
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies:
+  useEffect(() => {
+    if (!exists(query?.data)) return;
+
+    console.log("[protocol/field/useUpdateTotalSoil]: data", query.data);
+
+    setTotalSoil({ totalSoil: TV.fromBlockchain(query.data, SOIL_DECIMALS) });
+  }, [query.data]);
+};
+
+// ---------------------------------------- Temperature ----------------------------------------
+const useUpdateTemperature = () => {
+  const diamond = useProtocolAddress();
+  const setTemperatures = useSetAtom(fieldTemperatureAtom);
+
   const query = useReadContracts({
     contracts: [
       { address: diamond, abi: temperatureABI, functionName: "maxTemperature" },
@@ -57,77 +125,71 @@ const useProtocolTemperatureQuery = () => {
   });
 
   useUpdateQueryKeys(fieldQueryKeysAtom, query.queryKey, "temperature");
-  return query;
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies:
+  useEffect(() => {
+    if (!exists(query?.data?.max) || !exists(query?.data?.scaled)) return;
+
+    console.log("[protocol/field/useUpdateTemperature]: data", {
+      max: query.data.max,
+      scaled: query.data.scaled,
+    });
+
+    setTemperatures({
+      max: TV.fromBlockchain(query.data.max, TEMPERATURE_DECIMALS),
+      scaled: TV.fromBlockchain(query.data.scaled, TEMPERATURE_DECIMALS),
+    });
+  }, [query.data]);
 };
 
-const useProtocolSoilQuery = () => {
+// ---------------------------------------- Weather ----------------------------------------
+const useUpdateWeather = () => {
   const diamond = useProtocolAddress();
+  const setWeather = useSetAtom(fieldWeatherAtom);
 
-  const query = useReadContract({
-    address: diamond,
-    abi: soilABI,
-    functionName: "totalSoil",
-    scopeKey: "field",
-    query: settings.query,
-  });
-
-  useUpdateQueryKeys(fieldQueryKeysAtom, query.queryKey, "soil");
-
-  return query;
-};
-
-const useProtocolFieldWeatherQuery = () => {
-  const diamond = useProtocolAddress();
-
-  const query = useReadContract({
+  const weatherQuery = useReadContract({
     address: diamond,
     abi: diamondABI,
     functionName: "weather",
     scopeKey: "field",
+    query: settings.query,
   });
 
-  useUpdateQueryKeys(fieldQueryKeysAtom, query.queryKey, "weather");
+  useUpdateQueryKeys(fieldQueryKeysAtom, weatherQuery.queryKey, "weather");
 
-  return query;
+  // biome-ignore lint/correctness/useExhaustiveDependencies:
+  useEffect(() => {
+    if (!exists(weatherQuery?.data)) return;
+
+    console.log("[protocol/field/useUpdateWeather]: data", weatherQuery.data);
+
+    const lastDeltaSoil = weatherQuery.data.lastDeltaSoil;
+    const lastSowTime = weatherQuery.data.lastSowTime;
+    const thisSowTime = weatherQuery.data.thisSowTime;
+    const temp = weatherQuery.data.temp;
+
+    setWeather({
+      lastDeltaSoil: TV.fromBlockchain(lastDeltaSoil, SOIL_DECIMALS),
+      lastSowTime,
+      thisSowTime,
+      temp,
+    });
+  }, [weatherQuery.data]);
 };
 
-/**
- * All field parameters except for temperature and soil.
- */
-const useProtocolPodLineQuery = () => {
-  const diamond = useProtocolAddress();
-  const query = useReadContracts({
-    contracts: [
-      { address: diamond, abi: diamondABI, functionName: "harvestableIndex" },
-      { address: diamond, abi: diamondABI, functionName: "podIndex" },
-    ],
-    scopeKey: "field",
-    query: {
-      ...settings.query,
-      select: (data) => {
-        const harvestableIndex = data[0].result;
-        const podIndex = data[1].result;
-        const podLine = podIndex && harvestableIndex ? podIndex - harvestableIndex : undefined;
-
-        return { harvestableIndex, podIndex, podLine };
-      },
-    },
-  });
-
-  // duplicate the query key for podline and weather
-  useUpdateQueryKeys(fieldQueryKeysAtom, query.queryKey, "podLine");
-
-  return query;
-};
-
+// ---------------------------------------- Morning Field ----------------------------------------
 const useUpdateMorningField = () => {
   const morning = useAtomValue(morningAtom);
+  const soil = useAtomValue(fieldTotalSoilAtom);
   const soilQueryKey = useAtomValue(fieldQueryKeysAtom).soil;
   const qc = useQueryClient();
 
-  // update the soil every 2 seconds
+  // biome-ignore lint/correctness/useExhaustiveDependencies:
   useEffect(() => {
-    if (!morning.isMorning) return;
+    // update the soil every 2 seconds
+    if (!morning.isMorning || soil.totalSoil.lte(0)) return;
+
+    console.log("[protocol/field/useUpdateMorningField]: morning: refreshing soil on interval");
 
     const soilUpdateInterval = setInterval(() => {
       const now = getNowRounded();
@@ -141,64 +203,17 @@ const useUpdateMorningField = () => {
     return () => {
       clearInterval(soilUpdateInterval);
     };
-  }, [morning, morning.next, soilQueryKey, qc]);
+  }, []);
 };
 
+// ---------------------------------------- Field ----------------------------------------
 export const useUpdateField = () => {
-  const setTemperatures = useSetAtom(fieldTemperatureAtom);
-  const setTotalSoil = useSetAtom(fieldTotalSoilAtom);
-  const setPodLine = useSetAtom(fieldPodlineAtom);
-  const setWeather = useSetAtom(fieldWeatherAtom);
+  useUpdateTemperature();
+  useUpdatePodline();
+  useUpdateWeather();
+  useUpdateTotalSoil();
 
-  const temperatureQuery = useProtocolTemperatureQuery();
-  const soilQuery = useProtocolSoilQuery();
-  const podlineQuery = useProtocolPodLineQuery();
-  const weatherQuery = useProtocolFieldWeatherQuery();
-
-  useEffect(() => {
-    if (!temperatureQuery?.data?.max || !temperatureQuery?.data?.scaled) return;
-
-    setTemperatures({
-      max: TV.fromBlockchain(temperatureQuery.data.max, TEMPERATURE_DECIMALS),
-      scaled: TV.fromBlockchain(temperatureQuery.data.scaled, TEMPERATURE_DECIMALS),
-    });
-  }, [temperatureQuery.data, setTemperatures]);
-
-  useEffect(() => {
-    if (!soilQuery?.data) return;
-
-    setTotalSoil({ totalSoil: TV.fromBlockchain(soilQuery.data, SOIL_DECIMALS) });
-  }, [soilQuery.data, setTotalSoil]);
-
-  useEffect(() => {
-    if (!podlineQuery?.data?.harvestableIndex || !podlineQuery?.data?.podIndex || !podlineQuery?.data?.podLine) return;
-
-    const harvestableIndex = podlineQuery.data.harvestableIndex;
-    const podIndex = podlineQuery.data.podIndex;
-    const podLine = podlineQuery.data.podLine;
-
-    setPodLine({
-      harvestableIndex: TV.fromBlockchain(harvestableIndex, PODS.decimals),
-      podIndex: TV.fromBlockchain(podIndex, PODS.decimals),
-      podLine: TV.fromBlockchain(podLine, PODS.decimals),
-    });
-  }, [podlineQuery.data, setPodLine]);
-
-  useEffect(() => {
-    if (!weatherQuery?.data) return;
-
-    const lastDeltaSoil = weatherQuery.data.lastDeltaSoil;
-    const lastSowTime = weatherQuery.data.lastSowTime;
-    const thisSowTime = weatherQuery.data.thisSowTime;
-    const temp = weatherQuery.data.temp;
-
-    setWeather({
-      lastDeltaSoil: TV.fromBlockchain(lastDeltaSoil, SOIL_DECIMALS),
-      lastSowTime,
-      thisSowTime,
-      temp,
-    });
-  }, [weatherQuery.data, setWeather]);
+  // useUpdateMorningField();
 };
 
 // ---------------------------------------- ABI ----------------------------------------

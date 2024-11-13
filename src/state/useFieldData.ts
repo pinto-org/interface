@@ -1,9 +1,9 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
-import { QueryKey } from "@tanstack/react-query";
+import { QueryKey, useQueryClient } from "@tanstack/react-query";
 import { atom, useAtomValue } from "jotai";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useChainId, useReadContracts } from "wagmi";
 import { FieldTemperature } from "./protocol/field";
 import {
@@ -89,6 +89,18 @@ export function usePodLine() {
 
 export function useFieldQueryKeys() {
   return useAtomValue(fieldQueryKeysAtom);
+}
+
+export function useInvalidateField() {
+  const qc = useQueryClient();
+  const queryKeys = useFieldQueryKeys();
+
+  return useCallback(
+    (key: keyof typeof queryKeys) => {
+      qc.invalidateQueries({ queryKey: queryKeys[key] });
+    },
+    [qc, queryKeys],
+  );
 }
 
 export function useFieldData() {

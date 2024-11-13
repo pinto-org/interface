@@ -7,15 +7,17 @@ import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
 import { useFarmerField } from "@/state/useFarmerField";
-import { useFieldData } from "@/state/useFieldData";
+import { useHarvestableIndex } from "@/state/useFieldData";
 import { formatter } from "@/utils/format";
 import { useEffect, useMemo } from "react";
 import { Link, NavLink } from "react-router-dom";
 import FieldActions from "./field/FieldActions";
+import FieldStats from "./field/FieldStats";
+import MorningPanel, { MorningDev } from "./field/MorningPanel";
 
 function Field() {
-  const fieldData = useFieldData();
   const farmerField = useFarmerField();
+  const harvestableIndex = useHarvestableIndex();
 
   const totalPods = useMemo(
     () => farmerField.plots.reduce((total, plot) => total.add(plot.pods), TokenValue.ZERO),
@@ -41,14 +43,16 @@ function Field() {
               </Text>
             </div>
             <Separator />
-            <FieldStats fieldData={fieldData} />
+            <MorningPanel />
+            <FieldStats />
             <TemperatureChart />
+            <MorningDev />
             <div className="flex flex-row items-center justify-between rounded-[1.25rem] p-6 bg-pinto-off-white border-pinto-gray-2 border w-full">
               <div className="flex flex-col gap-2">
                 <Text variant="body-light" color="light">
                   Previously Harvested Pods which have been redeemed for one Pinto
                 </Text>
-                <Text variant="h3">{fieldData.harvestableIndex.toHuman("short")}</Text>
+                <Text variant="h3">{formatter.noDec(harvestableIndex)}</Text>
               </div>
               <Button asChild variant={"outline"} className="rounded-full text-[1.25rem]">
                 <Link to={"/explorer"}>View Data</Link>
@@ -116,48 +120,6 @@ function Field() {
 }
 
 export default Field;
-
-const formatterOptions = {
-  minDecimals: 0,
-  maxDecimals: 2,
-};
-
-const FieldStats = ({ fieldData }: { fieldData: ReturnType<typeof useFieldData> }) => {
-  return (
-    // <div className="grid gap-8 w-full grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))]">
-    <div className="flex flex-row gap-x-12 gap-y-4 flex-wrap w-full">
-      <div className="flex flex-col flex-grow gap-2">
-        <div className="flex flex-col gap-1">
-          <Text variant="body-light">Current Temperature</Text>
-          <Text variant="sm" color="light">
-            The interest rate for lending Pinto
-          </Text>
-        </div>
-        <Text variant="h3">{`${formatter.pct(fieldData.temperature.max)}`}</Text>
-      </div>
-      <div className="flex flex-col flex-grow gap-2">
-        <div className="flex flex-col gap-1">
-          <Text variant="body-light">Available Soil</Text>
-          <Text variant="sm" color="light">
-            The total number of Pinto that can be lent
-          </Text>
-        </div>
-        <Text variant="h3">{formatter.number(fieldData.soil, formatterOptions)}</Text>
-      </div>
-      <div className="flex flex-col flex-grow gap-2">
-        <div className="flex flex-col gap-1">
-          <Text variant="body-light">Pod Line</Text>
-          <Text variant="sm" color="light">
-            The length of the queue for Pods to mature
-          </Text>
-        </div>
-        <Text variant="h3">
-          {formatter.number(fieldData.podIndex.sub(fieldData.harvestableIndex), formatterOptions)}
-        </Text>
-      </div>
-    </div>
-  );
-};
 
 const TemperatureChart = () => {
   return (
