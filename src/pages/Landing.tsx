@@ -27,7 +27,7 @@ export default function Landing() {
   const slidesGroupRef = useRef<THREE.Group>(null); // Reference to the group
 
   // PRELOADED MODELS
-  const preloadedGLTF = useLoader(GLTFLoader, "3DPinto.glb");
+  const preloadedGLTF = useLoader(GLTFLoader, "public3DPinto.glb");
 
   // TS PARTICLES BACKGROUND REF
   const particlesBackgroundRef = useRef<ParticlesBackgroundHandle>(null);
@@ -50,29 +50,29 @@ export default function Landing() {
 
   // IMAGE ARRAY
   const images = [
-    "src/assets/landing/tree.png",
-    "src/assets/landing/tree.png",
-    "src/assets/landing/rock.png",
-    "src/assets/landing/gold.png",
-    "src/assets/landing/pickaxe.png",
-    "src/assets/landing/teepee.png",
-    "src/assets/landing/wheat.png",
-    "src/assets/landing/cow.png",
-    "src/assets/landing/abacus.png",
-    "src/assets/landing/idols.png",
-    "src/assets/landing/bimetal-coins.png",
-    "src/assets/landing/clayledger.png",
-    "src/assets/landing/aqueduct.png",
-    "src/assets/landing/parthenon.png",
-    "src/assets/landing/banknote.png",
-    "src/assets/landing/steamengine.png",
-    "src/assets/landing/lightbulb.png",
-    "src/assets/landing/church.png",
-    "src/assets/landing/nuke.png",
-    "src/assets/landing/USD.png",
-    "src/assets/landing/computer.png",
-    "src/assets/landing/skyscraper.png",
-    "src/assets/landing/BTC.png",
+    "tree.png",
+    "tree.png",
+    "rock.png",
+    "gold.png",
+    "pickaxe.png",
+    "teepee.png",
+    "wheat.png",
+    "cow.png",
+    "abacus.png",
+    "idols.png",
+    "bimetal-coins.png",
+    "clayledger.png",
+    "aqueduct.png",
+    "parthenon.png",
+    "banknote.png",
+    "steamengine.png",
+    "lightbulb.png",
+    "church.png",
+    "nuke.png",
+    "USD.png",
+    "computer.png",
+    "skyscraper.png",
+    "BTC.png",
   ];
 
   useEffect(() => {
