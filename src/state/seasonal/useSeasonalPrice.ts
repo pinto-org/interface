@@ -1,4 +1,4 @@
-import { QueryClient, QueryKey, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
+import { QueryClient, QueryKey } from "@tanstack/react-query";
 import { subgraphs } from "@/constants/subgraph";
 import { useChainId } from "wagmi";
 import { BeanHourlySnapshot, BeanSeasonalPriceDocument, BeanSeasonalPriceQuery } from "@/generated/gql/graphql";

@@ -1,9 +1,8 @@
 import SeasonalChart from "@/components/charts/SeasonalChart";
-import useSeasonalPrice from "@/state/seasonal/useSeasonalPrice";
+import useSeasonalStalk from "@/state/seasonal/useSeasonalStalk";
 import { formatter } from "@/utils/format";
 
-const price6dFormatter = (v: number) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`;
-const price2dFormatter = (v: number) => `$${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`;
+const number0dFormatter = (v: number) => `${formatter.number(v, { minDecimals: 0, maxDecimals: 0 })}`;
 
 const SiloExplorer = () => {
   return (
@@ -13,9 +12,9 @@ const SiloExplorer = () => {
           <SeasonalChart
             title="Total Liquidity"
             size="small"
-            useDataHook={useSeasonalPrice}
-            valueFormatter={price6dFormatter}
-            tickValueFormatter={price2dFormatter}
+            useDataHook={useSeasonalStalk}
+            valueFormatter={number0dFormatter}
+            tickValueFormatter={number0dFormatter}
           />
         </div>
         <div className="w-1/2">
@@ -23,25 +22,25 @@ const SiloExplorer = () => {
             title="Liquidity to Supply ratio"
             size="small"
             fillArea
-            useDataHook={useSeasonalPrice}
-            valueFormatter={price6dFormatter}
-            tickValueFormatter={price2dFormatter}
+            useDataHook={useSeasonalStalk}
+            valueFormatter={number0dFormatter}
+            tickValueFormatter={number0dFormatter}
           />
         </div>
       </div>
       <SeasonalChart
         title="Average Seeds per PDV"
         size="large"
-        useDataHook={useSeasonalPrice}
-        valueFormatter={price6dFormatter}
-        tickValueFormatter={price2dFormatter}
+        useDataHook={useSeasonalStalk}
+        valueFormatter={number0dFormatter}
+        tickValueFormatter={number0dFormatter}
       />
       <SeasonalChart
         title="Stalk Supply"
         size="large"
-        useDataHook={useSeasonalPrice}
-        valueFormatter={price6dFormatter}
-        tickValueFormatter={price2dFormatter}
+        useDataHook={useSeasonalStalk}
+        valueFormatter={number0dFormatter}
+        tickValueFormatter={number0dFormatter}
       />
     </>
   );

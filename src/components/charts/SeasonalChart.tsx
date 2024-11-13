@@ -3,9 +3,9 @@ import Text from "../ui/Text";
 import { formatDate } from "@/utils/format";
 import LineChart, { LineChartData, MakeGradientFunction } from "./LineChart";
 import { useSunData } from "@/state/useSunData";
-import { UseQueryResult } from "@tanstack/react-query";
 import { CloseIconAlt } from "../Icons";
 import LoadingSpinner from "@/components/LoadingSpinner.tsx";
+import { UseSeasonalResult } from "@/utils/types";
 
 // Draws dynamic gradient with the given colors at the given positions.
 // Positions outside of range [0, 1] are truncated or ignored when appropriate.
@@ -49,21 +49,6 @@ const tabToSeasonalLookback = (tab: TimeTab): number => {
   return Number.MAX_SAFE_INTEGER;
 };
 
-// const priceDataFn = useCallback(() => {
-//   /// Test data implementation ///
-//   const data: SeasonalChartData[] = [];
-//   const startDate = new Date();
-//   startDate.setDate(1);
-
-//   for (let i = 0; i < 40 * 2 ** priceTimeTab; i++) {
-//     const date = new Date(startDate);
-//     date.setDate(startDate.getDate() + i);
-//     const value = parseFloat((Math.random() * (1.1 - 0.9) + 0.9).toFixed(6));
-//     data.push({ value, season: 23456 + i, timestamp: date });
-//   }
-//   return data;
-// }, [priceData]);
-
 export interface SeasonalChartData {
   season: number;
   value: number;
@@ -80,7 +65,7 @@ const TIME_TABS = ["Week", "Month", "All Time"];
 interface SeasonalChartProps {
   title: string;
   size: "small" | "large";
-  useDataHook: (fromSeason: number, toSeason: number) => UseQueryResult<SeasonalChartData[]>;
+  useDataHook: (fromSeason: number, toSeason: number) => UseSeasonalResult;
   valueFormatter: (value: number) => string;
   tickValueFormatter?: (value: number) => string;
   fillArea?: boolean;

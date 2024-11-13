@@ -1,54 +1,77 @@
-import { useQuery, UseQueryResult } from "@tanstack/react-query";
+import { QueryClient, QueryKey } from "@tanstack/react-query";
 import { subgraphs } from "@/constants/subgraph";
-import { useSunData } from "../useSunData";
 import { useChainId } from "wagmi";
 import { paginateSubgraph, PaginationSettings } from "@/utils/paginateSubgraph";
-import { SeasonalChartData } from "@/components/charts/SeasonalChart";
+import { UseSeasonalResult } from "@/utils/types";
+import { BeanstalkSeasonalStalkDocument, BeanstalkSeasonalStalkQuery, SiloHourlySnapshot } from "@/generated/gql/graphql";
+import useSeasonalQueries, { SeasonalQueryVars } from "./useSeasonalQueries";
+import { STALK } from "@/constants/internalTokens";
+import { TV } from "@/classes/TokenValue";
+import { beanstalkAddress } from "@/generated/contractHooks";
 
-export default function useSeasonalStalk(fromSeason: number, toSeason: number): UseQueryResult<SeasonalChartData[]> {
-  const currentSeason = useSunData().current;
+export default function useSeasonalStalk(fromSeason: number, toSeason: number): UseSeasonalResult {
   const chainId = useChainId();
 
-  const variables = {
-    from: fromSeason,
-    to: toSeason,
+  const paginateSettings: PaginationSettings<
+    SiloHourlySnapshot,
+    BeanstalkSeasonalStalkQuery,
+    "siloHourlySnapshots",
+    SeasonalQueryVars
+  > = {
+    primaryPropertyName: "siloHourlySnapshots",
+    idField: "id",
+    nextVars: (
+      value1000: Partial<Pick<SiloHourlySnapshot, keyof SiloHourlySnapshot>>,
+      prevVars: SeasonalQueryVars,
+    ) => {
+      if (value1000) {
+        return {
+          from: Number(value1000.season),
+          to: prevVars.to,
+        };
+      }
+    },
   };
 
-  return useQuery({
-    queryKey: ["seasonalSysStalk", { chainId: chainId, season: currentSeason, variables }],
-    queryFn: async () => {
-      const paginateSettings: PaginationSettings<
-        BeanHourlySnapshot,
-        BeanSeasonalPriceQuery,
-        "beanHourlySnapshots",
-        typeof variables
-      > = {
-        primaryPropertyName: "beanHourlySnapshots",
-        idField: "id",
-        nextVars: (
-          value1000: Partial<Pick<BeanHourlySnapshot, keyof BeanHourlySnapshot>>,
-          prevVars: typeof variables,
-        ) => {
-          if (value1000) {
-            return {
-              from: Number(value1000.season),
-              to: prevVars.to,
-            };
-          }
-        },
-      };
-      return await paginateSubgraph(subgraphs[chainId].bean, BeanSeasonalPriceDocument, variables, paginateSettings);
-    },
-    select: (data) => {
-      return data.map((r) => ({
-        season: Number(r.season),
-        value: Number(r.price),
-        timestamp: new Date(Number(r.timestamp) * 1000),
-      }));
-    },
-    enabled: !!variables.to,
-    staleTime: Infinity,
-    retry: 1,
-    retryDelay: 2000,
-  });
+  const queryFnFactory = (vars: SeasonalQueryVars) => async () => {
+    return await paginateSubgraph(paginateSettings, subgraphs[chainId].beanstalk, BeanstalkSeasonalStalkDocument, vars);
+  };
+
+  const entryData = (v: SiloHourlySnapshot, timestamp: Date) => ({
+    season: Number(v.season),
+    value: TV.fromBlockchain(v.stalk, STALK.decimals),
+    timestamp
+  })
+
+  const historicalSelect = (_queryClient: QueryClient, _queryKey: QueryKey) => (data: SiloHourlySnapshot[]) => {
+    return data.map((v) => {
+      // For previous seasons, the presented data is upon the season's completion,
+      // add 1 hour to created timestamp.
+      const snapshotCreatedHour = new Date(Number(v.createdAt) * 1000);
+      const snapshotEndHour = new Date(snapshotCreatedHour.getTime() + 60 * 60 * 1000);
+      return entryData(v, snapshotEndHour);
+    });
+  };
+
+  const currentSelect = (queryClient: QueryClient, queryKey: QueryKey) => (data: SiloHourlySnapshot[]) => {
+    return data.map((v) => {
+      const queryInfo = queryClient.getQueryCache().find({ queryKey });
+      const lastFetchedTimestamp = queryInfo?.state?.dataUpdatedAt;
+      return entryData(v, lastFetchedTimestamp ? new Date(lastFetchedTimestamp) : new Date());
+    });
+  };
+
+  return useSeasonalQueries(
+    "seasonalPrice",
+    {
+      fromSeason,
+      toSeason,
+      // TODO(ss): put this back
+      queryVars: { silo: "0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70" ?? beanstalkAddress[chainId] },
+      historicalQueryFnFactory: queryFnFactory,
+      historicalSelect,
+      currentQueryFnFactory: queryFnFactory,
+      currentSelect
+    }
+  );
 }

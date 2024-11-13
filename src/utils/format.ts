@@ -50,8 +50,8 @@ export const formatNum = (val: NumberPrimitive, options?: FormatNumOptions) => {
 
   return new Intl.NumberFormat("en-US", {
     notation: "standard",
-    minimumFractionDigits: options?.minDecimals || 0,
-    maximumFractionDigits: options?.maxDecimals || 2,
+    minimumFractionDigits: options?.minDecimals ?? 0,
+    maximumFractionDigits: options?.maxDecimals ?? 2,
     useGrouping: true,
   }).format(num);
 };
