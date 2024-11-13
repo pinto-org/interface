@@ -2,8 +2,8 @@ import type { CodegenConfig } from "@graphql-codegen/cli";
 
 const config: CodegenConfig = {
   schema: [
-    "https://graph.bean.money/beanstalk",
-    "https://graph.bean.money/bean",
+    "https://graph.pinto.money/pintostalk",
+    "https://graph.pinto.money/pinto",
   ],
   documents: ["src/**/*.graphql"],
   ignoreNoDocuments: true, // for better experience with the watcher

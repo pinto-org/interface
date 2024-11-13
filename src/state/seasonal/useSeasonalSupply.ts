@@ -13,7 +13,7 @@ export default function useSeasonalSupply(fromSeason: number, toSeason: number):
   const paginateSettings: PaginationSettings<Season, BeanstalkSeasonalSeasonQuery, "seasons", SeasonalQueryVars> = {
     primaryPropertyName: "seasons",
     idField: "id",
-    nextVars: (value1000: Partial<Pick<Season, keyof Season>>, prevVars: SeasonalQueryVars) => {
+    nextVars: (value1000: Season, prevVars: SeasonalQueryVars) => {
       if (value1000) {
         return {
           from: Number(value1000.season),

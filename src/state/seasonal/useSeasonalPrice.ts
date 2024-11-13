@@ -16,10 +16,10 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number): 
   > = {
     primaryPropertyName: "beanHourlySnapshots",
     idField: "id",
-    nextVars: (value1000: Partial<Pick<BeanHourlySnapshot, keyof BeanHourlySnapshot>>, prevVars: SeasonalQueryVars) => {
+    nextVars: (value1000: BeanHourlySnapshot, prevVars: SeasonalQueryVars) => {
       if (value1000) {
         return {
-          from: Number(value1000.season),
+          from: Number(value1000.season.season),
           to: prevVars.to,
         };
       }
@@ -31,7 +31,7 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number): 
   };
 
   const convertResult = (v: BeanHourlySnapshot, timestamp: Date) => ({
-    season: Number(v.season),
+    season: Number(v.season.season),
     value: Number(v.price),
     timestamp,
   });

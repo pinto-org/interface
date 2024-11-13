@@ -19,7 +19,7 @@ export default function useSeasonalStalk(fromSeason: number, toSeason: number): 
   > = {
     primaryPropertyName: "siloHourlySnapshots",
     idField: "id",
-    nextVars: (value1000: Partial<Pick<SiloHourlySnapshot, keyof SiloHourlySnapshot>>, prevVars: SeasonalQueryVars) => {
+    nextVars: (value1000: SiloHourlySnapshot, prevVars: SeasonalQueryVars) => {
       if (value1000) {
         return {
           from: Number(value1000.season),
