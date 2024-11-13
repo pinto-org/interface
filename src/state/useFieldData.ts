@@ -2,9 +2,17 @@ import { TokenValue } from "@/classes/TokenValue";
 import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { QueryKey } from "@tanstack/react-query";
+import { atom, useAtomValue } from "jotai";
 import { useMemo } from "react";
 import { useChainId, useReadContracts } from "wagmi";
 import { FieldTemperature } from "./protocol/field";
+import {
+  fieldAtom,
+  fieldPodlineAtom,
+  fieldQueryKeysAtom,
+  fieldTotalSoilAtom,
+  fieldWeatherAtom,
+} from "./protocol/field/field.atoms";
 
 export interface FieldData {
   harvestableIndex: TokenValue;
@@ -45,6 +53,43 @@ const defaultData: FieldData = {
   },
   queryKeys: [],
 };
+
+// Atoms
+
+const harvestableIndexAtom = atom((get) => get(fieldPodlineAtom).harvestableIndex);
+const podIndexAtom = atom((get) => get(fieldPodlineAtom).podIndex);
+const podLineAtom = atom((get) => get(fieldPodlineAtom).podLine);
+
+// Hooks
+
+// Field. Not optimal, but useful for convenience. Opt to use the individual hooks instead.
+export function useField() {
+  return useAtomValue(fieldAtom);
+}
+
+export function useTotalSoil() {
+  return useAtomValue(fieldTotalSoilAtom);
+}
+
+export function useFieldWeather() {
+  return useAtomValue(fieldWeatherAtom);
+}
+
+export function useHarvestableIndex() {
+  return useAtomValue(harvestableIndexAtom);
+}
+
+export function usePodIndex() {
+  return useAtomValue(podIndexAtom);
+}
+
+export function usePodLine() {
+  return useAtomValue(podLineAtom);
+}
+
+export function useFieldQueryKeys() {
+  return useAtomValue(fieldQueryKeysAtom);
+}
 
 export function useFieldData() {
   const chainId = useChainId();

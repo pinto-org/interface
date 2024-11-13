@@ -1,16 +1,29 @@
 import { TV } from "@/classes/TokenValue";
+import { diamondABI } from "@/constants/abi/diamondABI";
+import { PODS } from "@/constants/internalTokens";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { QueryKey } from "@tanstack/react-query";
-import { useAtom, useSetAtom } from "jotai";
+import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
+import { QueryKey, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect } from "react";
 import { useReadContract, useReadContracts } from "wagmi";
 import { FieldQueryKeys } from ".";
-import { fieldQueryKeysAtom, soilAtom, temperatureAtom } from "./field.atoms";
+import { getDiffNow, getNowRounded } from "../sun";
+import { morningAtom } from "../sun/sun.atoms";
+import {
+  fieldPodlineAtom,
+  fieldQueryKeysAtom,
+  fieldTemperatureAtom,
+  fieldTotalSoilAtom,
+  fieldWeatherAtom,
+} from "./field.atoms";
+
+const FIVE_MINS = 1000 * 60 * 5; // 20 minutes, in milliseconds
 
 const settings = {
   query: {
-    staleTime: 1000 * 60 * 20, // 20 minutes, in milliseconds
-    refetchInterval: 1000 * 60 * 20, // 20 minutes, in milliseconds
+    staleTime: FIVE_MINS, // 20 minutes, in milliseconds
+    refetchInterval: FIVE_MINS, // 20 minutes, in milliseconds
     refetchOnWindowFocus: true,
     refetchIntervalInBackground: false,
   },
@@ -20,30 +33,18 @@ const TEMPERATURE_DECIMALS = 6;
 
 const SOIL_DECIMALS = 6;
 
-const useSetFieldQueryKey = () => {
-  const setFieldQueryKeys = useSetAtom(fieldQueryKeysAtom);
+const SOIL_UPDATE_INTERVAL = 4;
 
-  return useCallback(
-    (key: keyof FieldQueryKeys, queryKey: QueryKey) => {
-      setFieldQueryKeys((prev) => ({
-        ...prev,
-        [key]: queryKey,
-      }));
-    },
-    [setFieldQueryKeys],
-  );
-};
+const FIELD_REFRESH_MS = 2000;
 
-const useUpdateTemperature = () => {
+const useProtocolTemperatureQuery = () => {
   const diamond = useProtocolAddress();
-  const [temperatures, setTemperatures] = useAtom(temperatureAtom);
-  const setFieldQueryKeys = useSetFieldQueryKey();
-
-  const temperatureQuery = useReadContracts({
+  const query = useReadContracts({
     contracts: [
       { address: diamond, abi: temperatureABI, functionName: "maxTemperature" },
       { address: diamond, abi: temperatureABI, functionName: "temperature" },
     ],
+    scopeKey: "field",
     query: {
       ...settings.query,
       select: (data) => {
@@ -55,66 +56,152 @@ const useUpdateTemperature = () => {
     },
   });
 
-  useEffect(() => {
-    const max = temperatureQuery.data?.max;
-    const scaled = temperatureQuery.data?.scaled;
-
-    if (max && scaled) {
-      setTemperatures({
-        max: TV.fromBlockchain(max, TEMPERATURE_DECIMALS),
-        scaled: TV.fromBlockchain(scaled, TEMPERATURE_DECIMALS),
-      });
-    }
-  }, [temperatureQuery.data, setTemperatures]);
-
-  useEffect(() => {
-    setFieldQueryKeys("temperature", temperatureQuery.queryKey);
-  }, [temperatureQuery.queryKey, setFieldQueryKeys]);
-
-  const refetch = useCallback(async () => {
-    const response = await temperatureQuery.refetch();
-    const max = response.data?.max;
-    const scaled = response.data?.scaled;
-    return { max, scaled };
-  }, [temperatureQuery]);
-
-  return {
-    data: temperatures,
-    refetch,
-  };
+  useUpdateQueryKeys(fieldQueryKeysAtom, query.queryKey, "temperature");
+  return query;
 };
 
-const useUpdateSoil = () => {
+const useProtocolSoilQuery = () => {
   const diamond = useProtocolAddress();
-  const [soil, setSoil] = useAtom(soilAtom);
-  const setFieldQueryKeys = useSetFieldQueryKey();
 
-  const soilQuery = useReadContract({
+  const query = useReadContract({
     address: diamond,
     abi: soilABI,
     functionName: "totalSoil",
+    scopeKey: "field",
     query: settings.query,
   });
 
+  useUpdateQueryKeys(fieldQueryKeysAtom, query.queryKey, "soil");
+
+  return query;
+};
+
+const useProtocolFieldWeatherQuery = () => {
+  const diamond = useProtocolAddress();
+
+  const query = useReadContract({
+    address: diamond,
+    abi: diamondABI,
+    functionName: "weather",
+    scopeKey: "field",
+  });
+
+  useUpdateQueryKeys(fieldQueryKeysAtom, query.queryKey, "weather");
+
+  return query;
+};
+
+/**
+ * All field parameters except for temperature and soil.
+ */
+const useProtocolPodLineQuery = () => {
+  const diamond = useProtocolAddress();
+  const query = useReadContracts({
+    contracts: [
+      { address: diamond, abi: diamondABI, functionName: "harvestableIndex" },
+      { address: diamond, abi: diamondABI, functionName: "podIndex" },
+    ],
+    scopeKey: "field",
+    query: {
+      ...settings.query,
+      select: (data) => {
+        const harvestableIndex = data[0].result;
+        const podIndex = data[1].result;
+        const podLine = podIndex && harvestableIndex ? podIndex - harvestableIndex : undefined;
+
+        return { harvestableIndex, podIndex, podLine };
+      },
+    },
+  });
+
+  // duplicate the query key for podline and weather
+  useUpdateQueryKeys(fieldQueryKeysAtom, query.queryKey, "podLine");
+
+  return query;
+};
+
+const useUpdateMorningField = () => {
+  const morning = useAtomValue(morningAtom);
+  const soilQueryKey = useAtomValue(fieldQueryKeysAtom).soil;
+  const qc = useQueryClient();
+
+  // update the soil every 2 seconds
   useEffect(() => {
-    setFieldQueryKeys("soil", soilQuery.queryKey);
-  }, [soilQuery.queryKey, setFieldQueryKeys]);
+    if (!morning.isMorning) return;
 
-  useEffect(() => {
-    const totalSoil = soilQuery.data;
+    const soilUpdateInterval = setInterval(() => {
+      const now = getNowRounded();
 
-    if (totalSoil) {
-      setSoil(TV.fromBlockchain(totalSoil, SOIL_DECIMALS));
-    }
-  }, [soilQuery.data, setSoil]);
+      const remaining = getDiffNow(morning.next, now).as("seconds");
+      if (remaining % SOIL_UPDATE_INTERVAL === 0) {
+        qc.invalidateQueries({ queryKey: soilQueryKey });
+      }
+    }, FIELD_REFRESH_MS);
 
-  return { soil, refetch: soilQuery.refetch };
+    return () => {
+      clearInterval(soilUpdateInterval);
+    };
+  }, [morning, morning.next, soilQueryKey, qc]);
 };
 
 export const useUpdateField = () => {
-  useUpdateSoil();
-  useUpdateTemperature();
+  const setTemperatures = useSetAtom(fieldTemperatureAtom);
+  const setTotalSoil = useSetAtom(fieldTotalSoilAtom);
+  const setPodLine = useSetAtom(fieldPodlineAtom);
+  const setWeather = useSetAtom(fieldWeatherAtom);
+
+  const temperatureQuery = useProtocolTemperatureQuery();
+  const soilQuery = useProtocolSoilQuery();
+  const podlineQuery = useProtocolPodLineQuery();
+  const weatherQuery = useProtocolFieldWeatherQuery();
+
+  useEffect(() => {
+    if (!temperatureQuery?.data?.max || !temperatureQuery?.data?.scaled) return;
+
+    setTemperatures({
+      max: TV.fromBlockchain(temperatureQuery.data.max, TEMPERATURE_DECIMALS),
+      scaled: TV.fromBlockchain(temperatureQuery.data.scaled, TEMPERATURE_DECIMALS),
+    });
+  }, [temperatureQuery.data, setTemperatures]);
+
+  useEffect(() => {
+    if (!soilQuery?.data) return;
+
+    setTotalSoil({ totalSoil: TV.fromBlockchain(soilQuery.data, SOIL_DECIMALS) });
+  }, [soilQuery.data, setTotalSoil]);
+
+  useEffect(() => {
+    if (!podlineQuery?.data?.harvestableIndex || !podlineQuery?.data?.podIndex || !podlineQuery?.data?.podLine) return;
+
+    const harvestableIndex = podlineQuery.data.harvestableIndex;
+    const podIndex = podlineQuery.data.podIndex;
+    const podLine = podlineQuery.data.podLine;
+
+    setPodLine({
+      harvestableIndex: TV.fromBlockchain(harvestableIndex, PODS.decimals),
+      podIndex: TV.fromBlockchain(podIndex, PODS.decimals),
+      podLine: TV.fromBlockchain(podLine, PODS.decimals),
+    });
+  }, [podlineQuery.data, setPodLine]);
+
+  useEffect(() => {
+    if (!weatherQuery?.data) return;
+
+    const lastDeltaSoil = weatherQuery.data.lastDeltaSoil;
+    const lastSowTime = weatherQuery.data.lastSowTime;
+    const thisSowTime = weatherQuery.data.thisSowTime;
+    const temp = weatherQuery.data.temp;
+
+    setWeather({
+      lastDeltaSoil: TV.fromBlockchain(lastDeltaSoil, SOIL_DECIMALS),
+      lastSowTime,
+      thisSowTime,
+      temp,
+    });
+  }, [weatherQuery.data, setWeather]);
 };
+
+// ---------------------------------------- ABI ----------------------------------------
 
 const soilABI = [
   {

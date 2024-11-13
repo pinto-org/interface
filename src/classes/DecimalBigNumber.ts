@@ -363,4 +363,72 @@ export class DecimalBigNumber {
       return z;
     }
   }
+
+  /**
+   * Rounds the number down (truncates) to the specified decimal places.
+   *
+   * @param decimals The number of decimal places to round down to. Defaults to the current decimal precision.
+   * @returns A new DecimalBigNumber instance rounded down.
+   */
+  public roundDown(decimals?: number): DecimalBigNumber {
+    const targetDecimals = decimals !== undefined ? decimals : this._decimals;
+    if (targetDecimals > this._decimals) {
+      throw new Error("Cannot round to more decimals than the current precision.");
+    }
+
+    const factor = 10n ** BigInt(this._decimals - targetDecimals);
+    const newValue = (this._value / factor) * factor;
+    return new DecimalBigNumber(newValue, this._decimals);
+  }
+
+  /**
+   * Rounds the number up to the specified decimal places.
+   *
+   * @param decimals The number of decimal places to round up to. Defaults to the current decimal precision.
+   * @returns A new DecimalBigNumber instance rounded up.
+   */
+  public roundUp(decimals?: number): DecimalBigNumber {
+    const targetDecimals = decimals !== undefined ? decimals : this._decimals;
+    if (targetDecimals > this._decimals) {
+      throw new Error("Cannot round to more decimals than the current precision.");
+    }
+
+    const factor = 10n ** BigInt(this._decimals - targetDecimals);
+    let newValue = this._value;
+    if (this._value % factor !== 0n) {
+      // For positive numbers, round up by adding 1
+      // For negative numbers, round up by subtracting 1
+      const increment = this.isPositive() ? 1n : -1n;
+      newValue = (this._value / factor + increment) * factor;
+    }
+    return new DecimalBigNumber(newValue, this._decimals);
+  }
+
+  /**
+   * Rounds the number towards positive infinity (ceil) to the specified decimal places.
+   *
+   * @param decimals The number of decimal places to round up to. Defaults to the current decimal precision.
+   * @returns A new DecimalBigNumber instance rounded towards positive infinity.
+   */
+  public roundCeil(decimals?: number): DecimalBigNumber {
+    if (this.isPositive()) {
+      return this.roundUp(decimals);
+    } else {
+      return this.roundDown(decimals);
+    }
+  }
+
+  /**
+   * Rounds the number towards negative infinity (floor) to the specified decimal places.
+   *
+   * @param decimals The number of decimal places to round down to. Defaults to the current decimal precision.
+   * @returns A new DecimalBigNumber instance rounded towards negative infinity.
+   */
+  public roundFloor(decimals?: number): DecimalBigNumber {
+    if (this.isPositive()) {
+      return this.roundDown(decimals);
+    } else {
+      return this.roundUp(decimals);
+    }
+  }
 }

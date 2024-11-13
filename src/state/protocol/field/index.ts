@@ -1,4 +1,5 @@
 import { TV } from "@/classes/TokenValue";
+import { INTERVALS_PER_MORNING } from "@/constants/morning";
 import { QueryKey } from "@tanstack/react-query";
 
 export interface FieldTemperature {
@@ -6,7 +7,102 @@ export interface FieldTemperature {
   scaled: TV;
 }
 
+export interface FieldSoil {
+  totalSoil: TV;
+}
+
+export interface FieldWeather {
+  lastDeltaSoil: TV;
+  lastSowTime: number;
+  thisSowTime: number;
+  temp: number;
+}
+
+export interface FieldPodLine {
+  podIndex: TV;
+  harvestableIndex: TV;
+  podLine: TV;
+}
+
+export type Field = FieldPodLine & FieldWeather & FieldTemperature & FieldSoil;
+
+/**
+ * Query keys for the field.
+ * - temperature: FieldTemperature query key
+ * - soil: FieldSoil query key
+ * - podLine: FieldPodLine query key
+ * - weather: FieldWeather query key
+ */
 export interface FieldQueryKeys {
   temperature: QueryKey;
   soil: QueryKey;
+  podLine: QueryKey;
+  weather: QueryKey;
+}
+
+export type Temperature = {
+  current: TV;
+  next: TV;
+  max: TV;
+};
+
+export const TEMPERATURE_DECIMALS = 6;
+
+export const TEMPERATURE_LOG_BASE = 3.5;
+
+export const TEMPERATURE_PRECISION = 1e6;
+
+/**
+ * indexes in terms of L1 blocks
+ */
+const DELTA_TEMPERATURE_PCTS: Record<number, number> = {
+  0: TEMPERATURE_PRECISION,
+  1: 76079978576,
+  2: 145535557307,
+  3: 209428496104,
+  4: 268584117732,
+  5: 323656683909,
+  6: 375173629062,
+  7: 423566360442,
+  8: 469192241217,
+  9: 512350622036,
+  10: 553294755665,
+  11: 592240801642,
+  12: 629374734241,
+  13: 664857713614,
+  14: 698830312972,
+  15: 731415882267,
+  16: 762723251769,
+  17: 792848925126,
+  18: 821878873397,
+  19: 849890014127,
+  20: 876951439574,
+  21: 903125443474,
+  22: 928468384727,
+  23: 953031418151,
+  24: 976861116107,
+};
+
+const scaleTemperature = (pct: TV, maxTemp: TV) => {
+  if (maxTemp.eq(0)) {
+    return TV.ZERO;
+  }
+  const pctScaled = pct.div(TEMPERATURE_PRECISION);
+  const temperature = pctScaled.mul(maxTemp).div(TEMPERATURE_PRECISION);
+  return temperature.reDecimal(TEMPERATURE_DECIMALS);
+};
+
+export function getMorningTemperature(
+  index: number, // in terms of L1 blocks
+  maxTemperature: TV,
+) {
+  if (index in DELTA_TEMPERATURE_PCTS) {
+    const scaledTemperature = scaleTemperature(
+      TV.fromHuman(DELTA_TEMPERATURE_PCTS[index], TEMPERATURE_DECIMALS),
+      maxTemperature,
+    );
+
+    return TV.max(scaledTemperature, TV.ONE);
+  }
+  return maxTemperature;
 }

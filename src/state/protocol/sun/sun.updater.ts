@@ -1,23 +1,27 @@
 import { useReadSeasonFacetView_SeasonTime, useReadSeasonFacetView_Time } from "@/generated/contractHooks";
+import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
 import { exists } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { DateTime } from "luxon";
 import { useCallback, useEffect } from "react";
-import { getNextExpectedSunrise } from ".";
+import { getMorningResult, getNextExpectedSunrise } from ".";
 import {
+  morningAtom,
+  morningRemainingAtom,
   seasonAtom,
-  seasonQueryKeyAtom,
   seasonSunriseAtom,
   seasonTimeAtom,
-  setAwaitingSunriseAtom,
+  sunQueryKeysAtom,
   sunriseRemainingAtom,
 } from "./sun.atoms";
 
+const TWENTY_MINUTES = 1000 * 60 * 20;
+
 const settings = {
   query: {
-    staleTime: 1000 * 60 * 20, // 20 minutes, in milliseconds
-    refetchInterval: 1000 * 60 * 20, // 20 minutes, in milliseconds
+    staleTime: TWENTY_MINUTES,
+    refetchInterval: TWENTY_MINUTES,
     refetchOnWindowFocus: true,
     refetchIntervalInBackground: false,
   },
@@ -26,15 +30,21 @@ const settings = {
 const useFetchSun = () => {
   const [seasonData, setSeasonData] = useAtom(seasonAtom);
   const [seasonTime, setSeasonTime] = useAtom(seasonTimeAtom);
-  const setSeasonQueryKey = useSetAtom(seasonQueryKeyAtom);
+  const setMorningResult = useSetAtom(morningAtom);
+  const setMorningRemaining = useSetAtom(morningRemainingAtom);
 
-  const sunData = useReadSeasonFacetView_Time({
+  const seasonQuery = useReadSeasonFacetView_Time({
+    scopeKey: "season",
     query: settings.query,
   });
 
   const seasonTimeQuery = useReadSeasonFacetView_SeasonTime({
+    scopeKey: "season",
     query: settings.query,
   });
+
+  useUpdateQueryKeys(sunQueryKeysAtom, seasonQuery.queryKey, "season");
+  useUpdateQueryKeys(sunQueryKeysAtom, seasonTimeQuery.queryKey, "seasonTime");
 
   useEffect(() => {
     if (!exists(seasonTimeQuery.data)) return;
@@ -42,9 +52,9 @@ const useFetchSun = () => {
   }, [seasonTimeQuery.data, setSeasonTime]);
 
   useEffect(() => {
-    if (!sunData.data) return;
-    const time = sunData.data;
-    const data = {
+    if (!seasonQuery.data) return;
+    const time = seasonQuery.data;
+    const season = {
       current: time.current,
       lastSopStart: time.lastSop,
       lastSopEnd: time.lastSopSeason,
@@ -52,28 +62,40 @@ const useFetchSun = () => {
       raining: time.raining,
       sunriseBlock: Number(time.sunriseBlock),
       abovePeg: time.abovePeg,
-      start: time.start,
-      period: time.period,
+      start: Number(time.start),
+      period: Number(time.period),
       timestamp: DateTime.fromSeconds(Number(time.timestamp)),
     };
-    setSeasonData(data);
-  }, [sunData.data, setSeasonData]);
 
-  useEffect(() => {
-    setSeasonQueryKey(sunData.queryKey);
-  }, [sunData.queryKey, setSeasonQueryKey]);
+    const morningResult = getMorningResult({
+      blockNumber: season.sunriseBlock,
+      timestamp: season.timestamp,
+    });
 
-  return { seasonData, seasonTime, refetch: sunData.refetch };
+    setMorningResult((draft) => {
+      draft.blockNumber = morningResult.blockNumber;
+      draft.index = morningResult.index;
+      draft.next = morningResult.next;
+      draft.isMorning = morningResult.isMorning;
+    });
+
+    setMorningRemaining(morningResult.remaining);
+
+    setSeasonData(season);
+  }, [seasonQuery.data, setSeasonData, setMorningResult, setMorningRemaining]);
+
+  return { seasonData, seasonTime, refetch: seasonQuery.refetch };
 };
 
 export const useInvalidateSunData = () => {
-  const queryKey = useAtomValue(seasonQueryKeyAtom);
+  const queryKey = useAtomValue(sunQueryKeysAtom);
   const qc = useQueryClient();
 
   const invalidate = useCallback(() => {
-    if (!queryKey.length) return;
+    if (!queryKey.seasonTime.length || !queryKey.season.length) return;
 
-    qc.invalidateQueries({ queryKey });
+    qc.invalidateQueries({ queryKey: queryKey.seasonTime });
+    qc.invalidateQueries({ queryKey: queryKey.season });
   }, [queryKey, qc]);
 
   return [invalidate] as const;
@@ -90,14 +112,16 @@ export const useRemainingUntilSunrise = () => {
 const useUpdateRemainingUntilSunrise = (next: DateTime, awaiting: boolean) => {
   // use atom here instead of updating the redux tree for performance reasons
   const setRemaining = useSetRemainingUntilSunrise();
-  const setAwaitingSunrise = useSetAtom(setAwaitingSunriseAtom);
+  const setAwaitingSunrise = useSetAtom(seasonSunriseAtom);
 
   useEffect(() => {
     if (awaiting === false) {
       const i = setInterval(() => {
         const remaining = next.diffNow();
         if (remaining.as("seconds") <= 0) {
-          setAwaitingSunrise(true);
+          setAwaitingSunrise((prev) => {
+            prev.awaiting = true;
+          });
         } else {
           setRemaining(remaining);
         }

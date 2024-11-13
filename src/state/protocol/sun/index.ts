@@ -7,6 +7,8 @@ import {
 } from "@/constants/morning";
 
 import { BlockInfo } from "@/utils/types";
+import { Lookup } from "@/utils/types.generic";
+import { QueryKey } from "@tanstack/react-query";
 import { DateTime, Duration } from "luxon";
 
 export interface Morning {
@@ -47,13 +49,18 @@ export interface Sun {
     /** Boolean indicating whether the previous Season was above or below peg. */
     abovePeg: boolean;
     /** The timestamp of the Beanstalk deployment rounded down to the nearest hour. */
-    start: bigint;
+    start: number;
     /** The length of each season in Beanstalk in seconds. */
-    period: bigint;
+    period: number;
     /** The timestamp of the start of the current Season. */
     timestamp: DateTime;
   };
   morning: Morning;
+}
+
+export interface SunQueryKeys {
+  seasonTime: QueryKey;
+  season: QueryKey;
 }
 
 export const getNextExpectedSunrise = () => {
