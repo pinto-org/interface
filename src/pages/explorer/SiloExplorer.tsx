@@ -1,8 +1,9 @@
 import SeasonalChart from "@/components/charts/SeasonalChart";
 import useSeasonalStalk from "@/state/seasonal/useSeasonalStalk";
-import { formatter } from "@/utils/format";
+import { formatter, numberAbbr } from "@/utils/format";
 
 const number0dFormatter = (v: number) => `${formatter.number(v, { minDecimals: 0, maxDecimals: 0 })}`;
+const largeNumberFormatter = numberAbbr;
 
 const SiloExplorer = () => {
   return (
@@ -14,7 +15,7 @@ const SiloExplorer = () => {
             size="small"
             useDataHook={useSeasonalStalk}
             valueFormatter={number0dFormatter}
-            tickValueFormatter={number0dFormatter}
+            tickValueFormatter={largeNumberFormatter}
           />
         </div>
         <div className="w-1/2">
@@ -24,7 +25,7 @@ const SiloExplorer = () => {
             fillArea
             useDataHook={useSeasonalStalk}
             valueFormatter={number0dFormatter}
-            tickValueFormatter={number0dFormatter}
+            tickValueFormatter={largeNumberFormatter}
           />
         </div>
       </div>
@@ -33,14 +34,14 @@ const SiloExplorer = () => {
         size="large"
         useDataHook={useSeasonalStalk}
         valueFormatter={number0dFormatter}
-        tickValueFormatter={number0dFormatter}
+        tickValueFormatter={largeNumberFormatter}
       />
       <SeasonalChart
         title="Stalk Supply"
         size="large"
         useDataHook={useSeasonalStalk}
         valueFormatter={number0dFormatter}
-        tickValueFormatter={number0dFormatter}
+        tickValueFormatter={largeNumberFormatter}
       />
     </>
   );

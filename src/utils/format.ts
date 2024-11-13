@@ -136,6 +136,21 @@ export const formatTokenAmount = (val: NumberPrimitive, token: Token) => {
   return format2Decimals(normalizeTokenAmount(val, token), { allowZero: true });
 };
 
+const numberAbbrThresholds: [number, string][] = [
+  [10 ** 12, "t"],
+  [10 ** 9, "b"],
+  [10 ** 6, "m"],
+  [10 ** 3, "k"],
+];
+export const numberAbbr = (num: number, decimals = 1): string => {
+  for (const threshold of numberAbbrThresholds) {
+    if (num > threshold[0]) {
+      return `${(num / threshold[0]).toFixed(decimals)}${threshold[1]}`;
+    }
+  }
+  return num.toString();
+};
+
 export const formatter = {
   number: formatNum,
   usd: formatUSD,
