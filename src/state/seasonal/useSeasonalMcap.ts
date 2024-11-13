@@ -3,7 +3,7 @@ import { useChainId } from "wagmi";
 import { paginateSubgraph, PaginationSettings } from "@/utils/paginateSubgraph";
 import { UseSeasonalResult } from "@/utils/types";
 import { BeanstalkSeasonalSeasonDocument, BeanstalkSeasonalSeasonQuery, Season } from "@/generated/gql/graphql";
-import useSeasonalQueries, { SeasonalQueryVars } from "./useSeasonalQueries";
+import useSeasonalQueries, { SeasonalQueryVars } from "./queries/useSeasonalInternalQueries";
 
 export default function useSeasonalMcap(fromSeason: number, toSeason: number): UseSeasonalResult {
   const chainId = useChainId();

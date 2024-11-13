@@ -3,7 +3,7 @@ import { useChainId } from "wagmi";
 import { paginateSubgraph, PaginationSettings } from "@/utils/paginateSubgraph";
 import { UseSeasonalResult } from "@/utils/types";
 import { BeanstalkSeasonalSiloDocument, BeanstalkSeasonalSiloQuery, SiloHourlySnapshot } from "@/generated/gql/graphql";
-import useSeasonalQueries, { SeasonalQueryVars } from "./useSeasonalQueries";
+import useSeasonalQueries, { SeasonalQueryVars } from "./queries/useSeasonalInternalQueries";
 import { STALK } from "@/constants/internalTokens";
 import { TV } from "@/classes/TokenValue";
 import { beanstalkAddress } from "@/generated/contractHooks";

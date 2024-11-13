@@ -10,7 +10,7 @@ import {
 } from "@/generated/gql/graphql";
 import { paginateSubgraph, PaginationSettings } from "@/utils/paginateSubgraph";
 import { UseSeasonalResult } from "@/utils/types";
-import useSeasonalQueries, { SeasonalQueryVars } from "./useSeasonalQueries";
+import useSeasonalQueries, { SeasonalQueryVars } from "./queries/useSeasonalInternalQueries";
 
 export default function useSeasonalTotalLiquidity(fromSeason: number, toSeason: number): UseSeasonalResult {
   const chainId = useChainId();

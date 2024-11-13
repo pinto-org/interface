@@ -36,13 +36,13 @@ const SiloExplorer = () => {
           />
         </div>
       </div>
-      <SeasonalChart
+      {/* <SeasonalChart
         title="Average Seeds per PDV"
         size="large"
         useDataHook={useSeasonalStalk}
         valueFormatter={number0dFormatter}
         tickValueFormatter={largeNumberFormatter}
-      />
+      /> */}
       <SeasonalChart
         title="Stalk Supply"
         size="large"

@@ -19,12 +19,12 @@ export type SeasonalQueryConfig<T> = {
   historicalQueryFnFactory: QueryFnFactory<T>;
   currentQueryFnFactory: QueryFnFactory<T>;
   resultTimestamp: ResultTimestampFn<T>;
-  convertResult: ConvertResultFn<T>;
+  convertResult: ConvertEntryFn<T>;
 };
 
-type QueryFnFactory<T> = (vars: SeasonalQueryVars) => () => Promise<T[]>;
-type ResultTimestampFn<T> = (d: T) => Date;
-type ConvertResultFn<T> = (d: T, timestamp: Date) => SeasonalChartData;
+export type QueryFnFactory<T> = (vars: SeasonalQueryVars) => () => Promise<T[]>;
+export type ResultTimestampFn<T> = (d: T) => Date;
+export type ConvertEntryFn<T> = (d: T, timestamp: Date) => SeasonalChartData;
 
 export default function useSeasonalQueries<T>(keyName: string, queryConfig: SeasonalQueryConfig<T>): UseSeasonalResult {
   const queryClient = useQueryClient();
