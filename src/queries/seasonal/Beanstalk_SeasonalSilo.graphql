@@ -1,4 +1,4 @@
-query BeanstalkSeasonalStalk($from: Int, $to: Int, $silo: String) {
+query BeanstalkSeasonalSilo($from: Int, $to: Int, $silo: String) {
   siloHourlySnapshots(
     where: { season_gte: $from, season_lte: $to, silo: $silo }
     first: 1000

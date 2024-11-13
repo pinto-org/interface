@@ -1,4 +1,4 @@
-query BeanstalkSeasonalSupply($from: Int, $to: Int) {
+query BeanstalkSeasonalSeason($from: Int, $to: Int) {
   seasons(
     where: { season_gte: $from, season_lte: $to }
     first: 1000
@@ -8,6 +8,7 @@ query BeanstalkSeasonalSupply($from: Int, $to: Int) {
     id
     season
     beans
+    marketCap
     createdAt
   }
 }

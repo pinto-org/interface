@@ -2,11 +2,7 @@ import { subgraphs } from "@/constants/subgraph";
 import { useChainId } from "wagmi";
 import { paginateSubgraph, PaginationSettings } from "@/utils/paginateSubgraph";
 import { UseSeasonalResult } from "@/utils/types";
-import {
-  BeanstalkSeasonalStalkDocument,
-  BeanstalkSeasonalStalkQuery,
-  SiloHourlySnapshot,
-} from "@/generated/gql/graphql";
+import { BeanstalkSeasonalSiloDocument, BeanstalkSeasonalSiloQuery, SiloHourlySnapshot } from "@/generated/gql/graphql";
 import useSeasonalQueries, { SeasonalQueryVars } from "./useSeasonalQueries";
 import { STALK } from "@/constants/internalTokens";
 import { TV } from "@/classes/TokenValue";
@@ -17,7 +13,7 @@ export default function useSeasonalStalk(fromSeason: number, toSeason: number): 
 
   const paginateSettings: PaginationSettings<
     SiloHourlySnapshot,
-    BeanstalkSeasonalStalkQuery,
+    BeanstalkSeasonalSiloQuery,
     "siloHourlySnapshots",
     SeasonalQueryVars
   > = {
@@ -34,7 +30,7 @@ export default function useSeasonalStalk(fromSeason: number, toSeason: number): 
   };
 
   const queryFnFactory = (vars: SeasonalQueryVars) => async () => {
-    return await paginateSubgraph(paginateSettings, subgraphs[chainId].beanstalk, BeanstalkSeasonalStalkDocument, vars);
+    return await paginateSubgraph(paginateSettings, subgraphs[chainId].beanstalk, BeanstalkSeasonalSiloDocument, vars);
   };
 
   const convertResult = (v: SiloHourlySnapshot, timestamp: Date) => ({
@@ -43,7 +39,7 @@ export default function useSeasonalStalk(fromSeason: number, toSeason: number): 
     timestamp,
   });
 
-  return useSeasonalQueries("seasonalStalk", {
+  return useSeasonalQueries("BeanstalkSeasonalSiloQuery", {
     fromSeason,
     toSeason,
     queryVars: { silo: beanstalkAddress[chainId] },

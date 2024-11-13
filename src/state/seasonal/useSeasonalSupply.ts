@@ -2,7 +2,7 @@ import { subgraphs } from "@/constants/subgraph";
 import { useChainId } from "wagmi";
 import { paginateSubgraph, PaginationSettings } from "@/utils/paginateSubgraph";
 import { UseSeasonalResult } from "@/utils/types";
-import { BeanstalkSeasonalSupplyDocument, BeanstalkSeasonalSupplyQuery, Season } from "@/generated/gql/graphql";
+import { BeanstalkSeasonalSeasonDocument, BeanstalkSeasonalSeasonQuery, Season } from "@/generated/gql/graphql";
 import useSeasonalQueries, { SeasonalQueryVars } from "./useSeasonalQueries";
 import { TV } from "@/classes/TokenValue";
 import { beanstalkAddress } from "@/generated/contractHooks";
@@ -11,7 +11,7 @@ import { PINTO } from "@/constants/tokens";
 export default function useSeasonalSupply(fromSeason: number, toSeason: number): UseSeasonalResult {
   const chainId = useChainId();
 
-  const paginateSettings: PaginationSettings<Season, BeanstalkSeasonalSupplyQuery, "seasons", SeasonalQueryVars> = {
+  const paginateSettings: PaginationSettings<Season, BeanstalkSeasonalSeasonQuery, "seasons", SeasonalQueryVars> = {
     primaryPropertyName: "seasons",
     idField: "id",
     nextVars: (value1000: Partial<Pick<Season, keyof Season>>, prevVars: SeasonalQueryVars) => {
@@ -28,7 +28,7 @@ export default function useSeasonalSupply(fromSeason: number, toSeason: number):
     return await paginateSubgraph(
       paginateSettings,
       subgraphs[chainId].beanstalk,
-      BeanstalkSeasonalSupplyDocument,
+      BeanstalkSeasonalSeasonDocument,
       vars,
     );
   };
@@ -39,7 +39,7 @@ export default function useSeasonalSupply(fromSeason: number, toSeason: number):
     timestamp,
   });
 
-  return useSeasonalQueries("seasonalSupply", {
+  return useSeasonalQueries("BeanstalkSeasonalSeasonQuery", {
     fromSeason,
     toSeason,
     queryVars: {},

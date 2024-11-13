@@ -1,6 +1,6 @@
 import { subgraphs } from "@/constants/subgraph";
 import { useChainId } from "wagmi";
-import { BeanHourlySnapshot, BeanSeasonalPriceDocument, BeanSeasonalPriceQuery } from "@/generated/gql/graphql";
+import { BeanHourlySnapshot, BeanSeasonalBeanDocument, BeanSeasonalBeanQuery } from "@/generated/gql/graphql";
 import { paginateSubgraph, PaginationSettings } from "@/utils/paginateSubgraph";
 import { UseSeasonalResult } from "@/utils/types";
 import useSeasonalQueries, { SeasonalQueryVars } from "./useSeasonalQueries";
@@ -10,7 +10,7 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number): 
 
   const paginateSettings: PaginationSettings<
     BeanHourlySnapshot,
-    BeanSeasonalPriceQuery,
+    BeanSeasonalBeanQuery,
     "beanHourlySnapshots",
     SeasonalQueryVars
   > = {
@@ -27,7 +27,7 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number): 
   };
 
   const queryFnFactory = (vars: SeasonalQueryVars) => async () => {
-    return await paginateSubgraph(paginateSettings, subgraphs[chainId].bean, BeanSeasonalPriceDocument, vars);
+    return await paginateSubgraph(paginateSettings, subgraphs[chainId].bean, BeanSeasonalBeanDocument, vars);
   };
 
   const convertResult = (v: BeanHourlySnapshot, timestamp: Date) => ({
@@ -36,7 +36,7 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number): 
     timestamp,
   });
 
-  return useSeasonalQueries("seasonalPrice", {
+  return useSeasonalQueries("BeanSeasonalBeanQuery", {
     fromSeason,
     toSeason,
     queryVars: {},
