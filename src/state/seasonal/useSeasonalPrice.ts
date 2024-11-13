@@ -1,6 +1,5 @@
 import { QueryClient, QueryKey, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
 import { subgraphs } from "@/constants/subgraph";
-import { useSunData } from "../useSunData";
 import { useChainId } from "wagmi";
 import { BeanHourlySnapshot, BeanSeasonalPriceDocument, BeanSeasonalPriceQuery } from "@/generated/gql/graphql";
 import { paginateSubgraph, PaginationSettings } from "@/utils/paginateSubgraph";
@@ -45,9 +44,9 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number): 
     return data.map((v) => {
       // For previous seasons, the presented data is upon the season's completion,
       // add 1 hour to created timestamp.
-      const snapshotCreatedDate = new Date(Number(v.timestamp) * 1000);
-      const snapshotEndDate = new Date(snapshotCreatedDate.getTime() + 60 * 60 * 1000);
-      return entryData(v, snapshotEndDate);
+      const snapshotCreatedHour = new Date(Number(v.timestamp) * 1000);
+      const snapshotEndHour = new Date(snapshotCreatedHour.getTime() + 60 * 60 * 1000);
+      return entryData(v, snapshotEndHour);
     });
   };
 
