@@ -9,6 +9,7 @@ import TableRowConnector from "@/components/TableRowConnector";
 import { Button } from "@/components/ui/Button";
 import PageContainer from "@/components/ui/PageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
@@ -29,6 +30,7 @@ const Overview = () => {
   const fieldData = useFieldData();
   const priceData = usePriceData();
   const navigate = useNavigate();
+  const { submitClaimRewards } = useClaimRewards();
 
   const hasDeposits = farmerActions.totalValue.silo.gt(0);
   const hasPods = farmerActions.totalValue.field.gt(0);
@@ -232,20 +234,17 @@ const Overview = () => {
             />
           )*/}
           {currentTab === "deposits" && claimEnabled && (
-            <ClaimRewards
-              trigger={
-                <HelperLink
-                  text="Claim Pinto, Stalk and Seed"
-                  dataTarget="claimable-rewards"
-                  className="absolute right-[60px] mt-[60px]"
-                  sourceAnchor="left"
-                  targetAnchor="right"
-                  source90Degree={true}
-                  perpLength={10}
-                  onMouseEnter={() => setHoveredButton("claim")}
-                  onMouseLeave={() => setHoveredButton("")}
-                />
-              }
+            <HelperLink
+              text="Claim Pinto, Stalk and Seed"
+              dataTarget="claimable-rewards"
+              className="absolute right-[60px] mt-[60px]"
+              sourceAnchor="left"
+              targetAnchor="right"
+              source90Degree={true}
+              perpLength={10}
+              onMouseEnter={() => setHoveredButton("claim")}
+              onMouseLeave={() => setHoveredButton("")}
+              onClick={submitClaimRewards}
             />
           )}
           <TabsContent className="mt-8" value="deposits">

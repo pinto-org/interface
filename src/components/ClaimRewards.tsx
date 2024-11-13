@@ -3,19 +3,13 @@ import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { Button } from "@/components/ui/Button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
-import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
-import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
-import { calculateConvertData } from "@/utils/convert";
 import { formatter } from "@/utils/format";
-import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { BaseError, encodeFunctionData } from "viem";
-import { useAccount, useChainId, useWriteContract } from "wagmi";
+import { useState } from "react";
+import { useAccount } from "wagmi";
 import { ChevronDownIcon } from "./Icons";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/Collapsible";
 import IconImage from "./ui/IconImage";
@@ -34,17 +28,16 @@ const getCombinedRewardString = (rewards: { amount: TokenValue; type: string }[]
 };
 
 export default function ClaimRewards({ trigger }: RewardsClaimProps) {
-  const chainId = useChainId();
   const account = useAccount();
   const data = useFarmerSilo();
-  const siloData = useSiloData();
-  const { mainToken: mainToken, whitelistedTokens: SILO_WHITELIST } = useTokenData();
+  const { mainToken: mainToken } = useTokenData();
   const farmerActions = useFarmerActions();
-  const farmerDeposits = useFarmerDepositedBalances();
   const grownStalkFromSeeds = data.grownStalkReward;
 
   const [isOpen, setIsOpen] = useState(false);
   const [isShowingMore, setIsShowingMore] = useState(false);
+
+  const { submitClaimRewards, isSubmitting } = useClaimRewards();
 
   const beanRewards = farmerActions.claimRewards.outputs.beanGain;
   const stalkRewards = farmerActions.claimRewards.outputs.stalkGain;
@@ -56,68 +49,9 @@ export default function ClaimRewards({ trigger }: RewardsClaimProps) {
   const totalStalkRewards = stalkRewards.add(stalkUpdate);
   const totalSeedRewards = seedRewards.add(seedUpdate);
 
-  const queryClient = useQueryClient();
-  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
-
-  useEffect(() => {
-    if (isSuccess) {
-      const allQueryKeys = [...data.queryKeys, ...siloData.queryKeys, farmerDeposits.queryKey];
-      // invalidating query results to trigger a refetch
-      allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
-    }
-  }, [isSuccess, data.queryKeys, siloData.queryKeys]);
-
   async function onSubmit() {
     if (!account.address) return;
-
-    const plant = encodeFunctionData({
-      abi: beanstalkAbi,
-      functionName: "plant",
-    });
-
-    const tokensToMow = SILO_WHITELIST.map((token) => token.address);
-    const mow = encodeFunctionData({
-      abi: beanstalkAbi,
-      functionName: "mowMultiple",
-      args: [account.address, tokensToMow],
-    });
-
-    const updateData: `0x${string}`[] = [];
-    for (const [token, depositData] of farmerDeposits.data.entries()) {
-      for (const deposit of depositData.deposits) {
-        if (deposit.currentBdv.gt(deposit.depositBdv) && !deposit.isGerminating) {
-          const convertData = calculateConvertData(token, token, deposit.amount, deposit.amount);
-          if (!convertData) {
-            throw new Error("Invalid convert data");
-          }
-          const _updateData = encodeFunctionData({
-            abi: beanstalkAbi,
-            functionName: "convert",
-            args: [convertData, [deposit.stem.toBigInt()], [deposit.amount.toBigInt()]],
-          });
-          updateData.push(_updateData);
-        }
-      }
-    }
-
-    const tx = () =>
-      writeContractAsync({
-        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-        abi: beanstalkAbi,
-        functionName: "farm",
-        args: [[plant, mow, ...updateData]],
-      });
-
-    toast.promise(tx, {
-      loading: "Claiming ...",
-      success: (data) => {
-        setIsOpen(false);
-        return `Transaction complete!`;
-      },
-      error: (error) => {
-        return (error as BaseError).shortMessage || `Transaction failed.`;
-      },
-    });
+    submitClaimRewards();
   }
 
   return (
@@ -209,7 +143,7 @@ export default function ClaimRewards({ trigger }: RewardsClaimProps) {
             </div>
           </CollapsibleContent>
         </Collapsible>
-        <Button className="flex w-full h-[60px] rounded-full mt-6" onClick={onSubmit}>
+        <Button className="flex w-full h-[60px] rounded-full mt-6" onClick={onSubmit} disabled={isSubmitting}>
           <Text variant="h4" weight="medium" color="white">
             Claim Pinto, Stalk and Seed
           </Text>
