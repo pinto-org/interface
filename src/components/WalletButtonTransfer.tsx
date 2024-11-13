@@ -22,7 +22,7 @@ export default function WalletButtonTransfer({
   const chainId = useChainId();
   const account = useAccount();
 
-  const { queryKey } = useFarmerBalances();
+  const { queryKeys } = useFarmerBalances();
 
   const mainToken = useTokenData().mainToken;
   const [amountIn, setAmountIn] = useState("0");
@@ -35,9 +35,9 @@ export default function WalletButtonTransfer({
   useEffect(() => {
     if (isSuccess) {
       // invalidating query results to trigger a refetch
-      queryClient.invalidateQueries({ queryKey });
+      queryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
     }
-  }, [isSuccess, queryKey]);
+  }, [isSuccess, queryKeys]);
 
   async function onSubmit() {
     if (!chainId || !account.address || !amountIn || Number(amountIn) <= 0) return;

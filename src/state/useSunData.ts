@@ -87,5 +87,5 @@ export function useSunData() {
     },
   });
 
-  return sunData.data ?? defaultSunData;
+  return { data: sunData.data ?? defaultSunData, queryKey: sunData.queryKey };
 }

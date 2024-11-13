@@ -1,11 +1,19 @@
 import HelperLink from "@/components/HelperLink";
 import { ScrollHideComponent } from "@/components/ScrollHideComponent";
 import useFarmerActions from "@/hooks/useFarmerActions";
+import { useFarmerBalances } from "@/state/useFarmerBalances";
+import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
+import useFieldSnapshots from "@/state/useFieldSnapshots";
+import { usePriceData } from "@/state/usePriceData";
+import useSiloSnapshots from "@/state/useSiloSnapshots";
+import { useSunData } from "@/state/useSunData";
 import { formatter } from "@/utils/format";
 import { cn } from "@/utils/utils";
+import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useMemo, useRef, useState } from "react";
-import { matchPath, useMatch } from "react-router-dom";
+import { useMatch } from "react-router-dom";
 import { useAccount } from "wagmi";
 import WalletButton from "../../WalletButton";
 import Backdrop from "../../ui/Backdrop";
@@ -24,7 +32,18 @@ const Navbar = () => {
   const [backdropMounted, setBackdropMounted] = useState(true);
 
   const account = useAccount();
+  const queryClient = useQueryClient();
+
   const farmerActions = useFarmerActions();
+  const farmerBalances = useFarmerBalances();
+  const farmerDeposits = useFarmerDepositedBalances();
+  const priceData = usePriceData();
+  const farmerSilo = useFarmerSilo();
+
+  const sunData = useSunData();
+  const fieldSnapshots = useFieldSnapshots();
+  const siloSnapshots = useSiloSnapshots();
+
   const hasInternal = farmerActions.totalValue.wallet.internal.gt(0);
   const hasFlood = farmerActions.floodAssets.enabled;
   const usdValue = farmerActions.totalValue.wallet.total;
@@ -45,12 +64,31 @@ const Navbar = () => {
     setOpenPanel(undefined);
   };
 
+  const invalidateData = (panel: Panel) => {
+    if (panel === "wallet") {
+      const allQueryKeys = [
+        ...priceData.queryKeys,
+        ...farmerSilo.queryKeys,
+        ...farmerBalances.queryKeys,
+        farmerDeposits.queryKey,
+      ];
+      allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query, refetchType: "active" }));
+    } else if (panel === "seasons") {
+      const allQueryKeys = [sunData.queryKey, fieldSnapshots.queryKey, siloSnapshots.queryKey];
+      allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query, refetchType: "active" }));
+    } else if (panel === "price") {
+      const allQueryKeys = [...priceData.queryKeys];
+      allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query, refetchType: "active" }));
+    }
+  };
+
   const togglePanel = (panel: Panel) => {
     if (openPanel === panel) {
       closePanel();
     } else {
       setBackdropMounted(true);
       setOpenBackdrop(true);
+      invalidateData(panel);
       setOpenPanel(panel);
     }
   };

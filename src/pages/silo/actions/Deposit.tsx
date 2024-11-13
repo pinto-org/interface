@@ -60,8 +60,8 @@ function Deposit({ siloToken }: { siloToken: Token }) {
 
   const onSuccess = useCallback(() => {
     setAmountIn("0");
-    qc.invalidateQueries({ queryKey: depositedBalances.queryKey });
-    qc.invalidateQueries({ queryKey: farmerBalances.queryKey });
+    const allQueryKeys = [depositedBalances.queryKey, ...farmerBalances.queryKeys];
+    allQueryKeys.forEach((query) => qc.invalidateQueries({ queryKey: query }));
   }, [qc, depositedBalances, farmerBalances]);
 
   const { isConfirming, writeContractAsync } = useTransaction({

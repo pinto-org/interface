@@ -1,12 +1,12 @@
-import { useEffect, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useChainId } from "wagmi";
-import request from "graphql-request";
-import { SiloSnapshotsDocument } from "@/generated/gql/graphql";
-import { useSunData } from "./useSunData";
 import { TokenValue } from "@/classes/TokenValue";
-import useTokenData from "./useTokenData";
 import { subgraphs } from "@/constants/subgraph";
+import { SiloSnapshotsDocument } from "@/generated/gql/graphql";
+import { useQuery } from "@tanstack/react-query";
+import request from "graphql-request";
+import { useEffect, useMemo } from "react";
+import { useChainId } from "wagmi";
+import { useSunData } from "./useSunData";
+import useTokenData from "./useTokenData";
 
 export interface SiloSnapshot {
   deltaBeanMints: TokenValue;
@@ -14,12 +14,14 @@ export interface SiloSnapshot {
 }
 
 export default function useSiloSnapshots() {
-  const season = useSunData().current;
+  const season = useSunData().data.current;
   const chainId = useChainId();
   const tokenData = useTokenData();
 
+  const queryKey = ["siloSnapshots", { chainId: chainId }];
+
   const query = useQuery({
-    queryKey: ["siloSnapshots", { chainId: chainId }],
+    queryKey: queryKey,
     queryFn: async () => {
       return request(subgraphs[chainId].beanstalk, SiloSnapshotsDocument, {
         first: 7,
@@ -49,5 +51,11 @@ export default function useSiloSnapshots() {
     query.refetch();
   }, [season]);
 
-  return useMemo(() => query.data ?? [], [query.data]);
+  return useMemo(
+    () => ({
+      data: query.data ?? [],
+      queryKey: queryKey,
+    }),
+    [query.data],
+  );
 }
