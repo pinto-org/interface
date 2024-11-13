@@ -55,7 +55,11 @@ const ParticlesBackground = React.memo(
       }
       console.log("Particles container loaded");
       containerRef.current = container;
-      container.loadTheme("default");
+      if (localStorage.getItem("hasWatchedTransition")) {
+        container.loadTheme("5");
+      } else {
+        container.loadTheme("default");
+      }
     }, []);
 
     return (

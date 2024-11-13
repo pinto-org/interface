@@ -46,6 +46,8 @@ export default function Landing() {
     navigate("/announcing-pinto");
   };
 
+  const transitionComplete = localStorage.getItem("hasWatchedTransition");
+
   // IMAGE ARRAY
   const images = [
     "src/assets/landing/tree.png",
@@ -70,11 +72,11 @@ export default function Landing() {
     "src/assets/landing/USD.png",
     "src/assets/landing/computer.png",
     "src/assets/landing/skyscraper.png",
-    "src/assets/landing/btcpinto.png",
+    "src/assets/landing/BTC.png",
   ];
 
   useEffect(() => {
-    // Parse query parameters
+    // PARSE QUERY PARAMS - MARK IF THE USER HAS VISITED THE SITE BEFORE
     const params = new URLSearchParams(location.search);
     const fromNav = params.get("fromNav");
 
@@ -91,10 +93,30 @@ export default function Landing() {
     }
   }, [navigate, location]);
 
+  // CHECK LOCALSTORAGE TO SEE IF THE USER HAS ALREADY VIEWED THE TRANSITIONS
+  useEffect(() => {
+    if (transitionComplete === "true") {
+      particlesBackgroundRef.current?.loadTheme("5"); // Directly load the theme
+      setOpacity(0);
+      setCurrentIndex(images.length - 1); // Set the current index to the last image
+      setNextIndex(images.length); // Set the next index to exceed the length
+    }
+  }, []);
+
+  // RESET ANIMATION STATE
+  const resetCoinState = () => {
+    setCurrentIndex(0);
+    setNextIndex(1);
+    setShowMetallicCoin(false);
+    setOpacity(1);
+    zoomRef.current = false;
+    particlesBackgroundRef.current?.loadTheme("default");
+    localStorage.removeItem("hasWatchedTransition");
+  };
+
   // EFFECT TO UPDATE ANIMATION SPEED, PARTICLE BACKGROUND THEME, AND CAMERA ZOOM
   useEffect(() => {
     if (images[currentIndex].includes("rock.png")) {
-      particlesBackgroundRef.current?.loadTheme("1"); // Directly load the theme
       setAnimationTimer(600);
     } else if (images[currentIndex].includes("gold.png")) {
       particlesBackgroundRef.current?.loadTheme("1"); // Directly load the theme
@@ -108,34 +130,39 @@ export default function Landing() {
     } else if (images[currentIndex].includes("bimetal-coins.png")) {
       particlesBackgroundRef.current?.loadTheme("2"); // Directly load the theme
       setAnimationTimer(400);
+    } else if (images[currentIndex].includes("banknote.png")) {
+      particlesBackgroundRef.current?.loadTheme("3");
     } else if (images[currentIndex].includes("nuke")) {
       particlesBackgroundRef.current?.loadTheme("4"); // Directly load the theme
-    } else if (images[currentIndex].includes("skyscraper")) {
-      setTimeout(() => {
+    } else if (images[currentIndex].includes("BTC")) {
+      particlesBackgroundRef.current?.loadTheme("5"); // Directly load the theme
+      if (transitionComplete) {
         setShowMetallicCoin(true);
-      }, 175);
-    } else if (images[currentIndex].includes("btcpinto")) {
-      // Delay the start of fading out the skyscraper image
-      setTimeout(() => {
-        setOpacity(1); // Make sure opacity is set to fully visible initially
-        let fadeOutStartTime = performance.now();
-        const fadeOutDuration = 300; // Duration of fade-out
+        zoomRef.current = true;
+      } else {
+        // Delay the start of fading out of BTC
+        setTimeout(() => {
+          setOpacity(1); // Make sure opacity is set to fully visible initially
+          let fadeOutStartTime = performance.now();
+          const fadeOutDuration = 500; // Duration of fade-out
 
-        const fadeOutAnimation = () => {
-          const elapsed = performance.now() - fadeOutStartTime;
-          const newOpacity = Math.max(1 - elapsed / fadeOutDuration, 0);
-          setOpacity(newOpacity);
+          const fadeOutAnimation = () => {
+            const elapsed = performance.now() - fadeOutStartTime;
+            const newOpacity = Math.max(1 - elapsed / fadeOutDuration, 0);
+            setOpacity(newOpacity);
 
-          if (newOpacity > 0) {
-            requestAnimationFrame(fadeOutAnimation);
-          } else {
-            particlesBackgroundRef.current?.loadTheme("5"); // Directly load the theme
-            zoomRef.current = true; // Zoom in on the metallic coin
-          }
-        };
+            if (newOpacity > 0) {
+              requestAnimationFrame(fadeOutAnimation);
+            } else {
+              setShowMetallicCoin(true);
+              zoomRef.current = true; // Zoom in on the metallic coin
+              localStorage.setItem("hasWatchedTransition", "true"); // Mark transition as completed
+            }
+          };
 
-        requestAnimationFrame(fadeOutAnimation);
-      }, 200); // 200ms delay before starting the fade-out
+          requestAnimationFrame(fadeOutAnimation);
+        }, 200); // 200ms delay before starting the fade-out
+      }
     } else {
       zoomRef.current = false; // Reset zoom flag
     }
@@ -191,30 +218,26 @@ export default function Landing() {
 
     // CAMERA POSITIONS
     const initialCameraPosition = new THREE.Vector3(0, 0, 100);
-    const targetCameraPosition = new THREE.Vector3(7.7, 0, 80);
+    const targetCameraPosition = new THREE.Vector3(0, 0, 20);
 
     useEffect(() => {
       if (zoomRef.current) {
         camera.position.copy(initialCameraPosition);
+        camera.layers.enable(2); // Enable layer 1 for rendering the Slide
+        camera.layers.disable(1); // Optionally disable the default layer
+      } else {
+        camera.layers.enable(1); // Enable layer 1 for rendering the Slide
+        camera.layers.disable(2); // Optionally disable the default layer
       }
     }, [camera]);
 
     useFrame(() => {
       if (zoomRef.current) {
         camera.position.lerp(targetCameraPosition, 0.07); // Smooth zoom and pan
-      }
+      } else camera.position.lerp(initialCameraPosition, 0.14);
     });
 
     return null;
-  };
-
-  // RESET ANIMATION STATE
-  const resetCoinState = () => {
-    setCurrentIndex(0);
-    setNextIndex(1);
-    setShowMetallicCoin(false);
-    setOpacity(1);
-    // need to reset the camera... but this is probably better saved for after I work through the camera positioning...
   };
 
   return (
@@ -233,6 +256,13 @@ export default function Landing() {
 
         {/* Three.js Canvas with Transparent Background */}
         <Canvas
+          raycaster={{
+            layers: (() => {
+              const layers = new THREE.Layers();
+              layers.set(2);
+              return layers;
+            })(), // Ensure the raycaster checks layer 2
+          }}
           style={{
             position: "absolute",
             top: 0,
@@ -250,7 +280,7 @@ export default function Landing() {
           <CameraZoom />
           <ambientLight intensity={5} />
           <directionalLight
-            position={[7.7, 80, 80]} // Positioned above and slightly in front of the coin
+            position={[0, 80, 80]} // Positioned above and slightly in front of the coin
             intensity={10} // Strong enough to create a noticeable gradient effect
           />
           <directionalLight

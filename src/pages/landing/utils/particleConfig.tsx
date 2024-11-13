@@ -13,26 +13,6 @@ const particleConfig: ISourceOptions = {
       value: { min: 2, max: 4 },
     },
   },
-  // polygon: {
-  //   draw: {
-  //     enable: true,
-  //   },
-  //   // Polygon mask configuration for a circle shape
-  //   enable: true,
-  //   type: "inside", // Use 'inline' to keep particles within the shape, 'inside' works too.
-  //   move: {
-  //     radius: 5, // Radius for movement inside the circle
-  //   },
-  //   position: {
-  //     x: 50, // Center of the circle (x axis), percentage of the canvas width
-  //     y: 50, // Center of the circle (y axis), percentage of the canvas height
-  //   },
-  //   url: circlesvg,
-  //   scale: 10, // Scale the size of the circle
-  //   inline: {
-  //     arrangement: "equidistant", // Arrangement of particles within the circle (other options: 'random-point', 'one-per-point')
-  //   },
-  // },
   detectRetina: true,
   themes: [
     {
@@ -399,27 +379,6 @@ const particleConfig: ISourceOptions = {
         background: {
           color: {
             value: "#FEFDF4",
-          },
-        },
-        interactivity: {
-          events: {
-            onHover: {
-              enable: true,
-              mode: "grab",
-              parallax: {
-                enable: true,
-                force: 90,
-                smooth: 1,
-              },
-            },
-          },
-          modes: {
-            grab: {
-              distance: 200,
-              links: {
-                opacity: 1,
-              },
-            },
           },
         },
         manualParticles: [

@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import { MeshStandardMaterial, Color, ShaderMaterial, Vector3 } from "three";
+import { MeshStandardMaterial, Color, Vector3 } from "three";
 
 type CoinModelProps = {
   gltf: any;
@@ -12,7 +12,7 @@ type CoinModelProps = {
 
 const CoinModel: React.FC<CoinModelProps> = ({
   gltf,
-  position = [7.7, 0, 50],
+  position = [0, 0, 0],
   scale = [6.65, 6.65, 6.65],
   rotation = [0, 0, 0],
   onClick,
@@ -20,8 +20,9 @@ const CoinModel: React.FC<CoinModelProps> = ({
   // Load the model using GLTFLoader
   const modelRef = useRef<any>();
   const [rotateDirection, setRotateDirection] = useState(-0.005);
-
   const targetPosition = useRef(new Vector3(...position)); // Mutable reference for position
+  const [fadeProgress, setFadeProgress] = useState(0); // Progress of the fade (0 to 1)
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Use an effect to replace the materials after the model is loaded
   useEffect(() => {
@@ -37,40 +38,67 @@ const CoinModel: React.FC<CoinModelProps> = ({
               color: new Color(0x45906a), // Use the exact green color from Blender
               metalness: 1.0, // Set metalness to 1.0 to match the fully metallic look
               roughness: 0.1, // Keep roughness at 0.2 to match the same level of shininess
+              transparent: true,
+              opacity: 0.02, // Start fully transparent
             });
+            child.layers.set(2); // Layer 1 for the coin
           } else if (child.material.name === "coininnerring") {
             child.material = new MeshStandardMaterial({
               color: new Color(0x68ad8b),
               metalness: 1.0,
               roughness: 0.1,
+              transparent: true,
+              opacity: 0.02, // Start fully transparent
             });
+            child.layers.set(2); // Layer 1 for the coin
           } else if (child.material.name === "coinface") {
             // Replace material for third part
             child.material = new MeshStandardMaterial({
               color: new Color(0x45906a),
               metalness: 1.0,
               roughness: 0.2,
+              transparent: true,
+              opacity: 0.02, // Start fully transparent
             });
+            child.layers.set(2); // Layer 1 for the coin
           } else if (child.material.name === "icon") {
             // Replace material for the icon plane
             child.material = new MeshStandardMaterial({
-              color: new Color(0xffffff),
-              metalness: 0.65,
-              roughness: 0.35,
+              color: new Color(0xade0c7),
+              metalness: 0.7,
+              roughness: 0.3,
               emissive: new Color(0x2f7150),
+              emissiveIntensity: 2.0,
+              transparent: true,
+              opacity: 0.02, // Start fully transparent
             });
+            child.layers.set(2); // Layer 1 for the coin
           }
         }
       });
+      setIsInitialized(true); // Mark initialization as complete
     }
   }, [gltf]);
 
   // Rotation
   useFrame(() => {
+    if (!modelRef.current || !isInitialized) return; // Ensure model is ready
+
     if (modelRef.current) {
       // Update rotation
       modelRef.current.rotation.y += rotateDirection;
       modelRef.current.position.lerp(targetPosition.current, 0.1);
+
+      modelRef.current.traverse((child: any) => {
+        if (child.isMesh && child.material) {
+          const newOpacity = Math.min(child.material.opacity + 0.02, 0.99); // Prevent 0
+          if (newOpacity !== child.material.opacity) {
+            child.material.opacity = newOpacity;
+            child.material.needsUpdate = true; // Ensure the renderer updates the material
+            setFadeProgress(fadeProgress + 0.02);
+          }
+        }
+      });
 
       // Current rotation value in radians
       const currentRotation = modelRef.current.rotation.y % (2 * Math.PI);

@@ -97,6 +97,12 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
       }
     }, [opacity]);
 
+    useEffect(() => {
+      if (meshRef.current) {
+        meshRef.current.layers.set(1); // Set the mesh to layer 1
+      }
+    }, []);
+
     return (
       <mesh ref={meshRef} geometry={geometry}>
         <slideShaderMaterial
