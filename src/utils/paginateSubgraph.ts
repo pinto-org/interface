@@ -20,10 +20,10 @@ type ResultObject<T, K extends keyof T, R> = {
 // The provided `document` must specify `first: 1000` and an orderBy/orderDirection.
 // The actual pagination logic is specified by the caller in `settings.loopCallback`.
 export const paginateSubgraph = async <R, T, V extends Variables = Variables>(
+  settings: PaginationSettings<R, T, keyof T, V>,
   url: string,
   document: RequestDocument | TypedQueryDocumentNode<T, V>,
   initialVars: V,
-  settings: PaginationSettings<R, T, keyof T, V>,
 ): Promise<R[]> => {
   let vars: V | undefined = initialVars;
   let prevPageIds: string[] = [];
