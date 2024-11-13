@@ -14,6 +14,7 @@ import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -33,17 +34,12 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
   const farmerSilo = useFarmerSilo();
   const priceData = usePriceData();
   const tokenData = useTokenData();
-  const siloData = useSiloData();
   const mainToken = tokenData.mainToken;
   const farmerActions = useFarmerActions();
   const farmerDeposits = useFarmerDepositedBalances().data;
 
   const queryClient = useQueryClient();
   const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
-
-  const claimableBeans = farmerActions.claimRewards.outputs.beanGain;
-  const claimableStalk = farmerActions.claimRewards.outputs.stalkGain;
-  const claimableSeeds = farmerActions.claimRewards.outputs.seedGain;
 
   const canClaim = farmerActions.claimRewards.enabled;
 
@@ -75,85 +71,94 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
     });
   }, [farmerDeposits, tokenData.whitelistedTokens, mainToken]);
 
-  async function onClaimRewards() {
-    if (!account.address) return;
-
-    const plant = encodeFunctionData({
-      abi: beanstalkAbi,
-      functionName: "plant",
-    });
-
-    const tokensToMow = tokenData.whitelistedTokens.map((token) => token.address);
-    const mow = encodeFunctionData({
-      abi: beanstalkAbi,
-      functionName: "mowMultiple",
-      args: [account.address, tokensToMow],
-    });
-
-    const tx = () =>
-      writeContractAsync({
-        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-        abi: beanstalkAbi,
-        functionName: "farm",
-        args: [[plant, mow]],
-      });
-
-    toast.promise(tx, {
-      loading: "Claiming rewards...",
-      success: (data) => "Claim complete!",
-      error: (error) => (error as BaseError).shortMessage || "Failed to claim rewards.",
-    });
-  }
-
   const renderClaimableRow = () => {
     const plantData = farmerActions.tokenTotals.get(mainToken);
     const plantBeanGain = plantData?.sources.plant?.beanGain || TokenValue.ZERO;
-    if (plantBeanGain.lte(0.001)) return;
+    const showRow = !hovering;
+
+    const cellAnimation = {
+      height: showRow ? "4.5rem" : 0,
+      opacity: showRow ? 1 : 0,
+      padding: showRow ? "0.5rem" : 0,
+      transition: {
+        height: { duration: 0.2 },
+        opacity: { duration: 0.15 },
+        padding: { duration: 0.2 },
+      },
+    };
+
     return (
       <TableRow
-        className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 text-pinto-green-4/70"
+        className="bg-pinto-green-1 hover:bg-pinto-green-1 text-pinto-green-4/70"
         data-action-target="claimable-rewards"
         ref={rewardsRef}
+        initial={false}
+        animate={{
+          height: showRow ? "4.5rem" : 0,
+          opacity: showRow ? 1 : 0,
+          borderBottomWidth: showRow ? "1px" : 0,
+          transition: {
+            height: { duration: 0.2 },
+            opacity: { duration: 0.2 },
+            borderBottomWidth: { duration: 0.2 },
+          },
+        }}
       >
-        <TableCell>
-          <div className="flex flex-row items-center gap-1.5 ml-2">
+        <TableCell animate={cellAnimation} initial={false}>
+          <motion.div
+            className="flex flex-row items-center gap-1.5 ml-2"
+            animate={{ height: showRow ? "auto" : 0 }}
+            transition={{ duration: 0.2 }}
+          >
             <div className="h-8 w-8 bg-pinto-green-4 rounded-full flex justify-center items-center text-white rotate-90">
               <RightArrowIcon color="currentColor" />
             </div>
             <Text variant="small" color="green4">
               Claimable
             </Text>
-          </div>
+          </motion.div>
         </TableCell>
-        <TableCell className="text-right">
-          <div className="flex flex-col items-end">
+        <TableCell className="text-right" animate={cellAnimation} initial={false}>
+          <motion.div
+            className="flex flex-col items-end"
+            animate={{ height: showRow ? "auto" : 0 }}
+            transition={{ duration: 0.2 }}
+          >
             <div className="inline-flex items-center gap-1">
               <IconImage src={mainToken.logoURI} size={4} />
               <Text variant="small" color="green4">
                 {formatter.number(plantData?.sources.plant?.beanGain || TokenValue.ZERO)} {mainToken.name}
               </Text>
             </div>
-          </div>
+          </motion.div>
         </TableCell>
-        <TableCell className="text-right">
-          <div className="flex flex-col items-end">
+        <TableCell className="text-right" animate={cellAnimation} initial={false}>
+          <motion.div
+            className="flex flex-col items-end"
+            animate={{ height: showRow ? "auto" : 0 }}
+            transition={{ duration: 0.2 }}
+          >
             <div className="inline-flex items-center gap-1">
               <IconImage src={stalkIcon} size={4} />
               <Text variant="small" color="green4">
                 {formatter.number(plantData?.sources.plant?.stalkGain || TokenValue.ZERO)}
               </Text>
             </div>
-          </div>
+          </motion.div>
         </TableCell>
-        <TableCell>
-          <div className="flex flex-col items-end text-right mr-2">
+        <TableCell animate={cellAnimation} initial={false}>
+          <motion.div
+            className="flex flex-col items-end text-right mr-2"
+            animate={{ height: showRow ? "auto" : 0 }}
+            transition={{ duration: 0.2 }}
+          >
             <div className="inline-flex items-center gap-1">
               <IconImage src={seedIcon} size={4} />
               <Text variant="small" color="green4">
                 {formatter.number(plantData?.sources.plant?.seedGain || TokenValue.ZERO)}
               </Text>
             </div>
-          </div>
+          </motion.div>
         </TableCell>
       </TableRow>
     );
@@ -182,7 +187,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
             </TableRow>
           </TableHeader>
           <TableBody>
-            {!hovering && canClaim && renderClaimableRow()}
+            {renderClaimableRow()}
             {sortedTokens.map((token, i) => {
               const userData = farmerDeposits.get(token);
               const grownStalk = grownStalkPerToken.get(token) || TokenValue.ZERO;
