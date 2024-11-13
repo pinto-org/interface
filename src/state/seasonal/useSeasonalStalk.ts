@@ -33,19 +33,19 @@ export default function useSeasonalStalk(fromSeason: number, toSeason: number): 
     return await paginateSubgraph(paginateSettings, subgraphs[chainId].beanstalk, BeanstalkSeasonalSiloDocument, vars);
   };
 
-  const convertResult = (v: SiloHourlySnapshot, timestamp: Date) => ({
-    season: Number(v.season),
-    value: TV.fromBlockchain(v.stalk, STALK.decimals).toNumber(),
-    timestamp,
-  });
-
   return useSeasonalQueries("BeanstalkSeasonalSiloQuery", {
     fromSeason,
     toSeason,
     queryVars: { silo: beanstalkAddress[chainId] },
-    timestampColName: "createdAt",
     historicalQueryFnFactory: queryFnFactory,
     currentQueryFnFactory: queryFnFactory,
-    convertResult,
+    resultTimestamp: (entry) => {
+      return new Date(Number(entry.createdAt) * 1000);
+    },
+    convertResult: (v: SiloHourlySnapshot, timestamp: Date) => ({
+      season: Number(v.season),
+      value: TV.fromBlockchain(v.stalk, STALK.decimals).toNumber(),
+      timestamp,
+    }),
   });
 }

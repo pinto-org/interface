@@ -32,19 +32,19 @@ export default function useSeasonalSupply(fromSeason: number, toSeason: number):
     );
   };
 
-  const convertResult = (v: Season, timestamp: Date) => ({
-    season: Number(v.season),
-    value: TV.fromBlockchain(v.beans, PINTO.decimals).toNumber(),
-    timestamp,
-  });
-
   return useSeasonalQueries("BeanstalkSeasonalSeasonQuery", {
     fromSeason,
     toSeason,
     queryVars: {},
-    timestampColName: "createdAt",
     historicalQueryFnFactory: queryFnFactory,
     currentQueryFnFactory: queryFnFactory,
-    convertResult,
+    resultTimestamp: (entry) => {
+      return new Date(Number(entry.createdAt) * 1000);
+    },
+    convertResult: (v: Season, timestamp: Date) => ({
+      season: Number(v.season),
+      value: TV.fromBlockchain(v.beans, PINTO.decimals).toNumber(),
+      timestamp,
+    }),
   });
 }

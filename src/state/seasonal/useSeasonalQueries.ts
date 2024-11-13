@@ -16,19 +16,20 @@ export type SeasonalQueryConfig<T> = {
   fromSeason: number;
   toSeason: number;
   queryVars: SeasonalExtraVars;
-  timestampColName: string;
   historicalQueryFnFactory: QueryFnFactory<T>;
   currentQueryFnFactory: QueryFnFactory<T>;
+  resultTimestamp: ResultTimestampFn<T>;
   convertResult: ConvertResultFn<T>;
 };
 
 type QueryFnFactory<T> = (vars: SeasonalQueryVars) => () => Promise<T[]>;
+type ResultTimestampFn<T> = (d: T) => Date;
 type ConvertResultFn<T> = (d: T, timestamp: Date) => SeasonalChartData;
 
 export default function useSeasonalQueries<T>(keyName: string, queryConfig: SeasonalQueryConfig<T>): UseSeasonalResult {
   const queryClient = useQueryClient();
   // const currentSeason = useSunData().current; // TODO(ss): put this back eventually
-  const currentSeason = 25942;
+  const currentSeason = 25947;
   const chainId = useChainId();
 
   // Current season should be discarded from historical in the select step
@@ -58,7 +59,7 @@ export default function useSeasonalQueries<T>(keyName: string, queryConfig: Seas
           // The final season is part of this result, but extraneous and reselected as the current season.
           let seasonEnd: Date;
           if (idx < data.length - 1) {
-            seasonEnd = new Date(Number(data[idx][queryConfig.timestampColName]) * 1000);
+            seasonEnd = queryConfig.resultTimestamp(data[idx + 1]);
             return queryConfig.convertResult(v, seasonEnd);
           }
         })

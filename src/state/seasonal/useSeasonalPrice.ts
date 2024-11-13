@@ -30,19 +30,19 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number): 
     return await paginateSubgraph(paginateSettings, subgraphs[chainId].bean, BeanSeasonalBeanDocument, vars);
   };
 
-  const convertResult = (v: BeanHourlySnapshot, timestamp: Date) => ({
-    season: Number(v.season.season),
-    value: Number(v.price),
-    timestamp,
-  });
-
   return useSeasonalQueries("BeanSeasonalBeanQuery", {
     fromSeason,
     toSeason,
     queryVars: {},
-    timestampColName: "timestamp",
     historicalQueryFnFactory: queryFnFactory,
     currentQueryFnFactory: queryFnFactory,
-    convertResult,
+    resultTimestamp: (entry) => {
+      return new Date(Number(entry.timestamp) * 1000);
+    },
+    convertResult: (v: BeanHourlySnapshot, timestamp: Date) => ({
+      season: Number(v.season.season),
+      value: Number(v.price),
+      timestamp,
+    }),
   });
 }

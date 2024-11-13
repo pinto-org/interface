@@ -30,19 +30,19 @@ export default function useSeasonalMcap(fromSeason: number, toSeason: number): U
     );
   };
 
-  const convertResult = (v: Season, timestamp: Date) => ({
-    season: Number(v.season),
-    value: Number(v.marketCap),
-    timestamp,
-  });
-
   return useSeasonalQueries("BeanstalkSeasonalSeasonQuery", {
     fromSeason,
     toSeason,
     queryVars: {},
-    timestampColName: "createdAt",
     historicalQueryFnFactory: queryFnFactory,
     currentQueryFnFactory: queryFnFactory,
-    convertResult,
+    resultTimestamp: (entry) => {
+      return new Date(Number(entry.createdAt) * 1000);
+    },
+    convertResult: (v: Season, timestamp: Date) => ({
+      season: Number(v.season),
+      value: Number(v.marketCap),
+      timestamp,
+    }),
   });
 }
