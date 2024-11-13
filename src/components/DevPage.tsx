@@ -8,14 +8,20 @@ import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { Input } from "./ui/Input";
 import { usePriceData } from "@/state/usePriceData";
-
-interface TaskResponse {
-  success: boolean;
-  message: string;
-  data?: any;
-}
+import { createPublicClient, http, PublicClient } from "viem";
+import { hardhat } from "viem/chains";
 
 type ServerStatus = "running" | "not-running" | "checking";
+
+// this extended type declaration is to fix the fact that hardhat_mine is not one of the offical types
+type ExtendedPublicClient = PublicClient & {
+  request(args: { method: "hardhat_mine"; params: string[] }): Promise<void>;
+};
+
+const publicClient = createPublicClient({
+  chain: hardhat,
+  transport: http(),
+});
 
 export default function DevPage() {
   const { address } = useAccount();
@@ -44,9 +50,10 @@ export default function DevPage() {
   const [singleSidedAmounts, setSingleSidedAmounts] = useState("");
 
   const priceData = usePriceData();
-  const tokenData = useTokenData();
 
   const [selectedPercent, setSelectedPercent] = useState<number>(10);
+
+  const [blockSkipAmount, setBlockSkipAmount] = useState("6"); // default to 6 blocks because the morning auction updates every 6 blocks (12 seconds on eth, 2 seconds on base, 12/2 = 6)
 
   useEffect(() => {
     const checkServer = async () => {
@@ -150,6 +157,27 @@ export default function DevPage() {
     setSelectedPercent(percent);
   };
 
+  const skipBlocks = async () => {
+    try {
+      const blocks = parseInt(blockSkipAmount);
+      if (Number.isNaN(blocks)) {
+        toast.error("Please enter a valid number of blocks");
+        return;
+      }
+
+      // hardhat_mine is not one of the offical types, so casting to any
+      await (publicClient as ExtendedPublicClient).request({
+        method: "hardhat_mine",
+        params: [`0x${blocks.toString(16)}`],
+      });
+
+      toast.success(`Skipped ${blocks} blocks`);
+    } catch (error) {
+      console.error("Failed to skip blocks:", error);
+      toast.error("Failed to skip blocks. Make sure you are connected to an Anvil/Hardhat node.");
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center">
       <div className="flex flex-col gap-6 w-[80%] mb-20">
@@ -163,28 +191,39 @@ export default function DevPage() {
         {/* Simple Actions */}
         <Card className="p-6">
           <h2 className="text-2xl mb-4">Basic Actions</h2>
-          <div className="flex flex-wrap gap-4">
-            <Button onClick={() => executeTask("callSunrise")} disabled={loading === "callSunrise"}>
-              Sunrise
-            </Button>
-            <Button
-              onClick={async () => {
-                await executeTask("callSunrise");
-                await executeTask("callSunrise");
-              }}
-              disabled={loading === "callSunrise"}
-            >
-              Double Sunrise
-            </Button>
-            <Button onClick={() => executeTask("skipMorningAuction")} disabled={loading === "skipMorningAuction"}>
-              Skip Morning Auction
-            </Button>
-            <Button onClick={() => executeTask("megaDeploy")} disabled={loading === "megaDeploy"}>
-              Mega Deploy
-            </Button>
-            <Button onClick={() => executeTask("forceFlood")} disabled={loading === "forceFlood"}>
-              Force Flood
-            </Button>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap gap-4">
+              <Button onClick={() => executeTask("callSunrise")} disabled={loading === "callSunrise"}>
+                Call Sunrise
+              </Button>
+              <Button
+                onClick={async () => {
+                  await executeTask("callSunrise");
+                  await executeTask("callSunrise");
+                }}
+                disabled={loading === "callSunrise"}
+              >
+                Double Sunrise
+              </Button>
+              <Button onClick={() => executeTask("skipMorningAuction")} disabled={loading === "skipMorningAuction"}>
+                Skip Morning Auction
+              </Button>
+              <Button onClick={() => executeTask("megaDeploy")} disabled={loading === "megaDeploy"}>
+                Mega Deploy
+              </Button>
+              <Button onClick={() => executeTask("forceFlood")} disabled={loading === "forceFlood"}>
+                Force Flood
+              </Button>
+            </div>
+            <div className="flex gap-2 items-center">
+              <Input
+                placeholder="# Blocks to skip"
+                value={blockSkipAmount}
+                onChange={(e) => setBlockSkipAmount(e.target.value)}
+                className="w-32"
+              />
+              <Button onClick={skipBlocks}>Skip Blocks</Button>
+            </div>
           </div>
         </Card>
 
