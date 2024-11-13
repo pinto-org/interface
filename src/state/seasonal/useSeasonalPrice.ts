@@ -14,13 +14,13 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number): 
     BeanHourlySnapshot,
     BeanSeasonalPriceQuery,
     "beanHourlySnapshots",
-    typeof historicalVars
+    SeasonalQueryVars
   > = {
     primaryPropertyName: "beanHourlySnapshots",
     idField: "id",
     nextVars: (
       value1000: Partial<Pick<BeanHourlySnapshot, keyof BeanHourlySnapshot>>,
-      prevVars: typeof historicalVars,
+      prevVars: SeasonalQueryVars,
     ) => {
       if (value1000) {
         return {
@@ -35,32 +35,29 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number): 
     return await paginateSubgraph(paginateSettings, subgraphs[chainId].bean, BeanSeasonalPriceDocument, vars);
   };
 
+  const entryData = (v: BeanHourlySnapshot, timestamp: Date) => ({
+    season: Number(v.season),
+    value: Number(v.price),
+    timestamp
+  })
+
   const historicalSelect = (_queryClient: QueryClient, _queryKey: QueryKey) => (data: BeanHourlySnapshot[]) => {
-    return data.map((r) => {
+    return data.map((v) => {
       // For previous seasons, the presented data is upon the season's completion,
       // add 1 hour to created timestamp.
-      const snapshotCreatedDate = new Date(Number(r.timestamp) * 1000);
+      const snapshotCreatedDate = new Date(Number(v.timestamp) * 1000);
       const snapshotEndDate = new Date(snapshotCreatedDate.getTime() + 60 * 60 * 1000);
-      return {
-        season: Number(r.season),
-        value: Number(r.price),
-        timestamp: snapshotEndDate,
-      };
+      return entryData(v, snapshotEndDate);
     });
   };
 
   const currentSelect = (queryClient: QueryClient, queryKey: QueryKey) => (data: BeanHourlySnapshot[]) => {
-    return data.map((r) => {
+    return data.map((v) => {
       const queryInfo = queryClient.getQueryCache().find({ queryKey });
       const lastFetchedTimestamp = queryInfo?.state?.dataUpdatedAt;
-      return {
-        season: Number(r.season),
-        value: Number(r.price),
-        timestamp: lastFetchedTimestamp ? new Date(lastFetchedTimestamp) : new Date(),
-      };
+      return entryData(v, lastFetchedTimestamp ? new Date(lastFetchedTimestamp) : new Date());
     });
   };
-
 
   return useSeasonalQueries(
     "seasonalPrice",
