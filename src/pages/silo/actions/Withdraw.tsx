@@ -17,6 +17,9 @@ import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useConfig } from "wagmi";
 import { useAccount, useChainId } from "wagmi";
+import OutputDisplay from "@/components/OutputDisplay";
+import { SEEDS, STALK } from "@/constants/internalTokens";
+import { useSiloData } from "@/state/useSiloData";
 
 function Withdraw({ siloToken }: { siloToken: Token }) {
   const config = useConfig();
@@ -27,6 +30,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   const [destination, setDestination] = useState(FarmToMode.EXTERNAL);
   const [amount, setAmount] = useState("0");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { tokenData: siloTokenData } = useSiloData();
 
   const farmerDepositData = farmerDeposits.get(fromToken);
   const deposits = farmerDepositData?.deposits;
@@ -104,6 +108,21 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const disabled = !stringToNumber(amount) || !account.address || isSubmitting || isConfirming;
 
+  const getWithdrawOutput = useCallback(() => {
+    if (!amount || Number(amount) <= 0 || !deposits) return null;
+
+    const amountTV = TokenValue.fromHuman(amount, fromToken.decimals);
+    const transferData = sortAndPickCrates("withdraw", amountTV, deposits);
+
+    return {
+      amount: amountTV,
+      stalkLost: transferData.stalk,
+      seedsLost: transferData.seeds,
+    };
+  }, [amount, deposits, fromToken, siloTokenData]);
+
+  const withdrawOutput = getWithdrawOutput();
+
   return (
     <div className="flex flex-col gap-4">
       <div>
@@ -123,6 +142,35 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
         <Label className="flex h-10 items-center">Destination</Label>
         <DestinationBalanceSelect setBalanceTo={setDestination} balanceTo={destination} />
       </div>
+      {withdrawOutput && (
+        <OutputDisplay title="I receive">
+          <OutputDisplay.Item label="Amount">
+            <OutputDisplay.Value
+              value={formatter.token(withdrawOutput.amount, fromToken)}
+              token={fromToken}
+              suffix={fromToken.symbol}
+            />
+          </OutputDisplay.Item>
+          <OutputDisplay.Item label="Stalk">
+            <OutputDisplay.Value
+              value={formatter.twoDec(withdrawOutput.stalkLost)}
+              suffix="Stalk"
+              delta={-withdrawOutput.stalkLost.toNumber()}
+              token={STALK}
+              showArrow
+            />
+          </OutputDisplay.Item>
+          <OutputDisplay.Item label="Seed">
+            <OutputDisplay.Value
+              value={formatter.twoDec(withdrawOutput.seedsLost)}
+              suffix="Seed"
+              delta={-withdrawOutput.seedsLost.toNumber()}
+              token={SEEDS}
+              showArrow
+            />
+          </OutputDisplay.Item>
+        </OutputDisplay>
+      )}
       <div>
         <Button
           className="w-full flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem]"
