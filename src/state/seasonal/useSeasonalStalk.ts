@@ -8,7 +8,11 @@ import {
   BeanstalkSeasonalStalkQuery,
   SiloHourlySnapshot,
 } from "@/generated/gql/graphql";
-import useSeasonalQueries, { SeasonalQueryVars } from "./useSeasonalQueries";
+import useSeasonalQueries, {
+  currentSelectFactory,
+  historicalSelectFactory,
+  SeasonalQueryVars,
+} from "./useSeasonalQueries";
 import { STALK } from "@/constants/internalTokens";
 import { TV } from "@/classes/TokenValue";
 import { beanstalkAddress } from "@/generated/contractHooks";
@@ -38,41 +42,19 @@ export default function useSeasonalStalk(fromSeason: number, toSeason: number): 
     return await paginateSubgraph(paginateSettings, subgraphs[chainId].beanstalk, BeanstalkSeasonalStalkDocument, vars);
   };
 
-  const entryData = (v: SiloHourlySnapshot, timestamp: Date) => ({
+  const convertEntry = (v: SiloHourlySnapshot, timestamp: Date) => ({
     season: Number(v.season),
     value: TV.fromBlockchain(v.stalk, STALK.decimals).toNumber(),
     timestamp,
   });
-
-  const historicalSelect = (_queryClient: QueryClient, _queryKey: QueryKey) => (data: SiloHourlySnapshot[]) => {
-    return data
-      .map((v, idx) => {
-        // Data is presented at the time of season completion.
-        // The final season is part of this result, but extraneous and reselected as the current season.
-        let seasonEnd: Date;
-        if (idx < data.length - 1) {
-          seasonEnd = new Date(Number(data[idx].createdAt) * 1000);
-          return entryData(v, seasonEnd);
-        }
-      })
-      .filter((v) => v !== undefined);
-  };
-
-  const currentSelect = (queryClient: QueryClient, queryKey: QueryKey) => (data: SiloHourlySnapshot[]) => {
-    return data.map((v) => {
-      const queryInfo = queryClient.getQueryCache().find({ queryKey });
-      const lastFetchedTimestamp = queryInfo?.state?.dataUpdatedAt;
-      return entryData(v, lastFetchedTimestamp ? new Date(lastFetchedTimestamp) : new Date());
-    });
-  };
 
   return useSeasonalQueries("seasonalPrice", {
     fromSeason,
     toSeason,
     queryVars: { silo: beanstalkAddress[chainId] },
     historicalQueryFnFactory: queryFnFactory,
-    historicalSelect,
+    historicalSelect: historicalSelectFactory("createdAt", convertEntry),
     currentQueryFnFactory: queryFnFactory,
-    currentSelect,
+    currentSelect: currentSelectFactory(convertEntry),
   });
 }
