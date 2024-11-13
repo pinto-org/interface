@@ -1,11 +1,10 @@
-import { BeanHourlySnapshot } from "@/generated/gql/graphql";
 import { UseSeasonalResult } from "@/utils/types";
-import useSeasonalBeanBeanGql from "./queries/useSeasonalBeanBeanGql";
+import useSeasonalBeanBeanSG from "./queries/useSeasonalBeanBeanSG";
 
 export default function useSeasonalPrice(fromSeason: number, toSeason: number): UseSeasonalResult {
-  return useSeasonalBeanBeanGql(fromSeason, toSeason, (v: BeanHourlySnapshot, timestamp: Date) => ({
-    season: Number(v.season.season),
-    value: Number(v.price),
+  return useSeasonalBeanBeanSG(fromSeason, toSeason, (beanHourly, timestamp) => ({
+    season: Number(beanHourly.season.season),
+    value: Number(beanHourly.price),
     timestamp,
   }));
 }

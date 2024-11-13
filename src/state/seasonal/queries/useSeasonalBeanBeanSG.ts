@@ -5,7 +5,7 @@ import { paginateSubgraph, PaginationSettings } from "@/utils/paginateSubgraph";
 import { UseSeasonalResult } from "@/utils/types";
 import useSeasonalQueries, { ConvertEntryFn, SeasonalQueryVars } from "./useSeasonalInternalQueries";
 
-export default function useSeasonalBeanBeanGql(
+export default function useSeasonalBeanBeanSG(
   fromSeason: number,
   toSeason: number,
   convertResult: ConvertEntryFn<BeanHourlySnapshot>,

@@ -10,6 +10,8 @@ query BeanSeasonalBean($from: Int, $to: Int) {
       season
     }
     price
+    supply
+    marketCap
     supplyInPegLP
     timestamp
   }
