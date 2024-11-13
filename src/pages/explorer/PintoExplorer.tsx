@@ -1,8 +1,10 @@
 import SeasonalChart from "@/components/charts/SeasonalChart";
-import useSeasonalMcap from "@/state/seasonal/useSeasonalMcap";
-import useSeasonalPrice from "@/state/seasonal/useSeasonalPrice";
-import useSeasonalSupply from "@/state/seasonal/useSeasonalSupply";
-import useSeasonalTotalLiquidity from "@/state/seasonal/useSeasonalTotalLiquidity";
+import {
+  useSeasonalMcap,
+  useSeasonalPrice,
+  useSeasonalSupply,
+  useSeasonalTotalLiquidity,
+} from "@/state/seasonal/seasonalDataHooks";
 import { formatter, numberAbbr } from "@/utils/format";
 
 // TODO(ss): put these in a shared location
