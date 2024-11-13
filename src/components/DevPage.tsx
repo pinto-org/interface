@@ -13,7 +13,7 @@ import { hardhat } from "viem/chains";
 
 type ServerStatus = "running" | "not-running" | "checking";
 
-// Add this type declaration above your code
+// this extended type declaration is to fix the fact that hardhat_mine is not one of the offical types
 type ExtendedPublicClient = PublicClient & {
   request(args: { method: "hardhat_mine"; params: string[] }): Promise<void>;
 };
