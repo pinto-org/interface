@@ -85,7 +85,7 @@ export default function ClaimRewards({ trigger }: RewardsClaimProps) {
     const updateData: `0x${string}`[] = [];
     for (const [token, depositData] of farmerDeposits.data.entries()) {
       for (const deposit of depositData.deposits) {
-        if (deposit.currentBdv.gt(deposit.depositBdv)) {
+        if (deposit.currentBdv.gt(deposit.depositBdv) && !deposit.isGerminating) {
           const convertData = calculateConvertData(token, token, deposit.amount, deposit.amount);
           if (!convertData) {
             throw new Error("Invalid convert data");
