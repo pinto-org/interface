@@ -2,6 +2,7 @@ import SeasonalChart from "@/components/charts/SeasonalChart";
 import useSeasonalMcap from "@/state/seasonal/useSeasonalMcap";
 import useSeasonalPrice from "@/state/seasonal/useSeasonalPrice";
 import useSeasonalSupply from "@/state/seasonal/useSeasonalSupply";
+import useSeasonalTotalLiquidity from "@/state/seasonal/useSeasonalTotalLiquidity";
 import { formatter, numberAbbr } from "@/utils/format";
 
 // TODO(ss): put these in a shared location
@@ -30,9 +31,9 @@ const PintoExplorer = () => {
             title="Total Liquidity"
             size="small"
             fillArea
-            useDataHook={useSeasonalPrice}
-            valueFormatter={price6dFormatter}
-            tickValueFormatter={price2dFormatter}
+            useDataHook={useSeasonalTotalLiquidity}
+            valueFormatter={price0dFormatter}
+            tickValueFormatter={largePriceFormatter}
           />
         </div>
       </div>

@@ -1,10 +1,13 @@
 import SeasonalChart from "@/components/charts/SeasonalChart";
 import useSeasonalStalk from "@/state/seasonal/useSeasonalStalk";
+import useSeasonalTotalLiquidity from "@/state/seasonal/useSeasonalTotalLiquidity";
 import { formatter, numberAbbr } from "@/utils/format";
 
 // TODO(ss): put these in a shared location
 const number0dFormatter = (v: number) => `${formatter.number(v, { minDecimals: 0, maxDecimals: 0 })}`;
 const largeNumberFormatter = numberAbbr;
+const price0dFormatter = (v: number) => `$${formatter.number(v, { minDecimals: 0, maxDecimals: 0 })}`;
+const largePriceFormatter = (v: number) => `$${numberAbbr(v)}`;
 
 const SiloExplorer = () => {
   return (
@@ -14,16 +17,16 @@ const SiloExplorer = () => {
           <SeasonalChart
             title="Total Liquidity"
             size="small"
-            useDataHook={useSeasonalStalk}
-            valueFormatter={number0dFormatter}
-            tickValueFormatter={largeNumberFormatter}
+            fillArea
+            useDataHook={useSeasonalTotalLiquidity}
+            valueFormatter={price0dFormatter}
+            tickValueFormatter={largePriceFormatter}
           />
         </div>
         <div className="w-1/2">
           <SeasonalChart
             title="Liquidity to Supply ratio"
             size="small"
-            fillArea
             useDataHook={useSeasonalStalk}
             valueFormatter={number0dFormatter}
             tickValueFormatter={largeNumberFormatter}
@@ -40,6 +43,7 @@ const SiloExplorer = () => {
       <SeasonalChart
         title="Stalk Supply"
         size="large"
+        fillArea
         useDataHook={useSeasonalStalk}
         valueFormatter={number0dFormatter}
         tickValueFormatter={largeNumberFormatter}
