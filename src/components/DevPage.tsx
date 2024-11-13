@@ -18,6 +18,11 @@ type ExtendedPublicClient = PublicClient & {
   request(args: { method: "hardhat_mine"; params: string[] }): Promise<void>;
 };
 
+const publicClient = createPublicClient({
+  chain: hardhat,
+  transport: http(),
+});
+
 export default function DevPage() {
   const { address } = useAccount();
   const [loading, setLoading] = useState<string | null>(null);
@@ -49,10 +54,6 @@ export default function DevPage() {
   const [selectedPercent, setSelectedPercent] = useState<number>(10);
 
   const [blockSkipAmount, setBlockSkipAmount] = useState("6"); // default to 6 blocks because the morning auction updates every 6 blocks (12 seconds on eth, 2 seconds on base, 12/2 = 6)
-  const publicClient = createPublicClient({
-    chain: hardhat,
-    transport: http(),
-  });
 
   useEffect(() => {
     const checkServer = async () => {
