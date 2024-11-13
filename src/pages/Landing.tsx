@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
 import Slide from "./landing/Slide";
@@ -10,6 +10,65 @@ import { useNavigate } from "react-router-dom";
 import CoinModel from "./landing/utils/CoinModel";
 import EnvironmentSetup from "./landing/utils/EnvironmentSetup";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+
+// IMAGE ARRAY
+const images = [
+  "tree.png",
+  "tree.png",
+  "rock.png",
+  "gold.png",
+  "pickaxe.png",
+  "teepee.png",
+  "wheat.png",
+  "cow.png",
+  "abacus.png",
+  "idols.png",
+  "bimetal-coins.png",
+  "clayledger.png",
+  "aqueduct.png",
+  "parthenon.png",
+  "banknote.png",
+  "steamengine.png",
+  "lightbulb.png",
+  "church.png",
+  "nuke.png",
+  "USD.png",
+  "computer.png",
+  "skyscraper.png",
+  "BTC.png",
+];
+
+// CAMERA ZOOM EFFECT
+const CameraZoom = ({
+  zoomRef,
+}: {
+  zoomRef: React.MutableRefObject<boolean>;
+}) => {
+  const { camera } = useThree();
+
+  // CAMERA POSITIONS
+  const initialCameraPosition = new THREE.Vector3(0, 0, 100);
+  const targetCameraPosition = new THREE.Vector3(0, 0, 20);
+
+  useEffect(() => {
+    if (zoomRef.current) {
+      camera.position.copy(initialCameraPosition);
+      camera.layers.enable(2); // Enable layer 1 for rendering the Slide
+      camera.layers.disable(1); // Optionally disable the default layer
+    } else {
+      camera.layers.enable(1); // Enable layer 1 for rendering the Slide
+      camera.layers.disable(2); // Optionally disable the default layer
+    }
+  }, [camera]);
+
+  useFrame(() => {
+    if (zoomRef.current) {
+      camera.position.lerp(targetCameraPosition, 0.07); // Smooth zoom and pan
+    } else camera.position.lerp(initialCameraPosition, 0.14);
+  });
+
+  return null;
+};
 
 export default function Landing() {
   // DECLARATIONS FOR STATE
@@ -48,33 +107,6 @@ export default function Landing() {
 
   const transitionComplete = localStorage.getItem("hasWatchedTransition");
 
-  // IMAGE ARRAY
-  const images = [
-    "tree.png",
-    "tree.png",
-    "rock.png",
-    "gold.png",
-    "pickaxe.png",
-    "teepee.png",
-    "wheat.png",
-    "cow.png",
-    "abacus.png",
-    "idols.png",
-    "bimetal-coins.png",
-    "clayledger.png",
-    "aqueduct.png",
-    "parthenon.png",
-    "banknote.png",
-    "steamengine.png",
-    "lightbulb.png",
-    "church.png",
-    "nuke.png",
-    "USD.png",
-    "computer.png",
-    "skyscraper.png",
-    "BTC.png",
-  ];
-
   useEffect(() => {
     // PARSE QUERY PARAMS - MARK IF THE USER HAS VISITED THE SITE BEFORE
     const params = new URLSearchParams(location.search);
@@ -104,7 +136,7 @@ export default function Landing() {
   }, []);
 
   // RESET ANIMATION STATE
-  const resetCoinState = () => {
+  const resetCoinState = useCallback(() => {
     setCurrentIndex(0);
     setNextIndex(1);
     setShowMetallicCoin(false);
@@ -112,7 +144,7 @@ export default function Landing() {
     zoomRef.current = false;
     particlesBackgroundRef.current?.loadTheme("default");
     localStorage.removeItem("hasWatchedTransition");
-  };
+  }, []);
 
   // EFFECT TO UPDATE ANIMATION SPEED, PARTICLE BACKGROUND THEME, AND CAMERA ZOOM
   useEffect(() => {
@@ -212,34 +244,6 @@ export default function Landing() {
     };
   }, [maxAnimationTime, currentIndex, nextIndex]);
 
-  // CAMERA ZOOM EFFECT
-  const CameraZoom = () => {
-    const { camera } = useThree();
-
-    // CAMERA POSITIONS
-    const initialCameraPosition = new THREE.Vector3(0, 0, 100);
-    const targetCameraPosition = new THREE.Vector3(0, 0, 20);
-
-    useEffect(() => {
-      if (zoomRef.current) {
-        camera.position.copy(initialCameraPosition);
-        camera.layers.enable(2); // Enable layer 1 for rendering the Slide
-        camera.layers.disable(1); // Optionally disable the default layer
-      } else {
-        camera.layers.enable(1); // Enable layer 1 for rendering the Slide
-        camera.layers.disable(2); // Optionally disable the default layer
-      }
-    }, [camera]);
-
-    useFrame(() => {
-      if (zoomRef.current) {
-        camera.position.lerp(targetCameraPosition, 0.07); // Smooth zoom and pan
-      } else camera.position.lerp(initialCameraPosition, 0.14);
-    });
-
-    return null;
-  };
-
   return (
     <div className="space-y-8 relative z-10">
       <div
@@ -277,7 +281,7 @@ export default function Landing() {
           }}
         >
           <EnvironmentSetup />
-          <CameraZoom />
+          <CameraZoom zoomRef={zoomRef} />
           <ambientLight intensity={5} />
           <directionalLight
             position={[0, 80, 80]} // Positioned above and slightly in front of the coin

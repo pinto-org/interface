@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import { useFrame } from "@react-three/fiber";
 import { MeshStandardMaterial, Color, Vector3 } from "three";
 
@@ -10,11 +10,15 @@ type CoinModelProps = {
   onClick: () => void;
 };
 
+const defaultPosition = [0, 0, 0] as [number, number, number];
+const defaultScale = [6.65, 6.65, 6.65] as [number, number, number];
+const defaultRotation = [0, 0, 0] as [number, number, number];
+
 const CoinModel: React.FC<CoinModelProps> = ({
   gltf,
-  position = [0, 0, 0],
-  scale = [6.65, 6.65, 6.65],
-  rotation = [0, 0, 0],
+  position = defaultPosition,
+  scale = defaultScale,
+  rotation = defaultRotation,
   onClick,
 }) => {
   // Load the model using GLTFLoader
@@ -122,21 +126,21 @@ const CoinModel: React.FC<CoinModelProps> = ({
     }
   });
 
-  const handlePointerOver = () => {
+  const handlePointerOver = useCallback(() => {
     if (targetPosition.current) {
       targetPosition.current.set(position[0], position[1], position[2] + 5); // Move closer on Z-axis
     }
-  };
+  }, []);
 
-  const handlePointerOut = () => {
+  const handlePointerOut = useCallback(() => {
     if (targetPosition.current) {
       targetPosition.current.set(...position); // Reset to original position
     }
-  };
+  }, []);
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     onClick();
-  };
+  }, []);
 
   return (
     <>
