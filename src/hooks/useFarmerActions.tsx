@@ -765,11 +765,9 @@ export default function useFarmerActions(): FarmerActions {
         field: podValue,
         wallet: walletValue,
         rewards: {
-          stalk: farmerSilo.grownStalkReward.add(totalUpdateGains.stalkGain),
-          seeds: farmerSilo.earnedBeansBalance
-            .mul(siloData.tokenData.get(mainToken)?.rewards.seeds ?? TokenValue.ZERO)
-            .add(totalUpdateGains.seedGain),
-          earnedBeans: farmerSilo.earnedBeansBalance.add(totalUpdateGains.beanGain),
+          stalk: farmerSilo.grownStalkReward,
+          seeds: farmerSilo.earnedBeansBalance.mul(siloData.tokenData.get(mainToken)?.rewards.seeds ?? TokenValue.ZERO),
+          earnedBeans: farmerSilo.earnedBeansBalance,
         },
       },
       tokenTotals,

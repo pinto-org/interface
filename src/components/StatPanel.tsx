@@ -5,7 +5,6 @@ import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { formatter } from "@/utils/format";
 import { ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
 import TooltipSimple from "./TooltipSimple";
 import Text from "./ui/Text";
 
@@ -44,11 +43,11 @@ const StatPanel = ({
     })[iconMode];
 
   const ValueDisplay = () => (
-    <div className="flex flex-row gap-1 items-center">
+    <div className="flex flex-row gap-1 items-center whitespace-nowrap">
       {mode !== "depositedValue" && (
         <img src={getIcon(mode)} className={`${size === "large" ? "h-12 w-12" : "h-8 w-8"}`} alt={mode.toUpperCase()} />
       )}
-      <Text as="span" variant="inherit">
+      <Text as="span" variant="inherit" className="tracking-[0.01em]">
         {mode === "depositedValue"
           ? formatter.usd(showActionValues && mainValueChange ? mainValue.add(mainValueChange) : mainValue)
           : formatter.number(showActionValues && mainValueChange ? mainValue.add(mainValueChange) : mainValue)}
@@ -56,7 +55,7 @@ const StatPanel = ({
       {showActionValues && mainValueChange && mainValueChange?.abs().gt(0.001) && (
         <Text
           variant={size === "large" ? "h1" : "h3"}
-          className={`ml-2 ${
+          className={`pl-2 tracking-[0.01em] ${
             mainValueChange.lt(0)
               ? "text-pinto-gray-4"
               : mode === "depositedValue"
@@ -132,20 +131,23 @@ const StatPanel = ({
   );
 
   return (
-    <div className={`relative ${mainValue.eq(0) ? "opacity-[0.4]" : "opacity-100"}`}>
+    <div className={`relative min-w-[275px]`}>
       <div className={`flex flex-col items-center gap-2 ${className}`}>
-        <div data-action-target={`${mode}-stats`}>
+        <div data-action-target={`${mode}-stats`} className={mainValue.eq(0) ? "opacity-[0.4]" : "opacity-100"}>
           <Text variant="body">{`My ${mode === "stalk" ? "Stalk" : mode === "seeds" ? "Seed" : mode === "pods" ? "Pods" : "deposited value"}`}</Text>
         </div>
-        <Text variant={size === "large" ? "h1" : "h3"}>
+        <Text variant={size === "large" ? "h1" : "h3"} className={mainValue.eq(0) ? "opacity-[0.4]" : "opacity-100"}>
           <ValueDisplay />
         </Text>
         <div className="flex flex-row gap-1 items-center">
-          <SecondaryDisplay />
+          <div className={mainValue.eq(0) ? "opacity-[0.4]" : "opacity-100"}>
+            <SecondaryDisplay />
+          </div>
           {tooltipContent && (
             <TooltipSimple
               content={tooltipContent}
-              variant={mode === "stalk" ? "stalk" : mode === "seeds" ? "seed" : "pod"}
+              variant={mode === "stalk" ? "stalk" : mode === "seeds" ? "seed" : mode === "pods" ? "pod" : "gray"}
+              opaque={mainValue.eq(0)}
             />
           )}
         </div>

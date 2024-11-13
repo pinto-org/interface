@@ -7,6 +7,7 @@ import PlotsTable from "@/components/PlotsTable";
 import StatPanel from "@/components/StatPanel";
 import TableRowConnector from "@/components/TableRowConnector";
 import { Button } from "@/components/ui/Button";
+import PageContainer from "@/components/ui/PageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import { useFarmerField } from "@/state/useFarmerField";
@@ -81,54 +82,38 @@ const Overview = () => {
       mode: "depositedValue",
       mainValue: farmerSilo.depositsUSD,
       mainValueChange:
-        hoveredButton === "claim"
-          ? farmerActions.claimRewards.outputs.bdvGain.mul(priceData.price)
-          : farmerActions.harvestPods.outputs.bdvGain.mul(priceData.price),
+        hoveredButton === "harvest" ? farmerActions.harvestPods.outputs.bdvGain.mul(priceData.price) : undefined,
       secondaryValue: farmerSilo.depositsBDV,
-      actionValue:
-        hoveredButton === "claim"
-          ? farmerActions.claimRewards.outputs.bdvGain
-          : farmerActions.harvestPods.outputs.bdvGain,
-      showActionValues: hoveredButton === "claim" || hoveredButton === "harvest",
+      actionValue: hoveredButton === "harvest" ? farmerActions.harvestPods.outputs.bdvGain : undefined,
+      showActionValues: hoveredButton === "harvest",
+      tooltipContent: "Your Pinto Denominated Value in the Silo.",
     },
     stalk: {
       mode: "stalk",
       mainValue: farmerSilo.activeStalkBalance,
-      mainValueChange:
-        hoveredButton === "claim"
-          ? farmerActions.claimRewards.outputs.stalkGain
-          : farmerActions.harvestPods.outputs.stalkGain,
-      actionValue: hoveredButton === "claim" ? claimSiloPct.sub(siloPct) : harvestSiloPct.sub(siloPct),
+      mainValueChange: hoveredButton === "harvest" ? farmerActions.harvestPods.outputs.stalkGain : undefined,
+      actionValue: hoveredButton === "harvest" ? harvestSiloPct.sub(siloPct) : undefined,
       secondaryValue: siloPct,
       tooltipContent:
         "Your ownership of the Stalk supply determines the portion of Pinto supply increases that you earn.",
-      showActionValues: hoveredButton === "claim" || hoveredButton === "harvest",
+      showActionValues: hoveredButton === "harvest",
     },
     seeds: {
       mode: "seeds",
       mainValue: farmerSilo.activeSeedsBalance,
-      mainValueChange:
-        hoveredButton === "convert"
-          ? farmerActions.convertDeposits.bestConversion.outputs.seedGain
-          : hoveredButton === "claim"
-            ? farmerActions.claimRewards.outputs.seedGain
-            : farmerActions.harvestPods.outputs.seedGain,
-      actionValue:
-        hoveredButton === "convert"
-          ? farmerActions.convertDeposits.bestConversion.outputs.seedGain
-          : hoveredButton === "claim"
-            ? farmerActions.claimRewards.outputs.seedGain
-            : farmerActions.harvestPods.outputs.seedGain,
+      mainValueChange: hoveredButton === "harvest" ? farmerActions.harvestPods.outputs.seedGain : undefined,
+      actionValue: hoveredButton === "harvest" ? farmerActions.harvestPods.outputs.seedGain : undefined,
       secondaryValue: stalkPerSeason,
-      tooltipContent: "Seeds grow Stalk every Season, creating the time weighted staking mechanism that is the Silo.",
-      showActionValues: hoveredButton !== "",
+      tooltipContent: "Seeds grow Stalk every Season, creating an opportunity cost to leaving the Silo.",
+      showActionValues: hoveredButton === "harvest",
     },
     pods: {
       mode: "pods",
       mainValue: farmerField.totalUnharvestablePods.add(farmerField.totalHarvestablePods),
       mainValueChange: farmerActions.harvestPods.outputs.podGain,
       secondaryValue: placesInLine[0],
-      tooltipContent: "The number of Pods that need to Harvest before your next place in the Pod Line.",
+      tooltipContent:
+        "The number of Pods that need to become redeemable before your next Plot reaches the front of the Pod Line.",
       showActionValues: hoveredButton === "harvest",
     },
   };
@@ -140,7 +125,7 @@ const Overview = () => {
 
   // Render helpers
   const renderEmptyState = () => (
-    <div className="flex flex-row justify-between gap-8 p-4">
+    <div className="flex flex-row justify-between gap-8">
       <Button
         asChild
         variant="outline"
@@ -182,7 +167,7 @@ const Overview = () => {
             <StatPanel {...(hasOnlyPods ? statPanelData.pods : statPanelData.depositedValue)} size="large" />
           </div>
         </div>
-        <div className="grid grid-flow-col grid-cols-3 mt-20 gap-[4.5rem] w-[960px] self-center whitespace-nowrap">
+        <div className="grid grid-flow-col grid-cols-3 mt-[4.5rem] gap-[4.5rem] self-center whitespace-nowrap">
           <StatPanel {...(hasOnlyPods ? statPanelData.depositedValue : statPanelData.stalk)} />
           <StatPanel {...(hasOnlyPods ? statPanelData.stalk : statPanelData.seeds)} />
           <StatPanel {...(hasOnlyPods ? statPanelData.seeds : statPanelData.pods)} />
@@ -190,7 +175,7 @@ const Overview = () => {
             <HelperLink
               onClick={() => navigate(statPanelData.pods.mainValueChange?.lt(0) ? "/field/harvest" : "/field/sow")}
               text={statPanelData.pods.mainValueChange?.lt(0) ? "Harvest Pods" : "Sow (Lend) in the Field for Pods"}
-              className={`absolute -mt-[54px] ${statPanelData.pods.mainValueChange?.lt(0) ? "right-[378px]" : "right-[228px]"} z-20`}
+              className={`absolute -mt-[54px] ${statPanelData.pods.mainValueChange?.lt(0) ? "-right-[70px]" : "-right-[228px]"} z-20`}
               dataTarget="pods-stats"
               sourceAnchor="left"
               targetAnchor="right"
@@ -206,7 +191,7 @@ const Overview = () => {
             <HelperLink
               onClick={() => navigate("/silo")}
               text={"Make your first Deposit in the Silo for Stalk and Seed"}
-              className={`absolute -mt-[64px] left-[32px] z-20`}
+              className={`absolute -mt-[64px] -left-[370px] z-20`}
               dataTarget="depositedValue-stats"
               sourceAnchor="right"
               targetAnchor="top-left"
@@ -312,9 +297,13 @@ const Overview = () => {
 
   return (
     <div
-      className={`flex flex-col ${hasDepositsOrPods ? "pt-[276px]" : "justify-center text-center min-h-[calc(100vh-15rem)]"} gap-52`}
+      className={`flex flex-col ${hasDepositsOrPods ? "pt-[170px]" : "justify-center text-center min-h-[calc(100vh-15rem)]"} gap-52 pb-20`}
     >
-      {hasDepositsOrPods ? renderContent() : renderEmptyState()}
+      <PageContainer
+        className={`flex flex-col gap-52 -mt-4 ${!hasDepositsOrPods ? "sm:max-w-full flex-grow mt-[100px]" : ""}`}
+      >
+        {hasDepositsOrPods ? renderContent() : renderEmptyState()}
+      </PageContainer>
     </div>
   );
 };
