@@ -74,7 +74,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
   const renderClaimableRow = () => {
     const plantData = farmerActions.tokenTotals.get(mainToken);
     const plantBeanGain = plantData?.sources.plant?.beanGain || TokenValue.ZERO;
-    const showRow = !hovering;
+    const showRow = !hovering && plantBeanGain.gt(0.01);
 
     const cellAnimation = {
       height: showRow ? "4.5rem" : 0,
