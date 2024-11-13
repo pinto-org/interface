@@ -189,8 +189,8 @@ export default function ClaimRewards({ trigger }: RewardsClaimProps) {
               <Text variant="sm-light">
                 {getCombinedRewardString([
                   { amount: beanRewards, type: "Pinto" },
-                  { amount: stalkRewards.sub(grownStalkFromSeeds).sub(stalkUpdate), type: "Stalk" },
-                  { amount: seedRewards.sub(seedUpdate), type: "Seed" },
+                  { amount: stalkRewards, type: "Stalk" },
+                  { amount: seedRewards, type: "Seed" },
                 ])}
               </Text>
             </div>
