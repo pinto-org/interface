@@ -8,6 +8,7 @@ import useFarmerActions from "@/hooks/useFarmerActions";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
+import { getClaimText } from "@/utils/string";
 import { useState } from "react";
 import { useAccount } from "wagmi";
 import { ChevronDownIcon } from "./Icons";
@@ -32,6 +33,12 @@ export default function ClaimRewards({ trigger }: RewardsClaimProps) {
   const data = useFarmerSilo();
   const { mainToken: mainToken } = useTokenData();
   const farmerActions = useFarmerActions();
+  const claimableText = getClaimText(
+    farmerActions.claimRewards.outputs.beanGain,
+    farmerActions.claimRewards.outputs.stalkGain,
+    farmerActions.claimRewards.outputs.seedGain,
+  );
+
   const grownStalkFromSeeds = data.grownStalkReward;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -67,7 +74,7 @@ export default function ClaimRewards({ trigger }: RewardsClaimProps) {
       >
         <DialogHeader>
           <DialogTitle>
-            <Text variant="h4">Claim Pinto, Stalk and Seed</Text>
+            <Text variant="h4">{claimableText}</Text>
           </DialogTitle>
         </DialogHeader>
         <div className="flex flex-row gap-12 pt-12">

@@ -16,6 +16,7 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useFieldData } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
+import { getClaimText } from "@/utils/string";
 import { StatPanelData } from "@/utils/types";
 import { getSiloConvertUrl } from "@/utils/url";
 import { useEffect, useMemo, useState } from "react";
@@ -77,6 +78,11 @@ const Overview = () => {
   const convertFrom = farmerActions.convertDeposits.bestConversion.from;
   const convertTo = farmerActions.convertDeposits.bestConversion.to;
   const claimEnabled = farmerActions.claimRewards.enabled;
+  const claimableText = getClaimText(
+    farmerActions.claimRewards.outputs.beanGain,
+    farmerActions.claimRewards.outputs.stalkGain,
+    farmerActions.claimRewards.outputs.seedGain,
+  );
 
   // Stat panel data
   const statPanelData: Record<"stalk" | "pods" | "seeds" | "depositedValue", StatPanelData> = {
@@ -235,7 +241,7 @@ const Overview = () => {
           )*/}
           {currentTab === "deposits" && claimEnabled && (
             <HelperLink
-              text="Claim Pinto, Stalk and Seed"
+              text={claimableText}
               dataTarget="claimable-rewards"
               className="absolute right-[60px] mt-[60px]"
               sourceAnchor="left"
