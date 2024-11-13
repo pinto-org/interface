@@ -11,33 +11,6 @@ import CoinModel from "./landing/utils/CoinModel";
 import EnvironmentSetup from "./landing/utils/EnvironmentSetup";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-// IMAGE ARRAY
-const images = [
-  "tree.png",
-  "tree.png",
-  "rock.png",
-  "gold.png",
-  "pickaxe.png",
-  "teepee.png",
-  "wheat.png",
-  "cow.png",
-  "abacus.png",
-  "idols.png",
-  "bimetal-coins.png",
-  "clayledger.png",
-  "aqueduct.png",
-  "parthenon.png",
-  "banknote.png",
-  "steamengine.png",
-  "lightbulb.png",
-  "church.png",
-  "nuke.png",
-  "USD.png",
-  "computer.png",
-  "skyscraper.png",
-  "BTC.png",
-];
-
 // CAMERA ZOOM EFFECT
 const CameraZoom = ({
   zoomRef,
@@ -106,6 +79,33 @@ export default function Landing() {
   };
 
   const transitionComplete = localStorage.getItem("hasWatchedTransition");
+
+  // IMAGE ARRAY
+  const images = [
+    "tree.png",
+    "tree.png",
+    "rock.png",
+    "gold.png",
+    "pickaxe.png",
+    "teepee.png",
+    "wheat.png",
+    "cow.png",
+    "abacus.png",
+    "idols.png",
+    "bimetal-coins.png",
+    "clayledger.png",
+    "aqueduct.png",
+    "parthenon.png",
+    "banknote.png",
+    "steamengine.png",
+    "lightbulb.png",
+    "church.png",
+    "nuke.png",
+    "USD.png",
+    "computer.png",
+    "skyscraper.png",
+    "BTC.png",
+  ];
 
   useEffect(() => {
     // PARSE QUERY PARAMS - MARK IF THE USER HAS VISITED THE SITE BEFORE
