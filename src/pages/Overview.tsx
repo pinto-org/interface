@@ -7,6 +7,7 @@ import PlotsTable from "@/components/PlotsTable";
 import StatPanel from "@/components/StatPanel";
 import TableRowConnector from "@/components/TableRowConnector";
 import { Button } from "@/components/ui/Button";
+import PageContainer from "@/components/ui/PageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import { useFarmerField } from "@/state/useFarmerField";
@@ -124,7 +125,7 @@ const Overview = () => {
 
   // Render helpers
   const renderEmptyState = () => (
-    <div className="flex flex-row justify-between gap-8 p-4">
+    <div className="flex flex-row justify-between gap-8">
       <Button
         asChild
         variant="outline"
@@ -174,7 +175,7 @@ const Overview = () => {
             <HelperLink
               onClick={() => navigate(statPanelData.pods.mainValueChange?.lt(0) ? "/field/harvest" : "/field/sow")}
               text={statPanelData.pods.mainValueChange?.lt(0) ? "Harvest Pods" : "Sow (Lend) in the Field for Pods"}
-              className={`absolute -mt-[54px] ${statPanelData.pods.mainValueChange?.lt(0) ? "right-[378px]" : "right-[228px]"} z-20`}
+              className={`absolute -mt-[54px] ${statPanelData.pods.mainValueChange?.lt(0) ? "-right-[70px]" : "-right-[228px]"} z-20`}
               dataTarget="pods-stats"
               sourceAnchor="left"
               targetAnchor="right"
@@ -190,7 +191,7 @@ const Overview = () => {
             <HelperLink
               onClick={() => navigate("/silo")}
               text={"Make your first Deposit in the Silo for Stalk and Seed"}
-              className={`absolute -mt-[64px] left-[32px] z-20`}
+              className={`absolute -mt-[64px] -left-[370px] z-20`}
               dataTarget="depositedValue-stats"
               sourceAnchor="right"
               targetAnchor="top-left"
@@ -298,7 +299,11 @@ const Overview = () => {
     <div
       className={`flex flex-col ${hasDepositsOrPods ? "pt-[170px]" : "justify-center text-center min-h-[calc(100vh-15rem)]"} gap-52 pb-20`}
     >
-      {hasDepositsOrPods ? renderContent() : renderEmptyState()}
+      <PageContainer
+        className={`flex flex-col gap-52 -mt-4 ${!hasDepositsOrPods ? "sm:max-w-full flex-grow mt-[100px]" : ""}`}
+      >
+        {hasDepositsOrPods ? renderContent() : renderEmptyState()}
+      </PageContainer>
     </div>
   );
 };

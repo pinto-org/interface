@@ -5,7 +5,6 @@ import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { formatter } from "@/utils/format";
 import { ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
 import TooltipSimple from "./TooltipSimple";
 import Text from "./ui/Text";
 
@@ -44,7 +43,7 @@ const StatPanel = ({
     })[iconMode];
 
   const ValueDisplay = () => (
-    <div className="flex flex-row gap-1 items-center">
+    <div className="flex flex-row gap-1 items-center whitespace-nowrap">
       {mode !== "depositedValue" && (
         <img src={getIcon(mode)} className={`${size === "large" ? "h-12 w-12" : "h-8 w-8"}`} alt={mode.toUpperCase()} />
       )}
@@ -56,7 +55,7 @@ const StatPanel = ({
       {showActionValues && mainValueChange && mainValueChange?.abs().gt(0.001) && (
         <Text
           variant={size === "large" ? "h1" : "h3"}
-          className={`ml-2 ${
+          className={`pl-2 tracking-[0.01em] ${
             mainValueChange.lt(0)
               ? "text-pinto-gray-4"
               : mode === "depositedValue"
