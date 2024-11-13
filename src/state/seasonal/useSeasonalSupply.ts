@@ -5,7 +5,6 @@ import { UseSeasonalResult } from "@/utils/types";
 import { BeanstalkSeasonalSeasonDocument, BeanstalkSeasonalSeasonQuery, Season } from "@/generated/gql/graphql";
 import useSeasonalQueries, { SeasonalQueryVars } from "./useSeasonalQueries";
 import { TV } from "@/classes/TokenValue";
-import { beanstalkAddress } from "@/generated/contractHooks";
 import { PINTO } from "@/constants/tokens";
 
 export default function useSeasonalSupply(fromSeason: number, toSeason: number): UseSeasonalResult {

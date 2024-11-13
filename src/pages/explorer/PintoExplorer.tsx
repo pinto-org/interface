@@ -1,4 +1,5 @@
 import SeasonalChart from "@/components/charts/SeasonalChart";
+import useSeasonalMcap from "@/state/seasonal/useSeasonalMcap";
 import useSeasonalPrice from "@/state/seasonal/useSeasonalPrice";
 import useSeasonalSupply from "@/state/seasonal/useSeasonalSupply";
 import { formatter, numberAbbr } from "@/utils/format";
@@ -8,6 +9,8 @@ const price6dFormatter = (v: number) => `$${formatter.number(v, { minDecimals: 6
 const price2dFormatter = (v: number) => `$${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`;
 const number0dFormatter = (v: number) => `${formatter.number(v, { minDecimals: 0, maxDecimals: 0 })}`;
 const largeNumberFormatter = numberAbbr;
+const price0dFormatter = (v: number) => `$${formatter.number(v, { minDecimals: 0, maxDecimals: 0 })}`;
+const largePriceFormatter = (v: number) => `$${numberAbbr(v)}`;
 
 const PintoExplorer = () => {
   return (
@@ -49,9 +52,9 @@ const PintoExplorer = () => {
             title="Market Capitalization"
             size="small"
             fillArea
-            useDataHook={useSeasonalPrice}
-            valueFormatter={price6dFormatter}
-            tickValueFormatter={price2dFormatter}
+            useDataHook={useSeasonalMcap}
+            valueFormatter={price0dFormatter}
+            tickValueFormatter={largePriceFormatter}
           />
         </div>
       </div>
