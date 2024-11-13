@@ -265,12 +265,12 @@ export default function DevPage() {
               onChange={(e) => setTokenBalance((prev) => ({ ...prev, token: e.target.value }))}
             />
             <Button
-              onClick={() => executeTask("setTokenBalance", tokenBalance)}
+              onClick={() => executeTask("getTokens", tokenBalance)}
               disabled={
-                !tokenBalance.receiver || !tokenBalance.amount || !tokenBalance.token || loading === "setTokenBalance"
+                !tokenBalance.receiver || !tokenBalance.amount || !tokenBalance.token || loading === "getTokens"
               }
             >
-              Set Token Balance
+              Get Tokens
             </Button>
           </div>
         </Card>
