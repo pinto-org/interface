@@ -1,4 +1,3 @@
-import { QueryClient, QueryKey } from "@tanstack/react-query";
 import { subgraphs } from "@/constants/subgraph";
 import { useChainId } from "wagmi";
 import { paginateSubgraph, PaginationSettings } from "@/utils/paginateSubgraph";
@@ -8,11 +7,7 @@ import {
   BeanstalkSeasonalStalkQuery,
   SiloHourlySnapshot,
 } from "@/generated/gql/graphql";
-import useSeasonalQueries, {
-  currentSelectFactory,
-  historicalSelectFactory,
-  SeasonalQueryVars,
-} from "./useSeasonalQueries";
+import useSeasonalQueries, { SeasonalQueryVars } from "./useSeasonalQueries";
 import { STALK } from "@/constants/internalTokens";
 import { TV } from "@/classes/TokenValue";
 import { beanstalkAddress } from "@/generated/contractHooks";
@@ -42,7 +37,7 @@ export default function useSeasonalStalk(fromSeason: number, toSeason: number): 
     return await paginateSubgraph(paginateSettings, subgraphs[chainId].beanstalk, BeanstalkSeasonalStalkDocument, vars);
   };
 
-  const convertEntry = (v: SiloHourlySnapshot, timestamp: Date) => ({
+  const convertResult = (v: SiloHourlySnapshot, timestamp: Date) => ({
     season: Number(v.season),
     value: TV.fromBlockchain(v.stalk, STALK.decimals).toNumber(),
     timestamp,
@@ -52,9 +47,9 @@ export default function useSeasonalStalk(fromSeason: number, toSeason: number): 
     fromSeason,
     toSeason,
     queryVars: { silo: beanstalkAddress[chainId] },
+    timestampColName: "createdAt",
     historicalQueryFnFactory: queryFnFactory,
-    historicalSelect: historicalSelectFactory("createdAt", convertEntry),
     currentQueryFnFactory: queryFnFactory,
-    currentSelect: currentSelectFactory(convertEntry),
+    convertResult,
   });
 }

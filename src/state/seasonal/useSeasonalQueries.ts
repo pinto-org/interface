@@ -1,6 +1,6 @@
 import { SeasonalChartData } from "@/components/charts/SeasonalChart";
 import { UseSeasonalResult } from "@/utils/types";
-import { QueryClient, QueryKey, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useChainId } from "wagmi";
 
 export type SeasonalExtraVars = {
@@ -16,44 +16,14 @@ export type SeasonalQueryConfig<T> = {
   fromSeason: number;
   toSeason: number;
   queryVars: SeasonalExtraVars;
+  timestampColName: string;
   historicalQueryFnFactory: QueryFnFactory<T>;
-  historicalSelect: SelectFn<T>;
   currentQueryFnFactory: QueryFnFactory<T>;
-  currentSelect: SelectFn<T>;
+  convertResult: ConvertResultFn<T>;
 };
 
 type QueryFnFactory<T> = (vars: SeasonalQueryVars) => () => Promise<T[]>;
-type SelectFn<T> = (queryClient: QueryClient, queryKey: QueryKey) => (data: T[]) => SeasonalChartData[];
-
-type ConvertResultFn<R> = (d: R, timestamp: Date) => SeasonalChartData;
-
-export const historicalSelectFactory =
-  <R>(timestampName: string, convertEntry: ConvertResultFn<R>) =>
-  (_queryClient: QueryClient, _queryKey: QueryKey) =>
-  (data: R[]) => {
-    return data
-      .map((v, idx) => {
-        // Data is presented at the time of season completion.
-        // The final season is part of this result, but extraneous and reselected as the current season.
-        let seasonEnd: Date;
-        if (idx < data.length - 1) {
-          seasonEnd = new Date(Number(data[idx][timestampName]) * 1000);
-          return convertEntry(v, seasonEnd);
-        }
-      })
-      .filter((v) => v !== undefined);
-  };
-
-export const currentSelectFactory =
-  <R>(convertEntry: ConvertResultFn<R>) =>
-  (queryClient: QueryClient, queryKey: QueryKey) =>
-  (data: R[]) => {
-    return data.map((v) => {
-      const queryInfo = queryClient.getQueryCache().find({ queryKey });
-      const lastFetchedTimestamp = queryInfo?.state?.dataUpdatedAt;
-      return convertEntry(v, lastFetchedTimestamp ? new Date(lastFetchedTimestamp) : new Date());
-    });
-  };
+type ConvertResultFn<T> = (d: T, timestamp: Date) => SeasonalChartData;
 
 export default function useSeasonalQueries<T>(keyName: string, queryConfig: SeasonalQueryConfig<T>): UseSeasonalResult {
   const queryClient = useQueryClient();
@@ -81,7 +51,19 @@ export default function useSeasonalQueries<T>(keyName: string, queryConfig: Seas
   const historical = useQuery({
     queryKey: historicalQueryKey,
     queryFn: queryConfig.historicalQueryFnFactory(historicalVars),
-    select: queryConfig.historicalSelect(queryClient, historicalQueryKey),
+    select: (data: T[]) => {
+      return data
+        .map((v, idx) => {
+          // Data is presented at the time of season completion.
+          // The final season is part of this result, but extraneous and reselected as the current season.
+          let seasonEnd: Date;
+          if (idx < data.length - 1) {
+            seasonEnd = new Date(Number(data[idx][queryConfig.timestampColName]) * 1000);
+            return queryConfig.convertResult(v, seasonEnd);
+          }
+        })
+        .filter((v) => v !== undefined);
+    },
     enabled: !!historicalVars.to,
     staleTime: Infinity,
     retry: 1,
@@ -94,7 +76,13 @@ export default function useSeasonalQueries<T>(keyName: string, queryConfig: Seas
   const current = useQuery({
     queryKey: currentQueryKey,
     queryFn: queryConfig.currentQueryFnFactory(currentVars),
-    select: queryConfig.currentSelect(queryClient, currentQueryKey),
+    select: (data: T[]) => {
+      return data.map((v) => {
+        const queryInfo = queryClient.getQueryCache().find({ queryKey: currentQueryKey });
+        const lastFetchedTimestamp = queryInfo?.state?.dataUpdatedAt;
+        return queryConfig.convertResult(v, lastFetchedTimestamp ? new Date(lastFetchedTimestamp) : new Date());
+      });
+    },
     enabled: !!currentVars.to,
     // Requery result up to once per minute
     gcTime: 60 * 1000,

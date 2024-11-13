@@ -3,11 +3,7 @@ import { useChainId } from "wagmi";
 import { BeanHourlySnapshot, BeanSeasonalPriceDocument, BeanSeasonalPriceQuery } from "@/generated/gql/graphql";
 import { paginateSubgraph, PaginationSettings } from "@/utils/paginateSubgraph";
 import { UseSeasonalResult } from "@/utils/types";
-import useSeasonalQueries, {
-  currentSelectFactory,
-  historicalSelectFactory,
-  SeasonalQueryVars,
-} from "./useSeasonalQueries";
+import useSeasonalQueries, { SeasonalQueryVars } from "./useSeasonalQueries";
 
 export default function useSeasonalPrice(fromSeason: number, toSeason: number): UseSeasonalResult {
   const chainId = useChainId();
@@ -34,7 +30,7 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number): 
     return await paginateSubgraph(paginateSettings, subgraphs[chainId].bean, BeanSeasonalPriceDocument, vars);
   };
 
-  const convertEntry = (v: BeanHourlySnapshot, timestamp: Date) => ({
+  const convertResult = (v: BeanHourlySnapshot, timestamp: Date) => ({
     season: Number(v.season),
     value: Number(v.price),
     timestamp,
@@ -44,9 +40,9 @@ export default function useSeasonalPrice(fromSeason: number, toSeason: number): 
     fromSeason,
     toSeason,
     queryVars: {},
+    timestampColName: "timestamp",
     historicalQueryFnFactory: queryFnFactory,
-    historicalSelect: historicalSelectFactory("timestamp", convertEntry),
     currentQueryFnFactory: queryFnFactory,
-    currentSelect: currentSelectFactory(convertEntry),
+    convertResult,
   });
 }
