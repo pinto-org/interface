@@ -27,7 +27,7 @@ export default function Landing() {
   const slidesGroupRef = useRef<THREE.Group>(null); // Reference to the group
 
   // PRELOADED MODELS
-  const preloadedGLTF = useLoader(GLTFLoader, "public3DPinto.glb");
+  const preloadedGLTF = useLoader(GLTFLoader, "3DPinto.glb");
 
   // TS PARTICLES BACKGROUND REF
   const particlesBackgroundRef = useRef<ParticlesBackgroundHandle>(null);
