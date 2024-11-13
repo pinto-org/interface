@@ -132,14 +132,14 @@ function Silo() {
                         <Text
                           data-action-target="convert"
                           variant="sm-light"
-                          className="text-pinto-green-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="text-pinto-gray-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           {`Convert ${convertFrom.name} for ${convertTo.name}`}
                         </Text>
                         <Text
                           data-action-target="convert"
                           variant="sm-light"
-                          className="text-pinto-green-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="text-pinto-gray-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           {"Arbitrage the increased Seed reward for a gain in Seed."}
                         </Text>
