@@ -97,7 +97,6 @@ const SlideGroup = ({
   const slidesGroupRef = useRef<THREE.Group>(null); // Reference to the group
   const [textures, setTextures] = useState<THREE.Texture[]>([]);
 
-
   useAnimationFrame({
     nextIndex,
     currentIndex,
@@ -116,12 +115,10 @@ const SlideGroup = ({
           loader.load(
             url,
             (texture) => {
-              console.log(`Texture loaded: ${url}`);
               resolve(texture);
             },
             undefined,
             (error) => {
-              console.log("Error loading texture", error);
               reject(error);
             }
           );
@@ -130,22 +127,17 @@ const SlideGroup = ({
     return Promise.all(promises);
   };
   
-
   // PRELOAD IMAGES
   useEffect(() => {  
     const initialLoad = landingImages.slice(0, 2);
     const remainingLoad = landingImages.slice(2);
 
     const loadTextures = async () => {
-      console.log("Launching initial promise");
       await preloadTextures(initialLoad).then((loadedInitial) => {
-        console.log("Initial promise resolved");
         setTextures(loadedInitial);
       });
 
-      console.log("Launching remaining promise");
       preloadTextures(remainingLoad).then((loadedRemaining) => {
-        console.log("Remaining promise resolved");
         setTextures((prev) => [...prev, ...loadedRemaining]);
       });
     }
