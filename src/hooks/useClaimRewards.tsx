@@ -14,37 +14,32 @@ import useTransaction from "./useTransaction";
 
 export function useClaimRewards() {
   const config = useConfig();
-
   const chainId = useChainId();
   const queryClient = useQueryClient();
-
   const account = useAccount().address;
-
   const data = useFarmerSilo();
   const siloData = useSiloData();
   const whitelistedTokens = useTokenData().whitelistedTokens;
   const farmerDeposits = useFarmerDepositedBalances();
-
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onSuccess = useCallback(() => {
     const allQueryKeys = [...data.queryKeys, ...siloData.queryKeys, farmerDeposits.queryKey];
     allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
-  }, [queryClient, data, siloData, farmerDeposits]);
+  }, [queryClient, data.queryKeys, siloData.queryKeys, farmerDeposits.queryKey]);
 
   const { isConfirming, writeContractAsync } = useTransaction({
     successMessage: "Claim complete!",
     successCallback: onSuccess,
   });
 
-  const submitClaimRewards = async () => {
+  const submitClaimRewards = useCallback(async () => {
     try {
       if (!account) {
         throw new Error("No account connected");
       }
 
       setIsSubmitting(true);
-
       toast.loading("Claiming rewards...");
 
       const plant = encodeFunctionData({
@@ -85,6 +80,7 @@ export function useClaimRewards() {
           args: [[plant, mow, ...updateData]],
         }),
       });
+
       setIsSubmitting(false);
       return writeContractAsync({
         address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
@@ -100,7 +96,7 @@ export function useClaimRewards() {
       toast.error(e instanceof Error ? e.message : "Transaction failed.");
       throw e;
     }
-  };
+  }, [account, chainId, config, farmerDeposits.data, whitelistedTokens, writeContractAsync]);
 
   return {
     submitClaimRewards,
