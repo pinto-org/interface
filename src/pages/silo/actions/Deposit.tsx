@@ -47,7 +47,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.INTERNAL_EXTERNAL);
   const [pool, setPool] = useState<PoolData | undefined>(undefined);
   const [slippage, setSlippage] = useState(0.5);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const qc = useQueryClient();
 
@@ -72,12 +71,9 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     allQueryKeys.forEach((query) => qc.invalidateQueries({ queryKey: query }));
   }, [qc, depositedBalances, farmerBalances]);
 
-  const { isConfirming, writeWithEstimateGas } = useTransaction({
+  const { isConfirming, writeWithEstimateGas, submitting, setSubmitting } = useTransaction({
     successMessage: "Deposit successful",
     successCallback: onSuccess,
-    onEstimateGas: () => {
-      setIsSubmitting(false);
-    },
   });
 
   const swapData = useSwapEstimate(
@@ -114,12 +110,12 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     return undefined;
   }, [siloData, swapData?.output, siloToken, tokenIn, amountIn]);
 
-  const onSubmit = async () => {
+  const onSubmit = useCallback(async () => {
     try {
       if (!account.address) {
         throw new Error("No account connected");
       }
-      setIsSubmitting(true);
+      setSubmitting(true);
       const depositData = deposit(
         siloToken,
         useSwap ? swapData?.output : TokenValue.fromHuman(amountIn, tokenIn.decimals),
@@ -150,14 +146,27 @@ function Deposit({ siloToken }: { siloToken: Token }) {
       });
     } catch (e: unknown) {
       console.error(e);
-      setIsSubmitting(false);
+      setSubmitting(false);
       toast.dismiss();
       toast.error(e instanceof Error ? e.message : "Transaction failed.");
       throw e;
+    } finally {
+      setSubmitting(false);
     }
-  };
+  }, [
+    writeWithEstimateGas,
+    setSubmitting,
+    account.address,
+    diamondAddress,
+    siloToken,
+    tokenIn,
+    amountIn,
+    balanceFrom,
+    swapData,
+    useSwap,
+  ]);
 
-  const disabled = !stringToNumber(amountIn) || !account.address || isSubmitting || isConfirming;
+  const disabled = !stringToNumber(amountIn) || !account.address || submitting || isConfirming;
 
   return (
     <div className="flex flex-col gap-4">

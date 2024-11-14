@@ -86,7 +86,7 @@ function Sow({ isMorning }: SowProps) {
 
   const tokenInBalance = farmerBalances.balances.get(tokenIn);
 
-  const { writeWithEstimateGas, isConfirming } = useTransaction({
+  const { writeWithEstimateGas, isConfirming, submitting, setSubmitting } = useTransaction({
     successCallback: () => {
       setAmountIn("0");
       // invalidating query results to trigger a refetch
@@ -129,6 +129,7 @@ function Sow({ isMorning }: SowProps) {
   }, [amountIn, currentTemperature, isUsingMain, swapData?.output]);
 
   const onSubmit = useCallback(async () => {
+    setSubmitting(true);
     try {
       if (!account.address) {
         throw new Error("Signer required");
@@ -190,9 +191,12 @@ function Sow({ isMorning }: SowProps) {
       toast.dismiss();
       toast.error((e as BaseError).shortMessage || "Transaction failed.");
       throw e;
+    } finally {
+      setSubmitting(false);
     }
   }, [
     writeWithEstimateGas,
+    setSubmitting,
     diamond,
     pods,
     slippage,
@@ -281,7 +285,7 @@ function Sow({ isMorning }: SowProps) {
       <div className="flex flex-row gap-2">
         <SmartSubmitButton
           variant={isMorning ? "morning" : undefined}
-          disabled={isLoading || isConfirming}
+          disabled={isLoading || isConfirming || submitting || !ready}
           token={tokenIn}
           amount={amountIn}
           submitFunction={onSubmit}
