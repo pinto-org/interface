@@ -4,11 +4,11 @@ type Props = React.HTMLAttributes<HTMLDivElement>;
 
 const MorningCard = forwardRef<HTMLDivElement, Props>(({ children, className, ...props }, ref) => {
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col w-full items-center justify-center">
       {/* Outer Div: Gradient Border */}
-      <div className="rounded-xl bg-morning-border p-[1px]">
+      <div className="rounded-xl w-full bg-morning-border p-[1px]">
         {/* Middle Div: Background Overlay to Handle Color Discrepancy */}
-        <div className="rounded-xl bg-gradient-light">
+        <div className="rounded-xl w-full bg-gradient-light">
           {/* Inner Div: Actual Content Area */}
           <div className="rounded-xl bg-morning-light flex items-center justify-center w-full h-full">
             <div {...props} className={className} ref={ref}>

@@ -15,9 +15,10 @@ import { ReactChart } from "../ReactChart";
 
 ReactChart.register(LineController, LineElement, LinearScale, CategoryScale, PointElement, Filler);
 
-export interface LineChartData {
+export interface LineChartData<T> {
   values: number[];
   timestamp: Date;
+  time?: T;
 }
 
 export type MakeGradientFunction = (
@@ -25,8 +26,8 @@ export type MakeGradientFunction = (
   position: number,
 ) => CanvasGradient | undefined;
 
-export interface LineChartProps {
-  data: LineChartData[];
+export interface LineChartProps<T> {
+  data: LineChartData<T>[];
   size: "small" | "large";
   makeLineGradients: MakeGradientFunction[];
   // If not provided, do not fill area
@@ -36,7 +37,7 @@ export interface LineChartProps {
 }
 
 const LineChart = React.memo(
-  ({ data, size, makeLineGradients, makeAreaGradients, valueFormatter, onMouseOver }: LineChartProps) => {
+  <T,>({ data, size, makeLineGradients, makeAreaGradients, valueFormatter, onMouseOver }: LineChartProps<T>) => {
     const minData = data.reduce((acc, next) => Math.min(acc, ...next.values), Number.MAX_SAFE_INTEGER);
     const maxData = data.reduce((acc, next) => Math.max(acc, ...next.values), Number.MIN_SAFE_INTEGER);
 

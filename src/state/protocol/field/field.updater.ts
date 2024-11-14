@@ -98,7 +98,9 @@ const useUpdateTotalSoil = () => {
 
     console.log("[protocol/field/useUpdateTotalSoil]: data", query.data);
 
-    setTotalSoil({ totalSoil: TV.fromBlockchain(query.data, SOIL_DECIMALS) });
+    setTotalSoil((draft) => {
+      draft.totalSoil = TV.fromBlockchain(query.data, SOIL_DECIMALS);
+    });
   }, [query.data]);
 };
 

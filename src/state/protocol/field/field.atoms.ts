@@ -16,6 +16,7 @@ import { morningAtom } from "../sun/sun.atoms";
 
 export const fieldTotalSoilAtom = atomWithImmer<FieldSoil>({
   totalSoil: TV.NEGATIVE_ONE,
+  soil: TV.NEGATIVE_ONE,
 });
 
 export const fieldTemperatureAtom = atomWithImmer<FieldTemperature>({

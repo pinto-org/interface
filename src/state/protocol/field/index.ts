@@ -9,6 +9,7 @@ export interface FieldTemperature {
 
 export interface FieldSoil {
   totalSoil: TV;
+  soil: TV;
 }
 
 export interface FieldWeather {

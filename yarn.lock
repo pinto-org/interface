@@ -7383,6 +7383,7 @@ __metadata:
     luxon: "npm:^3.5.0"
     postcss: "npm:8.4.39"
     react: "npm:^18.3.1"
+    react-chartjs-2: "npm:^5.2.0"
     react-dom: "npm:^18.3.1"
     react-hook-form: "npm:^7.52.1"
     react-router-dom: "npm:6.25.1"
@@ -9397,6 +9398,16 @@ __metadata:
   version: 1.1.2
   resolution: "radix3@npm:1.1.2"
   checksum: 10c0/d4a295547f71af079868d2c2ed3814a9296ee026c5488212d58c106e6b4797c6eaec1259b46c9728913622f2240c9a944bfc8e2b3b5f6e4a5045338b1609f1e4
+  languageName: node
+  linkType: hard
+
+"react-chartjs-2@npm:^5.2.0":
+  version: 5.2.0
+  resolution: "react-chartjs-2@npm:5.2.0"
+  peerDependencies:
+    chart.js: ^4.1.1
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: 10c0/437e443a268b7eebab3f1a6f0f5d936e58caf650fca55f568a612a46c563d22af683a64185eac8005aa644e4960a5a72cc1075a2574b89ec46c7653aaf4025e2
   languageName: node
   linkType: hard
 
