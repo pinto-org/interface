@@ -40,7 +40,7 @@ export default function Landing() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextIndex, setNextIndex] = useState(1);
   const [maxAnimationTime, setMaxAnimationTime] = useState(1); // Default to 1
-  const [animationTimer, setAnimationTimer] = useState(1000);
+  const [animationTimer, setAnimationTimer] = useState(1600);
   const [opacity, setOpacity] = useState(1);
   const [showMetallicCoin, setShowMetallicCoin] = useState(false);
 
@@ -108,18 +108,18 @@ export default function Landing() {
   // EFFECT TO UPDATE ANIMATION SPEED, PARTICLE BACKGROUND THEME, AND CAMERA ZOOM
   useEffect(() => {
     if (currentIndex === 0) {
-      setAnimationTimer(1000);
+      setAnimationTimer(1600);
     } else if (currentIndex === 1) {
-      setAnimationTimer(800);
+      setAnimationTimer(1200);
     } else if (currentIndex === 2) {
       particlesBackgroundRef.current?.loadTheme("1"); // Directly load the theme
-      setAnimationTimer(600);
+      setAnimationTimer(800);
     } else if (currentIndex === 4) {
-      setAnimationTimer(500);
+      setAnimationTimer(600);
     } else if (currentIndex === 5) {
       particlesBackgroundRef.current?.loadTheme("1"); // Directly load the theme
     } else if (currentIndex === 6) {
-      setAnimationTimer(450);
+      setAnimationTimer(500);
     } else if (currentIndex === 9) {
       particlesBackgroundRef.current?.loadTheme("2"); // Directly load the theme
       setAnimationTimer(400);
