@@ -1,3 +1,4 @@
+import { isDev } from "@/utils/utils";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import DevPage from "./components/DevPage";
 import Navbar from "./components/nav/nav/Navbar";
@@ -8,7 +9,6 @@ import Silo from "./pages/Silo";
 import SiloToken from "./pages/SiloToken";
 import Swap from "./pages/Swap";
 import Transfer from "./pages/Transfer";
-import { isDev } from "@/utils/utils";
 
 function App() {
   return (

@@ -33,6 +33,10 @@ export function unpackStem(data: string | number | bigint): bigint {
   return stem;
 }
 
+export const isProd = () => {
+  return import.meta.env.VITE_NETLIFY_CONTEXT === "production";
+};
+
 export const isLocalhost = () => {
   return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 };
@@ -49,6 +53,7 @@ export function exists<T>(value: T | undefined | null): value is NonNullable<T> 
   return value !== undefined && value !== null;
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export function existsNot(value: any): value is undefined | null {
   return !exists(value);
 }

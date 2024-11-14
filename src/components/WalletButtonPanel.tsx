@@ -3,6 +3,7 @@ import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { formatter } from "@/utils/format";
+import { isDev } from "@/utils/utils";
 import { Avatar } from "connectkit";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -303,7 +304,7 @@ export default function WalletButtonPanel({
             </div>
           </CardContent>
           <CardFooter className="absolute bottom-0 mx-auto left-0 right-0 text-center justify-center flex flex-col gap-4">
-            <ChainButton />
+            {isDev() && <ChainButton />}
             <Button
               variant="ghost"
               className="inline-flex items-center gap-2 rounded-full text-black bg-pinto-gray-1 hover:hover:bg-pinto-green hover:text-white"
