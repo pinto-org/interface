@@ -1,34 +1,35 @@
 import { TokenValue } from "@/classes/TokenValue";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
-import { Button } from "@/components/ui/Button";
 import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
 import Text from "@/components/ui/Text";
-import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import { PODS } from "@/constants/internalTokens";
+import { beanstalkAbi } from "@/generated/contractHooks";
+import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useInvalidateField } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
+import { formatter } from "@/utils/format";
 import { FarmToMode } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { BaseError } from "viem";
-import { useAccount, useChainId } from "wagmi";
+import { useAccount } from "wagmi";
 
 type HarvestProps = {
   isMorning: boolean;
 };
 
 function Harvest({ isMorning }: HarvestProps) {
-  const chainId = useChainId();
   const account = useAccount();
 
   const tokenData = useTokenData();
   const mainToken = tokenData.mainToken;
+  const diamond = useProtocolAddress();
 
   const priceData = usePriceData();
 
@@ -51,7 +52,7 @@ function Harvest({ isMorning }: HarvestProps) {
     return { plots: _plots, harvestableAmount: harvestable };
   }, [fieldPlots]);
 
-  const { writeContractAsync, isConfirming } = useTransaction({
+  const { writeWithEstimateGas, isConfirming } = useTransaction({
     successCallback: () => {
       queryClient.invalidateQueries({ queryKey });
       balances.queryKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
@@ -59,20 +60,32 @@ function Harvest({ isMorning }: HarvestProps) {
     },
   });
 
-  function onSubmit() {
-    if (!!account.address || plots.length === 0 || harvestableAmount.eq(0) || !balanceTo) return;
+  const onSubmit = useCallback(async () => {
+    try {
+      if (!account.address) throw new Error("Signer required");
+      if (!plots.length) throw new Error("No plots to harvest");
+      if (harvestableAmount.eq(0)) throw new Error("No harvestable pods");
+      if (!balanceTo) throw new Error("Destination required");
 
-    return writeContractAsync({
-      address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-      abi: beanstalkAbi,
-      functionName: "harvest",
-      args: [
-        0n, // field id
-        plots.map((plot) => BigInt(plot)), //array of plot id(s)
-        Number(balanceTo), // FarmToMode
-      ],
-    });
-  }
+      toast.loading(`Harvesting ${formatter.token(harvestableAmount, PODS)} PODS...`);
+
+      return writeWithEstimateGas({
+        address: diamond,
+        abi: beanstalkAbi,
+        functionName: "harvest",
+        args: [
+          0n, // field id
+          plots.map((plot) => BigInt(plot)), //array of plot id(s)
+          Number(balanceTo), // FarmToMode
+        ],
+      });
+    } catch (e) {
+      console.error(e);
+      toast.dismiss();
+      toast.error(e instanceof Error ? e.message : "Transaction failed.");
+      throw e;
+    }
+  }, [account.address, plots, harvestableAmount, balanceTo, writeWithEstimateGas, diamond]);
 
   return (
     <div className="flex flex-col gap-8">

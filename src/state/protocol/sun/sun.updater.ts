@@ -51,6 +51,9 @@ const useFetchSun = () => {
 
   useEffect(() => {
     if (!exists(seasonTimeQuery.data)) return;
+
+    console.debug("[protocol/sun/useFetchSun]: seasonTime", seasonTimeQuery.data);
+
     setSeasonTime(seasonTimeQuery.data);
   }, [seasonTimeQuery.data, setSeasonTime]);
 
@@ -81,6 +84,9 @@ const useFetchSun = () => {
       draft.next = morningResult.next;
       draft.isMorning = morningResult.isMorning;
     });
+
+    console.debug("[protocol/sun/useFetchSun]: season", season);
+    console.debug("[protocol/sun/useFetchSun]: morningResult", morningResult);
 
     setMorningRemaining(morningResult.remaining);
 

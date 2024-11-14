@@ -4,7 +4,7 @@ import { ComboInputField } from "@/components/ComboInputField";
 import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
-import { Label } from "@/components/ui/Label";
+import Text from "@/components/ui/Text";
 import deposit from "@/encoders/deposit";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useSwapEstimate from "@/hooks/useSwapEstimate";
@@ -16,6 +16,7 @@ import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { stringEq, stringToNumber } from "@/utils/string";
+import { tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { estimateGas } from "@wagmi/core";
@@ -31,6 +32,8 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const diamondAddress = useProtocolAddress();
   const farmerBalances = useFarmerBalances();
   const depositedBalances = useFarmerDepositedBalances();
+
+  // console.log("config", config);
   const account = useAccount();
 
   const pools = usePriceData().pools;
@@ -69,9 +72,12 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     allQueryKeys.forEach((query) => qc.invalidateQueries({ queryKey: query }));
   }, [qc, depositedBalances, farmerBalances]);
 
-  const { isConfirming, writeContractAsync } = useTransaction({
+  const { isConfirming, writeWithEstimateGas } = useTransaction({
     successMessage: "Deposit successful",
     successCallback: onSuccess,
+    onEstimateGas: () => {
+      setIsSubmitting(false);
+    },
   });
 
   const swapData = useSwapEstimate(
@@ -87,20 +93,26 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   );
 
   const depositOutput = useMemo(() => {
-    if (!siloToken || !swapData || !swapData.output || !amountIn || Number(amountIn) <= 0) return undefined;
-    const _siloData = siloData.tokenData.get(siloToken);
-    if (!_siloData) return undefined;
+    const sData = siloData.tokenData.get(siloToken);
+    if (stringToNumber(amountIn) <= 0 || !sData) return undefined;
+    if (tokensEqual(siloToken, tokenIn)) {
+      const amount = TokenValue.fromHuman(amountIn, siloToken.decimals);
 
-    const stalkReward = _siloData.rewards.stalk;
-    const seedReward = _siloData.rewards.seeds;
-    const tokenBDV = _siloData.tokenBDV;
+      return {
+        amount,
+        stalkGain: amount.mul(sData.rewards.stalk).mul(sData.tokenBDV),
+        seedGain: amount.mul(sData.rewards.seeds).mul(sData.tokenBDV),
+      };
+    } else if (swapData?.output.gt(0)) {
+      return {
+        amount: swapData.output,
+        stalkGain: swapData.output.mul(sData.rewards.stalk).mul(sData.tokenBDV),
+        seedGain: swapData.output.mul(sData.rewards.seeds).mul(sData.tokenBDV),
+      };
+    }
 
-    return {
-      amount: swapData.output,
-      stalkGain: swapData.output.mul(tokenBDV).mul(stalkReward),
-      seedGain: swapData.output.mul(tokenBDV).mul(seedReward),
-    };
-  }, [siloData, swapData, siloToken]);
+    return undefined;
+  }, [siloData, swapData?.output, siloToken, tokenIn, amountIn]);
 
   const onSubmit = async () => {
     try {
@@ -129,23 +141,12 @@ function Deposit({ siloToken }: { siloToken: Token }) {
 
       toast.loading(`Depositing ${formattedAmountIn} ${tokenIn.symbol} for ${depositAmount} ${siloToken.symbol}...`);
 
-      const _gas = await estimateGas(config, {
-        to: diamondAddress,
-        data: encodeFunctionData({
-          abi: advFarmABI,
-          functionName: "advancedFarm",
-          args: [callData],
-        }),
-        value: value,
-      });
-      setIsSubmitting(false);
-      return writeContractAsync({
+      return writeWithEstimateGas({
         address: diamondAddress,
         abi: advFarmABI,
         functionName: "advancedFarm",
         args: [callData],
         value: value,
-        gas: _gas ? (_gas * 120n) / 100n : undefined,
       });
     } catch (e: unknown) {
       console.error(e);
@@ -162,7 +163,9 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     <div className="flex flex-col gap-4">
       <div>
         <div className="flex flex-row justify-between items-center">
-          <Label>Amount and Token to use</Label>
+          <Text variant="body-light" color="light">
+            Amount and token to use
+          </Text>
           <SlippageButton slippage={slippage} setSlippage={setSlippage} />
         </div>
         <ComboInputField
