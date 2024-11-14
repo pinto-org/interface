@@ -128,15 +128,15 @@ const CoinModel: React.FC<CoinModelProps> = ({
 
   const handlePointerOver = useCallback(() => {
     if (targetPosition.current) {
-      targetPosition.current.set(position[0], position[1], position[2] + 5); // Move closer on Z-axis
+      targetPosition.current.set(position[0], position[1], position[2] + 2); // Move closer on Z-axis
     }
-  }, []);
+  }, [targetPosition.current]);
 
   const handlePointerOut = useCallback(() => {
     if (targetPosition.current) {
       targetPosition.current.set(...position); // Reset to original position
     }
-  }, []);
+  }, [targetPosition.current]);
 
   const handleClick = useCallback(() => {
     onClick();

@@ -11,52 +11,14 @@ import CoinModel from "./landing/utils/CoinModel";
 import EnvironmentSetup from "./landing/utils/EnvironmentSetup";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-// CAMERA ZOOM EFFECT
-const CameraZoom = ({
-  zoomRef,
-}: {
-  zoomRef: React.MutableRefObject<boolean>;
-}) => {
-  const { camera } = useThree();
-
-  // CAMERA POSITIONS
-  const initialCameraPosition = new THREE.Vector3(0, 0, 100);
-  const targetCameraPosition = new THREE.Vector3(0, 0, 20);
-
-  useEffect(() => {
-    if (zoomRef.current) {
-      camera.position.copy(initialCameraPosition);
-      camera.layers.enable(2); // Enable layer 1 for rendering the Slide
-      camera.layers.disable(1); // Optionally disable the default layer
-    } else {
-      camera.layers.enable(1); // Enable layer 1 for rendering the Slide
-      camera.layers.disable(2); // Optionally disable the default layer
-    }
-  }, [camera]);
-
-  useFrame(() => {
-    if (zoomRef.current) {
-      camera.position.lerp(targetCameraPosition, 0.07); // Smooth zoom and pan
-    } else camera.position.lerp(initialCameraPosition, 0.14);
-  });
-
-  return null;
-};
-
 export default function Landing() {
   // DECLARATIONS FOR STATE
-  const [progress, setProgress] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextIndex, setNextIndex] = useState(1);
   const [maxAnimationTime, setMaxAnimationTime] = useState(1); // Default to 1
   const [animationTimer, setAnimationTimer] = useState(650);
   const [opacity, setOpacity] = useState(1);
   const [showMetallicCoin, setShowMetallicCoin] = useState(false);
-
-  // SLIDE REFS
-  const slideRef1 = useRef<THREE.Mesh>(null);
-  const slideRef2 = useRef<THREE.Mesh>(null);
-  const slidesGroupRef = useRef<THREE.Group>(null); // Reference to the group
 
   // PRELOADED MODELS
   const preloadedGLTF = useLoader(GLTFLoader, "3DPinto.glb");
@@ -105,7 +67,7 @@ export default function Landing() {
     "computer.png",
     "skyscraper.png",
     "BTC.png",
-  ];
+  ] as const;
 
   useEffect(() => {
     // PARSE QUERY PARAMS - MARK IF THE USER HAS VISITED THE SITE BEFORE
@@ -200,6 +162,150 @@ export default function Landing() {
     }
   }, [currentIndex]);
 
+  return (
+    <div className="space-y-8 relative z-10">
+      <div
+        style={{
+          width: "100vw",
+          height: "80vh",
+          position: "relative",
+          display: "flex",
+          backgroundColor: "#FEFDF4",
+        }}
+      >
+        {/* Memoized TSParticles Background */}
+        <ParticlesBackground ref={particlesBackgroundRef} />
+
+        {/* Three.js Canvas with Transparent Background */}
+        <Canvas
+          raycaster={{
+            layers: (() => {
+              const layers = new THREE.Layers();
+              layers.set(2);
+              return layers;
+            })(), // Ensure the raycaster checks layer 2
+          }}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            zIndex: 1, // Lower z-index to ensure the button and content are on top
+          }}
+          camera={{ position: [0, 0, 100] }}
+        >
+          <EnvironmentSetup />
+          <CameraZoom zoomRef={zoomRef} />
+          <ambientLight intensity={5} />
+          <directionalLight
+            position={[0, 80, 80]} // Positioned above and slightly in front of the coin
+            intensity={10} // Strong enough to create a noticeable gradient effect
+          />
+          <directionalLight
+            position={[0, 20, 60]} // Positioned above and slightly in front of the coin
+            intensity={1} // Strong enough to create a noticeable gradient effect
+          />
+          {/* Coin Model */}
+          {showMetallicCoin && preloadedGLTF && (
+            <CoinModel gltf={preloadedGLTF} onClick={resetCoinState} />
+          )}
+          {/* Adjust the position to fit in the scene */}
+          <SlideGroup
+            images={images}
+            nextIndex={nextIndex}
+            currentIndex={currentIndex}
+            opacity={opacity}
+            animationTimer={animationTimer}
+            maxAnimationTime={maxAnimationTime}
+            setMaxAnimationTime={setMaxAnimationTime}
+            setCurrentIndex={setCurrentIndex}
+            setNextIndex={setNextIndex}
+          />
+        </Canvas>
+
+        {/* Wrapper div for button positioned at the bottom of the view */}
+        <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 z-20 flex flex-row items-center space-x-4">
+          {/* Launch Button */}
+          <Button
+            rounded="full"
+            className="shadow-sm"
+            onClick={handleLaunchAppClick}
+          >
+            Launch App
+          </Button>
+          <Button
+            rounded="full"
+            variant="outline-secondary"
+            onClick={handleLaunchArticleClick}
+          >
+            Read Launch Article
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type CameraZoomProps = {
+  zoomRef: React.RefObject<boolean>;
+};
+
+const CameraZoom: React.FC<CameraZoomProps> = ({ zoomRef }) => {
+  const { camera } = useThree();
+
+  // CAMERA POSITIONS
+  const initialCameraPosition = new THREE.Vector3(0, 0, 100);
+  const targetCameraPosition = new THREE.Vector3(0, 0, 20);
+
+  useEffect(() => {
+    if (zoomRef.current) {
+      camera.position.copy(initialCameraPosition);
+      camera.layers.enable(2); // Enable layer 2 for rendering the Slide
+      camera.layers.disable(1); // Optionally disable the default layer
+    } else {
+      camera.layers.enable(1); // Enable layer 1 for rendering the Slide
+      camera.layers.disable(2); // Optionally disable the default layer
+    }
+  }, [camera, zoomRef.current]);
+
+  useFrame(() => {
+    if (zoomRef.current) {
+      camera.position.lerp(targetCameraPosition, 0.07); // Smooth zoom and pan
+    } else {
+      camera.position.lerp(initialCameraPosition, 0.14);
+    }
+  });
+
+  return null;
+};
+
+interface UseAnimationFrameProps {
+  nextIndex: number;
+  currentIndex: number;
+  images: readonly string[];
+  animationTimer: number;
+  maxAnimationTime: number;
+  setCurrentIndex: React.Dispatch<React.SetStateAction<number>>;
+  setNextIndex: React.Dispatch<React.SetStateAction<number>>;
+  setProgress: React.Dispatch<React.SetStateAction<number>>;
+}
+
+interface SlideGroupProps extends Omit<UseAnimationFrameProps, "setProgress"> {
+  opacity: number;
+  setMaxAnimationTime: React.Dispatch<React.SetStateAction<number>>;
+}
+
+const useAnimationFrame = ({
+  nextIndex,
+  currentIndex,
+  images,
+  animationTimer,
+  maxAnimationTime,
+  setCurrentIndex,
+  setNextIndex,
+  setProgress,
+}: UseAnimationFrameProps) => {
   //  EFFECT TO CONTROL ANIMATION PROGRESSION
   useEffect(() => {
     // Exit early if we've reached or surpassed the last image
@@ -243,107 +349,61 @@ export default function Landing() {
       cancelAnimationFrame(animationFrameId);
     };
   }, [maxAnimationTime, currentIndex, nextIndex]);
+};
+
+const SlideGroup = ({
+  images,
+  nextIndex,
+  currentIndex,
+  opacity,
+  animationTimer,
+  maxAnimationTime,
+  setMaxAnimationTime,
+  setNextIndex,
+  setCurrentIndex,
+}: SlideGroupProps) => {
+  // Progress
+  const [progress, setProgress] = useState(0);
+  // SLIDE REFS
+  const slideRef1 = useRef<THREE.Mesh>(null);
+  const slideRef2 = useRef<THREE.Mesh>(null);
+  const slidesGroupRef = useRef<THREE.Group>(null); // Reference to the group
+
+  useAnimationFrame({
+    nextIndex,
+    currentIndex,
+    images,
+    animationTimer,
+    maxAnimationTime,
+    setCurrentIndex,
+    setNextIndex,
+    setProgress,
+  });
 
   return (
-    <div className="space-y-8 relative z-10">
-      <div
-        style={{
-          width: "100vw",
-          height: "80vh",
-          position: "relative",
-          display: "flex",
-          backgroundColor: "#FEFDF4",
-        }}
-      >
-        {/* Memoized TSParticles Background */}
-        <ParticlesBackground ref={particlesBackgroundRef} />
-
-        {/* Three.js Canvas with Transparent Background */}
-        <Canvas
-          raycaster={{
-            layers: (() => {
-              const layers = new THREE.Layers();
-              layers.set(2);
-              return layers;
-            })(), // Ensure the raycaster checks layer 2
-          }}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            zIndex: 1, // Lower z-index to ensure the button and content are on top
-          }}
-          camera={{ position: [0, 0, 100] }}
-          onCreated={({ gl }) => {
-            gl.outputColorSpace = THREE.SRGBColorSpace;
-          }}
-        >
-          <EnvironmentSetup />
-          <CameraZoom zoomRef={zoomRef} />
-          <ambientLight intensity={5} />
-          <directionalLight
-            position={[0, 80, 80]} // Positioned above and slightly in front of the coin
-            intensity={10} // Strong enough to create a noticeable gradient effect
-          />
-          <directionalLight
-            position={[0, 20, 60]} // Positioned above and slightly in front of the coin
-            intensity={1} // Strong enough to create a noticeable gradient effect
-          />
-          {/* Coin Model */}
-          {showMetallicCoin && preloadedGLTF && (
-            <CoinModel gltf={preloadedGLTF} onClick={resetCoinState} />
-          )}
-          {/* Adjust the position to fit in the scene */}
-          <group ref={slidesGroupRef}>
-            <Slide
-              ref={slideRef1}
-              imageUrl={images[currentIndex]}
-              width={60}
-              height={60}
-              animationPhase="out"
-              progress={progress}
-              opacity={opacity} // Pass opacity down
-              onMaxAnimationTimeCalculated={(time) => setMaxAnimationTime(time)}
-            />
-            {nextIndex < images.length && (
-              <Slide
-                ref={slideRef2}
-                imageUrl={images[nextIndex]}
-                width={60}
-                height={60}
-                animationPhase="in"
-                progress={progress}
-                opacity={opacity} // Pass opacity down
-                onMaxAnimationTimeCalculated={(time) =>
-                  setMaxAnimationTime(time)
-                }
-              />
-            )}
-          </group>
-        </Canvas>
-
-        {/* Wrapper div for button positioned at the bottom of the view */}
-        <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 z-20 flex flex-row items-center space-x-4">
-          {/* Launch Button */}
-          <Button
-            rounded="full"
-            className="shadow-sm"
-            onClick={handleLaunchAppClick}
-          >
-            Launch App
-          </Button>
-          <Button
-            rounded="full"
-            variant="outline-secondary"
-            // className={}
-            onClick={handleLaunchArticleClick}
-          >
-            Read Launch Article
-          </Button>
-        </div>
-      </div>
-    </div>
+    <group ref={slidesGroupRef}>
+      <Slide
+        ref={slideRef1}
+        imageUrl={images[currentIndex]}
+        width={60}
+        height={60}
+        animationPhase="out"
+        progress={progress}
+        opacity={opacity} // Pass opacity down
+        onMaxAnimationTimeCalculated={(time) => setMaxAnimationTime(time)}
+      />
+      {nextIndex < images.length && (
+        <Slide
+          ref={slideRef2}
+          imageUrl={images[nextIndex]}
+          width={60}
+          height={60}
+          animationPhase="in"
+          progress={progress}
+          opacity={opacity} // Pass opacity down
+          onMaxAnimationTimeCalculated={(time) => setMaxAnimationTime(time)}
+        />
+      )}
+    </group>
   );
-}
+};
