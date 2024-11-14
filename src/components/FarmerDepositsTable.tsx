@@ -4,22 +4,15 @@ import { TokenValue } from "@/classes/TokenValue";
 import { RightArrowIcon, UpArrowIcon } from "@/components/Icons";
 import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
-import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
-import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
-import { Token } from "@/utils/types";
-import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { BaseError, encodeFunctionData } from "viem";
-import { useAccount, useChainId, useWriteContract } from "wagmi";
 import Text from "./ui/Text";
 
 interface FarmerDepositsTableProps {
@@ -27,9 +20,13 @@ interface FarmerDepositsTableProps {
   hovering?: boolean;
 }
 
+const initialState = {
+  height: 0,
+  opacity: 0,
+  borderBottomWidth: 0,
+};
+
 export default function FarmerDepositsTable({ rewardsRef, hovering = false }: FarmerDepositsTableProps) {
-  const account = useAccount();
-  const chainId = useChainId();
   const navigate = useNavigate();
   const farmerSilo = useFarmerSilo();
   const priceData = usePriceData();
@@ -38,19 +35,8 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
   const farmerActions = useFarmerActions();
   const farmerDeposits = useFarmerDepositedBalances().data;
 
-  const queryClient = useQueryClient();
-  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
-
   const canClaim = farmerActions.claimRewards.enabled;
-
   const grownStalkPerToken = farmerSilo.grownStalkPerToken;
-
-  useEffect(() => {
-    if (isSuccess) {
-      const allQueryKeys = [...farmerSilo.queryKeys];
-      allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
-    }
-  }, [isSuccess]);
 
   // Sort tokens with PINTO first, then by BDV
   const sortedTokens = useMemo(() => {
@@ -85,12 +71,6 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
         opacity: { duration: 0.15 },
         padding: { duration: 0.2 },
       },
-    };
-
-    const initialState = {
-      height: 0,
-      opacity: 0,
-      borderBottomWidth: 0,
     };
 
     return (
