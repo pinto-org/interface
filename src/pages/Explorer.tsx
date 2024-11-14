@@ -4,6 +4,7 @@ import Text from "@/components/ui/Text";
 import { useCallback, useState } from "react";
 import PintoExplorer from "./explorer/PintoExplorer";
 import SiloExplorer from "./explorer/SiloExplorer";
+import FieldExplorer from "./explorer/FieldExplorer";
 
 const MAIN_TABS = ["Pinto", "Silo", "Field", "Seasons", "All"];
 
@@ -36,6 +37,7 @@ const Explorer = () => {
           <Separator />
           {mainTab === 0 && <PintoExplorer />}
           {mainTab === 1 && <SiloExplorer />}
+          {mainTab === 2 && <FieldExplorer />}
         </div>
       </div>
     </PageContainer>

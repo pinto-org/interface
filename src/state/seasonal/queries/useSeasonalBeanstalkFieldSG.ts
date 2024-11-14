@@ -42,7 +42,7 @@ export default function useSeasonalBeanstalkFieldSG(
   return useSeasonalQueries("BeanstalkSeasonalFieldQuery", {
     fromSeason,
     toSeason,
-    queryVars: { silo: beanstalkAddress[chainId] },
+    queryVars: { field: beanstalkAddress[chainId] },
     historicalQueryFnFactory: queryFnFactory,
     currentQueryFnFactory: queryFnFactory,
     resultTimestamp: (entry) => {

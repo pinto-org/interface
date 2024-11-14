@@ -29,7 +29,7 @@ export type ConvertEntryFn<T> = (d: T, timestamp: Date) => SeasonalChartData;
 export default function useSeasonalQueries<T>(keyName: string, queryConfig: SeasonalQueryConfig<T>): UseSeasonalResult {
   const queryClient = useQueryClient();
   // const currentSeason = useSunData().current; // TODO(ss): put this back eventually
-  const currentSeason = 25947;
+  const currentSeason = 25968;
   const chainId = useChainId();
 
   // Current season should be discarded from historical in the select step
