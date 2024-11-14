@@ -60,13 +60,13 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
     const texture = useMemo(() => {
       const isFirst = imageUrl && imageUrl === landingImages[0];
       // const tex = isFirst
-      let tex: THREE.Texture;
+      let tex = new THREE.Texture;
 
       if (imageUrl && imageUrl === landingImages[0]) {
         tex = new THREE.TextureLoader().load(imageUrl);
       } else {
-        tex = new THREE.Texture(imageObject);
-        tex.needsUpdate = true;
+        tex.image = imageObject;
+        tex.needsUpdate = true; // Ensure Three.js updates the texture
       }
 
       tex.colorSpace = THREE.SRGBColorSpace;
