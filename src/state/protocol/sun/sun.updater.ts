@@ -2,13 +2,13 @@ import { useReadSeasonFacetView_SeasonTime, useReadSeasonFacetView_Time } from "
 import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
 import useCalculateTemperature from "@/state/useCalculateTemperature";
 import { useMorning, useSunData } from "@/state/useSunData";
-import { exists } from "@/utils/utils";
+import { exists, isDev } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { DateTime } from "luxon";
 import { useCallback, useEffect } from "react";
 import { getDiffNow, getMorningResult, getNextExpectedSunrise, getNowRounded } from ".";
-import { fieldTemperatureAtom } from "../field/field.atoms";
+import { fieldTemperatureAtom, morningFieldDevModeAtom } from "../field/field.atoms";
 import {
   morningAtom,
   morningDurationAtom,
@@ -144,7 +144,7 @@ export const useUpdateSunData = () => {
   const setRemainingUntilSunrise = useUpdateRemainingUntilSunrise(next, awaiting);
 
   useEffect(() => {
-    if (!awaiting) return;
+    if (!awaiting || isDev()) return;
     /// When awaiting sunrise, check every 3 seconds to see
     /// if the Season has incremented.
     const i = setInterval(() => {
@@ -169,6 +169,7 @@ export function useUpdateMorning() {
   const setDuration = useSetAtom(morningDurationAtom);
   const setScaledTemperature = useSetAtom(fieldTemperatureAtom);
   const setMorning = useSetAtom(morningAtom);
+  const devMode = useAtomValue(morningFieldDevModeAtom);
 
   const morning = useMorning();
   const season = useSunData();
@@ -179,7 +180,7 @@ export function useUpdateMorning() {
   const { calculate: calculateTemperature } = useCalculateTemperature();
 
   useEffect(() => {
-    if (!isMorning) return;
+    if (!isMorning || devMode.freeze) return;
     const { sunriseBlock, timestamp: sTimestamp } = season;
 
     const intervalId = setInterval(async () => {
@@ -234,6 +235,7 @@ export function useUpdateMorning() {
     morningIndex,
     season,
     nextMorningInterval,
+    devMode.freeze,
     calculateTemperature,
     setRemaining,
     setScaledTemperature,

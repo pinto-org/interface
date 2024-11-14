@@ -1,12 +1,7 @@
 import MorningCard from "@/components/MorningCard";
-import { Button } from "@/components/ui/Button";
 import Text from "@/components/ui/Text";
-import { getMorningResult, getNowRounded } from "@/state/protocol/sun";
-import { morningAtom, seasonAtom } from "@/state/protocol/sun/sun.atoms";
-import { useInvalidateField } from "@/state/useFieldData";
-import { useMorning, useSunData } from "@/state/useSunData";
-import { useSetAtom } from "jotai";
-import { DateTime } from "luxon";
+import { useMorning } from "@/state/useSunData";
+
 import { MorningTimer } from "./MorningCountdown";
 
 const MorningPanel = () => {
@@ -32,38 +27,3 @@ const MorningPanel = () => {
 };
 
 export default MorningPanel;
-
-export const MorningDev = () => {
-  const sun = useSunData();
-
-  const setMorning = useSetAtom(morningAtom);
-  const setSun = useSetAtom(seasonAtom);
-
-  const invalidateField = useInvalidateField();
-
-  const initMorning = () => {
-    const struct = {
-      ...sun,
-      timestamp: getNowRounded(),
-    };
-
-    const morningResult = getMorningResult({
-      timestamp: struct.timestamp,
-      blockNumber: struct.sunriseBlock,
-    });
-
-    setSun(struct);
-    setMorning(morningResult);
-  };
-
-  return (
-    <div className="flex flex-row gap-2">
-      <Button variant="outline" onClick={initMorning}>
-        init morning
-      </Button>
-      <Button variant="outline" onClick={() => invalidateField("soil")}>
-        fetch soil
-      </Button>
-    </div>
-  );
-};

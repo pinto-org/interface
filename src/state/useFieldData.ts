@@ -12,13 +12,11 @@ import {
 } from "./protocol/field/field.atoms";
 
 // Atoms
-
 const harvestableIndexAtom = atom((get) => get(fieldPodlineAtom).harvestableIndex);
 const podIndexAtom = atom((get) => get(fieldPodlineAtom).podIndex);
 const podLineAtom = atom((get) => get(fieldPodlineAtom).podLine);
 
 // Hooks
-
 // Field. Not optimal, but useful for convenience. Opt to use the individual hooks instead.
 export function useField() {
   return useAtomValue(fieldAtom);
@@ -52,6 +50,7 @@ export function useFieldQueryKeys() {
   return useAtomValue(fieldQueryKeysAtom);
 }
 
+// Query keys Invalidation
 type FieldQueryKey = keyof FieldQueryKeys;
 
 export function useInvalidateField() {

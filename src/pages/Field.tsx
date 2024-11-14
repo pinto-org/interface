@@ -20,7 +20,7 @@ import { useEffect, useMemo } from "react";
 import { Link, NavLink } from "react-router-dom";
 import FieldActions from "./field/FieldActions";
 import FieldStats from "./field/FieldStats";
-import MorningPanel, { MorningDev } from "./field/MorningPanel";
+import MorningPanel from "./field/MorningPanel";
 import TemperatureChart from "./field/Temperature";
 
 function Field() {
@@ -56,7 +56,6 @@ function Field() {
           <MorningPanel />
           <FieldStats />
           <DynamicTemperatureChart />
-          <MorningDev />
           <div className="flex flex-row items-center justify-between rounded-[1.25rem] p-6 bg-pinto-off-white border-pinto-gray-2 border w-full">
             <div className="flex flex-col gap-2">
               <Text variant="body-light" color="light">

@@ -12,6 +12,8 @@ const FieldStats = () => {
 
   const temperature = morning.isMorning ? temperatures.scaled : temperatures.max;
 
+  console.log("[FieldStats]: temperature", temperatures);
+
   return (
     <div className="flex flex-row gap-x-12 gap-y-4 flex-wrap w-full">
       <div className="flex flex-col flex-grow gap-2">
@@ -22,7 +24,7 @@ const FieldStats = () => {
           </Text>
         </div>
         <div className="flex flex-col gap-1">
-          <Text variant="h3">{`${formatter.pct(temperature)}`}</Text>
+          <Text variant="h3">{`${formatter.pct(temperatures.scaled)}`}</Text>
           {morning.isMorning && (
             <Text variant="sm-light" color="morning" className="inline-block tabular-nums">
               <MorningIntervalCountdown prefix={"Increasing in"} />

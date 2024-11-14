@@ -1,7 +1,6 @@
 import { TV } from "@/classes/TokenValue";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { PODS } from "@/constants/internalTokens";
-import { INTERVALS_PER_MORNING } from "@/constants/morning";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
 import { useInvalidateField } from "@/state/useFieldData";
@@ -10,7 +9,6 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useRef } from "react";
 import { useReadContract, useReadContracts } from "wagmi";
 import { getMorningTemperature } from ".";
-import { getDiffNow, getNowRounded } from "../sun";
 import { morningAtom } from "../sun/sun.atoms";
 import {
   fieldPodlineAtom,
@@ -91,15 +89,9 @@ const useUpdateTotalSoil = () => {
 
   useUpdateQueryKeys(fieldQueryKeysAtom, query.queryKey, "soil");
 
-  useEffect(() => {
-    console.log("[protocol/field/useUpdateTotalSoil]: isFetching", query.isFetching);
-  }, [query.isFetching]);
-
   // biome-ignore lint/correctness/useExhaustiveDependencies:
   useEffect(() => {
     if (!exists(query?.data)) return;
-
-    console.log("[protocol/field/useUpdateTotalSoil]: data", query.data);
 
     setTotalSoil(TV.fromBlockchain(query.data, SOIL_DECIMALS));
   }, [query.data]);
@@ -238,8 +230,6 @@ export const useUpdateMorningSoilOnInterval = () => {
     if (intervalRef.current || !!devMode.freeze) return;
     // update the soil every 2 seconds
     if (!isMorning || noSoil) return;
-
-    console.log("[protocol/field/useUpdateMorningField]: morning: refreshing soil on interval");
 
     intervalRef.current = true;
     const soilUpdateInterval = setInterval(() => {
