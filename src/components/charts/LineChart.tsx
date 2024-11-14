@@ -37,19 +37,15 @@ export interface LineChartProps {
 
 const LineChart = React.memo(
   ({ data, size, xKey, makeLineGradients, makeAreaGradients, valueFormatter, onMouseOver }: LineChartProps) => {
-    const yTickMin = useMemo(() => {
+    const [yTickMin, yTickMax] = useMemo(() => {
       const maxData = data.reduce((acc, next) => Math.max(acc, ...next.values), Number.MIN_SAFE_INTEGER);
       const minData = data.reduce((acc, next) => Math.min(acc, ...next.values), Number.MAX_SAFE_INTEGER);
+
       let minTick = Math.max(0, minData - (maxData - minData) * 0.1);
       if (minTick === maxData) {
         minTick = maxData * 0.99;
       }
-      return minTick;
-    }, [data]);
-
-    const yTickMax = useMemo(() => {
-      const maxData = data.reduce((acc, next) => Math.max(acc, ...next.values), Number.MIN_SAFE_INTEGER);
-      return maxData;
+      return [minTick, maxData];
     }, [data]);
 
     const chartData = useCallback(
