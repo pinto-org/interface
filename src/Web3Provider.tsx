@@ -4,7 +4,7 @@ import { ConnectKitProvider } from "connectkit";
 import { ReactNode } from "react";
 import { createTestClient } from "viem";
 import { http, WagmiProvider } from "wagmi";
-import { isDev, isNetlifyPreview, isProd } from "./utils/utils";
+import { isNetlifyPreview, isProd } from "./utils/utils";
 import {
   TENDERLY_RPC_URL,
   baseNetwork as base,
