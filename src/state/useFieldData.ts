@@ -1,4 +1,4 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { InvalidateOptions, useQueryClient } from "@tanstack/react-query";
 import { atom, useAtomValue } from "jotai";
 import { useCallback } from "react";
 import {
@@ -56,11 +56,11 @@ export function useInvalidateField() {
   const queryKeys = useFieldQueryKeys();
 
   return useCallback(
-    (key: keyof typeof queryKeys | "all") => {
+    (key: keyof typeof queryKeys | "all", filters?: InvalidateOptions) => {
       if (key === "all") {
-        Object.values(queryKeys).forEach((queryKey) => qc.invalidateQueries({ queryKey }));
+        Object.values(queryKeys).forEach((queryKey) => qc.invalidateQueries({ queryKey, ...filters }));
       } else {
-        qc.invalidateQueries({ queryKey: queryKeys[key] });
+        qc.invalidateQueries({ queryKey: queryKeys[key], ...filters });
       }
     },
     [qc, queryKeys],

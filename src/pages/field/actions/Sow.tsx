@@ -90,7 +90,7 @@ function Sow({ isMorning }: SowProps) {
       // invalidating query results to trigger a refetch
       invalidateField("all");
       queryClient.invalidateQueries({ queryKey: farmerFieldQueryKey });
-      queryClient.invalidateQueries({ queryKey: farmerBalances.queryKey });
+      queryClient.invalidateQueries({ queryKey: farmerBalances.queryKeys });
     },
   });
 
