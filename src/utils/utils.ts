@@ -30,10 +30,16 @@ export function unpackStem(data: string | number | bigint): bigint {
   return stem;
 }
 
+export const isLocalhost = () => {
+  return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+};
+
+export const isNetlifyPreview = () => {
+  return import.meta.env.VITE_NETLIFY_CONTEXT === "deploy-preview";
+};
+
 export const isDev = () => {
-  const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-  const isNetlifyPreview = import.meta.env.VITE_NETLIFY_CONTEXT === "deploy-preview";
-  return isLocalhost || isNetlifyPreview || process.env.NODE_ENV === "development";
+  return isLocalhost() || isNetlifyPreview() || process.env.NODE_ENV === "development";
 };
 
 export function exists<T>(value: T | undefined | null): value is NonNullable<T> {
