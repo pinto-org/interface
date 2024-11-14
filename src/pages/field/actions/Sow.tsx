@@ -42,16 +42,18 @@ const useMaxSow = (tokenIn: Token, slippage: number) => {
   const totalSoil = useTotalSoil();
   const mainToken = useTokenData().mainToken;
 
+  const isMainToken = tokenIn.isMain;
+
   const swap = useSwapEstimate(
     mainToken,
     tokenIn,
-    Math.max(totalSoil.toNumber(), 0),
+    isMainToken ? 0 : Math.max(totalSoil.toNumber(), 0),
     slippage,
     "exactInput",
     FarmFromMode.EXTERNAL,
-    FarmToMode.INTERNAL,
+    FarmToMode.EXTERNAL,
     undefined,
-    false,
+    totalSoil.lte(0),
   );
 
   return useMemo(() => {
@@ -94,20 +96,21 @@ function Sow({ isMorning }: SowProps) {
     },
   });
 
-  const maxSow = useMaxSow(tokenIn, slippage);
+  // const maxSow = useMaxSow(tokenIn, slippage);
+  const maxSow = useTotalSoil();
 
   const isUsingMain = stringEq(tokenIn.address, mainToken.address);
 
   const swapData = useSwapEstimate(
     tokenIn,
     mainToken,
-    Number(amountIn),
+    stringToNumber(amountIn),
     slippage,
     "exactInput",
     balanceFrom,
     FarmToMode.INTERNAL,
     undefined,
-    isUsingMain,
+    isUsingMain || stringToNumber(amountIn) <= 0,
   );
 
   const pods = useMemo(() => {

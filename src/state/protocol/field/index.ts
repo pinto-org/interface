@@ -7,11 +7,6 @@ export interface FieldTemperature {
   scaled: TV;
 }
 
-export interface FieldSoil {
-  totalSoil: TV;
-  soil: TV;
-}
-
 export interface FieldWeather {
   lastDeltaSoil: TV;
   lastSowTime: number;

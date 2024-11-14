@@ -6,7 +6,6 @@ import {
   Field,
   FieldPodLine,
   FieldQueryKeys,
-  FieldSoil,
   FieldTemperature,
   FieldWeather,
   Temperature,
@@ -14,7 +13,7 @@ import {
 } from ".";
 import { morningAtom } from "../sun/sun.atoms";
 
-export const fieldTotalSoilAtom = atomWithImmer<TV>(TV.fromHuman(0, 6));
+export const fieldTotalSoilAtom = atom<TV>(TV.fromHuman(0, 6));
 
 export const fieldTemperatureAtom = atomWithImmer<FieldTemperature>({
   max: TV.NEGATIVE_ONE,

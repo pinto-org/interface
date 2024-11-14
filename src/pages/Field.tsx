@@ -8,6 +8,7 @@ import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
 import MorningTemperatureChart from "@/pages/field/MorningTemperature";
+import { useUpdateMorningTemperatureOnInterval } from "@/state/protocol/field/field.updater";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useHarvestableIndex } from "@/state/useFieldData";
 import { useMorning } from "@/state/useSunData";
@@ -20,6 +21,7 @@ import MorningPanel, { MorningDev } from "./field/MorningPanel";
 import TemperatureChart from "./field/Temperature";
 
 function Field() {
+  useUpdateMorningTemperatureOnInterval();
   const farmerField = useFarmerField();
   const harvestableIndex = useHarvestableIndex();
 

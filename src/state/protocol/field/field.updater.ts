@@ -1,13 +1,15 @@
 import { TV } from "@/classes/TokenValue";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { PODS } from "@/constants/internalTokens";
+import { INTERVALS_PER_MORNING } from "@/constants/morning";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
 import { useInvalidateField } from "@/state/useFieldData";
 import { exists } from "@/utils/utils";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect } from "react";
 import { useReadContract, useReadContracts } from "wagmi";
+import { getMorningTemperature } from ".";
 import { getDiffNow, getNowRounded } from "../sun";
 import { morningAtom } from "../sun/sun.atoms";
 import {
@@ -248,9 +250,21 @@ export const useUpdateMorningSoilOnInterval = () => {
 
 export const useUpdateMorningTemperatureOnInterval = () => {
   const morning = useAtomValue(morningAtom);
-  const temperature = useAtomValue(fieldTemperatureAtom);
-  const invalidateField = useInvalidateField();
+  const [temperature, setTemperature] = useAtom(fieldTemperatureAtom);
 
   const isMorning = morning.isMorning;
-  const noTemperature = temperature.max.lte(0);
+  const morningIndex = morning.index;
+
+  const maxTemperature = temperature.max;
+
+  useEffect(() => {
+    const noTemperature = maxTemperature.lte(0);
+    if (!isMorning || noTemperature) return;
+
+    const current = isMorning ? getMorningTemperature(morningIndex, maxTemperature) : maxTemperature;
+
+    // setTemperature((draft) => {
+    //   draft.scaled = current;
+    // });
+  }, [isMorning, morningIndex, maxTemperature, setTemperature]);
 };
