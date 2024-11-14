@@ -58,7 +58,6 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
     // Texture setup
     const texture = useMemo(() => {
       let tex;
-
       if (!imageObject) {
         tex = new THREE.TextureLoader().load(imageUrl);
       } else {

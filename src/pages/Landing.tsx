@@ -14,7 +14,6 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 // IMAGE ARRAY
 const images = [
   "tree.png",
-  "tree.png",
   "rock.png",
   "gold.png",
   "pickaxe.png",
@@ -55,20 +54,23 @@ function preloadImages(
 
 const usePreloadImages = () => {
   const [cachedImages, setCachedImages] = useState<HTMLImageElement[]>([]);
+  const [loading, setLoading] = useState(true); // Loading state
 
   useEffect(() => {
     const run = async () => {
-      const preloadedImgs = await preloadImages(images);
-      setCachedImages(preloadedImgs);
+      try {
+        const preloadedImgs = await preloadImages(images);
+        setCachedImages(preloadedImgs);
+      } catch (err) {
+        console.error("Error preloading images:", err);
+      } finally {
+        setLoading(false); // Set loading to false after preloading
+      }
     };
     run();
-  }, []);
+  }, [images]);
 
-  useEffect(() => {
-    console.log(cachedImages);
-  }, [cachedImages]);
-
-  return cachedImages;
+  return { cachedImages, loading }; // Return loading state along with cached images
 };
 
 export default function Landing() {
@@ -76,7 +78,7 @@ export default function Landing() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextIndex, setNextIndex] = useState(1);
   const [maxAnimationTime, setMaxAnimationTime] = useState(1); // Default to 1
-  const [animationTimer, setAnimationTimer] = useState(650);
+  const [animationTimer, setAnimationTimer] = useState(1200);
   const [opacity, setOpacity] = useState(1);
   const [showMetallicCoin, setShowMetallicCoin] = useState(false);
 
@@ -103,6 +105,7 @@ export default function Landing() {
   const transitionComplete = localStorage.getItem("hasWatchedTransition");
 
   const cachedImages = usePreloadImages();
+  console.log(cachedImages);
 
   useEffect(() => {
     // PARSE QUERY PARAMS - MARK IF THE USER HAS VISITED THE SITE BEFORE
@@ -143,10 +146,19 @@ export default function Landing() {
     localStorage.removeItem("hasWatchedTransition");
   }, []);
 
+  useEffect(() => {
+    if (cachedImages.loading) {
+      setAnimationTimer(5000);
+      console.log("Loading images...");
+    } else {
+      setAnimationTimer(600);
+    }
+  }, [cachedImages.loading]);
+
   // EFFECT TO UPDATE ANIMATION SPEED, PARTICLE BACKGROUND THEME, AND CAMERA ZOOM
   useEffect(() => {
     if (images[currentIndex].includes("tree")) {
-      setAnimationTimer(650);
+      setAnimationTimer(1200);
     } else if (images[currentIndex].includes("rock.png")) {
       setAnimationTimer(600);
     } else if (images[currentIndex].includes("gold.png")) {
@@ -249,7 +261,7 @@ export default function Landing() {
           )}
           {/* Adjust the position to fit in the scene */}
           <SlideGroup
-            cachedImages={cachedImages}
+            cachedImages={cachedImages.cachedImages}
             images={images}
             nextIndex={nextIndex}
             currentIndex={currentIndex}
