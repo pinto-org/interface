@@ -3,8 +3,8 @@ import { diamondABI } from "@/constants/abi/diamondABI";
 import { PODS } from "@/constants/internalTokens";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
+import { useInvalidateField } from "@/state/useFieldData";
 import { exists } from "@/utils/utils";
-import { useQueryClient } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useEffect } from "react";
 import { useReadContract, useReadContracts } from "wagmi";
@@ -32,10 +32,6 @@ const settings = {
 const TEMPERATURE_DECIMALS = 6;
 
 const SOIL_DECIMALS = 6;
-
-const SOIL_UPDATE_INTERVAL = 4;
-
-const FIELD_REFRESH_MS = 2000;
 
 // ---------------------------------------- Podline ----------------------------------------
 const useUpdatePodline = () => {
@@ -98,9 +94,7 @@ const useUpdateTotalSoil = () => {
 
     console.log("[protocol/field/useUpdateTotalSoil]: data", query.data);
 
-    setTotalSoil((draft) => {
-      draft.totalSoil = TV.fromBlockchain(query.data, SOIL_DECIMALS);
-    });
+    setTotalSoil(TV.fromBlockchain(query.data, SOIL_DECIMALS));
   }, [query.data]);
 };
 
@@ -179,43 +173,12 @@ const useUpdateWeather = () => {
   }, [weatherQuery.data]);
 };
 
-// ---------------------------------------- Morning Field ----------------------------------------
-const useUpdateMorningField = () => {
-  const morning = useAtomValue(morningAtom);
-  const soil = useAtomValue(fieldTotalSoilAtom);
-  const soilQueryKey = useAtomValue(fieldQueryKeysAtom).soil;
-  const qc = useQueryClient();
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies:
-  useEffect(() => {
-    // update the soil every 2 seconds
-    if (!morning.isMorning || soil.totalSoil.lte(0)) return;
-
-    console.log("[protocol/field/useUpdateMorningField]: morning: refreshing soil on interval");
-
-    const soilUpdateInterval = setInterval(() => {
-      const now = getNowRounded();
-
-      const remaining = getDiffNow(morning.next, now).as("seconds");
-      if (remaining % SOIL_UPDATE_INTERVAL === 0) {
-        qc.invalidateQueries({ queryKey: soilQueryKey });
-      }
-    }, FIELD_REFRESH_MS);
-
-    return () => {
-      clearInterval(soilUpdateInterval);
-    };
-  }, []);
-};
-
 // ---------------------------------------- Field ----------------------------------------
 export const useUpdateField = () => {
   useUpdateTemperature();
   useUpdatePodline();
   useUpdateWeather();
   useUpdateTotalSoil();
-
-  // useUpdateMorningField();
 };
 
 // ---------------------------------------- ABI ----------------------------------------
@@ -246,3 +209,39 @@ const temperatureABI = [
     type: "function",
   },
 ] as const;
+
+// ---------------------------------------- Non Top level updater hooks ----------------------------------------
+
+const SOIL_UPDATE_INTERVAL = 4;
+
+const FIELD_REFRESH_MS = 2000;
+
+export const useUpdateMorningSoilOnInterval = () => {
+  const morning = useAtomValue(morningAtom);
+  const soil = useAtomValue(fieldTotalSoilAtom);
+  const invalidateField = useInvalidateField();
+
+  const isMorning = morning.isMorning;
+  const noSoil = soil.lte(0);
+  const nextMorningInterval = morning.next;
+
+  useEffect(() => {
+    // update the soil every 2 seconds
+    if (!isMorning || noSoil) return;
+
+    console.log("[protocol/field/useUpdateMorningField]: morning: refreshing soil on interval");
+
+    const soilUpdateInterval = setInterval(() => {
+      const now = getNowRounded();
+
+      const remaining = getDiffNow(nextMorningInterval, now).as("seconds");
+      if (remaining % SOIL_UPDATE_INTERVAL === 0) {
+        invalidateField("soil");
+      }
+    }, FIELD_REFRESH_MS);
+
+    return () => {
+      clearInterval(soilUpdateInterval);
+    };
+  }, [invalidateField, isMorning, noSoil, nextMorningInterval]);
+};

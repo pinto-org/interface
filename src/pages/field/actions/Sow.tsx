@@ -152,8 +152,6 @@ function Sow({ isMorning }: SowProps) {
       const _minTemp = TokenValue.fromHuman(minTemperature, PODS.decimals);
       const minTemp = (_minTemp.gt(currentTemperature) ? _minTemp : currentTemperature).subSlippage(slippage);
 
-      console.log("minTemp", minTemp.toBlockchain());
-
       const minSoil = TokenValue.ZERO;
 
       if (isUsingMain) {

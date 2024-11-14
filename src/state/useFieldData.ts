@@ -68,7 +68,7 @@ export function useField() {
 }
 
 export function useTotalSoil() {
-  return useAtomValue(fieldTotalSoilAtom).totalSoil;
+  return useAtomValue(fieldTotalSoilAtom);
 }
 
 export function useFieldWeather() {

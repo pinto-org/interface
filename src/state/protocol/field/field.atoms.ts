@@ -14,10 +14,7 @@ import {
 } from ".";
 import { morningAtom } from "../sun/sun.atoms";
 
-export const fieldTotalSoilAtom = atomWithImmer<FieldSoil>({
-  totalSoil: TV.NEGATIVE_ONE,
-  soil: TV.NEGATIVE_ONE,
-});
+export const fieldTotalSoilAtom = atomWithImmer<TV>(TV.fromHuman(0, 6));
 
 export const fieldTemperatureAtom = atomWithImmer<FieldTemperature>({
   max: TV.NEGATIVE_ONE,
@@ -42,7 +39,7 @@ export const fieldAtom = atom<Field>((get) => {
   return {
     weather: get(fieldWeatherAtom),
     temperature: get(fieldTemperatureAtom),
-    totalSoil: get(fieldTotalSoilAtom).totalSoil,
+    totalSoil: get(fieldTotalSoilAtom),
     ...get(fieldPodlineAtom),
   };
 });
