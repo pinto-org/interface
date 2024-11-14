@@ -6,6 +6,8 @@ import PintoExplorer from "./explorer/PintoExplorer";
 import SiloExplorer from "./explorer/SiloExplorer";
 import FieldExplorer from "./explorer/FieldExplorer";
 import { useNavigate, useParams } from "react-router-dom";
+import SeasonsExplorer from "./explorer/SeasonsExplorer";
+import AllExplorer from "./explorer/AllExplorer";
 
 const TABS = [
   {
@@ -74,6 +76,8 @@ const Explorer = () => {
           {selectedIdx === 0 && <PintoExplorer />}
           {selectedIdx === 1 && <SiloExplorer />}
           {selectedIdx === 2 && <FieldExplorer />}
+          {selectedIdx === 3 && <SeasonsExplorer />}
+          {selectedIdx === 4 && <AllExplorer />}
         </div>
       </div>
     </PageContainer>
