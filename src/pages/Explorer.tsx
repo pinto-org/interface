@@ -1,13 +1,13 @@
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import PintoExplorer from "./explorer/PintoExplorer";
 import SiloExplorer from "./explorer/SiloExplorer";
 import FieldExplorer from "./explorer/FieldExplorer";
-import { useNavigate, useParams } from "react-router-dom";
 import SeasonsExplorer from "./explorer/SeasonsExplorer";
 import AllExplorer from "./explorer/AllExplorer";
+import useRouterTabs from "@/hooks/useRouterTabs";
 
 const TABS = [
   {
@@ -33,20 +33,11 @@ const TABS = [
 ];
 
 const Explorer = () => {
-  const { tab } = useParams();
-  const navigate = useNavigate();
-
-  // Redirect to a default tab if the selected tab is invalid
-  useEffect(() => {
-    const isValidTab = TABS.some((t) => t.urlSlug === tab);
-    if (!isValidTab) {
-      navigate(`/explorer/${TABS[0].urlSlug}`, { replace: true });
-    }
-  }, [tab, navigate]);
+  const [tab, handleChangeTab] = useRouterTabs(TABS.map((t) => t.urlSlug));
 
   const handleMainTabClickFactory = useCallback(
-    (selection: string) => () => navigate(`/explorer/${selection}`, { replace: true }),
-    [navigate],
+    (selection: string) => () => handleChangeTab(selection),
+    [handleChangeTab],
   );
 
   const selectedIdx = TABS.findIndex((t) => t.urlSlug === tab);
