@@ -58,7 +58,7 @@ const useUpdatePodline = () => {
     const podIndex = data[1].result;
     const podLine = exists(podIndex) && exists(harvestableIndex) ? podIndex - harvestableIndex : undefined;
 
-    console.log("[protocol/field/useUpdatePodline]: data", {
+    console.debug("[protocol/field/useUpdatePodline]: data", {
       harvestableIndex,
       podIndex,
       podLine,
@@ -93,6 +93,8 @@ const useUpdateTotalSoil = () => {
   useEffect(() => {
     if (!exists(query?.data)) return;
 
+    console.debug("[protocol/field/useUpdateTotalSoil]: data", query.data);
+
     setTotalSoil(TV.fromBlockchain(query.data, SOIL_DECIMALS));
   }, [query.data]);
 };
@@ -125,7 +127,7 @@ const useUpdateTemperature = () => {
   useEffect(() => {
     if (!exists(query?.data?.max) || !exists(query?.data?.scaled)) return;
 
-    console.log("[protocol/field/useUpdateTemperature]: data", {
+    console.debug("[protocol/field/useUpdateTemperature]: data", {
       max: query.data.max,
       scaled: query.data.scaled,
     });
@@ -156,7 +158,7 @@ const useUpdateWeather = () => {
   useEffect(() => {
     if (!exists(weatherQuery?.data)) return;
 
-    console.log("[protocol/field/useUpdateWeather]: data", weatherQuery.data);
+    console.debug("[protocol/field/useUpdateWeather]: data", weatherQuery.data);
 
     const lastDeltaSoil = weatherQuery.data.lastDeltaSoil;
     const lastSowTime = weatherQuery.data.lastSowTime;

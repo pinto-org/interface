@@ -4,6 +4,7 @@ import { ComboInputField } from "@/components/ComboInputField";
 import { RightArrowIcon } from "@/components/Icons";
 import FrameAnimator from "@/components/LoadingSpinner";
 import OutputDisplay from "@/components/OutputDisplay";
+import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
 import { Button } from "@/components/ui/Button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
@@ -46,7 +47,6 @@ import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { simulateContract } from "viem/actions";
 import { useAccount, useChainId, useConfig, useReadContract } from "wagmi";
-import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 
 interface BaseConvertProps {
   siloToken: Token;
@@ -145,7 +145,7 @@ function DefaultConvert({
     }
   }, [estimateQuery.isFetching, setLoadingTrue, setLoadingFalse]);
 
-  const { writeContractAsync, isConfirming } = useTransaction({
+  const { writeWithEstimateGas, isConfirming, submitting, setSubmitting } = useTransaction({
     successMessage: "Convert successful",
     successCallback: () => {
       setAmountIn("0");
@@ -181,6 +181,7 @@ function DefaultConvert({
   );
 
   const onSubmit = useCallback(async () => {
+    setSubmitting(true);
     try {
       const deposits = farmerDeposits.get(siloToken);
 
@@ -216,7 +217,7 @@ function DefaultConvert({
         throw new Error("Invalid convert data");
       }
 
-      return writeContractAsync({
+      return writeWithEstimateGas({
         address: protocolAddress,
         abi: diamondABI,
         functionName: "convert",
@@ -226,9 +227,12 @@ function DefaultConvert({
       console.error(e);
       toast.error(e instanceof Error ? e.message : "Convert failed");
       return e;
+    } finally {
+      setSubmitting(false);
     }
   }, [
-    writeContractAsync,
+    setSubmitting,
+    writeWithEstimateGas,
     protocolAddress,
     account.address,
     farmerDeposits,
@@ -268,7 +272,8 @@ function DefaultConvert({
     !account.address ||
     !convertData ||
     isConfirming ||
-    amountIn !== debouncedAmountIn;
+    amountIn !== debouncedAmountIn ||
+    submitting;
 
   return (
     <div className="flex flex-col gap-6">
@@ -436,7 +441,7 @@ const PipelineConvert = ({
     targetStemTip: siloTokenData.get(targetToken)?.stemTip,
   });
 
-  const { writeContractAsync, isConfirming } = useTransaction({
+  const { writeWithEstimateGas, isConfirming, submitting, setSubmitting } = useTransaction({
     successCallback: () => {
       setAmountIn("0");
       toast.dismiss();
@@ -463,6 +468,7 @@ const PipelineConvert = ({
   });
 
   const onSubmit = async () => {
+    setSubmitting(true);
     try {
       const depositData = farmerDeposits.get(siloToken);
 
@@ -486,7 +492,7 @@ const PipelineConvert = ({
         account.address,
       );
 
-      await writeContractAsync({
+      await writeWithEstimateGas({
         address: protocolAddress,
         abi: diamondABI,
         functionName: "advancedFarm",
@@ -495,6 +501,8 @@ const PipelineConvert = ({
     } catch (e) {
       console.error("Error submitting pipeline convert: ", e);
       return e;
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -506,7 +514,8 @@ const PipelineConvert = ({
     !convertData ||
     isConfirming ||
     convertData?.amountOut.lte(0) ||
-    maxConvertible?.lt(stringToNumber(amountIn));
+    maxConvertible?.lt(stringToNumber(amountIn)) ||
+    submitting;
 
   return (
     <div className="flex flex-col gap-4">

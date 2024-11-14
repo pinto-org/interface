@@ -137,6 +137,7 @@ export function usePriceData() {
       price: TokenValue.fromBlockchain(price?.price || 0n, 6),
       pools: pools.sort((a, b) => Number(b.liquidity.sub(a.liquidity).toHuman())),
     };
+
     return output;
   }, [price, tokenData.mainToken, tokenData.lpTokens, tokenData.preferredTokens]);
 
