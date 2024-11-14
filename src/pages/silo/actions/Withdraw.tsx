@@ -12,7 +12,7 @@ import { stringToNumber } from "@/utils/string";
 import { FarmToMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { estimateGas } from "@wagmi/core";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useConfig } from "wagmi";
@@ -105,8 +105,8 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const disabled = !stringToNumber(amount) || !account.address || isSubmitting || isConfirming;
 
-  const getWithdrawOutput = useCallback(() => {
-    if (!amount || Number(amount) <= 0 || !deposits) return null;
+  const withdrawOutput = useMemo(() => {
+    if (!amount || Number(amount) <= 0 || !deposits) return undefined;
 
     const amountTV = TokenValue.fromHuman(amount, fromToken.decimals);
     const transferData = sortAndPickCrates("withdraw", amountTV, deposits);
@@ -117,8 +117,6 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       seedsLost: transferData.seeds,
     };
   }, [amount, deposits, fromToken.decimals]);
-
-  const withdrawOutput = getWithdrawOutput();
 
   return (
     <div className="flex flex-col gap-4">
