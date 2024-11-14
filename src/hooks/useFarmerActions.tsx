@@ -62,6 +62,15 @@ interface FarmerAction {
   outputs: ActionOutput;
 }
 
+interface RewardSources {
+  mow?: ActionOutput; // From mowing grown stalk
+  plant?: ActionOutput; // From planting earned beans
+  harvest?: ActionOutput;
+  convert?: ActionOutput;
+  update?: UpdateOutput;
+  flood?: FloodableAsset;
+}
+
 interface TokenTotalGains {
   token: Token;
   total: {
@@ -70,13 +79,7 @@ interface TokenTotalGains {
     stalk: TokenValue; // Total stalk gain
     seeds: TokenValue; // Total seeds gain
   };
-  sources: {
-    rewards?: ActionOutput; // From claiming rewards
-    harvest?: ActionOutput; // From harvesting pods
-    convert?: ActionOutput; // From conversions
-    update?: UpdateOutput; // From updating deposits
-    flood?: FloodableAsset; // From flood claims
-  };
+  sources: RewardSources;
 }
 
 interface WalletBalanceValue {
@@ -644,12 +647,41 @@ export default function useFarmerActions(): FarmerActions {
       };
     });
 
+    // Calculate mowing rewards
+    const mowRewards: ActionOutput = {
+      beanGain: TokenValue.ZERO,
+      bdvGain: TokenValue.ZERO,
+      stalkGain: farmerSilo.grownStalkReward,
+      seedGain: TokenValue.ZERO,
+      podGain: TokenValue.ZERO,
+    };
+
+    // Calculate planting rewards from earned beans
+    const plantRewards: ActionOutput = {
+      beanGain: farmerSilo.earnedBeansBalance,
+      bdvGain: farmerSilo.earnedBeansBalance,
+      stalkGain: farmerSilo.earnedBeansBalance.mul(
+        siloData.tokenData.get(mainToken)?.tokenSettings.stalkIssuedPerBdv ?? TokenValue.ZERO,
+      ),
+      seedGain: farmerSilo.earnedBeansBalance.mul(siloData.tokenData.get(mainToken)?.rewards.seeds ?? TokenValue.ZERO),
+      podGain: TokenValue.ZERO,
+    };
+
+    // Combined rewards for UI that needs total
+    const totalRewards: ActionOutput = {
+      beanGain: plantRewards.beanGain,
+      bdvGain: plantRewards.bdvGain,
+      stalkGain: mowRewards.stalkGain.add(plantRewards.stalkGain),
+      seedGain: plantRewards.seedGain,
+      podGain: TokenValue.ZERO,
+    };
+
     // Initialize token totals map
     const tokenTotals = new Map<Token, TokenTotalGains>();
 
-    // Function to add gains to token totals
-    function addGainsToToken(token: Token, gains: Partial<ActionOutput>, source: keyof TokenTotalGains["sources"]) {
-      const existing = tokenTotals.get(token) || {
+    // Helper to add gains to token totals with separate reward sources
+    function addGainsToToken(token: Token, gains: Partial<ActionOutput>, source: keyof RewardSources) {
+      const existing = tokenTotals.get(token) ?? {
         token,
         total: {
           amount: TokenValue.ZERO,
@@ -660,23 +692,27 @@ export default function useFarmerActions(): FarmerActions {
         sources: {},
       };
 
-      // Add gains to totals
-      existing.total.amount = existing.total.amount.add(gains.beanGain || TokenValue.ZERO);
-      existing.total.bdv = existing.total.bdv.add(gains.bdvGain || TokenValue.ZERO);
-      existing.total.stalk = existing.total.stalk.add(gains.stalkGain || TokenValue.ZERO);
-      existing.total.seeds = existing.total.seeds.add(gains.seedGain || TokenValue.ZERO);
+      // Add to totals
+      existing.total.amount = existing.total.amount.add(gains.beanGain ?? TokenValue.ZERO);
+      existing.total.bdv = existing.total.bdv.add(gains.bdvGain ?? TokenValue.ZERO);
+      existing.total.stalk = existing.total.stalk.add(gains.stalkGain ?? TokenValue.ZERO);
+      existing.total.seeds = existing.total.seeds.add(gains.seedGain ?? TokenValue.ZERO);
 
-      // Record source
-      existing.sources[source] = gains as any; // Type assertion needed due to partial gains
+      // Set individual source
+      existing.sources[source] = gains as any;
 
       tokenTotals.set(token, existing);
     }
 
-    // Add claim rewards to main token totals
-    if (claimRewardsOutput.beanGain.gt(0)) {
-      addGainsToToken(mainToken, claimRewardsOutput, "rewards");
+    // Add mow rewards
+    if (mowRewards.stalkGain.gt(0)) {
+      addGainsToToken(mainToken, mowRewards, "mow");
     }
 
+    // Add plant rewards
+    if (plantRewards.beanGain.gt(0)) {
+      addGainsToToken(mainToken, plantRewards, "plant");
+    }
     // Add harvest gains to main token totals
     if (harvestPodsOutput.beanGain.gt(0)) {
       addGainsToToken(mainToken, harvestPodsOutput, "harvest");
@@ -727,10 +763,11 @@ export default function useFarmerActions(): FarmerActions {
       tokensWithValue,
 
       claimRewards: {
-        enabled: claimRewardsOutput.beanGain.gt(0) || claimRewardsOutput.stalkGain.gt(0),
-        outputs: claimRewardsOutput,
+        enabled: totalRewards.beanGain.gt(0) || totalRewards.stalkGain.gt(0),
+        outputs: totalRewards,
+        mowOutputs: mowRewards,
+        plantOutputs: plantRewards,
       },
-
       floodAssets: {
         enabled: totalFloodValue.gt(0),
         assets: floodAssets,

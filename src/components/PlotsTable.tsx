@@ -21,78 +21,72 @@ interface PlotRowProps {
   showClaimable?: boolean;
 }
 
-const PlotRow = React.forwardRef<HTMLTableRowElement, PlotRowProps & React.HTMLAttributes<HTMLTableRowElement>>(
-  ({ plot, harvestableIndex, useToggle, isSelected, showClaimable, ...props }, ref) => {
-    const placeInLine = plot.index.sub(harvestableIndex);
-    const isHarvesting = placeInLine.lt(0);
-    const harvestablePods = placeInLine.abs();
-    const nonHarvestablePods = plot.pods.sub(plot.harvestablePods);
+const PlotRow = ({ plot, harvestableIndex, useToggle, isSelected, showClaimable }: PlotRowProps) => {
+  const placeInLine = plot.index.sub(harvestableIndex);
+  const isHarvesting = placeInLine.lt(0);
+  const harvestablePods = placeInLine.abs();
+  const nonHarvestablePods = plot.pods.sub(plot.harvestablePods);
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    if (showClaimable) {
-      return (
-        <TableRow
-          className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 items-center hover:cursor-pointer"
-          data-action-target="claimable-rewards"
-          ref={ref}
-          onClick={() => navigate("/field/harvest")}
-          {...props}
-        >
-          <TableCell className="text-pinto-green-2 items-center">
-            <div className="flex items-center gap-1.5">
-              <div className="h-8 w-8 bg-pinto-green-4 rounded-full flex justify-center items-center text-white rotate-90">
-                <RightArrowIcon color="currentColor" />
-              </div>
-              <Text variant="body-light" color="green4">
-                Claimable
-              </Text>
-            </div>
-          </TableCell>
-          <TableCell className="text-pinto-green-2 text-right">
-            <div className="inline-flex items-center">
-              <Text variant="body-light" color="green4">
-                {formatter.number(harvestablePods)} Harvestable Pods
-              </Text>
-            </div>
-          </TableCell>
-        </TableRow>
-      );
-    }
-
+  if (showClaimable) {
     return (
       <TableRow
-        ref={ref}
-        {...props}
-        onClick={() => {
-          !useToggle && navigate("/field");
-        }}
-        className={`h-[4.5rem] bg-transparent items-center hover:bg-pinto-green-1/50 hover:cursor-pointer`}
+        className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 items-center hover:cursor-pointer"
+        data-action-target="claimable-rewards"
+        onClick={() => navigate("/field/harvest")}
       >
-        <TableCell className="text-black font-[400]">
-          <div className="gap-2 flex items-center">
-            {useToggle && <CheckmarkCircle isSelected={isSelected} />}
-            <img src={plotIcon} className="h-6 w-6" alt="Plot" />
-            <Text variant="body-light">Plot {plot.index.blockchainString}</Text>
+        <TableCell className="text-pinto-green-2 items-center">
+          <div className="flex items-center gap-1.5">
+            <div className="h-8 w-8 bg-pinto-green-4 rounded-full flex justify-center items-center text-white rotate-90">
+              <RightArrowIcon color="currentColor" />
+            </div>
+            <Text variant="body-light" color="green4">
+              Claimable
+            </Text>
           </div>
         </TableCell>
-        <TableCell className="text-right">
-          <div className="inline-flex items-center gap-1.5">
-            <img src={podIcon} className="h-6 w-6" alt="Pods" />
-            <Text variant="body-light">{formatter.number(nonHarvestablePods)} Pods</Text>
-            <Text variant="body-light" color="light">
-              {` at `}
-            </Text>
-            <Text variant="body-light">
-              {formatter.number(isHarvesting ? TokenValue.ZERO : placeInLine)}
-              {" in the Pod Line"}
+        <TableCell className="text-pinto-green-2 text-right">
+          <div className="inline-flex items-center">
+            <Text variant="body-light" color="green4">
+              {formatter.number(harvestablePods)} Harvestable Pods
             </Text>
           </div>
         </TableCell>
       </TableRow>
     );
-  },
-);
+  }
+
+  return (
+    <TableRow
+      onClick={() => {
+        !useToggle && navigate("/field");
+      }}
+      className="h-[4.5rem] bg-transparent items-center hover:bg-pinto-green-1/50 hover:cursor-pointer"
+    >
+      <TableCell className="text-black font-[400]">
+        <div className="gap-2 flex items-center">
+          {useToggle && <CheckmarkCircle isSelected={isSelected} />}
+          <img src={plotIcon} className="h-6 w-6" alt="Plot" />
+          <Text variant="body-light">Plot {plot.index.blockchainString}</Text>
+        </div>
+      </TableCell>
+      <TableCell className="text-right">
+        <div className="inline-flex items-center gap-1.5">
+          <img src={podIcon} className="h-6 w-6" alt="Pods" />
+          <Text variant="body-light">{formatter.number(nonHarvestablePods)} Pods</Text>
+          <Text variant="body-light" color="light">
+            {` at `}
+          </Text>
+          <Text variant="body-light">
+            {formatter.number(isHarvesting ? TokenValue.ZERO : placeInLine)}
+            {" in the Pod Line"}
+          </Text>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+};
 
 export default function PlotsTable({
   selected,

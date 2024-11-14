@@ -1,7 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import OutputDisplay from "@/components/OutputDisplay";
-import { formatter } from "@/utils/format";
 import { SEEDS, STALK } from "@/constants/internalTokens";
+import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
 
 interface SiloOutputDisplayProps {
@@ -27,11 +27,7 @@ export default function SiloOutputDisplay({
     <OutputDisplay title={title}>
       {amount && token && (
         <OutputDisplay.Item label="Amount">
-          <OutputDisplay.Value
-            value={formatter.token(amount, token)}
-            token={token}
-            suffix={token.symbol}
-          />
+          <OutputDisplay.Value value={formatter.token(amount, token)} token={token} suffix={token.symbol} />
         </OutputDisplay.Item>
       )}
       <OutputDisplay.Item label="Stalk">
@@ -46,7 +42,7 @@ export default function SiloOutputDisplay({
       <OutputDisplay.Item label="Seed">
         <OutputDisplay.Value
           value={formatter.twoDec(seeds)}
-          suffix="Seed"
+          suffix="Seeds"
           delta={seeds.toNumber() * deltaMultiplier}
           token={SEEDS}
           showArrow

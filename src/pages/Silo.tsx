@@ -6,11 +6,13 @@ import TableRowConnector from "@/components/TableRowConnector";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
+import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
+import { getClaimText } from "@/utils/string";
 import { StatPanelData } from "@/utils/types";
 import { getSiloConvertUrl } from "@/utils/url";
 import { useState } from "react";
@@ -24,6 +26,7 @@ function Silo() {
   const tokenData = useTokenData();
   const priceData = usePriceData();
   const mainToken = tokenData.mainToken;
+  const { submitClaimRewards } = useClaimRewards();
 
   const navigate = useNavigate();
 
@@ -36,6 +39,12 @@ function Silo() {
   const convertFrom = farmerActions.convertDeposits.bestConversion.from;
   const convertTo = farmerActions.convertDeposits.bestConversion.to;
   const claimEnabled = farmerActions.claimRewards.enabled;
+  const claimableText = getClaimText(
+    farmerActions.claimRewards.outputs.beanGain,
+    farmerActions.claimRewards.outputs.stalkGain,
+    farmerActions.claimRewards.outputs.seedGain,
+  );
+
   const bestDeposit = farmerActions.optimalDepositToken?.token;
 
   const statPanelData: Record<"stalk" | "seeds" | "depositedValue", StatPanelData> = {
@@ -123,14 +132,14 @@ function Silo() {
                         <Text
                           data-action-target="convert"
                           variant="sm-light"
-                          className="text-pinto-green-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="text-pinto-gray-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           {`Convert ${convertFrom.name} for ${convertTo.name}`}
                         </Text>
                         <Text
                           data-action-target="convert"
                           variant="sm-light"
-                          className="text-pinto-green-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="text-pinto-gray-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           {"Arbitrage the increased Seeds reward for a gain in Seeds."}
                         </Text>
@@ -140,20 +149,17 @@ function Silo() {
                 />
               )}
               {claimEnabled && (
-                <ClaimRewards
-                  trigger={
-                    <HelperLink
-                      text={"Claim Pinto, Stalk and Seeds"}
-                      className={`absolute -mt-[390px] -right-[320px] z-20`}
-                      dataTarget={`token-row-${mainToken.address}`}
-                      sourceAnchor="left"
-                      targetAnchor="right"
-                      source90Degree={true}
-                      perpLength={10}
-                      onMouseEnter={() => setHoveredButton("claim")}
-                      onMouseLeave={() => setHoveredButton("")}
-                    />
-                  }
+                <HelperLink
+                  text={claimableText}
+                  className={`absolute -mt-[390px] -right-[320px] z-20`}
+                  dataTarget={`token-row-${mainToken.address}`}
+                  sourceAnchor="left"
+                  targetAnchor="right"
+                  source90Degree={true}
+                  perpLength={10}
+                  onClick={submitClaimRewards}
+                  onMouseEnter={() => setHoveredButton("claim")}
+                  onMouseLeave={() => setHoveredButton("")}
                 />
               )}
               {!convertEnabled && bestDeposit && (

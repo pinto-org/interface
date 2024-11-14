@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import { InfoOutlinedIcon, InfoSolidIcon } from "./Icons";
 
 interface ParentComponentProps {
-  variant?: "pinto" | "stalk" | "seed" | "pod" | "gray" | "outlined";
+  variant?: "pinto" | "stalk" | "seeds" | "pods" | "gray" | "outlined";
   children?: ReactNode;
   content?: ReactNode;
   opaque?: boolean;
@@ -23,13 +23,13 @@ export default function TooltipSimple({
         <TooltipTrigger asChild>
           {children || (
             <span
-              className={`${opaque ? "opacity-[0.4]" : "opacity-100"} ${variant === "pinto" ? "text-pinto" : variant === "stalk" ? "text-pinto-stalk-gold" : variant === "seed" ? "text-pinto-seed-silver" : variant === "pod" ? "text-pinto-pod-bronze" : "text-pinto-gray-4"}`}
+              className={`${opaque ? "opacity-[0.4]" : "opacity-100"} ${variant === "pinto" ? "text-pinto" : variant === "stalk" ? "text-pinto-stalk-gold" : variant === "seeds" ? "text-pinto-seed-silver" : variant === "pods" ? "text-pinto-pod-bronze" : "text-pinto-gray-4"}`}
             >
               {variant === "pinto" ||
               variant === "gray" ||
               variant === "stalk" ||
-              variant === "seed" ||
-              variant === "pod" ? (
+              variant === "seeds" ||
+              variant === "pods" ? (
                 <InfoSolidIcon color={"currentColor"} />
               ) : (
                 <InfoOutlinedIcon color={"currentColor"} />

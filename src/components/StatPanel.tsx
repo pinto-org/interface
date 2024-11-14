@@ -99,7 +99,7 @@ const StatPanel = ({
         </>
       )}
       {mode === "stalk" && variant === "silo" && (
-        <div className={`${showActionValues ? "opacity-0" : "opacity-100"}`}>
+        <div className={`${showActionValues || secondaryValue.eq(0) ? "opacity-0" : "opacity-100"}`}>
           Claimable Stalk:
           <Text as="span" variant="inherit" color="green4" className="pl-2">
             {secondaryValue.gt(0) ? "+" : ""}
@@ -118,7 +118,7 @@ const StatPanel = ({
         </span>
       )}
       {mode === "seeds" && variant === "silo" && (
-        <div className={`${showActionValues ? "opacity-0" : "opacity-100"}`}>
+        <div className={`${showActionValues || secondaryValue.eq(0) ? "opacity-0" : "opacity-100"}`}>
           Claimable Seeds:
           <Text as="span" variant="inherit" color="green4" className="pl-2">
             {secondaryValue.gt(0) ? "+" : ""}
@@ -146,7 +146,7 @@ const StatPanel = ({
           {tooltipContent && (
             <TooltipSimple
               content={tooltipContent}
-              variant={mode === "stalk" ? "stalk" : mode === "seeds" ? "seeds" : mode === "pods" ? "pod" : "gray"}
+              variant={mode === "stalk" ? "stalk" : mode === "seeds" ? "seeds" : mode === "pods" ? "pods" : "gray"}
               opaque={mainValue.eq(0)}
             />
           )}

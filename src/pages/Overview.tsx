@@ -9,12 +9,14 @@ import TableRowConnector from "@/components/TableRowConnector";
 import { Button } from "@/components/ui/Button";
 import PageContainer from "@/components/ui/PageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useFieldData } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
+import { getClaimText } from "@/utils/string";
 import { StatPanelData } from "@/utils/types";
 import { getSiloConvertUrl } from "@/utils/url";
 import { useEffect, useMemo, useState } from "react";
@@ -29,6 +31,7 @@ const Overview = () => {
   const fieldData = useFieldData();
   const priceData = usePriceData();
   const navigate = useNavigate();
+  const { submitClaimRewards } = useClaimRewards();
 
   const hasDeposits = farmerActions.totalValue.silo.gt(0);
   const hasPods = farmerActions.totalValue.field.gt(0);
@@ -75,6 +78,11 @@ const Overview = () => {
   const convertFrom = farmerActions.convertDeposits.bestConversion.from;
   const convertTo = farmerActions.convertDeposits.bestConversion.to;
   const claimEnabled = farmerActions.claimRewards.enabled;
+  const claimableText = getClaimText(
+    farmerActions.claimRewards.outputs.beanGain,
+    farmerActions.claimRewards.outputs.stalkGain,
+    farmerActions.claimRewards.outputs.seedGain,
+  );
 
   // Stat panel data
   const statPanelData: Record<"stalk" | "pods" | "seeds" | "depositedValue", StatPanelData> = {
@@ -232,20 +240,17 @@ const Overview = () => {
             />
           )*/}
           {currentTab === "deposits" && claimEnabled && (
-            <ClaimRewards
-              trigger={
-                <HelperLink
-                  text="Claim Pinto, Stalk and Seeds"
-                  dataTarget="claimable-rewards"
-                  className="absolute right-[60px] mt-[60px]"
-                  sourceAnchor="left"
-                  targetAnchor="right"
-                  source90Degree={true}
-                  perpLength={10}
-                  onMouseEnter={() => setHoveredButton("claim")}
-                  onMouseLeave={() => setHoveredButton("")}
-                />
-              }
+            <HelperLink
+              text={claimableText}
+              dataTarget="claimable-rewards"
+              className="absolute right-[60px] mt-[60px]"
+              sourceAnchor="left"
+              targetAnchor="right"
+              source90Degree={true}
+              perpLength={10}
+              onMouseEnter={() => setHoveredButton("claim")}
+              onMouseLeave={() => setHoveredButton("")}
+              onClick={submitClaimRewards}
             />
           )}
           <TabsContent className="mt-8" value="deposits">

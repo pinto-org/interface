@@ -95,6 +95,7 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
     <WagmiProvider config={web3Config}>
       <QueryClientProvider client={queryClient}>
         <ConnectKitProvider
+          mode="light"
           customTheme={{
             "--ck-font-family": "Pinto",
             "--ck-border-radius": "24px",
