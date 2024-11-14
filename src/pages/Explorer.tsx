@@ -33,7 +33,10 @@ const TABS = [
 ];
 
 const Explorer = () => {
-  const [tab, handleChangeTab] = useRouterTabs(TABS.map((t) => t.urlSlug));
+  const [tab, handleChangeTab] = useRouterTabs(
+    TABS.map((t) => t.urlSlug),
+    { type: "path", key: "tab", pathname: "/explorer/:tab" },
+  );
 
   const handleMainTabClickFactory = useCallback(
     (selection: string) => () => handleChangeTab(selection),
