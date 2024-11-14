@@ -146,7 +146,7 @@ const StatPanel = ({
           {tooltipContent && (
             <TooltipSimple
               content={tooltipContent}
-              variant={mode === "stalk" ? "stalk" : mode === "seeds" ? "seeds" : mode === "pods" ? "pod" : "gray"}
+              variant={mode === "stalk" ? "stalk" : mode === "seeds" ? "seeds" : mode === "pods" ? "pods" : "gray"}
               opaque={mainValue.eq(0)}
             />
           )}
