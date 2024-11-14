@@ -142,14 +142,13 @@ const SlideGroup = ({
         console.log("Initial promise resolved");
         setTextures(loadedInitial);
       });
+
+      console.log("Launching remaining promise");
+      preloadTextures(remainingLoad).then((loadedRemaining) => {
+        console.log("Remaining promise resolved");
+        setTextures((prev) => [...prev, ...loadedRemaining]);
+      });
     }
-
-    console.log("Launching remaining promise");
-    preloadTextures(remainingLoad).then((loadedRemaining) => {
-      console.log("Remaining promise resolved");
-      setTextures((prev) => [...prev, ...loadedRemaining]);
-    });
-
     loadTextures();    
   }, [landingImages]);
 
