@@ -9,7 +9,7 @@ import { usePriceData } from "@/state/usePriceData";
 import useSiloSnapshots from "@/state/useSiloSnapshots";
 import { useSunData } from "@/state/useSunData";
 import { formatter } from "@/utils/format";
-import { cn } from "@/utils/utils";
+import { cn, isDev } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useMemo, useRef, useState } from "react";
@@ -21,6 +21,8 @@ import PriceButton from "../PriceButton";
 import SeasonsButton from "../SeasonsButton";
 import Navi from "./Navi.desktop";
 import MobileNavi from "./Navi.mobile";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/Button";
 
 type Panel = "price" | "seasons" | "wallet" | "mobile-navi";
 
@@ -97,75 +99,90 @@ const Navbar = () => {
 
   return (
     <>
-      <div
-        className={cn(
-          "fixed grid px-4 pt-4 pb-2 sm:px-6 sm:pt-6 w-full z-[2] bg-gradient-light action-container",
-          styles.navGrid,
-        )}
-      >
-        <div className="flex flex-row gap-2 sm:gap-4">
-          <div className={`transition-all duration-100 ${priceOpen && "z-[51]"}`}>
-            <PriceButton isOpen={priceOpen} togglePanel={() => togglePanel("price")} />
-          </div>
-          <div className={`transition-all duration-100 ${seasonsOpen && "z-[51]"}`}>
-            <SeasonsButton isOpen={seasonsOpen} togglePanel={() => togglePanel("seasons")} />
-          </div>
-        </div>
-        <div className="hidden lg:flex lg:justify-center">
-          <Navi />
-        </div>
-        <div className="flex flex-row justify-end">
-          <div className={`${walletOpen && "z-[51]"}`}>
-            <div data-action-target={"wallet-button"}>
-              <WalletButton
-                isOpen={walletOpen}
-                togglePanel={() => togglePanel("wallet")}
-                ref={walletButton}
-                showClaim={showClaim}
-                setShowClaim={setShowClaim}
-              />
+      <ScrollHideComponent>
+        <header className={cn("fixed top-0 w-full z-50 bg-white border-b border-pinto-gray-2")}>
+          <div className="flex flex-row justify-between items-center px-4 h-[72px] sm:h-[76px]">
+            {/* Desktop Navigation */}
+            <div className="hidden sm:flex">
+              <Navi />
+            </div>
+
+            {/* Add Dev button for desktop */}
+            <div className="hidden sm:flex items-center gap-2">
+              {isDev() && (
+                <Button variant="outline" asChild className="h-10 px-4 rounded-full">
+                  <Link to="/dev">Dev</Link>
+                </Button>
+              )}
+              <div className={`transition-all duration-100 ${priceOpen && "z-[51]"}`}>
+                <PriceButton isOpen={priceOpen} togglePanel={() => togglePanel("price")} />
+              </div>
+              <div className={`transition-all duration-100 ${seasonsOpen && "z-[51]"}`}>
+                <SeasonsButton isOpen={seasonsOpen} togglePanel={() => togglePanel("seasons")} />
+              </div>
+            </div>
+
+            {/* Mobile Navigation */}
+            <div className="sm:hidden flex w-full">
+              <MobileNavi />
+              {isDev() && (
+                <Button variant="outline" asChild className="h-10 px-4 rounded-full ml-2">
+                  <Link to="/dev">Dev</Link>
+                </Button>
+              )}
+              <div className={`${walletOpen && "z-[51]"}`}>
+                <div data-action-target={"wallet-button"}>
+                  <WalletButton
+                    isOpen={walletOpen}
+                    togglePanel={() => togglePanel("wallet")}
+                    ref={walletButton}
+                    showClaim={showClaim}
+                    setShowClaim={setShowClaim}
+                  />
+                </div>
+              </div>
+              <div className={`lg:hidden ${mobileNaviOpen && "z-[51]"}`}>
+                <MobileNavi
+                  isOpen={mobileNaviOpen}
+                  togglePanel={() => togglePanel("mobile-navi")}
+                  close={closePanel}
+                  mounted={backdropMounted}
+                  unmount={() => setBackdropMounted(false)}
+                />
+              </div>
+              <div className="hidden sm:block">
+                <Backdrop active={openBackdrop} onClick={closePanel} transitionDuration={DURATION} />
+              </div>
+              {!openPanel && showHelperLink && (
+                <ScrollHideComponent>
+                  <HelperLink
+                    onClick={() => {
+                      if (hasFlood) {
+                        setShowClaim(true);
+                      }
+                      togglePanel("wallet");
+                    }}
+                    text={
+                      !account.address
+                        ? "Connect your Wallet"
+                        : hasFlood
+                          ? "Claim assets from Flood"
+                          : `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet ${hasInternal ? "+ Farm Balances" : "Balance"}`
+                    }
+                    className={`absolute top-[150px] right-[340px]`}
+                    sourceAnchor="right"
+                    targetAnchor="left"
+                    source90Degree={true}
+                    perpLength={5}
+                    dataTarget="wallet-button"
+                    fixed
+                  />
+                </ScrollHideComponent>
+              )}
             </div>
           </div>
-          <div className={`lg:hidden ${mobileNaviOpen && "z-[51]"}`}>
-            <MobileNavi
-              isOpen={mobileNaviOpen}
-              togglePanel={() => togglePanel("mobile-navi")}
-              close={closePanel}
-              mounted={backdropMounted}
-              unmount={() => setBackdropMounted(false)}
-            />
-          </div>
-          <div className="hidden sm:block">
-            <Backdrop active={openBackdrop} onClick={closePanel} transitionDuration={DURATION} />
-          </div>
-          {!openPanel && showHelperLink && (
-            <ScrollHideComponent>
-              <HelperLink
-                onClick={() => {
-                  if (hasFlood) {
-                    setShowClaim(true);
-                  }
-                  togglePanel("wallet");
-                }}
-                text={
-                  !account.address
-                    ? "Connect your Wallet"
-                    : hasFlood
-                      ? "Claim assets from Flood"
-                      : `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet ${hasInternal ? "+ Farm Balances" : "Balance"}`
-                }
-                className={`absolute top-[150px] right-[340px]`}
-                sourceAnchor="right"
-                targetAnchor="left"
-                source90Degree={true}
-                perpLength={5}
-                dataTarget="wallet-button"
-                fixed
-              />
-            </ScrollHideComponent>
-          )}
-        </div>
-      </div>
+        </header>
+      </ScrollHideComponent>
     </>
   );
 };
