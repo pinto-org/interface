@@ -1,17 +1,16 @@
 import Text from "@/components/ui/Text";
-import useCalculateTemperature from "@/state/useCalculateTemperature";
-import { usePodLine, useTotalSoil } from "@/state/useFieldData";
+import { usePodLine, useTemperature, useTotalSoil } from "@/state/useFieldData";
 import { useMorning } from "@/state/useSunData";
 import { formatter } from "@/utils/format";
 import { MorningIntervalCountdown } from "./MorningCountdown";
 
 const FieldStats = () => {
-  const [temperatures] = useCalculateTemperature();
+  const temperatures = useTemperature();
   const morning = useMorning();
   const soil = useTotalSoil();
   const podLine = usePodLine();
 
-  const temperature = morning.isMorning ? temperatures.current : temperatures.max;
+  const temperature = morning.isMorning ? temperatures.scaled : temperatures.max;
 
   return (
     <div className="flex flex-row gap-x-12 gap-y-4 flex-wrap w-full">

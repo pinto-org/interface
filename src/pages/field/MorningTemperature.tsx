@@ -35,7 +35,7 @@ const createGradient: MakeGradientFunction = (context: CanvasRenderingContext2D 
 const makeLineGradients = [createGradient];
 
 const MorningTemperatureChart = () => {
-  const [_, utils] = useCalculateTemperature();
+  const { generate } = useCalculateTemperature();
 
   const [hoveredIndex, setHoveredIndex] = useState<number>();
   const morning = useMorning();
@@ -44,13 +44,13 @@ const MorningTemperatureChart = () => {
     const labels: number[] = [];
     const datas: LineChartData[] = [];
 
-    for (const value of Object.values(utils.generate())) {
+    for (const value of Object.values(generate())) {
       labels.push(value.interval);
       datas.push({ values: [value.temperature.toNumber()], interval: value.interval });
     }
 
     return datas;
-  }, [utils.generate]);
+  }, [generate]);
 
   return (
     <MorningCard className="flex flex-col w-full p-6">

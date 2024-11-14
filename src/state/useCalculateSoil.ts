@@ -12,7 +12,7 @@ export default function useCalculateSoil() {
   const totalSoil = useTotalSoil();
   const morning = useMorning();
 
-  const [_, { calculate: calculateTemperature }] = useCalculateTemperature();
+  const { calculate: calculateTemperature } = useCalculateTemperature();
 
   const isMorning = morning.isMorning;
   const abovePeg = season.abovePeg;

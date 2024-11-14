@@ -1,9 +1,8 @@
 import { TV } from "@/classes/TokenValue";
 import { INTERVALS_PER_MORNING } from "@/constants/morning";
-import { useAtomValue } from "jotai";
 import { useCallback, useMemo } from "react";
-import { Temperature, getMorningTemperature } from "./protocol/field";
-import { readonlyTemperatureAtom } from "./protocol/field/field.atoms";
+import { getMorningTemperature } from "./protocol/field";
+import { useTemperature } from "./useFieldData";
 
 export type MorningBlockTemperature = {
   /** */
@@ -22,16 +21,12 @@ export type MorningTemperatureLookup = {
 
 const intervalBlocks = Array.from({ length: INTERVALS_PER_MORNING }, (_, i) => i);
 
-export default function useCalculateTemperature(): readonly [
-  temperature: Temperature,
-  utils: {
-    loading: boolean;
-    generate: () => MorningTemperatureLookup;
-    calculate: (morningIdx: number) => TV;
-  },
-] {
-  const temperatures = useAtomValue(readonlyTemperatureAtom);
-  const maxTemperature = temperatures.max;
+export default function useCalculateTemperature(): {
+  generate: () => MorningTemperatureLookup;
+  calculate: (morningIdx: number) => TV;
+} {
+  const temperature = useTemperature();
+  const maxTemperature = temperature.max;
 
   /**
    * Get the temperature of a block during the morning period given the index of the morning interval.
@@ -63,16 +58,11 @@ export default function useCalculateTemperature(): readonly [
     }, {});
   }, [maxTemperature, calculate]);
 
-  const loading = maxTemperature.lt(0);
-
-  const utils = useMemo(
+  return useMemo(
     () => ({
-      loading,
       generate,
       calculate,
     }),
-    [generate, calculate, loading],
+    [generate, calculate],
   );
-
-  return [temperatures, utils] as const;
 }

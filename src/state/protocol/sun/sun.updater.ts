@@ -176,7 +176,7 @@ export function useUpdateMorning() {
   const morningIndex = morning.index;
   const isMorning = morning.isMorning;
 
-  const [_, { calculate: calculateTemperature }] = useCalculateTemperature();
+  const { calculate: calculateTemperature } = useCalculateTemperature();
 
   useEffect(() => {
     if (!isMorning) return;
