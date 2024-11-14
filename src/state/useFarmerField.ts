@@ -10,12 +10,12 @@ import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 import { useCallback, useMemo } from "react";
 import { useAccount, useChainId } from "wagmi";
-import { useFieldData } from "./useFieldData";
+import { useHarvestableIndex } from "./useFieldData";
 
 export function useFarmerField() {
   const chainId = useChainId();
   const account = useAccount();
-  const harvestableIndex = useFieldData().harvestableIndex;
+  const harvestableIndex = useHarvestableIndex();
 
   const queryKey = useMemo(
     () => ["farmerField", { chainId: chainId, variables: [account.address?.toString().toLowerCase()] }],

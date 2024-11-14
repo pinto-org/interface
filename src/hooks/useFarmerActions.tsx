@@ -419,7 +419,6 @@ export default function useFarmerActions(): FarmerActions {
   const farmerDeposits = useFarmerDepositedBalances();
   const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
-  const fieldData = useFieldData();
   const priceData = usePriceData();
   const tokenData = useTokenData();
   const siloData = useSiloData();
@@ -815,7 +814,7 @@ export default function useFarmerActions(): FarmerActions {
     farmerSilo,
     farmerField,
     farmerDeposits,
-    fieldData,
+    mainToken,
     priceData,
     tokenData,
     siloData,

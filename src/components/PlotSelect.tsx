@@ -4,7 +4,7 @@ import podIcon from "@/assets/protocol/Pod.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { PODS } from "@/constants/internalTokens";
 import { useFarmerField } from "@/state/useFarmerField";
-import { useFieldData } from "@/state/useFieldData";
+import { useFieldData, useHarvestableIndex } from "@/state/useFieldData";
 import { formatter } from "@/utils/format";
 import { Plot } from "@/utils/types";
 import { useEffect, useState } from "react";
@@ -80,7 +80,7 @@ export default function PlotSelect({
 }) {
   const account = useAccount();
   const farmerField = useFarmerField();
-  const fieldData = useFieldData();
+  const harvestableIndex = useHarvestableIndex();
 
   const [_plots, setInternalPlots] = useState<string[]>([]);
 
@@ -113,7 +113,7 @@ export default function PlotSelect({
       <div className="flex flex-row gap-1">
         <span>Pods</span>
         <span className="text-pinto-gray-4">@</span>
-        <span>{`${TokenValue.fromHuman(_plots[0], PODS.decimals).sub(fieldData.harvestableIndex).toHuman("short")} in Line`}</span>
+        <span>{`${TokenValue.fromHuman(_plots[0], PODS.decimals).sub(harvestableIndex).toHuman("short")} in Line`}</span>
       </div>
     ) : (
       /* `${_plots.length} Plots` */ "Pods"
@@ -123,7 +123,7 @@ export default function PlotSelect({
     <PlotSelectItem
       key={`selectPlot${plot.index.toHuman()}`}
       plot={plot}
-      harvestableIndex={fieldData.harvestableIndex}
+      harvestableIndex={harvestableIndex}
       type={type}
       selectedPlots={_plots}
     />
