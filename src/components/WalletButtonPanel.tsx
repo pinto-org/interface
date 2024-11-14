@@ -17,6 +17,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
 import { Separator } from "./ui/Separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/Tabs";
 import { Toggle } from "./ui/Toggle";
+import NoBaseValueAlert from "./NoBaseValueAlert";
 
 export default function WalletButtonPanel({
   isOpen = false,
@@ -316,6 +317,7 @@ export default function WalletButtonPanel({
             </Button>
             {totalFlood.gt(0) && <WalletButtonClaim setShowClaim={setShowClaim} showClaim={showClaim} />}
           </CardFooter>
+          {totalBalance.total.eq(0) && <NoBaseValueAlert />}
         </>
       ) : (
         <WalletButtonTransfer setShowTransfer={setShowTransfer} />
