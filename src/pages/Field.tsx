@@ -1,20 +1,23 @@
 import podIcon from "@/assets/protocol/Pod.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { LeftArrowIcon, UpDownArrowsIcon } from "@/components/Icons";
+import { OnlyMorningCard } from "@/components/MorningCard";
 import PlotsTable from "@/components/PlotsTable";
 import { Button } from "@/components/ui/Button";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
-import MorningTemperatureChart from "@/state/protocol/field/MorningTemperature";
+import MorningTemperatureChart from "@/pages/field/MorningTemperature";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useHarvestableIndex } from "@/state/useFieldData";
+import { useMorning } from "@/state/useSunData";
 import { formatter } from "@/utils/format";
 import { useEffect, useMemo } from "react";
 import { Link, NavLink } from "react-router-dom";
 import FieldActions from "./field/FieldActions";
 import FieldStats from "./field/FieldStats";
 import MorningPanel, { MorningDev } from "./field/MorningPanel";
+import TemperatureChart from "./field/Temperature";
 
 function Field() {
   const farmerField = useFarmerField();
@@ -46,10 +49,7 @@ function Field() {
           <Separator />
           <MorningPanel />
           <FieldStats />
-          <div className="flex flex-col w-full">
-            <MorningTemperatureChart />
-          </div>
-          <TemperatureChart />
+          <DynamicTemperatureChart />
           <div className="flex flex-row items-center justify-between rounded-[1.25rem] p-6 bg-pinto-off-white border-pinto-gray-2 border w-full">
             <MorningDev />
             <div className="flex flex-col gap-2">
@@ -77,9 +77,10 @@ function Field() {
          * Right side
          */}
         <div className="flex flex-col gap-6 w-full lg:max-w-[518px] lg:min-w-[425px] lg:mt-[84px]">
-          <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border">
+          <OnlyMorningCard onlyMorning className="p-4">
             <FieldActions />
-          </div>
+          </OnlyMorningCard>
+          {/* <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border"></div> */}
           <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border flex flex-col gap-2">
             <Button
               variant="ghost"
@@ -118,17 +119,18 @@ function Field() {
           </div>
         </div>
       </div>
-      {/* </div> */}
     </PageContainer>
   );
 }
 
 export default Field;
 
-const TemperatureChart = () => {
-  return (
-    <div className="flex rounded-[1.25rem] p-4 bg-pinto-off-white border-pinto-gray-2 border w-full h-96">
-      Temperature chart goes here
-    </div>
-  );
+export const DynamicTemperatureChart = () => {
+  const { isMorning } = useMorning();
+
+  if (isMorning) {
+    return <MorningTemperatureChart />;
+  } else {
+    return <TemperatureChart />;
+  }
 };

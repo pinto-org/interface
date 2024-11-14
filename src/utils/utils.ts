@@ -1,5 +1,8 @@
+import { TokenValue } from "@/classes/TokenValue";
+import { FarmerBalance } from "@/state/useFarmerBalances";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { FarmFromMode } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -45,4 +48,16 @@ export function existsNot(value: any): value is undefined | null {
 export function calculatePipeCallClipboardSlot(pipeCallLength: number, slot: number) {
   if (!pipeCallLength || !slot) return 0;
   return 2 + pipeCallLength + (1 + slot * 2);
+}
+
+export function getBalanceFromMode(balance: FarmerBalance | undefined, mode: FarmFromMode) {
+  if (!balance) return TokenValue.ZERO;
+  switch (mode) {
+    case FarmFromMode.INTERNAL:
+      return balance.internal;
+    case FarmFromMode.EXTERNAL:
+      return balance.external;
+    default:
+      return balance.total;
+  }
 }

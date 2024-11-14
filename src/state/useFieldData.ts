@@ -96,8 +96,12 @@ export function useInvalidateField() {
   const queryKeys = useFieldQueryKeys();
 
   return useCallback(
-    (key: keyof typeof queryKeys) => {
-      qc.invalidateQueries({ queryKey: queryKeys[key] });
+    (key: keyof typeof queryKeys | "all") => {
+      if (key === "all") {
+        Object.values(queryKeys).forEach((queryKey) => qc.invalidateQueries({ queryKey }));
+      } else {
+        qc.invalidateQueries({ queryKey: queryKeys[key] });
+      }
     },
     [qc, queryKeys],
   );

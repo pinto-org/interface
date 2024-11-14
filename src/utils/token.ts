@@ -1,7 +1,7 @@
 import { PINTO } from "@/constants/tokens";
 import { Address } from "viem";
 import { stringEq } from "./string";
-import { Token } from "./types";
+import { InternalToken, Token } from "./types";
 
 export const getTokenIndex = (token: Token | string | Address) => {
   if (typeof token !== "object") {
@@ -19,7 +19,11 @@ export const isProtocolToken = (token: Token | Address | string) => {
   return stringEq(token, PINTO.address);
 };
 
-type TokenIsh = { address: Address; symbol: string } | Token;
+type TokenIsh = { address: Address; symbol: string } | Token | InternalToken;
+
+const isInternalToken = (token: TokenIsh): token is InternalToken => {
+  return !("address" in token);
+};
 
 /**
  * @param a - The first token
@@ -28,5 +32,13 @@ type TokenIsh = { address: Address; symbol: string } | Token;
  */
 export const tokensEqual = (a: TokenIsh | undefined, b: TokenIsh | undefined) => {
   if (!a || !b) return false;
+
+  const aIsInternal = isInternalToken(a);
+  const bIsInternal = isInternalToken(b);
+
+  if (aIsInternal || bIsInternal) {
+    return aIsInternal && bIsInternal && stringEq(a.symbol, b.symbol);
+  }
+
   return stringEq(a.address, b.address) && stringEq(a.symbol, b.symbol);
 };

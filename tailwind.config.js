@@ -80,6 +80,7 @@ module.exports = {
           "pod-bronze": "#9F7F54",
           "red-2": "#FF0000",
           morning: "#D9AD0F",
+          "morning-orange": "#FBE39B",
         },
       },
       backgroundImage: {

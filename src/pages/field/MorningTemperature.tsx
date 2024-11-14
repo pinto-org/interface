@@ -17,7 +17,7 @@ import {
   Title,
   Tooltip,
 } from "chart.js";
-import { Morning } from "../sun";
+import { Morning } from "../../state/protocol/sun";
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Title, Tooltip, Legend);
 

@@ -1,12 +1,13 @@
+import { TokenValue } from "@/classes/TokenValue";
+import { PODS } from "@/constants/internalTokens";
+import { subgraphs } from "@/constants/subgraph";
+import { PINTO } from "@/constants/tokens";
+import { FarmerPodListingsDocument, FarmerPodOrdersDocument } from "@/generated/gql/graphql";
+import { Listing, Order } from "@/utils/types";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
-import { useAccount, useChainId } from "wagmi";
-import { FarmerPodListingsDocument, FarmerPodOrdersDocument } from "@/generated/gql/graphql";
-import { subgraphs } from "@/constants/subgraph";
-import { Listing, Order } from "@/utils/types";
-import { TokenValue } from "@/classes/TokenValue";
-import { BEAN, PODS } from "@/constants/internalTokens";
 import { useMemo } from "react";
+import { useAccount, useChainId } from "wagmi";
 
 export function useFarmerMarket() {
   const chainId = useChainId();
@@ -40,16 +41,16 @@ export function useFarmerMarket() {
     orders?.podOrders.forEach((order) => {
       const output: Order = {
         type: "ORDER",
-        beanAmount: TokenValue.fromBlockchain(order.beanAmount, BEAN.decimals),
-        beanAmountFilled: TokenValue.fromBlockchain(order.beanAmountFilled, BEAN.decimals),
+        beanAmount: TokenValue.fromBlockchain(order.beanAmount, PINTO.decimals),
+        beanAmountFilled: TokenValue.fromBlockchain(order.beanAmountFilled, PINTO.decimals),
         createdAt: Number(order.createdAt),
         creationHash: order.creationHash,
         historyID: order.historyID,
         id: order.id,
         maxPlaceInLine: TokenValue.fromBlockchain(order.maxPlaceInLine, PODS.decimals),
-        minFillAmount: TokenValue.fromBlockchain(order.minFillAmount, BEAN.decimals),
+        minFillAmount: TokenValue.fromBlockchain(order.minFillAmount, PINTO.decimals),
         podAmountFilled: TokenValue.fromBlockchain(order.podAmountFilled, PODS.decimals),
-        pricePerPod: TokenValue.fromBlockchain(order.pricePerPod, BEAN.decimals),
+        pricePerPod: TokenValue.fromBlockchain(order.pricePerPod, PINTO.decimals),
         pricingFunction: order.pricingFunction,
         pricingType: order.pricingType,
         status: order.status,
@@ -74,7 +75,7 @@ export function useFarmerMarket() {
         mode: listing.mode,
         originalAmount: TokenValue.fromBlockchain(listing.originalAmount, PODS.decimals),
         originalIndex: TokenValue.fromBlockchain(listing.originalIndex, PODS.decimals),
-        pricePerPod: TokenValue.fromBlockchain(listing.pricePerPod, BEAN.decimals),
+        pricePerPod: TokenValue.fromBlockchain(listing.pricePerPod, PINTO.decimals),
         pricingFunction: listing.pricingFunction,
         pricingType: listing.pricingType,
         remainingAmount: TokenValue.fromBlockchain(listing.remainingAmount, PODS.decimals),

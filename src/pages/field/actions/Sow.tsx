@@ -1,28 +1,75 @@
 import { Clipboard } from "@/classes/Clipboard";
 import { TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
-import SlippageButton from "@/components/SlippageButton";
+import OutputDisplay from "@/components/OutputDisplay";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
-import { Label } from "@/components/ui/Label";
+import Text from "@/components/ui/Text";
+import Warning from "@/components/ui/Warning";
+import { PODS } from "@/constants/internalTokens";
 import sowWithMin from "@/encoders/sowWithMin";
-import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import { beanstalkAbi } from "@/generated/contractHooks";
+import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useSwapEstimate from "@/hooks/useSwapEstimate";
 import useTransaction from "@/hooks/useTransaction";
+import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
-import { useFieldData } from "@/state/useFieldData";
+import { useField, useInvalidateField, useTotalSoil } from "@/state/useFieldData";
+import useTemperature from "@/state/useTemperature";
 import useTokenData from "@/state/useTokenData";
-import { AdvancedFarmCall, FarmFromMode, FarmToMode } from "@/utils/types";
+import { formatter } from "@/utils/format";
+import { stringEq, stringToNumber } from "@/utils/string";
+import { AdvancedFarmCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { BaseError } from "viem";
 import { useAccount } from "wagmi";
-import { useChainId } from "wagmi";
 
-function Sow() {
+import settingsIcon from "@/assets/misc/Settings.svg";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover";
+import { useDebouncedEffect } from "@/utils/useDebounce";
+import { getBalanceFromMode } from "@/utils/utils";
+
+type SowProps = {
+  isMorning: boolean;
+};
+
+const useMaxSow = (tokenIn: Token, slippage: number) => {
+  const { totalSoil } = useTotalSoil();
+  const mainToken = useTokenData().mainToken;
+
+  const swap = useSwapEstimate(
+    mainToken,
+    tokenIn,
+    Math.max(totalSoil.toNumber(), 0),
+    slippage,
+    "exactInput",
+    FarmFromMode.EXTERNAL,
+    FarmToMode.INTERNAL,
+    undefined,
+    false,
+  );
+
+  return useMemo(() => {
+    if (tokenIn.isMain) {
+      return totalSoil;
+    }
+
+    return swap?.output;
+  }, [swap?.output, tokenIn.isMain, totalSoil]);
+};
+
+function Sow({ isMorning }: SowProps) {
+  const [{ current: currentTemperature }] = useTemperature();
+  const farmerBalances = useFarmerBalances();
+
+  const { podLine } = useField();
   const account = useAccount();
-  const chainId = useChainId();
-  const field = useFieldData();
+  const diamond = useProtocolAddress();
+  const invalidateField = useInvalidateField();
+
   const { queryKey: farmerFieldQueryKey } = useFarmerField();
   const mainToken = useTokenData().mainToken;
 
@@ -30,19 +77,25 @@ function Sow() {
   const [tokenIn, setTokenIn] = useState(mainToken);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.EXTERNAL);
   const [slippage, setSlippage] = useState(0.1);
+  const [minTemperature, setMinTemperature] = useState(currentTemperature.toNumber());
 
   const queryClient = useQueryClient();
+
+  const tokenInBalance = farmerBalances.balances.get(tokenIn);
 
   const { writeContractAsync, isConfirming } = useTransaction({
     successCallback: () => {
       setAmountIn("0");
       // invalidating query results to trigger a refetch
-      field.queryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
+      invalidateField("all");
       queryClient.invalidateQueries({ queryKey: farmerFieldQueryKey });
+      queryClient.invalidateQueries({ queryKey: farmerBalances.queryKey });
     },
   });
 
-  const isUsingMain = tokenIn.address === mainToken.address;
+  const maxSow = useMaxSow(tokenIn, slippage);
+
+  const isUsingMain = stringEq(tokenIn.address, mainToken.address);
 
   const swapData = useSwapEstimate(
     tokenIn,
@@ -56,25 +109,54 @@ function Sow() {
     isUsingMain,
   );
 
-  function onSubmit() {
+  const pods = useMemo(() => {
+    const amount = stringToNumber(amountIn);
+    if (amount <= 0) return;
+
+    const multiplier = currentTemperature.add(100).div(100);
+
+    if (isUsingMain) {
+      return multiplier.mul(amount);
+    } else if (swapData?.output) {
+      const numPinto = swapData.output;
+      return multiplier.mul(numPinto);
+    }
+
+    return TokenValue.ZERO;
+  }, [amountIn, currentTemperature, isUsingMain, swapData?.output]);
+
+  const onSubmit = useCallback(async () => {
     try {
       if (!account.address) {
         throw new Error("Signer required");
+      }
+      if (minTemperature < 0) {
+        throw new Error("Min temperature must be greater than 0");
+      }
+      if (currentTemperature.lte(0)) {
+        throw new Error("Current temperature must be greater than 0");
       }
 
       const amount = isUsingMain
         ? TokenValue.fromHuman(amountIn || 0n, tokenIn.decimals)
         : swapData?.output || TokenValue.ZERO;
-      const _minTemperature = TokenValue.fromHuman("0", mainToken.decimals);
 
-      const minTemp = _minTemperature.gt(field.temperature.scaled)
+      if (amount.lte(0)) {
+        throw new Error("Amount must be greater than 0");
+      }
+
+      // temperature at 6 decimals
+      const _minTemperature = TokenValue.fromHuman(minTemperature, PODS.decimals);
+
+      const minTemp = _minTemperature.gt(currentTemperature)
         ? _minTemperature.subSlippage(slippage)
-        : field.temperature.scaled.subSlippage(slippage);
+        : currentTemperature.subSlippage(slippage);
+
       const minSoil = TokenValue.ZERO;
 
       if (isUsingMain) {
         return writeContractAsync({
-          address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+          address: diamond,
           abi: beanstalkAbi,
           functionName: "sowWithMin",
           args: [amount.toBigInt(), minTemp.toBigInt(), minSoil.toBigInt(), Number(balanceFrom)],
@@ -89,14 +171,15 @@ function Sow() {
             ? Clipboard.encodeSlot(swapData.farmCalls.length || 0, swapData.pipeOutputSlot, 0)
             : undefined,
         ) as AdvancedFarmCall;
+
         const swapCallData = swapData?.callData;
         if (swapCallData) {
-          swapCallData.push(sow);
+          const calls = [...swapCallData, sow];
           return writeContractAsync({
-            address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+            address: diamond,
             abi: beanstalkAbi,
             functionName: "advancedFarm",
-            args: [swapCallData],
+            args: [calls],
             value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
             gas: 4000000n,
           });
@@ -108,30 +191,145 @@ function Sow() {
       toast.error((e as BaseError).shortMessage || "Transaction failed.");
       throw e;
     }
-  }
+  }, [
+    writeContractAsync,
+    diamond,
+    swapData,
+    account.address,
+    amountIn,
+    tokenIn,
+    slippage,
+    balanceFrom,
+    isUsingMain,
+    minTemperature,
+    currentTemperature,
+  ]);
+
+  console.log("balanceFrom: ", balanceFrom);
+
+  const ready = pods?.gt(0) && podLine.gte(0);
+
+  const balanceFromMode = getBalanceFromMode(tokenInBalance, balanceFrom);
+
+  const balanceExceedsSoil = balanceFromMode.gt(0) && maxSow && balanceFromMode.gte(maxSow);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <div>
         <div className="flex flex-row justify-between items-center">
-          <Label>Amount and Token to lend</Label>
-          <SlippageButton slippage={slippage} setSlippage={setSlippage} />
+          <Text variant="body-light" color="light">
+            Amount and token to sow
+          </Text>
+          <SettingsPoppover
+            slippage={slippage}
+            setSlippage={setSlippage}
+            minTemperature={minTemperature}
+            setMinTemperature={setMinTemperature}
+          />
         </div>
         <ComboInputField
           amount={amountIn}
+          customMaxAmount={maxSow?.lt(0) ? TokenValue.ZERO : maxSow}
           setAmount={setAmountIn}
           setToken={setTokenIn}
           setBalanceFrom={setBalanceFrom}
           selectedToken={tokenIn}
           balanceFrom={balanceFrom}
           disableButton={isConfirming}
+          altText={balanceExceedsSoil ? "Usable balance:" : undefined}
         />
       </div>
+      {ready && (
+        <div className="flex flex-col gap-6 px-2">
+          <OutputDisplay>
+            <OutputDisplay.Item label="Pods">
+              <OutputDisplay.Value value={formatter.token(pods, PODS)} token={PODS} suffix={PODS.symbol} />
+            </OutputDisplay.Item>
+            <OutputDisplay.Item label="Place in line">
+              <OutputDisplay.Value value={formatter.noDec(podLine)} />
+            </OutputDisplay.Item>
+          </OutputDisplay>
+          <Warning>Pods become redeemable for one Pinto when they reach the front of the line.</Warning>
+        </div>
+      )}
       <div className="flex flex-row gap-2">
-        <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit} submitButtonText="Sow" />
+        <SmartSubmitButton
+          variant={isMorning ? "morning" : undefined}
+          token={tokenIn}
+          amount={amountIn}
+          submitFunction={onSubmit}
+          submitButtonText="Sow"
+        />
       </div>
     </div>
   );
 }
 
 export default Sow;
+
+const SettingsPoppover = ({
+  slippage,
+  setSlippage,
+  minTemperature,
+  setMinTemperature,
+}: {
+  slippage: number;
+  setSlippage: React.Dispatch<React.SetStateAction<number>>;
+  minTemperature: number;
+  setMinTemperature: React.Dispatch<React.SetStateAction<number>>;
+}) => {
+  const [internalAmount, setInternalAmount] = useState(slippage);
+  const [internalMinTemperature, setInternalMinTemperature] = useState(minTemperature);
+
+  useDebouncedEffect(
+    () => {
+      setSlippage(internalAmount);
+    },
+    [internalAmount],
+    500,
+  );
+
+  useDebouncedEffect(
+    () => {
+      setMinTemperature(internalMinTemperature);
+    },
+    [internalMinTemperature],
+    500,
+  );
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant={"ghost"} noPadding className="rounded-full w-10 h-10">
+          <img src={settingsIcon} className="w-4 h-4 transition-all" alt="slippage" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-52 flex flex-col">
+        <div className="flex flex-col gap-2">
+          <Text className="mb-4">Slippage</Text>
+          <div className="flex flex-row gap-2">
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              value={internalAmount}
+              onChange={(e) => setInternalAmount(Number(e.target.value))}
+            />
+            <div className="text-xl self-center">%</div>
+          </div>
+          <Text className="mb-4">Min temperature</Text>
+          <div className="flex flex-row gap-2">
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              value={internalMinTemperature}
+              onChange={(e) => setInternalMinTemperature(Number(e.target.value))}
+            />
+            <div className="text-xl self-center">%</div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};

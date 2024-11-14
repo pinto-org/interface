@@ -1,8 +1,12 @@
 import { TokenValue } from "@/classes/TokenValue";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
+import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Button } from "@/components/ui/Button";
+import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
+import Text from "@/components/ui/Text";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import useTransaction from "@/hooks/useTransaction";
 import { useFarmerField } from "@/state/useFarmerField";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
@@ -13,7 +17,11 @@ import { toast } from "sonner";
 import { BaseError } from "viem";
 import { useAccount, useChainId, useWriteContract } from "wagmi";
 
-function Harvest() {
+type HarvestProps = {
+  isMorning: boolean;
+};
+
+function Harvest({ isMorning }: HarvestProps) {
   const chainId = useChainId();
   const account = useAccount();
 
@@ -22,10 +30,10 @@ function Harvest() {
 
   const priceData = usePriceData();
 
-  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
   const queryClient = useQueryClient();
 
   const { plots: fieldPlots, queryKey } = useFarmerField();
+  const [balanceTo, setBalanceTo] = useState(FarmToMode.EXTERNAL);
 
   const { plots, harvestableAmount } = useMemo(() => {
     let harvestable = TokenValue.ZERO;
@@ -39,38 +47,35 @@ function Harvest() {
     return { plots: _plots, harvestableAmount: harvestable };
   }, [fieldPlots]);
 
-  const [balanceTo, setBalanceTo] = useState(FarmToMode.EXTERNAL);
-
-  useEffect(() => {
-    if (isSuccess) {
-      // invalidating query results to trigger a refetch
+  const { writeContractAsync, isConfirming } = useTransaction({
+    successCallback: () => {
       queryClient.invalidateQueries({ queryKey });
-    }
-  }, [isSuccess, queryKey]);
+    },
+  });
 
   function onSubmit() {
     if (!!account.address || plots.length === 0 || harvestableAmount.eq(0) || !balanceTo) return;
-    const tx = () =>
-      writeContractAsync({
-        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-        abi: beanstalkAbi,
-        functionName: "harvest",
-        args: [
-          0n, // field id
-          plots.map((plot) => BigInt(plot)), //array of plot id(s)
-          Number(balanceTo), // FarmToMode
-        ],
-      });
 
-    toast.promise(tx, {
-      loading: "Submitting transaction...",
-      success: (data) => {
-        return `Transaction complete!`;
-      },
-      error: (error) => {
-        return (error as BaseError).shortMessage || `Transaction failed.`;
-      },
+    return writeContractAsync({
+      address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+      abi: beanstalkAbi,
+      functionName: "harvest",
+      args: [
+        0n, // field id
+        plots.map((plot) => BigInt(plot)), //array of plot id(s)
+        Number(balanceTo), // FarmToMode
+      ],
     });
+
+    // toast.promise(tx, {
+    //   loading: "Submitting transaction...",
+    //   success: (data) => {
+    //     return `Transaction complete!`;
+    //   },
+    //   error: (error) => {
+    //     return (error as BaseError).shortMessage || `Transaction failed.`;
+    //   },
+    // });
   }
 
   return (
@@ -81,7 +86,7 @@ function Harvest() {
             <div className="text-pinto-gray-4 text-[1.25rem]">You receive</div>
             <div className="inline-flex gap-1 items-center text-black text-[2rem]">
               {harvestableAmount.toHuman("short")}
-              <img src={mainToken.logoURI} className="w-6 h-6" />
+              <IconImage size={6} src={mainToken.logoURI} />
               <span className="text-[1.25rem]">{mainToken.name}</span>
             </div>
             <div className="text-[1rem] text-pinto-gray-4">
@@ -94,16 +99,18 @@ function Harvest() {
           </div>
         </>
       ) : (
-        <div className="text-[1.25rem] font-[400] text-center">
+        <Text variant="body-sm" color="light">
           Your Pods become Harvestable when they reach a Place in Line of 0.
-        </div>
+        </Text>
       )}
-      <Button
+      <SmartSubmitButton
+        variant={isMorning ? "morning" : undefined}
         type="button"
-        disabled={harvestableAmount.eq(0)}
-        onClick={() => onSubmit()}
-        className="w-full flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem]"
-      >{`Harvest`}</Button>
+        token={undefined}
+        disabled={harvestableAmount.eq(0) || isConfirming}
+        submitFunction={onSubmit}
+        submitButtonText="Harvest"
+      />
     </div>
   );
 }

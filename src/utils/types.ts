@@ -19,6 +19,7 @@ export interface Token {
   symbol: string;
   chainId: number;
   decimals: number;
+  displayDecimals: number;
   isMain?: boolean;
   isLP?: boolean;
   isNative?: boolean;
@@ -34,6 +35,7 @@ export interface InternalToken {
   name: string;
   symbol: string;
   decimals: number;
+  displayDecimals: number;
   logoURI: string;
 }
 
