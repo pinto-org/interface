@@ -53,7 +53,7 @@ const PanelContent = ({ sunData, fieldSnapshots, siloSnapshots }: SeasonsButtonP
             <Text
               variant="sm"
               as="a"
-              href={`/explorer`}
+              href={`/explorer/seasons`}
               target={"_blank"}
               rel="noreferrer"
               color="secondary"
