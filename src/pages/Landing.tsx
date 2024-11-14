@@ -110,7 +110,9 @@ export default function Landing() {
 
   // EFFECT TO UPDATE ANIMATION SPEED, PARTICLE BACKGROUND THEME, AND CAMERA ZOOM
   useEffect(() => {
-    if (images[currentIndex].includes("rock.png")) {
+    if (images[currentIndex].includes("tree")) {
+      setAnimationTimer(650);
+    } else if (images[currentIndex].includes("rock.png")) {
       setAnimationTimer(600);
     } else if (images[currentIndex].includes("gold.png")) {
       particlesBackgroundRef.current?.loadTheme("1"); // Directly load the theme
