@@ -5,7 +5,7 @@ import useTemperature from "./useTemperature";
 
 export default function useSoil() {
   const season = useSunData();
-  const { totalSoil } = useTotalSoil();
+  const totalSoil = useTotalSoil();
   const morning = useMorning();
 
   const [_, { calculate: calculateTemperature }] = useTemperature();

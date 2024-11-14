@@ -13,22 +13,24 @@ import useSwapEstimate from "@/hooks/useSwapEstimate";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
-import { useField, useInvalidateField, useTotalSoil } from "@/state/useFieldData";
+import { useField, useInvalidateField, usePodLine, useTotalSoil } from "@/state/useFieldData";
 import useTemperature from "@/state/useTemperature";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { stringEq, stringToNumber } from "@/utils/string";
-import { AdvancedFarmCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
+import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { BaseError } from "viem";
 import { useAccount } from "wagmi";
 
 import settingsIcon from "@/assets/misc/Settings.svg";
+import FrameAnimator from "@/components/LoadingSpinner";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover";
+import useDelayedLoading from "@/hooks/display/useDelayedLoading";
 import { useDebouncedEffect } from "@/utils/useDebounce";
 import { getBalanceFromMode } from "@/utils/utils";
 
@@ -37,7 +39,7 @@ type SowProps = {
 };
 
 const useMaxSow = (tokenIn: Token, slippage: number) => {
-  const { totalSoil } = useTotalSoil();
+  const totalSoil = useTotalSoil();
   const mainToken = useTokenData().mainToken;
 
   const swap = useSwapEstimate(
@@ -64,22 +66,19 @@ const useMaxSow = (tokenIn: Token, slippage: number) => {
 function Sow({ isMorning }: SowProps) {
   const [{ current: currentTemperature }] = useTemperature();
   const farmerBalances = useFarmerBalances();
-
-  const { podLine } = useField();
+  const podLine = usePodLine();
   const account = useAccount();
   const diamond = useProtocolAddress();
   const invalidateField = useInvalidateField();
-
   const { queryKey: farmerFieldQueryKey } = useFarmerField();
   const mainToken = useTokenData().mainToken;
+  const queryClient = useQueryClient();
 
   const [amountIn, setAmountIn] = useState("0");
   const [tokenIn, setTokenIn] = useState(mainToken);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.EXTERNAL);
   const [slippage, setSlippage] = useState(0.1);
-  const [minTemperature, setMinTemperature] = useState(currentTemperature.toNumber());
-
-  const queryClient = useQueryClient();
+  const [minTemperature, setMinTemperature] = useState(Math.max(currentTemperature.toNumber(), 1));
 
   const tokenInBalance = farmerBalances.balances.get(tokenIn);
 
@@ -145,12 +144,15 @@ function Sow({ isMorning }: SowProps) {
         throw new Error("Amount must be greater than 0");
       }
 
-      // temperature at 6 decimals
-      const _minTemperature = TokenValue.fromHuman(minTemperature, PODS.decimals);
+      toast.loading(
+        `Sowing ${formatter.token(amountIn, tokenIn)} ${tokenIn.symbol} for ${formatter.token(pods, PODS)} Pods`,
+      );
 
-      const minTemp = _minTemperature.gt(currentTemperature)
-        ? _minTemperature.subSlippage(slippage)
-        : currentTemperature.subSlippage(slippage);
+      // temperature at 6 decimals
+      const _minTemp = TokenValue.fromHuman(minTemperature, PODS.decimals);
+      const minTemp = (_minTemp.gt(currentTemperature) ? _minTemp : currentTemperature).subSlippage(slippage);
+
+      console.log("minTemp", minTemp.toBlockchain());
 
       const minSoil = TokenValue.ZERO;
 
@@ -162,15 +164,12 @@ function Sow({ isMorning }: SowProps) {
           args: [amount.toBigInt(), minTemp.toBigInt(), minSoil.toBigInt(), Number(balanceFrom)],
         });
       } else {
-        const sow = sowWithMin(
-          amount,
-          minTemp,
-          minSoil,
-          FarmFromMode.INTERNAL,
+        const swapClipboard =
           swapData?.pipeOutputSlot && swapData.farmCalls
             ? Clipboard.encodeSlot(swapData.farmCalls.length || 0, swapData.pipeOutputSlot, 0)
-            : undefined,
-        ) as AdvancedFarmCall;
+            : undefined;
+
+        const sow = sowWithMin(amount, minTemp, minSoil, FarmFromMode.INTERNAL, swapClipboard);
 
         const swapCallData = swapData?.callData;
         if (swapCallData) {
@@ -198,19 +197,34 @@ function Sow({ isMorning }: SowProps) {
     account.address,
     amountIn,
     tokenIn,
-    slippage,
     balanceFrom,
     isUsingMain,
     minTemperature,
     currentTemperature,
   ]);
 
-  console.log("balanceFrom: ", balanceFrom);
+  const { loading, setLoadingTrue, setLoadingFalse } = useDelayedLoading();
 
-  const ready = pods?.gt(0) && podLine.gte(0);
+  const numIn = stringToNumber(amountIn);
+
+  // reset amount in when token in changes
+  useEffect(() => {
+    setAmountIn("0");
+  }, [tokenIn]);
+
+  useEffect(() => {
+    if (swapData?.isLoading) {
+      setLoadingTrue();
+    } else {
+      setLoadingFalse();
+    }
+  }, [amountIn, swapData?.isLoading]);
+
+  const isLoading = (numIn > 0 && loading) || (pods?.lte(0) && numIn > 0);
+
+  const ready = pods?.gt(0) && podLine.gte(0) && maxSow?.gt(0);
 
   const balanceFromMode = getBalanceFromMode(tokenInBalance, balanceFrom);
-
   const balanceExceedsSoil = balanceFromMode.gt(0) && maxSow && balanceFromMode.gte(maxSow);
 
   return (
@@ -229,6 +243,7 @@ function Sow({ isMorning }: SowProps) {
         </div>
         <ComboInputField
           amount={amountIn}
+          disableInput={isConfirming}
           customMaxAmount={maxSow?.lt(0) ? TokenValue.ZERO : maxSow}
           setAmount={setAmountIn}
           setToken={setTokenIn}
@@ -239,7 +254,12 @@ function Sow({ isMorning }: SowProps) {
           altText={balanceExceedsSoil ? "Usable balance:" : undefined}
         />
       </div>
-      {ready && (
+
+      {isLoading ? (
+        <div className="flex flex-col w-full h-[224px] items-center justify-center">
+          <FrameAnimator size={64} />
+        </div>
+      ) : ready ? (
         <div className="flex flex-col gap-6 px-2">
           <OutputDisplay>
             <OutputDisplay.Item label="Pods">
@@ -251,10 +271,11 @@ function Sow({ isMorning }: SowProps) {
           </OutputDisplay>
           <Warning>Pods become redeemable for one Pinto when they reach the front of the line.</Warning>
         </div>
-      )}
+      ) : null}
       <div className="flex flex-row gap-2">
         <SmartSubmitButton
           variant={isMorning ? "morning" : undefined}
+          disabled={isLoading || isConfirming}
           token={tokenIn}
           amount={amountIn}
           submitFunction={onSubmit}
@@ -286,7 +307,7 @@ const SettingsPoppover = ({
       setSlippage(internalAmount);
     },
     [internalAmount],
-    500,
+    100,
   );
 
   useDebouncedEffect(
@@ -294,7 +315,7 @@ const SettingsPoppover = ({
       setMinTemperature(internalMinTemperature);
     },
     [internalMinTemperature],
-    500,
+    100,
   );
 
   return (

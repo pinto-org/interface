@@ -1,6 +1,5 @@
 import Text from "@/components/ui/Text";
 import { usePodLine, useTotalSoil } from "@/state/useFieldData";
-import useSoil from "@/state/useSoil";
 import { useMorning } from "@/state/useSunData";
 import useTemperature from "@/state/useTemperature";
 import { formatter } from "@/utils/format";
@@ -9,11 +8,8 @@ import { MorningIntervalCountdown } from "./MorningCountdown";
 const FieldStats = () => {
   const [temperatures] = useTemperature();
   const morning = useMorning();
-  const [currentSoil] = useSoil();
-  const totalSoil = useTotalSoil();
+  const soil = useTotalSoil();
   const podLine = usePodLine();
-
-  const soil = morning.isMorning ? currentSoil.soil : totalSoil.totalSoil;
 
   const temperature = morning.isMorning ? temperatures.current : temperatures.max;
 
