@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { extend, useFrame, Object3DNode } from "@react-three/fiber";
 import SlideShaderMaterial from "./utils/SlideShaderMaterial";
 import { createSlideGeometry } from "./utils/createSlideGeometry";
+import { landingImages } from "../Landing";
 
 // Typescript Declarations
 declare global {
@@ -28,7 +29,7 @@ extend({ SlideShaderMaterial });
 // SlideProps interface
 interface SlideProps {
   imageObject: HTMLImageElement;
-  imageUrl: string;
+  imageUrl?: string;
   width: number;
   height: number;
   animationPhase: "in" | "out";
@@ -47,8 +48,8 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
       height,
       animationPhase,
       progress,
-      onMaxAnimationTimeCalculated,
       opacity,
+      onMaxAnimationTimeCalculated,
     },
     ref
   ) => {
@@ -57,12 +58,15 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
 
     // Texture setup
     const texture = useMemo(() => {
-      let tex;
-      if (!imageObject) {
+      const isFirst = imageUrl && imageUrl === landingImages[0];
+      // const tex = isFirst
+      let tex: THREE.Texture;
+
+      if (imageUrl && imageUrl === landingImages[0]) {
         tex = new THREE.TextureLoader().load(imageUrl);
       } else {
         tex = new THREE.Texture(imageObject);
-        tex.needsUpdate = true; // Inform Three.js to update the texture
+        tex.needsUpdate = true;
       }
 
       tex.colorSpace = THREE.SRGBColorSpace;
@@ -70,7 +74,7 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
       tex.minFilter = THREE.LinearFilter;
       tex.magFilter = THREE.LinearFilter;
       return tex;
-    }, [imageObject, imageUrl]);
+    }, [imageObject]);
 
     const animationPhaseValue = animationPhase === "in" ? 1.0 : 0.0;
 

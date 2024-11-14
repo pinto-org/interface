@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
-import Slide from "./landing/Slide";
 import ParticlesBackground, {
   ParticlesBackgroundHandle,
 } from "./landing/utils/ParticlesBackground";
@@ -10,32 +9,41 @@ import { useNavigate } from "react-router-dom";
 import CoinModel from "./landing/utils/CoinModel";
 import EnvironmentSetup from "./landing/utils/EnvironmentSetup";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import SlideGroup from "./landing/SlideGroup";
+import { useQuery } from "@tanstack/react-query";
 
 // IMAGE ARRAY
-const images = [
-  "tree.png",
-  "rock.png",
-  "gold.png",
-  "pickaxe.png",
-  "teepee.png",
-  "wheat.png",
-  "cow.png",
-  "abacus.png",
-  "idols.png",
-  "bimetal-coins.png",
-  "clayledger.png",
-  "aqueduct.png",
-  "parthenon.png",
-  "banknote.png",
-  "steamengine.png",
-  "lightbulb.png",
-  "church.png",
-  "nuke.png",
-  "USD.png",
-  "computer.png",
-  "skyscraper.png",
-  "BTC.png",
+export const landingImages = [
+  "tree.png", // 0
+  "rock.png", // 1
+  "gold.png", // 2
+  "pickaxe.png", // 3
+  "teepee.png", // 4
+  "wheat.png", // 5
+  "cow.png", // 6
+  "abacus.png", // 7
+  "idols.png", // 8
+  "bimetal-coins.png", // 9
+  "clayledger.png", // 10
+  "aqueduct.png", // 11
+  "parthenon.png", // 12
+  "banknote.png", // 13
+  "steamengine.png", // 14
+  "lightbulb.png", // 15
+  "church.png", // 16
+  "nuke.png", // 17
+  "USD.png", // 18
+  "computer.png", // 19
+  "skyscraper.png", // 20
+  "BTC.png", // 21
 ] as const;
+
+const chunkedImages = {
+  initial: landingImages.slice(0, 1),
+  rest: landingImages.slice(1)
+} as const;
+
+const images = landingImages;
 
 function preloadImages(
   imageUrls: readonly string[]
@@ -52,25 +60,26 @@ function preloadImages(
   );
 }
 
+export type PreloadImageConfig = {
+  initial: HTMLImageElement[];
+  rest: HTMLImageElement[];
+};
+
+const fetchChunkImages = async (imgs: readonly string[], setImgs: React.Dispatch<React.SetStateAction<HTMLImageElement[]>>) => {
+  const preloadedImages = await preloadImages(imgs);
+  setImgs([new Image(), ...preloadedImages]);
+};
+
 const usePreloadImages = () => {
   const [cachedImages, setCachedImages] = useState<HTMLImageElement[]>([]);
-  const [loading, setLoading] = useState(true); // Loading state
 
   useEffect(() => {
-    const run = async () => {
-      try {
-        const preloadedImgs = await preloadImages(images);
-        setCachedImages(preloadedImgs);
-      } catch (err) {
-        console.error("Error preloading images:", err);
-      } finally {
-        setLoading(false); // Set loading to false after preloading
-      }
-    };
-    run();
-  }, [images]);
+    fetchChunkImages(chunkedImages.rest, setCachedImages);
+  }, []);
 
-  return { cachedImages, loading }; // Return loading state along with cached images
+  const ready = !!cachedImages.length;
+
+  return [cachedImages, ready] as const;
 };
 
 export default function Landing() {
@@ -104,8 +113,8 @@ export default function Landing() {
 
   const transitionComplete = localStorage.getItem("hasWatchedTransition");
 
-  const cachedImages = usePreloadImages();
-  console.log(cachedImages);
+  // TODO: add should preload prop
+  const [cachedImages, imagesFetched] = usePreloadImages(); // preload images
 
   useEffect(() => {
     // PARSE QUERY PARAMS - MARK IF THE USER HAS VISITED THE SITE BEFORE
@@ -146,38 +155,29 @@ export default function Landing() {
     localStorage.removeItem("hasWatchedTransition");
   }, []);
 
-  useEffect(() => {
-    if (cachedImages.loading) {
-      setAnimationTimer(5000);
-      console.log("Loading images...");
-    } else {
-      setAnimationTimer(600);
-    }
-  }, [cachedImages.loading]);
-
   // EFFECT TO UPDATE ANIMATION SPEED, PARTICLE BACKGROUND THEME, AND CAMERA ZOOM
   useEffect(() => {
-    if (images[currentIndex].includes("tree")) {
+    if (currentIndex === 0) {
       setAnimationTimer(1200);
-    } else if (images[currentIndex].includes("rock.png")) {
+    } else if (currentIndex === 1) {
       setAnimationTimer(600);
-    } else if (images[currentIndex].includes("gold.png")) {
+    } else if (currentIndex === 2) {
       particlesBackgroundRef.current?.loadTheme("1"); // Directly load the theme
       setAnimationTimer(550);
-    } else if (images[currentIndex].includes("teepee")) {
+    } else if (currentIndex === 4) {
       setAnimationTimer(500);
-    } else if (images[currentIndex].includes("wheat.png")) {
+    } else if (currentIndex === 5) {
       particlesBackgroundRef.current?.loadTheme("1"); // Directly load the theme
-    } else if (images[currentIndex].includes("cow.png")) {
+    } else if (currentIndex === 6) {
       setAnimationTimer(450);
-    } else if (images[currentIndex].includes("bimetal-coins.png")) {
+    } else if (currentIndex === 9) {
       particlesBackgroundRef.current?.loadTheme("2"); // Directly load the theme
       setAnimationTimer(400);
-    } else if (images[currentIndex].includes("banknote.png")) {
+    } else if (currentIndex === 13) {
       particlesBackgroundRef.current?.loadTheme("3");
-    } else if (images[currentIndex].includes("nuke")) {
+    } else if (currentIndex === 17) {
       particlesBackgroundRef.current?.loadTheme("4"); // Directly load the theme
-    } else if (images[currentIndex].includes("BTC")) {
+    } else if (currentIndex === 21) {
       particlesBackgroundRef.current?.loadTheme("5"); // Directly load the theme
       if (transitionComplete) {
         setShowMetallicCoin(true);
@@ -261,8 +261,8 @@ export default function Landing() {
           )}
           {/* Adjust the position to fit in the scene */}
           <SlideGroup
-            cachedImages={cachedImages.cachedImages}
-            images={images}
+            cachedImages={cachedImages}
+            ready={imagesFetched}
             nextIndex={nextIndex}
             currentIndex={currentIndex}
             opacity={opacity}
@@ -273,7 +273,6 @@ export default function Landing() {
             setNextIndex={setNextIndex}
           />
         </Canvas>
-
         {/* Wrapper div for button positioned at the bottom of the view */}
         <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 z-20 flex flex-row items-center space-x-4">
           {/* Launch Button */}
@@ -328,136 +327,4 @@ const CameraZoom: React.FC<CameraZoomProps> = ({ zoomRef }) => {
   });
 
   return null;
-};
-
-interface UseAnimationFrameProps {
-  nextIndex: number;
-  currentIndex: number;
-  images: readonly string[];
-  animationTimer: number;
-  maxAnimationTime: number;
-  setCurrentIndex: React.Dispatch<React.SetStateAction<number>>;
-  setNextIndex: React.Dispatch<React.SetStateAction<number>>;
-  setProgress: React.Dispatch<React.SetStateAction<number>>;
-}
-
-interface SlideGroupProps extends Omit<UseAnimationFrameProps, "setProgress"> {
-  opacity: number;
-  setMaxAnimationTime: React.Dispatch<React.SetStateAction<number>>;
-  cachedImages: HTMLImageElement[];
-}
-
-const useAnimationFrame = ({
-  nextIndex,
-  currentIndex,
-  images,
-  animationTimer,
-  maxAnimationTime,
-  setCurrentIndex,
-  setNextIndex,
-  setProgress,
-}: UseAnimationFrameProps) => {
-  //  EFFECT TO CONTROL ANIMATION PROGRESSION
-  useEffect(() => {
-    // Exit early if we've reached or surpassed the last image
-    if (nextIndex >= images.length) {
-      return;
-    }
-
-    let animationFrameId;
-    let startTime = performance.now();
-
-    const animate = () => {
-      const elapsed = performance.now() - startTime;
-      const totalDuration = animationTimer;
-      const adjustedDuration = totalDuration * maxAnimationTime;
-      const newProgress = elapsed / adjustedDuration;
-      setProgress(newProgress);
-
-      if (newProgress < 1) {
-        animationFrameId = requestAnimationFrame(animate);
-      } else {
-        // Transition complete
-        setProgress(0);
-
-        if (nextIndex < images.length - 1) {
-          // More images to show
-          setCurrentIndex(nextIndex);
-          setNextIndex(nextIndex + 1);
-          startTime = performance.now();
-          animationFrameId = requestAnimationFrame(animate);
-        } else {
-          // Last image reached, stop animation
-          setCurrentIndex(nextIndex);
-          setNextIndex(nextIndex + 1); // Increment nextIndex to exceed images.length
-        }
-      }
-    };
-
-    animationFrameId = requestAnimationFrame(animate);
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [maxAnimationTime, currentIndex, nextIndex]);
-};
-
-const SlideGroup = ({
-  images,
-  cachedImages,
-  nextIndex,
-  currentIndex,
-  opacity,
-  animationTimer,
-  maxAnimationTime,
-  setMaxAnimationTime,
-  setNextIndex,
-  setCurrentIndex,
-}: SlideGroupProps) => {
-  // Progress
-  const [progress, setProgress] = useState(0);
-  // SLIDE REFS
-  const slideRef1 = useRef<THREE.Mesh>(null);
-  const slideRef2 = useRef<THREE.Mesh>(null);
-  const slidesGroupRef = useRef<THREE.Group>(null); // Reference to the group
-
-  useAnimationFrame({
-    nextIndex,
-    currentIndex,
-    images,
-    animationTimer,
-    maxAnimationTime,
-    setCurrentIndex,
-    setNextIndex,
-    setProgress,
-  });
-
-  return (
-    <group ref={slidesGroupRef}>
-      <Slide
-        ref={slideRef1}
-        imageUrl={images[currentIndex]}
-        imageObject={cachedImages[currentIndex]}
-        width={60}
-        height={60}
-        animationPhase="out"
-        progress={progress}
-        opacity={opacity} // Pass opacity down
-        onMaxAnimationTimeCalculated={(time) => setMaxAnimationTime(time)}
-      />
-      {nextIndex < images.length && (
-        <Slide
-          ref={slideRef2}
-          imageUrl={images[nextIndex]}
-          imageObject={cachedImages[nextIndex]}
-          width={60}
-          height={60}
-          animationPhase="in"
-          progress={progress}
-          opacity={opacity} // Pass opacity down
-          onMaxAnimationTimeCalculated={(time) => setMaxAnimationTime(time)}
-        />
-      )}
-    </group>
-  );
 };
