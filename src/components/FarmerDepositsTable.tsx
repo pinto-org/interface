@@ -290,13 +290,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                         <div className="inline-flex items-center gap-1">
                           <UpArrowIcon color={"currentColor"} />
                           <IconImage src={stalkIcon} size={4} />
-                          <div>
-                            {formatter.number(
-                              userData?.stalk.base
-                                .add(grownStalk)
-                                .add(rewardGains.stalkGain.add(updateGains.stalkGain)),
-                            )}
-                          </div>
+                          <div>{formatter.number(userData?.stalk.base.add(grownStalk).add(updateGains.stalkGain))}</div>
                         </div>
                         {data.update?.stalkFromBDVIncrease.gt(0.01) && (
                           <div>
