@@ -8,10 +8,8 @@ import Silo from "./pages/Silo";
 import SiloToken from "./pages/SiloToken";
 import Swap from "./pages/Swap";
 import Transfer from "./pages/Transfer";
-import { getEnv } from "./utils/utils";
 
 function App() {
-  getEnv();
   return (
     <BrowserRouter>
       <div className="relative">
