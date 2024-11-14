@@ -5,15 +5,7 @@ import {
   useSeasonalSupply,
   useSeasonalTotalLiquidity,
 } from "@/state/seasonal/seasonalDataHooks";
-import { formatter, numberAbbr } from "@/utils/format";
-
-// TODO(ss): put these in a shared location
-const price2dFormatter = (v: number) => `$${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`;
-const price6dFormatter = (v: number) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`;
-const number0dFormatter = (v: number) => `${formatter.number(v, { minDecimals: 0, maxDecimals: 0 })}`;
-const largeNumberFormatter = numberAbbr;
-const price0dFormatter = (v: number) => `$${formatter.number(v, { minDecimals: 0, maxDecimals: 0 })}`;
-const largePriceFormatter = (v: number) => `$${numberAbbr(v)}`;
+import { chartFormatters as f } from "@/utils/format";
 
 const PintoExplorer = () => {
   return (
@@ -24,8 +16,8 @@ const PintoExplorer = () => {
             title="Pinto Price"
             size="small"
             useDataHook={useSeasonalPrice}
-            valueFormatter={price6dFormatter}
-            tickValueFormatter={price2dFormatter}
+            valueFormatter={f.price6dFormatter}
+            tickValueFormatter={f.price2dFormatter}
           />
         </div>
         <div className="w-1/2">
@@ -34,8 +26,8 @@ const PintoExplorer = () => {
             size="small"
             fillArea
             useDataHook={useSeasonalTotalLiquidity}
-            valueFormatter={price0dFormatter}
-            tickValueFormatter={largePriceFormatter}
+            valueFormatter={f.price0dFormatter}
+            tickValueFormatter={f.largePriceFormatter}
           />
         </div>
       </div>
@@ -46,8 +38,8 @@ const PintoExplorer = () => {
             size="small"
             fillArea
             useDataHook={useSeasonalSupply}
-            valueFormatter={number0dFormatter}
-            tickValueFormatter={largeNumberFormatter}
+            valueFormatter={f.number0dFormatter}
+            tickValueFormatter={f.largeNumberFormatter}
           />
         </div>
         <div className="w-1/2">
@@ -56,8 +48,8 @@ const PintoExplorer = () => {
             size="small"
             fillArea
             useDataHook={useSeasonalMcap}
-            valueFormatter={price0dFormatter}
-            tickValueFormatter={largePriceFormatter}
+            valueFormatter={f.price0dFormatter}
+            tickValueFormatter={f.largePriceFormatter}
           />
         </div>
       </div>

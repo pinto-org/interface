@@ -6,13 +6,7 @@ import {
   useSeasonalSownPinto,
   useSeasonalTemperature,
 } from "@/state/seasonal/seasonalDataHooks";
-import { formatter, numberAbbr } from "@/utils/format";
-
-// TODO(ss): put these in a shared location
-const number0dFormatter = (v: number) => `${formatter.number(v, { minDecimals: 0, maxDecimals: 0 })}`;
-const largeNumberFormatter = numberAbbr;
-const percent2dFormatter = (v: number) => `${formatter.number(v * 100, { minDecimals: 2, maxDecimals: 2 })}%`;
-const percent0dFormatter = (v: number) => `${formatter.number(v * 100, { minDecimals: 0, maxDecimals: 0 })}%`;
+import { chartFormatters as f } from "@/utils/format";
 
 const FieldExplorer = () => {
   return (
@@ -22,8 +16,8 @@ const FieldExplorer = () => {
         size="large"
         fillArea
         useDataHook={useSeasonalPodRate}
-        valueFormatter={percent2dFormatter}
-        tickValueFormatter={percent0dFormatter}
+        valueFormatter={f.percent2dFormatter}
+        tickValueFormatter={f.percent0dFormatter}
       />
       <div className="flex flex-row w-full space-x-8">
         <div className="w-1/2">
@@ -31,8 +25,8 @@ const FieldExplorer = () => {
             title="Max Temperature"
             size="small"
             useDataHook={useSeasonalTemperature}
-            valueFormatter={percent0dFormatter}
-            tickValueFormatter={percent0dFormatter}
+            valueFormatter={f.percent0dFormatter}
+            tickValueFormatter={f.percent0dFormatter}
           />
         </div>
         <div className="w-1/2">
@@ -41,8 +35,8 @@ const FieldExplorer = () => {
             size="small"
             fillArea
             useDataHook={useSeasonalPodIndex}
-            valueFormatter={number0dFormatter}
-            tickValueFormatter={largeNumberFormatter}
+            valueFormatter={f.number0dFormatter}
+            tickValueFormatter={f.largeNumberFormatter}
           />
         </div>
       </div>
@@ -53,8 +47,8 @@ const FieldExplorer = () => {
             size="small"
             fillArea
             useDataHook={useSeasonalSownPinto}
-            valueFormatter={number0dFormatter}
-            tickValueFormatter={largeNumberFormatter}
+            valueFormatter={f.number0dFormatter}
+            tickValueFormatter={f.largeNumberFormatter}
           />
         </div>
         <div className="w-1/2">
@@ -63,8 +57,8 @@ const FieldExplorer = () => {
             size="small"
             fillArea
             useDataHook={useSeasonalPodsHarvested}
-            valueFormatter={number0dFormatter}
-            tickValueFormatter={largeNumberFormatter}
+            valueFormatter={f.number0dFormatter}
+            tickValueFormatter={f.largeNumberFormatter}
           />
         </div>
       </div>

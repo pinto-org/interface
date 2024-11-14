@@ -5,17 +5,7 @@ import {
   useSeasonalStalk,
   useSeasonalTotalLiquidity,
 } from "@/state/seasonal/seasonalDataHooks";
-import { formatter, numberAbbr } from "@/utils/format";
-
-// TODO(ss): put these in a shared location
-const number0dFormatter = (v: number) => `${formatter.number(v, { minDecimals: 0, maxDecimals: 0 })}`;
-const number2dFormatter = (v: number) => `${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`;
-const number6dFormatter = (v: number) => `${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`;
-const largeNumberFormatter = numberAbbr;
-const price0dFormatter = (v: number) => `$${formatter.number(v, { minDecimals: 0, maxDecimals: 0 })}`;
-const largePriceFormatter = (v: number) => `$${numberAbbr(v)}`;
-const percent2dFormatter = (v: number) => `${formatter.number(v * 100, { minDecimals: 2, maxDecimals: 2 })}%`;
-const percent0dFormatter = (v: number) => `${formatter.number(v * 100, { minDecimals: 0, maxDecimals: 0 })}%`;
+import { chartFormatters as f } from "@/utils/format";
 
 const SiloExplorer = () => {
   return (
@@ -27,8 +17,8 @@ const SiloExplorer = () => {
             size="small"
             fillArea
             useDataHook={useSeasonalTotalLiquidity}
-            valueFormatter={price0dFormatter}
-            tickValueFormatter={largePriceFormatter}
+            valueFormatter={f.price0dFormatter}
+            tickValueFormatter={f.largePriceFormatter}
           />
         </div>
         <div className="w-1/2">
@@ -36,8 +26,8 @@ const SiloExplorer = () => {
             title="Liquidity to Supply ratio"
             size="small"
             useDataHook={useSeasonalL2SR}
-            valueFormatter={percent2dFormatter}
-            tickValueFormatter={percent0dFormatter}
+            valueFormatter={f.percent2dFormatter}
+            tickValueFormatter={f.percent0dFormatter}
           />
         </div>
       </div>
@@ -45,16 +35,16 @@ const SiloExplorer = () => {
         title="Average Seeds per PDV"
         size="large"
         useDataHook={useSeasonalAvgSeeds}
-        valueFormatter={number6dFormatter}
-        tickValueFormatter={number2dFormatter}
+        valueFormatter={f.number6dFormatter}
+        tickValueFormatter={f.number2dFormatter}
       />
       <SeasonalChart
         title="Stalk Supply"
         size="large"
         fillArea
         useDataHook={useSeasonalStalk}
-        valueFormatter={number0dFormatter}
-        tickValueFormatter={largeNumberFormatter}
+        valueFormatter={f.number0dFormatter}
+        tickValueFormatter={f.largeNumberFormatter}
       />
     </>
   );
