@@ -27,6 +27,7 @@ extend({ SlideShaderMaterial });
 
 // SlideProps interface
 interface SlideProps {
+  imageObject: HTMLImageElement;
   imageUrl: string;
   width: number;
   height: number;
@@ -40,6 +41,7 @@ interface SlideProps {
 const Slide = forwardRef<THREE.Mesh, SlideProps>(
   (
     {
+      imageObject,
       imageUrl,
       width,
       height,
@@ -55,14 +57,21 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
 
     // Texture setup
     const texture = useMemo(() => {
-      const loader = new THREE.TextureLoader();
-      const tex = loader.load(imageUrl);
+      let tex;
+
+      if (!imageObject) {
+        tex = new THREE.TextureLoader().load(imageUrl);
+      } else {
+        tex = new THREE.Texture(imageObject);
+        tex.needsUpdate = true; // Inform Three.js to update the texture
+      }
+
       tex.colorSpace = THREE.SRGBColorSpace;
       tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
       tex.minFilter = THREE.LinearFilter;
       tex.magFilter = THREE.LinearFilter;
       return tex;
-    }, [imageUrl]);
+    }, [imageObject, imageUrl]);
 
     const animationPhaseValue = animationPhase === "in" ? 1.0 : 0.0;
 

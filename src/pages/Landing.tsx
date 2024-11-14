@@ -11,6 +11,66 @@ import CoinModel from "./landing/utils/CoinModel";
 import EnvironmentSetup from "./landing/utils/EnvironmentSetup";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
+// IMAGE ARRAY
+const images = [
+  "tree.png",
+  "tree.png",
+  "rock.png",
+  "gold.png",
+  "pickaxe.png",
+  "teepee.png",
+  "wheat.png",
+  "cow.png",
+  "abacus.png",
+  "idols.png",
+  "bimetal-coins.png",
+  "clayledger.png",
+  "aqueduct.png",
+  "parthenon.png",
+  "banknote.png",
+  "steamengine.png",
+  "lightbulb.png",
+  "church.png",
+  "nuke.png",
+  "USD.png",
+  "computer.png",
+  "skyscraper.png",
+  "BTC.png",
+] as const;
+
+function preloadImages(
+  imageUrls: readonly string[]
+): Promise<HTMLImageElement[]> {
+  return Promise.all(
+    imageUrls.map((url) => {
+      return new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+        img.src = url;
+        img.onload = () => resolve(img);
+        img.onerror = (err) => reject(err);
+      });
+    })
+  );
+}
+
+const usePreloadImages = () => {
+  const [cachedImages, setCachedImages] = useState<HTMLImageElement[]>([]);
+
+  useEffect(() => {
+    const run = async () => {
+      const preloadedImgs = await preloadImages(images);
+      setCachedImages(preloadedImgs);
+    };
+    run();
+  }, []);
+
+  useEffect(() => {
+    console.log(cachedImages);
+  }, [cachedImages]);
+
+  return cachedImages;
+};
+
 export default function Landing() {
   // DECLARATIONS FOR STATE
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -42,32 +102,7 @@ export default function Landing() {
 
   const transitionComplete = localStorage.getItem("hasWatchedTransition");
 
-  // IMAGE ARRAY
-  const images = [
-    "tree.png",
-    "tree.png",
-    "rock.png",
-    "gold.png",
-    "pickaxe.png",
-    "teepee.png",
-    "wheat.png",
-    "cow.png",
-    "abacus.png",
-    "idols.png",
-    "bimetal-coins.png",
-    "clayledger.png",
-    "aqueduct.png",
-    "parthenon.png",
-    "banknote.png",
-    "steamengine.png",
-    "lightbulb.png",
-    "church.png",
-    "nuke.png",
-    "USD.png",
-    "computer.png",
-    "skyscraper.png",
-    "BTC.png",
-  ] as const;
+  const cachedImages = usePreloadImages();
 
   useEffect(() => {
     // PARSE QUERY PARAMS - MARK IF THE USER HAS VISITED THE SITE BEFORE
@@ -214,6 +249,7 @@ export default function Landing() {
           )}
           {/* Adjust the position to fit in the scene */}
           <SlideGroup
+            cachedImages={cachedImages}
             images={images}
             nextIndex={nextIndex}
             currentIndex={currentIndex}
@@ -296,6 +332,7 @@ interface UseAnimationFrameProps {
 interface SlideGroupProps extends Omit<UseAnimationFrameProps, "setProgress"> {
   opacity: number;
   setMaxAnimationTime: React.Dispatch<React.SetStateAction<number>>;
+  cachedImages: HTMLImageElement[];
 }
 
 const useAnimationFrame = ({
@@ -355,6 +392,7 @@ const useAnimationFrame = ({
 
 const SlideGroup = ({
   images,
+  cachedImages,
   nextIndex,
   currentIndex,
   opacity,
@@ -387,6 +425,7 @@ const SlideGroup = ({
       <Slide
         ref={slideRef1}
         imageUrl={images[currentIndex]}
+        imageObject={cachedImages[currentIndex]}
         width={60}
         height={60}
         animationPhase="out"
@@ -398,6 +437,7 @@ const SlideGroup = ({
         <Slide
           ref={slideRef2}
           imageUrl={images[nextIndex]}
+          imageObject={cachedImages[nextIndex]}
           width={60}
           height={60}
           animationPhase="in"
