@@ -5,31 +5,30 @@ import { paginateSubgraph, PaginationSettings } from "@/utils/paginateSubgraph";
 import { UseSeasonalResult } from "@/utils/types";
 import useSeasonalQueries, { ConvertEntryFn, SeasonalQueryVars } from "./useSeasonalInternalQueries";
 
+const paginateSettings: PaginationSettings<
+  BeanHourlySnapshot,
+  BeanSeasonalBeanQuery,
+  "beanHourlySnapshots",
+  SeasonalQueryVars
+> = {
+  primaryPropertyName: "beanHourlySnapshots",
+  idField: "id",
+  nextVars: (value1000: BeanHourlySnapshot, prevVars: SeasonalQueryVars) => {
+    if (value1000) {
+      return {
+        from: Number(value1000.season.season),
+        to: prevVars.to,
+      };
+    }
+  },
+};
+
 export default function useSeasonalBeanBeanSG(
   fromSeason: number,
   toSeason: number,
   convertResult: ConvertEntryFn<BeanHourlySnapshot>,
 ): UseSeasonalResult {
   const chainId = useChainId();
-
-  const paginateSettings: PaginationSettings<
-    BeanHourlySnapshot,
-    BeanSeasonalBeanQuery,
-    "beanHourlySnapshots",
-    SeasonalQueryVars
-  > = {
-    primaryPropertyName: "beanHourlySnapshots",
-    idField: "id",
-    nextVars: (value1000: BeanHourlySnapshot, prevVars: SeasonalQueryVars) => {
-      if (value1000) {
-        return {
-          from: Number(value1000.season.season),
-          to: prevVars.to,
-        };
-      }
-    },
-  };
-
   const queryFnFactory = (vars: SeasonalQueryVars) => async () => {
     return await paginateSubgraph(paginateSettings, subgraphs[chainId].bean, BeanSeasonalBeanDocument, vars);
   };
