@@ -1,14 +1,11 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import * as THREE from "three";
-import Slide from "../landing/Slide";
 import { landingImages } from "../Landing";
-
+import Slide from "../landing/Slide";
 
 interface UseAnimationFrameProps {
   nextIndex: number;
   currentIndex: number;
-  cachedImages: HTMLImageElement[];
-  ready: boolean;
   animationTimer: number;
   maxAnimationTime: number;
   setCurrentIndex: React.Dispatch<React.SetStateAction<number>>;
@@ -24,8 +21,6 @@ interface SlideGroupProps extends Omit<UseAnimationFrameProps, "setProgress"> {
 const useAnimationFrame = ({
   nextIndex,
   currentIndex,
-  cachedImages,
-  ready,
   animationTimer,
   maxAnimationTime,
   setCurrentIndex,
@@ -33,15 +28,14 @@ const useAnimationFrame = ({
   setProgress,
 }: UseAnimationFrameProps) => {
   //  EFFECT TO CONTROL ANIMATION PROGRESSION
-  
+
   useEffect(() => {
-    if (!ready) return;
     // Exit early if we've reached or surpassed the last image
-    if (nextIndex >= cachedImages.length) {
+    if (nextIndex >= landingImages.length) {
       return;
     }
 
-    let animationFrameId;
+    let animationFrameId: number;
     let startTime = performance.now();
 
     const animate = () => {
@@ -57,7 +51,7 @@ const useAnimationFrame = ({
         // Transition complete
         setProgress(0);
 
-        if (nextIndex < cachedImages.length - 1) {
+        if (nextIndex < landingImages.length - 1) {
           // More images to show
           setCurrentIndex(nextIndex);
           setNextIndex(nextIndex + 1);
@@ -76,15 +70,14 @@ const useAnimationFrame = ({
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [maxAnimationTime, currentIndex, nextIndex, ready]);
+  }, [maxAnimationTime, currentIndex, nextIndex]);
 };
 
 const SlideGroup = ({
-  cachedImages,
+  // cachedImages,
   nextIndex,
   currentIndex,
   opacity,
-  ready,
   animationTimer,
   maxAnimationTime,
   setMaxAnimationTime,
@@ -99,10 +92,8 @@ const SlideGroup = ({
   const slidesGroupRef = useRef<THREE.Group>(null); // Reference to the group
 
   useAnimationFrame({
-    ready,
     nextIndex,
     currentIndex,
-    cachedImages,
     animationTimer,
     maxAnimationTime,
     setCurrentIndex,
@@ -110,21 +101,10 @@ const SlideGroup = ({
     setProgress,
   });
 
-  // useEffect(() => {
-  //   if (cachedImages) {
-  //     const TreeImage = new Image();
-  //     TreeImage.src = "tree.png";
-  //     console.log("Loading images...");      
-  //   } else {
-  //     console.log("Images loaded!");
-  //   }
-  // }, [cachedImages]);
-
   return (
     <group ref={slidesGroupRef}>
       <Slide
         ref={slideRef1}
-        imageObject={cachedImages[currentIndex]}
         imageUrl={landingImages[currentIndex]}
         width={60}
         height={60}
@@ -133,10 +113,10 @@ const SlideGroup = ({
         opacity={opacity} // Pass opacity down
         onMaxAnimationTimeCalculated={(time) => setMaxAnimationTime(time)}
       />
-      {nextIndex < cachedImages.length && (
+      {nextIndex < landingImages.length && (
         <Slide
           ref={slideRef2}
-          imageObject={cachedImages[nextIndex]}
+          imageUrl={landingImages[nextIndex]}
           width={60}
           height={60}
           animationPhase="in"

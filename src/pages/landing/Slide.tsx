@@ -1,18 +1,14 @@
-import React, { useRef, useMemo, forwardRef, useEffect } from "react";
+import { Object3DNode, extend, useFrame } from "@react-three/fiber";
+import { forwardRef, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { extend, useFrame, Object3DNode } from "@react-three/fiber";
 import SlideShaderMaterial from "./utils/SlideShaderMaterial";
 import { createSlideGeometry } from "./utils/createSlideGeometry";
-import { landingImages } from "../Landing";
 
 // Typescript Declarations
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      slideShaderMaterial: Object3DNode<
-        typeof SlideShaderMaterial,
-        typeof SlideShaderMaterial
-      > & {
+      slideShaderMaterial: Object3DNode<typeof SlideShaderMaterial, typeof SlideShaderMaterial> & {
         uMap?: THREE.Texture;
         uProgress?: number;
         uAnimationPhase?: number;
@@ -28,8 +24,8 @@ extend({ SlideShaderMaterial });
 
 // SlideProps interface
 interface SlideProps {
-  imageObject: HTMLImageElement;
-  imageUrl?: string;
+  // imageObject: HTMLImageElement;
+  imageUrl: string;
   width: number;
   height: number;
   animationPhase: "in" | "out";
@@ -42,7 +38,7 @@ interface SlideProps {
 const Slide = forwardRef<THREE.Mesh, SlideProps>(
   (
     {
-      imageObject,
+      // imageObject,
       imageUrl,
       width,
       height,
@@ -51,51 +47,34 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
       opacity,
       onMaxAnimationTimeCalculated,
     },
-    ref
+    ref,
   ) => {
     const meshRef = useRef<THREE.Mesh>(null);
     const materialRef = useRef<any>(null);
 
     // Texture setup
     const texture = useMemo(() => {
-      const isFirst = imageUrl && imageUrl === landingImages[0];
-      // const tex = isFirst
-      let tex = new THREE.Texture;
-
-      if (imageUrl && imageUrl === landingImages[0]) {
-        tex = new THREE.TextureLoader().load(imageUrl);
-      } else {
-        tex.image = imageObject;
-        tex.needsUpdate = true; // Ensure Three.js updates the texture
-      }
-
+      const tex = new THREE.TextureLoader().load(imageUrl);
       tex.colorSpace = THREE.SRGBColorSpace;
       tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
       tex.minFilter = THREE.LinearFilter;
       tex.magFilter = THREE.LinearFilter;
       return tex;
-    }, [imageObject]);
+    }, [imageUrl]);
 
     const animationPhaseValue = animationPhase === "in" ? 1.0 : 0.0;
 
     // Geometry setup
     const geometry = useMemo(
-      () =>
-        createSlideGeometry(
-          width,
-          height,
-          animationPhase,
-          onMaxAnimationTimeCalculated
-        ),
-      [width, height, animationPhase]
+      () => createSlideGeometry(width, height, animationPhase, onMaxAnimationTimeCalculated),
+      [width, height, animationPhase],
     );
 
     // Update material properties on each frame
     useFrame(() => {
       if (materialRef.current) {
         materialRef.current.uniforms.uProgress.value = progress;
-        materialRef.current.uniforms.uAnimationPhase.value =
-          animationPhaseValue;
+        materialRef.current.uniforms.uAnimationPhase.value = animationPhaseValue;
         materialRef.current.transparent = true; // Ensure transparency
         materialRef.current.opacity = opacity; // Update opacity value
       }
@@ -127,7 +106,7 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
         />
       </mesh>
     );
-  }
+  },
 );
 
 export default Slide;

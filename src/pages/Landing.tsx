@@ -1,16 +1,13 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
-import * as THREE from "three";
 import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
-import ParticlesBackground, {
-  ParticlesBackgroundHandle,
-} from "./landing/utils/ParticlesBackground";
-import { Button } from "../components/ui/Button";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { Button } from "../components/ui/Button";
+import SlideGroup from "./landing/SlideGroup";
 import CoinModel from "./landing/utils/CoinModel";
 import EnvironmentSetup from "./landing/utils/EnvironmentSetup";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import SlideGroup from "./landing/SlideGroup";
-import { useQuery } from "@tanstack/react-query";
+import ParticlesBackground, { ParticlesBackgroundHandle } from "./landing/utils/ParticlesBackground";
 
 // IMAGE ARRAY
 export const landingImages = [
@@ -37,50 +34,6 @@ export const landingImages = [
   "skyscraper.png", // 20
   "BTC.png", // 21
 ] as const;
-
-const chunkedImages = {
-  initial: landingImages.slice(0, 1),
-  rest: landingImages.slice(1)
-} as const;
-
-const images = landingImages;
-
-function preloadImages(
-  imageUrls: readonly string[]
-): Promise<HTMLImageElement[]> {
-  return Promise.all(
-    imageUrls.map((url) => {
-      return new Promise<HTMLImageElement>((resolve, reject) => {
-        const img = new Image();
-        img.src = url;
-        img.onload = () => resolve(img);
-        img.onerror = (err) => reject(err);
-      });
-    })
-  );
-}
-
-export type PreloadImageConfig = {
-  initial: HTMLImageElement[];
-  rest: HTMLImageElement[];
-};
-
-const fetchChunkImages = async (imgs: readonly string[], setImgs: React.Dispatch<React.SetStateAction<HTMLImageElement[]>>) => {
-  const preloadedImages = await preloadImages(imgs);
-  setImgs([new Image(), ...preloadedImages]);
-};
-
-const usePreloadImages = () => {
-  const [cachedImages, setCachedImages] = useState<HTMLImageElement[]>([]);
-  
-  useEffect(() => {
-    fetchChunkImages(chunkedImages.rest, setCachedImages);
-  }, []);
-
-  const ready = !!cachedImages.length;
-
-  return [cachedImages, ready] as const;
-};
 
 export default function Landing() {
   // DECLARATIONS FOR STATE
@@ -113,9 +66,6 @@ export default function Landing() {
 
   const transitionComplete = localStorage.getItem("hasWatchedTransition");
 
-  // TODO: add should preload prop
-  const [cachedImages, imagesFetched] = usePreloadImages(); // preload images
-
   useEffect(() => {
     // PARSE QUERY PARAMS - MARK IF THE USER HAS VISITED THE SITE BEFORE
     const params = new URLSearchParams(location.search);
@@ -139,8 +89,8 @@ export default function Landing() {
     if (transitionComplete === "true") {
       particlesBackgroundRef.current?.loadTheme("5"); // Directly load the theme
       setOpacity(0);
-      setCurrentIndex(images.length - 1); // Set the current index to the last image
-      setNextIndex(images.length); // Set the next index to exceed the length
+      setCurrentIndex(landingImages.length - 1); // Set the current index to the last image
+      setNextIndex(landingImages.length); // Set the next index to exceed the length
     }
   }, []);
 
@@ -256,13 +206,10 @@ export default function Landing() {
             intensity={1} // Strong enough to create a noticeable gradient effect
           />
           {/* Coin Model */}
-          {showMetallicCoin && preloadedGLTF && (
-            <CoinModel gltf={preloadedGLTF} onClick={resetCoinState} />
-          )}
+          {showMetallicCoin && preloadedGLTF && <CoinModel gltf={preloadedGLTF} onClick={resetCoinState} />}
           {/* Adjust the position to fit in the scene */}
           <SlideGroup
-            cachedImages={cachedImages}
-            ready={imagesFetched}
+            // cachedImages={cachedImages}
             nextIndex={nextIndex}
             currentIndex={currentIndex}
             opacity={opacity}
@@ -276,18 +223,10 @@ export default function Landing() {
         {/* Wrapper div for button positioned at the bottom of the view */}
         <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 z-20 flex flex-row items-center space-x-4">
           {/* Launch Button */}
-          <Button
-            rounded="full"
-            className="shadow-sm"
-            onClick={handleLaunchAppClick}
-          >
+          <Button rounded="full" className="shadow-sm" onClick={handleLaunchAppClick}>
             Launch App
           </Button>
-          <Button
-            rounded="full"
-            variant="outline-secondary"
-            onClick={handleLaunchArticleClick}
-          >
+          <Button rounded="full" variant="outline-secondary" onClick={handleLaunchArticleClick}>
             Read Launch Article
           </Button>
         </div>
@@ -328,3 +267,48 @@ const CameraZoom: React.FC<CameraZoomProps> = ({ zoomRef }) => {
 
   return null;
 };
+
+// const chunkedImages = {
+//   initial: landingImages.slice(0, 1),
+//   rest: landingImages.slice(1),
+// } as const;
+
+// const images = landingImages;
+
+// function preloadImages(imageUrls: readonly string[]): Promise<HTMLImageElement[]> {
+//   return Promise.all(
+//     imageUrls.map((url) => {
+//       return new Promise<HTMLImageElement>((resolve, reject) => {
+//         const img = new Image();
+//         img.src = url;
+//         img.onload = () => resolve(img);
+//         img.onerror = (err) => reject(err);
+//       });
+//     }),
+//   );
+// }
+
+// export type PreloadImageConfig = {
+//   initial: HTMLImageElement[];
+//   rest: HTMLImageElement[];
+// };
+
+// const fetchChunkImages = async (
+//   imgs: readonly string[],
+//   setImgs: React.Dispatch<React.SetStateAction<HTMLImageElement[]>>,
+// ) => {
+//   const preloadedImages = await preloadImages(imgs);
+//   setImgs([new Image(), ...preloadedImages]);
+// };
+
+// const usePreloadImages = () => {
+//   const [cachedImages, setCachedImages] = useState<HTMLImageElement[]>([]);
+
+//   useEffect(() => {
+//     fetchChunkImages(chunkedImages.rest, setCachedImages);
+//   }, []);
+
+//   const ready = !!cachedImages.length;
+
+//   return [cachedImages, ready] as const;
+// };
