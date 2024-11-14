@@ -72,7 +72,7 @@ const fetchChunkImages = async (imgs: readonly string[], setImgs: React.Dispatch
 
 const usePreloadImages = () => {
   const [cachedImages, setCachedImages] = useState<HTMLImageElement[]>([]);
-
+  
   useEffect(() => {
     fetchChunkImages(chunkedImages.rest, setCachedImages);
   }, []);
