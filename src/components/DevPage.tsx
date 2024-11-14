@@ -538,11 +538,6 @@ const MorningAuctionDev = ({
     });
   };
 
-  useEffect(() => {
-    if (!blockQuery.data) return;
-    const index = Math.floor(deltaBlocks / 6);
-  }, [blockQuery.data]);
-
   return (
     <MorningCard className="p-6 w-full justify-start">
       <div className="flex flex-col gap-4">
