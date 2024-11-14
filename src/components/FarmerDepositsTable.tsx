@@ -74,7 +74,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
   const renderClaimableRow = () => {
     const plantData = farmerActions.tokenTotals.get(mainToken);
     const plantBeanGain = plantData?.sources.plant?.beanGain || TokenValue.ZERO;
-    const showRow = !hovering && plantBeanGain.gt(0.01);
+    const showRow = !hovering && plantBeanGain.gte(0.01);
 
     const cellAnimation = {
       height: showRow ? "4.5rem" : 0,
@@ -87,26 +87,33 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
       },
     };
 
+    const initialState = {
+      height: 0,
+      opacity: 0,
+      borderBottomWidth: 0,
+    };
+
     return (
       <TableRow
         className="bg-pinto-green-1 hover:bg-pinto-green-1 text-pinto-green-4/70"
         data-action-target="claimable-rewards"
         ref={rewardsRef}
-        initial={false}
+        initial={initialState}
         animate={{
           height: showRow ? "4.5rem" : 0,
           opacity: showRow ? 1 : 0,
           borderBottomWidth: showRow ? "1px" : 0,
           transition: {
             height: { duration: 0.2 },
-            opacity: { duration: 0.2 },
-            borderBottomWidth: { duration: 0.2 },
+            opacity: { duration: 0.15 },
+            borderBottomWidth: { duration: 0.1 },
           },
         }}
       >
-        <TableCell animate={cellAnimation} initial={false}>
+        <TableCell initial={{ height: 0, opacity: 0, padding: 0 }} animate={cellAnimation}>
           <motion.div
             className="flex flex-row items-center gap-1.5 ml-2"
+            initial={{ height: 0 }}
             animate={{ height: showRow ? "auto" : 0 }}
             transition={{ duration: 0.2 }}
           >
@@ -118,9 +125,10 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
             </Text>
           </motion.div>
         </TableCell>
-        <TableCell className="text-right" animate={cellAnimation} initial={false}>
+        <TableCell className="text-right" initial={{ height: 0, opacity: 0, padding: 0 }} animate={cellAnimation}>
           <motion.div
             className="flex flex-col items-end"
+            initial={{ height: 0 }}
             animate={{ height: showRow ? "auto" : 0 }}
             transition={{ duration: 0.2 }}
           >
@@ -132,9 +140,10 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
             </div>
           </motion.div>
         </TableCell>
-        <TableCell className="text-right" animate={cellAnimation} initial={false}>
+        <TableCell className="text-right" initial={{ height: 0, opacity: 0, padding: 0 }} animate={cellAnimation}>
           <motion.div
             className="flex flex-col items-end"
+            initial={{ height: 0 }}
             animate={{ height: showRow ? "auto" : 0 }}
             transition={{ duration: 0.2 }}
           >
@@ -146,9 +155,10 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
             </div>
           </motion.div>
         </TableCell>
-        <TableCell animate={cellAnimation} initial={false}>
+        <TableCell initial={{ height: 0, opacity: 0, padding: 0 }} animate={cellAnimation}>
           <motion.div
             className="flex flex-col items-end text-right mr-2"
+            initial={{ height: 0 }}
             animate={{ height: showRow ? "auto" : 0 }}
             transition={{ duration: 0.2 }}
           >
