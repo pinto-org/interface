@@ -19,12 +19,12 @@ import {
   morningFieldDevModeAtom,
 } from "./field.atoms";
 
-const FIVE_MINS = 1000 * 60 * 5; // 20 minutes, in milliseconds
+const INTERVAL = 1000 * 60 * 20; // 20 minutes, in milliseconds
 
 const settings = {
   query: {
-    staleTime: FIVE_MINS, // 20 minutes, in milliseconds
-    refetchInterval: FIVE_MINS, // 20 minutes, in milliseconds
+    staleTime: INTERVAL, // 20 minutes, in milliseconds
+    refetchInterval: INTERVAL, // 20 minutes, in milliseconds
     refetchOnWindowFocus: true,
     refetchIntervalInBackground: false,
   },

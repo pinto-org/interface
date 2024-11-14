@@ -5,20 +5,7 @@ const StateProvider = ({ children }: { children: React.ReactNode }) => {
   useUpdateMorning();
   useUpdateSunData();
   useUpdateField();
-  return (
-    <>
-      {/* <Updater /> */}
-      {children}
-    </>
-  );
-};
-
-const Updater = () => {
-  useUpdateMorning();
-  useUpdateSunData();
-  useUpdateField();
-
-  return null;
+  return <>{children}</>;
 };
 
 export default StateProvider;

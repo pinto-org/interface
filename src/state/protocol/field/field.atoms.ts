@@ -57,27 +57,27 @@ export const morningFieldDevModeAtom = atomWithImmer<{
 });
 
 // ------------------------------ Derived Atoms ------------------------------ //
+// keeping as reference
+// const maxTemperatureAtom = atom((get) => get(fieldTemperatureAtom).max);
 
-const maxTemperatureAtom = atom((get) => get(fieldTemperatureAtom).max);
+// /**
+//  * Read-only temperature atom.
+//  */
+// export const readonlyTemperatureAtom = atom<Temperature>((get) => {
+//   const morning = get(morningAtom);
+//   const maxTemperature = get(maxTemperatureAtom);
 
-/**
- * Read-only temperature atom.
- */
-export const readonlyTemperatureAtom = atom<Temperature>((get) => {
-  const morning = get(morningAtom);
-  const maxTemperature = get(maxTemperatureAtom);
+//   const morningIndex = morning.index;
+//   const isMorning = morning.isMorning;
 
-  const morningIndex = morning.index;
-  const isMorning = morning.isMorning;
+//   const current = isMorning ? getMorningTemperature(morningIndex, maxTemperature) : maxTemperature;
+//   const nextIndex = morningIndex + 1;
 
-  const current = isMorning ? getMorningTemperature(morningIndex, maxTemperature) : maxTemperature;
-  const nextIndex = morningIndex + 1;
+//   const next = nextIndex < INTERVALS_PER_MORNING ? getMorningTemperature(nextIndex, maxTemperature) : maxTemperature;
 
-  const next = nextIndex < INTERVALS_PER_MORNING ? getMorningTemperature(nextIndex, maxTemperature) : maxTemperature;
-
-  return {
-    current,
-    next,
-    max: maxTemperature,
-  };
-});
+//   return {
+//     current,
+//     next,
+//     max: maxTemperature,
+//   };
+// });

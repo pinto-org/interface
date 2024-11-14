@@ -159,25 +159,6 @@
 	.text-pinto-body {
 		@apply body;
 	}
-	.border-pinto-morning {
-    border: 1px solid;
-    border-image-source: linear-gradient(90deg, #E9E7E0 0%, #FEE18C 52.5%, #F1F88C 100%);
-    border-image-slice: 1;
-  }
-
-	.border-pinto-morning::after {
-    content: '';
-    position: absolute;
-    inset: 1px; /* Same as padding */
-    border-radius: 0.325rem; /* Slightly smaller than parent */
-    background: white; /* Or your background color */
-  }
-
-  /* Add this class to the content wrapper */
-  .border-pinto-morning-content {
-    position: relative;
-    z-index: 1;
-  }
 }
 
 /* Globals */

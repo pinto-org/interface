@@ -3,10 +3,9 @@ import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
 import useCalculateTemperature from "@/state/useCalculateTemperature";
 import { useMorning, useSunData } from "@/state/useSunData";
 import { exists, isDev } from "@/utils/utils";
-import { useQueryClient } from "@tanstack/react-query";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { DateTime } from "luxon";
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import { getDiffNow, getMorningResult, getNextExpectedSunrise, getNowRounded } from ".";
 import { fieldTemperatureAtom, morningFieldDevModeAtom } from "../field/field.atoms";
 import {
@@ -89,20 +88,6 @@ const useFetchSun = () => {
   }, [seasonQuery.data, setSeasonData, setMorningResult, setMorningRemaining]);
 
   return { seasonData, seasonTime, refetch: seasonQuery.refetch };
-};
-
-export const useInvalidateSunData = () => {
-  const queryKey = useAtomValue(sunQueryKeysAtom);
-  const qc = useQueryClient();
-
-  const invalidate = useCallback(() => {
-    if (!queryKey.seasonTime.length || !queryKey.season.length) return;
-
-    qc.invalidateQueries({ queryKey: queryKey.seasonTime });
-    qc.invalidateQueries({ queryKey: queryKey.season });
-  }, [queryKey, qc]);
-
-  return [invalidate] as const;
 };
 
 export const useSetRemainingUntilSunrise = () => {
