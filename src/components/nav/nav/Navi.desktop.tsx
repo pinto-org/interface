@@ -101,7 +101,6 @@ const DocNavi = () => {
     </NavigationMenu>
   );
 };
-
 const MoreNavi = () => {
   return (
     <NavigationMenu>
@@ -145,7 +144,7 @@ export default function Navi() {
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem onMouseEnter={() => setNaviTab("app")}>
-            <Link active={naviTab === "app"} topMenu>
+            <Link active={naviTab === "app"} href={navLinks.overview} topMenu>
               App
             </Link>
           </NavigationMenuItem>

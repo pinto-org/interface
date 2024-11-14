@@ -86,46 +86,62 @@ const CoinModel: React.FC<CoinModelProps> = ({
 
   // Rotation
   useFrame(() => {
-    if (!modelRef.current || !isInitialized) return; // Ensure model is ready
+  if (!modelRef.current || !isInitialized) return; // Ensure model is ready
 
-    if (modelRef.current) {
-      // Update rotation
-      modelRef.current.rotation.y += rotateDirection;
-      modelRef.current.position.lerp(targetPosition.current, 0.1);
+  if (modelRef.current) {
+    // Update position
+    modelRef.current.position.lerp(targetPosition.current, 0.1);
 
-      modelRef.current.traverse((child: any) => {
-        if (child.isMesh && child.material) {
-          const newOpacity = Math.min(child.material.opacity + 0.02, 0.99); // Prevent 0
-          if (newOpacity !== child.material.opacity) {
-            child.material.opacity = newOpacity;
-            child.material.needsUpdate = true; // Ensure the renderer updates the material
-            setFadeProgress(fadeProgress + 0.02);
-          }
+    modelRef.current.traverse((child: any) => {
+      if (child.isMesh && child.material) {
+        const newOpacity = Math.min(child.material.opacity + 0.02, 0.99); // Prevent 0
+        if (newOpacity !== child.material.opacity) {
+          child.material.opacity = newOpacity;
+          child.material.needsUpdate = true; // Ensure the renderer updates the material
+          setFadeProgress(fadeProgress + 0.02);
         }
-      });
-
-      // Current rotation value in radians
-      const currentRotation = modelRef.current.rotation.y % (2 * Math.PI);
-
-      // Define a point before reaching the side, about 20 degrees (~0.35 radians) before it’s exactly on its side
-      const preSideThreshold = Math.PI / 2 - 0.35; // 90 degrees - 20 degrees
-      const negPreSideThreshold = -Math.PI / 2 + 0.35;
-
-      // Detect if the rotation is approaching its side, approximately at ±π/2 (90 degrees) but with an offset
-      if (
-        currentRotation > preSideThreshold &&
-        currentRotation < preSideThreshold + 0.1 // Add a bit of range for gradual detection
-      ) {
-        setRotateDirection(-0.005); // Start rotating to the left earlier
-      } else if (
-        currentRotation < negPreSideThreshold &&
-        currentRotation > negPreSideThreshold - 0.1 // Add a bit of range for gradual detection
-      ) {
-        setRotateDirection(0.005); // Start rotating to the right earlier
       }
-    }
-  });
+    });
 
+    // Current rotation value in radians
+    const currentRotation = modelRef.current.rotation.y % (2 * Math.PI);
+
+    // Define a point before reaching the side, about 20 degrees (~0.35 radians) before it’s exactly on its side
+    const preSideThreshold = Math.PI / 2 - 0.35; // 90 degrees - 20 degrees
+    const postSideThreshold = Math.PI / 2 + 0.35; // 90 degrees + 20 degrees
+    const negPreSideThreshold = -Math.PI / 2 + 0.35;
+    const negPostSideThreshold = -Math.PI / 2 - 0.35;
+
+    // Gradually slow down rotation as it approaches thresholds
+    let speedFactor = 1; // Default speed multiplier
+    if (
+      (currentRotation > preSideThreshold && currentRotation < postSideThreshold) || 
+      (currentRotation < negPreSideThreshold && currentRotation > negPostSideThreshold)
+    ) {
+      const distanceToThreshold = Math.min(
+        Math.abs(currentRotation - preSideThreshold),
+        Math.abs(currentRotation - negPreSideThreshold)
+      );
+      speedFactor = Math.max(0.1, distanceToThreshold / 0.35); // Slow down as it approaches
+    }
+
+    // Adjust rotation speed
+    modelRef.current.rotation.y += rotateDirection * speedFactor;
+
+    // Detect when to switch rotation direction
+    if (
+      currentRotation > preSideThreshold &&
+      currentRotation < preSideThreshold + 0.1
+    ) {
+      setRotateDirection(-0.005); // Start rotating to the left earlier
+    } else if (
+      currentRotation < negPreSideThreshold &&
+      currentRotation > negPreSideThreshold - 0.1
+    ) {
+      setRotateDirection(0.005); // Start rotating to the right earlier
+    }
+  }
+});
   const handlePointerOver = useCallback(() => {
     if (targetPosition.current) {
       targetPosition.current.set(position[0], position[1], position[2] + 2); // Move closer on Z-axis
