@@ -40,6 +40,12 @@ const LineChart = React.memo(
     const minData = data.reduce((acc, next) => Math.min(acc, ...next.values), Number.MAX_SAFE_INTEGER);
     const maxData = data.reduce((acc, next) => Math.max(acc, ...next.values), Number.MIN_SAFE_INTEGER);
 
+    let yTickMin = Math.max(0, minData - (maxData - minData) * 0.1);
+    const yTickMax = maxData;
+    if (yTickMin === yTickMax) {
+      yTickMin = yTickMax * 0.99;
+    }
+
     const chartData = useCallback(
       (ctx: CanvasRenderingContext2D | null): ChartData => {
         return {
@@ -249,8 +255,8 @@ const LineChart = React.memo(
         },
         y: {
           position: "right",
-          min: Math.max(0, minData - (maxData - minData) * 0.1),
-          max: maxData,
+          min: yTickMin,
+          max: yTickMax,
           grid: {
             display: false,
           },
