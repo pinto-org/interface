@@ -1,9 +1,16 @@
 import SeasonalChart from "@/components/charts/SeasonalChart";
-import { useSeasonalL2SR, useSeasonalStalk, useSeasonalTotalLiquidity } from "@/state/seasonal/seasonalDataHooks";
+import {
+  useSeasonalAvgSeeds,
+  useSeasonalL2SR,
+  useSeasonalStalk,
+  useSeasonalTotalLiquidity,
+} from "@/state/seasonal/seasonalDataHooks";
 import { formatter, numberAbbr } from "@/utils/format";
 
 // TODO(ss): put these in a shared location
 const number0dFormatter = (v: number) => `${formatter.number(v, { minDecimals: 0, maxDecimals: 0 })}`;
+const number2dFormatter = (v: number) => `${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`;
+const number6dFormatter = (v: number) => `${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`;
 const largeNumberFormatter = numberAbbr;
 const price0dFormatter = (v: number) => `$${formatter.number(v, { minDecimals: 0, maxDecimals: 0 })}`;
 const largePriceFormatter = (v: number) => `$${numberAbbr(v)}`;
@@ -34,13 +41,13 @@ const SiloExplorer = () => {
           />
         </div>
       </div>
-      {/* <SeasonalChart
+      <SeasonalChart
         title="Average Seeds per PDV"
         size="large"
-        useDataHook={useSeasonalStalk}
-        valueFormatter={number0dFormatter}
-        tickValueFormatter={largeNumberFormatter}
-      /> */}
+        useDataHook={useSeasonalAvgSeeds}
+        valueFormatter={number6dFormatter}
+        tickValueFormatter={number2dFormatter}
+      />
       <SeasonalChart
         title="Stalk Supply"
         size="large"

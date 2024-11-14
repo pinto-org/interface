@@ -1,7 +1,7 @@
 import { UseSeasonalResult } from "@/utils/types";
 import useSeasonalBeanBeanSG from "./queries/useSeasonalBeanBeanSG";
 import useSeasonalBeanstalkSiloSG from "./queries/useSeasonalBeanstalkSiloSG";
-import { PODS, STALK } from "@/constants/internalTokens";
+import { PODS, SEEDS, STALK } from "@/constants/internalTokens";
 import { TV } from "@/classes/TokenValue";
 import { PINTO } from "@/constants/tokens";
 import useSeasonalBeanSeasonSG from "./queries/useSeasonalBeanSeasonSG";
@@ -59,6 +59,14 @@ export function useSeasonalStalk(fromSeason: number, toSeason: number): UseSeaso
   return useSeasonalBeanstalkSiloSG(fromSeason, toSeason, (siloHourly, timestamp) => ({
     season: Number(siloHourly.season),
     value: TV.fromBlockchain(siloHourly.stalk, STALK.decimals).toNumber(),
+    timestamp,
+  }));
+}
+
+export function useSeasonalAvgSeeds(fromSeason: number, toSeason: number): UseSeasonalResult {
+  return useSeasonalBeanstalkSiloSG(fromSeason, toSeason, (siloHourly, timestamp) => ({
+    season: Number(siloHourly.season),
+    value: TV.fromBlockchain(siloHourly.avgGrownStalkPerBdvPerSeason, STALK.decimals - 4).toNumber(),
     timestamp,
   }));
 }

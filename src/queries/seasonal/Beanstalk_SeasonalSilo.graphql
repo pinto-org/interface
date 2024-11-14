@@ -8,6 +8,7 @@ query BeanstalkSeasonalSilo($from: Int, $to: Int, $silo: String) {
     id
     season
     stalk
+    avgGrownStalkPerBdvPerSeason
     createdAt
   }
 }
