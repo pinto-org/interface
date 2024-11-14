@@ -33,6 +33,11 @@ export function unpackStem(data: string | number | bigint): bigint {
   return stem;
 }
 
+export const getEnv = () => {
+  const env = import.meta.env;
+  console.log("ENV: ", env);
+};
+
 export const isDev = () => {
   return import.meta.env.DEV;
 };
