@@ -28,7 +28,6 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   const [fromToken, setFromToken] = useState(siloToken);
   const [destination, setDestination] = useState(FarmToMode.EXTERNAL);
   const [amount, setAmount] = useState("0");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const farmerDepositData = farmerDeposits.get(fromToken);
   const deposits = farmerDepositData?.deposits;
@@ -43,7 +42,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     queryClient.invalidateQueries({ queryKey });
   }, [queryClient, queryKey]);
 
-  const { isConfirming, writeContractAsync } = useTransaction({
+  const { isConfirming, writeContractAsync, submitting, setSubmitting } = useTransaction({
     successMessage: "Withdraw successful",
     successCallback: onSuccess,
   });
@@ -52,7 +51,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     if (!amount || Number(amount) <= 0 || !destination || !account.address || !deposits) return;
 
     try {
-      setIsSubmitting(true);
+      setSubmitting(true);
       const amountTV = TokenValue.fromHuman(amount || 0, fromToken.decimals);
       toast.loading(`Withdrawing ${formatter.number(amountTV)} ${fromToken.symbol}...`);
       const transferData = sortAndPickCrates("withdraw", amountTV, deposits);
@@ -69,7 +68,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
             args: [fromToken.address, BigInt(stems[0]), BigInt(amounts[0]), Number(destination)],
           }),
         });
-        setIsSubmitting(false);
+        setSubmitting(false);
         return writeContractAsync({
           address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
           abi: beanstalkAbi,
@@ -86,7 +85,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
             args: [fromToken.address, stems.map((s) => BigInt(s)), amounts.map((a) => BigInt(a)), Number(destination)],
           }),
         });
-        setIsSubmitting(false);
+        setSubmitting(false);
         return writeContractAsync({
           address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
           abi: beanstalkAbi,
@@ -97,14 +96,14 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       }
     } catch (e) {
       console.error(e);
-      setIsSubmitting(false);
+      setSubmitting(false);
       toast.dismiss();
       toast.error(e instanceof Error ? e.message : "Transaction failed.");
       throw e;
     }
   };
 
-  const disabled = !stringToNumber(amount) || !account.address || isSubmitting || isConfirming;
+  const disabled = !stringToNumber(amount) || !account.address || submitting || isConfirming;
 
   const withdrawOutput = useMemo(() => {
     if (!amount || Number(amount) <= 0 || !deposits) return undefined;

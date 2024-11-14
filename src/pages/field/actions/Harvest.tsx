@@ -52,7 +52,7 @@ function Harvest({ isMorning }: HarvestProps) {
     return { plots: _plots, harvestableAmount: harvestable };
   }, [fieldPlots]);
 
-  const { writeWithEstimateGas, isConfirming } = useTransaction({
+  const { writeWithEstimateGas, isConfirming, submitting, setSubmitting } = useTransaction({
     successCallback: () => {
       queryClient.invalidateQueries({ queryKey });
       balances.queryKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
@@ -62,6 +62,7 @@ function Harvest({ isMorning }: HarvestProps) {
 
   const onSubmit = useCallback(async () => {
     try {
+      setSubmitting(true);
       if (!account.address) throw new Error("Signer required");
       if (!plots.length) throw new Error("No plots to harvest");
       if (harvestableAmount.eq(0)) throw new Error("No harvestable pods");
@@ -80,6 +81,7 @@ function Harvest({ isMorning }: HarvestProps) {
         ],
       });
     } catch (e) {
+      setSubmitting(false);
       console.error(e);
       toast.dismiss();
       toast.error(e instanceof Error ? e.message : "Transaction failed.");
@@ -116,7 +118,7 @@ function Harvest({ isMorning }: HarvestProps) {
         variant={isMorning ? "morning" : undefined}
         type="button"
         token={undefined}
-        disabled={harvestableAmount.eq(0) || isConfirming}
+        disabled={harvestableAmount.eq(0) || isConfirming || submitting}
         submitFunction={onSubmit}
         submitButtonText="Harvest"
       />

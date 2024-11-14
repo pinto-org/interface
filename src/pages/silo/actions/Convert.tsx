@@ -145,7 +145,7 @@ function DefaultConvert({
     }
   }, [estimateQuery.isFetching, setLoadingTrue, setLoadingFalse]);
 
-  const { writeWithEstimateGas, isConfirming } = useTransaction({
+  const { writeWithEstimateGas, isConfirming, submitting, setSubmitting } = useTransaction({
     successMessage: "Convert successful",
     successCallback: () => {
       setAmountIn("0");
@@ -181,6 +181,7 @@ function DefaultConvert({
   );
 
   const onSubmit = useCallback(async () => {
+    setSubmitting(true);
     try {
       const deposits = farmerDeposits.get(siloToken);
 
@@ -226,8 +227,11 @@ function DefaultConvert({
       console.error(e);
       toast.error(e instanceof Error ? e.message : "Convert failed");
       return e;
+    } finally {
+      setSubmitting(false);
     }
   }, [
+    setSubmitting,
     writeWithEstimateGas,
     protocolAddress,
     account.address,
@@ -268,7 +272,8 @@ function DefaultConvert({
     !account.address ||
     !convertData ||
     isConfirming ||
-    amountIn !== debouncedAmountIn;
+    amountIn !== debouncedAmountIn ||
+    submitting;
 
   return (
     <div className="flex flex-col gap-6">
@@ -436,7 +441,7 @@ const PipelineConvert = ({
     targetStemTip: siloTokenData.get(targetToken)?.stemTip,
   });
 
-  const { writeWithEstimateGas, isConfirming } = useTransaction({
+  const { writeWithEstimateGas, isConfirming, submitting, setSubmitting } = useTransaction({
     successCallback: () => {
       setAmountIn("0");
       toast.dismiss();
@@ -463,6 +468,7 @@ const PipelineConvert = ({
   });
 
   const onSubmit = async () => {
+    setSubmitting(true);
     try {
       const depositData = farmerDeposits.get(siloToken);
 
@@ -495,6 +501,8 @@ const PipelineConvert = ({
     } catch (e) {
       console.error("Error submitting pipeline convert: ", e);
       return e;
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -506,7 +514,8 @@ const PipelineConvert = ({
     !convertData ||
     isConfirming ||
     convertData?.amountOut.lte(0) ||
-    maxConvertible?.lt(stringToNumber(amountIn));
+    maxConvertible?.lt(stringToNumber(amountIn)) ||
+    submitting;
 
   return (
     <div className="flex flex-col gap-4">
