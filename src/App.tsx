@@ -8,6 +8,7 @@ import Silo from "./pages/Silo";
 import SiloToken from "./pages/SiloToken";
 import Swap from "./pages/Swap";
 import Transfer from "./pages/Transfer";
+import { isDev } from "@/utils/utils";
 
 function App() {
   return (
@@ -33,7 +34,7 @@ function App() {
             <Route path="/market" element={<Swap />} />
             <Route path="/transfer" element={<Transfer />} />
             <Route path="/transfer/:mode" element={<Transfer />} />
-            {import.meta.env.DEV && <Route path="/dev" element={<DevPage />} />}
+            {isDev() && <Route path="/dev" element={<DevPage />} />}
           </Routes>
         </div>
       </div>
