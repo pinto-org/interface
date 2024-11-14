@@ -55,6 +55,9 @@ export const logEnv = () => {
     isLocalhost: isLocalhost(),
     isNetlifyPreview: isNetlifyPreview(),
     isDev: isDev(),
+    walletConnectProjectId: import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID,
+    alchemyRpcUrl: import.meta.env.VITE_ALCHEMY_RPC_URL,
+    tenderlyRpcUrl: import.meta.env.VITE_TENDERLY_RPC_URL,
   });
 };
 
