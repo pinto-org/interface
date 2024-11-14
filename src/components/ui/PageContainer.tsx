@@ -23,7 +23,7 @@ const PageContainer = ({ variant = "lg", ...props }: IPageContainer) => {
       className={cn(
         "flex flex-col w-full box-border items-center",
         "pt-2 px-4 pb-8", // mobile
-        "sm:px-8 sm:pt-5", // above mobile
+        "sm:px-8 sm:pt-5 sm:pb-20", // above mobile
       )}
     >
       <div className={cn(pageContainerVariants({ variant }), props.className)}>{props.children}</div>

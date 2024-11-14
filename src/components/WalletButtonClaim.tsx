@@ -23,7 +23,7 @@ export default function WalletButtonClaim({
   const chainId = useChainId();
   const account = useAccount();
 
-  const { queryKey } = useFarmerBalances();
+  const { queryKeys } = useFarmerBalances();
   const farmerSilo = useFarmerSilo();
   const siloQueryKeys = farmerSilo.queryKeys;
   const priceData = usePriceData();
@@ -41,12 +41,10 @@ export default function WalletButtonClaim({
   useEffect(() => {
     if (isSuccess) {
       // invalidating query results to trigger a refetch
-      queryClient.invalidateQueries({ queryKey });
-      for (const queryKey of siloQueryKeys) {
-        queryClient.invalidateQueries({ queryKey });
-      }
+      const allQueryKeys = [...queryKeys, ...siloQueryKeys];
+      allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
     }
-  }, [isSuccess, queryKey, siloQueryKeys]);
+  }, [isSuccess, queryKeys, siloQueryKeys]);
 
   async function onSubmit() {
     if (!chainId || !account.address || !balanceTo) return;

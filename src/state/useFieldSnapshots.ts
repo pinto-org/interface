@@ -11,13 +11,15 @@ import { useSunData } from "./useSunData";
 import useTokenData from "./useTokenData";
 
 export default function useFieldSnapshots() {
-  const season = useSunData().current;
+  const season = useSunData().data.current;
   const chainId = useChainId();
   const fieldId = beanstalkAddress[arbitrum.id as keyof typeof beanstalkAddress];
   const tokenData = useTokenData();
 
+  const queryKey = ["fieldSnapshots", { chainId: chainId, season: season, variables: [fieldId.toLowerCase()] }];
+
   const query = useQuery({
-    queryKey: ["fieldSnapshots", { chainId: chainId, season: season, variables: [fieldId.toLowerCase()] }],
+    queryKey: queryKey,
     queryFn: async () => {
       return request(subgraphs[chainId].beanstalk, FieldSnapshotsDocument, {
         fieldId: fieldId.toLowerCase(),
@@ -67,5 +69,5 @@ export default function useFieldSnapshots() {
     staleTime: Infinity,
   });
 
-  return query.data ?? [];
+  return { data: query.data ?? [], queryKey: queryKey };
 }

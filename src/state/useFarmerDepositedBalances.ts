@@ -29,7 +29,7 @@ const querySettings = {
 
 function useFarmerDepositedBalances() {
   const account = useAccount();
-  const season = useSunData().current;
+  const season = useSunData().data.current;
   const silo = useSiloData();
   const BEAN = useTokenData().mainToken;
   const diamondAddress = useChainAddress(beanstalkAddress);

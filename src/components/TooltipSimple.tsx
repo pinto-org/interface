@@ -1,22 +1,29 @@
-import { ReactNode } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/Tooltip";
+import { ReactNode } from "react";
 import { InfoOutlinedIcon, InfoSolidIcon } from "./Icons";
 
 interface ParentComponentProps {
   variant?: "pinto" | "stalk" | "seed" | "pod" | "gray" | "outlined";
   children?: ReactNode;
   content?: ReactNode;
+  opaque?: boolean;
   props?: [x: string];
 }
 
-export default function TooltipSimple({ variant = "pinto", children, content, ...props }: ParentComponentProps) {
+export default function TooltipSimple({
+  variant = "pinto",
+  children,
+  content,
+  opaque,
+  ...props
+}: ParentComponentProps) {
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           {children || (
             <span
-              className={`${variant === "pinto" ? "text-pinto" : variant === "stalk" ? "text-pinto-stalk-gold" : variant === "seed" ? "text-pinto-seed-silver" : variant === "pod" ? "text-pinto-pod-bronze" : "text-pinto-gray-4"}`}
+              className={`${opaque ? "opacity-[0.4]" : "opacity-100"} ${variant === "pinto" ? "text-pinto" : variant === "stalk" ? "text-pinto-stalk-gold" : variant === "seed" ? "text-pinto-seed-silver" : variant === "pod" ? "text-pinto-pod-bronze" : "text-pinto-gray-4"}`}
             >
               {variant === "pinto" ||
               variant === "gray" ||
