@@ -40,7 +40,7 @@ const PanelContent = ({ sunData, fieldSnapshots, siloSnapshots }: SeasonsButtonP
           <div className="flex flex-col gap-2">
             <Text variant="body" className="inline-flex gap-2 items-center">
               <IconImage size={6} src={sunIcon} />
-              Season {sunData.current}
+              Season {sunData.data.current}
             </Text>
             <Text variant="sm" color="light">
               Seasons are how Pinto keeps time. Each Season is about 1 hour.
@@ -79,7 +79,7 @@ const PanelContent = ({ sunData, fieldSnapshots, siloSnapshots }: SeasonsButtonP
             </TableRow>
           </TableHeader>
           <TableBody>
-            {fieldSnapshots?.map((snapshot, i) => {
+            {fieldSnapshots.data?.map((snapshot, i) => {
               const mints = siloSnapshots
                 ? snapshot.season === siloSnapshots[i]?.season
                   ? siloSnapshots[i]?.deltaBeanMints
@@ -195,7 +195,7 @@ export default function SeasonsButton({ isOpen = false, togglePanel, ...props }:
           className={cn(`flex flex-row gap-2 ${isOpen && "border-pinto-green"}`, props.className)}
         >
           <IconImage src={sunIcon} size={6} />
-          <div className="hidden sm:block">Season {sunData.current}</div>
+          <div className="hidden sm:block">Season {sunData.data.current}</div>
           <IconImage src={chevronDown} size={4} mobileSize={2.5} />
         </Button>
       }

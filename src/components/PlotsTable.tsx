@@ -6,6 +6,7 @@ import { useFieldData } from "@/state/useFieldData";
 import { formatter } from "@/utils/format";
 import { Plot } from "@/utils/types";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import CheckmarkCircle from "./CheckmarkCircle";
 import { RightArrowIcon } from "./Icons";
 import { Table, TableBody, TableCell, TableRow } from "./ui/Table";
@@ -16,7 +17,7 @@ interface PlotRowProps {
   plot: Plot;
   harvestableIndex: TokenValue;
   useToggle?: boolean;
-  isSelected?: boolean | undefined;
+  isSelected?: boolean;
   showClaimable?: boolean;
 }
 
@@ -25,12 +26,17 @@ const PlotRow = React.forwardRef<HTMLTableRowElement, PlotRowProps & React.HTMLA
     const placeInLine = plot.index.sub(harvestableIndex);
     const isHarvesting = placeInLine.lt(0);
     const harvestablePods = placeInLine.abs();
+    const nonHarvestablePods = plot.pods.sub(plot.harvestablePods);
+
+    const navigate = useNavigate();
+
     if (showClaimable) {
       return (
         <TableRow
-          className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 items-center"
+          className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 items-center hover:cursor-pointer"
           data-action-target="claimable-rewards"
           ref={ref}
+          onClick={() => navigate("/field/harvest")}
           {...props}
         >
           <TableCell className="text-pinto-green-2 items-center">
@@ -38,34 +44,42 @@ const PlotRow = React.forwardRef<HTMLTableRowElement, PlotRowProps & React.HTMLA
               <div className="h-8 w-8 bg-pinto-green-4 rounded-full flex justify-center items-center text-white rotate-90">
                 <RightArrowIcon color="currentColor" />
               </div>
-              <Text variant="body-light">Plot {plot.index.blockchainString}</Text>
+              <Text variant="body-light" color="green4">
+                Claimable
+              </Text>
             </div>
           </TableCell>
           <TableCell className="text-pinto-green-2 text-right">
             <div className="inline-flex items-center">
-              <Text variant="body-light">{formatter.number(harvestablePods)} Harvestable Pods</Text>
+              <Text variant="body-light" color="green4">
+                {formatter.number(harvestablePods)} Harvestable Pods
+              </Text>
             </div>
           </TableCell>
         </TableRow>
       );
     }
+
     return (
       <TableRow
         ref={ref}
         {...props}
-        className={`h-[4.5rem] bg-transparent items-center ${useToggle ? "hover:bg-pinto-green-1/50 hover:cursor-pointer" : ""}`}
+        onClick={() => {
+          !useToggle && navigate("/field");
+        }}
+        className={`h-[4.5rem] bg-transparent items-center hover:bg-pinto-green-1/50 hover:cursor-pointer`}
       >
         <TableCell className="text-black font-[400]">
-          <div className="gap-2 flex items-center -ml-2">
+          <div className="gap-2 flex items-center">
             {useToggle && <CheckmarkCircle isSelected={isSelected} />}
             <img src={plotIcon} className="h-6 w-6" alt="Plot" />
             <Text variant="body-light">Plot {plot.index.blockchainString}</Text>
           </div>
         </TableCell>
-        <TableCell className="text-right pr-0">
+        <TableCell className="text-right">
           <div className="inline-flex items-center gap-1.5">
             <img src={podIcon} className="h-6 w-6" alt="Pods" />
-            <Text variant="body-light">{`${formatter.number(plot.pods)} Pods`}</Text>
+            <Text variant="body-light">{formatter.number(nonHarvestablePods)} Pods</Text>
             <Text variant="body-light" color="light">
               {` at `}
             </Text>
@@ -84,41 +98,51 @@ export default function PlotsTable({
   selected,
   useToggle,
   showClaimable,
-}: { selected?: string[]; useToggle?: boolean; showClaimable?: boolean }) {
+}: {
+  selected?: string[];
+  useToggle?: boolean;
+  showClaimable?: boolean;
+}) {
   const farmerField = useFarmerField();
   const fieldData = useFieldData();
 
   const hasHarvestablePods = farmerField.plots.some((plot) => plot.harvestablePods.gt(0));
+
+  // Only filter out plots that have ALL pods harvestable
+  const plotsToShow = farmerField.plots.filter((plot) => !showClaimable || plot.pods.sub(plot.harvestablePods).gt(0));
+
+  const harvestablePlot = hasHarvestablePods ? farmerField.plots.find((plot) => plot.harvestablePods.gt(0)) : undefined;
 
   return (
     <Table>
       <TableBody className="[&_tr:first-child]:border-t [&_tr:last-child]:border-b">
         {hasHarvestablePods &&
           showClaimable &&
+          harvestablePlot &&
           (useToggle ? (
             <ToggleGroupItem
-              value={farmerField.plots[0].index.toHuman()}
-              aria-label={`Select Plot ${farmerField.plots[0].index.toHuman()}`}
-              key={`toggle_${farmerField.plots[0].index.toHuman()}`}
+              value={harvestablePlot.index.toHuman()}
+              aria-label={`Select Plot ${harvestablePlot.index.toHuman()}`}
+              key={`toggle_${harvestablePlot.index.toHuman()}`}
               asChild
             >
               <PlotRow
-                plot={farmerField.plots[0]}
+                plot={harvestablePlot}
                 harvestableIndex={fieldData.harvestableIndex}
                 useToggle
-                isSelected={selected?.includes(farmerField.plots[0].index.toHuman())}
+                isSelected={selected?.includes(harvestablePlot.index.toHuman())}
                 showClaimable
               />
             </ToggleGroupItem>
           ) : (
             <PlotRow
-              plot={farmerField.plots[0]}
+              plot={harvestablePlot}
               harvestableIndex={fieldData.harvestableIndex}
-              key={`plot_${farmerField.plots[0].index.toHuman()}`}
+              key={`plot_${harvestablePlot.index.toHuman()}`}
               showClaimable
             />
           ))}
-        {farmerField.plots.map((plot) => {
+        {plotsToShow.map((plot) => {
           if (useToggle) {
             return (
               <ToggleGroupItem

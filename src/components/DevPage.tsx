@@ -7,12 +7,21 @@ import { useAccount } from "wagmi";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { Input } from "./ui/Input";
+import { usePriceData } from "@/state/usePriceData";
+import { createPublicClient, http, PublicClient } from "viem";
+import { hardhat } from "viem/chains";
 
-interface TaskResponse {
-  success: boolean;
-  message: string;
-  data?: any;
-}
+type ServerStatus = "running" | "not-running" | "checking";
+
+// this extended type declaration is to fix the fact that hardhat_mine is not one of the offical types
+type ExtendedPublicClient = PublicClient & {
+  request(args: { method: "hardhat_mine"; params: string[] }): Promise<void>;
+};
+
+const publicClient = createPublicClient({
+  chain: hardhat,
+  transport: http(),
+});
 
 export default function DevPage() {
   const { address } = useAccount();
@@ -32,6 +41,38 @@ export default function DevPage() {
   });
 
   const { lpTokens } = useTokenData();
+
+  const [serverStatus, setServerStatus] = useState<ServerStatus>("checking");
+
+  const [approvalAddress, setApprovalAddress] = useState(address || "");
+
+  const [singleSidedAddress, setSingleSidedAddress] = useState(address || "");
+  const [singleSidedAmounts, setSingleSidedAmounts] = useState("");
+
+  const priceData = usePriceData();
+
+  const [selectedPercent, setSelectedPercent] = useState<number>(10);
+
+  const [blockSkipAmount, setBlockSkipAmount] = useState("6"); // default to 6 blocks because the morning auction updates every 6 blocks (12 seconds on eth, 2 seconds on base, 12/2 = 6)
+
+  useEffect(() => {
+    const checkServer = async () => {
+      try {
+        const response = await fetch("http://localhost:3002/execute-task", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ task: "ping" }),
+        });
+        setServerStatus("running");
+      } catch (error) {
+        setServerStatus("not-running");
+      }
+    };
+
+    checkServer();
+  }, []);
 
   // Update addresses when account changes
   useEffect(() => {
@@ -93,27 +134,96 @@ export default function DevPage() {
     }));
   };
 
+  const calculatePercentAmounts = (percent: number) => {
+    console.log("priceData", priceData.pools);
+    const tokenOrder = ["WETH", "cbETH", "cbBTC", "USDC", "WSOL"];
+    const amounts = tokenOrder.map((symbol) => {
+      const pool = priceData.pools.find((p) => p.tokens.some((token) => token.symbol === symbol));
+
+      if (!pool) {
+        console.log("pool for token not found:", symbol);
+        return "0";
+      }
+
+      const tokenIndex = pool.tokens.findIndex((token) => token.symbol === symbol);
+      if (tokenIndex === -1) return "0";
+
+      const percentAmount = pool.balances[tokenIndex].mul(percent / 100);
+      console.log(`calculated ${percent}%:`, percentAmount.toHuman(), " for token ", symbol);
+      return percentAmount.toHuman();
+    });
+
+    setSingleSidedAmounts(amounts.join(","));
+    setSelectedPercent(percent);
+  };
+
+  const skipBlocks = async () => {
+    try {
+      const blocks = parseInt(blockSkipAmount);
+      if (Number.isNaN(blocks)) {
+        toast.error("Please enter a valid number of blocks");
+        return;
+      }
+
+      // hardhat_mine is not one of the offical types, so casting to any
+      await (publicClient as ExtendedPublicClient).request({
+        method: "hardhat_mine",
+        params: [`0x${blocks.toString(16)}`],
+      });
+
+      toast.success(`Skipped ${blocks} blocks`);
+    } catch (error) {
+      console.error("Failed to skip blocks:", error);
+      toast.error("Failed to skip blocks. Make sure you are connected to an Anvil/Hardhat node.");
+    }
+  };
+
   return (
-    <div className="flex flex-col items-center">
-      <div className="flex flex-col gap-6 w-[80%]">
+    <div className="min-h-screen flex flex-col items-center">
+      <div className="flex flex-col gap-6 w-[80%] mb-20">
         <h1 className="font-[300] text-[3.5rem] text-black">Development Page</h1>
+        {serverStatus === "not-running" && (
+          <div className="text-pinto-red-2 text-xl mb-4 p-4 border border-pinto-red-2 rounded-lg">
+            Server not running. Please run `yarn hardhat-server` from the protocol directory.
+          </div>
+        )}
 
         {/* Simple Actions */}
         <Card className="p-6">
           <h2 className="text-2xl mb-4">Basic Actions</h2>
-          <div className="flex flex-wrap gap-4">
-            <Button onClick={() => executeTask("callSunrise")} disabled={loading === "callSunrise"}>
-              Call Sunrise
-            </Button>
-            <Button onClick={() => executeTask("skipMorningAuction")} disabled={loading === "skipMorningAuction"}>
-              Skip Morning Auction
-            </Button>
-            <Button onClick={() => executeTask("megaDeploy")} disabled={loading === "megaDeploy"}>
-              Mega Deploy
-            </Button>
-            <Button onClick={() => executeTask("forceFlood")} disabled={loading === "forceFlood"}>
-              Force Flood
-            </Button>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap gap-4">
+              <Button onClick={() => executeTask("callSunrise")} disabled={loading === "callSunrise"}>
+                Call Sunrise
+              </Button>
+              <Button
+                onClick={async () => {
+                  await executeTask("callSunrise");
+                  await executeTask("callSunrise");
+                }}
+                disabled={loading === "callSunrise"}
+              >
+                Double Sunrise
+              </Button>
+              <Button onClick={() => executeTask("skipMorningAuction")} disabled={loading === "skipMorningAuction"}>
+                Skip Morning Auction
+              </Button>
+              <Button onClick={() => executeTask("megaDeploy")} disabled={loading === "megaDeploy"}>
+                Mega Deploy
+              </Button>
+              <Button onClick={() => executeTask("forceFlood")} disabled={loading === "forceFlood"}>
+                Force Flood
+              </Button>
+            </div>
+            <div className="flex gap-2 items-center">
+              <Input
+                placeholder="# Blocks to skip"
+                value={blockSkipAmount}
+                onChange={(e) => setBlockSkipAmount(e.target.value)}
+                className="w-32"
+              />
+              <Button onClick={skipBlocks}>Skip Blocks</Button>
+            </div>
           </div>
         </Card>
 
@@ -194,12 +304,12 @@ export default function DevPage() {
               onChange={(e) => setTokenBalance((prev) => ({ ...prev, token: e.target.value }))}
             />
             <Button
-              onClick={() => executeTask("setTokenBalance", tokenBalance)}
+              onClick={() => executeTask("getTokens", tokenBalance)}
               disabled={
-                !tokenBalance.receiver || !tokenBalance.amount || !tokenBalance.token || loading === "setTokenBalance"
+                !tokenBalance.receiver || !tokenBalance.amount || !tokenBalance.token || loading === "getTokens"
               }
             >
-              Set Token Balance
+              Get Tokens
             </Button>
           </div>
         </Card>
@@ -253,6 +363,77 @@ export default function DevPage() {
                   Add Liquidity To All Wells
                 </Button>
               </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Token Approvals */}
+        <Card className="p-6">
+          <h2 className="text-2xl mb-4">Token Approvals</h2>
+          <div className="flex flex-col gap-4">
+            <div className="text-sm text-gray-500">
+              Approves all non-PINTO tokens for whitelisted wells using the specified account.
+            </div>
+            <div className="flex flex-col gap-2">
+              <Input
+                placeholder="Account Address"
+                value={approvalAddress}
+                onChange={(e) => setApprovalAddress(e.target.value)}
+              />
+              <Button
+                onClick={() => executeTask("approveTokens", { account: approvalAddress })}
+                disabled={!approvalAddress || loading === "approveTokens"}
+              >
+                Approve All Tokens
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h2 className="text-2xl mb-4">Single-Sided Deposits</h2>
+          <div className="flex flex-col gap-4">
+            <div className="text-sm text-gray-500">
+              Deposits non-PINTO tokens into wells and then into beanstalk. Enter amounts in order:
+              WETH,cbETH,cbBTC,USDC,WSOL
+            </div>
+            <div className="flex flex-col gap-2">
+              <Input
+                placeholder="Account Address"
+                value={singleSidedAddress}
+                onChange={(e) => setSingleSidedAddress(e.target.value)}
+              />
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Amounts (comma-separated)"
+                  value={singleSidedAmounts}
+                  onChange={(e) => setSingleSidedAmounts(e.target.value)}
+                  className="flex-1"
+                />
+                <div className="flex gap-1">
+                  {[1, 5, 10, 50, 100].map((percent) => (
+                    <Button
+                      key={percent}
+                      onClick={() => calculatePercentAmounts(percent)}
+                      variant={selectedPercent === percent ? "default" : "outline"}
+                      className="px-3"
+                    >
+                      {percent}%
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              <Button
+                onClick={() =>
+                  executeTask("singleSidedDeposits", {
+                    account: singleSidedAddress,
+                    amounts: singleSidedAmounts,
+                  })
+                }
+                disabled={!singleSidedAddress || !singleSidedAmounts || loading === "singleSidedDeposits"}
+              >
+                Execute Single-Sided Deposits
+              </Button>
             </div>
           </div>
         </Card>
