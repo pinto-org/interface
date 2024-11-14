@@ -124,13 +124,13 @@ function PriceButtonPanel() {
         ) : (
           <div className="flex flex-col p-6 gap-6">
             <Button
-              asChild
+              noPadding
               variant={"outline"}
               rounded="full"
-              className="h-12 w-12 p-0 cursor-pointer"
+              className="h-12 w-12 cursor-pointer"
               onClick={() => setShowSettings(!showSettings)}
             >
-              <IconImage src={backArrowIcon} size={12} />
+              <IconImage src={backArrowIcon} size={0.5} />
             </Button>
             <Text variant="body-bold">Settings</Text>
           </div>
@@ -197,7 +197,7 @@ function PriceButtonPanel() {
                         </Text>
                       </Text>
                       <Text variant="sm" color="light" className="mt-0.5">
-                        Time Weighted Average Price: ${Number(tokenToShow.twa.toHuman()).toFixed(2)}
+                        Time Weighted Average Price: {formatter.usd(tokenToShow.twa)}
                       </Text>
                     </div>
                   </div>
@@ -293,7 +293,7 @@ function PriceButtonPanel() {
             <div className="flex flex-row justify-between h-14 items-center">
               <Text variant="body" className="inline-flex items-center gap-1.5">
                 Use time-weighted average values
-                <TooltipSimple />
+                <TooltipSimple content={"Show the time-weighted average deltaP and price in each pool."} />
               </Text>
               <Switch
                 style={{
