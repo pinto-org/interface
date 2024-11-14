@@ -46,6 +46,7 @@ import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { simulateContract } from "viem/actions";
 import { useAccount, useChainId, useConfig, useReadContract } from "wagmi";
+import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 
 interface BaseConvertProps {
   siloToken: Token;
@@ -305,33 +306,12 @@ function DefaultConvert({
           <FrameAnimator size={64} />
         </div>
       ) : convertData ? (
-        <OutputDisplay title="I receive">
-          <OutputDisplay.Item label="Amount">
-            <OutputDisplay.Value
-              value={formatter.token(minAmountOut, targetToken)}
-              token={targetToken}
-              suffix={targetToken.symbol}
-            />
-          </OutputDisplay.Item>
-          <OutputDisplay.Item label="Stalk">
-            <OutputDisplay.Value
-              value={formatter.twoDec(convertData.stalk)}
-              suffix="Stalk"
-              delta={convertData?.stalk.toNumber()}
-              token={STALK}
-              showArrow
-            />
-          </OutputDisplay.Item>
-          <OutputDisplay.Item label="Seed">
-            <OutputDisplay.Value
-              value={formatter.twoDec(convertData.seeds)}
-              suffix="Seed"
-              delta={convertData.seeds.toNumber()}
-              token={SEEDS}
-              showArrow
-            />
-          </OutputDisplay.Item>
-        </OutputDisplay>
+        <SiloOutputDisplay
+          amount={minAmountOut}
+          token={targetToken}
+          stalk={convertData.stalk}
+          seeds={convertData.seeds}
+        />
       ) : null}
       <Button type="button" rounded="full" width="full" size="xxl" onClick={onSubmit} disabled={disabled}>
         Convert
@@ -557,33 +537,12 @@ const PipelineConvert = ({
           <FrameAnimator size={64} />
         </div>
       ) : convertData ? (
-        <OutputDisplay title="I receive">
-          <OutputDisplay.Item label="Amount">
-            <OutputDisplay.Value
-              value={formatter.token(convertData.amountOut, targetToken)}
-              token={targetToken}
-              suffix={targetToken.symbol}
-            />
-          </OutputDisplay.Item>
-          <OutputDisplay.Item label="Stalk">
-            <OutputDisplay.Value
-              value={formatter.twoDec(convertData.deltaStalk)}
-              suffix="Stalk"
-              delta={convertData.deltaStalk.toNumber()}
-              token={STALK}
-              showArrow
-            />
-          </OutputDisplay.Item>
-          <OutputDisplay.Item label="Seed">
-            <OutputDisplay.Value
-              value={formatter.twoDec(convertData.deltaSeed)}
-              suffix="Seed"
-              delta={convertData.deltaSeed.toNumber()}
-              token={SEEDS}
-              showArrow
-            />
-          </OutputDisplay.Item>
-        </OutputDisplay>
+        <SiloOutputDisplay
+          amount={convertData.amountOut}
+          token={targetToken}
+          stalk={convertData.deltaStalk}
+          seeds={convertData.deltaSeed}
+        />
       ) : null}
       <div className="flex flex-row gap-2">
         <Button type="button" rounded="full" width="full" size="xxl" onClick={onSubmit} disabled={disabled}>
