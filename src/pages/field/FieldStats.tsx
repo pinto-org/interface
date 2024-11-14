@@ -1,3 +1,4 @@
+import { TV } from "@/classes/TokenValue";
 import Text from "@/components/ui/Text";
 import { usePodLine, useTemperature, useTotalSoil } from "@/state/useFieldData";
 import { useMorning } from "@/state/useSunData";
@@ -7,12 +8,12 @@ import { MorningIntervalCountdown } from "./MorningCountdown";
 const FieldStats = () => {
   const temperatures = useTemperature();
   const morning = useMorning();
-  const soil = useTotalSoil();
+  const totalSoil = useTotalSoil();
   const podLine = usePodLine();
 
-  const temperature = morning.isMorning ? temperatures.scaled : temperatures.max;
-
-  console.log("[FieldStats]: temperature", temperatures);
+  const scaledTemperature = temperatures.scaled.lte(0) ? TV.ZERO : temperatures.scaled;
+  const soil = totalSoil.lte(0) ? TV.ZERO : totalSoil;
+  const pLine = podLine.lte(0) ? TV.ZERO : podLine;
 
   return (
     <div className="flex flex-row gap-x-12 gap-y-4 flex-wrap w-full">
@@ -24,7 +25,7 @@ const FieldStats = () => {
           </Text>
         </div>
         <div className="flex flex-col gap-1">
-          <Text variant="h3">{`${formatter.pct(temperatures.scaled)}`}</Text>
+          <Text variant="h3">{`${formatter.pct(scaledTemperature)}`}</Text>
           {morning.isMorning && (
             <Text variant="sm-light" color="morning" className="inline-block tabular-nums">
               <MorningIntervalCountdown prefix={"Increasing in"} />
@@ -55,7 +56,7 @@ const FieldStats = () => {
             The length of the queue for Pods to mature
           </Text>
         </div>
-        <Text variant="h3">{formatter.number(podLine)}</Text>
+        <Text variant="h3">{formatter.number(pLine)}</Text>
       </div>
     </div>
   );
