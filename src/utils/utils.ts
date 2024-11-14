@@ -31,7 +31,9 @@ export function unpackStem(data: string | number | bigint): bigint {
 }
 
 export const isDev = () => {
-  return import.meta.env.DEV;
+  const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+  const isNetlifyPreview = import.meta.env.VITE_NETLIFY_CONTEXT === "deploy-preview";
+  return isLocalhost || isNetlifyPreview || process.env.NODE_ENV === "development";
 };
 
 export function exists<T>(value: T | undefined | null): value is NonNullable<T> {
