@@ -1,8 +1,7 @@
 import { useReadSeasonFacetView_SeasonTime, useReadSeasonFacetView_Time } from "@/generated/contractHooks";
 import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
-import useSoil from "@/state/useSoil";
+import useCalculateTemperature from "@/state/useCalculateTemperature";
 import { useMorning, useSunData } from "@/state/useSunData";
-import useTemperature from "@/state/useTemperature";
 import { exists } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -177,12 +176,11 @@ export function useUpdateMorning() {
   const morningIndex = morning.index;
   const isMorning = morning.isMorning;
 
-  const [_, { calculate: calculateTemperature }] = useTemperature();
-  const [_soilData, calculateNextSoil] = useSoil();
+  const [_, { calculate: calculateTemperature }] = useCalculateTemperature();
 
   useEffect(() => {
     if (!isMorning) return;
-    const { abovePeg, sunriseBlock, timestamp: sTimestamp } = season;
+    const { sunriseBlock, timestamp: sTimestamp } = season;
 
     const intervalId = setInterval(async () => {
       const now = getNowRounded();
@@ -194,11 +192,9 @@ export function useUpdateMorning() {
         });
 
         const scaledTemp = calculateTemperature(morningIndex + 1);
-        const nextSoil = abovePeg ? calculateNextSoil(morningIndex) : undefined;
 
         console.debug("[protocol/sun/useUpdateMorning]: new block: ", {
           temp: scaledTemp.toNumber(),
-          soil: nextSoil?.toNumber() || "N/A",
           blockNumber: morningResult.blockNumber,
           index: morningResult.index,
           isMorning: morningResult.isMorning,
@@ -238,7 +234,6 @@ export function useUpdateMorning() {
     morningIndex,
     season,
     nextMorningInterval,
-    calculateNextSoil,
     calculateTemperature,
     setRemaining,
     setScaledTemperature,

@@ -1,11 +1,11 @@
 import LineChart, { LineChartData, MakeGradientFunction } from "@/components/charts/LineChart";
 import Text from "@/components/ui/Text";
-import useTemperature from "@/state/useTemperature";
 import { formatter } from "@/utils/format";
 import { useMemo, useState } from "react";
 
 import MorningCard from "@/components/MorningCard";
 import { MorningIntervalCountdown } from "@/pages/field/MorningCountdown";
+import useCalculateTemperature from "@/state/useCalculateTemperature";
 import { useMorning } from "@/state/useSunData";
 import {
   CategoryScale,
@@ -35,7 +35,7 @@ const createGradient: MakeGradientFunction = (context: CanvasRenderingContext2D 
 const makeLineGradients = [createGradient];
 
 const MorningTemperatureChart = () => {
-  const [_, utils] = useTemperature();
+  const [_, utils] = useCalculateTemperature();
 
   const [hoveredIndex, setHoveredIndex] = useState<number>();
   const morning = useMorning();
@@ -99,26 +99,3 @@ const Stat = ({
     </div>
   );
 };
-
-/**
- * Max SOIL for the season:
- *
- * If we're above peg:
- * - amount of pods that became harvestable at the start of the season / 100% + max temperature
- * otherwise:
- * - capped deltaB
- *
- *
- *
- * 1000 pods harvested, temp is 100%
- *
- * above peg:
- * 1000 pods harvestable / 100% + max temperature = 200%. 1000 / 2 = 500 SOIL.
- *
- *
- * 1000 / (100% + 100%) = 1000 / 200% = 500 SOIL.
- *
- *
- *
- *
- */

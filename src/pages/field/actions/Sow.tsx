@@ -13,8 +13,8 @@ import useSwapEstimate from "@/hooks/useSwapEstimate";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
-import { useField, useInvalidateField, usePodLine, useTotalSoil } from "@/state/useFieldData";
-import useTemperature from "@/state/useTemperature";
+import { useInvalidateField, usePodLine, useTotalSoil } from "@/state/useFieldData";
+import { useTemperature } from "@/state/useFieldData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { stringEq, stringToNumber } from "@/utils/string";
@@ -64,7 +64,7 @@ const useMaxSow = (tokenIn: Token, slippage: number) => {
 };
 
 function Sow({ isMorning }: SowProps) {
-  const [{ current: currentTemperature }] = useTemperature();
+  const temperature = useTemperature();
   const farmerBalances = useFarmerBalances();
   const podLine = usePodLine();
   const account = useAccount();
@@ -78,6 +78,8 @@ function Sow({ isMorning }: SowProps) {
   const [tokenIn, setTokenIn] = useState(mainToken);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.EXTERNAL);
   const [slippage, setSlippage] = useState(0.1);
+
+  const currentTemperature = temperature.scaled;
   const [minTemperature, setMinTemperature] = useState(Math.max(currentTemperature.toNumber(), 1));
 
   const tokenInBalance = farmerBalances.balances.get(tokenIn);

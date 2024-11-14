@@ -245,3 +245,12 @@ export const useUpdateMorningSoilOnInterval = () => {
     };
   }, [invalidateField, isMorning, noSoil, nextMorningInterval]);
 };
+
+export const useUpdateMorningTemperatureOnInterval = () => {
+  const morning = useAtomValue(morningAtom);
+  const temperature = useAtomValue(fieldTemperatureAtom);
+  const invalidateField = useInvalidateField();
+
+  const isMorning = morning.isMorning;
+  const noTemperature = temperature.max.lte(0);
+};

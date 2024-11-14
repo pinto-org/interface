@@ -1,14 +1,18 @@
 import { useCallback, useMemo } from "react";
+import useCalculateTemperature from "./useCalculateTemperature";
 import { useTotalSoil } from "./useFieldData";
 import { useMorning, useSunData } from "./useSunData";
-import useTemperature from "./useTemperature";
 
-export default function useSoil() {
+/**
+ * Only works if we're below peg. Keeping for reference until we add more view functions to the contract.
+ * Opting to re-fetch soil every 2 seconds until then.
+ */
+export default function useCalculateSoil() {
   const season = useSunData();
   const totalSoil = useTotalSoil();
   const morning = useMorning();
 
-  const [_, { calculate: calculateTemperature }] = useTemperature();
+  const [_, { calculate: calculateTemperature }] = useCalculateTemperature();
 
   const isMorning = morning.isMorning;
   const abovePeg = season.abovePeg;
@@ -48,3 +52,26 @@ export default function useSoil() {
 
   return [soilData, calculateNextSoil] as const;
 }
+
+/**
+ * Max SOIL for the season:
+ *
+ * If we're above peg:
+ * - amount of pods that became harvestable at the start of the season / 100% + max temperature
+ * otherwise:
+ * - capped deltaB
+ *
+ *
+ *
+ * 1000 pods harvested, temp is 100%
+ *
+ * above peg:
+ * 1000 pods harvestable / 100% + max temperature = 200%. 1000 / 2 = 500 SOIL.
+ *
+ *
+ * 1000 / (100% + 100%) = 1000 / 200% = 500 SOIL.
+ *
+ *
+ *
+ *
+ */

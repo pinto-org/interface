@@ -1,12 +1,12 @@
 import Text from "@/components/ui/Text";
+import useCalculateTemperature from "@/state/useCalculateTemperature";
 import { usePodLine, useTotalSoil } from "@/state/useFieldData";
 import { useMorning } from "@/state/useSunData";
-import useTemperature from "@/state/useTemperature";
 import { formatter } from "@/utils/format";
 import { MorningIntervalCountdown } from "./MorningCountdown";
 
 const FieldStats = () => {
-  const [temperatures] = useTemperature();
+  const [temperatures] = useCalculateTemperature();
   const morning = useMorning();
   const soil = useTotalSoil();
   const podLine = usePodLine();
