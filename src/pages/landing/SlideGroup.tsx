@@ -4,11 +4,7 @@ import { landingImages } from "../Landing";
 import Slide from "../landing/Slide";
 
 /*
-need to define an array of textures here
-need to concurrently launch two promises in a useEffect to get the images with nothing in the dependency array
-when either promise finishes, add to the array immediately
-
-if this doesn't work, try downscaling the tree, rock, and gold images to get faster load times
+[ ] if this doesn't work, try downscaling the tree, rock, and gold images to get faster load times
 if that doesn't work, try delaying the second promise to get the first images faster
 if that doesn't work then try to break the loading into three promises
 */
@@ -140,20 +136,21 @@ const SlideGroup = ({
     const initialLoad = landingImages.slice(0, 2);
     const remainingLoad = landingImages.slice(2);
 
-    console.log("Launching initial promise");
-    const initialPromise = preloadTextures(initialLoad).then((loadedInitial) => {
-      console.log("Initial promise resolved");
-      setTextures(loadedInitial);
-    });
+    const loadTextures = async () => {
+      console.log("Launching initial promise");
+      await preloadTextures(initialLoad).then((loadedInitial) => {
+        console.log("Initial promise resolved");
+        setTextures(loadedInitial);
+      });
+    }
 
     console.log("Launching remaining promise");
-    const remainingPromise = preloadTextures(remainingLoad).then((loadedRemaining) => {
+    preloadTextures(remainingLoad).then((loadedRemaining) => {
       console.log("Remaining promise resolved");
       setTextures((prev) => [...prev, ...loadedRemaining]);
     });
 
-    Promise.all([initialPromise, remainingPromise]);
-    
+    loadTextures();    
   }, [landingImages]);
 
   return (
