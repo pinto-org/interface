@@ -7,7 +7,9 @@ import { Label } from "@/components/ui/Label";
 import Text from "@/components/ui/Text";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useTransaction from "@/hooks/useTransaction";
+import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
+import { useInvalidateField } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { FarmToMode } from "@/utils/types";
@@ -15,7 +17,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { BaseError } from "viem";
-import { useAccount, useChainId, useWriteContract } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 
 type HarvestProps = {
   isMorning: boolean;
@@ -31,8 +33,10 @@ function Harvest({ isMorning }: HarvestProps) {
   const priceData = usePriceData();
 
   const queryClient = useQueryClient();
+  const invalidateField = useInvalidateField();
 
   const { plots: fieldPlots, queryKey } = useFarmerField();
+  const balances = useFarmerBalances();
   const [balanceTo, setBalanceTo] = useState(FarmToMode.EXTERNAL);
 
   const { plots, harvestableAmount } = useMemo(() => {
@@ -50,6 +54,8 @@ function Harvest({ isMorning }: HarvestProps) {
   const { writeContractAsync, isConfirming } = useTransaction({
     successCallback: () => {
       queryClient.invalidateQueries({ queryKey });
+      balances.queryKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
+      invalidateField("podLine");
     },
   });
 
@@ -66,16 +72,6 @@ function Harvest({ isMorning }: HarvestProps) {
         Number(balanceTo), // FarmToMode
       ],
     });
-
-    // toast.promise(tx, {
-    //   loading: "Submitting transaction...",
-    //   success: (data) => {
-    //     return `Transaction complete!`;
-    //   },
-    //   error: (error) => {
-    //     return (error as BaseError).shortMessage || `Transaction failed.`;
-    //   },
-    // });
   }
 
   return (
