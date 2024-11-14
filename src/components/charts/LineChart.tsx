@@ -68,7 +68,7 @@ const LineChart = React.memo(
     const gradientPlugin: Plugin = useMemo<Plugin>(
       () => ({
         id: "customGradientShift",
-        afterDraw: (chart: Chart) => {
+        beforeUpdate: (chart: Chart) => {
           const ctx = chart.ctx;
           if (ctx) {
             const activeElements = chart.getActiveElements();
@@ -84,7 +84,6 @@ const LineChart = React.memo(
                 chart.data.datasets[i].backgroundColor = makeAreaGradients[i](ctx, relativeX);
               }
             }
-            chart.update("none");
           }
         },
       }),
