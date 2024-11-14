@@ -71,6 +71,9 @@ interface SeasonalChartProps {
   fillArea?: boolean;
 }
 
+const lineGradients = [lineGradientFn];
+const areaGradients = [areaGradientFn];
+
 const SeasonalChart = ({
   title,
   size,
@@ -109,16 +112,6 @@ const SeasonalChart = ({
     }
     return [];
   }, [allData]);
-
-  const lineGradients = useMemo<MakeGradientFunction[]>(() => {
-    return [lineGradientFn];
-  }, []);
-
-  const areaGradients = useMemo<MakeGradientFunction[] | undefined>(() => {
-    if (fillArea) {
-      return [areaGradientFn];
-    }
-  }, [fillArea]);
 
   const handleMouseOver = useCallback(
     (index: number) => {
@@ -195,7 +188,7 @@ const SeasonalChart = ({
               data={chartData}
               size={size}
               makeLineGradients={lineGradients}
-              makeAreaGradients={areaGradients}
+              makeAreaGradients={fillArea ? areaGradients : undefined}
               valueFormatter={tickValueFormatter}
               onMouseOver={handleMouseOver}
             />
