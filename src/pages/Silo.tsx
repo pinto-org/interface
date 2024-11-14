@@ -132,7 +132,7 @@ function Silo() {
                           variant="sm-light"
                           className="text-pinto-green-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
                         >
-                          {"Arbitrage the increased Seed reward for a gain in Seed."}
+                          {"Arbitrage the increased Seeds reward for a gain in Seeds."}
                         </Text>
                       </div>
                     </div>
@@ -143,7 +143,7 @@ function Silo() {
                 <ClaimRewards
                   trigger={
                     <HelperLink
-                      text={"Claim Pinto, Stalk and Seed"}
+                      text={"Claim Pinto, Stalk and Seeds"}
                       className={`absolute -mt-[390px] -right-[320px] z-20`}
                       dataTarget={`token-row-${mainToken.address}`}
                       sourceAnchor="left"

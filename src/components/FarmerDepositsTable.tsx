@@ -305,7 +305,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                         </div>
                         {data.update?.seedsFromBDVIncrease.gt(0.01) && (
                           <div>
-                            Bonus Seed for updating PDV: <span>{formatter.number(updateGains.seedGain)}</span>
+                            Bonus Seeds for updating PDV: <span>{formatter.number(updateGains.seedGain)}</span>
                           </div>
                         )}
                       </div>

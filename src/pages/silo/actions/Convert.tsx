@@ -252,7 +252,7 @@ function DefaultConvert({
       maxDecimals: warningMessageDecimals,
       minValue: 0.000001,
     });
-    return `Converting any more than ${maxConvertFormatted} ${siloToken.symbol} will result in a loss of Stalk and Seed`;
+    return `Converting any more than ${maxConvertFormatted} ${siloToken.symbol} will result in a loss of Stalk and Seeds`;
   };
 
   const warningMessageDecimals = maxConvert.gt(0) ? 2 : 6;

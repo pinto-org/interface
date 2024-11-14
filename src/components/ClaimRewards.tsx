@@ -133,7 +133,7 @@ export default function ClaimRewards({ trigger }: RewardsClaimProps) {
       >
         <DialogHeader>
           <DialogTitle>
-            <Text variant="h4">Claim Pinto, Stalk and Seed</Text>
+            <Text variant="h4">Claim Pinto, Stalk and Seeds</Text>
           </DialogTitle>
         </DialogHeader>
         <div className="flex flex-row gap-12 pt-12">
@@ -160,7 +160,7 @@ export default function ClaimRewards({ trigger }: RewardsClaimProps) {
             )}
           </div>
           <div className="flex flex-col gap-3 min-w-40">
-            <Text variant="body-light">New Seed</Text>
+            <Text variant="body-light">New Seeds</Text>
             {totalSeedRewards.gt(0) ? (
               <Text variant="lg" className="text-pinto-seed-silver inline-flex gap-1 items-center">
                 + <IconImage src={seedIcon} size={6} /> {formatter.number(totalSeedRewards)}
@@ -190,20 +190,20 @@ export default function ClaimRewards({ trigger }: RewardsClaimProps) {
                 {getCombinedRewardString([
                   { amount: beanRewards, type: "Pinto" },
                   { amount: stalkRewards, type: "Stalk" },
-                  { amount: seedRewards, type: "Seed" },
+                  { amount: seedRewards, type: "Seeds" },
                 ])}
               </Text>
             </div>
             <div className="flex flex-row justify-between pt-6">
-              <Text variant="sm-light">Grown Stalk from Seed</Text>
+              <Text variant="sm-light">Grown Stalk from Seeds</Text>
               <Text variant="sm-light">{`${formatter.number(grownStalkFromSeeds)} Stalk`}</Text>
             </div>
             <div className="flex flex-row justify-between pt-6">
-              <Text variant="sm-light">Stalk and Seed from updating PDV</Text>
+              <Text variant="sm-light">Stalk and Seeds from updating PDV</Text>
               <Text variant="sm-light">
                 {getCombinedRewardString([
                   { amount: stalkUpdate, type: "Stalk" },
-                  { amount: seedUpdate, type: "Seed" },
+                  { amount: seedUpdate, type: "Seeds" },
                 ])}
               </Text>
             </div>
@@ -211,7 +211,7 @@ export default function ClaimRewards({ trigger }: RewardsClaimProps) {
         </Collapsible>
         <Button className="flex w-full h-[60px] rounded-full mt-6" onClick={onSubmit}>
           <Text variant="h4" weight="medium" color="white">
-            Claim Pinto, Stalk and Seed
+            Claim Pinto, Stalk and Seeds
           </Text>
         </Button>
       </DialogContent>
