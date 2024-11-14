@@ -34,7 +34,7 @@ export function unpackStem(data: string | number | bigint): bigint {
 }
 
 export const isProd = () => {
-  return process.env.NODE_ENV === "production";
+  return import.meta.env.VITE_NETLIFY_CONTEXT === "production";
 };
 
 export const isLocalhost = () => {
