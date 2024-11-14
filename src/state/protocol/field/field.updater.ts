@@ -5,9 +5,9 @@ import { INTERVALS_PER_MORNING } from "@/constants/morning";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
 import { useInvalidateField } from "@/state/useFieldData";
-import { exists } from "@/utils/utils";
+import { exists, isDev } from "@/utils/utils";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useReadContract, useReadContracts } from "wagmi";
 import { getMorningTemperature } from ".";
 import { getDiffNow, getNowRounded } from "../sun";
@@ -18,6 +18,7 @@ import {
   fieldTemperatureAtom,
   fieldTotalSoilAtom,
   fieldWeatherAtom,
+  morningFieldDevModeAtom,
 } from "./field.atoms";
 
 const FIVE_MINS = 1000 * 60 * 5; // 20 minutes, in milliseconds
@@ -89,6 +90,10 @@ const useUpdateTotalSoil = () => {
   });
 
   useUpdateQueryKeys(fieldQueryKeysAtom, query.queryKey, "soil");
+
+  useEffect(() => {
+    console.log("[protocol/field/useUpdateTotalSoil]: isFetching", query.isFetching);
+  }, [query.isFetching]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies:
   useEffect(() => {
@@ -214,42 +219,43 @@ const temperatureABI = [
 
 // ---------------------------------------- Non Top level updater hooks ----------------------------------------
 
-const SOIL_UPDATE_INTERVAL = 4;
+const FIELD_REFRESH_MS = isDev() ? 1000 * 2 : 1000 * 6;
 
-const FIELD_REFRESH_MS = 2000;
-
+/**
+ * Update the soil every 2 seconds during the morning. 6 seconds on dev.
+ */
 export const useUpdateMorningSoilOnInterval = () => {
   const morning = useAtomValue(morningAtom);
   const soil = useAtomValue(fieldTotalSoilAtom);
   const invalidateField = useInvalidateField();
+  const devMode = useAtomValue(morningFieldDevModeAtom);
+  const intervalRef = useRef<boolean | null>(null);
 
   const isMorning = morning.isMorning;
   const noSoil = soil.lte(0);
-  const nextMorningInterval = morning.next;
 
   useEffect(() => {
+    if (intervalRef.current || !!devMode.freeze) return;
     // update the soil every 2 seconds
     if (!isMorning || noSoil) return;
 
     console.log("[protocol/field/useUpdateMorningField]: morning: refreshing soil on interval");
 
+    intervalRef.current = true;
     const soilUpdateInterval = setInterval(() => {
-      const now = getNowRounded();
-
-      const remaining = getDiffNow(nextMorningInterval, now).as("seconds");
-      if (remaining % SOIL_UPDATE_INTERVAL === 0) {
-        invalidateField("soil");
-      }
+      invalidateField("soil");
     }, FIELD_REFRESH_MS);
 
     return () => {
       clearInterval(soilUpdateInterval);
+      intervalRef.current = null;
     };
-  }, [invalidateField, isMorning, noSoil, nextMorningInterval]);
+  }, [invalidateField, isMorning, noSoil, devMode.freeze]);
 };
 
 export const useUpdateMorningTemperatureOnInterval = () => {
   const morning = useAtomValue(morningAtom);
+  const devMode = useAtomValue(morningFieldDevModeAtom);
   const [temperature, setTemperature] = useAtom(fieldTemperatureAtom);
 
   const isMorning = morning.isMorning;
@@ -259,12 +265,12 @@ export const useUpdateMorningTemperatureOnInterval = () => {
 
   useEffect(() => {
     const noTemperature = maxTemperature.lte(0);
-    if (!isMorning || noTemperature) return;
+    if (!isMorning || noTemperature || !!devMode.freeze) return;
 
     const current = isMorning ? getMorningTemperature(morningIndex, maxTemperature) : maxTemperature;
 
-    // setTemperature((draft) => {
-    //   draft.scaled = current;
-    // });
-  }, [isMorning, morningIndex, maxTemperature, setTemperature]);
+    setTemperature((draft) => {
+      draft.scaled = current;
+    });
+  }, [isMorning, morningIndex, maxTemperature, setTemperature, devMode.freeze]);
 };

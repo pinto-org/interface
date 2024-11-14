@@ -8,7 +8,10 @@ import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
 import MorningTemperatureChart from "@/pages/field/MorningTemperature";
-import { useUpdateMorningTemperatureOnInterval } from "@/state/protocol/field/field.updater";
+import {
+  useUpdateMorningSoilOnInterval,
+  useUpdateMorningTemperatureOnInterval,
+} from "@/state/protocol/field/field.updater";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useHarvestableIndex } from "@/state/useFieldData";
 import { useMorning } from "@/state/useSunData";
@@ -22,6 +25,7 @@ import TemperatureChart from "./field/Temperature";
 
 function Field() {
   useUpdateMorningTemperatureOnInterval();
+  useUpdateMorningSoilOnInterval();
   const farmerField = useFarmerField();
   const harvestableIndex = useHarvestableIndex();
 
@@ -52,8 +56,8 @@ function Field() {
           <MorningPanel />
           <FieldStats />
           <DynamicTemperatureChart />
+          <MorningDev />
           <div className="flex flex-row items-center justify-between rounded-[1.25rem] p-6 bg-pinto-off-white border-pinto-gray-2 border w-full">
-            <MorningDev />
             <div className="flex flex-col gap-2">
               <Text variant="body-light" color="light">
                 Previously Harvested Pods which have been redeemed for one Pinto

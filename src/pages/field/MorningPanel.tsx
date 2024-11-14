@@ -1,8 +1,9 @@
 import MorningCard from "@/components/MorningCard";
 import { Button } from "@/components/ui/Button";
 import Text from "@/components/ui/Text";
-import { getMorningResult } from "@/state/protocol/sun";
+import { getMorningResult, getNowRounded } from "@/state/protocol/sun";
 import { morningAtom, seasonAtom } from "@/state/protocol/sun/sun.atoms";
+import { useInvalidateField } from "@/state/useFieldData";
 import { useMorning, useSunData } from "@/state/useSunData";
 import { useSetAtom } from "jotai";
 import { DateTime } from "luxon";
@@ -38,10 +39,12 @@ export const MorningDev = () => {
   const setMorning = useSetAtom(morningAtom);
   const setSun = useSetAtom(seasonAtom);
 
+  const invalidateField = useInvalidateField();
+
   const initMorning = () => {
     const struct = {
       ...sun,
-      timestamp: DateTime.now(),
+      timestamp: getNowRounded(),
     };
 
     const morningResult = getMorningResult({
@@ -49,14 +52,18 @@ export const MorningDev = () => {
       blockNumber: struct.sunriseBlock,
     });
 
-    console.log(morningResult);
     setSun(struct);
     setMorning(morningResult);
   };
 
   return (
-    <Button variant="outline" onClick={initMorning}>
-      init morning
-    </Button>
+    <div className="flex flex-row gap-2">
+      <Button variant="outline" onClick={initMorning}>
+        init morning
+      </Button>
+      <Button variant="outline" onClick={() => invalidateField("soil")}>
+        fetch soil
+      </Button>
+    </div>
   );
 };
