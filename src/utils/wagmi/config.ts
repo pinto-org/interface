@@ -1,3 +1,4 @@
+import PintoIcon from "@/assets/tokens/PINTO.png";
 import { isProd } from "@/utils/utils";
 import {
   TENDERLY_RPC_URL,
@@ -58,7 +59,7 @@ const config = createConfig(
     // Optional App Info
     appDescription: "A decentralized stablecoin protocol",
     appUrl: "https://pinto.money/", // your app's url
-    appIcon: "https://link.to.pinto/icon.jpg", // your app's icon, no bigger than 1024x1024px (max. 1MB)
+    appIcon: PintoIcon, // your app's icon, no bigger than 1024x1024px (max. 1MB)
   }),
 );
 
