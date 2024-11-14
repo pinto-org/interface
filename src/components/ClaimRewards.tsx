@@ -143,20 +143,20 @@ export default function ClaimRewards({ trigger }: RewardsClaimProps) {
                 {getCombinedRewardString([
                   { amount: beanRewards, type: "Pinto" },
                   { amount: stalkRewards.sub(grownStalkFromSeeds), type: "Stalk" },
-                  { amount: seedRewards, type: "Seed" },
+                  { amount: seedRewards, type: "Seeds" },
                 ])}
               </Text>
             </div>
             <div className="flex flex-row justify-between pt-6">
-              <Text variant="sm-light">Grown Stalk from Seed</Text>
+              <Text variant="sm-light">Grown Stalk from Seeds</Text>
               <Text variant="sm-light">{`${formatter.number(grownStalkFromSeeds)} Stalk`}</Text>
             </div>
             <div className="flex flex-row justify-between pt-6">
-              <Text variant="sm-light">Stalk and Seed from updating PDV</Text>
+              <Text variant="sm-light">Stalk and Seeds from updating PDV</Text>
               <Text variant="sm-light">
                 {getCombinedRewardString([
                   { amount: stalkUpdate, type: "Stalk" },
-                  { amount: seedUpdate, type: "Seed" },
+                  { amount: seedUpdate, type: "Seeds" },
                 ])}
               </Text>
             </div>

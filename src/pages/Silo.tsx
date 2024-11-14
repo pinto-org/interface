@@ -141,7 +141,7 @@ function Silo() {
                           variant="sm-light"
                           className="text-pinto-gray-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
                         >
-                          {"Arbitrage the increased Seed reward for a gain in Seed."}
+                          {"Arbitrage the increased Seeds reward for a gain in Seeds."}
                         </Text>
                       </div>
                     </div>

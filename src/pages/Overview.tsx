@@ -198,7 +198,7 @@ const Overview = () => {
           {hasOnlyPods && (
             <HelperLink
               onClick={() => navigate("/silo")}
-              text={"Make your first Deposit in the Silo for Stalk and Seed"}
+              text={"Make your first Deposit in the Silo for Stalk and Seeds"}
               className={`absolute -mt-[64px] -left-[370px] z-20`}
               dataTarget="depositedValue-stats"
               sourceAnchor="right"

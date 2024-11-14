@@ -12,11 +12,12 @@ import { stringToNumber } from "@/utils/string";
 import { FarmToMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { estimateGas } from "@wagmi/core";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useConfig } from "wagmi";
 import { useAccount, useChainId } from "wagmi";
+import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 
 function Withdraw({ siloToken }: { siloToken: Token }) {
   const config = useConfig();
@@ -104,6 +105,19 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const disabled = !stringToNumber(amount) || !account.address || isSubmitting || isConfirming;
 
+  const withdrawOutput = useMemo(() => {
+    if (!amount || Number(amount) <= 0 || !deposits) return undefined;
+
+    const amountTV = TokenValue.fromHuman(amount, fromToken.decimals);
+    const transferData = sortAndPickCrates("withdraw", amountTV, deposits);
+
+    return {
+      amount: amountTV,
+      stalkLost: transferData.stalk,
+      seedsLost: transferData.seeds,
+    };
+  }, [amount, deposits, fromToken.decimals]);
+
   return (
     <div className="flex flex-col gap-4">
       <div>
@@ -123,6 +137,15 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
         <Label className="flex h-10 items-center">Destination</Label>
         <DestinationBalanceSelect setBalanceTo={setDestination} balanceTo={destination} />
       </div>
+      {withdrawOutput && (
+        <SiloOutputDisplay
+          amount={withdrawOutput.amount}
+          token={fromToken}
+          stalk={withdrawOutput.stalkLost}
+          seeds={withdrawOutput.seedsLost}
+          showNegativeDeltas
+        />
+      )}
       <div>
         <Button
           className="w-full flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem]"
