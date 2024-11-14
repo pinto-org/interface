@@ -73,7 +73,7 @@ function PriceButtonPanel() {
                 color="green3"
                 className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] inline-flex items-center gap-1"
               >
-                Total deltaP: {formatter.twoDec(priceData.deltaB)}
+                Total deltaP: {formatter.twoDec(priceData.deltaB, { showPositiveSign: true })}
                 <TooltipSimple />
               </Text>
             </div>
@@ -159,12 +159,12 @@ function PriceButtonPanel() {
                 ) > -1;
               if (!isWhitelisted) return;
               const token0Price = pool.tokens[0].isMain
-                ? priceData.price
+                ? pool.price
                 : useTwa
                   ? priceData.tokenPrices.get(pool.tokens[0])?.twa
                   : priceData.tokenPrices.get(pool.tokens[0])?.instant || TokenValue.ZERO;
               const token1Price = pool.tokens[1].isMain
-                ? priceData.price
+                ? pool.price
                 : useTwa
                   ? priceData.tokenPrices.get(pool.tokens[1])?.twa
                   : priceData.tokenPrices.get(pool.tokens[1])?.instant || TokenValue.ZERO;
@@ -205,7 +205,7 @@ function PriceButtonPanel() {
               }
 
               return (
-                <Card key={`${pool.pool.address}_card_${i}`} className="overflow-clip group hover:border-pinto-green-2">
+                <Card key={`${pool.pool.address}_card_${i}`} className="overflow-clip group hover:border-pinto-green-4">
                   <CardContent className="p-4 bg-white flex flex-col gap-4">
                     <div className="flex flex-row justify-between items-center">
                       <div className="inline-flex gap-1.5 items-center">
@@ -270,7 +270,7 @@ function PriceButtonPanel() {
                         noLineHeight
                         className="inline-flex items-center px-2 py-0.5 h-6 bg-pinto-gray-blue rounded-[0.25rem]"
                       >
-                        Total Liquidity: {formatter.usd(pool.liquidity)}
+                        Liquidity: {formatter.usd(pool.liquidity)}
                       </Text>
                       <Text
                         variant="xs"
@@ -279,7 +279,7 @@ function PriceButtonPanel() {
                         noLineHeight
                         className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] inline-flex items-center gap-1"
                       >
-                        deltaP: {formatter.twoDec(pool.deltaB)}
+                        deltaP: {formatter.twoDec(pool.deltaB, { showPositiveSign: true })}
                         <TooltipSimple />
                       </Text>
                     </div>
