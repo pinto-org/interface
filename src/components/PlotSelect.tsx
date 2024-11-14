@@ -4,7 +4,7 @@ import podIcon from "@/assets/protocol/Pod.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { PODS } from "@/constants/internalTokens";
 import { useFarmerField } from "@/state/useFarmerField";
-import { useFieldData, useHarvestableIndex } from "@/state/useFieldData";
+import { useHarvestableIndex } from "@/state/useFieldData";
 import { formatter } from "@/utils/format";
 import { Plot } from "@/utils/types";
 import { useEffect, useState } from "react";
