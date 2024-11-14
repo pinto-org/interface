@@ -1,11 +1,11 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { ZERO_ADDRESS } from "@/constants/address";
-import { beanstalkAbi, beanstalkAddress, useReadBeanstalk_GetAllBalances } from "@/generated/contractHooks";
+import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { useChainAddress } from "@/utils/chain";
 import { Token } from "@/utils/types";
 import { useMemo } from "react";
 import { useAccount, useBalance, useReadContract } from "wagmi";
-import { useSunData } from "./useSunData";
+import { useSeason } from "./useSunData";
 import useTokenData from "./useTokenData";
 
 const settings = {
@@ -21,7 +21,7 @@ export interface FarmerBalance {
 
 export function useFarmerBalances() {
   const account = useAccount();
-  const season = useSunData().data.current;
+  const season = useSeason();
   const tokens = useTokenData().preferredTokens;
   const lpTokens = useTokenData().lpTokens;
   const ETH = useTokenData().nativeToken;

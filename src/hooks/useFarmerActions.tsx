@@ -3,7 +3,6 @@ import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
-import { useFieldData } from "@/state/useFieldData";
 import { PoolData, usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
@@ -419,7 +418,6 @@ export default function useFarmerActions(): FarmerActions {
   const farmerDeposits = useFarmerDepositedBalances();
   const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
-  const fieldData = useFieldData();
   const priceData = usePriceData();
   const tokenData = useTokenData();
   const siloData = useSiloData();
@@ -815,7 +813,7 @@ export default function useFarmerActions(): FarmerActions {
     farmerSilo,
     farmerField,
     farmerDeposits,
-    fieldData,
+    mainToken,
     priceData,
     tokenData,
     siloData,

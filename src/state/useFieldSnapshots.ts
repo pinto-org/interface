@@ -7,11 +7,11 @@ import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 import { arbitrum } from "viem/chains";
 import { useChainId } from "wagmi";
-import { useSunData } from "./useSunData";
+import { useSeason } from "./useSunData";
 import useTokenData from "./useTokenData";
 
 export default function useFieldSnapshots() {
-  const season = useSunData().data.current;
+  const season = useSeason();
   const chainId = useChainId();
   const fieldId = beanstalkAddress[arbitrum.id as keyof typeof beanstalkAddress];
   const tokenData = useTokenData();

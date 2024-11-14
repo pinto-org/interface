@@ -26,10 +26,11 @@ interface DepositRowProps extends HTMLMotionProps<"tr"> {
 }
 
 const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React.HTMLAttributes<HTMLTableRowElement>>(
-  ({ deposit, token, price, useToggle, isSelected, ...props }) => {
+  ({ deposit, token, price, useToggle, isSelected, ...props }, ref) => {
     return (
       <TableRow
         {...props}
+        ref={ref}
         className={`h-[4.5rem] ${deposit.isGerminating ? "bg-pinto-off-green/15" : "bg-white"} text-[1rem] hover:bg-pinto-green-1/50 hover:cursor-pointer`}
       >
         <Text as={TableCell}>

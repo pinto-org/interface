@@ -1,3 +1,4 @@
+import { isDev } from "@/utils/utils";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import DevPage from "./components/DevPage";
 import Navbar from "./components/nav/nav/Navbar";
@@ -33,7 +34,7 @@ function App() {
             <Route path="/market" element={<Swap />} />
             <Route path="/transfer" element={<Transfer />} />
             <Route path="/transfer/:mode" element={<Transfer />} />
-            {import.meta.env.DEV && <Route path="/dev" element={<DevPage />} />}
+            {isDev() && <Route path="/dev" element={<DevPage />} />}
           </Routes>
         </div>
       </div>

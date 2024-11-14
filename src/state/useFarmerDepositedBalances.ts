@@ -11,7 +11,7 @@ import { Address, toHex } from "viem";
 import { useAccount, useReadContract } from "wagmi";
 import { getTokenIndex } from "./../utils/token";
 import { useSiloData } from "./useSiloData";
-import { useSunData } from "./useSunData";
+import { useSeason } from "./useSunData";
 import useTokenData from "./useTokenData";
 
 interface DepositQuery {
@@ -29,7 +29,7 @@ const querySettings = {
 
 function useFarmerDepositedBalances() {
   const account = useAccount();
-  const season = useSunData().data.current;
+  const season = useSeason();
   const silo = useSiloData();
   const BEAN = useTokenData().mainToken;
   const diamondAddress = useChainAddress(beanstalkAddress);
