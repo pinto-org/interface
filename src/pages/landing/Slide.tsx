@@ -25,6 +25,7 @@ extend({ SlideShaderMaterial });
 // SlideProps interface
 interface SlideProps {
   // imageObject: HTMLImageElement;
+  preloadedTexture: THREE.Texture;
   imageUrl: string;
   width: number;
   height: number;
@@ -39,6 +40,7 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
   (
     {
       // imageObject,
+      preloadedTexture,
       imageUrl,
       width,
       height,
@@ -54,7 +56,13 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
 
     // Texture setup
     const texture = useMemo(() => {
-      const tex = new THREE.TextureLoader().load(imageUrl);
+      let tex;
+      
+      if (!preloadedTexture) {
+        tex = new THREE.TextureLoader().load(imageUrl);
+      } else {
+        tex = preloadedTexture;
+      }
       tex.colorSpace = THREE.SRGBColorSpace;
       tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
       tex.minFilter = THREE.LinearFilter;
