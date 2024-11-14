@@ -5,14 +5,13 @@ import seedsIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import APYChip from "@/components/APYChip";
-import ClaimRewards from "@/components/ClaimRewards";
-import { ExternalLinkIcon, LeftArrowIcon } from "@/components/Icons";
+import { ExternalLinkIcon } from "@/components/Icons";
+import SiloActionBox from "@/components/SiloActionBox";
 import { Button } from "@/components/ui/Button";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
-import useFarmerActions from "@/hooks/useFarmerActions";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { usePriceData } from "@/state/usePriceData";
 import { useSeedGauge } from "@/state/useSeedGauge";
@@ -33,7 +32,6 @@ export default function SiloToken() {
   const tokenData = useTokenData();
   const siloData = useSiloData();
   const priceData = usePriceData();
-  const farmerActions = useFarmerActions();
   const depositedBalances = useFarmerDepositedBalances();
 
   const siloToken = tokenData.whitelistedTokens.find((token) => stringEq(token.address, tokenAddress ?? ""));
@@ -58,7 +56,6 @@ export default function SiloToken() {
                 <div className="pt-6">
                   <FarmerSiloTokenDeposits
                     siloToken={siloToken}
-                    siloTokenData={siloTokenData}
                     farmerDeposits={farmerDeposits}
                     price={priceData.price}
                   />
@@ -71,11 +68,7 @@ export default function SiloToken() {
             </div>
           </div>
           <div className="w-full lg:max-w-[518px] lg:min-w-[425px] lg:-mt-2">
-            <SiloTokenActions
-              siloToken={siloToken}
-              farmerDeposits={farmerDeposits}
-              enableClaim={farmerActions.claimRewards.enabled}
-            />
+            <SiloTokenActions siloToken={siloToken} farmerDeposits={farmerDeposits} />
           </div>
         </div>
       </div>
@@ -89,10 +82,9 @@ interface IBaseSiloToken {
 
 interface ISiloTokenActions extends IBaseSiloToken {
   farmerDeposits: TokenDepositData | undefined;
-  enableClaim: boolean;
 }
 
-const SiloTokenActions = ({ siloToken, farmerDeposits, enableClaim }: ISiloTokenActions) => {
+const SiloTokenActions = ({ siloToken, farmerDeposits }: ISiloTokenActions) => {
   return (
     <div className="flex flex-col w-full gap-6">
       <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border">
@@ -104,36 +96,7 @@ const SiloTokenActions = ({ siloToken, farmerDeposits, enableClaim }: ISiloToken
         }
         return null;
       })}
-      <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border flex flex-col gap-2">
-        <Button
-          variant="ghost"
-          className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem] disabled:bg-transparent disabled:text-pinto-gray-5 disabled:opacity-30"
-          disabled={!farmerDeposits || farmerDeposits.deposits.length === 0}
-        >
-          <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
-            <span className="self-center items-center">
-              <LeftArrowIcon color={"white"} height={16} width={16} />
-            </span>
-          </div>
-          Send Deposits
-        </Button>
-        <ClaimRewards
-          trigger={
-            <Button
-              variant="ghost"
-              className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem] disabled:bg-transparent disabled:text-pinto-gray-5 disabled:opacity-30"
-              disabled={!enableClaim}
-            >
-              <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
-                <span className="self-center items-center rotate-90">
-                  <LeftArrowIcon color={"white"} height={16} width={16} />
-                </span>
-              </div>
-              Claim Pinto, Stalk and Seed
-            </Button>
-          }
-        />
-      </div>
+      <SiloActionBox farmerDeposits={farmerDeposits} />
     </div>
   );
 };
@@ -226,12 +189,11 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
 };
 
 interface IFarmerSiloTokenDeposits extends IBaseSiloToken {
-  siloTokenData: SiloTokenData | undefined;
   farmerDeposits: TokenDepositData | undefined;
   price: TokenValue;
 }
 
-const FarmerSiloTokenDeposits = ({ siloToken, siloTokenData, farmerDeposits, price }: IFarmerSiloTokenDeposits) => {
+const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price }: IFarmerSiloTokenDeposits) => {
   return (
     <div className="flex flex-row gap-16">
       <div className="flex flex-col gap-2">

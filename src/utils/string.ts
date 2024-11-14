@@ -30,9 +30,9 @@ export const stringToNumber = (val: string) => {
 
 export const getClaimText = (beanRewards: TokenValue, stalkRewards: TokenValue, seedRewards: TokenValue) => {
   const rewards: string[] = [];
-  if (beanRewards.gt(0)) rewards.push("Pinto");
-  if (stalkRewards.gt(0)) rewards.push("Stalk");
-  if (seedRewards.gt(0)) rewards.push("Seed");
+  if (beanRewards.gte(0.01)) rewards.push("Pinto");
+  if (stalkRewards.gte(0.01)) rewards.push("Stalk");
+  if (seedRewards.gte(0.01)) rewards.push("Seed");
 
   if (rewards.length === 0) return "Nothing to claim";
   if (rewards.length === 1) return `Claim ${rewards[0]}`;
