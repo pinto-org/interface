@@ -7,7 +7,7 @@ import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { usePriceData } from "@/state/usePriceData";
 import { truncateHex } from "@/utils/format";
 import { DepositData, Token } from "@/utils/types";
-import React from "react";
+import { HTMLMotionProps } from "framer-motion";
 import CheckmarkCircle from "./CheckmarkCircle";
 
 interface DepositsTable {
@@ -16,46 +16,44 @@ interface DepositsTable {
   useToggle?: boolean;
 }
 
-interface DepositRowProps {
+interface DepositRowProps extends HTMLMotionProps<"tr"> {
   deposit: DepositData;
   token: Token;
   price: TokenValue;
   useToggle?: boolean;
-  isSelected?: boolean | undefined;
+  isSelected?: boolean;
+  key?: string;
 }
 
-const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React.HTMLAttributes<HTMLTableRowElement>>(
-  ({ deposit, token, price, useToggle, isSelected, ...props }, ref) => {
-    return (
-      <TableRow
-        ref={ref}
-        {...props}
-        className={`h-[4.5rem] ${deposit.isGerminating ? "bg-pinto-off-green/15" : "bg-white"} text-[1rem] hover:bg-pinto-green-1/50 hover:cursor-pointer`}
-      >
-        <TableCell className="text-black font-[400]">
-          <div className="gap-2 pl-2 flex items-center">
-            {useToggle && <CheckmarkCircle isSelected={isSelected} />}
-            <img src={depositIcon} alt="deposit icon" />
-            {truncateHex(deposit.idHex)}
+const DepositRow = ({ deposit, token, price, useToggle, isSelected, key }: DepositRowProps) => {
+  return (
+    <TableRow
+      key={key}
+      className={`h-[4.5rem] ${deposit.isGerminating ? "bg-pinto-off-green/15" : "bg-white"} text-[1rem] hover:bg-pinto-green-1/50 hover:cursor-pointer`}
+    >
+      <TableCell className="text-black font-[400]">
+        <div className="gap-2 pl-2 flex items-center">
+          {useToggle && <CheckmarkCircle isSelected={isSelected} />}
+          <img src={depositIcon} alt="deposit icon" />
+          {truncateHex(deposit.idHex)}
+        </div>
+      </TableCell>
+      <TableCell className="text-right text-black">
+        <div>{`${deposit.amount.toHuman("short")} ${token.name}`}</div>
+        <div className="text-pinto-gray-4">{`$${(deposit.depositBdv || TokenValue.ZERO).mul(price).toHuman("short")}`}</div>
+      </TableCell>
+      <TableCell className="text-right text-black">
+        <div>{deposit.stalk.base.toHuman("short")}</div>
+        {deposit.stalk.grown.gt(0) && (
+          <div className="text-pinto-gray-4">
+            Claimable Grown Stalk: <span className="text-pinto-green-2">+{deposit.stalk.grown.toHuman("short")}</span>
           </div>
-        </TableCell>
-        <TableCell className="text-right text-black">
-          <div>{`${deposit.amount.toHuman("short")} ${token.name}`}</div>
-          <div className="text-pinto-gray-4">{`$${(deposit.depositBdv || TokenValue.ZERO).mul(price).toHuman("short")}`}</div>
-        </TableCell>
-        <TableCell className="text-right text-black">
-          <div>{deposit.stalk.base.toHuman("short")}</div>
-          {deposit.stalk.grown.gt(0) && (
-            <div className="text-pinto-gray-4">
-              Claimable Grown Stalk: <span className="text-pinto-green-2">+{deposit.stalk.grown.toHuman("short")}</span>
-            </div>
-          )}
-        </TableCell>
-        <TableCell className="text-right text-black p-4">{deposit.seeds.toHuman("short")}</TableCell>
-      </TableRow>
-    );
-  },
-);
+        )}
+      </TableCell>
+      <TableCell className="text-right text-black p-4">{deposit.seeds.toHuman("short")}</TableCell>
+    </TableRow>
+  );
+};
 
 export default function DepositsTable({ token, selected, useToggle }: DepositsTable) {
   const farmerDeposits = useFarmerDepositedBalances().data;
