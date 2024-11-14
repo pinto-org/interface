@@ -2,7 +2,7 @@ import plotIcon from "@/assets/protocol/Plot.svg";
 import podIcon from "@/assets/protocol/Pod.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { useFarmerField } from "@/state/useFarmerField";
-import { useFieldData } from "@/state/useFieldData";
+import { useHarvestableIndex } from "@/state/useFieldData";
 import { formatter } from "@/utils/format";
 import { Plot } from "@/utils/types";
 import React from "react";
@@ -98,7 +98,7 @@ export default function PlotsTable({
   showClaimable?: boolean;
 }) {
   const farmerField = useFarmerField();
-  const fieldData = useFieldData();
+  const harvestableIndex = useHarvestableIndex();
 
   const hasHarvestablePods = farmerField.plots.some((plot) => plot.harvestablePods.gt(0));
 
@@ -122,7 +122,7 @@ export default function PlotsTable({
             >
               <PlotRow
                 plot={harvestablePlot}
-                harvestableIndex={fieldData.harvestableIndex}
+                harvestableIndex={harvestableIndex}
                 useToggle
                 isSelected={selected?.includes(harvestablePlot.index.toHuman())}
                 showClaimable
@@ -131,7 +131,7 @@ export default function PlotsTable({
           ) : (
             <PlotRow
               plot={harvestablePlot}
-              harvestableIndex={fieldData.harvestableIndex}
+              harvestableIndex={harvestableIndex}
               key={`plot_${harvestablePlot.index.toHuman()}`}
               showClaimable
             />
@@ -147,16 +147,14 @@ export default function PlotsTable({
               >
                 <PlotRow
                   plot={plot}
-                  harvestableIndex={fieldData.harvestableIndex}
+                  harvestableIndex={harvestableIndex}
                   useToggle
                   isSelected={selected?.includes(plot.index.toHuman())}
                 />
               </ToggleGroupItem>
             );
           }
-          return (
-            <PlotRow plot={plot} harvestableIndex={fieldData.harvestableIndex} key={`plot_${plot.index.toHuman()}`} />
-          );
+          return <PlotRow plot={plot} harvestableIndex={harvestableIndex} key={`plot_${plot.index.toHuman()}`} />;
         })}
       </TableBody>
     </Table>

@@ -6,6 +6,7 @@ import { createTestClient, defineChain } from "viem";
 import { http, WagmiProvider, createConfig } from "wagmi";
 import { base, localhost } from "wagmi/chains";
 import { mock } from "wagmi/connectors";
+import { isDev } from "./utils/utils";
 
 // serialize BigInts
 (BigInt.prototype as any).toJSON = function () {
@@ -74,7 +75,7 @@ const config = createConfig(
       },
     },
     // Required API Keys
-    walletConnectProjectId: "my-project",
+    walletConnectProjectId: import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID,
     // Required App Info
     appName: "Pinto",
     // Optional App Info
@@ -99,6 +100,7 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
           customTheme={{
             "--ck-font-family": "Pinto",
             "--ck-border-radius": "24px",
+            "--ck-body-color": "#404040",
             "--ck-body-background": "#FCFCFC",
             "--ck-modal-box-shadow": "0px 0px 0px 1px rgb(217, 217, 217)",
             "--ck-overlay-backdrop-filter": "blur(2px)",
@@ -116,6 +118,7 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
             "--ck-body-divider": "rgb(217, 217, 217)",
           }}
           options={{
+            initialChainId: !isDev() ? base.id : undefined,
             avoidLayoutShift: true,
             hideNoWalletCTA: true,
             hideQuestionMarkCTA: true,

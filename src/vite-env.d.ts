@@ -2,6 +2,10 @@
 
 interface ImportMetaEnv {
   /**
+   *
+   */
+  readonly VITE_WALLET_CONNECT_PROJECT_ID: string;
+  /**
    * RPC URL for the testnet
    */
   readonly VITE_TESTNET_RPC: string;

@@ -13,7 +13,7 @@ import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
-import { useFieldData } from "@/state/useFieldData";
+import { useHarvestableIndex, useTemperature } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import { getClaimText } from "@/utils/string";
@@ -28,7 +28,8 @@ const Overview = () => {
   const farmerField = useFarmerField();
   const farmerActions = useFarmerActions();
   const siloData = useSiloData();
-  const fieldData = useFieldData();
+  const temperature = useTemperature();
+  const harvestableIndex = useHarvestableIndex();
   const priceData = usePriceData();
   const navigate = useNavigate();
   const { submitClaimRewards } = useClaimRewards();
@@ -62,7 +63,7 @@ const Overview = () => {
     const stalkPerSeason = farmerSilo.activeSeedsBalance.div(10000);
 
     const placesInLine = farmerField.plots
-      .map((plot) => plot.index.sub(fieldData.harvestableIndex))
+      .map((plot) => plot.index.sub(harvestableIndex))
       .sort((a, b) => Number(a.sub(b).toHuman()));
 
     const siloTokens = Array.from(siloData.tokenData.entries());
@@ -71,7 +72,7 @@ const Overview = () => {
     ).toFixed(2);
 
     return { siloPct, claimSiloPct, harvestSiloPct, stalkPerSeason, placesInLine, avgAPY };
-  }, [farmerSilo, farmerField, farmerActions, siloData, fieldData]);
+  }, [farmerSilo, farmerField, farmerActions, siloData, harvestableIndex]);
 
   // Action states
   const convertEnabled = farmerActions.convertDeposits.enabled;
@@ -159,8 +160,8 @@ const Overview = () => {
           <span className="text-pinto-body text-pinto-gray-4">
             Pods are redeemable for one Pinto when they reach the front of the Pod Line.
           </span>
-          {fieldData.temperature.max.gt(0) && (
-            <span className="text-pinto-h1 text-pinto mt-4">{`${fieldData.temperature.max.toHuman()}% interest rate`}</span>
+          {temperature.max.gt(0) && (
+            <span className="text-pinto-h1 text-pinto mt-4">{`${temperature.max.toHuman()}% interest rate`}</span>
           )}
         </Link>
       </Button>

@@ -2,13 +2,12 @@ import { TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import SlippageButton from "@/components/SlippageButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Label } from "@/components/ui/Label";
 import { PODS } from "@/constants/internalTokens";
 import fillPodListing from "@/encoders/fillPodListing";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useSwapEstimate from "@/hooks/useSwapEstimate";
-import { useFieldData } from "@/state/useFieldData";
+import { useHarvestableIndex } from "@/state/useFieldData";
 import usePodListings from "@/state/usePodListings";
 import useTokenData from "@/state/useTokenData";
 import { AdvancedFarmCall, FarmFromMode, FarmToMode } from "@/utils/types";
@@ -26,7 +25,7 @@ export default function FillListing() {
   const chainId = useChainId();
 
   const queryClient = useQueryClient();
-  const fieldData = useFieldData();
+  const harvestableIndex = useHarvestableIndex();
   const podListings = usePodListings();
   const queryKey = podListings.queryKey;
   const { id } = useParams();
@@ -150,9 +149,7 @@ export default function FillListing() {
           </div>
           <div className="flex flex-row justify-between">
             <Label>Place in Line</Label>
-            <div>
-              {TokenValue.fromBlockchain(listing.index, PODS.decimals).sub(fieldData.harvestableIndex).toHuman("short")}
-            </div>
+            <div>{TokenValue.fromBlockchain(listing.index, PODS.decimals).sub(harvestableIndex).toHuman("short")}</div>
           </div>
           <div className="flex flex-row justify-between">
             <Label>Pods Available</Label>
