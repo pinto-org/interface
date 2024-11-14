@@ -173,12 +173,12 @@ function Sow({ isMorning }: SowProps) {
 
         const swapCallData = swapData?.callData;
         if (swapCallData) {
-          const calls = [...swapCallData, sow];
+          swapCallData.push(sow);
           return writeContractAsync({
             address: diamond,
             abi: beanstalkAbi,
             functionName: "advancedFarm",
-            args: [calls],
+            args: [swapCallData],
             value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
             gas: 4000000n,
           });

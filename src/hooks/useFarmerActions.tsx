@@ -3,7 +3,6 @@ import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
-import { useFieldData } from "@/state/useFieldData";
 import { PoolData, usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";

@@ -8,7 +8,7 @@ import { PODS } from "@/constants/internalTokens";
 import createPodOrder from "@/encoders/createPodOrder";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useSwapEstimate from "@/hooks/useSwapEstimate";
-import { useFieldData, usePodIndex } from "@/state/useFieldData";
+import { usePodIndex } from "@/state/useFieldData";
 import usePodOrders from "@/state/usePodOrders";
 import useTokenData from "@/state/useTokenData";
 import { type AdvancedFarmCall, FarmFromMode, FarmToMode } from "@/utils/types";

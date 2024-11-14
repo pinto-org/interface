@@ -19,7 +19,7 @@ export interface Token {
   symbol: string;
   chainId: number;
   decimals: number;
-  displayDecimals: number;
+  displayDecimals?: number;
   isMain?: boolean;
   isLP?: boolean;
   isNative?: boolean;

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
-import { useFieldData, useHarvestableIndex } from "@/state/useFieldData";
+import { useHarvestableIndex } from "@/state/useFieldData";
 import usePodListings from "@/state/usePodListings";
 import useTokenData from "@/state/useTokenData";
 import { FarmToMode, Plot } from "@/utils/types";
