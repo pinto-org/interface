@@ -251,7 +251,7 @@ function DefaultConvert({
       maxDecimals: warningMessageDecimals,
       minValue: 0.000001,
     });
-    return `Converting any more than ${maxConvertFormatted} ${siloToken.symbol} will result in a loss of Stalk and Seed`;
+    return `Converting any more than ${maxConvertFormatted} ${siloToken.symbol} will result in a loss of Stalk and Seeds`;
   };
 
   const warningMessageDecimals = maxConvert.gt(0) ? 2 : 6;
@@ -322,10 +322,10 @@ function DefaultConvert({
               showArrow
             />
           </OutputDisplay.Item>
-          <OutputDisplay.Item label="Seed">
+          <OutputDisplay.Item label="Seeds">
             <OutputDisplay.Value
               value={formatter.twoDec(convertData.seeds)}
-              suffix="Seed"
+              suffix="Seeds"
               delta={convertData.seeds.toNumber()}
               token={SEEDS}
               showArrow
@@ -574,10 +574,10 @@ const PipelineConvert = ({
               showArrow
             />
           </OutputDisplay.Item>
-          <OutputDisplay.Item label="Seed">
+          <OutputDisplay.Item label="Seeds">
             <OutputDisplay.Value
               value={formatter.twoDec(convertData.deltaSeed)}
-              suffix="Seed"
+              suffix="Seeds"
               delta={convertData.deltaSeed.toNumber()}
               token={SEEDS}
               showArrow

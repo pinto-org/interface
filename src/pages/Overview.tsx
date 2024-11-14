@@ -190,7 +190,7 @@ const Overview = () => {
           {hasOnlyPods && (
             <HelperLink
               onClick={() => navigate("/silo")}
-              text={"Make your first Deposit in the Silo for Stalk and Seed"}
+              text={"Make your first Deposit in the Silo for Stalk and Seeds"}
               className={`absolute -mt-[64px] -left-[370px] z-20`}
               dataTarget="depositedValue-stats"
               sourceAnchor="right"
@@ -235,7 +235,7 @@ const Overview = () => {
             <ClaimRewards
               trigger={
                 <HelperLink
-                  text="Claim Pinto, Stalk and Seed"
+                  text="Claim Pinto, Stalk and Seeds"
                   dataTarget="claimable-rewards"
                   className="absolute right-[60px] mt-[60px]"
                   sourceAnchor="left"

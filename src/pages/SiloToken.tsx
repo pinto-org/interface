@@ -120,7 +120,7 @@ const SiloTokenActions = ({ siloToken, farmerDeposits }: ISiloTokenActions) => {
                   <LeftArrowIcon color={"white"} height={16} width={16} />
                 </span>
               </div>
-              Claim Pinto, Stalk and Seed
+              Claim Pinto, Stalk and Seeds
             </Button>
           }
         />
@@ -276,7 +276,7 @@ const SiloTokenSubHeader = ({ siloTokenData }: { siloTokenData: SiloTokenData | 
           </div>
           <div className="inline-flex gap-1 items-center">
             <IconImage src={seedsIcon} size={6} nudge={2} alt="Seeds" />
-            <Text variant="h4">{formatter.twoDec(seedRewards)} Seed</Text>
+            <Text variant="h4">{formatter.twoDec(seedRewards)} Seeds</Text>
           </div>
         </div>
       </div>
