@@ -343,6 +343,22 @@ export class TokenValue {
     return TokenValue.fromHuman(newString, decimals);
   }
 
+  public roundDown() {
+    return TokenValue.from(this.value.roundDown(this.decimals));
+  }
+
+  public roundUp() {
+    return TokenValue.from(this.value.roundUp(this.decimals));
+  }
+
+  public roundCeil() {
+    return TokenValue.from(this.value.roundCeil(this.decimals));
+  }
+
+  public roundFloor() {
+    return TokenValue.from(this.value.roundFloor(this.decimals));
+  }
+
   ////// Getters //////
 
   get isZero(): boolean {

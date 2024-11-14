@@ -6,7 +6,7 @@ import Panel from "@/components/ui/Panel";
 import Text from "@/components/ui/Text";
 import useFieldSnapshots from "@/state/useFieldSnapshots";
 import useSiloSnapshots from "@/state/useSiloSnapshots";
-import { useSunData } from "@/state/useSunData";
+import { useSeason } from "@/state/useSunData";
 import { textConfig } from "@/utils/theme";
 import { cn } from "@/utils/utils";
 import clsx from "clsx";
@@ -20,7 +20,7 @@ import { Separator } from "../ui/Separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/Table";
 
 interface SeasonsButtonPanel {
-  sunData: ReturnType<typeof useSunData>;
+  season: number;
   fieldSnapshots: ReturnType<typeof useFieldSnapshots>;
   siloSnapshots: ReturnType<typeof useSiloSnapshots>;
 }
@@ -32,7 +32,7 @@ const smTextStyles = clsx(...deriveTextStyles("sm"), deriveTextColor("secondary"
 
 // TODO: Add rest of silo adjustments
 
-const PanelContent = ({ sunData, fieldSnapshots, siloSnapshots }: SeasonsButtonPanel) => {
+const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPanel) => {
   return (
     <>
       <CardHeader className="p-0">
@@ -40,7 +40,7 @@ const PanelContent = ({ sunData, fieldSnapshots, siloSnapshots }: SeasonsButtonP
           <div className="flex flex-col gap-2">
             <Text variant="body" className="inline-flex gap-2 items-center">
               <IconImage size={6} src={sunIcon} />
-              Season {sunData.data.current}
+              Season {season}
             </Text>
             <Text variant="sm" color="light">
               Seasons are how Pinto keeps time. Each Season is about 1 hour.
@@ -173,7 +173,7 @@ export interface ISeasonsButton extends HTMLAttributes<HTMLButtonElement> {
 }
 
 export default function SeasonsButton({ isOpen = false, togglePanel, ...props }: ISeasonsButton) {
-  const sunData = useSunData();
+  const season = useSeason();
   const fieldSnapshots = useFieldSnapshots();
   const siloSnapshots = useSiloSnapshots();
 
@@ -195,13 +195,13 @@ export default function SeasonsButton({ isOpen = false, togglePanel, ...props }:
           className={cn(`flex flex-row gap-2 ${isOpen && "border-pinto-green"}`, props.className)}
         >
           <IconImage src={sunIcon} size={6} />
-          <div className="hidden sm:block">Season {sunData.data.current}</div>
+          <div className="hidden sm:block">Season {season}</div>
           <IconImage src={chevronDown} size={4} mobileSize={2.5} />
         </Button>
       }
       toggle={togglePanel}
     >
-      <PanelContent sunData={sunData} fieldSnapshots={fieldSnapshots} siloSnapshots={siloSnapshots} />
+      <PanelContent season={season} fieldSnapshots={fieldSnapshots} siloSnapshots={siloSnapshots} />
     </Panel>
   );
 }

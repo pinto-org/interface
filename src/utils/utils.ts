@@ -1,5 +1,8 @@
+import { TokenValue } from "@/classes/TokenValue";
+import { FarmerBalance } from "@/state/useFarmerBalances";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { FarmFromMode } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -30,14 +33,27 @@ export function unpackStem(data: string | number | bigint): bigint {
   return stem;
 }
 
+export const isProd = () => {
+  return import.meta.env.VITE_NETLIFY_CONTEXT === "production";
+};
+
+export const isLocalhost = () => {
+  return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+};
+
+export const isNetlifyPreview = () => {
+  return import.meta.env.VITE_NETLIFY_CONTEXT === "deploy-preview";
+};
+
 export const isDev = () => {
-  return import.meta.env.DEV;
+  return isLocalhost() || isNetlifyPreview() || process.env.NODE_ENV === "development";
 };
 
 export function exists<T>(value: T | undefined | null): value is NonNullable<T> {
   return value !== undefined && value !== null;
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export function existsNot(value: any): value is undefined | null {
   return !exists(value);
 }
@@ -45,4 +61,16 @@ export function existsNot(value: any): value is undefined | null {
 export function calculatePipeCallClipboardSlot(pipeCallLength: number, slot: number) {
   if (!pipeCallLength || !slot) return 0;
   return 2 + pipeCallLength + (1 + slot * 2);
+}
+
+export function getBalanceFromMode(balance: FarmerBalance | undefined, mode: FarmFromMode) {
+  if (!balance) return TokenValue.ZERO;
+  switch (mode) {
+    case FarmFromMode.INTERNAL:
+      return balance.internal;
+    case FarmFromMode.EXTERNAL:
+      return balance.external;
+    default:
+      return balance.total;
+  }
 }

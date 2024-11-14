@@ -1,20 +1,20 @@
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { FarmToMode, Plot } from "@/utils/types";
-import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
-import { useAccount, useChainId, useWriteContract } from "wagmi";
 import { TokenValue } from "@/classes/TokenValue";
-import { useFieldData } from "@/state/useFieldData";
-import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
-import useTokenData from "@/state/useTokenData";
+import ComboPlotInputField from "@/components/ComboPlotInputField";
+import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
+import SimpleInputField from "@/components/SimpleInputField";
+import { Button } from "@/components/ui/Button";
+import { Label } from "@/components/ui/Label";
 import { PODS } from "@/constants/internalTokens";
+import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import { useHarvestableIndex } from "@/state/useFieldData";
+import usePodListings from "@/state/usePodListings";
+import useTokenData from "@/state/useTokenData";
+import { FarmToMode, Plot } from "@/utils/types";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { BaseError } from "viem";
-import { Label } from "@/components/ui/Label";
-import ComboPlotInputField from "@/components/ComboPlotInputField";
-import usePodListings from "@/state/usePodListings";
-import { useQueryClient } from "@tanstack/react-query";
-import SimpleInputField from "@/components/SimpleInputField";
+import { useAccount, useChainId, useWriteContract } from "wagmi";
 
 export default function CreateListing() {
   const { address: account } = useAccount();
@@ -29,7 +29,7 @@ export default function CreateListing() {
   const [expiresIn, setExpiresIn] = useState(0);
   const [pricePerPod, setPricePerPod] = useState(0);
   const [balanceTo, setBalanceTo] = useState(FarmToMode.INTERNAL);
-  const fieldData = useFieldData();
+  const harvestableIndex = useHarvestableIndex();
 
   useEffect(() => {
     if (plot[0]) {
@@ -54,7 +54,7 @@ export default function CreateListing() {
     const index = plot[0].index;
     const start = TokenValue.fromHuman(0, PODS.decimals);
     const _amount = TokenValue.fromHuman(amount, PODS.decimals);
-    const maxHarvestableIndex = _expiresIn.add(fieldData.harvestableIndex);
+    const maxHarvestableIndex = _expiresIn.add(harvestableIndex);
     const minFill = TokenValue.fromHuman(1, PODS.decimals);
     const tx = () =>
       writeContractAsync({

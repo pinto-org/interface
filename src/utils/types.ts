@@ -1,5 +1,6 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { SeasonalChartData } from "@/components/charts/SeasonalChart";
+import { DateTime } from "luxon";
 import { Address } from "viem";
 
 export enum FarmFromMode {
@@ -19,6 +20,7 @@ export interface Token {
   symbol: string;
   chainId: number;
   decimals: number;
+  displayDecimals?: number;
   isMain?: boolean;
   isLP?: boolean;
   isNative?: boolean;
@@ -34,6 +36,7 @@ export interface InternalToken {
   name: string;
   symbol: string;
   decimals: number;
+  displayDecimals: number;
   logoURI: string;
 }
 
@@ -220,4 +223,9 @@ export type UseSeasonalResult = {
   data: SeasonalChartData[] | undefined;
   isLoading: boolean;
   isError: boolean;
+};
+
+export type BlockInfo = {
+  blockNumber: number;
+  timestamp: DateTime;
 };

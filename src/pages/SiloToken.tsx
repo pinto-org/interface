@@ -5,8 +5,8 @@ import seedsIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import APYChip from "@/components/APYChip";
-import ClaimRewards from "@/components/ClaimRewards";
-import { AddCoinsIcon, ExternalLinkIcon, LeftArrowIcon, RotateArrowIcon } from "@/components/Icons";
+import { ExternalLinkIcon } from "@/components/Icons";
+import SiloActionBox from "@/components/SiloActionBox";
 import { Button } from "@/components/ui/Button";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
@@ -56,7 +56,6 @@ export default function SiloToken() {
                 <div className="pt-6">
                   <FarmerSiloTokenDeposits
                     siloToken={siloToken}
-                    siloTokenData={siloTokenData}
                     farmerDeposits={farmerDeposits}
                     price={priceData.price}
                   />
@@ -97,34 +96,7 @@ const SiloTokenActions = ({ siloToken, farmerDeposits }: ISiloTokenActions) => {
         }
         return null;
       })}
-      <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border flex flex-col gap-2">
-        <Button
-          variant="ghost"
-          className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem]"
-        >
-          <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
-            <span className="self-center items-center">
-              <LeftArrowIcon color={"white"} height={16} width={16} />
-            </span>
-          </div>
-          Send Deposits
-        </Button>
-        <ClaimRewards
-          trigger={
-            <Button
-              variant="ghost"
-              className="px-2 hover:hover:bg-pinto-green w-full h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem]"
-            >
-              <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
-                <span className="self-center items-center rotate-90">
-                  <LeftArrowIcon color={"white"} height={16} width={16} />
-                </span>
-              </div>
-              Claim Pinto, Stalk and Seed
-            </Button>
-          }
-        />
-      </div>
+      <SiloActionBox farmerDeposits={farmerDeposits} />
     </div>
   );
 };
@@ -217,12 +189,11 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
 };
 
 interface IFarmerSiloTokenDeposits extends IBaseSiloToken {
-  siloTokenData: SiloTokenData | undefined;
   farmerDeposits: TokenDepositData | undefined;
   price: TokenValue;
 }
 
-const FarmerSiloTokenDeposits = ({ siloToken, siloTokenData, farmerDeposits, price }: IFarmerSiloTokenDeposits) => {
+const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price }: IFarmerSiloTokenDeposits) => {
   return (
     <div className="flex flex-row gap-16">
       <div className="flex flex-col gap-2">
@@ -276,7 +247,7 @@ const SiloTokenSubHeader = ({ siloTokenData }: { siloTokenData: SiloTokenData | 
           </div>
           <div className="inline-flex gap-1 items-center">
             <IconImage src={seedsIcon} size={6} nudge={2} alt="Seeds" />
-            <Text variant="h4">{formatter.twoDec(seedRewards)} Seed</Text>
+            <Text variant="h4">{formatter.twoDec(seedRewards)} Seeds</Text>
           </div>
         </div>
       </div>

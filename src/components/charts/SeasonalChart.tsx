@@ -186,6 +186,7 @@ const SeasonalChart = ({
           <div className={size === "small" ? "aspect-3/1" : "aspect-6/1"}>
             <LineChart
               data={chartData}
+              xKey="timestamp"
               size={size}
               makeLineGradients={lineGradients}
               makeAreaGradients={fillArea ? areaGradients : undefined}

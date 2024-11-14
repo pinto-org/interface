@@ -1,6 +1,7 @@
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import pintoUsdcIcon from "@/assets/tokens/PINTO_USDC.png";
 import pintoWethIcon from "@/assets/tokens/PINTO_WETH.png";
+import ethIcon from "@/assets/tokens/ETH.png";
 import pintoWsolIcon from "@/assets/tokens/PINTO_WSOL.png";
 import pintoCbbtcIcon from "@/assets/tokens/PINTO_cbBTC.png";
 import pintoCbethIcon from "@/assets/tokens/PINTO_cbETH.png";
@@ -31,7 +32,7 @@ export const tokens: { [chainId: number]: Token[] } = {
       address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
       decimals: 18,
       isNative: true,
-      logoURI: "https://assets.coingecko.com/coins/images/279/standard/ethereum.png",
+      logoURI: ethIcon,
     },
     // Well LP Tokens
     {
@@ -119,7 +120,7 @@ export const tokens: { [chainId: number]: Token[] } = {
       address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
       decimals: 18,
       isNative: true,
-      logoURI: "https://assets.coingecko.com/coins/images/279/standard/ethereum.png",
+      logoURI: ethIcon,
     },
     // Well LP Tokens
     {

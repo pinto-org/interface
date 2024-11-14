@@ -9,7 +9,7 @@ const EMPTY_TABLE_CONTENT = {
   deposits: {
     message: "Your Deposits will appear here.",
     link: {
-      text: "Deposit in the Silo for Stalk and Seed",
+      text: "Deposit in the Silo for Stalk and Seeds",
       to: "/silo",
     },
   },

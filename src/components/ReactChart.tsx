@@ -1,8 +1,8 @@
-import { useEffect, useRef, useCallback, useState } from "react";
-import { Chart } from "chart.js";
-import type { ChartOptions, ChartData, ChartType, Plugin, UpdateMode } from "chart.js";
 import { generateID } from "@/utils/utils";
 import { noop } from "@/utils/utils";
+import { Chart } from "chart.js";
+import type { ChartData, ChartOptions, ChartType, Plugin, UpdateMode } from "chart.js";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type ChartInputFunction<T> = (ctx: CanvasRenderingContext2D | null) => T;
 type ReactChartInput<T> = T | ChartInputFunction<T>;

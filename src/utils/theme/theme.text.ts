@@ -55,6 +55,7 @@ const textColors = {
 	'success':     clsx("text-pinto-green-2"),
 	'error':       clsx("text-pinto-red-2"),
 	"inherit":     clsx("text-current"),
+	'morning':     clsx("text-pinto-morning"),
 } as const;
 
 // biome-ignore format: keep unformatted for readability

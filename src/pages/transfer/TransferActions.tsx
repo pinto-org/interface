@@ -55,7 +55,7 @@ export default function TransferActions() {
         className={`font-[400] text-[1.25rem] md:py-10 md:px-6 w-full text-black hover:text-black disabled:opacity-50 rounded-full justify-between bg-white shadow-none ${farmerSilo.depositsUSD.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
       >
         <Link to="/transfer/deposits">
-          <span>Silo deposits</span>
+          <span>Silo Deposits</span>
           <span>{formatter.usd(farmerSilo.depositsUSD)}</span>
         </Link>
       </Button>

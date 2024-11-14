@@ -2,8 +2,7 @@ import depositIcon from "@/assets/protocol/Deposit.svg";
 import { TokenValue } from "@/classes/TokenValue";
 import AddressLink from "@/components/AddressLink";
 import { Label } from "@/components/ui/Label";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
-import { sortAndPickCrates } from "@/utils/convert";
+import { truncateHex } from "@/utils/format";
 import { useMemo } from "react";
 import DepositsList from "../../DepositsList";
 import { DepositTransferData } from "../TransferDeposits";
@@ -20,11 +19,7 @@ export default function FinalStep({ destination, transferData }: FinalStepProps)
         const amount = TokenValue.fromHuman(data.amount || 0, data.token.decimals);
         return amount.gt(0);
       })
-      .flatMap(
-        (data) =>
-          sortAndPickCrates("transfer", TokenValue.fromHuman(data.amount, data.token.decimals), data.deposits).crates,
-      )
-      .map((data) => data.stem.toBigInt());
+      .flatMap((data) => data.deposits.map((deposits) => truncateHex(deposits.idHex)));
   }, [transferData]);
 
   return (

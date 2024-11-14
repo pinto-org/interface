@@ -1,3 +1,4 @@
+import { isDev } from "@/utils/utils";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import DevPage from "./components/DevPage";
 import Navbar from "./components/nav/nav/Navbar";
@@ -36,7 +37,7 @@ function App() {
             <Route path="/transfer/:mode" element={<Transfer />} />
             <Route path="/explorer/" element={<Explorer />} />
             <Route path="/explorer/:tab" element={<Explorer />} />
-            {import.meta.env.DEV && <Route path="/dev" element={<DevPage />} />}
+            {isDev() && <Route path="/dev" element={<DevPage />} />}
           </Routes>
         </div>
       </div>

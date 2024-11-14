@@ -1,19 +1,19 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
-import { useFieldData } from "@/state/useFieldData";
-import usePodListings from "@/state/usePodListings";
 import { TokenValue } from "@/classes/TokenValue";
 import { Button } from "@/components/ui/Button";
-import { Link, useNavigate } from "react-router-dom";
-import useTokenData from "@/state/useTokenData";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { PODS } from "@/constants/internalTokens";
+import { useHarvestableIndex } from "@/state/useFieldData";
+import usePodListings from "@/state/usePodListings";
+import useTokenData from "@/state/useTokenData";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function PodListingsTable() {
   const BEAN = useTokenData().mainToken;
 
   const podListings = usePodListings().data?.podListings;
-  const fieldData = useFieldData();
+  const harvestableIndex = useHarvestableIndex();
 
   const rowsPerPage = 10;
   const totalRows = podListings?.length || 0;
@@ -66,15 +66,13 @@ export function PodListingsTable() {
                     <TableCell className="font-medium">{createdAt.toLocaleString(undefined, dateOptions)}</TableCell>
                     <TableCell>{id}</TableCell>
                     <TableCell>
-                      {TokenValue.fromBlockchain(listing.index, PODS.decimals)
-                        .sub(fieldData.harvestableIndex)
-                        .toHuman("short")}
+                      {TokenValue.fromBlockchain(listing.index, PODS.decimals).sub(harvestableIndex).toHuman("short")}
                     </TableCell>
                     <TableCell>{TokenValue.fromBlockchain(listing.pricePerPod, BEAN.decimals).toHuman()}</TableCell>
                     <TableCell>{TokenValue.fromBlockchain(listing.amount, PODS.decimals).toHuman("short")}</TableCell>
                     <TableCell className="text-right">
                       {TokenValue.fromBlockchain(listing.maxHarvestableIndex, PODS.decimals)
-                        .sub(fieldData.harvestableIndex)
+                        .sub(harvestableIndex)
                         .toHuman("short")}{" "}
                       PODS
                     </TableCell>

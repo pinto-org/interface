@@ -1,8 +1,9 @@
 import { Limiter } from "@/classes/Limiter";
 import { ZeroExQuoteResponse } from "@/lib/matcha/types";
 import { exists } from "@/utils/utils";
-import { stringEq } from "./../../utils/string";
+import { stringEq, stringToNumber } from "./../../utils/string";
 
+import { ZERO_ADDRESS, ZERO_ADDRESS_HEX } from "@/constants/address";
 import { PINTO, tokens } from "@/constants/tokens";
 import { ZeroExAPI } from "./types";
 
@@ -30,6 +31,8 @@ export class ZeroX {
     if (!apiKey) {
       throw new Error("API key is not set");
     }
+
+    console.log("args", args);
 
     const fetchArgs = Array.isArray(args) ? args : [args];
 
@@ -119,12 +122,17 @@ export class ZeroX {
   }
 
   static isValidQuoteParams(params: ZeroExAPI) {
+    const sellAmount = stringToNumber(params.sellAmount ?? "");
+    const buyAmount = stringToNumber(params.buyAmount ?? "");
+
     if (
       !params.buyToken ||
       !params.sellToken ||
-      (!params.sellAmount && !params.buyAmount) ||
+      (!sellAmount && !buyAmount) ||
       stringEq(params.buyToken, PINTO.address) ||
-      stringEq(params.sellToken, PINTO.address)
+      stringEq(params.sellToken, PINTO.address) ||
+      stringEq(params.buyToken, ZERO_ADDRESS_HEX) ||
+      stringEq(params.sellToken, ZERO_ADDRESS_HEX)
     ) {
       return false;
     }

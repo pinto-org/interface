@@ -1,7 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { CBBTC, PINTOCBBTC } from "@/constants/tokens";
 import { tokensEqual } from "./token";
-import { Token } from "./types";
+import { InternalToken, Token } from "./types";
 
 type NumberPrimitive = string | number | TokenValue | bigint | undefined | null;
 
@@ -113,17 +113,17 @@ export const formatDate = (date: Date) => {
   return `${month}/${day}/${year} • ${formattedTime}`;
 };
 
-function normalizeTokenAmount(val: NumberPrimitive, token: Token) {
+function normalizeTokenAmount(val: NumberPrimitive, token: Token | InternalToken) {
   if (val instanceof TokenValue) {
     return val.toNumber();
   }
   if (typeof val === "bigint") {
-    return TokenValue.fromBlockchain(val, token.decimals).toNumber();
+    return TokenValue.fromBlockchain(val, token.displayDecimals ?? token.decimals).toNumber();
   }
   return Number(val);
 }
 
-export const formatTokenAmount = (val: NumberPrimitive, token: Token) => {
+export const formatTokenAmount = (val: NumberPrimitive, token: Token | InternalToken) => {
   if (tokensEqual(token, CBBTC) || tokensEqual(token, PINTOCBBTC)) {
     return formatNum(normalizeTokenAmount(val, token), {
       minDecimals: 6,
