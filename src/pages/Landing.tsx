@@ -113,20 +113,22 @@ export default function Landing() {
       setAnimationTimer(1200);
     } else if (currentIndex === 2) {
       particlesBackgroundRef.current?.loadTheme("1"); // Directly load the theme
-      setAnimationTimer(800);
+      setAnimationTimer(900);
     } else if (currentIndex === 4) {
-      setAnimationTimer(600);
+      setAnimationTimer(800);
     } else if (currentIndex === 5) {
       particlesBackgroundRef.current?.loadTheme("1"); // Directly load the theme
     } else if (currentIndex === 6) {
-      setAnimationTimer(500);
+      setAnimationTimer(700);
     } else if (currentIndex === 9) {
       particlesBackgroundRef.current?.loadTheme("2"); // Directly load the theme
-      setAnimationTimer(400);
+      setAnimationTimer(600);
     } else if (currentIndex === 13) {
       particlesBackgroundRef.current?.loadTheme("3");
+      setAnimationTimer(500);
     } else if (currentIndex === 17) {
       particlesBackgroundRef.current?.loadTheme("4"); // Directly load the theme
+      setAnimationTimer(400);
     } else if (currentIndex === 21) {
       particlesBackgroundRef.current?.loadTheme("5"); // Directly load the theme
       if (transitionComplete) {
