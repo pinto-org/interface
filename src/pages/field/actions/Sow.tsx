@@ -193,6 +193,8 @@ function Sow({ isMorning }: SowProps) {
   }, [
     writeContractAsync,
     diamond,
+    pods,
+    slippage,
     swapData,
     account.address,
     amountIn,
@@ -208,17 +210,20 @@ function Sow({ isMorning }: SowProps) {
   const numIn = stringToNumber(amountIn);
 
   // reset amount in when token in changes
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only reset when token in changes
   useEffect(() => {
     setAmountIn("0");
   }, [tokenIn]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only reset when swap data changes
   useEffect(() => {
     if (swapData?.isLoading) {
       setLoadingTrue();
     } else {
       setLoadingFalse();
     }
-  }, [amountIn, swapData?.isLoading]);
+  }, [swapData?.isLoading]);
 
   const isLoading = (numIn > 0 && loading) || (pods?.lte(0) && numIn > 0);
 
