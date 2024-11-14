@@ -15,20 +15,20 @@ import { ReactChart } from "../ReactChart";
 
 ReactChart.register(LineController, LineElement, LinearScale, CategoryScale, PointElement, Filler);
 
-export interface LineChartData<T> {
+export type LineChartData = {
   values: number[];
-  timestamp: Date;
-  time?: T;
-}
+  timestamp?: Date;
+} & Record<string, any>;
 
 export type MakeGradientFunction = (
   ctx: CanvasRenderingContext2D | null,
   position: number,
 ) => CanvasGradient | undefined;
 
-export interface LineChartProps<T> {
-  data: LineChartData<T>[];
+export interface LineChartProps {
+  data: LineChartData[];
   size: "small" | "large";
+  xKey: keyof LineChartData;
   makeLineGradients: MakeGradientFunction[];
   // If not provided, do not fill area
   makeAreaGradients?: MakeGradientFunction[];
@@ -37,14 +37,21 @@ export interface LineChartProps<T> {
 }
 
 const LineChart = React.memo(
-  <T,>({ data, size, makeLineGradients, makeAreaGradients, valueFormatter, onMouseOver }: LineChartProps<T>) => {
-    const minData = data.reduce((acc, next) => Math.min(acc, ...next.values), Number.MAX_SAFE_INTEGER);
-    const maxData = data.reduce((acc, next) => Math.max(acc, ...next.values), Number.MIN_SAFE_INTEGER);
+  ({ data, size, xKey, makeLineGradients, makeAreaGradients, valueFormatter, onMouseOver }: LineChartProps) => {
+    const minData = useMemo(
+      () => data.reduce((acc, next) => Math.min(acc, ...next.values), Number.MAX_SAFE_INTEGER),
+      [data],
+    );
+
+    const maxData = useMemo(
+      () => data.reduce((acc, next) => Math.max(acc, ...next.values), Number.MIN_SAFE_INTEGER),
+      [data],
+    );
 
     const chartData = useCallback(
       (ctx: CanvasRenderingContext2D | null): ChartData => {
         return {
-          labels: data.map((d) => d.timestamp),
+          labels: data.map((d) => d[xKey]),
           datasets: data[0].values.map((_, idx: number) => ({
             data: data.map((d) => d.values[idx]),
             borderColor: makeLineGradients[idx](ctx, 1),
@@ -57,17 +64,17 @@ const LineChart = React.memo(
           })),
         };
       },
-      [data, makeLineGradients, makeAreaGradients],
+      [data, makeLineGradients, makeAreaGradients, xKey],
     );
 
     const gradientPlugin: Plugin = useMemo<Plugin>(
       () => ({
         id: "customGradientShift",
-        afterDraw: (chart: Chart) => {
+        beforeUpdate: (chart: Chart) => {
           const ctx = chart.ctx;
           if (ctx) {
-            const activeElements = chart.getActiveElements();
             let relativeX = 1;
+            const activeElements = chart.getActiveElements();
             if (activeElements.length > 0) {
               const dataPoint = chart.getDatasetMeta(0).data[activeElements[0].index];
               relativeX = (dataPoint.x - chart.chartArea.left) / chart.chartArea.width;
@@ -79,7 +86,6 @@ const LineChart = React.memo(
                 chart.data.datasets[i].backgroundColor = makeAreaGradients[i](ctx, relativeX);
               }
             }
-            chart.update("none");
           }
         },
       }),
@@ -180,95 +186,102 @@ const LineChart = React.memo(
           onMouseOver?.(chart.getActiveElements()[0]?.index);
         },
       }),
-      [onMouseOver],
+      [],
     );
 
-    const chartOptions: ChartOptions = {
-      responsive: true,
-      plugins: {
-        tooltip: {
-          enabled: false,
-        },
-        legend: {
-          display: false,
-        },
-      },
-      layout: {
-        // Tick padding must be uniform, undo it here
-        padding: {
-          left: 0,
-          right: -35,
-          top: 0,
-          bottom: -15,
-        },
-      },
-      interaction: {
-        mode: "nearest", // Highlight the nearest point
-        axis: "x",
-        intersect: false,
-      },
-      scales: {
-        x: {
-          grid: {
+    const chartOptions: ChartOptions = useMemo(() => {
+      return {
+        responsive: true,
+        plugins: {
+          tooltip: {
+            enabled: false,
+          },
+          legend: {
             display: false,
           },
-          border: {
-            display: false,
+        },
+        layout: {
+          // Tick padding must be uniform, undo it here
+          padding: {
+            left: 0,
+            right: -35,
+            top: 0,
+            bottom: -15,
           },
-          ticks: {
-            padding: 15,
-            minRotation: 0,
-            maxRotation: 0,
-            autoSkip: false,
-            callback: (_value, index, values) => {
-              const date = data[index].timestamp;
-              const tickLabel = `${date.getMonth() + 1}/${date.getDate()}`;
+        },
+        interaction: {
+          mode: "nearest", // Highlight the nearest point
+          axis: "x",
+          intersect: false,
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false,
+            },
+            border: {
+              display: false,
+            },
+            ticks: {
+              padding: 15,
+              minRotation: 0,
+              maxRotation: 0,
+              autoSkip: false,
+              callback: (_value, index, values) => {
+                const xValue = data[index][xKey];
 
-              // Always show the first and last label
-              if (index === 0 || index === values.length - 1) {
-                return tickLabel;
-              }
-
-              // Evenly distribute remaining labels. Determine appropriate spacing by number of available dates
-              const numMiddle = values.length - 2;
-              const dividers = 5;
-              const avgToSkip = (numMiddle - dividers) / (dividers + 1);
-              const tickIndices: number[] = [];
-              for (let i = 0; i < values.length - 2; ++i) {
-                const next = Math.ceil((tickIndices.length + 1) * (avgToSkip + 1));
-                if (i === next) {
-                  tickIndices.push(next + 1);
+                if (!xValue) {
+                  return "";
                 }
-              }
 
-              if (tickIndices.includes(index)) {
-                return tickLabel;
-              }
-              return "";
+                const tickLabel = xValue instanceof Date ? `${xValue.getMonth() + 1}/${xValue.getDate()}` : xValue;
+
+                // Always show the first and last label
+                if (index === 0 || index === values.length - 1) {
+                  return tickLabel;
+                }
+
+                // Evenly distribute remaining labels. Determine appropriate spacing by number of available dates
+                const numMiddle = values.length - 2;
+                const dividers = 5;
+                const avgToSkip = (numMiddle - dividers) / (dividers + 1);
+                const tickIndices: number[] = [];
+                for (let i = 0; i < values.length - 2; ++i) {
+                  const next = Math.ceil((tickIndices.length + 1) * (avgToSkip + 1));
+                  if (i === next) {
+                    tickIndices.push(next + 1);
+                  }
+                }
+
+                if (tickIndices.includes(index)) {
+                  return tickLabel;
+                }
+                return "";
+              },
+            },
+          },
+          y: {
+            position: "right",
+            min: minData - (maxData - minData) * 0.1,
+            max: maxData,
+            grid: {
+              display: false,
+            },
+            border: {
+              display: false,
+            },
+            ticks: {
+              padding: 35,
+              maxTicksLimit: 2,
+              callback: (value) => {
+                const num = typeof value === "string" ? Number(value) : value;
+                return valueFormatter?.(num) ?? value;
+              },
             },
           },
         },
-        y: {
-          position: "right",
-          min: minData - (maxData - minData) * 0.1,
-          max: maxData,
-          grid: {
-            display: false,
-          },
-          border: {
-            display: false,
-          },
-          ticks: {
-            padding: 35,
-            maxTicksLimit: 2,
-            callback: (value) => {
-              const num = typeof value === "string" ? Number(value) : value;
-              return valueFormatter?.(num) ?? value;
-            },
-          },
-        },
-      },
-    };
+      };
+    }, [data, xKey, minData, maxData, valueFormatter]);
 
     const allPlugins = useMemo<Plugin[]>(
       () => [gradientPlugin, verticalLinePlugin, selectionPointPlugin, selectionCallbackPlugin],

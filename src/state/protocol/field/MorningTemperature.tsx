@@ -1,17 +1,15 @@
-import LineChart from "@/components/charts/LineChart";
+import LineChart, { LineChartData, MakeGradientFunction } from "@/components/charts/LineChart";
 import Text from "@/components/ui/Text";
 import useTemperature from "@/state/useTemperature";
 import { formatter } from "@/utils/format";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import MorningCard from "@/components/MorningCard";
 import { MorningIntervalCountdown } from "@/pages/field/MorningCountdown";
 import { useMorning } from "@/state/useSunData";
 import {
   CategoryScale,
-  ChartData,
   Chart as ChartJS,
-  ChartOptions,
   Legend,
   LineElement,
   LinearScale,
@@ -19,163 +17,84 @@ import {
   Title,
   Tooltip,
 } from "chart.js";
-import { Line } from "react-chartjs-2";
-import { Temperature } from ".";
 import { Morning } from "../sun";
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Title, Tooltip, Legend);
 
-// Draws dynamic gradient with the given colors at the given positions.
-// Positions outside of range [0, 1] are truncated or ignored when appropriate.
-const positionalGradient = (ctx: CanvasRenderingContext2D, colors: string[], positions: number[]) => {
-  const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
-  for (let i = 0; i < positions.length; ++i) {
-    if (positions[i] >= 0 && positions[i] <= 1) {
-      gradient.addColorStop(positions[i], colors[i]);
-    } else if (positions[i] > 1 && positions[i - 1] < 1) {
-      gradient.addColorStop(1, colors[i]);
-    } else if (positions[i] < 0 && positions[i + 1] > 0) {
-      gradient.addColorStop(0, colors[i]);
-    }
+const createGradient: MakeGradientFunction = (context: CanvasRenderingContext2D | null, _position: number) => {
+  if (context) {
+    const gradient = context.createLinearGradient(0, context.canvas.width, context.canvas.width, 0);
+    gradient.addColorStop(0, "#F6F3E9"); // Start color
+    gradient.addColorStop(0.52, "#FEF400"); // Middle color
+    gradient.addColorStop(1, "#BB9200"); // End color
+    return gradient;
   }
-  return gradient;
-};
-
-// Draws a dynamic gradient depending on mouse position in the chart
-const lineGradientFn = (ctx: CanvasRenderingContext2D | null, position: number) => {
-  if (ctx) {
-    const colors = ["#F2F6F9", "#00C767", "#246645", "#00C767", "#F2F6F9"];
-    const positions = [position - 1, position - 0.5, position, position + 0.5, position + 1];
-    return positionalGradient(ctx, colors, positions);
-  }
-};
-
-const createFillGradient = (context: CanvasRenderingContext2D) => {
-  const gradient = context.createLinearGradient(0, 0, context.canvas.width, 0);
-  gradient.addColorStop(0, "rgba(233, 231, 224, 0.49)"); // Start color
-  gradient.addColorStop(0.52, "#FEE18C"); // Middle color
-  gradient.addColorStop(1, "#F1F88C"); // End color
-  return gradient;
-};
-
-const createGradient = (context: CanvasRenderingContext2D) => {
-  const gradient = context.createLinearGradient(0, context.canvas.width, context.canvas.width, 0);
-  gradient.addColorStop(0, "#F6F3E9"); // Start color
-  gradient.addColorStop(0.52, "#FEF400"); // Middle color
-  gradient.addColorStop(1, "#BB9200"); // End color
-  return gradient;
+  return undefined;
 };
 
 const makeLineGradients = [createGradient];
 
-const valueFormatter = (value: number) => formatter.pct(value);
-
 const MorningTemperatureChart = () => {
-  const [temps, utils] = useTemperature();
+  const [_, utils] = useTemperature();
+
+  const [hoveredIndex, setHoveredIndex] = useState<number>();
   const morning = useMorning();
-  const maxTemperature = temps.max;
 
   const mappedData = useMemo(() => {
     const labels: number[] = [];
-    const datas: number[] = [];
+    const datas: LineChartData[] = [];
 
     for (const value of Object.values(utils.generate())) {
       labels.push(value.interval);
-      datas.push(value.temperature.toNumber());
+      datas.push({ values: [value.temperature.toNumber()], interval: value.interval });
     }
 
-    return { data: datas, labels };
+    return datas;
   }, [utils.generate]);
 
-  const chartData = useMemo(() => {
-    const data = {
-      labels: mappedData.labels,
-      datasets: [
-        {
-          data: mappedData.data, // Y-axis data points
-          fill: true, // Whether to fill the area under the line
-          borderColor: (context: any) => createGradient(context.chart.ctx),
-          // backgroundColor: (context: any) => createFillGradient(context.chart.ctx),
-          backgroundColor: "#000000",
-          borderWidth: 3, // Similar to your 3.41px
-          pointRadius: 0,
-          tension: 0.4,
-          pointHoverRadius: 0, // Size on hover
-        },
-      ],
-    };
-
-    // Define the configuration options for the chart
-    const options: ChartOptions<"line"> = {
-      responsive: true,
-      maintainAspectRatio: false, // Allow chart to fill parent height
-      plugins: {
-        legend: {
-          display: false,
-        },
-        tooltip: {
-          enabled: false,
-        },
-      },
-      interaction: {
-        mode: "nearest",
-        axis: "x",
-        intersect: false,
-      },
-      scales: {
-        x: {
-          display: true,
-          grid: {
-            display: false, // **Disable Y-axis grid lines**
-          },
-        },
-        y: {
-          display: false,
-          grid: {
-            display: false, // **Disable Y-axis grid lines**
-          },
-          // suggestedMin: 0,
-          // suggestedMax: maxTemperature.toNumber(),
-        },
-      },
-      animation: {
-        duration: 1500,
-        easing: "easeInOutQuart",
-      },
-    };
-
-    return { data, options };
-  }, [mappedData]);
-
   return (
-    // <MorningCard className="flex flex-col w-full p-6">
-    <div className="flex flex-col w-full p-6">
+    <MorningCard className="flex flex-col w-full p-6">
       <div className="flex flex-col w-full gap-2">
-        <Stat morning={morning} temperature={temps} />
+        <Stat morning={morning} data={mappedData} hoveredIndex={hoveredIndex} />
         <div className="flex flex-col w-full max-h-[177px]">
-          <Line data={chartData.data} options={chartData.options} />
+          <LineChart
+            data={mappedData}
+            size="large"
+            xKey="interval"
+            makeLineGradients={makeLineGradients}
+            onMouseOver={(idx) => {
+              setHoveredIndex(idx);
+            }}
+          />
         </div>
       </div>
-    </div>
-    // </MorningCard>
+    </MorningCard>
   );
 };
 
 export default MorningTemperatureChart;
 
 const Stat = ({
-  temperature,
   hoveredIndex,
+  data,
   morning,
-}: { temperature: Temperature; morning: Morning; hoveredIndex?: number }) => {
+}: {
+  morning: Morning;
+  data: LineChartData[];
+  hoveredIndex?: number;
+}) => {
+  const morningIndex = morning.index > 25 ? 25 : morning.index < 0 ? 0 : morning.index;
+  const index = hoveredIndex ?? morningIndex;
+  const displayTemp = data[index].values?.[0];
+
   return (
     <div className="flex flex-col w-full gap-1">
-      <Text>Current Temperature {morning.index + 1}/25</Text>
+      <Text>Current Temperature {index + 1}/25</Text>
       <div className="flex flex-col gap-2">
         <Text variant="sm-thin" color="light">
           <MorningIntervalCountdown prefix={"Increasing in"} />
         </Text>
-        <Text variant="h3">{formatter.pct(temperature.current)}</Text>
+        <Text variant="h3">{formatter.pct(displayTemp)}</Text>
       </div>
     </div>
   );
