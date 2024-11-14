@@ -75,7 +75,7 @@ const Navbar = () => {
     } else if (panel === "seasons") {
       const allQueryKeys = [fieldSnapshots.queryKey, siloSnapshots.queryKey];
       allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query, refetchType: "active" }));
-      invalidateSun("all");
+      invalidateSun("all", { refetchType: "active" });
     } else if (panel === "price") {
       const allQueryKeys = [...priceData.queryKeys];
       allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query, refetchType: "active" }));
