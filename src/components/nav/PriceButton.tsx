@@ -74,7 +74,13 @@ function PriceButtonPanel() {
                 className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] inline-flex items-center gap-1"
               >
                 Total deltaP: {formatter.twoDec(priceData.deltaB, { showPositiveSign: true })}
-                <TooltipSimple />
+                <TooltipSimple
+                  content={
+                    useTwa
+                      ? "The sum of the time weighted average shortages or excesses of Pinto in each pool since the beginning of the Season."
+                      : "The sum of the current shortages or excesses of Pinto each pool."
+                  }
+                />
               </Text>
             </div>
             <div className="flex flex-row relative pt-6">
@@ -137,7 +143,7 @@ function PriceButtonPanel() {
         )}
         <Separator className="w-full" />
       </CardHeader>
-      <CardContent className={`overflow-y-auto overflow-x-visible mb-16 max-h-[calc(100vh-28rem)]`}>
+      <CardContent className={`overflow-y-auto mb-16 max-h-[calc(100vh-28rem)]`}>
         {!showSettings ? (
           <div className="flex flex-col gap-4 mt-4 relative">
             {showPrices && (
@@ -280,7 +286,13 @@ function PriceButtonPanel() {
                         className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] inline-flex items-center gap-1"
                       >
                         deltaP: {formatter.twoDec(pool.deltaB, { showPositiveSign: true })}
-                        <TooltipSimple />
+                        <TooltipSimple
+                          content={
+                            useTwa
+                              ? "The sum time weighted average shortage or excess of Pinto in the pool since the beginning of the Season."
+                              : "The current shortage or excess of Pinto in the pool."
+                          }
+                        />
                       </Text>
                     </div>
                   </CardContent>
