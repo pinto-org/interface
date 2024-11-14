@@ -1,4 +1,4 @@
-import { isDev, logEnv } from "@/utils/utils";
+import { isDev } from "@/utils/utils";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import DevPage from "./components/DevPage";
 import Navbar from "./components/nav/nav/Navbar";
@@ -11,7 +11,6 @@ import Swap from "./pages/Swap";
 import Transfer from "./pages/Transfer";
 
 function App() {
-  logEnv();
   return (
     <BrowserRouter>
       <div className="relative">

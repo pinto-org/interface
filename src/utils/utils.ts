@@ -49,18 +49,6 @@ export const isDev = () => {
   return isLocalhost() || isNetlifyPreview() || process.env.NODE_ENV === "development";
 };
 
-export const logEnv = () => {
-  console.log({
-    isProd: isProd(),
-    isLocalhost: isLocalhost(),
-    isNetlifyPreview: isNetlifyPreview(),
-    isDev: isDev(),
-    walletConnectProjectId: import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID,
-    alchemyRpcUrl: import.meta.env.VITE_ALCHEMY_RPC_URL,
-    tenderlyRpcUrl: import.meta.env.VITE_TENDERLY_RPC_URL,
-  });
-};
-
 export function exists<T>(value: T | undefined | null): value is NonNullable<T> {
   return value !== undefined && value !== null;
 }

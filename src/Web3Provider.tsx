@@ -4,8 +4,13 @@ import { ConnectKitProvider } from "connectkit";
 import { ReactNode } from "react";
 import { createTestClient } from "viem";
 import { http, WagmiProvider } from "wagmi";
-import { isDev } from "./utils/utils";
-import { baseNetwork as base, localhostNetwork as localhost } from "./utils/wagmi/chains";
+import { isDev, isNetlifyPreview, isProd } from "./utils/utils";
+import {
+  TENDERLY_RPC_URL,
+  baseNetwork as base,
+  localhostNetwork as localhost,
+  tenderlyTestnetNetwork as testnet,
+} from "./utils/wagmi/chains";
 import config from "./utils/wagmi/config";
 
 // serialize BigInts
@@ -15,6 +20,16 @@ import config from "./utils/wagmi/config";
 };
 
 export const anvilTestClient = createTestClient({ mode: "anvil", chain: localhost, transport: http() });
+
+const getDefaultChainId = () => {
+  if (isProd()) {
+    return base.id;
+  }
+  if (isNetlifyPreview()) {
+    return !!TENDERLY_RPC_URL ? testnet.id : base.id;
+  }
+  return localhost.id;
+};
 
 const queryClient = new QueryClient();
 
@@ -45,7 +60,7 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
             "--ck-body-divider": "rgb(217, 217, 217)",
           }}
           options={{
-            initialChainId: !isDev() ? base.id : undefined,
+            initialChainId: getDefaultChainId(),
             avoidLayoutShift: true,
             hideNoWalletCTA: true,
             hideQuestionMarkCTA: true,
