@@ -1,17 +1,53 @@
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import PintoExplorer from "./explorer/PintoExplorer";
 import SiloExplorer from "./explorer/SiloExplorer";
 import FieldExplorer from "./explorer/FieldExplorer";
+import { useNavigate, useParams } from "react-router-dom";
 
-const MAIN_TABS = ["Pinto", "Silo", "Field", "Seasons", "All"];
+const TABS = [
+  {
+    urlSlug: "pinto",
+    tabName: "Pinto",
+  },
+  {
+    urlSlug: "silo",
+    tabName: "Silo",
+  },
+  {
+    urlSlug: "field",
+    tabName: "Field",
+  },
+  {
+    urlSlug: "seasons",
+    tabName: "Seasons",
+  },
+  {
+    urlSlug: "all",
+    tabName: "All",
+  },
+];
 
 const Explorer = () => {
-  const [mainTab, setMainTab] = useState(0);
+  const { tab } = useParams();
+  const navigate = useNavigate();
 
-  const handleMainTabClickFactory = useCallback((idx: number) => () => setMainTab(idx), []);
+  // Redirect to a default tab if the selected tab is invalid
+  useEffect(() => {
+    const isValidTab = TABS.some((t) => t.urlSlug === tab);
+    if (!isValidTab) {
+      navigate(`/explorer/${TABS[0].urlSlug}`, { replace: true });
+    }
+  }, [tab, navigate]);
+
+  const handleMainTabClickFactory = useCallback(
+    (selection: string) => () => navigate(`/explorer/${selection}`, { replace: true }),
+    [navigate],
+  );
+
+  const selectedIdx = TABS.findIndex((t) => t.urlSlug === tab);
 
   return (
     <PageContainer variant="xl">
@@ -20,14 +56,14 @@ const Explorer = () => {
           <div className="flex flex-col gap-2 ml-4">
             <Text variant="h1">Explorer</Text>
             <div className="flex gap-10 mt-8">
-              {MAIN_TABS.map((tabName: string, idx: number) => (
+              {TABS.map(({ tabName, urlSlug }, idx) => (
                 <Text
                   key={tabName}
                   variant="h3"
-                  color={mainTab === idx ? "primary" : "light"}
-                  data-state={mainTab === idx ? "active" : "inactive"}
+                  color={selectedIdx === idx ? "primary" : "light"}
+                  data-state={selectedIdx === idx ? "active" : "inactive"}
                   className="cursor-pointer data-[state=inactive]:hover:text-pinto-green-3"
-                  onClick={handleMainTabClickFactory(idx)}
+                  onClick={handleMainTabClickFactory(urlSlug)}
                 >
                   {tabName}
                 </Text>
@@ -35,9 +71,9 @@ const Explorer = () => {
             </div>
           </div>
           <Separator />
-          {mainTab === 0 && <PintoExplorer />}
-          {mainTab === 1 && <SiloExplorer />}
-          {mainTab === 2 && <FieldExplorer />}
+          {selectedIdx === 0 && <PintoExplorer />}
+          {selectedIdx === 1 && <SiloExplorer />}
+          {selectedIdx === 2 && <FieldExplorer />}
         </div>
       </div>
     </PageContainer>

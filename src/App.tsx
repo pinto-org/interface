@@ -34,7 +34,8 @@ function App() {
             <Route path="/market" element={<Swap />} />
             <Route path="/transfer" element={<Transfer />} />
             <Route path="/transfer/:mode" element={<Transfer />} />
-            <Route path="/explorer" element={<Explorer />} />
+            <Route path="/explorer/" element={<Explorer />} />
+            <Route path="/explorer/:tab" element={<Explorer />} />
             {import.meta.env.DEV && <Route path="/dev" element={<DevPage />} />}
           </Routes>
         </div>
