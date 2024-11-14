@@ -51,6 +51,12 @@ export const fieldQueryKeysAtom = atomWithImmer<FieldQueryKeys>({
   podLine: [],
 });
 
+export const morningFieldDevModeAtom = atomWithImmer<{
+  freeze: boolean;
+}>({
+  freeze: false,
+});
+
 // ------------------------------ Derived Atoms ------------------------------ //
 
 const maxTemperatureAtom = atom((get) => get(fieldTemperatureAtom).max);
