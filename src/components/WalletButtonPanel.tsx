@@ -205,10 +205,9 @@ export default function WalletButtonPanel({
                                           datasets: [
                                             {
                                               label: "",
-                                              data:
-                                                token.symbol === "ETH"
-                                                  ? [0, Number(balances.external)]
-                                                  : [Number(balances.internal), Number(balances.external)],
+                                              data: token.isNative
+                                                ? [0, Number(balances.external)]
+                                                : [Number(balances.internal), Number(balances.external)],
                                               backgroundColor: ["rgb(254, 225, 140)", "rgb(36, 102, 69)"],
                                               borderWidth: 0,
                                             },
