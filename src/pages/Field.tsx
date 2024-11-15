@@ -1,5 +1,6 @@
 import podIcon from "@/assets/protocol/Pod.png";
 import { TokenValue } from "@/classes/TokenValue";
+import EmptyTable from "@/components/EmptyTable";
 import { LeftArrowIcon, UpDownArrowsIcon } from "@/components/Icons";
 import { OnlyMorningCard } from "@/components/MorningCard";
 import PlotsTable from "@/components/PlotsTable";
@@ -29,6 +30,7 @@ function Field() {
   const farmerField = useFarmerField();
   const harvestableIndex = useHarvestableIndex();
 
+  const hasPods = farmerField.plots.length > 0;
   const totalPods = useMemo(
     () => farmerField.plots.reduce((total, plot) => total.add(plot.pods), TokenValue.ZERO),
     [farmerField.plots],
@@ -74,9 +76,7 @@ function Field() {
               <Text variant="h3">{formatter.number(totalPods)}</Text>
             </div>
           </div>
-          <div className="mx-4">
-            <PlotsTable />
-          </div>
+          <div className="mx-4">{hasPods ? <PlotsTable /> : <EmptyTable type="plots-field" />}</div>
         </div>
         {/*
          * Right side
