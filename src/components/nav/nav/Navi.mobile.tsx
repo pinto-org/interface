@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 
-import { ChevronDownIcon, ChevronUpIcon, Cross2Icon } from "@radix-ui/react-icons";
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  Cross2Icon,
+} from "@radix-ui/react-icons";
 import { Link as ReactLink } from "react-router-dom";
 
 import { BurgerIcon } from "@/components/Icons";
@@ -40,7 +44,13 @@ interface IMobileNavi extends IMobileNavTrigger {
   unmount?: () => void;
 }
 
-const MobileNavi = ({ isOpen, mounted, close, unmount, togglePanel }: IMobileNavi) => {
+const MobileNavi = ({
+  isOpen,
+  mounted,
+  close,
+  unmount,
+  togglePanel,
+}: IMobileNavi) => {
   const [isDocsOpen, setDocsOpen] = useState(false);
   const [isMoreOpen, setMoreOpen] = useState(false);
 
@@ -106,7 +116,14 @@ interface IMobileNavContent {
   close: () => void;
 }
 
-function MobileNavContent({ docsOpen, moreOpen, setDocsOpen, setMoreOpen, unmount, close }: IMobileNavContent) {
+function MobileNavContent({
+  docsOpen,
+  moreOpen,
+  setDocsOpen,
+  setMoreOpen,
+  unmount,
+  close,
+}: IMobileNavContent) {
   const isMobile = useIsMobile();
 
   const unmountAndClose = () => {
@@ -118,12 +135,17 @@ function MobileNavContent({ docsOpen, moreOpen, setDocsOpen, setMoreOpen, unmoun
 
   return (
     <div className={`relative flex flex-col w-full`}>
-      <div onClick={close} className="fixed sm:absolute top-4 right-4 cursor-pointer">
+      <div
+        onClick={close}
+        className="fixed sm:absolute top-4 right-4 cursor-pointer"
+      >
         <IconImage size={6} src={Cross2Icon} />
       </div>
-      <div className={`flex flex-col gap-8 py-8 ${isMobile ? "justify-center" : "justify-start"}`}>
+      <div
+        className={`flex flex-col gap-8 py-8 ${isMobile ? "justify-center" : "justify-start"}`}
+      >
         <div className="flex flex-col gap-6 pl-4">
-          <MobileNavLink href="/" onClick={close}>
+          <MobileNavLink href="/?fromNav=true" onClick={close}>
             About
           </MobileNavLink>
           <MobileNavLink href={navLinks.overview} onClick={unmountAndClose}>
@@ -156,15 +178,28 @@ function MobileNavContent({ docsOpen, moreOpen, setDocsOpen, setMoreOpen, unmoun
           >
             Docs
             <div className="mt-[4px]">
-              <IconImage size={6} src={docsOpen ? ChevronUpIcon : ChevronDownIcon} />
+              <IconImage
+                size={6}
+                src={docsOpen ? ChevronUpIcon : ChevronDownIcon}
+              />
             </div>
           </MobileNavLink>
           {docsOpen ? (
             <div className="flex flex-col gap-6  pl-4">
-              <MobileNavLink variant="h4" nested href={navLinks.whitepaper} onClick={unmount}>
+              <MobileNavLink
+                variant="h4"
+                nested
+                href={navLinks.whitepaper}
+                onClick={unmount}
+              >
                 Whitepaper
               </MobileNavLink>
-              <MobileNavLink variant="h4" nested href={navLinks.docs} onClick={unmount}>
+              <MobileNavLink
+                variant="h4"
+                nested
+                href={navLinks.docs}
+                onClick={unmount}
+              >
                 GitBook
               </MobileNavLink>
             </div>
@@ -181,27 +216,60 @@ function MobileNavContent({ docsOpen, moreOpen, setDocsOpen, setMoreOpen, unmoun
           >
             More
             <div className="mt-[4px]">
-              <IconImage size={6} src={moreOpen ? ChevronUpIcon : ChevronDownIcon} />
+              <IconImage
+                size={6}
+                src={moreOpen ? ChevronUpIcon : ChevronDownIcon}
+              />
             </div>
           </MobileNavLink>
           {moreOpen ? (
             <div className="flex flex-col gap-6  pl-4">
-              <MobileNavLink variant="h4" nested href={navLinks.discord} onClick={unmount}>
+              <MobileNavLink
+                variant="h4"
+                nested
+                href={navLinks.discord}
+                onClick={unmount}
+              >
                 Discord
               </MobileNavLink>
-              <MobileNavLink variant="h4" nested href={navLinks.github} onClick={unmount}>
+              <MobileNavLink
+                variant="h4"
+                nested
+                href={navLinks.github}
+                onClick={unmount}
+              >
                 GitHub
               </MobileNavLink>
-              <MobileNavLink variant="h4" nested href={navLinks.disclosures} onClick={unmount}>
+              <MobileNavLink
+                variant="h4"
+                nested
+                href={navLinks.disclosures}
+                onClick={unmount}
+              >
                 Disclosures
               </MobileNavLink>
-              <MobileNavLink variant="h4" nested href={navLinks.bugbounty} onClick={unmount}>
+              <MobileNavLink
+                variant="h4"
+                nested
+                href={navLinks.bugbounty}
+                onClick={unmount}
+              >
                 Bug Bounty
               </MobileNavLink>
-              <MobileNavLink variant="h4" nested href={navLinks.exchange} onClick={unmount}>
+              <MobileNavLink
+                variant="h4"
+                nested
+                href={navLinks.exchange}
+                onClick={unmount}
+              >
                 Pinto Exchange
               </MobileNavLink>
-              <MobileNavLink variant="h4" nested href={navLinks.pipeline} onClick={unmount}>
+              <MobileNavLink
+                variant="h4"
+                nested
+                href={navLinks.pipeline}
+                onClick={unmount}
+              >
                 Pipeline
               </MobileNavLink>
             </div>
@@ -237,7 +305,7 @@ const MobileNavLink = ({
       variant={variant}
       className={cn(
         `cursor-pointer ${nested ? "text-pinto-gray-5" : "text-black"} ${noHover ? "" : "hover:text-pinto-green-4"}`,
-        className,
+        className
       )}
     >
       {children}
