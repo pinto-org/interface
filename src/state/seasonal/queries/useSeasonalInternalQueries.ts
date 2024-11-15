@@ -1,4 +1,5 @@
 import { SeasonalChartData } from "@/components/charts/SeasonalChart";
+import { useSunData } from "@/state/useSunData";
 import { UseSeasonalResult } from "@/utils/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useChainId } from "wagmi";
@@ -28,8 +29,7 @@ export type ConvertEntryFn<T> = (d: T, timestamp: Date) => SeasonalChartData;
 
 export default function useSeasonalQueries<T>(keyName: string, queryConfig: SeasonalQueryConfig<T>): UseSeasonalResult {
   const queryClient = useQueryClient();
-  // const currentSeason = useSunData().current; // TODO(ss): put this back eventually
-  const currentSeason = 25968;
+  const currentSeason = useSunData().current;
   const chainId = useChainId();
 
   // Current season should be discarded from historical in the select step

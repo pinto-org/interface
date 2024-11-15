@@ -5,6 +5,7 @@ import {
   useSeasonalStalk,
   useSeasonalTotalLiquidity,
 } from "@/state/seasonal/seasonalDataHooks";
+import { useSunData } from "@/state/useSunData";
 import { chartFormatters as f } from "@/utils/format";
 import { useState } from "react";
 
@@ -14,8 +15,7 @@ const SiloExplorer = () => {
   const [avgSeedsTab, setAvgSeedsTab] = useState(TimeTab.Week);
   const [stalkTab, setStalkTab] = useState(TimeTab.Week);
 
-  // const season = useSunData().current; // TODO(ss): put this back eventually
-  const season = 25968;
+  const season = useSunData().current;
 
   const liquidityData = useSeasonalTotalLiquidity(Math.max(0, season - tabToSeasonalLookback(liquidityTab)), season);
   const l2srData = useSeasonalL2SR(Math.max(0, season - tabToSeasonalLookback(l2srTab)), season);

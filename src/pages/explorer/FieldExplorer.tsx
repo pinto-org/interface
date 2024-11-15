@@ -6,6 +6,7 @@ import {
   useSeasonalSownPinto,
   useSeasonalTemperature,
 } from "@/state/seasonal/seasonalDataHooks";
+import { useSunData } from "@/state/useSunData";
 import { chartFormatters as f } from "@/utils/format";
 import { useState } from "react";
 
@@ -16,8 +17,7 @@ const FieldExplorer = () => {
   const [sownTab, setSownTab] = useState(TimeTab.Week);
   const [harvestedTab, setHarvestedTab] = useState(TimeTab.Week);
 
-  // const season = useSunData().current; // TODO(ss): put this back eventually
-  const season = 25968;
+  const season = useSunData().current;
 
   const podRateData = useSeasonalPodRate(Math.max(0, season - tabToSeasonalLookback(podRateTab)), season);
   const tempData = useSeasonalTemperature(Math.max(0, season - tabToSeasonalLookback(tempTab)), season);
