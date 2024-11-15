@@ -69,7 +69,7 @@ if (!enabledChainIds.length) {
   throw new Error("No chains enabled");
 }
 
-export const ENABLE_SWITCH_CHAINS = enabledChainIds.length >= 1;
+export const ENABLE_SWITCH_CHAINS = enabledChainIds.length > 1;
 
 export const getChainWithChainId = (chainId: number) => {
   const cid = chainId.toString();
