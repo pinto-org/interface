@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { Button } from "./ui/Button";
 import { CloseIcon } from "./Icons";
 import bridggLogo from "@/assets/misc/bridgg-logo.svg";
-import baseLogo from "@/assets/misc/base-logo.png";
-import coinbaseLogo from "@/assets/misc/coinbase-logo.png";
+import baseLogo from "@/assets/misc/base-logo.svg";
+import coinbaseLogo from "@/assets/misc/coinbase-logo.svg";
 import { useAccount } from "wagmi";
 
 export default function NoBaseValueAlert() {
