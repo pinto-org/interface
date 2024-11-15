@@ -23,30 +23,33 @@ interface DepositQuery {
 }
 
 const querySettings = {
-  staleTime: 1000 * 60 * 3,
-  refetchInterval: 1000 * 60 * 3, // 3 minutes, in milliseconds
+  staleTime: 1000 * 60 * 20, // 20 minutes, in milliseconds
+  refetchInterval: 1000 * 60 * 20, // 20 minutes, in milliseconds
 };
 
-function useFarmerDepositedBalances() {
-  const account = useAccount();
-  const season = useSeason();
-  const silo = useSiloData();
-  const BEAN = useTokenData().mainToken;
+export function useFarmerDepositsForAccountQuery() {
   const diamondAddress = useChainAddress(beanstalkAddress);
+  const account = useAccount();
 
-  const tokenMap = useTokenMap();
-
-  const { data, refetch, queryKey } = useReadContract({
+  return useReadContract({
     address: diamondAddress,
     abi: beanstalkAbi,
     functionName: "getDepositsForAccount",
     args: [account.address as Address],
-    scopeKey: ["season", season].join(" "),
     query: {
       ...querySettings,
       enabled: !!account.address,
     },
   });
+}
+
+function useFarmerDepositedBalances() {
+  const silo = useSiloData();
+  const BEAN = useTokenData().mainToken;
+
+  const tokenMap = useTokenMap();
+
+  const { data, refetch, queryKey } = useFarmerDepositsForAccountQuery();
 
   const depositsByToken = useMemo(() => {
     const deposits: Map<string, DepositQuery[]> = new Map();

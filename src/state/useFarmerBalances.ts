@@ -37,6 +37,7 @@ export function useFarmerBalances() {
     data: beanstalkBalances,
     refetch,
     queryKey,
+    isLoading,
   } = useReadContract({
     address: diamondAddress,
     abi: beanstalkAbi,
@@ -78,6 +79,7 @@ export function useFarmerBalances() {
   }, [nativeBalance.data?.value, beanstalkBalances, balanceTokens, ETH]);
 
   return {
+    loading: nativeBalance.isLoading || isLoading,
     balances: balanceData,
     queryKeys: [queryKey, nativeBalance.queryKey],
     refetch: refetch,
