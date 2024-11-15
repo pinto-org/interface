@@ -49,10 +49,10 @@ const Navbar = () => {
   const hasFlood = farmerActions.floodAssets.enabled;
   const usdValue = farmerActions.totalValue.wallet.total;
 
-  const isRoot = useMatch("/");
-
+  const isHome = useMatch("/");
+  const isOverview = useMatch("/overview");
   const isSilo = useMatch("/silo");
-  const showHelperLink = useMemo(() => Boolean(isRoot || isSilo), [isRoot, isSilo]);
+  const showWalletHelper = isOverview || isSilo;
 
   const priceOpen = openPanel === "price";
   const seasonsOpen = openPanel === "seasons";
@@ -100,7 +100,7 @@ const Navbar = () => {
     <>
       <div
         className={cn(
-          "fixed grid px-4 pt-4 pb-2 sm:px-6 sm:pt-6 w-full z-[2] bg-transparent action-container",
+          `fixed grid px-4 pt-4 pb-2 sm:px-6 sm:pt-6 w-full z-[2] ${isHome ? "bg-transparent" : "bg-gradient-light"} action-container transition-colors`,
           styles.navGrid,
         )}
       >
@@ -148,7 +148,7 @@ const Navbar = () => {
           <div className="hidden sm:block">
             <Backdrop active={openBackdrop} onClick={closePanel} transitionDuration={DURATION} />
           </div>
-          {!openPanel && isRoot && (
+          {!openPanel && showWalletHelper && (
             <ScrollHideComponent>
               <HelperLink
                 onClick={() => {

@@ -5,10 +5,11 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@/components/ui/NavigationMenu";
+import { isDev } from "@/utils/utils";
+import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { Link as ReactLink, useLocation } from "react-router-dom";
 import { navLinks } from "./Navbar";
-import { isDev } from "@/utils/utils";
 
 const Link = ({
   href,
@@ -26,11 +27,7 @@ const Link = ({
   const location = useLocation();
   const isActive =
     active ||
-    (href === "/"
-      ? href === location.pathname
-      : href
-        ? location.pathname.includes(href?.substring(1))
-        : false);
+    (href === "/" ? href === location.pathname : href ? location.pathname.includes(href?.substring(1)) : false);
 
   if (href) {
     return (
@@ -39,11 +36,7 @@ const Link = ({
         active={isActive}
         className={`${className} ${topMenu ? `text-[1.5rem] data-[active]:text-black` : `text-[1.25rem] data-[active]:text-pinto-green-4`} font-[400] hover:cursor-pointer`}
       >
-        <ReactLink
-          to={href}
-          className={navigationMenuTriggerStyle()}
-          {...props}
-        />
+        <ReactLink to={href} className={navigationMenuTriggerStyle()} {...props} />
       </NavigationMenuLink>
     );
   }
@@ -61,82 +54,101 @@ const Link = ({
 
 const AppNavi = () => {
   return (
-    <NavigationMenu>
-      <NavigationMenuList>
-        <NavigationMenuItem>
-          <Link href={navLinks.overview}>Overview</Link>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <Link href={navLinks.silo}>Silo</Link>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <Link href={navLinks.field}>Field</Link>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <Link href={navLinks.market}>Market</Link>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <Link href={navLinks.explorer}>Explorer</Link>
-        </NavigationMenuItem>
-        {isDev() && (
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.2 }}
+    >
+      <NavigationMenu>
+        <NavigationMenuList>
           <NavigationMenuItem>
-            <Link href="/dev">Dev</Link>
+            <Link href={navLinks.overview}>Overview</Link>
           </NavigationMenuItem>
-        )}
-      </NavigationMenuList>
-    </NavigationMenu>
+          <NavigationMenuItem>
+            <Link href={navLinks.silo}>Silo</Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Link href={navLinks.field}>Field</Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Link href={navLinks.market}>Market</Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Link href={navLinks.explorer}>Explorer</Link>
+          </NavigationMenuItem>
+          {isDev() && (
+            <NavigationMenuItem>
+              <Link href="/dev">Dev</Link>
+            </NavigationMenuItem>
+          )}
+        </NavigationMenuList>
+      </NavigationMenu>
+    </motion.div>
   );
 };
 
 const DocNavi = () => {
   return (
-    <NavigationMenu>
-      <NavigationMenuList>
-        <NavigationMenuItem>
-          <Link href={navLinks.whitepaper}>Whitepaper</Link>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <Link href={navLinks.docs}>Documentation</Link>
-        </NavigationMenuItem>
-      </NavigationMenuList>
-    </NavigationMenu>
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.2 }}
+    >
+      <NavigationMenu>
+        <NavigationMenuList>
+          <NavigationMenuItem>
+            <Link href={navLinks.whitepaper}>Whitepaper</Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Link href={navLinks.docs}>Documentation</Link>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+      </NavigationMenu>
+    </motion.div>
   );
 };
+
 const MoreNavi = () => {
   return (
-    <NavigationMenu>
-      <NavigationMenuList>
-        <NavigationMenuItem>
-          <Link href={navLinks.discord}>Discord</Link>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <Link href={navLinks.github}>Github</Link>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <Link href={navLinks.disclosures}>Disclosures</Link>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <Link href={navLinks.bugbounty}>Bug Bounty Program</Link>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <Link href={navLinks.exchange}>Exchange</Link>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <Link href={navLinks.pipeline}>Pipeline</Link>
-        </NavigationMenuItem>
-      </NavigationMenuList>
-    </NavigationMenu>
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.2 }}
+    >
+      <NavigationMenu>
+        <NavigationMenuList>
+          <NavigationMenuItem>
+            <Link href={navLinks.discord}>Discord</Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Link href={navLinks.github}>Github</Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Link href={navLinks.disclosures}>Disclosures</Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Link href={navLinks.bugbounty}>Bug Bounty Program</Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Link href={navLinks.exchange}>Exchange</Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Link href={navLinks.pipeline}>Pipeline</Link>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+      </NavigationMenu>
+    </motion.div>
   );
 };
 
 export default function Navi() {
-  const [naviTab, setNaviTab] = useState<string | undefined>("landing");
+  const [naviTab, setNaviTab] = useState("landing");
 
   return (
-    <div
-      className="flex flex-col items-center justify-center gap-5 z-[2]"
-      onMouseLeave={() => setNaviTab("landing")}
-    >
+    <div className="flex flex-col items-center justify-center gap-5 z-[2]" onMouseLeave={() => setNaviTab("landing")}>
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
@@ -161,9 +173,11 @@ export default function Navi() {
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
-      {naviTab === "app" && <AppNavi />}
-      {naviTab === "docs" && <DocNavi />}
-      {naviTab === "more" && <MoreNavi />}
+      <AnimatePresence mode="wait">
+        {naviTab === "app" && <AppNavi />}
+        {naviTab === "docs" && <DocNavi />}
+        {naviTab === "more" && <MoreNavi />}
+      </AnimatePresence>
     </div>
   );
 }
