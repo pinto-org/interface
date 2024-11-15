@@ -22,6 +22,10 @@ const EMPTY_TABLE_CONTENT = {
   },
   "plots-field": {
     message: "Your Pods will appear here.",
+    link: {
+      text: "",
+      to: "",
+    },
   },
 } as const;
 
