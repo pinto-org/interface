@@ -184,7 +184,7 @@ const Overview = () => {
             <HelperLink
               onClick={() => navigate(statPanelData.pods.mainValueChange?.lt(0) ? "/field/harvest" : "/field/sow")}
               text={statPanelData.pods.mainValueChange?.lt(0) ? "Harvest Pods" : "Sow (Lend) in the Field for Pods"}
-              className={`absolute -mt-[54px] ${statPanelData.pods.mainValueChange?.lt(0) ? "-right-[70px]" : "-right-[228px]"} z-20`}
+              className={`absolute -mt-[54px] right-[48px] z-20`}
               dataTarget="pods-stats"
               sourceAnchor="left"
               targetAnchor="right"
@@ -200,7 +200,7 @@ const Overview = () => {
             <HelperLink
               onClick={() => navigate("/silo")}
               text={"Make your first Deposit in the Silo for Stalk and Seeds"}
-              className={`absolute -mt-[64px] -left-[370px] z-20`}
+              className={`absolute -mt-[64px] left-[64px] z-20 flex flex-row-reverse`}
               dataTarget="depositedValue-stats"
               sourceAnchor="right"
               targetAnchor="top-left"
@@ -240,20 +240,6 @@ const Overview = () => {
               onMouseLeave={() => setHoveredButton("")}
             />
           )*/}
-          {currentTab === "deposits" && claimEnabled && (
-            <HelperLink
-              text={claimableText}
-              dataTarget="claimable-rewards"
-              className="absolute right-[60px] mt-[60px]"
-              sourceAnchor="left"
-              targetAnchor="right"
-              source90Degree={true}
-              perpLength={10}
-              onMouseEnter={() => setHoveredButton("claim")}
-              onMouseLeave={() => setHoveredButton("")}
-              onClick={submitClaimRewards}
-            />
-          )}
           <TabsContent className="mt-8" value="deposits">
             {hasDeposits ? (
               <div className="relative overflow-visible">
@@ -280,6 +266,20 @@ const Overview = () => {
                         </div>
                       </div>
                     }
+                  />
+                )}
+                {currentTab === "deposits" && claimEnabled && (
+                  <HelperLink
+                    text={claimableText}
+                    dataTarget="claimable-rewards"
+                    className="absolute -right-[100px] top-[0px]"
+                    sourceAnchor="left"
+                    targetAnchor="right"
+                    source90Degree={true}
+                    perpLength={10}
+                    onMouseEnter={() => setHoveredButton("claim")}
+                    onMouseLeave={() => setHoveredButton("")}
+                    onClick={submitClaimRewards}
                   />
                 )}
               </div>
