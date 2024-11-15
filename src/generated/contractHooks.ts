@@ -5284,7 +5284,7 @@ export const beanstalkConfig = {
  * -
  * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E)
  * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xA560c3aFcEb9a046573bf6F401134a6837f6D321)
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7)
  */
 export const beanstalkPriceAbi = [
   {
@@ -5381,7 +5381,7 @@ export const beanstalkPriceAbi = [
  * -
  * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E)
  * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xA560c3aFcEb9a046573bf6F401134a6837f6D321)
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7)
  */
 export const beanstalkPriceAddress = {
   1: '0x4BEd6cb142b7d474242d87F4796387DEB9E1E1B4',
@@ -5389,7 +5389,7 @@ export const beanstalkPriceAddress = {
   8453: '0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E',
   31337: '0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E',
   41337: '0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E',
-  42161: '0xA560c3aFcEb9a046573bf6F401134a6837f6D321',
+  42161: '0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7',
 } as const
 
 /**
@@ -5397,7 +5397,7 @@ export const beanstalkPriceAddress = {
  * -
  * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E)
  * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xA560c3aFcEb9a046573bf6F401134a6837f6D321)
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7)
  */
 export const beanstalkPriceConfig = {
   address: beanstalkPriceAddress,
@@ -12803,7 +12803,7 @@ export const useWatchBeanstalk_Uri = /*#__PURE__*/ createUseWatchContractEvent({
  * -
  * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E)
  * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xA560c3aFcEb9a046573bf6F401134a6837f6D321)
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7)
  */
 export const useReadBeanstalkPrice_undefined =
   /*#__PURE__*/ createUseReadContract({
@@ -12818,7 +12818,7 @@ export const useReadBeanstalkPrice_undefined =
  * -
  * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E)
  * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xA560c3aFcEb9a046573bf6F401134a6837f6D321)
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7)
  */
 export const useReadBeanstalkPrice_GetConstantProductWell =
   /*#__PURE__*/ createUseReadContract({
@@ -12834,7 +12834,7 @@ export const useReadBeanstalkPrice_GetConstantProductWell =
  * -
  * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E)
  * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xA560c3aFcEb9a046573bf6F401134a6837f6D321)
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7)
  */
 export const useReadBeanstalkPrice_GetCurve =
   /*#__PURE__*/ createUseReadContract({
@@ -12850,7 +12850,7 @@ export const useReadBeanstalkPrice_GetCurve =
  * -
  * - [__View Contract on Base Basescan__](https://basescan.org/address/0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E)
  * -
- * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xA560c3aFcEb9a046573bf6F401134a6837f6D321)
+ * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7)
  */
 export const useReadBeanstalkPrice_Price = /*#__PURE__*/ createUseReadContract({
   abi: beanstalkPriceAbi,
