@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/Button";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
-import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import MorningTemperatureChart from "@/pages/field/MorningTemperature";
 import {
   useUpdateMorningSoilOnInterval,
@@ -16,7 +15,7 @@ import {
 
 import { useFarmerField } from "@/state/useFarmerField";
 import { useHarvestableIndex } from "@/state/useFieldData";
-import { useMorning, useSeason } from "@/state/useSunData";
+import { useMorning } from "@/state/useSunData";
 import { formatter } from "@/utils/format";
 import { useEffect, useMemo } from "react";
 import { Link, NavLink } from "react-router-dom";
