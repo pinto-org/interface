@@ -89,7 +89,6 @@ const Navbar = () => {
     } else {
       setBackdropMounted(true);
       setOpenBackdrop(true);
-      invalidateData(panel);
       setOpenPanel(panel);
     }
   };
@@ -104,10 +103,18 @@ const Navbar = () => {
       >
         <div className="flex flex-row gap-2 sm:gap-4">
           <div className={`transition-all duration-100 ${priceOpen && "z-[51]"}`}>
-            <PriceButton isOpen={priceOpen} togglePanel={() => togglePanel("price")} />
+            <PriceButton
+              isOpen={priceOpen}
+              togglePanel={() => togglePanel("price")}
+              onMouseEnter={() => invalidateData("price")}
+            />
           </div>
           <div className={`transition-all duration-100 ${seasonsOpen && "z-[51]"}`}>
-            <SeasonsButton isOpen={seasonsOpen} togglePanel={() => togglePanel("seasons")} />
+            <SeasonsButton
+              isOpen={seasonsOpen}
+              togglePanel={() => togglePanel("seasons")}
+              onMouseEnter={() => invalidateData("seasons")}
+            />
           </div>
         </div>
         <div className="hidden lg:flex lg:justify-center">
@@ -119,6 +126,7 @@ const Navbar = () => {
               <WalletButton
                 isOpen={walletOpen}
                 togglePanel={() => togglePanel("wallet")}
+                onMouseEnter={() => invalidateData("wallet")}
                 ref={walletButton}
                 showClaim={showClaim}
                 setShowClaim={setShowClaim}
