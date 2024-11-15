@@ -45,12 +45,10 @@ const useFetchSun = () => {
     abi: chainId === 42161 ? arbTimeAbi : timeAbi,
     functionName: "time",
     query: settings.query,
-    chainId: chainId as any,
   });
 
   const seasonTimeQuery = useReadSeasonFacetView_SeasonTime({
     scopeKey: "season",
-    chainId: chainId as any,
     query: settings.query,
   });
 
