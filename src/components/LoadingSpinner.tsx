@@ -1,30 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
-const FrameAnimator = ({
-  size = 40,
-  duration = 100,
-  repeat = true,
-  className = '',
-  onComplete = () => {}
-}) => {
+const svgs = Object.values(import.meta.glob<{ default: string }>("@/assets/misc/Spinner-*.svg", { eager: true })).map(
+  (module) => module.default,
+);
+
+const FrameAnimator = ({ size = 40, duration = 100, repeat = true, className = "", onComplete = () => {} }) => {
   const [currentFrame, setCurrentFrame] = useState(0);
   const [nextFrame, setNextFrame] = useState(1);
   const [blendAmount, setBlendAmount] = useState(0);
-  
+
   const frames = Array.from({ length: 8 }, (_, i) => ({
-    src: `/src/assets/misc/Spinner-${i + 1}.svg`,
-    duration
+    src: svgs[i],
+    duration,
   }));
 
   useEffect(() => {
     const frameInterval = setInterval(() => {
-      setBlendAmount(prev => {
+      setBlendAmount((prev) => {
         const next = prev + 0.1;
         if (next >= 1) {
           // Update frames when blend is complete
           setCurrentFrame(nextFrame);
           setNextFrame(nextFrame < frames.length - 1 ? nextFrame + 1 : 0);
-          
+
           if (!repeat && nextFrame === 0) {
             onComplete();
           }
@@ -35,21 +33,14 @@ const FrameAnimator = ({
     }, duration / 10);
 
     return () => clearInterval(frameInterval);
-  }, [currentFrame, nextFrame, frames.length, duration, repeat, onComplete]);
+  }, [nextFrame, frames.length, duration, repeat, onComplete]);
 
   return (
-    <div 
-      className={`relative inline-block ${className}`}
-      style={{ width: size, height: size }}
-    >
+    <div className={`relative inline-block ${className}`} style={{ width: size, height: size }}>
       {/* Preload all SVGs */}
       <div className="hidden">
         {frames.map((frame, index) => (
-          <img 
-            key={`preload-${index}`}
-            src={frame.src} 
-            alt={`preload ${index}`}
-          />
+          <img key={`preload-${index}`} src={frame.src} alt={`preload ${index}`} />
         ))}
       </div>
 

@@ -1,14 +1,15 @@
 import { Separator } from "@/components/ui/Separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
-import useRouterTabs from "@/hooks/useRouterTabs";
+import useRouterTabs, { UseRouterTabsOptions } from "@/hooks/useRouterTabs";
 import { useMorning } from "@/state/useSunData";
 import clsx from "clsx";
 import Harvest from "./actions/Harvest";
 import Sow from "./actions/Sow";
 
 const slugs = ["sow", "harvest"] as const;
-
-const routerTabsOptions = {
+const routerTabsOptions: UseRouterTabsOptions = {
+  type: "query",
+  key: "action",
   scrollToTop: true,
 };
 
@@ -16,7 +17,7 @@ const morningClass = clsx("data-[state=active]:bg-pinto-morning-orange data-[sta
 
 export default function FieldActions() {
   const isMorning = useMorning().isMorning;
-  const [tab, handleChangeTab] = useRouterTabs(slugs, "action", 0, routerTabsOptions);
+  const [tab, handleChangeTab] = useRouterTabs(slugs, routerTabsOptions);
 
   return (
     <Tabs defaultValue="sow" className="w-full" value={!tab ? "sow" : tab} onValueChange={handleChangeTab}>
