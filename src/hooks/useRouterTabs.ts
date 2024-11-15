@@ -1,40 +1,59 @@
 import { useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
-interface UseRouterTabsOptions {
+export interface UseRouterTabsOptions {
+  type?: "query" | "path";
+  key?: string;
+  defaultIndex?: number;
+  pathname?: string;
   onTabChange?: (value: string) => void;
   replace?: boolean;
   scrollToTop?: boolean;
 }
 
-const useRouterTabs = (
-  slugs: readonly string[],
-  key: string = "tab",
-  defaultIndex: number = 0,
-  options: UseRouterTabsOptions = {},
-) => {
-  const { onTabChange, replace = true, scrollToTop = false } = options;
+const useRouterTabs = (slugs: readonly string[], options: UseRouterTabsOptions = {}) => {
+  const {
+    type = "query",
+    key = "tab",
+    defaultIndex = 0,
+    pathname,
+    onTabChange,
+    replace = true,
+    scrollToTop = false,
+  } = options;
 
-  const [params, update] = useSearchParams();
+  if (type === "path" && !pathname) {
+    throw new Error("`pathname` is required for type=`path`, but was not provided.");
+  }
+
+  const [queryParams, updateQueryParams] = useSearchParams();
+  const pathParams = useParams();
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Get current slug from URL
   const getCurrentSlug = useCallback(() => {
-    return params.get(key) ?? slugs[defaultIndex];
-  }, [params, key, slugs, defaultIndex]);
+    return type === "query" ? queryParams.get(key) : pathParams[key];
+  }, [type, queryParams, pathParams, key]);
 
   // Initialize tab state
-  const [tab, setTab] = useState(getCurrentSlug());
+  const [tab, setTab] = useState(getCurrentSlug() ?? slugs[defaultIndex]);
 
   // Handle tab changes
   const handleChangeTab = useCallback(
     (value: string) => {
       if (slugs.includes(value)) {
-        // Update URL if slug is valid
-        const updatedParams = new URLSearchParams(params);
-        updatedParams.set(key, value);
-
-        update(updatedParams, { replace });
-
+        if (type === "query") {
+          // Update URL
+          const updatedParams = new URLSearchParams(queryParams);
+          updatedParams.set(key, value);
+          updateQueryParams(updatedParams, { replace });
+        } else if (type === "path" && pathname) {
+          // Update path
+          const newPath = pathname.replace(`:${key}`, `${value}`);
+          navigate(newPath + location.search, { replace });
+        }
         // Call onChange callback if provided
         onTabChange?.(value);
 
@@ -48,23 +67,34 @@ const useRouterTabs = (
         setTab(slugs[defaultIndex]);
       }
     },
-    [key, params, slugs, update, defaultIndex, onTabChange, replace, scrollToTop],
+    [
+      type,
+      key,
+      slugs,
+      queryParams,
+      updateQueryParams,
+      pathname,
+      location,
+      navigate,
+      defaultIndex,
+      onTabChange,
+      replace,
+      scrollToTop,
+    ],
   );
 
-  // Handle external navigation
   useEffect(() => {
     const currentSlug = getCurrentSlug();
-    if (currentSlug !== tab) {
+    // Handle external navigation
+    if (currentSlug && currentSlug !== tab) {
       setTab(currentSlug);
     }
-  }, [getCurrentSlug, tab]);
 
-  // Validate initial state
-  useEffect(() => {
-    if (!slugs.includes(tab)) {
+    // Handle incorrect initial state
+    if (!currentSlug || !slugs.includes(currentSlug)) {
       handleChangeTab(slugs[defaultIndex]);
     }
-  }, [tab, slugs, defaultIndex, handleChangeTab]);
+  }, [getCurrentSlug, tab, slugs, defaultIndex, handleChangeTab]);
 
   return [tab, handleChangeTab] as const;
 };

@@ -1,31 +1,44 @@
 import { TokenValue } from "@/classes/TokenValue";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
-import { Button } from "@/components/ui/Button";
+import SmartSubmitButton from "@/components/SmartSubmitButton";
+import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
-import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import Text from "@/components/ui/Text";
+import { PODS } from "@/constants/internalTokens";
+import { beanstalkAbi } from "@/generated/contractHooks";
+import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import useTransaction from "@/hooks/useTransaction";
+import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
+import { useInvalidateField } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
+import { formatter } from "@/utils/format";
 import { FarmToMode } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { BaseError } from "viem";
-import { useAccount, useChainId, useWriteContract } from "wagmi";
+import { useAccount } from "wagmi";
 
-function Harvest() {
-  const chainId = useChainId();
+type HarvestProps = {
+  isMorning: boolean;
+};
+
+function Harvest({ isMorning }: HarvestProps) {
   const account = useAccount();
 
   const tokenData = useTokenData();
   const mainToken = tokenData.mainToken;
+  const diamond = useProtocolAddress();
 
   const priceData = usePriceData();
 
-  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
   const queryClient = useQueryClient();
+  const invalidateField = useInvalidateField();
 
   const { plots: fieldPlots, queryKey } = useFarmerField();
+  const balances = useFarmerBalances();
+  const [balanceTo, setBalanceTo] = useState(FarmToMode.EXTERNAL);
 
   const { plots, harvestableAmount } = useMemo(() => {
     let harvestable = TokenValue.ZERO;
@@ -39,20 +52,26 @@ function Harvest() {
     return { plots: _plots, harvestableAmount: harvestable };
   }, [fieldPlots]);
 
-  const [balanceTo, setBalanceTo] = useState(FarmToMode.EXTERNAL);
-
-  useEffect(() => {
-    if (isSuccess) {
-      // invalidating query results to trigger a refetch
+  const { writeWithEstimateGas, isConfirming, submitting, setSubmitting } = useTransaction({
+    successCallback: () => {
       queryClient.invalidateQueries({ queryKey });
-    }
-  }, [isSuccess, queryKey]);
+      balances.queryKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
+      invalidateField("podLine");
+    },
+  });
 
-  function onSubmit() {
-    if (!!account.address || plots.length === 0 || harvestableAmount.eq(0) || !balanceTo) return;
-    const tx = () =>
-      writeContractAsync({
-        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
+  const onSubmit = useCallback(async () => {
+    try {
+      setSubmitting(true);
+      if (!account.address) throw new Error("Signer required");
+      if (!plots.length) throw new Error("No plots to harvest");
+      if (harvestableAmount.eq(0)) throw new Error("No harvestable pods");
+      if (!balanceTo) throw new Error("Destination required");
+
+      toast.loading(`Harvesting ${formatter.token(harvestableAmount, PODS)} PODS...`);
+
+      return writeWithEstimateGas({
+        address: diamond,
         abi: beanstalkAbi,
         functionName: "harvest",
         args: [
@@ -61,17 +80,14 @@ function Harvest() {
           Number(balanceTo), // FarmToMode
         ],
       });
-
-    toast.promise(tx, {
-      loading: "Submitting transaction...",
-      success: (data) => {
-        return `Transaction complete!`;
-      },
-      error: (error) => {
-        return (error as BaseError).shortMessage || `Transaction failed.`;
-      },
-    });
-  }
+    } catch (e) {
+      setSubmitting(false);
+      console.error(e);
+      toast.dismiss();
+      toast.error(e instanceof Error ? e.message : "Transaction failed.");
+      throw e;
+    }
+  }, [account.address, plots, harvestableAmount, balanceTo, writeWithEstimateGas, diamond]);
 
   return (
     <div className="flex flex-col gap-8">
@@ -81,7 +97,7 @@ function Harvest() {
             <div className="text-pinto-gray-4 text-[1.25rem]">You receive</div>
             <div className="inline-flex gap-1 items-center text-black text-[2rem]">
               {harvestableAmount.toHuman("short")}
-              <img src={mainToken.logoURI} className="w-6 h-6" />
+              <IconImage size={6} src={mainToken.logoURI} />
               <span className="text-[1.25rem]">{mainToken.name}</span>
             </div>
             <div className="text-[1rem] text-pinto-gray-4">
@@ -94,16 +110,18 @@ function Harvest() {
           </div>
         </>
       ) : (
-        <div className="text-[1.25rem] font-[400] text-center">
+        <Text variant="body-sm" color="light">
           Your Pods become Harvestable when they reach a Place in Line of 0.
-        </div>
+        </Text>
       )}
-      <Button
+      <SmartSubmitButton
+        variant={isMorning ? "morning" : undefined}
         type="button"
-        disabled={harvestableAmount.eq(0)}
-        onClick={() => onSubmit()}
-        className="w-full flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem]"
-      >{`Harvest`}</Button>
+        token={undefined}
+        disabled={harvestableAmount.eq(0) || isConfirming || submitting}
+        submitFunction={onSubmit}
+        submitButtonText="Harvest"
+      />
     </div>
   );
 }

@@ -1,10 +1,10 @@
+import { HashString } from "@/utils/types.generic";
 import { defineConfig } from "@wagmi/cli";
 import { react } from "@wagmi/cli/plugins";
-import { defineChain, parseAbi, type Abi } from "viem";
+import { Abi } from "viem";
 import { arbitrum, base, foundry, localhost, mainnet } from "wagmi/chains";
-import { HashString } from "@/utils/types.generic";
 
-import { diamondABI } from "./src/constants/abi/diamondABI";
+import { diamondABI } from "@/constants/abi/diamondABI";
 import { diamondPriceABI } from "@/constants/abi/diamondPriceABI";
 
 import { pipelineABI } from "@/constants/abi/PipelineABI";
@@ -13,53 +13,42 @@ import { junctionABI } from "@/constants/abi/junctionABI";
 
 import { JUNCTION_ADDRESS } from "@/constants/address";
 
-
+import { diamondFarmerABI } from "@/constants/abi/diamondFarmerABI";
 /**
  * Diamond cut fragmented facets
- * 
- * This is due to it being so large that when wagmi generates the hooks, 
+ *
+ * This is due to it being so large that when wagmi generates the hooks,
  * we get a 'Type instantiation is excessively deep and possibly infinite.' error.
- * 
- * Not an ideal solution as there is some duplication in the generated functions, 
+ *
+ * Not an ideal solution as there is some duplication in the generated functions,
  * but it's necessary to avoid the error.
- * 
+ *
  * TODO: Find a better solution in the future.
- * 
  */
 import { viewSeasonABI } from "@/constants/abi/viewSeasonABI";
-import { diamondFarmerABI } from "@/constants/abi/diamondFarmerABI";
 import { viewSiloABI } from "@/constants/abi/viewSiloABI";
 
-
-export const tenderlyTestnet = defineChain({
-  id: 41337,
-  name: 'Tenderly Base Testnet',
-  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-  rpcUrls: {
-    default: { http: ['https://virtual.base.rpc.tenderly.co/85c75a4b-5646-48a8-9d61-eaebc9ef4382'] },
-  },
-  blockExplorers: {
-    default: { name: 'Etherscan', url: 'https://etherscan.io' },
-  },
-  contracts: {
-    multicall3: {
-      address: '0xca11bde05977b3631167028862be2a173976ca11',
-      blockCreated: 5022,
-    },
-  },
-})
-
-const beanstalkAddresses = {
-  [mainnet.id]: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5" as HashString,
-  [arbitrum.id]: "0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70" as  HashString,
-  [base.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString,
-  [localhost.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString, // base
-  [tenderlyTestnet.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString, // base
-  [foundry.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString, // base
-}
+const TESTNET_CHAIN_ID = 41337;
 
 const config = defineConfig(() => {
   const reactHookNames: string[] = [];
+
+  // const env = loadEnv({
+  //   mode: process.env.NODE_ENV,
+  //   envDir: process.cwd(),
+  // });
+
+  // console.log(env);
+  // const testnetRPC
+
+  const beanstalkAddresses = {
+    [mainnet.id]: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5" as HashString,
+    [arbitrum.id]: "0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70" as HashString,
+    [base.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString,
+    [localhost.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString, // base
+    [TESTNET_CHAIN_ID]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString, // base
+    [foundry.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString, // base
+  };
 
   return {
     out: "src/generated/contractHooks.ts",
@@ -67,11 +56,7 @@ const config = defineConfig(() => {
       {
         name: "beanstalk",
         abi: diamondABI as Abi,
-        address: {
-          [mainnet.id]: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5",
-          [arbitrum.id]: "0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70",
-          ...beanstalkAddresses,
-        },
+        address: beanstalkAddresses,
       },
       {
         name: "seasonFacetView",
@@ -96,7 +81,7 @@ const config = defineConfig(() => {
           [arbitrum.id]: "0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7",
           [base.id]: "0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E", // temp address
           [localhost.id]: "0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E", // base
-          [tenderlyTestnet.id]: "0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E", // base
+          [TESTNET_CHAIN_ID]: "0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E", // base
           [foundry.id]: "0xD0fd333F7B30c7925DEBD81B7b7a4DFE106c3a5E", // base
         },
       },
@@ -108,9 +93,9 @@ const config = defineConfig(() => {
           [arbitrum.id]: "0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0",
           [base.id]: "0xb1bE0001f5a373b69b1E132b420e6D9687155e80",
           [localhost.id]: "0xb1bE0001f5a373b69b1E132b420e6D9687155e80", // base
-          [tenderlyTestnet.id]: "0xb1bE0001f5a373b69b1E132b420e6D9687155e80", // base
+          [TESTNET_CHAIN_ID]: "0xb1bE0001f5a373b69b1E132b420e6D9687155e80", // base
           [foundry.id]: "0xb1bE0001f5a373b69b1E132b420e6D9687155e80", // base
-        }
+        },
       },
       {
         name: "junction",
@@ -125,9 +110,9 @@ const config = defineConfig(() => {
           [arbitrum.id]: "0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c",
           [base.id]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933",
           [localhost.id]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933", // base
-          [tenderlyTestnet.id]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933", // base
+          [TESTNET_CHAIN_ID]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933", // base
           [foundry.id]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933", // base
-        }
+        },
       },
     ],
     plugins: [

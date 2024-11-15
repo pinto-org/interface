@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 import { useEffect, useMemo } from "react";
 import { useChainId } from "wagmi";
-import { useSunData } from "./useSunData";
+import { useSeason } from "./useSunData";
 import useTokenData from "./useTokenData";
 
 export interface SiloSnapshot {
@@ -14,7 +14,7 @@ export interface SiloSnapshot {
 }
 
 export default function useSiloSnapshots() {
-  const season = useSunData().data.current;
+  const season = useSeason();
   const chainId = useChainId();
   const tokenData = useTokenData();
 

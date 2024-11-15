@@ -3,6 +3,8 @@ import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { formatter } from "@/utils/format";
+import { isDev } from "@/utils/utils";
+import { ENABLE_SWITCH_CHAINS } from "@/utils/wagmi/chains";
 import { Avatar } from "connectkit";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +19,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
 import { Separator } from "./ui/Separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/Tabs";
 import { Toggle } from "./ui/Toggle";
+import NoBaseValueAlert from "./NoBaseValueAlert";
 
 export default function WalletButtonPanel({
   isOpen = false,
@@ -303,7 +306,7 @@ export default function WalletButtonPanel({
             </div>
           </CardContent>
           <CardFooter className="absolute bottom-0 mx-auto left-0 right-0 text-center justify-center flex flex-col gap-4">
-            <ChainButton />
+            {ENABLE_SWITCH_CHAINS && <ChainButton />}
             <Button
               variant="ghost"
               className="inline-flex items-center gap-2 rounded-full text-black bg-pinto-gray-1 hover:hover:bg-pinto-green hover:text-white"
@@ -316,6 +319,7 @@ export default function WalletButtonPanel({
             </Button>
             {totalFlood.gt(0) && <WalletButtonClaim setShowClaim={setShowClaim} showClaim={showClaim} />}
           </CardFooter>
+          {totalBalance.total.eq(0) && <NoBaseValueAlert />}
         </>
       ) : (
         <WalletButtonTransfer setShowTransfer={setShowTransfer} />

@@ -110,29 +110,37 @@
 }
 
 @layer components {
-  .bg-gradient-light {
-    background: linear-gradient(
-        90deg,
-        rgba(233, 231, 224, 0.1) 0%,
-        rgba(254, 225, 140, 0.1) 52.5%,
-        rgba(241, 248, 140, 0.1) 100%
-      ),
-      linear-gradient(0deg, #ffffff, #ffffff);
-  }
-  .h1 {
-    font-size: 54.86px;
-    font-weight: 300;
-    line-height: 60.35px;
-    letter-spacing: -0.02em;
-  }
-  .body {
-    font-size: 20px;
-    font-weight: 400;
-    line-height: 22px;
-  }
+	.bg-gradient-light {
+		background: linear-gradient(
+				90deg,
+				rgba(233, 231, 224, 0.1) 0%,
+				rgba(254, 225, 140, 0.1) 52.5%,
+				rgba(241, 248, 140, 0.1) 100%
+			), linear-gradient(0deg, #ffffff, #ffffff);
+	}
+	.h1 {
+		font-size: 54.86px;
+		font-weight: 300;
+		line-height: 60.35px;
+		letter-spacing: -0.02em;
+	}
+	.body {
+		font-size: 20px;
+		font-weight: 400;
+		line-height: 22px;
+	}
   .convert-color {
     color: var(--convert-color);
-  }
+	}
+	.bg-morning-light {
+		background: linear-gradient(
+			90deg, 
+			rgba(233, 231, 224, 0.2) 0%, 
+			rgba(254, 225, 140, 0.2) 0.01%, 
+			rgba(241, 248, 140, 0.4) 100%
+			);
+
+	}
 }
 
 @layer base {

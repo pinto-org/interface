@@ -7,7 +7,7 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import useFieldSnapshots from "@/state/useFieldSnapshots";
 import { usePriceData } from "@/state/usePriceData";
 import useSiloSnapshots from "@/state/useSiloSnapshots";
-import { useSunData } from "@/state/useSunData";
+import { useInvalidateSun } from "@/state/useSunData";
 import { formatter } from "@/utils/format";
 import { cn } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
@@ -40,8 +40,8 @@ const Navbar = () => {
   const farmerDeposits = useFarmerDepositedBalances();
   const priceData = usePriceData();
   const farmerSilo = useFarmerSilo();
+  const invalidateSun = useInvalidateSun();
 
-  const sunData = useSunData();
   const fieldSnapshots = useFieldSnapshots();
   const siloSnapshots = useSiloSnapshots();
 
@@ -50,6 +50,7 @@ const Navbar = () => {
   const usdValue = farmerActions.totalValue.wallet.total;
 
   const isRoot = useMatch("/");
+
   const isSilo = useMatch("/silo");
   const showHelperLink = useMemo(
     () => Boolean(isRoot || isSilo),
@@ -78,8 +79,9 @@ const Navbar = () => {
       ];
       allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query, refetchType: "active" }));
     } else if (panel === "seasons") {
-      const allQueryKeys = [sunData.queryKey, fieldSnapshots.queryKey, siloSnapshots.queryKey];
+      const allQueryKeys = [fieldSnapshots.queryKey, siloSnapshots.queryKey];
       allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query, refetchType: "active" }));
+      invalidateSun("all", { refetchType: "active" });
     } else if (panel === "price") {
       const allQueryKeys = [...priceData.queryKeys];
       allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query, refetchType: "active" }));
@@ -155,7 +157,7 @@ const Navbar = () => {
               transitionDuration={DURATION}
             />
           </div>
-          {!openPanel && showHelperLink && (
+          {!openPanel && isRoot && (
             <ScrollHideComponent>
               <HelperLink
                 onClick={() => {

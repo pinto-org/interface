@@ -1,5 +1,4 @@
 import { TokenValue } from "@/classes/TokenValue";
-import { BEAN, SEEDS, STALK } from "@/constants/internalTokens";
 import { encodeAbiParameters } from "viem";
 import { stringEq } from "./string";
 import { DepositCrateData, DepositData, SiloTokenDataMap, Token } from "./types";

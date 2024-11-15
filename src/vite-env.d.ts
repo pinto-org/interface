@@ -2,9 +2,25 @@
 
 interface ImportMetaEnv {
   /**
+   *
+   */
+  readonly VITE_WALLET_CONNECT_PROJECT_ID: string;
+  /**
    * RPC URL for the testnet
    */
-  readonly VITE_TESTNET_RPC: string;
+  readonly VITE_TENDERLY_RPC_URL: string;
+  /**
+   * RPC URL for the alchemy
+   */
+  readonly VITE_ALCHEMY_API_KEY: string;
+  /**
+   * ZeroEx API Key
+   */
+  readonly VITE_ZEROEX_API_KEY: string;
+  /**
+   * enabled chains
+   */
+  readonly VITE_CHAINS: string;
 }
 
 // biome-ignore lint/correctness/noUnusedVariables:

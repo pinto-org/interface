@@ -8,6 +8,7 @@ import {
 import { useState } from "react";
 import { Link as ReactLink, useLocation } from "react-router-dom";
 import { navLinks } from "./Navbar";
+import { isDev } from "@/utils/utils";
 
 const Link = ({
   href,
@@ -77,7 +78,7 @@ const AppNavi = () => {
         <NavigationMenuItem>
           <Link href={navLinks.explorer}>Explorer</Link>
         </NavigationMenuItem>
-        {import.meta.env.DEV && (
+        {isDev() && (
           <NavigationMenuItem>
             <Link href="/dev">Dev</Link>
           </NavigationMenuItem>

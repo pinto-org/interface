@@ -1,15 +1,23 @@
+import { morningFieldDevModeAtom } from "@/state/protocol/field/field.atoms";
+import { getMorningResult, getNowRounded } from "@/state/protocol/sun";
+import { morningAtom, seasonAtom } from "@/state/protocol/sun/sun.atoms";
+import { useInvalidateField } from "@/state/useFieldData";
+import { usePriceData } from "@/state/usePriceData";
+import { useInvalidateSun } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
 import { isDev } from "@/utils/utils";
+import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useAccount } from "wagmi";
+import { http, PublicClient, createPublicClient } from "viem";
+import { hardhat } from "viem/chains";
+import { useAccount, useBlockNumber } from "wagmi";
+import MorningCard from "./MorningCard";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { Input } from "./ui/Input";
-import { usePriceData } from "@/state/usePriceData";
-import { createPublicClient, http, PublicClient } from "viem";
-import { hardhat } from "viem/chains";
+import Text from "./ui/Text";
 
 type ServerStatus = "running" | "not-running" | "checking";
 
@@ -157,9 +165,9 @@ export default function DevPage() {
     setSelectedPercent(percent);
   };
 
-  const skipBlocks = async () => {
+  const skipBlocks = async (_numBlocks?: number) => {
     try {
-      const blocks = parseInt(blockSkipAmount);
+      const blocks = _numBlocks ?? parseInt(blockSkipAmount);
       if (Number.isNaN(blocks)) {
         toast.error("Please enter a valid number of blocks");
         return;
@@ -222,7 +230,7 @@ export default function DevPage() {
                 onChange={(e) => setBlockSkipAmount(e.target.value)}
                 className="w-32"
               />
-              <Button onClick={skipBlocks}>Skip Blocks</Button>
+              <Button onClick={() => skipBlocks()}>Skip Blocks</Button>
             </div>
           </div>
         </Card>
@@ -437,7 +445,140 @@ export default function DevPage() {
             </div>
           </div>
         </Card>
+        <MorningAuctionDev executeTask={executeTask} skipBlocks={skipBlocks} />
       </div>
     </div>
   );
 }
+
+const MorningAuctionDev = ({
+  executeTask,
+  skipBlocks,
+}: {
+  executeTask: (task: string, params?: Record<string, any>) => Promise<void>;
+  skipBlocks: (numBlocks?: number) => Promise<void>;
+}) => {
+  const [sun, setSun] = useAtom(seasonAtom);
+  const invalidateSun = useInvalidateSun();
+  const invalidateField = useInvalidateField();
+  const [morning, setMorning] = useAtom(morningAtom);
+  const [awaiting, setAwaiting] = useState<number | undefined>(undefined);
+  const [freezeMorningTasks, setFreezeMorningTasks] = useAtom(morningFieldDevModeAtom);
+
+  const blockQuery = useBlockNumber({
+    query: {
+      refetchInterval: 20_000,
+      refetchIntervalInBackground: false,
+      refetchOnMount: true,
+    },
+  });
+
+  const deltaBlocks = blockQuery.data ? Number(blockQuery.data) - sun.sunriseBlock : 0;
+
+  const infos = [
+    { label: "Current block", value: blockQuery.data?.toString() },
+    { label: "Sunrise block", value: sun.sunriseBlock?.toString() },
+    { label: "Delta blocks", value: blockQuery.data ? Number(blockQuery.data) - sun.sunriseBlock : 0 },
+    { label: "morning index (0-24)", value: !morning.isMorning ? "N/A" : morning.index },
+  ];
+
+  useEffect(() => {
+    const run = async () => {
+      const now = getNowRounded();
+      const struct = { ...sun, timestamp: now };
+      const morningResult = getMorningResult({
+        timestamp: now,
+        blockNumber: struct.sunriseBlock,
+      });
+      setSun(struct);
+      setMorning(morningResult);
+      blockQuery.refetch();
+      toast.dismiss();
+      toast.success("initialized morning");
+    };
+
+    if (!awaiting) return;
+    if (sun.current !== awaiting) {
+      setAwaiting(undefined);
+      run();
+    }
+  }, [awaiting, sun]);
+
+  useEffect(() => {
+    if (!awaiting) return;
+    const interval = setInterval(() => {
+      invalidateSun("all");
+      invalidateField("all");
+    }, 1_000);
+    return () => clearInterval(interval);
+  }, [awaiting]);
+
+  const handleFWDSeasonAndInitMorning = async (freeze?: boolean) => {
+    toast.loading("initializing morning...");
+    setAwaiting(sun.current);
+    if (freeze) {
+      setFreezeMorningTasks((draft) => {
+        draft.freeze = true;
+      });
+    }
+    await executeTask("callSunrise");
+  };
+
+  const handleIncrementIndex = async () => {
+    const toSkip = 6 - Math.floor(deltaBlocks % 6);
+    console.log("[handleIncrementIndex]: toSkip", toSkip);
+    await skipBlocks(toSkip);
+    invalidateField("all");
+    blockQuery.refetch();
+    setMorning((draft) => {
+      draft.index += 1;
+      if (draft.index === 25) {
+        draft.isMorning = false;
+      }
+    });
+  };
+
+  return (
+    <MorningCard className="p-6 w-full justify-start">
+      <div className="flex flex-col gap-4">
+        <h2 className="text-2xl">Morning Auction</h2>
+        {morning.isMorning && (
+          <div className="flex flex-col gap-2">
+            {infos.map((info) => {
+              return (
+                <div className="flex flex-row gap-2" key={info.label}>
+                  <Text variant="sm" color="secondary" className="w-[200px]">
+                    {info.label}:
+                  </Text>
+                  <Text variant="sm-thin" color="secondary">
+                    {info.value}
+                  </Text>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <Text variant="sm-thin" color="secondary">
+              Call sunrise & start the morning. Disables UI timers & all auto fetches
+            </Text>
+            <Button onClick={() => handleFWDSeasonAndInitMorning(true)}>Sunrise & Start Morning</Button>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Text variant="sm-thin" color="secondary">
+              Call sunrise & start the morning. Key UI Only mode
+            </Text>
+            <Button onClick={() => handleFWDSeasonAndInitMorning(false)}>Start Morning UI only mode</Button>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Text variant="sm-thin" color="secondary">
+              Increment morning index by 1 (6 blocks). Still WIP.
+            </Text>
+            <Button onClick={handleIncrementIndex}>Increment index</Button>
+          </div>
+        </div>
+      </div>
+    </MorningCard>
+  );
+};

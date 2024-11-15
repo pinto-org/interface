@@ -1,15 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
-import { useChainId } from "wagmi";
-import { AllPodListingsDocument } from "@/generated/gql/graphql";
-import request from "graphql-request";
-import { useFieldData } from "./useFieldData";
 import { subgraphs } from "@/constants/subgraph";
+import { AllPodListingsDocument } from "@/generated/gql/graphql";
+import { useQuery } from "@tanstack/react-query";
+import request from "graphql-request";
+import { useChainId } from "wagmi";
+import { useHarvestableIndex } from "./useFieldData";
 
 export default function usePodListings() {
   const chainId = useChainId();
-  const fieldData = useFieldData();
+  const harvestableIndex = useHarvestableIndex();
 
-  const harvestableIndex = fieldData.harvestableIndex;
   const queryKey = ["allPodListings", { chainId: chainId, variables: [harvestableIndex.toHuman()] }];
 
   const podListings = useQuery({

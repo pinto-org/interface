@@ -1,6 +1,6 @@
 import { Separator } from "@/components/ui/Separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
-import useRouterTabs from "@/hooks/useRouterTabs";
+import useRouterTabs, { UseRouterTabsOptions } from "@/hooks/useRouterTabs";
 import { Token } from "@/utils/types";
 import Convert from "./actions/Convert";
 import Deposit from "./actions/Deposit";
@@ -11,13 +11,14 @@ interface SiloToken {
 }
 
 const slugs = ["deposit", "withdraw", "convert"] as const;
-
-const routerTabsOptions = {
+const routerTabsOptions: UseRouterTabsOptions = {
+  type: "query",
+  key: "action",
   scrollToTop: true,
 };
 
 export default function SiloActions({ token }: SiloToken) {
-  const [tab, handleChangeTab] = useRouterTabs(slugs, "action", 0, routerTabsOptions);
+  const [tab, handleChangeTab] = useRouterTabs(slugs, routerTabsOptions);
 
   return (
     <Tabs value={tab} onValueChange={handleChangeTab} className="w-full">

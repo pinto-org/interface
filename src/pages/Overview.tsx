@@ -9,12 +9,14 @@ import TableRowConnector from "@/components/TableRowConnector";
 import { Button } from "@/components/ui/Button";
 import PageContainer from "@/components/ui/PageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
-import { useFieldData } from "@/state/useFieldData";
+import { useHarvestableIndex, useTemperature } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
+import { getClaimText } from "@/utils/string";
 import { StatPanelData } from "@/utils/types";
 import { getSiloConvertUrl } from "@/utils/url";
 import { useEffect, useMemo, useState } from "react";
@@ -26,9 +28,11 @@ const Overview = () => {
   const farmerField = useFarmerField();
   const farmerActions = useFarmerActions();
   const siloData = useSiloData();
-  const fieldData = useFieldData();
+  const temperature = useTemperature();
+  const harvestableIndex = useHarvestableIndex();
   const priceData = usePriceData();
   const navigate = useNavigate();
+  const { submitClaimRewards } = useClaimRewards();
 
   const hasDeposits = farmerActions.totalValue.silo.gt(0);
   const hasPods = farmerActions.totalValue.field.gt(0);
@@ -59,7 +63,7 @@ const Overview = () => {
     const stalkPerSeason = farmerSilo.activeSeedsBalance.div(10000);
 
     const placesInLine = farmerField.plots
-      .map((plot) => plot.index.sub(fieldData.harvestableIndex))
+      .map((plot) => plot.index.sub(harvestableIndex))
       .sort((a, b) => Number(a.sub(b).toHuman()));
 
     const siloTokens = Array.from(siloData.tokenData.entries());
@@ -68,13 +72,18 @@ const Overview = () => {
     ).toFixed(2);
 
     return { siloPct, claimSiloPct, harvestSiloPct, stalkPerSeason, placesInLine, avgAPY };
-  }, [farmerSilo, farmerField, farmerActions, siloData, fieldData]);
+  }, [farmerSilo, farmerField, farmerActions, siloData, harvestableIndex]);
 
   // Action states
   const convertEnabled = farmerActions.convertDeposits.enabled;
   const convertFrom = farmerActions.convertDeposits.bestConversion.from;
   const convertTo = farmerActions.convertDeposits.bestConversion.to;
   const claimEnabled = farmerActions.claimRewards.enabled;
+  const claimableText = getClaimText(
+    farmerActions.claimRewards.outputs.beanGain,
+    farmerActions.claimRewards.outputs.stalkGain,
+    farmerActions.claimRewards.outputs.seedGain,
+  );
 
   // Stat panel data
   const statPanelData: Record<"stalk" | "pods" | "seeds" | "depositedValue", StatPanelData> = {
@@ -151,8 +160,8 @@ const Overview = () => {
           <span className="text-pinto-body text-pinto-gray-4">
             Pods are redeemable for one Pinto when they reach the front of the Pod Line.
           </span>
-          {fieldData.temperature.max.gt(0) && (
-            <span className="text-pinto-h1 text-pinto mt-4">{`${fieldData.temperature.max.toHuman()}% interest rate`}</span>
+          {temperature.max.gt(0) && (
+            <span className="text-pinto-h1 text-pinto mt-4">{`${temperature.max.toHuman()}% interest rate`}</span>
           )}
         </Link>
       </Button>
@@ -190,7 +199,7 @@ const Overview = () => {
           {hasOnlyPods && (
             <HelperLink
               onClick={() => navigate("/silo")}
-              text={"Make your first Deposit in the Silo for Stalk and Seed"}
+              text={"Make your first Deposit in the Silo for Stalk and Seeds"}
               className={`absolute -mt-[64px] -left-[370px] z-20`}
               dataTarget="depositedValue-stats"
               sourceAnchor="right"
@@ -232,20 +241,17 @@ const Overview = () => {
             />
           )*/}
           {currentTab === "deposits" && claimEnabled && (
-            <ClaimRewards
-              trigger={
-                <HelperLink
-                  text="Claim Pinto, Stalk and Seed"
-                  dataTarget="claimable-rewards"
-                  className="absolute right-[60px] mt-[60px]"
-                  sourceAnchor="left"
-                  targetAnchor="right"
-                  source90Degree={true}
-                  perpLength={10}
-                  onMouseEnter={() => setHoveredButton("claim")}
-                  onMouseLeave={() => setHoveredButton("")}
-                />
-              }
+            <HelperLink
+              text={claimableText}
+              dataTarget="claimable-rewards"
+              className="absolute right-[60px] mt-[60px]"
+              sourceAnchor="left"
+              targetAnchor="right"
+              source90Degree={true}
+              perpLength={10}
+              onMouseEnter={() => setHoveredButton("claim")}
+              onMouseLeave={() => setHoveredButton("")}
+              onClick={submitClaimRewards}
             />
           )}
           <TabsContent className="mt-8" value="deposits">

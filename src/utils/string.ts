@@ -27,3 +27,17 @@ export const stringToNumber = (val: string) => {
 
   return Number(val);
 };
+
+export const getClaimText = (beanRewards: TokenValue, stalkRewards: TokenValue, seedRewards: TokenValue) => {
+  const rewards: string[] = [];
+  if (beanRewards.gte(0.01)) rewards.push("Pinto");
+  if (stalkRewards.gte(0.01)) rewards.push("Stalk");
+  if (seedRewards.gte(0.01)) rewards.push("Seed");
+
+  if (rewards.length === 0) return "Nothing to claim";
+  if (rewards.length === 1) return `Claim ${rewards[0]}`;
+  if (rewards.length === 2) return `Claim ${rewards.join(" and ")}`;
+
+  // When there are three rewards, add comma
+  return `Claim ${rewards.slice(0, -1).join(", ")}, and ${rewards[rewards.length - 1]}`;
+};

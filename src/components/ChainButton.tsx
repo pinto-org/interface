@@ -26,7 +26,7 @@ export default function ChainButton() {
           {chainName ? chainName : "Select Chain"}
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-auto">
+      <DialogContent className="min-w-[300px] w-auto">
         <DialogHeader>
           <DialogTitle>Select Chain</DialogTitle>
           <DialogDescription>
@@ -40,7 +40,7 @@ export default function ChainButton() {
                   }}
                   type="button"
                   variant="outline"
-                  className={`font-[400] text-[1.5rem] p-8 mt-4 w-full text-pinto-gray-5 hover:text-pinto-gray-5 rounded-[1rem] flex flex-row gap-2 items-center ${chainId === chain.id ? "border-pinto-green bg-pinto-green-2 text-white" : ""}`}
+                  className={`font-[400] text-[1.5rem] p-8 mt-4 w-full text-pinto-gray-5 hover:text-pinto-gray-5 rounded-[1rem] flex flex-row gap-2 items-center ${chainId === chain.id ? "border-pinto-green bg-pinto-green-4 text-white" : ""}`}
                 >
                   {chain.name}
                 </Button>

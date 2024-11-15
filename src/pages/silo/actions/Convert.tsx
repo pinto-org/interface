@@ -4,6 +4,7 @@ import { ComboInputField } from "@/components/ComboInputField";
 import { RightArrowIcon } from "@/components/Icons";
 import FrameAnimator from "@/components/LoadingSpinner";
 import OutputDisplay from "@/components/OutputDisplay";
+import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
 import { Button } from "@/components/ui/Button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
@@ -144,7 +145,7 @@ function DefaultConvert({
     }
   }, [estimateQuery.isFetching, setLoadingTrue, setLoadingFalse]);
 
-  const { writeContractAsync, isConfirming } = useTransaction({
+  const { writeWithEstimateGas, isConfirming, submitting, setSubmitting } = useTransaction({
     successMessage: "Convert successful",
     successCallback: () => {
       setAmountIn("0");
@@ -180,6 +181,7 @@ function DefaultConvert({
   );
 
   const onSubmit = useCallback(async () => {
+    setSubmitting(true);
     try {
       const deposits = farmerDeposits.get(siloToken);
 
@@ -215,7 +217,7 @@ function DefaultConvert({
         throw new Error("Invalid convert data");
       }
 
-      return writeContractAsync({
+      return writeWithEstimateGas({
         address: protocolAddress,
         abi: diamondABI,
         functionName: "convert",
@@ -225,9 +227,12 @@ function DefaultConvert({
       console.error(e);
       toast.error(e instanceof Error ? e.message : "Convert failed");
       return e;
+    } finally {
+      setSubmitting(false);
     }
   }, [
-    writeContractAsync,
+    setSubmitting,
+    writeWithEstimateGas,
     protocolAddress,
     account.address,
     farmerDeposits,
@@ -251,7 +256,7 @@ function DefaultConvert({
       maxDecimals: warningMessageDecimals,
       minValue: 0.000001,
     });
-    return `Converting any more than ${maxConvertFormatted} ${siloToken.symbol} will result in a loss of Stalk and Seed`;
+    return `Converting any more than ${maxConvertFormatted} ${siloToken.symbol} will result in a loss of Stalk and Seeds`;
   };
 
   const warningMessageDecimals = maxConvert.gt(0) ? 2 : 6;
@@ -267,7 +272,8 @@ function DefaultConvert({
     !account.address ||
     !convertData ||
     isConfirming ||
-    amountIn !== debouncedAmountIn;
+    amountIn !== debouncedAmountIn ||
+    submitting;
 
   return (
     <div className="flex flex-col gap-6">
@@ -305,33 +311,12 @@ function DefaultConvert({
           <FrameAnimator size={64} />
         </div>
       ) : convertData ? (
-        <OutputDisplay title="I receive">
-          <OutputDisplay.Item label="Amount">
-            <OutputDisplay.Value
-              value={formatter.token(minAmountOut, targetToken)}
-              token={targetToken}
-              suffix={targetToken.symbol}
-            />
-          </OutputDisplay.Item>
-          <OutputDisplay.Item label="Stalk">
-            <OutputDisplay.Value
-              value={formatter.twoDec(convertData.stalk)}
-              suffix="Stalk"
-              delta={convertData?.stalk.toNumber()}
-              token={STALK}
-              showArrow
-            />
-          </OutputDisplay.Item>
-          <OutputDisplay.Item label="Seed">
-            <OutputDisplay.Value
-              value={formatter.twoDec(convertData.seeds)}
-              suffix="Seed"
-              delta={convertData.seeds.toNumber()}
-              token={SEEDS}
-              showArrow
-            />
-          </OutputDisplay.Item>
-        </OutputDisplay>
+        <SiloOutputDisplay
+          amount={minAmountOut}
+          token={targetToken}
+          stalk={convertData.stalk}
+          seeds={convertData.seeds}
+        />
       ) : null}
       <Button type="button" rounded="full" width="full" size="xxl" onClick={onSubmit} disabled={disabled}>
         Convert
@@ -456,7 +441,7 @@ const PipelineConvert = ({
     targetStemTip: siloTokenData.get(targetToken)?.stemTip,
   });
 
-  const { writeContractAsync, isConfirming } = useTransaction({
+  const { writeWithEstimateGas, isConfirming, submitting, setSubmitting } = useTransaction({
     successCallback: () => {
       setAmountIn("0");
       toast.dismiss();
@@ -483,6 +468,7 @@ const PipelineConvert = ({
   });
 
   const onSubmit = async () => {
+    setSubmitting(true);
     try {
       const depositData = farmerDeposits.get(siloToken);
 
@@ -506,7 +492,7 @@ const PipelineConvert = ({
         account.address,
       );
 
-      await writeContractAsync({
+      await writeWithEstimateGas({
         address: protocolAddress,
         abi: diamondABI,
         functionName: "advancedFarm",
@@ -515,6 +501,8 @@ const PipelineConvert = ({
     } catch (e) {
       console.error("Error submitting pipeline convert: ", e);
       return e;
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -526,7 +514,8 @@ const PipelineConvert = ({
     !convertData ||
     isConfirming ||
     convertData?.amountOut.lte(0) ||
-    maxConvertible?.lt(stringToNumber(amountIn));
+    maxConvertible?.lt(stringToNumber(amountIn)) ||
+    submitting;
 
   return (
     <div className="flex flex-col gap-4">
@@ -557,33 +546,12 @@ const PipelineConvert = ({
           <FrameAnimator size={64} />
         </div>
       ) : convertData ? (
-        <OutputDisplay title="I receive">
-          <OutputDisplay.Item label="Amount">
-            <OutputDisplay.Value
-              value={formatter.token(convertData.amountOut, targetToken)}
-              token={targetToken}
-              suffix={targetToken.symbol}
-            />
-          </OutputDisplay.Item>
-          <OutputDisplay.Item label="Stalk">
-            <OutputDisplay.Value
-              value={formatter.twoDec(convertData.deltaStalk)}
-              suffix="Stalk"
-              delta={convertData.deltaStalk.toNumber()}
-              token={STALK}
-              showArrow
-            />
-          </OutputDisplay.Item>
-          <OutputDisplay.Item label="Seed">
-            <OutputDisplay.Value
-              value={formatter.twoDec(convertData.deltaSeed)}
-              suffix="Seed"
-              delta={convertData.deltaSeed.toNumber()}
-              token={SEEDS}
-              showArrow
-            />
-          </OutputDisplay.Item>
-        </OutputDisplay>
+        <SiloOutputDisplay
+          amount={convertData.amountOut}
+          token={targetToken}
+          stalk={convertData.deltaStalk}
+          seeds={convertData.deltaSeed}
+        />
       ) : null}
       <div className="flex flex-row gap-2">
         <Button type="button" rounded="full" width="full" size="xxl" onClick={onSubmit} disabled={disabled}>

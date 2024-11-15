@@ -1,14 +1,15 @@
 import depositIcon from "@/assets/protocol/Deposit.svg";
 import { TokenValue } from "@/classes/TokenValue";
-import { CheckmarkIcon } from "@/components/Icons";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { ToggleGroupItem } from "@/components/ui/ToggleGroup";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { usePriceData } from "@/state/usePriceData";
 import { truncateHex } from "@/utils/format";
 import { DepositData, Token } from "@/utils/types";
+import { HTMLMotionProps } from "framer-motion";
 import React from "react";
 import CheckmarkCircle from "./CheckmarkCircle";
+import Text from "./ui/Text";
 
 interface DepositsTable {
   token: Token;
@@ -16,42 +17,44 @@ interface DepositsTable {
   useToggle?: boolean;
 }
 
-interface DepositRowProps {
+interface DepositRowProps extends HTMLMotionProps<"tr"> {
   deposit: DepositData;
   token: Token;
   price: TokenValue;
   useToggle?: boolean;
-  isSelected?: boolean | undefined;
+  isSelected?: boolean;
 }
 
 const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React.HTMLAttributes<HTMLTableRowElement>>(
   ({ deposit, token, price, useToggle, isSelected, ...props }, ref) => {
     return (
       <TableRow
-        ref={ref}
         {...props}
+        ref={ref}
         className={`h-[4.5rem] ${deposit.isGerminating ? "bg-pinto-off-green/15" : "bg-white"} text-[1rem] hover:bg-pinto-green-1/50 hover:cursor-pointer`}
       >
-        <TableCell className="text-black font-[400]">
+        <Text as={TableCell}>
           <div className="gap-2 pl-2 flex items-center">
             {useToggle && <CheckmarkCircle isSelected={isSelected} />}
             <img src={depositIcon} alt="deposit icon" />
-            {truncateHex(deposit.idHex)}
+            <span>{truncateHex(deposit.idHex)}</span>
           </div>
-        </TableCell>
-        <TableCell className="text-right text-black">
+        </Text>
+        <Text as={TableCell} className="text-right">
           <div>{`${deposit.amount.toHuman("short")} ${token.name}`}</div>
-          <div className="text-pinto-gray-4">{`$${(deposit.depositBdv || TokenValue.ZERO).mul(price).toHuman("short")}`}</div>
-        </TableCell>
-        <TableCell className="text-right text-black">
+          <div className="text-pinto-gray-4 mt-1">{`$${(deposit.depositBdv || TokenValue.ZERO).mul(price).toHuman("short")}`}</div>
+        </Text>
+        <Text as={TableCell} className="text-right">
           <div>{deposit.stalk.base.toHuman("short")}</div>
           {deposit.stalk.grown.gt(0) && (
-            <div className="text-pinto-gray-4">
-              Claimable Grown Stalk: <span className="text-pinto-green-2">+{deposit.stalk.grown.toHuman("short")}</span>
+            <div className="text-pinto-gray-4 mt-1">
+              Claimable Grown Stalk: <span className="text-pinto-green-4">+{deposit.stalk.grown.toHuman("short")}</span>
             </div>
           )}
-        </TableCell>
-        <TableCell className="text-right text-black p-4">{deposit.seeds.toHuman("short")}</TableCell>
+        </Text>
+        <Text as={TableCell} className="text-right p-4">
+          {deposit.seeds.toHuman("short")}
+        </Text>
       </TableRow>
     );
   },

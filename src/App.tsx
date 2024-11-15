@@ -1,3 +1,4 @@
+import { isDev } from "@/utils/utils";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import DevPage from "./components/DevPage";
 import Navbar from "./components/nav/nav/Navbar";
@@ -10,6 +11,7 @@ import Swap from "./pages/Swap";
 import Transfer from "./pages/Transfer";
 import Landing from "./pages/Landing";
 import LaunchArticle from "./pages/landing/LaunchArticle";
+import Explorer from "./pages/Explorer";
 
 function App() {
   return (
@@ -36,7 +38,9 @@ function App() {
             <Route path="/market" element={<Swap />} />
             <Route path="/transfer" element={<Transfer />} />
             <Route path="/transfer/:mode" element={<Transfer />} />
-            {import.meta.env.DEV && <Route path="/dev" element={<DevPage />} />}
+            <Route path="/explorer/" element={<Explorer />} />
+            <Route path="/explorer/:tab" element={<Explorer />} />
+            {isDev() && <Route path="/dev" element={<DevPage />} />}
           </Routes>
         </div>
       </div>

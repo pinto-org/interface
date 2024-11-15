@@ -104,8 +104,6 @@ export default function StepTwo({ transferData, setTransferData, destination, se
     [selectedPlots, setTransferData],
   );
 
-  console.log("range: ", range);
-
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">

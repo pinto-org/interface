@@ -3,17 +3,17 @@ import { ZERO_ADDRESS } from "@/constants/address";
 import { beanstalkAddress } from "@/generated/contractHooks";
 import useTokenData from "@/state/useTokenData";
 import { Token } from "@/utils/types";
-import { isDev } from "@/utils/utils";
+import { exists, isDev } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { BaseError, erc20Abi, maxUint256 } from "viem";
 import { useAccount, useChainId, useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
-import { Button } from "./ui/Button";
+import { Button, ButtonProps } from "./ui/Button";
 
-interface SmartSubmitButton {
-  token: Token;
-  amount: any;
+interface SmartSubmitButton extends Omit<ButtonProps, "onClick" | "disabled" | "className"> {
+  token?: Token;
+  amount?: string;
   submitFunction: () => void;
   submitButtonText?: string;
   className?: string;
@@ -27,6 +27,7 @@ export default function SmartSubmitButton({
   submitButtonText,
   className,
   disabled,
+  ...props
 }: SmartSubmitButton) {
   const account = useAccount();
   const chainId = useChainId();
@@ -36,11 +37,11 @@ export default function SmartSubmitButton({
   const { data: hash, writeContractAsync } = useWriteContract();
   const { data: allowance, queryKey } = useReadContract({
     abi: erc20Abi,
-    address: token.address,
+    address: token?.address,
     functionName: "allowance",
     args: [account.address ?? ZERO_ADDRESS, beanstalkAddress[chainId as keyof typeof beanstalkAddress]],
     query: {
-      enabled: !!account.address && !!token && token !== ETH,
+      enabled: token && !!account.address && !!token && token !== ETH,
       select: (data) => {
         return data;
       },
@@ -57,22 +58,24 @@ export default function SmartSubmitButton({
     }
   }, [isConfirmed]);
 
-  const needsApproval = token.isNative
-    ? false
-    : allowance === 0n
-      ? true
-      : Number(amount) > Number(TokenValue.fromBlockchain(allowance || 0, token.decimals).toHuman());
+  const needsApproval =
+    !token || token.isNative
+      ? false
+      : allowance === 0n
+        ? true
+        : Number(amount) > Number(TokenValue.fromBlockchain(allowance || 0, token.decimals).toHuman());
 
   async function approveOrRun() {
+    if (!token || !exists(amount)) return;
     if (needsApproval) {
       const tx = () =>
         writeContractAsync({
           abi: erc20Abi,
-          address: token.address,
+          address: token?.address ?? ZERO_ADDRESS,
           functionName: "approve",
           args: [
             beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-            isDev() ? maxUint256 : TokenValue.fromHuman(amount, token.decimals).toBigInt(),
+            isDev() ? maxUint256 : TokenValue.fromHuman(amount, token?.decimals).toBigInt(),
           ],
         });
 
@@ -93,6 +96,7 @@ export default function SmartSubmitButton({
   return (
     <Button
       type={"button"}
+      {...props}
       disabled={disabled || isConfirming}
       rounded="full"
       size="xxl"

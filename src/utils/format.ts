@@ -1,7 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { CBBTC, PINTOCBBTC } from "@/constants/tokens";
 import { tokensEqual } from "./token";
-import { Token } from "./types";
+import { InternalToken, Token } from "./types";
 
 type NumberPrimitive = string | number | TokenValue | bigint | undefined | null;
 
@@ -50,8 +50,8 @@ export const formatNum = (val: NumberPrimitive, options?: FormatNumOptions) => {
 
   return new Intl.NumberFormat("en-US", {
     notation: "standard",
-    minimumFractionDigits: options?.minDecimals || 0,
-    maximumFractionDigits: options?.maxDecimals || 2,
+    minimumFractionDigits: options?.minDecimals ?? 0,
+    maximumFractionDigits: options?.maxDecimals ?? 2,
     useGrouping: true,
   }).format(num);
 };
@@ -98,17 +98,32 @@ export const format2Decimals = (val: NumberPrimitive, options?: IAllowZero) => {
   });
 };
 
-function normalizeTokenAmount(val: NumberPrimitive, token: Token) {
+export const formatDate = (date: Date) => {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const year = String(date.getFullYear()).slice(-2);
+
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const period = hours >= 12 ? "pm" : "am";
+
+  hours = hours % 12 || 12;
+  const formattedTime = `${hours}:${minutes}${period}`;
+
+  return `${month}/${day}/${year} • ${formattedTime}`;
+};
+
+function normalizeTokenAmount(val: NumberPrimitive, token: Token | InternalToken) {
   if (val instanceof TokenValue) {
     return val.toNumber();
   }
   if (typeof val === "bigint") {
-    return TokenValue.fromBlockchain(val, token.decimals).toNumber();
+    return TokenValue.fromBlockchain(val, token.displayDecimals ?? token.decimals).toNumber();
   }
   return Number(val);
 }
 
-export const formatTokenAmount = (val: NumberPrimitive, token: Token) => {
+export const formatTokenAmount = (val: NumberPrimitive, token: Token | InternalToken) => {
   if (tokensEqual(token, CBBTC) || tokensEqual(token, PINTOCBBTC)) {
     return formatNum(normalizeTokenAmount(val, token), {
       minDecimals: 6,
@@ -121,6 +136,21 @@ export const formatTokenAmount = (val: NumberPrimitive, token: Token) => {
   return format2Decimals(normalizeTokenAmount(val, token), { allowZero: true });
 };
 
+const numberAbbrThresholds: [number, string][] = [
+  [10 ** 12, "t"],
+  [10 ** 9, "b"],
+  [10 ** 6, "m"],
+  [10 ** 3, "k"],
+];
+export const numberAbbr = (num: number, decimals = 1): string => {
+  for (const threshold of numberAbbrThresholds) {
+    if (num > threshold[0]) {
+      return `${(num / threshold[0]).toFixed(decimals)}${threshold[1]}`;
+    }
+  }
+  return num.toString();
+};
+
 export const formatter = {
   number: formatNum,
   usd: formatUSD,
@@ -128,7 +158,21 @@ export const formatter = {
   pct: formatPct,
   noDec: formatNoDecimals,
   twoDec: format2Decimals,
+  date: formatDate,
   token: formatTokenAmount,
+};
+
+export const chartFormatters = {
+  number0dFormatter: (v: number) => `${formatter.number(v, { minDecimals: 0, maxDecimals: 0 })}`,
+  number2dFormatter: (v: number) => `${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`,
+  number6dFormatter: (v: number) => `${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`,
+  largeNumberFormatter: numberAbbr,
+  price0dFormatter: (v: number) => `$${formatter.number(v, { minDecimals: 0, maxDecimals: 0 })}`,
+  price2dFormatter: (v: number) => `$${formatter.number(v, { minDecimals: 2, maxDecimals: 2 })}`,
+  price6dFormatter: (v: number) => `$${formatter.number(v, { minDecimals: 6, maxDecimals: 6 })}`,
+  largePriceFormatter: (v: number) => `$${numberAbbr(v)}`,
+  percent0dFormatter: (v: number) => `${formatter.number(v * 100, { minDecimals: 0, maxDecimals: 0 })}%`,
+  percent2dFormatter: (v: number) => `${formatter.number(v * 100, { minDecimals: 2, maxDecimals: 2 })}%`,
 };
 
 export function truncateHex(hex: string, left: number = 4, right: number = 3) {

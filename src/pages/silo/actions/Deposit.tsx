@@ -1,9 +1,10 @@
 import { Clipboard } from "@/classes/Clipboard";
 import { TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
+import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
-import { Label } from "@/components/ui/Label";
+import Text from "@/components/ui/Text";
 import deposit from "@/encoders/deposit";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useSwapEstimate from "@/hooks/useSwapEstimate";
@@ -11,13 +12,15 @@ import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { PoolData, usePriceData } from "@/state/usePriceData";
+import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { stringEq, stringToNumber } from "@/utils/string";
+import { tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { estimateGas } from "@wagmi/core";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
@@ -29,17 +32,21 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const diamondAddress = useProtocolAddress();
   const farmerBalances = useFarmerBalances();
   const depositedBalances = useFarmerDepositedBalances();
+
+  // console.log("config", config);
   const account = useAccount();
 
   const pools = usePriceData().pools;
-  const mainToken = useTokenData().mainToken;
+  const tokenData = useTokenData();
+  const mainToken = tokenData.mainToken;
+
+  const siloData = useSiloData();
 
   const [amountIn, setAmountIn] = useState("0");
   const [tokenIn, setTokenIn] = useState(siloToken);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.INTERNAL_EXTERNAL);
   const [pool, setPool] = useState<PoolData | undefined>(undefined);
   const [slippage, setSlippage] = useState(0.5);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const qc = useQueryClient();
 
@@ -64,7 +71,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     allQueryKeys.forEach((query) => qc.invalidateQueries({ queryKey: query }));
   }, [qc, depositedBalances, farmerBalances]);
 
-  const { isConfirming, writeContractAsync } = useTransaction({
+  const { isConfirming, writeWithEstimateGas, submitting, setSubmitting } = useTransaction({
     successMessage: "Deposit successful",
     successCallback: onSuccess,
   });
@@ -81,12 +88,34 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     !useSwap,
   );
 
-  const onSubmit = async () => {
+  const depositOutput = useMemo(() => {
+    const sData = siloData.tokenData.get(siloToken);
+    if (stringToNumber(amountIn) <= 0 || !sData) return undefined;
+    if (tokensEqual(siloToken, tokenIn)) {
+      const amount = TokenValue.fromHuman(amountIn, siloToken.decimals);
+
+      return {
+        amount,
+        stalkGain: amount.mul(sData.rewards.stalk).mul(sData.tokenBDV),
+        seedGain: amount.mul(sData.rewards.seeds).mul(sData.tokenBDV),
+      };
+    } else if (swapData?.output.gt(0)) {
+      return {
+        amount: swapData.output,
+        stalkGain: swapData.output.mul(sData.rewards.stalk).mul(sData.tokenBDV),
+        seedGain: swapData.output.mul(sData.rewards.seeds).mul(sData.tokenBDV),
+      };
+    }
+
+    return undefined;
+  }, [siloData, swapData?.output, siloToken, tokenIn, amountIn]);
+
+  const onSubmit = useCallback(async () => {
     try {
       if (!account.address) {
         throw new Error("No account connected");
       }
-      setIsSubmitting(true);
+      setSubmitting(true);
       const depositData = deposit(
         siloToken,
         useSwap ? swapData?.output : TokenValue.fromHuman(amountIn, tokenIn.decimals),
@@ -108,40 +137,44 @@ function Deposit({ siloToken }: { siloToken: Token }) {
 
       toast.loading(`Depositing ${formattedAmountIn} ${tokenIn.symbol} for ${depositAmount} ${siloToken.symbol}...`);
 
-      const _gas = await estimateGas(config, {
-        to: diamondAddress,
-        data: encodeFunctionData({
-          abi: advFarmABI,
-          functionName: "advancedFarm",
-          args: [callData],
-        }),
-        value: value,
-      });
-      setIsSubmitting(false);
-      return writeContractAsync({
+      return writeWithEstimateGas({
         address: diamondAddress,
         abi: advFarmABI,
         functionName: "advancedFarm",
         args: [callData],
         value: value,
-        gas: _gas ? (_gas * 120n) / 100n : undefined,
       });
     } catch (e: unknown) {
       console.error(e);
-      setIsSubmitting(false);
+      setSubmitting(false);
       toast.dismiss();
       toast.error(e instanceof Error ? e.message : "Transaction failed.");
       throw e;
+    } finally {
+      setSubmitting(false);
     }
-  };
+  }, [
+    writeWithEstimateGas,
+    setSubmitting,
+    account.address,
+    diamondAddress,
+    siloToken,
+    tokenIn,
+    amountIn,
+    balanceFrom,
+    swapData,
+    useSwap,
+  ]);
 
-  const disabled = !stringToNumber(amountIn) || !account.address || isSubmitting || isConfirming;
+  const disabled = !stringToNumber(amountIn) || !account.address || submitting || isConfirming;
 
   return (
     <div className="flex flex-col gap-4">
       <div>
         <div className="flex flex-row justify-between items-center">
-          <Label>Amount and Token to use</Label>
+          <Text variant="body-light" color="light">
+            Amount and token to use
+          </Text>
           <SlippageButton slippage={slippage} setSlippage={setSlippage} />
         </div>
         <ComboInputField
@@ -152,6 +185,16 @@ function Deposit({ siloToken }: { siloToken: Token }) {
           selectedToken={tokenIn}
           balanceFrom={balanceFrom}
         />
+        {depositOutput && (
+          <div className="mt-6">
+            <SiloOutputDisplay
+              amount={depositOutput.amount}
+              token={siloToken}
+              stalk={depositOutput.stalkGain}
+              seeds={depositOutput.seedGain}
+            />
+          </div>
+        )}
       </div>
       <div className="flex flex-row gap-2">
         <SmartSubmitButton

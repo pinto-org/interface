@@ -1,18 +1,18 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { TokenValue } from "@/classes/TokenValue";
 import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { useFarmerMarket } from "@/state/useFarmerMarket";
-import { useFieldData } from "@/state/useFieldData";
+import { useHarvestableIndex } from "@/state/useFieldData";
 import useTokenData from "@/state/useTokenData";
-import { Order, Listing } from "@/utils/types";
+import { Listing, Order } from "@/utils/types";
+import { useState } from "react";
 
 export function FarmerActivityTable() {
   const BEAN = useTokenData().mainToken;
 
   const farmerData = useFarmerMarket();
-  const fieldData = useFieldData();
+  const harvestableIndex = useHarvestableIndex();
 
   const rowsPerPage = 10;
   const totalRows = farmerData?.length || 0;
@@ -90,7 +90,7 @@ export function FarmerActivityTable() {
                 fillPct = ev.filled.div(ev.originalAmount).mul(100);
                 expiresIn =
                   fillPct.lt(99) && event.status === "ACTIVE"
-                    ? ev.maxHarvestableIndex.sub(fieldData.harvestableIndex)
+                    ? ev.maxHarvestableIndex.sub(harvestableIndex)
                     : undefined;
                 status = fillPct.gt(99) ? "FILLED" : event.status;
               }

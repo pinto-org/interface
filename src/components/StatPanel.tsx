@@ -99,7 +99,7 @@ const StatPanel = ({
         </>
       )}
       {mode === "stalk" && variant === "silo" && (
-        <div className={`${showActionValues ? "opacity-0" : "opacity-100"}`}>
+        <div className={`${showActionValues || secondaryValue.eq(0) ? "opacity-0" : "opacity-100"}`}>
           Claimable Stalk:
           <Text as="span" variant="inherit" color="green4" className="pl-2">
             {secondaryValue.gt(0) ? "+" : ""}
@@ -118,8 +118,8 @@ const StatPanel = ({
         </span>
       )}
       {mode === "seeds" && variant === "silo" && (
-        <div className={`${showActionValues ? "opacity-0" : "opacity-100"}`}>
-          Claimable Seed:
+        <div className={`${showActionValues || secondaryValue.eq(0) ? "opacity-0" : "opacity-100"}`}>
+          Claimable Seeds:
           <Text as="span" variant="inherit" color="green4" className="pl-2">
             {secondaryValue.gt(0) ? "+" : ""}
             {formatter.noDec(secondaryValue)}
@@ -134,7 +134,7 @@ const StatPanel = ({
     <div className={`relative min-w-[275px]`}>
       <div className={`flex flex-col items-center gap-2 ${className}`}>
         <div data-action-target={`${mode}-stats`} className={mainValue.eq(0) ? "opacity-[0.4]" : "opacity-100"}>
-          <Text variant="body">{`My ${mode === "stalk" ? "Stalk" : mode === "seeds" ? "Seed" : mode === "pods" ? "Pods" : "deposited value"}`}</Text>
+          <Text variant="body">{`My ${mode === "stalk" ? "Stalk" : mode === "seeds" ? "Seeds" : mode === "pods" ? "Pods" : "deposited value"}`}</Text>
         </div>
         <Text variant={size === "large" ? "h1" : "h3"} className={mainValue.eq(0) ? "opacity-[0.4]" : "opacity-100"}>
           <ValueDisplay />
@@ -146,7 +146,7 @@ const StatPanel = ({
           {tooltipContent && (
             <TooltipSimple
               content={tooltipContent}
-              variant={mode === "stalk" ? "stalk" : mode === "seeds" ? "seed" : mode === "pods" ? "pod" : "gray"}
+              variant={mode === "stalk" ? "stalk" : mode === "seeds" ? "seeds" : mode === "pods" ? "pods" : "gray"}
               opaque={mainValue.eq(0)}
             />
           )}

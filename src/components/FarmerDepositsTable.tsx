@@ -4,21 +4,15 @@ import { TokenValue } from "@/classes/TokenValue";
 import { RightArrowIcon, UpArrowIcon } from "@/components/Icons";
 import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
-import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
-import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
-import { Token } from "@/utils/types";
-import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo } from "react";
+import { motion } from "framer-motion";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { BaseError, encodeFunctionData } from "viem";
-import { useAccount, useChainId, useWriteContract } from "wagmi";
 import Text from "./ui/Text";
 
 interface FarmerDepositsTableProps {
@@ -26,35 +20,23 @@ interface FarmerDepositsTableProps {
   hovering?: boolean;
 }
 
+const initialState = {
+  height: 0,
+  opacity: 0,
+  borderBottomWidth: 0,
+};
+
 export default function FarmerDepositsTable({ rewardsRef, hovering = false }: FarmerDepositsTableProps) {
-  const account = useAccount();
-  const chainId = useChainId();
   const navigate = useNavigate();
   const farmerSilo = useFarmerSilo();
   const priceData = usePriceData();
   const tokenData = useTokenData();
-  const siloData = useSiloData();
   const mainToken = tokenData.mainToken;
   const farmerActions = useFarmerActions();
   const farmerDeposits = useFarmerDepositedBalances().data;
 
-  const queryClient = useQueryClient();
-  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
-
-  const claimableBeans = farmerActions.claimRewards.outputs.beanGain;
-  const claimableStalk = farmerActions.claimRewards.outputs.stalkGain;
-  const claimableSeeds = farmerActions.claimRewards.outputs.seedGain;
-
   const canClaim = farmerActions.claimRewards.enabled;
-
   const grownStalkPerToken = farmerSilo.grownStalkPerToken;
-
-  useEffect(() => {
-    if (isSuccess) {
-      const allQueryKeys = [...farmerSilo.queryKeys];
-      allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
-    }
-  }, [isSuccess]);
 
   // Sort tokens with PINTO first, then by BDV
   const sortedTokens = useMemo(() => {
@@ -75,84 +57,102 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
     });
   }, [farmerDeposits, tokenData.whitelistedTokens, mainToken]);
 
-  async function onClaimRewards() {
-    if (!account.address) return;
+  const renderClaimableRow = () => {
+    const plantData = farmerActions.tokenTotals.get(mainToken);
+    const plantBeanGain = plantData?.sources.plant?.beanGain || TokenValue.ZERO;
+    const showRow = !hovering && plantBeanGain.gte(0.01);
 
-    const plant = encodeFunctionData({
-      abi: beanstalkAbi,
-      functionName: "plant",
-    });
+    const cellAnimation = {
+      height: showRow ? "4.5rem" : 0,
+      opacity: showRow ? 1 : 0,
+      padding: showRow ? "0.5rem" : 0,
+      transition: {
+        height: { duration: 0.2 },
+        opacity: { duration: 0.15 },
+        padding: { duration: 0.2 },
+      },
+    };
 
-    const tokensToMow = tokenData.whitelistedTokens.map((token) => token.address);
-    const mow = encodeFunctionData({
-      abi: beanstalkAbi,
-      functionName: "mowMultiple",
-      args: [account.address, tokensToMow],
-    });
-
-    const tx = () =>
-      writeContractAsync({
-        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-        abi: beanstalkAbi,
-        functionName: "farm",
-        args: [[plant, mow]],
-      });
-
-    toast.promise(tx, {
-      loading: "Claiming rewards...",
-      success: (data) => "Claim complete!",
-      error: (error) => (error as BaseError).shortMessage || "Failed to claim rewards.",
-    });
-  }
-
-  const renderClaimableRow = () => (
-    <TableRow
-      className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 text-pinto-green-4/70"
-      data-action-target="claimable-rewards"
-      ref={rewardsRef}
-    >
-      <TableCell>
-        <div className="flex flex-row items-center gap-1.5 ml-2">
-          <div className="h-8 w-8 bg-pinto-green-4 rounded-full flex justify-center items-center text-white rotate-90">
-            <RightArrowIcon color="currentColor" />
-          </div>
-          <Text variant="small" color="green4">
-            Claimable
-          </Text>
-        </div>
-      </TableCell>
-      <TableCell className="text-right">
-        <div className="flex flex-col items-end">
-          <div className="inline-flex items-center gap-1">
-            <IconImage src={mainToken.logoURI} size={4} />
+    return (
+      <TableRow
+        className="bg-pinto-green-1 hover:bg-pinto-green-1 text-pinto-green-4/70"
+        data-action-target="claimable-rewards"
+        ref={rewardsRef}
+        initial={initialState}
+        animate={{
+          height: showRow ? "4.5rem" : 0,
+          opacity: showRow ? 1 : 0,
+          borderBottomWidth: showRow ? "1px" : 0,
+          transition: {
+            height: { duration: 0.2 },
+            opacity: { duration: 0.15 },
+            borderBottomWidth: { duration: 0.1 },
+          },
+        }}
+      >
+        <TableCell initial={{ height: 0, opacity: 0, padding: 0 }} animate={cellAnimation}>
+          <motion.div
+            className="flex flex-row items-center gap-1.5 ml-2"
+            initial={{ height: 0 }}
+            animate={{ height: showRow ? "auto" : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="h-8 w-8 bg-pinto-green-4 rounded-full flex justify-center items-center text-white rotate-90">
+              <RightArrowIcon color="currentColor" />
+            </div>
             <Text variant="small" color="green4">
-              {formatter.number(claimableBeans)} {mainToken.name}
+              Claimable
             </Text>
-          </div>
-        </div>
-      </TableCell>
-      <TableCell className="text-right">
-        <div className="flex flex-col items-end">
-          <div className="inline-flex items-center gap-1">
-            <IconImage src={stalkIcon} size={4} />
-            <Text variant="small" color="green4">
-              {formatter.number(claimableStalk)}
-            </Text>
-          </div>
-        </div>
-      </TableCell>
-      <TableCell>
-        <div className="flex flex-col items-end text-right mr-2">
-          <div className="inline-flex items-center gap-1">
-            <IconImage src={seedIcon} size={4} />
-            <Text variant="small" color="green4">
-              {formatter.number(claimableSeeds)}
-            </Text>
-          </div>
-        </div>
-      </TableCell>
-    </TableRow>
-  );
+          </motion.div>
+        </TableCell>
+        <TableCell className="text-right" initial={{ height: 0, opacity: 0, padding: 0 }} animate={cellAnimation}>
+          <motion.div
+            className="flex flex-col items-end"
+            initial={{ height: 0 }}
+            animate={{ height: showRow ? "auto" : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="inline-flex items-center gap-1">
+              <IconImage src={mainToken.logoURI} size={4} />
+              <Text variant="small" color="green4">
+                {formatter.number(plantData?.sources.plant?.beanGain || TokenValue.ZERO)} {mainToken.name}
+              </Text>
+            </div>
+          </motion.div>
+        </TableCell>
+        <TableCell className="text-right" initial={{ height: 0, opacity: 0, padding: 0 }} animate={cellAnimation}>
+          <motion.div
+            className="flex flex-col items-end"
+            initial={{ height: 0 }}
+            animate={{ height: showRow ? "auto" : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="inline-flex items-center gap-1">
+              <IconImage src={stalkIcon} size={4} />
+              <Text variant="small" color="green4">
+                {formatter.number(plantData?.sources.plant?.stalkGain || TokenValue.ZERO)}
+              </Text>
+            </div>
+          </motion.div>
+        </TableCell>
+        <TableCell initial={{ height: 0, opacity: 0, padding: 0 }} animate={cellAnimation}>
+          <motion.div
+            className="flex flex-col items-end text-right mr-2"
+            initial={{ height: 0 }}
+            animate={{ height: showRow ? "auto" : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="inline-flex items-center gap-1">
+              <IconImage src={seedIcon} size={4} />
+              <Text variant="small" color="green4">
+                {formatter.number(plantData?.sources.plant?.seedGain || TokenValue.ZERO)}
+              </Text>
+            </div>
+          </motion.div>
+        </TableCell>
+      </TableRow>
+    );
+  };
 
   return (
     <div className={`relative action-container overflow-visible ${hovering && canClaim && "mb-[4.5rem]"}`}>
@@ -177,13 +177,13 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
             </TableRow>
           </TableHeader>
           <TableBody>
-            {!hovering && canClaim && renderClaimableRow()}
+            {renderClaimableRow()}
             {sortedTokens.map((token, i) => {
               const userData = farmerDeposits.get(token);
               const grownStalk = grownStalkPerToken.get(token) || TokenValue.ZERO;
 
               const data = {
-                rewards: farmerActions.tokenTotals.get(token)?.sources.rewards,
+                rewards: farmerActions.tokenTotals.get(token)?.sources.mow,
                 update: farmerActions.tokenTotals.get(token)?.sources.update,
               };
 
@@ -270,13 +270,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                         <div className="inline-flex items-center gap-1">
                           <UpArrowIcon color={"currentColor"} />
                           <IconImage src={stalkIcon} size={4} />
-                          <div>
-                            {formatter.number(
-                              userData?.stalk.base
-                                .add(grownStalk)
-                                .add(rewardGains.stalkGain.add(updateGains.stalkGain)),
-                            )}
-                          </div>
+                          <div>{formatter.number(userData?.stalk.base.add(grownStalk).add(updateGains.stalkGain))}</div>
                         </div>
                         {data.update?.stalkFromBDVIncrease.gt(0.01) && (
                           <div>
@@ -305,7 +299,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                         </div>
                         {data.update?.seedsFromBDVIncrease.gt(0.01) && (
                           <div>
-                            Bonus Seed for updating PDV: <span>{formatter.number(updateGains.seedGain)}</span>
+                            Bonus Seeds for updating PDV: <span>{formatter.number(updateGains.seedGain)}</span>
                           </div>
                         )}
                       </div>
