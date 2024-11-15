@@ -1,0 +1,15 @@
+# Not currently in use
+query BeanstalkSeasonalSeason($from: Int, $to: Int) {
+  seasons(
+    where: { season_gte: $from, season_lte: $to }
+    first: 1000
+    orderBy: season
+    orderDirection: asc
+  ) {
+    id
+    season
+    deltaB
+    rewardBeans
+    createdAt
+  }
+}

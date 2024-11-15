@@ -86,7 +86,7 @@ function Sow({ isMorning }: SowProps) {
 
   const tokenInBalance = farmerBalances.balances.get(tokenIn);
 
-  const { writeContractAsync, isConfirming } = useTransaction({
+  const { writeWithEstimateGas, isConfirming, submitting, setSubmitting } = useTransaction({
     successCallback: () => {
       setAmountIn("0");
       // invalidating query results to trigger a refetch
@@ -96,8 +96,7 @@ function Sow({ isMorning }: SowProps) {
     },
   });
 
-  // const maxSow = useMaxSow(tokenIn, slippage);
-  const maxSow = useTotalSoil();
+  const maxSow = useMaxSow(tokenIn, slippage);
 
   const isUsingMain = stringEq(tokenIn.address, mainToken.address);
 
@@ -130,6 +129,7 @@ function Sow({ isMorning }: SowProps) {
   }, [amountIn, currentTemperature, isUsingMain, swapData?.output]);
 
   const onSubmit = useCallback(async () => {
+    setSubmitting(true);
     try {
       if (!account.address) {
         throw new Error("Signer required");
@@ -160,7 +160,7 @@ function Sow({ isMorning }: SowProps) {
       const minSoil = TokenValue.ZERO;
 
       if (isUsingMain) {
-        return writeContractAsync({
+        return writeWithEstimateGas({
           address: diamond,
           abi: beanstalkAbi,
           functionName: "sowWithMin",
@@ -177,13 +177,12 @@ function Sow({ isMorning }: SowProps) {
         const swapCallData = swapData?.callData;
         if (swapCallData) {
           swapCallData.push(sow);
-          return writeContractAsync({
+          return writeWithEstimateGas({
             address: diamond,
             abi: beanstalkAbi,
             functionName: "advancedFarm",
             args: [swapCallData],
             value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
-            gas: 4000000n,
           });
         }
       }
@@ -192,9 +191,12 @@ function Sow({ isMorning }: SowProps) {
       toast.dismiss();
       toast.error((e as BaseError).shortMessage || "Transaction failed.");
       throw e;
+    } finally {
+      setSubmitting(false);
     }
   }, [
-    writeContractAsync,
+    writeWithEstimateGas,
+    setSubmitting,
     diamond,
     pods,
     slippage,
@@ -283,7 +285,7 @@ function Sow({ isMorning }: SowProps) {
       <div className="flex flex-row gap-2">
         <SmartSubmitButton
           variant={isMorning ? "morning" : undefined}
-          disabled={isLoading || isConfirming}
+          disabled={isLoading || isConfirming || submitting || !ready}
           token={tokenIn}
           amount={amountIn}
           submitFunction={onSubmit}

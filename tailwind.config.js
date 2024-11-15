@@ -143,6 +143,10 @@ module.exports = {
         "accordion-up": "accordion-up 0.2s ease-out",
         marquee: "marquee 24s linear infinite",
       },
+      aspectRatio: {
+        '3/1': '3 / 1',
+        '6/1': '6 / 1'
+      }
     },
   },
   plugins: [require("tailwindcss-animate")],

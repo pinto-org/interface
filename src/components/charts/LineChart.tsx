@@ -17,7 +17,6 @@ ReactChart.register(LineController, LineElement, LinearScale, CategoryScale, Poi
 
 export type LineChartData = {
   values: number[];
-  timestamp?: Date;
 } & Record<string, any>;
 
 export type MakeGradientFunction = (
@@ -38,15 +37,16 @@ export interface LineChartProps {
 
 const LineChart = React.memo(
   ({ data, size, xKey, makeLineGradients, makeAreaGradients, valueFormatter, onMouseOver }: LineChartProps) => {
-    const minData = useMemo(
-      () => data.reduce((acc, next) => Math.min(acc, ...next.values), Number.MAX_SAFE_INTEGER),
-      [data],
-    );
+    const [yTickMin, yTickMax] = useMemo(() => {
+      const maxData = data.reduce((acc, next) => Math.max(acc, ...next.values), Number.MIN_SAFE_INTEGER);
+      const minData = data.reduce((acc, next) => Math.min(acc, ...next.values), Number.MAX_SAFE_INTEGER);
 
-    const maxData = useMemo(
-      () => data.reduce((acc, next) => Math.max(acc, ...next.values), Number.MIN_SAFE_INTEGER),
-      [data],
-    );
+      let minTick = Math.max(0, minData - (maxData - minData) * 0.1);
+      if (minTick === maxData) {
+        minTick = maxData * 0.99;
+      }
+      return [minTick, maxData];
+    }, [data]);
 
     const chartData = useCallback(
       (ctx: CanvasRenderingContext2D | null): ChartData => {
@@ -186,7 +186,7 @@ const LineChart = React.memo(
           onMouseOver?.(chart.getActiveElements()[0]?.index);
         },
       }),
-      [],
+      [onMouseOver],
     );
 
     const chartOptions: ChartOptions = useMemo(() => {
@@ -262,8 +262,8 @@ const LineChart = React.memo(
           },
           y: {
             position: "right",
-            min: minData - (maxData - minData) * 0.1,
-            max: maxData,
+            min: yTickMin,
+            max: yTickMax,
             grid: {
               display: false,
             },
@@ -281,7 +281,7 @@ const LineChart = React.memo(
           },
         },
       };
-    }, [data, xKey, minData, maxData, valueFormatter]);
+    }, [data, xKey, yTickMin, yTickMax, valueFormatter]);
 
     const allPlugins = useMemo<Plugin[]>(
       () => [gradientPlugin, verticalLinePlugin, selectionPointPlugin, selectionCallbackPlugin],

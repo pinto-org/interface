@@ -1,9 +1,22 @@
-import { HashString } from "@/utils/types.generic";
-import { useEffect, useRef } from "react";
+import { HashString, Prettify } from "@/utils/types.generic";
+import { estimateGas } from "@wagmi/core";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { UseWaitForTransactionReceiptReturnType, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { encodeFunctionData } from "viem";
+import {
+  Config,
+  UseWaitForTransactionReceiptReturnType,
+  useConfig,
+  useWaitForTransactionReceipt,
+  useWriteContract,
+} from "wagmi";
+import { WriteContractMutateAsync } from "wagmi/query";
 
 type TxnReceipt = UseWaitForTransactionReceiptReturnType["data"];
+
+type ConstrictedWriteContractParams = Omit<Parameters<WriteContractMutateAsync<Config, unknown>>[0], "value">;
+
+type WriteContractParams = Prettify<ConstrictedWriteContractParams & { value?: bigint | undefined }>;
 
 export interface UseTransactionParams {
   /**
@@ -27,19 +40,26 @@ export interface UseTransactionParams {
    * @returns true if the error was handled & toast was sent. (This hook doesn't have to handle it.)
    */
   onError?: (e: any) => boolean | undefined;
+  /**
+   * callback to be called on gas estimation.
+   */
+  onEstimateGas?: (gas: bigint) => void;
 }
 
-const sendErrorToast = (error: any, errMessage?: string) => {
-  let errorMessage: string;
+const parseError = (error: any, errMessage?: string) => {
   if ("shortMessage" in error) {
-    errorMessage = error.shortMessage; // baseError type from wagmi
+    return error.shortMessage;
+  } else if (error instanceof Error || "message" in error) {
+    return error.message;
   } else if (errMessage) {
-    errorMessage = errMessage;
-  } else if (error instanceof Error) {
-    errorMessage = error.message;
+    return errMessage;
   } else {
-    errorMessage = "Transaction failed";
+    return "Transaction failed";
   }
+};
+
+const sendErrorToast = (error: any, errMessage?: string) => {
+  const errorMessage = parseError(error, errMessage);
   console.error(error);
   toast.dismiss();
   toast.error(errorMessage);
@@ -49,8 +69,14 @@ export default function useTransaction({
   errorMessage,
   successMessage,
   successCallback,
+  onEstimateGas,
   onError,
 }: UseTransactionParams) {
+  // state to prevent double submission before the txn is
+  const [submitting, setSubmitting] = useState(false);
+
+  const config = useConfig();
+
   // Set of hashes that are waiting for confirmation.
   // Keep a reference of hashes to prevent toasts being shown more than once.
   const hashes = useRef<Set<HashString> | null>(null);
@@ -114,9 +140,50 @@ export default function useTransaction({
     }
   }, [receipt.error, hash, errorMessage, onError]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies:
+  const writeWithEstimateGas = useCallback(
+    async (args: WriteContractParams) => {
+      try {
+        const gas = await estimateGas(config, {
+          to: args.address,
+          data: encodeFunctionData({
+            abi: args.abi,
+            functionName: args.functionName,
+            args: args.args,
+          }),
+          value: args.value,
+        });
+        onEstimateGas?.(gas);
+        setSubmitting(false);
+
+        const value = args.value;
+
+        const gasWithBuffer = gas ? (gas * 120n) / 100n : undefined;
+
+        const rest = { ...args } as any; // Not sure how to type this
+
+        return writeContractAsync({
+          ...rest,
+          address: args.address,
+          abi: args.abi,
+          functionName: args.functionName,
+          args: args.args,
+          value: value as any, // TODO: For some reason value is typed as undefined, so casting it to any
+          gas: gasWithBuffer,
+        });
+      } catch (e: any) {
+        const parsedError = parseError(e, errorMessage);
+        const enrichedError = new Error(`Failed to write contract with gas estimation: ${parsedError}`, { cause: e });
+        console.error(enrichedError);
+        throw enrichedError;
+      }
+    },
+    [config, writeContractAsync],
+  );
+
   const isConfirming = receipt.isLoading || mutation.isPending;
   const error = mutation.error || receipt.error;
   const confirmed = receipt.isSuccess;
 
-  return { writeContractAsync, isConfirming, confirmed, error };
+  return { writeContractAsync, writeWithEstimateGas, setSubmitting, isConfirming, confirmed, error, submitting };
 }
