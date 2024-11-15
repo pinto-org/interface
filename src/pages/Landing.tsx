@@ -11,8 +11,8 @@ import ParticlesBackground, { ParticlesBackgroundHandle } from "./landing/utils/
 
 // IMAGE ARRAY
 export const landingImages = [
-  "tree.png", // 0
-  "rock.png", // 1
+  "rock.png", // 0
+  "tree.png", // 1
   "gold.png", // 2
   "pickaxe.png", // 3
   "teepee.png", // 4
@@ -107,59 +107,70 @@ export default function Landing() {
 
   // EFFECT TO UPDATE ANIMATION SPEED, PARTICLE BACKGROUND THEME, AND CAMERA ZOOM
   useEffect(() => {
-    if (currentIndex === 0) {
-      setAnimationTimer(1600);
-    } else if (currentIndex === 1) {
-      setAnimationTimer(1200);
-    } else if (currentIndex === 2) {
-      particlesBackgroundRef.current?.loadTheme("1"); // Directly load the theme
-      setAnimationTimer(900);
-    } else if (currentIndex === 4) {
-      setAnimationTimer(800);
-    } else if (currentIndex === 5) {
-      particlesBackgroundRef.current?.loadTheme("1"); // Directly load the theme
-    } else if (currentIndex === 6) {
-      setAnimationTimer(700);
-    } else if (currentIndex === 9) {
-      particlesBackgroundRef.current?.loadTheme("2"); // Directly load the theme
-      setAnimationTimer(600);
-    } else if (currentIndex === 13) {
-      particlesBackgroundRef.current?.loadTheme("3");
-      setAnimationTimer(500);
-    } else if (currentIndex === 17) {
-      particlesBackgroundRef.current?.loadTheme("4"); // Directly load the theme
-      setAnimationTimer(400);
-    } else if (currentIndex === 21) {
-      particlesBackgroundRef.current?.loadTheme("5"); // Directly load the theme
-      if (transitionComplete) {
-        setShowMetallicCoin(true);
-        zoomRef.current = true;
-      } else {
-        // Delay the start of fading out of BTC
-        setTimeout(() => {
-          setOpacity(1); // Make sure opacity is set to fully visible initially
-          let fadeOutStartTime = performance.now();
-          const fadeOutDuration = 500; // Duration of fade-out
+    switch (currentIndex) {
+      case 0:
+        setAnimationTimer(1600);
+        break;
+      case 1:
+        setAnimationTimer(1200);
+        break;
+      case 2:
+        setAnimationTimer(900);
+        break;
+      case 4:
+        setAnimationTimer(800);
+        break;
+      case 5:
+        particlesBackgroundRef.current?.loadTheme("1"); // Directly load the theme
+        break;
+      case 6:
+        setAnimationTimer(700);
+        break;
+      case 9:
+        particlesBackgroundRef.current?.loadTheme("2"); // Directly load the theme
+        setAnimationTimer(600);
+        break;
+      case 13:
+        particlesBackgroundRef.current?.loadTheme("3");
+        setAnimationTimer(500);
+        break;
+      case 17: 
+        particlesBackgroundRef.current?.loadTheme("4"); // Directly load the theme
+        setAnimationTimer(400);
+        break;
+      case 21: 
+        particlesBackgroundRef.current?.loadTheme("5"); // Directly load the theme
+        if (transitionComplete) {
+          setShowMetallicCoin(true);
+          zoomRef.current = true;
+        } else {
+          // Delay the start of fading out of BTC
+          setTimeout(() => {
+            setOpacity(1); // Make sure opacity is set to fully visible initially
+            let fadeOutStartTime = performance.now();
+            const fadeOutDuration = 500; // Duration of fade-out
 
-          const fadeOutAnimation = () => {
-            const elapsed = performance.now() - fadeOutStartTime;
-            const newOpacity = Math.max(1 - elapsed / fadeOutDuration, 0);
-            setOpacity(newOpacity);
+            const fadeOutAnimation = () => {
+              const elapsed = performance.now() - fadeOutStartTime;
+              const newOpacity = Math.max(1 - elapsed / fadeOutDuration, 0);
+              setOpacity(newOpacity);
 
-            if (newOpacity > 0) {
-              requestAnimationFrame(fadeOutAnimation);
-            } else {
-              setShowMetallicCoin(true);
-              zoomRef.current = true; // Zoom in on the metallic coin
-              localStorage.setItem("hasWatchedTransition", "true"); // Mark transition as completed
-            }
-          };
+              if (newOpacity > 0) {
+                requestAnimationFrame(fadeOutAnimation);
+              } else {
+                setShowMetallicCoin(true);
+                zoomRef.current = true; // Zoom in on the metallic coin
+                localStorage.setItem("hasWatchedTransition", "true"); // Mark transition as completed
+              }
+            };
 
-          requestAnimationFrame(fadeOutAnimation);
-        }, 200); // 200ms delay before starting the fade-out
-      }
-    } else {
-      zoomRef.current = false; // Reset zoom flag
+            requestAnimationFrame(fadeOutAnimation);
+          }, 200); // 200ms delay before starting the fade-out
+        }
+        break;
+        default:
+      zoomRef.current = false;
+      break;
     }
   }, [currentIndex]);
 
@@ -211,7 +222,6 @@ export default function Landing() {
           {showMetallicCoin && preloadedGLTF && <CoinModel gltf={preloadedGLTF} onClick={resetCoinState} />}
           {/* Adjust the position to fit in the scene */}
           <SlideGroup
-            // cachedImages={cachedImages}
             nextIndex={nextIndex}
             currentIndex={currentIndex}
             opacity={opacity}
