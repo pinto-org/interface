@@ -155,7 +155,7 @@ const SeasonalChart = ({
             }}
           >
             <div className="absolute inset-0 flex items-center justify-center">
-              {useSeasonalResult.isLoading && <LoadingSpinner size={200} />}
+              {useSeasonalResult.isLoading && !useSeasonalResult.isError && <LoadingSpinner size={200} />}
               {useSeasonalResult.isError && (
                 <>
                   <CloseIconAlt color={"red"} />

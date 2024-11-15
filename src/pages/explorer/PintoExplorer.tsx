@@ -15,8 +15,7 @@ const PintoExplorer = () => {
   const [supplyTab, setSupplyTab] = useState(TimeTab.Week);
   const [mcapTab, setMcapTab] = useState(TimeTab.Week);
 
-  // const season = useSunData().current; // TODO(ss): put this back eventually
-  const season = 25968;
+  const season = useSunData().current;
 
   const priceData = useSeasonalPrice(Math.max(0, season - tabToSeasonalLookback(priceTab)), season);
   const liquidityData = useSeasonalTotalLiquidity(Math.max(0, season - tabToSeasonalLookback(liquidityTab)), season);
