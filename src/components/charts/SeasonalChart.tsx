@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Text from "../ui/Text";
 import { formatDate } from "@/utils/format";
 import LineChart, { LineChartData, MakeGradientFunction } from "./LineChart";
-import { useSunData } from "@/state/useSunData";
 import { CloseIconAlt } from "../Icons";
 import LoadingSpinner from "@/components/LoadingSpinner.tsx";
 import { UseSeasonalResult } from "@/utils/types";
@@ -40,7 +39,7 @@ const areaGradientFn: MakeGradientFunction = (ctx: CanvasRenderingContext2D | nu
   }
 };
 
-const tabToSeasonalLookback = (tab: TimeTab): number => {
+export const tabToSeasonalLookback = (tab: TimeTab): number => {
   if (tab === TimeTab.Week) {
     return 24 * 7 - 1;
   } else if (tab === TimeTab.Month) {
@@ -65,7 +64,9 @@ const TIME_TABS = ["Week", "Month", "All Time"];
 interface SeasonalChartProps {
   title: string;
   size: "small" | "large";
-  useDataHook: (fromSeason: number, toSeason: number) => UseSeasonalResult;
+  activeTab: TimeTab;
+  onChangeTab: (tab: TimeTab) => void;
+  useSeasonalResult: UseSeasonalResult;
   valueFormatter: (value: number) => string;
   tickValueFormatter?: (value: number) => string;
   fillArea?: boolean;
@@ -77,33 +78,32 @@ const areaGradients = [areaGradientFn];
 const SeasonalChart = ({
   title,
   size,
-  useDataHook,
+  activeTab,
+  onChangeTab,
+  useSeasonalResult,
   valueFormatter,
   tickValueFormatter,
   fillArea,
 }: SeasonalChartProps) => {
-  const [activeTab, setActiveTab] = useState(TimeTab.Week);
   const [allData, setAllData] = useState<SeasonalChartData[] | null>(null);
   const [displayData, setDisplayData] = useState<SeasonalChartData | null>(null);
 
-  // const season = useSunData().current; // TODO(ss): put this back eventually
-  const season = 25968;
-  const dataHook = useDataHook(Math.max(0, season - tabToSeasonalLookback(activeTab)), season);
+  const inputData = useSeasonalResult.data;
 
   useEffect(() => {
-    if (dataHook.data && !allData) {
-      setAllData(dataHook.data);
-      setDisplayData(dataHook.data[dataHook.data.length - 1]);
+    if (inputData && !allData) {
+      setAllData(inputData);
+      setDisplayData(inputData[inputData.length - 1]);
     }
-  }, [dataHook.data, allData]);
+  }, [inputData, allData]);
 
   const handleChangeTabFactory = useCallback(
-    (idx: TimeTab) => () => {
-      setActiveTab(idx);
+    (tab: TimeTab) => () => {
+      onChangeTab(tab);
       setAllData(null);
       setDisplayData(null);
     },
-    [],
+    [onChangeTab],
   );
 
   const chartData = useMemo<LineChartData[]>(() => {
@@ -155,8 +155,8 @@ const SeasonalChart = ({
             }}
           >
             <div className="absolute inset-0 flex items-center justify-center">
-              {dataHook.isLoading && <LoadingSpinner size={200} />}
-              {dataHook.isError && (
+              {useSeasonalResult.isLoading && <LoadingSpinner size={200} />}
+              {useSeasonalResult.isError && (
                 <>
                   <CloseIconAlt color={"red"} />
                   <Text variant="body" color="green-3">

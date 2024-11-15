@@ -1,13 +1,28 @@
-import SeasonalChart from "@/components/charts/SeasonalChart";
+import SeasonalChart, { tabToSeasonalLookback, TimeTab } from "@/components/charts/SeasonalChart";
 import {
   useSeasonalMcap,
   useSeasonalPrice,
   useSeasonalSupply,
   useSeasonalTotalLiquidity,
 } from "@/state/seasonal/seasonalDataHooks";
+import { useSunData } from "@/state/useSunData";
 import { chartFormatters as f } from "@/utils/format";
+import { useState } from "react";
 
 const PintoExplorer = () => {
+  const [priceTab, setPriceTab] = useState(TimeTab.Week);
+  const [liquidityTab, setLiquidityTab] = useState(TimeTab.Week);
+  const [supplyTab, setSupplyTab] = useState(TimeTab.Week);
+  const [mcapTab, setMcapTab] = useState(TimeTab.Week);
+
+  // const season = useSunData().current; // TODO(ss): put this back eventually
+  const season = 25968;
+
+  const priceData = useSeasonalPrice(Math.max(0, season - tabToSeasonalLookback(priceTab)), season);
+  const liquidityData = useSeasonalTotalLiquidity(Math.max(0, season - tabToSeasonalLookback(liquidityTab)), season);
+  const supplyData = useSeasonalSupply(Math.max(0, season - tabToSeasonalLookback(supplyTab)), season);
+  const mcapData = useSeasonalMcap(Math.max(0, season - tabToSeasonalLookback(mcapTab)), season);
+
   return (
     <>
       <div className="flex flex-row w-full space-x-8">
@@ -15,7 +30,9 @@ const PintoExplorer = () => {
           <SeasonalChart
             title="Pinto Price"
             size="small"
-            useDataHook={useSeasonalPrice}
+            activeTab={priceTab}
+            onChangeTab={setPriceTab}
+            useSeasonalResult={priceData}
             valueFormatter={f.price6dFormatter}
             tickValueFormatter={f.price2dFormatter}
           />
@@ -25,7 +42,9 @@ const PintoExplorer = () => {
             title="Total Liquidity"
             size="small"
             fillArea
-            useDataHook={useSeasonalTotalLiquidity}
+            activeTab={liquidityTab}
+            onChangeTab={setLiquidityTab}
+            useSeasonalResult={liquidityData}
             valueFormatter={f.price0dFormatter}
             tickValueFormatter={f.largePriceFormatter}
           />
@@ -37,7 +56,9 @@ const PintoExplorer = () => {
             title="Pinto Supply"
             size="small"
             fillArea
-            useDataHook={useSeasonalSupply}
+            activeTab={supplyTab}
+            onChangeTab={setSupplyTab}
+            useSeasonalResult={supplyData}
             valueFormatter={f.number0dFormatter}
             tickValueFormatter={f.largeNumberFormatter}
           />
@@ -47,7 +68,9 @@ const PintoExplorer = () => {
             title="Market Capitalization"
             size="small"
             fillArea
-            useDataHook={useSeasonalMcap}
+            activeTab={mcapTab}
+            onChangeTab={setMcapTab}
+            useSeasonalResult={mcapData}
             valueFormatter={f.price0dFormatter}
             tickValueFormatter={f.largePriceFormatter}
           />

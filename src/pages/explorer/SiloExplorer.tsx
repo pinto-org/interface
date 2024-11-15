@@ -1,4 +1,4 @@
-import SeasonalChart from "@/components/charts/SeasonalChart";
+import SeasonalChart, { tabToSeasonalLookback, TimeTab } from "@/components/charts/SeasonalChart";
 import {
   useSeasonalAvgSeeds,
   useSeasonalL2SR,
@@ -6,8 +6,22 @@ import {
   useSeasonalTotalLiquidity,
 } from "@/state/seasonal/seasonalDataHooks";
 import { chartFormatters as f } from "@/utils/format";
+import { useState } from "react";
 
 const SiloExplorer = () => {
+  const [liquidityTab, setLiquidityTab] = useState(TimeTab.Week);
+  const [l2srTab, setL2srTab] = useState(TimeTab.Week);
+  const [avgSeedsTab, setAvgSeedsTab] = useState(TimeTab.Week);
+  const [stalkTab, setStalkTab] = useState(TimeTab.Week);
+
+  // const season = useSunData().current; // TODO(ss): put this back eventually
+  const season = 25968;
+
+  const liquidityData = useSeasonalTotalLiquidity(Math.max(0, season - tabToSeasonalLookback(liquidityTab)), season);
+  const l2srData = useSeasonalL2SR(Math.max(0, season - tabToSeasonalLookback(l2srTab)), season);
+  const avgSeedsData = useSeasonalAvgSeeds(Math.max(0, season - tabToSeasonalLookback(avgSeedsTab)), season);
+  const stalkData = useSeasonalStalk(Math.max(0, season - tabToSeasonalLookback(stalkTab)), season);
+
   return (
     <>
       <div className="flex flex-row w-full space-x-8">
@@ -16,7 +30,9 @@ const SiloExplorer = () => {
             title="Total Liquidity"
             size="small"
             fillArea
-            useDataHook={useSeasonalTotalLiquidity}
+            activeTab={liquidityTab}
+            onChangeTab={setLiquidityTab}
+            useSeasonalResult={liquidityData}
             valueFormatter={f.price0dFormatter}
             tickValueFormatter={f.largePriceFormatter}
           />
@@ -25,7 +41,9 @@ const SiloExplorer = () => {
           <SeasonalChart
             title="Liquidity to Supply ratio"
             size="small"
-            useDataHook={useSeasonalL2SR}
+            activeTab={l2srTab}
+            onChangeTab={setL2srTab}
+            useSeasonalResult={l2srData}
             valueFormatter={f.percent2dFormatter}
             tickValueFormatter={f.percent0dFormatter}
           />
@@ -34,7 +52,9 @@ const SiloExplorer = () => {
       <SeasonalChart
         title="Average Seeds per PDV"
         size="large"
-        useDataHook={useSeasonalAvgSeeds}
+        activeTab={avgSeedsTab}
+        onChangeTab={setAvgSeedsTab}
+        useSeasonalResult={avgSeedsData}
         valueFormatter={f.number6dFormatter}
         tickValueFormatter={f.number2dFormatter}
       />
@@ -42,7 +62,9 @@ const SiloExplorer = () => {
         title="Stalk Supply"
         size="large"
         fillArea
-        useDataHook={useSeasonalStalk}
+        activeTab={stalkTab}
+        onChangeTab={setStalkTab}
+        useSeasonalResult={stalkData}
         valueFormatter={f.number0dFormatter}
         tickValueFormatter={f.largeNumberFormatter}
       />
