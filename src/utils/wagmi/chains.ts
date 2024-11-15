@@ -63,17 +63,21 @@ const CHAIN_ID_MAP = {
   41337: tenderlyTestnetNetwork,
 };
 
+const enabledChainIds = import.meta.env.VITE_CHAINS.split(",");
+
+if (!enabledChainIds.length) {
+  throw new Error("No chains enabled");
+}
+
+export const ENABLE_SWITCH_CHAINS = enabledChainIds.length >= 1;
+
 export const getChainWithChainId = (chainId: number) => {
   const cid = chainId.toString();
   return CHAIN_ID_MAP[cid];
 };
 
 export const getEnvEnabledChains = (): Chain[] => {
-  const enabledChainIds = import.meta.env.VITE_CHAINS;
-
-  if (!enabledChainIds) return [baseNetwork];
-
-  const chainIds: number[] = enabledChainIds.split(",").map(Number);
+  const chainIds: number[] = enabledChainIds.map(Number);
 
   return chainIds.map(getChainWithChainId);
 };
