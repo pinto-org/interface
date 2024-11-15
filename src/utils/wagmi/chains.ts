@@ -10,9 +10,9 @@ const BASE_ALCHEMY_RPC_URL = `https://base-mainnet.g.alchemy.com/v2/${API_KEY}`;
 
 export const LOCAL_RPC_URL = "http://127.0.0.1:8545";
 
-export const BASE_RPC_URL = BASE_ALCHEMY_RPC_URL || viem__base.rpcUrls.default.http[0];
+export const BASE_RPC_URL = API_KEY ? BASE_ALCHEMY_RPC_URL : viem__base.rpcUrls.default.http[0];
 
-export const ARB_RPC_URL = ARB_ALCHEMY_RPC_URL || viem__arbitrum.rpcUrls.default.http[0];
+export const ARB_RPC_URL = API_KEY ? ARB_ALCHEMY_RPC_URL : viem__arbitrum.rpcUrls.default.http[0];
 
 export const TENDERLY_RPC_URL = import.meta.env.VITE_TENDERLY_RPC_URL ?? BASE_RPC_URL;
 
@@ -42,7 +42,7 @@ if (TENDERLY_RPC_URL) {
 
 const arbitrumNetwork = defineChain({
   ...viem__arbitrum,
-  id: 42161,
+  id: 42_161,
   name: "Arbitrum",
   rpcUrls: {
     default: { http: [ARB_RPC_URL] },

@@ -7,17 +7,21 @@ import { Button } from "@/components/ui/Button";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
+import { beanstalkAbi } from "@/generated/contractHooks";
+import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import MorningTemperatureChart from "@/pages/field/MorningTemperature";
 import {
   useUpdateMorningSoilOnInterval,
   useUpdateMorningTemperatureOnInterval,
 } from "@/state/protocol/field/field.updater";
+
 import { useFarmerField } from "@/state/useFarmerField";
 import { useHarvestableIndex } from "@/state/useFieldData";
-import { useMorning } from "@/state/useSunData";
+import { useMorning, useSeason } from "@/state/useSunData";
 import { formatter } from "@/utils/format";
 import { useEffect, useMemo } from "react";
 import { Link, NavLink } from "react-router-dom";
+import { useReadContract } from "wagmi";
 import FieldActions from "./field/FieldActions";
 import FieldStats from "./field/FieldStats";
 import MorningPanel from "./field/MorningPanel";
@@ -37,6 +41,11 @@ function Field() {
   useEffect(() => {
     window.scroll(0, 0);
   }, []);
+
+  const season = useSeason();
+  // console.log(seasonQuery.data);
+  const protocol = useProtocolAddress();
+  // console.log(protocol);
 
   return (
     <PageContainer variant="xl">
