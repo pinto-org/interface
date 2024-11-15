@@ -7,7 +7,7 @@ import SiloExplorer from "./explorer/SiloExplorer";
 import FieldExplorer from "./explorer/FieldExplorer";
 import SeasonsExplorer from "./explorer/SeasonsExplorer";
 import AllExplorer from "./explorer/AllExplorer";
-import useRouterTabs from "@/hooks/useRouterTabs";
+import useRouterTabs, { UseRouterTabsOptions } from "@/hooks/useRouterTabs";
 
 const TABS = [
   {
@@ -32,11 +32,11 @@ const TABS = [
   },
 ];
 
+const routerSlugs = TABS.map((t) => t.urlSlug);
+const routerTabsOptions: UseRouterTabsOptions = { type: "path", key: "tab", pathname: "/explorer/:tab" };
+
 const Explorer = () => {
-  const [tab, handleChangeTab] = useRouterTabs(
-    TABS.map((t) => t.urlSlug),
-    { type: "path", key: "tab", pathname: "/explorer/:tab" },
-  );
+  const [tab, handleChangeTab] = useRouterTabs(routerSlugs, routerTabsOptions);
 
   const handleMainTabClickFactory = useCallback(
     (selection: string) => () => handleChangeTab(selection),

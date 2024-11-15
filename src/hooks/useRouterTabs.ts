@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
-interface UseRouterTabsOptions {
+export interface UseRouterTabsOptions {
   type?: "query" | "path";
   key?: string;
   defaultIndex?: number;
@@ -38,7 +38,7 @@ const useRouterTabs = (slugs: readonly string[], options: UseRouterTabsOptions =
   }, [type, queryParams, pathParams, key]);
 
   // Initialize tab state
-  const [tab, setTab] = useState(getCurrentSlug());
+  const [tab, setTab] = useState(getCurrentSlug() ?? slugs[defaultIndex]);
 
   // Handle tab changes
   const handleChangeTab = useCallback(
@@ -83,20 +83,18 @@ const useRouterTabs = (slugs: readonly string[], options: UseRouterTabsOptions =
     ],
   );
 
-  // Handle external navigation
   useEffect(() => {
     const currentSlug = getCurrentSlug();
-    if (currentSlug !== tab) {
+    // Handle external navigation
+    if (currentSlug && currentSlug !== tab) {
       setTab(currentSlug);
     }
-  }, [getCurrentSlug, tab]);
 
-  // Validate initial state
-  useEffect(() => {
-    if (!tab || !slugs.includes(tab)) {
+    // Handle incorrect initial state
+    if (!currentSlug || !slugs.includes(currentSlug)) {
       handleChangeTab(slugs[defaultIndex]);
     }
-  }, [tab, slugs, defaultIndex, handleChangeTab]);
+  }, [getCurrentSlug, tab, slugs, defaultIndex, handleChangeTab]);
 
   return [tab, handleChangeTab] as const;
 };
