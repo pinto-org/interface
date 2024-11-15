@@ -72,6 +72,19 @@ export default function WalletButtonPanel({
     <Card
       className={`absolute top-[5rem] flex flex-col bg-white transition-all ${isOpen ? "right-[1.5rem]" : "-right-[38rem]"} w-[38rem] overflow-clip h-[calc(100vh-6rem)] z-[51]`}
     >
+      {address && (
+        <button
+          type="button"
+          onClick={() => {
+            disconnect();
+            togglePanel();
+          }}
+          className="absolute top-4 right-4 flex justify-center items-center px-3 py-2 gap-1 w-[181px] h-[34px] bg-[#F8F8F8] rounded-full font-['Pinto'] font-[400] text-base leading-[110%] text-black hover:hover:bg-pinto-green hover:text-white"
+        >
+          <span>Disconnect Wallet</span>
+          <span className="w-4 h-4">×</span>
+        </button>
+      )}
       {!showTransfer ? (
         <>
           <CardHeader className="flex flex-col gap-4 p-6 pb-10">
@@ -336,16 +349,6 @@ export default function WalletButtonPanel({
           </CardContent>
           <CardFooter className="absolute bottom-0 mx-auto left-0 right-0 text-center justify-center flex flex-col gap-4">
             {ENABLE_SWITCH_CHAINS && <ChainButton />}
-            <Button
-              variant="ghost"
-              className="inline-flex items-center gap-2 rounded-full text-black bg-pinto-gray-1 hover:hover:bg-pinto-green hover:text-white"
-              onClick={() => {
-                disconnect();
-                togglePanel();
-              }}
-            >
-              Disconnect Wallet <CloseIcon color={"currentColor"} />
-            </Button>
             {totalFlood.gt(0) && <WalletButtonClaim setShowClaim={setShowClaim} showClaim={showClaim} />}
           </CardFooter>
           {totalBalance.total.eq(0) && <NoBaseValueAlert />}
