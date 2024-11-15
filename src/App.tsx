@@ -9,6 +9,8 @@ import Silo from "./pages/Silo";
 import SiloToken from "./pages/SiloToken";
 import Swap from "./pages/Swap";
 import Transfer from "./pages/Transfer";
+import Landing from "./pages/Landing";
+import LaunchArticle from "./pages/landing/LaunchArticle";
 import Explorer from "./pages/Explorer";
 
 function App() {
@@ -22,8 +24,9 @@ function App() {
           className={`relative z-[1] w-screen h-[calc(100vh-72px)] top-[72px] sm:h-[calc(100vh-124px)] sm:top-[124px]`}
         >
           <Routes>
-            {/* <Route index element={<StartPage />} /> */}
-            <Route index element={<Overview />} />
+            <Route index element={<Landing />} />
+            <Route path="/announcing-pinto" element={<LaunchArticle />} />
+            <Route path="/overview" element={<Overview />} />
             <Route path="/silo" element={<Silo />} />
             <Route path="/silo/:tokenAddress" element={<SiloToken />} />
             <Route path="/silo/:tokenAddress/:action" element={<SiloToken />} />

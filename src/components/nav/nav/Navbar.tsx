@@ -51,6 +51,9 @@ const Navbar = () => {
 
   const isRoot = useMatch("/");
 
+  const isSilo = useMatch("/silo");
+  const showHelperLink = useMemo(() => Boolean(isRoot || isSilo), [isRoot, isSilo]);
+
   const priceOpen = openPanel === "price";
   const seasonsOpen = openPanel === "seasons";
   const walletOpen = openPanel === "wallet";
@@ -97,7 +100,7 @@ const Navbar = () => {
     <>
       <div
         className={cn(
-          "fixed grid px-4 pt-4 pb-2 sm:px-6 sm:pt-6 w-full z-[2] bg-gradient-light action-container",
+          "fixed grid px-4 pt-4 pb-2 sm:px-6 sm:pt-6 w-full z-[2] bg-transparent action-container",
           styles.navGrid,
         )}
       >
@@ -184,7 +187,8 @@ const styles = {
 } as const;
 
 export const navLinks = {
-  overview: "/",
+  landing: "/",
+  overview: "/overview",
   silo: "/silo",
   field: "/field",
   market: "/market",

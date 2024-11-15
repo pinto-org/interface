@@ -1,4 +1,5 @@
-import { useReadSeasonFacetView_SeasonTime, useReadSeasonFacetView_Time } from "@/generated/contractHooks";
+import { useReadSeasonFacetView_SeasonTime } from "@/generated/contractHooks";
+import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
 import useCalculateTemperature from "@/state/useCalculateTemperature";
 import { useMorning, useSunData } from "@/state/useSunData";
@@ -6,6 +7,7 @@ import { exists, isDev } from "@/utils/utils";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { DateTime } from "luxon";
 import { useEffect } from "react";
+import { useChainId, useReadContract } from "wagmi";
 import { getDiffNow, getMorningResult, getNextExpectedSunrise, getNowRounded } from ".";
 import { fieldTemperatureAtom, morningFieldDevModeAtom } from "../field/field.atoms";
 import {
@@ -35,9 +37,13 @@ const useFetchSun = () => {
   const [seasonTime, setSeasonTime] = useAtom(seasonTimeAtom);
   const setMorningResult = useSetAtom(morningAtom);
   const setMorningRemaining = useSetAtom(morningRemainingAtom);
+  const chainId = useChainId();
+  const diamond = useProtocolAddress();
 
-  const seasonQuery = useReadSeasonFacetView_Time({
-    scopeKey: "season",
+  const seasonQuery = useReadContract({
+    address: diamond,
+    abi: chainId === 42161 ? arbTimeAbi : timeAbi,
+    functionName: "time",
     query: settings.query,
   });
 
@@ -234,3 +240,64 @@ export function useUpdateMorning() {
     setDuration,
   ]);
 }
+
+const arbTimeAbi = [
+  {
+    inputs: [],
+    name: "time",
+    outputs: [
+      {
+        components: [
+          { internalType: "uint32", name: "current", type: "uint32" },
+          { internalType: "uint32", name: "lastSop", type: "uint32" },
+          { internalType: "uint32", name: "lastSopSeason", type: "uint32" },
+          { internalType: "uint32", name: "rainStart", type: "uint32" },
+          { internalType: "bool", name: "raining", type: "bool" },
+          { internalType: "bool", name: "fertilizing", type: "bool" },
+          { internalType: "uint64", name: "sunriseBlock", type: "uint64" },
+          { internalType: "bool", name: "abovePeg", type: "bool" },
+          { internalType: "uint16", name: "stemStartSeason", type: "uint16" },
+          { internalType: "uint16", name: "stemScaleSeason", type: "uint16" },
+          { internalType: "uint256", name: "start", type: "uint256" },
+          { internalType: "uint256", name: "period", type: "uint256" },
+          { internalType: "uint256", name: "timestamp", type: "uint256" },
+          { internalType: "bytes32[8]", name: "_buffer", type: "bytes32[8]" },
+        ],
+        internalType: "struct Season",
+        name: "",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
+
+const timeAbi = [
+  {
+    inputs: [],
+    name: "time",
+    outputs: [
+      {
+        components: [
+          { internalType: "uint32", name: "current", type: "uint32" },
+          { internalType: "uint32", name: "lastSop", type: "uint32" },
+          { internalType: "uint32", name: "lastSopSeason", type: "uint32" },
+          { internalType: "uint32", name: "rainStart", type: "uint32" },
+          { internalType: "bool", name: "raining", type: "bool" },
+          { internalType: "uint64", name: "sunriseBlock", type: "uint64" },
+          { internalType: "bool", name: "abovePeg", type: "bool" },
+          { internalType: "uint256", name: "start", type: "uint256" },
+          { internalType: "uint256", name: "period", type: "uint256" },
+          { internalType: "uint256", name: "timestamp", type: "uint256" },
+          { internalType: "bytes32[8]", name: "_buffer", type: "bytes32[8]" },
+        ],
+        internalType: "struct Season",
+        name: "",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;

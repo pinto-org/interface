@@ -26,7 +26,11 @@ const Link = ({
   const location = useLocation();
   const isActive =
     active ||
-    (href === "/" ? href === location.pathname : href ? location.pathname.includes(href?.substring(1)) : false);
+    (href === "/"
+      ? href === location.pathname
+      : href
+        ? location.pathname.includes(href?.substring(1))
+        : false);
 
   if (href) {
     return (
@@ -35,7 +39,11 @@ const Link = ({
         active={isActive}
         className={`${className} ${topMenu ? `text-[1.5rem] data-[active]:text-black` : `text-[1.25rem] data-[active]:text-pinto-green-4`} font-[400] hover:cursor-pointer`}
       >
-        <ReactLink to={href} className={navigationMenuTriggerStyle()} {...props} />
+        <ReactLink
+          to={href}
+          className={navigationMenuTriggerStyle()}
+          {...props}
+        />
       </NavigationMenuLink>
     );
   }
@@ -94,7 +102,6 @@ const DocNavi = () => {
     </NavigationMenu>
   );
 };
-
 const MoreNavi = () => {
   return (
     <NavigationMenu>
@@ -123,19 +130,22 @@ const MoreNavi = () => {
 };
 
 export default function Navi() {
-  const [naviTab, setNaviTab] = useState<string | undefined>("app");
+  const [naviTab, setNaviTab] = useState<string | undefined>("landing");
 
   return (
-    <div className="flex flex-col items-center justify-center gap-5 z-[2]" onMouseLeave={() => setNaviTab("app")}>
+    <div
+      className="flex flex-col items-center justify-center gap-5 z-[2]"
+      onMouseLeave={() => setNaviTab("landing")}
+    >
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
-            <Link href="/" topMenu>
-              Home
+            <Link href="/?fromNav=true" topMenu>
+              About
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem onMouseEnter={() => setNaviTab("app")}>
-            <Link active={naviTab === "app"} topMenu>
+            <Link active={naviTab === "app"} href={navLinks.overview} topMenu>
               App
             </Link>
           </NavigationMenuItem>
