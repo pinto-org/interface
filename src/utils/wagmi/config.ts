@@ -1,11 +1,5 @@
 import PintoIcon from "@/assets/tokens/PINTO.png";
-import { isProd } from "@/utils/utils";
-import {
-  TENDERLY_RPC_URL,
-  baseNetwork as base,
-  localhostNetwork as localhost,
-  tenderlyTestnetNetwork as testnet,
-} from "@/utils/wagmi/chains";
+import { getEnvEnabledChains, localhostNetwork as localhost } from "@/utils/wagmi/chains";
 import { getDefaultConfig } from "connectkit";
 import { Chain, Transport, createTestClient } from "viem";
 import { http, createConfig } from "wagmi";
@@ -16,29 +10,17 @@ type ChainsConfig = readonly [Chain, ...Chain[]];
 
 type TransportsConfig = Record<number, Transport>;
 
-const addTestnet = !!TENDERLY_RPC_URL;
-
 const getChainConfig = (): ChainsConfig => {
-  if (isProd()) return [base] as const;
-
-  if (addTestnet) {
-    return [base, testnet, localhost] as const;
-  }
-
-  return [base, localhost] as const;
+  const chains = [...getEnvEnabledChains()] as const;
+  return chains as ChainsConfig;
 };
 
 const getTransportsConfig = (): TransportsConfig => {
   const config: TransportsConfig = {};
 
-  config[base.id] = http(base.rpcUrls.default.http[0]);
-  if (isProd()) return config;
-
-  if (addTestnet) {
-    config[testnet.id] = http(testnet.rpcUrls.default.http[0]);
+  for (const chain of getEnvEnabledChains()) {
+    config[chain.id] = http(chain.rpcUrls.default.http[0]);
   }
-
-  config[localhost.id] = http(localhost.rpcUrls.default.http[0]);
 
   return config;
 };

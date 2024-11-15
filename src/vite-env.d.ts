@@ -12,11 +12,15 @@ interface ImportMetaEnv {
   /**
    * RPC URL for the alchemy
    */
-  readonly VITE_ALCHEMY_RPC_URL: string;
+  readonly VITE_ALCHEMY_API_KEY: string;
   /**
    * ZeroEx API Key
    */
   readonly VITE_ZEROEX_API_KEY: string;
+  /**
+   * enabled chains
+   */
+  readonly VITE_CHAINS: string;
 }
 
 // biome-ignore lint/correctness/noUnusedVariables:
