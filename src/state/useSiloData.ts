@@ -5,6 +5,7 @@ import { subgraphs } from "@/constants/subgraph";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { SiloYieldsDocument } from "@/generated/gql/graphql";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { stringEq } from "@/utils/string";
 import { SiloTokenData, Token } from "@/utils/types";
 import { QueryKey, useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
@@ -186,10 +187,8 @@ export function useSiloData() {
     for (const [i, { data: wlTokenData, queryKey }] of wl.entries()) {
       const token = SILO_WHITELIST[i];
 
-      const index = yields?.siloYields[0].tokenAPYS.findIndex(
-        (apys) => apys.token.toLowerCase() === token.address.toLowerCase(),
-      );
-      const yieldData = index ? yields?.siloYields[0].tokenAPYS[index] : undefined;
+      const index = yields?.siloYields[0].tokenAPYS.findIndex((apys) => stringEq(apys.token, token?.address));
+      const yieldData = index ? yields?.siloYields[0]?.tokenAPYS[index] : undefined;
 
       if (!wlTokenData) continue;
 
@@ -207,7 +206,7 @@ export function useSiloData() {
       tokenData: data.size !== SILO_WHITELIST.length ? new Map<Token, SiloTokenData>() : data,
       queryKeys: keys,
     };
-  }, [wlTokenData0, wlTokenData1, wlTokenData2, wlTokenData3, wlTokenData4, SILO_WHITELIST, yields]);
+  }, [wlTokenData0, wlTokenData1, wlTokenData2, wlTokenData3, wlTokenData4, wlTokenData5, SILO_WHITELIST, yields]);
 
   return {
     ...wlTokenDatas,
