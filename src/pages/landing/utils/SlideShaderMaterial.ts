@@ -1,5 +1,4 @@
 import { shaderMaterial } from "@react-three/drei";
-import * as THREE from "three";
 import vertexShader from "./slideVertexShader";
 import fragmentShader from "./slideFragmentShader";
 

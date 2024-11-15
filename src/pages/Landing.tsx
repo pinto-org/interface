@@ -42,7 +42,7 @@ export default function Landing() {
   const [maxAnimationTime, setMaxAnimationTime] = useState(1); // Default to 1
   const [animationTimer, setAnimationTimer] = useState(1600);
   const [opacity, setOpacity] = useState(1);
-  const [showMetallicCoin, setShowMetallicCoin] = useState(false);
+  const [showPinto, setShowPinto] = useState(false);
 
   // PRELOADED MODELS
   const preloadedGLTF = useLoader(GLTFLoader, "3DPinto.glb");
@@ -88,7 +88,6 @@ export default function Landing() {
   useEffect(() => {
     if (transitionComplete === "true") {
       particlesBackgroundRef.current?.loadTheme("5"); // Directly load the theme
-      setOpacity(0);
       setCurrentIndex(landingImages.length - 1); // Set the current index to the last image
       setNextIndex(landingImages.length); // Set the next index to exceed the length
     }
@@ -98,7 +97,7 @@ export default function Landing() {
   const resetCoinState = useCallback(() => {
     setCurrentIndex(0);
     setNextIndex(1);
-    setShowMetallicCoin(false);
+    setShowPinto(false);
     setOpacity(1);
     zoomRef.current = false;
     particlesBackgroundRef.current?.loadTheme("default");
@@ -140,39 +139,18 @@ export default function Landing() {
         break;
       case 21: 
         particlesBackgroundRef.current?.loadTheme("5"); // Directly load the theme
-        if (transitionComplete) {
-          setShowMetallicCoin(true);
-          zoomRef.current = true;
-        } else {
-          // Delay the start of fading out of BTC
           setTimeout(() => {
-            setOpacity(1); // Make sure opacity is set to fully visible initially
-            let fadeOutStartTime = performance.now();
-            const fadeOutDuration = 500; // Duration of fade-out
-
-            const fadeOutAnimation = () => {
-              const elapsed = performance.now() - fadeOutStartTime;
-              const newOpacity = Math.max(1 - elapsed / fadeOutDuration, 0);
-              setOpacity(newOpacity);
-
-              if (newOpacity > 0) {
-                requestAnimationFrame(fadeOutAnimation);
-              } else {
-                setShowMetallicCoin(true);
-                zoomRef.current = true; // Zoom in on the metallic coin
-                localStorage.setItem("hasWatchedTransition", "true"); // Mark transition as completed
-              }
-            };
-
-            requestAnimationFrame(fadeOutAnimation);
-          }, 200); // 200ms delay before starting the fade-out
-        }
+            setShowPinto(true);
+            setOpacity(0.4);
+            localStorage.setItem("hasWatchedTransition", "true"); // Mark transition as completed
+          }, 200);
         break;
-        default:
-      zoomRef.current = false;
-      break;
     }
   }, [currentIndex]);
+
+  const onCoinScaleSet = () => {
+    zoomRef.current = true;
+  }
 
   return (
     <div className="space-y-8 relative z-10">
@@ -193,7 +171,7 @@ export default function Landing() {
           raycaster={{
             layers: (() => {
               const layers = new THREE.Layers();
-              layers.set(2);
+              layers.set(1);
               return layers;
             })(), // Ensure the raycaster checks layer 2
           }}
@@ -211,17 +189,28 @@ export default function Landing() {
           <CameraZoom zoomRef={zoomRef} />
           <ambientLight intensity={5} />
           <directionalLight
-            position={[0, 80, 80]} // Positioned above and slightly in front of the coin
+            position={[20, 80, 80]} // Positioned above and slightly in front of the coin
             intensity={10} // Strong enough to create a noticeable gradient effect
           />
           <directionalLight
-            position={[0, 20, 60]} // Positioned above and slightly in front of the coin
+            position={[20, 20, 60]} // Positioned above and slightly in front of the coin
             intensity={1} // Strong enough to create a noticeable gradient effect
           />
+          <directionalLight
+            position={[20, 20, 30]} // Positioned above and slightly in front of the coin
+            intensity={3} // Strong enough to create a noticeable gradient effect
+          />
           {/* Coin Model */}
-          {showMetallicCoin && preloadedGLTF && <CoinModel gltf={preloadedGLTF} onClick={resetCoinState} />}
-          {/* Adjust the position to fit in the scene */}
+          {showPinto && preloadedGLTF && (
+            <CoinModel
+              gltf={preloadedGLTF}
+              onClick={resetCoinState}
+              onScaleSet={() => onCoinScaleSet()}
+            />
+          )}
+          {/* SlideGroup is rendered unconditionally */}
           <SlideGroup
+            showPinto={showPinto}
             nextIndex={nextIndex}
             currentIndex={currentIndex}
             opacity={opacity}
@@ -256,24 +245,22 @@ const CameraZoom: React.FC<CameraZoomProps> = ({ zoomRef }) => {
 
   // CAMERA POSITIONS
   const initialCameraPosition = new THREE.Vector3(0, 0, 100);
-  const targetCameraPosition = new THREE.Vector3(0, 0, 20);
+  const targetCameraPosition = new THREE.Vector3(20, 0, 50);
 
   useEffect(() => {
-    if (zoomRef.current) {
-      camera.position.copy(initialCameraPosition);
-      camera.layers.enable(2); // Enable layer 2 for rendering the Slide
-      camera.layers.disable(1); // Optionally disable the default layer
-    } else {
-      camera.layers.enable(1); // Enable layer 1 for rendering the Slide
-      camera.layers.disable(2); // Optionally disable the default layer
+    camera.layers.enable(1);
+
+    // Explicitly reset camera position if zoomRef is false
+    if (zoomRef.current === false) {
+      camera.position.copy(initialCameraPosition); // Snap to the initial position
     }
   }, [camera, zoomRef.current]);
 
   useFrame(() => {
     if (zoomRef.current) {
-      camera.position.lerp(targetCameraPosition, 0.07); // Smooth zoom and pan
+      camera.position.lerp(targetCameraPosition, 0.10);
     } else {
-      camera.position.lerp(initialCameraPosition, 0.14);
+      camera.position.lerp(initialCameraPosition, 0.06);
     }
   });
 

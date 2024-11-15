@@ -2,7 +2,6 @@ import React, {
   useEffect,
   useRef,
   useCallback,
-  useMemo,
   forwardRef,
   useImperativeHandle,
   useState,
@@ -15,10 +14,6 @@ import { Container } from "@tsparticles/engine";
 export interface ParticlesBackgroundHandle {
   loadTheme: (theme: string) => void;
 }
-
-/*
-if i can get manual particles to work, then i think this could be very interesting.
-*/
 
 // Memoize ParticlesBackground to prevent unnecessary re-renders
 const ParticlesBackground = React.memo(

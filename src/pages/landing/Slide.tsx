@@ -24,7 +24,6 @@ extend({ SlideShaderMaterial });
 
 // SlideProps interface
 interface SlideProps {
-  // imageObject: HTMLImageElement;
   preloadedTexture: THREE.Texture;
   imageUrl: string;
   width: number;
@@ -32,6 +31,7 @@ interface SlideProps {
   animationPhase: "in" | "out";
   progress: number;
   opacity: number;
+  showPinto: boolean;
   onMaxAnimationTimeCalculated?: (time: number) => void;
 }
 
@@ -47,12 +47,15 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
       animationPhase,
       progress,
       opacity,
+      showPinto,
       onMaxAnimationTimeCalculated,
     },
     ref,
   ) => {
     const meshRef = useRef<THREE.Mesh>(null);
     const materialRef = useRef<any>(null);
+    const positionRef = useRef(new THREE.Vector3(0, 0, 0));
+    const targetPosition = useRef(new THREE.Vector3(-20, 0, -10));
 
     // Texture setup
     const texture = useMemo(() => {
@@ -86,6 +89,11 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
         materialRef.current.transparent = true; // Ensure transparency
         materialRef.current.opacity = opacity; // Update opacity value
       }
+      if (showPinto) {
+        meshRef.current?.position.lerp(targetPosition.current, 0.10);
+      } else {
+        meshRef.current?.position.lerp(positionRef.current, 0.10);
+      }
     });
 
     // Use effect to initialize opacity properly
@@ -103,7 +111,7 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
     }, []);
 
     return (
-      <mesh ref={meshRef} geometry={geometry}>
+      <mesh ref={meshRef} geometry={geometry} position={positionRef.current}>
         <slideShaderMaterial
           opacity={opacity}
           ref={materialRef}

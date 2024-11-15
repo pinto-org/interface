@@ -102,7 +102,7 @@ const Navbar = () => {
     <>
       <div
         className={cn(
-          "fixed grid px-4 pt-4 pb-2 sm:px-6 sm:pt-6 w-full z-[2] bg-gradient-light action-container",
+          "fixed grid px-4 pt-4 pb-2 sm:px-6 sm:pt-6 w-full z-[2] bg-transparent action-container",
           styles.navGrid
         )}
       >

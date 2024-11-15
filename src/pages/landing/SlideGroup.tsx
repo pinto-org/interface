@@ -1,13 +1,7 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import * as THREE from "three";
 import { landingImages } from "../Landing";
 import Slide from "../landing/Slide";
-
-/*
-[ ] if this doesn't work, try downscaling the tree, rock, and gold images to get faster load times
-if that doesn't work, try delaying the second promise to get the first images faster
-if that doesn't work then try to break the loading into three promises
-*/
 
 interface UseAnimationFrameProps {
   nextIndex: number;
@@ -21,6 +15,7 @@ interface UseAnimationFrameProps {
 
 interface SlideGroupProps extends Omit<UseAnimationFrameProps, "setProgress"> {
   opacity: number;
+  showPinto: boolean;
   setMaxAnimationTime: React.Dispatch<React.SetStateAction<number>>;
 }
 
@@ -85,6 +80,7 @@ const SlideGroup = ({
   opacity,
   animationTimer,
   maxAnimationTime,
+  showPinto,
   setMaxAnimationTime,
   setNextIndex,
   setCurrentIndex,
@@ -155,6 +151,7 @@ const SlideGroup = ({
         animationPhase="out"
         progress={progress}
         opacity={opacity} // Pass opacity down
+        showPinto={showPinto}
         onMaxAnimationTimeCalculated={(time) => setMaxAnimationTime(time)}
       />
       {nextIndex < landingImages.length && (
@@ -167,6 +164,7 @@ const SlideGroup = ({
           animationPhase="in"
           progress={progress}
           opacity={opacity} // Pass opacity down
+          showPinto={showPinto}
           onMaxAnimationTimeCalculated={(time) => setMaxAnimationTime(time)}
         />
       )}
