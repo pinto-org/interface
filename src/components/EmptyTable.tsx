@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import Text from "./ui/Text";
 
 type EmptyTableProps = {
-  type?: "deposits" | "plots";
+  type?: "deposits" | "plots" | "plots-field";
 };
 
 const EMPTY_TABLE_CONTENT = {
@@ -18,6 +18,13 @@ const EMPTY_TABLE_CONTENT = {
     link: {
       text: "Sow in the Field for Pods",
       to: "/field",
+    },
+  },
+  "plots-field": {
+    message: "Your Pods will appear here.",
+    link: {
+      text: "",
+      to: "",
     },
   },
 } as const;
@@ -39,9 +46,11 @@ export default function EmptyTable({ type }: EmptyTableProps) {
         <Text variant="body-light" color="light">
           {content.message}
         </Text>
-        <Text variant="body-light" color="green4" className="hover:underline">
-          <Link to={content.link.to}>{content.link.text}</Link>
-        </Text>
+        {type !== "plots-field" && (
+          <Text variant="body-light" color="green4" className="hover:underline">
+            <Link to={content.link.to}>{content.link.text}</Link>
+          </Text>
+        )}
       </>
     );
   };

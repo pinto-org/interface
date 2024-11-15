@@ -22,7 +22,11 @@ interface IAllowZero {
   allowZero?: boolean;
 }
 
-type FormatNumOptions = IMinValue & IDecimals & IDefaultValue & IAllowZero;
+interface IShowPositiveSign {
+  showPositiveSign?: boolean;
+}
+
+type FormatNumOptions = IMinValue & IDecimals & IDefaultValue & IAllowZero & IShowPositiveSign;
 
 /**
  * We can for the most part use TokenValue.toHuman("short"),
@@ -48,23 +52,42 @@ export const formatNum = (val: NumberPrimitive, options?: FormatNumOptions) => {
     }
   }
 
-  return new Intl.NumberFormat("en-US", {
+  const formatted = new Intl.NumberFormat("en-US", {
     notation: "standard",
     minimumFractionDigits: options?.minDecimals ?? 0,
     maximumFractionDigits: options?.maxDecimals ?? 2,
     useGrouping: true,
+    signDisplay: options?.showPositiveSign ? "exceptZero" : "auto",
   }).format(num);
+
+  return formatted;
 };
 
-export const formatUSD = (val: NumberPrimitive) => {
-  return `$${formatNum(val || TokenValue.ZERO, { minDecimals: 2, maxDecimals: 2, defaultValue: "0.00", minValue: 0.01, allowZero: true })}`;
+export const formatUSD = (val: NumberPrimitive, options?: IShowPositiveSign) => {
+  const formatted = formatNum(val || TokenValue.ZERO, {
+    minDecimals: 2,
+    maxDecimals: 2,
+    defaultValue: "0.00",
+    minValue: 0.01,
+    allowZero: true,
+    showPositiveSign: options?.showPositiveSign,
+  });
+  return `$${formatted}`;
 };
 
-export const formatPDV = (val: NumberPrimitive) => {
-  return `${formatNum(val || TokenValue.ZERO, { minDecimals: 2, maxDecimals: 2, defaultValue: "0.00", minValue: 0.01, allowZero: true })} PDV`;
+export const formatPDV = (val: NumberPrimitive, options?: IShowPositiveSign) => {
+  const formatted = formatNum(val || TokenValue.ZERO, {
+    minDecimals: 2,
+    maxDecimals: 2,
+    defaultValue: "0.00",
+    minValue: 0.01,
+    allowZero: true,
+    showPositiveSign: options?.showPositiveSign,
+  });
+  return `${formatted} PDV`;
 };
 
-export const formatPct = (val: NumberPrimitive) => {
+export const formatPct = (val: NumberPrimitive, options?: IShowPositiveSign) => {
   if (val === undefined || val === null) return "0.00%";
   const formatted = formatNum(val, {
     minDecimals: 2,
@@ -72,29 +95,32 @@ export const formatPct = (val: NumberPrimitive) => {
     defaultValue: "0.00",
     minValue: 0.01,
     allowZero: true,
+    showPositiveSign: options?.showPositiveSign,
   });
   return `${formatted}%`;
 };
 
-export const formatNoDecimals = (val: NumberPrimitive) => {
+export const formatNoDecimals = (val: NumberPrimitive, options?: IShowPositiveSign) => {
   return formatNum(val || TokenValue.ZERO, {
     minDecimals: 0,
     maxDecimals: 0,
     defaultValue: "0",
     minValue: 0.01,
     allowZero: true,
+    showPositiveSign: options?.showPositiveSign,
   });
 };
 
-export type Format2DecimalsOptions = IAllowZero;
+export type Format2DecimalsOptions = IAllowZero & IShowPositiveSign;
 
-export const format2Decimals = (val: NumberPrimitive, options?: IAllowZero) => {
+export const format2Decimals = (val: NumberPrimitive, options?: Format2DecimalsOptions) => {
   return formatNum(val || TokenValue.ZERO, {
     minDecimals: 2,
     maxDecimals: 2,
     defaultValue: "0.00",
     minValue: 0.01,
     allowZero: options?.allowZero || true,
+    showPositiveSign: options?.showPositiveSign,
   });
 };
 
@@ -123,7 +149,7 @@ function normalizeTokenAmount(val: NumberPrimitive, token: Token | InternalToken
   return Number(val);
 }
 
-export const formatTokenAmount = (val: NumberPrimitive, token: Token | InternalToken) => {
+export const formatTokenAmount = (val: NumberPrimitive, token: Token | InternalToken, options?: IShowPositiveSign) => {
   if (tokensEqual(token, CBBTC) || tokensEqual(token, PINTOCBBTC)) {
     return formatNum(normalizeTokenAmount(val, token), {
       minDecimals: 6,
@@ -131,9 +157,13 @@ export const formatTokenAmount = (val: NumberPrimitive, token: Token | InternalT
       defaultValue: "0.00",
       minValue: 0.000001,
       allowZero: true,
+      showPositiveSign: options?.showPositiveSign,
     });
   }
-  return format2Decimals(normalizeTokenAmount(val, token), { allowZero: true });
+  return format2Decimals(normalizeTokenAmount(val, token), {
+    allowZero: true,
+    showPositiveSign: options?.showPositiveSign,
+  });
 };
 
 const numberAbbrThresholds: [number, string][] = [

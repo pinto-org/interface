@@ -49,13 +49,10 @@ const Navbar = () => {
   const hasFlood = farmerActions.floodAssets.enabled;
   const usdValue = farmerActions.totalValue.wallet.total;
 
-  const isRoot = useMatch("/");
-
+  const isHome = useMatch("/");
+  const isOverview = useMatch("/overview");
   const isSilo = useMatch("/silo");
-  const showHelperLink = useMemo(
-    () => Boolean(isRoot || isSilo),
-    [isRoot, isSilo]
-  );
+  const showWalletHelper = isOverview || isSilo;
 
   const priceOpen = openPanel === "price";
   const seasonsOpen = openPanel === "seasons";
@@ -95,7 +92,6 @@ const Navbar = () => {
     } else {
       setBackdropMounted(true);
       setOpenBackdrop(true);
-      invalidateData(panel);
       setOpenPanel(panel);
     }
   };
@@ -104,25 +100,23 @@ const Navbar = () => {
     <>
       <div
         className={cn(
-          "fixed grid px-4 pt-4 pb-2 sm:px-6 sm:pt-6 w-full z-[2] bg-transparent action-container",
-          styles.navGrid
+          `fixed grid px-4 pt-4 pb-2 sm:px-6 sm:pt-6 w-full z-[2] ${isHome ? "bg-transparent" : "bg-gradient-light"} action-container transition-colors`,
+          styles.navGrid,
         )}
       >
         <div className="flex flex-row gap-2 sm:gap-4">
-          <div
-            className={`transition-all duration-100 ${priceOpen && "z-[51]"}`}
-          >
+          <div className={`transition-all duration-100 ${priceOpen && "z-[51]"}`}>
             <PriceButton
               isOpen={priceOpen}
               togglePanel={() => togglePanel("price")}
+              onMouseEnter={() => invalidateData("price")}
             />
           </div>
-          <div
-            className={`transition-all duration-100 ${seasonsOpen && "z-[51]"}`}
-          >
+          <div className={`transition-all duration-100 ${seasonsOpen && "z-[51]"}`}>
             <SeasonsButton
               isOpen={seasonsOpen}
               togglePanel={() => togglePanel("seasons")}
+              onMouseEnter={() => invalidateData("seasons")}
             />
           </div>
         </div>
@@ -135,6 +129,7 @@ const Navbar = () => {
               <WalletButton
                 isOpen={walletOpen}
                 togglePanel={() => togglePanel("wallet")}
+                onMouseEnter={() => invalidateData("wallet")}
                 ref={walletButton}
                 showClaim={showClaim}
                 setShowClaim={setShowClaim}
@@ -151,13 +146,9 @@ const Navbar = () => {
             />
           </div>
           <div className="hidden sm:block">
-            <Backdrop
-              active={openBackdrop}
-              onClick={closePanel}
-              transitionDuration={DURATION}
-            />
+            <Backdrop active={openBackdrop} onClick={closePanel} transitionDuration={DURATION} />
           </div>
-          {!openPanel && isRoot && (
+          {!openPanel && showWalletHelper && (
             <ScrollHideComponent>
               <HelperLink
                 onClick={() => {
@@ -192,9 +183,7 @@ const Navbar = () => {
 export default Navbar;
 
 const styles = {
-  navGrid: clsx(
-    "grid-cols-[220px_1fr] sm:grid-cols-[350px_1fr] lg:grid-cols-[350px_1fr_200px] grid-rows-1"
-  ),
+  navGrid: clsx("grid-cols-[220px_1fr] sm:grid-cols-[350px_1fr] lg:grid-cols-[350px_1fr_200px] grid-rows-1"),
 } as const;
 
 export const navLinks = {

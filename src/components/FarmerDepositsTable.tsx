@@ -56,10 +56,13 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
       return Number(bBdv.sub(aBdv).toHuman());
     });
   }, [farmerDeposits, tokenData.whitelistedTokens, mainToken]);
+  const plantData = farmerActions.tokenTotals.get(mainToken);
+  const plantBeanGain = plantData?.sources.plant?.beanGain || TokenValue.ZERO;
+  const plantStalkGain = plantData?.sources.plant?.stalkGain || TokenValue.ZERO;
+  const plantSeedGain = plantData?.sources.plant?.seedGain || TokenValue.ZERO;
+  const plantBDVGain = plantData?.sources.plant?.bdvGain || TokenValue.ZERO;
 
   const renderClaimableRow = () => {
-    const plantData = farmerActions.tokenTotals.get(mainToken);
-    const plantBeanGain = plantData?.sources.plant?.beanGain || TokenValue.ZERO;
     const showRow = !hovering && plantBeanGain.gte(0.01);
 
     const cellAnimation = {
@@ -115,7 +118,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
             <div className="inline-flex items-center gap-1">
               <IconImage src={mainToken.logoURI} size={4} />
               <Text variant="small" color="green4">
-                {formatter.number(plantData?.sources.plant?.beanGain || TokenValue.ZERO)} {mainToken.name}
+                {formatter.number(plantBeanGain)} {mainToken.name}
               </Text>
             </div>
           </motion.div>
@@ -130,7 +133,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
             <div className="inline-flex items-center gap-1">
               <IconImage src={stalkIcon} size={4} />
               <Text variant="small" color="green4">
-                {formatter.number(plantData?.sources.plant?.stalkGain || TokenValue.ZERO)}
+                {formatter.number(plantStalkGain)}
               </Text>
             </div>
           </motion.div>
@@ -145,7 +148,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
             <div className="inline-flex items-center gap-1">
               <IconImage src={seedIcon} size={4} />
               <Text variant="small" color="green4">
-                {formatter.number(plantData?.sources.plant?.seedGain || TokenValue.ZERO)}
+                {formatter.number(plantSeedGain)}
               </Text>
             </div>
           </motion.div>
@@ -201,6 +204,8 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                 stalkGain: data.update?.stalkGain || TokenValue.ZERO,
               };
 
+              const addClaimable = token.isMain;
+
               return (
                 <TableRow
                   key={`${token.address}_${i}`}
@@ -242,7 +247,9 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                           <div className="text-pinto-gray-4 font-[300] text-[1rem]">
                             {formatter.usd(
                               userData?.depositBDV
-                                .add(rewardGains.bdvGain.add(updateGains.bdvGain))
+                                .add(rewardGains.bdvGain)
+                                .add(updateGains.bdvGain)
+                                .add(addClaimable ? plantBDVGain : 0)
                                 .mul(priceData.price),
                             )}
                           </div>
@@ -251,8 +258,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                     </div>
                   </TableCell>
                   <TableCell className="text-black font-[400] text-[1rem] text-right">
-                    {!hovering ||
-                    (rewardGains.stalkGain.lt(0.01) && updateGains.stalkGain.lt(0.01) && grownStalk.lt(0.01)) ? (
+                    {!hovering || (updateGains.stalkGain.lt(0.01) && grownStalk.lt(0.01)) ? (
                       <div className="flex flex-col items-end">
                         <div className="inline-flex items-center gap-1">
                           <IconImage src={stalkIcon} size={4} />
@@ -270,7 +276,14 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                         <div className="inline-flex items-center gap-1">
                           <UpArrowIcon color={"currentColor"} />
                           <IconImage src={stalkIcon} size={4} />
-                          <div>{formatter.number(userData?.stalk.base.add(grownStalk).add(updateGains.stalkGain))}</div>
+                          <div>
+                            {formatter.number(
+                              userData?.stalk.base
+                                .add(grownStalk)
+                                .add(updateGains.stalkGain)
+                                .add(addClaimable ? plantStalkGain : 0),
+                            )}
+                          </div>
                         </div>
                         {data.update?.stalkFromBDVIncrease.gt(0.01) && (
                           <div>
@@ -294,7 +307,12 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                           <UpArrowIcon color={"currentColor"} />
                           <IconImage src={seedIcon} size={4} />
                           <div>
-                            {formatter.number(userData?.seeds.add(rewardGains.seedGain.add(updateGains.seedGain)))}
+                            {formatter.number(
+                              userData?.seeds
+                                .add(rewardGains.seedGain)
+                                .add(updateGains.seedGain)
+                                .add(addClaimable ? plantSeedGain : 0),
+                            )}
                           </div>
                         </div>
                         {data.update?.seedsFromBDVIncrease.gt(0.01) && (

@@ -1,13 +1,16 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/Tooltip";
+import { TooltipPortal } from "@radix-ui/react-tooltip";
 import { ReactNode } from "react";
 import { InfoOutlinedIcon, InfoSolidIcon } from "./Icons";
 
-interface ParentComponentProps {
+interface TooltipSimpleProps {
   variant?: "pinto" | "stalk" | "seeds" | "pods" | "gray" | "outlined";
   children?: ReactNode;
   content?: ReactNode;
   opaque?: boolean;
   props?: [x: string];
+  side?: "top" | "right" | "bottom" | "left";
+  align?: "start" | "center" | "end";
 }
 
 export default function TooltipSimple({
@@ -15,29 +18,45 @@ export default function TooltipSimple({
   children,
   content,
   opaque,
+  side = "top",
+  align = "center",
   ...props
-}: ParentComponentProps) {
+}: TooltipSimpleProps) {
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           {children || (
             <span
-              className={`${opaque ? "opacity-[0.4]" : "opacity-100"} ${variant === "pinto" ? "text-pinto" : variant === "stalk" ? "text-pinto-stalk-gold" : variant === "seeds" ? "text-pinto-seed-silver" : variant === "pods" ? "text-pinto-pod-bronze" : "text-pinto-gray-4"}`}
+              className={`${opaque ? "opacity-[0.4]" : "opacity-100"} ${
+                variant === "pinto"
+                  ? "text-pinto"
+                  : variant === "stalk"
+                    ? "text-pinto-stalk-gold"
+                    : variant === "seeds"
+                      ? "text-pinto-seed-silver"
+                      : variant === "pods"
+                        ? "text-pinto-pod-bronze"
+                        : "text-pinto-gray-4"
+              }`}
             >
               {variant === "pinto" ||
               variant === "gray" ||
               variant === "stalk" ||
               variant === "seeds" ||
               variant === "pods" ? (
-                <InfoSolidIcon color={"currentColor"} />
+                <InfoSolidIcon color="currentColor" />
               ) : (
-                <InfoOutlinedIcon color={"currentColor"} />
+                <InfoOutlinedIcon color="currentColor" />
               )}
             </span>
           )}
         </TooltipTrigger>
-        <TooltipContent {...props}>{content}</TooltipContent>
+        <TooltipPortal>
+          <TooltipContent side={side} align={align} {...props}>
+            {content}
+          </TooltipContent>
+        </TooltipPortal>
       </Tooltip>
     </TooltipProvider>
   );
