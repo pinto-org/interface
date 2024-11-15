@@ -99,11 +99,10 @@ const StatPanel = ({
         </>
       )}
       {mode === "stalk" && variant === "silo" && (
-        <div className={`${showActionValues || secondaryValue.eq(0) ? "opacity-0" : "opacity-100"}`}>
+        <div className={`${showActionValues || secondaryValue.lt(0.01) ? "opacity-0" : "opacity-100"}`}>
           Claimable Stalk:
           <Text as="span" variant="inherit" color="green4" className="pl-2">
-            {secondaryValue.gt(0) ? "+" : ""}
-            {formatter.noDec(secondaryValue)}
+            {formatter.twoDec(secondaryValue, { showPositiveSign: true })}
           </Text>
         </div>
       )}
@@ -118,11 +117,10 @@ const StatPanel = ({
         </span>
       )}
       {mode === "seeds" && variant === "silo" && (
-        <div className={`${showActionValues || secondaryValue.eq(0) ? "opacity-0" : "opacity-100"}`}>
+        <div className={`${showActionValues || secondaryValue.lt(0.01) ? "opacity-0" : "opacity-100"}`}>
           Claimable Seeds:
           <Text as="span" variant="inherit" color="green4" className="pl-2">
-            {secondaryValue.gt(0) ? "+" : ""}
-            {formatter.noDec(secondaryValue)}
+            {formatter.twoDec(secondaryValue, { showPositiveSign: true })}
           </Text>
         </div>
       )}
@@ -133,14 +131,32 @@ const StatPanel = ({
   return (
     <div className={`relative min-w-[275px]`}>
       <div className={`flex flex-col items-center gap-2 ${className}`}>
-        <div data-action-target={`${mode}-stats`} className={mainValue.eq(0) ? "opacity-[0.4]" : "opacity-100"}>
+        <div
+          data-action-target={`${mode}-stats`}
+          className={
+            mainValue.eq(0) && !showActionValues
+              ? "opacity-[0.4]"
+              : showActionValues && secondaryValue.gt(0.01)
+                ? "opacity-100"
+                : "opacity-100"
+          }
+        >
           <Text variant="body">{`My ${mode === "stalk" ? "Stalk" : mode === "seeds" ? "Seeds" : mode === "pods" ? "Pods" : "deposited value"}`}</Text>
         </div>
-        <Text variant={size === "large" ? "h1" : "h3"} className={mainValue.eq(0) ? "opacity-[0.4]" : "opacity-100"}>
+        <Text
+          variant={size === "large" ? "h1" : "h3"}
+          className={
+            mainValue.eq(0) && !showActionValues
+              ? "opacity-[0.4]"
+              : showActionValues && secondaryValue.gt(0.01)
+                ? "opacity-100"
+                : "opacity-100"
+          }
+        >
           <ValueDisplay />
         </Text>
         <div className="flex flex-row gap-1 items-center">
-          <div className={mainValue.eq(0) ? "opacity-[0.4]" : "opacity-100"}>
+          <div className={secondaryValue.eq(0) ? "opacity-[0.4]" : "opacity-100"}>
             <SecondaryDisplay />
           </div>
           {tooltipContent && (
