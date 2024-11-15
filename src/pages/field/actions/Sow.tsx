@@ -45,11 +45,11 @@ const useMaxSow = (tokenIn: Token, slippage: number) => {
   const isMainToken = tokenIn.isMain;
 
   const swap = useSwapEstimate(
-    mainToken,
     tokenIn,
+    mainToken,
     isMainToken ? 0 : Math.max(totalSoil.toNumber(), 0),
     slippage,
-    "exactInput",
+    "exactOutput",
     FarmFromMode.EXTERNAL,
     FarmToMode.EXTERNAL,
     undefined,
@@ -254,7 +254,7 @@ function Sow({ isMorning }: SowProps) {
         <ComboInputField
           amount={amountIn}
           disableInput={isConfirming}
-          customMaxAmount={maxSow?.lt(0) ? TokenValue.ZERO : maxSow}
+          customMaxAmount={maxSow?.gt(0) ? TokenValue.min(balanceFromMode, maxSow) : TokenValue.ZERO}
           setAmount={setAmountIn}
           setToken={setTokenIn}
           setBalanceFrom={setBalanceFrom}
