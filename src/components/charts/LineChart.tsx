@@ -77,7 +77,9 @@ const LineChart = React.memo(
             const activeElements = chart.getActiveElements();
             if (activeElements.length > 0) {
               const dataPoint = chart.getDatasetMeta(0).data[activeElements[0].index];
-              relativeX = (dataPoint.x - chart.chartArea.left) / chart.chartArea.width;
+              if (dataPoint) {
+                relativeX = (dataPoint.x - chart.chartArea.left) / chart.chartArea.width;
+              }
             }
 
             for (let i = 0; i < chart.data.datasets.length; ++i) {
