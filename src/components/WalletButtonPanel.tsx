@@ -171,27 +171,38 @@ export default function WalletButtonPanel({
                         return (
                           <Toggle
                             key={`${token.address}_totalBalance`}
-                            className="flex flex-row w-full gap-4 group overflow-hidden transition-all hover:bg-pinto-gray-1 hover:cursor-pointer data-[state=on]:bg-white data-[state=on]:hover:bg-pinto-gray-1 data-[state=off]:hover:bg-pinto-gray-1 data-[state=off]:bg-white rounded-[0.75rem] h-auto px-4 py-2"
+                            className="flex flex-row w-full gap-4 group overflow-hidden transition-all hover:bg-pinto-gray-1 hover:cursor-pointer data-[state=on]:bg-white data-[state=on]:hover:bg-pinto-gray-1 data-[state=off]:hover:bg-pinto-gray-1 data-[state=off]:bg-white rounded-[0.75rem] h-auto px-4 py-2 items-start"
                           >
-                            <img src={token.logoURI} className="w-12 h-12 self-start" />
-                            <div className="flex flex-col w-full -mb-[2.75rem] group-data-[state=on]:mb-0 transition-all">
+                            <div className="w-12 h-12 flex-shrink-0">
+                              <img
+                                src={token.logoURI}
+                                alt={`${token.symbol} token logo`}
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                            <div className="flex flex-col w-full">
                               <div className="flex flex-row justify-between items-center">
                                 <div className="flex flex-col text-left gap-2 my-1">
                                   <span className="text-[1.25rem] text-pinto-gray-5">{token.symbol}</span>
                                   <span className="font-[340] transition-all group-hover:text-pinto-green text-pinto-gray-4 inline-flex gap-1 items-center">
-                                    <DonutChart
-                                      data={{
-                                        labels: ["Farm Balance", "Wallet Balance"],
-                                        datasets: [
-                                          {
-                                            label: "",
-                                            data: [Number(balances.internal), Number(balances.external)],
-                                            backgroundColor: ["rgb(254, 225, 140)", "rgb(36, 102, 69)"],
-                                            borderWidth: 0,
-                                          },
-                                        ],
-                                      }}
-                                    />
+                                    <div className="relative -top-[4px]">
+                                      <DonutChart
+                                        data={{
+                                          labels: ["Farm Balance", "Wallet Balance"],
+                                          datasets: [
+                                            {
+                                              label: "",
+                                              data:
+                                                token.symbol === "ETH"
+                                                  ? [0, Number(balances.external)]
+                                                  : [Number(balances.internal), Number(balances.external)],
+                                              backgroundColor: ["rgb(254, 225, 140)", "rgb(36, 102, 69)"],
+                                              borderWidth: 0,
+                                            },
+                                          ],
+                                        }}
+                                      />
+                                    </div>
                                     {`${balances.total.toHuman("short")} ${token.symbol}`}
                                     <ChevronDownIcon
                                       color={"currentColor"}
@@ -203,19 +214,25 @@ export default function WalletButtonPanel({
                                   {formatter.usd(balances.total.mul(price))}
                                 </span>
                               </div>
-                              <div className="font-[340] text-[1rem] mt-2 text-pinto-gray-4 inline-flex justify-between gap-1 items-center leading-none">
-                                <div className="inline-flex gap-1 items-center">
-                                  <div className="rounded-full bg-pinto w-3 h-3" />
-                                  <div>Wallet Balance</div>
+                              <div className="h-0 opacity-0 group-data-[state=on]:h-auto group-data-[state=on]:opacity-100 transition-all duration-200">
+                                <div className="flex flex-col gap-1 py-2">
+                                  <div className="font-[340] text-[1rem] text-pinto-gray-4 flex justify-between items-center">
+                                    <div className="flex items-center gap-1">
+                                      <div className="rounded-full bg-pinto w-3 h-3 flex-shrink-0" />
+                                      <div>Wallet Balance</div>
+                                    </div>
+                                    <div>{`${balances.external.toHuman("short")} ${token.symbol}`}</div>
+                                  </div>
+                                  {token.symbol !== "ETH" && (
+                                    <div className="font-[340] text-[1rem] text-pinto-gray-4 flex justify-between items-center">
+                                      <div className="flex items-center gap-1">
+                                        <div className="rounded-full bg-pinto-yellow-1 w-3 h-3 flex-shrink-0" />
+                                        <div>Farm Balance</div>
+                                      </div>
+                                      <div>{`${balances.internal.toHuman("short")} ${token.symbol}`}</div>
+                                    </div>
+                                  )}
                                 </div>
-                                <div>{`${balances.external.toHuman("short")} ${token.symbol}`}</div>
-                              </div>
-                              <div className="font-[340] text-[1rem] mt-1 text-pinto-gray-4 inline-flex justify-between gap-1 items-center leading-none">
-                                <div className="inline-flex gap-1 items-center">
-                                  <div className="rounded-full bg-pinto-yellow-1 w-3 h-3" />
-                                  <div>Farm Balance</div>
-                                </div>
-                                <div>{`${balances.internal.toHuman("short")} ${token.symbol}`}</div>
                               </div>
                             </div>
                           </Toggle>
@@ -241,9 +258,15 @@ export default function WalletButtonPanel({
                         return (
                           <Toggle
                             key={`${token.address}_externalBalance`}
-                            className="flex flex-row w-full gap-4 overflow-hidden transition-all hover:cursor-default hover:bg-pinto-gray-1 data-[state=on]:bg-white data-[state=off]:bg-white rounded-[0.75rem] h-auto px-4 py-2"
+                            className="flex flex-row w-full gap-4 overflow-hidden transition-all hover:cursor-default hover:bg-pinto-gray-1 data-[state=on]:bg-white data-[state=off]:bg-white rounded-[0.75rem] h-auto px-4 py-2 items-start"
                           >
-                            <img src={token.logoURI} className="w-12 h-12 self-start" />
+                            <div className="w-12 h-12 flex-shrink-0">
+                              <img
+                                src={token.logoURI}
+                                alt={`${token.symbol} token logo`}
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
                             <div className="flex flex-col w-full transition-all">
                               <div className="flex flex-row justify-between items-center">
                                 <div className="flex flex-col text-left gap-2 my-1">
@@ -280,9 +303,15 @@ export default function WalletButtonPanel({
                         return (
                           <Toggle
                             key={`${token.address}_externalBalance`}
-                            className="flex flex-row w-full gap-4 overflow-hidden transition-all hover:cursor-default hover:bg-pinto-gray-1 data-[state=on]:bg-white data-[state=off]:bg-white rounded-[0.75rem] h-auto px-4 py-2"
+                            className="flex flex-row w-full gap-4 overflow-hidden transition-all hover:cursor-default hover:bg-pinto-gray-1 data-[state=on]:bg-white data-[state=off]:bg-white rounded-[0.75rem] h-auto px-4 py-2 items-start"
                           >
-                            <img src={token.logoURI} className="w-12 h-12 self-start" />
+                            <div className="w-12 h-12 flex-shrink-0">
+                              <img
+                                src={token.logoURI}
+                                alt={`${token.symbol} token logo`}
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
                             <div className="flex flex-col w-full transition-all">
                               <div className="flex flex-row justify-between items-center">
                                 <div className="flex flex-col text-left gap-2 my-1">
