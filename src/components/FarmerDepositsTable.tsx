@@ -258,8 +258,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                     </div>
                   </TableCell>
                   <TableCell className="text-black font-[400] text-[1rem] text-right">
-                    {!hovering ||
-                    (rewardGains.stalkGain.lt(0.01) && updateGains.stalkGain.lt(0.01) && grownStalk.lt(0.01)) ? (
+                    {!hovering || (updateGains.stalkGain.lt(0.01) && grownStalk.lt(0.01)) ? (
                       <div className="flex flex-col items-end">
                         <div className="inline-flex items-center gap-1">
                           <IconImage src={stalkIcon} size={4} />
