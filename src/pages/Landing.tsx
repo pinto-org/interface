@@ -187,20 +187,7 @@ export default function Landing() {
         >
           <EnvironmentSetup />
           <CameraZoom zoomRef={zoomRef} />
-          <ambientLight intensity={5} />
-          <directionalLight
-            position={[20, 80, 80]} // Positioned above and slightly in front of the coin
-            intensity={10} // Strong enough to create a noticeable gradient effect
-          />
-          <directionalLight
-            position={[20, 20, 60]} // Positioned above and slightly in front of the coin
-            intensity={1} // Strong enough to create a noticeable gradient effect
-          />
-          <directionalLight
-            position={[20, 20, 30]} // Positioned above and slightly in front of the coin
-            intensity={3} // Strong enough to create a noticeable gradient effect
-          />
-          {/* Coin Model */}
+          <EnvironmentLighting />
           {showPinto && preloadedGLTF && (
             <CoinModel
               gltf={preloadedGLTF}
@@ -208,7 +195,6 @@ export default function Landing() {
               onScaleSet={() => onCoinScaleSet()}
             />
           )}
-          {/* SlideGroup is rendered unconditionally */}
           <SlideGroup
             showPinto={showPinto}
             nextIndex={nextIndex}
@@ -267,3 +253,21 @@ const CameraZoom: React.FC<CameraZoomProps> = ({ zoomRef }) => {
   return null;
 };
 
+const EnvironmentLighting = () => {
+  return (
+    <>
+  <ambientLight intensity={5} />
+  <directionalLight
+    position={[20, 80, 80]} // Positioned above and slightly in front of the coin
+    intensity={10} // Strong enough to create a noticeable gradient effect
+  />
+  <directionalLight
+    position={[20, 20, 60]} // Positioned above and slightly in front of the coin
+    intensity={1} // Strong enough to create a noticeable gradient effect
+  />
+  <directionalLight
+    position={[20, 20, 30]} // Positioned above and slightly in front of the coin
+    intensity={3} // Strong enough to create a noticeable gradient effect
+  />
+  </>)
+}
