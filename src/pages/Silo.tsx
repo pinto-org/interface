@@ -151,7 +151,7 @@ function Silo() {
               {claimEnabled && (
                 <HelperLink
                   text={claimableText}
-                  className={`absolute -mt-[390px] -right-[320px] z-20`}
+                  className={`absolute top-8 -right-[100px] z-20`}
                   dataTarget={`token-row-${mainToken.address}`}
                   sourceAnchor="left"
                   targetAnchor="right"
