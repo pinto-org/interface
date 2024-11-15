@@ -181,7 +181,7 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
           : `${siloToken.name} is the token that powers the ${siloToken.name} protocol.
                   `}
       </Text>
-      <Text variant="body" as={Link} to="/explorer" className="text-pinto-green-2 hover:underline transition-all">
+      <Text variant="body" as={Link} to="/explorer/silo" className="text-pinto-green-2 hover:underline transition-all">
         See More Data →
       </Text>
     </div>

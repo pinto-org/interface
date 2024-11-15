@@ -64,7 +64,7 @@ function Field() {
               <Text variant="h3">{formatter.noDec(harvestableIndex)}</Text>
             </div>
             <Button asChild variant={"outline"} className="rounded-full text-[1.25rem]">
-              <Link to={"/explorer"}>View Data</Link>
+              <Link to={"/explorer/field"}>View Data</Link>
             </Button>
           </div>
           <div className="flex flex-row justify-between items-center mx-4">
