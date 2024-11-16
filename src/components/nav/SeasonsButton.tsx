@@ -164,9 +164,13 @@ const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPa
                         </div>
                         <div className="flex flex-col w-[50%]">
                           <span className="inline-flex gap-2 justify-end">
-                            {`${snapshot.temperature.toFixed(0)}% `}
+                            {formatter.pct(snapshot.temperature, { minDecimals: 0, maxDecimals: 0 })}
                             <span className="text-pinto-gray-4">
-                              {`(${snapshot.deltaTemperature > 0 ? "+" : snapshot.deltaTemperature < 0 ? "-" : ""}${snapshot.deltaTemperature.toFixed(0)}%)`}
+                              {`(${formatter.pct(snapshot.deltaTemperature, {
+                                minDecimals: 0,
+                                maxDecimals: 0,
+                                showPositiveSign: true,
+                              })})`}
                             </span>
                           </span>
                           <Text variant="xs" color="light" className="inline-flex gap-0.5 items-center justify-end">

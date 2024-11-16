@@ -28,6 +28,8 @@ interface IShowPositiveSign {
 
 type FormatNumOptions = IMinValue & IDecimals & IDefaultValue & IAllowZero & IShowPositiveSign;
 
+type FormatPctOptions = IDecimals & IShowPositiveSign;
+
 /**
  * We can for the most part use TokenValue.toHuman("short"),
  * but we can use this in cases where we don't want the shorthand K/M/B/T suffixes.
@@ -87,11 +89,11 @@ export const formatPDV = (val: NumberPrimitive, options?: IShowPositiveSign) => 
   return `${formatted} PDV`;
 };
 
-export const formatPct = (val: NumberPrimitive, options?: IShowPositiveSign) => {
+export const formatPct = (val: NumberPrimitive, options?: FormatPctOptions) => {
   if (val === undefined || val === null) return "0.00%";
   const formatted = formatNum(val, {
-    minDecimals: 2,
-    maxDecimals: 2,
+    minDecimals: options?.minDecimals ?? 2,
+    maxDecimals: options?.maxDecimals ?? 2,
     defaultValue: "0.00",
     minValue: 0.01,
     allowZero: true,
