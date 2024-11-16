@@ -12,7 +12,6 @@ import SiloToken from "./pages/SiloToken";
 import Swap from "./pages/Swap";
 import Transfer from "./pages/Transfer";
 import LaunchArticle from "./pages/landing/LaunchArticle";
-import NewUserView from "./pages/overview/LearnPegActions";
 
 function App() {
   return (
@@ -27,8 +26,7 @@ function App() {
           <Routes>
             <Route index element={<Landing />} />
             <Route path="/announcing-pinto" element={<LaunchArticle />} />
-            {/* <Route path="/overview" element={<Overview />} /> */}
-            <Route path="/overview" element={<NewUserView />} />
+            <Route path="/overview" element={<Overview />} />
             <Route path="/silo" element={<Silo />} />
             <Route path="/silo/:tokenAddress" element={<SiloToken />} />
             <Route path="/silo/:tokenAddress/:action" element={<SiloToken />} />

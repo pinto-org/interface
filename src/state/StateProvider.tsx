@@ -1,4 +1,4 @@
-import useUpdateFarmerStatus from "./farmer/farmerStatus.updater";
+import useUpdateFarmerStatus from "./farmer/status/farmerStatus.updater";
 import { useUpdateField } from "./protocol/field/field.updater";
 import { useUpdateMorning, useUpdateSunData } from "./protocol/sun/sun.updater";
 

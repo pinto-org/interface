@@ -18,7 +18,7 @@ export default function useUpdateFarmerStatus() {
   const setStatus = useSetAtom(farmerStatusAtom);
 
   const balance = balances.balances.get(protocolToken)?.total;
-  const loading = depositsQuery.isLoading || plotsQuery.isLoading;
+  const loading = depositsQuery.isLoading || plotsQuery.isLoading || balances.loading;
 
   const hasDeposits = !!depositsQuery.data?.length;
   const hasPlots = !!plotsQuery.data?.length;
@@ -27,6 +27,9 @@ export default function useUpdateFarmerStatus() {
   useEffect(() => {
     setStatus((draft) => {
       draft.loading = loading;
+      if (!loading) {
+        draft.didLoad = true;
+      }
     });
   }, [loading, setStatus]);
 
