@@ -108,22 +108,6 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                 <Text as={TableCell} align="right" variant="sm" color="secondary" className="opacity-70">
                   {formatter.usd(totalBDV?.mul(priceData.price))}
                 </Text>
-                <Text as={TableCell} align="right" variant="sm">
-                  {token.isMain && hovering && claimEnabled ? (
-                    <div className="inline-flex items-center gap-1 text-pinto-green-4">
-                      <UpArrowIcon color={"currentColor"} width={20} height={20} />
-                      <IconImage src={token.logoURI} size={6} />
-                      <div className="font-[400] text-[1rem]">{formatter.number(amount.add(gains.beanGain))}</div>
-                      <span className="text-black opacity-70">{token.name}</span>
-                    </div>
-                  ) : (
-                    <span className="flex flex-row gap-1 items-center place-self-end">
-                      <IconImage src={token.logoURI} size={6} />
-                      <Text>{formatter.number(farmerDeposits.get(token)?.amount)}</Text>
-                      <Text>{token.name}</Text>
-                    </span>
-                  )}
-                </Text>
                 <TableCell className="text-right pr-4">
                   <div className="flex flex-col items-end gap-1">
                     {token.isMain && hovering && claimEnabled ? (

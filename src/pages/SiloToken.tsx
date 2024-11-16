@@ -26,6 +26,7 @@ import { useChainId, useConfig } from "wagmi";
 import DepositsTable from "../components/DepositsTable";
 import GerminationNotice from "./silo/GerminationNotice";
 import SiloActions from "./silo/SiloActions";
+import DenominationSwitcher from "@/components/ui/DenominationSwitcher";
 
 export default function SiloToken() {
   const { tokenAddress } = useParams();
@@ -202,9 +203,12 @@ const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price }: IFarmerSi
             {formatter.twoDec(farmerDeposits?.amount)} {siloToken.name}
           </Text>
         </div>
-        <Text variant="h4" weight="thin" color="secondary">
-          {formatter.usd(farmerDeposits?.depositBDV.mul(price))}
-        </Text>
+        <div className="flex flex-row items-center gap-x-1">
+          <Text variant="h4" weight="thin" color="secondary">
+            {formatter.usd(farmerDeposits?.depositBDV.mul(price))}
+          </Text>
+          <DenominationSwitcher />
+        </div>
       </div>
       <div className="inline-flex gap-8 items-center">
         <div className="flex flex-col gap-2">

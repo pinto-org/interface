@@ -7,6 +7,8 @@ import { formatter } from "@/utils/format";
 import { ReactNode } from "react";
 import TooltipSimple from "./TooltipSimple";
 import Text from "./ui/Text";
+import DenominationSwitcher from "./ui/DenominationSwitcher";
+import { useDenomination } from "@/hooks/useAppSettings";
 
 interface StatPanelProps {
   mode: "depositedValue" | "stalk" | "seeds" | "pods";
@@ -78,14 +80,17 @@ const StatPanel = ({
     <Text color="light" size="body" weight="thin">
       {mode === "depositedValue" && (
         <span className="inline-flex items-center gap-1">
-          <img src={getIcon(mode)} className="h-4 w-6" alt={mode.toUpperCase()} />
           {showActionValues && actionValue ? (
             <>
               <span>{formatter.pdv(secondaryValue.add(actionValue))}</span>
               <span className="text-pinto-green-4">{`+${formatter.number(actionValue)}`}</span>
             </>
           ) : (
-            <span>{formatter.pdv(secondaryValue)}</span>
+            <>
+              <img src={getIcon(mode)} className="h-4 w-6" alt={mode.toUpperCase()} />
+              <span>{formatter.pdv(secondaryValue)}</span>
+            <DenominationSwitcher/>
+            </>
           )}
         </span>
       )}
