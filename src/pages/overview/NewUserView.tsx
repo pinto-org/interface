@@ -15,7 +15,6 @@ import { usePriceQuery } from "@/state/usePriceData";
 import { AverageBDVWeightedSiloAPYs, useAverageBDVWeightedSiloAPYs } from "@/state/useSiloAPYs";
 import useTokenData from "@/state/useTokenData";
 import { formatter, numberAbbr } from "@/utils/format";
-import { useDebounceCallback } from "@/utils/useDebounce";
 import { cn } from "@/utils/utils";
 import { Separator } from "@radix-ui/react-separator";
 import { useModal } from "connectkit";
