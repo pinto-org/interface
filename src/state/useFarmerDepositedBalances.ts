@@ -4,7 +4,7 @@ import { PINTO } from "@/constants/tokens";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useChainAddress } from "@/utils/chain";
-import { DepositData, Token } from "@/utils/types";
+import { DepositData, Token, TokenDepositData } from "@/utils/types";
 import { unpackStem } from "@/utils/utils";
 import { useMemo } from "react";
 import { Address, toHex } from "viem";
@@ -20,6 +20,31 @@ interface DepositQuery {
   stem: bigint;
   depositedAmount: bigint;
   depositedBDV: bigint;
+}
+
+function calculateGerminationInfo(stem: TokenValue, stemTip: TokenValue, stalkEarnedPerSeason: TokenValue) {
+  // Each season is 60 minutes (3600 seconds)
+  const SEASON_LENGTH = 3600;
+
+  // Calculate germinating stem
+  const germinatingStem = stemTip.sub(stalkEarnedPerSeason);
+
+  // If not germinating, return undefined timestamp
+  if (stem.lt(germinatingStem)) {
+    return undefined;
+  }
+
+  // Calculate seasons elapsed
+  const seasonsElapsed = stemTip.sub(stem).div(stalkEarnedPerSeason);
+  const remainingSeasons = Math.max(0, 2 - Number(seasonsElapsed.toHuman()));
+
+  // Get current time and round to previous hour
+  const now = new Date();
+  const currentHour = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours());
+
+  // Add remaining seasons (in hours) to current hour
+  const germinationDate = new Date(currentHour.getTime() + remainingSeasons * SEASON_LENGTH * 1000);
+  return germinationDate;
 }
 
 const querySettings = {
@@ -44,6 +69,7 @@ function useFarmerDepositedBalances() {
     scopeKey: ["season", season].join(" "),
     query: {
       ...querySettings,
+      refetchOnWindowFocus: true,
       enabled: Boolean(account.address),
     },
   });
@@ -126,6 +152,12 @@ function useFarmerDepositedBalances() {
         depositBDV = depositBDV.add(_depositBDV);
         currentBDV = currentBDV.add(_currentBDV).reDecimal(BEAN.decimals);
 
+        const germinationDate = calculateGerminationInfo(
+          depositStem,
+          siloTokenData.stemTip,
+          siloTokenData.tokenSettings.stalkEarnedPerSeason,
+        );
+
         const thisDeposit: DepositData = {
           id: deposit.id,
           idHex: toHex(deposit.id).toString(),
@@ -144,6 +176,7 @@ function useFarmerDepositedBalances() {
           },
           seeds: seeds,
           isGerminating: isGerminating,
+          germinationDate: germinationDate,
         };
 
         depositData.push(thisDeposit);

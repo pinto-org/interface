@@ -71,6 +71,7 @@ export interface DepositData {
   };
   seeds: TokenValue;
   isGerminating: boolean;
+  germinationDate?: Date;
 }
 
 export interface TokenDepositData {

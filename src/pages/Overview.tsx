@@ -1,8 +1,8 @@
 import { TokenValue } from "@/classes/TokenValue";
-import ClaimRewards from "@/components/ClaimRewards";
 import EmptyTable from "@/components/EmptyTable";
 import FarmerDepositsTable from "@/components/FarmerDepositsTable";
 import HelperLink from "@/components/HelperLink";
+import OverviewNotice from "@/components/OverviewNotice";
 import PlotsTable from "@/components/PlotsTable";
 import StatPanel from "@/components/StatPanel";
 import TableRowConnector from "@/components/TableRowConnector";
@@ -19,6 +19,7 @@ import { useSiloData } from "@/state/useSiloData";
 import { getClaimText } from "@/utils/string";
 import { StatPanelData } from "@/utils/types";
 import { getSiloConvertUrl } from "@/utils/url";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -38,22 +39,16 @@ const Overview = () => {
   const hasPods = farmerActions.totalValue.field.gt(0);
   const hasDepositsOrPods = hasDeposits || hasPods;
   const hasOnlyPods = hasPods && !hasDeposits;
+  const hasGerminatingDeposits = farmerSilo.germinatingStalkBalance.gt(0);
 
   // State
   const [currentTab, setCurrentTab] = useState(hasOnlyPods ? "pods" : "deposits");
   const [hoveredButton, setHoveredButton] = useState("");
 
   // Memoized calculations
-  const { siloPct, claimSiloPct, harvestSiloPct, stalkPerSeason, placesInLine, avgAPY } = useMemo(() => {
+  const { siloPct, harvestSiloPct, stalkPerSeason, placesInLine, avgAPY } = useMemo(() => {
     const siloPct = siloData.totalStalk.gt(0)
       ? farmerSilo.activeStalkBalance.div(siloData.totalStalk).mul(100)
-      : TokenValue.ZERO;
-
-    const claimSiloPct = siloData.totalStalk.gt(0)
-      ? farmerSilo.activeStalkBalance
-          .add(farmerActions.claimRewards.outputs.stalkGain)
-          .div(siloData.totalStalk)
-          .mul(100)
       : TokenValue.ZERO;
 
     const harvestSiloPct = siloData.totalStalk.gt(0)
@@ -71,7 +66,7 @@ const Overview = () => {
       siloTokens.reduce((total, token) => token[1].yields.beanAPY + total, 0) / siloTokens.length
     ).toFixed(2);
 
-    return { siloPct, claimSiloPct, harvestSiloPct, stalkPerSeason, placesInLine, avgAPY };
+    return { siloPct, harvestSiloPct, stalkPerSeason, placesInLine, avgAPY };
   }, [farmerSilo, farmerField, farmerActions, siloData, harvestableIndex]);
 
   // Action states
@@ -210,6 +205,19 @@ const Overview = () => {
           )}
         </div>
       </div>
+      <AnimatePresence>
+        {hasGerminatingDeposits && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="-mt-40 -mb-[156px] -mx-[9px]"
+          >
+            <OverviewNotice />
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="flex flex-col items-center">
         <Tabs defaultValue="deposits" className="w-[1150px]" value={currentTab} onValueChange={setCurrentTab}>
           <TabsList
