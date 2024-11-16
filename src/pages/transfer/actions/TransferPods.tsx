@@ -105,12 +105,12 @@ export default function TransferPods() {
       });
 
     toast.promise(tx, {
-      loading: "Transferring deposits...",
+      loading: "Sending Pods...",
       success: (data) => {
-        return "Transfer complete!";
+        return "Sending complete!";
       },
       error: (error) => {
-        return (error as BaseError).shortMessage || "Transfer failed.";
+        return (error as BaseError).shortMessage || "Send failed.";
       },
     });
   }

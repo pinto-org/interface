@@ -56,7 +56,7 @@ export default function EmptyTable({ type }: EmptyTableProps) {
   };
 
   return (
-    <div className="flex flex-col gap-6 justify-center items-center w-full h-[22.5rem] border rounded-[0.75rem] bg-white border-pinto-gray-2">
+    <div className="flex flex-col gap-6 justify-center items-center w-full h-[22.5rem] border rounded-[0.75rem] bg-pinto-off-white border-pinto-gray-2">
       {renderContent()}
     </div>
   );
