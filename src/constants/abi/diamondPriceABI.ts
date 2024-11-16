@@ -3,11 +3,22 @@ export const diamondPriceABI = [
     inputs: [
       {
         internalType: "address",
+        name: "beanstalk",
+        type: "address",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "wellAddress",
         type: "address",
       },
     ],
-    name: "getConstantProductWell",
+    name: "getWell",
     outputs: [
       {
         components: [
@@ -34,6 +45,16 @@ export const diamondPriceABI = [
           {
             internalType: "uint256",
             name: "liquidity",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "beanLiquidity",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "nonBeanLiquidity",
             type: "uint256",
           },
           {
@@ -61,8 +82,14 @@ export const diamondPriceABI = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "getCurve",
+    inputs: [
+      {
+        internalType: "address",
+        name: "pool",
+        type: "address",
+      },
+    ],
+    name: "poolPrice",
     outputs: [
       {
         components: [
@@ -92,6 +119,16 @@ export const diamondPriceABI = [
             type: "uint256",
           },
           {
+            internalType: "uint256",
+            name: "beanLiquidity",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "nonBeanLiquidity",
+            type: "uint256",
+          },
+          {
             internalType: "int256",
             name: "deltaB",
             type: "int256",
@@ -108,7 +145,7 @@ export const diamondPriceABI = [
           },
         ],
         internalType: "struct P.Pool",
-        name: "pool",
+        name: "p",
         type: "tuple",
       },
     ],
@@ -161,6 +198,109 @@ export const diamondPriceABI = [
               {
                 internalType: "uint256",
                 name: "liquidity",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "beanLiquidity",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "nonBeanLiquidity",
+                type: "uint256",
+              },
+              {
+                internalType: "int256",
+                name: "deltaB",
+                type: "int256",
+              },
+              {
+                internalType: "uint256",
+                name: "lpUsd",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "lpBdv",
+                type: "uint256",
+              },
+            ],
+            internalType: "struct P.Pool[]",
+            name: "ps",
+            type: "tuple[]",
+          },
+        ],
+        internalType: "struct BeanstalkPrice.Prices",
+        name: "p",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address[]",
+        name: "wells",
+        type: "address[]",
+      },
+    ],
+    name: "priceForWells",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "price",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "liquidity",
+            type: "uint256",
+          },
+          {
+            internalType: "int256",
+            name: "deltaB",
+            type: "int256",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "pool",
+                type: "address",
+              },
+              {
+                internalType: "address[2]",
+                name: "tokens",
+                type: "address[2]",
+              },
+              {
+                internalType: "uint256[2]",
+                name: "balances",
+                type: "uint256[2]",
+              },
+              {
+                internalType: "uint256",
+                name: "price",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "liquidity",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "beanLiquidity",
+                type: "uint256",
+              },
+              {
+                internalType: "uint256",
+                name: "nonBeanLiquidity",
                 type: "uint256",
               },
               {
