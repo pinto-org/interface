@@ -5,7 +5,6 @@ import { useChainAddress } from "@/utils/chain";
 import { Token } from "@/utils/types";
 import { useMemo } from "react";
 import { useAccount, useBalance, useReadContract } from "wagmi";
-import { useSeason } from "./useSunData";
 import useTokenData from "./useTokenData";
 
 const settings = {
@@ -21,7 +20,6 @@ export interface FarmerBalance {
 
 export function useFarmerBalances() {
   const account = useAccount();
-  const season = useSeason();
   const tokens = useTokenData().preferredTokens;
   const lpTokens = useTokenData().lpTokens;
   const ETH = useTokenData().nativeToken;
@@ -35,12 +33,15 @@ export function useFarmerBalances() {
 
   const diamondAddress = useChainAddress(beanstalkAddress);
 
-  const { data, refetch, queryKey } = useReadContract({
+  const {
+    data: beanstalkBalances,
+    refetch,
+    queryKey,
+  } = useReadContract({
     address: diamondAddress,
     abi: beanstalkAbi,
     functionName: "getAllBalances",
     args: [account.address ?? ZERO_ADDRESS, addresses],
-    scopeKey: ["season", season].join(" "),
     query: {
       ...settings,
       enabled: !!account.address && !!balanceTokens.length,
@@ -57,8 +58,8 @@ export function useFarmerBalances() {
     });
 
     for (const [index, token] of balanceTokens.entries()) {
-      if (data?.[index]) {
-        const tokenBalance = data[index];
+      if (beanstalkBalances?.[index]) {
+        const tokenBalance = beanstalkBalances[index];
         balances.set(token, {
           internal: TokenValue.fromBlockchain(tokenBalance.internalBalance, token.decimals),
           external: TokenValue.fromBlockchain(tokenBalance.externalBalance, token.decimals),
@@ -74,7 +75,7 @@ export function useFarmerBalances() {
     }
 
     return balances;
-  }, [nativeBalance.data, nativeBalance.data?.value, data, balanceTokens, ETH]);
+  }, [nativeBalance.data?.value, beanstalkBalances, balanceTokens, ETH]);
 
   return {
     balances: balanceData,
