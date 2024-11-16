@@ -4,7 +4,7 @@ import { timeRemaining } from "@/utils/utils";
 import { useEffect, useMemo, useState } from "react";
 import Text from "./ui/Text";
 
-export default function OverviewNotice() {
+export default function OverviewNoticeGermination() {
   const depositedBalances = useFarmerDepositedBalances();
   const [currentTime, setCurrentTime] = useState(new Date());
 

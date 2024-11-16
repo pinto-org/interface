@@ -2,7 +2,9 @@ import { TokenValue } from "@/classes/TokenValue";
 import EmptyTable from "@/components/EmptyTable";
 import FarmerDepositsTable from "@/components/FarmerDepositsTable";
 import HelperLink from "@/components/HelperLink";
-import OverviewNotice from "@/components/OverviewNotice";
+import OverviewNoticeDeposit from "@/components/OverviewNoticeDeposit";
+import OverviewNoticeGermination from "@/components/OverviewNoticeGermination";
+import OverviewNotice from "@/components/OverviewNoticeGermination";
 import PlotsTable from "@/components/PlotsTable";
 import StatPanel from "@/components/StatPanel";
 import TableRowConnector from "@/components/TableRowConnector";
@@ -11,11 +13,13 @@ import PageContainer from "@/components/ui/PageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
+import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useHarvestableIndex, useTemperature } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
+import useTokenData from "@/state/useTokenData";
 import { getClaimText } from "@/utils/string";
 import { StatPanelData } from "@/utils/types";
 import { getSiloConvertUrl } from "@/utils/url";
@@ -28,6 +32,8 @@ const Overview = () => {
   const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
   const farmerActions = useFarmerActions();
+  const tokenData = useTokenData();
+  const farmerBalances = useFarmerBalances();
   const siloData = useSiloData();
   const temperature = useTemperature();
   const harvestableIndex = useHarvestableIndex();
@@ -39,6 +45,7 @@ const Overview = () => {
   const hasPods = farmerActions.totalValue.field.gt(0);
   const hasDepositsOrPods = hasDeposits || hasPods;
   const hasOnlyPods = hasPods && !hasDeposits;
+  const hasUndepositedMainTokens = Boolean(farmerBalances.balances.get(tokenData.mainToken)?.total.gt(0));
   const hasGerminatingDeposits = farmerSilo.germinatingStalkBalance.gt(0);
 
   // State
@@ -206,7 +213,7 @@ const Overview = () => {
         </div>
       </div>
       <AnimatePresence>
-        {hasGerminatingDeposits && (
+        {hasGerminatingDeposits ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -214,9 +221,19 @@ const Overview = () => {
             transition={{ duration: 0.2 }}
             className="-mt-40 -mb-[156px] -mx-[9px]"
           >
-            <OverviewNotice />
+            <OverviewNoticeGermination />
           </motion.div>
-        )}
+        ) : hasUndepositedMainTokens ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="-mt-40 -mb-[156px] -mx-[9px]"
+          >
+            <OverviewNoticeDeposit />
+          </motion.div>
+        ) : null}
       </AnimatePresence>
       <div className="flex flex-col items-center">
         <Tabs defaultValue="deposits" className="w-[1150px]" value={currentTab} onValueChange={setCurrentTab}>
