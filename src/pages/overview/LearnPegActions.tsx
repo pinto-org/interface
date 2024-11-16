@@ -1,16 +1,17 @@
 import { TV } from "@/classes/TokenValue";
-import InlineStats from "@/components/InlineStats";
+import InlineStats, { InlineStat } from "@/components/InlineStats";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import GradientCard from "@/components/ui/GradientCard";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import Text from "@/components/ui/Text";
-import { PODS } from "@/constants/internalTokens";
+import { PODS, SEEDS, STALK } from "@/constants/internalTokens";
 import { PINTO } from "@/constants/tokens";
 import useFarmerStatus from "@/hooks/useFarmerStatus";
 import { usePodLine, useTemperature, useTotalSoil } from "@/state/useFieldData";
 import { usePriceQuery } from "@/state/usePriceData";
+import { AverageBDVWeightedSiloAPYs, useAverageBDVWeightedSiloAPYs } from "@/state/useSiloAPYs";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { formatter, numberAbbr } from "@/utils/format";
@@ -21,8 +22,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useModal } from "connectkit";
 import { atom, useAtom, useSetAtom } from "jotai";
 import { atomWithImmer } from "jotai-immer";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { div } from "three/webgpu";
 
 const ConnectWalletBanner = () => {
   const modal = useModal();
@@ -65,8 +67,9 @@ const NewUserView = () => {
   const setSelected = useSetAtom(selectedAtom);
   const containerRef = useRef<HTMLDivElement>(null);
   const farmerStatus = useFarmerStatus();
-  const siloData = useSiloData();
   const price = usePriceQuery();
+
+  const { data: avgSiloYields } = useAverageBDVWeightedSiloAPYs();
 
   useEffect(() => {
     if (!price.data?.price) return;
@@ -87,7 +90,7 @@ const NewUserView = () => {
             <div className="flex flex-col items-center w-full max-w-[1340px]">
               <PegToggle containerRef={containerRef} />
               <div className="mt-[232px] flex flex-row gap-[140px] w-full ">
-                <SiloInfo containerRef={containerRef} siloData={siloData} />
+                <SiloInfo containerRef={containerRef} avgSiloYields={avgSiloYields} />
                 <FieldInfo containerRef={containerRef} />
               </div>
             </div>
@@ -155,49 +158,51 @@ const PegToggle = ({ containerRef }: IContainerRef) => {
   );
 };
 
-const SiloInfo = ({ containerRef, siloData }: IContainerRef & { siloData: ReturnType<typeof useSiloData> }) => {
+type SiloInfoProps = IContainerRef & {
+  avgSiloYields: AverageBDVWeightedSiloAPYs | undefined;
+};
+
+const SiloInfo = ({ containerRef, avgSiloYields }: SiloInfoProps) => {
   const ref = useRef<HTMLDivElement>(null);
   useSetComponentPosition(ref, "silo-info", containerRef);
 
-  const apyQuery = useQuery({
-    queryKey: ["silo-yields", "apy"],
-    queryFn: async () => {
-      const res = await fetch("https://api.bean.money/silo/yield", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({}),
-      });
+  const ema720 = avgSiloYields?.ema720 ?? 0;
+  const ema168 = avgSiloYields?.ema168 ?? 0;
+  const ema24 = avgSiloYields?.ema24 ?? 0;
 
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      return res.json();
+  const stats: InlineStat[] = [
+    {
+      label: "24H:",
+      value: ema24 ? formatter.pct(ema24 * 100) : "-",
     },
-    select: (data) => {
-      console.log(data);
-      const apy = {
-        "720": TV.fromBlockchain(data.ema[720].beansPerSeason.toString(), 6),
-        "168": TV.fromBlockchain(data.ema[168].beansPerSeason.toString(), 6),
-        "24": TV.fromBlockchain(data.ema[24].beansPerSeason.toString(), 6),
-      };
-      return apy;
+    {
+      label: "7D:",
+      value: ema168 ? formatter.pct(ema168 * 100) : "-",
     },
-  });
-
-  const yields = useMemo(() => {
-    if (!apyQuery.data) return undefined;
-
-    // const siloYields = siloData.yields;
-  }, []);
+    {
+      label: "30D:",
+      value: ema720 ? formatter.pct(ema720 * 100) : "-",
+    },
+  ];
 
   return (
     <div className="relative flex flex-col items-center w-full">
       <div ref={ref} className="absolute top-[-28px]" />
-      <Card className="flex flex-col w-full max-w-[600px] min-w-[300px] p-6">
-        <Text>Silo</Text>
-        <CardContent>
-          <Text color="gray4">Deposit in the Silo for Stalk and Seed</Text>
-        </CardContent>
+      <Card className="flex flex-col w-full max-w-[600px] min-w-[300px] p-6 gap-8">
+        <div className="flex flex-col w-full gap-1">
+          <Text variant="h3">Silo</Text>
+          <Text variant="body-light" color="light" className="inline-flex items-center gap-1">
+            Deposit in the Silo for <IconImage size={6} src={STALK.logoURI} /> Stalk and{" "}
+            <IconImage size={6} src={SEEDS.logoURI} /> Seeds.
+          </Text>
+        </div>
+
+        <Separator className="bg-pinto-gray-2 h-[1px]" />
+        <Text color="gray4">Stalk entitles the holder to yield. Seed grows Stalk every hour.</Text>
+        <InlineStats title="Variable APY:" stats={stats} />
+        <Button asChild size="xxl" rounded="full" width="full">
+          <Link to={`/silo`}>Deposit in the Silo</Link>
+        </Button>
       </Card>
     </div>
   );
@@ -211,11 +216,11 @@ const FieldInfo = ({ containerRef }: IContainerRef) => {
   const soil = useTotalSoil();
   const podline = usePodLine();
 
-  const fieldStats = [
+  const stats = [
     {
       label: "Temperature",
       tooltip: "The current interest rate for Sowing Beans.",
-      value: formatter.noDec(temperature.max),
+      value: formatter.pct(temperature.max),
     },
     {
       label: "Soil",
@@ -232,18 +237,19 @@ const FieldInfo = ({ containerRef }: IContainerRef) => {
   return (
     <div className="relative flex flex-col items-center w-full">
       <div ref={ref} className="absolute top-[-28px]" />
-      <Card className="flex flex-col w-full max-w-[600px] min-w-[300px] p-6">
-        <Text variant="h3" className="pb-1">
-          Field
-        </Text>
-        <Text variant="body-light" color="light" className="inline-flex items-center gap-1">
-          Lend for <IconImage size={6} src={PODS.logoURI} /> Pods, the Pinto debt asset.
-        </Text>
-        <div className="flex flex-col w-full pt-6 gap-8">
-          <Separator className="bg-pinto-gray-2 h-[1px]" />
-          <Text color="gray4">Pods become redeemable for one Pinto each.</Text>
+      <Card className="flex flex-col w-full max-w-[600px] min-w-[300px] p-6 gap-8">
+        <div className="flex flex-col w-full gap-1">
+          <Text variant="h3">Field</Text>
+          <Text variant="body-light" color="light" className="inline-flex items-center gap-1">
+            Lend for <IconImage size={6} src={PODS.logoURI} /> Pods, the Pinto debt asset.
+          </Text>
         </div>
-        <InlineStats title="Field Stats" stats={fieldStats} />
+        <Separator className="bg-pinto-gray-2 h-[1px]" />
+        <Text color="gray4">Pods become redeemable for one Pinto each.</Text>
+        <InlineStats title="Field Conditions:" stats={stats} />
+        <Button asChild size="xxl" rounded="full" width="full">
+          <Link to={`/field`}>Sow in the Field</Link>
+        </Button>
       </Card>
     </div>
   );

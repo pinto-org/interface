@@ -4,13 +4,18 @@ import React from "react";
 import TooltipSimple from "./TooltipSimple";
 import Text from "./ui/Text";
 
-type InlineStat = {
+export type InlineStat = {
   label: string;
   tooltip?: string;
   value: string;
 };
 
-const InlineStats = ({ title, stats }: { title: string; stats: InlineStat[] }) => {
+export interface InlineStatsProps {
+  title: string;
+  stats: InlineStat[];
+}
+
+const InlineStats = ({ title, stats }: InlineStatsProps) => {
   return (
     <div className="flex flex-col gap-3">
       <Text variant="body-light">{title}</Text>

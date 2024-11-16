@@ -4,8 +4,8 @@ import { stringEq } from "./string";
 import { InternalToken, Token } from "./types";
 
 export const getTokenIndex = (token: Token | string | Address) => {
-  if (typeof token !== "object") {
-    return token.toLowerCase();
+  if (typeof token !== "object" || typeof token === "string") {
+    return token.toString().toLowerCase();
   }
 
   if (token.isNative && stringEq(token.symbol, "eth")) return "eth";

@@ -1,21 +1,12 @@
 import { TV } from "@/classes/TokenValue";
-import { beanstalkAbi } from "@/generated/contractHooks";
-import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { defaultQuerySettings } from "@/constants/query";
 import { getTokenIndex } from "@/utils/token";
-import { Token } from "@/utils/types";
-import { Lookup } from "@/utils/types.generic";
-import { exists } from "@/utils/utils";
 import { useQuery } from "@tanstack/react-query";
-import { useReadContracts } from "wagmi";
-import { useSiloData } from "./useSiloData";
+import { useMemo } from "react";
+import { useTotalDepositedBdvPerTokenQuery } from "./useSiloData";
 import useTokenData from "./useTokenData";
 
-type EmaWindow = 24 | 168 | 720;
-
-const sharedSettings = {
-  staleTime: 1000 * 60 * 20,
-  refetchInterval: 1000 * 60 * 20,
-};
+export type EmaWindow = 24 | 168 | 720;
 
 export type SiloTokenEMAYield = {
   bean: number;
@@ -39,6 +30,12 @@ export interface SiloYieldsAPIResponse {
   };
 }
 
+const normalizeYields = (yields: SiloYieldsAPIResponse["yields"][EmaWindow]) => {
+  // we use lowercase addresses as a token index, so we need to normalize them in case they're not
+  const entries = Object.entries(yields).map(([key, value]) => [key.toLowerCase(), value]);
+  return Object.fromEntries(entries) as SiloYieldsAPIResponse["yields"][EmaWindow];
+};
+
 export function useSiloYieldsQuery() {
   return useQuery<SiloYieldsAPIResponse>({
     queryKey: ["api", "silo", "yields"],
@@ -54,104 +51,70 @@ export function useSiloYieldsQuery() {
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       return res.json();
     },
-    ...sharedSettings,
+    select: (data) => {
+      data.yields[24] = normalizeYields(data.yields[24]);
+      data.yields[168] = normalizeYields(data.yields[168]);
+      data.yields[720] = normalizeYields(data.yields[720]);
+
+      return data;
+    },
+    ...defaultQuerySettings,
   });
 }
 
-const selectTotalDepositedBdvPerToken = (
-  data: (
-    | {
-        error: Error;
-        result?: undefined;
-        status: "failure";
-      }
-    | {
-        error?: undefined;
-        result: bigint;
-        status: "success";
-      }
-  )[],
-  whitelistedTokens: Token[],
-) => {};
+export type AverageBDVWeightedSiloAPYs = {
+  ema24: number;
+  ema168: number;
+  ema720: number;
+};
 
-function useTotalDepositedBdvPerTokenQuery() {
-  const siloYieldsQuery = useSiloYieldsQuery();
+/**
+ * This is not a totally correct approach either, but it's close enough for now. We need to account for the
+ * deposited bdv changing over time, which this does not do.
+ */
+export const useAverageBDVWeightedSiloAPYs = () => {
+  const { data: apyResponse, isLoading: isAPYLoading, error: apyError } = useSiloYieldsQuery();
+  const { data: bdvs, isLoading: isBDVLoading, error: bdvError } = useTotalDepositedBdvPerTokenQuery();
   const { whitelistedTokens } = useTokenData();
 
-  const diamond = useProtocolAddress();
+  const data: AverageBDVWeightedSiloAPYs | undefined = useMemo(() => {
+    if (!apyResponse || !bdvs) return;
 
-  return useReadContracts({
-    contracts: whitelistedTokens.map((token) => {
-      return {
-        address: diamond,
-        abi: abi,
-        functionName: "getTotalDepositedBdv",
-        args: [token.address],
-      };
-    }),
-    query: {
-      enabled: !!whitelistedTokens.length,
-      ...sharedSettings,
-      select: (data) => {
-        return data?.reduce<Lookup<TV>>((acc, curr, idx) => {
-          const token = whitelistedTokens[idx];
-          if (!token || !exists(curr.result)) return acc;
-          acc[getTokenIndex(token)] = TV.fromBlockchain(curr.result, token.decimals);
-          return acc;
-        }, {});
-      },
-    },
-  });
-}
+    const totalDepositedBDV = Object.values(bdvs).reduce<TV>((prev, curr) => prev.add(curr), TV.ZERO);
+    if (!totalDepositedBDV.gt(0)) return;
 
-export default function useSiloAPYs() {
-  const siloYieldsQuery = useSiloYieldsQuery();
-  const { whitelistedTokens } = useTokenData();
+    let totalWeightedYield24 = 0;
+    let totalWeightedYield168 = 0;
+    let totalWeightedYield720 = 0;
 
-  const diamond = useProtocolAddress();
+    for (const token of whitelistedTokens) {
+      const tokenIndex = getTokenIndex(token);
+      const depositedBDV = bdvs[tokenIndex];
+      if (!depositedBDV) continue;
 
-  const datas = useReadContracts({
-    contracts: whitelistedTokens.map((token) => {
-      return {
-        address: diamond,
-        abi: abi,
-        functionName: "getTotalDepositedBdv",
-        args: [token.address],
-      };
-    }),
-    query: {
-      enabled: !!whitelistedTokens.length,
-      ...sharedSettings,
-      select: (data) => {
-        return data?.reduce<Lookup<TV>>((acc, curr, idx) => {
-          const token = whitelistedTokens[idx];
-          if (!token || !exists(curr.result)) return acc;
-          acc[getTokenIndex(token)] = TV.fromBlockchain(curr.result, token.decimals);
-          return acc;
-        }, {});
-      },
-    },
-  });
-}
+      const yield24 = apyResponse.yields[24]?.[tokenIndex]?.bean;
+      const yield168 = apyResponse.yields[168]?.[tokenIndex]?.bean;
+      const yield720 = apyResponse.yields[720]?.[tokenIndex]?.bean;
 
-const abi = [
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
-    name: "getTotalDepositedBdv",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;
+      const weightedYield24 = yield24 ? yield24 * depositedBDV.toNumber() : 0;
+      const weightedYield168 = yield168 ? yield168 * depositedBDV.toNumber() : 0;
+      const weightedYield720 = yield720 ? yield720 * depositedBDV.toNumber() : 0;
+
+      totalWeightedYield24 += weightedYield24;
+      totalWeightedYield168 += weightedYield168;
+      totalWeightedYield720 += weightedYield720;
+    }
+
+    return {
+      ema24: totalWeightedYield24 / totalDepositedBDV.toNumber(),
+      ema168: totalWeightedYield168 / totalDepositedBDV.toNumber(),
+      ema720: totalWeightedYield720 / totalDepositedBDV.toNumber(),
+    };
+  }, [apyResponse, bdvs, whitelistedTokens]);
+
+  return {
+    data,
+    isLoading: isAPYLoading || isBDVLoading,
+    error: apyError || bdvError,
+  };
+};
