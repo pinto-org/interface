@@ -183,7 +183,7 @@ const Overview = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="-mt-40 -mb-[156px] -mx-[9px]"
+            className="-mt-40 -mb-[156px] w-full"
           >
             <OverviewNoticeGermination />
           </motion.div>
@@ -193,14 +193,14 @@ const Overview = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="-mt-40 -mb-[156px] -mx-[9px]"
+            className="-mt-40 -mb-[156px] w-full"
           >
             <OverviewNoticeDeposit />
           </motion.div>
         ) : null}
       </AnimatePresence>
       <div className="flex flex-col items-center">
-        <Tabs defaultValue="deposits" className="w-[1150px]" value={currentTab} onValueChange={setCurrentTab}>
+        <Tabs defaultValue="deposits" className="w-full" value={currentTab} onValueChange={setCurrentTab}>
           <TabsList
             className={`h-0 bg-transparent p-0 border-0 -ml-3 flex ${hasOnlyPods ? "flex-row-reverse justify-end" : "flex-row justify-start"}`}
           >
@@ -296,7 +296,7 @@ const Overview = () => {
       className={`flex flex-col ${hasDepositsOrPods ? "pt-[170px]" : "justify-center text-center min-h-[calc(100vh-15rem)]"} gap-52 pb-20`}
     >
       <PageContainer
-        className={`flex flex-col gap-52 -mt-4 ${!hasDepositsOrPods ? "sm:max-w-full flex-grow mt-[100px]" : ""}`}
+        className={`flex flex-col gap-52 -mt-4 ${!hasDepositsOrPods ? "sm:max-w-[1150px] flex-grow mt-[100px]" : ""}`}
       >
         {renderContent()}
       </PageContainer>
