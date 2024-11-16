@@ -1,8 +1,10 @@
 import { TokenValue } from "@/classes/TokenValue";
-import ClaimRewards from "@/components/ClaimRewards";
 import EmptyTable from "@/components/EmptyTable";
 import FarmerDepositsTable from "@/components/FarmerDepositsTable";
 import HelperLink from "@/components/HelperLink";
+import OverviewNoticeDeposit from "@/components/OverviewNoticeDeposit";
+import OverviewNoticeGermination from "@/components/OverviewNoticeGermination";
+import OverviewNotice from "@/components/OverviewNoticeGermination";
 import PlotsTable from "@/components/PlotsTable";
 import StatPanel from "@/components/StatPanel";
 import TableRowConnector from "@/components/TableRowConnector";
@@ -11,14 +13,17 @@ import PageContainer from "@/components/ui/PageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
+import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useHarvestableIndex, useTemperature } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
+import useTokenData from "@/state/useTokenData";
 import { getClaimText } from "@/utils/string";
 import { StatPanelData } from "@/utils/types";
 import { getSiloConvertUrl } from "@/utils/url";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -27,6 +32,8 @@ const Overview = () => {
   const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
   const farmerActions = useFarmerActions();
+  const tokenData = useTokenData();
+  const farmerBalances = useFarmerBalances();
   const siloData = useSiloData();
   const temperature = useTemperature();
   const harvestableIndex = useHarvestableIndex();
@@ -38,22 +45,17 @@ const Overview = () => {
   const hasPods = farmerActions.totalValue.field.gt(0);
   const hasDepositsOrPods = hasDeposits || hasPods;
   const hasOnlyPods = hasPods && !hasDeposits;
+  const hasUndepositedMainTokens = Boolean(farmerBalances.balances.get(tokenData.mainToken)?.total.gt(0));
+  const hasGerminatingDeposits = farmerSilo.germinatingStalkBalance.gt(0);
 
   // State
   const [currentTab, setCurrentTab] = useState(hasOnlyPods ? "pods" : "deposits");
   const [hoveredButton, setHoveredButton] = useState("");
 
   // Memoized calculations
-  const { siloPct, claimSiloPct, harvestSiloPct, stalkPerSeason, placesInLine, avgAPY } = useMemo(() => {
+  const { siloPct, harvestSiloPct, stalkPerSeason, placesInLine, avgAPY } = useMemo(() => {
     const siloPct = siloData.totalStalk.gt(0)
       ? farmerSilo.activeStalkBalance.div(siloData.totalStalk).mul(100)
-      : TokenValue.ZERO;
-
-    const claimSiloPct = siloData.totalStalk.gt(0)
-      ? farmerSilo.activeStalkBalance
-          .add(farmerActions.claimRewards.outputs.stalkGain)
-          .div(siloData.totalStalk)
-          .mul(100)
       : TokenValue.ZERO;
 
     const harvestSiloPct = siloData.totalStalk.gt(0)
@@ -71,7 +73,7 @@ const Overview = () => {
       siloTokens.reduce((total, token) => token[1].yields.beanAPY + total, 0) / siloTokens.length
     ).toFixed(2);
 
-    return { siloPct, claimSiloPct, harvestSiloPct, stalkPerSeason, placesInLine, avgAPY };
+    return { siloPct, harvestSiloPct, stalkPerSeason, placesInLine, avgAPY };
   }, [farmerSilo, farmerField, farmerActions, siloData, harvestableIndex]);
 
   // Action states
@@ -99,7 +101,7 @@ const Overview = () => {
     },
     stalk: {
       mode: "stalk",
-      mainValue: farmerSilo.activeStalkBalance,
+      mainValue: farmerSilo.activeStalkBalance.add(farmerSilo.germinatingStalkBalance),
       mainValueChange: hoveredButton === "harvest" ? farmerActions.harvestPods.outputs.stalkGain : undefined,
       actionValue: hoveredButton === "harvest" ? harvestSiloPct.sub(siloPct) : undefined,
       secondaryValue: siloPct,
@@ -148,7 +150,7 @@ const Overview = () => {
             <HelperLink
               onClick={() => navigate(statPanelData.pods.mainValueChange?.lt(0) ? "/field/harvest" : "/field/sow")}
               text={statPanelData.pods.mainValueChange?.lt(0) ? "Harvest Pods" : "Sow (Lend) in the Field for Pods"}
-              className={`absolute -mt-[54px] ${statPanelData.pods.mainValueChange?.lt(0) ? "-right-[70px]" : "-right-[172px]"} z-20`}
+              className={`absolute -mt-[54px] right-[48px] z-20`}
               dataTarget="pods-stats"
               sourceAnchor="left"
               targetAnchor="right"
@@ -164,7 +166,7 @@ const Overview = () => {
             <HelperLink
               onClick={() => navigate("/silo")}
               text={"Make your first Deposit in the Silo for Stalk and Seeds"}
-              className={`absolute -mt-[64px] -left-[370px] z-20`}
+              className={`absolute -mt-[64px] left-[64px] z-20 flex flex-row-reverse`}
               dataTarget="depositedValue-stats"
               sourceAnchor="right"
               targetAnchor="top-left"
@@ -174,6 +176,29 @@ const Overview = () => {
           )}
         </div>
       </div>
+      <AnimatePresence>
+        {hasGerminatingDeposits ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="-mt-40 -mb-[156px] -mx-[9px]"
+          >
+            <OverviewNoticeGermination />
+          </motion.div>
+        ) : hasUndepositedMainTokens ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="-mt-40 -mb-[156px] -mx-[9px]"
+          >
+            <OverviewNoticeDeposit />
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
       <div className="flex flex-col items-center">
         <Tabs defaultValue="deposits" className="w-[1150px]" value={currentTab} onValueChange={setCurrentTab}>
           <TabsList
@@ -204,20 +229,6 @@ const Overview = () => {
               onMouseLeave={() => setHoveredButton("")}
             />
           )*/}
-          {currentTab === "deposits" && claimEnabled && (
-            <HelperLink
-              text={claimableText}
-              dataTarget="claimable-rewards"
-              className="absolute right-[60px] mt-[60px]"
-              sourceAnchor="left"
-              targetAnchor="right"
-              source90Degree={true}
-              perpLength={10}
-              onMouseEnter={() => setHoveredButton("claim")}
-              onMouseLeave={() => setHoveredButton("")}
-              onClick={submitClaimRewards}
-            />
-          )}
           <TabsContent className="mt-8" value="deposits">
             {hasDeposits ? (
               <div className="relative overflow-visible">
@@ -244,6 +255,21 @@ const Overview = () => {
                         </div>
                       </div>
                     }
+                  />
+                )}
+                <div className="absolute right-0 top-20 h-4" data-action-target="helper-target" />
+                {currentTab === "deposits" && claimEnabled && (
+                  <HelperLink
+                    text={claimableText}
+                    dataTarget="helper-target"
+                    className="absolute -right-[100px] top-8"
+                    sourceAnchor="left"
+                    targetAnchor="right"
+                    source90Degree={true}
+                    perpLength={10}
+                    onMouseEnter={() => setHoveredButton("claim")}
+                    onMouseLeave={() => setHoveredButton("")}
+                    onClick={submitClaimRewards}
                   />
                 )}
               </div>
