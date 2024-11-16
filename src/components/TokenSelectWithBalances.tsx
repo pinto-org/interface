@@ -21,6 +21,7 @@ import { ScrollArea } from "./ui/ScrollArea";
 import { Separator } from "./ui/Separator";
 import Text from "./ui/Text";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
+import { formatter } from "@/utils/format";
 
 function TokenSelectItem({
   token,
@@ -36,7 +37,7 @@ function TokenSelectItem({
       <ToggleGroupItem
         value={token.address}
         aria-label={`Select ${token.name}`}
-        className="flex flex-row w-[105%] py-4 h-auto justify-between data-[state=on]:bg-transparent hover:bg-pinto-gray-1 data-[state=on]:hover:bg-pinto-gray-1"
+        className="flex flex-row w-[105%] py-4 h-auto justify-between data-[state=on]:bg-transparent hover:bg-pinto-gray-1 data-[state=on]:hover:bg-pinto-gray-1 focus:outline-none"
       >
         <div className="flex flex-row items-center gap-4">
           <img src={token.logoURI} alt={token.name} className="w-12 h-12" />
@@ -45,12 +46,12 @@ function TokenSelectItem({
             <div className="flex justify-start font-[340] text-[1rem] text-pinto-gray-4">{token.name}</div>
           </div>
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-y-1">
           <div className="flex justify-end font-[340] text-[1.5rem] text-black">
-            {balanceAmount?.gt(0) ? Number(balanceAmount.toHuman()).toFixed(4) : 0}
+            {formatter.token(balanceAmount, token)}
           </div>
           <div className="flex justify-end font-[340] text-[1rem] text-pinto-gray-4">
-            ${balanceAmount?.gt(0) ? Number(price.mul(balanceAmount).toHuman()).toFixed(2) : 0.0}
+            {formatter.usd(price.mul(balanceAmount))}
           </div>
         </div>
       </ToggleGroupItem>

@@ -331,13 +331,13 @@ const SettingsPoppover = ({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant={"ghost"} noPadding className="rounded-full w-10 h-10">
+        <Button variant={"ghost"} noPadding className="rounded-full w-10 h-10 ">
           <img src={settingsIcon} className="w-4 h-4 transition-all" alt="slippage" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-52 flex flex-col">
-        <div className="flex flex-col gap-2">
-          <Text className="mb-4">Slippage</Text>
+      <PopoverContent side="bottom" align="end" className="w-52 flex flex-col shadow-none">
+        <div className="flex flex-col gap-4">
+          <Text variant="md">Slippage Tolerance</Text>
           <div className="flex flex-row gap-2">
             <Input
               type="number"
@@ -348,7 +348,7 @@ const SettingsPoppover = ({
             />
             <div className="text-xl self-center">%</div>
           </div>
-          <Text className="mb-4">Min temperature</Text>
+          <Text variant="md">Minimum Temperature</Text>
           <div className="flex flex-row gap-2">
             <Input
               type="number"

@@ -9,7 +9,7 @@ interface SourceBalanceSelect {
 
 export default function SourceBalanceSelect({ setBalanceFrom, balanceFrom, balancesToShow }: SourceBalanceSelect) {
   const style =
-    "flex flex-col w-full h-[3.25rem] bg-pinto-gray-1 border-pinto-gray-3 text-[1.25rem] -tracking-[0.02em] font-[400] leading-[1.3875rem] text-black whitespace-nowrap";
+    "flex flex-col w-full h-[2.75rem] bg-pinto-gray-1 border-pinto-gray-3 text-[1.25rem] -tracking-[0.02em] font-[400] leading-[1.3875rem] text-black whitespace-nowrap rounded-full";
 
   return (
     <ToggleGroup
