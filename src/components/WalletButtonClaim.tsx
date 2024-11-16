@@ -1,15 +1,18 @@
 import { TokenValue } from "@/classes/TokenValue";
-import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import { beanstalkAbi } from "@/generated/contractHooks";
+import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
+import { formatter } from "@/utils/format";
 import { FarmToMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { Address, BaseError, encodeFunctionData } from "viem";
-import { useAccount, useChainId, useWriteContract } from "wagmi";
+import { encodeFunctionData } from "viem";
+import { useAccount, useChainId } from "wagmi";
 import DestinationBalanceSelect from "./DestinationBalanceSelect";
 import { ForwardArrowIcon } from "./Icons";
 import { Button } from "./ui/Button";
@@ -22,6 +25,7 @@ export default function WalletButtonClaim({
 }: { setShowClaim: React.Dispatch<React.SetStateAction<boolean>>; showClaim: boolean }) {
   const chainId = useChainId();
   const account = useAccount();
+  const diamond = useProtocolAddress();
 
   const { queryKeys } = useFarmerBalances();
   const farmerSilo = useFarmerSilo();
@@ -30,7 +34,14 @@ export default function WalletButtonClaim({
   const { whitelistedTokens } = useTokenData();
 
   const queryClient = useQueryClient();
-  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
+  const { writeWithEstimateGas, submitting, isConfirming, setSubmitting } = useTransaction({
+    successCallback: () => {
+      const allQueryKeys = [...queryKeys, ...siloQueryKeys];
+      allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
+    },
+    successMessage: "Claim success",
+    errorMessage: "Claim failed",
+  });
 
   const [balanceTo, setBalanceTo] = useState(FarmToMode.EXTERNAL);
   const totalFlood = farmerSilo.flood.farmerSops.reduce(
@@ -38,47 +49,37 @@ export default function WalletButtonClaim({
     TokenValue.ZERO,
   );
 
-  useEffect(() => {
-    if (isSuccess) {
-      // invalidating query results to trigger a refetch
-      const allQueryKeys = [...queryKeys, ...siloQueryKeys];
-      allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
-    }
-  }, [isSuccess, queryKeys, siloQueryKeys]);
-
   async function onSubmit() {
-    if (!chainId || !account.address || !balanceTo) return;
+    try {
+      if (!chainId || !account.address || !balanceTo) return;
 
-    const tokensToMow = whitelistedTokens.map((token: Token) => token.address);
-    const mow = encodeFunctionData({
-      abi: beanstalkAbi,
-      functionName: "mowMultiple",
-      args: [account.address, tokensToMow],
-    });
+      const tokensToMow = whitelistedTokens.map((token: Token) => token.address);
+      const mow = encodeFunctionData({
+        abi: beanstalkAbi,
+        functionName: "mowMultiple",
+        args: [account.address, tokensToMow],
+      });
 
-    const claimFlood = encodeFunctionData({
-      abi: beanstalkAbi,
-      functionName: "claimAllPlenty",
-      args: [Number(balanceTo)],
-    });
+      const claimFlood = encodeFunctionData({
+        abi: beanstalkAbi,
+        functionName: "claimAllPlenty",
+        args: [Number(balanceTo)],
+      });
 
-    const tx = () =>
-      writeContractAsync({
-        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress] as Address,
+      return writeWithEstimateGas({
+        address: diamond,
         abi: beanstalkAbi,
         functionName: "farm",
         args: [[mow, claimFlood]],
       });
-
-    toast.promise(tx, {
-      loading: "Submitting transaction...",
-      success: (data) => {
-        return `Transaction complete!`;
-      },
-      error: (error) => {
-        return (error as BaseError).shortMessage || `Transaction failed.`;
-      },
-    });
+    } catch (e) {
+      console.error(e);
+      toast.dismiss();
+      toast.error("Claim failed");
+      throw e;
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -102,11 +103,11 @@ export default function WalletButtonClaim({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-6 flex-grow max-h-[55%] overflow-y-auto">
+      <CardContent className="px-6 flex-grow overflow-y-auto">
         <Separator className="w-full" />
-        <div className="mt-6 flex-grow overflow-y-auto">
+        <div className="mt-6 h-[calc(100%-172px)] z-10">
           <div className="text-[1.25rem] text-pinto-gray-4 font-[340] text-left">Your proceeds:</div>
-          <div className="flex-grow h-full">
+          <div className="flex-grow">
             {totalFlood.gt(0) ? (
               <div className="flex flex-col gap-6 mt-6">
                 {farmerSilo.flood.farmerSops.map((sopData, index) => {
@@ -116,14 +117,14 @@ export default function WalletButtonClaim({
                   const price = priceData.tokenPrices.get(token);
                   const value = amount.mul(price ? price.instant : 0);
                   return (
-                    <div key={index} className="flex flex-row justify-between">
+                    <div key={`claim_flood_${index}_${token.address}`} className="flex flex-row justify-between">
                       <div className="flex flex-row gap-4 items-center">
                         <img src={token.logoURI} alt={token.symbol} className={"w-12 h-12"} />
                         <span className="font-[400] text-pinto-gray-5 text-[1.25rem]">{token.symbol}</span>
                       </div>
                       <div className="flex flex-col text-right">
-                        <span className="font-[400] text-pinto-gray-5 text-[1.5rem]">{`${amount.toHuman()} ${token.symbol}`}</span>
-                        <span className="font-[400] text-pinto-gray-4 text-[1rem]">{`$${Number(value.toHuman()).toFixed(2)}`}</span>
+                        <span className="font-[400] text-pinto-gray-5 text-[1.5rem]">{`${formatter.token(amount, token)} ${token.symbol}`}</span>
+                        <span className="font-[400] text-pinto-gray-4 text-[1rem]">{formatter.usd(value)}</span>
                       </div>
                     </div>
                   );
@@ -134,21 +135,24 @@ export default function WalletButtonClaim({
             )}
           </div>
         </div>
-      </CardContent>
-      <CardFooter className="px-6 flex flex-col justify-end gap-4">
-        <Separator className="w-full" />
-        <div className="flex flex-row justify-between items-center w-full ">
-          <div className="font-[340] text-[1.25rem] text-pinto-gray-4">Receive proceeds to:</div>
-          <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} variant="small" />
+        <div className="flex flex-col justify-end gap-4">
+          <Separator className="w-full" />
+          <div className="flex flex-row justify-between items-center w-full ">
+            <div className="font-[340] text-[1.25rem] text-pinto-gray-4">Receive proceeds to:</div>
+            <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} variant="small" />
+          </div>
+          <Button
+            onClick={() => onSubmit()}
+            disabled={totalFlood.eq(0)}
+            className={"w-full h-[3.625rem] grow-0 rounded-[0.75rem] text-[1.5rem] z-20"}
+          >
+            {totalFlood.eq(0) ? "No assets to claim" : "Claim proceeds"}
+          </Button>
         </div>
-        <Button
-          onClick={() => onSubmit()}
-          disabled={totalFlood.eq(0)}
-          className={"w-full h-[3.625rem] grow-0 rounded-[0.75rem] text-[1.5rem]"}
-        >
-          {totalFlood.eq(0) ? "No assets to claim" : "Claim proceeds"}
-        </Button>
-      </CardFooter>
+      </CardContent>
+      {/* <CardFooter className="px-6 flex flex-col justify-end gap-4">
+        
+      </CardFooter> */}
     </Card>
   );
 }
