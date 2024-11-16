@@ -42,7 +42,7 @@ const buttonVariants = cva(
         ghost: "hover:bg-pinto-gray-2 hover:hover:bg-pinto-gray-2/50",
         link: "text-primary underline-offset-4 hover:underline",
         "silo-action":
-          "px-2 hover:bg-pinto-gray-2 hover:hover:bg-pinto-green h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem] disabled:bg-transparent disabled:text-pinto-gray-5 disabled:opacity-30",
+          "px-2 hover:bg-pinto-green-1 h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 flex flex-row justify-start gap-[0.625rem] disabled:bg-transparent disabled:text-pinto-gray-5 disabled:opacity-30",
         morning: "bg-pinto-morning-orange text-pinto-morning",
       },
       size: {

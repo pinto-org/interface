@@ -251,26 +251,10 @@ function MobileNavContent({
               <MobileNavLink
                 variant="h4"
                 nested
-                href={navLinks.bugbounty}
-                onClick={unmount}
-              >
-                Bug Bounty
-              </MobileNavLink>
-              <MobileNavLink
-                variant="h4"
-                nested
                 href={navLinks.exchange}
                 onClick={unmount}
               >
                 Pinto Exchange
-              </MobileNavLink>
-              <MobileNavLink
-                variant="h4"
-                nested
-                href={navLinks.pipeline}
-                onClick={unmount}
-              >
-                Pipeline
               </MobileNavLink>
             </div>
           ) : null}

@@ -123,27 +123,29 @@ const Navbar = () => {
         <div className="hidden lg:flex lg:justify-center">
           <Navi />
         </div>
-        <div className="flex flex-row justify-end">
-          <div className={`${walletOpen && "z-[51]"}`}>
-            <div data-action-target={"wallet-button"}>
-              <WalletButton
-                isOpen={walletOpen}
-                togglePanel={() => togglePanel("wallet")}
-                onMouseEnter={() => invalidateData("wallet")}
-                ref={walletButton}
-                showClaim={showClaim}
-                setShowClaim={setShowClaim}
+          <div className="flex flex-row justify-end gap-x-4 ">
+          <div className="flex flex-row justify-end gap-x-1">
+            <div className={`${walletOpen && "z-[51]"}`}>
+              <div data-action-target={"wallet-button"}>
+                <WalletButton
+                  isOpen={walletOpen}
+                  togglePanel={() => togglePanel("wallet")}
+                  onMouseEnter={() => invalidateData("wallet")}
+                  ref={walletButton}
+                  showClaim={showClaim}
+                  setShowClaim={setShowClaim}
+                />
+              </div>
+            </div>
+            <div className={`lg:hidden ${mobileNaviOpen && "z-[51]"}`}>
+              <MobileNavi
+                isOpen={mobileNaviOpen}
+                togglePanel={() => togglePanel("mobile-navi")}
+                close={closePanel}
+                mounted={backdropMounted}
+                unmount={() => setBackdropMounted(false)}
               />
             </div>
-          </div>
-          <div className={`lg:hidden ${mobileNaviOpen && "z-[51]"}`}>
-            <MobileNavi
-              isOpen={mobileNaviOpen}
-              togglePanel={() => togglePanel("mobile-navi")}
-              close={closePanel}
-              mounted={backdropMounted}
-              unmount={() => setBackdropMounted(false)}
-            />
           </div>
           <div className="hidden sm:block">
             <Backdrop active={openBackdrop} onClick={closePanel} transitionDuration={DURATION} />
@@ -198,7 +200,5 @@ export const navLinks = {
   discord: "https://link.to.pinto/pintocord",
   github: "https://link.to.pinto/github",
   disclosures: "https://link.to.pinto/disclosures",
-  bugbounty: "https://link.to.pinto/bugbounty",
   exchange: "https://pinto.exchange/",
-  pipeline: "https://evmpipeline.org/",
 } as const;
