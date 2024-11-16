@@ -273,7 +273,7 @@ const Overview = () => {
                   <HelperLink
                     text={claimableText}
                     dataTarget="helper-target"
-                    className="absolute -right-[100px] top-[0px]"
+                    className="absolute -right-[100px] top-8"
                     sourceAnchor="left"
                     targetAnchor="right"
                     source90Degree={true}
