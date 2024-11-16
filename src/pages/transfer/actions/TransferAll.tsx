@@ -38,7 +38,7 @@ export default function TransferAll() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const { writeWithEstimateGas, isConfirming, submitting, setSubmitting } = useTransaction({
+  const { writeWithEstimateGas, setSubmitting } = useTransaction({
     successCallback: () => {
       for (const queryKey of farmerSilo.queryKeys) {
         queryClient.invalidateQueries({ queryKey });
@@ -48,6 +48,8 @@ export default function TransferAll() {
       farmerDeposits.refetch();
       navigate("/transfer");
     },
+    successMessage: "Transfer success",
+    errorMessage: "Transfer failed",
   });
 
   function onSubmit() {
