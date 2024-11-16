@@ -90,16 +90,6 @@ const Stat = ({
 
   const displayTemp = data[clampedIndex]?.values?.[0];
 
-  if (index > 22) {
-    console.log("data: ", {
-      data,
-      morningIndex,
-      index,
-      clampedIndex,
-      displayTemp,
-    });
-  }
-
   return (
     <div className="flex flex-col w-full gap-1">
       <Text>Current Temperature {clampedIndex + 1}/25</Text>
