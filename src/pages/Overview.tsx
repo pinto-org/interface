@@ -268,10 +268,11 @@ const Overview = () => {
                     }
                   />
                 )}
+                <div className="absolute right-0 top-20 h-4" data-action-target="helper-target" />
                 {currentTab === "deposits" && claimEnabled && (
                   <HelperLink
                     text={claimableText}
-                    dataTarget="claimable-rewards"
+                    dataTarget="helper-target"
                     className="absolute -right-[100px] top-[0px]"
                     sourceAnchor="left"
                     targetAnchor="right"
