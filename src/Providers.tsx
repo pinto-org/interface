@@ -14,7 +14,7 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
           toastOptions={{
             unstyled: true,
             className:
-              "font-pinto left-0 right-0 mx-auto w-fit rounded-full break-words truncate max-w-[20rem] max-h-[5rem] text-[1.25rem] font-[340] bg-white border-pinto-gray-2 border items-center self-center shadow-[0_1px_8px_0px_#E9F0F6] px-4 py-2 flex flex-row gap-2",
+              "font-pinto left-0 right-0 mx-auto w-fit rounded-full break-words truncate max-h-[5rem] text-[1.25rem] font-[340] bg-white border-pinto-gray-2 border items-center self-center shadow-[0_1px_8px_0px_#E9F0F6] px-4 py-2 flex flex-row gap-2",
             classNames: {
               loading: "px-6 gap-3 bg-white",
               success: "bg-white text-pinto-green-4",
