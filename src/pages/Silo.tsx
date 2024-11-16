@@ -52,7 +52,7 @@ function Silo() {
       mode: "depositedValue",
       mainValue: farmerSilo.depositsUSD,
       mainValueChange: farmerActions.claimRewards.outputs.bdvGain.mul(priceData.price),
-      secondaryValue: farmerSilo.depositsRecordedBDV,
+      secondaryValue: farmerSilo.depositsBDV,
       actionValue: farmerActions.claimRewards.outputs.bdvGain,
       showActionValues: hoveredButton === "claim",
     },

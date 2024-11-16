@@ -136,21 +136,32 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                               <IconImage src={token.logoURI} size={6} />
 
                               <Text variant="sm">{formatter.number(farmerDeposits.get(token)?.amount)}</Text>
-
-                              <Text variant="sm" align="right" color="green4">
-                                + {formatter.number(gains.bdvGain)}
-                              </Text>
-                              <Text color="green4">{token.name}</Text>
+                              {claimEnabled ? (
+                                <>
+                                  <Text variant="sm" align="right" color="green4">
+                                  + {formatter.number(gains.bdvGain)}
+                                  </Text>
+                                  <Text color="green4">{token.name}</Text>
+                                </>
+                              ) : (
+                                <Text>{token.name}</Text>
+                              )}
                             </span>
 
-                            <div className="inline-flex items-center gap-1">
-                              <Text variant="sm-thin" align="right" color="light">
-                                {formatter.usd(currentBDV.mul(priceData.price))} +{" "}
-                              </Text>
-                              <Text variant="sm-thin" align="right" color="green4">
-                                {formatter.usd(gains.beanGain.mul(priceData.price))}
-                              </Text>
-                            </div>
+                              {claimEnabled ? (
+                                <div className="inline-flex items-center gap-1">
+                                  <Text variant="sm-thin" align="right" color="light">
+                                    {formatter.usd(currentBDV.mul(priceData.price))} +{" "}
+                                  </Text>
+                                  <Text variant="sm-thin" align="right" color="green4">
+                                    {formatter.usd(gains.beanGain.mul(priceData.price))}
+                                  </Text>
+                                </div>
+                              ) : (
+                                <Text variant="sm-thin" align="right" color="light">
+                                    {formatter.usd(currentBDV.mul(priceData.price))}
+                                  </Text>
+                              )}
                           </>
                         ) : (
                           <>
