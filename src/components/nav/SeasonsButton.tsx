@@ -154,8 +154,8 @@ const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPa
                                 <>
                                   <Text align="left">Soil is the total number of Pinto that can be lent (Sown).</Text>
                                   <Text align="left" color="light">
-                                    When the Pinto price is less than $1, the amount of Soil issued is set to the amount
-                                    of excess Pinto.
+                                    When the Pinto price is less than $1, the amount of Soil issued is equal to the
+                                    amount of excess Pinto.
                                   </Text>
                                 </>
                               }
