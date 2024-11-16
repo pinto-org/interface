@@ -119,6 +119,7 @@ export default function WalletButtonTransfer({
             selectedToken={tokenIn}
             balanceFrom={balanceFrom}
             balancesToShow={[FarmFromMode.EXTERNAL, FarmFromMode.INTERNAL]}
+            inputFrameColor="off-white"
           />
         </div>
       </CardContent>

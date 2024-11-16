@@ -514,7 +514,7 @@ const PipelineConvert = ({
     !convertData ||
     isConfirming ||
     convertData?.amountOut.lte(0) ||
-    maxConvertible?.lt(stringToNumber(amountIn)) ||
+    (maxConvertible && maxConvertible.toNumber() < stringToNumber(amountIn)) ||
     submitting;
 
   return (
