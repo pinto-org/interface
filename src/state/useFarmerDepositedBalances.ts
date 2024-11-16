@@ -4,7 +4,7 @@ import { PINTO } from "@/constants/tokens";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useChainAddress } from "@/utils/chain";
-import { DepositData, Token, TokenDepositData } from "@/utils/types";
+import { DepositData, Token } from "@/utils/types";
 import { unpackStem } from "@/utils/utils";
 import { useMemo } from "react";
 import { Address, toHex } from "viem";
@@ -44,7 +44,7 @@ function useFarmerDepositedBalances() {
     scopeKey: ["season", season].join(" "),
     query: {
       ...querySettings,
-      enabled: !!account.address,
+      enabled: Boolean(account.address),
     },
   });
 
@@ -85,24 +85,41 @@ function useFarmerDepositedBalances() {
       let currentBDV = TokenValue.fromBlockchain(0n, PINTO.decimals);
       let totalBaseStalk: TokenValue = TokenValue.fromBlockchain(0n, STALK.decimals);
       let totalGrownStalk: TokenValue = TokenValue.fromBlockchain(0n, STALK.decimals);
-      let totalStalk: TokenValue = TokenValue.fromBlockchain(0n, STALK.decimals);
+      let totalGerminatingStalk: TokenValue = TokenValue.fromBlockchain(0n, STALK.decimals);
       let totalSeeds: TokenValue = TokenValue.fromBlockchain(0n, SEEDS.decimals);
 
       tokenDeposits.forEach((deposit) => {
         const isGerminating = deposit.stem >= siloTokenData.germinatingStem.toBigInt();
         const _depositBDV = TokenValue.fromBlockchain(deposit.depositedBDV, BEAN.decimals);
         const depositStem = TokenValue.fromBlockchain(deposit.stem, BEAN.decimals);
-        const baseStalk = isGerminating
-          ? TokenValue.fromBlockchain(0n, STALK.decimals)
-          : _depositBDV.mul(siloTokenData.rewards.stalk);
-        const grownStalk = _depositBDV.mul(siloTokenData.stemTip.sub(depositStem)).div(10000);
-        const seeds = _depositBDV.mul(siloTokenData.rewards.seeds);
         const depositAmount = TokenValue.fromBlockchain(deposit.depositedAmount, token.decimals);
         const _currentBDV = depositAmount.mul(siloTokenData.tokenBDV);
+        const seeds = _depositBDV.mul(siloTokenData.rewards.seeds);
+
+        let baseStalk: TokenValue;
+        let grownStalk: TokenValue;
+        let germinatingStalk: TokenValue;
+
+        if (isGerminating) {
+          // For germinating deposits:
+          // - germinatingStalk is calculated from seeds using stalk/seed ratio
+          // - baseStalk and grownStalk are 0
+          baseStalk = TokenValue.fromBlockchain(0n, STALK.decimals);
+          grownStalk = TokenValue.fromBlockchain(0n, STALK.decimals);
+          germinatingStalk = seeds.div(siloTokenData.rewards.seeds).mul(siloTokenData.rewards.stalk);
+        } else {
+          // For non-germinating deposits:
+          // - baseStalk is BDV * stalkPerBDV
+          // - grownStalk is based on stem difference
+          // - germinatingStalk is 0
+          baseStalk = _depositBDV.mul(siloTokenData.rewards.stalk);
+          grownStalk = _depositBDV.mul(siloTokenData.stemTip.sub(depositStem)).div(10000);
+          germinatingStalk = TokenValue.fromBlockchain(0n, STALK.decimals);
+        }
 
         totalBaseStalk = totalBaseStalk.add(baseStalk);
         totalGrownStalk = totalGrownStalk.add(grownStalk);
-        totalStalk = totalStalk.add(baseStalk.add(grownStalk));
+        totalGerminatingStalk = totalGerminatingStalk.add(germinatingStalk);
         totalSeeds = totalSeeds.add(seeds);
 
         amount = amount.add(depositAmount);
@@ -122,7 +139,8 @@ function useFarmerDepositedBalances() {
           stalk: {
             base: baseStalk,
             grown: grownStalk,
-            total: baseStalk.add(grownStalk),
+            germinating: germinatingStalk,
+            total: baseStalk.add(grownStalk).add(germinatingStalk),
           },
           seeds: seeds,
           isGerminating: isGerminating,
@@ -143,7 +161,8 @@ function useFarmerDepositedBalances() {
         stalk: {
           base: totalBaseStalk,
           grown: totalGrownStalk,
-          total: totalStalk,
+          germinating: totalGerminatingStalk,
+          total: totalBaseStalk.add(totalGrownStalk).add(totalGerminatingStalk),
         },
         seeds: totalSeeds,
         deposits: depositData,

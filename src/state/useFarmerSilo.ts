@@ -58,7 +58,6 @@ export function useFarmerSilo() {
   const SILO_WHITELIST = tokenData.whitelistedTokens;
 
   const farmerWLTokenData = useGrownStalkPerTokenQueries();
-
   const farmerDeposits = useFarmerDepositedBalances().data;
   const currPrice = usePriceData().price;
 
@@ -90,7 +89,7 @@ export function useFarmerSilo() {
     let _depositsBDV = TokenValue.ZERO;
     let _depositsUSD = TokenValue.ZERO;
     let _activeSeeds = TokenValue.ZERO;
-    let _germinatingStalk = TokenValue.ZERO;
+    let _totalGerminatingStalk = TokenValue.ZERO;
 
     const map = new Map<Token, TokenValue>();
     const keys: QueryKey[] = [];
@@ -108,18 +107,12 @@ export function useFarmerSilo() {
       keys.push(grownStalk.queryKey);
 
       const depositData = farmerDeposits.get(token);
+
       if (depositData) {
         _depositsBDV = _depositsBDV.add(depositData.currentBDV);
         _depositsUSD = _depositsUSD.add(depositData.currentBDV.mul(currPrice));
-
-        // Calculate germinating and active seeds separately
-        depositData.deposits.forEach((deposit) => {
-          if (deposit.isGerminating) {
-            _germinatingStalk = _germinatingStalk.add(deposit.stalk.total);
-          } else {
-            _activeSeeds = _activeSeeds.add(deposit.seeds);
-          }
-        });
+        _activeSeeds = _activeSeeds.add(depositData.seeds);
+        _totalGerminatingStalk = _totalGerminatingStalk.add(depositData.stalk.germinating);
       }
 
       if (floodData.data && tokenData && token.tokens) {
@@ -156,7 +149,7 @@ export function useFarmerSilo() {
       depositsBDV: _depositsBDV,
       depositsUSD: _depositsUSD,
       activeSeeds: _activeSeeds,
-      germinatingStalk: _germinatingStalk,
+      germinatingStalk: _totalGerminatingStalk,
     };
   }, [tokenData, floodData.data, farmerWLTokenData, farmerDeposits, currPrice, BEAN.address, SILO_WHITELIST]);
 
@@ -172,8 +165,8 @@ export function useFarmerSilo() {
 
   return {
     activeStalkBalance: activeStalkBalance.data ?? TokenValue.ZERO,
+    // Germinating stalk is summed from deposits
     germinatingStalkBalance: depositsData.germinatingStalk,
-    totalStalkBalance: (activeStalkBalance.data ?? TokenValue.ZERO).add(depositsData.germinatingStalk),
     activeSeedsBalance: depositsData.activeSeeds,
     depositsBDV: depositsData.depositsBDV,
     depositsUSD: depositsData.depositsUSD,

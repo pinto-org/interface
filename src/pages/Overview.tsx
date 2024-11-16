@@ -99,7 +99,7 @@ const Overview = () => {
     },
     stalk: {
       mode: "stalk",
-      mainValue: farmerSilo.activeStalkBalance,
+      mainValue: farmerSilo.activeStalkBalance.add(farmerSilo.germinatingStalkBalance),
       mainValueChange: hoveredButton === "harvest" ? farmerActions.harvestPods.outputs.stalkGain : undefined,
       actionValue: hoveredButton === "harvest" ? harvestSiloPct.sub(siloPct) : undefined,
       secondaryValue: siloPct,
