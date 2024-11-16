@@ -152,15 +152,15 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
         <Table>
           <TableHeader>
             <TableRow className="bg-pinto-gray-1 hover:bg-pinto-gray-1 h-14">
-              <TableHead className="text-black font-[400] text-[1rem] w-1/4 p-4">Deposited Asset</TableHead>
-              <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4">Amount Deposited</TableHead>
-              <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4">
+              <TableHead className="text-black font-[400] text-[1rem] w-[17.5%] p-4">Deposited Asset</TableHead>
+              <TableHead className="text-black text-right font-[400] text-[1rem] w-[25%]">Amount Deposited</TableHead>
+              <TableHead className="text-black text-right font-[400] text-[1rem] w-[30%]">
                 <div className="flex flex-row items-center justify-end gap-2">
                   {/* <IconImage src={stalkIcon} size={6} /> */}
                   Stalk
                 </div>
               </TableHead>
-              <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4 p-4">
+              <TableHead className="text-black text-right font-[400] text-[1rem] w-[27.5%] p-4">
                 <div className="flex flex-row items-center justify-end gap-2">
                   {/* <IconImage src={seedIcon} size={6} /> */}
                   Seeds

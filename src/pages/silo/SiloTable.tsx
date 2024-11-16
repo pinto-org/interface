@@ -48,11 +48,13 @@ function SiloTable({ hovering }: { hovering: boolean }) {
           <TableRow className="bg-pinto-gray-1 hover:bg-pinto-gray-1 h-14">
             <TableHead className="text-black font-[400] text-[1rem] w-[20%] p-4">Token</TableHead>
             <TableHead className="text-black font-[400] text-[1rem] w-[30%]">Reward</TableHead>
-            <TableHead className="text-black font-[400] text-right text-[1rem] w-[15%]">
+            <TableHead className="text-black font-[400] text-right text-[1rem] w-[20%]">
               Total Value Deposited
             </TableHead>
-            <TableHead className="text-black text-right font-[400] text-[1rem] w-[20%]">My Deposited Amount</TableHead>
-            <TableHead className="text-black text-right font-[400] text-[1rem] w-[15%] p-4">Value Deposited</TableHead>
+            {/* <TableHead className="text-black text-right font-[400] text-[1rem] w-[20%]">My Deposited Amount</TableHead> */}
+            <TableHead className="text-black text-right font-[400] text-[1rem] w-[30%] p-4">
+              My Deposited Amount
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -106,50 +108,77 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                 <Text as={TableCell} align="right" variant="sm" color="secondary" className="opacity-70">
                   {formatter.usd(totalBDV?.mul(priceData.price))}
                 </Text>
-                <Text as={TableCell} align="right" variant="sm">
-                  {token.isMain && hovering && claimEnabled ? (
-                    <div className="inline-flex items-center gap-1 text-pinto-green-4">
-                      <UpArrowIcon color={"currentColor"} width={20} height={20} />
-                      <IconImage src={token.logoURI} size={6} />
-                      <div className="font-[400] text-[1rem]">{formatter.number(amount.add(gains.beanGain))}</div>
-                      <span className="text-black opacity-70">{token.name}</span>
-                    </div>
-                  ) : (
-                    <span className="flex flex-row gap-1 items-center place-self-end">
-                      <IconImage src={token.logoURI} size={6} />
-                      <Text>{formatter.number(farmerDeposits.get(token)?.amount)}</Text>
-                      <Text>{token.name}</Text>
-                    </span>
-                  )}
-                </Text>
                 <TableCell className="text-right pr-4">
                   <div className="flex flex-col items-end gap-1">
                     {token.isMain && hovering && claimEnabled ? (
                       <>
                         <span className="inline-flex items-center gap-1 text-pinto-green-4">
                           <UpArrowIcon color={"currentColor"} width={20} height={20} />
+                          <IconImage src={token.logoURI} size={6} />
+
                           <Text variant="sm" align="right" color="green4">
-                            {formatter.usd(currentBDV.add(gains.bdvGain).mul(priceData.price))}
+                            {formatter.number(farmerDeposits.get(token)?.amount.add(gains.bdvGain))}
                           </Text>
+                          <Text color="green4">{token.name}</Text>
                         </span>
+
                         <div className="inline-flex items-center gap-1">
-                          <img src={pdvIcon} alt={"pdv"} className="h-3 w-5" />
-                          <Text variant="sm-thin" align="right" color="light">
-                            {formatter.pdv(depositBDV.add(gains.bdvGain))}
+                          <Text variant="sm-thin" align="right" color="green4">
+                            {formatter.usd(currentBDV.mul(priceData.price).add(gains.beanGain.mul(priceData.price)))}
                           </Text>
                         </div>
                       </>
                     ) : (
                       <>
-                        <Text variant="sm" align="right">
-                          {formatter.usd(currentBDV.mul(priceData.price))}
-                        </Text>
-                        <div className="inline-flex items-center gap-1">
-                          <img src={pdvIcon} alt={"pdv"} className="h-3 w-5" />
-                          <Text variant="sm-thin" align="right" color="light">
-                            {formatter.pdv(depositBDV)}
-                          </Text>
-                        </div>
+                        {token.isMain ? (
+                          <>
+                            <span className="inline-flex items-center gap-1">
+                              <IconImage src={token.logoURI} size={6} />
+
+                              <Text variant="sm">{formatter.number(farmerDeposits.get(token)?.amount)}</Text>
+                              {claimEnabled ? (
+                                <>
+                                  <Text variant="sm" align="right" color="green4">
+                                  + {formatter.number(gains.bdvGain)}
+                                  </Text>
+                                  <Text color="green4">{token.name}</Text>
+                                </>
+                              ) : (
+                                <Text>{token.name}</Text>
+                              )}
+                            </span>
+
+                              {claimEnabled ? (
+                                <div className="inline-flex items-center gap-1">
+                                  <Text variant="sm-thin" align="right" color="light">
+                                    {formatter.usd(currentBDV.mul(priceData.price))} +{" "}
+                                  </Text>
+                                  <Text variant="sm-thin" align="right" color="green4">
+                                    {formatter.usd(gains.beanGain.mul(priceData.price))}
+                                  </Text>
+                                </div>
+                              ) : (
+                                <Text variant="sm-thin" align="right" color="light">
+                                    {formatter.usd(currentBDV.mul(priceData.price))}
+                                  </Text>
+                              )}
+                          </>
+                        ) : (
+                          <>
+                            <span className="inline-flex items-center gap-1">
+                              <IconImage src={token.logoURI} size={6} />
+
+                              <Text variant="sm">{formatter.number(farmerDeposits.get(token)?.amount)}</Text>
+                              <Text color="primary">{token.name}</Text>
+                            </span>
+
+                            <div className="inline-flex items-center gap-1">
+                              <Text variant="sm-thin" align="right" color="light">
+                                {formatter.usd(currentBDV.mul(priceData.price))}
+                              </Text>
+                            </div>
+                          </>
+                        )}
                       </>
                     )}
                   </div>

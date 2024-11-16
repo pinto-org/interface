@@ -91,10 +91,10 @@ export default function DepositsTable({ token, selected, useToggle }: DepositsTa
     <Table>
       <TableHeader>
         <TableRow className="bg-pinto-gray-1 hover:bg-pinto-gray-1 h-14">
-          <TableHead className="text-black font-[400] text-[1rem] w-1/4 p-4">Deposit ID</TableHead>
-          <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4">Amount Deposited</TableHead>
-          <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4">Stalk</TableHead>
-          <TableHead className="text-black text-right font-[400] text-[1rem] w-1/4 p-4">Seeds</TableHead>
+          <TableHead className="text-black font-[400] text-[1rem] w-[15%] p-4">Deposit ID</TableHead>
+          <TableHead className="text-black text-right font-[400] text-[1rem] w-[25%]">Amount Deposited</TableHead>
+          <TableHead className="text-black text-right font-[400] text-[1rem] w-[35%]">Stalk</TableHead>
+          <TableHead className="text-black text-right font-[400] text-[1rem] w-[25%] p-4">Seeds</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
