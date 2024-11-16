@@ -1,14 +1,17 @@
 import depositIcon from "@/assets/protocol/Deposit.svg";
+import seedIcon from "@/assets/protocol/Seed.png";
+import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { ToggleGroupItem } from "@/components/ui/ToggleGroup";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { usePriceData } from "@/state/usePriceData";
-import { truncateHex } from "@/utils/format";
+import { formatter, truncateHex } from "@/utils/format";
 import { DepositData, Token } from "@/utils/types";
 import { HTMLMotionProps } from "framer-motion";
 import React from "react";
 import CheckmarkCircle from "./CheckmarkCircle";
+import IconImage from "./ui/IconImage";
 import Text from "./ui/Text";
 
 interface DepositsTable {
@@ -41,19 +44,35 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
           </div>
         </Text>
         <Text as={TableCell} className="text-right">
-          <div>{`${deposit.amount.toHuman("short")} ${token.name}`}</div>
-          <div className="text-pinto-gray-4 mt-1">{`$${(deposit.depositBdv || TokenValue.ZERO).mul(price).toHuman("short")}`}</div>
+          <div className="flex flex-row gap-1 items-center justify-end">
+            <IconImage src={token.logoURI} size={4} />
+            <div className="opacity-70">{`${formatter.number(deposit.amount)} ${token.name}`}</div>
+          </div>
+          <div className="text-pinto-gray-4 mt-1 opacity-70 font-[340]">{`${formatter.usd((deposit.depositBdv || TokenValue.ZERO).mul(price))}`}</div>
         </Text>
         <Text as={TableCell} className="text-right">
-          <div>{deposit.stalk.base.toHuman("short")}</div>
+          <div className="flex flex-row gap-1 items-center justify-end">
+            <IconImage src={stalkIcon} size={4} />
+            {deposit.isGerminating ? (
+              <div className="opacity-60 text-pinto-off-green">{formatter.number(deposit.stalk.germinating)}</div>
+            ) : (
+              <div className="opacity-70">{formatter.number(deposit.stalk.base)}</div>
+            )}
+          </div>
           {deposit.stalk.grown.gt(0) && (
-            <div className="text-pinto-gray-4 mt-1">
-              Claimable Grown Stalk: <span className="text-pinto-green-4">+{deposit.stalk.grown.toHuman("short")}</span>
+            <div className="text-pinto-gray-4 mt-1 opacity-70 font-[340]">
+              Claimable Grown Stalk:{" "}
+              <span className="text-pinto-green-4">
+                {formatter.number(deposit.stalk.grown, { showPositiveSign: true })}
+              </span>
             </div>
           )}
         </Text>
         <Text as={TableCell} className="text-right p-4">
-          {deposit.seeds.toHuman("short")}
+          <div className="flex flex-row gap-1 items-center justify-end">
+            <IconImage src={seedIcon} size={4} />
+            <div className="opacity-70">{formatter.number(deposit.seeds)}</div>
+          </div>
         </Text>
       </TableRow>
     );
