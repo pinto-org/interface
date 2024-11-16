@@ -109,7 +109,7 @@ function Sow({ isMorning }: SowProps) {
     balanceFrom,
     FarmToMode.INTERNAL,
     undefined,
-    isUsingMain || stringToNumber(amountIn) <= 0,
+    isUsingMain || stringToNumber(amountIn) <= 0 || maxSow?.lte(0),
   );
 
   const pods = useMemo(() => {

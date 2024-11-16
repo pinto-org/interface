@@ -1,3 +1,4 @@
+import { normalizeTV } from "@/utils/number";
 import { useCallback, useMemo } from "react";
 import useCalculateTemperature from "./useCalculateTemperature";
 import { useTotalSoil } from "./useFieldData";
@@ -20,8 +21,9 @@ export default function useCalculateSoil() {
 
   const calculateNextSoil = useCallback(
     (morningIdx: number) => {
+      const soil = normalizeTV(totalSoil);
       if (!abovePeg) {
-        return totalSoil;
+        return soil;
       }
 
       const currTemp = calculateTemperature(morningIdx);
@@ -29,23 +31,24 @@ export default function useCalculateSoil() {
 
       const ratio = currTemp.add(100).div(nextTemp.add(100));
 
-      return totalSoil.mul(ratio).roundDown();
+      return soil.mul(ratio).roundDown();
     },
     [abovePeg, totalSoil, calculateTemperature],
   );
 
   const soilData = useMemo(() => {
+    const soil = normalizeTV(totalSoil);
     if (!isMorning || !abovePeg) {
       return {
-        soil: totalSoil,
-        nextSoil: totalSoil,
+        soil,
+        nextSoil: soil,
       };
     }
 
     const nextSoil = calculateNextSoil(morningIndex);
 
     return {
-      soil: totalSoil,
+      soil,
       nextSoil,
     };
   }, [isMorning, abovePeg, totalSoil, morningIndex, calculateNextSoil]);

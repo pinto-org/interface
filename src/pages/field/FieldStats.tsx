@@ -1,8 +1,8 @@
-import { TV } from "@/classes/TokenValue";
 import Text from "@/components/ui/Text";
 import { usePodLine, useTemperature, useTotalSoil } from "@/state/useFieldData";
 import { useMorning, useSunData } from "@/state/useSunData";
 import { formatter } from "@/utils/format";
+import { normalizeTV } from "@/utils/number";
 import { MorningIntervalCountdown } from "./MorningCountdown";
 
 const FieldStats = () => {
@@ -12,11 +12,10 @@ const FieldStats = () => {
   const totalSoil = useTotalSoil();
   const podLine = usePodLine();
 
-  const scaledTemperature = temperatures.scaled.lte(0) ? TV.ZERO : temperatures.scaled;
-  const soil = totalSoil.lte(0) ? TV.ZERO : totalSoil;
-  const pLine = podLine.lte(0) ? TV.ZERO : podLine;
-
-  const maxTemperature = temperatures.max.gt(0) ? temperatures.max : 0;
+  const scaledTemperature = normalizeTV(temperatures.scaled);
+  const soil = normalizeTV(totalSoil);
+  const pLine = normalizeTV(podLine);
+  const maxTemperature = normalizeTV(temperatures.max);
 
   return (
     <div className="flex flex-row gap-x-12 gap-y-4 flex-wrap w-full">
