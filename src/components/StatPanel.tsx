@@ -103,7 +103,7 @@ const StatPanel = ({
           Claimable Stalk:
           <Text as="span" variant="inherit" color="green4" className="pl-2">
             {secondaryValue.gt(0) ? "+" : ""}
-            {formatter.noDec(secondaryValue)}
+            {formatter.twoDec(secondaryValue)}
           </Text>
         </div>
       )}
@@ -122,7 +122,7 @@ const StatPanel = ({
           Claimable Seeds:
           <Text as="span" variant="inherit" color="green4" className="pl-2">
             {secondaryValue.gt(0) ? "+" : ""}
-            {formatter.noDec(secondaryValue)}
+            {formatter.twoDec(secondaryValue)}
           </Text>
         </div>
       )}

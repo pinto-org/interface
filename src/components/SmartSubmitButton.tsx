@@ -112,7 +112,7 @@ export default function SmartSubmitButton({
         ? "Sending Transaction"
         : account.address && needsApproval
           ? "Approve Spending"
-          : submitButtonText || "Swap"}
+          : submitButtonText || "Submit"}
     </Button>
   );
 }
