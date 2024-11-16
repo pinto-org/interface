@@ -116,7 +116,6 @@ function Silo() {
                   dotted={true}
                   startCapColor={convertFrom.color}
                   endCapColor={convertTo.color}
-                  componentOffsetHeight={20}
                   component={
                     <div className="group flex flex-col group max-w-[250px] cursor-pointer place-items-end gap-2">
                       <div
