@@ -1,5 +1,5 @@
 import FrameAnimator from "@/components/LoadingSpinner";
-import PageFullScreen from "@/components/ui/PageFrame";
+import PageFullScreen from "@/components/ui/PageFullScreen";
 import useDelayedLoading from "@/hooks/display/useDelayedLoading";
 import useFarmerStatus from "@/hooks/useFarmerStatus";
 import { useEffect } from "react";

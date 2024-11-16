@@ -21,7 +21,8 @@ import { Separator } from "@radix-ui/react-separator";
 import { useModal } from "connectkit";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { atomWithImmer } from "jotai-immer";
-import React, { useEffect, useRef } from "react";
+import { throttle } from "lodash";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 
 /// ------------ BANNERS ------------ ///
@@ -80,7 +81,7 @@ const NewUserView = () => {
   }, [price.data?.price, setSelected]);
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div ref={containerRef} className="relative pt-14">
       <PageContainer variant="full" className="w-full">
         {!farmerStatus.address ? (
           <ConnectWalletBanner />
@@ -371,7 +372,8 @@ function useSetComponentPosition(
   containerRef: React.RefObject<HTMLDivElement>,
 ) {
   const setPositions = useSetAtom(portalPositionsAtom);
-  const updatePosition = useDebounceCallback(() => {
+
+  const update = useCallback(() => {
     if (ref.current && containerRef.current) {
       const rect = ref.current.getBoundingClientRect();
       const containerRect = containerRef.current.getBoundingClientRect();
@@ -382,7 +384,9 @@ function useSetComponentPosition(
         };
       });
     }
-  }, 5);
+  }, [containerRef.current, ref.current, setPositions, key]);
+
+  const updatePosition = useMemo(() => throttle(update, 25), [update]);
 
   useEffect(() => {
     updatePosition();
