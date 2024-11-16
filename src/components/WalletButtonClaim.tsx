@@ -16,7 +16,7 @@ import { useAccount, useChainId } from "wagmi";
 import DestinationBalanceSelect from "./DestinationBalanceSelect";
 import { ForwardArrowIcon } from "./Icons";
 import { Button } from "./ui/Button";
-import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
+import { Card, CardContent, CardHeader } from "./ui/Card";
 import { Separator } from "./ui/Separator";
 
 export default function WalletButtonClaim({
@@ -34,7 +34,7 @@ export default function WalletButtonClaim({
   const { whitelistedTokens } = useTokenData();
 
   const queryClient = useQueryClient();
-  const { writeWithEstimateGas, submitting, isConfirming, setSubmitting } = useTransaction({
+  const { writeWithEstimateGas, setSubmitting } = useTransaction({
     successCallback: () => {
       const allQueryKeys = [...queryKeys, ...siloQueryKeys];
       allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
@@ -50,6 +50,8 @@ export default function WalletButtonClaim({
   );
 
   async function onSubmit() {
+    setSubmitting(true);
+    toast.loading("Claiming...");
     try {
       if (!chainId || !account.address || !balanceTo) return;
 
@@ -66,11 +68,17 @@ export default function WalletButtonClaim({
         args: [Number(balanceTo)],
       });
 
+      const encoded = encodeFunctionData({
+        abi: beanstalkAbi,
+        functionName: "farm",
+        args: [[mow, claimFlood]],
+      });
+
       return writeWithEstimateGas({
         address: diamond,
         abi: beanstalkAbi,
         functionName: "farm",
-        args: [[mow, claimFlood]],
+        args: [[encoded]],
       });
     } catch (e) {
       console.error(e);
@@ -150,9 +158,6 @@ export default function WalletButtonClaim({
           </Button>
         </div>
       </CardContent>
-      {/* <CardFooter className="px-6 flex flex-col justify-end gap-4">
-        
-      </CardFooter> */}
     </Card>
   );
 }
