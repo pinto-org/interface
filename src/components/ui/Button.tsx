@@ -7,7 +7,7 @@ import { cn } from "@/utils/utils";
 import clsx from "clsx";
 
 const outlineBase = clsx(
-  "border border-pinto-gray-2 bg-pinto-gray-1 shadow-sm hover:bg-pinto-gray-2/50 hover:text-accent-foreground"
+  "border border-pinto-gray-2 bg-pinto-gray-1 shadow-sm hover:bg-pinto-gray-2/50 hover:text-accent-foreground",
 );
 
 const primaryBase = clsx("text-pinto-green hover:text-pinto-green");
@@ -16,7 +16,7 @@ const secondaryBase = clsx("text-pinto-gray-5 hover:text-pinto-gray-5");
 
 const outlineShadowBase = clsx(
   // E9F0F6 is pinto-gray-blue
-  "shadow-[0px_1px_8px_0px_#E9F0F6] border-pinto-gray-blue bg-white/100 hover:bg-pinto-gray-1"
+  "shadow-[0px_1px_8px_0px_#E9F0F6] border-pinto-gray-blue bg-white/100 hover:bg-pinto-gray-1",
 );
 
 const roundedBase = clsx("rounded-full");
@@ -26,24 +26,21 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          "bg-pinto-green-4 text-white hover:bg-pinto-green-4/90 transition-all",
-        defaultAlt:
-          "bg-pinto-green-1 text-pinto-green hover:bg-pinto-green-1/80 transition-all",
-        destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        default: "bg-pinto-green-4 text-white hover:bg-pinto-green-4/90 transition-all",
+        defaultAlt: "bg-pinto-green-1 text-pinto-green hover:bg-pinto-green-1/80 transition-all",
+        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         outline: outlineBase,
         "outline-rounded": `${outlineBase} ${roundedBase}`,
         "outline-primary": `${outlineBase} ${primaryBase}`,
         "outline-secondary": `${outlineBase} ${secondaryBase}`,
         "outline-gray-shadow": `${outlineBase} ${outlineShadowBase}`,
-        secondary:
-          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-pinto-gray-2 hover:hover:bg-pinto-gray-2/50",
         link: "text-primary underline-offset-4 hover:underline",
         "silo-action":
           "px-2 hover:bg-pinto-gray-2 hover:hover:bg-pinto-green h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 hover:text-white flex flex-row justify-start gap-[0.625rem] disabled:bg-transparent disabled:text-pinto-gray-5 disabled:opacity-30",
         morning: "bg-pinto-morning-orange text-pinto-morning",
+        gradient: "bg-gradient-primary text-white hover:bg-gradient-primary-hover",
       },
       size: {
         default: `h-10 w-max px-2 py-2 sm:px-4 sm:py-2 ${deriveTextStyles("body-light", true)}`,
@@ -76,7 +73,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 export interface ButtonProps
@@ -98,7 +95,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       width = "default",
       ...props
     },
-    ref
+    ref,
   ) => {
     const Comp = asChild ? Slot : "button";
     return (
@@ -112,13 +109,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             rounded,
             width,
           }),
-          className
+          className,
         )}
         ref={ref}
         {...props}
       />
     );
-  }
+  },
 );
 Button.displayName = "Button";
 

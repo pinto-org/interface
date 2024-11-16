@@ -1,4 +1,5 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/Tooltip";
+import { cn } from "@/utils/utils";
 import { TooltipPortal } from "@radix-ui/react-tooltip";
 import { ReactNode } from "react";
 import { InfoOutlinedIcon, InfoSolidIcon } from "./Icons";
@@ -11,6 +12,7 @@ interface TooltipSimpleProps {
   props?: [x: string];
   side?: "top" | "right" | "bottom" | "left";
   align?: "start" | "center" | "end";
+  triggerClassName?: string;
 }
 
 export default function TooltipSimple({
@@ -20,6 +22,7 @@ export default function TooltipSimple({
   opaque,
   side = "top",
   align = "center",
+  triggerClassName,
   ...props
 }: TooltipSimpleProps) {
   return (
@@ -28,17 +31,20 @@ export default function TooltipSimple({
         <TooltipTrigger asChild>
           {children || (
             <span
-              className={`${opaque ? "opacity-[0.4]" : "opacity-100"} ${
-                variant === "pinto"
-                  ? "text-pinto"
-                  : variant === "stalk"
-                    ? "text-pinto-stalk-gold"
-                    : variant === "seeds"
-                      ? "text-pinto-seed-silver"
-                      : variant === "pods"
-                        ? "text-pinto-pod-bronze"
-                        : "text-pinto-gray-4"
-              }`}
+              className={cn(
+                `${opaque ? "opacity-[0.4]" : "opacity-100"} ${
+                  variant === "pinto"
+                    ? "text-pinto"
+                    : variant === "stalk"
+                      ? "text-pinto-stalk-gold"
+                      : variant === "seeds"
+                        ? "text-pinto-seed-silver"
+                        : variant === "pods"
+                          ? "text-pinto-pod-bronze"
+                          : "text-pinto-gray-4"
+                }`,
+                triggerClassName,
+              )}
             >
               {variant === "pinto" ||
               variant === "gray" ||

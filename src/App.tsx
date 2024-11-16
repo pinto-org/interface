@@ -2,16 +2,17 @@ import { isDev } from "@/utils/utils";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import DevPage from "./components/DevPage";
 import Navbar from "./components/nav/nav/Navbar";
+import Explorer from "./pages/Explorer";
 import Field from "./pages/Field";
+import Landing from "./pages/Landing";
 import { Market } from "./pages/Market";
 import Overview from "./pages/Overview";
 import Silo from "./pages/Silo";
 import SiloToken from "./pages/SiloToken";
 import Swap from "./pages/Swap";
 import Transfer from "./pages/Transfer";
-import Landing from "./pages/Landing";
 import LaunchArticle from "./pages/landing/LaunchArticle";
-import Explorer from "./pages/Explorer";
+import NewUserView from "./pages/overview/LearnPegActions";
 
 function App() {
   return (
@@ -26,7 +27,8 @@ function App() {
           <Routes>
             <Route index element={<Landing />} />
             <Route path="/announcing-pinto" element={<LaunchArticle />} />
-            <Route path="/overview" element={<Overview />} />
+            {/* <Route path="/overview" element={<Overview />} /> */}
+            <Route path="/overview" element={<NewUserView />} />
             <Route path="/silo" element={<Silo />} />
             <Route path="/silo/:tokenAddress" element={<SiloToken />} />
             <Route path="/silo/:tokenAddress/:action" element={<SiloToken />} />
