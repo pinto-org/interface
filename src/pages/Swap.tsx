@@ -101,9 +101,8 @@ export default function Swap() {
     <div className="flex flex-col w-full">
       <div className="flex flex-col self-center w-[700px]">
         <div className="flex flex-row justify-between">
-          <div className="flex flex-col">
+          <div className="flex flex-col gap-y-3">
             <div className="text-pinto-h1 text-black inline-flex gap-2 items-center">
-              <img src={marketIcon} className="h-12 w-12" alt={"Market logo"} />
               Market
             </div>
             <div className="font-[340] text-[1.25rem] text-pinto-gray-4">Buy and sell Pinto-native assets.</div>
@@ -123,7 +122,7 @@ export default function Swap() {
           </div>
         </div>
         <div className="flex flex-col mt-9 gap-4">
-          <div>
+          <div className="flex flex-col gap-y-2">
             <Label>Sell</Label>
             <ComboInputField
               amount={amountIn}
@@ -139,12 +138,12 @@ export default function Swap() {
             <Button
               onClick={invertTokens}
               variant={"outline"}
-              className="rounded-full h-10 w-10 p-0 self-center hover:cursor-pointer"
+              className="rounded-full h-10 w-10 !p-0 self-center hover:cursor-pointer"
             >
-              <UpDownArrowsIcon />
+              <UpDownArrowsIcon className="w-8 h-8"/>
             </Button>
           </div>
-          <div>
+          <div className="flex flex-col gap-y-2">
             <Label>Buy</Label>
             <ComboInputField
               amount={amountOut}
@@ -158,16 +157,16 @@ export default function Swap() {
           </div>
           <div>
             {destinationIsEth ? (
-              <div className="h-[4.75rem] font-[340] text-[1.25rem] text-pinto-gray-4 content-center">{`${tokenOut.symbol} can only be sent to your Wallet Balance.`}</div>
+              <div></div>
             ) : (
-              <>
+              <div className="flex flex-col gap-y-2">
                 <Label className="content-center">Send output to:</Label>
                 <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} />
-              </>
+              </div>
             )}
           </div>
           <div className="mt-6 flex">
-            <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit} className="h-[5.25rem]" />
+            <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit} submitButtonText="Swap" className="h-[5.25rem]" />
           </div>
         </div>
       </div>

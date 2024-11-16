@@ -46,7 +46,7 @@ function Field() {
       {/* <div className="flex flex-col w-full items-center"> */}
       <div className="flex flex-col lg:flex-row justify-between gap-14">
         <div className="flex flex-col w-full gap-8">
-          <div className="flex flex-col gap-4 px-4">
+          <div className="flex flex-col gap-4">
             <Text variant="h1">Field</Text>
             <Text variant="body-light" color="light">
               Lend in the decentralized credit facility for Pods, the Pinto debt asset.
@@ -70,14 +70,14 @@ function Field() {
               <Link to={"/explorer/field"}>View Data</Link>
             </Button>
           </div>
-          <div className="flex flex-row justify-between items-center mx-4">
+          <div className="flex flex-row justify-between items-center">
             <Text variant="h3">My Pods</Text>
             <div className="flex flex-row gap-2 items-center">
               <img src={podIcon} className="w-8 h-8" alt={"total pods"} />
               <Text variant="h3">{formatter.number(totalPods)}</Text>
             </div>
           </div>
-          <div className="mx-4">{hasPods ? <PlotsTable /> : <EmptyTable type="plots-field" />}</div>
+          <div>{hasPods ? <PlotsTable /> : <EmptyTable type="plots-field" />}</div>
         </div>
         {/*
          * Right side
@@ -89,6 +89,7 @@ function Field() {
           {/* <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border"></div> */}
           <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border flex flex-col gap-2">
             <Button
+              className="w-full"
               variant="silo-action"
               disabled={totalPods.isZero}
               onClick={(e) => {
@@ -107,7 +108,7 @@ function Field() {
                 Send Pods
               </NavLink>
             </Button>
-            <Button asChild variant="silo-action">
+            <Button asChild variant="silo-action" className="w-full">
               <NavLink to="/podmarket" className="flex flex-row gap-2 items-center">
                 <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
                   <span className="self-center items-center">

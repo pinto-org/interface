@@ -5,6 +5,7 @@ import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { Label } from "./ui/Label";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/Popover";
+import Text from "./ui/Text";
 
 export default function SlippageButton({
   slippage,
@@ -27,8 +28,8 @@ export default function SlippageButton({
           <img src={settingsIcon} className="w-4 h-4 transition-all" alt="slippage" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-52 flex flex-col">
-        <Label className="mb-4">Slippage</Label>
+      <PopoverContent side="bottom" align="end" className="w-52 flex flex-col shadow-none">
+        <Label className="mb-4"><Text variant="md">Slippage Tolerance</Text></Label>
         <div className="flex flex-row gap-2">
           <Input
             type="number"

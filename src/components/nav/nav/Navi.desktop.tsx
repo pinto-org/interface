@@ -130,13 +130,7 @@ const MoreNavi = () => {
             <Link href={navLinks.disclosures}>Disclosures</Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.bugbounty}>Bug Bounty Program</Link>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
             <Link href={navLinks.exchange}>Exchange</Link>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <Link href={navLinks.pipeline}>Pipeline</Link>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>

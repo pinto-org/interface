@@ -171,7 +171,6 @@ const CoinModel: React.FC<CoinModelProps> = ({
           Math.abs(currentRotation - preSideThreshold),
           Math.abs(currentRotation - negPreSideThreshold)
         );
-        speedFactor = Math.max(0.1, distanceToThreshold / 0.35); // Slow down as it approaches
       }
   
       // Adjust rotation speed

@@ -22,7 +22,7 @@ import { getSiloConvertUrl } from "@/utils/url";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-const FarmerOverview = () => {
+const Overview = () => {
   // Hooks
   const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
@@ -184,7 +184,7 @@ const FarmerOverview = () => {
             <HelperLink
               onClick={() => navigate(statPanelData.pods.mainValueChange?.lt(0) ? "/field/harvest" : "/field/sow")}
               text={statPanelData.pods.mainValueChange?.lt(0) ? "Harvest Pods" : "Sow (Lend) in the Field for Pods"}
-              className={`absolute -mt-[54px] ${statPanelData.pods.mainValueChange?.lt(0) ? "-right-[70px]" : "-right-[228px]"} z-20`}
+              className={`absolute -mt-[54px] ${statPanelData.pods.mainValueChange?.lt(0) ? "-right-[70px]" : "-right-[172px]"} z-20`}
               dataTarget="pods-stats"
               sourceAnchor="left"
               targetAnchor="right"
@@ -314,4 +314,4 @@ const FarmerOverview = () => {
   );
 };
 
-export default FarmerOverview;
+export default Overview;
