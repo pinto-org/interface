@@ -1,12 +1,13 @@
 import { TokenValue } from "@/classes/TokenValue";
 import FlowForm from "@/components/FormFlow";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import useTransaction from "@/hooks/useTransaction";
 import { useFarmerField } from "@/state/useFarmerField";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { type Address, type BaseError, encodeFunctionData } from "viem";
-import { useAccount, useChainId, useWriteContract } from "wagmi";
+import { type Address, encodeFunctionData } from "viem";
+import { useAccount, useChainId } from "wagmi";
 import FinalStep from "./pods/FinalStep";
 import StepOne from "./pods/StepOne";
 import StepTwo from "./pods/StepTwo";
@@ -56,63 +57,59 @@ export default function TransferPods() {
     }
   };
 
-  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
-
-  useEffect(() => {
-    if (isSuccess) {
-      // invalidating query results to trigger a refetch
+  const { writeWithEstimateGas, setSubmitting } = useTransaction({
+    successCallback: () => {
       farmerField.refetch();
       navigate("/transfer");
-    }
-  }, [isSuccess, farmerField, navigate]);
+    },
+    successMessage: "Transfer success",
+    errorMessage: "Transfer failed",
+  });
 
   function onSubmit() {
-    if (!account.address || !destination) return;
+    setSubmitting(true);
+    toast.loading("Transferring...");
+    try {
+      if (!account.address || !destination) return;
 
-    const farmData: `0x${string}`[] = [];
+      const farmData: `0x${string}`[] = [];
 
-    // Plot Transfers
-    // todo: add support for more than one plot line
-    const fieldId = BigInt(0);
-    const ids: bigint[] = [];
-    const starts: bigint[] = [];
-    const ends: bigint[] = [];
-    for (const plotData of transferData) {
-      ids.push(plotData.id.toBigInt());
-      starts.push(plotData.start.toBigInt());
-      ends.push(plotData.end.toBigInt());
-    }
-    const plotTransferCall = encodeFunctionData({
-      abi: beanstalkAbi,
-      functionName: "transferPlots",
-      args: [
-        account.address,
-        destination as Address,
-        fieldId,
-        ids, //plot ids
-        starts, // starts
-        ends, // ends
-      ],
-    });
-    farmData.push(plotTransferCall);
+      // Plot Transfers
+      // todo: add support for more than one plot line
+      const fieldId = BigInt(0);
+      const ids: bigint[] = [];
+      const starts: bigint[] = [];
+      const ends: bigint[] = [];
+      for (const plotData of transferData) {
+        ids.push(plotData.id.toBigInt());
+        starts.push(plotData.start.toBigInt());
+        ends.push(plotData.end.toBigInt());
+      }
+      const plotTransferCall = encodeFunctionData({
+        abi: beanstalkAbi,
+        functionName: "transferPlots",
+        args: [
+          account.address,
+          destination as Address,
+          fieldId,
+          ids, //plot ids
+          starts, // starts
+          ends, // ends
+        ],
+      });
+      farmData.push(plotTransferCall);
 
-    const tx = () =>
-      writeContractAsync({
+      return writeWithEstimateGas({
         address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
         abi: beanstalkAbi,
         functionName: "farm",
         args: [farmData],
       });
-
-    toast.promise(tx, {
-      loading: "Sending Pods...",
-      success: (data) => {
-        return "Sending complete!";
-      },
-      error: (error) => {
-        return (error as BaseError).shortMessage || "Send failed.";
-      },
-    });
+    } catch (e) {
+      console.error("Transfer pods failed", e);
+      toast.dismiss();
+      toast.error("Transfer failed");
+    }
   }
 
   return (
