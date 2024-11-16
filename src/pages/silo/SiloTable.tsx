@@ -130,7 +130,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                       </>
                     ) : (
                       <>
-                        {token.name === "PINTO" ? (
+                        {token.isMain ? (
                           <>
                             <span className="inline-flex items-center gap-1">
                               <IconImage src={token.logoURI} size={6} />
