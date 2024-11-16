@@ -4,9 +4,11 @@ import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
 import Panel from "@/components/ui/Panel";
 import Text from "@/components/ui/Text";
+import { LibCases } from "@/lib/LibCases";
 import useFieldSnapshots from "@/state/useFieldSnapshots";
 import useSiloSnapshots from "@/state/useSiloSnapshots";
 import { useSeason } from "@/state/useSunData";
+import { formatter } from "@/utils/format";
 import { textConfig } from "@/utils/theme";
 import { cn } from "@/utils/utils";
 import clsx from "clsx";
@@ -29,8 +31,6 @@ const deriveTextStyles = textConfig.methods.variant;
 const deriveTextColor = textConfig.methods.color;
 
 const smTextStyles = clsx(...deriveTextStyles("sm"), deriveTextColor("secondary"));
-
-// TODO: Add rest of silo adjustments
 
 const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPanel) => {
   return (
@@ -70,13 +70,13 @@ const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPa
       </CardHeader>
       <CardContent className="px-4 overflow-clip">
         <ScrollArea className="h-[calc(100vh-15rem)] -mx-4">
-          <TableFixed className="border-separate border-spacing-4 -mt-4">
-            <TableHeader className="[&_tr]:border-0 sticky top-0 bg-pinto-off-white">
-              <TableRow className="h-14 border-0 bg-transparent">
-                <TableHead className={cn("w-[15%] p-0", smTextStyles)}>Season</TableHead>
+          <Table className="border-separate border-spacing-4 -mt-4">
+            <TableHeader className="[&_tr]:border-0 bg-transparent">
+              <TableRow className="border-0 bg-transparent">
+                <TableHead className={cn("w-[12.5%] p-0", smTextStyles)}>Season</TableHead>
                 <TableHead className={cn("text-right w-[25%] p-0", smTextStyles)}>Pinto Supply</TableHead>
                 <TableHead className={cn("text-right w-[25%] p-0", smTextStyles)}>Silo Adjustments</TableHead>
-                <TableHead className={cn("text-right w-[35%] p-0", smTextStyles)} colSpan={2}>
+                <TableHead className={cn("text-right w-[37.5%] p-0", smTextStyles)} colSpan={2}>
                   Field Adjustments
                 </TableHead>
               </TableRow>
@@ -88,8 +88,19 @@ const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPa
                     ? siloSnapshots[i]?.deltaBeanMints
                     : TokenValue.ZERO
                   : TokenValue.ZERO;
+                const nextSnapshot = fieldSnapshots.data[i + 1];
+                const cropRatio = TokenValue.fromBigInt(
+                  LibCases.evaluateWithCaseId(BigInt(snapshot.caseId)).bean2MaxLPGPPerBdv,
+                  18,
+                );
+                const previousCropRatio = nextSnapshot?.caseId
+                  ? TokenValue.fromBigInt(
+                      LibCases.evaluateWithCaseId(BigInt(nextSnapshot.caseId)).bean2MaxLPGPPerBdv,
+                      18,
+                    )
+                  : cropRatio;
                 return (
-                  <TableRow key={`${snapshot.season}_${i}`} className="h-[2.125rem] bg-transparent border-0">
+                  <TableRow key={`${snapshot.season}_${i}`} className="h-[2.5rem] bg-transparent border-0">
                     {/**
                      * Season
                      */}
@@ -99,10 +110,10 @@ const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPa
                      */}
                     <TableCell className="text-right p-0">
                       <div className="flex flex-col items-end">
-                        <Text className={`inline-flex gap-1 items-center ${mints.gt(0) ? "text-pinto-green-2" : ""}`}>
+                        <Text className={`inline-flex gap-1 items-center ${mints.gt(0) ? "text-pinto-green-4" : ""}`}>
                           {mints.gt(0) && <span>+</span>}
                           <IconImage size={4} src={pintoIcon} />
-                          <span>{Number(mints.toHuman()).toFixed(0)}</span>
+                          <span>{formatter.noDec(mints)}</span>
                         </Text>
                         <Text variant="xs" color="light">
                           New Pinto
@@ -112,8 +123,23 @@ const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPa
                     {/**
                      * Silo Adjustments
                      */}
-                    {/* TODO: */}
-                    <TableCell className="text-black font-[400] text-[1rem] text-right p-0">-</TableCell>
+                    <TableCell className="text-black font-[400] text-[1rem] text-right p-0">
+                      <div className="flex flex-col items-end">
+                        <Text className="inline-flex gap-2 justify-end">
+                          {formatter.twoDec(cropRatio)}
+                          <span className="text-pinto-gray-4">
+                            {`(${formatter.twoDec(cropRatio.sub(previousCropRatio), { showPositiveSign: true })})`}
+                          </span>
+                        </Text>
+                        <Text variant="xs" color="light" className="inline-flex gap-0.5 items-center justify-end">
+                          Crop Ratio
+                          <TooltipSimple
+                            variant="gray"
+                            content={"The ratio of Seeds per PDV reward for Pinto relative to at least 1 LP token."}
+                          />
+                        </Text>
+                      </div>
+                    </TableCell>
                     <TableCell className={cn("text-right p-0", smTextStyles)}>
                       <div className="flex flex-row gap-4 justify-end">
                         <div className="flex flex-col w-[60%]">
@@ -166,7 +192,7 @@ const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPa
                 );
               })}
             </TableBody>
-          </TableFixed>
+          </Table>
         </ScrollArea>
       </CardContent>
     </>
