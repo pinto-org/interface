@@ -12,7 +12,8 @@ import { formatter } from "@/utils/format";
 import { cn } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
-import { useMemo, useRef, useState } from "react";
+import { useModal } from "connectkit";
+import { useRef, useState } from "react";
 import { useMatch } from "react-router-dom";
 import { useAccount } from "wagmi";
 import WalletButton from "../../WalletButton";
@@ -60,6 +61,7 @@ const Navbar = () => {
   const mobileNaviOpen = openPanel === "mobile-navi";
 
   const walletButton = useRef<HTMLButtonElement>(null);
+  const modal = useModal();
 
   const closePanel = () => {
     setOpenBackdrop(false);
@@ -154,6 +156,10 @@ const Navbar = () => {
             <ScrollHideComponent>
               <HelperLink
                 onClick={() => {
+                  if (!account.address) {
+                    modal.setOpen(true);
+                    return;
+                  }
                   if (hasFlood) {
                     setShowClaim(true);
                   }
@@ -166,7 +172,7 @@ const Navbar = () => {
                       ? "Claim assets from Flood"
                       : `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet ${hasInternal ? "+ Farm Balances" : "Balance"}`
                 }
-                className={`absolute top-[150px] right-[316px]`}
+                className={`absolute top-[150px] right-[340px] flex flex-row-reverse`}
                 sourceAnchor="right"
                 targetAnchor="left"
                 source90Degree={true}

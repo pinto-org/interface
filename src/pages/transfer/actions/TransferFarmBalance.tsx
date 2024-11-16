@@ -1,13 +1,14 @@
 import { TokenValue } from "@/classes/TokenValue";
 import FlowForm from "@/components/FormFlow";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { FarmFromMode, FarmToMode, type Token } from "@/utils/types";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { type Address, type BaseError, encodeFunctionData } from "viem";
-import { useAccount, useChainId, useWriteContract } from "wagmi";
+import { type Address, encodeFunctionData } from "viem";
+import { useAccount, useChainId } from "wagmi";
 import FinalStep from "./farmbalance/FinalStep";
 import StepOne from "./farmbalance/StepOne";
 
@@ -33,56 +34,53 @@ export default function TransferFarmBalance() {
 
   const farmerBalances = useFarmerBalances();
 
-  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
-
-  useEffect(() => {
-    if (isSuccess) {
-      // invalidating query results to trigger a refetch
+  const { writeWithEstimateGas, setSubmitting } = useTransaction({
+    successCallback: () => {
       farmerBalances.refetch();
       navigate("/transfer");
-    }
-  }, [isSuccess, farmerBalances, navigate]);
+    },
+    successMessage: "Transfer success",
+    errorMessage: "Transfer failed",
+  });
 
   function onSubmit() {
-    if (!account.address || !destination) return;
+    try {
+      setSubmitting(true);
+      toast.loading("Transferring...");
 
-    const farmData: `0x${string}`[] = [];
+      if (!account.address || !destination) return;
 
-    // Farm Balance Transfers
-    for (const data of transferData) {
-      const amount = TokenValue.fromHuman(data.amount, data.token.decimals);
-      if (amount.eq(0)) continue;
-      const balanceTransferCall = encodeFunctionData({
-        abi: beanstalkAbi,
-        functionName: "transferToken",
-        args: [
-          data.token.address,
-          destination as Address,
-          amount.toBigInt(),
-          Number(FarmFromMode.INTERNAL),
-          Number(balanceTo),
-        ],
-      });
-      farmData.push(balanceTransferCall);
-    }
+      const farmData: `0x${string}`[] = [];
 
-    const tx = () =>
-      writeContractAsync({
+      // Farm Balance Transfers
+      for (const data of transferData) {
+        const amount = TokenValue.fromHuman(data.amount, data.token.decimals);
+        if (amount.eq(0)) continue;
+        const balanceTransferCall = encodeFunctionData({
+          abi: beanstalkAbi,
+          functionName: "transferToken",
+          args: [
+            data.token.address,
+            destination as Address,
+            amount.toBigInt(),
+            Number(FarmFromMode.INTERNAL),
+            Number(balanceTo),
+          ],
+        });
+        farmData.push(balanceTransferCall);
+      }
+
+      return writeWithEstimateGas({
         address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
         abi: beanstalkAbi,
         functionName: "farm",
         args: [farmData],
       });
-
-    toast.promise(tx, {
-      loading: "Transferring everything...",
-      success: (data) => {
-        return "Transfer complete!";
-      },
-      error: (error) => {
-        return (error as BaseError).shortMessage || "Transfer failed.";
-      },
-    });
+    } catch (e) {
+      console.error("Transfer farm balance failed", e);
+      toast.dismiss();
+      toast.error("Transfer failed");
+    }
   }
 
   return (

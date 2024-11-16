@@ -172,17 +172,15 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
           </div>
         ) : null}
       </div>
-      <Text variant="body-light" color="lighter">
-        {siloToken.isLP
-          ? `${siloToken.name} is a liquidity pool token on the Basin decentralized exchange. 
-                  You can deposit ETH, DAI, USDC, XX, and your assets will be swapped and deposited into the liquidity pool
-                  to provide liquidity for this pair.
-                  `
-          : `${siloToken.name} is the token that powers the ${siloToken.name} protocol.
-                  `}
-      </Text>
-      <Text variant="body" as={Link} to="/explorer/silo" className="text-pinto-green-2 hover:underline transition-all">
-        See More Data →
+      {siloToken.isLP && (
+        <Text variant="body-light" color="lighter">
+          {siloToken.isLP
+            ? `${siloToken.name} is a liquidity pool token on the Pinto Exchange. You can use a variety of input tokens to add liquidity and deposit the LP token in the Silo.`
+            : `${siloToken.name} is the token that powers the ${siloToken.name} protocol.`}
+        </Text>
+      )}
+      <Text variant="body" as={Link} to="/explorer/silo" className="text-pinto-green-4 hover:underline transition-all">
+        See more data →
       </Text>
     </div>
   );

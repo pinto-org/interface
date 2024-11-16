@@ -74,3 +74,15 @@ export function getBalanceFromMode(balance: FarmerBalance | undefined, mode: Far
       return balance.total;
   }
 }
+
+export function timeRemaining(time: Date, targetTime?: Date) {
+  const now = targetTime ?? new Date();
+  const diffMs = time.getTime() - now.getTime();
+  const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffMins = 60 - now.getMinutes();
+  const diffSecs = 60 - now.getSeconds();
+
+  if (diffHrs <= 0 && diffMins <= 0 && diffSecs <= 0) return "0m 0s";
+
+  return diffHrs > 0 ? `${diffHrs}h ${diffMins}m ${diffSecs}s` : `${diffMins}m ${diffSecs}s`;
+}

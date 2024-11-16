@@ -66,10 +66,12 @@ export interface DepositData {
   stalk: {
     base: TokenValue;
     grown: TokenValue;
+    germinating: TokenValue;
     total: TokenValue;
   };
   seeds: TokenValue;
   isGerminating: boolean;
+  germinationDate?: Date;
 }
 
 export interface TokenDepositData {
@@ -80,6 +82,7 @@ export interface TokenDepositData {
   stalk: {
     base: TokenValue;
     grown: TokenValue;
+    germinating: TokenValue;
     total: TokenValue;
   };
   seeds: TokenValue;

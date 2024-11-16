@@ -26,3 +26,5 @@ export type ExactRequired<T, U> = {
 export type Prettify<T> = {
   [K in keyof T]: T[K];
 } & {};
+
+export type ChainLookup<T> = { [chainId: number]: T };

@@ -26,6 +26,10 @@ export interface PoolData {
   lpBdv: TokenValue;
 }
 
+export function usePriceQuery() {
+  return useReadBeanstalkPrice_Price(settings);
+}
+
 export function usePriceData() {
   const tokenData = useTokenData();
   const chainId = useChainId();
@@ -54,7 +58,7 @@ export function usePriceData() {
     },
   );
 
-  const priceQuery = useReadBeanstalkPrice_Price(settings);
+  const priceQuery = usePriceQuery();
   const price = priceQuery.data;
 
   const result = useReadContracts({

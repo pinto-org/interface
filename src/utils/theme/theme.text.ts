@@ -121,7 +121,6 @@ const letterSpacings = {
 	h4:            clsx("tracking-[-0.003rem]"),
 	h3:            clsx("tracking-[-0.04rem]"),
 	h2:            clsx("tracking-[-0.0315rem]"),
-	h1:            clsx("tracking-[-0.069rem]"),
 	none:          clsx("tracking-[0rem]"),
 	inherit:       clsx("tracking-inherit"),
 } as const;
@@ -159,7 +158,7 @@ export const config = {
 		inherit:        "inherit",
 	},
 	letterSpacing: {
-		h1:             "h1",
+		h1:             "none",
 		h2:             "h2",
 		h3:             "h3",
 		h4:             "h4",

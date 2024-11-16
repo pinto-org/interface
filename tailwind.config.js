@@ -94,6 +94,14 @@ module.exports = {
           "linear-gradient(90deg, #E9E7E0 0%, #FEE18C 52.5%, #F1F88C 100%)",
         "morning-light":
           "linear-gradient(90deg, rgba(233, 231, 224, 0.2) 0%, rgba(254, 225, 140, 0.2) 0.01%, rgba(241, 248, 140, 0.4) 100%)",
+        "gradient-primary":
+          "radial-gradient(101.96% 101.96% at 50.15% 0%, #88C4A6 12.79%, #68AD8B 29.68%, #45906A 46.1%, #387F5C 64%, #246645 84.06%)",
+        "gradient-primary-hover":
+          "radial-gradient(101.96% 101.96% at 50.15% 0%, #C5EBD8 0%, #88C4A6 9.41%, #68AD8B 20.41%, #45906A 44.41%, #387F5C 59.41%, #246645 85.41%, #164E32 100%)",
+        "gradient-lighter-1":
+          "linear-gradient(90deg, rgba(233, 231, 224, 0.02) 0%, rgba(254, 225, 140, 0.02) 0.01%, rgba(241, 248, 140, 0.04) 100%)",
+        "gradient-lighter-2":
+          "linear-gradient(90deg, #E9E7E0 0%, #FEE18C 52.5%, #F1F88C 100%)",
       },
       borderRadius: {
         xl: "calc(var(--radius) + 8px)", // 20px
@@ -144,9 +152,9 @@ module.exports = {
         marquee: "marquee 24s linear infinite",
       },
       aspectRatio: {
-        '3/1': '3 / 1',
-        '6/1': '6 / 1'
-      }
+        "3/1": "3 / 1",
+        "6/1": "6 / 1",
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

@@ -8,6 +8,7 @@ const pageContainerVariants = cva("flex flex-col w-full min-w-0", {
       md: "sm:max-w-[896px]",
       lg: "sm:max-w-[1132px]",
       xl: "sm:max-w-[1550px]",
+      full: "w-full sm:max-w-[100%]",
     },
   },
 });
@@ -21,7 +22,7 @@ const PageContainer = ({ variant = "lg", ...props }: IPageContainer) => {
     <div
       {...props}
       className={cn(
-        "flex flex-col w-full box-border items-center",
+        "flex flex-col w-full items-center",
         "pt-2 px-4 pb-8", // mobile
         "sm:px-8 sm:pt-5 sm:pb-20", // above mobile
       )}

@@ -96,7 +96,7 @@ export default function HelperLink({
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         variant="body-light"
-        className={`text-pinto-gray-3 hover:text-pinto-green-4 transition-colors cursor-pointer ${className}`}
+        className={`text-pinto-gray-3 w-6 whitespace-nowrap hover:text-pinto-green-4 transition-colors cursor-pointer ${className}`}
         data-action-target={id}
         {...props}
       >

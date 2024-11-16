@@ -116,7 +116,6 @@ function Silo() {
                   dotted={true}
                   startCapColor={convertFrom.color}
                   endCapColor={convertTo.color}
-                  componentOffsetHeight={20}
                   component={
                     <div className="group flex flex-col group max-w-[250px] cursor-pointer place-items-end gap-2">
                       <div
@@ -151,7 +150,7 @@ function Silo() {
               {claimEnabled && (
                 <HelperLink
                   text={claimableText}
-                  className={`absolute -mt-[390px] -right-[320px] z-20`}
+                  className={`absolute top-8 -right-[100px] z-20`}
                   dataTarget={`token-row-${mainToken.address}`}
                   sourceAnchor="left"
                   targetAnchor="right"
