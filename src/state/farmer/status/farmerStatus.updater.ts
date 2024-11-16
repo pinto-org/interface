@@ -20,7 +20,7 @@ export default function useUpdateFarmerStatus() {
   const balance = balances.balances.get(protocolToken)?.total;
   const loading = depositsQuery.isLoading || plotsQuery.isLoading || balances.loading;
 
-  const hasDeposits = !!depositsQuery.data?.length;
+  const hasDeposits = !!depositsQuery.data?.every((deposit) => !!deposit.depositIds.length);
   const hasPlots = !!plotsQuery.data?.length;
   const hasUndepositedBalance = Boolean(balance?.gt(0));
 

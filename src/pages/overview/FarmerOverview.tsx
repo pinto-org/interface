@@ -132,42 +132,6 @@ const Overview = () => {
     window.scroll(0, 0);
   }, []);
 
-  // Render helpers
-  const renderEmptyState = () => (
-    <div className="flex flex-row justify-between gap-8">
-      <Button
-        asChild
-        variant="outline"
-        className="flex flex-col text-center bg-white hover:bg-pinto-green-1 hover:border-pinto-green-2 flex-1 h-[33rem] rounded-full gap-4"
-      >
-        <Link to="/silo">
-          <span className="text-pinto-h1 text-black">Deposit in the Silo</span>
-          <span className="text-pinto-body text-pinto-gray-4">Deposits in the Silo receive Stalk and Seeds,</span>
-          <span className="text-pinto-body text-pinto-gray-4">and yield additional Pinto when the supply expands.</span>
-          {Number(avgAPY) > 0 && <span className="text-pinto-h1 text-pinto mt-4">{`${avgAPY}% average vAPY`}</span>}
-        </Link>
-      </Button>
-      <Button
-        asChild
-        variant="outline"
-        className="flex flex-col text-center bg-white hover:bg-pinto-green-1 hover:border-pinto-green-2 flex-1 h-[33rem] rounded-full gap-4"
-      >
-        <Link to="/field">
-          <span className="text-pinto-h1 text-black">Lend in the Field</span>
-          <span className="text-pinto-body text-pinto-gray-4">
-            Assets lent to Pinto are exchanged for Pods, the Pinto debt asset.
-          </span>
-          <span className="text-pinto-body text-pinto-gray-4">
-            Pods are redeemable for one Pinto when they reach the front of the Pod Line.
-          </span>
-          {temperature.max.gt(0) && (
-            <span className="text-pinto-h1 text-pinto mt-4">{`${temperature.max.toHuman()}% interest rate`}</span>
-          )}
-        </Link>
-      </Button>
-    </div>
-  );
-
   const renderContent = () => (
     <>
       <div className="flex flex-col justify-center relative action-container">
@@ -308,7 +272,7 @@ const Overview = () => {
       <PageContainer
         className={`flex flex-col gap-52 -mt-4 ${!hasDepositsOrPods ? "sm:max-w-full flex-grow mt-[100px]" : ""}`}
       >
-        {hasDepositsOrPods ? renderContent() : renderEmptyState()}
+        {renderContent()}
       </PageContainer>
     </div>
   );
