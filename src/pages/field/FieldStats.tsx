@@ -7,7 +7,7 @@ import { MorningIntervalCountdown } from "./MorningCountdown";
 
 const FieldStats = () => {
   const temperatures = useTemperature();
-  const morning = useMorning();
+  const { isMorning } = useMorning();
   const totalSoil = useTotalSoil();
   const podLine = usePodLine();
 
@@ -19,18 +19,13 @@ const FieldStats = () => {
     <div className="flex flex-row gap-x-12 gap-y-4 flex-wrap w-full">
       <div className="flex flex-col flex-grow gap-2">
         <div className="flex flex-col gap-1">
-          <Text variant="body-light">Current Temperature</Text>
+          <Text variant="body-light">{isMorning ? "Current Temperature" : "Max Temperature"}</Text>
           <Text variant="sm" color="light">
-            The interest rate for lending Pinto
+            {isMorning ? "The interest rate for lending Pinto" : "The temperature after the morning auction"}
           </Text>
         </div>
         <div className="flex flex-col gap-1">
-          <Text variant="h3">{`${formatter.pct(scaledTemperature)}`}</Text>
-          {morning.isMorning && (
-            <Text variant="sm-light" color="morning" className="inline-block tabular-nums">
-              <MorningIntervalCountdown prefix={"Increasing in"} />
-            </Text>
-          )}
+          <Text variant="h3">{`${formatter.pct(temperatures.max.gt(0) ? scaledTemperature : 0)}`}</Text>
         </div>
       </div>
       <div className="flex flex-col flex-grow gap-2">
@@ -42,7 +37,7 @@ const FieldStats = () => {
         </div>
         <div className="flex flex-col gap-1">
           <Text variant="h3">{formatter.number(soil)}</Text>
-          {morning.isMorning && (
+          {isMorning && (
             <Text variant="sm-light" color="morning" className="inline-block tabular-nums">
               <MorningIntervalCountdown prefix={"Decreasing in"} />
             </Text>
