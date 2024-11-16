@@ -63,7 +63,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                 onClick={() => navigate(`/silo/${token.address}`)}
                 data-action-target={`token-row-${token.address}`}
               >
-                <Text as={TableCell} className="inline-flex items-center gap-2 p-4">
+                <Text as={TableCell} className="inline-flex items-center gap-2 p-4 mt-0.5">
                   <IconImage src={token.logoURI} alt={token.name} size={8} />
                   {token.name}
                 </Text>
@@ -103,9 +103,13 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                   ) : (
                     <span className="flex flex-row gap-1 items-center place-self-end">
                       <IconImage src={token.logoURI} size={6} />
-                      <span className="opacity-70">
-                        {formatter.number(farmerDeposits.get(token)?.amount)} {token.name}
-                      </span>
+                      <Text textColor="primary">
+                          {formatter.number(farmerDeposits.get(token)?.amount)}
+                        </Text>
+                      
+                        <Text>
+                         {token.name}
+                        </Text>
                     </span>
                   )}
                 </Text>
@@ -128,7 +132,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                       </>
                     ) : (
                       <>
-                        <Text variant="sm" align="right" className="opacity-70">
+                        <Text variant="sm" align="right">
                           {formatter.usd(currentBDV.mul(priceData.price))}
                         </Text>
                         <div className="inline-flex items-center gap-1">

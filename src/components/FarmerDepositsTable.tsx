@@ -214,9 +214,8 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                   data-action-target={`token-row-${token.address}`}
                 >
                   <TableCell className="text-black font-[400] text-[1rem]">
-                    <div className=" pl-2 inline-flex items-center gap-1.5">
                       <img src={token.logoURI} className="h-8 w-8" alt={`${token.name} logo`} />
-                      <div>{token.name}</div>
+                      <Text variant="sm" noLineHeight>{token.name}</Text>
                     </div>
                   </TableCell>
                   <TableCell>

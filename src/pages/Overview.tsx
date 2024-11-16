@@ -184,7 +184,7 @@ const Overview = () => {
             <HelperLink
               onClick={() => navigate(statPanelData.pods.mainValueChange?.lt(0) ? "/field/harvest" : "/field/sow")}
               text={statPanelData.pods.mainValueChange?.lt(0) ? "Harvest Pods" : "Sow (Lend) in the Field for Pods"}
-              className={`absolute -mt-[54px] ${statPanelData.pods.mainValueChange?.lt(0) ? "-right-[70px]" : "-right-[228px]"} z-20`}
+              className={`absolute -mt-[54px] ${statPanelData.pods.mainValueChange?.lt(0) ? "-right-[70px]" : "-right-[172px]"} z-20`}
               dataTarget="pods-stats"
               sourceAnchor="left"
               targetAnchor="right"
