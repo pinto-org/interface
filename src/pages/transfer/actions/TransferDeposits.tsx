@@ -1,14 +1,15 @@
 import { TokenValue } from "@/classes/TokenValue";
 import FlowForm from "@/components/FormFlow";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import useTransaction from "@/hooks/useTransaction";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { sortAndPickCrates } from "@/utils/convert";
 import { DepositData, type Token } from "@/utils/types";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { type Address, type BaseError, encodeFunctionData } from "viem";
-import { useAccount, useChainId, useWriteContract } from "wagmi";
+import { type Address, encodeFunctionData } from "viem";
+import { useAccount, useChainId } from "wagmi";
 import FinalStep from "./deposits/FinalStep";
 import StepOne from "./deposits/StepOne";
 import StepTwo from "./deposits/StepTwo";
@@ -56,7 +57,14 @@ export default function TransferDeposits() {
     }
   };
 
-  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
+  const { writeWithEstimateGas, setSubmitting } = useTransaction({
+    successCallback: () => {
+      farmerDeposits.refetch();
+      navigate("/transfer");
+    },
+    successMessage: "Transfer success",
+    errorMessage: "Transfer failed",
+  });
 
   useEffect(() => {
     if (usingMax && step === 1) {
@@ -64,53 +72,44 @@ export default function TransferDeposits() {
     }
   }, [usingMax, step]);
 
-  useEffect(() => {
-    if (isSuccess) {
-      // invalidating query results to trigger a refetch
-      farmerDeposits.refetch();
-      navigate("/transfer");
-    }
-  }, [isSuccess, farmerDeposits, navigate]);
-
   function onSubmit() {
     if (!account.address || !destination) return;
 
-    const farmData: `0x${string}`[] = [];
+    try {
+      setSubmitting(true);
+      toast.loading("Transferring...");
 
-    // Deposit Transfers
-    for (const depositData of transferData) {
-      const amountTV = TokenValue.fromHuman(depositData.amount, depositData.token.decimals);
-      if (amountTV.eq(0)) continue;
+      const farmData: `0x${string}`[] = [];
 
-      const crateData = sortAndPickCrates("transfer", amountTV, depositData.deposits);
+      // Deposit Transfers
+      for (const depositData of transferData) {
+        const amountTV = TokenValue.fromHuman(depositData.amount, depositData.token.decimals);
+        if (amountTV.eq(0)) continue;
 
-      const stems = crateData.crates.map((crate) => crate.stem.toBigInt());
-      const amounts = crateData.crates.map((crate) => crate.amount.toBigInt());
-      const depositTransferCall = encodeFunctionData({
-        abi: beanstalkAbi,
-        functionName: "transferDeposits",
-        args: [account.address, destination as Address, depositData.token.address, stems, amounts],
-      });
-      farmData.push(depositTransferCall);
-    }
+        const crateData = sortAndPickCrates("transfer", amountTV, depositData.deposits);
 
-    const tx = () =>
-      writeContractAsync({
+        const stems = crateData.crates.map((crate) => crate.stem.toBigInt());
+        const amounts = crateData.crates.map((crate) => crate.amount.toBigInt());
+        const depositTransferCall = encodeFunctionData({
+          abi: beanstalkAbi,
+          functionName: "transferDeposits",
+          args: [account.address, destination as Address, depositData.token.address, stems, amounts],
+        });
+        farmData.push(depositTransferCall);
+      }
+
+      return writeWithEstimateGas({
         address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
         abi: beanstalkAbi,
         functionName: "farm",
         args: [farmData],
       });
-
-    toast.promise(tx, {
-      loading: "Sending deposits...",
-      success: (data) => {
-        return "Sending complete!";
-      },
-      error: (error) => {
-        return (error as BaseError).shortMessage || "Send failed.";
-      },
-    });
+    } catch (e) {
+      console.error("Transfer deposits failed", e);
+      toast.dismiss();
+      toast.error("Transfer failed");
+      throw e;
+    }
   }
 
   function backToFirstStep() {

@@ -1,13 +1,15 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useTokenData from "@/state/useTokenData";
+import { stringToNumber } from "@/utils/string";
 import { FarmFromMode, FarmToMode } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { Address, BaseError } from "viem";
-import { useAccount, useChainId, useWriteContract } from "wagmi";
+import { Address } from "viem";
+import { useAccount, useChainId } from "wagmi";
 import { ComboInputField } from "./ComboInputField";
 import { LeftArrowIcon, UpDownArrowsIcon } from "./Icons";
 import SmartSubmitButton from "./SmartSubmitButton";
@@ -30,40 +32,50 @@ export default function WalletButtonTransfer({
   const [balanceFrom, setBalanceFrom] = useState<FarmFromMode>(FarmFromMode.EXTERNAL);
 
   const queryClient = useQueryClient();
-  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
-
-  useEffect(() => {
-    if (isSuccess) {
-      // invalidating query results to trigger a refetch
+  const { writeWithEstimateGas, setSubmitting, submitting, isConfirming } = useTransaction({
+    successCallback: () => {
       queryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
-    }
-  }, [isSuccess, queryKeys]);
+      setAmountIn("0");
+    },
+    successMessage: "Transfer success",
+    errorMessage: "Transfer failed",
+  });
 
   async function onSubmit() {
-    if (!chainId || !account.address || !amountIn || Number(amountIn) <= 0) return;
+    setSubmitting(true);
+    toast.loading("Transferring...");
+    try {
+      if (!account.address) {
+        throw new Error("Signer required");
+      }
+      if (!stringToNumber(amountIn)) {
+        throw new Error("Invalid amount");
+      }
+      if (!chainId) {
+        throw new Error("Chain ID required");
+      }
 
-    const fromMode = balanceFrom;
-    const toMode = balanceFrom === FarmFromMode.EXTERNAL ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL;
-    const amount = TokenValue.fromHuman(amountIn, tokenIn.decimals);
+      const fromMode = balanceFrom;
+      const toMode = balanceFrom === FarmFromMode.EXTERNAL ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL;
+      const amount = TokenValue.fromHuman(amountIn, tokenIn.decimals);
 
-    const tx = () =>
-      writeContractAsync({
+      return writeWithEstimateGas({
         address: beanstalkAddress[chainId as keyof typeof beanstalkAddress] as Address,
         abi: beanstalkAbi,
         functionName: "transferToken",
         args: [tokenIn.address, account.address as Address, amount.toBigInt(), Number(fromMode), Number(toMode)],
       });
-
-    toast.promise(tx, {
-      loading: "Submitting transaction...",
-      success: (data) => {
-        return `Transaction complete!`;
-      },
-      error: (error) => {
-        return (error as BaseError).shortMessage || `Transaction failed.`;
-      },
-    });
+    } catch (e) {
+      console.error("Error submitting transfer: ", e);
+      toast.dismiss();
+      toast.error("Transfer failed");
+      throw e;
+    } finally {
+      setSubmitting(false);
+    }
   }
+
+  const disabled = !account.address || !stringToNumber(amountIn) || submitting || isConfirming;
 
   return (
     <>
@@ -119,6 +131,7 @@ export default function WalletButtonTransfer({
             selectedToken={tokenIn}
             balanceFrom={balanceFrom}
             balancesToShow={[FarmFromMode.EXTERNAL, FarmFromMode.INTERNAL]}
+            inputFrameColor="off-white"
           />
         </div>
       </CardContent>
@@ -130,6 +143,7 @@ export default function WalletButtonTransfer({
         <SmartSubmitButton
           token={tokenIn}
           amount={amountIn}
+          disabled={disabled}
           submitFunction={onSubmit}
           submitButtonText="Transfer"
           className={"w-full h-[3.625rem] grow-0"}

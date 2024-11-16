@@ -1,6 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { ZERO_ADDRESS } from "@/constants/address";
 import { beanstalkAddress } from "@/generated/contractHooks";
+import useTransaction from "@/hooks/useTransaction";
 import useTokenData from "@/state/useTokenData";
 import { Token } from "@/utils/types";
 import { exists, isDev } from "@/utils/utils";
@@ -18,6 +19,7 @@ interface SmartSubmitButton extends Omit<ButtonProps, "onClick" | "disabled" | "
   submitButtonText?: string;
   className?: string;
   disabled?: boolean;
+  noApproval?: boolean;
 }
 
 export default function SmartSubmitButton({
@@ -27,6 +29,7 @@ export default function SmartSubmitButton({
   submitButtonText,
   className,
   disabled,
+  noApproval = false,
   ...props
 }: SmartSubmitButton) {
   const account = useAccount();
@@ -34,7 +37,6 @@ export default function SmartSubmitButton({
   const queryClient = useQueryClient();
   const ETH = useTokenData().nativeToken;
 
-  const { data: hash, writeContractAsync } = useWriteContract();
   const { data: allowance, queryKey } = useReadContract({
     abi: erc20Abi,
     address: token?.address,
@@ -47,29 +49,28 @@ export default function SmartSubmitButton({
       },
     },
   });
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-    hash,
+  const { submitting, isConfirming, setSubmitting, writeWithEstimateGas } = useTransaction({
+    successCallback: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+    successMessage: "Approval success",
+    errorMessage: "Approval failed",
   });
 
-  useEffect(() => {
-    if (isConfirmed) {
-      // invalidating query results to trigger a refetch
-      queryClient.invalidateQueries({ queryKey });
-    }
-  }, [isConfirmed]);
-
   const needsApproval =
-    !token || token.isNative
+    !token || token.isNative || noApproval
       ? false
       : allowance === 0n
         ? true
         : Number(amount) > Number(TokenValue.fromBlockchain(allowance || 0, token.decimals).toHuman());
 
   async function approveOrRun() {
-    if (!token || !exists(amount)) return;
+    console.log("approveOrRun");
     if (needsApproval) {
-      const tx = () =>
-        writeContractAsync({
+      try {
+        if (!token || !exists(amount)) return;
+        setSubmitting(true);
+        return writeWithEstimateGas({
           abi: erc20Abi,
           address: token?.address ?? ZERO_ADDRESS,
           functionName: "approve",
@@ -78,16 +79,13 @@ export default function SmartSubmitButton({
             isDev() ? maxUint256 : TokenValue.fromHuman(amount, token?.decimals).toBigInt(),
           ],
         });
-
-      toast.promise(tx, {
-        loading: "Submitting transaction...",
-        success: (data) => {
-          return `Transaction complete!`;
-        },
-        error: (error) => {
-          return (error as BaseError).shortMessage || `Transaction failed.`;
-        },
-      });
+      } catch (e) {
+        setSubmitting(false);
+        console.error(e);
+        toast.dismiss();
+        toast.error(e instanceof Error ? e.message : "Transaction failed.");
+        throw e;
+      }
     } else {
       await submitFunction();
     }
@@ -97,7 +95,7 @@ export default function SmartSubmitButton({
     <Button
       type={"button"}
       {...props}
-      disabled={disabled || isConfirming}
+      disabled={disabled || submitting || isConfirming}
       rounded="full"
       size="xxl"
       width="full"

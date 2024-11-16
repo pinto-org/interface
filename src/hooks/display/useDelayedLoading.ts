@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export default function useDelayedLoading(delayMs: number = 650) {
-  const [loading, setLoading] = useState(false);
+export default function useDelayedLoading(delayMs: number = 650, defaultState: boolean = false) {
+  const [loading, setLoading] = useState(defaultState);
   const startTimeRef = useRef<number | null>(null);
   const timeoutRef = useRef<number | null>(null);
 
@@ -47,6 +47,14 @@ export default function useDelayedLoading(delayMs: number = 650) {
     }
   }, [delayMs]);
 
+  const setLoadingWithValue = useCallback(
+    (value: boolean) => {
+      if (value) setLoadingTrue();
+      else setLoadingFalse();
+    },
+    [setLoadingTrue, setLoadingFalse],
+  );
+
   // Clean up timeout on unmount
   useEffect(() => {
     return () => {
@@ -56,5 +64,5 @@ export default function useDelayedLoading(delayMs: number = 650) {
     };
   }, []);
 
-  return { loading, setLoadingTrue, setLoadingFalse } as const;
+  return { loading, setLoadingTrue, setLoadingFalse, setLoading: setLoadingWithValue } as const;
 }

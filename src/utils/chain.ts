@@ -12,7 +12,7 @@ export const useChainAddress = useChainConstant<Address>;
 export const useResolvedChainId = () => {
   const chainId = useChainId();
 
-  if (chainId === 1337) {
+  if (chainId === 1337 || chainId === 41337) {
     return base.id;
   }
 

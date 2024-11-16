@@ -13,7 +13,7 @@ import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
-import { formatter } from "@/utils/format";
+import { formatter, formatter } from "@/utils/format";
 import { sortTokensForDeposits } from "@/utils/token";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -118,8 +118,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                   ) : (
                     <span className="flex flex-row gap-1 items-center place-self-end">
                       <IconImage src={token.logoURI} size={6} />
-                      <Text textColor="primary">{formatter.number(farmerDeposits.get(token)?.amount)}</Text>
-
+                      <Text>{formatter.number(farmerDeposits.get(token)?.amount)}</Text>
                       <Text>{token.name}</Text>
                     </span>
                   )}

@@ -1,10 +1,22 @@
-import { useAccount, useChainId, useReadContracts } from "wagmi";
-import { tokens } from "@/constants/tokens";
-import { Abi, erc20Abi } from "viem";
 import { TokenValue } from "@/classes/TokenValue";
+import { LP_TOKENS, MAIN_TOKEN, tokens } from "@/constants/tokens";
+import { useResolvedChainId } from "@/utils/chain";
 import { Token } from "@/utils/types";
-import { base } from "viem/chains";
 import { useMemo } from "react";
+import { Abi, erc20Abi } from "viem";
+import { base } from "viem/chains";
+import { useAccount, useChainId, useReadContracts } from "wagmi";
+
+export function useWhitelistedTokens() {
+  const chainId = useResolvedChainId();
+
+  return useMemo(() => {
+    const mainToken = MAIN_TOKEN[chainId];
+    const t = LP_TOKENS[chainId];
+
+    return [mainToken, ...t];
+  }, [chainId]);
+}
 
 export default function useTokenData() {
   const chainId = useChainId();

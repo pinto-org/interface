@@ -16,6 +16,7 @@ import clsx from "clsx";
 import { HTMLAttributes } from "react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useChainId } from "wagmi";
 import { ExternalLinkIcon, ForwardArrowIcon, GearIcon } from "../Icons";
 import TooltipSimple from "../TooltipSimple";
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/Card";
@@ -27,6 +28,7 @@ import Text from "../ui/Text";
 function PriceButtonPanel() {
   const priceData = usePriceData();
   const tokenData = useTokenData();
+  const chainId = useChainId();
 
   const mainTokenBalances = priceData.pools.flatMap((pool) =>
     pool.balances.map(
@@ -228,7 +230,7 @@ function PriceButtonPanel() {
                         <Text variant="body-bold" color="secondary" className="gap-2 items-center flex flex-row">
                           ${formatter.number(pool.price, { minDecimals: 4, maxDecimals: 4 })}
                           <Link
-                            to={`https://pinto.exchange/#/wells/${pool.pool?.address}`}
+                            to={`https://pinto.exchange/#/wells/${chainId}/${pool.pool?.address}`}
                             target={"_blank"}
                             className="text-pinto-gray-5 ml-2 -mr-10 group-hover:ml-0 group-hover:mr-0 hover:text-pinto hover:cursor-pointer transition-all"
                           >

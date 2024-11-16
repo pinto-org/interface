@@ -1,4 +1,3 @@
-import marketIcon from "@/assets/protocol/Market.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
@@ -9,16 +8,16 @@ import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useSwapEstimate from "@/hooks/useSwapEstimate";
+import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useTokenData from "@/state/useTokenData";
+import { stringToNumber } from "@/utils/string";
 import { FarmFromMode, FarmToMode } from "@/utils/types";
-import { HashString } from "@/utils/types.generic";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import type { BaseError } from "viem";
-import { useAccount, useChainId, useWriteContract } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 
 export default function Swap() {
   const BEAN = useTokenData().mainToken;
@@ -52,14 +51,13 @@ export default function Swap() {
     setAmountIn(value);
   }
 
-  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
-
-  useEffect(() => {
-    if (isSuccess) {
-      // invalidating query results to trigger a refetch
+  const { writeWithEstimateGas, setSubmitting, submitting, isConfirming } = useTransaction({
+    successCallback: () => {
       queryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
-    }
-  }, [isSuccess, queryKeys, queryClient]);
+      setAmountIn("0");
+    },
+    successMessage: "Swap success",
+  });
 
   function invertTokens() {
     const newTokenIn = tokenOut;
@@ -69,42 +67,41 @@ export default function Swap() {
   }
 
   async function onSubmit() {
-    const swapCallData = swapData?.callData;
-    if (!swapData || !swapCallData) return;
-    /* const encoded = encodeFunctionData({
-        abi: beanstalkAbi,
-        functionName: "advancedFarm",
-        args: [swapData.callData],
-        value: TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt()
-      }); */
-    const tx = () =>
-      writeContractAsync({
+    setSubmitting(true);
+    toast.loading("Swapping...");
+    try {
+      if (!account.address) throw new Error("Signer required");
+
+      const swapCallData = swapData?.callData;
+      if (!swapData || !swapCallData) {
+        throw new Error("No swap data");
+      }
+
+      return writeWithEstimateGas({
         address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
         abi: beanstalkAbi,
         functionName: "advancedFarm",
         args: [swapCallData],
         value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
       });
-
-    toast.promise(tx, {
-      loading: "Submitting transaction...",
-      success: (data) => {
-        return "Transaction complete!";
-      },
-      error: (error) => {
-        return (error as BaseError).shortMessage || "Transaction failed.";
-      },
-    });
+    } catch (e) {
+      console.error("Error submitting swap: ", e);
+      toast.dismiss();
+      toast.error("Swap failed");
+      throw e;
+    } finally {
+      setSubmitting(false);
+    }
   }
+
+  const disabled = submitting || isConfirming || !stringToNumber(amountIn) || !account.address || !swapData;
 
   return (
     <div className="flex flex-col w-full">
       <div className="flex flex-col self-center w-[700px]">
         <div className="flex flex-row justify-between">
           <div className="flex flex-col gap-y-3">
-            <div className="text-pinto-h1 text-black inline-flex gap-2 items-center">
-              Market
-            </div>
+            <div className="text-pinto-h1 text-black inline-flex gap-2 items-center">Market</div>
             <div className="font-[340] text-[1.25rem] text-pinto-gray-4">Buy and sell Pinto-native assets.</div>
           </div>
           <div className="flex flex-row items-center">
@@ -140,7 +137,7 @@ export default function Swap() {
               variant={"outline"}
               className="rounded-full h-10 w-10 !p-0 self-center hover:cursor-pointer"
             >
-              <UpDownArrowsIcon className="w-8 h-8"/>
+              <UpDownArrowsIcon className="w-8 h-8" />
             </Button>
           </div>
           <div className="flex flex-col gap-y-2">
@@ -157,7 +154,7 @@ export default function Swap() {
           </div>
           <div>
             {destinationIsEth ? (
-              <div></div>
+              <></>
             ) : (
               <div className="flex flex-col gap-y-2">
                 <Label className="content-center">Send output to:</Label>
@@ -166,7 +163,14 @@ export default function Swap() {
             )}
           </div>
           <div className="mt-6 flex">
-            <SmartSubmitButton token={tokenIn} amount={amountIn} submitFunction={onSubmit} submitButtonText="Swap" className="h-[5.25rem]" />
+            <SmartSubmitButton
+              token={tokenIn}
+              amount={amountIn}
+              disabled={disabled}
+              submitFunction={onSubmit}
+              submitButtonText="Swap"
+              className="h-[5.25rem]"
+            />
           </div>
         </div>
       </div>

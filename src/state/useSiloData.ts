@@ -6,20 +6,63 @@ import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { SiloYieldsDocument } from "@/generated/gql/graphql";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { stringEq } from "@/utils/string";
+import { getTokenIndex } from "@/utils/token";
 import { SiloTokenData, Token } from "@/utils/types";
+import { Lookup, Prettify } from "@/utils/types.generic";
+import { exists } from "@/utils/utils";
 import { QueryKey, useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 import { useMemo } from "react";
+import { useCallback } from "react";
 import { Address, Omit } from "viem";
-import { useChainId, useReadContract, useReadContracts } from "wagmi";
-import useTokenData from "./useTokenData";
+import { ContractFunctionParameters } from "viem";
+import { UseReadContractsReturnType, useChainId, useReadContract, useReadContracts } from "wagmi";
+import useTokenData, { useWhitelistedTokens } from "./useTokenData";
 
 const settings = {
   query: {
-    staleTime: 1000 * 60 * 2,
-    refetchInterval: 1000 * 60 * 3, // 3 minutes, in milliseconds
+    staleTime: 1000 * 60 * 20,
+    refetchInterval: 1000 * 60 * 20, // 3 minutes, in milliseconds
   },
 };
+
+type GetTotalDepositedBDVParams = ContractFunctionParameters<typeof GetTotalDepositedBDVABI>;
+
+type GetTotalDepositedBdvContractsResponse = Prettify<UseReadContractsReturnType<GetTotalDepositedBDVParams[], true>>;
+
+export function useTotalDepositedBdvPerTokenQuery() {
+  const whitelistedTokens = useWhitelistedTokens();
+  const diamond = useProtocolAddress();
+
+  const select = useCallback(
+    (data: GetTotalDepositedBdvContractsResponse["data"]) => {
+      return data?.reduce<Lookup<TokenValue>>((acc, curr, idx) => {
+        const token = whitelistedTokens[idx];
+
+        if (!token || !exists(curr.result)) return acc;
+        acc[getTokenIndex(token)] = TokenValue.fromBlockchain(curr.result, token.decimals);
+        return acc;
+      }, {});
+    },
+    [whitelistedTokens],
+  );
+
+  return useReadContracts({
+    contracts: whitelistedTokens.map((token) => {
+      return {
+        address: diamond,
+        abi: GetTotalDepositedBDVABI,
+        functionName: "getTotalDepositedBdv",
+        args: [token.address],
+      };
+    }),
+    query: {
+      enabled: !!whitelistedTokens.length,
+      ...settings.query,
+      select: (data) => select(data),
+    },
+  });
+}
 
 function useReadSiloTokenData(token: Token | undefined) {
   const chainId = useChainId();
@@ -214,3 +257,25 @@ export function useSiloData() {
     totalEarnedBeans: TokenValue.fromBlockchain(earnedBeansTotal, BEAN.decimals),
   };
 }
+
+const GetTotalDepositedBDVABI = [
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "getTotalDepositedBdv",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
