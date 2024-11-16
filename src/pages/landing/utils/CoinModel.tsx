@@ -1,9 +1,9 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import { useFrame } from "@react-three/fiber";
-import { MeshStandardMaterial, Color, Vector3, Quaternion, Euler } from "three";
+import { useFrame, useLoader } from "@react-three/fiber";
+import { MeshStandardMaterial, Color, Vector3} from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 type CoinModelProps = {
-  gltf: any;
   position?: [number, number, number];
   scale?: [number, number, number];
   rotation?: [number, number, number];
@@ -16,7 +16,6 @@ const initialScale = [4, 4, 4] as [number, number, number];
 const defaultRotation = [0, 0, 0] as [number, number, number];
 
 const CoinModel: React.FC<CoinModelProps> = ({
-  gltf,
   position = defaultPosition,
   scale = initialScale,
   rotation = defaultRotation,
@@ -24,6 +23,7 @@ const CoinModel: React.FC<CoinModelProps> = ({
   onClick,
 }) => {
   // Load the model using GLTFLoader
+  const gltf = useLoader(GLTFLoader, "3DPinto.glb");
   const modelRef = useRef<any>();
   const currentPosition = new Vector3(0, 0, 0);
   const targetPosition = useRef(new Vector3(20, 0, 0));

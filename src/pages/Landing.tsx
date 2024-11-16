@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import React, { useRef, useState, useEffect, useCallback, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
@@ -8,6 +8,7 @@ import SlideGroup from "./landing/SlideGroup";
 import CoinModel from "./landing/utils/CoinModel";
 import EnvironmentSetup from "./landing/utils/EnvironmentSetup";
 import ParticlesBackground, { ParticlesBackgroundHandle } from "./landing/utils/ParticlesBackground";
+import FrameAnimator from "@/components/LoadingSpinner";
 
 // IMAGE ARRAY
 export const landingImages = [
@@ -43,9 +44,6 @@ export default function Landing() {
   const [animationTimer, setAnimationTimer] = useState(1600);
   const [opacity, setOpacity] = useState(1);
   const [showPinto, setShowPinto] = useState(false);
-
-  // PRELOADED MODELS
-  const preloadedGLTF = useLoader(GLTFLoader, "3DPinto.glb");
 
   // TS PARTICLES BACKGROUND REF
   const particlesBackgroundRef = useRef<ParticlesBackgroundHandle>(null);
@@ -167,6 +165,7 @@ export default function Landing() {
         <ParticlesBackground ref={particlesBackgroundRef} />
 
         {/* Three.js Canvas with Transparent Background */}
+        <Suspense fallback={<FrameAnimator/>}>
         <Canvas
           raycaster={{
             layers: (() => {
@@ -188,9 +187,8 @@ export default function Landing() {
           <EnvironmentSetup />
           <CameraZoom zoomRef={zoomRef} />
           <EnvironmentLighting />
-          {showPinto && preloadedGLTF && (
+          {showPinto && (
             <CoinModel
-              gltf={preloadedGLTF}
               onClick={resetCoinState}
               onScaleSet={() => onCoinScaleSet()}
             />
@@ -207,6 +205,7 @@ export default function Landing() {
             setNextIndex={setNextIndex}
           />
         </Canvas>
+        </Suspense>
         {/* Wrapper div for button positioned at the bottom of the view */}
         <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 z-20 flex flex-row items-center space-x-4">
           {/* Launch Button */}
