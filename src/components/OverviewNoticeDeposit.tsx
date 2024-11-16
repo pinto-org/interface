@@ -10,7 +10,7 @@ export default function OverviewNoticeDeposit() {
       <Text variant="body-light" color="green4">
         You have Pinto in your Wallet that isn’t earning yield. Deposit your Pinto for Stalk and Seed.
       </Text>
-      <Button variant="default" size="xxl" rounded="full">
+      <Button variant="gradient" size="xxl" rounded="full">
         <Link to={`/silo/${mainToken.address}`}>
           <span className="px-4">Deposit</span>
         </Link>
