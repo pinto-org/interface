@@ -88,7 +88,17 @@ const Stat = ({
   const index = hoveredIndex ?? morningIndex;
   const clampedIndex = index > 25 ? 24 : index < 0 ? 0 : index;
 
-  const displayTemp = data[clampedIndex].values?.[0];
+  const displayTemp = data[clampedIndex]?.values?.[0];
+
+  if (index > 22) {
+    console.log("data: ", {
+      data,
+      morningIndex,
+      index,
+      clampedIndex,
+      displayTemp,
+    });
+  }
 
   return (
     <div className="flex flex-col w-full gap-1">

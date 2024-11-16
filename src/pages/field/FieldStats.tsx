@@ -16,6 +16,8 @@ const FieldStats = () => {
   const soil = totalSoil.lte(0) ? TV.ZERO : totalSoil;
   const pLine = podLine.lte(0) ? TV.ZERO : podLine;
 
+  const maxTemperature = temperatures.max.gt(0) ? temperatures.max : 0;
+
   return (
     <div className="flex flex-row gap-x-12 gap-y-4 flex-wrap w-full">
       <div className="flex flex-col flex-grow gap-2">
@@ -26,7 +28,10 @@ const FieldStats = () => {
           </Text>
         </div>
         <div className="flex flex-col gap-1">
-          <Text variant="h3">{`${formatter.pct(temperatures.max.gt(0) ? scaledTemperature : 0)}`}</Text>
+          <Text
+            variant="h3"
+            color={isMorning ? "light" : "primary"}
+          >{`${formatter.pct(isMorning ? maxTemperature : scaledTemperature)}`}</Text>
         </div>
       </div>
       <div className="flex flex-col flex-grow gap-2">
