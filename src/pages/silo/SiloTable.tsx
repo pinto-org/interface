@@ -14,14 +14,31 @@ import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
+import { sortTokensForDeposits } from "@/utils/token";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 function SiloTable({ hovering }: { hovering: boolean }) {
   const siloData = useSiloData();
+  const mainToken = useTokenData().mainToken;
   const farmerDeposits = useFarmerDepositedBalances().data;
   const SILO_WHITELIST = useTokenData().whitelistedTokens;
   const priceData = usePriceData();
   const farmerActions = useFarmerActions();
+
+  // Sort tokens with PINTO first, then by Seeds
+  const sortedTokens = useMemo(() => {
+    return sortTokensForDeposits(
+      SILO_WHITELIST,
+      farmerDeposits,
+      mainToken,
+      priceData.price,
+      "rewards",
+      siloData.tokenData,
+    );
+  }, [farmerDeposits, priceData.price, SILO_WHITELIST, mainToken, siloData.tokenData]);
+
+  console.log("SORTED: ", sortedTokens);
 
   const claimEnabled = farmerActions.claimRewards.enabled;
   const gains = farmerActions.claimRewards.outputs;
@@ -42,7 +59,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {SILO_WHITELIST.map((token) => {
+          {sortedTokens.map((token) => {
             const data = siloData.tokenData.get(token);
             const userData = farmerDeposits.get(token);
 
@@ -103,13 +120,9 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                   ) : (
                     <span className="flex flex-row gap-1 items-center place-self-end">
                       <IconImage src={token.logoURI} size={6} />
-                      <Text textColor="primary">
-                          {formatter.number(farmerDeposits.get(token)?.amount)}
-                        </Text>
-                      
-                        <Text>
-                         {token.name}
-                        </Text>
+                      <Text textColor="primary">{formatter.number(farmerDeposits.get(token)?.amount)}</Text>
+
+                      <Text>{token.name}</Text>
                     </span>
                   )}
                 </Text>

@@ -10,6 +10,7 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
+import { sortTokensForDeposits } from "@/utils/token";
 import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -41,22 +42,9 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
 
   // Sort tokens with PINTO first, then by BDV
   const sortedTokens = useMemo(() => {
-    return tokenData.whitelistedTokens.sort((a, b) => {
-      // PINTO is always first
-      if (a.address === mainToken.address) return -1;
-      if (b.address === mainToken.address) return 1;
+    return sortTokensForDeposits(tokenData.whitelistedTokens, farmerDeposits, mainToken, priceData.price, "value");
+  }, [farmerDeposits, priceData.price, tokenData.whitelistedTokens, mainToken]);
 
-      // Get deposit data for both tokens
-      const aDeposit = farmerDeposits.get(a);
-      const bDeposit = farmerDeposits.get(b);
-
-      const aBdv = aDeposit?.depositBDV ?? TokenValue.ZERO;
-      const bBdv = bDeposit?.depositBDV ?? TokenValue.ZERO;
-
-      // Sort by BDV in descending order
-      return Number(bBdv.sub(aBdv).toHuman());
-    });
-  }, [farmerDeposits, tokenData.whitelistedTokens, mainToken]);
   const plantData = farmerActions.tokenTotals.get(mainToken);
   const plantBeanGain = plantData?.sources.plant?.beanGain || TokenValue.ZERO;
   const plantStalkGain = plantData?.sources.plant?.stalkGain || TokenValue.ZERO;
@@ -217,14 +205,16 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
               return (
                 <TableRow
                   key={`${token.address}_${i}`}
-                  className={`h-[4.5rem] bg-white hover:bg-pinto-green-1/50 hover:cursor-pointer ${germinatingStalk.gt(0) ? "bg-pinto-off-green/15" : ""}`}
+                  className={`h-[4.5rem] bg-white hover:bg-pinto-green-1/50 hover:cursor-pointer ${germinatingStalk.gt(0) ? "bg-pinto-off-green/15" : ""} ${amountOfDeposits === 0 ? "opacity-70" : "opacity-100"}`}
                   onClick={() => navigate(`/silo/${token.address}`)}
                   data-action-target={`token-row-${token.address}`}
                 >
                   <TableCell className="text-black/70 font-[400] text-[1rem]">
                     <div className=" pl-2 inline-flex items-center gap-1.5">
                       <img src={token.logoURI} className="h-8 w-8" alt={`${token.name} logo`} />
-                      <Text variant="sm" noLineHeight>{token.name}</Text>
+                      <Text variant="sm" noLineHeight>
+                        {token.name}
+                      </Text>
                     </div>
                   </TableCell>
                   <TableCell>
