@@ -103,13 +103,8 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                   ) : (
                     <span className="flex flex-row gap-1 items-center place-self-end">
                       <IconImage src={token.logoURI} size={6} />
-                      <Text textColor="primary">
-                          {formatter.number(farmerDeposits.get(token)?.amount)}
-                        </Text>
-                      
-                        <Text>
-                         {token.name}
-                        </Text>
+                      <Text>{formatter.number(farmerDeposits.get(token)?.amount)}</Text>
+                      <Text>{token.name}</Text>
                     </span>
                   )}
                 </Text>

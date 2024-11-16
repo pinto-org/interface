@@ -72,7 +72,7 @@ function Sow({ isMorning }: SowProps) {
   const account = useAccount();
   const diamond = useProtocolAddress();
   const invalidateField = useInvalidateField();
-  const { queryKey: farmerFieldQueryKey } = useFarmerField();
+  const { queryKeys: farmerFieldQueryKeys } = useFarmerField();
   const mainToken = useTokenData().mainToken;
   const queryClient = useQueryClient();
 
@@ -91,7 +91,7 @@ function Sow({ isMorning }: SowProps) {
       setAmountIn("0");
       // invalidating query results to trigger a refetch
       invalidateField("all");
-      queryClient.invalidateQueries({ queryKey: farmerFieldQueryKey });
+      farmerFieldQueryKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
       queryClient.invalidateQueries({ queryKey: farmerBalances.queryKeys });
     },
   });

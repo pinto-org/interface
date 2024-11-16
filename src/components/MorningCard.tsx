@@ -2,6 +2,7 @@ import { useMorning } from "@/state/useSunData";
 import { cn } from "@/utils/utils";
 import clsx from "clsx";
 import { forwardRef } from "react";
+import GradientCard from "./ui/GradientCard";
 
 type Props = React.HTMLAttributes<HTMLDivElement>;
 
@@ -9,20 +10,9 @@ const cardWrapperClass = clsx("rounded-xl bg-morning-light flex flex-col items-c
 
 const MorningCard = forwardRef<HTMLDivElement, Props>(({ children, className, ...props }, ref) => {
   return (
-    <div className="flex flex-col w-full items-center justify-center">
-      {/* Outer Div: Gradient Border */}
-      <div className="rounded-xl w-full bg-morning-border p-[1px]">
-        {/* Middle Div: Background Overlay to Handle Color Discrepancy */}
-        <div className="rounded-xl w-full bg-gradient-light">
-          {/* Inner Div: Actual Content Area */}
-          <div className={cn(cardWrapperClass, "h-full")}>
-            <div {...props} className={className} ref={ref}>
-              {children}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <GradientCard {...props} variant="morning" className={className} ref={ref}>
+      {children}
+    </GradientCard>
   );
 });
 

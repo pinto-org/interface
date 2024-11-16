@@ -2,7 +2,6 @@ import { TokenValue } from "@/classes/TokenValue";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import IconImage from "@/components/ui/IconImage";
-import { Label } from "@/components/ui/Label";
 import Text from "@/components/ui/Text";
 import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
@@ -36,7 +35,7 @@ function Harvest({ isMorning }: HarvestProps) {
   const queryClient = useQueryClient();
   const invalidateField = useInvalidateField();
 
-  const { plots: fieldPlots, queryKey } = useFarmerField();
+  const { plots: fieldPlots, queryKeys } = useFarmerField();
   const balances = useFarmerBalances();
   const [balanceTo, setBalanceTo] = useState(FarmToMode.EXTERNAL);
 
@@ -44,8 +43,8 @@ function Harvest({ isMorning }: HarvestProps) {
     let harvestable = TokenValue.ZERO;
     const _plots: string[] = [];
     fieldPlots.forEach((plot) => {
-      if (harvestable.gt(0) && plot.id) {
-        _plots.push(plot.id);
+      if (plot.harvestablePods.gt(0) && plot.id) {
+        _plots.push(plot.index.blockchainString);
       }
       harvestable = harvestable.add(plot.harvestablePods);
     });
@@ -54,7 +53,7 @@ function Harvest({ isMorning }: HarvestProps) {
 
   const { writeWithEstimateGas, isConfirming, submitting, setSubmitting } = useTransaction({
     successCallback: () => {
-      queryClient.invalidateQueries({ queryKey });
+      queryKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
       balances.queryKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
       invalidateField("podLine");
     },
@@ -63,12 +62,11 @@ function Harvest({ isMorning }: HarvestProps) {
   const onSubmit = useCallback(async () => {
     try {
       setSubmitting(true);
+      toast.loading("Harvesting...");
       if (!account.address) throw new Error("Signer required");
       if (!plots.length) throw new Error("No plots to harvest");
-      if (harvestableAmount.eq(0)) throw new Error("No harvestable pods");
+      if (harvestableAmount.lte(0)) throw new Error("No harvestable pods");
       if (!balanceTo) throw new Error("Destination required");
-
-      toast.loading(`Harvesting ${formatter.token(harvestableAmount, PODS)} PODS...`);
 
       return writeWithEstimateGas({
         address: diamond,
@@ -87,31 +85,39 @@ function Harvest({ isMorning }: HarvestProps) {
       toast.error(e instanceof Error ? e.message : "Transaction failed.");
       throw e;
     }
-  }, [account.address, plots, harvestableAmount, balanceTo, writeWithEstimateGas, diamond]);
+  }, [account.address, plots, harvestableAmount, balanceTo, writeWithEstimateGas, diamond, setSubmitting]);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6 pt-2">
       {harvestableAmount.gt(0) ? (
         <>
-          <div className="flex flex-col justify-between">
-            <div className="text-pinto-gray-4 text-[1.25rem]">You receive</div>
-            <div className="inline-flex gap-1 items-center text-black text-[2rem]">
-              {harvestableAmount.toHuman("short")}
-              <IconImage size={6} src={mainToken.logoURI} />
-              <span className="text-[1.25rem]">{mainToken.name}</span>
-            </div>
-            <div className="text-[1rem] text-pinto-gray-4">
-              ${harvestableAmount.mul(priceData.price).toHuman("short")}
+          <div className="flex flex-col">
+            <div className="flex flex-col gap-1">
+              <Text variant="body-light" color="light">
+                You receive
+              </Text>
+              <div className="flex flex-row gap-2 items-center">
+                <Text variant="h3" className="inline-flex gap-1 items-center">
+                  {formatter.token(harvestableAmount, mainToken)}
+                </Text>
+                <Text variant="h4" weight="light" className="inline-flex gap-1 items-center mt-1">
+                  <IconImage size={6} nudge={2} src={mainToken.logoURI} />
+                  {mainToken.name}
+                </Text>
+              </div>
+              <Text color="light">{formatter.usd(harvestableAmount.mul(priceData.price))}</Text>
             </div>
           </div>
-          <div className="flex flex-col gap-4 text-">
-            <Label>I want to Receive my Pinto to my:</Label>
+          <div className="flex flex-col gap-4">
+            <Text variant="body-light" color="light">
+              I want to Receive my Pinto to my:
+            </Text>
             <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} />
           </div>
         </>
       ) : (
-        <Text variant="body-sm" color="light">
-          Your Pods become Harvestable when they reach a Place in Line of 0.
+        <Text variant="body-light" color="light" align="center py-6">
+          Your Pods become Harvestable when they reach a Place in Line of 0. Your next Plot is at X in Line.
         </Text>
       )}
       <SmartSubmitButton

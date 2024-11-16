@@ -12,6 +12,21 @@ import { useCallback, useMemo } from "react";
 import { useAccount, useChainId } from "wagmi";
 import { useHarvestableIndex } from "./useFieldData";
 
+export function useFarmerPlotsQuery() {
+  const account = useAccount();
+
+  const plotsQuery = useReadFarmer_GetPlotsFromAccount({
+    args: [account.address ?? ZERO_ADDRESS, 0n],
+    query: {
+      enabled: !!account.address,
+      staleTime: 1000 * 60 * 20, // 20 minutes, in milliseconds
+      refetchInterval: 1000 * 60 * 20, // 20 minutes, in milliseconds
+    },
+  });
+
+  return plotsQuery;
+}
+
 export function useFarmerField() {
   const chainId = useChainId();
   const account = useAccount();
@@ -38,12 +53,7 @@ export function useFarmerField() {
     },
   });
 
-  const plotsQuery = useReadFarmer_GetPlotsFromAccount({
-    args: [account.address ?? ZERO_ADDRESS, 0n],
-    query: {
-      enabled: !!account.address,
-    },
-  });
+  const plotsQuery = useFarmerPlotsQuery();
 
   const plotsQueryData = useMemo(() => {
     if (plotsQuery.data?.length && harvestableIndex) {
@@ -100,10 +110,18 @@ export function useFarmerField() {
       totalPods: plotsQueryData?.totalPods ?? TokenValue.ZERO,
       totalUnharvestablePods: plotsQueryData?.totalUnharvestablePods ?? TokenValue.ZERO,
       totalHarvestablePods: plotsQueryData?.totalHarvestablePods ?? TokenValue.ZERO,
-      queryKey: queryKey,
+      queryKeys: [queryKey, plotsQuery.queryKey],
       refetch,
     };
-  }, [combinedPlotsData, plotsSGQuery.data?.orders, plotsSGQuery.data?.listings, plotsQueryData, queryKey, refetch]);
+  }, [
+    combinedPlotsData,
+    plotsSGQuery.data?.orders,
+    plotsQuery.queryKey,
+    plotsSGQuery.data?.listings,
+    plotsQueryData,
+    queryKey,
+    refetch,
+  ]);
 }
 
 type PlotsResponse = {
