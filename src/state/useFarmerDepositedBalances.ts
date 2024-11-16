@@ -22,6 +22,31 @@ interface DepositQuery {
   depositedBDV: bigint;
 }
 
+function calculateGerminationInfo(stem: TokenValue, stemTip: TokenValue, stalkEarnedPerSeason: TokenValue) {
+  // Each season is 60 minutes (3600 seconds)
+  const SEASON_LENGTH = 3600;
+
+  // Calculate germinating stem
+  const germinatingStem = stemTip.sub(stalkEarnedPerSeason);
+
+  // If not germinating, return undefined timestamp
+  if (stem.lt(germinatingStem)) {
+    return undefined;
+  }
+
+  // Calculate seasons elapsed
+  const seasonsElapsed = stemTip.sub(stem).div(stalkEarnedPerSeason);
+  const remainingSeasons = Math.max(0, 2 - Number(seasonsElapsed.toHuman()));
+
+  // Get current time and round to previous hour
+  const now = new Date();
+  const currentHour = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours());
+
+  // Add remaining seasons (in hours) to current hour
+  const germinationDate = new Date(currentHour.getTime() + remainingSeasons * SEASON_LENGTH * 1000);
+  return germinationDate;
+}
+
 const querySettings = {
   staleTime: 1000 * 60 * 20, // 20 minutes, in milliseconds
   refetchInterval: 1000 * 60 * 20, // 20 minutes, in milliseconds
@@ -38,7 +63,8 @@ export function useFarmerDepositsForAccountQuery() {
     args: [account.address as Address],
     query: {
       ...querySettings,
-      enabled: !!account.address,
+      refetchOnWindowFocus: true,
+      enabled: Boolean(account.address),
     },
   });
 }
@@ -88,29 +114,52 @@ function useFarmerDepositedBalances() {
       let currentBDV = TokenValue.fromBlockchain(0n, PINTO.decimals);
       let totalBaseStalk: TokenValue = TokenValue.fromBlockchain(0n, STALK.decimals);
       let totalGrownStalk: TokenValue = TokenValue.fromBlockchain(0n, STALK.decimals);
-      let totalStalk: TokenValue = TokenValue.fromBlockchain(0n, STALK.decimals);
+      let totalGerminatingStalk: TokenValue = TokenValue.fromBlockchain(0n, STALK.decimals);
       let totalSeeds: TokenValue = TokenValue.fromBlockchain(0n, SEEDS.decimals);
 
       tokenDeposits.forEach((deposit) => {
         const isGerminating = deposit.stem >= siloTokenData.germinatingStem.toBigInt();
         const _depositBDV = TokenValue.fromBlockchain(deposit.depositedBDV, BEAN.decimals);
         const depositStem = TokenValue.fromBlockchain(deposit.stem, BEAN.decimals);
-        const baseStalk = isGerminating
-          ? TokenValue.fromBlockchain(0n, STALK.decimals)
-          : _depositBDV.mul(siloTokenData.rewards.stalk);
-        const grownStalk = _depositBDV.mul(siloTokenData.stemTip.sub(depositStem)).div(10000);
-        const seeds = _depositBDV.mul(siloTokenData.rewards.seeds);
         const depositAmount = TokenValue.fromBlockchain(deposit.depositedAmount, token.decimals);
         const _currentBDV = depositAmount.mul(siloTokenData.tokenBDV);
+        const seeds = _depositBDV.mul(siloTokenData.rewards.seeds);
+
+        let baseStalk: TokenValue;
+        let grownStalk: TokenValue;
+        let germinatingStalk: TokenValue;
+
+        if (isGerminating) {
+          // For germinating deposits:
+          // - germinatingStalk is calculated from seeds using stalk/seed ratio
+          // - baseStalk and grownStalk are 0
+          baseStalk = TokenValue.fromBlockchain(0n, STALK.decimals);
+          grownStalk = TokenValue.fromBlockchain(0n, STALK.decimals);
+          germinatingStalk = seeds.div(siloTokenData.rewards.seeds).mul(siloTokenData.rewards.stalk);
+        } else {
+          // For non-germinating deposits:
+          // - baseStalk is BDV * stalkPerBDV
+          // - grownStalk is based on stem difference
+          // - germinatingStalk is 0
+          baseStalk = _depositBDV.mul(siloTokenData.rewards.stalk);
+          grownStalk = _depositBDV.mul(siloTokenData.stemTip.sub(depositStem)).div(10000);
+          germinatingStalk = TokenValue.fromBlockchain(0n, STALK.decimals);
+        }
 
         totalBaseStalk = totalBaseStalk.add(baseStalk);
         totalGrownStalk = totalGrownStalk.add(grownStalk);
-        totalStalk = totalStalk.add(baseStalk.add(grownStalk));
+        totalGerminatingStalk = totalGerminatingStalk.add(germinatingStalk);
         totalSeeds = totalSeeds.add(seeds);
 
         amount = amount.add(depositAmount);
         depositBDV = depositBDV.add(_depositBDV);
         currentBDV = currentBDV.add(_currentBDV).reDecimal(BEAN.decimals);
+
+        const germinationDate = calculateGerminationInfo(
+          depositStem,
+          siloTokenData.stemTip,
+          siloTokenData.tokenSettings.stalkEarnedPerSeason,
+        );
 
         const thisDeposit: DepositData = {
           id: deposit.id,
@@ -125,10 +174,12 @@ function useFarmerDepositedBalances() {
           stalk: {
             base: baseStalk,
             grown: grownStalk,
-            total: baseStalk.add(grownStalk),
+            germinating: germinatingStalk,
+            total: baseStalk.add(grownStalk).add(germinatingStalk),
           },
           seeds: seeds,
           isGerminating: isGerminating,
+          germinationDate: germinationDate,
         };
 
         depositData.push(thisDeposit);
@@ -146,7 +197,8 @@ function useFarmerDepositedBalances() {
         stalk: {
           base: totalBaseStalk,
           grown: totalGrownStalk,
-          total: totalStalk,
+          germinating: totalGerminatingStalk,
+          total: totalBaseStalk.add(totalGrownStalk).add(totalGerminatingStalk),
         },
         seeds: totalSeeds,
         deposits: depositData,

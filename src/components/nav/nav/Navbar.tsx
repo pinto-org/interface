@@ -172,7 +172,7 @@ const Navbar = () => {
                       ? "Claim assets from Flood"
                       : `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet ${hasInternal ? "+ Farm Balances" : "Balance"}`
                 }
-                className={`absolute top-[150px] right-[316px]`}
+                className={`absolute top-[150px] right-[340px] flex flex-row-reverse`}
                 sourceAnchor="right"
                 targetAnchor="left"
                 source90Degree={true}

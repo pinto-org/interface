@@ -17,8 +17,6 @@ interface TableRowConnectorProps {
   component?: ReactNode;
   componentOffset?: number;
   componentOffsetHeight?: number;
-  showArrow?: boolean;
-  animationDuration?: number;
   mode?: "connect" | "singleLine";
 }
 
@@ -43,7 +41,7 @@ const TableRowConnector = ({
   endCapColor = "#246645",
   component,
   componentOffset = 16,
-  componentOffsetHeight,
+  componentOffsetHeight = 20,
   mode = "connect",
 }: TableRowConnectorProps) => {
   const [path, setPath] = useState<{ startCap: string; line: string; endCap: string; fullPath: string }>({
@@ -62,6 +60,8 @@ const TableRowConnector = ({
   const componentRef = useRef<HTMLDivElement | null>(null);
   const [componentWidth, setComponentWidth] = useState(0);
   const [isUpward, setIsUpward] = useState(false);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     const currentRef = componentRef.current;
@@ -74,135 +74,112 @@ const TableRowConnector = ({
     }
   }, [component]);
 
-  useEffect(() => {
-    function updateConnector() {
-      const targetRow = document.querySelector(`[data-action-target="${toTarget}"]`);
-      if (!targetRow) return;
+  const updateConnector = () => {
+    const sourceElement = fromTarget ? document.querySelector(`[data-action-target="${fromTarget}"]`) : null;
+    const targetElement = document.querySelector(`[data-action-target="${toTarget}"]`);
+    const containerElement = targetElement?.closest(".relative");
 
-      const tableContainer = targetRow.closest(".relative");
-      if (!tableContainer) return;
+    if (!targetElement || !containerElement) return false;
 
-      const containerRect = tableContainer.getBoundingClientRect();
-      const targetRect = targetRow.getBoundingClientRect();
+    const containerRect = containerElement.getBoundingClientRect();
+    const targetRect = targetElement.getBoundingClientRect();
 
-      if (mode === "singleLine") {
-        const targetY = targetRect.top - containerRect.top + targetRect.height / 2;
-        const targetX = targetRect.left - containerRect.left - offset;
-        const startX = targetX - extensionLength;
-
-        // Match dimensions with connect mode
-        setDimensions({
-          top: targetY - capHeight / 2,
-          left: startX,
-          width: extensionLength + componentOffset,
-          height: capHeight,
-        });
-
-        const pathEndX = extensionLength - offset;
-
-        // Draw the horizontal line from left to right
-        const line = `M 0 ${capHeight / 2} L ${pathEndX} ${capHeight / 2}`;
-
-        // Match endcap dimensions with connect mode
-        const endCap = `
-          M ${pathEndX} ${capHeight / 2 - capHeight / 2}
-          L ${pathEndX} ${capHeight / 2 + capHeight / 2}
-        `;
-
-        // Full path for animation
-        const fullPath = `M 0 ${capHeight / 2} L ${pathEndX} ${capHeight / 2}`;
-
-        setPath({
-          startCap: "",
-          line,
-          endCap,
-          fullPath,
-        });
-
-        return;
-      }
-
-      // Original connect mode logic
-      const sourceRow = document.querySelector(`[data-action-target="${fromTarget}"]`);
-      if (!sourceRow) return;
-
-      const sourceRect = sourceRow.getBoundingClientRect();
-      const sourceY = sourceRect.top - containerRect.top + sourceRect.height / 2;
+    if (mode === "singleLine") {
       const targetY = targetRect.top - containerRect.top + targetRect.height / 2;
-
-      setIsUpward(targetY < sourceY);
-
-      const startX = sourceRect.left - containerRect.left - offset;
-      const adjustedLeft = startX - extensionLength;
-
-      const top = Math.min(sourceY, targetY) - capHeight / 2;
-      const height = Math.abs(targetY - sourceY) + capHeight;
+      const targetX = targetRect.left - containerRect.left - offset;
+      const startX = targetX - extensionLength;
 
       setDimensions({
-        top,
-        left: adjustedLeft,
+        top: targetY - capHeight / 2,
+        left: startX,
         width: extensionLength + componentOffset,
-        height,
+        height: capHeight,
       });
 
-      const pathStartX = extensionLength - offset;
-      const pathStartY = sourceY - top;
-      const pathEndY = targetY - top;
+      const pathEndX = extensionLength - offset;
+      const line = `M 0 ${capHeight / 2} L ${pathEndX} ${capHeight / 2}`;
+      const endCap = `M ${pathEndX} ${capHeight / 2 - capHeight / 2} L ${pathEndX} ${capHeight / 2 + capHeight / 2}`;
+      const fullPath = line;
 
-      const startCap = `
-        M ${pathStartX} ${pathStartY - capHeight / 2}
-        L ${pathStartX} ${pathStartY + capHeight / 2}
-      `;
-
-      const line = `M ${pathStartX} ${pathStartY} L ${offset} ${pathStartY} L ${offset} ${pathEndY} L ${pathStartX} ${pathEndY}`;
-
-      const endCap = `
-        M ${pathStartX} ${pathEndY - capHeight / 2}
-        L ${pathStartX} ${pathEndY + capHeight / 2}
-      `;
-
-      const fullPath = `M ${pathStartX} ${pathStartY} L ${offset} ${pathStartY} L ${offset} ${pathEndY} L ${pathStartX} ${pathEndY}`;
-
-      setPath({ startCap, line, endCap, fullPath });
+      setPath({ startCap: "", line, endCap, fullPath });
+      return true;
     }
 
-    updateConnector();
+    if (!sourceElement) return false;
 
-    const resizeObserver = new ResizeObserver(updateConnector);
+    const sourceRect = sourceElement.getBoundingClientRect();
+    const sourceY = sourceRect.top - containerRect.top + sourceRect.height / 2;
+    const targetY = targetRect.top - containerRect.top + targetRect.height / 2;
+
+    setIsUpward(targetY < sourceY);
+
+    const startX = sourceRect.left - containerRect.left - offset;
+    const adjustedLeft = startX - extensionLength;
+
+    const top = Math.min(sourceY, targetY) - capHeight / 2;
+    const height = Math.abs(targetY - sourceY) + capHeight;
+
+    setDimensions({
+      top,
+      left: adjustedLeft,
+      width: extensionLength + componentOffset,
+      height,
+    });
+
+    const pathStartX = extensionLength - offset;
+    const pathStartY = sourceY - top;
+    const pathEndY = targetY - top;
+
+    // Adjusted line path to maintain connection with end caps
+    const startCap = `M ${pathStartX} ${pathStartY - capHeight / 2} L ${pathStartX} ${pathStartY + capHeight / 2}`;
+    const line = `M ${pathStartX} ${pathStartY} L ${offset} ${pathStartY} L ${offset} ${pathEndY} L ${pathStartX} ${pathEndY}`;
+    const endCap = `M ${pathStartX} ${pathEndY - capHeight / 2} L ${pathStartX} ${pathEndY + capHeight / 2}`;
+    const fullPath = `${line}`;
+
+    setPath({ startCap, line, endCap, fullPath });
+    return true;
+  };
+
+  useEffect(() => {
+    const initialSuccess = updateConnector();
+
+    if (!initialSuccess) {
+      let attempts = 0;
+      const maxAttempts = 10;
+      const attemptUpdate = () => {
+        if (attempts >= maxAttempts) return;
+        if (updateConnector()) {
+          clearTimeout(timeoutRef.current);
+        } else {
+          attempts++;
+          timeoutRef.current = setTimeout(attemptUpdate, Math.min(100 * 2 ** attempts, 3000));
+        }
+      };
+      attemptUpdate();
+    }
+
+    // Observe both the table and the target element for changes
     const targetElement = document.querySelector(`[data-action-target="${toTarget}"]`);
+    const tableElement = targetElement?.closest("table");
+    const sourceElement = fromTarget ? document.querySelector(`[data-action-target="${fromTarget}"]`) : null;
 
-    if (targetElement) {
-      resizeObserver.observe(targetElement);
-    }
+    resizeObserverRef.current = new ResizeObserver(() => {
+      requestAnimationFrame(updateConnector);
+    });
 
-    if (mode === "connect" && fromTarget) {
-      const sourceElement = document.querySelector(`[data-action-target="${fromTarget}"]`);
-      if (sourceElement) {
-        resizeObserver.observe(sourceElement);
+    if (tableElement) resizeObserverRef.current.observe(tableElement);
+    if (targetElement) resizeObserverRef.current.observe(targetElement);
+    if (sourceElement) resizeObserverRef.current.observe(sourceElement);
+
+    return () => {
+      if (resizeObserverRef.current) {
+        resizeObserverRef.current.disconnect();
       }
-    }
-
-    return () => resizeObserver.disconnect();
-  }, [fromTarget, toTarget, extensionLength, capHeight, offset, componentWidth, component, componentOffset, mode]);
-
-  // Handle component mounting to the DOM
-  const ComponentWrapper = component ? (
-    <div
-      ref={componentRef}
-      style={{
-        position: "absolute",
-        top:
-          dimensions.top +
-          dimensions.height / 2 -
-          (componentOffsetHeight || (componentRef.current?.offsetHeight ?? 0)) / 2,
-        left: dimensions.left - (componentRef.current?.offsetWidth ?? 0) - componentOffset,
-        zIndex: 11,
-        pointerEvents: "auto",
-      }}
-    >
-      {component}
-    </div>
-  ) : null;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [fromTarget, toTarget, mode, extensionLength, capHeight, offset, componentWidth]);
 
   return (
     <div
@@ -217,7 +194,24 @@ const TableRowConnector = ({
       }}
       className="contrast-0 opacity-50 hover:contrast-100 hover:opacity-100 transition-all"
     >
-      {ComponentWrapper}
+      {component && (
+        <div
+          ref={componentRef}
+          style={{
+            position: "absolute",
+            top:
+              dimensions.top +
+              dimensions.height / 2 +
+              ((componentRef.current?.offsetHeight || 0) - componentOffsetHeight) / 2,
+            left: dimensions.left - componentWidth - componentOffset,
+            transform: "translateY(-50%)",
+            zIndex: 11,
+            pointerEvents: "auto",
+          }}
+        >
+          {component}
+        </div>
+      )}
       <svg
         style={{
           position: "absolute",
@@ -225,11 +219,12 @@ const TableRowConnector = ({
           left: dimensions.left,
           width: dimensions.width,
           height: dimensions.height,
+          overflow: "visible",
         }}
         className="transition-all"
       >
         <defs>
-          <linearGradient id="myGradient" gradientTransform={`rotate(90)`}>
+          <linearGradient id="myGradient" gradientTransform="rotate(90)">
             <stop offset="25%" stopColor={isUpward ? endCapColor : startCapColor || color} />
             <stop offset="75%" stopColor={isUpward ? startCapColor : endCapColor || color} />
           </linearGradient>

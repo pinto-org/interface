@@ -7,21 +7,35 @@ import { UpArrowIcon } from "@/components/Icons";
 import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import Text from "@/components/ui/Text";
-import { SEEDS } from "@/constants/internalTokens";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
+import { sortTokensForDeposits } from "@/utils/token";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 function SiloTable({ hovering }: { hovering: boolean }) {
   const siloData = useSiloData();
+  const mainToken = useTokenData().mainToken;
   const farmerDeposits = useFarmerDepositedBalances().data;
   const SILO_WHITELIST = useTokenData().whitelistedTokens;
   const priceData = usePriceData();
   const farmerActions = useFarmerActions();
+
+  // Sort tokens with PINTO first, then by Seeds
+  const sortedTokens = useMemo(() => {
+    return sortTokensForDeposits(
+      SILO_WHITELIST,
+      farmerDeposits,
+      mainToken,
+      priceData.price,
+      "rewards",
+      siloData.tokenData,
+    );
+  }, [farmerDeposits, priceData.price, SILO_WHITELIST, mainToken, siloData.tokenData]);
 
   const claimEnabled = farmerActions.claimRewards.enabled;
   const gains = farmerActions.claimRewards.outputs;
@@ -42,7 +56,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {SILO_WHITELIST.map((token) => {
+          {sortedTokens.map((token) => {
             const data = siloData.tokenData.get(token);
             const userData = farmerDeposits.get(token);
 
