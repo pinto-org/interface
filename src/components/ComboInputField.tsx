@@ -11,6 +11,7 @@ import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { FarmFromMode, Plot, Token } from "@/utils/types";
 import { useDebouncedEffect } from "@/utils/useDebounce";
+import { cn } from "@/utils/utils";
 import { Dispatch, InputHTMLAttributes, SetStateAction, useCallback, useEffect, useMemo, useState } from "react";
 import PlotSelect from "./PlotSelect";
 import TokenSelectWithBalances from "./TokenSelectWithBalances";
@@ -40,6 +41,7 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
   disableDebounce?: boolean;
   disableInlineBalance?: boolean;
   mode?: "deposits" | "plots" | "balance";
+  inputFrameColor?: "white" | "off-white";
   altText?: string;
   customMaxAmount?: TokenValue;
 
@@ -71,6 +73,7 @@ function ComboInputField({
   selectedPlots,
   setPlots,
   plotSelectionType,
+  inputFrameColor,
 }: ComboInputProps) {
   const tokenData = useTokenData();
   const { balances } = useFarmerBalances();
@@ -248,7 +251,12 @@ function ComboInputField({
 
   return (
     <>
-      <div className="border border-pinto-gray-blue content-center bg-white transition-colors py-4 px-6 rounded-[0.75rem] focus-within:outline-none focus-within:ring-1 focus-within:ring-ring">
+      <div
+        className={cn(
+          "border border-pinto-gray-blue content-center transition-colors p-4 rounded-[0.75rem] focus-within:outline-none focus-within:ring-1 focus-within:ring-ring",
+          inputFrameColor === "off-white" ? "bg-pinto-off-white" : "bg-white",
+        )}
+      >
         <div className="flex flex-col gap-2">
           <div className="flex flex-row gap-2 items-center">
             {isLoading ? (

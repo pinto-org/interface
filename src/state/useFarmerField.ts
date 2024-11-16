@@ -110,10 +110,18 @@ export function useFarmerField() {
       totalPods: plotsQueryData?.totalPods ?? TokenValue.ZERO,
       totalUnharvestablePods: plotsQueryData?.totalUnharvestablePods ?? TokenValue.ZERO,
       totalHarvestablePods: plotsQueryData?.totalHarvestablePods ?? TokenValue.ZERO,
-      queryKey: queryKey,
+      queryKeys: [queryKey, plotsQuery.queryKey],
       refetch,
     };
-  }, [combinedPlotsData, plotsSGQuery.data?.orders, plotsSGQuery.data?.listings, plotsQueryData, queryKey, refetch]);
+  }, [
+    combinedPlotsData,
+    plotsSGQuery.data?.orders,
+    plotsQuery.queryKey,
+    plotsSGQuery.data?.listings,
+    plotsQueryData,
+    queryKey,
+    refetch,
+  ]);
 }
 
 type PlotsResponse = {
