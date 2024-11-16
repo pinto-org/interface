@@ -38,8 +38,6 @@ function SiloTable({ hovering }: { hovering: boolean }) {
     );
   }, [farmerDeposits, priceData.price, SILO_WHITELIST, mainToken, siloData.tokenData]);
 
-  console.log("SORTED: ", sortedTokens);
-
   const claimEnabled = farmerActions.claimRewards.enabled;
   const gains = farmerActions.claimRewards.outputs;
   const navigate = useNavigate();
