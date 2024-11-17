@@ -1,6 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { FarmerBalance } from "@/state/useFarmerBalances";
 import { type ClassValue, clsx } from "clsx";
+import React from "react";
 import { twMerge } from "tailwind-merge";
 import { FarmFromMode } from "./types";
 

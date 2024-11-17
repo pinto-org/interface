@@ -5,7 +5,7 @@ import seedsIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { ExternalLinkIcon } from "@/components/Icons";
-import InlineStats, { InlineStatsProps } from "@/components/InlineStats";
+import InlineStats from "@/components/InlineStats";
 import SiloActionBox from "@/components/SiloActionBox";
 import { Button } from "@/components/ui/Button";
 import DenominationSwitcher from "@/components/ui/DenominationSwitcher";
@@ -18,13 +18,12 @@ import { usePriceData } from "@/state/usePriceData";
 import { useSeedGauge } from "@/state/useSeedGauge";
 import { SiloTokenYield, useSiloTokenAPYs } from "@/state/useSiloAPYs";
 import { useSiloData } from "@/state/useSiloData";
+import { useSeason } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { SiloTokenData, Token, TokenDepositData } from "@/utils/types";
-import { DateTime } from "luxon";
-import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useChainId, useConfig } from "wagmi";
@@ -239,17 +238,11 @@ const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price }: IFarmerSi
   );
 };
 
-// TODO: Remove this once we have a real deploy time
-const estDeployTime = 1731961258;
-const month = DateTime.fromSeconds(estDeployTime).plus({ days: 30 }).toSeconds();
-const week = DateTime.fromSeconds(estDeployTime).plus({ days: 7 }).toSeconds();
-const day = DateTime.fromSeconds(estDeployTime).plus({ hours: 24 }).toSeconds();
-
 const SiloTokenSubHeader = ({
   siloTokenData,
   apys,
 }: { siloTokenData: SiloTokenData | undefined; apys: Partial<SiloTokenYield> | undefined }) => {
-  const [now] = useState<number>(DateTime.now().toSeconds());
+  const season = useSeason();
   const stalkRewards = siloTokenData?.rewards.stalk;
   const seedRewards = siloTokenData?.rewards.seeds;
 
@@ -260,15 +253,18 @@ const SiloTokenSubHeader = ({
   const stats = [
     {
       label: "24H:",
-      value: ema24 && now - day > 0 ? formatter.pct(ema24 * 100) : "-",
+      value: ema24 ? formatter.pct(ema24 * 100) : "-",
+      notApplicable: season <= 24,
     },
     {
       label: "7D:",
-      value: ema168 && now - week > 0 ? formatter.pct(ema168 * 100) : "-",
+      value: ema168 ? formatter.pct(ema168 * 100) : "-",
+      notApplicable: season <= 168,
     },
     {
       label: "30D:",
-      value: ema720 && now - month > 0 ? formatter.pct(ema720 * 100) : "-",
+      value: ema720 ? formatter.pct(ema720 * 100) : "-",
+      notApplicable: season <= 720,
     },
   ];
 
@@ -288,7 +284,7 @@ const SiloTokenSubHeader = ({
         </div>
       </div>
       <div className="flex flex-row items-center justify-end gap-4 lg:gap-6">
-        <Text variant="sm-light" align="right">
+        <Text variant="sm-light" color="green4" align="right" className={stats[0].notApplicable ? "opacity-50" : ""}>
           Variable APY
         </Text>
         <InlineStats variant="sm" stats={stats} />

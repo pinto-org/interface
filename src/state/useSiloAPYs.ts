@@ -1,15 +1,13 @@
 import { TV } from "@/classes/TokenValue";
 import { defaultQuerySettings } from "@/constants/query";
+import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { getTokenIndex } from "@/utils/token";
+import { ConstrainedUseQueryArgs, Token } from "@/utils/types";
+import { AddressLookup } from "@/utils/types.generic";
 import { QueryKey, useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 import { useTotalDepositedBdvPerTokenQuery } from "./useSiloData";
-import useTokenData from "./useTokenData";
-import {
-  ConstrainedUseQueryArgs,
-  Token,
-} from "@/utils/types";
-import { useTokenMap } from "@/hooks/pinto/useTokenMap";
+import useTokenData, { useWhitelistedTokens } from "./useTokenData";
 
 export type EmaWindow = 24 | 168 | 720;
 
@@ -22,14 +20,16 @@ export interface SiloTokenEMAYield {
   stalk: number;
 }
 
+export type EMAWindows<T> = {
+  ema24: T;
+  ema168: T;
+  ema720: T;
+};
+
 /**
  * Yields for a single token, across different EMA windows.
  */
-export interface SiloTokenYield {
-  ema24: number;
-  ema168: number;
-  ema720: number;
-}
+export interface SiloTokenYield extends EMAWindows<number> {}
 
 /**
  * API response from /silo/yields
@@ -57,7 +57,7 @@ const normalizeYields = (yields: SiloYieldsAPIResponse["yields"][EmaWindow]) => 
 };
 
 export function useSiloYieldsQuery<TSelect = SiloYieldsAPIResponse>(
-  arg?: ConstrainedUseQueryArgs<SiloYieldsAPIResponse, TSelect>
+  arg?: ConstrainedUseQueryArgs<SiloYieldsAPIResponse, TSelect>,
 ) {
   return useQuery<SiloYieldsAPIResponse, Error, TSelect, QueryKey>({
     queryKey: ["api", "silo", "yields"],
@@ -84,11 +84,40 @@ export function useSiloYieldsQuery<TSelect = SiloYieldsAPIResponse>(
   });
 }
 
-export type AverageBDVWeightedSiloAPYs = {
-  ema24: number;
-  ema168: number;
-  ema720: number;
-};
+export type SiloYieldsByToken = AddressLookup<Partial<SiloTokenYield>>;
+
+export function useSiloYieldsByToken<T = SiloYieldsByToken>(args?: {
+  select?: (data: SiloYieldsByToken) => T;
+}) {
+  const whitelist = useWhitelistedTokens();
+
+  const selectYields = useCallback(
+    (data: SiloYieldsAPIResponse) => {
+      const apys: SiloYieldsByToken = {};
+
+      whitelist.forEach((token) => {
+        const tokenIndex = getTokenIndex(token);
+
+        const ema24 = data.yields[24]?.[tokenIndex]?.bean ?? 0;
+        const ema168 = data.yields[168]?.[tokenIndex]?.bean ?? 0;
+        const ema720 = data.yields[720]?.[tokenIndex]?.bean ?? 0;
+
+        const obj = {
+          ema24,
+          ema168,
+          ema720,
+        };
+
+        apys[tokenIndex] = obj;
+      });
+
+      return args?.select?.(apys) || apys;
+    },
+    [whitelist, args?.select],
+  );
+
+  return useSiloYieldsQuery({ select: selectYields });
+}
 
 export const useSiloTokenAPYs = (token: Token | string | undefined) => {
   const tokenMap = useTokenMap();
@@ -112,10 +141,10 @@ export const useSiloTokenAPYs = (token: Token | string | undefined) => {
 
       return apys;
     },
-    [token]
+    [token],
   );
 
-  return useSiloYieldsQuery<Partial<SiloTokenYield>>({ 
+  return useSiloYieldsQuery<Partial<SiloTokenYield>>({
     select: selectSiloYields,
     enabled: !!siloToken,
   });
@@ -130,7 +159,7 @@ export const useAverageBDVWeightedSiloAPYs = () => {
   const { data: bdvs, isLoading: isBDVLoading, error: bdvError } = useTotalDepositedBdvPerTokenQuery();
   const { whitelistedTokens } = useTokenData();
 
-  const data: AverageBDVWeightedSiloAPYs | undefined = useMemo(() => {
+  const data: SiloTokenYield | undefined = useMemo(() => {
     if (!apyResponse || !bdvs) return;
 
     const totalDepositedBDV = Object.values(bdvs).reduce<TV>((prev, curr) => prev.add(curr), TV.ZERO);
