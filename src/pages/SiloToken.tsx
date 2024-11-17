@@ -25,7 +25,7 @@ import { stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { SiloTokenData, Token, TokenDepositData } from "@/utils/types";
 import { Link, useParams } from "react-router-dom";
-import { Toaster, toast } from "sonner";
+import { toast } from "sonner";
 import { useChainId, useConfig } from "wagmi";
 import DepositsTable from "../components/DepositsTable";
 import GerminationNotice from "./silo/GerminationNotice";
@@ -35,7 +35,7 @@ export default function SiloToken() {
   const { tokenAddress } = useParams();
   const tokenData = useTokenData();
   const siloData = useSiloData();
-  const priceData = usePriceData()
+  const priceData = usePriceData();
   const apysQuery = useSiloTokenAPYs(tokenAddress);
   const depositedBalances = useFarmerSiloNew().deposits;
 
@@ -220,12 +220,10 @@ const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price }: IFarmerSi
           <Text variant="sm" color="secondary">
             My Stalk
           </Text>
-            <div  className="inline-flex flex-row items-center gap-1">
+          <div className="inline-flex flex-row items-center gap-1">
             <IconImage src={stalkIcon} size={6} alt="Stalk" />
-            <Text variant="h4">
-              {formatter.twoDec(farmerDeposits?.stalk.total)}
-            </Text>
-            </div>
+            <Text variant="h4">{formatter.twoDec(farmerDeposits?.stalk.total)}</Text>
+          </div>
         </div>
         <div className="flex flex-col gap-2">
           <Text variant="sm" color="secondary">
@@ -273,27 +271,27 @@ const SiloTokenSubHeader = ({
 
   return (
     <>
-    <div className="flex flex-row items-center justify-between">
-      <div className="flex flex-col gap-2">
-        <Text variant="sm">Current Deposit Rewards</Text>
-        <div className="flex flex-row gap-3">
-          <div className="inline-flex gap-1 items-center">
-            <IconImage src={stalkIcon} size={6} alt="Stalk" />
-            <Text variant="h4">{formatter.twoDec(stalkRewards)} Stalk</Text>
-          </div>
-          <div className="inline-flex gap-1 items-center">
-            <IconImage src={seedsIcon} size={6} alt="Seeds" />
-            <Text variant="h4">{formatter.twoDec(seedRewards)} Seeds</Text>
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-col gap-2">
+          <Text variant="sm">Current Deposit Rewards</Text>
+          <div className="flex flex-row gap-3">
+            <div className="inline-flex gap-1 items-center">
+              <IconImage src={stalkIcon} size={6} alt="Stalk" />
+              <Text variant="h4">{formatter.twoDec(stalkRewards)} Stalk</Text>
+            </div>
+            <div className="inline-flex gap-1 items-center">
+              <IconImage src={seedsIcon} size={6} alt="Seeds" />
+              <Text variant="h4">{formatter.twoDec(seedRewards)} Seeds</Text>
+            </div>
           </div>
         </div>
+        <div className="flex flex-row items-center justify-end gap-4 lg:gap-6">
+          <Text variant="sm-light" color="green4" align="right" className={stats[0].notApplicable ? "opacity-50" : ""}>
+            Variable APY
+          </Text>
+          <InlineStats variant="sm" stats={stats} />
+        </div>
       </div>
-      <div className="flex flex-row items-center justify-end gap-4 lg:gap-6">
-        <Text variant="sm-light" color="green4" align="right" className={stats[0].notApplicable ? "opacity-50" : ""}>
-          Variable APY
-        </Text>
-        <InlineStats variant="sm" stats={stats} />
-      </div>
-    </div>
     </>
   );
 };
@@ -353,7 +351,14 @@ const SiloTokenHeader = ({ siloToken }: IBaseSiloToken) => {
 const SiloTokenWSOLWarningHeader = () => {
   return (
     <div className="bg-white border rounded-[0.75rem] p-4 rounded-md">
-      <Text variant="body" weight="thin" color="primary" className="leading-2">WSOL liquidity on Base is limited, which may result in worse price execution if attempting to Deposit with any other token than WSOL. To avoid this, you can bridge SOL directly from the Solana network using the <a href="https://portalbridge.com/" style={{ color: "#387F5C"}}>Portal Bridge</a>.</Text>
+      <Text variant="body" weight="thin" color="primary" className="leading-2">
+        WSOL liquidity on Base is limited, which may result in worse price execution if attempting to Deposit with any
+        other token than WSOL. To avoid this, you can bridge SOL directly from the Solana network using the{" "}
+        <a href="https://portalbridge.com/" style={{ color: "#387F5C" }}>
+          Portal Bridge
+        </a>
+        .
+      </Text>
     </div>
-  )
+  );
 };
