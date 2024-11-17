@@ -20,6 +20,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
 import { Separator } from "./ui/Separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/Tabs";
 import { Toggle } from "./ui/Toggle";
+import Text from "./ui/Text";
 
 export default function WalletButtonPanel({
   isOpen = false,
@@ -104,7 +105,7 @@ export default function WalletButtonPanel({
                 <div className="text-pinto-gray-5">{formatter.usd(totalBalance.external)}</div>
               </div>
               <div className="font-[340] text-[1rem] text-pinto-gray-4 inline-flex gap-1 items-center leading-none">
-                <div className="rounded-full bg-pinto-yellow-1 w-3 h-3" />
+                <div className="rounded-full bg-pinto-morning-yellow-1 w-3 h-3" />
                 <div>Farm Balance:</div>
                 <div className="text-pinto-gray-5">{formatter.usd(totalBalance.internal)}</div>
               </div>
@@ -186,7 +187,7 @@ export default function WalletButtonPanel({
                                 <div className="flex flex-col text-left gap-2 my-1">
                                   <span className="text-[1.25rem] text-pinto-gray-5">{token.symbol}</span>
                                   <span className="font-[340] transition-all group-hover:text-pinto-green text-pinto-gray-4 inline-flex gap-1 items-center">
-                                    <div className="relative -top-[4px]">
+                                    <div className="relative">
                                       <DonutChart
                                         data={{
                                           labels: ["Farm Balance", "Wallet Balance"],
@@ -203,7 +204,7 @@ export default function WalletButtonPanel({
                                         }}
                                       />
                                     </div>
-                                    {`${balances.total.toHuman("short")} ${token.symbol}`}
+                                    <Text variant="sm" color="light">{`${balances.total.toHuman("short")} ${token.symbol}`}</Text>
                                     <ChevronDownIcon
                                       color={"currentColor"}
                                       className={"transform transition-transform group-data-[state=on]:-scale-y-100"}
@@ -226,7 +227,7 @@ export default function WalletButtonPanel({
                                   {token.symbol !== "ETH" && (
                                     <div className="font-[340] text-[1rem] text-pinto-gray-4 flex justify-between items-center">
                                       <div className="flex items-center gap-1">
-                                        <div className="rounded-full bg-pinto-yellow-1 w-3 h-3 flex-shrink-0" />
+                                        <div className="rounded-full bg-pinto-morning-yellow-1 w-3 h-3 flex-shrink-0" />
                                         <div>Farm Balance</div>
                                       </div>
                                       <div>{`${balances.internal.toHuman("short")} ${token.symbol}`}</div>
