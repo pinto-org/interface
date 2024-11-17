@@ -1,18 +1,18 @@
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { Token } from "@/utils/types";
 import { timeRemaining } from "@/utils/utils";
 import { useEffect, useMemo, useState } from "react";
 import Text from "./ui/Text";
 
 export default function OverviewNoticeGermination() {
-  const depositedBalances = useFarmerDepositedBalances();
+  const depositedBalances = useFarmerSiloNew().deposits;
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Find currently germinating deposits
   const germinatingDeposits = useMemo(() => {
     const deposits = new Map<Token, Date>();
 
-    depositedBalances.data.forEach((tokenData, token) => {
+    depositedBalances.forEach((tokenData, token) => {
       tokenData.deposits.forEach((deposit) => {
         if (deposit.isGerminating && deposit.germinationDate) {
           const existingDate = deposits.get(token);
@@ -43,7 +43,7 @@ export default function OverviewNoticeGermination() {
       underHour,
       allTokens: deposits,
     };
-  }, [depositedBalances.data, currentTime]);
+  }, [depositedBalances, currentTime]);
 
   // Update time every second
   useEffect(() => {

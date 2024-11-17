@@ -5,6 +5,7 @@ import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import Text from "@/components/ui/Text";
+import Warning from "@/components/ui/Warning";
 import deposit from "@/encoders/deposit";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useSwapEstimate from "@/hooks/useSwapEstimate";

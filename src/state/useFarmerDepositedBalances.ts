@@ -166,6 +166,7 @@ function useFarmerDepositedBalances() {
           idHex: toHex(deposit.id).toString(),
           token: token,
           stemTipForToken: siloTokenData.stemTip,
+          lastStem: TokenValue.ZERO, // gotta keep typescript happy for now
           stem: depositStem,
           season: deposit.season ?? 0,
           amount: depositAmount,

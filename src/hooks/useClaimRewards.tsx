@@ -1,6 +1,5 @@
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
-import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { calculateConvertData } from "@/utils/convert";
@@ -17,16 +16,16 @@ export function useClaimRewards() {
   const chainId = useChainId();
   const queryClient = useQueryClient();
   const account = useAccount().address;
-  const data = useFarmerSilo();
+  const data = useFarmerSiloNew();
   const siloData = useSiloData();
   const whitelistedTokens = useTokenData().whitelistedTokens;
-  const farmerDeposits = useFarmerDepositedBalances();
+  const farmerDeposits = data.deposits;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onSuccess = useCallback(() => {
-    const allQueryKeys = [...data.queryKeys, ...siloData.queryKeys, farmerDeposits.queryKey];
+    const allQueryKeys = [...data.queryKeys, ...siloData.queryKeys];
     allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
-  }, [queryClient, data.queryKeys, siloData.queryKeys, farmerDeposits.queryKey]);
+  }, [queryClient, data.queryKeys, siloData.queryKeys]);
 
   const { isConfirming, writeContractAsync } = useTransaction({
     successMessage: "Claim complete!",
@@ -55,7 +54,7 @@ export function useClaimRewards() {
       });
 
       const updateData: `0x${string}`[] = [];
-      for (const [token, depositData] of farmerDeposits.data.entries()) {
+      for (const [token, depositData] of farmerDeposits.entries()) {
         for (const deposit of depositData.deposits) {
           if (deposit.currentBdv.gt(deposit.depositBdv) && !deposit.isGerminating) {
             const convertData = calculateConvertData(token, token, deposit.amount, deposit.amount);
@@ -96,7 +95,7 @@ export function useClaimRewards() {
       toast.error(e instanceof Error ? e.message : "Transaction failed.");
       throw e;
     }
-  }, [account, chainId, config, farmerDeposits.data, whitelistedTokens, writeContractAsync]);
+  }, [account, chainId, config, farmerDeposits, whitelistedTokens, writeContractAsync]);
 
   return {
     submitClaimRewards,

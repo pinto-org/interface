@@ -17,6 +17,7 @@ import { Button } from "./ui/Button";
 import { CardContent, CardFooter, CardHeader } from "./ui/Card";
 import { Label } from "./ui/Label";
 import { Separator } from "./ui/Separator";
+import Text from "./ui/Text";
 
 export default function WalletButtonTransfer({
   setShowTransfer,
@@ -96,7 +97,7 @@ export default function WalletButtonTransfer({
       </CardHeader>
       <CardContent className="pt-0 -mt-4 pb-0 px-6">
         <Separator className="w-full mb-6" />
-        <div className="flex flex-col gap-6 my-6">
+        <div className="flex flex-col gap-8 my-8">
           <div className="flex flex-row justify-between">
             <span className="text-pinto-gray-4 font-[340] text-[1.25rem]">From:</span>
             <span className="text-black font-[400] text-[1.25rem]">
@@ -121,8 +122,8 @@ export default function WalletButtonTransfer({
             </span>
           </div>
         </div>
-        <div className="mt-8">
-          <Label className="font-[340]">Amount and Token to Transfer</Label>
+        <div className="flex flex-col mt-16 gap-y-2">
+          <Text variant="body" color="light">Amount and Token to Transfer</Text>
           <ComboInputField
             amount={amountIn}
             setAmount={setAmountIn}
@@ -131,7 +132,7 @@ export default function WalletButtonTransfer({
             selectedToken={tokenIn}
             balanceFrom={balanceFrom}
             balancesToShow={[FarmFromMode.EXTERNAL, FarmFromMode.INTERNAL]}
-            inputFrameColor="off-white"
+            inputFrameColor="white"
           />
         </div>
       </CardContent>

@@ -156,8 +156,8 @@ export default function Navi() {
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem onMouseEnter={() => setNaviTab("docs")}>
-            <Link active={naviTab === "docs"} topMenu>
-              Documentation
+            <Link active={naviTab === "docs"} href={navLinks.docs} topMenu>
+              Docs
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem onMouseEnter={() => setNaviTab("more")}>
@@ -169,7 +169,7 @@ export default function Navi() {
       </NavigationMenu>
       <AnimatePresence mode="wait">
         {naviTab === "app" && <AppNavi />}
-        {naviTab === "docs" && <DocNavi />}
+        {/* {naviTab === "docs" && <DocNavi />} */}
         {naviTab === "more" && <MoreNavi />}
       </AnimatePresence>
     </div>

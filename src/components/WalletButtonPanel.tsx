@@ -140,18 +140,6 @@ export default function WalletButtonPanel({
                 </div>
                 Send
               </Button>
-              <Button
-                onClick={() => setShowTransfer(true)}
-                variant="ghost"
-                className="bg-pinto-gray-1 hover:hover:bg-pinto-green flex-1 h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-col gap-4"
-              >
-                <div className="rounded-full bg-pinto-green h-9 w-9 flex justify-evenly">
-                  <span className="self-center items-center">
-                    <BackwardArrowDotsIcon color={"white"} />
-                  </span>
-                </div>
-                Transfer
-              </Button>
             </div>
           </CardHeader>
           <CardContent className="pt-0 -mt-4 pb-0">
@@ -348,6 +336,16 @@ export default function WalletButtonPanel({
           </CardContent>
           <CardFooter className="absolute bottom-0 mx-auto left-0 right-0 text-center justify-center flex flex-col gap-4">
             {ENABLE_SWITCH_CHAINS && <ChainButton />}
+            <Button
+              variant="default"
+              onClick={() => setShowTransfer(true)}
+              className={`rounded-full gap-x-1 m-4`}
+            >
+              <span className="self-center items-center">
+                <BackwardArrowDotsIcon color={"white"} />
+              </span>
+              Manage Farm Balance
+            </Button>
             {totalFlood.gt(0) && <WalletButtonClaim setShowClaim={setShowClaim} showClaim={showClaim} />}
           </CardFooter>
           {totalBalance.total.eq(0) && <NoBaseValueAlert />}

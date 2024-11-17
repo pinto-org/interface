@@ -8,7 +8,7 @@ import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import Text from "@/components/ui/Text";
 import useFarmerActions from "@/hooks/useFarmerActions";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
@@ -20,7 +20,8 @@ import { useNavigate } from "react-router-dom";
 function SiloTable({ hovering }: { hovering: boolean }) {
   const siloData = useSiloData();
   const mainToken = useTokenData().mainToken;
-  const farmerDeposits = useFarmerDepositedBalances().data;
+  const farmerSilo = useFarmerSiloNew();
+  const farmerDeposits = farmerSilo.deposits;
   const SILO_WHITELIST = useTokenData().whitelistedTokens;
   const priceData = usePriceData();
   const farmerActions = useFarmerActions();
@@ -38,6 +39,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
   }, [farmerDeposits, priceData.price, SILO_WHITELIST, mainToken, siloData.tokenData]);
 
   const claimEnabled = farmerActions.claimRewards.enabled;
+  const earnedPinto = farmerActions.claimRewards.outputs.beanGain.gt(0.01);
   const gains = farmerActions.claimRewards.outputs;
   const navigate = useNavigate();
 
@@ -53,7 +55,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
             </TableHead>
             {/* <TableHead className="text-black text-right font-[400] text-[1rem] w-[20%]">My Deposited Amount</TableHead> */}
             <TableHead className="text-black text-right font-[400] text-[1rem] w-[30%] p-4">
-              My Deposited Amount
+              My Deposits
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -70,7 +72,6 @@ function SiloTable({ hovering }: { hovering: boolean }) {
             const depositBDV = userData ? userData.depositBDV : TokenValue.ZERO;
             const amount = userData ? userData.amount : TokenValue.ZERO;
 
-            // const germinatingBDV = data?.
             if (!data) return;
             return (
               <TableRow
@@ -85,12 +86,6 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                 </Text>
                 <TableCell>
                   <div className="inline-flex items-center gap-3">
-                    <div className="inline-flex gap-1 px-1.5 py-1 bg-pinto-green-1 text-pinto-green font-[400] text-[1rem] rounded-[0.65em]">
-                      <img src={apyIcon} alt={"apy"} />
-                      <Text variant="sm" className="opacity-70">
-                        {formatter.pct(data.yields.beanAPY * 100)} APY
-                      </Text>
-                    </div>
                     <div className="inline-flex gap-1 items-center">
                       <img src={stalkIcon} alt={"stalk"} className="w-[1rem] h-[1rem]" />
                       <Text variant="sm" className="opacity-70">
@@ -103,6 +98,12 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                         {formatter.twoDec(data.rewards.seeds)} Seeds
                       </Text>
                     </div>
+                    <div className="inline-flex gap-1 px-1.5 py-1 bg-pinto-green-1 text-pinto-green font-[400] text-[1rem] rounded-[0.65em]">
+                      <img src={apyIcon} alt={"apy"} />
+                      <Text variant="sm" className="opacity-70">
+                        {formatter.pct(data.yields.beanAPY * 100)} APY
+                      </Text>
+                    </div>
                   </div>
                 </TableCell>
                 <Text as={TableCell} align="right" variant="sm" color="secondary" className="opacity-70">
@@ -110,7 +111,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                 </Text>
                 <TableCell className="text-right pr-4">
                   <div className="flex flex-col items-end gap-1">
-                    {token.isMain && hovering && claimEnabled ? (
+                    {token.isMain && hovering && earnedPinto ? (
                       <>
                         <span className="inline-flex items-center gap-1 text-pinto-green-4">
                           <UpArrowIcon color={"currentColor"} width={20} height={20} />
@@ -136,10 +137,10 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                               <IconImage src={token.logoURI} size={6} />
 
                               <Text variant="sm">{formatter.number(farmerDeposits.get(token)?.amount)}</Text>
-                              {claimEnabled ? (
+                              {earnedPinto ? (
                                 <>
                                   <Text variant="sm" align="right" color="green4">
-                                  + {formatter.number(gains.bdvGain)}
+                                    + {formatter.number(gains.bdvGain)}
                                   </Text>
                                   <Text color="green4">{token.name}</Text>
                                 </>
@@ -147,21 +148,20 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                                 <Text>{token.name}</Text>
                               )}
                             </span>
-
-                              {claimEnabled ? (
-                                <div className="inline-flex items-center gap-1">
-                                  <Text variant="sm-thin" align="right" color="light">
-                                    {formatter.usd(currentBDV.mul(priceData.price))} +{" "}
-                                  </Text>
-                                  <Text variant="sm-thin" align="right" color="green4">
-                                    {formatter.usd(gains.beanGain.mul(priceData.price))}
-                                  </Text>
-                                </div>
-                              ) : (
+                            {earnedPinto ? (
+                              <div className="inline-flex items-center gap-1">
                                 <Text variant="sm-thin" align="right" color="light">
-                                    {formatter.usd(currentBDV.mul(priceData.price))}
-                                  </Text>
-                              )}
+                                  {formatter.usd(currentBDV.mul(priceData.price))} +{" "}
+                                </Text>
+                                <Text variant="sm-thin" align="right" color="green4">
+                                  {formatter.usd(gains.beanGain.mul(priceData.price))}
+                                </Text>
+                              </div>
+                            ) : (
+                              <Text variant="sm-thin" align="right" color="light">
+                                {formatter.usd(currentBDV.mul(priceData.price))}
+                              </Text>
+                            )}
                           </>
                         ) : (
                           <>

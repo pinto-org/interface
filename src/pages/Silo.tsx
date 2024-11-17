@@ -8,9 +8,8 @@ import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
 import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
-import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
-import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { getClaimText } from "@/utils/string";
 import { StatPanelData } from "@/utils/types";
@@ -20,8 +19,7 @@ import { useNavigate } from "react-router-dom";
 import SiloTable from "./silo/SiloTable";
 
 function Silo() {
-  const farmerSilo = useFarmerSilo();
-  const siloData = useSiloData();
+  const farmerSilo = useFarmerSiloNew();
   const farmerActions = useFarmerActions();
   const tokenData = useTokenData();
   const priceData = usePriceData();

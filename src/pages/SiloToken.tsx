@@ -8,11 +8,12 @@ import APYChip from "@/components/APYChip";
 import { ExternalLinkIcon } from "@/components/Icons";
 import SiloActionBox from "@/components/SiloActionBox";
 import { Button } from "@/components/ui/Button";
+import DenominationSwitcher from "@/components/ui/DenominationSwitcher";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import { useSeedGauge } from "@/state/useSeedGauge";
 import { useSiloData } from "@/state/useSiloData";
@@ -22,22 +23,22 @@ import { stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { SiloTokenData, Token, TokenDepositData } from "@/utils/types";
 import { Link, useParams } from "react-router-dom";
+import { Toaster, toast } from "sonner";
 import { useChainId, useConfig } from "wagmi";
 import DepositsTable from "../components/DepositsTable";
 import GerminationNotice from "./silo/GerminationNotice";
 import SiloActions from "./silo/SiloActions";
-import DenominationSwitcher from "@/components/ui/DenominationSwitcher";
 
 export default function SiloToken() {
   const { tokenAddress } = useParams();
   const tokenData = useTokenData();
   const siloData = useSiloData();
   const priceData = usePriceData();
-  const depositedBalances = useFarmerDepositedBalances();
+  const depositedBalances = useFarmerSiloNew().deposits;
 
   const siloToken = tokenData.whitelistedTokens.find((token) => stringEq(token.address, tokenAddress ?? ""));
   const siloTokenData = siloToken ? siloData.tokenData.get(siloToken) : undefined;
-  const farmerDeposits = siloToken ? depositedBalances.data.get(siloToken) : undefined;
+  const farmerDeposits = siloToken ? depositedBalances.get(siloToken) : undefined;
 
   if (!siloToken) {
     return <>404</>;
@@ -53,6 +54,7 @@ export default function SiloToken() {
             <div className="flex flex-col w-full gap-14 items-start">
               <div className="flex flex-col w-full gap-6">
                 <SiloTokenSubHeader siloTokenData={siloTokenData} />
+                {siloToken.name === "PINTOWSOL LP" && <SiloTokenWSOLWarningHeader />}
                 <Separator />
                 <div className="pt-6">
                   <FarmerSiloTokenDeposits
@@ -155,7 +157,7 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
         {siloToken.isLP ? (
           <div>
             <Text variant="sm-light" color="secondary">
-              % of LP Deposits
+              Current % of Dep. LP PDV
             </Text>
             <Text variant="h4" className="pt-1">
               {formatter.pct(liquidityRatio)}
@@ -165,7 +167,7 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
         {siloToken.isLP ? (
           <div className="flex flex-col">
             <Text variant="sm-light" color="secondary">
-              Target % of LP Deposits
+              Optimal % of Dep. LP PDV
             </Text>
             <Text variant="h4" className="pt-1">
               {formatter.pct(optimalDepositedRatio)}
@@ -174,7 +176,7 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
         ) : null}
       </div>
       {siloToken.isLP && (
-        <Text variant="body-light" color="lighter">
+        <Text variant="body-light" color="lighter" className="leading-2">
           {siloToken.isLP
             ? `${siloToken.name} is a liquidity pool token on the Pinto Exchange. You can use a variety of input tokens to add liquidity and deposit the LP token in the Silo.`
             : `${siloToken.name} is the token that powers the ${siloToken.name} protocol.`}
@@ -204,7 +206,7 @@ const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price }: IFarmerSi
           </Text>
         </div>
         <div className="flex flex-row items-center gap-x-1">
-          <Text variant="h4" weight="thin" color="secondary">
+          <Text variant="body" weight="thin" color="secondary">
             {formatter.usd(farmerDeposits?.depositBDV.mul(price))}
           </Text>
           <DenominationSwitcher />
@@ -215,17 +217,19 @@ const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price }: IFarmerSi
           <Text variant="sm" color="secondary">
             My Stalk
           </Text>
-          <Text variant="h4" className="inline-flex items-center gap-2">
-            <IconImage src={stalkIcon} size={6} nudge={2} alt="Stalk" />
-            {formatter.twoDec(farmerDeposits?.stalk.total)}
-          </Text>
+            <div  className="inline-flex flex-row items-center gap-1">
+            <IconImage src={stalkIcon} size={6} alt="Stalk" />
+            <Text variant="h4">
+              {formatter.twoDec(farmerDeposits?.stalk.total)}
+            </Text>
+            </div>
         </div>
         <div className="flex flex-col gap-2">
           <Text variant="sm" color="secondary">
             My Seeds
           </Text>
-          <Text variant="h4" className="inline-flex items-center gap-2">
-            <IconImage src={seedsIcon} size={6} nudge={2} alt="Seeds" />
+          <Text variant="h4" className="inline-flex items-center gap-1">
+            <IconImage src={seedsIcon} size={6} alt="Seeds" />
             {formatter.twoDec(farmerDeposits?.seeds)}
           </Text>
         </div>
@@ -239,22 +243,24 @@ const SiloTokenSubHeader = ({ siloTokenData }: { siloTokenData: SiloTokenData | 
   const seedRewards = siloTokenData?.rewards.seeds;
 
   return (
+    <>
     <div className="flex flex-row items-center justify-between">
       <div className="flex flex-col gap-2">
         <Text variant="sm">Current Deposit Rewards</Text>
         <div className="flex flex-row gap-3">
           <div className="inline-flex gap-1 items-center">
-            <IconImage src={stalkIcon} size={6} nudge={2} alt="Stalk" />
+            <IconImage src={stalkIcon} size={6} alt="Stalk" />
             <Text variant="h4">{formatter.twoDec(stalkRewards)} Stalk</Text>
           </div>
           <div className="inline-flex gap-1 items-center">
-            <IconImage src={seedsIcon} size={6} nudge={2} alt="Seeds" />
+            <IconImage src={seedsIcon} size={6} alt="Seeds" />
             <Text variant="h4">{formatter.twoDec(seedRewards)} Seeds</Text>
           </div>
         </div>
       </div>
       <APYChip apyValue={siloTokenData ? siloTokenData.yields.beanAPY : 0} />
     </div>
+    </>
   );
 };
 
@@ -284,6 +290,7 @@ const SiloTokenHeader = ({ siloToken }: IBaseSiloToken) => {
             className="h-12 w-12"
             onClick={() => {
               navigator.clipboard.writeText(siloToken.address);
+              toast.success("Address copied to clipboard");
             }}
           >
             <IconImage src={copyIcon} size={6} alt="copy address" />
@@ -307,4 +314,12 @@ const SiloTokenHeader = ({ siloToken }: IBaseSiloToken) => {
       </div>
     </div>
   );
+};
+
+const SiloTokenWSOLWarningHeader = () => {
+  return (
+    <div className="bg-white border rounded-[0.75rem] p-4 rounded-md">
+      <Text variant="body" weight="thin" color="primary" className="leading-2">WSOL liquidity on Base is limited, which may result in worse price execution if attempting to Deposit with any other token than WSOL. To avoid this, you can bridge SOL directly from the Solana network using the <a href="https://portalbridge.com/" style={{ color: "#387F5C"}}>Portal Bridge</a>.</Text>
+    </div>
+  )
 };
