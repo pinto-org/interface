@@ -4,6 +4,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import { RightArrowIcon, UpArrowIcon } from "@/components/Icons";
 import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
+import { useDenomination } from "@/hooks/useAppSettings";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
@@ -30,12 +31,12 @@ const initialState = {
 export default function FarmerDepositsTable({ rewardsRef, hovering = false }: FarmerDepositsTableProps) {
   const navigate = useNavigate();
   const farmerSilo = useFarmerSiloNew();
-  console.log("farmerSIlo: ", farmerSilo);
   const priceData = usePriceData();
   const tokenData = useTokenData();
   const mainToken = tokenData.mainToken;
   const farmerActions = useFarmerActions();
   const farmerDeposits = farmerSilo.deposits;
+  const denomination = useDenomination();
 
   const canClaim = farmerActions.claimRewards.enabled;
   const grownStalkPerToken = farmerSilo.grownStalkPerToken;
@@ -231,13 +232,15 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                             </div>
                           </div>
                           <div className="text-pinto-gray-4 font-[300] text-[1rem]">
-                            {formatter.usd(userData?.depositBDV.mul(priceData.price))}
+                            {denomination === "USD"
+                              ? formatter.usd(userData?.depositBDV.mul(priceData.price))
+                              : formatter.pdv(userData?.depositBDV)}
                           </div>
                         </>
                       ) : (
                         <>
                           <div
-                            className={`inline-flex items-center gap-1 ${rewardGains.beanGain.gt(0) || (addClaimable && plantBeanGain.gt(0)) ? "text-pinto-green-4" : ""}`}
+                            className={`inline-flex items-center gap-1 ${rewardGains.beanGain.gt(0.01) || (addClaimable && plantBeanGain.gt(0.01)) ? "text-pinto-green-4" : ""}`}
                           >
                             {rewardGains.beanGain.gt(0) ||
                               (addClaimable && plantBeanGain.gt(0) && <UpArrowIcon color={"currentColor"} />)}
@@ -249,14 +252,23 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                               {token.name}
                             </div>
                           </div>
-                          <div className="text-pinto-gray-4 font-[300] text-[1rem]">
-                            {formatter.usd(
-                              userData?.depositBDV
-                                .add(rewardGains.bdvGain)
-                                .add(updateGains.bdvGain)
-                                .add(addClaimable ? plantBDVGain : 0)
-                                .mul(priceData.price),
-                            )}
+                          <div
+                            className={`${denomination === "PDV" && (rewardGains.bdvGain.gt(0.01) || updateGains.bdvGain.gt(0.01) || (addClaimable && plantBDVGain.gt(0.01))) ? "text-pinto-green-4" : "text-pinto-gray-4"} font-[300] text-[1rem]`}
+                          >
+                            {denomination === "USD"
+                              ? formatter.usd(
+                                  userData?.depositBDV
+                                    .add(rewardGains.bdvGain)
+                                    .add(updateGains.bdvGain)
+                                    .add(addClaimable ? plantBDVGain : 0)
+                                    .mul(priceData.price),
+                                )
+                              : formatter.pdv(
+                                  userData?.depositBDV
+                                    .add(rewardGains.bdvGain)
+                                    .add(updateGains.bdvGain)
+                                    .add(addClaimable ? plantBDVGain : 0),
+                                )}
                           </div>
                         </>
                       )}
