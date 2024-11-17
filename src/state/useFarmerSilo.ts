@@ -109,8 +109,8 @@ export function useFarmerSilo() {
       const depositData = farmerDeposits.get(token);
 
       if (depositData) {
-        _depositsBDV = _depositsBDV.add(depositData.currentBDV);
-        _depositsUSD = _depositsUSD.add(depositData.currentBDV.mul(currPrice));
+        _depositsBDV = _depositsBDV.add(depositData.depositBDV);
+        _depositsUSD = _depositsUSD.add(depositData.depositBDV.mul(currPrice));
         _activeSeeds = _activeSeeds.add(depositData.seeds);
         _totalGerminatingStalk = _totalGerminatingStalk.add(depositData.stalk.germinating);
       }
