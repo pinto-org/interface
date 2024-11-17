@@ -68,17 +68,11 @@ export default function WalletButtonClaim({
         args: [Number(balanceTo)],
       });
 
-      const encoded = encodeFunctionData({
-        abi: beanstalkAbi,
-        functionName: "farm",
-        args: [[mow, claimFlood]],
-      });
-
       return writeWithEstimateGas({
         address: diamond,
         abi: beanstalkAbi,
         functionName: "farm",
-        args: [[encoded]],
+        args: [[mow, claimFlood]],
       });
     } catch (e) {
       console.error(e);

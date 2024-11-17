@@ -1,7 +1,9 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { SeasonalChartData } from "@/components/charts/SeasonalChart";
+import { QueryKey, UseQueryOptions } from "@tanstack/react-query";
 import { DateTime } from "luxon";
 import { Address } from "viem";
+import { Prettify } from "./types.generic";
 
 export enum FarmFromMode {
   EXTERNAL = "0",
@@ -231,4 +233,17 @@ export type UseSeasonalResult = {
 export type BlockInfo = {
   blockNumber: number;
   timestamp: DateTime;
+};
+
+// ---------- REACT QUERY TYPES ----------
+
+export type ConstrainedUseQueryOptions<TData, TSelect = TData> = UseQueryOptions<TData, Error, TSelect, QueryKey>;
+
+export type ConstrainedUseQueryArgs<TData, TSelect = TData> = Omit<
+  ConstrainedUseQueryOptions<TData, TSelect>,
+  "queryKey" | "queryFn"
+>;
+
+export type ConstrainedUseQueryArgsWithSelect<TData, TSelect = TData> = ConstrainedUseQueryArgs<TData, TSelect> & {
+  select?: (data: TData) => TSelect;
 };

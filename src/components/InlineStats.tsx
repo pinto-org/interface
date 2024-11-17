@@ -11,26 +11,38 @@ export type InlineStat = {
 };
 
 export interface InlineStatsProps {
-  title: string;
+  title?: string;
   stats: InlineStat[];
+  snug?: boolean; // If true, the values will have padding between & not have the justify-between classname
+  variant?: "sm" | "md"
 }
 
-const InlineStats = ({ title, stats }: InlineStatsProps) => {
+const InlineStats = ({ title, stats, snug, variant = "md" }: InlineStatsProps) => {
   return (
     <div className="flex flex-col gap-3">
-      <Text variant="body-light">{title}</Text>
-      <div className="flex flex-row w-full justify-between px-2">
+      {title ? <Text variant={variant === "md" ? "body-light" : "sm-light" }>{title}</Text> : null}
+      <div className={cn(
+          "flex flex-row px-2",
+          snug ? "justify-start" : "justify-between gap-1",
+        )}
+      >
         {stats.map(({ label, tooltip, value }, i) => {
-          const isLast = i === stats.length - 1;
-          const isFirst = i === 0;
+          const isOnly = stats.length === 1;
+          const isLast = !isOnly && i === stats.length - 1;
+          const isFirst = !isOnly && i === 0;
+          const isMiddle = !isFirst && !isLast && !isOnly;
 
           return (
             <React.Fragment key={`inline-stat-${label}-${value}-${i.toString()}`}>
-              <div className={cn("flex flex-col gap-1")}>
+              <div className={cn("flex flex-col gap-1",
+                  isFirst ? "pr-3" : "px-3",
+                  isMiddle ? "px-3" : "",
+                  isLast ? "pl-3" : "",
+              )}>
                 <Text
-                  variant="body-light"
+                  variant={variant === "md" ? "body-light" : "sm-light"}
                   color="green4"
-                  className="inline-flex items-center gap-1"
+                  className={"inline-flex items-center gap-1"}
                   align={isFirst ? "left" : isLast ? "right" : "center"}
                 >
                   <Text as="span" variant="inherit" color="inherit" className="opacity-60">
@@ -38,7 +50,7 @@ const InlineStats = ({ title, stats }: InlineStatsProps) => {
                   </Text>
                   {tooltip && <TooltipSimple content={tooltip} triggerClassName="text-pinto-green-4 w-4 h-4" />}
                 </Text>
-                <Text variant="body-light" color="green4" align={isFirst ? "left" : isLast ? "right" : "center"}>
+                <Text variant={"body-light"} color="green4" align={isFirst ? "left" : isLast ? "right" : "center"}>
                   {value}
                 </Text>
               </div>

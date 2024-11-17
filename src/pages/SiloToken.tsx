@@ -4,10 +4,11 @@ import backArrowIcon from "@/assets/misc/LeftArrow.svg";
 import seedsIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
-import APYChip from "@/components/APYChip";
 import { ExternalLinkIcon } from "@/components/Icons";
+import InlineStats, { InlineStatsProps } from "@/components/InlineStats";
 import SiloActionBox from "@/components/SiloActionBox";
 import { Button } from "@/components/ui/Button";
+import DenominationSwitcher from "@/components/ui/DenominationSwitcher";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
@@ -15,19 +16,21 @@ import Text from "@/components/ui/Text";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { usePriceData } from "@/state/usePriceData";
 import { useSeedGauge } from "@/state/useSeedGauge";
+import { SiloTokenYield, useSiloTokenAPYs } from "@/state/useSiloAPYs";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { SiloTokenData, Token, TokenDepositData } from "@/utils/types";
+import { DateTime } from "luxon";
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import { useChainId, useConfig } from "wagmi";
 import DepositsTable from "../components/DepositsTable";
 import GerminationNotice from "./silo/GerminationNotice";
 import SiloActions from "./silo/SiloActions";
-import DenominationSwitcher from "@/components/ui/DenominationSwitcher";
-import { toast, Toaster } from "sonner";
 
 export default function SiloToken() {
   const { tokenAddress } = useParams();
@@ -35,6 +38,7 @@ export default function SiloToken() {
   const siloData = useSiloData();
   const priceData = usePriceData();
   const depositedBalances = useFarmerDepositedBalances();
+  const apysQuery = useSiloTokenAPYs(tokenAddress);
 
   const siloToken = tokenData.whitelistedTokens.find((token) => stringEq(token.address, tokenAddress ?? ""));
   const siloTokenData = siloToken ? siloData.tokenData.get(siloToken) : undefined;
@@ -53,7 +57,7 @@ export default function SiloToken() {
           <div className="flex flex-col items-center flex-shrink-1 w-full">
             <div className="flex flex-col w-full gap-14 items-start">
               <div className="flex flex-col w-full gap-6">
-                <SiloTokenSubHeader siloTokenData={siloTokenData} />
+                <SiloTokenSubHeader siloTokenData={siloTokenData} apys={apysQuery.data} />
                 <Separator />
                 <div className="pt-6">
                   <FarmerSiloTokenDeposits
@@ -235,9 +239,38 @@ const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price }: IFarmerSi
   );
 };
 
-const SiloTokenSubHeader = ({ siloTokenData }: { siloTokenData: SiloTokenData | undefined }) => {
+// TODO: Remove this once we have a real deploy time
+const estDeployTime = 1731961258;
+const month = DateTime.fromSeconds(estDeployTime).plus({ days: 30 }).toSeconds();
+const week = DateTime.fromSeconds(estDeployTime).plus({ days: 7 }).toSeconds();
+const day = DateTime.fromSeconds(estDeployTime).plus({ hours: 24 }).toSeconds();
+
+const SiloTokenSubHeader = ({
+  siloTokenData,
+  apys,
+}: { siloTokenData: SiloTokenData | undefined; apys: Partial<SiloTokenYield> | undefined }) => {
+  const [now] = useState<number>(DateTime.now().toSeconds());
   const stalkRewards = siloTokenData?.rewards.stalk;
   const seedRewards = siloTokenData?.rewards.seeds;
+
+  const ema24 = apys?.ema24;
+  const ema168 = apys?.ema168;
+  const ema720 = apys?.ema720;
+
+  const stats = [
+    {
+      label: "24H:",
+      value: ema24 && now - day > 0 ? formatter.pct(ema24 * 100) : "-",
+    },
+    {
+      label: "7D:",
+      value: ema168 && now - week > 0 ? formatter.pct(ema168 * 100) : "-",
+    },
+    {
+      label: "30D:",
+      value: ema720 && now - month > 0 ? formatter.pct(ema720 * 100) : "-",
+    },
+  ];
 
   return (
     <div className="flex flex-row items-center justify-between">
@@ -254,7 +287,12 @@ const SiloTokenSubHeader = ({ siloTokenData }: { siloTokenData: SiloTokenData | 
           </div>
         </div>
       </div>
-      <APYChip apyValue={siloTokenData ? siloTokenData.yields.beanAPY : 0} />
+      <div className="flex flex-row items-center justify-end gap-4 lg:gap-6">
+        <Text variant="sm-light" align="right">
+          Variable APY
+        </Text>
+        <InlineStats variant="sm" stats={stats} />
+      </div>
     </div>
   );
 };

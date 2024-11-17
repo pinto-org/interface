@@ -1,19 +1,39 @@
 import { TV } from "@/classes/TokenValue";
 import { defaultQuerySettings } from "@/constants/query";
 import { getTokenIndex } from "@/utils/token";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { QueryKey, useQuery } from "@tanstack/react-query";
+import { useCallback, useMemo } from "react";
 import { useTotalDepositedBdvPerTokenQuery } from "./useSiloData";
 import useTokenData from "./useTokenData";
+import {
+  ConstrainedUseQueryArgs,
+  Token,
+} from "@/utils/types";
+import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 
 export type EmaWindow = 24 | 168 | 720;
 
-export type SiloTokenEMAYield = {
+/**
+ * Yields for a single token, for a single EMA window.
+ */
+export interface SiloTokenEMAYield {
   bean: number;
   ownership: number;
   stalk: number;
-};
+}
 
+/**
+ * Yields for a single token, across different EMA windows.
+ */
+export interface SiloTokenYield {
+  ema24: number;
+  ema168: number;
+  ema720: number;
+}
+
+/**
+ * API response from /silo/yields
+ */
 export interface SiloYieldsAPIResponse {
   ema: {
     [key in EmaWindow]: {
@@ -36,8 +56,10 @@ const normalizeYields = (yields: SiloYieldsAPIResponse["yields"][EmaWindow]) => 
   return Object.fromEntries(entries) as SiloYieldsAPIResponse["yields"][EmaWindow];
 };
 
-export function useSiloYieldsQuery() {
-  return useQuery<SiloYieldsAPIResponse>({
+export function useSiloYieldsQuery<TSelect = SiloYieldsAPIResponse>(
+  arg?: ConstrainedUseQueryArgs<SiloYieldsAPIResponse, TSelect>
+) {
+  return useQuery<SiloYieldsAPIResponse, Error, TSelect, QueryKey>({
     queryKey: ["api", "silo", "yields"],
     queryFn: async () => {
       const res = await fetch("https://api.bean.money/silo/yield", {
@@ -49,16 +71,16 @@ export function useSiloYieldsQuery() {
       });
 
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      return res.json();
-    },
-    select: (data) => {
-      data.yields[24] = normalizeYields(data.yields[24]);
-      data.yields[168] = normalizeYields(data.yields[168]);
-      data.yields[720] = normalizeYields(data.yields[720]);
 
-      return data;
+      const result = await res.json();
+      result.yields[24] = normalizeYields(result.yields[24]);
+      result.yields[168] = normalizeYields(result.yields[168]);
+      result.yields[720] = normalizeYields(result.yields[720]);
+
+      return result;
     },
     ...defaultQuerySettings,
+    ...(arg || {}),
   });
 }
 
@@ -66,6 +88,37 @@ export type AverageBDVWeightedSiloAPYs = {
   ema24: number;
   ema168: number;
   ema720: number;
+};
+
+export const useSiloTokenAPYs = (token: Token | string | undefined) => {
+  const tokenMap = useTokenMap();
+
+  const siloToken = tokenMap[getTokenIndex(token ?? "")];
+
+  const selectSiloYields = useCallback(
+    (data: SiloYieldsAPIResponse) => {
+      const apys: Partial<SiloTokenYield> = {
+        ema24: undefined,
+        ema168: undefined,
+        ema720: undefined,
+      };
+
+      if (token) {
+        const tokenIndex = getTokenIndex(token);
+        apys.ema24 = data.yields[24]?.[tokenIndex]?.bean;
+        apys.ema168 = data.yields[168]?.[tokenIndex]?.bean;
+        apys.ema720 = data.yields[720]?.[tokenIndex]?.bean;
+      }
+
+      return apys;
+    },
+    [token]
+  );
+
+  return useSiloYieldsQuery<Partial<SiloTokenYield>>({ 
+    select: selectSiloYields,
+    enabled: !!siloToken,
+  });
 };
 
 /**
@@ -85,6 +138,7 @@ export const useAverageBDVWeightedSiloAPYs = () => {
 
     let totalWeightedYield24 = 0;
     let totalWeightedYield168 = 0;
+
     let totalWeightedYield720 = 0;
 
     for (const token of whitelistedTokens) {
