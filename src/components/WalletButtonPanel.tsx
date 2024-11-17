@@ -336,7 +336,7 @@ export default function WalletButtonPanel({
           </CardContent>
           <CardFooter className="absolute bottom-0 mx-auto left-0 right-0 text-center justify-center flex flex-col gap-4">
             {ENABLE_SWITCH_CHAINS && <ChainButton />}
-            {<Button
+            <Button
               variant="default"
               onClick={() => setShowTransfer(true)}
               className={`rounded-full gap-x-1 m-4`}
@@ -345,7 +345,7 @@ export default function WalletButtonPanel({
                 <BackwardArrowDotsIcon color={"white"} />
               </span>
               Manage Farm Balance
-            </Button>}
+            </Button>
             {totalFlood.gt(0) && <WalletButtonClaim setShowClaim={setShowClaim} showClaim={showClaim} />}
           </CardFooter>
           {totalBalance.total.eq(0) && <NoBaseValueAlert />}

@@ -40,8 +40,6 @@ export default function SiloToken() {
   const siloTokenData = siloToken ? siloData.tokenData.get(siloToken) : undefined;
   const farmerDeposits = siloToken ? depositedBalances.data.get(siloToken) : undefined;
 
-  console.log(siloToken?.name);
-
   if (!siloToken) {
     return <>404</>;
   }
