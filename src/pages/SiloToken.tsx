@@ -23,12 +23,11 @@ import { stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { SiloTokenData, Token, TokenDepositData } from "@/utils/types";
 import { Link, useParams } from "react-router-dom";
+import { Toaster, toast } from "sonner";
 import { useChainId, useConfig } from "wagmi";
 import DepositsTable from "../components/DepositsTable";
 import GerminationNotice from "./silo/GerminationNotice";
 import SiloActions from "./silo/SiloActions";
-import DenominationSwitcher from "@/components/ui/DenominationSwitcher";
-import { toast, Toaster } from "sonner";
 
 export default function SiloToken() {
   const { tokenAddress } = useParams();

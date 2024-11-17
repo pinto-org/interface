@@ -39,7 +39,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
   }, [farmerDeposits, priceData.price, SILO_WHITELIST, mainToken, siloData.tokenData]);
 
   const claimEnabled = farmerActions.claimRewards.enabled;
-  const earnedPinto = farmerActions.claimRewards.outputs.beanGain.gt(0.01)
+  const earnedPinto = farmerActions.claimRewards.outputs.beanGain.gt(0.01);
   const gains = farmerActions.claimRewards.outputs;
   const navigate = useNavigate();
 
@@ -148,16 +148,8 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                                 <Text>{token.name}</Text>
                               )}
                             </span>
-                              {earnedPinto ? (
-                                <div className="inline-flex items-center gap-1">
-                                  <Text variant="sm-thin" align="right" color="light">
-                                    {formatter.usd(currentBDV.mul(priceData.price))} +{" "}
-                                  </Text>
-                                  <Text variant="sm-thin" align="right" color="green4">
-                                    {formatter.usd(gains.beanGain.mul(priceData.price))}
-                                  </Text>
-                                </div>
-                              ) : (
+                            {earnedPinto ? (
+                              <div className="inline-flex items-center gap-1">
                                 <Text variant="sm-thin" align="right" color="light">
                                   {formatter.usd(currentBDV.mul(priceData.price))} +{" "}
                                 </Text>
