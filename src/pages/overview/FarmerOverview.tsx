@@ -107,7 +107,8 @@ const Overview = () => {
     },
     stalk: {
       mode: "stalk",
-      mainValue: farmerSilo.activeStalkBalance.add(farmerSilo.germinatingStalkBalance),
+      mainValue: farmerSilo.activeStalkBalance,
+      auxValue: farmerSilo.germinatingStalkBalance,
       mainValueChange:
         hoveredButton === "claim"
           ? farmerActions.claimRewards.outputs.stalkGain

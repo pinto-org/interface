@@ -216,6 +216,7 @@ export type AddressMap<T> = { [k: string]: T };
 export type StatPanelData = {
   mode: "stalk" | "pods" | "seeds" | "depositedValue";
   mainValue: TokenValue;
+  auxValue?: TokenValue;
   mainValueChange?: TokenValue;
   secondaryValue: TokenValue;
   actionValue?: TokenValue;

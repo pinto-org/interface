@@ -16,6 +16,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import TooltipSimple from "./TooltipSimple";
 import Text from "./ui/Text";
+import { userData } from "three/webgpu";
 
 interface FarmerDepositsTableProps {
   rewardsRef?: React.RefObject<HTMLTableRowElement>;
@@ -205,7 +206,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
               return (
                 <TableRow
                   key={`${token.address}_${i}`}
-                  className={`h-[4.5rem] bg-white hover:bg-pinto-green-1/50 hover:cursor-pointer ${germinatingStalk.gt(0) ? "bg-pinto-off-green/15" : ""} ${amountOfDeposits === 0 ? "opacity-70" : "opacity-100"}`}
+                  className={`h-[4.5rem] bg-white hover:bg-pinto-green-1/50 hover:cursor-pointer ${germinatingStalk.gt(0) ? "bg-pinto-off-green/15" : ""} ${(amountOfDeposits === 0 && !addClaimable) || (addClaimable && !hovering && plantBeanGain.gt(0)) ? "opacity-70" : "opacity-100"}`}
                   onClick={() => navigate(`/silo/${token.address}`)}
                   data-action-target={`token-row-${token.address}`}
                 >
@@ -315,10 +316,24 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                               userData?.stalk.base
                                 .add(grownStalk)
                                 .add(updateGains.stalkGain)
-                                .add(germinatingStalk)
                                 .add(addClaimable ? plantStalkGain : 0),
                             )}
                           </div>
+                          {germinatingStalk.gt(0.01) && (
+                            <TooltipSimple content={"This Stalk is germinating."}>
+                              <div className="text-pinto-off-green/60">
+                                {formatter.number(germinatingStalk, {
+                                  showPositiveSign: Boolean(
+                                    amountOfDeposits > 1 ||
+                                      userData?.stalk.base
+                                        .add(grownStalk)
+                                        .add(updateGains.stalkGain)
+                                        .add(addClaimable ? plantStalkGain : 0),
+                                  ),
+                                })}
+                              </div>
+                            </TooltipSimple>
+                          )}
                         </div>
                         {data.update?.stalkFromBDVIncrease.gt(0.01) && (
                           <div>

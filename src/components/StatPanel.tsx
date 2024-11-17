@@ -14,6 +14,7 @@ interface StatPanelProps {
   mode: "depositedValue" | "stalk" | "seeds" | "pods";
   mainValue: TokenValue;
   secondaryValue: TokenValue;
+  auxValue?: TokenValue;
   mainValueChange?: TokenValue;
   actionValue?: TokenValue;
   actionText?: string;
@@ -28,6 +29,7 @@ const StatPanel = ({
   mode,
   mainValue = TokenValue.ZERO,
   secondaryValue = TokenValue.ZERO,
+  auxValue,
   mainValueChange,
   actionValue,
   tooltipContent,
@@ -49,11 +51,18 @@ const StatPanel = ({
       {mode !== "depositedValue" && (
         <img src={getIcon(mode)} className={`${size === "large" ? "h-12 w-12" : "h-8 w-8"}`} alt={mode.toUpperCase()} />
       )}
-      <Text as="span" variant="inherit" className="tracking-[0.01em]">
-        {mode === "depositedValue"
-          ? formatter.usd(showActionValues && mainValueChange ? mainValue.add(mainValueChange) : mainValue)
-          : formatter.number(showActionValues && mainValueChange ? mainValue.add(mainValueChange) : mainValue)}
-      </Text>
+      {!(mainValue.eq(0) && auxValue?.gt(0)) && (
+        <Text as="span" variant="inherit" className="tracking-[0.01em]">
+          {mode === "depositedValue"
+            ? formatter.usd(showActionValues && mainValueChange ? mainValue.add(mainValueChange) : mainValue)
+            : formatter.number(showActionValues && mainValueChange ? mainValue.add(mainValueChange) : mainValue)}
+        </Text>
+      )}
+      {auxValue?.gt(0) && !showActionValues && (
+        <Text as="span" variant="inherit" className="tracking-[0.01em] text-pinto-off-green">
+          {formatter.number(auxValue, { showPositiveSign: !(mainValue.eq(0) && auxValue && auxValue.gt(0)) })}
+        </Text>
+      )}
       {showActionValues && mainValueChange && mainValueChange?.abs().gt(0.001) && (
         <Text
           variant={size === "large" ? "h1" : "h3"}
@@ -139,7 +148,7 @@ const StatPanel = ({
         <div
           data-action-target={`${mode}-stats`}
           className={
-            mainValue.eq(0) && !showActionValues
+            mainValue.add(auxValue || TokenValue.ZERO).eq(0) && !showActionValues
               ? "opacity-[0.4]"
               : showActionValues && secondaryValue.gt(0.01)
                 ? "opacity-100"
@@ -151,7 +160,7 @@ const StatPanel = ({
         <Text
           variant={size === "large" ? "h1" : "h3"}
           className={
-            mainValue.eq(0) && !showActionValues
+            mainValue.add(auxValue || TokenValue.ZERO).eq(0) && !showActionValues
               ? "opacity-[0.4]"
               : showActionValues && secondaryValue.gt(0.01)
                 ? "opacity-100"
