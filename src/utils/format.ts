@@ -28,7 +28,7 @@ interface IShowPositiveSign {
 
 type FormatNumOptions = IMinValue & IDecimals & IDefaultValue & IAllowZero & IShowPositiveSign;
 
-type FormatPctOptions = IDecimals & IShowPositiveSign;
+type FormatPctOptions = IDecimals & IShowPositiveSign & IDefaultValue;
 
 /**
  * We can for the most part use TokenValue.toHuman("short"),
@@ -90,7 +90,9 @@ export const formatPDV = (val: NumberPrimitive, options?: IShowPositiveSign) => 
 };
 
 export const formatPct = (val: NumberPrimitive, options?: FormatPctOptions) => {
-  if (val === undefined || val === null) return "0.00%";
+  if (val === undefined || val === null) {
+    return options?.defaultValue || "0.00%";
+  }
   const formatted = formatNum(val, {
     minDecimals: options?.minDecimals ?? 2,
     maxDecimals: options?.maxDecimals ?? 2,
