@@ -150,7 +150,7 @@ export default function WalletButtonClaim({
         </div>
       </CardContent>
       <CardFooter className="px-6 flex flex-col justify-end gap-4 h-auto">
-        <div className="h=full"></div>
+        <div className="h-full" />
         <Separator className="w-full" />
         <div className="flex flex-row justify-between items-center w-full ">
           <div className="font-[340] text-[1.25rem] text-pinto-gray-4">Receive proceeds to:</div>
