@@ -35,7 +35,6 @@ const Overview = () => {
   const tokenData = useTokenData();
   const farmerBalances = useFarmerBalances();
   const siloData = useSiloData();
-  const temperature = useTemperature();
   const harvestableIndex = useHarvestableIndex();
   const priceData = usePriceData();
   const navigate = useNavigate();
@@ -53,7 +52,7 @@ const Overview = () => {
   const [hoveredButton, setHoveredButton] = useState("");
 
   // Memoized calculations
-  const { siloPct, claimSiloPct, harvestSiloPct, stalkPerSeason, placesInLine, avgAPY } = useMemo(() => {
+  const { siloPct, claimSiloPct, harvestSiloPct, stalkPerSeason, placesInLine } = useMemo(() => {
     const siloPct = siloData.totalStalk.gt(0)
       ? farmerSilo.activeStalkBalance.div(siloData.totalStalk).mul(100)
       : TokenValue.ZERO;
@@ -75,12 +74,7 @@ const Overview = () => {
       .map((plot) => plot.index.sub(harvestableIndex))
       .sort((a, b) => Number(a.sub(b).toHuman()));
 
-    const siloTokens = Array.from(siloData.tokenData.entries());
-    const avgAPY = (
-      siloTokens.reduce((total, token) => token[1].yields.beanAPY + total, 0) / siloTokens.length
-    ).toFixed(2);
-
-    return { siloPct, claimSiloPct, harvestSiloPct, stalkPerSeason, placesInLine, avgAPY };
+    return { siloPct, claimSiloPct, harvestSiloPct, stalkPerSeason, placesInLine };
   }, [farmerSilo, farmerField, farmerActions, siloData, harvestableIndex]);
 
   // Action states
@@ -130,13 +124,13 @@ const Overview = () => {
         hoveredButton === "convert"
           ? farmerActions.convertDeposits.bestConversion.outputs.seedGain
           : hoveredButton === "claim"
-            ? farmerActions.claimRewards.outputs.seedGain
+            ? farmerActions.claimRewards.outputs.seedGain.add(farmerActions.updateDeposits.totalGains.seedGain)
             : farmerActions.harvestPods.outputs.seedGain,
       actionValue:
         hoveredButton === "convert"
           ? farmerActions.convertDeposits.bestConversion.outputs.seedGain
           : hoveredButton === "claim"
-            ? farmerActions.claimRewards.outputs.seedGain
+            ? farmerActions.claimRewards.outputs.seedGain.add(farmerActions.updateDeposits.totalGains.seedGain)
             : farmerActions.harvestPods.outputs.seedGain,
       secondaryValue: stalkPerSeason,
       tooltipContent: "Seeds grow Stalk every Season, creating the time weighted staking mechanism that is the Silo.",
