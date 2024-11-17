@@ -270,7 +270,6 @@ const SiloTokenSubHeader = ({
   ];
 
   return (
-    <>
     <div className="flex flex-row items-center justify-between">
       <div className="flex flex-col gap-2">
         <Text variant="sm">Current Deposit Rewards</Text>
@@ -284,14 +283,15 @@ const SiloTokenSubHeader = ({
             <Text variant="h4">{formatter.twoDec(seedRewards)} Seeds</Text>
           </div>
         </div>
+        </div>
+
         <div className="flex flex-row items-center justify-end gap-4 lg:gap-6">
           <Text variant="sm-light" color="green4" align="right" className={stats[0].notApplicable ? "opacity-50" : ""}>
             Variable APY
           </Text>
           <InlineStats variant="sm" stats={stats} />
         </div>
-      </div>
-    </>
+    </div>
   );
 };
 
