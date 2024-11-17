@@ -12,7 +12,7 @@ import useIsTablet from "@/hooks/display/useIsTablet";
 import useFarmerStatus from "@/hooks/useFarmerStatus";
 import { usePodLine, useTemperature, useTotalSoil } from "@/state/useFieldData";
 import { usePriceQuery } from "@/state/usePriceData";
-import { AverageBDVWeightedSiloAPYs, useAverageBDVWeightedSiloAPYs } from "@/state/useSiloAPYs";
+import { SiloTokenYield, useAverageBDVWeightedSiloAPYs } from "@/state/useSiloAPYs";
 import useTokenData from "@/state/useTokenData";
 import { formatter, numberAbbr } from "@/utils/format";
 import { normalizeTV } from "@/utils/number";
@@ -246,7 +246,7 @@ const PegToggle = ({ containerRef }: IContainerRef) => {
 };
 
 type SiloInfoProps = IContainerRef & {
-  avgSiloYields: AverageBDVWeightedSiloAPYs | undefined;
+  avgSiloYields: SiloTokenYield | undefined;
 };
 
 const SiloInfo = ({ containerRef, avgSiloYields }: SiloInfoProps) => {
