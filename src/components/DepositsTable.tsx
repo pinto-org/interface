@@ -34,7 +34,7 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
       <TableRow
         {...props}
         ref={ref}
-        className={`h-[4.5rem] ${deposit.isGerminating ? "bg-pinto-off-green/15" : "bg-white"} text-[1rem] hover:bg-pinto-green-1/50 hover:cursor-pointer`}
+        className={`h-[4.5rem] ${deposit.isGerminating ? "bg-pinto-off-green/15" : "bg-white"} text-[1rem] hover:bg-white`}
       >
         <Text as={TableCell}>
           <div className="gap-2 pl-2 flex items-center">
@@ -46,7 +46,7 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
         <Text as={TableCell} className="text-right">
           <div className="flex flex-row gap-1 items-center justify-end">
             <IconImage src={token.logoURI} size={4} />
-            <div className="opacity-70">{`${formatter.number(deposit.amount)} ${token.name}`}</div>
+            <div className="opacity-70">{`${formatter.token(deposit.amount, token)} ${token.name}`}</div>
           </div>
           <div className="text-pinto-gray-4 mt-1 opacity-70 font-[340]">{`${formatter.usd((deposit.depositBdv || TokenValue.ZERO).mul(price))}`}</div>
         </Text>
@@ -54,19 +54,19 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
           <div className="flex flex-row gap-1 items-center justify-end">
             <IconImage src={stalkIcon} size={4} />
             {deposit.isGerminating ? (
-              <div className="opacity-60 text-pinto-off-green">{formatter.number(deposit.stalk.germinating)}</div>
+              <div className="opacity-60 text-pinto-off-green">{formatter.twoDec(deposit.stalk.germinating)}</div>
             ) : (
-              <div className="opacity-70">{formatter.number(deposit.stalk.base)}</div>
+              <div className="opacity-70">{formatter.twoDec(deposit.stalk.base)}</div>
             )}
           </div>
-          {deposit.isGerminating && (
+          {deposit.isGerminating && deposit.stalk.grown.gt(0.0001) && (
             <div className="text-pinto-gray-4 mt-1 opacity-70 font-[340]">Claimable Grown Stalk: -</div>
           )}
-          {deposit.stalk.grown.gt(0) && (
+          {deposit.stalk.grown.gt(0.0001) && (
             <div className="text-pinto-gray-4 mt-1 opacity-70 font-[340]">
               Claimable Grown Stalk:{" "}
               <span className="text-pinto-green-4">
-                {formatter.number(deposit.stalk.grown, { showPositiveSign: true })}
+                {formatter.twoDec(deposit.stalk.grown, { showPositiveSign: true })}
               </span>
             </div>
           )}
@@ -74,7 +74,7 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
         <Text as={TableCell} className="text-right p-4">
           <div className="flex flex-row gap-1 items-center justify-end">
             <IconImage src={seedIcon} size={4} />
-            <div className="opacity-70">{formatter.number(deposit.seeds)}</div>
+            <div className="opacity-70">{formatter.twoDec(deposit.seeds)}</div>
           </div>
         </Text>
       </TableRow>
@@ -92,9 +92,9 @@ export default function DepositsTable({ token, selected, useToggle }: DepositsTa
       <TableHeader>
         <TableRow className="bg-pinto-gray-1 hover:bg-pinto-gray-1 h-14">
           <TableHead className="text-black font-[400] text-[1rem] w-[15%] p-4">Deposit ID</TableHead>
-          <TableHead className="text-black text-right font-[400] text-[1rem] w-[25%]">Amount Deposited</TableHead>
-          <TableHead className="text-black text-right font-[400] text-[1rem] w-[35%]">Stalk</TableHead>
-          <TableHead className="text-black text-right font-[400] text-[1rem] w-[25%] p-4">Seeds</TableHead>
+          <TableHead className="text-black text-right font-[400] text-[1rem] w-[27.5%]">Amount Deposited</TableHead>
+          <TableHead className="text-black text-right font-[400] text-[1rem] w-[37.5%]">Stalk</TableHead>
+          <TableHead className="text-black text-right font-[400] text-[1rem] w-[20%] p-4">Seeds</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -107,7 +107,11 @@ export default function DepositsTable({ token, selected, useToggle }: DepositsTa
             </TableCell>
           </TableRow>
         ) : (
-          tokenData.deposits.map((deposit) => {
+          tokenData.deposits
+          .sort((a, b) => {
+            // Sort by `stem` in descending order
+            return a.stem.sub(b.stem).toNumber(); // Descending order
+          }).map((deposit) => {
             if (useToggle) {
               return (
                 <ToggleGroupItem
