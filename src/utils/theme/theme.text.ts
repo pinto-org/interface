@@ -35,15 +35,6 @@ export type LetterSpacing = "body-light" | "h3" | "h2" | "h1" | "none";
 export type TextColor = "primary" | "secondary" | "light" | "lighter" | "green4" | "green3" | "success" | "error";
 
 /**
- * The factor by which the line height is multiplied by 10 and added to font size.
- * 0 = 100% of font size.
- * 1 = 110% of font size
- * 2 = 120% of font size
- * and so on.
- */
-export type LineHeightFactor = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
-
-/**
  * variant: the type of text
  * size: the size of the text
  * weight: the weight of the text
@@ -57,7 +48,6 @@ export interface ITextBase {
   weight?: FontWeight;
   align?: TextAlign;
   color?: TextColor;
-  lineHeight?: LineHeightFactor;
 }
 
 // -------------------- Theme --------------------
