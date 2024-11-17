@@ -9,7 +9,7 @@ import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
-import { useInvalidateField } from "@/state/useFieldData";
+import { useHarvestableIndex, useInvalidateField } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
@@ -29,6 +29,7 @@ function Harvest({ isMorning }: HarvestProps) {
   const tokenData = useTokenData();
   const mainToken = tokenData.mainToken;
   const diamond = useProtocolAddress();
+  const harvestableIndex = useHarvestableIndex();
 
   const priceData = usePriceData();
 
@@ -87,6 +88,10 @@ function Harvest({ isMorning }: HarvestProps) {
     }
   }, [account.address, plots, harvestableAmount, balanceTo, writeWithEstimateGas, diamond, setSubmitting]);
 
+  const nextHarvestablePlot = fieldPlots?.[0];
+
+  const nextHarvestablePlaceInLine = nextHarvestablePlot?.index.sub(harvestableIndex);
+
   return (
     <div className="flex flex-col gap-6 pt-2">
       {harvestableAmount.gt(0) ? (
@@ -117,7 +122,10 @@ function Harvest({ isMorning }: HarvestProps) {
         </>
       ) : (
         <Text variant="body-light" color="light" align="center py-6">
-          Your Pods become Harvestable when they reach a Place in Line of 0. Your next Plot is at X in Line.
+          Your Pods become Harvestable when they reach a Place in Line of 0.{" "}
+          {nextHarvestablePlaceInLine?.gt(0)
+            ? `Your next Plot is at ${formatter.noDec(nextHarvestablePlaceInLine)} in Line.`
+            : ""}
         </Text>
       )}
       <SmartSubmitButton
