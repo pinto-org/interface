@@ -26,7 +26,7 @@ export default function SiloOutputDisplay({
   return (
     <OutputDisplay title={title}>
       {amount && token && (
-        <OutputDisplay.Item label="Amount">
+        <OutputDisplay.Item label="Deposited Amount">
           <OutputDisplay.Value value={formatter.token(amount, token)} token={token} suffix={token.symbol} />
         </OutputDisplay.Item>
       )}

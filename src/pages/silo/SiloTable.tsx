@@ -54,7 +54,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
             </TableHead>
             {/* <TableHead className="text-black text-right font-[400] text-[1rem] w-[20%]">My Deposited Amount</TableHead> */}
             <TableHead className="text-black text-right font-[400] text-[1rem] w-[30%] p-4">
-              My Deposited Amount
+              My Deposits
             </TableHead>
           </TableRow>
         </TableHeader>

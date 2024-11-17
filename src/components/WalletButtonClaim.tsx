@@ -15,6 +15,8 @@ import { ForwardArrowIcon } from "./Icons";
 import { Button } from "./ui/Button";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
 import { Separator } from "./ui/Separator";
+import Text from "./ui/Text";
+import { formatter } from "@/utils/format";
 
 export default function WalletButtonClaim({
   setShowClaim,
@@ -91,21 +93,21 @@ export default function WalletButtonClaim({
             onClick={() => setShowClaim(!showClaim)}
             className="flex flex-row justify-between items-center hover:cursor-pointer transition-all"
           >
-            <div className="text-black text-[1.25rem] font-[400]">Claim assets from Flood</div>
+            <Text variant="body" color="primary">Claim assets from Flood</Text>
             <span className={`${showClaim ? "rotate-180" : "rotate-0"} transition-transform`}>
               <ForwardArrowIcon color={"currentColor"} width={24} height={24} />
             </span>
           </div>
-          <div className="text-[1.25rem] text-pinto-gray-4 font-[340] text-left">
+          <Text variant="body" weight="thin" color="light" className="leading-2">
             Flood occurs when the price of Pinto gets excessively high and the Pod Rate is excessively low. In order to
             stabilize the Pinto price, new Pinto are minted and sold, and proceeds are distributed to Stalkholders.
-          </div>
+          </Text>
         </div>
       </CardHeader>
-      <CardContent className="px-6 flex-grow max-h-[55%] overflow-y-auto">
+      <CardContent className="px-6 flex-grow h-full overflow-y-auto">
         <Separator className="w-full" />
         <div className="mt-6 flex-grow overflow-y-auto">
-          <div className="text-[1.25rem] text-pinto-gray-4 font-[340] text-left">Your proceeds:</div>
+          <Text variant="body" weight="light" color="primary">Your proceeds:</Text>
           <div className="flex-grow h-full">
             {totalFlood.gt(0) ? (
               <div className="flex flex-col gap-6 mt-6">
@@ -122,8 +124,8 @@ export default function WalletButtonClaim({
                         <span className="font-[400] text-pinto-gray-5 text-[1.25rem]">{token.symbol}</span>
                       </div>
                       <div className="flex flex-col text-right">
-                        <span className="font-[400] text-pinto-gray-5 text-[1.5rem]">{`${amount.toHuman()} ${token.symbol}`}</span>
-                        <span className="font-[400] text-pinto-gray-4 text-[1rem]">{`$${Number(value.toHuman()).toFixed(2)}`}</span>
+                        <span className="font-[400] text-pinto-gray-5 text-[1.5rem]">{`${formatter.token(amount, token)} ${token.symbol}`}</span>
+                        <span className="font-[400] text-pinto-gray-4 text-[1rem]">{`${formatter.usd(value)}`}</span>
                       </div>
                     </div>
                   );
@@ -135,8 +137,9 @@ export default function WalletButtonClaim({
           </div>
         </div>
       </CardContent>
-      <CardFooter className="px-6 flex flex-col justify-end gap-4">
-        <Separator className="w-full" />
+      <CardFooter className="px-6 flex flex-col justify-end gap-4 h-auto">
+        <div className="h=full"></div>
+        <Separator className="w-full"/>
         <div className="flex flex-row justify-between items-center w-full ">
           <div className="font-[340] text-[1.25rem] text-pinto-gray-4">Receive proceeds to:</div>
           <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} variant="small" />
@@ -144,7 +147,7 @@ export default function WalletButtonClaim({
         <Button
           onClick={() => onSubmit()}
           disabled={totalFlood.eq(0)}
-          className={"w-full h-[3.625rem] grow-0 rounded-[0.75rem] text-[1.5rem]"}
+          className={"w-full h-[3.625rem] grow-0 rounded-full text-[1.5rem]"}
         >
           {totalFlood.eq(0) ? "No assets to claim" : "Claim proceeds"}
         </Button>

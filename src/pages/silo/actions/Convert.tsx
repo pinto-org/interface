@@ -298,7 +298,7 @@ function DefaultConvert({
         />
       </div>
       {!canConvert || canExceedMax ? (
-        <Warning>{!canConvert ? getConvertWarning() : getMaxConvertWarning()}</Warning>
+        <Warning variant="info">{!canConvert ? getConvertWarning() : getMaxConvertWarning()}</Warning>
       ) : null}
       <ConvertTokenOutput
         amount={minAmountOut || TV.ZERO}
