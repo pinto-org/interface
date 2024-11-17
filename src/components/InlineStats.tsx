@@ -1,7 +1,6 @@
 import { cn } from "@/utils/utils";
 import { Separator } from "@radix-ui/react-separator";
 import React from "react";
-import { div } from "three/webgpu";
 import TooltipSimple from "./TooltipSimple";
 import Text from "./ui/Text";
 
