@@ -40,8 +40,7 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
           <div className="gap-2 pl-2 flex items-center">
             {useToggle && <CheckmarkCircle isSelected={isSelected} />}
             <img src={depositIcon} alt="deposit icon" />
-            {/* <span>{truncateHex(deposit.idHex)}</span> */}
-            <Text>{formatter.token(deposit.stem, token)}</Text>
+            <span>{truncateHex(deposit.idHex)}</span>
           </div>
         </Text>
         <Text as={TableCell} className="text-right">
@@ -113,7 +112,6 @@ export default function DepositsTable({ token, selected, useToggle }: DepositsTa
             // Sort by `stem` in descending order
             return a.stem.sub(b.stem).toNumber(); // Descending order
           }).map((deposit) => {
-            console.log(deposit);
             if (useToggle) {
               return (
                 <ToggleGroupItem
