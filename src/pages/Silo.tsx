@@ -61,6 +61,7 @@ function Silo() {
     stalk: {
       mode: "stalk",
       mainValue: farmerSilo.activeStalkBalance,
+      auxValue: farmerSilo.germinatingStalkBalance,
       mainValueChange: farmerActions.claimRewards.outputs.stalkGain,
       secondaryValue: farmerActions.claimRewards.outputs.stalkGain,
       showActionValues: hoveredButton === "claim",
