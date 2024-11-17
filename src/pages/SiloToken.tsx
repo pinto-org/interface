@@ -271,18 +271,17 @@ const SiloTokenSubHeader = ({
 
   return (
     <>
-      <div className="flex flex-row items-center justify-between">
-        <div className="flex flex-col gap-2">
-          <Text variant="sm">Current Deposit Rewards</Text>
-          <div className="flex flex-row gap-3">
-            <div className="inline-flex gap-1 items-center">
-              <IconImage src={stalkIcon} size={6} alt="Stalk" />
-              <Text variant="h4">{formatter.twoDec(stalkRewards)} Stalk</Text>
-            </div>
-            <div className="inline-flex gap-1 items-center">
-              <IconImage src={seedsIcon} size={6} alt="Seeds" />
-              <Text variant="h4">{formatter.twoDec(seedRewards)} Seeds</Text>
-            </div>
+    <div className="flex flex-row items-center justify-between">
+      <div className="flex flex-col gap-2">
+        <Text variant="sm">Current Deposit Rewards</Text>
+        <div className="flex flex-row gap-3">
+          <div className="inline-flex gap-1 items-center">
+            <IconImage src={stalkIcon} size={6} alt="Stalk" />
+            <Text variant="h4">{formatter.noDec(stalkRewards)} Stalk</Text>
+          </div>
+          <div className="inline-flex gap-1 items-center">
+            <IconImage src={seedsIcon} size={6} alt="Seeds" />
+            <Text variant="h4">{formatter.twoDec(seedRewards)} Seeds</Text>
           </div>
         </div>
         <div className="flex flex-row items-center justify-end gap-4 lg:gap-6">
