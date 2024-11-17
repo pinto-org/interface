@@ -250,7 +250,7 @@ const SiloTokenSubHeader = ({ siloTokenData }: { siloTokenData: SiloTokenData | 
         <div className="flex flex-row gap-3">
           <div className="inline-flex gap-1 items-center">
             <IconImage src={stalkIcon} size={6} alt="Stalk" />
-            <Text variant="h4">{formatter.twoDec(stalkRewards)} Stalk</Text>
+            <Text variant="h4">{formatter.noDec(stalkRewards)} Stalk</Text>
           </div>
           <div className="inline-flex gap-1 items-center">
             <IconImage src={seedsIcon} size={6} alt="Seeds" />
