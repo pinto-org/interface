@@ -136,7 +136,7 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
       <Text variant="h3" color="secondary">
         About {siloToken.name}
       </Text>
-      <div className={`grid gap- w-full grid-cols-[repeat(auto-fill,_minmax(200px,_1fr))] gap-y-4`}>
+      <div className={`grid gap-8 w-full grid-cols-[repeat(auto-fill,_minmax(200px,_1fr))]`}>
         <div>
           <Text variant="sm-light" color="secondary">
             Total Value Deposited
