@@ -34,7 +34,7 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
       <TableRow
         {...props}
         ref={ref}
-        className={`h-[4.5rem] ${deposit.isGerminating ? "bg-pinto-off-green/15" : "bg-white"} text-[1rem] hover:bg-white`}
+        className={`h-[4.5rem] ${deposit.isGerminating ? "bg-pinto-off-green/15" : "bg-white"} text-[1rem] pointer-events-none`}
       >
         <Text as={TableCell}>
           <div className="gap-2 pl-2 flex items-center">
@@ -108,30 +108,33 @@ export default function DepositsTable({ token, selected, useToggle }: DepositsTa
           </TableRow>
         ) : (
           tokenData.deposits
-          .sort((a, b) => {
-            // Sort by `stem` in descending order
-            return a.stem.sub(b.stem).toNumber(); // Descending order
-          }).map((deposit) => {
-            if (useToggle) {
+            .sort((a, b) => {
+              // Sort by `stem` in descending order
+              return a.stem.sub(b.stem).toNumber(); // Descending order
+            })
+            .map((deposit) => {
+              if (useToggle) {
+                return (
+                  <ToggleGroupItem
+                    value={deposit.stem.toHuman()}
+                    aria-label={`Select ${token.name}`}
+                    key={`toggle_${deposit.stem.toHuman()}`}
+                    asChild
+                  >
+                    <DepositRow
+                      deposit={deposit}
+                      price={priceData.price}
+                      token={token}
+                      useToggle
+                      isSelected={selected?.includes(deposit.stem.toHuman())}
+                    />
+                  </ToggleGroupItem>
+                );
+              }
               return (
-                <ToggleGroupItem
-                  value={deposit.stem.toHuman()}
-                  aria-label={`Select ${token.name}`}
-                  key={`toggle_${deposit.stem.toHuman()}`}
-                  asChild
-                >
-                  <DepositRow
-                    deposit={deposit}
-                    price={priceData.price}
-                    token={token}
-                    useToggle
-                    isSelected={selected?.includes(deposit.stem.toHuman())}
-                  />
-                </ToggleGroupItem>
+                <DepositRow deposit={deposit} price={priceData.price} token={token} key={deposit.stem.toHuman()} />
               );
-            }
-            return <DepositRow deposit={deposit} price={priceData.price} token={token} key={deposit.stem.toHuman()} />;
-          })
+            })
         )}
       </TableBody>
     </Table>
