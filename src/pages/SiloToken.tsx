@@ -27,6 +27,8 @@ import { useChainId, useConfig } from "wagmi";
 import DepositsTable from "../components/DepositsTable";
 import GerminationNotice from "./silo/GerminationNotice";
 import SiloActions from "./silo/SiloActions";
+import DenominationSwitcher from "@/components/ui/DenominationSwitcher";
+import { toast, Toaster } from "sonner";
 
 export default function SiloToken() {
   const { tokenAddress } = useParams();
@@ -155,7 +157,7 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
         {siloToken.isLP ? (
           <div>
             <Text variant="sm-light" color="secondary">
-              % of LP Deposits
+              Current % of Dep. LP PDV
             </Text>
             <Text variant="h4" className="pt-1">
               {formatter.pct(liquidityRatio)}
@@ -165,7 +167,7 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
         {siloToken.isLP ? (
           <div className="flex flex-col">
             <Text variant="sm-light" color="secondary">
-              Target % of LP Deposits
+              Optimal % of Dep. LP PDV
             </Text>
             <Text variant="h4" className="pt-1">
               {formatter.pct(optimalDepositedRatio)}
@@ -204,7 +206,7 @@ const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price }: IFarmerSi
           </Text>
         </div>
         <div className="flex flex-row items-center gap-x-1">
-          <Text variant="h4" weight="thin" color="secondary">
+          <Text variant="body" weight="thin" color="secondary">
             {formatter.usd(farmerDeposits?.depositBDV.mul(price))}
           </Text>
           <DenominationSwitcher />
@@ -284,6 +286,7 @@ const SiloTokenHeader = ({ siloToken }: IBaseSiloToken) => {
             className="h-12 w-12"
             onClick={() => {
               navigator.clipboard.writeText(siloToken.address);
+              toast.success("Address copied to clipboard");
             }}
           >
             <IconImage src={copyIcon} size={6} alt="copy address" />

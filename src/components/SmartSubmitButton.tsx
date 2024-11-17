@@ -6,10 +6,9 @@ import useTokenData from "@/state/useTokenData";
 import { Token } from "@/utils/types";
 import { exists, isDev } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
 import { toast } from "sonner";
-import { BaseError, erc20Abi, maxUint256 } from "viem";
-import { useAccount, useChainId, useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { erc20Abi, maxUint256 } from "viem";
+import { useAccount, useChainId, useReadContract } from "wagmi";
 import { Button, ButtonProps } from "./ui/Button";
 
 interface SmartSubmitButton extends Omit<ButtonProps, "onClick" | "disabled" | "className"> {
@@ -65,11 +64,11 @@ export default function SmartSubmitButton({
         : Number(amount) > Number(TokenValue.fromBlockchain(allowance || 0, token.decimals).toHuman());
 
   async function approveOrRun() {
-    console.log("approveOrRun");
     if (needsApproval) {
       try {
         if (!token || !exists(amount)) return;
         setSubmitting(true);
+        toast.loading("Approving...");
         return writeWithEstimateGas({
           abi: erc20Abi,
           address: token?.address ?? ZERO_ADDRESS,
@@ -83,7 +82,7 @@ export default function SmartSubmitButton({
         setSubmitting(false);
         console.error(e);
         toast.dismiss();
-        toast.error(e instanceof Error ? e.message : "Transaction failed.");
+        toast.error("Approval failed");
         throw e;
       }
     } else {

@@ -1,19 +1,9 @@
 import { TV } from "@/classes/TokenValue";
-import { INTERVALS_PER_MORNING } from "@/constants/morning";
 import { atom } from "jotai";
 import { atomWithImmer } from "jotai-immer";
-import {
-  Field,
-  FieldPodLine,
-  FieldQueryKeys,
-  FieldTemperature,
-  FieldWeather,
-  Temperature,
-  getMorningTemperature,
-} from ".";
-import { morningAtom } from "../sun/sun.atoms";
+import { Field, FieldPodLine, FieldQueryKeys, FieldTemperature, FieldWeather } from ".";
 
-export const fieldTotalSoilAtom = atom<TV>(TV.fromHuman(0, 6));
+export const fieldTotalSoilAtom = atom<TV>(TV.fromHuman(-1, 6));
 
 export const fieldTemperatureAtom = atomWithImmer<FieldTemperature>({
   max: TV.NEGATIVE_ONE,
@@ -21,13 +11,13 @@ export const fieldTemperatureAtom = atomWithImmer<FieldTemperature>({
 });
 
 export const fieldPodlineAtom = atomWithImmer<FieldPodLine>({
-  podIndex: TV.ZERO,
-  harvestableIndex: TV.ZERO,
-  podLine: TV.ZERO,
+  podIndex: TV.NEGATIVE_ONE,
+  harvestableIndex: TV.NEGATIVE_ONE,
+  podLine: TV.NEGATIVE_ONE,
 });
 
 export const fieldWeatherAtom = atomWithImmer<FieldWeather>({
-  lastDeltaSoil: TV.ZERO,
+  lastDeltaSoil: TV.NEGATIVE_ONE,
   lastSowTime: 0,
   thisSowTime: 0,
   temp: 0,

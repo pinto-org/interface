@@ -84,12 +84,15 @@ const Stat = ({
   hoveredIndex?: number;
 }) => {
   const morningIndex = morning.index > 25 ? 25 : morning.index < 0 ? 0 : morning.index;
+
   const index = hoveredIndex ?? morningIndex;
-  const displayTemp = data[index].values?.[0];
+  const clampedIndex = index > 25 ? 24 : index < 0 ? 0 : index;
+
+  const displayTemp = data[clampedIndex]?.values?.[0];
 
   return (
     <div className="flex flex-col w-full gap-1">
-      <Text>Current Temperature {index + 1}/25</Text>
+      <Text>Current Temperature {clampedIndex + 1}/25</Text>
       <div className="flex flex-col gap-2">
         <Text variant="sm-thin" color="light">
           <MorningIntervalCountdown prefix={"Increasing in"} />

@@ -125,7 +125,7 @@ const Navbar = () => {
         <div className="hidden lg:flex lg:justify-center">
           <Navi />
         </div>
-          <div className="flex flex-row justify-end gap-x-4 ">
+          <div className="flex flex-row justify-end gap-x-4">
           <div className="flex flex-row justify-end gap-x-1">
             <div className={`${walletOpen && "z-[51]"}`}>
               <div data-action-target={"wallet-button"}>

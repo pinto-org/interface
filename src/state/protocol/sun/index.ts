@@ -115,15 +115,17 @@ export const getMorningResult = ({
   // seconds since sunrise
   const secondsSinceSunrise = Math.floor(nowSecs - sunriseSecs);
 
-  // The morning interval index (0 - 24)
-  const index = Math.floor(Number(BigInt(secondsSinceSunrise) / BigInt(SECONDS_PER_MORNING_INTERVAL)));
+  const diff = BigInt(secondsSinceSunrise) / BigInt(SECONDS_PER_MORNING_INTERVAL);
+
+  // The morning interval index (0 - 24) (25 means we're no longer in the morning state)
+  const index = Math.min(Math.floor(Number(diff)), INTERVALS_PER_MORNING);
   // The approximate blockNumber that represents the start the current morning interval
   const deltaBlocks = index * APPROX_L2_BLOCK_PER_L1_BLOCK;
 
   // It is considered morning if...
   // - SunriseBlock has been fetched
   // - We are within the first 25 L1 blocks (1200 L2 blocks) since sunrise
-  const isMorning = index >= 0 && index <= INTERVALS_PER_MORNING && sunriseBlock > 0;
+  const isMorning = index >= 0 && index < INTERVALS_PER_MORNING && sunriseBlock > 0;
 
   // The L2 Block Number that represents the start of the current morning interval
   const blockNumber = sunriseBlock + deltaBlocks;

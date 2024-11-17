@@ -1,36 +1,36 @@
-import { TV } from "@/classes/TokenValue";
 import Text from "@/components/ui/Text";
 import { usePodLine, useTemperature, useTotalSoil } from "@/state/useFieldData";
-import { useMorning } from "@/state/useSunData";
+import { useMorning, useSunData } from "@/state/useSunData";
 import { formatter } from "@/utils/format";
+import { normalizeTV } from "@/utils/number";
 import { MorningIntervalCountdown } from "./MorningCountdown";
 
 const FieldStats = () => {
+  const abovePeg = useSunData().abovePeg;
   const temperatures = useTemperature();
-  const morning = useMorning();
+  const { isMorning } = useMorning();
   const totalSoil = useTotalSoil();
   const podLine = usePodLine();
 
-  const scaledTemperature = temperatures.scaled.lte(0) ? TV.ZERO : temperatures.scaled;
-  const soil = totalSoil.lte(0) ? TV.ZERO : totalSoil;
-  const pLine = podLine.lte(0) ? TV.ZERO : podLine;
+  const scaledTemperature = normalizeTV(temperatures.scaled);
+  const soil = normalizeTV(totalSoil);
+  const pLine = normalizeTV(podLine);
+  const maxTemperature = normalizeTV(temperatures.max);
 
   return (
     <div className="flex flex-row gap-x-12 gap-y-4 flex-wrap w-full">
       <div className="flex flex-col flex-grow gap-2">
         <div className="flex flex-col gap-1">
-          <Text variant="body-light">Current Temperature</Text>
+          <Text variant="body-light">{isMorning ? "Max Temperature" : "Current Temperature"}</Text>
           <Text variant="sm" color="light">
-            The interest rate for lending Pinto
+            {isMorning ? "The temperature after the morning auction" : "The interest rate for lending Pinto"}
           </Text>
         </div>
         <div className="flex flex-col gap-1">
-          <Text variant="h3">{`${formatter.pct(scaledTemperature)}`}</Text>
-          {morning.isMorning && (
-            <Text variant="sm-light" color="morning" className="inline-block tabular-nums">
-              <MorningIntervalCountdown prefix={"Increasing in"} />
-            </Text>
-          )}
+          <Text
+            variant="h3"
+            color={isMorning ? "light" : "primary"}
+          >{`${formatter.pct(isMorning ? maxTemperature : scaledTemperature)}`}</Text>
         </div>
       </div>
       <div className="flex flex-col flex-grow gap-2">
@@ -41,8 +41,8 @@ const FieldStats = () => {
           </Text>
         </div>
         <div className="flex flex-col gap-1">
-          <Text variant="h3">{formatter.number(soil)}</Text>
-          {morning.isMorning && (
+          <Text variant="h3">{formatter.number(soil, { minValue: 0.01 })}</Text>
+          {isMorning && abovePeg && (
             <Text variant="sm-light" color="morning" className="inline-block tabular-nums">
               <MorningIntervalCountdown prefix={"Decreasing in"} />
             </Text>
