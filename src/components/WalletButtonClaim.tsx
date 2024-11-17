@@ -1,19 +1,22 @@
 import { TokenValue } from "@/classes/TokenValue";
-import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import { beanstalkAbi } from "@/generated/contractHooks";
+import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
+import { formatter } from "@/utils/format";
 import { FarmToMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { Address, BaseError, encodeFunctionData } from "viem";
-import { useAccount, useChainId, useWriteContract } from "wagmi";
+import { encodeFunctionData } from "viem";
+import { useAccount, useChainId } from "wagmi";
 import DestinationBalanceSelect from "./DestinationBalanceSelect";
 import { ForwardArrowIcon } from "./Icons";
 import { Button } from "./ui/Button";
-import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
+import { Card, CardContent, CardHeader } from "./ui/Card";
 import { Separator } from "./ui/Separator";
 import Text from "./ui/Text";
 import { formatter } from "@/utils/format";
@@ -24,6 +27,7 @@ export default function WalletButtonClaim({
 }: { setShowClaim: React.Dispatch<React.SetStateAction<boolean>>; showClaim: boolean }) {
   const chainId = useChainId();
   const account = useAccount();
+  const diamond = useProtocolAddress();
 
   const { queryKeys } = useFarmerBalances();
   const farmerSilo = useFarmerSilo();
@@ -32,7 +36,14 @@ export default function WalletButtonClaim({
   const { whitelistedTokens } = useTokenData();
 
   const queryClient = useQueryClient();
-  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
+  const { writeWithEstimateGas, setSubmitting } = useTransaction({
+    successCallback: () => {
+      const allQueryKeys = [...queryKeys, ...siloQueryKeys];
+      allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
+    },
+    successMessage: "Claim success",
+    errorMessage: "Claim failed",
+  });
 
   const [balanceTo, setBalanceTo] = useState(FarmToMode.EXTERNAL);
   const totalFlood = farmerSilo.flood.farmerSops.reduce(
@@ -40,47 +51,45 @@ export default function WalletButtonClaim({
     TokenValue.ZERO,
   );
 
-  useEffect(() => {
-    if (isSuccess) {
-      // invalidating query results to trigger a refetch
-      const allQueryKeys = [...queryKeys, ...siloQueryKeys];
-      allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
-    }
-  }, [isSuccess, queryKeys, siloQueryKeys]);
-
   async function onSubmit() {
-    if (!chainId || !account.address || !balanceTo) return;
+    setSubmitting(true);
+    toast.loading("Claiming...");
+    try {
+      if (!chainId || !account.address || !balanceTo) return;
 
-    const tokensToMow = whitelistedTokens.map((token: Token) => token.address);
-    const mow = encodeFunctionData({
-      abi: beanstalkAbi,
-      functionName: "mowMultiple",
-      args: [account.address, tokensToMow],
-    });
+      const tokensToMow = whitelistedTokens.map((token: Token) => token.address);
+      const mow = encodeFunctionData({
+        abi: beanstalkAbi,
+        functionName: "mowMultiple",
+        args: [account.address, tokensToMow],
+      });
 
-    const claimFlood = encodeFunctionData({
-      abi: beanstalkAbi,
-      functionName: "claimAllPlenty",
-      args: [Number(balanceTo)],
-    });
+      const claimFlood = encodeFunctionData({
+        abi: beanstalkAbi,
+        functionName: "claimAllPlenty",
+        args: [Number(balanceTo)],
+      });
 
-    const tx = () =>
-      writeContractAsync({
-        address: beanstalkAddress[chainId as keyof typeof beanstalkAddress] as Address,
+      const encoded = encodeFunctionData({
         abi: beanstalkAbi,
         functionName: "farm",
         args: [[mow, claimFlood]],
       });
 
-    toast.promise(tx, {
-      loading: "Submitting transaction...",
-      success: (data) => {
-        return `Transaction complete!`;
-      },
-      error: (error) => {
-        return (error as BaseError).shortMessage || `Transaction failed.`;
-      },
-    });
+      return writeWithEstimateGas({
+        address: diamond,
+        abi: beanstalkAbi,
+        functionName: "farm",
+        args: [[encoded]],
+      });
+    } catch (e) {
+      console.error(e);
+      toast.dismiss();
+      toast.error("Claim failed");
+      throw e;
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -118,14 +127,14 @@ export default function WalletButtonClaim({
                   const price = priceData.tokenPrices.get(token);
                   const value = amount.mul(price ? price.instant : 0);
                   return (
-                    <div key={index} className="flex flex-row justify-between">
+                    <div key={`claim_flood_${index}_${token.address}`} className="flex flex-row justify-between">
                       <div className="flex flex-row gap-4 items-center">
                         <img src={token.logoURI} alt={token.symbol} className={"w-12 h-12"} />
                         <span className="font-[400] text-pinto-gray-5 text-[1.25rem]">{token.symbol}</span>
                       </div>
                       <div className="flex flex-col text-right">
                         <span className="font-[400] text-pinto-gray-5 text-[1.5rem]">{`${formatter.token(amount, token)} ${token.symbol}`}</span>
-                        <span className="font-[400] text-pinto-gray-4 text-[1rem]">{`${formatter.usd(value)}`}</span>
+                        <span className="font-[400] text-pinto-gray-4 text-[1rem]">{formatter.usd(value)}</span>
                       </div>
                     </div>
                   );

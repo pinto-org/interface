@@ -470,8 +470,8 @@ export class LibCases {
   static evaluateWithCaseId(caseId: bigint) {
     const { bT, bL } = LibCases.decodeBytes32Data(LibCases.getCaseWithCaseId(caseId));
 
-    const bean2MaxLPGPPerBdv = TokenValue.fromHuman(bL, 18);
-    const bean2MaxLPGPPerBdvScalar = TokenValue.fromHuman(LibCases.getBeanToMaxLPUnit(bL), 18);
+    const bean2MaxLPGPPerBdv = TokenValue.fromBigInt(bL, 18);
+    const bean2MaxLPGPPerBdvScalar = TokenValue.fromBigInt(LibCases.getBeanToMaxLPUnit(bL), 18);
 
     return {
       bean2MaxLPGPPerBdvScalar: bean2MaxLPGPPerBdvScalar.toBigInt(),

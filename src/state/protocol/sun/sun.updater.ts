@@ -1,3 +1,4 @@
+import { INTERVALS_PER_MORNING } from "@/constants/morning";
 import { useReadSeasonFacetView_SeasonTime } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
@@ -6,7 +7,7 @@ import { useMorning, useSunData } from "@/state/useSunData";
 import { exists, isDev } from "@/utils/utils";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { DateTime } from "luxon";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useChainId, useReadContract } from "wagmi";
 import { getDiffNow, getMorningResult, getNextExpectedSunrise, getNowRounded } from ".";
 import { fieldTemperatureAtom, morningFieldDevModeAtom } from "../field/field.atoms";
@@ -63,6 +64,15 @@ const useFetchSun = () => {
     setSeasonTime(seasonTimeQuery.data);
   }, [seasonTimeQuery.data, setSeasonTime]);
 
+  const refetch = useCallback(async () => {
+    const datas = await Promise.all([seasonQuery.refetch(), seasonTimeQuery.refetch()]);
+
+    return {
+      season: datas[0].data,
+      seasonTime: datas[1].data,
+    };
+  }, [seasonQuery.refetch, seasonTimeQuery.refetch]);
+
   useEffect(() => {
     if (!seasonQuery.data) return;
     const time = seasonQuery.data;
@@ -99,7 +109,7 @@ const useFetchSun = () => {
     setSeasonData(season);
   }, [seasonQuery.data, setSeasonData, setMorningResult, setMorningRemaining]);
 
-  return { seasonData, seasonTime, refetch: seasonQuery.refetch };
+  return { seasonData, seasonTime, refetch: refetch };
 };
 
 export const useSetRemainingUntilSunrise = () => {
@@ -133,12 +143,18 @@ const useUpdateRemainingUntilSunrise = (next: DateTime, awaiting: boolean) => {
 export const useUpdateSunData = () => {
   const seasons = useFetchSun();
   const [seasonSunrise, setSeasonSunrise] = useAtom(seasonSunriseAtom);
+  const [cachedSeason, setCachedSeason] = useState<number>(0);
 
   const awaiting = seasonSunrise.awaiting;
   const next = seasonSunrise.next;
-  const season = seasons.seasonData.current;
 
   const setRemainingUntilSunrise = useUpdateRemainingUntilSunrise(next, awaiting);
+
+  useEffect(() => {
+    if (!cachedSeason && seasons.seasonData.current) {
+      setCachedSeason(seasons.seasonData.current);
+    }
+  }, [seasons.seasonData.current, cachedSeason]);
 
   useEffect(() => {
     if (!awaiting || isDev()) return;
@@ -147,18 +163,15 @@ export const useUpdateSunData = () => {
     const i = setInterval(() => {
       (async () => {
         const result = await seasons.refetch();
-        if (result.data) {
-          const newSeason = result.data.current;
-          if (newSeason > season) {
-            const _next = getNextExpectedSunrise();
-            setSeasonSunrise({ awaiting: false, next: _next });
-            setRemainingUntilSunrise(_next.diffNow());
-          }
+        if (!cachedSeason || (result?.season && result.season.current > cachedSeason)) {
+          const _next = getNextExpectedSunrise();
+          setSeasonSunrise({ awaiting: false, next: _next });
+          setRemainingUntilSunrise(_next.diffNow());
         }
       })();
     }, 3000);
     return () => clearInterval(i);
-  }, [awaiting, season, setSeasonSunrise, setRemainingUntilSunrise, seasons.refetch]);
+  }, [awaiting, setSeasonSunrise, setRemainingUntilSunrise, seasons.refetch, cachedSeason]);
 };
 
 export function useUpdateMorning() {
@@ -183,6 +196,7 @@ export function useUpdateMorning() {
     const intervalId = setInterval(async () => {
       const now = getNowRounded();
       const _remaining = getDiffNow(nextMorningInterval, now);
+
       if (now.toSeconds() === nextMorningInterval.toSeconds() || _remaining.as("seconds") <= 0) {
         const morningResult = getMorningResult({
           timestamp: sTimestamp,
@@ -191,7 +205,7 @@ export function useUpdateMorning() {
 
         const scaledTemp = calculateTemperature(morningIndex + 1);
 
-        console.debug("[protocol/sun/useUpdateMorning]: new block: ", {
+        console.debug("[protocol/sun/useUpdateMorning]: morningResult", {
           temp: scaledTemp.toNumber(),
           blockNumber: morningResult.blockNumber,
           index: morningResult.index,
@@ -201,7 +215,7 @@ export function useUpdateMorning() {
         /// If we are transitioning out of the morning state, refetch the max Temperature from the subgraph.
         /// This is to make sure that when transitioning out of the morning state, the max Temperature chart
         /// shows the maxTemperature for the current season, not the previous season.
-        if (!morningResult.isMorning && morningResult.index === 25) {
+        if (!morningResult.isMorning && morningResult.index === INTERVALS_PER_MORNING) {
           // triggerQuery(); // todo here...
         }
 

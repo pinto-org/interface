@@ -4,20 +4,22 @@ import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
 import Panel from "@/components/ui/Panel";
 import Text from "@/components/ui/Text";
+import { LibCases } from "@/lib/LibCases";
 import useFieldSnapshots from "@/state/useFieldSnapshots";
 import useSiloSnapshots from "@/state/useSiloSnapshots";
 import { useSeason } from "@/state/useSunData";
+import { formatter } from "@/utils/format";
 import { textConfig } from "@/utils/theme";
 import { cn } from "@/utils/utils";
 import clsx from "clsx";
 import { HTMLAttributes } from "react";
-import { ExternalLinkIcon } from "../Icons";
 import TooltipSimple from "../TooltipSimple";
 import { Button } from "../ui/Button";
 import { CardContent, CardHeader } from "../ui/Card";
 import IconImage from "../ui/IconImage";
+import { ScrollArea } from "../ui/ScrollArea";
 import { Separator } from "../ui/Separator";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/Table";
+import { Table, TableBody, TableCell, TableFixed, TableHead, TableHeader, TableRow } from "../ui/Table";
 
 interface SeasonsButtonPanel {
   season: number;
@@ -29,8 +31,6 @@ const deriveTextStyles = textConfig.methods.variant;
 const deriveTextColor = textConfig.methods.color;
 
 const smTextStyles = clsx(...deriveTextStyles("sm"), deriveTextColor("secondary"));
-
-// TODO: Add rest of silo adjustments
 
 const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPanel) => {
   return (
@@ -49,6 +49,7 @@ const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPa
               Pinto adjusts the supply and various incentives every Season to facilitate price stability.
             </Text>
           </div>
+          {/*
           <Button asChild variant={"outline"} rounded="full" className="self-center bg-white" size="md">
             <Text
               variant="sm"
@@ -63,105 +64,140 @@ const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPa
               <ExternalLinkIcon color="currentColor" width={16} height={16} />
             </Text>
           </Button>
+          */}
         </div>
         <Separator />
       </CardHeader>
-      <CardContent className="px-0 overflow-x-visible">
-        <Table>
-          <TableHeader className="[&_tr]:border-0">
-            <TableRow className="h-14 border-0">
-              <TableHead className={cn("w-[15%] p-4", smTextStyles)}>Season</TableHead>
-              <TableHead className={cn("text-right w-[25%]", smTextStyles)}>Pinto Supply</TableHead>
-              <TableHead className={cn("text-right w-[25%]", smTextStyles)}>Silo Adjustments</TableHead>
-              <TableHead className={cn("text-right w-[35%] p-4", smTextStyles)} colSpan={2}>
-                Field Adjustments
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {fieldSnapshots.data?.map((snapshot, i) => {
-              const mints = siloSnapshots
-                ? snapshot.season === siloSnapshots[i]?.season
-                  ? siloSnapshots[i]?.deltaBeanMints
-                  : TokenValue.ZERO
-                : TokenValue.ZERO;
-              return (
-                <TableRow key={`${snapshot.season}_${i}`} className="h-[4.5rem] bg-white hover:bg-white border-0">
-                  {/**
-                   * Season
-                   */}
-                  <TableCell className={cn("pl-4 items-center", smTextStyles)}>{snapshot.season}</TableCell>
-                  {/**
-                   * Pinto Supply
-                   */}
-                  <TableCell className="text-right">
-                    <div className="flex flex-col items-end">
-                      <Text className={`inline-flex gap-1 items-center ${mints.gt(0) ? "text-pinto-green-2" : ""}`}>
-                        {mints.gt(0) && <span>+</span>}
-                        <IconImage size={4} src={pintoIcon} />
-                        <span>{Number(mints.toHuman()).toFixed(0)}</span>
-                      </Text>
-                      <Text variant="xs" color="light">
-                        New Pinto
-                      </Text>
-                    </div>
-                  </TableCell>
-                  {/**
-                   * Silo Adjustments
-                   */}
-                  {/* TODO: */}
-                  <TableCell className="text-black font-[400] text-[1rem] text-right">-</TableCell>
-                  <TableCell className={cn("text-right pr-4", smTextStyles)}>
-                    <div className="flex flex-row gap-4 justify-end">
-                      <div className="flex flex-col w-[60%]">
-                        {`${snapshot.deltaSoil.gt(0) ? "+ " : snapshot.deltaSoil.lt(0) ? "- " : ""}${Number(snapshot.deltaSoil.abs().toHuman()).toFixed(0)}`}
-                        <span className="inline-flex gap-0.5 items-center justify-end">
-                          <Text as="span" variant="xs" color="light">
-                            New Soil
-                          </Text>
-                          <TooltipSimple
-                            variant="gray"
-                            content={
-                              <>
-                                <Text align="left">Soil is the total number of Pinto that can be lent (Sown).</Text>
-                                <Text align="left" color="light">
-                                  When the Pinto price is less than $1, the amount of Soil issued is set to the amount
-                                  of excess Pinto.
-                                </Text>
-                              </>
-                            }
-                          />
-                        </span>
+      <CardContent className="px-4 overflow-clip">
+        <ScrollArea className="h-[calc(100vh-15rem)] -mx-4">
+          <Table className="border-separate border-spacing-4 -mt-4">
+            <TableHeader className="[&_tr]:border-0 bg-transparent">
+              <TableRow className="border-0 bg-transparent">
+                <TableHead className={cn("w-[12.5%] p-0", smTextStyles)}>Season</TableHead>
+                <TableHead className={cn("text-right w-[25%] p-0", smTextStyles)}>Pinto Supply</TableHead>
+                <TableHead className={cn("text-right w-[25%] p-0", smTextStyles)}>Silo Adjustments</TableHead>
+                <TableHead className={cn("text-right w-[37.5%] p-0", smTextStyles)} colSpan={2}>
+                  Field Adjustments
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {fieldSnapshots.data?.map((snapshot, i) => {
+                const mints = siloSnapshots
+                  ? snapshot.season === siloSnapshots[i]?.season
+                    ? siloSnapshots[i]?.deltaBeanMints
+                    : TokenValue.ZERO
+                  : TokenValue.ZERO;
+                const nextSnapshot = fieldSnapshots.data[i + 1];
+                const cropRatio = TokenValue.fromBigInt(
+                  LibCases.evaluateWithCaseId(BigInt(snapshot.caseId)).bean2MaxLPGPPerBdv,
+                  18,
+                );
+                const previousCropRatio = nextSnapshot?.caseId
+                  ? TokenValue.fromBigInt(
+                      LibCases.evaluateWithCaseId(BigInt(nextSnapshot.caseId)).bean2MaxLPGPPerBdv,
+                      18,
+                    )
+                  : cropRatio;
+                return (
+                  <TableRow key={`${snapshot.season}_${i}`} className="h-[2.5rem] bg-transparent border-0">
+                    {/**
+                     * Season
+                     */}
+                    <TableCell className={cn("items-center p-0", smTextStyles)}>{snapshot.season}</TableCell>
+                    {/**
+                     * Pinto Supply
+                     */}
+                    <TableCell className="text-right p-0">
+                      <div className="flex flex-col items-end">
+                        <Text className={`inline-flex gap-1 items-center ${mints.gt(0) ? "text-pinto-green-4" : ""}`}>
+                          {mints.gt(0) && <span>+</span>}
+                          <IconImage size={4} src={pintoIcon} />
+                          <span>{formatter.noDec(mints)}</span>
+                        </Text>
+                        <Text variant="xs" color="light">
+                          New Pinto
+                        </Text>
                       </div>
-                      <div className="flex flex-col w-[50%]">
-                        <span className="inline-flex gap-2 justify-end">
-                          {`${snapshot.temperature.toFixed(0)}% `}
+                    </TableCell>
+                    {/**
+                     * Silo Adjustments
+                     */}
+                    <TableCell className="text-black font-[400] text-[1rem] text-right p-0">
+                      <div className="flex flex-col items-end">
+                        <Text className="inline-flex gap-2 justify-end">
+                          {formatter.twoDec(cropRatio)}
                           <span className="text-pinto-gray-4">
-                            {`(${snapshot.deltaTemperature > 0 ? "+" : snapshot.deltaTemperature < 0 ? "-" : ""}${snapshot.deltaTemperature.toFixed(0)}%)`}
+                            {`(${formatter.twoDec(cropRatio.sub(previousCropRatio), { showPositiveSign: true })})`}
                           </span>
-                        </span>
+                        </Text>
                         <Text variant="xs" color="light" className="inline-flex gap-0.5 items-center justify-end">
-                          Max Temperature
+                          Crop Ratio
                           <TooltipSimple
                             variant="gray"
-                            content={
-                              <>
-                                <Text align="left">Temperature is the interest rate for lending (Sowing) Pinto .</Text>
-                                <Text color="light" align="left">
-                                  Sown Pinto are burned, reducing the Pinto supply.
-                                </Text>
-                              </>
-                            }
+                            content={"The ratio of Seeds per PDV reward for Pinto relative to at least 1 LP token."}
                           />
                         </Text>
                       </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+                    </TableCell>
+                    <TableCell className={cn("text-right p-0", smTextStyles)}>
+                      <div className="flex flex-row gap-4 justify-end">
+                        <div className="flex flex-col w-[60%]">
+                          {`${snapshot.deltaSoil.gt(0) ? "+ " : snapshot.deltaSoil.lt(0) ? "- " : ""}${Number(snapshot.deltaSoil.abs().toHuman()).toFixed(0)}`}
+                          <span className="inline-flex gap-0.5 items-center justify-end">
+                            <Text as="span" variant="xs" color="light">
+                              New Soil
+                            </Text>
+                            <TooltipSimple
+                              variant="gray"
+                              content={
+                                <>
+                                  <Text align="left">Soil is the total number of Pinto that can be lent (Sown).</Text>
+                                  <Text align="left" color="light">
+                                    When the Pinto price is less than $1, the amount of Soil issued is equal to the
+                                    amount of excess Pinto.
+                                  </Text>
+                                </>
+                              }
+                            />
+                          </span>
+                        </div>
+                        <div className="flex flex-col w-[50%]">
+                          <span className="inline-flex gap-2 justify-end">
+                            {formatter.pct(snapshot.temperature, { minDecimals: 0, maxDecimals: 0 })}
+                            <span className="text-pinto-gray-4">
+                              {`(${formatter.pct(snapshot.deltaTemperature, {
+                                minDecimals: 0,
+                                maxDecimals: 0,
+                                showPositiveSign: true,
+                              })})`}
+                            </span>
+                          </span>
+                          <Text variant="xs" color="light" className="inline-flex gap-0.5 items-center justify-end">
+                            Max Temperature
+                            <TooltipSimple
+                              variant="gray"
+                              content={
+                                <>
+                                  <Text align="left">
+                                    Temperature is the interest rate for lending (Sowing) Pinto .
+                                  </Text>
+                                  <Text color="light" align="left">
+                                    Sown Pinto are burned, reducing the Pinto supply.
+                                  </Text>
+                                </>
+                              }
+                            />
+                          </Text>
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </ScrollArea>
       </CardContent>
     </>
   );

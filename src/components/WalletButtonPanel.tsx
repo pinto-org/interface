@@ -12,6 +12,7 @@ import { useAccount, useDisconnect, useEnsAvatar, useEnsName } from "wagmi";
 import ChainButton from "./ChainButton";
 import DonutChart from "./DonutChart";
 import { BackwardArrowDotsIcon, ChevronDownIcon, CloseIcon, LeftArrowIcon, UpDownArrowsIcon } from "./Icons";
+import NoBaseValueAlert from "./NoBaseValueAlert";
 import WalletButtonClaim from "./WalletButtonClaim";
 import WalletButtonTransfer from "./WalletButtonTransfer";
 import { Button } from "./ui/Button";
@@ -19,7 +20,6 @@ import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
 import { Separator } from "./ui/Separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/Tabs";
 import { Toggle } from "./ui/Toggle";
-import NoBaseValueAlert from "./NoBaseValueAlert";
 
 export default function WalletButtonPanel({
   isOpen = false,

@@ -15,6 +15,7 @@ import { usePriceQuery } from "@/state/usePriceData";
 import { AverageBDVWeightedSiloAPYs, useAverageBDVWeightedSiloAPYs } from "@/state/useSiloAPYs";
 import useTokenData from "@/state/useTokenData";
 import { formatter, numberAbbr } from "@/utils/format";
+import { normalizeTV } from "@/utils/number";
 import { cn } from "@/utils/utils";
 import { Separator } from "@radix-ui/react-separator";
 import { useModal } from "connectkit";
@@ -320,7 +321,7 @@ const FieldInfo = ({ containerRef }: IContainerRef) => {
     {
       label: "Soil",
       tooltip: "The number of Pinto that the protocol is willing to borrow.",
-      value: formatter.noDec(soil),
+      value: formatter.noDec(normalizeTV(soil)),
     },
     {
       label: "Podline",

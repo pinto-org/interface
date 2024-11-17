@@ -23,7 +23,7 @@ export default function useFieldSnapshots() {
     queryFn: async () => {
       return request(subgraphs[chainId].beanstalk, FieldSnapshotsDocument, {
         fieldId: fieldId.toLowerCase(),
-        first: 7,
+        first: 48,
       });
     },
     select: (data) => {
