@@ -16,10 +16,9 @@ import { useAccount, useChainId } from "wagmi";
 import DestinationBalanceSelect from "./DestinationBalanceSelect";
 import { ForwardArrowIcon } from "./Icons";
 import { Button } from "./ui/Button";
-import { Card, CardContent, CardHeader } from "./ui/Card";
+import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
 import { Separator } from "./ui/Separator";
 import Text from "./ui/Text";
-import { formatter } from "@/utils/format";
 
 export default function WalletButtonClaim({
   setShowClaim,
@@ -102,7 +101,9 @@ export default function WalletButtonClaim({
             onClick={() => setShowClaim(!showClaim)}
             className="flex flex-row justify-between items-center hover:cursor-pointer transition-all"
           >
-            <Text variant="body" color="primary">Claim assets from Flood</Text>
+            <Text variant="body" color="primary">
+              Claim assets from Flood
+            </Text>
             <span className={`${showClaim ? "rotate-180" : "rotate-0"} transition-transform`}>
               <ForwardArrowIcon color={"currentColor"} width={24} height={24} />
             </span>
@@ -116,7 +117,9 @@ export default function WalletButtonClaim({
       <CardContent className="px-6 flex-grow h-full overflow-y-auto">
         <Separator className="w-full" />
         <div className="mt-6 flex-grow overflow-y-auto">
-          <Text variant="body" weight="light" color="primary">Your proceeds:</Text>
+          <Text variant="body" weight="light" color="primary">
+            Your proceeds:
+          </Text>
           <div className="flex-grow h-full">
             {totalFlood.gt(0) ? (
               <div className="flex flex-col gap-6 mt-6">
@@ -148,7 +151,7 @@ export default function WalletButtonClaim({
       </CardContent>
       <CardFooter className="px-6 flex flex-col justify-end gap-4 h-auto">
         <div className="h=full"></div>
-        <Separator className="w-full"/>
+        <Separator className="w-full" />
         <div className="flex flex-row justify-between items-center w-full ">
           <div className="font-[340] text-[1.25rem] text-pinto-gray-4">Receive proceeds to:</div>
           <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} variant="small" />
