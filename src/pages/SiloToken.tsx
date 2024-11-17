@@ -57,7 +57,6 @@ export default function SiloToken() {
             <div className="flex flex-col w-full gap-14 items-start">
               <div className="flex flex-col w-full gap-6">
                 <SiloTokenSubHeader siloTokenData={siloTokenData} apys={apysQuery.data} />
-                <SiloTokenSubHeader siloTokenData={siloTokenData} />
                 {siloToken.name === "PINTOWSOL LP" && <SiloTokenWSOLWarningHeader />}
                 <Separator />
                 <div className="pt-6">
