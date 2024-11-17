@@ -3,12 +3,12 @@ import podIcon from "@/assets/protocol/Pod.png";
 import seedIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
+import { useDenomination } from "@/hooks/useAppSettings";
 import { formatter } from "@/utils/format";
 import { ReactNode } from "react";
 import TooltipSimple from "./TooltipSimple";
-import Text from "./ui/Text";
 import DenominationSwitcher from "./ui/DenominationSwitcher";
-import { useDenomination } from "@/hooks/useAppSettings";
+import Text from "./ui/Text";
 
 interface StatPanelProps {
   mode: "depositedValue" | "stalk" | "seeds" | "pods";
@@ -80,7 +80,7 @@ const StatPanel = ({
     <Text color="light" size="body" weight="thin">
       {mode === "depositedValue" && (
         <span className="inline-flex items-center gap-1">
-          {showActionValues && actionValue ? (
+          {showActionValues && actionValue && actionValue.gt(0.01) ? (
             <>
               <span>{formatter.pdv(secondaryValue.add(actionValue))}</span>
               <span className="text-pinto-green-4">{`+${formatter.number(actionValue)}`}</span>
@@ -89,7 +89,7 @@ const StatPanel = ({
             <>
               <img src={getIcon(mode)} className="h-4 w-6" alt={mode.toUpperCase()} />
               <span>{formatter.pdv(secondaryValue)}</span>
-            <DenominationSwitcher/>
+              <DenominationSwitcher />
             </>
           )}
         </span>

@@ -4,7 +4,7 @@ import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { ToggleGroupItem } from "@/components/ui/ToggleGroup";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import { formatter, truncateHex } from "@/utils/format";
 import { DepositData, Token } from "@/utils/types";
@@ -83,7 +83,7 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
 );
 
 export default function DepositsTable({ token, selected, useToggle }: DepositsTable) {
-  const farmerDeposits = useFarmerDepositedBalances().data;
+  const farmerDeposits = useFarmerSiloNew().deposits;
   const tokenData = farmerDeposits.get(token);
   const priceData = usePriceData();
 

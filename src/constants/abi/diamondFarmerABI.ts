@@ -151,4 +151,48 @@ export const diamondFarmerABI = [
     ],
     stateMutability: "view",
   },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        internalType: "address[]",
+        name: "tokens",
+        type: "address[]",
+      },
+    ],
+    name: "balanceOfGrownStalkMultiple",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "grownStalks",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "account", type: "address" },
+      { internalType: "address[]", name: "tokens", type: "address[]" },
+    ],
+    name: "getMowStatus",
+    outputs: [
+      {
+        components: [
+          { internalType: "int96", name: "lastStem", type: "int96" },
+          { internalType: "uint128", name: "bdv", type: "uint128" },
+        ],
+        internalType: "struct MowStatus[]",
+        name: "mowStatuses",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
 ] as const;

@@ -27,7 +27,7 @@ export const GearIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: SVGProp
   </svg>
 );
 
-export const InfoSolidIcon = ({ color = "#246645", width = 16, height = 16 }: SVGProps) => (
+export const InfoSolidIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: SVGProps) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} fill="none" viewBox="0 0 16 16">
     <path
       fill={color}

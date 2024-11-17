@@ -62,6 +62,7 @@ export interface DepositData {
   stemTipForToken: TokenValue;
   season: number;
   stem: TokenValue;
+  lastStem: TokenValue;
   amount: TokenValue;
   depositBdv: TokenValue;
   currentBdv: TokenValue;

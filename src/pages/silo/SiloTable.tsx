@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import Text from "@/components/ui/Text";
 import { PINTO } from "@/constants/tokens";
 import useFarmerActions from "@/hooks/useFarmerActions";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import { EMAWindows, SiloYieldsByToken, useSiloYieldsByToken } from "@/state/useSiloAPYs";
 import { useSiloData } from "@/state/useSiloData";
@@ -30,7 +30,8 @@ import { div } from "three/webgpu";
 function SiloTable({ hovering }: { hovering: boolean }) {
   const siloData = useSiloData();
   const mainToken = useTokenData().mainToken;
-  const farmerDeposits = useFarmerDepositedBalances().data;
+  const farmerSilo = useFarmerSiloNew();
+  const farmerDeposits = farmerSilo.deposits;
   const SILO_WHITELIST = useTokenData().whitelistedTokens;
   const priceData = usePriceData();
   const farmerActions = useFarmerActions();
@@ -68,7 +69,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
             </TableHead>
             {/* <TableHead className="text-black text-right font-[400] text-[1rem] w-[20%]">My Deposited Amount</TableHead> */}
             <TableHead className="text-black text-right font-[400] text-[1rem] w-[30%] p-4">
-              My Deposited Amount
+              My Deposits
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -86,7 +87,6 @@ function SiloTable({ hovering }: { hovering: boolean }) {
             const depositBDV = userData ? userData.depositBDV : TokenValue.ZERO;
             const amount = userData ? userData.amount : TokenValue.ZERO;
 
-            // const germinatingBDV = data?.
             if (!data) return;
             return (
               <TableRow
@@ -158,7 +158,6 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                                 <Text>{token.name}</Text>
                               )}
                             </span>
-
                             {earnedPinto ? (
                               <div className="inline-flex items-center gap-1">
                                 <Text variant="sm-thin" align="right" color="light">
