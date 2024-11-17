@@ -87,6 +87,7 @@ const Overview = () => {
     farmerActions.claimRewards.outputs.stalkGain,
     farmerActions.claimRewards.outputs.seedGain,
   );
+  const hasNoEarnedBeans = farmerActions.tokenTotals.get(tokenData.mainToken)?.sources.plant?.beanGain.eq(0);
 
   // Stat panel data
   const statPanelData: Record<"stalk" | "pods" | "seeds" | "depositedValue", StatPanelData> = {
@@ -193,6 +194,20 @@ const Overview = () => {
               perpLength={5}
             />
           )}
+          {hasNoEarnedBeans && (
+            <HelperLink
+              text={claimableText}
+              dataTarget="stalk-stats"
+              className="absolute -mt-[64px] left-[64px] flex flex-row-reverse"
+              sourceAnchor="right"
+              targetAnchor="top-left"
+              source90Degree={true}
+              perpLength={10}
+              onMouseEnter={() => setHoveredButton("claim")}
+              onMouseLeave={() => setHoveredButton("")}
+              onClick={submitClaimRewards}
+            />
+          )}
         </div>
       </div>
       <AnimatePresence>
@@ -277,7 +292,7 @@ const Overview = () => {
                   />
                 )}
                 <div className="absolute right-0 top-20 h-4" data-action-target="helper-target" />
-                {currentTab === "deposits" && claimEnabled && (
+                {currentTab === "deposits" && claimEnabled && !hasNoEarnedBeans && (
                   <HelperLink
                     text={claimableText}
                     dataTarget="helper-target"
