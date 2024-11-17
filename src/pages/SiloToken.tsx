@@ -13,6 +13,7 @@ import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
+import { useDenomination } from "@/hooks/useAppSettings";
 import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import { useSeedGauge } from "@/state/useSeedGauge";
@@ -112,6 +113,7 @@ interface ISiloTokenAbout extends IBaseSiloToken {
 const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
   const seedGauge = useSeedGauge();
   const siloTokenData = siloData.tokenData.get(siloToken);
+  const denomination = useDenomination();
 
   const siloTVD = [...siloData.tokenData]
     .map(([token, data]) => ({ token, data }))
@@ -143,7 +145,7 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
             Total Value Deposited
           </Text>
           <Text variant="h4" className="pt-1">
-            {formatter.usd(tvdUSD)}
+            {denomination === "USD" ? formatter.usd(tvdUSD) : formatter.pdv(depositedBDV)}
           </Text>
         </div>
         <div>
@@ -195,6 +197,7 @@ interface IFarmerSiloTokenDeposits extends IBaseSiloToken {
 }
 
 const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price }: IFarmerSiloTokenDeposits) => {
+  const denomination = useDenomination();
   return (
     <div className="flex flex-row gap-16">
       <div className="flex flex-col gap-2">
@@ -207,7 +210,9 @@ const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price }: IFarmerSi
         </div>
         <div className="flex flex-row items-center gap-x-1">
           <Text variant="body" weight="thin" color="secondary">
-            {formatter.usd(farmerDeposits?.depositBDV.mul(price))}
+            {denomination === "USD"
+              ? formatter.usd(farmerDeposits?.depositBDV.mul(price))
+              : formatter.pdv(farmerDeposits?.depositBDV)}
           </Text>
           <DenominationSwitcher />
         </div>
@@ -217,12 +222,10 @@ const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price }: IFarmerSi
           <Text variant="sm" color="secondary">
             My Stalk
           </Text>
-            <div  className="inline-flex flex-row items-center gap-1">
+          <div className="inline-flex flex-row items-center gap-1">
             <IconImage src={stalkIcon} size={6} alt="Stalk" />
-            <Text variant="h4">
-              {formatter.twoDec(farmerDeposits?.stalk.total)}
-            </Text>
-            </div>
+            <Text variant="h4">{formatter.twoDec(farmerDeposits?.stalk.total)}</Text>
+          </div>
         </div>
         <div className="flex flex-col gap-2">
           <Text variant="sm" color="secondary">
@@ -244,22 +247,22 @@ const SiloTokenSubHeader = ({ siloTokenData }: { siloTokenData: SiloTokenData | 
 
   return (
     <>
-    <div className="flex flex-row items-center justify-between">
-      <div className="flex flex-col gap-2">
-        <Text variant="sm">Current Deposit Rewards</Text>
-        <div className="flex flex-row gap-3">
-          <div className="inline-flex gap-1 items-center">
-            <IconImage src={stalkIcon} size={6} alt="Stalk" />
-            <Text variant="h4">{formatter.twoDec(stalkRewards)} Stalk</Text>
-          </div>
-          <div className="inline-flex gap-1 items-center">
-            <IconImage src={seedsIcon} size={6} alt="Seeds" />
-            <Text variant="h4">{formatter.twoDec(seedRewards)} Seeds</Text>
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-col gap-2">
+          <Text variant="sm">Current Deposit Rewards</Text>
+          <div className="flex flex-row gap-3">
+            <div className="inline-flex gap-1 items-center">
+              <IconImage src={stalkIcon} size={6} alt="Stalk" />
+              <Text variant="h4">{formatter.twoDec(stalkRewards)} Stalk</Text>
+            </div>
+            <div className="inline-flex gap-1 items-center">
+              <IconImage src={seedsIcon} size={6} alt="Seeds" />
+              <Text variant="h4">{formatter.twoDec(seedRewards)} Seeds</Text>
+            </div>
           </div>
         </div>
+        <APYChip apyValue={siloTokenData ? siloTokenData.yields.beanAPY : 0} />
       </div>
-      <APYChip apyValue={siloTokenData ? siloTokenData.yields.beanAPY : 0} />
-    </div>
     </>
   );
 };
@@ -319,7 +322,14 @@ const SiloTokenHeader = ({ siloToken }: IBaseSiloToken) => {
 const SiloTokenWSOLWarningHeader = () => {
   return (
     <div className="bg-white border rounded-[0.75rem] p-4 rounded-md">
-      <Text variant="body" weight="thin" color="primary" className="leading-2">WSOL liquidity on Base is limited, which may result in worse price execution if attempting to Deposit with any other token than WSOL. To avoid this, you can bridge SOL directly from the Solana network using the <a href="https://portalbridge.com/" style={{ color: "#387F5C"}}>Portal Bridge</a>.</Text>
+      <Text variant="body" weight="thin" color="primary" className="leading-2">
+        WSOL liquidity on Base is limited, which may result in worse price execution if attempting to Deposit with any
+        other token than WSOL. To avoid this, you can bridge SOL directly from the Solana network using the{" "}
+        <a href="https://portalbridge.com/" style={{ color: "#387F5C" }}>
+          Portal Bridge
+        </a>
+        .
+      </Text>
     </div>
-  )
+  );
 };

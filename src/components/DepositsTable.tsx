@@ -4,6 +4,7 @@ import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { ToggleGroupItem } from "@/components/ui/ToggleGroup";
+import { useDenomination } from "@/hooks/useAppSettings";
 import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import { formatter, truncateHex } from "@/utils/format";
@@ -30,6 +31,7 @@ interface DepositRowProps extends HTMLMotionProps<"tr"> {
 
 const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React.HTMLAttributes<HTMLTableRowElement>>(
   ({ deposit, token, price, useToggle, isSelected, ...props }, ref) => {
+    const denomination = useDenomination();
     return (
       <TableRow
         {...props}
@@ -48,7 +50,7 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
             <IconImage src={token.logoURI} size={4} />
             <div className="opacity-70">{`${formatter.token(deposit.amount, token)} ${token.name}`}</div>
           </div>
-          <div className="text-pinto-gray-4 mt-1 opacity-70 font-[340]">{`${formatter.usd((deposit.depositBdv || TokenValue.ZERO).mul(price))}`}</div>
+          <div className="text-pinto-gray-4 mt-1 opacity-70 font-[340]">{`${denomination === "USD" ? formatter.usd((deposit.depositBdv || TokenValue.ZERO).mul(price)) : formatter.pdv(deposit.depositBdv)}`}</div>
         </Text>
         <Text as={TableCell} className="text-right">
           <div className="flex flex-row gap-1 items-center justify-end">
