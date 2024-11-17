@@ -5,8 +5,7 @@ import { RightArrowIcon, UpArrowIcon } from "@/components/Icons";
 import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import useFarmerActions from "@/hooks/useFarmerActions";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
-import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
@@ -30,12 +29,13 @@ const initialState = {
 
 export default function FarmerDepositsTable({ rewardsRef, hovering = false }: FarmerDepositsTableProps) {
   const navigate = useNavigate();
-  const farmerSilo = useFarmerSilo();
+  const farmerSilo = useFarmerSiloNew();
+  console.log("farmerSIlo: ", farmerSilo);
   const priceData = usePriceData();
   const tokenData = useTokenData();
   const mainToken = tokenData.mainToken;
   const farmerActions = useFarmerActions();
-  const farmerDeposits = useFarmerDepositedBalances().data;
+  const farmerDeposits = farmerSilo.deposits;
 
   const canClaim = farmerActions.claimRewards.enabled;
   const grownStalkPerToken = farmerSilo.grownStalkPerToken;
@@ -172,8 +172,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
             {renderClaimableRow()}
             {sortedTokens.map((token, i) => {
               const userData = farmerDeposits.get(token);
-              const grownStalk = grownStalkPerToken.get(token) || TokenValue.ZERO;
-
+              const grownStalk = grownStalkPerToken?.get(token) || TokenValue.ZERO;
               const amountOfDeposits = userData?.deposits.length || 0;
               const germinatingStalk =
                 userData?.deposits.reduce(

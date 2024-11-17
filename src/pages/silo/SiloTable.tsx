@@ -8,7 +8,7 @@ import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import Text from "@/components/ui/Text";
 import useFarmerActions from "@/hooks/useFarmerActions";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
@@ -20,7 +20,8 @@ import { useNavigate } from "react-router-dom";
 function SiloTable({ hovering }: { hovering: boolean }) {
   const siloData = useSiloData();
   const mainToken = useTokenData().mainToken;
-  const farmerDeposits = useFarmerDepositedBalances().data;
+  const farmerSilo = useFarmerSiloNew();
+  const farmerDeposits = farmerSilo.deposits;
   const SILO_WHITELIST = useTokenData().whitelistedTokens;
   const priceData = usePriceData();
   const farmerActions = useFarmerActions();
@@ -70,7 +71,6 @@ function SiloTable({ hovering }: { hovering: boolean }) {
             const depositBDV = userData ? userData.depositBDV : TokenValue.ZERO;
             const amount = userData ? userData.amount : TokenValue.ZERO;
 
-            // const germinatingBDV = data?.
             if (!data) return;
             return (
               <TableRow
@@ -139,7 +139,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                               {claimEnabled ? (
                                 <>
                                   <Text variant="sm" align="right" color="green4">
-                                  + {formatter.number(gains.bdvGain)}
+                                    + {formatter.number(gains.bdvGain)}
                                   </Text>
                                   <Text color="green4">{token.name}</Text>
                                 </>
@@ -148,20 +148,20 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                               )}
                             </span>
 
-                              {claimEnabled ? (
-                                <div className="inline-flex items-center gap-1">
-                                  <Text variant="sm-thin" align="right" color="light">
-                                    {formatter.usd(currentBDV.mul(priceData.price))} +{" "}
-                                  </Text>
-                                  <Text variant="sm-thin" align="right" color="green4">
-                                    {formatter.usd(gains.beanGain.mul(priceData.price))}
-                                  </Text>
-                                </div>
-                              ) : (
+                            {claimEnabled ? (
+                              <div className="inline-flex items-center gap-1">
                                 <Text variant="sm-thin" align="right" color="light">
-                                    {formatter.usd(currentBDV.mul(priceData.price))}
-                                  </Text>
-                              )}
+                                  {formatter.usd(currentBDV.mul(priceData.price))} +{" "}
+                                </Text>
+                                <Text variant="sm-thin" align="right" color="green4">
+                                  {formatter.usd(gains.beanGain.mul(priceData.price))}
+                                </Text>
+                              </div>
+                            ) : (
+                              <Text variant="sm-thin" align="right" color="light">
+                                {formatter.usd(currentBDV.mul(priceData.price))}
+                              </Text>
+                            )}
                           </>
                         ) : (
                           <>

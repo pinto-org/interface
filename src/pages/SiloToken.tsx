@@ -8,11 +8,12 @@ import APYChip from "@/components/APYChip";
 import { ExternalLinkIcon } from "@/components/Icons";
 import SiloActionBox from "@/components/SiloActionBox";
 import { Button } from "@/components/ui/Button";
+import DenominationSwitcher from "@/components/ui/DenominationSwitcher";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import { useSeedGauge } from "@/state/useSeedGauge";
 import { useSiloData } from "@/state/useSiloData";
@@ -26,18 +27,17 @@ import { useChainId, useConfig } from "wagmi";
 import DepositsTable from "../components/DepositsTable";
 import GerminationNotice from "./silo/GerminationNotice";
 import SiloActions from "./silo/SiloActions";
-import DenominationSwitcher from "@/components/ui/DenominationSwitcher";
 
 export default function SiloToken() {
   const { tokenAddress } = useParams();
   const tokenData = useTokenData();
   const siloData = useSiloData();
   const priceData = usePriceData();
-  const depositedBalances = useFarmerDepositedBalances();
+  const depositedBalances = useFarmerSiloNew().deposits;
 
   const siloToken = tokenData.whitelistedTokens.find((token) => stringEq(token.address, tokenAddress ?? ""));
   const siloTokenData = siloToken ? siloData.tokenData.get(siloToken) : undefined;
-  const farmerDeposits = siloToken ? depositedBalances.data.get(siloToken) : undefined;
+  const farmerDeposits = siloToken ? depositedBalances.get(siloToken) : undefined;
 
   if (!siloToken) {
     return <>404</>;
