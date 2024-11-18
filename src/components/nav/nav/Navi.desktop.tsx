@@ -121,16 +121,24 @@ const MoreNavi = () => {
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
-            <Link href={navLinks.discord} rel="noopener noreferrer" target="_blank">Discord</Link>
+            <Link href={navLinks.discord} rel="noopener noreferrer" target="_blank">
+              Discord
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.github} rel="noopener noreferrer" target="_blank">Github</Link>
+            <Link href={navLinks.github} rel="noopener noreferrer" target="_blank">
+              GitHub
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.disclosures} rel="noopener noreferrer" target="_blank">Disclosures</Link>
+            <Link href={navLinks.disclosures} rel="noopener noreferrer" target="_blank">
+              Disclosures
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.exchange} rel="noopener noreferrer" target="_blank">Exchange</Link>
+            <Link href={navLinks.exchange} rel="noopener noreferrer" target="_blank">
+              Exchange
+            </Link>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
