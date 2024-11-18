@@ -186,14 +186,14 @@ function MobileNavContent({
           </MobileNavLink>
           {docsOpen ? (
             <div className="flex flex-col gap-6  pl-4">
-              <MobileNavLink
+              {/* <MobileNavLink
                 variant="h4"
                 nested
                 href={navLinks.whitepaper}
                 onClick={unmount}
               >
                 Whitepaper
-              </MobileNavLink>
+              </MobileNavLink> */}
               <MobileNavLink
                 variant="h4"
                 nested
