@@ -5,6 +5,8 @@ import { useFarmerField } from "@/state/useFarmerField";
 import { useHarvestableIndex } from "@/state/useFieldData";
 import { formatter, truncateHex } from "@/utils/format";
 import { Plot } from "@/utils/types";
+import { HTMLMotionProps } from "framer-motion";
+import React, { forwardRef, HTMLAttributes } from "react";
 import { useNavigate } from "react-router-dom";
 import CheckmarkCircle from "./CheckmarkCircle";
 import { RightArrowIcon } from "./Icons";
@@ -12,80 +14,87 @@ import { Table, TableBody, TableCell, TableRow } from "./ui/Table";
 import Text from "./ui/Text";
 import { ToggleGroupItem } from "./ui/ToggleGroup";
 
-interface PlotRowProps {
-  plot: Plot;
-  harvestableIndex: TokenValue;
-  useToggle?: boolean;
-  isSelected?: boolean;
-  showClaimable?: boolean;
-}
+type PlotRowProps = HTMLMotionProps<"tr"> &
+  React.HTMLAttributes<HTMLTableRowElement> & {
+    plot: Plot;
+    harvestableIndex: TokenValue;
+    useToggle?: boolean;
+    isSelected?: boolean;
+    showClaimable?: boolean;
+  };
 
-const PlotRow = ({ plot, harvestableIndex, useToggle, isSelected, showClaimable }: PlotRowProps) => {
-  const placeInLine = plot.index.sub(harvestableIndex);
-  const isHarvesting = placeInLine.lt(0);
-  const harvestablePods = placeInLine.abs();
-  const nonHarvestablePods = plot.pods.sub(plot.harvestablePods);
+const PlotRow = forwardRef<HTMLTableRowElement, PlotRowProps>(
+  ({ plot, harvestableIndex, useToggle, isSelected, showClaimable, className, ...props }, ref) => {
+    const placeInLine = plot.index.sub(harvestableIndex);
+    const isHarvesting = placeInLine.lt(0);
+    const harvestablePods = placeInLine.abs();
+    const nonHarvestablePods = plot.pods.sub(plot.harvestablePods);
 
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
-  if (showClaimable) {
+    if (showClaimable) {
+      return (
+        <TableRow
+          className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 items-center hover:cursor-pointer"
+          data-action-target="claimable-rewards"
+          onClick={() => navigate("/field?action=harvest")}
+          ref={ref}
+          {...props}
+        >
+          <TableCell className="text-pinto-green-2 items-center">
+            <div className="flex items-center gap-1.5">
+              <div className="h-8 w-8 bg-pinto-green-4 rounded-full flex justify-center items-center text-white rotate-90">
+                <RightArrowIcon color="currentColor" />
+              </div>
+              <Text variant="body-light" color="green4">
+                Claimable
+              </Text>
+            </div>
+          </TableCell>
+          <TableCell className="text-pinto-green-2 text-right">
+            <div className="inline-flex items-center">
+              <Text variant="body-light" color="green4">
+                {formatter.number(harvestablePods)} Harvestable Pods
+              </Text>
+            </div>
+          </TableCell>
+        </TableRow>
+      );
+    }
+
     return (
       <TableRow
-        className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 items-center hover:cursor-pointer"
-        data-action-target="claimable-rewards"
-        onClick={() => navigate("/field?action=harvest")}
+        onClick={() => {
+          !useToggle && navigate("/field");
+        }}
+        className="h-[4.5rem] bg-transparent items-center hover:bg-pinto-green-1/50 hover:cursor-pointer"
+        ref={ref}
+        {...props}
       >
-        <TableCell className="text-pinto-green-2 items-center">
-          <div className="flex items-center gap-1.5">
-            <div className="h-8 w-8 bg-pinto-green-4 rounded-full flex justify-center items-center text-white rotate-90">
-              <RightArrowIcon color="currentColor" />
-            </div>
-            <Text variant="body-light" color="green4">
-              Claimable
-            </Text>
+        <TableCell className="text-black font-[400]">
+          <div className="gap-2 flex items-center">
+            {useToggle && <CheckmarkCircle isSelected={isSelected} />}
+            <img src={plotIcon} className="h-6 w-6" alt="Plot" />
+            <Text variant="body-light">Plot {truncateHex(plot.idHex)}</Text>
           </div>
         </TableCell>
-        <TableCell className="text-pinto-green-2 text-right">
-          <div className="inline-flex items-center">
-            <Text variant="body-light" color="green4">
-              {formatter.number(harvestablePods)} Harvestable Pods
+        <TableCell className="text-right">
+          <div className="inline-flex items-center gap-1.5">
+            <img src={podIcon} className="h-6 w-6" alt="Pods" />
+            <Text variant="body-light">{formatter.number(nonHarvestablePods)} Pods</Text>
+            <Text variant="body-light" color="light">
+              {` at `}
+            </Text>
+            <Text variant="body-light">
+              {formatter.number(isHarvesting ? TokenValue.ZERO : placeInLine)}
+              {" in the Pod Line"}
             </Text>
           </div>
         </TableCell>
       </TableRow>
     );
-  }
-
-  return (
-    <TableRow
-      onClick={() => {
-        !useToggle && navigate("/field");
-      }}
-      className="h-[4.5rem] bg-transparent items-center hover:bg-pinto-green-1/50 hover:cursor-pointer"
-    >
-      <TableCell className="text-black font-[400]">
-        <div className="gap-2 flex items-center">
-          {useToggle && <CheckmarkCircle isSelected={isSelected} />}
-          <img src={plotIcon} className="h-6 w-6" alt="Plot" />
-          <Text variant="body-light">Plot {truncateHex(plot.idHex)}</Text>
-        </div>
-      </TableCell>
-      <TableCell className="text-right">
-        <div className="inline-flex items-center gap-1.5">
-          <img src={podIcon} className="h-6 w-6" alt="Pods" />
-          <Text variant="body-light">{formatter.number(nonHarvestablePods)} Pods</Text>
-          <Text variant="body-light" color="light">
-            {` at `}
-          </Text>
-          <Text variant="body-light">
-            {formatter.number(isHarvesting ? TokenValue.ZERO : placeInLine)}
-            {" in the Pod Line"}
-          </Text>
-        </div>
-      </TableCell>
-    </TableRow>
-  );
-};
+  },
+);
 
 export default function PlotsTable({
   selected,

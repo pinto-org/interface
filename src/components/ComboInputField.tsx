@@ -8,7 +8,7 @@ import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
-import { formatter } from "@/utils/format";
+import { formatter, truncateHex } from "@/utils/format";
 import { FarmFromMode, Plot, Token } from "@/utils/types";
 import { useDebouncedEffect } from "@/utils/useDebounce";
 import { cn } from "@/utils/utils";
@@ -250,7 +250,7 @@ function ComboInputField({
   const plotIdsToShow = useMemo(() => {
     if (!selectedPlots?.length) return "";
     const sortedPlots = [...selectedPlots].sort((a, b) => Number(a.index.sub(b.index).toHuman()));
-    return sortedPlots.map((plot) => plot.index.toString()).join(", ");
+    return sortedPlots.map((plot) => truncateHex(plot.idHex)).join(", ");
   }, [selectedPlots]);
 
   return (
