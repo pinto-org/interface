@@ -110,10 +110,10 @@ export default function Swap() {
               variant={"outline"}
               className="rounded-[0.75rem] text-[1rem] text-black font-[500] -tracking-[0.02em] inline-flex gap-2"
             >
-              <Link to="/podmarket">
+              {/* <Link to="/podmarket">
                 Buy and sell Pods
                 <UpRightArrowIcon color={"currentColor"} />
-              </Link>
+              </Link> */}
             </Button>
             <SlippageButton slippage={slippage} setSlippage={setSlippage} />
           </div>

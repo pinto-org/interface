@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/Label";
 import { PODS } from "@/constants/internalTokens";
 import createPodOrder from "@/encoders/createPodOrder";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import { usePreferredInputToken } from "@/hooks/usePreferredInputToken";
 import useSwapEstimate from "@/hooks/useSwapEstimate";
 import { usePodIndex } from "@/state/useFieldData";
 import usePodOrders from "@/state/usePodOrders";
@@ -24,12 +25,26 @@ export default function CreateOrder() {
 
   const { address: account } = useAccount();
 
+  const { preferredToken, loading: preferredLoading } = usePreferredInputToken({
+    filterLP: true,
+  });
+
+  const [didSetPreferred, setDidSetPreferred] = useState(false);
   const [amountIn, setAmountIn] = useState("0");
   const [tokenIn, setTokenIn] = useState(mainToken);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.EXTERNAL);
   const [slippage, setSlippage] = useState(0.1);
 
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    // If we are still calculating the preferred token, set the token to the preferred token once it's been set.
+    if (preferredLoading) return;
+    if (preferredToken && !didSetPreferred) {
+      setTokenIn(preferredToken);
+      setDidSetPreferred(true);
+    }
+  }, [preferredToken, preferredLoading, didSetPreferred]);
 
   const podIndex = usePodIndex();
   const podOrders = usePodOrders();
@@ -150,6 +165,7 @@ export default function CreateOrder() {
           setBalanceFrom={setBalanceFrom}
           selectedToken={tokenIn}
           balanceFrom={balanceFrom}
+          tokenSelectLoading={preferredLoading || !didSetPreferred}
         />
       </div>
       <div className="flex flex-row gap-2 items-center">

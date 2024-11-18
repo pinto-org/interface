@@ -5,7 +5,7 @@ import Navbar from "./components/nav/nav/Navbar";
 import Explorer from "./pages/Explorer";
 import Field from "./pages/Field";
 import Landing from "./pages/Landing";
-import { Market } from "./pages/Market";
+// import { Market } from "./pages/Market";
 import Overview from "./pages/Overview";
 import Silo from "./pages/Silo";
 import SiloToken from "./pages/SiloToken";
@@ -32,9 +32,9 @@ function App() {
             <Route path="/silo/:tokenAddress/:action" element={<SiloToken />} />
             <Route path="/field" element={<Field />} />
             <Route path="/field/:action" element={<Field />} />
-            <Route path="/podmarket" element={<Market />} />
-            <Route path="/podmarket/:mode" element={<Market />} />
-            <Route path="/podmarket/:mode/:id" element={<Market />} />
+            {/* <Route path="/podmarket" element={<Market />} /> */}
+            {/* <Route path="/podmarket/:mode" element={<Market />} /> */}
+            {/* <Route path="/podmarket/:mode/:id" element={<Market />} /> */}
             <Route path="/market" element={<Swap />} />
             <Route path="/transfer" element={<Transfer />} />
             <Route path="/transfer/:mode" element={<Transfer />} />
