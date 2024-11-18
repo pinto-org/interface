@@ -2,16 +2,15 @@ import seedsIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { Label } from "@/components/ui/Label";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
-import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import { formatter } from "@/utils/format";
 import { useMemo } from "react";
 import { DepositTransferData } from "./actions/TransferDeposits";
 
 export default function DepositsList({ transferData }: { transferData?: DepositTransferData[] }) {
-  const farmerSilo = useFarmerSilo();
-  const farmerDeposits = useFarmerDepositedBalances();
+  const farmerSilo = useFarmerSiloNew();
+  const farmerDeposits = farmerSilo.deposits;
   const priceData = usePriceData();
 
   // Calculate deposits to show and their values
@@ -21,7 +20,7 @@ export default function DepositsList({ transferData }: { transferData?: DepositT
       const tokenCalculations = transferData
         .map((data) => {
           // Get the total deposit for this token
-          const totalTokenDeposit = farmerDeposits.data.get(data.token);
+          const totalTokenDeposit = farmerDeposits.get(data.token);
           if (!totalTokenDeposit) return null;
 
           // Calculate percentage of total being transferred
@@ -63,7 +62,7 @@ export default function DepositsList({ transferData }: { transferData?: DepositT
       };
     } else {
       // Using all deposits
-      const deposits = [...farmerDeposits.data]
+      const deposits = [...farmerDeposits]
         .map(([token, deposit]) => ({
           token,
           deposit,
@@ -76,7 +75,7 @@ export default function DepositsList({ transferData }: { transferData?: DepositT
         totalSeeds: farmerSilo.activeSeedsBalance,
       };
     }
-  }, [transferData, farmerDeposits.data, farmerSilo]);
+  }, [transferData, farmerDeposits, farmerSilo]);
 
   const isSingleDeposit = depositsToShow.length === 1;
 

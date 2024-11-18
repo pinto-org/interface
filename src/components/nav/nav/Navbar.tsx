@@ -2,8 +2,7 @@ import HelperLink from "@/components/HelperLink";
 import { ScrollHideComponent } from "@/components/ScrollHideComponent";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
-import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import useFieldSnapshots from "@/state/useFieldSnapshots";
 import { usePriceData } from "@/state/usePriceData";
 import useSiloSnapshots from "@/state/useSiloSnapshots";
@@ -38,9 +37,8 @@ const Navbar = () => {
 
   const farmerActions = useFarmerActions();
   const farmerBalances = useFarmerBalances();
-  const farmerDeposits = useFarmerDepositedBalances();
   const priceData = usePriceData();
-  const farmerSilo = useFarmerSilo();
+  const farmerSilo = useFarmerSiloNew();
   const invalidateSun = useInvalidateSun();
 
   const fieldSnapshots = useFieldSnapshots();
@@ -70,12 +68,7 @@ const Navbar = () => {
 
   const invalidateData = (panel: Panel) => {
     if (panel === "wallet") {
-      const allQueryKeys = [
-        ...priceData.queryKeys,
-        ...farmerSilo.queryKeys,
-        ...farmerBalances.queryKeys,
-        farmerDeposits.queryKey,
-      ];
+      const allQueryKeys = [...priceData.queryKeys, ...farmerSilo.queryKeys, ...farmerBalances.queryKeys];
       allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query, refetchType: "active" }));
     } else if (panel === "seasons") {
       const allQueryKeys = [fieldSnapshots.queryKey, siloSnapshots.queryKey];
