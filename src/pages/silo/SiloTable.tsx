@@ -3,8 +3,10 @@ import pdvIcon from "@/assets/protocol/PDV.png";
 import seedsIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
+import APYTooltip from "@/components/APYTooltip";
 import { InlineCenterSpan } from "@/components/Container";
 import { UpArrowIcon } from "@/components/Icons";
+import TooltipSimple from "@/components/TooltipSimple";
 import IconImage from "@/components/ui/IconImage";
 import { Separator } from "@/components/ui/Separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
@@ -259,24 +261,26 @@ const APYHeader = () => {
   return (
     <InlineCenterSpan className="gap-2">
       Reward
-      <span className="flex flex-row gap-2 items-center rounded-full bg-pinto-green-1 px-2 py-1">
-        <Text as="span" variant="xs" color="green4" className="inline-flex items-center leading-none">
-          <InlineCenterSpan gap1>
-            <IconImage src={PINTO.logoURI} size={4} /> vAPY
-          </InlineCenterSpan>
-        </Text>
-        <Text as="span" variant="xs" color="green4" className="leading-none">
-          24H
-        </Text>
-        <SeparatorVertical />
-        <Text as="span" variant="xs" color="green4" className="leading-none">
-          7D
-        </Text>
-        <SeparatorVertical />
-        <Text as="span" variant="xs" color="green4" className="leading-none">
-          30D
-        </Text>
-      </span>
+      <TooltipSimple content={<APYTooltip />}>
+        <span className="flex flex-row gap-2 items-center rounded-full bg-pinto-green-1 px-2 py-1">
+          <Text as="span" variant="xs" color="green4" className="inline-flex items-center leading-none">
+            <InlineCenterSpan gap1>
+              <IconImage src={PINTO.logoURI} size={4} /> vAPY
+            </InlineCenterSpan>
+          </Text>
+          <Text as="span" variant="xs" color="green4" className="leading-none">
+            24H
+          </Text>
+          <SeparatorVertical />
+          <Text as="span" variant="xs" color="green4" className="leading-none">
+            7D
+          </Text>
+          <SeparatorVertical />
+          <Text as="span" variant="xs" color="green4" className="leading-none">
+            30D
+          </Text>
+        </span>
+      </TooltipSimple>
     </InlineCenterSpan>
   );
 };
@@ -288,32 +292,34 @@ const formatAPY = (apy: number | undefined) => {
 
 const APYCell = ({ apys }: { apys: ExtendSiloTokenYield | undefined }) => {
   return (
-    <div className="flex flex-row gap-1 items-center rounded-full bg-pinto-green-1 px-2 py-1">
-      <Text color="green4" variant="xs" className="flex flex-row gap-1">
-        <Text
-          variant="inherit"
-          color="inherit"
-          className={cn("leading-none", apys?.ema24.notApplicable && "opacity-50")}
-        >
-          {apys?.ema24.notApplicable ? "N/A" : formatAPY(apys?.ema24.apy)}
+    <TooltipSimple content={<APYTooltip />}>
+      <div className="flex flex-row gap-1 items-center rounded-full bg-pinto-green-1 px-2 py-1">
+        <Text color="green4" variant="xs" className="flex flex-row gap-1">
+          <Text
+            variant="inherit"
+            color="inherit"
+            className={cn("leading-none", apys?.ema24.notApplicable && "opacity-50")}
+          >
+            {apys?.ema24.notApplicable ? "N/A" : formatAPY(apys?.ema24.apy)}
+          </Text>
+          <SeparatorVertical />
+          <Text
+            variant="inherit"
+            color="inherit"
+            className={cn("leading-none", apys?.ema168.notApplicable && "opacity-50")}
+          >
+            {apys?.ema168.notApplicable ? "N/A" : formatAPY(apys?.ema168.apy)}
+          </Text>
+          <SeparatorVertical />
+          <Text
+            variant="inherit"
+            color="inherit"
+            className={cn("leading-none", apys?.ema720.notApplicable && "opacity-50")}
+          >
+            {apys?.ema720.notApplicable ? "N/A" : formatAPY(apys?.ema720.apy)}
+          </Text>
         </Text>
-        <SeparatorVertical />
-        <Text
-          variant="inherit"
-          color="inherit"
-          className={cn("leading-none", apys?.ema168.notApplicable && "opacity-50")}
-        >
-          {apys?.ema168.notApplicable ? "N/A" : formatAPY(apys?.ema168.apy)}
-        </Text>
-        <SeparatorVertical />
-        <Text
-          variant="inherit"
-          color="inherit"
-          className={cn("leading-none", apys?.ema720.notApplicable && "opacity-50")}
-        >
-          {apys?.ema720.notApplicable ? "N/A" : formatAPY(apys?.ema720.apy)}
-        </Text>
-      </Text>
-    </div>
+      </div>
+    </TooltipSimple>
   );
 };
