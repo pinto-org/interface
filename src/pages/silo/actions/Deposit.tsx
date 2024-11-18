@@ -51,15 +51,14 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const [slippage, setSlippage] = useState(0.5);
   const qc = useQueryClient();
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Only set once
   useEffect(() => {
     // If we are still calculating the preferred token, set the token to the preferred token once it's been set.
     if (preferredLoading) return;
-    if (preferredToken && amountIn === "0" && !didSetPreferred) {
-      setDidSetPreferred(true);
+    if (preferredToken && !didSetPreferred) {
       setTokenIn(preferredToken);
+      setDidSetPreferred(true);
     }
-  }, [preferredToken, preferredLoading]);
+  }, [preferredToken, preferredLoading, didSetPreferred]);
 
   const useSwap = !(tokenIn.address.toLowerCase() === siloToken.address.toLowerCase());
 
@@ -195,7 +194,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
           setBalanceFrom={setBalanceFrom}
           selectedToken={tokenIn}
           balanceFrom={balanceFrom}
-          tokenSelectLoading={preferredLoading}
+          tokenSelectLoading={!didSetPreferred || preferredLoading}
         />
         {depositOutput && (
           <div className="mt-6">

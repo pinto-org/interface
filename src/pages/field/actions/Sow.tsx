@@ -31,6 +31,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover";
 import useDelayedLoading from "@/hooks/display/useDelayedLoading";
+import { usePreferredInputToken } from "@/hooks/usePreferredInputToken";
 import { useDebouncedEffect } from "@/utils/useDebounce";
 import { getBalanceFromMode } from "@/utils/utils";
 
@@ -76,10 +77,22 @@ function Sow({ isMorning }: SowProps) {
   const mainToken = useTokenData().mainToken;
   const queryClient = useQueryClient();
 
+  const { preferredToken, loading: preferredLoading } = usePreferredInputToken({ filterLP: true });
+  const [didSetPreferred, setDidSetPreferred] = useState(false);
+
   const [amountIn, setAmountIn] = useState("0");
-  const [tokenIn, setTokenIn] = useState(mainToken);
+  const [tokenIn, setTokenIn] = useState(preferredToken);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.EXTERNAL);
   const [slippage, setSlippage] = useState(0.1);
+
+  useEffect(() => {
+    // If we are still calculating the preferred token, set the token to the preferred token once it's been set.
+    if (preferredLoading) return;
+    if (preferredToken && !didSetPreferred) {
+      setTokenIn(preferredToken);
+      setDidSetPreferred(true);
+    }
+  }, [preferredToken, preferredLoading, didSetPreferred]);
 
   const currentTemperature = temperature.scaled;
   const [minTemperature, setMinTemperature] = useState(Math.max(currentTemperature.toNumber(), 1));
@@ -262,6 +275,7 @@ function Sow({ isMorning }: SowProps) {
           balanceFrom={balanceFrom}
           disableButton={isConfirming}
           altText={balanceExceedsSoil ? "Usable balance:" : undefined}
+          tokenSelectLoading={preferredLoading || !didSetPreferred}
         />
       </div>
 

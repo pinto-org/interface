@@ -4,6 +4,7 @@ import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { usePriceData } from "@/state/usePriceData";
 import { formatter } from "@/utils/format";
 import { FarmFromMode, Token } from "@/utils/types";
+import { cn } from "@/utils/utils";
 import { useState } from "react";
 import { Address } from "viem";
 import { useAccount } from "wagmi";
@@ -114,7 +115,7 @@ export default function TokenSelectWithBalances({
           {isLoading ? (
             <>
               <Skeleton className={size === "small" ? "w-5 h-5 rounded-full" : "w-6 h-6 rounded-full"} />
-              <Skeleton className="h-5 w-10 sm:w-14 rounded-sm" />
+              <Skeleton className={cn("h-5 rounded-sm", !disabled ? "sm:w-20" : "sm:w-14")} />
             </>
           ) : (
             <>
