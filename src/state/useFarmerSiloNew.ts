@@ -28,24 +28,6 @@ interface DepositQuery {
   depositedBDV: bigint;
 }
 
-interface WellsPlenty {
-  plentyPerRoot: string;
-  plenty: string;
-  _buffer: string[];
-}
-
-interface FarmerSop {
-  well: string;
-  wellsPlenty: WellsPlenty;
-}
-
-interface FarmerSopsData {
-  lastRain: number;
-  lastSop: number;
-  roots: string;
-  farmerSops: FarmerSop[];
-}
-
 function calculateGerminationInfo(stem: TokenValue, stemTip: TokenValue, stalkEarnedPerSeason: TokenValue) {
   const SEASON_LENGTH = 3600;
   const germinatingStem = stemTip.sub(stalkEarnedPerSeason);
@@ -145,7 +127,7 @@ const abiSnippet = [
       },
     ],
   },
-];
+] as const;
 
 export function useFarmerSiloNew() {
   const account = useAccount();
@@ -195,8 +177,11 @@ export function useFarmerSiloNew() {
   });
 
   // Fetch Plant events
+  const plantQueryKey = useMemo(() => {
+    return ["plantEvents", account.address, chainId];
+  }, [account.address, chainId]);
   const plantEvents = useQuery({
-    queryKey: ["plantEvents", account.address, chainId],
+    queryKey: plantQueryKey,
     queryFn: async () => {
       if (!config || !client || !protocolAddress) return;
       // Get current block
@@ -230,8 +215,11 @@ export function useFarmerSiloNew() {
   });
 
   // Fetch Deposit events
+  const depositQueryKey = useMemo(() => {
+    return ["depositEvents", account.address, chainId];
+  }, [account.address, chainId]);
   const depositEvents = useQuery({
-    queryKey: ["depositEvents", account.address, chainId],
+    queryKey: depositQueryKey,
     queryFn: async () => {
       if (!config || !client || !protocolAddress) return;
       // Get current block
@@ -311,10 +299,7 @@ export function useFarmerSiloNew() {
     args: [getFloodCallArguments(SILO_WHITELIST, account.address ?? ZERO_ADDRESS)],
     query: {
       enabled: Boolean(account.address),
-      select: (data): FarmerSopsData => {
-        const decoded = decodeAbiParameters(abiSnippet[0].outputs, data.result[1]);
-        return decoded[0] as FarmerSopsData;
-      },
+      select: (data) => decodeAbiParameters(abiSnippet[0].outputs, data.result[1])[0],
     },
   });
 
@@ -517,7 +502,7 @@ export function useFarmerSiloNew() {
                 backingAsset,
                 wellsPlenty: {
                   plenty: TokenValue.fromBlockchain(sopToken.wellsPlenty.plenty, backingAsset.decimals),
-                  plentyPerRoot: BigInt(sopToken.wellsPlenty.plentyPerRoot),
+                  plentyPerRoot: sopToken.wellsPlenty.plentyPerRoot,
                 },
               });
             }
@@ -542,6 +527,8 @@ export function useFarmerSiloNew() {
       grownStalkPerToken.queryKey,
       mowStatusPerToken.queryKey,
       floodData.queryKey,
+      plantQueryKey,
+      depositQueryKey,
     ],
     [
       activeStalkBalance.queryKey,
@@ -549,6 +536,8 @@ export function useFarmerSiloNew() {
       grownStalkPerToken.queryKey,
       mowStatusPerToken.queryKey,
       floodData.queryKey,
+      plantQueryKey,
+      depositQueryKey,
     ],
   );
 
@@ -584,6 +573,9 @@ export function useFarmerSiloNew() {
       return Promise.all([
         activeStalkBalance.refetch(),
         earnedBeansBalance.refetch(),
+        plantEvents.refetch(),
+        depositEvents.refetch(),
+        floodData.refetch(),
         grownStalkPerToken.refetch(),
         mowStatusPerToken.refetch(),
       ]);
