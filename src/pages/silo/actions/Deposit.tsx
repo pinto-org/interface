@@ -7,6 +7,7 @@ import SmartSubmitButton from "@/components/SmartSubmitButton";
 import Text from "@/components/ui/Text";
 import deposit from "@/encoders/deposit";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { usePreferredInputToken } from "@/hooks/usePreferredInputToken";
 import useSwapEstimate from "@/hooks/useSwapEstimate";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
@@ -19,16 +20,11 @@ import { stringEq, stringToNumber } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { estimateGas } from "@wagmi/core";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
-import { useConfig } from "wagmi";
 
 function Deposit({ siloToken }: { siloToken: Token }) {
-  const config = useConfig();
-  // silo - deposit
   const diamondAddress = useProtocolAddress();
   const farmerBalances = useFarmerBalances();
   const depositedBalances = useFarmerDepositedBalances();
@@ -36,19 +32,33 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   // console.log("config", config);
   const account = useAccount();
 
+  const { preferredToken, loading: preferredLoading } = usePreferredInputToken({
+    filterLP: true,
+    token: siloToken,
+  });
+
   const pools = usePriceData().pools;
   const tokenData = useTokenData();
   const mainToken = tokenData.mainToken;
 
   const siloData = useSiloData();
 
+  const [didSetPreferred, setDidSetPreferred] = useState(false);
   const [amountIn, setAmountIn] = useState("0");
-  const [tokenIn, setTokenIn] = useState(siloToken);
+  const [tokenIn, setTokenIn] = useState(preferredToken);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.INTERNAL_EXTERNAL);
   const [pool, setPool] = useState<PoolData | undefined>(undefined);
   const [slippage, setSlippage] = useState(0.5);
-
   const qc = useQueryClient();
+
+  useEffect(() => {
+    // If we are still calculating the preferred token, set the token to the preferred token once it's been set.
+    if (preferredLoading) return;
+    if (preferredToken && !didSetPreferred) {
+      setTokenIn(preferredToken);
+      setDidSetPreferred(true);
+    }
+  }, [preferredToken, preferredLoading, didSetPreferred]);
 
   const useSwap = !(tokenIn.address.toLowerCase() === siloToken.address.toLowerCase());
 
@@ -184,6 +194,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
           setBalanceFrom={setBalanceFrom}
           selectedToken={tokenIn}
           balanceFrom={balanceFrom}
+          tokenSelectLoading={!didSetPreferred || preferredLoading}
         />
 
         {depositOutput && (

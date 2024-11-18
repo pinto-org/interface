@@ -169,9 +169,10 @@ export function usePriceData() {
 
   return useMemo(() => {
     return {
+      loading: priceQuery.isLoading,
       ...priceResults,
       tokenPrices,
       queryKeys: [priceQuery.queryKey, result.queryKey],
     };
-  }, [priceResults, tokenPrices, priceQuery.queryKey, result.queryKey]);
+  }, [priceResults, tokenPrices, priceQuery.queryKey, result.queryKey, priceQuery.isLoading]);
 }

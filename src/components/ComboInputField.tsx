@@ -27,6 +27,7 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
   setBalanceFrom?: Dispatch<SetStateAction<FarmFromMode>>;
   balanceFrom?: FarmFromMode;
   balancesToShow?: FarmFromMode[];
+  tokenSelectLoading?: boolean;
 
   // Amount props
   amount: string;
@@ -74,6 +75,7 @@ function ComboInputField({
   setPlots,
   plotSelectionType,
   inputFrameColor,
+  tokenSelectLoading,
 }: ComboInputProps) {
   const tokenData = useTokenData();
   const { balances } = useFarmerBalances();
@@ -266,7 +268,9 @@ function ComboInputField({
                 min={0}
                 type="number"
                 disabled={disableInput}
-                className="flex w-full pr-1 text-[2rem] h-[2.2rem] leading-[2.2rem] text-black font-[400] align-middle focus-visible:outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className={
+                  "flex w-full pr-1 text-[2rem] h-[2.2rem] leading-[2.2rem] text-black font-[400] align-middle focus-visible:outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:opacity-100"
+                }
                 value={disableInput ? amount : displayValue}
                 onChange={(e) => changeValue(e.target.value)}
               />
@@ -285,6 +289,7 @@ function ComboInputField({
                     balancesToShow={balancesToShow}
                     tokenAndBalanceMap={tokenAndBalanceMap}
                     disabled={disableButton}
+                    isLoading={tokenSelectLoading}
                   />
                 )}
           </div>

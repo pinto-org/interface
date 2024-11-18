@@ -265,24 +265,24 @@ export const tokens: { [chainId: number]: Token[] } = {
 };
 
 // Protocol Token
-export const PINTO = tokens[defaultChain][0];
+export const PINTO = MAIN_TOKEN[defaultChain];
 
 // Native Chain Token
-export const ETH = tokens[defaultChain][1];
+export const ETH = NATIVE_TOKEN[defaultChain][1];
 
 // Well LP Tokens
-export const PINTOWETH = tokens[defaultChain][2];
-export const PINTOCBETH = tokens[defaultChain][3];
-export const PINTOUSDC = tokens[defaultChain][4];
-export const PINTOCBBTC = tokens[defaultChain][5];
-export const PINTOWSOL = tokens[defaultChain][6];
+export const PINTOWETH = LP_TOKENS[defaultChain][0];
+export const PINTOCBETH = LP_TOKENS[defaultChain][1];
+export const PINTOUSDC = LP_TOKENS[defaultChain][2];
+export const PINTOCBBTC = LP_TOKENS[defaultChain][3];
+export const PINTOWSOL = LP_TOKENS[defaultChain][4];
 
 // Underlying Tokens
-export const WETH = tokens[defaultChain][7];
-export const USDC = tokens[defaultChain][8];
-export const CBETH = tokens[defaultChain][9];
-export const CBBTC = tokens[defaultChain][10];
-export const WSOL = tokens[defaultChain][11];
+export const WETH = UNDERLYING_TOKENS[defaultChain][0];
+export const USDC = UNDERLYING_TOKENS[defaultChain][1];
+export const CBETH = UNDERLYING_TOKENS[defaultChain][2];
+export const CBBTC = UNDERLYING_TOKENS[defaultChain][3];
+export const WSOL = UNDERLYING_TOKENS[defaultChain][4];
 
 // {
 //   chainId: base.id,
