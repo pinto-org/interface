@@ -66,7 +66,7 @@ export const LP_TOKENS: ChainLookup<Token[]> = {
       decimals: 18,
       isLP: true,
       logoURI: pintoWethIcon,
-      color: "#627EEA",
+      color: "#8C8C8C",
       tokens: ["0xBEA0005B8599265D41256905A9B3073D397812E4", "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1"],
     },
     {
@@ -90,7 +90,7 @@ export const LP_TOKENS: ChainLookup<Token[]> = {
       decimals: 18,
       isLP: true,
       logoURI: pintoWethIcon,
-      color: "#627EEA",
+      color: "#8C8C8C",
       tokens: ["0xb170000aeeFa790fa61D6e837d1035906839a3c8", "0x4200000000000000000000000000000000000006"],
     },
     {
@@ -152,7 +152,7 @@ export const UNDERLYING_TOKENS: ChainLookup<Token[]> = {
       isWhitelisted: true,
       logoURI:
         "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png",
-      color: "#627EEA",
+      color: "#8C8C8C",
     },
     {
       chainId: arbitrum.id,
@@ -176,7 +176,7 @@ export const UNDERLYING_TOKENS: ChainLookup<Token[]> = {
       isWhitelisted: true,
       logoURI:
         "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png",
-      color: "#627EEA",
+      color: "#8C8C8C",
     },
     {
       chainId: base.id,
