@@ -33,7 +33,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   const deposits = farmerDepositData?.deposits;
 
   const convertData = new Map<Token, TokenValue>();
-  convertData.set(fromToken, farmerDepositData ? farmerDepositData.convertibleAmount : TokenValue.ZERO);
+  convertData.set(fromToken, farmerDepositData ? farmerDepositData.amount : TokenValue.ZERO);
 
   const queryClient = useQueryClient();
 
