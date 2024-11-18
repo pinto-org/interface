@@ -124,7 +124,7 @@ const MoreNavi = () => {
             <Link href={navLinks.discord}>Discord</Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.github}>Github</Link>
+            <Link href={navLinks.github}>GitHub</Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
             <Link href={navLinks.disclosures}>Disclosures</Link>

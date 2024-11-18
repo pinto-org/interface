@@ -101,7 +101,7 @@ function Silo() {
           <div className="flex flex-col gap-4">
             <Text variant="h3">Deposit Whitelist</Text>
             <Text variant="body-light" color="light">
-              These are deposits which are currently incentivized by Pinto.
+              These are Deposits which are currently incentivized by Pinto.
             </Text>
             <div className="relative action-container">
               <SiloTable hovering={hoveredButton === "claim"} />
