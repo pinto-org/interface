@@ -31,7 +31,6 @@ interface DepositQuery {
 function calculateGerminationInfo(stem: TokenValue, stemTip: TokenValue, stalkEarnedPerSeason: TokenValue) {
   const SEASON_LENGTH = 3600;
   const germinatingStem = stemTip.sub(stalkEarnedPerSeason);
-  console.log("stem", stem, stemTip, germinatingStem);
   if (stem.lt(germinatingStem)) {
     return undefined;
   }
@@ -268,7 +267,6 @@ export function useFarmerSiloNew() {
       let totalGerminatingStalk = TokenValue.fromBlockchain(0n, STALK.decimals);
       let totalSeeds = TokenValue.fromBlockchain(0n, SEEDS.decimals);
 
-      console.log("plantdepositmap: ", plantDepositMap);
       tokenDeposits.forEach((deposit) => {
         const plantInfo = !plantDepositMap
           ? undefined
@@ -277,7 +275,6 @@ export function useFarmerSiloNew() {
               plantedAmount: 0n,
             };
 
-        console.log("DEPOSIT: ", deposit);
         const isPlantDeposit = plantInfo?.isPlantDeposit;
         const isGerminating = plantInfo?.isPlantDeposit || deposit.stem >= siloTokenData.germinatingStem.toBigInt();
         const _depositBDV = TokenValue.fromBlockchain(deposit.depositedBDV, BEAN.decimals);
@@ -319,7 +316,6 @@ export function useFarmerSiloNew() {
           siloTokenData.stemTip,
           siloTokenData.tokenSettings.stalkEarnedPerSeason,
         );
-        console.log("germdate: ", germinationDate);
 
         const thisDeposit: DepositData = {
           id: deposit.id,

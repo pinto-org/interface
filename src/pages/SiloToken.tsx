@@ -98,7 +98,6 @@ const SiloTokenActions = ({ siloToken, farmerDeposits }: ISiloTokenActions) => {
         <SiloActions token={siloToken} />
       </div>
       {farmerDeposits?.deposits.map((farmerDeposit) => {
-        console.log("DEPOSITS: ", farmerDeposit.isGerminating || farmerDeposit.isPlantDeposit);
         if (farmerDeposit.isGerminating || farmerDeposit.isPlantDeposit) {
           return <GerminationNotice type="single" deposit={farmerDeposit} />;
         }
