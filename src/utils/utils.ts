@@ -86,3 +86,90 @@ export function timeRemaining(time: Date, targetTime?: Date) {
 
   return diffHrs > 0 ? `${diffHrs}h ${diffMins}m ${diffSecs}s` : `${diffMins}m ${diffSecs}s`;
 }
+
+interface PlantEventData {
+  amount: bigint;
+  blockHash: string;
+  transactionHash: string;
+}
+
+interface DepositEventData {
+  amount: bigint;
+  stem: bigint;
+  blockHash: string;
+  transactionHash: string;
+}
+
+interface PlantDepositMap {
+  [key: string]: {
+    plant?: PlantEventData;
+    deposit?: DepositEventData;
+  };
+}
+
+interface PlantDepositInfo {
+  isPlantDeposit: boolean;
+  plantedAmount: bigint;
+}
+
+export function identifyPlantDeposits(
+  deposits: any[],
+  plantEvents: PlantEventData[] | undefined,
+  depositEvents: DepositEventData[] | undefined,
+): Map<string, PlantDepositInfo> {
+  // Create lookup by transaction hash
+  const eventMap: PlantDepositMap = {};
+
+  // Group plant and deposit events by transaction hash
+  plantEvents?.forEach((plant) => {
+    if (!eventMap[plant.transactionHash]) {
+      eventMap[plant.transactionHash] = {};
+    }
+    eventMap[plant.transactionHash].plant = plant;
+  });
+
+  depositEvents?.forEach((deposit) => {
+    if (!eventMap[deposit.transactionHash]) {
+      eventMap[deposit.transactionHash] = {};
+    }
+    eventMap[deposit.transactionHash].deposit = deposit;
+  });
+
+  // Map deposit IDs to their plant deposit info
+  const plantDepositMap = new Map<string, PlantDepositInfo>();
+
+  deposits.forEach((deposit) => {
+    let isPlantDeposit = false;
+    let plantedAmount = 0n;
+
+    // Check all transactions that could contain this deposit
+    Object.values(eventMap).forEach((events) => {
+      if (events.plant && events.deposit) {
+        // Direct match - amount and stem match exactly
+        if (events.deposit.amount === deposit.depositedAmount && events.deposit.stem === deposit.stem) {
+          isPlantDeposit = true;
+          plantedAmount = events.plant.amount;
+        }
+
+        // Combined deposit case - plant amount is part of total amount
+        // and stems match
+        if (events.deposit.stem === deposit.stem && deposit.depositedAmount >= events.plant.amount) {
+          const remainder = deposit.depositedAmount - events.plant.amount;
+          // Allow for small remainder from regular deposit combined with plant
+          if (remainder === 0n || remainder >= 1000000n) {
+            // Minimum reasonable deposit size
+            isPlantDeposit = true;
+            plantedAmount = events.plant.amount;
+          }
+        }
+      }
+    });
+
+    plantDepositMap.set(deposit.id.toString(), {
+      isPlantDeposit,
+      plantedAmount,
+    });
+  });
+
+  return plantDepositMap;
+}

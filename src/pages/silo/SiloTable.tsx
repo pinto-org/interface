@@ -68,9 +68,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
               Total Value Deposited
             </TableHead>
             {/* <TableHead className="text-black text-right font-[400] text-[1rem] w-[20%]">My Deposited Amount</TableHead> */}
-            <TableHead className="text-black text-right font-[400] text-[1rem] w-[30%] p-4">
-              My Deposits
-            </TableHead>
+            <TableHead className="text-black text-right font-[400] text-[1rem] w-[30%] p-4">My Deposits</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -87,10 +85,14 @@ function SiloTable({ hovering }: { hovering: boolean }) {
             const depositBDV = userData ? userData.depositBDV : TokenValue.ZERO;
             const amount = userData ? userData.amount : TokenValue.ZERO;
 
+            const hasGerminatingDeposits = farmerSilo.deposits
+              .get(token)
+              ?.deposits.some((deposit) => deposit.isGerminating);
+
             if (!data) return;
             return (
               <TableRow
-                className="h-[4.5rem] bg-white hover:bg-pinto-green-1/50 hover:cursor-pointer"
+                className={`h-[4.5rem] ${hasGerminatingDeposits ? "bg-pinto-off-green/15" : "bg-white"} hover:bg-pinto-green-1/50 hover:cursor-pointer`}
                 key={`silo_table_${token.address}`}
                 onClick={() => navigate(`/silo/${token.address}`)}
                 data-action-target={`token-row-${token.address}`}
