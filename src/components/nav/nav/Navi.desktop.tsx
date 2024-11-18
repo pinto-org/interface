@@ -98,9 +98,9 @@ const DocNavi = () => {
     >
       <NavigationMenu>
         <NavigationMenuList>
-          <NavigationMenuItem>
+          {/* <NavigationMenuItem>
             <Link href={navLinks.whitepaper}>Whitepaper</Link>
-          </NavigationMenuItem>
+          </NavigationMenuItem> */}
           <NavigationMenuItem>
             <Link href={navLinks.docs}>Documentation</Link>
           </NavigationMenuItem>
@@ -121,16 +121,16 @@ const MoreNavi = () => {
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
-            <Link href={navLinks.discord}>Discord</Link>
+            <Link href={navLinks.discord} rel="noopener noreferrer" target="_blank">Discord</Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.github}>Github</Link>
+            <Link href={navLinks.github} rel="noopener noreferrer" target="_blank">Github</Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.disclosures}>Disclosures</Link>
+            <Link href={navLinks.disclosures} rel="noopener noreferrer" target="_blank">Disclosures</Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.exchange}>Exchange</Link>
+            <Link href={navLinks.exchange} rel="noopener noreferrer" target="_blank">Exchange</Link>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
@@ -156,7 +156,7 @@ export default function Navi() {
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem onMouseEnter={() => setNaviTab("docs")}>
-            <Link active={naviTab === "docs"} href={navLinks.docs} topMenu>
+            <Link active={naviTab === "docs"} href={navLinks.docs} rel="noopener noreferrer" target="_blank" topMenu>
               Docs
             </Link>
           </NavigationMenuItem>
