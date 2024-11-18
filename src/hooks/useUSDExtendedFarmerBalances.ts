@@ -12,10 +12,10 @@ export type USDExtendedFarmerBalances = {
 };
 
 export default function useUSDExtendedFarmerBalances() {
-  const { balances } = useFarmerBalances();
-  const { tokenPrices } = usePriceData();
+  const { balances, loading } = useFarmerBalances();
+  const { tokenPrices, loading: priceLoading } = usePriceData();
 
-  return useMemo(() => {
+  const usdExtendedBalances = useMemo(() => {
     const tokenMap: Lookup<USDExtendedFarmerBalances> = {};
 
     for (const [token, balance] of balances) {
@@ -38,4 +38,9 @@ export default function useUSDExtendedFarmerBalances() {
 
     return tokenMap;
   }, [balances, tokenPrices]);
+
+  return {
+    loading: loading || priceLoading,
+    data: usdExtendedBalances,
+  };
 }

@@ -28,14 +28,14 @@ export interface UsePreferredTokenProps {
   filter?: Token[];
 }
 
-export function usePreferredTokenInput(args?: UsePreferredTokenProps): Token {
-  const farmerBalances = useUSDExtendedFarmerBalances();
+export function usePreferredInputToken(args?: UsePreferredTokenProps) {
+  const { data: farmerBalances, loading } = useUSDExtendedFarmerBalances();
   const lp2Underlying = useLPTokenToNonPintoUnderlyingMap("lp2Underlying");
 
   const tokenMap = useTokenMap();
   const chainId = useResolvedChainId();
 
-  return useMemo(() => {
+  const preferredToken = useMemo(() => {
     const balances = { ...farmerBalances }; // shallow copy
 
     filterBalances(balances, tokenMap, args);
@@ -58,6 +58,11 @@ export function usePreferredTokenInput(args?: UsePreferredTokenProps): Token {
 
     return sortedByUSD[0].token;
   }, [farmerBalances, tokenMap, args, lp2Underlying, chainId]);
+
+  return {
+    loading,
+    preferredToken,
+  };
 }
 
 function sortByUSDDesc(a: USDExtendedFarmerBalances, b: USDExtendedFarmerBalances) {
