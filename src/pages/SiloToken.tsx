@@ -1,6 +1,8 @@
 import copyIcon from "@/assets/misc/Copy.svg";
 import etherscanIcon from "@/assets/misc/Etherscan.png";
 import backArrowIcon from "@/assets/misc/LeftArrow.svg";
+import pintoexchangelogo from "@/assets/misc/pinto-exchange-logo.svg";
+import portalbridgelogo from "@/assets/misc/portal-bridge-logo.svg";
 import seedsIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
@@ -15,6 +17,7 @@ import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
 import { useDenomination } from "@/hooks/useAppSettings";
+import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import { useSeedGauge } from "@/state/useSeedGauge";
@@ -26,15 +29,12 @@ import { formatter } from "@/utils/format";
 import { stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { SiloTokenData, Token, TokenDepositData } from "@/utils/types";
+import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useChainId, useConfig } from "wagmi";
 import DepositsTable from "../components/DepositsTable";
 import SiloActions from "./silo/SiloActions";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
-import pintoexchangelogo from "@/assets/misc/pinto-exchange-logo.svg";
-import portalbridgelogo from "@/assets/misc/portal-bridge-logo.svg";
-import { InfoCircledIcon } from "@radix-ui/react-icons";
 
 export default function SiloToken() {
   const { tokenAddress } = useParams();
@@ -182,27 +182,35 @@ interface ISiloTokenAbout extends IBaseSiloToken {
   siloData: ReturnType<typeof useSiloData>;
 }
 
+type SiloBDVs = {
+  siloTVD: TokenValue;
+  liquidityTVD: TokenValue;
+};
+
 const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
   const seedGauge = useSeedGauge();
   const siloTokenData = siloData.tokenData.get(siloToken);
   const denomination = useDenomination();
 
-  const siloTVD = [...siloData.tokenData]
-    .map(([token, data]) => ({ token, data }))
-    .reduce((total, siloData) => siloData.data.depositedBDV.add(total), TokenValue.ZERO);
+  const { siloTVD, liquidityTVD } = [...siloData.tokenData.entries()].reduce<SiloBDVs>(
+    (prev, [token, data]) => {
+      const bdv = data.depositedBDV.add(data.germinatingBDV);
 
-  const liquidityTVD = [...siloData.tokenData]
-    .map(([token, data]) => ({ token, data }))
-    .reduce(
-      (total, siloData) => (siloData.token.isLP ? TokenValue.ZERO : siloData.data.depositedBDV).add(total),
-      TokenValue.ZERO,
-    );
+      prev.siloTVD = prev.siloTVD.add(bdv);
+      if (token.isLP) {
+        prev.liquidityTVD = prev.liquidityTVD.add(bdv);
+      }
+      return prev;
+    },
+    { siloTVD: TokenValue.ZERO, liquidityTVD: TokenValue.ZERO },
+  );
+
+  const depositedBDV = siloTokenData?.depositedBDV.add(siloTokenData?.germinatingBDV ?? TokenValue.ZERO);
 
   const gaugeData = seedGauge.data.gaugeData[getTokenIndex(siloToken)];
-  const liquidityRatio = siloTokenData?.depositedBDV.div(liquidityTVD.gt(0) ? liquidityTVD : TokenValue.ONE);
+  const liquidityRatio = depositedBDV?.div(liquidityTVD.gt(0) ? liquidityTVD : TokenValue.ONE).mul(100);
   const optimalDepositedRatio = gaugeData?.optimalPctDepositedBdv;
 
-  const depositedBDV = siloTokenData?.depositedBDV;
   const tvdUSD = depositedBDV?.mul(price);
   const depositedRatio = depositedBDV?.div(siloTVD.gt(0) ? siloTVD : TokenValue.ONE).mul(100);
 
@@ -270,6 +278,9 @@ interface IFarmerSiloTokenDeposits extends IBaseSiloToken {
 
 const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price }: IFarmerSiloTokenDeposits) => {
   const denomination = useDenomination();
+
+  const stalkAmount = farmerDeposits?.stalk.total.sub(farmerDeposits?.stalk.germinating ?? TokenValue.ZERO);
+
   return (
     <div className="flex flex-row gap-16">
       <div className="flex flex-col gap-2">
@@ -296,7 +307,7 @@ const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price }: IFarmerSi
           </Text>
           <div className="inline-flex flex-row items-center gap-1">
             <IconImage src={stalkIcon} size={6} alt="Stalk" />
-            <Text variant="h4">{formatter.twoDec(farmerDeposits?.stalk.total)}</Text>
+            <Text variant="h4">{formatter.twoDec(stalkAmount)}</Text>
           </div>
         </div>
         <div className="flex flex-col gap-2">

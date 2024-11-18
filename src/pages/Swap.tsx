@@ -173,6 +173,7 @@ export default function Swap() {
                 submitFunction={onSubmit}
                 submitButtonText="Swap"
                 className="h-[5.25rem]"
+                variant="gradient"
               />
             </div>
           </div>

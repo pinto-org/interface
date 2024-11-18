@@ -147,6 +147,7 @@ function DefaultConvert({
 
   const { writeWithEstimateGas, isConfirming, submitting, setSubmitting } = useTransaction({
     successMessage: "Convert successful",
+    errorMessage: "Convert failed",
     successCallback: () => {
       setAmountIn("0");
       queryClient.invalidateQueries({ queryKey: maxConvertQuery.queryKey });
@@ -189,12 +190,7 @@ function DefaultConvert({
       if (!deposits) throw new Error("No deposits found");
       if (minAmountOut.lte(0)) throw new Error("No convert quote");
 
-      const formattedAmountIn = formatter.token(debouncedAmountIn, siloToken);
-      const formattedAmountOut = formatter.token(minAmountOut, targetToken);
-
-      toast.loading(
-        `Converting ${formattedAmountIn} ${siloToken.symbol} for ${formattedAmountOut} ${targetToken.symbol}`,
-      );
+      toast.loading(`Converting...`);
 
       const depositCrates = sortAndPickCrates(
         "convert",
@@ -225,7 +221,7 @@ function DefaultConvert({
       });
     } catch (e) {
       console.error(e);
-      toast.error(e instanceof Error ? e.message : "Convert failed");
+      toast.error("Convert failed");
       return e;
     } finally {
       setSubmitting(false);
@@ -318,7 +314,15 @@ function DefaultConvert({
           seeds={convertData.seeds}
         />
       ) : null}
-      <Button type="button" rounded="full" width="full" size="xxl" onClick={onSubmit} disabled={disabled}>
+      <Button
+        variant="gradient"
+        type="button"
+        rounded="full"
+        width="full"
+        size="xxl"
+        onClick={onSubmit}
+        disabled={disabled}
+      >
         Convert
       </Button>
     </div>
@@ -554,7 +558,15 @@ const PipelineConvert = ({
         />
       ) : null}
       <div className="flex flex-row gap-2">
-        <Button type="button" rounded="full" width="full" size="xxl" onClick={onSubmit} disabled={disabled}>
+        <Button
+          variant="gradient"
+          type="button"
+          rounded="full"
+          width="full"
+          size="xxl"
+          onClick={onSubmit}
+          disabled={disabled}
+        >
           Convert
         </Button>
       </div>
@@ -865,7 +877,6 @@ const SiloConvertTokenSelectComponent = ({ siloToken }: BaseConvertProps) => {
       setShowOtherTokens(false);
     }
   };
-
   // Effects
   useEffect(() => {
     if (!open && showOtherTokens) {

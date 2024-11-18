@@ -120,6 +120,7 @@ export default function useTransaction({
   // biome-ignore lint/correctness/useExhaustiveDependencies: Run only when hash changes or txn was successful.
   useEffect(() => {
     if (receipt.isSuccess && hash && hashes.current && hashes.current.has(hash)) {
+      setSubmitting(false);
       hashes.current.delete(hash);
       successCallback?.(receipt.data);
       toast.dismiss();
@@ -131,6 +132,7 @@ export default function useTransaction({
   useEffect(() => {
     if (!receipt.error) return;
     if (hash && hashes.current && hashes.current.has(hash)) {
+      setSubmitting(false);
       hashes.current.delete(hash);
       toast.dismiss();
 
@@ -155,8 +157,6 @@ export default function useTransaction({
           value: args.value,
         });
         onEstimateGas?.(gas);
-        setSubmitting(false);
-
         const value = args.value;
 
         const gasWithBuffer = gas ? (gas * 120n) / 100n : undefined;
@@ -173,6 +173,7 @@ export default function useTransaction({
           gas: gasWithBuffer,
         });
       } catch (e: any) {
+        setSubmitting(false);
         const parsedError = parseError(e, errorMessage);
         const enrichedError = new Error(`Failed to write contract with gas estimation: ${parsedError}`, { cause: e });
         console.error(enrichedError);

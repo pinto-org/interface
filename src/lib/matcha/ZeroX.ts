@@ -32,8 +32,6 @@ export class ZeroX {
       throw new Error("API key is not set");
     }
 
-    console.log("args", args);
-
     const fetchArgs = Array.isArray(args) ? args : [args];
 
     const requests = fetchArgs.map((params) => {

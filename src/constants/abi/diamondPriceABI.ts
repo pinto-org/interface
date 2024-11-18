@@ -13,6 +13,262 @@ export const diamondPriceABI = [
   {
     inputs: [
       {
+        internalType: "uint256",
+        name: "beans",
+        type: "uint256",
+      },
+    ],
+    name: "getBestWellForBeanIn",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "well",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "token",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "usdValue",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "amountOut",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct WellPrice.SwapData",
+        name: "sd",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "usdAmount",
+        type: "uint256",
+      },
+    ],
+    name: "getBestWellForUsdIn",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "well",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "token",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "usdValue",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "amountOut",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct WellPrice.SwapData",
+        name: "sd",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "well",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "beans",
+        type: "uint256",
+      },
+    ],
+    name: "getSwapDataBeanIn",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "well",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "token",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "usdValue",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "amountOut",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct WellPrice.SwapData",
+        name: "sd",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "beans",
+        type: "uint256",
+      },
+    ],
+    name: "getSwapDataBeanInAll",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "well",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "token",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "usdValue",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "amountOut",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct WellPrice.SwapData[]",
+        name: "sds",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "well",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "usdAmount",
+        type: "uint256",
+      },
+    ],
+    name: "getSwapDataUsdIn",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "well",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "token",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "usdValue",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "amountOut",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct WellPrice.SwapData",
+        name: "sd",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "usdAmount",
+        type: "uint256",
+      },
+    ],
+    name: "getSwapDataUsdInAll",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "well",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "token",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "usdValue",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "amountOut",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct WellPrice.SwapData[]",
+        name: "sds",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "address",
         name: "wellAddress",
         type: "address",

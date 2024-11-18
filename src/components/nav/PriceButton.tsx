@@ -7,12 +7,11 @@ import { Button } from "@/components/ui/Button";
 import IconImage from "@/components/ui/IconImage";
 import Panel from "@/components/ui/Panel";
 import useIsMobile from "@/hooks/display/useIsMobile";
-import { usePriceData } from "@/state/usePriceData";
+import { usePriceData, useTwaDeltaBQuery } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
-import clsx from "clsx";
 import { HTMLAttributes } from "react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -28,6 +27,7 @@ import Text from "../ui/Text";
 function PriceButtonPanel() {
   const priceData = usePriceData();
   const tokenData = useTokenData();
+  const twaDeltaB = useTwaDeltaBQuery();
   const chainId = useChainId();
 
   const mainTokenBalances = priceData.pools.flatMap((pool) =>
@@ -46,6 +46,8 @@ function PriceButtonPanel() {
   const [useTwa, setUseTwa] = useState(false);
   const [expandAll, setExpandAll] = useState(false);
   const [showPrices, setShowPrices] = useState(false);
+
+  const combinedDeltaB = priceData.pools.reduce((total, pool) => total.add(pool.deltaB), TokenValue.ZERO);
 
   return (
     <>
@@ -76,7 +78,7 @@ function PriceButtonPanel() {
                 color="green3"
                 className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] inline-flex items-center gap-1"
               >
-                Total deltaP: {formatter.twoDec(priceData.deltaB, { showPositiveSign: true })}
+                Total deltaP: {formatter.twoDec(useTwa ? twaDeltaB.data : combinedDeltaB, { showPositiveSign: true })}
                 <TooltipSimple
                   content={
                     useTwa

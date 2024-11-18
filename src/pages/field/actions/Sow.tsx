@@ -22,7 +22,6 @@ import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { BaseError } from "viem";
 import { useAccount } from "wagmi";
 
 import settingsIcon from "@/assets/misc/Settings.svg";
@@ -46,24 +45,18 @@ const useMaxSow = (tokenIn: Token, slippage: number) => {
   const isMainToken = tokenIn.isMain;
 
   const swap = useSwapEstimate(
-    tokenIn,
     mainToken,
+    tokenIn,
     isMainToken ? 0 : Math.max(totalSoil.toNumber(), 0),
     slippage,
-    "exactOutput",
+    "exactInput",
     FarmFromMode.EXTERNAL,
     FarmToMode.EXTERNAL,
     undefined,
     totalSoil.lte(0),
   );
 
-  return useMemo(() => {
-    if (tokenIn.isMain) {
-      return totalSoil;
-    }
-
-    return swap?.output;
-  }, [swap?.output, tokenIn.isMain, totalSoil]);
+  return tokenIn.isMain ? totalSoil : swap?.output;
 };
 
 function Sow({ isMorning }: SowProps) {
@@ -107,6 +100,8 @@ function Sow({ isMorning }: SowProps) {
       farmerFieldQueryKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
       queryClient.invalidateQueries({ queryKey: farmerBalances.queryKeys });
     },
+    errorMessage: "Sow failed",
+    successMessage: "Sow successful",
   });
 
   const maxSow = useMaxSow(tokenIn, slippage);
@@ -162,9 +157,7 @@ function Sow({ isMorning }: SowProps) {
         throw new Error("Amount must be greater than 0");
       }
 
-      toast.loading(
-        `Sowing ${formatter.token(amountIn, tokenIn)} ${tokenIn.symbol} for ${formatter.token(pods, PODS)} Pods`,
-      );
+      toast.loading(`Sowing...`);
 
       // temperature at 6 decimals
       const _minTemp = TokenValue.fromHuman(minTemperature, PODS.decimals);
@@ -202,7 +195,7 @@ function Sow({ isMorning }: SowProps) {
     } catch (e) {
       console.error(e);
       toast.dismiss();
-      toast.error((e as BaseError).shortMessage || "Transaction failed.");
+      toast.error("Sow failed");
       throw e;
     } finally {
       setSubmitting(false);
@@ -211,7 +204,6 @@ function Sow({ isMorning }: SowProps) {
     writeWithEstimateGas,
     setSubmitting,
     diamond,
-    pods,
     slippage,
     swapData,
     account.address,
@@ -298,7 +290,7 @@ function Sow({ isMorning }: SowProps) {
       ) : null}
       <div className="flex flex-row gap-2">
         <SmartSubmitButton
-          variant={isMorning ? "morning" : undefined}
+          variant={isMorning ? "morning" : "gradient"}
           disabled={isLoading || isConfirming || submitting || !ready}
           token={tokenIn}
           amount={amountIn}

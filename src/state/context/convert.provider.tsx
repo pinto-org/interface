@@ -9,7 +9,7 @@ import { getTokenIndex } from "@/utils/token";
 import { AddressMap, Token } from "@/utils/types";
 import { Prettify } from "@/utils/types.generic";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useMemo } from "react";
 
 interface SiloTokenState {
   /**
@@ -62,6 +62,7 @@ export type SiloTokenConvertState = Prettify<SiloTokenState & { paths: AddressMa
 
 const usePrepareConvertContext = () => {
   const priceData = usePriceData();
+
   const tokenData = useTokenData();
   const seedGauge = useSeedGauge();
   const wells = useWells();
@@ -122,7 +123,7 @@ const usePrepareConvertContext = () => {
         }
 
         // Disable converts LP -> PINTO when pool deltaB < 0
-        if (target.isMain && fromToken.isLP && fromState.pool?.deltaB.gte(0)) {
+        if (target.isMain && fromToken.isLP && fromState.pool?.deltaB.gt(0)) {
           data.enabled = false;
         }
 

@@ -33,7 +33,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   const deposits = farmerDepositData?.deposits;
 
   const convertData = new Map<Token, TokenValue>();
-  convertData.set(fromToken, farmerDepositData ? farmerDepositData.convertibleAmount : TokenValue.ZERO);
+  convertData.set(fromToken, farmerDepositData ? farmerDepositData.amount : TokenValue.ZERO);
 
   const queryClient = useQueryClient();
 
@@ -44,6 +44,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const { isConfirming, writeContractAsync, submitting, setSubmitting } = useTransaction({
     successMessage: "Withdraw successful",
+    errorMessage: "Withdraw failed",
     successCallback: onSuccess,
   });
 
@@ -53,7 +54,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     try {
       setSubmitting(true);
       const amountTV = TokenValue.fromHuman(amount || 0, fromToken.decimals);
-      toast.loading(`Withdrawing ${formatter.number(amountTV)} ${fromToken.symbol}...`);
+      toast.loading(`Withdrawing...`);
       const transferData = sortAndPickCrates("withdraw", amountTV, deposits);
 
       const stems = transferData.crates.map((crate) => crate.stem.toBlockchain());
@@ -98,8 +99,10 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       console.error(e);
       setSubmitting(false);
       toast.dismiss();
-      toast.error(e instanceof Error ? e.message : "Transaction failed.");
+      toast.error("Withdraw failed");
       throw e;
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -150,9 +153,13 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       )}
       <div>
         <Button
-          className="w-full flex grow h-[3.75rem] rounded-full text-[1.5rem]"
           onClick={onSubmit}
           disabled={disabled}
+          variant="gradient"
+          type="button"
+          rounded="full"
+          width="full"
+          size="xxl"
         >
           {"Withdraw"}
         </Button>
