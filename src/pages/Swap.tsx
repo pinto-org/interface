@@ -149,7 +149,6 @@ export default function Swap() {
               selectedToken={tokenOut}
               isLoading={swapData?.isLoading || false}
               disableInput
-              disableInlineBalance
             />
           </div>
           <div>
