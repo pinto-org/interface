@@ -132,7 +132,7 @@ const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPa
                           </span>
                         </Text>
                         <Text variant="xs" color="light" className="inline-flex gap-0.5 items-center justify-end">
-                          Crop Ratio
+                          Crop Scalar
                           <TooltipSimple
                             variant="gray"
                             content={"The ratio of Seeds per PDV reward for Pinto relative to at least 1 LP token."}
