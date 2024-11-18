@@ -314,7 +314,15 @@ function DefaultConvert({
           seeds={convertData.seeds}
         />
       ) : null}
-      <Button type="button" rounded="full" width="full" size="xxl" onClick={onSubmit} disabled={disabled}>
+      <Button
+        variant="gradient"
+        type="button"
+        rounded="full"
+        width="full"
+        size="xxl"
+        onClick={onSubmit}
+        disabled={disabled}
+      >
         Convert
       </Button>
     </div>
@@ -550,7 +558,15 @@ const PipelineConvert = ({
         />
       ) : null}
       <div className="flex flex-row gap-2">
-        <Button type="button" rounded="full" width="full" size="xxl" onClick={onSubmit} disabled={disabled}>
+        <Button
+          variant="gradient"
+          type="button"
+          rounded="full"
+          width="full"
+          size="xxl"
+          onClick={onSubmit}
+          disabled={disabled}
+        >
           Convert
         </Button>
       </div>

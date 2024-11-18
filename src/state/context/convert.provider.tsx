@@ -122,7 +122,7 @@ const usePrepareConvertContext = () => {
         }
 
         // Disable converts LP -> PINTO when pool deltaB < 0
-        if (target.isMain && fromToken.isLP && fromState.pool?.deltaB.gte(0)) {
+        if (target.isMain && fromToken.isLP && fromState.pool?.deltaB.lte(0)) {
           data.enabled = false;
         }
 

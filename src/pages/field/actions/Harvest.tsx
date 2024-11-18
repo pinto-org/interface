@@ -61,8 +61,8 @@ function Harvest({ isMorning }: HarvestProps) {
   });
 
   const onSubmit = useCallback(async () => {
+    setSubmitting(true);
     try {
-      setSubmitting(true);
       if (!account.address) throw new Error("Signer required");
       if (!plots.length) throw new Error("No plots to harvest");
       if (harvestableAmount.lte(0)) throw new Error("No harvestable pods");
@@ -131,7 +131,7 @@ function Harvest({ isMorning }: HarvestProps) {
         </Text>
       )}
       <SmartSubmitButton
-        variant={isMorning ? "morning" : undefined}
+        variant={isMorning ? "morning" : "gradient"}
         type="button"
         token={undefined}
         disabled={harvestableAmount.eq(0) || isConfirming || submitting}

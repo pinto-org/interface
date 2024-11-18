@@ -208,6 +208,8 @@ function Deposit({ siloToken }: { siloToken: Token }) {
       </div>
       <div className="flex flex-row gap-2">
         <SmartSubmitButton
+          variant="gradient"
+          size="xxl"
           token={tokenIn}
           disabled={disabled}
           amount={amountIn}

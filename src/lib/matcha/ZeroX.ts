@@ -32,8 +32,6 @@ export class ZeroX {
       throw new Error("API key is not set");
     }
 
-    console.log("args", args);
-
     const fetchArgs = Array.isArray(args) ? args : [args];
 
     const requests = fetchArgs.map((params) => {
@@ -44,6 +42,8 @@ export class ZeroX {
       if (!params.sellAmount && !params.buyAmount) {
         throw new Error("sellAmount or buyAmount is required");
       }
+
+      console.log("params", args);
 
       const urlParams = new URLSearchParams(ZeroX.generateQuoteParams(params) as unknown as Record<string, string>);
 

@@ -1,9 +1,11 @@
 import { TokenValue } from "@/classes/TokenValue";
-import { beanstalkAbi, beanstalkAddress, useReadBeanstalkPrice_Price } from "@/generated/contractHooks";
+import { defaultQuerySettings } from "@/constants/query";
+import { beanstalkAbi, useReadBeanstalkPrice_Price } from "@/generated/contractHooks";
+import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { Token } from "@/utils/types";
 import { useMemo } from "react";
-import { Abi, Address } from "viem";
-import { useChainId, useReadContracts } from "wagmi";
+import { Abi } from "viem";
+import { useReadContract, useReadContracts } from "wagmi";
 import useTokenData from "./useTokenData";
 
 const settings = {
@@ -30,13 +32,25 @@ export function usePriceQuery() {
   return useReadBeanstalkPrice_Price(settings);
 }
 
+export function useTwaDeltaBQuery() {
+  const diamond = useProtocolAddress();
+  return useReadContract({
+    address: diamond,
+    abi: beanstalkAbi,
+    functionName: "totalDeltaB",
+    query: {
+      ...defaultQuerySettings,
+      select: (data) => TokenValue.fromBlockchain(data, 6),
+    },
+  });
+}
+
 export function usePriceData() {
   const tokenData = useTokenData();
-  const chainId = useChainId();
   const nativeToken = tokenData.nativeToken;
   const wrappedNativeToken = tokenData.wrappedNativeToken;
 
-  const protocolAddress: Address = beanstalkAddress[chainId as keyof typeof beanstalkAddress];
+  const protocolAddress = useProtocolAddress();
 
   const tokensToFetch = tokenData.preferredTokens.filter((token) => !token.isMain);
 
