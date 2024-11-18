@@ -34,11 +34,12 @@ const buttonVariants = cva(
         "outline-primary": `${outlineBase} ${primaryBase}`,
         "outline-secondary": `${outlineBase} ${secondaryBase}`,
         "outline-gray-shadow": `${outlineBase} ${outlineShadowBase}`,
+        "outline-white": "border border-pinto-gray-2 bg-white hover:bg-pinto-gray-2/50 hover:text-accent-foreground",
         secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-pinto-gray-2 hover:hover:bg-pinto-gray-2/50",
         link: "text-primary underline-offset-4 hover:underline",
         "silo-action":
-          "px-2 hover:bg-pinto-green-1 h-[2.5rem] rounded-[0.75rem] font-[400] text-[1.25rem] text-pinto-gray-5 flex flex-row justify-start gap-[0.625rem] disabled:bg-transparent disabled:text-pinto-gray-5 disabled:opacity-30",
+          "hover:bg-pinto-green-1 h-[2.5rem] rounded-[1rem] font-[400] text-[1.25rem] text-pinto-gray-5 flex flex-row justify-start gap-[0.625rem] disabled:bg-transparent disabled:text-pinto-gray-5 disabled:opacity-30",
         morning: "bg-pinto-morning-orange text-pinto-morning",
         gradient: "bg-gradient-primary text-white hover:bg-gradient-primary-hover",
       },

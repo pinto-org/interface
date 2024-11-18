@@ -59,7 +59,7 @@ function Field() {
           <MorningPanel />
           <FieldStats />
           <DynamicTemperatureChart />
-          <div className="flex flex-row items-center justify-between rounded-[1.25rem] p-6 bg-pinto-off-white border-pinto-gray-2 border w-full">
+          <div className="flex flex-row items-center justify-between rounded-[1rem] p-6 bg-pinto-off-white border-pinto-gray-2 border w-full">
             <div className="flex flex-col gap-2">
               <Text variant="body-light" color="light">
                 Previously Harvested Pods which have been redeemed for one Pinto
@@ -87,7 +87,7 @@ function Field() {
             <FieldActions />
           </OnlyMorningCard>
           {/* <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border"></div> */}
-          <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border flex flex-col gap-2">
+          <div className="p-4 rounded-[1rem] bg-pinto-off-white border-pinto-gray-2 border flex flex-col gap-2">
             <Button
               className="w-full"
               variant="silo-action"

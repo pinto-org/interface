@@ -102,7 +102,7 @@ const VerticalAccordionTrigger = React.forwardRef<HTMLButtonElement, Omit<Button
       rounded="some"
       width="full"
       className={cn(
-        `flex flex-row bg-pinto-gray-1 hover:bg-pinto-gray-2/40 p-2 ${deriveTextStyles("sm", true)}`,
+        `flex flex-row bg-pinto-gray-1 hover:bg-pinto-gray-2/40 p-2 h-14 ${deriveTextStyles("sm", true)}`,
         disableOpen && "cursor-default hover:pg-pinto-gray-1",
         props.className,
       )}

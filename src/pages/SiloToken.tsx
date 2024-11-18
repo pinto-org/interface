@@ -31,6 +31,10 @@ import { toast } from "sonner";
 import { useChainId, useConfig } from "wagmi";
 import DepositsTable from "../components/DepositsTable";
 import SiloActions from "./silo/SiloActions";
+import { useFarmerBalances } from "@/state/useFarmerBalances";
+import pintoexchangelogo from "@/assets/misc/pinto-exchange-logo.svg";
+import portalbridgelogo from "@/assets/misc/portal-bridge-logo.svg";
+import { InfoCircledIcon } from "@radix-ui/react-icons";
 
 export default function SiloToken() {
   const { tokenAddress } = useParams();
@@ -39,14 +43,22 @@ export default function SiloToken() {
   const priceData = usePriceData();
   const apysQuery = useSiloTokenAPYs(tokenAddress);
   const depositedBalances = useFarmerSiloNew().deposits;
+  const farmerBalances = useFarmerBalances();
 
   const siloToken = tokenData.whitelistedTokens.find((token) => stringEq(token.address, tokenAddress ?? ""));
   const siloTokenData = siloToken ? siloData.tokenData.get(siloToken) : undefined;
   const farmerDeposits = siloToken ? depositedBalances.get(siloToken) : undefined;
 
+  const isMain = Boolean(siloToken?.isMain);
+
   if (!siloToken) {
     return <>404</>;
   }
+
+  const farmerBalanceSiloTokenAmount: TokenValue = farmerBalances.balances.get(siloToken)?.total ?? TokenValue.ZERO;
+
+  // what's the logic here?
+  // if they already have the token, then they already know to bridge it over
 
   return (
     // Add pt-4 to container b/c backbutton overflows to the top for some reason.
@@ -58,9 +70,8 @@ export default function SiloToken() {
             <div className="flex flex-col w-full gap-14 items-start">
               <div className="flex flex-col w-full gap-6">
                 <SiloTokenSubHeader siloTokenData={siloTokenData} apys={apysQuery.data} />
-                {siloToken.name === "PINTOWSOL LP" && <SiloTokenWSOLWarningHeader />}
                 <Separator />
-                <div className="pt-6">
+                <div className="pt-8">
                   <FarmerSiloTokenDeposits
                     siloToken={siloToken}
                     farmerDeposits={farmerDeposits}
@@ -68,8 +79,21 @@ export default function SiloToken() {
                   />
                 </div>
               </div>
-              <div className="w-full border border-pinto-gray-2 rounded-[1rem] overflow-clip">
-                <DepositsTable token={siloToken} />
+              <div className="flex flex-col gap-y-6 w-full">
+                {farmerBalanceSiloTokenAmount.gt(0) ? (
+                  <UndepositedSiloTokenInfoHeader
+                    siloToken={siloToken}
+                    farmerBalanceSiloTokenAmount={farmerBalanceSiloTokenAmount}
+                    isMain={isMain}
+                  />
+                ) : (
+                  siloToken.name === "PINTOWSOL LP" && <SiloTokenWSOLWarningHeader />
+                )}
+                <div className="flex flex-col gap-6 w-full">
+                  <div className="w-full border border-pinto-gray-2 rounded-[1rem] overflow-clip">
+                    <DepositsTable token={siloToken} />
+                  </div>
+                </div>
               </div>
               <SiloTokenAbout siloToken={siloToken} price={priceData.price} siloData={siloData} />
             </div>
@@ -94,7 +118,7 @@ interface ISiloTokenActions extends IBaseSiloToken {
 const SiloTokenActions = ({ siloToken, farmerDeposits }: ISiloTokenActions) => {
   return (
     <div className="flex flex-col w-full gap-6">
-      <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border">
+      <div className="p-4 rounded-[1rem] bg-pinto-off-white border-pinto-gray-2 border">
         <SiloActions token={siloToken} />
       </div>
       {farmerDeposits?.deposits.map((farmerDeposit) => {
@@ -105,6 +129,51 @@ const SiloTokenActions = ({ siloToken, farmerDeposits }: ISiloTokenActions) => {
       })}
       <SiloActionBox farmerDeposits={farmerDeposits} />
     </div>
+  );
+};
+
+interface IUndepositedSiloToken extends IBaseSiloToken {
+  farmerBalanceSiloTokenAmount: TokenValue;
+  isMain: boolean;
+}
+
+const UndepositedSiloTokenInfoHeader = ({ siloToken, farmerBalanceSiloTokenAmount, isMain }: IUndepositedSiloToken) => {
+  const chainId = useChainId();
+
+  return (
+    <>
+      {isMain ? (
+        <div className="flex flex-row bg-pinto-off-white border p-4 rounded-[1rem] gap-x-2 items-center w-auto">
+          <IconImage src={InfoCircledIcon} size={4} alt="warning icon" />
+
+          <Text variant="sm" weight="regular" color="primary" className="leading-2">
+            You have {formatter.token(farmerBalanceSiloTokenAmount.toNumber(), siloToken)} {siloToken.name} not
+            currently Deposited. Deposit them to earn yield when the Price of Pinto is greater than $1.
+          </Text>
+        </div>
+      ) : (
+        <div className="flex flex-col bg-pinto-off-white border p-4 rounded-[1rem] gap-y-2">
+          <div className="flex flex-row gap-x-2 items-center">
+            <Text variant="sm" weight="regular" color="primary" className="leading-2">
+              You have {formatter.token(farmerBalanceSiloTokenAmount.toNumber(), siloToken)} {siloToken.name} not
+              currently Deposited. Deposit them to earn yield or unwrap via the Pinto Exchange.
+            </Text>
+          </div>
+          <Button variant="outline-white" className="flex gap-x-2" asChild>
+            <Link
+              to={`https://pinto.exchange/#/wells/${chainId}/${siloToken.address}/liquidity`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <IconImage src={pintoexchangelogo} size={6} alt="pintoexchangelogo" />
+              <Text variant="sm" weight="medium" color="primary" className="leading-2">
+                Unwrap via Pinto Exchange
+              </Text>
+            </Link>
+          </Button>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -354,15 +423,21 @@ const SiloTokenHeader = ({ siloToken }: IBaseSiloToken) => {
 
 const SiloTokenWSOLWarningHeader = () => {
   return (
-    <div className="bg-white border rounded-[0.75rem] p-4 rounded-md">
-      <Text variant="body" weight="thin" color="primary" className="leading-2">
+    <div className="flex flex-col bg-pinto-off-white border rounded-[1rem] p-4 gap-y-4">
+      <Text variant="sm" weight="regular" color="primary" className="leading-2">
         WSOL liquidity on Base is limited, which may result in worse price execution if attempting to Deposit with any
-        other token than WSOL. To avoid this, you can bridge SOL directly from the Solana network using the{" "}
-        <a href="https://portalbridge.com/" style={{ color: "#387F5C" }}>
-          Portal Bridge
-        </a>
-        .
+        other token than WSOL. To avoid this, you can bridge SOL directly from the Solana network using the Portal
+        Bridge.
       </Text>
+
+      <Button variant="outline-white" className="gap-x-2" asChild>
+        <Link to={"https://portalbridge.com"} target="_blank" rel="noopener noreferrer">
+          <IconImage src={portalbridgelogo} size={6} alt="portal-bridge" />
+          <Text variant="sm" weight="medium" color="primary" className="leading-2">
+            Bridge WSOL through the Portal Bridge
+          </Text>
+        </Link>
+      </Button>
     </div>
   );
 };
