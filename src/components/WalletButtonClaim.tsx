@@ -3,7 +3,7 @@ import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
@@ -29,7 +29,7 @@ export default function WalletButtonClaim({
   const diamond = useProtocolAddress();
 
   const { queryKeys } = useFarmerBalances();
-  const farmerSilo = useFarmerSilo();
+  const farmerSilo = useFarmerSiloNew();
   const siloQueryKeys = farmerSilo.queryKeys;
   const priceData = usePriceData();
   const { whitelistedTokens } = useTokenData();

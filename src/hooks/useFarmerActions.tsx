@@ -3,6 +3,7 @@ import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { PoolData, usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
@@ -415,8 +416,8 @@ function calculateUpdateGains(depositData: TokenDepositData, siloTokenData: Silo
 export default function useFarmerActions(): FarmerActions {
   const account = useAccount();
   const farmerBalances = useFarmerBalances();
-  const farmerDeposits = useFarmerDepositedBalances();
-  const farmerSilo = useFarmerSilo();
+  const farmerSilo = useFarmerSiloNew();
+  const farmerDeposits = farmerSilo.deposits;
   const farmerField = useFarmerField();
   const priceData = usePriceData();
   const tokenData = useTokenData();
@@ -552,7 +553,7 @@ export default function useFarmerActions(): FarmerActions {
       tokenData,
       siloData,
       priceData,
-      farmerDeposits.data,
+      farmerDeposits,
     );
 
     // Calculate wallet values by token
@@ -613,7 +614,7 @@ export default function useFarmerActions(): FarmerActions {
     let hasUpdatableDeposits = false;
 
     // Go through each deposited token
-    farmerDeposits.data.forEach((depositData, token) => {
+    farmerDeposits.forEach((depositData, token) => {
       const siloTokenData = siloData.tokenData.get(token);
       if (!siloTokenData) return;
 

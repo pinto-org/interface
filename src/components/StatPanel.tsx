@@ -9,7 +9,6 @@ import { ReactNode } from "react";
 import TooltipSimple from "./TooltipSimple";
 import DenominationSwitcher from "./ui/DenominationSwitcher";
 import Text from "./ui/Text";
-import { div } from "three/webgpu";
 
 interface StatPanelProps {
   mode: "depositedValue" | "stalk" | "seeds" | "pods";
@@ -95,7 +94,7 @@ const StatPanel = ({
           {showActionValues && actionValue && actionValue.gt(0.01) ? (
             <>
               <img src={getIcon(mode)} className="h-4 w-6" alt={mode.toUpperCase()} />
-              <span>{formatter.pdv(secondaryValue.add(actionValue))}</span>
+              <span>{formatter.pdv(secondaryValue)}</span>
               <span className="text-pinto-green-4">{`+${formatter.pdv(actionValue)}`}</span>
             </>
           ) : (
