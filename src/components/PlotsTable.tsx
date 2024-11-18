@@ -34,7 +34,7 @@ const PlotRow = ({ plot, harvestableIndex, useToggle, isSelected, showClaimable 
       <TableRow
         className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 items-center hover:cursor-pointer"
         data-action-target="claimable-rewards"
-        onClick={() => navigate("/field/harvest")}
+        onClick={() => navigate("/field?action=harvest")}
       >
         <TableCell className="text-pinto-green-2 items-center">
           <div className="flex items-center gap-1.5">
