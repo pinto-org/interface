@@ -27,6 +27,7 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
   setBalanceFrom?: Dispatch<SetStateAction<FarmFromMode>>;
   balanceFrom?: FarmFromMode;
   balancesToShow?: FarmFromMode[];
+  tokenSelectLoading?: boolean;
 
   // Amount props
   amount: string;
@@ -74,6 +75,7 @@ function ComboInputField({
   setPlots,
   plotSelectionType,
   inputFrameColor,
+  tokenSelectLoading,
 }: ComboInputProps) {
   const tokenData = useTokenData();
   const { balances } = useFarmerBalances();
@@ -285,6 +287,7 @@ function ComboInputField({
                     balancesToShow={balancesToShow}
                     tokenAndBalanceMap={tokenAndBalanceMap}
                     disabled={disableButton}
+                    isLoading={tokenSelectLoading}
                   />
                 )}
           </div>

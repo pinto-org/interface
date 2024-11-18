@@ -2,6 +2,7 @@ import arrowDown from "@/assets/misc/ChevronDown.svg";
 import { TokenValue } from "@/classes/TokenValue";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { usePriceData } from "@/state/usePriceData";
+import { formatter } from "@/utils/format";
 import { FarmFromMode, Token } from "@/utils/types";
 import { useState } from "react";
 import { Address } from "viem";
@@ -19,9 +20,9 @@ import {
 } from "./ui/Dialog";
 import { ScrollArea } from "./ui/ScrollArea";
 import { Separator } from "./ui/Separator";
+import { Skeleton } from "./ui/Skeleton";
 import Text from "./ui/Text";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
-import { formatter } from "@/utils/format";
 
 function TokenSelectItem({
   token,
@@ -68,6 +69,7 @@ export default function TokenSelectWithBalances({
   balancesToShow,
   size,
   disabled,
+  isLoading,
 }: {
   setToken: React.Dispatch<React.SetStateAction<Token>> | ((token: Token) => void);
   selectedToken: Token;
@@ -77,6 +79,7 @@ export default function TokenSelectWithBalances({
   balancesToShow?: FarmFromMode[] | undefined;
   size?: "small" | undefined;
   disabled?: boolean | undefined;
+  isLoading?: boolean | undefined;
 }) {
   const account = useAccount();
   const { balances } = useFarmerBalances();
@@ -108,13 +111,22 @@ export default function TokenSelectWithBalances({
           rounded="full"
           className={`${disabled ? "pointer-events-none" : "pointer-events-auto"} flex-none items-center ${size === "small" ? "" : "h-12"} gap-1`}
         >
-          <img
-            src={selectedToken.logoURI}
-            alt={selectedToken.name}
-            className={`${size === "small" ? "w-5 h-5" : "w-6 h-6"}`}
-          />
-          <Text variant="body-light">{selectedToken.symbol}</Text>
-          {!disabled && <img src={arrowDown} className="w-4 h-4" alt={"open token select dialog"} />}
+          {isLoading ? (
+            <>
+              <Skeleton className={size === "small" ? "w-5 h-5 rounded-full" : "w-6 h-6 rounded-full"} />
+              <Skeleton className="h-5 w-10 sm:w-14 rounded-sm" />
+            </>
+          ) : (
+            <>
+              <img
+                src={selectedToken.logoURI}
+                alt={selectedToken.name}
+                className={`${size === "small" ? "w-5 h-5" : "w-6 h-6"}`}
+              />
+              <Text variant="body-light">{selectedToken.symbol}</Text>
+              {!disabled && <img src={arrowDown} className="w-4 h-4" alt={"open token select dialog"} />}
+            </>
+          )}
         </Button>
       </DialogTrigger>
       <DialogContent className="font-pinto overflow-x-clip">
