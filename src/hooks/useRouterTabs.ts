@@ -100,3 +100,34 @@ const useRouterTabs = (slugs: readonly string[], options: UseRouterTabsOptions =
 };
 
 export default useRouterTabs;
+
+export const useParamsTabs = (slugs: readonly string[], key: string = "action", scrollToTop: boolean = false) => {
+  const [queryParams, updateQueryParams] = useSearchParams();
+  const pathParams = useParams();
+
+  const getCurrentSlug = useCallback(() => {
+    return pathParams[key];
+  }, [pathParams, key]);
+
+  const [tab, setTab] = useState(getCurrentSlug() ?? slugs[0]);
+
+  // Handle tab changes
+  const handleChangeTab = useCallback(
+    (value: string) => {
+      if (slugs.includes(value)) {
+        setTab(value);
+        // Update URL
+        const updatedParams = new URLSearchParams(queryParams);
+        updatedParams.set(key, value);
+        updateQueryParams(updatedParams, { replace: true });
+
+        if (scrollToTop) {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }
+    },
+    [key, slugs, queryParams, updateQueryParams, scrollToTop],
+  );
+
+  return [tab, handleChangeTab] as const;
+};
