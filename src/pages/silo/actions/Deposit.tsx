@@ -15,7 +15,6 @@ import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { PoolData, usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
-import { formatter } from "@/utils/format";
 import { stringEq, stringToNumber } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
@@ -24,10 +23,25 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 
+const useFilterTokens = (siloToken: Token, balances: ReturnType<typeof useFarmerBalances>["balances"]) => {
+  return useMemo(() => {
+    const set = new Set<Token>();
+
+    [...balances.keys()].forEach((token) => {
+      if (token.isLP && !tokensEqual(token, siloToken)) {
+        set.add(token);
+      }
+    });
+
+    return set;
+  }, [siloToken, balances]);
+};
+
 function Deposit({ siloToken }: { siloToken: Token }) {
   const diamondAddress = useProtocolAddress();
   const farmerBalances = useFarmerBalances();
   const depositedBalances = useFarmerDepositedBalances();
+  const filterTokens = useFilterTokens(siloToken, farmerBalances.balances);
 
   // console.log("config", config);
   const account = useAccount();
@@ -193,6 +207,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
           selectedToken={tokenIn}
           balanceFrom={balanceFrom}
           tokenSelectLoading={!didSetPreferred || preferredLoading}
+          filterTokens={filterTokens}
         />
 
         {depositOutput && (

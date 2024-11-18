@@ -71,6 +71,7 @@ export default function TokenSelectWithBalances({
   size,
   disabled,
   isLoading,
+  filterTokens,
 }: {
   setToken: React.Dispatch<React.SetStateAction<Token>> | ((token: Token) => void);
   selectedToken: Token;
@@ -81,6 +82,7 @@ export default function TokenSelectWithBalances({
   size?: "small" | undefined;
   disabled?: boolean | undefined;
   isLoading?: boolean | undefined;
+  filterTokens?: Set<Token> | undefined;
 }) {
   const account = useAccount();
   const { balances } = useFarmerBalances();
@@ -146,7 +148,7 @@ export default function TokenSelectWithBalances({
             <Separator className="w-[120%] -ml-6 mt-6" />
           </DialogTitle>
           <DialogDescription>
-            <ScrollArea className="h-[600px] -mx-4 mt-2">
+            <ScrollArea className="max-h-[600px] -mx-4 mt-2">
               <div className="mx-4">
                 <ToggleGroup
                   type="single"
@@ -159,15 +161,22 @@ export default function TokenSelectWithBalances({
                   {tokenAndBalanceMap
                     ? [...tokenAndBalanceMap.keys()].map((token) => {
                         const balance = tokenAndBalanceMap.get(token);
-                        if (!balance) return;
+                        if (!balance || filterTokens?.has(token)) return;
                         const price = TokenValue.ZERO;
+                        if (token.isNative && balanceFrom === FarmFromMode.INTERNAL) {
+                          return;
+                        }
+
                         return (
                           <TokenSelectItem key={token.address} token={token} balanceAmount={balance} price={price} />
                         );
                       })
                     : [...balances.keys()].map((token) => {
                         const balance = balances.get(token);
-                        if (!balance) return;
+                        if (!balance || filterTokens?.has(token)) return;
+                        if (token.isNative && balanceFrom === FarmFromMode.INTERNAL) {
+                          return;
+                        }
                         const tokenPrice = priceData.tokenPrices.get(token);
                         const price = tokenPrice?.instant ?? TokenValue.ZERO;
                         let balanceAmount: TokenValue;

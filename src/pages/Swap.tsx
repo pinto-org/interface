@@ -13,15 +13,34 @@ import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useTokenData from "@/state/useTokenData";
 import { stringToNumber } from "@/utils/string";
-import { FarmFromMode, FarmToMode } from "@/utils/types";
+import { tokensEqual } from "@/utils/token";
+import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAccount, useChainId } from "wagmi";
+
+const useFilterTokens = (balances: ReturnType<typeof useFarmerBalances>["balances"], otherToken: Token) => {
+  return useMemo(() => {
+    const set = new Set<Token>();
+
+    [...balances.keys()].forEach((token) => {
+      if (token.isLP) {
+        set.add(token);
+      }
+      if (tokensEqual(token, otherToken)) {
+        set.add(token);
+      }
+    });
+
+    return set;
+  }, [balances, otherToken]);
+};
 
 export default function Swap() {
   const BEAN = useTokenData().mainToken;
   const OUTPUT_TOKEN = useTokenData().preferredTokens[1];
+
   const [amountIn, setAmountIn] = useState("0");
   const [tokenIn, setTokenIn] = useState(BEAN);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.EXTERNAL);
@@ -33,7 +52,9 @@ export default function Swap() {
   const chainId = useChainId();
 
   const queryClient = useQueryClient();
-  const { queryKeys } = useFarmerBalances();
+  const { balances, queryKeys } = useFarmerBalances();
+  const filterTokensIn = useFilterTokens(balances, tokenOut);
+  const filterTokensOut = useFilterTokens(balances, tokenIn);
 
   const swapData = useSwapEstimate(tokenIn, tokenOut, Number(amountIn), slippage, "exactInput", balanceFrom, balanceTo);
 
@@ -132,6 +153,7 @@ export default function Swap() {
                 selectedToken={tokenIn}
                 balanceFrom={balanceFrom}
                 disableClamping={!account.address}
+                filterTokens={filterTokensIn}
               />
             </div>
             <div className="flex flex-row justify-center">
@@ -153,6 +175,7 @@ export default function Swap() {
                 isLoading={swapData?.isLoading || false}
                 disableInput
                 disableInlineBalance
+                filterTokens={filterTokensOut}
               />
             </div>
             <div>

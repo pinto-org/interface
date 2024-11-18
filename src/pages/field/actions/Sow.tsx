@@ -38,6 +38,20 @@ type SowProps = {
   isMorning: boolean;
 };
 
+const useFilterTokens = (balances: ReturnType<typeof useFarmerBalances>["balances"]) => {
+  return useMemo(() => {
+    const set = new Set<Token>();
+
+    [...balances.keys()].forEach((token) => {
+      if (token.isLP) {
+        set.add(token);
+      }
+    });
+
+    return set;
+  }, [balances]);
+};
+
 const useMaxSow = (tokenIn: Token, slippage: number) => {
   const totalSoil = useTotalSoil();
   const mainToken = useTokenData().mainToken;
@@ -69,6 +83,7 @@ function Sow({ isMorning }: SowProps) {
   const { queryKeys: farmerFieldQueryKeys } = useFarmerField();
   const mainToken = useTokenData().mainToken;
   const queryClient = useQueryClient();
+  const filterTokens = useFilterTokens(farmerBalances.balances);
 
   const { preferredToken, loading: preferredLoading } = usePreferredInputToken({ filterLP: true });
   const [didSetPreferred, setDidSetPreferred] = useState(false);
@@ -268,6 +283,7 @@ function Sow({ isMorning }: SowProps) {
           disableButton={isConfirming}
           altText={balanceExceedsSoil ? "Usable balance:" : undefined}
           tokenSelectLoading={preferredLoading || !didSetPreferred}
+          filterTokens={filterTokens}
         />
       </div>
 
