@@ -114,22 +114,22 @@ export default function GerminationNotice(props: GerminationNoticeProps) {
       : germinatingDeposits.plantedDeposits.length === props.deposits.size;
 
   return (
-    <div className="bg-pinto-off-green/15 border border-pinto-off-green flex flex-col w-full p-4 rounded-[1.25rem] gap-2">
+    <div className="bg-pinto-off-green/15 border border-pinto-off-green flex flex-col w-full p-4 rounded-[1rem] gap-2">
       {props.type === "multiple" && (
-        <Text variant="sm">
+        <Text variant="body" weight="regular">
           New {tokenList} Deposit{plural ? "s are" : " is"} Germinating
-          {germinatingDeposits.allTokens.size === 1 &&
-            `   for ${timeRemaining(Array.from(germinatingDeposits.allTokens.values())[0])}`}
+          {/* {germinatingDeposits.allTokens.size === 1 &&
+            `   for ${timeRemaining(Array.from(germinatingDeposits.allTokens.values())[0])}`} */}
         </Text>
       )}
       {props.type === "single" && (
-        <Text variant="sm">
+        <Text variant="body" color="primary" className="font-semibold">
           Deposit {truncateHex(props.deposit.idHex)} is Germinating
           {germinatingDeposits.allTokens.size === 1 &&
             `   for ${timeRemaining(Array.from(germinatingDeposits.allTokens.values())[0])}`}
         </Text>
       )}
-      <Text variant="sm-light" color="light">
+      <Text variant="sm" color="light" weight="medium" className="leading-2">
         {!hasPlanted
           ? `${plural ? "These Deposits" : "This Deposit"} can be Converted to a different token and earn yield once two seasons have elapsed.`
           : !hasOnlyPlanted

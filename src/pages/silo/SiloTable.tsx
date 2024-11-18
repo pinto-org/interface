@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/Separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import Text from "@/components/ui/Text";
 import { PINTO } from "@/constants/tokens";
+import { useDenomination } from "@/hooks/useAppSettings";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
@@ -19,13 +20,10 @@ import { useSeason } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { getTokenIndex, sortTokensForDeposits } from "@/utils/token";
-import { Token } from "@/utils/types";
 import { AddressLookup } from "@/utils/types.generic";
 import { cn } from "@/utils/utils";
-import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { div } from "three/webgpu";
 
 function SiloTable({ hovering }: { hovering: boolean }) {
   const siloData = useSiloData();
@@ -53,6 +51,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
   const earnedPinto = farmerActions.claimRewards.outputs.beanGain.gt(0.01);
   const gains = farmerActions.claimRewards.outputs;
   const navigate = useNavigate();
+  const denomination = useDenomination();
 
   return (
     <div className="border border-pinto-gray-2 rounded-[1rem] overflow-clip">
@@ -90,6 +89,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
               ?.deposits.some((deposit) => deposit.isGerminating);
 
             if (!data) return;
+
             return (
               <TableRow
                 className={`h-[4.5rem] ${hasGerminatingDeposits ? "bg-pinto-off-green/15" : "bg-white"} hover:bg-pinto-green-1/50 hover:cursor-pointer`}
@@ -161,17 +161,20 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                               )}
                             </span>
                             {earnedPinto ? (
+                              // if there are earned pinto, show the gains
                               <div className="inline-flex items-center gap-1">
                                 <Text variant="sm-thin" align="right" color="light">
-                                  {formatter.usd(currentBDV.mul(priceData.price))} +{" "}
+                                  {`${denomination === "USD" ? formatter.usd((userData?.currentBDV || TokenValue.ZERO).mul(priceData.price)) : formatter.pdv(userData?.depositBDV)}`}{" "}
+                                  +{" "}
                                 </Text>
                                 <Text variant="sm-thin" align="right" color="green4">
-                                  {formatter.usd(gains.beanGain.mul(priceData.price))}
+                                  {`${denomination === "USD" ? formatter.usd((userData?.currentBDV || TokenValue.ZERO).mul(priceData.price)) : formatter.pdv(gains.bdvGain)}`}{" "}
                                 </Text>
                               </div>
                             ) : (
+                              // if there is no earned pinto, show the total
                               <Text variant="sm-thin" align="right" color="light">
-                                {formatter.usd(currentBDV.mul(priceData.price))}
+                                {`${denomination === "USD" ? formatter.usd((userData?.currentBDV || TokenValue.ZERO).mul(priceData.price)) : formatter.pdv(userData?.depositBDV)}`}
                               </Text>
                             )}
                           </>
@@ -186,7 +189,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
 
                             <div className="inline-flex items-center gap-1">
                               <Text variant="sm-thin" align="right" color="light">
-                                {formatter.usd(currentBDV.mul(priceData.price))}
+                                {`${denomination === "USD" ? formatter.usd((userData?.currentBDV || TokenValue.ZERO).mul(priceData.price)) : formatter.pdv(userData?.depositBDV)}`}
                               </Text>
                             </div>
                           </>

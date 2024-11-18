@@ -150,7 +150,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       )}
       <div>
         <Button
-          className="w-full flex grow h-[3.75rem] rounded-[0.75rem] text-[1.5rem]"
+          className="w-full flex grow h-[3.75rem] rounded-full text-[1.5rem]"
           onClick={onSubmit}
           disabled={disabled}
         >
