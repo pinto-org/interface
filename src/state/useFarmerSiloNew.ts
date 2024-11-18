@@ -1,5 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
-import { ZERO_ADDRESS } from "@/constants/address";
+import { ZERO_ADDRESS, ZERO_ADDRESS_HEX } from "@/constants/address";
 import { SEEDS, STALK } from "@/constants/internalTokens";
 import { PINTO } from "@/constants/tokens";
 import {
@@ -296,7 +296,7 @@ export function useFarmerSiloNew() {
     address: protocolAddress,
     abi: beanstalkAbi,
     functionName: "farm",
-    args: [getFloodCallArguments(SILO_WHITELIST, account.address ?? ZERO_ADDRESS)],
+    args: [getFloodCallArguments(SILO_WHITELIST, account.address ?? ZERO_ADDRESS_HEX)],
     query: {
       enabled: Boolean(account.address),
       select: (data) => decodeAbiParameters(abiSnippet[0].outputs, data.result[1])[0],
