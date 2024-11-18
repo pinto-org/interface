@@ -3,8 +3,6 @@ import { truncateHex } from "@/utils/format";
 import { DepositData, Token, TokenDepositData } from "@/utils/types";
 import { timeRemaining } from "@/utils/utils";
 import { useEffect, useMemo, useState } from "react";
-import { size } from "viem";
-import { mode } from "viem/chains";
 import IconImage from "./ui/IconImage";
 import Text from "./ui/Text";
 
@@ -133,9 +131,9 @@ export default function GerminationNotice(props: GerminationNoticeProps) {
       )}
       <Text variant="sm-light" color="light">
         {!hasPlanted
-          ? `${plural ? "These Deposits" : "This Deposit"} can be converted to a different token and earn yield once two seasons have elapsed.`
+          ? `${plural ? "These Deposits" : "This Deposit"} can be Converted to a different token and earn yield once two seasons have elapsed.`
           : !hasOnlyPlanted
-            ? `These Deposits can be converted to a different token and earn yield once two seasons have elapsed. Recently claimed Pinto yield can earn additional yield immediately.`
+            ? `These Deposits can be Converted to a different token and earn yield once two seasons have elapsed. Recently claimed Pinto yield can earn additional yield immediately.`
             : `Your recently claimed Pinto yield, Deposit ${truncateHex(props.type === "single" ? props.deposit.idHex : germinatingDeposits.plantedDeposits[0].idHex)}, can be Converted to a different token in two Seasons. Stalk associated with this Deposit can earn additional yield immediately.`}
       </Text>
       {props.type === "single"
