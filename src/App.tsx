@@ -1,6 +1,7 @@
 import { isDev } from "@/utils/utils";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import DevPage from "./components/DevPage";
+import ScrollToTop from "./components/ScrollToTop";
 import Navbar from "./components/nav/nav/Navbar";
 import Explorer from "./pages/Explorer";
 import Field from "./pages/Field";
@@ -18,6 +19,7 @@ function App() {
     <BrowserRouter>
       <div className="relative">
         <Navbar />
+        <ScrollToTop />
         <div
           // 72px is navbar height on mobile
           // 124px is navbar height on desktop (includes nested links)

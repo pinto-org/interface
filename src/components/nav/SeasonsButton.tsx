@@ -92,12 +92,12 @@ const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPa
                 const cropRatio = TokenValue.fromBigInt(
                   LibCases.evaluateWithCaseId(BigInt(snapshot.caseId)).bean2MaxLPGPPerBdv,
                   18,
-                );
+                ).mul(100);
                 const previousCropRatio = nextSnapshot?.caseId
                   ? TokenValue.fromBigInt(
                       LibCases.evaluateWithCaseId(BigInt(nextSnapshot.caseId)).bean2MaxLPGPPerBdv,
                       18,
-                    )
+                    ).mul(100)
                   : cropRatio;
                 return (
                   <TableRow key={`${snapshot.season}_${i}`} className="h-[2.5rem] bg-transparent border-0">
@@ -126,9 +126,9 @@ const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPa
                     <TableCell className="text-black font-[400] text-[1rem] text-right p-0">
                       <div className="flex flex-col items-end">
                         <Text className="inline-flex gap-2 justify-end">
-                          {formatter.twoDec(cropRatio)}
+                          {formatter.pct(cropRatio, { minDecimals: 2, maxDecimals: 2 })}
                           <span className="text-pinto-gray-4">
-                            {`(${formatter.twoDec(cropRatio.sub(previousCropRatio), { showPositiveSign: true })})`}
+                            {`(${formatter.pct(cropRatio.sub(previousCropRatio), { showPositiveSign: true, minDecimals: 2, maxDecimals: 2 })})`}
                           </span>
                         </Text>
                         <Text variant="xs" color="light" className="inline-flex gap-0.5 items-center justify-end">

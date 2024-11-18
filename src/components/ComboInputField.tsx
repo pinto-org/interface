@@ -8,7 +8,7 @@ import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
-import { formatter } from "@/utils/format";
+import { formatter, truncateHex } from "@/utils/format";
 import { FarmFromMode, Plot, Token } from "@/utils/types";
 import { useDebouncedEffect } from "@/utils/useDebounce";
 import { cn } from "@/utils/utils";
@@ -250,7 +250,7 @@ function ComboInputField({
   const plotIdsToShow = useMemo(() => {
     if (!selectedPlots?.length) return "";
     const sortedPlots = [...selectedPlots].sort((a, b) => Number(a.index.sub(b.index).toHuman()));
-    return sortedPlots.map((plot) => plot.index.toString()).join(", ");
+    return sortedPlots.map((plot) => truncateHex(plot.idHex)).join(", ");
   }, [selectedPlots]);
 
   return (
@@ -271,7 +271,7 @@ function ComboInputField({
                 type="number"
                 disabled={disableInput}
                 className={
-                  "flex w-full pr-1 text-[2rem] h-[2.2rem] leading-[2.2rem] text-black font-[400] align-middle focus-visible:outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:opacity-100"
+                  "flex w-full pr-1 text-[2rem] h-[2.2rem] leading-[2.2rem] text-black font-[400] align-middle focus-visible:outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:opacity-50 disabled:bg-transparent"
                 }
                 value={disableInput ? amount : displayValue}
                 onChange={(e) => changeValue(e.target.value)}

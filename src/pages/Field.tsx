@@ -37,10 +37,6 @@ function Field() {
     [farmerField.plots],
   );
 
-  useEffect(() => {
-    window.scroll(0, 0);
-  }, []);
-
   return (
     <PageContainer variant="xl">
       {/* <div className="flex flex-col w-full items-center"> */}
