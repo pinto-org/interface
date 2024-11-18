@@ -20,7 +20,7 @@ export default function SiloActionBox({ farmerDeposits }: SiloActionBoxProps) {
   const navigate = useNavigate();
 
   return (
-    <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border flex flex-col gap-2">
+    <div className="p-2 rounded-[1rem] bg-pinto-off-white border-pinto-gray-2 border flex flex-col gap-2">
       <Button
         className="w-full"
         variant="silo-action"

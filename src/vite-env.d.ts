@@ -23,6 +23,8 @@ interface ImportMetaEnv {
   readonly VITE_CHAINS: string;
 }
 
+declare module "*.md";
+
 // biome-ignore lint/correctness/noUnusedVariables:
 interface ImportMeta {
   readonly env: ImportMetaEnv;

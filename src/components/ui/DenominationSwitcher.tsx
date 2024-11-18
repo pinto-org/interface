@@ -5,7 +5,7 @@ export default function DenominationSwitcher() {
   const { toggleDenomination } = useAppSettings();
 
   return (
-    <div onClick={() => toggleDenomination()}>
+    <div onClick={() => toggleDenomination()} className="hover:cursor-pointer">
       <SwitchPDVIcon />
     </div>
   );

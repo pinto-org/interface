@@ -6,7 +6,7 @@ import Text from "./ui/Text";
 export default function OverviewNoticeDeposit() {
   const mainToken = useTokenData().mainToken;
   return (
-    <div className="bg-pinto-green-1 border border-pinto-green-4 flex flex-row items-center justify-between w-full p-6 rounded-[1.25rem] gap-2">
+    <div className="bg-pinto-green-1 border border-pinto-green-4 flex flex-row items-center justify-between w-full p-6 rounded-[1rem] gap-2">
       <Text variant="body-light" color="green4">
         You have Pinto in your Wallet that isn’t earning yield. Deposit your Pinto for Stalk and Seed.
       </Text>

@@ -1,7 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
-import { UpDownArrowsIcon, UpRightArrowIcon } from "@/components/Icons";
+import { UpDownArrowsIcon } from "@/components/Icons";
 import SlippageButton from "@/components/SlippageButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Button } from "@/components/ui/Button";
@@ -16,7 +16,6 @@ import { stringToNumber } from "@/utils/string";
 import { FarmFromMode, FarmToMode } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useAccount, useChainId } from "wagmi";
 

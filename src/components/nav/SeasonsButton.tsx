@@ -46,7 +46,7 @@ const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPa
               Seasons are how Pinto keeps time. Each Season is about 1 hour.
             </Text>
             <Text variant="sm" color="light">
-              Pinto adjusts the supply and various incentives every Season to facilitate price stability.
+              Pinto adjusts the supply and various incentives every Season to facilitate low volatility.
             </Text>
           </div>
           {/*
@@ -154,7 +154,7 @@ const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPa
                                 <>
                                   <Text align="left">Soil is the total number of Pinto that can be lent (Sown).</Text>
                                   <Text align="left" color="light">
-                                    When the Pinto price is less than $1, the amount of Soil issued is equal to the
+                                    When the Pinto price is less than $1, the amount of Soil issued is roughly equal to the
                                     amount of excess Pinto.
                                   </Text>
                                 </>

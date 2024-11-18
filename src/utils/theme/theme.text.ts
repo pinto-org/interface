@@ -32,7 +32,16 @@ export type TextAlign = "left" | "center" | "right" | "justify" | "start" | "end
 
 export type LetterSpacing = "body-light" | "h3" | "h2" | "h1" | "none";
 
-export type TextColor = "primary" | "secondary" | "light" | "lighter" | "green4" | "green3" | "success" | "error";
+export type TextColor =
+  | "primary"
+  | "secondary"
+  | "light"
+  | "lighter"
+  | "green4"
+  | "green3"
+  | "success"
+  | "off-green"
+  | "error";
 
 /**
  * variant: the type of text
@@ -64,6 +73,7 @@ const textColors = {
 	'error':       clsx("text-pinto-red-2"),
 	"inherit":     clsx("text-current"),
 	'morning':     clsx("text-pinto-morning"),
+	'off-green':		 clsx("text-pinto-off-green"),
 } as const;
 
 // biome-ignore format: keep unformatted for readability

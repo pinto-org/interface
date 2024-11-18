@@ -20,7 +20,7 @@ const MorningPanel = () => {
         </Text>
       </div>
       <Text variant="body-light" color="light">
-        For the first five minutes of every Season, Temperature ramps up with a new interest rate every 12 seconds.
+        For the first five minutes of every Season, the Temperature increases from 1% to the Max Temperature of the Season.
       </Text>
     </MorningCard>
   );

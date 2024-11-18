@@ -196,6 +196,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
           balanceFrom={balanceFrom}
           tokenSelectLoading={!didSetPreferred || preferredLoading}
         />
+
         {depositOutput && (
           <div className="mt-6">
             <SiloOutputDisplay

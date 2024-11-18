@@ -125,7 +125,7 @@ const Navbar = () => {
         <div className="hidden lg:flex lg:justify-center">
           <Navi />
         </div>
-          <div className="flex flex-row justify-end gap-x-4">
+        <div className="flex flex-row justify-end gap-x-4">
           <div className="flex flex-row justify-end gap-x-1">
             <div className={`${walletOpen && "z-[51]"}`}>
               <div data-action-target={"wallet-button"}>
@@ -201,10 +201,10 @@ export const navLinks = {
   field: "/field",
   market: "/market",
   explorer: "/explorer",
-  whitepaper: "https://link.to.pinto/whitepaper.pdf",
-  docs: "https://link.to.pinto/docs",
-  discord: "https://link.to.pinto/pintocord",
-  github: "https://link.to.pinto/github",
-  disclosures: "https://link.to.pinto/disclosures",
+  // whitepaper: "https://link.to.pinto/whitepaper.pdf",
+  docs: "https://docs.pinto.money/",
+  discord: "https://pinto.money/discord",
+  github: "https://github.com/moneyprotocolonbase",
+  disclosures: "https://docs.pinto.money/disclosures",
   exchange: "https://pinto.exchange/",
 } as const;

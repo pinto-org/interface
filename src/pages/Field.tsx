@@ -52,14 +52,14 @@ function Field() {
               Lend in the decentralized credit facility for Pods, the Pinto debt asset.
             </Text>
             <Text variant="body-light" color="light">
-              Pods become Harvestable, redeemable for 1 Pinto when they reach the front of the Pod Line.
+              Pods become redeemable for Pinto 1:1 when they reach the front of the Pod Line.
             </Text>
           </div>
           <Separator />
           <MorningPanel />
           <FieldStats />
           <DynamicTemperatureChart />
-          <div className="flex flex-row items-center justify-between rounded-[1.25rem] p-6 bg-pinto-off-white border-pinto-gray-2 border w-full">
+          <div className="flex flex-row items-center justify-between rounded-[1rem] p-6 bg-pinto-off-white border-pinto-gray-2 border w-full">
             <div className="flex flex-col gap-2">
               <Text variant="body-light" color="light">
                 Previously Harvested Pods which have been redeemed for one Pinto
@@ -77,7 +77,7 @@ function Field() {
               <Text variant="h3">{formatter.number(totalPods)}</Text>
             </div>
           </div>
-          <div>{hasPods ? <PlotsTable /> : <EmptyTable type="plots-field" />}</div>
+          <div>{hasPods ? <PlotsTable showClaimable /> : <EmptyTable type="plots-field" />}</div>
         </div>
         {/*
          * Right side
@@ -87,7 +87,7 @@ function Field() {
             <FieldActions />
           </OnlyMorningCard>
           {/* <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border"></div> */}
-          <div className="p-4 rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border flex flex-col gap-2">
+          <div className="p-4 rounded-[1rem] bg-pinto-off-white border-pinto-gray-2 border flex flex-col gap-2">
             <Button
               className="w-full"
               variant="silo-action"

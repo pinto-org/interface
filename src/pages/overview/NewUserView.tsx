@@ -314,8 +314,8 @@ const FieldInfo = ({ containerRef }: IContainerRef) => {
 
   const stats = [
     {
-      label: isTablet ? "Temp" : "Temperature",
-      tooltip: "The current interest rate for Sowing Beans.",
+      label: isTablet ? "Temp" : "Max Temperature",
+      tooltip: "The current interest rate for Sowing Pinto.",
       value: formatter.pct(temperature.max),
     },
     {
@@ -324,8 +324,8 @@ const FieldInfo = ({ containerRef }: IContainerRef) => {
       value: formatter.noDec(normalizeTV(soil)),
     },
     {
-      label: "Podline",
-      tooltip: "The total number of Pods that are not yet redeemable.",
+      label: "Pod Line",
+      tooltip: "The First In, First Out (FIFO) queue of Pods that are not yet redeemable.",
       value: numberAbbr(podline.toNumber()),
     },
   ];

@@ -293,7 +293,7 @@ function Sow({ isMorning }: SowProps) {
               <OutputDisplay.Value value={formatter.noDec(podLine)} />
             </OutputDisplay.Item>
           </OutputDisplay>
-          <Warning>Pods become redeemable for one Pinto when they reach the front of the line.</Warning>
+          <Warning>Pods become redeemable for Pinto 1:1 when they reach the front of the Pod Line.</Warning>
         </div>
       ) : null}
       <div className="flex flex-row gap-2">
