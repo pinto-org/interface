@@ -82,8 +82,9 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   }, [qc, depositedBalances, farmerBalances]);
 
   const { isConfirming, writeWithEstimateGas, submitting, setSubmitting } = useTransaction({
-    successMessage: "Deposit successful",
     successCallback: onSuccess,
+    successMessage: "Deposit successful",
+    errorMessage: "Deposit failed",
   });
 
   const swapData = useSwapEstimate(
@@ -142,10 +143,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
       const callData = useSwap && swapData?.callData ? swapData.callData : [depositData];
       const value = tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n;
 
-      const depositAmount = formatter.token(useSwap ? swapData?.output : amountIn, siloToken);
-      const formattedAmountIn = formatter.token(amountIn, tokenIn);
-
-      toast.loading(`Depositing ${formattedAmountIn} ${tokenIn.symbol} for ${depositAmount} ${siloToken.symbol}...`);
+      toast.loading(`Depositing...`);
 
       return writeWithEstimateGas({
         address: diamondAddress,
@@ -158,7 +156,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
       console.error(e);
       setSubmitting(false);
       toast.dismiss();
-      toast.error(e instanceof Error ? e.message : "Transaction failed.");
+      toast.error("Deposit failed");
       throw e;
     } finally {
       setSubmitting(false);

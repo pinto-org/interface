@@ -44,6 +44,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const { isConfirming, writeContractAsync, submitting, setSubmitting } = useTransaction({
     successMessage: "Withdraw successful",
+    errorMessage: "Withdraw failed",
     successCallback: onSuccess,
   });
 
@@ -53,7 +54,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     try {
       setSubmitting(true);
       const amountTV = TokenValue.fromHuman(amount || 0, fromToken.decimals);
-      toast.loading(`Withdrawing ${formatter.number(amountTV)} ${fromToken.symbol}...`);
+      toast.loading(`Withdrawing...`);
       const transferData = sortAndPickCrates("withdraw", amountTV, deposits);
 
       const stems = transferData.crates.map((crate) => crate.stem.toBlockchain());
@@ -98,8 +99,10 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       console.error(e);
       setSubmitting(false);
       toast.dismiss();
-      toast.error(e instanceof Error ? e.message : "Transaction failed.");
+      toast.error("Withdraw failed");
       throw e;
+    } finally {
+      setSubmitting(false);
     }
   };
 

@@ -63,11 +63,11 @@ function Harvest({ isMorning }: HarvestProps) {
   const onSubmit = useCallback(async () => {
     try {
       setSubmitting(true);
-      toast.loading("Harvesting...");
       if (!account.address) throw new Error("Signer required");
       if (!plots.length) throw new Error("No plots to harvest");
       if (harvestableAmount.lte(0)) throw new Error("No harvestable pods");
       if (!balanceTo) throw new Error("Destination required");
+      toast.loading("Harvesting...");
 
       return writeWithEstimateGas({
         address: diamond,
@@ -85,6 +85,8 @@ function Harvest({ isMorning }: HarvestProps) {
       toast.dismiss();
       toast.error(e instanceof Error ? e.message : "Transaction failed.");
       throw e;
+    } finally {
+      setSubmitting(false);
     }
   }, [account.address, plots, harvestableAmount, balanceTo, writeWithEstimateGas, diamond, setSubmitting]);
 

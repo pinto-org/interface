@@ -107,6 +107,8 @@ function Sow({ isMorning }: SowProps) {
       farmerFieldQueryKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
       queryClient.invalidateQueries({ queryKey: farmerBalances.queryKeys });
     },
+    errorMessage: "Sow failed",
+    successMessage: "Sow successful",
   });
 
   const maxSow = useMaxSow(tokenIn, slippage);
@@ -162,9 +164,7 @@ function Sow({ isMorning }: SowProps) {
         throw new Error("Amount must be greater than 0");
       }
 
-      toast.loading(
-        `Sowing ${formatter.token(amountIn, tokenIn)} ${tokenIn.symbol} for ${formatter.token(pods, PODS)} Pods`,
-      );
+      toast.loading(`Sowing...`);
 
       // temperature at 6 decimals
       const _minTemp = TokenValue.fromHuman(minTemperature, PODS.decimals);
@@ -202,7 +202,7 @@ function Sow({ isMorning }: SowProps) {
     } catch (e) {
       console.error(e);
       toast.dismiss();
-      toast.error((e as BaseError).shortMessage || "Transaction failed.");
+      toast.error("Sow failed");
       throw e;
     } finally {
       setSubmitting(false);
@@ -211,7 +211,6 @@ function Sow({ isMorning }: SowProps) {
     writeWithEstimateGas,
     setSubmitting,
     diamond,
-    pods,
     slippage,
     swapData,
     account.address,

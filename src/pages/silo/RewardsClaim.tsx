@@ -2,16 +2,15 @@ import { TokenValue } from "@/classes/TokenValue";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Label } from "@/components/ui/Label";
-import { STALK } from "@/constants/internalTokens";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import useTransaction from "@/hooks/useTransaction";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
 import { toast } from "sonner";
-import { BaseError, encodeFunctionData } from "viem";
-import { useAccount, useWriteContract } from "wagmi";
+import { encodeFunctionData } from "viem";
+import { useAccount } from "wagmi";
 import { useChainId } from "wagmi";
 
 function RewardsClaim() {
@@ -24,48 +23,48 @@ function RewardsClaim() {
   const seedsRewards = siloData.tokenData.get(BEAN)?.rewards.seeds;
   const grownStalk = data.grownStalkReward;
   const queryClient = useQueryClient();
-  const { data: hash, writeContractAsync, isSuccess } = useWriteContract();
-
-  useEffect(() => {
-    if (isSuccess) {
+  const { writeWithEstimateGas, setSubmitting, isConfirming, submitting } = useTransaction({
+    successMessage: "Rewards claimed",
+    errorMessage: "Rewards claim failed",
+    successCallback: () => {
       const allQueryKeys = [...data.queryKeys, ...siloData.queryKeys];
       // invalidating query results to trigger a refetch
       allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
-    }
-  }, [isSuccess]);
+    },
+  });
 
   async function onSubmit() {
-    if (!account.address) return;
+    try {
+      if (!account.address) {
+        throw new Error("Signer required");
+      }
 
-    const plant = encodeFunctionData({
-      abi: beanstalkAbi,
-      functionName: "plant",
-    });
+      const plant = encodeFunctionData({
+        abi: beanstalkAbi,
+        functionName: "plant",
+      });
 
-    const tokensToMow = SILO_WHITELIST.map((token) => token.address);
-    const mow = encodeFunctionData({
-      abi: beanstalkAbi,
-      functionName: "mowMultiple",
-      args: [account.address, tokensToMow],
-    });
+      const tokensToMow = SILO_WHITELIST.map((token) => token.address);
+      const mow = encodeFunctionData({
+        abi: beanstalkAbi,
+        functionName: "mowMultiple",
+        args: [account.address, tokensToMow],
+      });
 
-    const tx = () =>
-      writeContractAsync({
+      return writeWithEstimateGas({
         address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
         abi: beanstalkAbi,
         functionName: "farm",
         args: [[plant, mow]],
       });
-
-    toast.promise(tx, {
-      loading: "Submitting transaction...",
-      success: (data) => {
-        return `Transaction complete!`;
-      },
-      error: (error) => {
-        return (error as BaseError).shortMessage || `Transaction failed.`;
-      },
-    });
+    } catch (e) {
+      console.error(e);
+      toast.dismiss();
+      toast.error("Rewards claim failed");
+      return e;
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -93,7 +92,7 @@ function RewardsClaim() {
         </div>
       </CardContent>
       <CardFooter>
-        <Button className="flex grow" onClick={onSubmit}>
+        <Button className="flex grow" onClick={onSubmit} disabled={submitting || isConfirming}>
           {"Claim Rewards"}
         </Button>
       </CardFooter>
