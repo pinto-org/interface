@@ -14,8 +14,8 @@ import { identifyPlantDeposits, isDev, unpackStem } from "@/utils/utils";
 import { useQuery } from "@tanstack/react-query";
 import { getBlockNumber } from "@wagmi/core";
 import { useMemo } from "react";
-import { Address, parseAbiItem, toHex } from "viem";
-import { useAccount, useChainId, useConfig, usePublicClient, useReadContract } from "wagmi";
+import { Address, decodeAbiParameters, encodeFunctionData, parseAbiItem, toHex } from "viem";
+import { useAccount, useChainId, useConfig, usePublicClient, useReadContract, useSimulateContract } from "wagmi";
 import { usePriceData } from "./usePriceData";
 import { useSiloData } from "./useSiloData";
 import useTokenData from "./useTokenData";
@@ -26,6 +26,24 @@ interface DepositQuery {
   stem: bigint;
   depositedAmount: bigint;
   depositedBDV: bigint;
+}
+
+interface WellsPlenty {
+  plentyPerRoot: string;
+  plenty: string;
+  _buffer: string[];
+}
+
+interface FarmerSop {
+  well: string;
+  wellsPlenty: WellsPlenty;
+}
+
+interface FarmerSopsData {
+  lastRain: number;
+  lastSop: number;
+  roots: string;
+  farmerSops: FarmerSop[];
 }
 
 function calculateGerminationInfo(stem: TokenValue, stemTip: TokenValue, stalkEarnedPerSeason: TokenValue) {
@@ -42,10 +60,92 @@ function calculateGerminationInfo(stem: TokenValue, stemTip: TokenValue, stalkEa
   return new Date(currentHour.getTime() + remainingSeasons * SEASON_LENGTH * 1000);
 }
 
+function getFloodCallArguments(whitelistedTokens: Token[], account: `0x${string}`) {
+  const tokensToMow = whitelistedTokens.map((token: Token) => token.address);
+
+  const mow = encodeFunctionData({
+    abi: beanstalkAbi,
+    functionName: "mowMultiple",
+    args: [account, tokensToMow],
+  });
+
+  const balanceOfSop = encodeFunctionData({
+    abi: beanstalkAbi,
+    functionName: "balanceOfSop",
+    args: [account],
+  });
+
+  return [mow, balanceOfSop];
+}
+
 const querySettings = {
   staleTime: 1000 * 60 * 20,
   refetchInterval: 1000 * 60 * 20,
 };
+
+const abiSnippet = [
+  {
+    name: "balanceOfSop",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint32",
+            name: "lastRain",
+            type: "uint32",
+          },
+          {
+            internalType: "uint32",
+            name: "lastSop",
+            type: "uint32",
+          },
+          {
+            internalType: "uint256",
+            name: "roots",
+            type: "uint256",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "well",
+                type: "address",
+              },
+              {
+                components: [
+                  {
+                    internalType: "uint256",
+                    name: "plentyPerRoot",
+                    type: "uint256",
+                  },
+                  {
+                    internalType: "uint256",
+                    name: "plenty",
+                    type: "uint256",
+                  },
+                  {
+                    internalType: "bytes32[4]",
+                    name: "_buffer",
+                    type: "bytes32[4]",
+                  },
+                ],
+                internalType: "struct PerWellPlenty",
+                name: "wellsPlenty",
+                type: "tuple",
+              },
+            ],
+            internalType: "struct SiloGettersFacet.FarmerSops[]",
+            name: "farmerSops",
+            type: "tuple[]",
+          },
+        ],
+        internalType: "struct SiloGettersFacet.AccountSeasonOfPlenty",
+        name: "sop",
+        type: "tuple",
+      },
+    ],
+  },
+];
 
 export function useFarmerSiloNew() {
   const account = useAccount();
@@ -204,13 +304,17 @@ export function useFarmerSiloNew() {
   });
 
   // Fetch flood data
-  const floodData = useReadContract({
+  const floodData = useSimulateContract({
     address: protocolAddress,
     abi: beanstalkAbi,
-    functionName: "balanceOfSop",
-    args: [account.address ?? ZERO_ADDRESS],
+    functionName: "farm",
+    args: [getFloodCallArguments(SILO_WHITELIST, account.address ?? ZERO_ADDRESS)],
     query: {
       enabled: Boolean(account.address),
+      select: (data): FarmerSopsData => {
+        const decoded = decodeAbiParameters(abiSnippet[0].outputs, data.result[1]);
+        return decoded[0] as FarmerSopsData;
+      },
     },
   });
 
@@ -380,6 +484,7 @@ export function useFarmerSiloNew() {
     depositsByToken,
     SILO_WHITELIST,
     siloData.tokenData,
+    depositEvents.data,
     grownStalkPerToken.data,
     mowStatusPerToken.data,
     plantEvents.data,
@@ -412,7 +517,7 @@ export function useFarmerSiloNew() {
                 backingAsset,
                 wellsPlenty: {
                   plenty: TokenValue.fromBlockchain(sopToken.wellsPlenty.plenty, backingAsset.decimals),
-                  plentyPerRoot: sopToken.wellsPlenty.plentyPerRoot,
+                  plentyPerRoot: BigInt(sopToken.wellsPlenty.plentyPerRoot),
                 },
               });
             }
