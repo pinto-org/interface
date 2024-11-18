@@ -146,7 +146,7 @@ const StatPanel = ({
                 : "opacity-100"
           }
         >
-          <Text variant="body">{`My ${mode === "stalk" ? "Stalk" : mode === "seeds" ? "Seeds" : mode === "pods" ? "Pods" : "deposited value"}`}</Text>
+          <Text variant="body">{`My ${mode === "stalk" ? "Stalk" : mode === "seeds" ? "Seeds" : mode === "pods" ? "Pods" : "Deposited value"}`}</Text>
         </div>
         <Text
           variant={size === "large" ? "h1" : "h3"}

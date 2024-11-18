@@ -52,7 +52,7 @@ function Field() {
               Lend in the decentralized credit facility for Pods, the Pinto debt asset.
             </Text>
             <Text variant="body-light" color="light">
-              Pods become Harvestable, redeemable for 1 Pinto when they reach the front of the Pod Line.
+              Pods become redeemable for Pinto 1:1 when they reach the front of the Pod Line.
             </Text>
           </div>
           <Separator />

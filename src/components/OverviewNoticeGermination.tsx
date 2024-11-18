@@ -70,8 +70,8 @@ export default function OverviewNoticeGermination() {
       </Text>
       <Text variant="sm-light" color="light">
         {germinatingDeposits.allTokens.size === 1 ? "This" : "These"} Deposit
-        {germinatingDeposits.allTokens.size === 1 ? "" : "s"} can be converted to a different token and earn yield once
-        two seasons have elapsed.
+        {germinatingDeposits.allTokens.size === 1 ? "" : "s"} can be Converted to a different token and earn yield once
+        two Seasons have elapsed.
       </Text>
       {germinatingDeposits.allTokens.size > 1 && (
         <div className="flex flex-row gap-6 items-center">

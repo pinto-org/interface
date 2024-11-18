@@ -19,7 +19,7 @@ export default function GerminationNotice({ deposit }: { deposit: DepositData })
     <div className="bg-pinto-off-green/15 border border-pinto-off-green flex flex-col p-4 rounded-[1.25rem]">
       <span className="font-[400] text-[1.25rem] text-black">{`Deposit ${truncateHex(deposit.idHex)} is Germinating ${deposit.germinationDate ? `for ${timeRemaining(deposit.germinationDate, currentTime)}` : ""}`}</span>
       <span className="font-[340] text-[1.25rem] text-pinto-gray-4">
-        For two Seasons, this Deposit cannot be converted to a different token or earn yield.
+        For two Seasons, this Deposit cannot be Converted to a different token or earn yield.
       </span>
     </div>
   );

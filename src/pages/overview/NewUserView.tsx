@@ -325,7 +325,7 @@ const FieldInfo = ({ containerRef }: IContainerRef) => {
     },
     {
       label: "Pod Line",
-      tooltip: "The total number of Pods that are not yet redeemable.",
+      tooltip: "The First In, First Out (FIFO) queue of Pods that are not yet redeemable.",
       value: numberAbbr(podline.toNumber()),
     },
   ];
