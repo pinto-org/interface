@@ -126,7 +126,9 @@ const MoreNavi = () => {
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.github}>GitHub</Link>
+            <Link href={navLinks.github} rel="noopener noreferrer" target="_blank">
+              GitHub
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
             <Link href={navLinks.disclosures} rel="noopener noreferrer" target="_blank">
