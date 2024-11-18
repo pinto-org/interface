@@ -1,75 +1,142 @@
-import { TokenValue } from "@/classes/TokenValue";
-import { FarmerBalance, useFarmerBalances } from "@/state/useFarmerBalances";
-import { PoolData, usePriceData } from "@/state/usePriceData";
-import { getTokenIndex } from "@/utils/token";
+import { MAIN_TOKEN, NATIVE_TOKEN } from "@/constants/tokens";
+import { useResolvedChainId } from "@/utils/chain";
+import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { Token } from "@/utils/types";
 import { Lookup } from "@/utils/types.generic";
-import { keyBy } from "lodash";
 import { useMemo } from "react";
-import { useAccount } from "wagmi";
-
-type USDExtendedFarmerBalances = {
-  token: Token;
-  balance: FarmerBalance;
-  usd: FarmerBalance;
-}
-
-
-export function useUSDExtendedFarmerBalances() {
-  const { balances } = useFarmerBalances();
-  const { tokenPrices } = usePriceData();
-
-  return useMemo(() => {
-    const tokenMap: Lookup<USDExtendedFarmerBalances> = {};
-
-    for (const [token, balance] of balances) {
-      const prices = tokenPrices.get(token);
-      if (!prices) continue;
-      
-      const usd: FarmerBalance = {
-        internal: prices.instant.mul(balance.internal),
-        external: prices.instant.mul(balance.external),
-        total: prices.instant.mul(balance.total),
-      };
-
-      const tokenIndex = getTokenIndex(token);
-      tokenMap[tokenIndex] = {
-        token,
-        balance,
-        usd,
-      };
-    }
-
-    return tokenMap;
-  }, [balances, tokenPrices]);
-}
-
-export type PreferredTokenMode = 
-  "highest" | // sort from highest to lowest USD value in descending order
-  "lp-underlying" | // If an LP token, sort by [underlying token, ...other tokens in USD value, PINTO]
-  "pinto"; // PINTO first, then sort by USD value in descending order
+import { useLPTokenToNonPintoUnderlyingMap, useTokenMap } from "./pinto/useTokenMap";
+import useUSDExtendedFarmerBalances, { USDExtendedFarmerBalances } from "./useUSDExtendedFarmerBalances";
 
 export interface UsePreferredTokenProps {
   /**
    * most preferred token
+   * - if no token is provided, return tokens with the greatest USD value in total balance
+   * - If token is LP =>
+   *     - if the user has an LP balance, prioritize [LP token, non-pinto underlying, ...rest, PINTO].
+   *     - if the user does not have an LP balance, prioritize [underlying, ...rest, PINTO, LP].
+   * - If token is not LP, prioritize [token, ...rest]
    */
   token?: Token;
+  /**
+   * filter out LP tokens. If an LP token is provided, it will not be filtered out.
+   */
+  filterLP?: boolean;
+  /**
+   * If token prop is provided, it will not be filtered out.
+   * Otherwise, filter out tokens from the list
+   */
+  filter?: Token[];
 }
 
-// /**
-//  * 
-//  * @param token If provided, 
-//  * @returns 
-//  */
-// export function usePreferredToken(token?: Token) {
-//   const balances = useUSDExtendedFarmerBalances();
+export function usePreferredToken(args?: UsePreferredTokenProps): Token {
+  const farmerBalances = useUSDExtendedFarmerBalances();
+  const lp2Underlying = useLPTokenToNonPintoUnderlyingMap("lp2Underlying");
 
-//   return useMemo(() => {
-//     // sort by total USD value
-//     const sorted = Object.values(balances).sort((a, b) => b.usd.total.sub(a.usd.total).toNumber());
+  const tokenMap = useTokenMap();
+  const chainId = useResolvedChainId();
 
+  return useMemo(() => {
+    const balances = { ...farmerBalances }; // shallow copy
 
+    filterBalances(balances, tokenMap, args);
 
-    
-//   }, [balances, primary, secondary]);
-// }
+    const hasBalance = getTokensWithBalances(balances);
+
+    // handle case where no balances.
+    if (!hasBalance.length) return handleNoBalances(args, chainId, lp2Underlying);
+
+    const sortedByUSD = hasBalance.sort(sortByUSDDesc);
+
+    // If there is only one token with a balance, return it.
+    if (sortedByUSD.length === 1) return sortedByUSD[0].token;
+
+    // At this point we know there is more than one token with a balance.
+    if (args?.token) {
+      const preferred = handlePreferredToken(args.token, chainId, lp2Underlying, balances, sortedByUSD);
+      if (preferred) return preferred;
+    }
+
+    return sortedByUSD[0].token;
+  }, [farmerBalances, tokenMap, args, lp2Underlying, chainId]);
+}
+
+function sortByUSDDesc(a: USDExtendedFarmerBalances, b: USDExtendedFarmerBalances) {
+  return b.usd.total.sub(a.usd.total).toNumber();
+}
+
+function handlePreferredToken(
+  token: Token,
+  chainId: number,
+  lp2Underlying: Lookup<Token>,
+  balances: Lookup<USDExtendedFarmerBalances>,
+  sortedByUSD: USDExtendedFarmerBalances[],
+) {
+  const pinto = MAIN_TOKEN[chainId];
+  const tokenIndex = getTokenIndex(token);
+
+  // If the priority token has a balance gt 0, return the token.
+  if (balances[tokenIndex]?.usd.total.gt(0)) {
+    return token;
+  }
+
+  // Handle case where token provided is LP & no LP balance in wallet.
+  if (token.isLP) {
+    // npu = non-pinto-underlying
+    const npu = lp2Underlying[tokenIndex];
+    if (npu && balances[getTokenIndex(npu)]?.usd.total.gt(0)) {
+      return npu;
+    }
+  }
+  // Find the first balance that is not the main token. By this point, we should have at least 1 balance that is not PINTO.
+  return sortedByUSD.find((value) => !tokensEqual(value.token, pinto))?.token;
+}
+
+// If no balances, return the most preferred token.
+function handleNoBalances(
+  args: UsePreferredTokenProps | undefined,
+  chainId: number,
+  lp2Underlying: Lookup<Token>,
+): Token {
+  if (!args?.token) return NATIVE_TOKEN[chainId]; // if no balances & no token provided, return ETH
+
+  const npu = args?.token.isLP && lp2Underlying[getTokenIndex(args.token)];
+  if (npu) return npu;
+
+  return args.token;
+}
+
+function filterBalances(
+  balances: Lookup<USDExtendedFarmerBalances>,
+  tokenMap: Lookup<Token>,
+  args: UsePreferredTokenProps | undefined,
+) {
+  if (!args?.filter && !args?.filterLP) {
+    return;
+  }
+
+  const addresses = Object.keys(balances);
+  const remove = new Set<string>(args?.filter?.map((t) => getTokenIndex(t)) ?? []);
+
+  for (const address of addresses) {
+    const tokenIndex = getTokenIndex(address);
+    const token = tokenMap[tokenIndex];
+
+    const shouldFilter = (args?.filterLP && token.isLP) || remove.has(tokenIndex);
+
+    if (shouldFilter && !tokensEqual(token, args?.token)) {
+      delete balances[tokenIndex];
+    }
+  }
+}
+
+function getTokensWithBalances(balances: Lookup<USDExtendedFarmerBalances>): USDExtendedFarmerBalances[] {
+  const hasBalance: USDExtendedFarmerBalances[] = [];
+
+  for (const balance of Object.values(balances)) {
+    if (balance.usd.total.gt(0)) {
+      hasBalance.push(balance);
+    }
+  }
+
+  return hasBalance;
+}
