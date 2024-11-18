@@ -43,8 +43,6 @@ export class ZeroX {
         throw new Error("sellAmount or buyAmount is required");
       }
 
-      console.log("params", args);
-
       const urlParams = new URLSearchParams(ZeroX.generateQuoteParams(params) as unknown as Record<string, string>);
 
       return {
