@@ -11,7 +11,7 @@ import Silo from "./pages/Silo";
 import SiloToken from "./pages/SiloToken";
 import Swap from "./pages/Swap";
 import Transfer from "./pages/Transfer";
-import LaunchArticle from "./pages/landing/LaunchArticle";
+import LaunchArticle from "./pages/landing/Article";
 
 function App() {
   return (
