@@ -36,7 +36,7 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
       <TableRow
         {...props}
         ref={ref}
-        className={`h-[4.5rem] ${deposit.isGerminating ? "bg-pinto-off-green/15" : "bg-white"} text-[1rem] pointer-events-none`}
+        className={`h-[4.5rem] ${deposit.isGerminating ? "bg-pinto-off-green/15" : deposit.isPlantDeposit ? "bg-pinto-green-4/15" : "bg-white"} text-[1rem] pointer-events-none`}
       >
         <Text as={TableCell}>
           <div className="gap-2 pl-2 flex items-center">
@@ -56,7 +56,16 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
           <div className="flex flex-row gap-1 items-center justify-end">
             <IconImage src={stalkIcon} size={4} />
             {deposit.isGerminating ? (
-              <div className="opacity-60 text-pinto-off-green">{formatter.twoDec(deposit.stalk.germinating)}</div>
+              <>
+                {deposit.stalk.base.gt(0) && <div className="opacity-60">{formatter.twoDec(deposit.stalk.base)}</div>}
+                {deposit.stalk.germinating.gt(0) && (
+                  <div className="opacity-60 text-pinto-off-green">
+                    {formatter.twoDec(deposit.stalk.germinating, {
+                      showPositiveSign: deposit.stalk.base.gt(0),
+                    })}
+                  </div>
+                )}
+              </>
             ) : (
               <div className="opacity-70">{formatter.twoDec(deposit.stalk.base)}</div>
             )}

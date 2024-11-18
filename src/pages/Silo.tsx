@@ -1,7 +1,8 @@
 import { TokenValue } from "@/classes/TokenValue";
 import ClaimRewards from "@/components/ClaimRewards";
+import OverviewNoticeGermination from "@/components/GerminationNotice";
+import GerminationNotice from "@/components/GerminationNotice";
 import HelperLink from "@/components/HelperLink";
-import OverviewNoticeGermination from "@/components/OverviewNoticeGermination";
 import StatPanel from "@/components/StatPanel";
 import TableRowConnector from "@/components/TableRowConnector";
 import PageContainer from "@/components/ui/PageContainer";
@@ -112,7 +113,7 @@ function Silo() {
                 transition={{ duration: 0.2 }}
                 className="w-full"
               >
-                <OverviewNoticeGermination />
+                <GerminationNotice type="multiple" deposits={farmerSilo.deposits} />
               </motion.div>
             )}
           </AnimatePresence>

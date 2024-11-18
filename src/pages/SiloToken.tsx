@@ -5,6 +5,7 @@ import seedsIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import APYChip from "@/components/APYChip";
+import GerminationNotice from "@/components/GerminationNotice";
 import { ExternalLinkIcon } from "@/components/Icons";
 import SiloActionBox from "@/components/SiloActionBox";
 import { Button } from "@/components/ui/Button";
@@ -27,7 +28,6 @@ import { Link, useParams } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 import { useChainId, useConfig } from "wagmi";
 import DepositsTable from "../components/DepositsTable";
-import GerminationNotice from "./silo/GerminationNotice";
 import SiloActions from "./silo/SiloActions";
 
 export default function SiloToken() {
@@ -95,8 +95,9 @@ const SiloTokenActions = ({ siloToken, farmerDeposits }: ISiloTokenActions) => {
         <SiloActions token={siloToken} />
       </div>
       {farmerDeposits?.deposits.map((farmerDeposit) => {
-        if (farmerDeposit.isGerminating) {
-          return <GerminationNotice deposit={farmerDeposit} />;
+        console.log("DEPOSITS: ", farmerDeposit.isGerminating || farmerDeposit.isPlantDeposit);
+        if (farmerDeposit.isGerminating || farmerDeposit.isPlantDeposit) {
+          return <GerminationNotice type="single" deposit={farmerDeposit} />;
         }
         return null;
       })}

@@ -1,21 +1,19 @@
 import { TokenValue } from "@/classes/TokenValue";
 import EmptyTable from "@/components/EmptyTable";
 import FarmerDepositsTable from "@/components/FarmerDepositsTable";
+import GerminationNotice from "@/components/GerminationNotice";
 import HelperLink from "@/components/HelperLink";
 import OverviewNoticeDeposit from "@/components/OverviewNoticeDeposit";
-import OverviewNoticeGermination from "@/components/OverviewNoticeGermination";
-import OverviewNotice from "@/components/OverviewNoticeGermination";
 import PlotsTable from "@/components/PlotsTable";
 import StatPanel from "@/components/StatPanel";
 import TableRowConnector from "@/components/TableRowConnector";
-import { Button } from "@/components/ui/Button";
 import PageContainer from "@/components/ui/PageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
-import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { useHarvestableIndex, useTemperature } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
@@ -25,11 +23,11 @@ import { StatPanelData } from "@/utils/types";
 import { getSiloConvertUrl } from "@/utils/url";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Overview = () => {
   // Hooks
-  const farmerSilo = useFarmerSilo();
+  const farmerSilo = useFarmerSiloNew();
   const farmerField = useFarmerField();
   const farmerActions = useFarmerActions();
   const tokenData = useTokenData();
@@ -220,7 +218,7 @@ const Overview = () => {
             transition={{ duration: 0.2 }}
             className="-mt-40 -mb-[156px] w-full"
           >
-            <OverviewNoticeGermination />
+            <GerminationNotice type="multiple" deposits={farmerSilo.deposits} />
           </motion.div>
         ) : hasUndepositedMainTokens ? (
           <motion.div
