@@ -182,27 +182,35 @@ interface ISiloTokenAbout extends IBaseSiloToken {
   siloData: ReturnType<typeof useSiloData>;
 }
 
+type SiloBDVs = {
+  siloTVD: TokenValue;
+  liquidityTVD: TokenValue;
+};
+
 const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
   const seedGauge = useSeedGauge();
   const siloTokenData = siloData.tokenData.get(siloToken);
   const denomination = useDenomination();
 
-  const siloTVD = [...siloData.tokenData]
-    .map(([token, data]) => ({ token, data }))
-    .reduce((total, siloData) => siloData.data.depositedBDV.add(total), TokenValue.ZERO);
+  const { siloTVD, liquidityTVD } = [...siloData.tokenData.entries()].reduce<SiloBDVs>(
+    (prev, [token, data]) => {
+      const bdv = data.depositedBDV.add(data.germinatingBDV);
 
-  const liquidityTVD = [...siloData.tokenData]
-    .map(([token, data]) => ({ token, data }))
-    .reduce(
-      (total, siloData) => (siloData.token.isLP ? TokenValue.ZERO : siloData.data.depositedBDV).add(total),
-      TokenValue.ZERO,
-    );
+      prev.siloTVD = prev.siloTVD.add(bdv);
+      if (token.isLP) {
+        prev.liquidityTVD = prev.liquidityTVD.add(bdv);
+      }
+      return prev;
+    },
+    { siloTVD: TokenValue.ZERO, liquidityTVD: TokenValue.ZERO },
+  );
+
+  const depositedBDV = siloTokenData?.depositedBDV.add(siloTokenData?.germinatingBDV ?? TokenValue.ZERO);
 
   const gaugeData = seedGauge.data.gaugeData[getTokenIndex(siloToken)];
-  const liquidityRatio = siloTokenData?.depositedBDV.div(liquidityTVD.gt(0) ? liquidityTVD : TokenValue.ONE);
+  const liquidityRatio = depositedBDV?.div(liquidityTVD.gt(0) ? liquidityTVD : TokenValue.ONE).mul(100);
   const optimalDepositedRatio = gaugeData?.optimalPctDepositedBdv;
 
-  const depositedBDV = siloTokenData?.depositedBDV;
   const tvdUSD = depositedBDV?.mul(price);
   const depositedRatio = depositedBDV?.div(siloTVD.gt(0) ? siloTVD : TokenValue.ONE).mul(100);
 
