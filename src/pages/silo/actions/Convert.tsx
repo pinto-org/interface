@@ -877,7 +877,6 @@ const SiloConvertTokenSelectComponent = ({ siloToken }: BaseConvertProps) => {
       setShowOtherTokens(false);
     }
   };
-
   // Effects
   useEffect(() => {
     if (!open && showOtherTokens) {
