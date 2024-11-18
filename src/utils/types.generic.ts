@@ -28,3 +28,6 @@ export type Prettify<T> = {
 } & {};
 
 export type ChainLookup<T> = { [chainId: number]: T };
+
+// renamed for clarity
+export type AddressLookup<T> = Lookup<T>;

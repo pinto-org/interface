@@ -34,6 +34,14 @@ export type LetterSpacing = "body-light" | "h3" | "h2" | "h1" | "none";
 
 export type TextColor = "primary" | "secondary" | "light" | "lighter" | "green4" | "green3" | "success" | "error";
 
+/**
+ * variant: the type of text
+ * size: the size of the text
+ * weight: the weight of the text
+ * align: the alignment of the text
+ * color: the color of the text
+ * lineHeight: the line height of the text.
+ */
 export interface ITextBase {
   variant?: FontVariant;
   size?: FontSize;

@@ -4,9 +4,9 @@ import backArrowIcon from "@/assets/misc/LeftArrow.svg";
 import seedsIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
-import APYChip from "@/components/APYChip";
 import GerminationNotice from "@/components/GerminationNotice";
 import { ExternalLinkIcon } from "@/components/Icons";
+import InlineStats from "@/components/InlineStats";
 import SiloActionBox from "@/components/SiloActionBox";
 import { Button } from "@/components/ui/Button";
 import DenominationSwitcher from "@/components/ui/DenominationSwitcher";
@@ -18,14 +18,16 @@ import { useDenomination } from "@/hooks/useAppSettings";
 import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import { useSeedGauge } from "@/state/useSeedGauge";
+import { SiloTokenYield, useSiloTokenAPYs } from "@/state/useSiloAPYs";
 import { useSiloData } from "@/state/useSiloData";
+import { useSeason } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { SiloTokenData, Token, TokenDepositData } from "@/utils/types";
 import { Link, useParams } from "react-router-dom";
-import { Toaster, toast } from "sonner";
+import { toast } from "sonner";
 import { useChainId, useConfig } from "wagmi";
 import DepositsTable from "../components/DepositsTable";
 import SiloActions from "./silo/SiloActions";
@@ -35,6 +37,7 @@ export default function SiloToken() {
   const tokenData = useTokenData();
   const siloData = useSiloData();
   const priceData = usePriceData();
+  const apysQuery = useSiloTokenAPYs(tokenAddress);
   const depositedBalances = useFarmerSiloNew().deposits;
 
   const siloToken = tokenData.whitelistedTokens.find((token) => stringEq(token.address, tokenAddress ?? ""));
@@ -54,7 +57,7 @@ export default function SiloToken() {
           <div className="flex flex-col items-center flex-shrink-1 w-full">
             <div className="flex flex-col w-full gap-14 items-start">
               <div className="flex flex-col w-full gap-6">
-                <SiloTokenSubHeader siloTokenData={siloTokenData} />
+                <SiloTokenSubHeader siloTokenData={siloTokenData} apys={apysQuery.data} />
                 {siloToken.name === "PINTOWSOL LP" && <SiloTokenWSOLWarningHeader />}
                 <Separator />
                 <div className="pt-6">
@@ -242,29 +245,59 @@ const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price }: IFarmerSi
   );
 };
 
-const SiloTokenSubHeader = ({ siloTokenData }: { siloTokenData: SiloTokenData | undefined }) => {
+const SiloTokenSubHeader = ({
+  siloTokenData,
+  apys,
+}: { siloTokenData: SiloTokenData | undefined; apys: Partial<SiloTokenYield> | undefined }) => {
+  const season = useSeason();
   const stalkRewards = siloTokenData?.rewards.stalk;
   const seedRewards = siloTokenData?.rewards.seeds;
 
+  const ema24 = apys?.ema24;
+  const ema168 = apys?.ema168;
+  const ema720 = apys?.ema720;
+
+  const stats = [
+    {
+      label: "24H:",
+      value: ema24 ? formatter.pct(ema24 * 100) : "-",
+      notApplicable: season <= 24,
+    },
+    {
+      label: "7D:",
+      value: ema168 ? formatter.pct(ema168 * 100) : "-",
+      notApplicable: season <= 168,
+    },
+    {
+      label: "30D:",
+      value: ema720 ? formatter.pct(ema720 * 100) : "-",
+      notApplicable: season <= 720,
+    },
+  ];
+
   return (
-    <>
-      <div className="flex flex-row items-center justify-between">
-        <div className="flex flex-col gap-2">
-          <Text variant="sm">Current Deposit Rewards</Text>
-          <div className="flex flex-row gap-3">
-            <div className="inline-flex gap-1 items-center">
-              <IconImage src={stalkIcon} size={6} alt="Stalk" />
-              <Text variant="h4">{formatter.twoDec(stalkRewards)} Stalk</Text>
-            </div>
-            <div className="inline-flex gap-1 items-center">
-              <IconImage src={seedsIcon} size={6} alt="Seeds" />
-              <Text variant="h4">{formatter.twoDec(seedRewards)} Seeds</Text>
-            </div>
+    <div className="flex flex-row items-center justify-between">
+      <div className="flex flex-col gap-2">
+        <Text variant="sm">Current Deposit Rewards</Text>
+        <div className="flex flex-row gap-3">
+          <div className="inline-flex gap-1 items-center">
+            <IconImage src={stalkIcon} size={6} alt="Stalk" />
+            <Text variant="h4">{formatter.noDec(stalkRewards)} Stalk</Text>
+          </div>
+          <div className="inline-flex gap-1 items-center">
+            <IconImage src={seedsIcon} size={6} alt="Seeds" />
+            <Text variant="h4">{formatter.twoDec(seedRewards)} Seeds</Text>
           </div>
         </div>
-        <APYChip apyValue={siloTokenData ? siloTokenData.yields.beanAPY : 0} />
       </div>
-    </>
+
+      <div className="flex flex-row items-center justify-end gap-4 lg:gap-6">
+        <Text variant="sm-light" color="green4" align="right" className={stats[0].notApplicable ? "opacity-50" : ""}>
+          Variable APY
+        </Text>
+        <InlineStats variant="sm" stats={stats} />
+      </div>
+    </div>
   );
 };
 

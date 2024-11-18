@@ -51,9 +51,9 @@ export const InfoSolidIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: SV
 
 export const SwitchPDVIcon = ({ color = "#9C9C9C", width = 16, height = 16 }: SVGProps) => (
   <svg width={width} height={height} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M14 8.5L14 16.5L16 14.5" stroke="#9C9C9C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M10 16.5L10 8.5L8 10.5" stroke="#9C9C9C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path fill-rule="evenodd" clip-rule="evenodd" d="M3 12.5V12.5C3 17.471 7.029 21.5 12 21.5V21.5C16.971 21.5 21 17.471 21 12.5V12.5C21 7.529 16.971 3.5 12 3.5V3.5C7.029 3.5 3 7.529 3 12.5Z" stroke="#9C9C9C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M14 8.5L14 16.5L16 14.5" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  <path d="M10 16.5L10 8.5L8 10.5" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  <path fillRule="evenodd" clipRule="evenodd" d="M3 12.5V12.5C3 17.471 7.029 21.5 12 21.5V21.5C16.971 21.5 21 17.471 21 12.5V12.5C21 7.529 16.971 3.5 12 3.5V3.5C7.029 3.5 3 7.529 3 12.5Z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 

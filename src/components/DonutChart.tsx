@@ -2,8 +2,16 @@ import { ReactChart } from "./ReactChart";
 import { PieController, ArcElement, ChartOptions, ChartData } from "chart.js";
 
 const donutOptions: ChartOptions = {
+  plugins: {
+    legend: {
+      display: false
+    },
+    tooltip: {
+      enabled: false
+    }
+  },
   // @ts-ignore
-  offset: 0,
+  offset: 0
 };
 
 export default function DonutChart({ data }: { data: ChartData }) {
