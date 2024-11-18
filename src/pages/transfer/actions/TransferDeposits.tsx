@@ -2,7 +2,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import FlowForm from "@/components/FormFlow";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useTransaction from "@/hooks/useTransaction";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { sortAndPickCrates } from "@/utils/convert";
 import { DepositData, type Token } from "@/utils/types";
 import { useEffect, useState } from "react";
@@ -30,7 +30,7 @@ export default function TransferDeposits() {
   const [transferData, setTransferData] = useState<DepositTransferData[]>([]);
   const [usingMax, setUsingMax] = useState(false);
 
-  const farmerDeposits = useFarmerDepositedBalances();
+  const farmerSilo = useFarmerSiloNew();
 
   const stepDescription = () => {
     switch (step) {
@@ -59,7 +59,7 @@ export default function TransferDeposits() {
 
   const { writeWithEstimateGas, setSubmitting } = useTransaction({
     successCallback: () => {
-      farmerDeposits.refetch();
+      farmerSilo.refetch();
       navigate("/transfer");
     },
     successMessage: "Transfer success",

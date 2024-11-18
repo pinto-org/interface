@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/Label";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useTransaction from "@/hooks/useTransaction";
-import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { useQueryClient } from "@tanstack/react-query";
@@ -16,7 +16,7 @@ import { useChainId } from "wagmi";
 function RewardsClaim() {
   const chainId = useChainId();
   const account = useAccount();
-  const data = useFarmerSilo();
+  const data = useFarmerSiloNew();
   const siloData = useSiloData();
   const { mainToken: BEAN, whitelistedTokens: SILO_WHITELIST } = useTokenData();
   const stalkRewards = siloData.tokenData.get(BEAN)?.rewards.stalk;

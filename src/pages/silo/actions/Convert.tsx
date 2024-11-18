@@ -29,8 +29,7 @@ import {
   PipelineConvertQuote,
 } from "@/lib/PipelineConvert/PipelineConvert";
 import ConvertProvider, { SiloTokenConvertPath, useConvertState } from "@/state/context/convert.provider";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
-import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { PoolData, usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
@@ -55,7 +54,7 @@ interface BaseConvertProps {
 interface ConvertProps extends BaseConvertProps {
   farmerDepositMap: Map<Token, TV>;
   queryClient: ReturnType<typeof useQueryClient>;
-  farmerDeposits: ReturnType<typeof useFarmerDepositedBalances>["data"];
+  farmerDeposits: ReturnType<typeof useFarmerSiloNew>["deposits"];
   tokenPrices: ReturnType<typeof usePriceData>["tokenPrices"];
   siloTokenData: ReturnType<typeof useSiloData>["tokenData"];
   onSuccess: () => void;
@@ -335,7 +334,7 @@ interface PipelineConvertProps extends ConvertProps {
   sourceWell: PoolData;
   targetWell: PoolData;
   genConvert: GenConvert;
-  stalkBalance: ReturnType<typeof useFarmerSilo>["activeStalkBalance"];
+  stalkBalance: ReturnType<typeof useFarmerSiloNew>["activeStalkBalance"];
 }
 
 const PipelineConvert = ({
@@ -707,11 +706,9 @@ const SiloConvertProvider = ({
 const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
   const { targetToken } = useSiloConvertContext();
   const protocolAddress = useProtocolAddress();
-
-  const farmerDepositsQuery = useFarmerDepositedBalances();
-  const farmerDeposits = farmerDepositsQuery.data;
+  const farmerSilo = useFarmerSiloNew(); // Fix me: inefficient fetching...
+  const farmerDeposits = farmerSilo.deposits;
   const { tokenPrices, queryKeys: priceQueryKeys } = usePriceData();
-  const farmerSilo = useFarmerSilo(); // Fix me: inefficient fetching...
   const { tokenData: siloTokenData } = useSiloData();
   const config = useConfig();
 
@@ -726,14 +723,13 @@ const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
   }, [protocolAddress, sourceWell, targetWell, config]);
 
   const onSuccess = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: farmerDepositsQuery.queryKey });
     for (const queryKey of priceQueryKeys) {
       queryClient.invalidateQueries({ queryKey });
     }
     for (const queryKey of farmerSilo.queryKeys) {
       queryClient.invalidateQueries({ queryKey });
     }
-  }, [queryClient, farmerDepositsQuery.queryKey, priceQueryKeys, farmerSilo.queryKeys]);
+  }, [queryClient, priceQueryKeys, farmerSilo.queryKeys]);
 
   const depositMap = useMemo(() => {
     const map = new Map<Token, TV>();
@@ -807,7 +803,7 @@ const ConvertTokenOutput = ({
   prices: ReturnType<typeof usePriceData>["tokenPrices"];
 }) => {
   const usd = prices.get(targetToken)?.instant?.mul(amount || TV.ZERO);
-
+  console.log("PRICES: ", usd);
   const displayAmount = useDebounceValue(formatter.token(amount, targetToken), 50);
   const displayUsd = useDebounceValue(formatter.usd(usd), 50);
 

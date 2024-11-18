@@ -1,7 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import DepositsTable from "@/components/DepositsTable";
 import { DepositTransferData } from "@/pages/transfer/actions/TransferDeposits";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { DepositData, Token } from "@/utils/types";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useAccount } from "wagmi";
@@ -31,8 +31,8 @@ export default function DepositSelect({
   disabled?: boolean | undefined;
 }) {
   const account = useAccount();
-  const depositedBalances = useFarmerDepositedBalances();
-  const farmerDeposits = depositedBalances.data.get(token);
+  const depositedBalances = useFarmerSiloNew().deposits;
+  const farmerDeposits = depositedBalances.get(token);
 
   const [selected, setSelected] = useState<string[]>([]);
 

@@ -2,7 +2,6 @@ import ClaimRewards from "@/components/ClaimRewards";
 import { LeftArrowIcon } from "@/components/Icons";
 import { Button } from "@/components/ui/Button";
 import useFarmerActions from "@/hooks/useFarmerActions";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { getClaimText } from "@/utils/string";
 import { TokenDepositData } from "@/utils/types";
 import { useNavigate } from "react-router-dom";

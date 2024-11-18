@@ -5,7 +5,7 @@ import DepositSelect from "@/components/DepositSelect";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import Text from "@/components/ui/Text";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { Token } from "@/utils/types";
 import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import DepositsList from "../../DepositsList";
@@ -28,8 +28,9 @@ export default function StepTwo({
   usingMax,
   backToFirstStep,
 }: StepTwoProps) {
-  const depositedBalances = useFarmerDepositedBalances();
-  const depositedData = [...depositedBalances.data.entries()].map(([token, depositData]) => ({ token, depositData }));
+  const farmerSilo = useFarmerSiloNew();
+  const depositedBalances = farmerSilo.deposits;
+  const depositedData = [...depositedBalances.entries()].map(([token, depositData]) => ({ token, depositData }));
 
   const tokenAndBalanceMap = new Map<Token, TokenValue>();
   for (const deposit of depositedData) {
@@ -86,7 +87,7 @@ export default function StepTwo({
       }
 
       // Get deposit data for the new token
-      const newTokenDeposits = depositedBalances.data.get(newToken);
+      const newTokenDeposits = depositedBalances.get(newToken);
       if (!newTokenDeposits) {
         return currentTransferData; // Return unchanged if no deposits found
       }
@@ -105,7 +106,7 @@ export default function StepTwo({
           : item,
       );
     },
-    [depositedBalances.data],
+    [depositedBalances],
   );
 
   // Handle token change for a specific transfer data entry
@@ -120,10 +121,10 @@ export default function StepTwo({
   // Track whether input should be disabled for each token
   const shouldDisableInput = useCallback(
     (token: Token, selectedDeposits: number) => {
-      const totalDeposits = depositedBalances.data.get(token)?.deposits.length ?? 0;
+      const totalDeposits = depositedBalances.get(token)?.deposits.length ?? 0;
       return selectedDeposits > 1 && selectedDeposits < totalDeposits;
     },
-    [depositedBalances.data],
+    [depositedBalances],
   );
 
   const getAltText = useCallback(
@@ -131,7 +132,7 @@ export default function StepTwo({
       const tokenDepositData = transferData.find(
         (data) => data.token.address.toLowerCase() === token.address.toLowerCase(),
       );
-      const maxDeposits = depositedBalances.data.get(token)?.deposits.length;
+      const maxDeposits = depositedBalances.get(token)?.deposits.length;
 
       if (tokenDepositData && maxDeposits) {
         const selectedDeposits = tokenDepositData.deposits.length;
@@ -142,7 +143,7 @@ export default function StepTwo({
         }
       }
     },
-    [depositedBalances.data, transferData],
+    [depositedBalances, transferData],
   );
 
   return (

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 import IconImage from "@/components/ui/IconImage";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
-import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import { formatter } from "@/utils/format";
 import { Link } from "react-router-dom";
@@ -13,7 +13,7 @@ export default function TransferActions() {
   const priceData = usePriceData();
 
   const farmerBalance = useFarmerBalances();
-  const farmerSilo = useFarmerSilo();
+  const farmerSilo = useFarmerSiloNew();
   const farmerField = useFarmerField();
 
   const totalInternalBalance = Array.from(farmerBalance.balances).reduce(
