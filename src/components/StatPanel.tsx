@@ -9,6 +9,7 @@ import { ReactNode } from "react";
 import TooltipSimple from "./TooltipSimple";
 import DenominationSwitcher from "./ui/DenominationSwitcher";
 import Text from "./ui/Text";
+import { div } from "three/webgpu";
 
 interface StatPanelProps {
   mode: "depositedValue" | "stalk" | "seeds" | "pods";
@@ -54,14 +55,16 @@ const StatPanel = ({
       {!(mainValue.eq(0) && auxValue?.gt(0)) && (
         <Text as="span" variant="inherit" className="tracking-[0.01em]">
           {mode === "depositedValue"
-            ? formatter.usd(showActionValues && mainValueChange ? mainValue.add(mainValueChange) : mainValue)
-            : formatter.number(showActionValues && mainValueChange ? mainValue.add(mainValueChange) : mainValue)}
+            ? formatter.usd(showActionValues && mainValueChange ? mainValue : mainValue)
+            : formatter.number(showActionValues && mainValueChange ? mainValue : mainValue)}
         </Text>
       )}
       {auxValue?.gt(0) && !showActionValues && (
-        <Text as="span" variant="inherit" className="tracking-[0.01em] text-pinto-off-green">
-          {formatter.number(auxValue, { showPositiveSign: !(mainValue.eq(0) && auxValue && auxValue.gt(0)) })}
-        </Text>
+        <TooltipSimple content={"This Stalk is germinating."}>
+          <Text as="span" variant="inherit" className="tracking-[0.01em] text-pinto-off-green/60">
+            {formatter.number(auxValue, { showPositiveSign: !(mainValue.eq(0) && auxValue && auxValue.gt(0)) })}
+          </Text>
+        </TooltipSimple>
       )}
       {showActionValues && mainValueChange && mainValueChange?.abs().gt(0.001) && (
         <Text
@@ -91,8 +94,9 @@ const StatPanel = ({
         <span className="inline-flex items-center gap-1">
           {showActionValues && actionValue && actionValue.gt(0.01) ? (
             <>
+              <img src={getIcon(mode)} className="h-4 w-6" alt={mode.toUpperCase()} />
               <span>{formatter.pdv(secondaryValue.add(actionValue))}</span>
-              <span className="text-pinto-green-4">{`+${formatter.number(actionValue)}`}</span>
+              <span className="text-pinto-green-4">{`+${formatter.pdv(actionValue)}`}</span>
             </>
           ) : (
             <>

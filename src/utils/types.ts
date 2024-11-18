@@ -70,7 +70,7 @@ export interface DepositData {
     germinating: TokenValue;
     total: TokenValue;
   };
-  isPlantDeposit: boolean;
+  isPlantDeposit?: boolean;
   seeds: TokenValue;
   isGerminating: boolean;
   germinationDate?: Date;

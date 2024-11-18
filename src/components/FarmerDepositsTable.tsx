@@ -14,9 +14,9 @@ import { sortTokensForDeposits } from "@/utils/token";
 import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { userData } from "three/webgpu";
 import TooltipSimple from "./TooltipSimple";
 import Text from "./ui/Text";
-import { userData } from "three/webgpu";
 
 interface FarmerDepositsTableProps {
   rewardsRef?: React.RefObject<HTMLTableRowElement>;
@@ -206,7 +206,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
               return (
                 <TableRow
                   key={`${token.address}_${i}`}
-                  className={`h-[4.5rem] bg-white hover:bg-pinto-green-1/50 hover:cursor-pointer ${germinatingStalk.gt(0) ? "bg-pinto-off-green/15" : ""} ${(amountOfDeposits === 0 && !addClaimable) || (addClaimable && !hovering && plantBeanGain.gt(0)) ? "opacity-70" : "opacity-100"}`}
+                  className={`h-[4.5rem] bg-white hover:bg-pinto-green-1/50 hover:cursor-pointer ${germinatingStalk.gt(0) ? "bg-pinto-off-green/15" : ""} ${(amountOfDeposits === 0 && !addClaimable) || (addClaimable && amountOfDeposits === 0 && !hovering && plantBeanGain.gt(0)) ? "opacity-70" : "opacity-100"}`}
                   onClick={() => navigate(`/silo/${token.address}`)}
                   data-action-target={`token-row-${token.address}`}
                 >
@@ -254,7 +254,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                             </div>
                           </div>
                           <div
-                            className={`${denomination === "PDV" && (rewardGains.bdvGain.gt(0.01) || updateGains.bdvGain.gt(0.01) || (addClaimable && plantBDVGain.gt(0.01))) ? "text-pinto-green-4" : "text-pinto-gray-4"} font-[300] text-[1rem]`}
+                            className={`${rewardGains.bdvGain.gt(0.01) || updateGains.bdvGain.gt(0.01) || (addClaimable && plantBDVGain.gt(0.01)) ? "text-pinto-green-4" : "text-pinto-gray-4"} font-[300] text-[1rem]`}
                           >
                             {denomination === "USD"
                               ? formatter.usd(
@@ -304,10 +304,11 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                       </div>
                     ) : (
                       <div
-                        className={`flex flex-col items-end ${rewardGains.stalkGain.gt(0.01) || grownStalk.gt(0.01) || (addClaimable && plantStalkGain.gt(0.01)) ? "text-pinto-stalk-gold" : ""}`}
+                        className={`flex flex-col items-end ${rewardGains.stalkGain.gt(0.01) || data.update?.stalkFromBDVIncrease.gt(0.01) || grownStalk.gt(0.01) || (addClaimable && plantStalkGain.gt(0.01)) ? "text-pinto-stalk-gold" : ""}`}
                       >
                         <div className="inline-flex items-center gap-1">
                           {(rewardGains.stalkGain.gt(0.01) ||
+                            data.update?.stalkFromBDVIncrease.gt(0.01) ||
                             grownStalk.gt(0.01) ||
                             (addClaimable && plantStalkGain.gt(0.01))) && <UpArrowIcon color={"currentColor"} />}
                           <IconImage src={stalkIcon} size={4} />

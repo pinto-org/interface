@@ -109,7 +109,7 @@ const Overview = () => {
       auxValue: farmerSilo.germinatingStalkBalance,
       mainValueChange:
         hoveredButton === "claim"
-          ? farmerActions.claimRewards.outputs.stalkGain
+          ? farmerActions.claimRewards.outputs.stalkGain.add(farmerActions.updateDeposits.totalGains.stalkGain)
           : farmerActions.harvestPods.outputs.stalkGain,
       actionValue: hoveredButton === "claim" ? claimSiloPct.sub(siloPct) : harvestSiloPct.sub(siloPct),
       secondaryValue: siloPct,
