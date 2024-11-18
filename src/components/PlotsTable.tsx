@@ -3,9 +3,8 @@ import podIcon from "@/assets/protocol/Pod.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useHarvestableIndex } from "@/state/useFieldData";
-import { formatter } from "@/utils/format";
+import { formatter, truncateHex } from "@/utils/format";
 import { Plot } from "@/utils/types";
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import CheckmarkCircle from "./CheckmarkCircle";
 import { RightArrowIcon } from "./Icons";
@@ -68,7 +67,7 @@ const PlotRow = ({ plot, harvestableIndex, useToggle, isSelected, showClaimable 
         <div className="gap-2 flex items-center">
           {useToggle && <CheckmarkCircle isSelected={isSelected} />}
           <img src={plotIcon} className="h-6 w-6" alt="Plot" />
-          <Text variant="body-light">Plot {plot.index.blockchainString}</Text>
+          <Text variant="body-light">Plot {truncateHex(plot.idHex)}</Text>
         </div>
       </TableCell>
       <TableCell className="text-right">

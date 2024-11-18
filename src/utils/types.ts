@@ -148,6 +148,7 @@ export interface Plot {
   createdAt?: number;
   creationHash?: string;
   id?: string;
+  idHex: string;
   listing?: string;
   season?: number;
   source?: string;

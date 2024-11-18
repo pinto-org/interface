@@ -9,6 +9,7 @@ import { Listing, Order, Plot } from "@/utils/types";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 import { useCallback, useMemo } from "react";
+import { toHex } from "viem";
 import { useAccount, useChainId } from "wagmi";
 import { useHarvestableIndex } from "./useFieldData";
 
@@ -178,6 +179,7 @@ const parsePlotsFromChain = (response: readonly PlotsResponse[], harvestableInde
       pods, // total pods (harvestable + unharvestable)
       index: startIndex,
       id: startIndex.toHuman(),
+      idHex: toHex(`${plotData.index}${plotData.pods}`),
     };
     plots.push(output);
   });
@@ -197,6 +199,7 @@ const parsePlotsFromSG = (response: FarmerPlotsQuery) => {
       harvestablePods: TokenValue.fromBlockchain(plot.harvestablePods, PODS.decimals),
       harvestedPods: TokenValue.fromBlockchain(plot.harvestedPods, PODS.decimals),
       id: plot.id,
+      idHex: toHex(`${plot.index}${plot.pods}`),
       index: TokenValue.fromBlockchain(plot.index, PODS.decimals),
       listing: String(plot.listing),
       pods: TokenValue.fromBlockchain(plot.pods, PODS.decimals),
