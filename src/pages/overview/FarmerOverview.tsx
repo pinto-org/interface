@@ -146,11 +146,6 @@ const Overview = () => {
     },
   };
 
-  // Scroll back to top when mounting
-  useEffect(() => {
-    window.scroll(0, 0);
-  }, []);
-
   const renderContent = () => (
     <>
       <div className="flex flex-col justify-center relative action-container">
