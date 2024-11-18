@@ -1,6 +1,6 @@
 import DepositBalanceSelect from "@/components/DepositBalanceSelect";
 import { Button } from "@/components/ui/Button";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { Dispatch, SetStateAction, useCallback, useEffect } from "react";
 import { DepositTransferData } from "../TransferDeposits";
 
@@ -12,17 +12,17 @@ interface StepOneProps {
 }
 
 export default function StepOne({ transferData, setTransferData, usingMax, setUsingMax }: StepOneProps) {
-  const farmerDeposits = useFarmerDepositedBalances();
+  const farmerDeposits = useFarmerSiloNew().deposits;
 
   const handleDepositedTokenSelect = useCallback(
     (tokens: string[]) => {
       const newTransferData: DepositTransferData[] = [];
       for (const tokenAddress of tokens) {
-        const token = [...farmerDeposits.data.keys()].find(
+        const token = [...farmerDeposits.keys()].find(
           (depositedToken) => depositedToken.address.toLowerCase() === tokenAddress.toLowerCase(),
         );
         if (!token) continue;
-        const tokenDepositData = farmerDeposits.data.get(token);
+        const tokenDepositData = farmerDeposits.get(token);
         if (tokenDepositData && tokenDepositData.amount.gt(0)) {
           const tokenData = {
             token: token,
@@ -40,7 +40,7 @@ export default function StepOne({ transferData, setTransferData, usingMax, setUs
   useEffect(() => {
     const tokenAddresses: string[] = [];
     if (usingMax) {
-      for (const depositData of farmerDeposits.data) {
+      for (const depositData of farmerDeposits) {
         if (depositData[1].amount.gt(0)) {
           tokenAddresses.push(depositData[0].address);
         }

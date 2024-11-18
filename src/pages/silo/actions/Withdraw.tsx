@@ -7,12 +7,10 @@ import { Label } from "@/components/ui/Label";
 import Text from "@/components/ui/Text";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useTransaction from "@/hooks/useTransaction";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { sortAndPickCrates } from "@/utils/convert";
-import { formatter } from "@/utils/format";
 import { stringToNumber } from "@/utils/string";
 import { FarmToMode, Token } from "@/utils/types";
-import { useQueryClient } from "@tanstack/react-query";
 import { estimateGas } from "@wagmi/core";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -24,7 +22,8 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   const config = useConfig();
   const account = useAccount();
   const chainId = useChainId();
-  const { data: farmerDeposits, queryKey: queryKey } = useFarmerDepositedBalances();
+  const farmerSilo = useFarmerSiloNew();
+  const farmerDeposits = farmerSilo.deposits;
   const [fromToken, setFromToken] = useState(siloToken);
   const [destination, setDestination] = useState(FarmToMode.EXTERNAL);
   const [amount, setAmount] = useState("0");
@@ -35,12 +34,10 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   const convertData = new Map<Token, TokenValue>();
   convertData.set(fromToken, farmerDepositData ? farmerDepositData.amount : TokenValue.ZERO);
 
-  const queryClient = useQueryClient();
-
   const onSuccess = useCallback(() => {
     setAmount("0");
-    queryClient.invalidateQueries({ queryKey });
-  }, [queryClient, queryKey]);
+    farmerSilo.refetch();
+  }, [farmerSilo]);
 
   const { isConfirming, writeContractAsync, submitting, setSubmitting } = useTransaction({
     successMessage: "Withdraw successful",

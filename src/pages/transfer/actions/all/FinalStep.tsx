@@ -6,10 +6,8 @@ import AddressLink from "@/components/AddressLink";
 import { Label } from "@/components/ui/Label";
 import Text from "@/components/ui/Text";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerField } from "@/state/useFarmerField";
-import { useFarmerSilo } from "@/state/useFarmerSilo";
-import { usePriceData } from "@/state/usePriceData";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { formatter } from "@/utils/format";
 import DepositsList from "../../DepositsList";
 import FarmBalancesList from "../../FarmBalancesList";
@@ -22,12 +20,10 @@ export default function FinalStep({ destination }: StepTwoProps) {
   const farmerBalances = useFarmerBalances();
   const balancesToSend = [...farmerBalances.balances].map(([token, balance]) => ({ token, balance }));
 
-  const farmerSilo = useFarmerSilo();
+  const farmerSilo = useFarmerSiloNew();
   const farmerField = useFarmerField();
-  const farmerDeposits = useFarmerDepositedBalances();
-  const depositsToSend = [...farmerDeposits.data].map(([token, deposit]) => ({ token, deposit }));
-
-  const priceData = usePriceData();
+  const farmerDeposits = farmerSilo.deposits;
+  const depositsToSend = [...farmerDeposits].map(([token, deposit]) => ({ token, deposit }));
 
   const hasBalance = balancesToSend
     .reduce((total, balanceToSend) => total.add(balanceToSend.balance.internal), TokenValue.ZERO)

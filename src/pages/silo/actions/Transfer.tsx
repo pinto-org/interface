@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import useTokenData from "@/state/useTokenData";
 import { sortAndPickCrates } from "@/utils/convert";
 import { useQueryClient } from "@tanstack/react-query";
@@ -18,7 +18,8 @@ import { useWriteContract } from "wagmi";
 function Transfer() {
   const account = useAccount();
   const chainId = useChainId();
-  const { data: farmerDeposits, queryKey: queryKey } = useFarmerDepositedBalances();
+  const farmerSilo = useFarmerSiloNew();
+  const farmerDeposits = farmerSilo.deposits;
   const BEAN = useTokenData().mainToken;
   const [fromToken, setFromToken] = useState(BEAN);
   const [amount, setAmount] = useState("0");
@@ -30,9 +31,9 @@ function Transfer() {
   useEffect(() => {
     if (isSuccess) {
       // invalidating query results to trigger a refetch
-      queryClient.invalidateQueries({ queryKey });
+      farmerSilo.queryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
     }
-  }, [isSuccess, queryKey]);
+  }, [isSuccess]);
 
   async function onSubmit() {
     const userAddress = account.address;

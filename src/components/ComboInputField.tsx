@@ -5,7 +5,7 @@ import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { PODS } from "@/constants/internalTokens";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter, truncateHex } from "@/utils/format";
@@ -83,8 +83,8 @@ function ComboInputField({
   const { balances } = useFarmerBalances();
   const farmerTokenBalance = selectedToken ? balances.get(selectedToken) : undefined;
 
-  const depositedBalances = useFarmerDepositedBalances();
-  const farmerDepositedTokenBalance = selectedToken ? depositedBalances.data.get(selectedToken) : undefined;
+  const depositedBalances = useFarmerSiloNew().deposits;
+  const farmerDepositedTokenBalance = selectedToken ? depositedBalances.get(selectedToken) : undefined;
 
   // Convert input string amount to TokenValue
   const getDecimals = useCallback(() => {

@@ -2,9 +2,8 @@ import FlowForm from "@/components/FormFlow";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
 import { useFarmerField } from "@/state/useFarmerField";
-import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { FarmFromMode, FarmToMode } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -28,10 +27,10 @@ export default function TransferAll() {
   const farmerBalances = useFarmerBalances();
   const balancesToSend = [...farmerBalances.balances].map(([token, balance]) => ({ token, balance }));
 
-  const farmerSilo = useFarmerSilo();
+  const farmerSilo = useFarmerSiloNew();
   const farmerField = useFarmerField();
-  const farmerDeposits = useFarmerDepositedBalances();
-  const depositsToSend = [...farmerDeposits.data].map(([token, deposit]) => ({ token, deposit }));
+  const farmerDeposits = farmerSilo.deposits;
+  const depositsToSend = [...farmerDeposits].map(([token, deposit]) => ({ token, deposit }));
 
   const hasPlots = farmerField.plots.length > 0;
 
@@ -45,7 +44,6 @@ export default function TransferAll() {
       }
       farmerBalances.refetch();
       farmerField.refetch();
-      farmerDeposits.refetch();
       navigate("/transfer");
     },
     successMessage: "Transfer success",

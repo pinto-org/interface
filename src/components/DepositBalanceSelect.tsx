@@ -1,5 +1,5 @@
 import { DepositTransferData } from "@/pages/transfer/actions/TransferDeposits";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
 
 interface DepositBalanceSelect {
@@ -11,8 +11,8 @@ export default function DepositBalanceSelect({
   setDepositedTokensToTransfer,
   depositTransferData,
 }: DepositBalanceSelect) {
-  const depositedBalances = useFarmerDepositedBalances();
-  const depositedData = [...depositedBalances.data.entries()].map(([token, depositData]) => ({ token, depositData }));
+  const depositedBalances = useFarmerSiloNew().deposits;
+  const depositedData = [...depositedBalances.entries()].map(([token, depositData]) => ({ token, depositData }));
   const depositedTokens = depositTransferData.map((transferData) => transferData.token.address);
 
   return (

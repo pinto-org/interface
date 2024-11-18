@@ -11,7 +11,7 @@ import { usePreferredInputToken } from "@/hooks/usePreferredInputToken";
 import useSwapEstimate from "@/hooks/useSwapEstimate";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import useFarmerDepositedBalances from "@/state/useFarmerDepositedBalances";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { PoolData, usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
@@ -40,7 +40,8 @@ const useFilterTokens = (siloToken: Token, balances: ReturnType<typeof useFarmer
 function Deposit({ siloToken }: { siloToken: Token }) {
   const diamondAddress = useProtocolAddress();
   const farmerBalances = useFarmerBalances();
-  const depositedBalances = useFarmerDepositedBalances();
+  const farmerSilo = useFarmerSiloNew();
+  const depositedBalances = farmerSilo.deposits;
   const filterTokens = useFilterTokens(siloToken, farmerBalances.balances);
 
   // console.log("config", config);
@@ -91,9 +92,9 @@ function Deposit({ siloToken }: { siloToken: Token }) {
 
   const onSuccess = useCallback(() => {
     setAmountIn("0");
-    const allQueryKeys = [depositedBalances.queryKey, ...farmerBalances.queryKeys];
+    const allQueryKeys = [...farmerSilo.queryKeys, ...farmerBalances.queryKeys];
     allQueryKeys.forEach((query) => qc.invalidateQueries({ queryKey: query }));
-  }, [qc, depositedBalances, farmerBalances]);
+  }, [qc, farmerSilo, farmerBalances]);
 
   const { isConfirming, writeWithEstimateGas, submitting, setSubmitting } = useTransaction({
     successCallback: onSuccess,
