@@ -6,7 +6,6 @@ import { TokenValue } from "@/classes/TokenValue";
 import { useDenomination } from "@/hooks/useAppSettings";
 import { formatter } from "@/utils/format";
 import { ReactNode } from "react";
-import { div } from "three/webgpu";
 import TooltipSimple from "./TooltipSimple";
 import DenominationSwitcher from "./ui/DenominationSwitcher";
 import Text from "./ui/Text";
