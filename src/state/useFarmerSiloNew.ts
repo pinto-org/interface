@@ -13,7 +13,7 @@ import { DepositData, Token, TokenDepositData } from "@/utils/types";
 import { identifyPlantDeposits, isDev, unpackStem } from "@/utils/utils";
 import { useQuery } from "@tanstack/react-query";
 import { getBlockNumber } from "@wagmi/core";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Address, decodeAbiParameters, encodeFunctionData, parseAbiItem, toHex } from "viem";
 import { useAccount, useChainId, useConfig, usePublicClient, useReadContract, useSimulateContract } from "wagmi";
 import { usePriceData } from "./usePriceData";
@@ -569,7 +569,7 @@ export function useFarmerSiloNew() {
 
     // Query management
     queryKeys,
-    refetch: () => {
+    refetch: useCallback(() => {
       return Promise.all([
         activeStalkBalance.refetch(),
         earnedBeansBalance.refetch(),
@@ -579,6 +579,14 @@ export function useFarmerSiloNew() {
         grownStalkPerToken.refetch(),
         mowStatusPerToken.refetch(),
       ]);
-    },
+    }, [
+      activeStalkBalance,
+      earnedBeansBalance,
+      plantEvents,
+      depositEvents,
+      floodData,
+      grownStalkPerToken,
+      mowStatusPerToken,
+    ]),
   };
 }
