@@ -28,7 +28,7 @@ export interface UsePreferredTokenProps {
   filter?: Token[];
 }
 
-export function usePreferredToken(args?: UsePreferredTokenProps): Token {
+export function usePreferredTokenInput(args?: UsePreferredTokenProps): Token {
   const farmerBalances = useUSDExtendedFarmerBalances();
   const lp2Underlying = useLPTokenToNonPintoUnderlyingMap("lp2Underlying");
 
