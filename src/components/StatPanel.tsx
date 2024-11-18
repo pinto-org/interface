@@ -3,7 +3,6 @@ import podIcon from "@/assets/protocol/Pod.png";
 import seedIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
-import { useDenomination } from "@/hooks/useAppSettings";
 import { formatter } from "@/utils/format";
 import { ReactNode } from "react";
 import TooltipSimple from "./TooltipSimple";
@@ -18,6 +17,7 @@ interface StatPanelProps {
   mainValueChange?: TokenValue;
   actionValue?: TokenValue;
   actionText?: string;
+  altTooltipContent?: ReactNode;
   tooltipContent?: ReactNode;
   size?: "large" | "small";
   variant?: "overview" | "silo";
@@ -32,6 +32,7 @@ const StatPanel = ({
   auxValue,
   mainValueChange,
   actionValue,
+  altTooltipContent,
   tooltipContent,
   size = "small",
   variant = "overview",
@@ -145,33 +146,58 @@ const StatPanel = ({
     </Text>
   );
 
+  const TitleDisplay = () => (
+    <div
+      data-action-target={`${mode}-stats`}
+      className={
+        mainValue.add(auxValue || TokenValue.ZERO).eq(0) && !showActionValues
+          ? "opacity-[0.4]"
+          : showActionValues && secondaryValue.gt(0.01)
+            ? "opacity-100"
+            : "opacity-100"
+      }
+    >
+      <Text variant="body">{`My ${mode === "stalk" ? "Stalk" : mode === "seeds" ? "Seeds" : mode === "pods" ? "Pods" : "Deposited value"}`}</Text>
+    </div>
+  );
+
+  const MainValueDisplay = () => (
+    <Text
+      variant={size === "large" ? "h1" : "h3"}
+      className={
+        mainValue.add(auxValue || TokenValue.ZERO).eq(0) && !showActionValues
+          ? "opacity-[0.4]"
+          : showActionValues && secondaryValue.gt(0.01)
+            ? "opacity-100"
+            : "opacity-100"
+      }
+    >
+      <ValueDisplay />
+    </Text>
+  );
+
   return (
     <div className={`relative min-w-[275px]`}>
       <div className={`flex flex-col items-center gap-2 ${className}`}>
-        <div
-          data-action-target={`${mode}-stats`}
-          className={
-            mainValue.add(auxValue || TokenValue.ZERO).eq(0) && !showActionValues
-              ? "opacity-[0.4]"
-              : showActionValues && secondaryValue.gt(0.01)
-                ? "opacity-100"
-                : "opacity-100"
-          }
-        >
-          <Text variant="body">{`My ${mode === "stalk" ? "Stalk" : mode === "seeds" ? "Seeds" : mode === "pods" ? "Pods" : "Deposited value"}`}</Text>
-        </div>
-        <Text
-          variant={size === "large" ? "h1" : "h3"}
-          className={
-            mainValue.add(auxValue || TokenValue.ZERO).eq(0) && !showActionValues
-              ? "opacity-[0.4]"
-              : showActionValues && secondaryValue.gt(0.01)
-                ? "opacity-100"
-                : "opacity-100"
-          }
-        >
-          <ValueDisplay />
-        </Text>
+        {altTooltipContent ? (
+          <>
+            <TooltipSimple content={altTooltipContent}>
+              <div>
+                <TitleDisplay />
+              </div>
+            </TooltipSimple>
+            <TooltipSimple content={altTooltipContent}>
+              <div>
+                <MainValueDisplay />
+              </div>
+            </TooltipSimple>
+          </>
+        ) : (
+          <>
+            <TitleDisplay />
+            <MainValueDisplay />
+          </>
+        )}
         <div className="flex flex-row gap-1 items-center">
           <div className={secondaryValue.eq(0) ? "opacity-[0.4]" : "opacity-100"}>
             <SecondaryDisplay />
