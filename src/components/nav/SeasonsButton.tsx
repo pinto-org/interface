@@ -132,7 +132,7 @@ const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPa
                           </span>
                         </Text>
                         <Text variant="xs" color="light" className="inline-flex gap-0.5 items-center justify-end">
-                          Crop Ratio
+                          Crop Scalar
                           <TooltipSimple
                             variant="gray"
                             content={"The ratio of Seeds per PDV reward for Pinto relative to at least 1 LP token."}
@@ -154,8 +154,8 @@ const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPa
                                 <>
                                   <Text align="left">Soil is the total number of Pinto that can be lent (Sown).</Text>
                                   <Text align="left" color="light">
-                                    When the Pinto price is less than $1, the amount of Soil issued is roughly equal to the
-                                    amount of excess Pinto.
+                                    When the Pinto price is less than $1, the amount of Soil issued is roughly equal to
+                                    the amount of excess Pinto.
                                   </Text>
                                 </>
                               }
