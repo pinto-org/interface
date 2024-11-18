@@ -4,6 +4,7 @@ import backArrowIcon from "@/assets/misc/LeftArrow.svg";
 import seedsIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
+import GerminationNotice from "@/components/GerminationNotice";
 import { ExternalLinkIcon } from "@/components/Icons";
 import InlineStats from "@/components/InlineStats";
 import SiloActionBox from "@/components/SiloActionBox";
@@ -13,6 +14,7 @@ import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
+import { useDenomination } from "@/hooks/useAppSettings";
 import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import { useSeedGauge } from "@/state/useSeedGauge";
@@ -28,7 +30,6 @@ import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useChainId, useConfig } from "wagmi";
 import DepositsTable from "../components/DepositsTable";
-import GerminationNotice from "./silo/GerminationNotice";
 import SiloActions from "./silo/SiloActions";
 
 export default function SiloToken() {
@@ -97,8 +98,8 @@ const SiloTokenActions = ({ siloToken, farmerDeposits }: ISiloTokenActions) => {
         <SiloActions token={siloToken} />
       </div>
       {farmerDeposits?.deposits.map((farmerDeposit) => {
-        if (farmerDeposit.isGerminating) {
-          return <GerminationNotice deposit={farmerDeposit} />;
+        if (farmerDeposit.isGerminating || farmerDeposit.isPlantDeposit) {
+          return <GerminationNotice type="single" deposit={farmerDeposit} />;
         }
         return null;
       })}
@@ -115,6 +116,7 @@ interface ISiloTokenAbout extends IBaseSiloToken {
 const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
   const seedGauge = useSeedGauge();
   const siloTokenData = siloData.tokenData.get(siloToken);
+  const denomination = useDenomination();
 
   const siloTVD = [...siloData.tokenData]
     .map(([token, data]) => ({ token, data }))
@@ -146,7 +148,7 @@ const SiloTokenAbout = ({ siloToken, price, siloData }: ISiloTokenAbout) => {
             Total Value Deposited
           </Text>
           <Text variant="h4" className="pt-1">
-            {formatter.usd(tvdUSD)}
+            {denomination === "USD" ? formatter.usd(tvdUSD) : formatter.pdv(depositedBDV)}
           </Text>
         </div>
         <div>
@@ -198,6 +200,7 @@ interface IFarmerSiloTokenDeposits extends IBaseSiloToken {
 }
 
 const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price }: IFarmerSiloTokenDeposits) => {
+  const denomination = useDenomination();
   return (
     <div className="flex flex-row gap-16">
       <div className="flex flex-col gap-2">
@@ -210,7 +213,9 @@ const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price }: IFarmerSi
         </div>
         <div className="flex flex-row items-center gap-x-1">
           <Text variant="body" weight="thin" color="secondary">
-            {formatter.usd(farmerDeposits?.depositBDV.mul(price))}
+            {denomination === "USD"
+              ? formatter.usd(farmerDeposits?.depositBDV.mul(price))
+              : formatter.pdv(farmerDeposits?.depositBDV)}
           </Text>
           <DenominationSwitcher />
         </div>
@@ -283,14 +288,14 @@ const SiloTokenSubHeader = ({
             <Text variant="h4">{formatter.twoDec(seedRewards)} Seeds</Text>
           </div>
         </div>
-        </div>
+      </div>
 
-        <div className="flex flex-row items-center justify-end gap-4 lg:gap-6">
-          <Text variant="sm-light" color="green4" align="right" className={stats[0].notApplicable ? "opacity-50" : ""}>
-            Variable APY
-          </Text>
-          <InlineStats variant="sm" stats={stats} />
-        </div>
+      <div className="flex flex-row items-center justify-end gap-4 lg:gap-6">
+        <Text variant="sm-light" color="green4" align="right" className={stats[0].notApplicable ? "opacity-50" : ""}>
+          Variable APY
+        </Text>
+        <InlineStats variant="sm" stats={stats} />
+      </div>
     </div>
   );
 };

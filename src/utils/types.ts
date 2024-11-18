@@ -72,6 +72,7 @@ export interface DepositData {
     germinating: TokenValue;
     total: TokenValue;
   };
+  isPlantDeposit?: boolean;
   seeds: TokenValue;
   isGerminating: boolean;
   germinationDate?: Date;
@@ -218,6 +219,7 @@ export type AddressMap<T> = { [k: string]: T };
 export type StatPanelData = {
   mode: "stalk" | "pods" | "seeds" | "depositedValue";
   mainValue: TokenValue;
+  auxValue?: TokenValue;
   mainValueChange?: TokenValue;
   secondaryValue: TokenValue;
   actionValue?: TokenValue;

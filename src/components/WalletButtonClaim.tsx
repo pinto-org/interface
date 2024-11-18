@@ -3,7 +3,7 @@ import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
@@ -29,7 +29,7 @@ export default function WalletButtonClaim({
   const diamond = useProtocolAddress();
 
   const { queryKeys } = useFarmerBalances();
-  const farmerSilo = useFarmerSilo();
+  const farmerSilo = useFarmerSiloNew();
   const siloQueryKeys = farmerSilo.queryKeys;
   const priceData = usePriceData();
   const { whitelistedTokens } = useTokenData();
@@ -144,7 +144,7 @@ export default function WalletButtonClaim({
         </div>
       </CardContent>
       <CardFooter className="px-6 flex flex-col justify-end gap-4 h-auto">
-        <div className="h=full"></div>
+        <div className="h-full" />
         <Separator className="w-full" />
         <div className="flex flex-row justify-between items-center w-full ">
           <div className="font-[340] text-[1.25rem] text-pinto-gray-4">Receive proceeds to:</div>

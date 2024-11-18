@@ -1,6 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import { formatter } from "@/utils/format";
 import { isDev } from "@/utils/utils";
@@ -19,8 +20,8 @@ import { Button } from "./ui/Button";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/Card";
 import { Separator } from "./ui/Separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/Tabs";
-import { Toggle } from "./ui/Toggle";
 import Text from "./ui/Text";
+import { Toggle } from "./ui/Toggle";
 
 export default function WalletButtonPanel({
   isOpen = false,
@@ -41,7 +42,7 @@ export default function WalletButtonPanel({
 
   const farmerBalances = useFarmerBalances();
   const priceData = usePriceData();
-  const farmerSilo = useFarmerSilo();
+  const farmerSilo = useFarmerSiloNew();
 
   const totalFlood = farmerSilo.flood.farmerSops.reduce(
     (total, sopData) => total.add(sopData.wellsPlenty.plenty),
@@ -204,7 +205,10 @@ export default function WalletButtonPanel({
                                         }}
                                       />
                                     </div>
-                                    <Text variant="sm" color="light">{`${balances.total.toHuman("short")} ${token.symbol}`}</Text>
+                                    <Text
+                                      variant="sm"
+                                      color="light"
+                                    >{`${balances.total.toHuman("short")} ${token.symbol}`}</Text>
                                     <ChevronDownIcon
                                       color={"currentColor"}
                                       className={"transform transition-transform group-data-[state=on]:-scale-y-100"}
@@ -337,11 +341,7 @@ export default function WalletButtonPanel({
           </CardContent>
           <CardFooter className="absolute bottom-0 mx-auto left-0 right-0 text-center justify-center flex flex-col gap-4">
             {ENABLE_SWITCH_CHAINS && <ChainButton />}
-            <Button
-              variant="default"
-              onClick={() => setShowTransfer(true)}
-              className={`rounded-full gap-x-1 m-4`}
-            >
+            <Button variant="default" onClick={() => setShowTransfer(true)} className={`rounded-full gap-x-1 m-4`}>
               <span className="self-center items-center">
                 <BackwardArrowDotsIcon color={"white"} />
               </span>
