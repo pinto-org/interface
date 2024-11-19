@@ -72,7 +72,7 @@ export default function WalletButtonPanel({
 
   return (
     <Card
-      className={`absolute top-[5rem] flex flex-col bg-white transition-all ${isOpen ? "right-[1.5rem]" : "-right-[38rem]"} w-[38rem] overflow-clip h-[calc(100vh-6rem)] z-[51]`}
+      className={`absolute top-[3.5rem] flex flex-col bg-white transition-all ${isOpen ? "right-[0rem]" : "-right-[42rem]"} w-[38rem] overflow-clip h-[calc(100vh-6rem)] z-[51]`}
     >
       {address && (
         <button

@@ -120,7 +120,7 @@ const Navbar = () => {
         </div>
         <div className="flex flex-row justify-end gap-x-4">
           <div className="flex flex-row justify-end gap-x-1">
-            <div className={`${walletOpen && "z-[51]"}`}>
+            <div className={`${walletOpen && "z-[51]"} relative`}>
               <div data-action-target={"wallet-button"}>
                 <WalletButton
                   isOpen={walletOpen}
@@ -131,6 +131,36 @@ const Navbar = () => {
                   setShowClaim={setShowClaim}
                 />
               </div>
+
+              {!openPanel && showWalletHelper && (
+                <ScrollHideComponent>
+                  <HelperLink
+                    onClick={() => {
+                      if (!account.address) {
+                        modal.setOpen(true);
+                        return;
+                      }
+                      if (hasFlood) {
+                        setShowClaim(true);
+                      }
+                      togglePanel("wallet");
+                    }}
+                    text={
+                      !account.address
+                        ? "Connect your Wallet"
+                        : hasFlood
+                          ? "Claim assets from Flood"
+                          : `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet ${hasInternal ? "+ Farm Balances" : "Balance"}`
+                    }
+                    className={`absolute top-[150px] right-[340px] flex flex-row-reverse`}
+                    sourceAnchor="right"
+                    targetAnchor="left"
+                    source90Degree={true}
+                    perpLength={5}
+                    dataTarget="wallet-button"
+                  />
+                </ScrollHideComponent>
+              )}
             </div>
             <div className={`lg:hidden ${mobileNaviOpen && "z-[51]"}`}>
               <MobileNavi
@@ -145,36 +175,6 @@ const Navbar = () => {
           <div className="hidden sm:block">
             <Backdrop active={openBackdrop} onClick={closePanel} transitionDuration={DURATION} />
           </div>
-          {!openPanel && showWalletHelper && (
-            <ScrollHideComponent>
-              <HelperLink
-                onClick={() => {
-                  if (!account.address) {
-                    modal.setOpen(true);
-                    return;
-                  }
-                  if (hasFlood) {
-                    setShowClaim(true);
-                  }
-                  togglePanel("wallet");
-                }}
-                text={
-                  !account.address
-                    ? "Connect your Wallet"
-                    : hasFlood
-                      ? "Claim assets from Flood"
-                      : `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet ${hasInternal ? "+ Farm Balances" : "Balance"}`
-                }
-                className={`absolute top-[150px] right-[340px] flex flex-row-reverse`}
-                sourceAnchor="right"
-                targetAnchor="left"
-                source90Degree={true}
-                perpLength={5}
-                dataTarget="wallet-button"
-                fixed
-              />
-            </ScrollHideComponent>
-          )}
         </div>
       </div>
     </>
