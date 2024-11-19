@@ -1,5 +1,6 @@
 import { atom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect } from "react";
+import { isDev } from "./utils/utils";
 
 const MIN_WIDTH = 1100;
 const MIN_HEIGHT = 820;
@@ -14,6 +15,8 @@ const useScreenGuard = () => {
   const setActive = useSetAtom(screenGuardAtom);
 
   useEffect(() => {
+    if (isDev()) return;
+
     const checkScreenSize = () => {
       if (window.innerWidth < MIN_WIDTH || window.innerHeight < MIN_HEIGHT) {
         setActive(true);
