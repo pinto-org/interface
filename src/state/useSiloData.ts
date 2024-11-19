@@ -230,8 +230,8 @@ export function useSiloData() {
     for (const [i, { data: wlTokenData, queryKey }] of wl.entries()) {
       const token = SILO_WHITELIST[i];
 
-      const index = yields?.siloYields[0].tokenAPYS.findIndex((apys) => stringEq(apys.token, token?.address));
-      const yieldData = index ? yields?.siloYields[0]?.tokenAPYS[index] : undefined;
+      const index = yields?.siloYields[0].tokenAPYS?.findIndex((apys) => stringEq(apys.token, token?.address));
+      const yieldData = index ? yields?.siloYields[0]?.tokenAPYS?.[index] : undefined;
 
       if (!wlTokenData) continue;
 
