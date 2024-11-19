@@ -36,7 +36,7 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
       <TableRow
         {...props}
         ref={ref}
-        className={`h-[4.5rem] ${deposit.isGerminating ? "bg-pinto-off-green/15" : deposit.isPlantDeposit ? "bg-pinto-green-4/15" : "bg-white"} text-[1rem] pointer-events-none`}
+        className={`h-[4.5rem] transition-all ${deposit.isGerminating ? "bg-pinto-off-green/15" : deposit.isPlantDeposit ? "bg-pinto-green-4/15" : "bg-white"} text-[1rem] ${!useToggle ? "pointer-events-none" : "hover:cursor-pointer hover:bg-pinto-green-1/50"}`}
       >
         <Text as={TableCell}>
           <div className="gap-2 pl-2 flex items-center">
