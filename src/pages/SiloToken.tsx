@@ -34,6 +34,7 @@ import { SiloTokenData, Token, TokenDepositData } from "@/utils/types";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import { label } from "three/webgpu";
 import { useChainId, useConfig } from "wagmi";
 import DepositsTable from "../components/DepositsTable";
 import SiloActions from "./silo/SiloActions";
@@ -311,13 +312,23 @@ const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price }: IFarmerSi
           </Text>
           <div className="inline-flex flex-row gap-1">
             <IconImage src={stalkIcon} size={6} alt="Stalk" />
-            <Text variant="h4" className={hasOnlyGerminating ? "text-pinto-off-green/60" : "text-black"}>
-              {hasOnlyGerminating ? formatter.twoDec(farmerDeposits?.stalk.total) : formatter.twoDec(stalkAmount)}
-            </Text>
-            {!hasOnlyGerminating && hasGerminating && (
-              <Text variant="h4" className="text-pinto-off-green/60">
-                +{formatter.twoDec(farmerDeposits?.stalk.germinating)}
+            {hasOnlyGerminating ? (
+              <TooltipSimple content={"This Stalk is germinating."}>
+                <Text variant="h4" className="text-pinto-off-green/60">
+                  {formatter.twoDec(farmerDeposits?.stalk.total)}
+                </Text>
+              </TooltipSimple>
+            ) : (
+              <Text variant="h4" className={"text-black"}>
+                {formatter.twoDec(stalkAmount)}
               </Text>
+            )}
+            {!hasOnlyGerminating && hasGerminating && (
+              <TooltipSimple content={"This Stalk is germinating."}>
+                <Text variant="h4" className="text-pinto-off-green/60">
+                  +{formatter.twoDec(farmerDeposits?.stalk.germinating)}
+                </Text>
+              </TooltipSimple>
             )}
           </div>
         </div>
