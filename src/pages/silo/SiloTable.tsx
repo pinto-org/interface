@@ -173,7 +173,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                                   +{" "}
                                 </Text>
                                 <Text variant="sm-thin" align="right" color="green4">
-                                  {`${denomination === "USD" ? formatter.usd((userData?.currentBDV || TokenValue.ZERO).mul(priceData.price)) : formatter.pdv(gains.bdvGain)}`}{" "}
+                                  {`${denomination === "USD" ? formatter.usd(farmerActions.claimRewards.outputs.beanGain.mul(priceData.price)) : formatter.pdv(gains.bdvGain)}`}{" "}
                                 </Text>
                               </div>
                             ) : (
