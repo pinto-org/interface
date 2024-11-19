@@ -120,7 +120,6 @@ export default function useTransaction({
   // biome-ignore lint/correctness/useExhaustiveDependencies: Run only when hash changes or txn was successful.
   useEffect(() => {
     if (receipt.isSuccess && hash && hashes.current && hashes.current.has(hash)) {
-      console.log("receipt: ", receipt);
       setSubmitting(false);
       hashes.current.delete(hash);
       successCallback?.(receipt.data);

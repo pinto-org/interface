@@ -113,7 +113,6 @@ export default function Swap() {
     }
   }
 
-  // const disabled = submitting || isConfirming || !stringToNumber(amountIn) || !account.address || !swapData;
   const disabled = submitting || isConfirming || !stringToNumber(amountIn) || !account.address || !swapData;
 
   return (
@@ -173,7 +172,7 @@ export default function Swap() {
                 selectedToken={tokenOut}
                 isLoading={swapData?.isLoading || false}
                 disableInput
-                // disableInlineBalance
+                hideMax
                 filterTokens={filterTokensOut}
               />
             </div>
