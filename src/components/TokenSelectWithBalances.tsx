@@ -5,7 +5,7 @@ import { usePriceData } from "@/state/usePriceData";
 import { formatter } from "@/utils/format";
 import { FarmFromMode, Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Address } from "viem";
 import { useAccount } from "wagmi";
 import SourceBalanceSelect from "./SourceBalanceSelect";
@@ -104,6 +104,10 @@ export default function TokenSelectWithBalances({
       }
     }
   }
+
+  useEffect(() => {
+    setInternalBalanceFrom(balanceFrom);
+  }, [balanceFrom]);
 
   return (
     <Dialog>
