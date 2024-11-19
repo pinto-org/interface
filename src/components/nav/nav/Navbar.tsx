@@ -1,6 +1,7 @@
 import HelperLink from "@/components/HelperLink";
 import { ScrollHideComponent } from "@/components/ScrollHideComponent";
 import useFarmerActions from "@/hooks/useFarmerActions";
+import useFarmerStatus from "@/hooks/useFarmerStatus";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import useFieldSnapshots from "@/state/useFieldSnapshots";
@@ -51,7 +52,11 @@ const Navbar = () => {
   const isHome = useMatch("/");
   const isOverview = useMatch("/overview");
   const isSilo = useMatch("/silo");
-  const showWalletHelper = isOverview;
+
+  const { address, hasDeposits, hasPlots, loading, didLoad } = useFarmerStatus();
+  const isNewUser = !address || (!hasDeposits && !hasPlots);
+
+  const showWalletHelper = isOverview && !isNewUser && !loading && didLoad;
 
   const priceOpen = openPanel === "price";
   const seasonsOpen = openPanel === "seasons";
