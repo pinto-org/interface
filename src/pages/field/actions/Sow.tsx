@@ -286,7 +286,7 @@ function Sow({ isMorning }: SowProps) {
           filterTokens={filterTokens}
         />
       </div>
-
+      {maxSow?.lt(0.01) && <Warning>Your usable balance is 0.00 because there is no Soil available.</Warning>}
       {isLoading ? (
         <div className="flex flex-col w-full h-[224px] items-center justify-center">
           <FrameAnimator size={64} />
