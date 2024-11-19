@@ -144,8 +144,9 @@ function MobileNavContent({ docsOpen, moreOpen, setDocsOpen, setMoreOpen, unmoun
         </div>
         <hr className=" border-pinto-gray-2" />
         <div className="flex flex-col gap-6 pl-4">
-          <MobileNavLink
-            noHover
+          <Text
+            // noHover
+            variant="h3"
             className="flex flex-row gap-2 items-center w-full cursor-pointer"
             onClick={() =>
               setDocsOpen((prev) => {
@@ -158,7 +159,7 @@ function MobileNavContent({ docsOpen, moreOpen, setDocsOpen, setMoreOpen, unmoun
             <div className="mt-[4px]">
               <IconImage size={6} src={docsOpen ? ChevronUpIcon : ChevronDownIcon} />
             </div>
-          </MobileNavLink>
+          </Text>
           {docsOpen ? (
             <div className="flex flex-col gap-6  pl-4">
               {/* <MobileNavLink
@@ -169,13 +170,14 @@ function MobileNavContent({ docsOpen, moreOpen, setDocsOpen, setMoreOpen, unmoun
               >
                 Whitepaper
               </MobileNavLink> */}
-              <MobileNavLink variant="h4" nested href={navLinks.docs} onClick={unmount}>
+              <MobileNavLink variant="h4" nested href={navLinks.docs} onClick={unmountAndClose}>
                 GitBook
               </MobileNavLink>
             </div>
           ) : null}
-          <MobileNavLink
-            noHover
+          <Text
+            variant="h3"
+            // noHover
             className="flex flex-row gap-2 items-center w-full"
             onClick={() =>
               setMoreOpen((prev) => {
@@ -188,22 +190,22 @@ function MobileNavContent({ docsOpen, moreOpen, setDocsOpen, setMoreOpen, unmoun
             <div className="mt-[4px]">
               <IconImage size={6} src={moreOpen ? ChevronUpIcon : ChevronDownIcon} />
             </div>
-          </MobileNavLink>
+          </Text>
           {moreOpen ? (
             <div className="flex flex-col gap-6  pl-4">
-              <MobileNavLink variant="h4" nested href={navLinks.discord} onClick={unmount}>
+              <MobileNavLink variant="h4" nested href={navLinks.discord} onClick={unmountAndClose}>
                 Discord
               </MobileNavLink>
-              <MobileNavLink variant="h4" nested href={navLinks.twitter} onClick={unmount}>
+              <MobileNavLink variant="h4" nested href={navLinks.twitter} onClick={unmountAndClose}>
                 X
               </MobileNavLink>
-              <MobileNavLink variant="h4" nested href={navLinks.github} onClick={unmount}>
+              <MobileNavLink variant="h4" nested href={navLinks.github} onClick={unmountAndClose}>
                 GitHub
               </MobileNavLink>
-              <MobileNavLink variant="h4" nested href={navLinks.disclosures} onClick={unmount}>
+              <MobileNavLink variant="h4" nested href={navLinks.disclosures} onClick={unmountAndClose}>
                 Disclosures
               </MobileNavLink>
-              <MobileNavLink variant="h4" nested href={navLinks.exchange} onClick={unmount}>
+              <MobileNavLink variant="h4" nested href={navLinks.exchange} onClick={unmountAndClose}>
                 Pinto Exchange
               </MobileNavLink>
             </div>
