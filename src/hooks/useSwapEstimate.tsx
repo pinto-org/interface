@@ -35,6 +35,7 @@ const sharedQueryOptions = {
   refetchOnWindowFocus: true,
   refetchIntervalInBackground: false,
 } as const;
+
 interface WellsConfig {
   well2Well?: {
     from: PoolData;
@@ -114,6 +115,7 @@ export default function useSwapEstimate(
   const tokenMap = useTokenMap();
   const underlying2LP = useLPTokenToNonPintoUnderlyingMap("underlying2LP");
   const poolData = usePriceData();
+  const wsol = useChainConstant(WSOL_TOKEN);
 
   // We handle these exceptions separately
   const { isExceptionWell2Well, isExceptionWellOnly, isException } = useSwapExceptions(tokenIn, tokenOut);
@@ -136,7 +138,8 @@ export default function useSwapEstimate(
     },
   });
 
-  const usdIn = (!tokenIn.isMain && poolData.tokenPrices.get(tokenIn)?.instant.mul(amount)?.toBigInt()) || 0n;
+  const usdIn =
+    (!tokenIn.isMain && poolData.tokenPrices.get(tokenIn)?.instant.mul(amount).reDecimal(6).toBigInt()) || 0n;
   const usdInQuery = useReadBeanstalkPrice_GetSwapDataUsdInAll({
     args: [usdIn],
     query: {
@@ -168,8 +171,8 @@ export default function useSwapEstimate(
     const usdIn = selectQuery(usdInQuery.data, "amountOut") ?? [];
 
     return {
-      beanInResults: beanIn,
-      usdInResults: usdIn,
+      beanInResults: beanIn.filter((entry) => !tokensEqual(entry.token, wsol)),
+      usdInResults: usdIn.filter((entry) => !tokensEqual(entry.token, wsol)),
     };
   }, [beanInQuery?.data, usdInQuery?.data, wells, tokenMap, mainToken]);
 
@@ -368,12 +371,11 @@ export default function useSwapEstimate(
     if (!Boolean(pathType && validWellQuote2Types.has(pathType))) return false;
     if (isStraightDeposit || isWrapUnwrap) return false;
     if (pathType === "wellSwapLast") {
-      const zeroXReady = !(
+      const zeroXReady =
         zeroExQuoteResult.gt(0) &&
         zeroExQuote.status === "success" &&
         zeroExQuote.isPending === false &&
-        zeroExQuote.fetchStatus === "idle"
-      );
+        zeroExQuote.fetchStatus === "idle";
       return swapConfig.wellIn && swapConfig.wellOut && zeroXReady && isValidAmount;
     }
     // well2Well
@@ -382,8 +384,8 @@ export default function useSwapEstimate(
 
   const wellQuote2 = useWellSwap(
     pathType === "well2Well" ? wellQuote1.amountOut : zeroExQuoteResult,
-    swapConfig.well2In || swapConfig.wellIn,
-    swapConfig.well2Out || swapConfig.wellOut,
+    pathType === "well2Well" ? swapConfig.well2In : swapConfig.wellIn,
+    pathType === "well2Well" ? swapConfig.well2Out : swapConfig.wellOut,
     wellQuote2Well?.pool?.address,
     slippage,
     mode,
@@ -689,7 +691,8 @@ export default function useSwapEstimate(
     // slot 0 in pipeCall, copy into approval step
     const wellShift = shift(
       swapConfig.wellOut?.address,
-      wellQuote1.amountOut,
+      wellQuote1.amountOut.subSlippage(slippage),
+      // TokenValue.ZERO,
       pipeline,
       well?.pool.address,
     ) as AdvancedPipeCall;
@@ -698,9 +701,8 @@ export default function useSwapEstimate(
     // slot 1 in pipeCall
     const approveZeroEx = erc20Approve(
       zeroX?.allowanceTarget || zeroAddress,
-      wellQuote1.amountOut,
+      TokenValue.MAX_UINT256, // set max approval for 0x
       swapConfig.aggIn?.address,
-      Clipboard.encodeSlot(0, 0, 1), // copy slot 0 into approval step
     ) as AdvancedPipeCall;
     pipeCalls.push(approveZeroEx);
 
@@ -715,9 +717,8 @@ export default function useSwapEstimate(
     // slot 3 in pipeCall
     const approveTransfer = erc20Approve(
       beanstalkAddress[chainId as keyof typeof beanstalkAddress],
-      zeroExQuoteResult,
+      TokenValue.MAX_UINT256, // set max approval for beanstalk
       swapConfig.aggOut?.address || zeroAddress,
-      Clipboard.encodeSlot(2, 0, 1),
     ) as AdvancedPipeCall;
     pipeCalls.push(approveTransfer);
 
@@ -760,8 +761,10 @@ export default function useSwapEstimate(
   // biome-ignore format: keep unformatted for readability
   const wellSwapLastSwap = useMemo(() => {
     if (pathType !== "wellSwapLast") return undefined;
+
     if (!swapConfig.wellIn || !well?.pool || !swapConfig.wellOut || !zeroExQuote.data) return;
     const farmCallData: AdvancedFarmCall[] = [];
+
     if (!swapConfig.aggIn?.isNative && zeroX?.allowanceTarget !== zeroAddress) {
       const transferToPipeline = transferToken(
         swapConfig.aggIn?.address || zeroAddress,
@@ -803,6 +806,7 @@ export default function useSwapEstimate(
     const wellShift = shift(
       swapConfig.wellOut?.address || zeroAddress,
       wellQuote2.amountOut.subSlippage(slippage),
+      // TokenValue.ZERO,
       recipient || zeroAddress,
       well?.pool.address || zeroAddress,
     ) as AdvancedPipeCall;
@@ -848,7 +852,8 @@ export default function useSwapEstimate(
       callData: account.address ? [...farmCallData, advPipeCallData] : undefined,
       isLoading: isLoading,
     };
-  }, [pathType, swapConfig, wellQuote2?.amountOut, zeroExQuote, account.address, amountTV, chainId, isWrapping, slippage, source, zeroExQuoteResult, well, mode, pipeline, isLoading, recipient, zeroX?.allowanceTarget, zeroX?.data, zeroX?.to]);
+  }
+  , [pathType, swapConfig, wellQuote2?.amountOut, zeroExQuote.data, account.address, amountTV, chainId, isWrapping, slippage, source, zeroExQuoteResult, well, mode, pipeline, isLoading, recipient, zeroX?.allowanceTarget, zeroX?.data, zeroX?.to]);
 
   // -------------------- WELL2WELL SWAP --------------------
   // biome-ignore format: keep unformatted for readability
