@@ -73,7 +73,7 @@ function Field() {
               <Text variant="h3">{formatter.number(totalPods)}</Text>
             </div>
           </div>
-          <div>{hasPods ? <PlotsTable showClaimable /> : <EmptyTable type="plots-field" />}</div>
+          <div>{hasPods ? <PlotsTable showClaimable disableHover /> : <EmptyTable type="plots-field" />}</div>
         </div>
         {/*
          * Right side
