@@ -3,7 +3,6 @@ import ReactDOM from "react-dom/client";
 
 import App from "./App.tsx";
 import Providers from "./Providers.tsx";
-import ScreenSizeGuard from "./ScreenSizeGuard.tsx";
 
 import "./index.css";
 
@@ -11,9 +10,7 @@ import "./index.css";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Providers>
-      <ScreenSizeGuard>
-        <App />
-      </ScreenSizeGuard>
+      <App />
     </Providers>
   </React.StrictMode>,
 );

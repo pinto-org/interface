@@ -1,3 +1,4 @@
+import { useScreenGuardStatus } from "@/ScreenSizeGuard";
 import HelperLink from "@/components/HelperLink";
 import { ScrollHideComponent } from "@/components/ScrollHideComponent";
 import useFarmerActions from "@/hooks/useFarmerActions";
@@ -35,6 +36,7 @@ const Navbar = () => {
 
   const account = useAccount();
   const queryClient = useQueryClient();
+  const screenGuardActive = useScreenGuardStatus();
 
   const farmerActions = useFarmerActions();
   const farmerBalances = useFarmerBalances();
@@ -126,16 +128,18 @@ const Navbar = () => {
         <div className="flex flex-row justify-end gap-x-4">
           <div className="flex flex-row justify-end gap-x-1">
             <div className={`${walletOpen && "z-[51]"} relative`}>
-              <div data-action-target={"wallet-button"}>
-                <WalletButton
-                  isOpen={walletOpen}
-                  togglePanel={() => togglePanel("wallet")}
-                  onMouseEnter={() => invalidateData("wallet")}
-                  ref={walletButton}
-                  showClaim={showClaim}
-                  setShowClaim={setShowClaim}
-                />
-              </div>
+              {!screenGuardActive && (
+                <div data-action-target={"wallet-button"}>
+                  <WalletButton
+                    isOpen={walletOpen}
+                    togglePanel={() => togglePanel("wallet")}
+                    onMouseEnter={() => invalidateData("wallet")}
+                    ref={walletButton}
+                    showClaim={showClaim}
+                    setShowClaim={setShowClaim}
+                  />
+                </div>
+              )}
 
               {!openPanel && showWalletHelper && (
                 <ScrollHideComponent>
