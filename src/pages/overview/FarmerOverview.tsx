@@ -158,7 +158,7 @@ const Overview = () => {
           <StatPanel {...(hasOnlyPods ? statPanelData.depositedValue : statPanelData.stalk)} />
           <StatPanel {...(hasOnlyPods ? statPanelData.stalk : statPanelData.seeds)} />
           <StatPanel {...(hasOnlyPods ? statPanelData.seeds : statPanelData.pods)} />
-          {(statPanelData.pods.mainValue.eq(0) || (statPanelData.pods.mainValueChange?.gt(0) && !hasOnlyPods)) && (
+          {(statPanelData.pods.mainValue.eq(0) || (statPanelData.pods.mainValueChange?.lt(0) && !hasOnlyPods)) && (
             <HelperLink
               onClick={() =>
                 navigate(statPanelData.pods.mainValueChange?.lt(0) ? "/field?action=harvest" : "/field?action=sow")
