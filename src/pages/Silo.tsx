@@ -49,7 +49,9 @@ function Silo() {
     farmerActions.claimRewards.outputs.stalkGain,
     farmerActions.claimRewards.outputs.seedGain,
   );
-  const hasGerminatingDeposits = farmerSilo.germinatingStalkBalance.gt(0);
+  const hasGerminatingDeposits = Array.from(farmerSilo.deposits.values()).some((depositData) =>
+    depositData.deposits.some((deposit) => deposit.isGerminating),
+  );
 
   const bestDeposit = farmerActions.optimalDepositToken?.token;
 
@@ -130,7 +132,8 @@ function Silo() {
             </Text>
             <div className="relative action-container">
               <SiloTable hovering={hoveredButton === "claim"} />
-              {convertEnabled && convertFrom && convertTo && (
+
+              {/*convertEnabled && convertFrom && convertTo && (
                 <TableRowConnector
                   fromTarget={`token-row-${convertFrom.address}`}
                   toTarget={`token-row-${convertTo.address}`}
@@ -164,12 +167,13 @@ function Silo() {
                           className="text-pinto-gray-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           {/* {"Arbitrage the increased Seeds reward for a gain in Seeds."} */}
+              {/*
                         </Text>
                       </div>
                     </div>
                   }
                 />
-              )}
+              )}*/}
               {claimEnabled && (
                 <HelperLink
                   text={claimableText}
@@ -184,6 +188,7 @@ function Silo() {
                   onMouseLeave={() => setHoveredButton("")}
                 />
               )}
+              {/* 
               {!convertEnabled && bestDeposit && (
                 <TableRowConnector
                   toTarget={`token-row-${bestDeposit.address}`}
@@ -212,7 +217,7 @@ function Silo() {
                     </div>
                   }
                 />
-              )}
+              )}*/}
             </div>
           </div>
         </div>

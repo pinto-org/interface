@@ -43,7 +43,9 @@ const Overview = () => {
   const hasDepositsOrPods = hasDeposits || hasPods;
   const hasOnlyPods = hasPods && !hasDeposits;
   const hasUndepositedMainTokens = Boolean(farmerBalances.balances.get(tokenData.mainToken)?.total.gt(0));
-  const hasGerminatingDeposits = farmerSilo.germinatingStalkBalance.gt(0);
+  const hasGerminatingDeposits = Array.from(farmerSilo.deposits.values()).some((depositData) =>
+    depositData.deposits.some((deposit) => deposit.isGerminating),
+  );
 
   // State
   const [currentTab, setCurrentTab] = useState(hasOnlyPods ? "pods" : "deposits");
@@ -271,6 +273,7 @@ const Overview = () => {
             {hasDeposits ? (
               <div className="relative overflow-visible">
                 <FarmerDepositsTable hovering={hoveredButton === "claim"} />
+                {/* 
                 {convertEnabled && convertFrom && convertTo && (
                   <TableRowConnector
                     fromTarget={`token-row-${convertFrom.address}`}
@@ -295,6 +298,7 @@ const Overview = () => {
                     }
                   />
                 )}
+                  */}
                 <div className="absolute right-0 top-20 h-4" data-action-target="helper-target" />
                 {currentTab === "deposits" && claimEnabled && !hasNoEarnedBeans && (
                   <HelperLink
