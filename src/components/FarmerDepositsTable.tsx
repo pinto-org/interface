@@ -229,7 +229,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                           <div className="inline-flex items-center gap-1">
                             <IconImage src={token.logoURI} size={4} />
                             <div className="text-black/70 font-[400] text-[1rem]">
-                              {formatter.number(userData?.amount)} {token.name}
+                              {formatter.token(userData?.amount, token)} {token.name}
                             </div>
                           </div>
                           <div className="text-pinto-gray-4 font-[300] text-[1rem]">
