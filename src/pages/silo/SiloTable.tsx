@@ -21,6 +21,7 @@ import { useSiloData } from "@/state/useSiloData";
 import { useSeason } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
+import { stringEq } from "@/utils/string";
 import { getTokenIndex, sortTokensForDeposits } from "@/utils/token";
 import { AddressLookup } from "@/utils/types.generic";
 import { cn } from "@/utils/utils";
@@ -86,6 +87,8 @@ function SiloTable({ hovering }: { hovering: boolean }) {
             const depositBDV = userData ? userData.depositBDV : TokenValue.ZERO;
             const amount = userData ? userData.amount : TokenValue.ZERO;
 
+            const _pool = priceData.pools.find((poolData) => stringEq(poolData.pool.address, token.address));
+
             const hasGerminatingDeposits = farmerSilo.deposits
               .get(token)
               ?.deposits.some((deposit) => deposit.isGerminating);
@@ -123,7 +126,9 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                   </div>
                 </TableCell>
                 <Text as={TableCell} align="right" variant="sm" color="secondary" className="opacity-70">
-                  {formatter.usd(totalBDV?.mul(priceData.price))}
+                  {_pool || token.isMain
+                    ? formatter.usd(totalBDV?.mul(token.isMain ? priceData.price : _pool.price))
+                    : "-"}
                 </Text>
                 <TableCell className="text-right pr-4">
                   <div className="flex flex-col items-end gap-1">
