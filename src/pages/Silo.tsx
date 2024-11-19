@@ -49,7 +49,9 @@ function Silo() {
     farmerActions.claimRewards.outputs.stalkGain,
     farmerActions.claimRewards.outputs.seedGain,
   );
-  const hasGerminatingDeposits = farmerSilo.germinatingStalkBalance.gt(0);
+  const hasGerminatingDeposits = Array.from(farmerSilo.deposits.values()).some((depositData) =>
+    depositData.deposits.some((deposit) => deposit.isGerminating),
+  );
 
   const bestDeposit = farmerActions.optimalDepositToken?.token;
 
@@ -130,47 +132,46 @@ function Silo() {
             </Text>
             <div className="relative action-container">
               <SiloTable hovering={hoveredButton === "claim"} />
-              {convertEnabled && convertFrom && convertTo && (
-                <></>
-                // <TableRowConnector
-                //   fromTarget={`token-row-${convertFrom.address}`}
-                //   toTarget={`token-row-${convertTo.address}`}
-                //   color="#246645"
-                //   extensionLength={40}
-                //   dotted={true}
-                //   startCapColor={convertFrom.color}
-                //   endCapColor={convertTo.color}
-                //   component={
-                //     <div className="group flex flex-col group max-w-[250px] cursor-pointer place-items-end gap-2">
-                //       <div
-                //         data-action-target="convert"
-                //         className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
-                //         // @ts-ignore
-                //         style={{ "--convert-color": convertFrom.color }}
-                //         onClick={() => navigate(getSiloConvertUrl(convertFrom, convertTo))}
-                //       >
-                //         {`Convert ${convertFrom.name}`}
-                //       </div>
-                //       <div className="flex flex-col gap-4">
-                //         <Text
-                //           data-action-target="convert"
-                //           variant="sm-light"
-                //           className="text-pinto-gray-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
-                //         >
-                //           {`Convert ${convertFrom.name} for ${convertTo.name} a gain in Seeds`}
-                //         </Text>
-                //         <Text
-                //           data-action-target="convert"
-                //           variant="sm-light"
-                //           className="text-pinto-gray-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
-                //         >
-                //           {/* {"Arbitrage the increased Seeds reward for a gain in Seeds."} */}
-                //         </Text>
-                //       </div>
-                //     </div>
-                //   }
-                // />
-              )}
+              {/* {convertEnabled && convertFrom && convertTo && (
+                <TableRowConnector
+                  fromTarget={`token-row-${convertFrom.address}`}
+                  toTarget={`token-row-${convertTo.address}`}
+                  color="#246645"
+                  extensionLength={40}
+                  dotted={true}
+                  startCapColor={convertFrom.color}
+                  endCapColor={convertTo.color}
+                  component={
+                    <div className="group flex flex-col group max-w-[250px] cursor-pointer place-items-end gap-2">
+                      <div
+                        data-action-target="convert"
+                        className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
+                        // @ts-ignore
+                        style={{ "--convert-color": convertFrom.color }}
+                        onClick={() => navigate(getSiloConvertUrl(convertFrom, convertTo))}
+                      >
+                        {`Convert ${convertFrom.name}`}
+                      </div>
+                      <div className="flex flex-col gap-4">
+                        <Text
+                          data-action-target="convert"
+                          variant="sm-light"
+                          className="text-pinto-gray-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          {`Convert ${convertFrom.name} for ${convertTo.name} a gain in Seeds`}
+                        </Text>
+                        <Text
+                          data-action-target="convert"
+                          variant="sm-light"
+                          className="text-pinto-gray-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          {"Arbitrage the increased Seeds reward for a gain in Seeds."}
+                        </Text>
+                      </div>
+                    </div>
+                  }
+                />
+              )} */}
               {claimEnabled && (
                 <HelperLink
                   text={claimableText}
@@ -185,6 +186,7 @@ function Silo() {
                   onMouseLeave={() => setHoveredButton("")}
                 />
               )}
+              {/* 
               {!convertEnabled && bestDeposit && (
                 <TableRowConnector
                   toTarget={`token-row-${bestDeposit.address}`}
@@ -213,7 +215,7 @@ function Silo() {
                     </div>
                   }
                 />
-              )}
+              )}*/}
             </div>
           </div>
         </div>

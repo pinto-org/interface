@@ -43,7 +43,9 @@ const Overview = () => {
   const hasDepositsOrPods = hasDeposits || hasPods;
   const hasOnlyPods = hasPods && !hasDeposits;
   const hasUndepositedMainTokens = Boolean(farmerBalances.balances.get(tokenData.mainToken)?.total.gt(0));
-  const hasGerminatingDeposits = farmerSilo.germinatingStalkBalance.gt(0);
+  const hasGerminatingDeposits = Array.from(farmerSilo.deposits.values()).some((depositData) =>
+    depositData.deposits.some((deposit) => deposit.isGerminating),
+  );
 
   // State
   const [currentTab, setCurrentTab] = useState(hasOnlyPods ? "pods" : "deposits");

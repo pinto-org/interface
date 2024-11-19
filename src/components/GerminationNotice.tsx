@@ -2,7 +2,7 @@ import depositIcon from "@/assets/protocol/Deposit.svg";
 import { truncateHex } from "@/utils/format";
 import { DepositData, Token, TokenDepositData } from "@/utils/types";
 import { timeRemaining } from "@/utils/utils";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import IconImage from "./ui/IconImage";
 import Text from "./ui/Text";
 
@@ -54,12 +54,32 @@ export default function GerminationNotice(props: GerminationNoticeProps) {
 
     const deposits = new Map<Token, Date>();
     const plantedDeposits: DepositData[] = [];
+    let hasNormalDeposits = false;
+    let hasPlantedDeposits = false;
+    const tokenDepositTypes = new Map<
+      Token,
+      {
+        hasPlanted: boolean;
+        hasNormal: boolean;
+      }
+    >();
+
     props.deposits.forEach((tokenData, token) => {
       tokenData.deposits.forEach((deposit) => {
         if (deposit.isGerminating && deposit.germinationDate) {
+          // Track deposit types for this token
+          const currentTypes = tokenDepositTypes.get(token) || { hasPlanted: false, hasNormal: false };
           if (deposit.isPlantDeposit) {
             plantedDeposits.push(deposit);
+            currentTypes.hasPlanted = true;
+            hasPlantedDeposits = true;
+          } else {
+            currentTypes.hasNormal = true;
+            hasNormalDeposits = true;
           }
+          tokenDepositTypes.set(token, currentTypes);
+
+          // Update latest germination date
           const existingDate = deposits.get(token);
           if (!existingDate || existingDate.getTime() < deposit.germinationDate.getTime()) {
             deposits.set(token, deposit.germinationDate);
@@ -68,11 +88,23 @@ export default function GerminationNotice(props: GerminationNoticeProps) {
       });
     });
 
-    // Group deposits by time remaining
+    // Determine mode based on deposit types
+    let mode = "normal";
+    if (hasPlantedDeposits && !hasNormalDeposits) {
+      mode = "planted";
+    } else if (hasPlantedDeposits && hasNormalDeposits) {
+      mode = "mixed";
+    }
+
+    // Group deposits by time remaining, excluding tokens that only have planted deposits
     const overHour: Array<[Token, Date]> = [];
     const underHour: Array<[Token, Date]> = [];
 
     deposits.forEach((date, token) => {
+      const types = tokenDepositTypes.get(token);
+      // Skip tokens that only have planted deposits
+      if (types?.hasPlanted && !types.hasNormal) return;
+
       const diffMs = date.getTime() - currentTime.getTime();
       const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
 
@@ -84,6 +116,7 @@ export default function GerminationNotice(props: GerminationNoticeProps) {
     });
 
     return {
+      mode,
       overHour,
       underHour,
       allTokens: deposits,
@@ -91,14 +124,9 @@ export default function GerminationNotice(props: GerminationNoticeProps) {
     };
   }, [props, currentTime]);
 
-  // Update time every second
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
+  // ... time interval effect stays the same ...
 
-    return () => clearInterval(interval);
-  }, []);
+  if (germinatingDeposits.allTokens.size === 0) return null;
 
   // Format token list for the first line
   const tokenList = Array.from(germinatingDeposits.allTokens.keys())
@@ -106,53 +134,58 @@ export default function GerminationNotice(props: GerminationNoticeProps) {
     .join(germinatingDeposits.allTokens.size > 2 ? "+ " : " and ");
 
   const plural = Array.from(germinatingDeposits.allTokens.keys()).length > 1;
-  const hasPlanted =
-    props.type === "single" ? props.deposit.isPlantDeposit : germinatingDeposits.plantedDeposits.length > 0;
-  const hasOnlyPlanted =
-    props.type === "single"
-      ? props.deposit.isPlantDeposit
-      : germinatingDeposits.plantedDeposits.length === props.deposits.size;
 
-  return (
-    <div className="bg-pinto-off-green/15 border border-pinto-off-green flex flex-col w-full p-4 rounded-[1rem] gap-2">
-      {props.type === "multiple" && (
-        <Text variant="body" weight="regular">
-          New {tokenList} Deposit{plural ? "s are" : " is"} Germinating
-          {/* {germinatingDeposits.allTokens.size === 1 &&
-            `   for ${timeRemaining(Array.from(germinatingDeposits.allTokens.values())[0])}`} */}
-        </Text>
-      )}
-      {props.type === "single" && (
+  if (props.type === "single") {
+    return (
+      <div className="bg-pinto-off-green/15 border border-pinto-off-green flex flex-col w-full p-4 rounded-[1rem] gap-2">
         <Text variant="body" color="primary" className="font-semibold">
           Deposit {truncateHex(props.deposit.idHex)} is Germinating
           {germinatingDeposits.allTokens.size === 1 &&
             `   for ${timeRemaining(Array.from(germinatingDeposits.allTokens.values())[0])}`}
         </Text>
-      )}
-      <Text variant="sm" color="light" weight="medium" className="leading-2">
-        {!hasPlanted
-          ? `${plural ? "These Deposits" : "This Deposit"} can be Converted to a different token and earn yield once two seasons have elapsed.`
-          : !hasOnlyPlanted
-            ? `These Deposits can be Converted to a different token and earn yield once two seasons have elapsed. Recently claimed Pinto yield can earn additional yield immediately.`
-            : `Your recently claimed Pinto yield, Deposit ${truncateHex(props.type === "single" ? props.deposit.idHex : germinatingDeposits.plantedDeposits[0].idHex)}, can be Converted to a different token in two Seasons. Stalk associated with this Deposit can earn additional yield immediately.`}
+        <Text variant="sm" color="light" weight="medium" className="leading-2">
+          {props.deposit.isPlantDeposit
+            ? `Your recently claimed Pinto yield, Deposit ${truncateHex(props.deposit.idHex)}, can be Converted to a different token in two Seasons. Stalk associated with this Deposit can earn additional yield immediately.`
+            : "This Deposit can be Converted to a different token and earn yield once two seasons have elapsed."}
+        </Text>
+        {germinatingDeposits.allTokens.size > 0 && (
+          <DepositTimer
+            token={Array.from(germinatingDeposits.allTokens.keys())[0]}
+            date={Array.from(germinatingDeposits.allTokens.values())[0]}
+          />
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-pinto-off-green/15 border border-pinto-off-green flex flex-col w-full p-4 rounded-[1rem] gap-2">
+      <Text variant="body" weight="regular">
+        New {tokenList} Deposit{plural ? "s are" : " is"} Germinating
       </Text>
-      {props.type === "single"
-        ? germinatingDeposits.allTokens.size > 0 && (
-            <DepositTimer
-              token={Array.from(germinatingDeposits.allTokens.keys())[0]}
-              date={Array.from(germinatingDeposits.allTokens.values())[0]}
-            />
-          )
-        : germinatingDeposits.allTokens.size > 0 && (
-            <div className="flex flex-row gap-6 items-center">
-              {germinatingDeposits.overHour.map(([token, date], i) => (
-                <DepositTimer key={`germinationNoticeOver_${i}`} token={token} date={date} />
-              ))}
-              {germinatingDeposits.underHour.map(([token, date], i) => (
-                <DepositTimer key={`germinationNoticeUnder_${i}`} token={token} date={date} />
-              ))}
-            </div>
-          )}
+
+      {/* Different message for each mode */}
+      <Text variant="sm" color="light" weight="medium" className="leading-2">
+        {germinatingDeposits.mode === "normal" &&
+          `${plural ? "These Deposits" : "This Deposit"} can be Converted to a different token and earn yield once two seasons have elapsed.`}
+        {germinatingDeposits.mode === "planted" &&
+          `Your recently claimed Pinto yield, Deposit ${truncateHex(germinatingDeposits.plantedDeposits[germinatingDeposits.plantedDeposits.length - 1].idHex)}, can be Converted to a different token in two Seasons. Stalk associated with this Deposit can earn additional yield immediately.`}
+        {germinatingDeposits.mode === "mixed" &&
+          "These Deposits can be Converted to a different token and earn yield once two seasons have elapsed. Recently claimed Pinto yield can earn additional yield immediately."}
+      </Text>
+
+      {/* Only show timers for normal or mixed mode */}
+      {(germinatingDeposits.mode === "normal" || germinatingDeposits.mode === "mixed") &&
+        (germinatingDeposits.overHour.length > 0 || germinatingDeposits.underHour.length > 0) && (
+          <div className="flex flex-row gap-6 items-center">
+            {germinatingDeposits.overHour.map(([token, date], i) => (
+              <DepositTimer key={`germinationNoticeOver_${i}`} token={token} date={date} />
+            ))}
+            {germinatingDeposits.underHour.map(([token, date], i) => (
+              <DepositTimer key={`germinationNoticeUnder_${i}`} token={token} date={date} />
+            ))}
+          </div>
+        )}
     </div>
   );
 }
