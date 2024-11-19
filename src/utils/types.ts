@@ -2,6 +2,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import { SeasonalChartData } from "@/components/charts/SeasonalChart";
 import { QueryKey, UseQueryOptions } from "@tanstack/react-query";
 import { DateTime } from "luxon";
+import { ReactNode } from "react";
 import { Address } from "viem";
 import { Prettify } from "./types.generic";
 
@@ -221,11 +222,11 @@ export type StatPanelData = {
   mode: "stalk" | "pods" | "seeds" | "depositedValue";
   mainValue: TokenValue;
   auxValue?: TokenValue;
-  altTooltipContent?: string;
+  altTooltipContent?: ReactNode;
   mainValueChange?: TokenValue;
   secondaryValue: TokenValue;
   actionValue?: TokenValue;
-  tooltipContent?: string;
+  tooltipContent?: ReactNode;
   showActionValues: boolean;
 };
 

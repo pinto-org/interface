@@ -23,7 +23,7 @@ import { StatPanelData } from "@/utils/types";
 import { getSiloConvertUrl } from "@/utils/url";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Overview = () => {
   // Hooks
@@ -79,13 +79,13 @@ const Overview = () => {
   const convertEnabled = farmerActions.convertDeposits.enabled;
   const convertFrom = farmerActions.convertDeposits.bestConversion.from;
   const convertTo = farmerActions.convertDeposits.bestConversion.to;
-  const claimEnabled = farmerActions.claimRewards.enabled;
+  const claimEnabled = farmerActions.claimRewards.enabled && farmerActions.claimRewards.outputs.stalkGain.gt(0.01);
   const claimableText = getClaimText(
     farmerActions.claimRewards.outputs.beanGain,
     farmerActions.claimRewards.outputs.stalkGain,
     farmerActions.claimRewards.outputs.seedGain,
   );
-  const hasNoEarnedBeans = farmerActions.tokenTotals.get(tokenData.mainToken)?.sources.plant?.beanGain.eq(0);
+  const hasNoEarnedBeans = farmerActions.tokenTotals.get(tokenData.mainToken)?.sources.plant?.beanGain.lt(0.01);
 
   // Stat panel data
   const statPanelData: Record<"stalk" | "pods" | "seeds" | "depositedValue", StatPanelData> = {
@@ -113,8 +113,16 @@ const Overview = () => {
           : farmerActions.harvestPods.outputs.stalkGain,
       actionValue: hoveredButton === "claim" ? claimSiloPct.sub(siloPct) : harvestSiloPct.sub(siloPct),
       secondaryValue: siloPct,
-      tooltipContent:
-        "Your ownership of the Stalk supply determines the portion of Pinto supply increases that you earn.",
+      tooltipContent: (
+        <span>
+          Your ownership of the Stalk supply determines the portion of Pinto
+          <br />
+          supply increases that you earn.{" "}
+          <Link to="/explorer/silo" className="text-pinto-green-4 hover:underline transition-all">
+            See total Stalk supply over time →
+          </Link>
+        </span>
+      ),
       showActionValues: hoveredButton === "claim" /* || hoveredButton === "harvest" */,
     },
     seeds: {

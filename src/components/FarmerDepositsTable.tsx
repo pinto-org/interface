@@ -278,14 +278,17 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                   </TableCell>
                   <TableCell className="text-black/70 font-[400] text-[1rem] text-right">
                     {!hovering ||
-                    (updateGains.stalkGain.lt(0) && grownStalk.lt(0) && addClaimable && plantStalkGain.lt(0)) ? (
+                    (updateGains.stalkGain.lt(0.01) &&
+                      grownStalk.lt(0.01) &&
+                      addClaimable &&
+                      plantStalkGain.lt(0.01)) ? (
                       <div className="flex flex-col items-end">
                         <div className="inline-flex items-center gap-1">
                           <IconImage src={stalkIcon} size={4} />
                           {!(userData?.stalk.base.eq(0) && amountOfDeposits === 1 && germinatingStalk.gt(0)) && (
                             <div>{formatter.twoDec(userData?.stalk.base)}</div>
                           )}
-                          {germinatingStalk.gt(0) && (
+                          {germinatingStalk.gt(0.01) && (
                             <TooltipSimple content={"This Stalk is germinating."}>
                               <div className="text-pinto-off-green/60">
                                 {formatter.twoDec(germinatingStalk, { showPositiveSign: amountOfDeposits > 1 })}
@@ -293,7 +296,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                             </TooltipSimple>
                           )}
                         </div>
-                        {grownStalk.gt(0) && (
+                        {grownStalk.gt(0.01) && (
                           <div className="text-pinto-gray-4/70">
                             Claimable Grown Stalk:{" "}
                             <span className="text-pinto-green-4/70">+{formatter.twoDec(grownStalk)}</span>
@@ -334,7 +337,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                             </TooltipSimple>
                           )}
                         </div>
-                        {data.update?.stalkFromBDVIncrease.gt(0) && (
+                        {data.update?.stalkFromBDVIncrease.gt(0.01) && (
                           <div>
                             Bonus Stalk for updating PDV: <span>{formatter.twoDec(updateGains.bdvGain)}</span>
                           </div>
