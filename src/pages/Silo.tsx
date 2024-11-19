@@ -66,6 +66,8 @@ function Silo() {
       mainValueChange: farmerActions.claimRewards.outputs.stalkGain,
       secondaryValue: farmerActions.claimRewards.outputs.stalkGain,
       showActionValues: hoveredButton === "claim",
+      altTooltipContent:
+        "Stalk entitles holders to passive interest in the form of a share of future Pinto. Your Stalk is forfeited when you Withdraw your Deposited assets from the Silo.",
     },
     seeds: {
       mode: "seeds",
@@ -73,6 +75,7 @@ function Silo() {
       mainValueChange: farmerActions.claimRewards.outputs.seedGain,
       secondaryValue: farmerActions.claimRewards.outputs.seedGain,
       showActionValues: hoveredButton === "claim",
+      altTooltipContent: "Seeds are illiquid tokens that yield 1/10,000 Stalk each Season.",
     },
   };
 
