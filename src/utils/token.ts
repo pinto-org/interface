@@ -32,7 +32,7 @@ const isInternalToken = (token: TokenIsh): token is InternalToken => {
  * @param b - The second token
  * @returns True if the tokens share the same address and symbol, false otherwise
  */
-export const tokensEqual = (a: TokenIsh | undefined, b: TokenIsh | undefined) => {
+export const tokensEqual = (a: TokenIsh | undefined | null, b: TokenIsh | undefined | null) => {
   if (!a || !b) return false;
 
   const aIsInternal = isInternalToken(a);

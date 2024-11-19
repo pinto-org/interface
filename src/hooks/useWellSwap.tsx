@@ -1,6 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { basinWellABI } from "@/constants/abi/basinWellABI";
 import { Token } from "@/utils/types";
+import { useMemo } from "react";
 import { Abi, Address } from "viem";
 import { useReadContract } from "wagmi";
 
@@ -26,13 +27,17 @@ export default function useWellSwap(
     args: [tokenIn?.address || "0x", tokenOut?.address || "0x", amount?.toBigInt() || 0n],
     query: querySettings,
   });
-  const outputDecimals = mode === "exactInput" ? tokenOut?.decimals : tokenIn?.decimals;
-  const outputTV = TokenValue.fromBlockchain((estimate?.data as bigint | undefined) || 0n, outputDecimals || 0);
-  const outputSlippage =
-    mode === "exactInput" ? outputTV.subSlippage(slippage || 0) : outputTV.addSlippage(slippage || 0);
 
-  return {
-    amountOut: outputTV,
-    isLoading: estimate.isLoading,
-  };
+  return useMemo(() => {
+    const outputDecimals = mode === "exactInput" ? tokenOut?.decimals : tokenIn?.decimals;
+    const outputTV = TokenValue.fromBlockchain((estimate?.data as bigint | undefined) || 0n, outputDecimals || 0);
+    const outputSlippage =
+      mode === "exactInput" ? outputTV.subSlippage(slippage || 0) : outputTV.addSlippage(slippage || 0);
+
+    return {
+      amountOut: outputTV,
+      minAmountOut: outputSlippage,
+      isLoading: estimate.isLoading,
+    };
+  }, [estimate.data, estimate.isLoading, mode, slippage, tokenIn, tokenOut]);
 }

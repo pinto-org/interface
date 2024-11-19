@@ -74,7 +74,7 @@ export default function useTokenData() {
   } = useReadContracts({
     contracts: contracts.contractQueries,
     query: {
-      enabled: Boolean(account),
+      enabled: Boolean(account.address),
       refetchInterval: 60000,
       select: (data) => {
         const allowances = new Map<Token, TokenValue>();
