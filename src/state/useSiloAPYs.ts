@@ -83,7 +83,7 @@ export function useSiloYieldsQuery<TSelect = SiloYieldsAPIResponse>(
     },
     ...defaultQuerySettings,
     ...(arg || {}),
-    enabled: !!endpoint,
+    enabled: false,
   });
 }
 
