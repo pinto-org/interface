@@ -164,7 +164,11 @@ export default function WalletButtonPanel({
                   className="overflow-y-auto overflow-x-clip max-h-[calc(100vh-39rem)] -mx-4 px-4"
                 >
                   {totalBalance.total.eq(0) ? (
-                    <div className="flex flex-grow items-center justify-around h-40">No balances found.</div>
+                    <div className="flex flex-grow gap-1 flex-col items-center text-center min-h-[calc(100vh-39rem)] justify-center">
+                      <span>
+                        You don’t have any value in your Wallet or Farm Balance, Bridge value to Base to get started.
+                      </span>
+                    </div>
                   ) : (
                     <div className={"mt-4 -mx-4"}>
                       {Array.from(farmerBalances.balances).map((tokenBalance) => {
@@ -251,8 +255,8 @@ export default function WalletButtonPanel({
                   className="overflow-y-auto overflow-x-clip max-h-[calc(100vh-39rem)] -mx-4 px-4"
                 >
                   {totalBalance.external.eq(0) ? (
-                    <div className="flex flex-grow items-center justify-around h-40">
-                      You have no balance in your Wallet
+                    <div className="flex flex-grow gap-1 flex-col items-center text-center min-h-[calc(100vh-39rem)] justify-center">
+                      <span>You don’t have any value in your Wallet Balance, Bridge value to Base to get started.</span>
                     </div>
                   ) : (
                     <div className="mt-4 -mx-4">
@@ -296,8 +300,12 @@ export default function WalletButtonPanel({
                   className="overflow-y-auto overflow-x-clip max-h-[calc(100vh-39rem)] -mx-4 px-4"
                 >
                   {totalBalance.internal.eq(0) ? (
-                    <div className="flex flex-grow items-center justify-around h-40">
-                      You have no balance in the Farm
+                    <div className="flex flex-grow gap-1 flex-col items-center text-center min-h-[calc(100vh-39rem)] justify-center">
+                      <span>You don’t have any value in your Farm Balance.</span>
+                      <span>
+                        Your Farm Balance allows you store tokens in the protocol directly for usage in the Silo, Field
+                        and Market.
+                      </span>
                     </div>
                   ) : (
                     <div className="mt-4 -mx-4">
