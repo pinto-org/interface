@@ -8,9 +8,13 @@ import Text from "@/components/ui/Text";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import useFieldSnapshots from "@/state/useFieldSnapshots";
+import useSiloSnapshots from "@/state/useSiloSnapshots";
+import { useInvalidateSun } from "@/state/useSunData";
 import { sortAndPickCrates } from "@/utils/convert";
 import { stringToNumber } from "@/utils/string";
 import { FarmToMode, Token } from "@/utils/types";
+import { useQueryClient } from "@tanstack/react-query";
 import { estimateGas } from "@wagmi/core";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -23,10 +27,15 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   const account = useAccount();
   const chainId = useChainId();
   const farmerSilo = useFarmerSiloNew();
+  const fieldSnapshots = useFieldSnapshots();
+  const siloSnapshots = useSiloSnapshots();
+  const invalidateSun = useInvalidateSun();
   const farmerDeposits = farmerSilo.deposits;
   const [fromToken, setFromToken] = useState(siloToken);
   const [destination, setDestination] = useState(FarmToMode.EXTERNAL);
   const [amount, setAmount] = useState("0");
+
+  const queryClient = useQueryClient();
 
   const farmerDepositData = farmerDeposits.get(fromToken);
   const deposits = farmerDepositData?.deposits;
@@ -36,8 +45,16 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const onSuccess = useCallback(() => {
     setAmount("0");
-    farmerSilo.refetch();
-  }, [farmerSilo]);
+    const allQueryKeys = [...farmerSilo.queryKeys, fieldSnapshots.queryKey, siloSnapshots.queryKey];
+    allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query, refetchType: "active" }));
+    invalidateSun("all", { refetchType: "active" });
+  }, [
+    farmerSilo.queryKeys,
+    fieldSnapshots.queryKey,
+    siloSnapshots.queryKey,
+    invalidateSun,
+    queryClient.invalidateQueries,
+  ]);
 
   const { isConfirming, writeContractAsync, submitting, setSubmitting } = useTransaction({
     successMessage: "Withdraw successful",
