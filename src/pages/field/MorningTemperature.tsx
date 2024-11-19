@@ -1,12 +1,13 @@
 import LineChart, { LineChartData, MakeGradientFunction } from "@/components/charts/LineChart";
 import Text from "@/components/ui/Text";
 import { formatter } from "@/utils/format";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import MorningCard from "@/components/MorningCard";
 import { MorningIntervalCountdown } from "@/pages/field/MorningCountdown";
 import useCalculateTemperature from "@/state/useCalculateTemperature";
 import { useMorning } from "@/state/useSunData";
+import { chartFormatters as f } from "@/utils/format";
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -52,6 +53,10 @@ const MorningTemperatureChart = () => {
     return datas;
   }, [generate]);
 
+  const onMouseOver = useCallback((idx: number) => {
+    setHoveredIndex(idx);
+  }, []);
+
   return (
     <MorningCard className="flex flex-col w-full p-6">
       <div className="flex flex-col w-full gap-2">
@@ -62,9 +67,9 @@ const MorningTemperatureChart = () => {
             size="large"
             xKey="interval"
             makeLineGradients={makeLineGradients}
-            onMouseOver={(idx) => {
-              setHoveredIndex(idx);
-            }}
+            onMouseOver={onMouseOver}
+            valueFormatter={f.percent0dFormatter}
+            // tickValueFormatter={f.percent0dFormatter}
           />
         </div>
       </div>

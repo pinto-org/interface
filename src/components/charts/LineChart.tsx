@@ -24,6 +24,11 @@ export type MakeGradientFunction = (
   position: number,
 ) => CanvasGradient | undefined;
 
+export type LineChartReferenceDotProps = {
+  x: any;
+  y: any;
+};
+
 export interface LineChartProps {
   data: LineChartData[];
   size: "small" | "large";
@@ -31,6 +36,7 @@ export interface LineChartProps {
   makeLineGradients: MakeGradientFunction[];
   // If not provided, do not fill area
   makeAreaGradients?: MakeGradientFunction[];
+  referenceDot?: LineChartReferenceDotProps;
   valueFormatter?: (value: number) => string;
   onMouseOver?: (index: number) => void;
 }
@@ -55,7 +61,7 @@ const LineChart = React.memo(
           datasets: data[0].values.map((_, idx: number) => ({
             data: data.map((d) => d.values[idx]),
             borderColor: makeLineGradients[idx](ctx, 1),
-            borderWidth: 3.41,
+            borderWidth: 3,
             fill: !!makeAreaGradients,
             backgroundColor: makeAreaGradients?.[idx](ctx, 1),
             // Hide default points, custom are implemented in afterDraw plugin
@@ -94,6 +100,10 @@ const LineChart = React.memo(
       [makeLineGradients, makeAreaGradients],
     );
 
+    const fillArea = !!makeAreaGradients && !!makeAreaGradients.length;
+
+    // const referenceDotPlugin: Plugin = useMemo<Plugin>(() => {}, []);
+
     const verticalLinePlugin: Plugin = useMemo<Plugin>(
       () => ({
         id: "customVerticalLine",
@@ -106,18 +116,18 @@ const LineChart = React.memo(
             // Draw vertical line
             ctx.save();
             ctx.beginPath();
-            ctx.setLineDash([8, 8]);
+            ctx.setLineDash([4, 4]);
             // chartArea.top is not corresponding to the top of the canvas element
             ctx.moveTo(dataPoint.x, chart.chartArea.top - 50);
             ctx.lineTo(dataPoint.x, chart.chartArea.bottom);
-            ctx.strokeStyle = "#D9AD0F";
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = fillArea ? "#D9AD0F" : "#246645";
+            ctx.lineWidth = 1;
             ctx.stroke();
             ctx.restore();
           }
         },
       }),
-      [],
+      [fillArea],
     );
 
     const selectionPointPlugin: Plugin = useMemo<Plugin>(
@@ -132,8 +142,8 @@ const LineChart = React.memo(
 
             // Draw rounded rect around selected point
             ctx.save();
-            ctx.fillStyle = "#D9AD0F";
-            ctx.strokeStyle = "#D9AD0F";
+            ctx.fillStyle = fillArea ? "#D9AD0F" : "#246645";
+            ctx.strokeStyle = fillArea ? "#D9AD0F" : "#246645";
             ctx.lineWidth = 2;
 
             const rectWidth = 12;
@@ -178,7 +188,7 @@ const LineChart = React.memo(
           }
         },
       }),
-      [],
+      [fillArea],
     );
 
     const selectionCallbackPlugin: Plugin = useMemo<Plugin>(
@@ -188,7 +198,7 @@ const LineChart = React.memo(
           onMouseOver?.(chart.getActiveElements()[0]?.index);
         },
       }),
-      [onMouseOver],
+      [],
     );
 
     const chartOptions: ChartOptions = useMemo(() => {
@@ -225,7 +235,7 @@ const LineChart = React.memo(
               display: false,
             },
             ticks: {
-              padding: 15,
+              padding: 0,
               minRotation: 0,
               maxRotation: 0,
               autoSkip: false,
