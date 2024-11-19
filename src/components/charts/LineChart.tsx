@@ -24,6 +24,11 @@ export type MakeGradientFunction = (
   position: number,
 ) => CanvasGradient | undefined;
 
+export type LineChartReferenceDotProps = {
+  x: any;
+  y: any;
+};
+
 export interface LineChartProps {
   data: LineChartData[];
   size: "small" | "large";
@@ -31,6 +36,7 @@ export interface LineChartProps {
   makeLineGradients: MakeGradientFunction[];
   // If not provided, do not fill area
   makeAreaGradients?: MakeGradientFunction[];
+  referenceDot?: LineChartReferenceDotProps;
   valueFormatter?: (value: number) => string;
   onMouseOver?: (index: number) => void;
 }
@@ -93,6 +99,8 @@ const LineChart = React.memo(
       }),
       [makeLineGradients, makeAreaGradients],
     );
+
+    const referenceDotPlugin: Plugin = useMemo<Plugin>(() => {}, []);
 
     const verticalLinePlugin: Plugin = useMemo<Plugin>(
       () => ({
@@ -188,7 +196,7 @@ const LineChart = React.memo(
           onMouseOver?.(chart.getActiveElements()[0]?.index);
         },
       }),
-      [onMouseOver],
+      [],
     );
 
     const chartOptions: ChartOptions = useMemo(() => {

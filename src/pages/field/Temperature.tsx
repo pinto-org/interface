@@ -1,8 +1,24 @@
+import SeasonalChart, { tabToSeasonalLookback, TimeTab } from "@/components/charts/SeasonalChart";
+import { useSeasonalTemperature } from "@/state/seasonal/seasonalDataHooks";
+import { useSeason } from "@/state/useSunData";
+import { chartFormatters as f } from "@/utils/format";
+import { useState } from "react";
+
 const TemperatureChart = () => {
+  const [tempTab, setTempTab] = useState(TimeTab.Week);
+  const season = useSeason();
+  const tempData = useSeasonalTemperature(Math.max(0, season - tabToSeasonalLookback(tempTab)), season);
+
   return (
-    <div className="flex rounded-[1rem] p-4 bg-pinto-off-white border-pinto-gray-2 border w-full h-96">
-      Temperature chart goes here
-    </div>
+    <SeasonalChart
+      title="Max Temperature"
+      size="large"
+      activeTab={tempTab}
+      onChangeTab={setTempTab}
+      useSeasonalResult={tempData}
+      valueFormatter={f.percent0dFormatter}
+      tickValueFormatter={f.percent0dFormatter}
+    />
   );
 };
 

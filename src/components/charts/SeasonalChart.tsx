@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Text from "../ui/Text";
-import { formatDate } from "@/utils/format";
-import LineChart, { LineChartData, MakeGradientFunction } from "./LineChart";
-import { CloseIconAlt } from "../Icons";
 import LoadingSpinner from "@/components/LoadingSpinner.tsx";
+import { formatDate } from "@/utils/format";
 import { UseSeasonalResult } from "@/utils/types";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CloseIconAlt } from "../Icons";
+import Text from "../ui/Text";
+import LineChart, { LineChartData, MakeGradientFunction } from "./LineChart";
 
 // Draws dynamic gradient with the given colors at the given positions.
 // Positions outside of range [0, 1] are truncated or ignored when appropriate.
@@ -122,6 +122,8 @@ const SeasonalChart = ({
     [allData],
   );
 
+  console.log(chartData);
+
   return (
     <div className="rounded-[20px] p-4 sm:p-6 sm:pb-4" style={{ backgroundColor: "#F8F8F8" }}>
       <div className="flex justify-between">
@@ -184,15 +186,21 @@ const SeasonalChart = ({
             </div>
           </div>
           <div className={size === "small" ? "aspect-3/1" : "aspect-6/1"}>
-            <LineChart
-              data={chartData}
-              xKey="timestamp"
-              size={size}
-              makeLineGradients={lineGradients}
-              makeAreaGradients={fillArea ? areaGradients : undefined}
-              valueFormatter={tickValueFormatter}
-              onMouseOver={handleMouseOver}
-            />
+            {!chartData.length && !useSeasonalResult.isLoading ? (
+              <div className="w-full h-full flex items-center justify-center">
+                <Text variant="body-light">No data</Text>
+              </div>
+            ) : (
+              <LineChart
+                data={chartData}
+                xKey="timestamp"
+                size={size}
+                makeLineGradients={lineGradients}
+                makeAreaGradients={fillArea ? areaGradients : undefined}
+                valueFormatter={tickValueFormatter}
+                onMouseOver={handleMouseOver}
+              />
+            )}
           </div>
         </>
       )}
