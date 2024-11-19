@@ -70,10 +70,10 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
               <div className="opacity-70">{formatter.twoDec(deposit.stalk.base)}</div>
             )}
           </div>
-          {deposit.isGerminating && deposit.stalk.grown.gt(0.0001) && (
+          {deposit.isGerminating && deposit.stalk.grown.gt(0) && (
             <div className="text-pinto-gray-4 mt-1 opacity-70 font-[340]">Claimable Grown Stalk: -</div>
           )}
-          {deposit.stalk.grown.gt(0.0001) && (
+          {deposit.stalk.grown.gt(0) && (
             <div className="text-pinto-gray-4 mt-1 opacity-70 font-[340]">
               Claimable Grown Stalk:{" "}
               <span className="text-pinto-green-4">
