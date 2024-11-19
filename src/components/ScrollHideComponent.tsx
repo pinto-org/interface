@@ -6,18 +6,18 @@ export const ScrollHideComponent = ({ children }) => {
   useEffect(() => {
     const handleScroll = () => {
       // Check if we're at the top of the page
-      const isTop = window.scrollY === 0;
+      const isTop = document.body.scrollTop === 0;
       setIsVisible(isTop);
     };
 
     // Add scroll event listener
-    window.addEventListener("scroll", handleScroll);
+    document.body.addEventListener("scroll", handleScroll);
 
     // Initial check
     handleScroll();
 
     // Cleanup
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => document.body.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
