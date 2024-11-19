@@ -172,7 +172,7 @@ function Silo() {
                   }
                 />
               )} */}
-              {claimEnabled && (
+              {/* {claimEnabled && (
                 <HelperLink
                   text={claimableText}
                   className={`absolute top-8 -right-[100px] z-20`}
@@ -185,7 +185,7 @@ function Silo() {
                   onMouseEnter={() => setHoveredButton("claim")}
                   onMouseLeave={() => setHoveredButton("")}
                 />
-              )}
+              )} */}
               {/* 
               {!convertEnabled && bestDeposit && (
                 <TableRowConnector

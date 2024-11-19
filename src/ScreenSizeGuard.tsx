@@ -39,7 +39,7 @@ const ScreenSizeGuard = ({ children }) => {
         <div className="bg-white rounded-lg shadow-none border border-pinto-gray-4 p-6 max-w-md text-center">
           <h2 className="text-2xl font-bold text-black mb-4">Screen Size Too Small</h2>
           <p className="text-black">
-            This application requires at least a 1180x820 screen resolution. Please resize your window, use a different
+            This application requires at least a 1100x820 screen resolution. Please resize your window, use a different
             device, or zoom out.
           </p>
         </div>
