@@ -82,7 +82,7 @@ const fontSize = {
 	sm: 	         clsx("text-[1rem]"), 				// 16px
 	body:          clsx("text-[1.25rem]"), 		  // 20px
 	h4: 	         clsx("text-[1.5rem]"), 			// 24px
-	h3: 	         clsx("text-[2rem]"), 				// 32px
+	h3: 	         clsx("text-[1.75rem] sm:text-[2rem]"), 				// 32px
 	h2: 	         clsx("text-[2.25rem]"), 		  // 36px
 	h1: 	         clsx("text-[3.429rem]"), 		// 54.86px
 	inherit:       clsx("text-inherit"),

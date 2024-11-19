@@ -16,6 +16,7 @@ import { HTMLAttributes, useEffect } from "react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useChainId } from "wagmi";
+import { InlineCenterSpan } from "../Container";
 import { ExternalLinkIcon, ForwardArrowIcon, GearIcon } from "../Icons";
 import TooltipSimple from "../TooltipSimple";
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/Card";
@@ -97,14 +98,16 @@ function PriceButtonPanel() {
                 className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] inline-flex items-center gap-1"
               >
                 {useTwa ? "Total TWA deltaP:" : "Total deltaP:"}{" "}
-                {formatter.twoDec(useTwa ? twaDeltaB.data : combinedDeltaB, { showPositiveSign: true })}
-                <TooltipSimple
-                  content={
-                    useTwa
-                      ? "The sum of the time weighted average shortages or excesses of Pinto in each pool since the beginning of the Season."
-                      : "The sum of the current shortages or excesses of Pinto each pool."
-                  }
-                />
+                <InlineCenterSpan gap1>
+                  {formatter.twoDec(useTwa ? twaDeltaB.data : combinedDeltaB, { showPositiveSign: true })}
+                  <TooltipSimple
+                    content={
+                      useTwa
+                        ? "The sum of the time weighted average shortages or excesses of Pinto in each pool since the beginning of the Season."
+                        : "The sum of the current shortages or excesses of Pinto each pool."
+                    }
+                  />
+                </InlineCenterSpan>
               </Text>
             </div>
             <div className="flex flex-row relative pt-6">
@@ -282,16 +285,16 @@ function PriceButtonPanel() {
                         </div>
                       </div>
                       <div className="flex flex-row justify-between">
-                        <div className="inline-flex gap-1 items-center">
+                        <div className="inline-flex gap-1 items-center flex-wrap">
                           <IconImage src={pool.tokens[0].logoURI} size={4} />
                           <Text variant="small" color="light" alignt="left">
                             {`${pool.balances[0].toHuman("short")} ${pool.tokens[0].symbol} (~$${token0BalanceUsd.toHuman("short")})`}
                           </Text>
                         </div>
-                        <div className="inline-flex gap-1 items-center justify-end">
+                        <div className="inline-flex gap-1 items-center justify-end flex-wrap">
                           <IconImage src={pool.tokens[1].logoURI} size={4} />
                           <Text variant="small" color="light" alignt="right">
-                            {`${pool.balances[1].toHuman("short")} ${pool.tokens[1].symbol} (~$${token1BalanceUsd.toHuman("short")})`}
+                            {`(${pool.balances[1].toHuman("short")} ${pool.tokens[1].symbol} ~$${token1BalanceUsd.toHuman("short")})`}
                           </Text>
                         </div>
                       </div>
