@@ -271,7 +271,7 @@ const Overview = () => {
             {hasDeposits ? (
               <div className="relative overflow-visible">
                 <FarmerDepositsTable hovering={hoveredButton === "claim"} />
-                {convertEnabled && convertFrom && convertTo && (
+                {/* {convertEnabled && convertFrom && convertTo && (
                   <TableRowConnector
                     fromTarget={`token-row-${convertFrom.address}`}
                     toTarget={`token-row-${convertTo.address}`}
@@ -294,7 +294,7 @@ const Overview = () => {
                       </div>
                     }
                   />
-                )}
+                )} */}
                 <div className="absolute right-0 top-20 h-4" data-action-target="helper-target" />
                 {currentTab === "deposits" && claimEnabled && !hasNoEarnedBeans && (
                   <HelperLink
