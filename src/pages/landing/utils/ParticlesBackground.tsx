@@ -1,11 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useCallback,
-  forwardRef,
-  useImperativeHandle,
-  useState,
-} from "react";
+import React, { useEffect, useRef, useCallback, forwardRef, useImperativeHandle, useState } from "react";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadFull } from "tsparticles";
 import particleConfig from "./particleConfig";
@@ -31,7 +24,7 @@ const ParticlesBackground = React.memo(
           }
         },
       }),
-      []
+      [],
     );
 
     // this should be run only once per application lifetime
@@ -73,7 +66,7 @@ const ParticlesBackground = React.memo(
         }}
       />
     );
-  })
+  }),
 );
 
 export default ParticlesBackground;
