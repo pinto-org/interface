@@ -292,34 +292,34 @@ const formatAPY = (apy: number | undefined) => {
 
 const APYCell = ({ apys }: { apys: ExtendSiloTokenYield | undefined }) => {
   return (
-    // <TooltipSimple content={<APYTooltip />}>
-    <div className="flex flex-row gap-1 items-center rounded-full bg-pinto-green-1 px-2 py-1">
-      <Text color="green4" variant="xs" className="flex flex-row gap-1">
-        <Text
-          variant="inherit"
-          color="inherit"
-          className={cn("leading-none", apys?.ema24.notApplicable && "opacity-50")}
-        >
-          {apys?.ema24.notApplicable ? "N/A" : formatAPY(apys?.ema24.apy)}
+    <TooltipSimple content={<APYTooltip />}>
+      <div className="flex flex-row gap-1 items-center rounded-full bg-pinto-green-1 px-2 py-1">
+        <Text color="green4" variant="xs" className="flex flex-row gap-1">
+          <Text
+            variant="inherit"
+            color="inherit"
+            className={cn("leading-none", apys?.ema24.notApplicable && "opacity-50")}
+          >
+            {apys?.ema24.notApplicable ? "N/A" : formatAPY(apys?.ema24.apy)}
+          </Text>
+          <SeparatorVertical />
+          <Text
+            variant="inherit"
+            color="inherit"
+            className={cn("leading-none", apys?.ema168.notApplicable && "opacity-50")}
+          >
+            {apys?.ema168.notApplicable ? "N/A" : formatAPY(apys?.ema168.apy)}
+          </Text>
+          <SeparatorVertical />
+          <Text
+            variant="inherit"
+            color="inherit"
+            className={cn("leading-none", apys?.ema720.notApplicable && "opacity-50")}
+          >
+            {apys?.ema720.notApplicable ? "N/A" : formatAPY(apys?.ema720.apy)}
+          </Text>
         </Text>
-        <SeparatorVertical />
-        <Text
-          variant="inherit"
-          color="inherit"
-          className={cn("leading-none", apys?.ema168.notApplicable && "opacity-50")}
-        >
-          {apys?.ema168.notApplicable ? "N/A" : formatAPY(apys?.ema168.apy)}
-        </Text>
-        <SeparatorVertical />
-        <Text
-          variant="inherit"
-          color="inherit"
-          className={cn("leading-none", apys?.ema720.notApplicable && "opacity-50")}
-        >
-          {apys?.ema720.notApplicable ? "N/A" : formatAPY(apys?.ema720.apy)}
-        </Text>
-      </Text>
-    </div>
-    // </TooltipSimple>
+      </div>
+    </TooltipSimple>
   );
 };
