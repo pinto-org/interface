@@ -7,14 +7,14 @@
   CI = "true"
 
 [[redirects]]
-  from = "/*"
-  to = "index.html"
-  status = 200
-
-[[redirects]]
   from = "/discord"
   to = "https://discord.gg/WrNqZNDf"
   status = 301
+
+[[redirects]]
+  from = "/*"
+  to = "index.html"
+  status = 200
 
 [[headers]]
   for = "/*"
