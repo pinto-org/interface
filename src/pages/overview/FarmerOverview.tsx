@@ -23,7 +23,7 @@ import { StatPanelData } from "@/utils/types";
 import { getSiloConvertUrl } from "@/utils/url";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Overview = () => {
   // Hooks
@@ -113,8 +113,16 @@ const Overview = () => {
           : farmerActions.harvestPods.outputs.stalkGain,
       actionValue: hoveredButton === "claim" ? claimSiloPct.sub(siloPct) : harvestSiloPct.sub(siloPct),
       secondaryValue: siloPct,
-      tooltipContent:
-        "Your ownership of the Stalk supply determines the portion of Pinto supply increases that you earn.",
+      tooltipContent: (
+        <span>
+          Your ownership of the Stalk supply determines the portion of Pinto
+          <br />
+          supply increases that you earn.{" "}
+          <Link to="/explorer/silo" className="text-pinto-green-4 hover:underline transition-all">
+            See total Stalk supply over time →
+          </Link>
+        </span>
+      ),
       showActionValues: hoveredButton === "claim" /* || hoveredButton === "harvest" */,
     },
     seeds: {
