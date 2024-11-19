@@ -23,7 +23,7 @@ const FieldStats = () => {
         <div className="flex flex-col gap-1">
           <Text variant="body-light">{isMorning ? "Max Temperature" : "Current Temperature"}</Text>
           <Text variant="sm" color="light">
-            {isMorning ? "The Temperature after the Morning Auction" : "The interest rate for Sowing Pinto"}
+            {isMorning ? "Temperature after the Morning Auction" : "Interest rate for Sowing Pinto"}
           </Text>
         </div>
         <div className="flex flex-col gap-1">
@@ -37,7 +37,7 @@ const FieldStats = () => {
         <div className="flex flex-col gap-1">
           <Text variant="body-light">Available Soil</Text>
           <Text variant="sm" color="light">
-            The number of Pinto that can currently be Sown
+            Amount of Pinto that can be Sown
           </Text>
         </div>
         <div className="flex flex-col gap-1">
@@ -53,7 +53,7 @@ const FieldStats = () => {
         <div className="flex flex-col gap-1">
           <Text variant="body-light">Pod Line</Text>
           <Text variant="sm" color="light">
-           The FIFO queue of Pods that are not yet redeemable.
+            FIFO queue of Pods that are not yet redeemable
           </Text>
         </div>
         <Text variant="h3">{formatter.number(pLine)}</Text>
