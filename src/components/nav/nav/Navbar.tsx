@@ -195,6 +195,7 @@ export const navLinks = {
   market: "/market",
   explorer: "/explorer",
   // whitepaper: "https://link.to.pinto/whitepaper.pdf",
+  twitter: "https://x.com/pintocommunity",
   docs: "https://docs.pinto.money/",
   discord: "https://pinto.money/discord",
   github: "https://github.com/moneyprotocolonbase",
