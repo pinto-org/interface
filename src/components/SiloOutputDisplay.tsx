@@ -27,7 +27,12 @@ export default function SiloOutputDisplay({
     <OutputDisplay title={title}>
       {amount && token && (
         <OutputDisplay.Item label="Deposited Amount">
-          <OutputDisplay.Value value={formatter.token(amount, token)} token={token} suffix={token.symbol} />
+          <OutputDisplay.Value
+            value={formatter.token(amount, token)}
+            token={token}
+            suffix={token.symbol}
+            className="whitespace-nowrap"
+          />
         </OutputDisplay.Item>
       )}
       <OutputDisplay.Item label="Stalk">
@@ -37,6 +42,7 @@ export default function SiloOutputDisplay({
           delta={stalk.toNumber() * deltaMultiplier}
           token={STALK}
           showArrow
+          className="whitespace-nowrap"
         />
       </OutputDisplay.Item>
       <OutputDisplay.Item label="Seed">
@@ -46,6 +52,7 @@ export default function SiloOutputDisplay({
           delta={seeds.toNumber() * deltaMultiplier}
           token={SEEDS}
           showArrow
+          className="whitespace-nowrap"
         />
       </OutputDisplay.Item>
     </OutputDisplay>
