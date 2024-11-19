@@ -167,7 +167,7 @@ export default function StepTwo({
             <div className="flex flex-col gap-2" key={`depositSelect_${data.token.address}`}>
               <div className="flex flex-row items-center justify-between">
                 <Label className="font-[400]">Amount of Deposited {data.token.name} to send</Label>
-                <DepositSelect setTransferData={setTransferData} token={data.token} />
+                {data.deposits.length > 1 && <DepositSelect setTransferData={setTransferData} token={data.token} />}
               </div>
               <div className="flex flex-col gap-4">
                 <ComboInputField
