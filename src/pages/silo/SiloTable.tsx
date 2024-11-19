@@ -126,9 +126,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                   </div>
                 </TableCell>
                 <Text as={TableCell} align="right" variant="sm" color="secondary" className="opacity-70">
-                  {_pool || token.isMain
-                    ? formatter.usd(totalBDV?.mul(token.isMain ? priceData.price : _pool.price))
-                    : "-"}
+                  {_pool || token.isMain ? formatter.usd(totalBDV?.mul(_pool ? _pool.price : priceData.price)) : "-"}
                 </Text>
                 <TableCell className="text-right pr-4">
                   <div className="flex flex-col items-end gap-1">
