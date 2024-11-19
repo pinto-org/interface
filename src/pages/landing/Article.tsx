@@ -1,9 +1,8 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
-import PintoLaunchArticle from "./articles/launch-article.md";
+import PintoLaunchArticle from "./articles/announcing-pinto.md";
 import Text from "./../../components/ui/Text";
 import PageContainer from "@/components/ui/PageContainer";
-import ParticlesBackground from "./utils/ParticlesBackground";
 
 const LaunchArticle: React.FC = () => {
   return (
