@@ -221,6 +221,7 @@ export type StatPanelData = {
   mode: "stalk" | "pods" | "seeds" | "depositedValue";
   mainValue: TokenValue;
   auxValue?: TokenValue;
+  altTooltipContent?: string;
   mainValueChange?: TokenValue;
   secondaryValue: TokenValue;
   actionValue?: TokenValue;

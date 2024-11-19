@@ -6,10 +6,12 @@ import portalbridgelogo from "@/assets/misc/portal-bridge-logo.svg";
 import seedsIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
+import APYTooltip from "@/components/APYTooltip";
 import GerminationNotice from "@/components/GerminationNotice";
 import { ExternalLinkIcon } from "@/components/Icons";
 import InlineStats from "@/components/InlineStats";
 import SiloActionBox from "@/components/SiloActionBox";
+import TooltipSimple from "@/components/TooltipSimple";
 import { Button } from "@/components/ui/Button";
 import DenominationSwitcher from "@/components/ui/DenominationSwitcher";
 import IconImage from "@/components/ui/IconImage";
@@ -369,13 +371,14 @@ const SiloTokenSubHeader = ({
           </div>
         </div>
       </div>
-
-      <div className="flex flex-row items-center justify-end gap-4 lg:gap-6">
-        <Text variant="sm-light" color="green4" align="right" className={stats[0].notApplicable ? "opacity-50" : ""}>
-          Variable APY
-        </Text>
-        <InlineStats variant="sm" stats={stats} />
-      </div>
+      <TooltipSimple content={<APYTooltip />}>
+        <div className="flex flex-row items-center justify-end gap-4 lg:gap-6">
+          <Text variant="sm-light" color="green4" align="right" className={stats[0].notApplicable ? "opacity-50" : ""}>
+            Variable APY
+          </Text>
+          <InlineStats variant="sm" stats={stats} />
+        </div>
+      </TooltipSimple>
     </div>
   );
 };
