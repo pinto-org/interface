@@ -40,7 +40,10 @@ function Silo() {
   const convertEnabled = farmerActions.convertDeposits.enabled;
   const convertFrom = farmerActions.convertDeposits.bestConversion.from;
   const convertTo = farmerActions.convertDeposits.bestConversion.to;
-  const claimEnabled = farmerActions.claimRewards.enabled;
+  const claimEnabled =
+    farmerActions.claimRewards.outputs.beanGain.gt(0.01) ||
+    farmerActions.claimRewards.outputs.stalkGain.gt(0.01) ||
+    farmerActions.claimRewards.outputs.seedGain.gt(0.01);
   const claimableText = getClaimText(
     farmerActions.claimRewards.outputs.beanGain,
     farmerActions.claimRewards.outputs.stalkGain,

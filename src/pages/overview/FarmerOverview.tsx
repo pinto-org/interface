@@ -85,7 +85,9 @@ const Overview = () => {
     farmerActions.claimRewards.outputs.stalkGain,
     farmerActions.claimRewards.outputs.seedGain,
   );
-  const hasNoEarnedBeans = farmerActions.tokenTotals.get(tokenData.mainToken)?.sources.plant?.beanGain.lt(0.01);
+  const hasNoEarnedBeans = Boolean(
+    farmerActions.tokenTotals.get(tokenData.mainToken)?.sources.plant?.beanGain.lt(0.01),
+  );
 
   // Stat panel data
   const statPanelData: Record<"stalk" | "pods" | "seeds" | "depositedValue", StatPanelData> = {
