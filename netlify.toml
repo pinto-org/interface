@@ -11,6 +11,11 @@
   to = "index.html"
   status = 200
 
+[[redirects]]
+  from = "/discord"
+  to = "https://discord.gg/WrNqZNDf"
+  status = 301
+
 [[headers]]
   for = "/*"
   [headers.values]
