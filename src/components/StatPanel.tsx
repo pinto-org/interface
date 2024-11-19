@@ -55,7 +55,7 @@ const StatPanel = ({
       {!(mainValue.eq(0) && auxValue?.gt(0)) && (
         <Text as="span" variant="inherit" className="tracking-[0.01em]">
           {mode === "depositedValue"
-            ? formatter.usd(showActionValues && mainValueChange ? mainValue : mainValue)
+            ? `$${formatter.number(showActionValues && mainValueChange ? mainValue : mainValue, { minDecimals: 2, maxDecimals: 2, allowZero: true })}`
             : formatter.number(showActionValues && mainValueChange ? mainValue : mainValue)}
         </Text>
       )}
@@ -94,13 +94,13 @@ const StatPanel = ({
           {showActionValues && actionValue && actionValue.gt(0.01) ? (
             <>
               <img src={getIcon(mode)} className="h-4 w-6" alt={mode.toUpperCase()} />
-              <span>{formatter.pdv(secondaryValue)}</span>
+              <span>{`${formatter.number(secondaryValue, { minDecimals: 2, maxDecimals: 2, allowZero: true })} PDV`}</span>
               <span className="text-pinto-green-4">{`+${formatter.pdv(actionValue)}`}</span>
             </>
           ) : (
             <>
               <img src={getIcon(mode)} className="h-4 w-6" alt={mode.toUpperCase()} />
-              <span>{formatter.pdv(secondaryValue)}</span>
+              <span>{`${formatter.number(secondaryValue, { minDecimals: 2, maxDecimals: 2, allowZero: true })} PDV`}</span>
               <DenominationSwitcher />
             </>
           )}
