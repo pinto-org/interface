@@ -82,12 +82,14 @@ const PlotRow = forwardRef<HTMLTableRowElement, PlotRowProps>(
         <TableCell className="text-right">
           <div className="inline-flex items-center gap-1.5">
             <img src={podIcon} className="h-6 w-6" alt="Pods" />
-            <Text variant="body-light">{formatter.number(nonHarvestablePods)} Pods</Text>
+            <Text variant="body-light">{formatter.number(nonHarvestablePods, { minValue: 0.01 })} Pods</Text>
             <Text variant="body-light" color="light">
               {` at `}
             </Text>
             <Text variant="body-light">
-              {formatter.number(isHarvesting ? TokenValue.ZERO : placeInLine)}
+              {formatter.number(isHarvesting ? TokenValue.ZERO : placeInLine.eq(0) ? 0.001 : placeInLine, {
+                minValue: 0.01,
+              })}
               {" in the Pod Line"}
             </Text>
           </div>
