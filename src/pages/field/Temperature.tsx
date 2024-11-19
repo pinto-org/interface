@@ -13,11 +13,14 @@ const TemperatureChart = () => {
     <SeasonalChart
       title="Max Temperature"
       size="large"
+      fillArea
       activeTab={tempTab}
       onChangeTab={setTempTab}
       useSeasonalResult={tempData}
       valueFormatter={f.percent0dFormatter}
       tickValueFormatter={f.percent0dFormatter}
+      className="bg-pinto-off-white border border-pinto-gray-2"
+      statVariant="non-colored"
     />
   );
 };

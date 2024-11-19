@@ -1,43 +1,16 @@
 import LoadingSpinner from "@/components/LoadingSpinner.tsx";
 import { formatDate } from "@/utils/format";
 import { UseSeasonalResult } from "@/utils/types";
+import { cn } from "@/utils/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CloseIconAlt } from "../Icons";
 import Text from "../ui/Text";
 import LineChart, { LineChartData, MakeGradientFunction } from "./LineChart";
-
-// Draws dynamic gradient with the given colors at the given positions.
-// Positions outside of range [0, 1] are truncated or ignored when appropriate.
-const positionalGradient = (ctx: CanvasRenderingContext2D, colors: string[], positions: number[]) => {
-  const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
-  for (let i = 0; i < positions.length; ++i) {
-    if (positions[i] >= 0 && positions[i] <= 1) {
-      gradient.addColorStop(positions[i], colors[i]);
-    } else if (positions[i] > 1 && positions[i - 1] < 1) {
-      gradient.addColorStop(1, colors[i]);
-    } else if (positions[i] < 0 && positions[i + 1] > 0) {
-      gradient.addColorStop(0, colors[i]);
-    }
-  }
-  return gradient;
-};
-
-// Draws a dynamic gradient depending on mouse position in the chart
-const lineGradientFn: MakeGradientFunction = (ctx: CanvasRenderingContext2D | null, position: number) => {
-  if (ctx) {
-    const colors = ["#F2F6F9", "#00C767", "#246645", "#00C767", "#F2F6F9"];
-    const positions = [position - 1, position - 0.5, position, position + 0.5, position + 1];
-    return positionalGradient(ctx, colors, positions);
-  }
-};
-
-const areaGradientFn: MakeGradientFunction = (ctx: CanvasRenderingContext2D | null, _position: number) => {
-  if (ctx) {
-    const colors = ["rgba(233, 231, 224, 0.49)", "#FEE18C", "#F1F88C"];
-    const positions = [0, 0.5, 1];
-    return positionalGradient(ctx, colors, positions);
-  }
-};
+import {
+  metallicGreenStrokeGradientFn,
+  metallicMorningAreaGradientFn,
+  metallicMorningStrokeGradientFn,
+} from "./chartHelpers";
 
 export const tabToSeasonalLookback = (tab: TimeTab): number => {
   if (tab === TimeTab.Week) {
@@ -70,10 +43,14 @@ interface SeasonalChartProps {
   valueFormatter: (value: number) => string;
   tickValueFormatter?: (value: number) => string;
   fillArea?: boolean;
+  statVariant?: "explorer" | "non-colored";
+  className?: string;
 }
 
-const lineGradients = [lineGradientFn];
-const areaGradients = [areaGradientFn];
+const morningStrokeGradients = [metallicMorningStrokeGradientFn];
+const greenStrokeGradients = [metallicGreenStrokeGradientFn];
+
+const areaGradients = [metallicMorningAreaGradientFn];
 
 const SeasonalChart = ({
   title,
@@ -84,6 +61,8 @@ const SeasonalChart = ({
   valueFormatter,
   tickValueFormatter,
   fillArea,
+  statVariant = "explorer",
+  className,
 }: SeasonalChartProps) => {
   const [allData, setAllData] = useState<SeasonalChartData[] | null>(null);
   const [displayData, setDisplayData] = useState<SeasonalChartData | null>(null);
@@ -122,19 +101,21 @@ const SeasonalChart = ({
     [allData],
   );
 
-  console.log(chartData);
-
   return (
-    <div className="rounded-[20px] p-4 sm:p-6 sm:pb-4" style={{ backgroundColor: "#F8F8F8" }}>
+    <div className={cn("rounded-[20px] p-4 sm:p-6 sm:pb-4 bg-gray-1", className)}>
       <div className="flex justify-between">
-        <Text variant="body" color="light">
+        <Text
+          variant={statVariant === "explorer" ? "body" : "body-light"}
+          color={statVariant === "explorer" ? "light" : "primary"}
+          className="pb-0.5"
+        >
           {title}
         </Text>
         <div className="flex gap-4 sm:gap-8">
           {TIME_TABS.map((tabName: string, idx: number) => (
             <Text
               key={tabName}
-              variant="body"
+              variant="body-light"
               color={activeTab === idx ? "green3" : "light"}
               data-state={activeTab === idx ? "active" : "inactive"}
               className="cursor-pointer data-[state=inactive]:hover:text-pinto-green-4"
@@ -157,11 +138,11 @@ const SeasonalChart = ({
             }}
           >
             <div className="absolute inset-0 flex items-center justify-center">
-              {useSeasonalResult.isLoading && !useSeasonalResult.isError && <LoadingSpinner size={200} />}
+              {useSeasonalResult.isLoading && !useSeasonalResult.isError && <LoadingSpinner size={75} />}
               {useSeasonalResult.isError && (
                 <>
                   <CloseIconAlt color={"red"} />
-                  <Text variant="body" color="green-3">
+                  <Text variant="body" color="green3">
                     An error has occurred
                   </Text>
                 </>
@@ -173,7 +154,7 @@ const SeasonalChart = ({
       {allData && displayData && (
         <>
           <div className="h-[85px]">
-            <Text variant="h3" color="green3">
+            <Text variant="h3" color={statVariant === "explorer" ? "green3" : "primary"}>
               {valueFormatter(displayData.value)}
             </Text>
             <div className="flex flex-col gap-2 mt-3">
@@ -195,7 +176,7 @@ const SeasonalChart = ({
                 data={chartData}
                 xKey="timestamp"
                 size={size}
-                makeLineGradients={lineGradients}
+                makeLineGradients={fillArea ? morningStrokeGradients : greenStrokeGradients}
                 makeAreaGradients={fillArea ? areaGradients : undefined}
                 valueFormatter={tickValueFormatter}
                 onMouseOver={handleMouseOver}
