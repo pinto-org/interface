@@ -14,6 +14,7 @@ import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { PoolData, usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
+import { useInvalidateSun } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
 import { stringEq, stringToNumber } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
@@ -41,7 +42,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const diamondAddress = useProtocolAddress();
   const farmerBalances = useFarmerBalances();
   const farmerSilo = useFarmerSiloNew();
-  const depositedBalances = farmerSilo.deposits;
+  const invalidateSun = useInvalidateSun();
   const filterTokens = useFilterTokens(siloToken, farmerBalances.balances);
 
   // console.log("config", config);
@@ -94,7 +95,8 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     setAmountIn("0");
     const allQueryKeys = [...farmerSilo.queryKeys, ...farmerBalances.queryKeys];
     allQueryKeys.forEach((query) => qc.invalidateQueries({ queryKey: query }));
-  }, [qc, farmerSilo, farmerBalances]);
+    invalidateSun("all", { refetchType: "active" });
+  }, [qc, farmerSilo, farmerBalances, invalidateSun]);
 
   const { isConfirming, writeWithEstimateGas, submitting, setSubmitting } = useTransaction({
     successCallback: onSuccess,

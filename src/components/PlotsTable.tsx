@@ -21,10 +21,11 @@ type PlotRowProps = HTMLMotionProps<"tr"> &
     useToggle?: boolean;
     isSelected?: boolean;
     showClaimable?: boolean;
+    disableHover?: boolean;
   };
 
 const PlotRow = forwardRef<HTMLTableRowElement, PlotRowProps>(
-  ({ plot, harvestableIndex, useToggle, isSelected, showClaimable, className, ...props }, ref) => {
+  ({ plot, harvestableIndex, useToggle, isSelected, showClaimable, disableHover, className, ...props }, ref) => {
     const placeInLine = plot.index.sub(harvestableIndex);
     const isHarvesting = placeInLine.lt(0);
     const harvestablePods = placeInLine.abs();
@@ -67,7 +68,7 @@ const PlotRow = forwardRef<HTMLTableRowElement, PlotRowProps>(
         onClick={() => {
           !useToggle && navigate("/field");
         }}
-        className="h-[4.5rem] bg-transparent items-center hover:bg-pinto-green-1/50 hover:cursor-pointer"
+        className={`h-[4.5rem] bg-transparent items-center ${!disableHover ? "hover:bg-pinto-green-1/50 hover:cursor-pointer" : ""}`}
         ref={ref}
         {...props}
       >
@@ -81,12 +82,14 @@ const PlotRow = forwardRef<HTMLTableRowElement, PlotRowProps>(
         <TableCell className="text-right">
           <div className="inline-flex items-center gap-1.5">
             <img src={podIcon} className="h-6 w-6" alt="Pods" />
-            <Text variant="body-light">{formatter.number(nonHarvestablePods)} Pods</Text>
+            <Text variant="body-light">{formatter.number(nonHarvestablePods, { minValue: 0.01 })} Pods</Text>
             <Text variant="body-light" color="light">
               {` at `}
             </Text>
             <Text variant="body-light">
-              {formatter.number(isHarvesting ? TokenValue.ZERO : placeInLine)}
+              {formatter.number(isHarvesting ? TokenValue.ZERO : placeInLine.eq(0) ? 0.001 : placeInLine, {
+                minValue: 0.01,
+              })}
               {" in the Pod Line"}
             </Text>
           </div>
@@ -100,10 +103,12 @@ export default function PlotsTable({
   selected,
   useToggle,
   showClaimable,
+  disableHover,
 }: {
   selected?: string[];
   useToggle?: boolean;
   showClaimable?: boolean;
+  disableHover?: boolean;
 }) {
   const farmerField = useFarmerField();
   const harvestableIndex = useHarvestableIndex();
@@ -162,7 +167,14 @@ export default function PlotsTable({
               </ToggleGroupItem>
             );
           }
-          return <PlotRow plot={plot} harvestableIndex={harvestableIndex} key={`plot_${plot.index.toHuman()}`} />;
+          return (
+            <PlotRow
+              plot={plot}
+              harvestableIndex={harvestableIndex}
+              key={`plot_${plot.index.toHuman()}`}
+              disableHover={disableHover}
+            />
+          );
         })}
       </TableBody>
     </Table>

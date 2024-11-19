@@ -148,8 +148,8 @@ export default function TokenSelectWithBalances({
             <Separator className="w-[120%] -ml-6 mt-6" />
           </DialogTitle>
           <DialogDescription>
-            <ScrollArea className="max-h-[600px] -mx-4 mt-2">
-              <div className="mx-4">
+            <ScrollArea className="-mx-4 mt-2">
+              <div className="mx-4 max-h-[600px] ">
                 <ToggleGroup
                   type="single"
                   value={_token.address}

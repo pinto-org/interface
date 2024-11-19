@@ -51,7 +51,7 @@ const Navbar = () => {
   const isHome = useMatch("/");
   const isOverview = useMatch("/overview");
   const isSilo = useMatch("/silo");
-  const showWalletHelper = isOverview || isSilo;
+  const showWalletHelper = isOverview;
 
   const priceOpen = openPanel === "price";
   const seasonsOpen = openPanel === "seasons";

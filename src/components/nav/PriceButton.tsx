@@ -12,7 +12,7 @@ import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
-import { HTMLAttributes } from "react";
+import { HTMLAttributes, useEffect } from "react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useChainId } from "wagmi";
@@ -43,11 +43,29 @@ function PriceButtonPanel() {
   const totalDeltaBar = priceData.deltaB.div(totalMainTokens.gt(0) ? totalMainTokens : 1).mul(-100);
 
   const [showSettings, setShowSettings] = useState(false);
-  const [useTwa, setUseTwa] = useState(false);
-  const [expandAll, setExpandAll] = useState(false);
   const [showPrices, setShowPrices] = useState(false);
 
-  const combinedDeltaB = priceData.pools.reduce((total, pool) => total.add(pool.deltaB), TokenValue.ZERO);
+  const [useTwa, setUseTwa] = useState(() => {
+    // Initialize from localStorage, default to false if not found
+    const savedUseTwa = localStorage.getItem("pinto.priceButton.useTwa");
+    return savedUseTwa ? JSON.parse(savedUseTwa) : false;
+  });
+  const [expandAll, setExpandAll] = useState(() => {
+    // Initialize from localStorage, default to false if not found
+    const savedExpandAll = localStorage.getItem("pinto.priceButton.expandAll");
+    return savedExpandAll ? JSON.parse(savedExpandAll) : false;
+  });
+
+  // Update localStorage when settings change
+  useEffect(() => {
+    localStorage.setItem("pinto.priceButton.useTwa", JSON.stringify(useTwa));
+  }, [useTwa]);
+
+  useEffect(() => {
+    localStorage.setItem("pinto.priceButton.expandAll", JSON.stringify(expandAll));
+  }, [expandAll]);
+
+  const combinedDeltaB = priceData.deltaB;
 
   return (
     <>
@@ -78,7 +96,8 @@ function PriceButtonPanel() {
                 color="green3"
                 className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] inline-flex items-center gap-1"
               >
-                Total deltaP: {formatter.twoDec(useTwa ? twaDeltaB.data : combinedDeltaB, { showPositiveSign: true })}
+                {useTwa ? "Total TWA deltaP:" : "Total deltaP:"}{" "}
+                {formatter.twoDec(useTwa ? twaDeltaB.data : combinedDeltaB, { showPositiveSign: true })}
                 <TooltipSimple
                   content={
                     useTwa
@@ -294,7 +313,8 @@ function PriceButtonPanel() {
                           noLineHeight
                           className="px-2 py-0.5 h-6 bg-pinto-green-1 rounded-[0.25rem] inline-flex items-center gap-1"
                         >
-                          deltaP: {formatter.twoDec(pool.deltaB, { showPositiveSign: true })}
+                          {useTwa ? "TWA deltaP:" : "deltaP:"}{" "}
+                          {formatter.twoDec(pool.deltaB, { showPositiveSign: true })}
                           <TooltipSimple
                             content={
                               useTwa

@@ -36,7 +36,7 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
       <TableRow
         {...props}
         ref={ref}
-        className={`h-[4.5rem] ${deposit.isGerminating ? "bg-pinto-off-green/15" : deposit.isPlantDeposit ? "bg-pinto-green-4/15" : "bg-white"} text-[1rem] pointer-events-none`}
+        className={`h-[4.5rem] transition-all ${deposit.isGerminating ? "bg-pinto-off-green/15" : deposit.isPlantDeposit ? "bg-pinto-green-4/15" : "bg-white"} text-[1rem] ${!useToggle ? "pointer-events-none" : "hover:cursor-pointer hover:bg-pinto-green-1/50"}`}
       >
         <Text as={TableCell}>
           <div className="gap-2 pl-2 flex items-center">
@@ -70,10 +70,10 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
               <div className="opacity-70">{formatter.twoDec(deposit.stalk.base)}</div>
             )}
           </div>
-          {deposit.isGerminating && deposit.stalk.grown.gt(0.0001) && (
+          {deposit.isGerminating && deposit.stalk.grown.gt(0) && (
             <div className="text-pinto-gray-4 mt-1 opacity-70 font-[340]">Claimable Grown Stalk: -</div>
           )}
-          {deposit.stalk.grown.gt(0.0001) && (
+          {deposit.stalk.grown.gt(0) && (
             <div className="text-pinto-gray-4 mt-1 opacity-70 font-[340]">
               Claimable Grown Stalk:{" "}
               <span className="text-pinto-green-4">
@@ -103,8 +103,8 @@ export default function DepositsTable({ token, selected, useToggle }: DepositsTa
       <TableHeader>
         <TableRow className="bg-pinto-gray-1 hover:bg-pinto-gray-1 h-14">
           <TableHead className="text-black font-[400] text-[1rem] w-[15%] p-4">Deposit ID</TableHead>
-          <TableHead className="text-black text-right font-[400] text-[1rem] w-[27.5%]">Amount Deposited</TableHead>
-          <TableHead className="text-black text-right font-[400] text-[1rem] w-[37.5%]">Stalk</TableHead>
+          <TableHead className="text-black text-right font-[400] text-[1rem] w-[32.5%]">Amount Deposited</TableHead>
+          <TableHead className="text-black text-right font-[400] text-[1rem] w-[32.5%]">Stalk</TableHead>
           <TableHead className="text-black text-right font-[400] text-[1rem] w-[20%] p-4">Seeds</TableHead>
         </TableRow>
       </TableHeader>

@@ -106,8 +106,11 @@ export const useParamsTabs = (slugs: readonly string[], key: string = "action", 
   const pathParams = useParams();
 
   const getCurrentSlug = useCallback(() => {
+    if (queryParams) {
+      return queryParams.get(key);
+    }
     return pathParams[key];
-  }, [pathParams, key]);
+  }, [pathParams, queryParams, key]);
 
   const [tab, setTab] = useState(getCurrentSlug() ?? slugs[0]);
 

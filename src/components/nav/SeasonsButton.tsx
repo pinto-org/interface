@@ -135,7 +135,9 @@ const PanelContent = ({ season, fieldSnapshots, siloSnapshots }: SeasonsButtonPa
                           Crop Ratio
                           <TooltipSimple
                             variant="gray"
-                            content={"The ratio of Seeds per PDV reward for Pinto relative to at least 1 LP token."}
+                            content={
+                              "The Pinto and LP Seed distribution: a value of 50% means that the protocol issues the max incentive to LP vs. a value of 100% means the protocol issues max incentive to Pinto"
+                            }
                           />
                         </Text>
                       </div>

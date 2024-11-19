@@ -32,6 +32,7 @@ import ConvertProvider, { SiloTokenConvertPath, useConvertState } from "@/state/
 import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { PoolData, usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
+import { useInvalidateSun } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
 import { ConvertDetails, calculateConvert, calculateConvertData, sortAndPickCrates } from "@/utils/convert";
 import { formatter } from "@/utils/format";
@@ -95,6 +96,7 @@ function DefaultConvert({
   const [slippage, setSlippage] = useState(0.1);
 
   const { loading, setLoadingTrue, setLoadingFalse } = useDelayedLoading();
+  const invalidateSun = useInvalidateSun();
 
   const { data: maxConvert = TV.ZERO, ...maxConvertQuery } = useReadContract({
     abi: diamondABI,
@@ -151,6 +153,7 @@ function DefaultConvert({
       setAmountIn("0");
       queryClient.invalidateQueries({ queryKey: maxConvertQuery.queryKey });
       queryClient.invalidateQueries({ queryKey: estimateQuery.queryKey });
+      invalidateSun("all", { refetchType: "active" });
       onSuccess();
     },
   });

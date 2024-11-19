@@ -73,7 +73,7 @@ function Field() {
               <Text variant="h3">{formatter.number(totalPods)}</Text>
             </div>
           </div>
-          <div>{hasPods ? <PlotsTable showClaimable /> : <EmptyTable type="plots-field" />}</div>
+          <div>{hasPods ? <PlotsTable showClaimable disableHover /> : <EmptyTable type="plots-field" />}</div>
         </div>
         {/*
          * Right side
@@ -104,6 +104,7 @@ function Field() {
                 Send Pods
               </NavLink>
             </Button>
+            {/* 
             <Button asChild variant="silo-action" className="w-full">
               <NavLink to="/podmarket" className="flex flex-row gap-2 items-center">
                 <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
@@ -114,6 +115,7 @@ function Field() {
                 Buy or sell Pods in the Market
               </NavLink>
             </Button>
+            */}
           </div>
         </div>
       </div>

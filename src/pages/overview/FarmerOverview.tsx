@@ -101,7 +101,7 @@ const Overview = () => {
         hoveredButton === "claim"
           ? farmerActions.claimRewards.outputs.bdvGain
           : farmerActions.harvestPods.outputs.bdvGain,
-      showActionValues: hoveredButton === "claim" || hoveredButton === "harvest",
+      showActionValues: hoveredButton === "claim" /* || hoveredButton === "harvest" */,
     },
     stalk: {
       mode: "stalk",
@@ -115,7 +115,7 @@ const Overview = () => {
       secondaryValue: siloPct,
       tooltipContent:
         "Your ownership of the Stalk supply determines the portion of Pinto supply increases that you earn.",
-      showActionValues: hoveredButton === "claim" || hoveredButton === "harvest",
+      showActionValues: hoveredButton === "claim" /* || hoveredButton === "harvest" */,
     },
     seeds: {
       mode: "seeds",
@@ -134,7 +134,7 @@ const Overview = () => {
             : farmerActions.harvestPods.outputs.seedGain,
       secondaryValue: stalkPerSeason,
       tooltipContent: "Seeds grow Stalk every Season, creating the time weighted staking mechanism that is the Silo.",
-      showActionValues: hoveredButton !== "",
+      showActionValues: hoveredButton !== "" && hoveredButton !== "harvest",
     },
     pods: {
       mode: "pods",
@@ -158,7 +158,7 @@ const Overview = () => {
           <StatPanel {...(hasOnlyPods ? statPanelData.depositedValue : statPanelData.stalk)} />
           <StatPanel {...(hasOnlyPods ? statPanelData.stalk : statPanelData.seeds)} />
           <StatPanel {...(hasOnlyPods ? statPanelData.seeds : statPanelData.pods)} />
-          {statPanelData.pods.mainValue && !hasOnlyPods && (
+          {(statPanelData.pods.mainValue.eq(0) || (statPanelData.pods.mainValueChange?.lt(0) && !hasOnlyPods)) && (
             <HelperLink
               onClick={() =>
                 navigate(statPanelData.pods.mainValueChange?.lt(0) ? "/field?action=harvest" : "/field?action=sow")
