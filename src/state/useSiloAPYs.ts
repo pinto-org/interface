@@ -56,13 +56,15 @@ const normalizeYields = (yields: SiloYieldsAPIResponse["yields"][EmaWindow]) => 
   return Object.fromEntries(entries) as SiloYieldsAPIResponse["yields"][EmaWindow];
 };
 
+const endpoint = import.meta.env.VITE_APY_ENDPOINT;
+
 export function useSiloYieldsQuery<TSelect = SiloYieldsAPIResponse>(
   arg?: ConstrainedUseQueryArgs<SiloYieldsAPIResponse, TSelect>,
 ) {
   return useQuery<SiloYieldsAPIResponse, Error, TSelect, QueryKey>({
     queryKey: ["api", "silo", "yields"],
     queryFn: async () => {
-      const res = await fetch("https://api.bean.money/silo/yield", {
+      const res = await fetch(`${endpoint}/silo/yield`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -81,6 +83,7 @@ export function useSiloYieldsQuery<TSelect = SiloYieldsAPIResponse>(
     },
     ...defaultQuerySettings,
     ...(arg || {}),
+    enabled: !!endpoint,
   });
 }
 

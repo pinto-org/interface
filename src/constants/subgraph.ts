@@ -6,8 +6,8 @@ export const subgraphs: { [chainId: number]: { beanstalk: string; bean: string }
     bean: "https://graph.bean.money/bean-dev",
   },
   [base.id]: {
-    beanstalk: "https://graph.bean.money/beanstalk",
-    bean: "https://graph.bean.money/bean",
+    beanstalk: "https://graph.pinto.money/beanstalk",
+    bean: "https://graph.pinto.money/bean",
   },
   [localhost.id]: {
     beanstalk: "https://graph.bean.money/beanstalk-dev",

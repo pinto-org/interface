@@ -21,6 +21,10 @@ interface ImportMetaEnv {
    * enabled chains
    */
   readonly VITE_CHAINS: string;
+  /**
+   *
+   */
+  readonly VITE_APY_ENDPOINT: string;
 }
 
 declare module "*.md";

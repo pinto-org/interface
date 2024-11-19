@@ -14,7 +14,6 @@ import { sortTokensForDeposits } from "@/utils/token";
 import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { userData } from "three/webgpu";
 import TooltipSimple from "./TooltipSimple";
 import Text from "./ui/Text";
 

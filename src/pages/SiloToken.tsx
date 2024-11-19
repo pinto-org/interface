@@ -34,7 +34,6 @@ import { SiloTokenData, Token, TokenDepositData } from "@/utils/types";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { label } from "three/webgpu";
 import { useChainId, useConfig } from "wagmi";
 import DepositsTable from "../components/DepositsTable";
 import SiloActions from "./silo/SiloActions";
