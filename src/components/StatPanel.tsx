@@ -66,7 +66,7 @@ const StatPanel = ({
           </Text>
         </TooltipSimple>
       )}
-      {showActionValues && mainValueChange && mainValueChange?.abs().gt(0.001) && (
+      {showActionValues && mainValueChange && mainValueChange?.abs().gt(0.01) && (
         <Text
           variant={size === "large" ? "h1" : "h3"}
           className={`pl-2 tracking-[0.01em] ${
@@ -81,8 +81,7 @@ const StatPanel = ({
                     : "text-pinto-pod-bronze"
           }`}
         >
-          {mainValueChange.gt(0) ? "+" : ""}
-          {formatter.number(mainValueChange)}
+          {formatter.number(mainValueChange, { showPositiveSign: true })}
         </Text>
       )}
     </div>

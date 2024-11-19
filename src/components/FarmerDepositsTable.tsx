@@ -321,7 +321,7 @@ export default function FarmerDepositsTable({ rewardsRef, hovering = false }: Fa
                                 .add(addClaimable ? plantStalkGain : 0),
                             )}
                           </div>
-                          {germinatingStalk.gt(0.01) && (
+                          {germinatingStalk.gt(0) && (
                             <TooltipSimple content={"This Stalk is germinating."}>
                               <div className="text-pinto-off-green/60">
                                 {formatter.twoDec(germinatingStalk, {
