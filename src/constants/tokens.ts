@@ -56,6 +56,33 @@ export const NATIVE_TOKEN: ChainLookup<Token> = {
   },
 } as const;
 
+export const WSOL_TOKEN: ChainLookup<Token> = {
+  [base.id]: {
+    chainId: base.id,
+    name: "Wrapped SOL (Wormhole)",
+    symbol: "WSOL",
+    address: "0x1C61629598e4a901136a81BC138E5828dc150d67",
+    decimals: 9,
+    isWhitelisted: true,
+    logoURI: wsolIcon,
+    color: "#9945FF",
+  },
+} as const;
+
+export const PINTO_WSOL_TOKEN: ChainLookup<Token> = {
+  [base.id]: {
+    chainId: base.id,
+    name: "PINTOWSOL LP",
+    symbol: "PINTOWSOL",
+    address: "0x3e11444c7650234c748D743D8d374fcE2eE5E6C9",
+    decimals: 18,
+    isLP: true,
+    logoURI: pintoWsolIcon,
+    color: "#9945FF",
+    tokens: [MAIN_TOKEN[base.id].address, WSOL_TOKEN[base.id].address],
+  },
+} as const;
+
 export const LP_TOKENS: ChainLookup<Token[]> = {
   [arbitrum.id]: [
     {
@@ -126,17 +153,7 @@ export const LP_TOKENS: ChainLookup<Token[]> = {
       color: "#F7931A",
       tokens: ["0xb170000aeeFa790fa61D6e837d1035906839a3c8", "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf"],
     },
-    {
-      chainId: base.id,
-      name: "PINTOWSOL LP",
-      symbol: "PINTOWSOL",
-      address: "0x3e11444c7650234c748D743D8d374fcE2eE5E6C9",
-      decimals: 18,
-      isLP: true,
-      logoURI: pintoWsolIcon,
-      color: "#9945FF",
-      tokens: ["0xb170000aeeFa790fa61D6e837d1035906839a3c8", "0x1C61629598e4a901136a81BC138E5828dc150d67"],
-    },
+    PINTO_WSOL_TOKEN[base.id],
   ],
 } as const;
 
@@ -209,16 +226,7 @@ export const UNDERLYING_TOKENS: ChainLookup<Token[]> = {
       logoURI: "https://assets.coingecko.com/coins/images/40143/standard/cbbtc.webp?1726136727",
       color: "#F7931A",
     },
-    {
-      chainId: base.id,
-      name: "Wrapped SOL (Wormhole)",
-      symbol: "WSOL",
-      address: "0x1C61629598e4a901136a81BC138E5828dc150d67",
-      decimals: 9,
-      isWhitelisted: true,
-      logoURI: wsolIcon,
-      color: "#9945FF",
-    },
+    WSOL_TOKEN[base.id],
   ],
 } as const;
 

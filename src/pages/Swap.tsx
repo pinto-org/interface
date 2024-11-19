@@ -92,18 +92,16 @@ export default function Swap() {
     toast.loading("Swapping...");
     try {
       if (!account.address) throw new Error("Signer required");
-
       const swapCallData = swapData?.callData;
       if (!swapData || !swapCallData) {
         throw new Error("No swap data");
       }
-
       return writeWithEstimateGas({
         address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
         abi: beanstalkAbi,
         functionName: "advancedFarm",
         args: [swapCallData],
-        value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
+        value: tokenIn.isNative || tokenOut.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
       });
     } catch (e) {
       console.error("Error submitting swap: ", e);
@@ -115,6 +113,7 @@ export default function Swap() {
     }
   }
 
+  // const disabled = submitting || isConfirming || !stringToNumber(amountIn) || !account.address || !swapData;
   const disabled = submitting || isConfirming || !stringToNumber(amountIn) || !account.address || !swapData;
 
   return (
@@ -174,7 +173,7 @@ export default function Swap() {
                 selectedToken={tokenOut}
                 isLoading={swapData?.isLoading || false}
                 disableInput
-                disableInlineBalance
+                // disableInlineBalance
                 filterTokens={filterTokensOut}
               />
             </div>
