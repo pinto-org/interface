@@ -38,7 +38,7 @@ const PlotRow = forwardRef<HTMLTableRowElement, PlotRowProps>(
         <TableRow
           className="h-[4.5rem] bg-pinto-green-1 hover:bg-pinto-green-1 items-center hover:cursor-pointer"
           data-action-target="claimable-rewards"
-          onClick={() => navigate("/field?action=harvest")}
+          // onClick={() => navigate("/field?action=harvest")}
           ref={ref}
           {...props}
         >

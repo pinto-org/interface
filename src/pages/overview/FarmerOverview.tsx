@@ -308,7 +308,7 @@ const Overview = () => {
           <TabsContent className="mt-8" value="pods">
             {hasPods ? (
               <div className="overflow-clip">
-                <PlotsTable showClaimable />
+                <PlotsTable showClaimable disableHover />
               </div>
             ) : (
               <EmptyTable type="plots" />
