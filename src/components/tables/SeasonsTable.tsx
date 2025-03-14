@@ -401,7 +401,7 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn, sortedColu
           </TableRow>
         )}
         <VariableSizeList
-          className="overscroll-x-auto"
+          className="overscroll-auto"
           height={height}
           itemCount={seasonsData.length}
           itemSize={() => 50}

@@ -46,8 +46,6 @@ export interface SortColumn {
 
 const PAGE_SIZE = 100;
 
-
-
 const SeasonsExplorer = () => {
   const localStorageHiddenFields = JSON.parse(localStorage.getItem("pinto.seasonsExplorer.hiddenFields") || "[]");
   const currentSeason = useSunData().current;
