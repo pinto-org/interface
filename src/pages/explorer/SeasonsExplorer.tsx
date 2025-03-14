@@ -10,6 +10,7 @@ import closeIcon from "@/assets/misc/closeIcon.svg";
 import { useSunData } from "@/state/useSunData";
 import { ArrowLeftIcon } from "@radix-ui/react-icons"
 import ReactDOM from "react-dom";
+import useIsMobile from "@/hooks/display/useIsMobile";
 export interface SeasonColumn {
   id: string;
   name: string;
@@ -49,18 +50,19 @@ const PAGE_SIZE = 100;
 
 const SeasonsExplorer = () => {
   const localStorageHiddenFields = JSON.parse(localStorage.getItem("pinto.seasonsExplorer.hiddenFields") || "[]");
+  const currentSeason = useSunData().current;
+
   const [hiddenFields, setHiddenFields] = useState<string[]>(localStorageHiddenFields);
   const [displayPage, setDisplayPage] = useState<number | string>('1');
   const [page, setPage] = useState(1);
   const [jumpToSeason, setJumpToSeason] = useState(0);
   const [sortedColumn, setSortedColumn] = useState<SortColumn>({ column: '', dir: 'asc' });
-
-  const currentSeason = useSunData().current;
-  const [fromSeason, setFromSeason] = useState(currentSeason);
-  const seasonsData = useSeasonsData(fromSeason, currentSeason);
-  const totalPages = Math.ceil(currentSeason / PAGE_SIZE);
-
   const [seasons, setSeasons] = useState<any>([]);
+  const [fromSeason, setFromSeason] = useState(currentSeason);
+
+  const totalPages = Math.ceil(currentSeason / PAGE_SIZE);
+  const isMobile = useIsMobile();
+  const seasonsData = useSeasonsData(fromSeason, currentSeason);
 
   const calculateSeasonPageToJump = (season: number) => {
     return Math.ceil((currentSeason - season) / PAGE_SIZE);
@@ -144,11 +146,13 @@ const SeasonsExplorer = () => {
       <Button variant="pagination" size="xs" onClick={goToNextPage} disabled={page === totalPages || seasonsData.isFetching}>
         <ArrowLeftIcon className=" rotate-180" />
       </Button>
-      <span>Jump to Season</span>
-      <input className="border border-pinto-gray-4 w-14 px-[4px] text-center rounded-[4px]" type="text" onKeyDown={onJumpToSeasonKeyDown} value={jumpToSeason} onChange={onJumpToSeasonChange} />
-      <Button variant="pagination" size="xs" onClick={() => setPage(calculateSeasonPageToJump(Number(jumpToSeason)))} disabled={seasonsData.isFetching}>
-        <ArrowLeftIcon className=" rotate-180" />
-      </Button>
+      {!isMobile && (<>
+        <span>Jump to Season</span>
+        <input className="border border-pinto-gray-4 w-14 px-[4px] text-center rounded-[4px]" type="text" onKeyDown={onJumpToSeasonKeyDown} value={jumpToSeason} onChange={onJumpToSeasonChange} />
+        <Button variant="pagination" size="xs" onClick={() => setPage(calculateSeasonPageToJump(Number(jumpToSeason)))} disabled={seasonsData.isFetching}>
+          <ArrowLeftIcon className=" rotate-180" />
+        </Button>
+      </>)}
       <span className="text-pinto-gray-4">{currentSeason} Records</span>
     </div>
   </div>)
