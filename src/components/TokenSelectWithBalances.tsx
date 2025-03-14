@@ -1,6 +1,6 @@
 import arrowDown from "@/assets/misc/ChevronDown.svg";
 import { TokenValue } from "@/classes/TokenValue";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
+import useFarmerBalances from "@/state/useFarmerBalances";
 import { usePriceData } from "@/state/usePriceData";
 import { formatter } from "@/utils/format";
 import { FarmFromMode, Token } from "@/utils/types";
@@ -19,7 +19,6 @@ import {
 import { ScrollArea } from "./ui/ScrollArea";
 import { Separator } from "./ui/Separator";
 import { Skeleton } from "./ui/Skeleton";
-import Text from "./ui/Text";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
 
 function TokenSelectItem({
@@ -91,7 +90,7 @@ export default function TokenSelectWithBalances({
   filterTokens?: Set<Token> | undefined;
   selectKey?: string; // If there are multiple instances of this in the same page, provide this to prevent weird behavior.
 }) {
-  const { balances } = useFarmerBalances();
+  const balances = useFarmerBalances().balances;
   const priceData = usePriceData();
 
   return (

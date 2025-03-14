@@ -5,14 +5,14 @@ import { ScrollHideComponent } from "@/components/ScrollHideComponent";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import useFarmerStatus from "@/hooks/useFarmerStatus";
 import { NavbarPanelType, navbarPanelAtom } from "@/state/app/navBar.atoms";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import useFarmerBalances from "@/state/useFarmerBalances";
+import useFarmerSilo from "@/state/useFarmerSilo";
 import useFieldSnapshots from "@/state/useFieldSnapshots";
 import { usePriceData, useTwaDeltaBLPQuery, useTwaDeltaBQuery } from "@/state/usePriceData";
 import useSiloSnapshots from "@/state/useSiloSnapshots";
 import { useInvalidateSun } from "@/state/useSunData";
 import { cn } from "@/utils/utils";
-import { useQueryClient } from "@tanstack/react-query";
+import { QueryKey, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useModal } from "connectkit";
 import { useAtom } from "jotai";
@@ -40,9 +40,11 @@ const Navbar = () => {
 
   const account = useAccount();
   const farmerActions = useFarmerActions();
+
   const farmerBalances = useFarmerBalances();
+
   const priceData = usePriceData();
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const invalidateSun = useInvalidateSun();
 
   const fieldSnapshots = useFieldSnapshots();
@@ -206,10 +208,10 @@ const Navbar = () => {
                           ? `Claim ${formatter.usd(floodValue)} from Flood`
                           : `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet ${hasInternal ? "+ Farm Balances" : "Balance"}`
                           */
-                        /*
+                          /*
                         `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet Balance`
                         */
-                        `Manage Wallet Balance`
+                          `Manage Wallet Balance`
                     }
                     className={`absolute top-[9.375rem] right-[22.5rem] flex flex-row-reverse`}
                     sourceAnchor="right"

@@ -21,7 +21,7 @@ import useTransaction from "@/hooks/useTransaction";
 import usePriceImpactSummary from "@/hooks/wells/usePriceImpactSummary";
 import usePodListings from "@/state/market/usePodListings";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerPlotsQuery } from "@/state/useFarmerField";
+import useFarmerField, { useFarmerPlotsQuery } from "@/state/useFarmerField";
 import { useHarvestableIndex } from "@/state/useFieldData";
 import { useQueryKeys } from "@/state/useQueryKeys";
 import useTokenData from "@/state/useTokenData";
@@ -37,21 +37,7 @@ import { toast } from "sonner";
 import { Address } from "viem";
 import { useAccount } from "wagmi";
 import CancelListing from "./CancelListing";
-
-const useFilterTokens = () => {
-  const tokens = useTokenMap();
-
-  return useMemo(() => {
-    const set = new Set<Token>();
-
-    [...Object.values(tokens)].forEach((token) => {
-      if (token.isLP || token.isSiloWrapped || token.is3PSiloWrapped) {
-        set.add(token);
-      }
-    });
-    return set;
-  }, [tokens]);
-};
+import useFilterTokens from "@/hooks/useFilterTokens";
 
 export default function FillListing() {
   const mainToken = useTokenData().mainToken;
@@ -68,7 +54,7 @@ export default function FillListing() {
     account: account.address,
     harvestableIndex,
   });
-  const { queryKey: farmerPlotsQK } = useFarmerPlotsQuery();
+  const { queryKeys: farmerPlotsQK } = useFarmerField();
   const allQK = useMemo(
     () => [allPodListings, allMarket, farmerMarket, farmerField, farmerPlotsQK, ...farmerBalances.queryKeys],
     [allPodListings, allMarket, farmerMarket, farmerField, farmerPlotsQK, farmerBalances],

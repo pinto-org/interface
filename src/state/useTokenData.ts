@@ -2,10 +2,12 @@ import { TokenValue } from "@/classes/TokenValue";
 import { LP_TOKENS, MAIN_TOKEN, S_MAIN_TOKEN, tokens } from "@/constants/tokens";
 import { useChainConstant, useResolvedChainId } from "@/utils/chain";
 import { Token } from "@/utils/types";
-import { useMemo } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
+import { atomWithImmer } from "jotai-immer";
+import { useEffect, useMemo } from "react";
 import { Abi, erc20Abi } from "viem";
 import { base } from "viem/chains";
-import { useAccount, useChainId, useReadContracts } from "wagmi";
+import { useChainId, useReadContracts } from "wagmi";
 
 export function useWhitelistedTokens() {
   const chainId = useResolvedChainId();
@@ -18,9 +20,14 @@ export function useWhitelistedTokens() {
   }, [chainId]);
 }
 
-export default function useTokenData() {
-  const chainId = useChainId();
-  const account = useAccount();
+interface TokenDataState {
+  mainToken: Token;
+  nativeToken: Token;
+  wrappedNativeToken: Token;
+  lpTokens: Token[];
+  preferredTokens: Token[];
+  whitelistedTokens: Token[];
+}
 
   const sMainToken = useChainConstant(S_MAIN_TOKEN);
 

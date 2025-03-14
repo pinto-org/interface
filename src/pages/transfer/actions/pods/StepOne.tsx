@@ -3,7 +3,7 @@ import PlotsTable from "@/components/PlotsTable";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import { ToggleGroup } from "@/components/ui/ToggleGroup";
-import { useFarmerField } from "@/state/useFarmerField";
+import useFarmerField from "@/state/useFarmerField";
 import { Plot } from "@/utils/types";
 import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import { PodTransferData } from "../TransferPods";

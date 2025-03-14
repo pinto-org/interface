@@ -1,7 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { navbarPanelAtom } from "@/state/app/navBar.atoms";
-import { FarmerBalance, useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import useFarmerBalances, { FarmerBalance } from "@/state/useFarmerBalances";
+import useFarmerSilo from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
@@ -233,9 +233,11 @@ export default function WalletButtonPanel({ togglePanel }) {
     [setPanelState],
   );
 
-  const { balances: farmerBalances } = useFarmerBalances();
+  const farmerBalanceData = useFarmerBalances();
+  const farmerBalances = farmerBalanceData.balances;
+
   const priceData = usePriceData();
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
 
   // Calculate total flood once
   const totalFlood = useMemo(

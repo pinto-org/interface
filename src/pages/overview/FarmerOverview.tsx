@@ -15,10 +15,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import useIsSmallDesktop from "@/hooks/display/useIsSmallDesktop";
 import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerField } from "@/state/useFarmerField";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
-import { useHarvestableIndex, useTotalSoil } from "@/state/useFieldData";
+import useFarmerBalances from "@/state/useFarmerBalances";
+import useFarmerField from "@/state/useFarmerField";
+import useFarmerSilo from "@/state/useFarmerSilo";
+import { useHarvestableIndex, useTemperature, useTotalSoil } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import { useSiloWrappedTokenToUSD } from "@/state/useSiloWrappedTokenData";
@@ -33,7 +33,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 const Overview = () => {
   // Hooks
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
   const farmerActions = useFarmerActions();
   const tokenData = useTokenData();

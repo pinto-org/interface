@@ -6,7 +6,10 @@ import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useChainAddress } from "@/utils/chain";
 import { DepositData, Token, TokenDepositData } from "@/utils/types";
 import { unpackStem } from "@/utils/utils";
-import { useMemo } from "react";
+import { QueryKey } from "@tanstack/react-query";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { atomWithImmer } from "jotai-immer";
+import { useEffect, useMemo } from "react";
 import { Address, toHex } from "viem";
 import { useAccount, useReadContract } from "wagmi";
 import { getTokenIndex } from "./../utils/token";
@@ -20,6 +23,18 @@ interface DepositQuery {
   depositedAmount: bigint;
   depositedBDV: bigint;
 }
+
+interface FarmerDepositedBalanceState {
+  data: Map<Token, TokenDepositData>;
+  isLoading: boolean;
+  queryKey: QueryKey[];
+  refetch: () => void;
+}
+
+const querySettings = {
+  staleTime: 1000 * 60 * 20, // 20 minutes, in milliseconds
+  refetchInterval: 1000 * 60 * 20, // 20 minutes, in milliseconds
+};
 
 function calculateGerminationInfo(stem: TokenValue, stemTip: TokenValue, stalkEarnedPerSeason: TokenValue) {
   // Each season is 60 minutes (3600 seconds)
@@ -46,10 +61,20 @@ function calculateGerminationInfo(stem: TokenValue, stemTip: TokenValue, stalkEa
   return germinationDate;
 }
 
-const querySettings = {
-  staleTime: 1000 * 60 * 20, // 20 minutes, in milliseconds
-  refetchInterval: 1000 * 60 * 20, // 20 minutes, in milliseconds
-};
+export const farmerDepositedBalancesAtom = atomWithImmer<FarmerDepositedBalanceState>({
+  data: new Map(),
+  isLoading: true,
+  queryKey: [],
+  refetch: () => {},
+});
+
+export function useUpdateFarmerDepositedBalances() {
+  const [state, setState] = useAtom(farmerDepositedBalancesAtom);
+
+  const silo = useSiloData();
+  const BEAN = useTokenData().mainToken;
+
+  const tokenMap = useTokenMap();
 
 export function useFarmerDepositsForAccountQuery(address?: Address) {
   const diamondAddress = useChainAddress(beanstalkAddress);
@@ -68,7 +93,6 @@ export function useFarmerDepositsForAccountQuery(address?: Address) {
       enabled: Boolean(readAddress),
     },
   });
-}
 
 function useFarmerDepositedBalances(farmerAddress?: Address) {
   const silo = useSiloData();
@@ -100,7 +124,7 @@ function useFarmerDepositedBalances(farmerAddress?: Address) {
   const depositsData = useMemo(() => {
     const output: Map<Token, TokenDepositData> = new Map();
 
-    depositsByToken?.forEach((tokenDeposits, tokenIndex) => {
+    data?.forEach((tokenDeposits, tokenIndex) => {
       const token = tokenMap[tokenIndex];
       const siloTokenData = silo.tokenData.get(token);
 
@@ -209,8 +233,29 @@ function useFarmerDepositedBalances(farmerAddress?: Address) {
       });
     });
 
-    return output;
-  }, [depositsByToken, silo.tokenData, tokenMap, BEAN.decimals]);
+    let updateState = false;
+    for (const [token, depositData] of output) {
+      const oldData = state.data.get(token);
+      if (oldData === undefined && !state.data.has(token)) {
+        console.log("TRUE 1");
+        updateState = true;
+        break;
+      }
+      if (
+        !oldData?.amount.eq(depositData.amount) ||
+        !oldData?.convertibleAmount.eq(depositData.convertibleAmount) ||
+        oldData?.convertibleDeposits.length !== depositData.convertibleDeposits.length ||
+        !oldData?.currentBDV.eq(depositData.currentBDV) ||
+        !oldData?.depositBDV.eq(depositData.depositBDV) ||
+        oldData.deposits.length !== depositData.deposits.length ||
+        !oldData.seeds.eq(depositData.seeds) ||
+        !oldData.stalk.total.eq(depositData.stalk.total)
+      ) {
+        console.log("TRUE 2");
+        updateState = true;
+        break;
+      }
+    }
 
   return useMemo(() => {
     return {
@@ -222,4 +267,6 @@ function useFarmerDepositedBalances(farmerAddress?: Address) {
   }, [depositsData, queryKey, isLoading, refetch]);
 }
 
-export default useFarmerDepositedBalances;
+export default function useFarmerDepositedBalances() {
+  return useAtomValue(farmerDepositedBalancesAtom);
+}

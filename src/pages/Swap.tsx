@@ -19,7 +19,7 @@ import useSwapSummary from "@/hooks/swap/useSwapSummary";
 import { usePreferredInputToken } from "@/hooks/usePreferredInputToken";
 import useTransaction from "@/hooks/useTransaction";
 import { useDestinationBalance } from "@/state/useDestinationBalance";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
+import useFarmerBalances from "@/state/useFarmerBalances";
 import useTokenData from "@/state/useTokenData";
 import { stringToNumber } from "@/utils/string";
 import { getTokenIndex, tokensEqual } from "@/utils/token";
@@ -31,6 +31,8 @@ import { toast } from "sonner";
 import { useAccount } from "wagmi";
 
 export default function Swap() {
+  const farmerBalances = useFarmerBalances();
+  const { mainToken: BEAN, nativeToken: ETH } = useTokenData();
   const queryClient = useQueryClient();
   const { queryKeys } = useFarmerBalances();
   const { mainToken: BEAN, nativeToken: ETH, siloWrappedToken } = useTokenData();
@@ -105,7 +107,7 @@ export default function Swap() {
     successCallback: () => {
       setAmountIn("0");
       setAmountOut("0");
-      queryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
+      farmerBalances.refetch();
       resetSwap();
     },
     successMessage: "Swap success",

@@ -4,7 +4,7 @@ import { ComboInputField } from "@/components/ComboInputField";
 import PodRangeSelector from "@/components/PodRangeSelector";
 import { Label } from "@/components/ui/Label";
 import { PODS } from "@/constants/internalTokens";
-import { useFarmerField } from "@/state/useFarmerField";
+import useFarmerField from "@/state/useFarmerField";
 import { Plot } from "@/utils/types";
 import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import { PodTransferData } from "../TransferPods";

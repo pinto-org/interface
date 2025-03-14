@@ -6,10 +6,10 @@ import { MinusIcon } from "@/components/Icons";
 import MultiTokenSelectWithBalances from "@/components/MultiTokenSelectWithBalances";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
+import useFarmerBalances from "@/state/useFarmerBalances";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
-import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
-import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from "react";
 import AllFarmBalances from "../../FarmBalancesList";
 
 interface StepOneProps {
@@ -62,7 +62,8 @@ export default function StepOne({
   setUsingMax,
 }: StepOneProps) {
   // Get available tokens and balances
-  const { balances } = useFarmerBalances();
+  const farmerBalances = useFarmerBalances();
+  const balances = farmerBalances.balances;
   const [selectedTokens, setSelectedTokens] = useState<Token[]>([]);
 
   const tokenAndBalanceMap = useMemo(() => {
@@ -87,7 +88,7 @@ export default function StepOne({
         setTransferData([{ token: firstToken, amount: firstBalance.toHuman() }]);
       }
     }
-  }, [availableTokens, tokenAndBalanceMap]);
+  }, [availableTokens, tokenAndBalanceMap, setTransferData, transferData]);
 
   const handleMaxToggle = useCallback(() => {
     if (!usingMax) {

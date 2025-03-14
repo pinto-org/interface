@@ -14,8 +14,8 @@ import { Separator } from "@/components/ui/Separator";
 import VerticalAccordion from "@/components/ui/VerticalAccordion";
 import Warning from "@/components/ui/Warning";
 import { diamondABI } from "@/constants/abi/diamondABI";
-import { SEEDS } from "@/constants/internalTokens";
-import { PINTO_USDC_TOKEN } from "@/constants/tokens";
+import { SEEDS, STALK } from "@/constants/internalTokens";
+import { PINTO, PINTO_USDC_TOKEN } from "@/constants/tokens";
 import useDelayedLoading from "@/hooks/display/useDelayedLoading";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
@@ -31,6 +31,7 @@ import { useWellUnderlying } from "@/hooks/wells/wells";
 import { SiloConvert, SiloConvertSummary } from "@/lib/siloConvert/SiloConvert";
 import { SiloConvertMaxConvertQuoter } from "@/lib/siloConvert/SiloConvert.maxConvertQuoter";
 import ConvertProvider, { SiloTokenConvertPath, useConvertState } from "@/state/context/convert.provider";
+import useFarmerSilo from "@/state/useFarmerSilo";
 import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { PoolData, usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
@@ -42,11 +43,13 @@ import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { AddressMap, Token } from "@/utils/types";
 import { useDebounceValue } from "@/utils/useDebounce";
 import { cn, noop } from "@/utils/utils";
-import { useQueryClient } from "@tanstack/react-query";
+import { Label } from "@radix-ui/react-label";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { useAccount } from "wagmi";
+import { simulateContract } from "viem/actions";
+import { useAccount, useChainId, useConfig } from "wagmi";
 
 interface BaseConvertProps {
   siloToken: Token;
@@ -238,7 +241,7 @@ function ConvertForm({
 
   // if url mode === 'max', set amount in to max convert
   useEffect(() => {
-    if (mode !== 'max' || !targetToken || didInitAmountMax || maxConvert.lte(0)) return;
+    if (mode !== "max" || !targetToken || didInitAmountMax || maxConvert.lte(0)) return;
     setDidInitAmountMax(true);
     setAmountIn(maxConvert.toHuman());
   }, [mode, targetToken, didInitAmountMax, maxConvert]);
@@ -324,7 +327,13 @@ function ConvertForm({
   };
 
   const LP2LPMinConvertWarning = () => {
-    if (!siloToken.isLP || !targetToken?.isLP || maxConvertQueryData.lte(0) || maxConvertQueryData.eq(SiloConvertMaxConvertQuoter.NO_MAX_CONVERT_AMOUNT)) return null;
+    if (
+      !siloToken.isLP ||
+      !targetToken?.isLP ||
+      maxConvertQueryData.lte(0) ||
+      maxConvertQueryData.eq(SiloConvertMaxConvertQuoter.NO_MAX_CONVERT_AMOUNT)
+    )
+      return null;
 
     return (
       <Warning variant="info">
@@ -481,7 +490,7 @@ const SiloConvertProvider = ({ children }: { children: React.ReactNode }) => {
     const token = tokenMap[getTokenIndex(tokenValue)];
 
     if (token) {
-      setTargetToken(token)
+      setTargetToken(token);
       if (modeValue) {
         setMode(modeValue);
       }

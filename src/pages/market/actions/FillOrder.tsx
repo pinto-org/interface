@@ -10,8 +10,8 @@ import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
 import usePodOrders from "@/state/market/usePodOrders";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerPlotsQuery } from "@/state/useFarmerField";
+import useFarmerBalances from "@/state/useFarmerBalances";
+import useFarmerField from "@/state/useFarmerField";
 import { useHarvestableIndex } from "@/state/useFieldData";
 import { useQueryKeys } from "@/state/useQueryKeys";
 import useTokenData from "@/state/useTokenData";
@@ -28,17 +28,17 @@ import CancelOrder from "./CancelOrder";
 export default function FillOrder() {
   const mainToken = useTokenData().mainToken;
   const diamondAddress = useProtocolAddress();
-  const { queryKeys: balanceQKs } = useFarmerBalances();
+  const farmerBalances = useFarmerBalances();
   const account = useAccount();
 
   const queryClient = useQueryClient();
   const { allPodOrders, allMarket, farmerMarket, farmerField } = useQueryKeys({
     account: account.address,
   });
-  const { queryKey: farmerPlotsQK } = useFarmerPlotsQuery();
+  const { queryKeys: farmerPlotsQK } = useFarmerField();
   const allQK = useMemo(
-    () => [allPodOrders, allMarket, farmerMarket, farmerField, farmerPlotsQK, ...balanceQKs],
-    [allPodOrders, allMarket, farmerMarket, farmerField, farmerPlotsQK, balanceQKs],
+    () => [allPodOrders, allMarket, farmerMarket, farmerField, farmerPlotsQK, ...farmerBalances.queryKeys],
+    [allPodOrders, allMarket, farmerMarket, farmerField, farmerPlotsQK, farmerBalances.queryKeys],
   );
 
   const [plot, setPlot] = useState<Plot[]>([]);

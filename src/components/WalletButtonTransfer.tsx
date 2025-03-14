@@ -1,14 +1,14 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import useFilterTokens from "@/hooks/useFilterTokens";
 import useTransaction from "@/hooks/useTransaction";
 import { navbarPanelAtom } from "@/state/app/navBar.atoms";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
+import useFarmerBalances from "@/state/useFarmerBalances";
 import useTokenData from "@/state/useTokenData";
 import { stringToNumber } from "@/utils/string";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
-import { useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Address } from "viem";
 import { useAccount, useChainId } from "wagmi";
@@ -19,41 +19,23 @@ import { Button } from "./ui/Button";
 import { CardContent, CardFooter, CardHeader } from "./ui/Card";
 import { Separator } from "./ui/Separator";
 
-const useFilterTokens = (balances: ReturnType<typeof useFarmerBalances>["balances"]) => {
-  return useMemo(() => {
-    const set = new Set<Token>();
-
-    [...balances.keys()].forEach((token) => {
-      if (token.isNative) {
-        set.add(token);
-      }
-    });
-
-    return set;
-  }, [balances]);
-};
-
 export default function WalletButtonTransfer() {
   const chainId = useChainId();
   const account = useAccount();
   const [panelState, setPanelState] = useAtom(navbarPanelAtom);
 
-  const { balances: balances, queryKeys: queryKeys } = useFarmerBalances();
+  const farmerBalanceData = useFarmerBalances();
+  const balances = farmerBalanceData.balances;
 
   const mainToken = useTokenData().mainToken;
-  const filteredTokens = useFilterTokens(balances);
+  const filteredTokens = useFilterTokens(balances, "native").filterSet;
   const [amountIn, setAmountIn] = useState("0");
   const [tokenIn, setTokenIn] = useState(mainToken);
   const [balanceFrom, setBalanceFrom] = useState<FarmFromMode>(FarmFromMode.EXTERNAL);
 
-  const queryClient = useQueryClient();
   const { writeWithEstimateGas, setSubmitting, submitting, isConfirming } = useTransaction({
     successCallback: () => {
-      queryKeys.forEach((query) =>
-        queryClient.invalidateQueries({
-          queryKey: query,
-        }),
-      );
+      farmerBalanceData.refetch();
       setAmountIn("0");
     },
     successMessage: "Transfer success",

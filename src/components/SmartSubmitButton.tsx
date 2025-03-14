@@ -1,7 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { ZERO_ADDRESS } from "@/constants/address";
 import useTransaction from "@/hooks/useTransaction";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
+import useFarmerBalances from "@/state/useFarmerBalances";
 import { FarmFromMode, Token } from "@/utils/types";
 import { exists } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
@@ -39,6 +39,7 @@ export default function SmartSubmitButton({
 }: SmartSubmitButton) {
   const account = useAccount();
   const queryClient = useQueryClient();
+
   const farmerBalances = useFarmerBalances().balances;
   const diamond = useProtocolAddress();
 

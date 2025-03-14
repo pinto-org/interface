@@ -190,6 +190,7 @@ const useUpdateWeather = () => {
 
 // ---------------------------------------- Field ----------------------------------------
 export const useUpdateField = () => {
+  console.log("UPDATE FIELD");
   useUpdateTemperature();
   useUpdatePodline();
   useUpdateWeather();

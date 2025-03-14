@@ -142,6 +142,7 @@ const useUpdateRemainingUntilSunrise = (next: DateTime, awaiting: boolean) => {
 };
 
 export const useUpdateSunData = () => {
+  console.log("UPDATE SUN");
   const seasons = useFetchSun();
   const [seasonSunrise, setSeasonSunrise] = useAtom(seasonSunriseAtom);
   const [cachedSeason, setCachedSeason] = useState<number>(0);
@@ -179,6 +180,7 @@ export const useUpdateSunData = () => {
 };
 
 export function useUpdateMorning() {
+  console.log("UPDATE MORNING");
   const setRemaining = useSetAtom(morningRemainingAtom);
   const setDuration = useSetAtom(morningDurationAtom);
   const setScaledTemperature = useSetAtom(fieldTemperatureAtom);

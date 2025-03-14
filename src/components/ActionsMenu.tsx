@@ -6,7 +6,10 @@ import { useNavigate } from "react-router-dom";
 // Hooks
 import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
+import useFarmerSilo from "@/state/useFarmerSilo";
 import { useTotalSoil } from "@/state/useFieldData";
+import { usePriceData } from "@/state/usePriceData";
+import useTokenData from "@/state/useTokenData";
 
 // Utils
 import { formatter } from "@/utils/format";
@@ -33,7 +36,10 @@ const useAvailableActions = () => {
   const navigate = useNavigate();
   const { submitClaimRewards } = useClaimRewards();
   const farmerActions = useFarmerActions();
-  const totalSoil = useTotalSoil().totalSoil;
+  const { mainToken } = useTokenData();
+  const totalSoil = useTotalSoil();
+  const farmerSilo = useFarmerSilo();
+  const priceData = usePriceData();
   const [panelState, setPanelState] = useAtom(navbarPanelAtom);
 
   // Compute all possible states

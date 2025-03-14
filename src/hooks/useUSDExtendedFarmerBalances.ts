@@ -1,8 +1,9 @@
-import { FarmerBalance, useFarmerBalances } from "@/state/useFarmerBalances";
+import useFarmerBalances, { FarmerBalance } from "@/state/useFarmerBalances";
 import { usePriceData } from "@/state/usePriceData";
 import { getTokenIndex } from "@/utils/token";
 import { Token } from "@/utils/types";
 import { Lookup } from "@/utils/types.generic";
+import { useAtomValue } from "jotai";
 import { useMemo } from "react";
 
 export type USDExtendedFarmerBalances = {
@@ -12,7 +13,9 @@ export type USDExtendedFarmerBalances = {
 };
 
 export default function useUSDExtendedFarmerBalances() {
-  const { balances, isLoading } = useFarmerBalances();
+  const farmerBalanceData = useFarmerBalances();
+  const balances = farmerBalanceData.balances;
+  const loading = farmerBalanceData.isLoading;
   const { tokenPrices, loading: priceLoading } = usePriceData();
 
   const usdExtendedBalances = useMemo(() => {

@@ -2,7 +2,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import FlowForm from "@/components/FormFlow";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useTransaction from "@/hooks/useTransaction";
-import { useFarmerField } from "@/state/useFarmerField";
+import useFarmerField from "@/state/useFarmerField";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";

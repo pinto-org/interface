@@ -11,11 +11,12 @@ import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useBuildSwapQuote from "@/hooks/swap/useBuildSwapQuote";
 import useSwap from "@/hooks/swap/useSwap";
 import useSwapSummary from "@/hooks/swap/useSwapSummary";
+import useFilterTokens from "@/hooks/useFilterTokens";
 import { usePreferredInputToken } from "@/hooks/usePreferredInputToken";
 import useTransaction from "@/hooks/useTransaction";
 import usePriceImpactSummary from "@/hooks/wells/usePriceImpactSummary";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import useFarmerBalances from "@/state/useFarmerBalances";
+import useFarmerSilo from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import { useInvalidateSun } from "@/state/useSunData";
@@ -28,29 +29,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 
-const useFilterTokens = (siloToken: Token, balances: ReturnType<typeof useFarmerBalances>["balances"]) => {
-  return useMemo(() => {
-    const set = new Set<Token>();
-
-    [...balances.keys()].forEach((token) => {
-      if ((token.isLP && !tokensEqual(token, siloToken)) || token.isSiloWrapped || token.is3PSiloWrapped) {
-        set.add(token);
-      }
-    });
-
-    return {
-      filterSet: set,
-      filterPreferred: Array.from(set),
-    };
-  }, [siloToken, balances]);
-};
-
 function Deposit({ siloToken }: { siloToken: Token }) {
   const diamondAddress = useProtocolAddress();
   const farmerBalances = useFarmerBalances();
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const invalidateSun = useInvalidateSun();
-  const { filterSet, filterPreferred } = useFilterTokens(siloToken, farmerBalances.balances);
+  const { filterSet, filterPreferred } = useFilterTokens(farmerBalances.balances, "token", siloToken);
   const { queryKeys: priceQueryKeys } = usePriceData();
   const account = useAccount();
 

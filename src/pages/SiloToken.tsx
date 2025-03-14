@@ -25,9 +25,8 @@ import { S_MAIN_TOKEN } from "@/constants/tokens";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useDenomination } from "@/hooks/useAppSettings";
-import { useChainConstant } from "@/hooks/useChainConstant";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import useFarmerBalances from "@/state/useFarmerBalances";
+import useFarmerSilo from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { useSeedGauge } from "@/state/useSeedGauge";
 import { SiloTokenYield, useSiloTokenAPYs } from "@/state/useSiloAPYs";
@@ -45,6 +44,7 @@ import { useChainId, useConfig } from "wagmi";
 import SiloWrappedSiloToken from "./SiloWrappedSiloToken";
 import SiloActions from "./silo/SiloActions";
 import SiloTokenPageHeader, { SiloTokenPageSubHeader } from "./siloToken/SiloTokenPageHeader";
+import { useChainConstant } from "@/utils/chain";
 
 function SiloTokenInner({ siloToken }: { siloToken: Token }) {
   const { tokenAddress } = useParams();
@@ -58,7 +58,7 @@ function SiloTokenInner({ siloToken }: { siloToken: Token }) {
 
   // we need to get the priceData for the current well
   const apysQuery = useSiloTokenAPYs(tokenAddress);
-  const depositedBalances = useFarmerSiloNew().deposits;
+  const depositedBalances = useFarmerSilo().deposits;
   const farmerBalances = useFarmerBalances();
 
   const siloTokenData = siloData.tokenData.get(siloToken);
@@ -189,12 +189,8 @@ export default function SiloToken() {
   }
 
   return (
-    <PageMetaWrapper metaKey={siloToken.isSiloWrapped ? "wrap" : siloToken.symbol as MetaSlug}>
-      {siloToken.isSiloWrapped ? (
-        <SiloWrappedSiloToken token={siloToken} />
-      ) : (
-        <SiloTokenInner siloToken={siloToken} />
-      )}
+    <PageMetaWrapper metaKey={siloToken.isSiloWrapped ? "wrap" : (siloToken.symbol as MetaSlug)}>
+      {siloToken.isSiloWrapped ? <SiloWrappedSiloToken token={siloToken} /> : <SiloTokenInner siloToken={siloToken} />}
     </PageMetaWrapper>
   );
 }

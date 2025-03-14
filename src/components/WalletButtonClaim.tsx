@@ -3,16 +3,14 @@ import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
 import { navbarPanelAtom } from "@/state/app/navBar.atoms";
-import { useDestinationBalance } from "@/state/useDestinationBalance";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import useFarmerBalances from "@/state/useFarmerBalances";
+import useFarmerSilo from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { FarmToMode, Token } from "@/utils/types";
-import { useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useAccount, useChainId } from "wagmi";
@@ -39,22 +37,16 @@ export default function WalletButtonClaim() {
     });
   };
 
-  const { queryKeys } = useFarmerBalances();
-  const farmerSilo = useFarmerSiloNew();
-  const siloQueryKeys = farmerSilo.queryKeys;
+  const farmerBalance = useFarmerBalances();
+  const farmerSilo = useFarmerSilo();
   const priceData = usePriceData();
   const { whitelistedTokens } = useTokenData();
   const [balanceTo, setBalanceTo] = useState<FarmToMode>(FarmToMode.INTERNAL);
 
-  const queryClient = useQueryClient();
   const { writeWithEstimateGas, setSubmitting } = useTransaction({
     successCallback: () => {
-      const allQueryKeys = [...queryKeys, ...siloQueryKeys];
-      allQueryKeys.forEach((query) =>
-        queryClient.invalidateQueries({
-          queryKey: query,
-        }),
-      );
+      farmerBalance.refetch();
+      farmerSilo.refetch();
     },
     successMessage: "Claim success",
     errorMessage: "Claim failed",

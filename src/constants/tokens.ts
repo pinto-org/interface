@@ -12,7 +12,7 @@ import { Token } from "@/utils/types";
 import { ChainLookup } from "@/utils/types.generic";
 import { arbitrum, base } from "viem/chains";
 
-const defaultChain = base.id;
+export const defaultChain = base.id;
 
 // -------------------- PROTOCOL TOKEN --------------------
 

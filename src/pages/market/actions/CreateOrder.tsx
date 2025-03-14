@@ -18,7 +18,7 @@ import useSwapSummary from "@/hooks/swap/useSwapSummary";
 import { usePreferredInputToken } from "@/hooks/usePreferredInputToken";
 import useTransaction from "@/hooks/useTransaction";
 import usePriceImpactSummary from "@/hooks/wells/usePriceImpactSummary";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
+import useFarmerBalances from "@/state/useFarmerBalances";
 import { useHarvestableIndex, usePodIndex } from "@/state/useFieldData";
 import { useQueryKeys } from "@/state/useQueryKeys";
 import useTokenData from "@/state/useTokenData";
@@ -61,15 +61,16 @@ const useFilterTokens = () => {
 export default function CreateOrder() {
   const diamondAddress = useProtocolAddress();
   const mainToken = useTokenData().mainToken;
-  const { queryKeys: balanceQKs } = useFarmerBalances();
+  const farmerBalances = useFarmerBalances();
+
   const { address: account } = useAccount();
   const [inputError, setInputError] = useState(false);
 
   const queryClient = useQueryClient();
   const { allPodOrders, allMarket, farmerMarket } = useQueryKeys({ account });
   const allQK = useMemo(
-    () => [allPodOrders, allMarket, farmerMarket, ...balanceQKs],
-    [allPodOrders, allMarket, farmerMarket, balanceQKs],
+    () => [allPodOrders, allMarket, farmerMarket, ...farmerBalances.queryKeys],
+    [allPodOrders, allMarket, farmerMarket, farmerBalances.queryKeys],
   );
 
   const filterTokens = useFilterTokens();

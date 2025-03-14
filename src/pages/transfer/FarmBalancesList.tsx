@@ -1,4 +1,4 @@
-import { useFarmerBalances } from "@/state/useFarmerBalances";
+import useFarmerBalances from "@/state/useFarmerBalances";
 import { Token } from "@/utils/types";
 
 export default function FarmBalancesList({ transferData }: { transferData?: { token: Token; amount: string }[] }) {

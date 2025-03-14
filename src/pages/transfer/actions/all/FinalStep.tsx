@@ -4,13 +4,13 @@ import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import AddressLink from "@/components/AddressLink";
 import { Label } from "@/components/ui/Label";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerField } from "@/state/useFarmerField";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import useFarmerBalances from "@/state/useFarmerBalances";
+import useFarmerField from "@/state/useFarmerField";
+import useFarmerSilo from "@/state/useFarmerSilo";
+import { useHarvestableIndex } from "@/state/useFieldData";
 import { formatter } from "@/utils/format";
 import DepositsList from "../../DepositsList";
 import FarmBalancesList from "../../FarmBalancesList";
-import { useHarvestableIndex } from "@/state/useFieldData";
 
 interface StepTwoProps {
   destination: string | undefined;
@@ -20,7 +20,7 @@ export default function FinalStep({ destination }: StepTwoProps) {
   const farmerBalances = useFarmerBalances();
   const balancesToSend = [...farmerBalances.balances].map(([token, balance]) => ({ token, balance }));
 
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
   const farmerDeposits = farmerSilo.deposits;
   const depositsToSend = [...farmerDeposits].map(([token, deposit]) => ({ token, deposit }));

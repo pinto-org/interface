@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useDenomination } from "@/hooks/useAppSettings";
 import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import useFarmerSilo from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
@@ -38,7 +38,7 @@ export default function FarmerDepositsTable({
   setHoveredButton,
 }: FarmerDepositsTableProps) {
   const navigate = useNavigate();
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const priceData = usePriceData();
   const tokenData = useTokenData();
   const siloData = useSiloData();

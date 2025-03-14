@@ -1,24 +1,23 @@
-import { TokenValue, TV } from "@/classes/TokenValue";
+import pintoIcon from "@/assets/tokens/PINTO.png";
+import { TV, TokenValue } from "@/classes/TokenValue";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
-import Text from "@/components/ui/Text";
+import { Separator } from "@/components/ui/Separator";
 import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { AllPodOrdersQuery } from "@/generated/gql/graphql";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
+import useFarmerBalances from "@/state/useFarmerBalances";
 import { useQueryKeys } from "@/state/useQueryKeys";
 import useTokenData from "@/state/useTokenData";
+import { formatter } from "@/utils/format";
 import { FarmToMode } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
-import pintoIcon from "@/assets/tokens/PINTO.png";
-import { formatter } from "@/utils/format";
-import { Separator } from "@/components/ui/Separator";
 
 export interface CancelOrderProps {
   order: AllPodOrdersQuery["podOrders"][number];
@@ -27,7 +26,7 @@ export interface CancelOrderProps {
 export default function CancelOrder({ order }: CancelOrderProps) {
   const mainToken = useTokenData().mainToken;
   const diamondAddress = useProtocolAddress();
-  const { queryKeys: balanceQKs } = useFarmerBalances();
+  const farmerBalances = useFarmerBalances();
   const account = useAccount();
   const navigate = useNavigate();
 
@@ -37,15 +36,13 @@ export default function CancelOrder({ order }: CancelOrderProps) {
   const { allPodOrders, allMarket, farmerMarket } = useQueryKeys({
     account: account.address,
   });
-  const allQK = useMemo(
-    () => [allPodOrders, allMarket, farmerMarket, ...balanceQKs],
-    [allPodOrders, allMarket, farmerMarket, balanceQKs],
-  );
+  const allQK = useMemo(() => [allPodOrders, allMarket, farmerMarket], [allPodOrders, allMarket, farmerMarket]);
 
   const onSuccess = useCallback(() => {
     navigate(`/market/pods/sell`);
     allQK.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
-  }, [navigate, queryClient, allQK]);
+    farmerBalances.refetch();
+  }, [navigate, queryClient, allQK, farmerBalances.refetch]);
 
   const { writeWithEstimateGas, submitting, isConfirming, setSubmitting } = useTransaction({
     successMessage: "Cancel Order successful",

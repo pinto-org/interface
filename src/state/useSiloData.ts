@@ -64,8 +64,7 @@ export function useTotalDepositedBdvPerTokenQuery() {
   });
 }
 
-function useReadSiloTokenData(token: Token | undefined) {
-  const chainId = useChainId();
+function useReadSiloTokenData(token: Token | undefined, chainId: number) {
   const protocolAddress = beanstalkAddress[chainId as keyof typeof beanstalkAddress];
 
   const BEAN = useTokenData().mainToken;
@@ -214,12 +213,12 @@ export function useSiloData() {
   const BEAN = useTokenData().mainToken;
 
   // we have 5 whitelisted tokens
-  const wlTokenData0 = useReadSiloTokenData(SILO_WHITELIST?.[0]);
-  const wlTokenData1 = useReadSiloTokenData(SILO_WHITELIST?.[1]);
-  const wlTokenData2 = useReadSiloTokenData(SILO_WHITELIST?.[2]);
-  const wlTokenData3 = useReadSiloTokenData(SILO_WHITELIST?.[3]);
-  const wlTokenData4 = useReadSiloTokenData(SILO_WHITELIST?.[4]);
-  const wlTokenData5 = useReadSiloTokenData(SILO_WHITELIST?.[5]);
+  const wlTokenData0 = useReadSiloTokenData(SILO_WHITELIST?.[0], chainId);
+  const wlTokenData1 = useReadSiloTokenData(SILO_WHITELIST?.[1], chainId);
+  const wlTokenData2 = useReadSiloTokenData(SILO_WHITELIST?.[2], chainId);
+  const wlTokenData3 = useReadSiloTokenData(SILO_WHITELIST?.[3], chainId);
+  const wlTokenData4 = useReadSiloTokenData(SILO_WHITELIST?.[4], chainId);
+  const wlTokenData5 = useReadSiloTokenData(SILO_WHITELIST?.[5], chainId);
 
   const wlTokenDatas = useMemo(() => {
     const keys: QueryKey[] = [];

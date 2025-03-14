@@ -8,8 +8,8 @@ import sowWithMin from "@/encoders/sowWithMin";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerField } from "@/state/useFarmerField";
+import useFarmerBalances from "@/state/useFarmerBalances";
+import useFarmerField from "@/state/useFarmerField";
 import { useInvalidateField, usePodLine, useTotalSoil } from "@/state/useFieldData";
 import { useTemperature } from "@/state/useFieldData";
 import useTokenData from "@/state/useTokenData";
@@ -34,6 +34,7 @@ import useBuildSwapQuote from "@/hooks/swap/useBuildSwapQuote";
 import useMaxBuy from "@/hooks/swap/useMaxBuy";
 import useSwap from "@/hooks/swap/useSwap";
 import useSwapSummary from "@/hooks/swap/useSwapSummary";
+import useFilterTokens from "@/hooks/useFilterTokens";
 import { usePreferredInputToken } from "@/hooks/usePreferredInputToken";
 import { useDebouncedEffect } from "@/utils/useDebounce";
 import { getBalanceFromMode } from "@/utils/utils";
@@ -42,23 +43,11 @@ type SowProps = {
   isMorning: boolean;
 };
 
-const useFilterTokens = (balances: ReturnType<typeof useFarmerBalances>["balances"]) => {
-  return useMemo(() => {
-    const set = new Set<Token>();
-
-    [...balances.keys()].forEach((token) => {
-      if (token.isLP || token.isSiloWrapped || token.is3PSiloWrapped) {
-        set.add(token);
-      }
-    });
-
-    return set;
-  }, [balances]);
-};
-
 function Sow({ isMorning }: SowProps) {
   const temperature = useTemperature();
+
   const farmerBalances = useFarmerBalances();
+
   const totalSoil = useTotalSoil().totalSoil;
   const podLine = usePodLine();
   const account = useAccount();
@@ -67,7 +56,7 @@ function Sow({ isMorning }: SowProps) {
   const { queryKeys: farmerFieldQueryKeys } = useFarmerField();
   const mainToken = useTokenData().mainToken;
   const queryClient = useQueryClient();
-  const filterTokens = useFilterTokens(farmerBalances.balances);
+  const filterTokens = useFilterTokens(farmerBalances.balances, "lp").filterSet;
 
   const { preferredToken, loading: preferredLoading } = usePreferredInputToken({
     filterLP: true,

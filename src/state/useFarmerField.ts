@@ -6,33 +6,42 @@ import { PINTO } from "@/constants/tokens";
 import { useReadFarmer_GetPlotsFromAccount } from "@/generated/contractHooks";
 import { FarmerPlotsDocument, FarmerPlotsQuery } from "@/generated/gql/graphql";
 import { Plot } from "@/utils/types";
-import { useQuery } from "@tanstack/react-query";
+import { QueryKey, useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
-import { useCallback, useMemo } from "react";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { atomWithImmer } from "jotai-immer";
+import { useCallback, useEffect, useMemo } from "react";
 import { toHex } from "viem";
 import { useAccount, useChainId } from "wagmi";
 import { useHarvestableIndex } from "./useFieldData";
 import { useQueryKeys } from "./useQueryKeys";
 
-export function useFarmerPlotsQuery() {
-  const account = useAccount();
-
-  const plotsQuery = useReadFarmer_GetPlotsFromAccount({
-    args: [account.address ?? ZERO_ADDRESS, 0n],
-    query: {
-      enabled: !!account.address,
-      staleTime: 1000 * 60 * 20, // 20 minutes, in milliseconds
-      refetchInterval: 1000 * 60 * 20, // 20 minutes, in milliseconds
-    },
-  });
-
-  return plotsQuery;
+interface FarmerFieldState {
+  plots: Plot[];
+  totalPods: TokenValue;
+  totalUnharvestablePods: TokenValue;
+  totalHarvestablePods: TokenValue;
+  queryKeys: QueryKey[];
+  refetch: () => void;
+  isLoading: boolean;
 }
 
-export function useFarmerField() {
+export const farmerFieldAtom = atomWithImmer<FarmerFieldState>({
+  plots: [],
+  totalPods: TokenValue.ZERO,
+  totalUnharvestablePods: TokenValue.ZERO,
+  totalHarvestablePods: TokenValue.ZERO,
+  queryKeys: [],
+  refetch: () => {},
+  isLoading: true,
+});
+
+export function useUpdateFarmerField() {
   const chainId = useChainId();
   const account = useAccount();
   const harvestableIndex = useHarvestableIndex();
+
+  const [state, setState] = useAtom(farmerFieldAtom);
 
   const { farmerField: queryKey } = useQueryKeys({ account: account.address });
 
@@ -50,7 +59,14 @@ export function useFarmerField() {
     },
   });
 
-  const plotsQuery = useFarmerPlotsQuery();
+  const plotsQuery = useReadFarmer_GetPlotsFromAccount({
+    args: [account.address ?? ZERO_ADDRESS, 0n],
+    query: {
+      enabled: !!account.address,
+      staleTime: 1000 * 60 * 20, // 20 minutes, in milliseconds
+      refetchInterval: 1000 * 60 * 20, // 20 minutes, in milliseconds
+    },
+  });
 
   const plotsQueryData = useMemo(() => {
     if (plotsQuery.data?.length && harvestableIndex) {
@@ -63,7 +79,7 @@ export function useFarmerField() {
       totalUnharvestablePods: TokenValue.ZERO,
       totalHarvestablePods: TokenValue.ZERO,
     };
-  }, [plotsQuery, harvestableIndex]);
+  }, [plotsQuery.data, harvestableIndex]);
 
   const combinedPlotsData = useMemo(() => {
     const plotsChain = plotsQueryData?.plots ?? [];
@@ -99,16 +115,47 @@ export function useFarmerField() {
     return Promise.all([plotsSGQuery.refetch(), plotsQuery.refetch()]);
   }, [plotsSGQuery.refetch, plotsQuery.refetch]);
 
-  return useMemo(() => {
-    return {
-      plots: combinedPlotsData,
-      totalPods: plotsQueryData?.totalPods ?? TokenValue.ZERO,
-      totalUnharvestablePods: plotsQueryData?.totalUnharvestablePods ?? TokenValue.ZERO,
-      totalHarvestablePods: plotsQueryData?.totalHarvestablePods ?? TokenValue.ZERO,
-      queryKeys: [queryKey, plotsQuery.queryKey],
-      refetch,
-    };
-  }, [combinedPlotsData, plotsQuery.queryKey, plotsQueryData, queryKey, refetch]);
+  useEffect(() => {
+    if (
+      state.plots !== combinedPlotsData ||
+      state.totalPods !== plotsQueryData.totalPods ||
+      state.totalUnharvestablePods !== plotsQueryData.totalUnharvestablePods ||
+      state.totalHarvestablePods !== plotsQueryData.totalHarvestablePods
+    ) {
+      console.log("SETTING FARMER FIELD");
+      setState((draft) => {
+        draft.plots = combinedPlotsData;
+        draft.totalPods = plotsQueryData?.totalPods ?? TokenValue.ZERO;
+        draft.totalUnharvestablePods = plotsQueryData?.totalUnharvestablePods ?? TokenValue.ZERO;
+        draft.totalHarvestablePods = plotsQueryData?.totalHarvestablePods ?? TokenValue.ZERO;
+      });
+    }
+  }, [
+    combinedPlotsData,
+    plotsQueryData.totalPods,
+    plotsQueryData.totalHarvestablePods,
+    plotsQueryData.totalUnharvestablePods,
+  ]);
+
+  useEffect(() => {
+    console.log("SETTING FARMER FIELD QUERY KEYS");
+    setState((draft) => {
+      const keys: QueryKey[] = [queryKey, plotsQuery.queryKey];
+      draft.queryKeys.concat(keys);
+      draft.refetch = refetch;
+    });
+  }, []);
+
+  useEffect(() => {
+    console.log("SETTING FARMER FIELD ISLOADING");
+    setState((draft) => {
+      draft.isLoading = plotsSGQuery.isLoading || plotsQuery.isLoading;
+    });
+  }, [plotsSGQuery.isLoading, plotsQuery.isLoading]);
+}
+
+export default function useFarmerField() {
+  return useAtomValue(farmerFieldAtom);
 }
 
 type PlotsResponse = {
