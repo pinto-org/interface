@@ -117,7 +117,7 @@ const SeasonalChart = ({
       return [
         {
           value: 1,
-          color: "#D9AD0F",
+          color: "#9C9C9C",
           dash: [4, 4],
           label: "$1.00 target",
         },
