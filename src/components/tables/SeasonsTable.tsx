@@ -7,8 +7,8 @@ import { TooltipContent, TooltipPortal } from "@radix-ui/react-tooltip";
 import { seasonColumns, SortColumn } from "@/pages/explorer/SeasonsExplorer";
 import { Separator } from "@/components/ui/Separator";
 import { TokenValue } from "@/classes/TokenValue";
-import { useCallback, useMemo } from "react";
-import { ListChildComponentProps, VariableSizeList } from "react-window";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { areEqual, ListChildComponentProps, VariableSizeList } from "react-window";
 
 enum SeasonsTableCellType {
   Default = "default",
@@ -157,6 +157,7 @@ const caseIdToDescriptiveText = (caseId: number, column: "price" | "soil_demand"
 };
 
 const nonHideableFields = ["season"];
+const paginationPadding = 64
 
 interface SeasonsTableProps {
   seasonsData: SeasonsTableData[];
@@ -183,6 +184,9 @@ interface SeasonsTableProps {
 // }
 
 export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn, sortedColumn, setSortedColumn }: SeasonsTableProps) => {
+
+  const tableRef = useRef<HTMLTableElement>(null);
+  const [height, setHeight] = useState(500);
 
   const SeasonsTableCell = ({
     cellType = SeasonsTableCellType.Default,
@@ -225,7 +229,31 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn, sortedColu
     }, 0);
   }, [hiddenFields]);
 
-  const RenderRow = useCallback(({ index, style }: ListChildComponentProps<SeasonsTableData>) => {
+  const calculateHeight = () => {
+    const offset = 575//tableRef.current?.offsetHeight || 0;
+    if (!offset) {
+      return;
+    }
+    console.info("🚀 ~ calculateHeight ~ offset:", offset)
+    const windowHeight = window.innerHeight;
+    console.info("🚀 ~ calculateHeight ~ windowHeight:", windowHeight)
+    const newHeight = windowHeight - offset
+    console.info("🚀 ~ calculateHeight ~ newHeight:", newHeight)
+    setHeight(Math.max(newHeight - paginationPadding, 500))
+  }
+
+  useEffect(() => {
+    window.addEventListener('resize', calculateHeight);
+    return () => {
+      window.removeEventListener('resize', calculateHeight);
+    }
+  }, [])
+
+  useEffect(() => {
+    calculateHeight();
+  }, [seasonsData])
+
+  const RenderRow = React.memo(({ index, style }: ListChildComponentProps<SeasonsTableData>) => {
     const data = seasonsData[index];
     const { cropScalar, cropRatio } = calculateCropScales(data.beanToMaxLpGpPerBdvRatio, data.raining);
     const deltaCropScalar = (data.deltaBeanToMaxLpGpPerBdvRatio / 1e18).toFixed(1);
@@ -332,10 +360,10 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn, sortedColu
         />
       </TableRow>
     );
-  }, [seasonsData, hiddenFields]);
+  }, areEqual);
 
   return (
-    <Table overscroll className="table-fixed w-[0px]">
+    <Table overscroll className="table-fixed w-[0px]" ref={tableRef}>
       <TableHeader>
         <TableRow noHoverMute className="bg-gradient-light z-[1] [&>*]:text-pinto-gray-5">
           {seasonColumns.map(({ id, name, classes, width }) => {
@@ -377,7 +405,7 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn, sortedColu
         )}
         <VariableSizeList
           className="overscroll-x-auto"
-          height={500}
+          height={height}
           itemCount={seasonsData.length}
           itemSize={() => 50}
           width={calculatedWidth}
