@@ -7,13 +7,22 @@ import {
   LineController,
   LineElement,
   LinearScale,
+  LogarithmicScale,
   Plugin,
   PointElement,
 } from "chart.js";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { ReactChart } from "../ReactChart";
 
-Chart.register(LineController, LineElement, LinearScale, CategoryScale, PointElement, Filler);
+Chart.register(
+  LineController,
+  LineElement,
+  LinearScale,
+  LogarithmicScale,
+  CategoryScale,
+  PointElement,
+  Filler
+);
 
 export type LineChartData = {
   values: number[];
@@ -21,7 +30,7 @@ export type LineChartData = {
 
 export type MakeGradientFunction = (
   ctx: CanvasRenderingContext2D | null,
-  position: number,
+  position: number
 ) => CanvasGradient | undefined;
 
 export type LineChartReferenceDotProps = {
@@ -40,6 +49,16 @@ export interface LineChartProps {
   valueFormatter?: (value: number) => string;
   onMouseOver?: (index: number) => void;
   activeIndex?: number;
+  useLogarithmicScale?: boolean;
+  horizontalReferenceLines?: {
+    value: number;
+    color: string;
+    dash?: number[];
+    label?: string;
+  }[];
+  // New props for custom y-axis range
+  yAxisMin?: number;
+  yAxisMax?: number;
 }
 
 const LineChart = React.memo(
@@ -52,6 +71,10 @@ const LineChart = React.memo(
     valueFormatter,
     onMouseOver,
     activeIndex,
+    useLogarithmicScale = false,
+    horizontalReferenceLines = [],
+    yAxisMin,
+    yAxisMax,
   }: LineChartProps) => {
     const chartRef = useRef<Chart | null>(null);
     const activeIndexRef = useRef<number | undefined>(activeIndex);
@@ -64,15 +87,85 @@ const LineChart = React.memo(
     }, [activeIndex]);
 
     const [yTickMin, yTickMax] = useMemo(() => {
-      const maxData = data.reduce((acc, next) => Math.max(acc, ...next.values), Number.MIN_SAFE_INTEGER);
-      const minData = data.reduce((acc, next) => Math.min(acc, ...next.values), Number.MAX_SAFE_INTEGER);
+      // If custom min/max are provided, use those
+      if (yAxisMin !== undefined && yAxisMax !== undefined) {
+        // Even with custom ranges, ensure 1.0 is visible if showReferenceLineAtOne is true
+        if (horizontalReferenceLines.some((line) => line.value === 1)) {
+          const hasOne = yAxisMin <= 1 && yAxisMax >= 1;
+          if (!hasOne) {
+            // If 1.0 is not in range, adjust the range to include it
+            if (useLogarithmicScale) {
+              // For logarithmic scale, we need to ensure we maintain the ratio
+              // but include 1.0 in the range
+              if (yAxisMin > 1) {
+                return [0.7, Math.max(yAxisMax, 1.5)]; // Include 1.0 with padding below
+              } else if (yAxisMax < 1) {
+                return [Math.min(yAxisMin, 0.7), 1.5]; // Include 1.0 with padding above
+              }
+            } else {
+              // For linear scale, just expand the range to include 1.0
+              if (yAxisMin > 1) {
+                return [0.9, Math.max(yAxisMax, 1.1)]; // Include 1.0 with padding
+              } else if (yAxisMax < 1) {
+                return [Math.min(yAxisMin, 0.9), 1.1]; // Include 1.0 with padding
+              }
+            }
+          }
+        }
+        return [yAxisMin, yAxisMax];
+      }
+
+      // Otherwise calculate based on data
+      const maxData = data.reduce(
+        (acc, next) => Math.max(acc, ...next.values),
+        Number.MIN_SAFE_INTEGER
+      );
+      const minData = data.reduce(
+        (acc, next) => Math.min(acc, ...next.values),
+        Number.MAX_SAFE_INTEGER
+      );
 
       let minTick = Math.max(0, minData - (maxData - minData) * 0.1);
       if (minTick === maxData) {
         minTick = maxData * 0.99;
       }
-      return [minTick, maxData];
-    }, [data]);
+
+      // For logarithmic scale, ensure minTick is positive
+      if (useLogarithmicScale && minTick <= 0) {
+        minTick = 0.01; // Small positive value
+      }
+
+      // Use custom min/max if provided
+      let finalMin = yAxisMin !== undefined ? yAxisMin : minTick;
+      let finalMax = yAxisMax !== undefined ? yAxisMax : maxData;
+
+      // Ensure 1.0 is visible if there's a reference line at 1.0
+      if (horizontalReferenceLines.some((line) => line.value === 1)) {
+        if (finalMin > 1 || finalMax < 1) {
+          if (useLogarithmicScale) {
+            // For logarithmic scale, we need to ensure we maintain the ratio
+            if (finalMin > 1) {
+              finalMin = 0.7; // Include 1.0 with padding below
+              finalMax = Math.max(finalMax, 1.5);
+            } else if (finalMax < 1) {
+              finalMin = Math.min(finalMin, 0.7);
+              finalMax = 1.5; // Include 1.0 with padding above
+            }
+          } else {
+            // For linear scale, just expand the range to include 1.0
+            if (finalMin > 1) {
+              finalMin = 0.9; // Include 1.0 with padding
+              finalMax = Math.max(finalMax, 1.1);
+            } else if (finalMax < 1) {
+              finalMin = Math.min(finalMin, 0.9);
+              finalMax = 1.1; // Include 1.0 with padding
+            }
+          }
+        }
+      }
+
+      return [finalMin, finalMax];
+    }, [data, useLogarithmicScale, yAxisMin, yAxisMax, horizontalReferenceLines]);
 
     const chartData = useCallback(
       (ctx: CanvasRenderingContext2D | null): ChartData => {
@@ -92,7 +185,7 @@ const LineChart = React.memo(
           }),
         };
       },
-      [data, makeLineGradients, makeAreaGradients, xKey],
+      [data, makeLineGradients, makeAreaGradients, xKey]
     );
 
     const gradientPlugin = useMemo(() => {
@@ -183,7 +276,60 @@ const LineChart = React.memo(
           }
         },
       }),
-      [fillArea], // Removed morningIndex from dependencies
+      [fillArea] // Removed morningIndex from dependencies
+    );
+
+    const horizontalReferenceLinePlugin: Plugin = useMemo<Plugin>(
+      () => ({
+        id: "horizontalReferenceLine",
+        afterDraw: (chart: Chart) => {
+          const ctx = chart.ctx;
+          if (!ctx || horizontalReferenceLines.length === 0) return;
+
+          ctx.save();
+
+          // Draw each horizontal reference line
+          horizontalReferenceLines.forEach((line) => {
+            const yScale = chart.scales.y;
+            const y = yScale.getPixelForValue(line.value);
+
+            // Only draw if within chart area
+            if (y >= chart.chartArea.top && y <= chart.chartArea.bottom) {
+              ctx.beginPath();
+              if (line.dash) {
+                ctx.setLineDash(line.dash);
+              } else {
+                ctx.setLineDash([4, 4]); // Default dash pattern
+              }
+              ctx.moveTo(chart.chartArea.left, y);
+              ctx.lineTo(chart.chartArea.right, y);
+              ctx.strokeStyle = line.color;
+              ctx.lineWidth = 1;
+              ctx.stroke();
+
+              // Reset dash pattern
+              ctx.setLineDash([]);
+
+              // Add label if provided
+              if (line.label) {
+                ctx.font = "12px Arial";
+                ctx.fillStyle = line.color;
+                ctx.textAlign = "left";
+                ctx.textBaseline = "bottom";
+
+                // Position the label at the right side of the chart with some padding
+                const labelX = chart.chartArea.right - 70;
+                const labelY = y - 5; // Position slightly above the line
+
+                ctx.fillText(line.label, labelX, labelY);
+              }
+            }
+          });
+
+          ctx.restore();
+        },
+      }),
+      [horizontalReferenceLines]
     );
 
     const selectionPointPlugin: Plugin = useMemo<Plugin>(
@@ -212,28 +358,28 @@ const LineChart = React.memo(
               x + rectWidth / 2,
               y - rectHeight / 2,
               x + rectWidth / 2,
-              y - rectHeight / 2 + cornerRadius,
+              y - rectHeight / 2 + cornerRadius
             );
             ctx.lineTo(x + rectWidth / 2, y + rectHeight / 2 - cornerRadius);
             ctx.quadraticCurveTo(
               x + rectWidth / 2,
               y + rectHeight / 2,
               x + rectWidth / 2 - cornerRadius,
-              y + rectHeight / 2,
+              y + rectHeight / 2
             );
             ctx.lineTo(x - rectWidth / 2 + cornerRadius, y + rectHeight / 2);
             ctx.quadraticCurveTo(
               x - rectWidth / 2,
               y + rectHeight / 2,
               x - rectWidth / 2,
-              y + rectHeight / 2 - cornerRadius,
+              y + rectHeight / 2 - cornerRadius
             );
             ctx.lineTo(x - rectWidth / 2, y - rectHeight / 2 + cornerRadius);
             ctx.quadraticCurveTo(
               x - rectWidth / 2,
               y - rectHeight / 2,
               x - rectWidth / 2 + cornerRadius,
-              y - rectHeight / 2,
+              y - rectHeight / 2
             );
             ctx.closePath();
 
@@ -266,7 +412,7 @@ const LineChart = React.memo(
           }
         },
       }),
-      [fillArea], // Removed morningIndex from dependencies
+      [fillArea] // Removed morningIndex from dependencies
     );
 
     const selectionCallbackPlugin: Plugin = useMemo<Plugin>(
@@ -276,7 +422,7 @@ const LineChart = React.memo(
           onMouseOver?.(chart.getActiveElements()[0]?.index);
         },
       }),
-      [],
+      []
     );
 
     const chartOptions: ChartOptions = useMemo(() => {
@@ -338,7 +484,8 @@ const LineChart = React.memo(
                   return "";
                 }
 
-                const tickLabel = xValue instanceof Date ? `${xValue.getMonth() + 1}/${xValue.getDate()}` : xValue;
+                const tickLabel =
+                  xValue instanceof Date ? `${xValue.getMonth() + 1}/${xValue.getDate()}` : xValue;
 
                 if (typeof activeIndex === "number") {
                   if (index === 0 || index === values.length - 1) {
@@ -361,6 +508,7 @@ const LineChart = React.memo(
           },
 
           y: {
+            type: useLogarithmicScale ? "logarithmic" : "linear",
             position: "right",
             min: yTickMin,
             max: yTickMax,
@@ -370,22 +518,40 @@ const LineChart = React.memo(
             border: {
               display: false,
             },
+            // Configure logarithmic scale options
+            ...(useLogarithmicScale && {
+              logarithmic: {
+                base: 10,
+              },
+            }),
             ticks: {
               padding: 0,
-              maxTicksLimit: 2,
+              maxTicksLimit: 3,
               callback: (value) => {
                 const num = typeof value === "string" ? Number(value) : value;
-                return valueFormatter?.(num) ?? value;
+                return valueFormatter ? valueFormatter(num) : value;
               },
             },
           },
         },
       };
-    }, [data, xKey, yTickMin, yTickMax, valueFormatter]);
+    }, [data, xKey, yTickMin, yTickMax, valueFormatter, useLogarithmicScale]);
 
     const allPlugins = useMemo<Plugin[]>(
-      () => [gradientPlugin, verticalLinePlugin, selectionPointPlugin, selectionCallbackPlugin],
-      [gradientPlugin, verticalLinePlugin, selectionPointPlugin, selectionCallbackPlugin],
+      () => [
+        gradientPlugin,
+        verticalLinePlugin,
+        horizontalReferenceLinePlugin,
+        selectionPointPlugin,
+        selectionCallbackPlugin,
+      ],
+      [
+        gradientPlugin,
+        verticalLinePlugin,
+        horizontalReferenceLinePlugin,
+        selectionPointPlugin,
+        selectionCallbackPlugin,
+      ]
     );
 
     const chartDimensions = useMemo(() => {
@@ -413,6 +579,6 @@ const LineChart = React.memo(
         height={chartDimensions.h}
       />
     );
-  },
+  }
 );
 export default LineChart;
