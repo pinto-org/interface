@@ -1,3 +1,4 @@
+import { resolveChainId } from '@/utils/chain';
 import { Clipboard } from "@/classes/Clipboard";
 import { TV } from "@/classes/TokenValue";
 import { basinWellABI } from "@/constants/abi/basinWellABI";
@@ -5,7 +6,7 @@ import encoders from "@/encoders";
 import { pipelineAddress } from "@/generated/contractHooks";
 import { SwapContext } from "@/lib/Swap/swap-router";
 import { ZeroX } from "@/lib/matcha/ZeroX";
-import { ZeroExQuoteResponse } from "@/lib/matcha/types";
+import { ZeroXQuoteV2Response } from "@/lib/matcha/types";
 import { stringEq } from "@/utils/string";
 import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { AdvancedPipeCall, Token } from "@/utils/types";
@@ -14,6 +15,7 @@ import { exists } from "@/utils/utils";
 import { Address } from "viem";
 import { readContract } from "viem/actions";
 import { ClipboardContext, ISwapNode, SwapNode } from "./SwapNode";
+import erc20BalanceOf from '@/encoders/erc20BalanceOf';
 
 interface IERC20SwapNode {
   minBuyAmount: TV;
@@ -34,6 +36,15 @@ export abstract class ERC20SwapNode extends SwapNode implements IERC20SwapNode {
   readonly buyToken: Token;
 
   /**
+   * @param functionLength - The number of outputs responsible for running node.buildStep()
+   * @param outputFnIndex - The index of the output in the node.buildStep() output that returns the output of this node
+   */
+  abstract readonly outputInfo: {
+    fnReturnLen: number;
+    fnReturnIndex: number;
+  }
+
+  /**
    * The slippage for the swap occuring via this node
    */
   slippage: number = 0;
@@ -42,6 +53,7 @@ export abstract class ERC20SwapNode extends SwapNode implements IERC20SwapNode {
    * The minimum amount of buyToken that should be received after the swap. (buyAmount less slippage)
    */
   minBuyAmount: TV = TV.ZERO;
+
 
   /**
    * The index pointing towards the amount buyAmount receieved at run-time to be copied
@@ -52,6 +64,17 @@ export abstract class ERC20SwapNode extends SwapNode implements IERC20SwapNode {
     super(context);
     this.sellToken = sellToken;
     this.buyToken = buyToken;
+  }
+
+  getBalanceOfTokenEncoded(token: "sell" | "buy", address: Address): AdvancedPipeCall {
+    const callData = erc20BalanceOf(address, token === "sell" ? this.sellToken.address : this.buyToken.address);
+
+    // should never happen, but sanity check
+    if (!callData.target) {
+      throw new Error("Target required to encode balanceOf");
+    }
+
+    return callData;
   }
 
   /**
@@ -136,6 +159,11 @@ export class WellSwapNode extends ERC20SwapNode {
 
   readonly allowanceTarget: Address;
 
+  readonly outputInfo = {
+    fnReturnLen: 1,
+    fnReturnIndex: 0,
+  }
+
   constructor(context: SwapContext, well: Token, sellToken: Token, buyToken: Token) {
     super(context, sellToken, buyToken);
     this.well = well;
@@ -219,40 +247,55 @@ export class WellSwapNode extends ERC20SwapNode {
 export class ZeroXSwapNode extends ERC20SwapNode {
   name: string = "SwapNode: ZeroX";
 
-  quote: ZeroExQuoteResponse | undefined;
+  quote: ZeroXQuoteV2Response | undefined;
 
   readonly amountOutCopySlot: number = 0;
 
-  get allowanceTarget() {
-    return this.quote?.allowanceTarget || "0x";
+  readonly outputInfo = {
+    fnReturnLen: 2,
+    fnReturnIndex: 1,
   }
 
-  setQuote(quote: ZeroExQuoteResponse) {
+  get allowanceTarget() {
+    if (!this.quote?.transaction) {
+      throw this.makeErrorWithContext("Error building zeroX swap: Quote must be set fetched before getting allowance target.");
+    }
+    return this.quote.transaction.to;
+  }
+
+  setQuote(quote: ZeroXQuoteV2Response) {
     this.quote = quote;
     return this;
   }
 
-  async quoteForward(sellAmount: TV, slippage: number) {
+  async quoteForward(sellAmount: TV, slippage: number, excludePintoExchange: boolean = false) {
     this.setFields({ sellAmount, slippage });
     this.validateQuoteForward();
-    this.validateTokenIsNotBEAN(this.sellToken);
-    this.validateTokenIsNotBEAN(this.buyToken);
 
     const [quote] = await ZeroX.quote({
+      chainId: this.context.chainId,
       sellToken: this.sellToken.address,
       buyToken: this.buyToken.address,
-      sellAmount: this.sellAmount.toBlockchain(),
-      takerAddress: pipelineAddress[this.context.chainId],
-      shouldSellEntireBalance: "true",
-      skipValidation: "true",
-      slippagePercentage: (this.slippage / 100).toString(),
+      sellAmount: this.sellAmount.blockchainString,
+      taker: pipelineAddress[resolveChainId(this.context.chainId)],
+      txOrigin: pipelineAddress[resolveChainId(this.context.chainId)],
+      sellEntireBalance: true,
+      slippageBps: ZeroX.slippageToSlippageBps(this.slippage),
+      excludedSources: excludePintoExchange ? "Pinto" : undefined,
     });
 
     this.quote = quote;
 
-    const buyAmount = TV.fromBlockchain(quote.buyAmount, this.buyToken.decimals);
+    console.debug("[Swap/ZeroXSwapNode] QUOTE:", quote);
 
-    this.setFields({ buyAmount, minBuyAmount: buyAmount });
+    if (!this.quote?.transaction?.to || !this.quote?.transaction?.data) {
+      throw this.makeErrorWithContext("Error building zeroX swap: no transaction data found.");
+    }
+
+    const buyAmount = TV.fromBlockchain(quote.buyAmount, this.buyToken.decimals);
+    const minBuyAmount = TV.fromBlockchain(quote.minBuyAmount, this.buyToken.decimals);
+
+    this.setFields({ buyAmount, minBuyAmount: minBuyAmount });
 
     console.debug("[Swap/ZeroXSwapNode] quoteForward:", {
       ...this.getHuman(),
@@ -261,17 +304,17 @@ export class ZeroXSwapNode extends ERC20SwapNode {
     return this;
   }
 
-  buildStep(): AdvancedPipeCall {
+  buildStep(): AdvancedPipeCall[] {
     this.validateAll();
     const zeroXQuote = this.quote;
     if (!zeroXQuote) {
       throw this.makeErrorWithContext("Error building zeroX swap: no quote found. Run quoteForward first.");
     }
 
-    const encoded = zeroXQuote.data;
+    const encoded = zeroXQuote.transaction.data;
 
     const pipeStruct: AdvancedPipeCall = {
-      target: zeroXQuote.allowanceTarget,
+      target: zeroXQuote.transaction.to,
       callData: encoded,
       clipboard: Clipboard.encode([]),
     };
@@ -282,26 +325,22 @@ export class ZeroXSwapNode extends ERC20SwapNode {
       pipeStruct,
     });
 
-    return pipeStruct;
+    const balanceStruct = this.getBalanceOfTokenEncoded("buy", pipelineAddress[this.context.chainId]);
+
+    return [pipeStruct, balanceStruct];
   }
 
   getFeeFromQuote() {
     const fee = this.quote?.fees?.zeroExFee;
     // assumes that fee is either sell token or buy token since the fee is taken from on-chain.
-    const feeToken = this.getNodeToken(fee?.feeToken);
+    const feeToken = this.getNodeToken(fee?.token);
 
     if (!fee || !feeToken) return undefined;
 
     return {
-      fee: TV.fromBlockchain(fee.feeAmount, feeToken.decimals),
+      fee: TV.fromBlockchain(fee.amount, feeToken.decimals),
       feeToken,
     };
-  }
-
-  private validateTokenIsNotBEAN(token: Token) {
-    if (token.isMain) {
-      throw this.makeErrorWithContext("Cannot swap Main Token via 0x. For Main Token quotes, use WELLS instead.");
-    }
   }
 }
 
@@ -317,6 +356,11 @@ export class WellSyncSwapNode extends ERC20SwapNode {
   readonly transferAmountInPasteSlot = 1;
 
   readonly allowanceTarget: Address;
+
+  readonly outputInfo = {
+    fnReturnLen: 1,
+    fnReturnIndex: 0,
+  }
 
   constructor(context: SwapContext, sellToken: Token, buyToken: Token) {
     super(context, sellToken, buyToken);
@@ -441,6 +485,11 @@ export class WellRemoveSingleSidedSwapNode extends ERC20SwapNode {
   readonly amountInPasteSlot: number = 0;
 
   readonly allowanceTarget: Address;
+
+  readonly outputInfo = {
+    fnReturnLen: 1,
+    fnReturnIndex: 0,
+  }
 
   constructor(context: SwapContext, sellToken: Token, buyToken: Token) {
     super(context, sellToken, buyToken);

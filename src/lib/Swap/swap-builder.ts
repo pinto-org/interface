@@ -29,6 +29,13 @@ type SwapBuilderContext = {
   config: WagmiConfig;
 };
 
+/**
+ * @param appendBalanceOfToken - Append a balanceOf call to the advanced Pipe call.
+ */
+export interface ISwapBuilderOptions {
+  appendBalanceOfToken?: boolean;
+}
+
 export class SwapBuilder {
   #context: SwapBuilderContext;
 
@@ -56,7 +63,7 @@ export class SwapBuilder {
     this.#nodes = [];
   }
 
-  getPipeCallClipboardSlot(pasteSlot: number, token: Token) {
+  getPipeCallClipboardSlot(pasteSlot: number, token: Token, copySlot?: number) {
     const node = this.#nodes.find((n) => tokensEqual(n.buyToken, token));
 
     if (!node) {
@@ -69,16 +76,21 @@ export class SwapBuilder {
     if (!exists(slot) || !exists(pipe)) {
       return undefined;
     }
-
+    
+    const s = calculatePipeCallClipboardSlot(pipe.workflow.getSteps().length, slot);
     console.debug("[Swap/getPipeCallClipboardSlot]", {
+      node,
+      pipe: pipe,
       "0pipeIndex": pipe.index,
       "1slot": slot,
       "2pasteSlot": pasteSlot,
+      calcSlot: s,
     });
+
 
     return Clipboard.encodeSlot(
       pipe.index,
-      calculatePipeCallClipboardSlot(pipe.workflow.getSteps().length, slot),
+      copySlot ?? calculatePipeCallClipboardSlot(pipe.workflow.getSteps().length, slot + 1),
       pasteSlot,
     );
   }
@@ -89,7 +101,7 @@ export class SwapBuilder {
     farmToMode: FarmToMode,
     caller: Address,
     recipient: Address,
-    id?: string,
+    id?: string
   ) {
     this.#initWorkflow(quote, id);
 
@@ -121,10 +133,10 @@ export class SwapBuilder {
     for (const [i, node] of this.#nodes.entries()) {
       // 1st leg of the swap
       if (i === 0) {
-        toMode = FarmToMode.INTERNAL;
-
+        
         // Wrap ETH before loading pipeline
         if (isWrapEthNode(node)) {
+          toMode = FarmToMode.INTERNAL;
           this.advFarm.add(this.#getWrapETH(node, toMode, i), { tag: node.thisTag });
           fromMode = FarmFromMode.INTERNAL_TOLERANT;
         }
@@ -142,34 +154,48 @@ export class SwapBuilder {
       // No need to update Farm modes until we offload pipeline.
       if (isERC20Node(node)) {
         if (isWellNode(node)) {
-          this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
+          this.#advPipe.add(
+            this.#getApproveERC20MaxAllowance(node), 
+            this.#makeERC20WorkflowOptions(node)
+          );
           this.#advPipe.add(
             node.buildStep(
               { copySlot: this.#getPrevNodeCopySlot(i), recipient: pipelineAddress[this.#context.chainId] },
               this.#advPipe.getClipboardContext(),
             ),
-            { tag: node.thisTag },
+            { tag: node.thisTag, ...node.outputInfo },
           );
         } else if (isZeroXNode(node)) {
-          this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
-          this.#advPipe.add(node.buildStep(), { tag: node.thisTag });
+          this.#advPipe.add(
+            this.#getApproveERC20MaxAllowance(node), 
+            this.#makeERC20WorkflowOptions(node)
+          );
+          this.#advPipe.add(node.buildStep(), { 
+            tag: node.thisTag, 
+            ...node.outputInfo,
+          });
         } else if (isWellSyncNode(node)) {
           this.#advPipe.add(
             node.transferStep({ copySlot: this.#getPrevNodeCopySlot(i) }, this.#advPipe.getClipboardContext()),
+            this.#makeERC20WorkflowOptions(node, "transfer"),
           );
           this.#advPipe.add(node.buildStep({ recipient: pipelineAddress[this.#context.chainId] }), {
             tag: node.thisTag,
+            ...node.outputInfo,
           });
         } else if (isWellRemoveSingleSidedNode(node)) {
           const isFirst = this.#advPipe.length === 0;
           if (!isFirst) {
             throw new Error("Error building swap: WellRemoveSingleSidedSwapNode must be the first txn in a sequence.");
           }
-
-          this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
+          this.#advPipe.add(
+            this.#getApproveERC20MaxAllowance(node), 
+            this.#makeERC20WorkflowOptions(node)
+          );
           // just send to pipeline regardless of mode
           this.#advPipe.add(node.buildStep({ recipient: pipelineAddress[this.#context.chainId] }), {
             tag: node.thisTag,
+            ...node.outputInfo,
           });
 
           // throw error here for now since we haven't sufficiently tested withdrawing as any arbitrary token yet.
@@ -217,6 +243,20 @@ export class SwapBuilder {
           });
         }
       }
+    }
+  }
+
+  #makeERC20WorkflowOptions(node: ERC20SwapNode, key: "approve" | "transfer" = "approve") {
+    const sell = node.sellToken.address;
+    const buy = node.buyToken.address;
+    const other = key === "approve" ? `-${node.allowanceTarget}` : "";
+    const tag = `token-${key}-${sell}-${buy}${other}`;
+
+    return {
+      tag,
+      fnLen: 1,
+      fnReturnLen: key === "transfer" ? 0 : 1,
+      fnReturnIndex: key === "transfer" ? undefined : 0,
     }
   }
 
@@ -271,14 +311,17 @@ export class SwapBuilder {
      * - use previous node info.
      */
     if (isUnwrapEthNode(node)) {
+      // console.log("isUnwrapEthNode: ", node);
       tag = node.tagNeeded; // get-WETH
       outToken = node.sellToken; // WETH
       copySlot = this.#getPrevNodeCopySlot(i); // WETH amountOutCopySlot
     } else if (isERC20Node(node)) {
+      // console.log("isERC20Node: ", node);
       tag = node.thisTag;
       outToken = node.buyToken;
       copySlot = node.amountOutCopySlot;
     } else {
+      console.log("FAILURE: ", node);
       throw new Error("Error building swap offloading pipeline: Cannot determine approval token for transfer.");
     }
 
@@ -311,7 +354,12 @@ export class SwapBuilder {
       throw new Error("Misconfigured Swap Route. Cannot transfer non-ERC20 with no target.");
     }
 
-    this.#advPipe.add(approve);
+    this.#advPipe.add(approve, {
+      tag: `offload-token-approve-${outToken.address}-${node.allowanceTarget}`,
+      fnLen: 1,
+      fnReturnLen: 0,
+      fnReturnIndex: 1,
+    });
 
     console.debug("[Swap/SwapBuilder/offloadPipeline/approve]", {
       target: outToken.address,
@@ -320,7 +368,11 @@ export class SwapBuilder {
       spender: "PINTOSTALK",
     });
 
-    this.#advPipe.add(transfer);
+    this.#advPipe.add(transfer, {
+      tag: `offload-token-transfer-${outToken.address}-${recipient}`,
+      fnLen: 1,
+      fnReturnLen: 0,
+    });
 
     console.debug("[Swap/SwapBuilder/offloadPipeline/transfer]", {
       recipient: recipient,

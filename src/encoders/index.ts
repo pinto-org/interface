@@ -22,6 +22,7 @@ import getWellSwapOut from "./well/getWellSwapOut";
 import swapFrom from "./well/swapFrom";
 import wellRemoveLiquidity, { wellRemoveLiquidityOneToken } from "./wellRemoveLiquidity";
 import wrapEth from "./wrapEth";
+import erc20BalanceOf from "./erc20BalanceOf";
 
 const encoders = {
   advancedPipe,
@@ -47,6 +48,7 @@ const encoders = {
   token: {
     transferToken,
     erc20Transfer,
+    erc20BalanceOf,
     erc20Approve,
     unwrapEth,
     wrapEth,

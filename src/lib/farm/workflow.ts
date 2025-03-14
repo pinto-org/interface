@@ -5,14 +5,25 @@ import encoders from "@/encoders";
 import { beanstalkAddress } from "@/generated/contractHooks";
 import { AdvancedFarmCall, AdvancedPipeCall, TypedAdvancedFarmCalls } from "@/utils/types";
 import { HashString, MayArray } from "@/utils/types.generic";
+import { exists } from "@/utils/utils";
 import { Address, StateOverride, decodeFunctionResult } from "viem";
 import { readContract, simulateContract } from "viem/actions";
 import { Config as WagmiConfig } from "wagmi";
 
+
+/**
+ * @param value - Eth value specified in the call
+ * @param clipboard - Clipboard specified in the call
+ * @param tag - Tag specified in the call
+ */
 interface WorkflowOptions {
   value?: TV;
   clipboard?: HashString;
   tag?: string;
+  fnLen?: number;
+  noReturn?: boolean; // call returns nothing
+  fnReturnLen?: number;
+  fnReturnIndex?: number;
 }
 
 abstract class FarmWorkflow<T extends AdvancedFarmCall> {
@@ -24,6 +35,10 @@ abstract class FarmWorkflow<T extends AdvancedFarmCall> {
 
   protected tagMap: Map<string, number>;
 
+  protected fnReturn: { tag: string; returnDataFnIndex: number; }[];
+
+  protected fnReturnLength: number;
+
   protected steps: T[];
 
   constructor(chainId: number, config: WagmiConfig, name: string = "adv-farm") {
@@ -31,6 +46,8 @@ abstract class FarmWorkflow<T extends AdvancedFarmCall> {
     this.chainId = chainId;
     this.config = config;
     this.tagMap = new Map();
+    this.fnReturn = [];
+    this.fnReturnLength = 0;
     this.steps = [];
   }
 
@@ -52,9 +69,7 @@ abstract class FarmWorkflow<T extends AdvancedFarmCall> {
 
   add(input: MayArray<T>, options?: WorkflowOptions) {
     if (Array.isArray(input)) {
-      input.forEach((call) => {
-        this.add(call);
-      });
+      this.add(input);
     } else {
       this.steps.push(input);
     }
@@ -64,12 +79,25 @@ abstract class FarmWorkflow<T extends AdvancedFarmCall> {
       this.tagMap.set(options.tag, this.steps.length - 1);
     }
 
+    if (exists(options?.fnReturnLen)) {
+      const k = this.fnReturnLength + (options.fnLen ?? (Array.isArray(input) ? input.length : 1));
+
+      // const returnIndex = this.fnReturnLength + options.fnReturnIndex;
+
+      // const newFnReturnLen = this.fnReturnLength + options.fnReturnLen;
+      //  const reverseIndex = options.fnReturnLen - 1 - 
+
+      //  const fnIndex = newFnReturnLen - 1;
+    }
+
     return this;
   }
 
   clear() {
     this.steps = [];
     this.tagMap.clear();
+    this.fnReturn = [];
+    this.fnReturnLength = 0;
   }
 }
 

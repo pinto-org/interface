@@ -1,7 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
-import { UpDownArrowsIcon, UpRightArrowIcon } from "@/components/Icons";
+import { UpDownArrowsIcon } from "@/components/Icons";
 import MobileActionBar from "@/components/MobileActionBar";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
 import SlippageButton from "@/components/SlippageButton";
@@ -26,9 +26,20 @@ import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { FarmFromMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
+
+const handleOnError = (e: any) => {
+  if (e instanceof Error || "message" in e || "shortMessage" in e) {
+    const msg = e.shortMessage || e.message;
+    if (!msg.toLowerCase().includes("user rejected the request")) {
+      toast.error("Swap failed. Try increasing slippage.");
+      return true;
+    }
+  }
+
+  return false;
+};
 
 export default function Swap() {
   const queryClient = useQueryClient();
@@ -101,13 +112,16 @@ export default function Swap() {
     }
   }, [amountIn]);
 
+  const onSuccess = useCallback(() => {
+    setAmountIn("0");
+    setAmountOut("0");
+    queryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
+    resetSwap();
+  }, [queryClient, queryKeys, resetSwap]);
+
   const { writeWithEstimateGas, setSubmitting, submitting, isConfirming } = useTransaction({
-    successCallback: () => {
-      setAmountIn("0");
-      setAmountOut("0");
-      queryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
-      resetSwap();
-    },
+    successCallback: onSuccess,
+    onError: handleOnError,
     successMessage: "Swap success",
     errorMessage: "Swap failed",
     token: tokenIn,
@@ -159,7 +173,7 @@ export default function Swap() {
         args: [swapBuild.advancedFarm],
         value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
       });
-    } catch (e) {
+    } catch (e: any) {
       console.error("Error submitting swap: ", e);
       toast.dismiss();
       toast.error("Swap failed");
@@ -259,15 +273,17 @@ export default function Swap() {
                 </div>
               ) : null}
             </div>
-            <RoutingAndSlippageInfo
-              title="Total Swap Slippage"
-              swapSummary={swapSummary}
-              priceImpactSummary={undefined}
-              preferredSummary="swap"
-              tokenIn={tokenIn}
-              tokenOut={tokenOut}
-              txnType="Swap"
-            />
+            {swapData && !swapQuery.isLoading ? (
+              <RoutingAndSlippageInfo
+                title="Total Swap Slippage"
+                swapSummary={swapSummary}
+                priceImpactSummary={undefined}
+                preferredSummary="swap"
+                tokenIn={tokenIn}
+                tokenOut={tokenOut}
+                txnType="Swap"
+              />
+            ) : null}
             {slippageWarning}
             <div className="mt-2 hidden sm:flex">
               <SmartSubmitButton
