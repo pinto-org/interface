@@ -80,6 +80,10 @@ const LineChart = React.memo(
     const activeIndexRef = useRef<number | undefined>(activeIndex);
     // Add a ref to track animation progress
     const animationProgressRef = useRef<number>(0);
+    // Add a ref to track animation frame ID for cleanup
+    const animationFrameRef = useRef<number | null>(null);
+    // Add a ref to track if animation is running
+    const isAnimatingRef = useRef<boolean>(false);
 
     useEffect(() => {
       activeIndexRef.current = activeIndex;
@@ -171,6 +175,12 @@ const LineChart = React.memo(
 
     const chartData = useCallback(
       (ctx: CanvasRenderingContext2D | null): ChartData => {
+        // Reset animation when chart data changes
+        if (animationProgressRef.current === 1) {
+          animationProgressRef.current = 0;
+          isAnimatingRef.current = false;
+        }
+
         return {
           labels: data.map((d) => d[xKey]),
           datasets: data[0].values.map((_, idx: number) => {
@@ -284,27 +294,37 @@ const LineChart = React.memo(
     const horizontalReferenceLinePlugin: Plugin = useMemo<Plugin>(
       () => ({
         id: "horizontalReferenceLine",
-        beforeDraw: (chart: Chart) => {
-          // Update animation progress on each frame
-          if (chart.ctx) {
-            // If there are active elements, animation is complete
-            if (chart.getActiveElements().length > 0) {
-              animationProgressRef.current = 1;
-            } else {
-              // Gradually increase animation progress
-              // Chart.js default animation duration is ~1000ms (60 frames at 60fps)
-              // So we increment by ~1/60 for each frame to match that duration
-              animationProgressRef.current = Math.min(1, animationProgressRef.current + 0.016);
+        afterInit: (chart: Chart) => {
+          // Reset animation progress when chart is initialized
+          animationProgressRef.current = 0;
+          isAnimatingRef.current = false; // Don't start animation yet
+        },
+        beforeRender: (chart: Chart) => {
+          // Start animation if not already running
+          if (!isAnimatingRef.current && animationProgressRef.current < 1) {
+            isAnimatingRef.current = true;
 
-              // Request next frame if animation is not complete
-              if (animationProgressRef.current < 1) {
-                requestAnimationFrame(() => {
-                  if (chartRef.current) {
-                    chartRef.current.draw();
-                  }
-                });
+            // Start animation loop
+            const animate = () => {
+              // Increment animation progress - adjust speed to match Chart.js default animation
+              animationProgressRef.current = Math.min(1, animationProgressRef.current + 0.02);
+
+              // Redraw chart
+              if (chartRef.current) {
+                chartRef.current.draw();
               }
-            }
+
+              // Continue animation if not complete
+              if (animationProgressRef.current < 1 && isAnimatingRef.current) {
+                animationFrameRef.current = requestAnimationFrame(animate);
+              } else {
+                isAnimatingRef.current = false;
+                animationFrameRef.current = null;
+              }
+            };
+
+            // Start animation
+            animationFrameRef.current = requestAnimationFrame(animate);
           }
         },
         afterDraw: (chart: Chart) => {
@@ -359,8 +379,15 @@ const LineChart = React.memo(
                 const rightPadding = 10; // Padding from right edge
 
                 // Position the label at the right side of the chart with padding
+                const labelX = chart.chartArea.right - textWidth - rightPadding;
                 const labelPadding = 5; // Padding between line and text
                 const textHeight = 12; // Approximate height of the text
+
+                // Check if the line is too close to the top of the chart
+                const isNearTop = animatedY - textHeight - labelPadding < chart.chartArea.top;
+
+                // Check if the line is too close to the bottom of the chart
+                const isNearBottom = animatedY + textHeight + labelPadding > chart.chartArea.bottom;
 
                 // Set text alignment
                 ctx.textAlign = "left";
@@ -369,12 +396,13 @@ const LineChart = React.memo(
                 let labelY;
                 ctx.textBaseline = "bottom";
                 labelY = animatedY - labelPadding;
-                // Check if the line is too close to the top of the chart
-                if (animatedY - textHeight - labelPadding < chart.chartArea.top) {
+                if (isNearTop) {
                   ctx.textBaseline = "top";
-                  labelY = animatedY + 2 * labelPadding;
+                  labelY = animatedY + labelPadding;
+                } else if (isNearBottom) {
+                  labelY = animatedY - labelPadding;
                 }
-                ctx.fillText(line.label, chart.chartArea.right - textWidth - rightPadding, labelY);
+                ctx.fillText(line.label, labelX, labelY);
 
                 // Reset opacity
                 ctx.globalAlpha = 1;
@@ -626,11 +654,23 @@ const LineChart = React.memo(
 
     // Reset animation progress when chart data changes or when component unmounts
     useEffect(() => {
+      // Reset animation state
       animationProgressRef.current = 0;
+      isAnimatingRef.current = true;
+
+      // Cancel any existing animation frame
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
 
       return () => {
         // Cancel any pending animation frames when component unmounts
-        animationProgressRef.current = 1; // Set to 1 to prevent further animation
+        if (animationFrameRef.current !== null) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
+        }
+        isAnimatingRef.current = false;
       };
     }, [data, horizontalReferenceLines, size, useLogarithmicScale]);
 
