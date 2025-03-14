@@ -1,5 +1,3 @@
-
-
 export interface MetaProps {
   title: string;
   url: string;
@@ -24,6 +22,7 @@ const slugs = [
   "PINTOcbETH",
   "PINTO",
   "wrap",
+  "tractor",
 ] as const;
 
 const nestedSlugs = [
@@ -117,7 +116,12 @@ const PINTO_META: Record<MetaSlug, MetaProps> = {
     title: "Wrap and Unwrap Pinto | sPinto",
     url: "https://pinto.money/wrap",
     description: "sPinto is a yield bearing token denominated in Pinto. It wraps Pinto Silo deposits and adheres to the ERC-20 and ERC-4626 standards. The token will increase in Pinto denominated value as yield accrues and does not rebase."
-  }
+  },
+  tractor: {
+    title: "Pinto | Tractor",
+    description: "Automate your Pinto farming with Tractor, the tool for creating Blueprints and executing them on your behalf.",
+    url: "https://pinto.money/tractor",
+  },
 };
 
 export default PINTO_META;
