@@ -21,7 +21,7 @@ interface WorkflowOptions {
   clipboard?: HashString;
   tag?: string;
   fnLen?: number;
-  noReturn?: boolean; // call returns nothing
+  noReturn?: boolean | number; // call returns nothing
   fnReturnLen?: number;
   fnReturnIndex?: number;
 }
