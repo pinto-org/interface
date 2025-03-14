@@ -1,4 +1,5 @@
 import SeasonalChart, { tabToSeasonalLookback, TimeTab } from "@/components/charts/SeasonalChart";
+import { usePrivateMode } from "@/hooks/useAppSettings";
 import { useFarmerSeasonalPlantedPinto, useFarmerSeasonalClaimedGrownStalkBalance, useFarmerSeasonalStalkOwnership } from "@/state/seasonal/seasonalDataHooks";
 import { useSunData } from "@/state/useSunData";
 import { chartFormatters as f } from "@/utils/format";
@@ -13,7 +14,16 @@ const FarmerExplorer = () => {
   const plantedData = useFarmerSeasonalPlantedPinto(Math.max(0, season - tabToSeasonalLookback(plantedTab)), season);
   const grownStalkData = useFarmerSeasonalClaimedGrownStalkBalance(Math.max(0, season - tabToSeasonalLookback(grownStalkTab)), season);
   const stalkOwnershipData = useFarmerSeasonalStalkOwnership(Math.max(0, season - tabToSeasonalLookback(stalkOwnershipTab)), season);
+  const isPrivateMode = usePrivateMode();
 
+  if (isPrivateMode) {
+    return (
+      <div className="text-center text-pinto-green flex flex-col items-center justify-center h-full text-2xl">
+        <span>Please turn off Private mode to view the charts here</span>
+        <span>this can be done by clicking the value in the wallet</span>
+      </div>
+    )
+  }
   return (
     <>
       <SeasonalChart

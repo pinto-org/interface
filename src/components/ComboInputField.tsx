@@ -18,6 +18,8 @@ import PlotSelect from "./PlotSelect";
 import TokenSelectWithBalances from "./TokenSelectWithBalances";
 import { Button } from "./ui/Button";
 import { Skeleton } from "./ui/Skeleton";
+import { privateModeObsfucation, PrivateModeWrapper } from "./PrivateModeWrapper";
+import { usePrivateMode } from "@/hooks/useAppSettings";
 
 const ETH_GAS_RESERVE = TokenValue.fromHuman("0.0003333333333", 18); // Reserve $1 of gas if eth is $3k
 
@@ -103,6 +105,7 @@ function ComboInputField({
 
   const depositedBalances = useFarmerSiloNew().deposits;
   const farmerDepositedTokenBalance = selectedToken ? depositedBalances.get(selectedToken) : undefined;
+  const isPrivateMode = usePrivateMode();
 
   // Convert input string amount to TokenValue
   const getDecimals = useCallback(() => {
@@ -115,9 +118,11 @@ function ComboInputField({
   }, [amount, getDecimals]);
 
   // Internal state uses TokenValue
-  const [internalAmount, setInternalAmount] = useState<TokenValue>(amountAsTokenValue);
-  const [displayValue, setDisplayValue] = useState(amount);
-  const [isUserInput, setIsUserInput] = useState(false);
+  const [internalAmount, setInternalAmount] = useState<TokenValue>(isPrivateMode ? TokenValue.ZERO : amountAsTokenValue);
+  const [displayValue, setDisplayValue] = useState(isPrivateMode ? '0' : amount);
+  // this default feels hacky, but when I type, isUserInput is not being set to true, we need it true to skip the 
+  // useEffect below which resets it max which we want to avoid in private mode
+  const [isUserInput, setIsUserInput] = useState(isPrivateMode ? true : false);
 
   const tokenPrices = usePriceData();
   const selectedTokenPrice = selectedToken
@@ -328,24 +333,24 @@ function ComboInputField({
             )}
             {mode === "plots"
               ? setPlots && (
-                  <PlotSelect type={plotSelectionType || "single"} selectedPlots={selectedPlots} setPlots={setPlots} />
-                )
+                <PlotSelect type={plotSelectionType || "single"} selectedPlots={selectedPlots} setPlots={setPlots} />
+              )
               : setToken &&
-                selectedToken && (
-                  <TokenSelectWithBalances
-                    setToken={setToken}
-                    selectedToken={selectedToken}
-                    tokenNameOverride={tokenNameOverride}
-                    setBalanceFrom={setBalanceFrom}
-                    balanceFrom={balanceFrom}
-                    balancesToShow={balancesToShow}
-                    tokenAndBalanceMap={tokenAndBalanceMap}
-                    disabled={disableButton}
-                    isLoading={tokenSelectLoading}
-                    filterTokens={filterTokens}
-                    selectKey={selectKey}
-                  />
-                )}
+              selectedToken && (
+                <TokenSelectWithBalances
+                  setToken={setToken}
+                  selectedToken={selectedToken}
+                  tokenNameOverride={tokenNameOverride}
+                  setBalanceFrom={setBalanceFrom}
+                  balanceFrom={balanceFrom}
+                  balancesToShow={balancesToShow}
+                  tokenAndBalanceMap={tokenAndBalanceMap}
+                  disabled={disableButton}
+                  isLoading={tokenSelectLoading}
+                  filterTokens={filterTokens}
+                  selectKey={selectKey}
+                />
+              )}
           </div>
           {!disableInlineBalance && (
             <div className="flex flex-row gap-2 justify-between items-center">

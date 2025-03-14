@@ -4,6 +4,8 @@ import { Token } from "@/utils/types";
 import DonutChart from "./DonutChart";
 import { ChevronDownIcon } from "./Icons";
 import { Toggle } from "./ui/Toggle";
+import { PrivateModeWrapper } from "@/components/PrivateModeWrapper";
+import { usePrivateMode } from "@/hooks/useAppSettings";
 
 interface TokenBalances {
   external: TokenValue;
@@ -44,7 +46,7 @@ const WalletPanelTokenDisplay = ({
 
   const displayBalance = getDisplayBalance();
   const displayValue = displayBalance.mul(price);
-
+  const isPrivateMode = usePrivateMode();
   return (
     <Toggle
       key={`${token.address}_${balanceType}Balance`}
@@ -58,7 +60,7 @@ const WalletPanelTokenDisplay = ({
           <div className="flex flex-col text-left gap-1 sm:gap-2 sm:my-1">
             <span className="text-[1rem] sm:text-[1.25rem] text-pinto-gray-5">{token.symbol}</span>
             <span className="font-[340] transition-all group-hover:text-pinto-green text-pinto-gray-4 inline-flex gap-1 items-center">
-              {balanceType === "total" && showDonutChart ? (
+              {balanceType === "total" && showDonutChart && !isPrivateMode ? (
                 <>
                   <div className="relative">
                     <DonutChart
@@ -86,7 +88,11 @@ const WalletPanelTokenDisplay = ({
                   />
                 </>
               ) : (
-                <div className="pinto-xs sm:pinto-sm text-pinto-light sm:text-pinto-light">{`${displayBalance.toHuman("short")} ${token.symbol}`}</div>
+                <div className="pinto-xs sm:pinto-sm text-pinto-light sm:text-pinto-light">
+                  <PrivateModeWrapper>
+                    {`${displayBalance.toHuman("short")} ${token.symbol}`}
+                  </PrivateModeWrapper>
+                </div>
               )}
             </span>
           </div>
@@ -96,7 +102,7 @@ const WalletPanelTokenDisplay = ({
             {!blankUSDValue ? formatter.usd(displayValue) : "-"}
           </span>
         </div>
-        {balanceType === "total" && showDonutChart && (
+        {balanceType === "total" && showDonutChart && !isPrivateMode && (
           <div className="h-0 opacity-0 group-data-[state=on]:h-auto group-data-[state=on]:opacity-100 transition-all duration-200">
             <div className="flex flex-col gap-1 py-2">
               <div className="font-[340] text-[0.875rem] sm:text-[1rem] text-pinto-gray-4 flex justify-between items-center">

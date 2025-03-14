@@ -21,7 +21,7 @@ import { Separator } from "./ui/Separator";
 import { Skeleton } from "./ui/Skeleton";
 import Text from "./ui/Text";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
-
+import { PrivateModeWrapper } from "./PrivateModeWrapper";
 function TokenSelectItem({
   token,
   balanceAmount,
@@ -53,10 +53,14 @@ function TokenSelectItem({
         </div>
         <div className="flex flex-col gap-y-1">
           <div className="flex justify-end font-[340] text-[1.5rem] text-black">
-            {formatter.token(balanceAmount, token)}
+            <PrivateModeWrapper>
+              {formatter.token(balanceAmount, token)}
+            </PrivateModeWrapper>
           </div>
           <div className="flex justify-end font-[340] text-[1rem] text-pinto-gray-4">
-            {formatter.usd(price.mul(balanceAmount))}
+            <PrivateModeWrapper>
+              {formatter.usd(price.mul(balanceAmount))}
+            </PrivateModeWrapper>
           </div>
         </div>
       </ToggleGroupItem>
@@ -147,52 +151,52 @@ export default function TokenSelectWithBalances({
                 >
                   {tokenAndBalanceMap
                     ? [...tokenAndBalanceMap.keys()].map((token) => {
-                        const balance = tokenAndBalanceMap.get(token);
-                        if (!balance || filterTokens?.has(token)) return null;
-                        const price = TokenValue.ZERO;
-                        if (token.isNative && balanceFrom === FarmFromMode.INTERNAL) {
-                          return null;
-                        }
+                      const balance = tokenAndBalanceMap.get(token);
+                      if (!balance || filterTokens?.has(token)) return null;
+                      const price = TokenValue.ZERO;
+                      if (token.isNative && balanceFrom === FarmFromMode.INTERNAL) {
+                        return null;
+                      }
 
-                        return (
-                          <TokenSelectItem
-                            key={`single-select-bal-${token.address}`}
-                            token={token}
-                            balanceAmount={balance}
-                            price={price}
-                            onClick={() => setToken(token)}
-                          />
-                        );
-                      })
+                      return (
+                        <TokenSelectItem
+                          key={`single-select-bal-${token.address}`}
+                          token={token}
+                          balanceAmount={balance}
+                          price={price}
+                          onClick={() => setToken(token)}
+                        />
+                      );
+                    })
                     : [...balances.keys()].map((token) => {
-                        const balance = balances.get(token);
-                        if (!balance || filterTokens?.has(token)) return null;
-                        if (token.isNative && balanceFrom === FarmFromMode.INTERNAL) {
-                          return null;
-                        }
-                        const tokenPrice = priceData.tokenPrices.get(token);
-                        const price = tokenPrice?.instant ?? TokenValue.ZERO;
-                        let balanceAmount: TokenValue;
-                        switch (balanceFrom) {
-                          case FarmFromMode.EXTERNAL:
-                            balanceAmount = balance.external;
-                            break;
-                          case FarmFromMode.INTERNAL:
-                            balanceAmount = balance.internal;
-                            break;
-                          default:
-                            balanceAmount = balance.total;
-                        }
-                        return (
-                          <TokenSelectItem
-                            key={`single-select-${selectKey}-${token.address}`}
-                            token={token}
-                            balanceAmount={balanceAmount}
-                            price={price}
-                            onClick={() => setToken(token)}
-                          />
-                        );
-                      })}
+                      const balance = balances.get(token);
+                      if (!balance || filterTokens?.has(token)) return null;
+                      if (token.isNative && balanceFrom === FarmFromMode.INTERNAL) {
+                        return null;
+                      }
+                      const tokenPrice = priceData.tokenPrices.get(token);
+                      const price = tokenPrice?.instant ?? TokenValue.ZERO;
+                      let balanceAmount: TokenValue;
+                      switch (balanceFrom) {
+                        case FarmFromMode.EXTERNAL:
+                          balanceAmount = balance.external;
+                          break;
+                        case FarmFromMode.INTERNAL:
+                          balanceAmount = balance.internal;
+                          break;
+                        default:
+                          balanceAmount = balance.total;
+                      }
+                      return (
+                        <TokenSelectItem
+                          key={`single-select-${selectKey}-${token.address}`}
+                          token={token}
+                          balanceAmount={balanceAmount}
+                          price={price}
+                          onClick={() => setToken(token)}
+                        />
+                      );
+                    })}
                 </ToggleGroup>
               </div>
             </ScrollArea>

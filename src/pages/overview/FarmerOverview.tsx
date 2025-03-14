@@ -97,9 +97,9 @@ const Overview = () => {
 
     const claimSiloPct = siloData.totalStalk.gt(0)
       ? farmerSilo.activeStalkBalance
-          .add(farmerActions.claimRewards.outputs.stalkGain)
-          .div(siloData.totalStalk)
-          .mul(100)
+        .add(farmerActions.claimRewards.outputs.stalkGain)
+        .div(siloData.totalStalk)
+        .mul(100)
       : TokenValue.ZERO;
 
     const harvestSiloPct = siloData.totalStalk.gt(0)

@@ -17,6 +17,8 @@ import { RightArrowIcon } from "./Icons";
 import IconImage from "./ui/IconImage";
 import { Table, TableBody, TableCell, TableRow } from "./ui/Table";
 import { ToggleGroupItem } from "./ui/ToggleGroup";
+import { PrivateModeWrapper } from "./PrivateModeWrapper";
+import { usePrivateMode } from "@/hooks/useAppSettings";
 
 type PlotRowProps = HTMLMotionProps<"tr"> &
   React.HTMLAttributes<HTMLTableRowElement> & {
@@ -51,6 +53,7 @@ const PlotRow = forwardRef<HTMLTableRowElement, PlotRowProps>(
     const nonHarvestablePods = plot.unharvestablePods;
 
     const navigate = useNavigate();
+    const isPrivateMode = usePrivateMode();
 
     if (showClaimable) {
       return (
@@ -72,7 +75,9 @@ const PlotRow = forwardRef<HTMLTableRowElement, PlotRowProps>(
           <TableCell className="text-right px-2">
             <div className="inline-flex items-center">
               <div className="pinto-sm sm:pinto-body-light text-pinto-green-4 sm:text-pinto-green-4">
-                {formatter.token(numHarvestable, PODS)} Claimable
+                <PrivateModeWrapper>
+                  {formatter.token(numHarvestable, PODS)} Claimable
+                </PrivateModeWrapper>
               </div>
             </div>
           </TableCell>
@@ -97,16 +102,18 @@ const PlotRow = forwardRef<HTMLTableRowElement, PlotRowProps>(
               <div className="hidden sm:flex sm:items-center sm:gap-1.5">
                 <img src={podIcon} className="h-6 w-6" alt="Pods" />
                 <div className="pinto-sm sm:pinto-body-light">
-                  {formatter.number(nonHarvestablePods, {
-                    minValue: 0.01,
-                  })}{" "}
+                  <PrivateModeWrapper>
+                    {formatter.number(nonHarvestablePods, {
+                      minValue: 0.01,
+                    })}{" "}
+                  </PrivateModeWrapper>
                   Pods
                 </div>
                 {plot.source === "MARKET" ? (
                   <div className="pinto-body-light text-pinto-light">(purchased from Pod Market)</div>
-                ) : plot.source === "TRANSFER" && plot.preTransferOwner ? (
+                ) : plot.source === "TRANSFER" && plot.preTransferOwner && !isPrivateMode ? (
                   <div className="pinto-body-light text-pinto-light">
-                    (transferred from {truncateHex(plot.preTransferOwner, 6, 4)})
+                    (transferred from <PrivateModeWrapper>{truncateHex(plot.preTransferOwner, 6, 4)}</PrivateModeWrapper>)
                   </div>
                 ) : null}
               </div>
@@ -140,21 +147,27 @@ const PlotRow = forwardRef<HTMLTableRowElement, PlotRowProps>(
                           </span>
                           <span className="hidden sm:block md:hidden lg:block min-[1300px]:hidden">{"@"}</span>
                           <span className="text-black">
-                            {`${formatter.number((1 / plot.beansPerPod.toNumber()) * 100 - 100, {
-                              minValue: 0.01,
-                            })}%`}
+                            <PrivateModeWrapper>
+                              {`${formatter.number((1 / plot.beansPerPod.toNumber()) * 100 - 100, {
+                                minValue: 0.01,
+                              })}%`}
+                            </PrivateModeWrapper>
                           </span>
                         </span>
                       ) : (
                         <span>
                           <span className="text-black">
-                            {formatter.number(plot.pods.mul(plot.beansPerPod), { minValue: 0.01 })}
+                            <PrivateModeWrapper>
+                              {formatter.number(plot.pods.mul(plot.beansPerPod), { minValue: 0.01 })}
+                            </PrivateModeWrapper>
                           </span>
                           {" Pinto Sown at "}
                           <span className="text-black">
-                            {`${formatter.number((1 / plot.beansPerPod.toNumber()) * 100 - 100, {
-                              minValue: 0.01,
-                            })}%`}
+                            <PrivateModeWrapper>
+                              {`${formatter.number((1 / plot.beansPerPod.toNumber()) * 100 - 100, {
+                                minValue: 0.01,
+                              })}%`}
+                            </PrivateModeWrapper>
                           </span>
                           {" Temp"}
                         </span>
@@ -172,10 +185,12 @@ const PlotRow = forwardRef<HTMLTableRowElement, PlotRowProps>(
             <div className="flex sm:flex sm:items-center sm:gap-1.5">
               <img src={podIcon} className="h-4 w-4 mr-1 mt-1" alt="Pods" />
               <div className="text-base">
-                {formatter.number(nonHarvestablePods, {
-                  minValue: 0.01,
-                })}{" "}
-                Pods
+                <PrivateModeWrapper>
+                  {formatter.number(nonHarvestablePods, {
+                    minValue: 0.01,
+                  })}{" "}
+                  Pods
+                </PrivateModeWrapper>
               </div>
             </div>
             {plot.beansPerPod ? (
@@ -199,13 +214,17 @@ const PlotRow = forwardRef<HTMLTableRowElement, PlotRowProps>(
                     <IconImage size={3} src={pintoIcon} />
                     <div>
                       <span className="text-black text-xs">
-                        {formatter.number(plot.pods.mul(plot.beansPerPod), { minValue: 0.01 })}
+                        <PrivateModeWrapper>
+                          {formatter.number(plot.pods.mul(plot.beansPerPod), { minValue: 0.01 })}
+                        </PrivateModeWrapper>
                       </span>
                       {" at "}
                       <span className="text-black text-xs">
-                        {`${formatter.number((1 / plot.beansPerPod.toNumber()) * 100 - 100, {
-                          minValue: 0.01,
-                        })}%`}
+                        <PrivateModeWrapper>
+                          {`${formatter.number((1 / plot.beansPerPod.toNumber()) * 100 - 100, {
+                            minValue: 0.01,
+                          })}%`}
+                        </PrivateModeWrapper>
                       </span>
                     </div>
                   </div>
@@ -214,7 +233,7 @@ const PlotRow = forwardRef<HTMLTableRowElement, PlotRowProps>(
                   <div className="text-pinto-light text-xs ml-2">Purchased on Pod Market</div>
                 ) : plot.source === "TRANSFER" && plot.preTransferOwner ? (
                   <div className="text-pinto-light text-xs ml-2">
-                    Transferred from {truncateHex(plot.preTransferOwner, 6, 4)}
+                    Transferred from <PrivateModeWrapper>{truncateHex(plot.preTransferOwner, 6, 4)}</PrivateModeWrapper>
                   </div>
                 ) : null}
               </div>
@@ -227,11 +246,13 @@ const PlotRow = forwardRef<HTMLTableRowElement, PlotRowProps>(
           <div className="inline-flex items-center gap-1.5">
             <div className="hidden sm:block pinto-body-light text-pinto-light">{` at `}</div>
             <div className="pinto-sm sm:pinto-body-light inline-flex gap-1">
-              {placeInLine.gt(999999) && isMobile
-                ? placeInLine.toHuman("ultraShort")
-                : formatter.number(isHarvesting ? TokenValue.ZERO : placeInLine.eq(0) ? 0.001 : placeInLine, {
+              <PrivateModeWrapper>
+                {placeInLine.gt(999999) && isMobile
+                  ? placeInLine.toHuman("ultraShort")
+                  : formatter.number(isHarvesting ? TokenValue.ZERO : placeInLine.eq(0) ? 0.001 : placeInLine, {
                     minValue: 0.01,
                   })}
+              </PrivateModeWrapper>
               <span className="block sm:hidden md:block lg:hidden min-[1350px]:block text-pinto-light">
                 in the Pod Line
               </span>
@@ -266,10 +287,10 @@ export default function PlotsTable({
   // Update the harvestable plot logic to only use it for the claimable row
   const harvestablePlot = hasHarvestablePods
     ? {
-        ...(farmerField.plots.find((plot) => plot.harvestablePods.gt(0)) || farmerField.plots[0]),
-        // For the claimable row, we only want to show harvestable pods
-        pods: farmerField.plots.reduce((sum, plot) => sum.add(plot.harvestablePods), TokenValue.ZERO),
-      }
+      ...(farmerField.plots.find((plot) => plot.harvestablePods.gt(0)) || farmerField.plots[0]),
+      // For the claimable row, we only want to show harvestable pods
+      pods: farmerField.plots.reduce((sum, plot) => sum.add(plot.harvestablePods), TokenValue.ZERO),
+    }
     : undefined;
 
   const numHarvestable = useMemo(() => {

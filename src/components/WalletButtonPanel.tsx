@@ -21,6 +21,8 @@ import { CardContent, CardFooter, CardHeader } from "./ui/Card";
 import { ScrollArea } from "./ui/ScrollArea";
 import { Separator } from "./ui/Separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/Tabs";
+import useAppSettings, { usePrivateMode } from "@/hooks/useAppSettings";
+import { obfuscatedWalletAddress } from "./PrivateModeWrapper";
 
 // Wallet header component
 interface WalletHeaderProps {
@@ -236,6 +238,8 @@ export default function WalletButtonPanel({ togglePanel }) {
   const { balances: farmerBalances } = useFarmerBalances();
   const priceData = usePriceData();
   const farmerSilo = useFarmerSiloNew();
+  const { togglePrivateMode } = useAppSettings();
+  const isPrivateMode = usePrivateMode();
 
   // Calculate total flood once
   const totalFlood = useMemo(
@@ -298,6 +302,11 @@ export default function WalletButtonPanel({ togglePanel }) {
   // If in transfer mode, just render the transfer component
   if (showTransfer) {
     return <WalletButtonTransfer />;
+  }
+
+  let walletAddress = ensName ? ensName : address ? `${address.substring(0, 7)}...${address.substring(38, 42)}` : ""
+  if (isPrivateMode) {
+    walletAddress = obfuscatedWalletAddress
   }
 
   return (

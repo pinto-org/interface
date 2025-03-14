@@ -18,6 +18,7 @@ import {
 import { ScrollArea } from "./ui/ScrollArea";
 import { Separator } from "./ui/Separator";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
+import { PrivateModeWrapper } from "./PrivateModeWrapper";
 
 function TokenSelectItem({
   token,
@@ -49,7 +50,9 @@ function TokenSelectItem({
           {balanceAmount?.gt(0) ? Number(balanceAmount.toHuman()).toFixed(4) : 0}
         </div>
         <div className="flex justify-end font-[340] text-[1rem] text-pinto-gray-4">
-          ${balanceAmount?.gt(0) ? Number(price.mul(balanceAmount).toHuman()).toFixed(2) : 0.0}
+          <PrivateModeWrapper>
+            ${balanceAmount?.gt(0) ? Number(price.mul(balanceAmount).toHuman()).toFixed(2) : 0.0}
+          </PrivateModeWrapper>
         </div>
       </div>
     </ToggleGroupItem>

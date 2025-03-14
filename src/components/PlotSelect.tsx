@@ -24,6 +24,8 @@ import { Separator } from "./ui/Separator";
 import Text from "./ui/Text";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
 import { Description } from "@radix-ui/react-dialog";
+import { privateModeObsfucation, PrivateModeWrapper } from "./PrivateModeWrapper";
+import { usePrivateMode } from "@/hooks/useAppSettings";
 
 function PlotSelectItem({
   plot,
@@ -37,6 +39,9 @@ function PlotSelectItem({
   selectedPlots: string[];
 }) {
   const isSelected = selectedPlots.includes(plot.index.toHuman());
+  const isPrivateMode = usePrivateMode();
+
+  const podLineValue = isPrivateMode ? privateModeObsfucation : plot.index.sub(harvestableIndex).toHuman("short")
 
   const content = (
     <ToggleGroupItem
@@ -53,10 +58,12 @@ function PlotSelectItem({
       </div>
       <div className="flex flex-col gap-1">
         <div className="flex justify-end font-[340] text-[1.5rem] text-black">
-          {plot.pods?.gt(0) ? formatter.number(plot.pods) : 0}
+          <PrivateModeWrapper>
+            {plot.pods?.gt(0) ? formatter.number(plot.pods) : 0}
+          </PrivateModeWrapper>
         </div>
         <div className="flex justify-end font-[340] text-[1rem] text-pinto-gray-4">
-          {`@ ${plot.index.sub(harvestableIndex).toHuman("short")} in Line`}
+          {`@ ${podLineValue} in Line`}
         </div>
       </div>
     </ToggleGroupItem>
@@ -119,7 +126,9 @@ export default function PlotSelect({
       <div className="flex flex-row gap-1">
         <span>Pods</span>
         <span className="text-pinto-gray-4">@</span>
-        <span>{`${TokenValue.fromHuman(_plots[0], PODS.decimals).sub(harvestableIndex).toHuman("short")} in Line`}</span>
+        <PrivateModeWrapper>
+          <span>{`${TokenValue.fromHuman(_plots[0], PODS.decimals).sub(harvestableIndex).toHuman("short")} in Line`}</span>
+        </PrivateModeWrapper>
       </div>
     ) : (
       /* `${_plots.length} Plots` */ "Pods"
@@ -134,7 +143,6 @@ export default function PlotSelect({
       selectedPlots={_plots}
     />
   ));
-
   return (
     <Dialog>
       <DialogTrigger asChild>

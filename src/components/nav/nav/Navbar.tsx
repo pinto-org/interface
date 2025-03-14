@@ -25,7 +25,8 @@ import PriceButton from "../PriceButton";
 import SeasonsButton from "../SeasonsButton";
 import Navi from "./Navi.desktop";
 import MobileNavi from "./Navi.mobile";
-
+import { usePrivateMode } from "@/hooks/useAppSettings";
+import { privateModeObsfucation } from "@/components/PrivateModeWrapper";
 type Panel = "price" | "seasons" | "wallet" | "mobile-navi";
 
 const DURATION = 150;
@@ -61,6 +62,8 @@ const Navbar = () => {
   const { address, hasDeposits, hasPlots, loading, didLoad } = useFarmerStatus();
   const isNewUser = !address || (!hasDeposits && !hasPlots);
   const showWalletHelper = (isOverview || isSilo) && !isNewUser && !loading && didLoad;
+
+  const isPrivateMode = usePrivateMode();
 
   const closePanel = () => {
     setPanelState({

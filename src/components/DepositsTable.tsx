@@ -16,6 +16,7 @@ import { HTMLMotionProps } from "framer-motion";
 import React, { useState } from "react";
 import CheckmarkCircle from "./CheckmarkCircle";
 import IconImage from "./ui/IconImage";
+import { PrivateModeWrapper } from "./PrivateModeWrapper";
 
 interface DepositsTableProps {
   token: Token;
@@ -61,10 +62,18 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
         <TableCell className="pinto-sm text-left px-4 md:px-0 md:text-right">
           <div className="flex flex-row gap-1 items-center justify-start md:justify-end">
             <IconImage src={token.logoURI} size={4} />
-            <div className="opacity-70">{`${formatter.token(deposit.amount, token)}`}</div>
+            <div className="opacity-70">
+              <PrivateModeWrapper>
+                {`${formatter.token(deposit.amount, token)}`}
+              </PrivateModeWrapper>
+            </div>
             <span className="opacity-70 hidden md:block">{token.name}</span>
           </div>
-          <div className="text-pinto-gray-4 mt-1 opacity-70 font-[340]">{`${denomination === "USD" ? formatter.usd((deposit.currentBdv || TokenValue.ZERO).mul(price)) : formatter.pdv(deposit.depositBdv)}`}</div>
+          <div className="text-pinto-gray-4 mt-1 opacity-70 font-[340]">
+            <PrivateModeWrapper>
+              {`${denomination === "USD" ? formatter.usd((deposit.currentBdv || TokenValue.ZERO).mul(price)) : formatter.pdv(deposit.depositBdv)}`}
+            </PrivateModeWrapper>
+          </div>
         </TableCell>
         <TableCell className="pinto-sm text-right">
           <div className="flex flex-row gap-1 items-center justify-end">
@@ -73,38 +82,54 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
               <>
                 {deposit.stalk.base.gt(0) && (
                   <>
-                    <div className="hidden md:block opacity-60">{formatter.twoDec(deposit.stalk.base)}</div>
+                    <div className="hidden md:block opacity-60">
+                      <PrivateModeWrapper>
+                        {formatter.twoDec(deposit.stalk.base)}
+                      </PrivateModeWrapper>
+                    </div>
                     <div className="md:hidden opacity-60">
-                      {deposit.stalk.base.gt(9999)
-                        ? deposit.stalk.base.toHuman("ultraShort")
-                        : formatter.twoDec(deposit.stalk.base)}
+                      <PrivateModeWrapper>
+                        {deposit.stalk.base.gt(9999)
+                          ? deposit.stalk.base.toHuman("ultraShort")
+                          : formatter.twoDec(deposit.stalk.base)}
+                      </PrivateModeWrapper>
                     </div>
                   </>
                 )}
                 {deposit.stalk.germinating.gt(0) && (
                   <>
                     <div className="hidden md:block opacity-60 text-pinto-off-green">
-                      {formatter.twoDec(deposit.stalk.germinating, {
-                        showPositiveSign: deposit.stalk.base.gt(0),
-                      })}
+                      <PrivateModeWrapper>
+                        {formatter.twoDec(deposit.stalk.germinating, {
+                          showPositiveSign: deposit.stalk.base.gt(0),
+                        })}
+                      </PrivateModeWrapper>
                     </div>
                     <div className="md:hidden opacity-60 text-pinto-off-green">
-                      {deposit.stalk.germinating.gt(9999)
-                        ? `${deposit.stalk.base.gt(0) ? "+" : ""}${deposit.stalk.germinating.toHuman("ultraShort")}`
-                        : formatter.twoDec(deposit.stalk.germinating, {
+                      <PrivateModeWrapper>
+                        {deposit.stalk.germinating.gt(9999)
+                          ? `${deposit.stalk.base.gt(0) ? "+" : ""}${deposit.stalk.germinating.toHuman("ultraShort")}`
+                          : formatter.twoDec(deposit.stalk.germinating, {
                             showPositiveSign: deposit.stalk.base.gt(0),
                           })}
+                      </PrivateModeWrapper>
                     </div>
                   </>
                 )}
               </>
             ) : (
               <>
-                <div className="hidden md:block opacity-70">{formatter.twoDec(deposit.stalk.base)}</div>
+                <div className="hidden md:block opacity-70">
+                  <PrivateModeWrapper>
+                    {formatter.twoDec(deposit.stalk.base)}
+                  </PrivateModeWrapper>
+                </div>
                 <div className="md:hidden opacity-70">
-                  {deposit.stalk.base.gt(9999)
-                    ? deposit.stalk.base.toHuman("ultraShort")
-                    : formatter.twoDec(deposit.stalk.base)}
+                  <PrivateModeWrapper>
+                    {deposit.stalk.base.gt(9999)
+                      ? deposit.stalk.base.toHuman("ultraShort")
+                      : formatter.twoDec(deposit.stalk.base)}
+                  </PrivateModeWrapper>
                 </div>
               </>
             )}
@@ -116,9 +141,11 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
             <div className="text-pinto-gray-4 mt-1 opacity-70 font-[340] hidden md:block">
               Claimable Grown Stalk:{" "}
               <span className="text-pinto-green-4">
-                {formatter.twoDec(deposit.stalk.grown, {
-                  showPositiveSign: true,
-                })}
+                <PrivateModeWrapper>
+                  {formatter.twoDec(deposit.stalk.grown, {
+                    showPositiveSign: true,
+                  })}
+                </PrivateModeWrapper>
               </span>
             </div>
           )}
@@ -126,9 +153,15 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
         <TableCell className="pinto-sm text-right p-4">
           <div className="flex flex-row gap-1 items-center justify-end">
             <IconImage src={seedIcon} size={4} />
-            <div className="hidden md:block opacity-70">{formatter.twoDec(deposit.seeds)}</div>
+            <div className="hidden md:block opacity-70">
+              <PrivateModeWrapper>
+                {formatter.twoDec(deposit.seeds)}
+              </PrivateModeWrapper>
+            </div>
             <div className="md:hidden opacity-70">
-              {deposit.seeds.gt(9999) ? deposit.seeds.toHuman("ultraShort") : formatter.twoDec(deposit.seeds)}
+              <PrivateModeWrapper>
+                {deposit.seeds.gt(9999) ? deposit.seeds.toHuman("ultraShort") : formatter.twoDec(deposit.seeds)}
+              </PrivateModeWrapper>
             </div>
           </div>
         </TableCell>

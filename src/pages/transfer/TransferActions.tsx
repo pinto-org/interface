@@ -8,7 +8,7 @@ import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import { formatter } from "@/utils/format";
 import { Link } from "react-router-dom";
-
+import { PrivateModeWrapper } from "@/components/PrivateModeWrapper";
 export default function TransferActions() {
   const priceData = usePriceData();
 
@@ -20,7 +20,7 @@ export default function TransferActions() {
     (total: TokenValue, tokenBalance) =>
       total.add(
         tokenBalance[1].internal.mul(priceData.tokenPrices.get(tokenBalance[0])?.instant || TokenValue.ZERO) ||
-          TokenValue.ZERO,
+        TokenValue.ZERO,
       ),
     TokenValue.ZERO,
   );
@@ -47,7 +47,7 @@ export default function TransferActions() {
       >
         <Link to="/transfer/farmbalance">
           <span>Tokens from my Farm Balance</span>
-          <span>{formatter.usd(totalInternalBalance)}</span>
+          <PrivateModeWrapper><span>{formatter.usd(totalInternalBalance)}</span></PrivateModeWrapper>
         </Link>
       </Button>
       <Button
@@ -58,7 +58,7 @@ export default function TransferActions() {
       >
         <Link to="/transfer/deposits">
           <span>Silo Deposits</span>
-          <span>{formatter.usd(farmerSilo.depositsUSD)}</span>
+          <PrivateModeWrapper><span>{formatter.usd(farmerSilo.depositsUSD)}</span></PrivateModeWrapper>
         </Link>
       </Button>
       <Button
@@ -71,7 +71,7 @@ export default function TransferActions() {
           <span>Pods</span>
           <div className="flex flex-row gap-1 items-center">
             <IconImage src={podIcon} size={6} mobileSize={5} />
-            <span>{`${formatter.twoDec(farmerField.totalPods)} Pods`}</span>
+            <PrivateModeWrapper><span>{`${formatter.twoDec(farmerField.totalPods)} Pods`}</span></PrivateModeWrapper>
           </div>
         </Link>
       </Button>

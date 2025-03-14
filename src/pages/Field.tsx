@@ -31,6 +31,7 @@ import FieldActions from "./field/FieldActions";
 import FieldStats from "./field/FieldStats";
 import MorningPanel from "./field/MorningPanel";
 import TemperatureChart from "./field/Temperature";
+import { PrivateModeWrapper } from "@/components/PrivateModeWrapper";
 
 function Field() {
   useUpdateMorningTemperatureOnInterval();
@@ -115,11 +116,13 @@ function Field() {
               <div className="pinto-h3">My Pods</div>
               <div className="flex flex-row gap-2 items-center">
                 <img src={podIcon} className="w-8 h-8" alt={"total pods"} />
-                {harvestableIndexLoading ? (
-                  <Skeleton className="w-6 h-8" />
-                ) : (
-                  <div className="pinto-h3">{formatter.number(totalPods)}</div>
-                )}
+                <PrivateModeWrapper>
+                  {harvestableIndexLoading ? (
+                    <Skeleton className="w-6 h-8" />
+                  ) : (
+                    <div className="pinto-h3">{formatter.number(totalPods)}</div>
+                  )}
+                </PrivateModeWrapper>
               </div>
             </div>
           )}

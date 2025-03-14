@@ -1,6 +1,7 @@
-import { appSettingsAtom, Denomination } from "@/state/app/app.atoms";
+import { appSettingsAtom } from "@/state/app/app.atoms";
 import { useAtom } from "jotai";
 import { useCallback } from "react";
+
 
 export default function useAppSettings() {
   const [appSettings, setAppSettings] = useAtom(appSettingsAtom);
@@ -13,10 +14,23 @@ export default function useAppSettings() {
     });
   }, [setAppSettings]);
 
-  return { appSettings, toggleDenomination };
+  const togglePrivateMode = useCallback(() => {
+    console.log("Toggling private mode");
+    setAppSettings((draft) => {
+      draft.privateMode = !draft.privateMode;
+      localStorage.setItem("isPrivateMode", draft.privateMode.toString());
+    });
+  }, [setAppSettings]);
+
+  return { appSettings, toggleDenomination, togglePrivateMode };
 }
 
 export function useDenomination() {
   const [appSettings] = useAtom(appSettingsAtom);
   return appSettings.denomination;
+}
+
+export function usePrivateMode() {
+  const [appSettings] = useAtom(appSettingsAtom);
+  return appSettings.privateMode;
 }
