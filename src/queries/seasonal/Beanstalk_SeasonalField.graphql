@@ -1,0 +1,18 @@
+query BeanstalkSeasonalField($from: Int, $to: Int, $field: String) {
+  fieldHourlySnapshots(
+    where: { season_gte: $from, season_lte: $to, field: $field }
+    first: 1000
+    orderBy: season
+    orderDirection: asc
+  ) {
+    id
+    season
+    podRate
+    temperature
+    podIndex
+    harvestableIndex
+    sownBeans
+    harvestedPods
+    createdAt
+  }
+}

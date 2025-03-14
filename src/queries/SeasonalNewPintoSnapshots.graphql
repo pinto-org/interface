@@ -1,0 +1,10 @@
+query SeasonalNewPintoSnapshots($first: Int!) {
+  seasons(first: $first, orderBy:season, orderDirection: desc ) {
+		season
+    deltaBeans
+    rewardBeans
+    floodSiloBeans
+    floodFieldBeans
+    incentiveBeans
+	}
+}

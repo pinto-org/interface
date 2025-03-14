@@ -1,0 +1,24 @@
+query SiloYields {
+  siloYields(
+    orderBy: season
+    orderDirection: desc
+    where: {emaWindow: ROLLING_30_DAY}
+    first: 1
+  ) {
+    beansPerSeasonEMA
+    beta
+    createdAt
+    season
+    id
+    u
+    whitelistedTokens
+    emaWindow
+    tokenAPYS {
+      beanAPY
+      stalkAPY
+      season
+      createdAt
+      token
+    }
+  }
+}

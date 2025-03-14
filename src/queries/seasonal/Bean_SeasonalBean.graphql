@@ -1,0 +1,21 @@
+query BeanSeasonalBean($from: Int, $to: Int) {
+  beanHourlySnapshots(
+    where: { season_: { season_gte: $from, season_lte: $to } }
+    first: 1000
+    orderBy: season__season
+    orderDirection: asc
+  ) {
+    id
+    season {
+      season
+    }
+    supply
+    marketCap
+    instPrice
+    l2sr
+    # Used only to compute l2sr for seasons 1-3 where TWA liquidity was uninitialized at the protocol level.
+    # Basin subgraph should generally be used instead for this metric.
+    liquidityUSD
+    createdTimestamp
+  }
+}

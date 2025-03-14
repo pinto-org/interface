@@ -1,0 +1,32 @@
+query FarmerPlots($account: ID!) {
+  farmer(id: $account) {
+    plots(
+      first: 1000
+      where: { pods_gt: "50", fullyHarvested: false }
+      orderBy: index
+      orderDirection: asc
+    ) {
+      beansPerPod
+      createdAt
+      creationHash
+      fullyHarvested
+      harvestablePods
+      harvestedPods
+      id
+      index
+      pods
+      season
+      source
+      sourceHash
+      preTransferSource
+      preTransferOwner {
+        id
+      }
+      updatedAt
+      updatedAtBlock
+      listing {
+        id
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+query FieldSnapshots($fieldId: Bytes!, $first: Int!) {
+  fieldHourlySnapshots(
+    first: $first
+    orderBy: season
+    orderDirection: desc
+    where: {field_: {id: $fieldId}}
+  ) {
+    blocksToSoldOutSoil
+    caseId
+    deltaHarvestablePods
+    deltaHarvestedPods
+    deltaIssuedSoil
+    deltaNumberOfSowers
+    deltaNumberOfSows
+    deltaPodIndex
+    deltaPodRate
+    deltaRealRateOfReturn
+    deltaSoil
+    deltaSownBeans
+    deltaTemperature
+    deltaUnharvestablePods
+    harvestablePods
+    harvestedPods
+    id
+    issuedSoil
+    numberOfSowers
+    numberOfSows
+    podIndex
+    podRate
+    realRateOfReturn
+    season
+    seasonBlock
+    soil
+    soilSoldOut
+    sownBeans
+    temperature
+    unharvestablePods
+    updatedAt
+  }
+}

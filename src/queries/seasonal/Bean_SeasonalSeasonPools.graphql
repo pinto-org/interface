@@ -1,0 +1,18 @@
+query BeanSeasonalSeasonPools($from: Int, $to: Int) {
+  seasons(
+    where: { season_gte: $from, season_lte: $to }
+    first: 1000
+    orderBy: season
+    orderDirection: asc
+  ) {
+    id
+    season
+    poolHourlySnapshots {
+      pool {
+        id
+      }
+      liquidityUSD
+      createdTimestamp
+    }
+  }
+}

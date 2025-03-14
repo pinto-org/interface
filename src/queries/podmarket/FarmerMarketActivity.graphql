@@ -1,0 +1,43 @@
+#import "./PodListing.fragment.graphql"
+#import "./PodOrder.fragment.graphql"
+#import "./PodFill.fragment.graphql"
+
+query FarmerMarketActivity(
+  $first: Int = 1000
+  $account: String!
+  $listings_createdAt_gt: BigInt
+  $orders_createdAt_gt: BigInt
+  $fill_createdAt_gt: BigInt
+) {
+  podListings(
+    first: $first
+    where: {
+      farmer: $account
+      createdAt_gt: $listings_createdAt_gt
+      status_not: FILLED_PARTIAL
+    }
+  ) {
+    ...PodListing
+  }
+
+  podOrders(
+    first: $first
+    orderBy: createdAt
+    orderDirection: desc
+    where: { farmer: $account, createdAt_gt: $orders_createdAt_gt }
+  ) {
+    ...PodOrder
+  }
+
+  podFills(
+    first: $first
+    where: {
+      and: [
+        { createdAt_gt: $fill_createdAt_gt }
+        { or: [{ fromFarmer: $account }, { toFarmer: $account }] }
+      ]
+    }
+  ) {
+    ...PodFill
+  }
+}

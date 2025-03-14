@@ -1,0 +1,21 @@
+query FarmerSeasonalSiloAssetToken($from: Int, $to: Int, $siloAsset: String) {
+	siloAssetHourlySnapshots(
+    where: { 
+      siloAsset: $siloAsset, #siloAsset = `${0xfarmer}-${0xtoken}`
+      season_gte: $from, 
+      season_lte: $to 
+    }
+    first: 1000
+    orderBy: season
+    orderDirection: asc
+  ) {
+    id
+    season
+    depositedAmount
+    depositedBDV
+    deltaDepositedBDV
+    deltaDepositedAmount
+    createdAt
+  }
+}
+

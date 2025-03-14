@@ -1,0 +1,30 @@
+#import "./PodListing.fragment.graphql"
+#import "./PodOrder.fragment.graphql"
+#import "./PodFill.fragment.graphql"
+
+query AllMarketActivity(
+  $first: Int = 1000
+  $listings_createdAt_gt: BigInt
+  $orders_createdAt_gt: BigInt
+  $fill_createdAt_gt: BigInt
+) {
+  podListings(
+    first: $first
+    where: { createdAt_gt: $listings_createdAt_gt, status_not: FILLED_PARTIAL }
+  ) {
+    ...PodListing
+  }
+
+  podOrders(
+    first: $first
+    orderBy: createdAt
+    orderDirection: desc
+    where: { createdAt_gt: $orders_createdAt_gt }
+  ) {
+    ...PodOrder
+  }
+
+  podFills(first: $first, where: { createdAt_gt: $fill_createdAt_gt }) {
+    ...PodFill
+  }
+}

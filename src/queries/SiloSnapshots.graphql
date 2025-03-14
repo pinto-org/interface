@@ -1,0 +1,7 @@
+query SiloSnapshots($first: Int!, $id: Bytes!) {
+  siloHourlySnapshots(first: $first, orderBy: season, orderDirection: desc, where: {silo_: {id: $id}}) {
+    beanToMaxLpGpPerBdvRatio
+    deltaBeanMints
+    season
+  }
+}

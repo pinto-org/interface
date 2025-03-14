@@ -1,0 +1,18 @@
+query BeanstalkSeasonalWrappedDepositERC20($from: Int, $to: Int) {
+  wrappedDepositERC20HourlySnapshots(
+    where: { season_gte: $from, season_lte: $to }
+    orderBy: season
+    orderDirection: asc
+    first: 1000
+  ) {
+    id
+    season
+    supply
+    redeemRate
+    apy24h # APYs are returned as a percentage. 0.01 = 1%, 1 = 100%
+    apy7d
+    apy30d
+    apy90d
+    createdAt
+  }
+}

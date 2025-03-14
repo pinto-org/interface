@@ -1,0 +1,23 @@
+[build]
+  publish = "dist/"
+  command = "yarn build:netlify"
+
+[build.environment]
+  YARN_VERSION = "4.5.0"
+  CI = "true"
+
+[[redirects]]
+  from = "/discord"
+  to = "https://discord.gg/MZVQaZPRry"
+  status = 301
+
+[[redirects]]
+  from = "/*"
+  to = "index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"

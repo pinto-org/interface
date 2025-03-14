@@ -1,0 +1,24 @@
+fragment PodFill on PodFill {
+  id
+  placeInLine
+  amount
+  index
+  start
+  costInBeans
+  fromFarmer {
+    id
+  }
+  toFarmer {
+    id
+  }
+  # One of listing/order will be provided, the other null
+  listing {
+    id
+    originalAmount
+  }
+  order {
+    id
+    beanAmount
+  }
+  createdAt
+}

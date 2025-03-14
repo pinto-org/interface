@@ -1,0 +1,63 @@
+{
+  "files": {
+    "ignore": ["node_modules/**", "dist/", "src/generated/**", "src/queries/**"],
+    "include": ["src/**"]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "lineWidth": 120,
+    "lineEnding": "lf",
+    "indentWidth": 2
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "style": {
+        "useImportType": "off",
+        "noUselessElse": "off",
+        "noNonNullAssertion": "error",
+        "noInferrableTypes": "off",
+        "useConst": "warn",
+        "noVar": "error",
+        "useTemplate": "warn",
+        "noUnusedTemplateLiteral": "off",
+        "useNumberNamespace": "off"
+      },
+      "suspicious": {
+        "noImplicitAnyLet": "error",
+        "noExplicitAny": "warn",
+        "noDoubleEquals": "error",
+        "noArrayIndexKey": "warn"
+      },
+      "complexity": {
+        "noForEach": "off",
+        "noStaticOnlyClass": "off",
+        "noExtraBooleanCast": "off",
+        "noUselessRename": "off",
+        "useOptionalChain": "warn",
+        "noUselessFragments": "off",
+        "noBannedTypes": "off"
+      },
+      "correctness": {
+        "noInnerDeclarations": "error",
+        "useExhaustiveDependencies": "warn",
+        "noUnsafeOptionalChaining": "error",
+        "useHookAtTopLevel": "error",
+        "noUnusedVariables": "warn"
+      },
+      "a11y": {
+        "useKeyWithClickEvents": "off",
+        "noSvgWithoutTitle": "off",
+        "useAltText": "warn",
+        "noBlankTarget": "error",
+        "useValidAriaRole": "warn",
+        "noInteractiveElementToNoninteractiveRole": "warn"
+      }
+    }
+  },
+  "organizeImports": {
+    "enabled": true
+  }
+}

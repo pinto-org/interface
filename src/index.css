@@ -1,0 +1,198 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  @font-face {
+    font-family: "Pinto";
+    font-weight: 500;
+    font-display: swap;
+    src: url("@/assets/fonts/Pinto-Regular.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Pinto";
+    font-weight: 400;
+    font-display: swap;
+    src: url("@/assets/fonts/Pinto-Book.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Pinto";
+    font-weight: 340;
+    font-display: swap;
+    src: url("@/assets/fonts/Pinto-Book.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Pinto";
+    font-weight: 300;
+    font-display: swap;
+    src: url("@/assets/fonts/Pinto-Light.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Pinto";
+    font-weight: 600;
+    font-display: swap;
+    src: url("@/assets/fonts/Pinto-Medium.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Roboto";
+    font-weight: 300;
+    font-display: swap;
+    src: url("@/assets/fonts/Roboto-Light.ttf") format("truetype");
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0, 0%, 32%;
+
+    --muted: 0, 0%, 73%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
+
+    --border: 0, 0%, 85%;
+    --input: 208, 42%, 94%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 47.4% 11.2%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --accent: 151, 100%, 39%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 210 40% 98%;
+
+    --ring: 150, 48%, 27%;
+    --error-ring: 0, 100%, 50%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+
+    --accent: 216 34% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --popover: 224 71% 4%;
+    --popover-foreground: 215 20.2% 65.1%;
+
+    --border: 0, 0%, 85%;
+    --input: 208, 42%, 94%;
+
+    --card: 224 71% 4%;
+    --card-foreground: 213 31% 91%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 1.2%;
+
+    --secondary: 222.2 47.4% 11.2%;
+    --secondary-foreground: 210 40% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --ring: 150, 48%, 27%;
+
+    --radius: 0.75rem;
+  }
+}
+
+@layer components {
+	.bg-gradient-light {
+		background: linear-gradient(
+				90deg,
+				rgba(233, 231, 224, 0.1) 0%,
+				rgba(254, 225, 140, 0.1) 52.5%,
+				rgba(241, 248, 140, 0.1) 100%
+			), linear-gradient(0deg, #ffffff, #ffffff);
+	}
+  .h1 {
+    font-size: 3.425rem;  /* 54.86px / 16 = 3.425rem */
+    font-weight: 300;
+    line-height: 1.1;  /* 60.35px / 54.86px ≈ 1.1 */
+    letter-spacing: -0.02em;
+  }
+  .body {
+    font-size: 1.25rem;  /* 20px / 16 = 1.25rem */
+    font-weight: 400;
+    line-height: 1.1;  /* 22px / 20px = 1.1 */
+  }
+  .convert-color {
+    color: var(--convert-color);
+	}
+	.bg-morning-light {
+		background: linear-gradient(
+			90deg, 
+			rgba(233, 231, 224, 0.2) 0%, 
+			rgba(254, 225, 140, 0.2) 0.01%, 
+			rgba(241, 248, 140, 0.4) 100%
+			);
+
+	}
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-gradient-light text-foreground font-pinto;
+  }
+}
+
+@layer utilities {
+  .text-pinto-h1 {
+    @apply h1;
+  }
+  .text-pinto-body {
+    @apply body;
+  }
+}
+
+/* Globals */
+* {
+  min-width: 0px;
+  /* margin: 0px; */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+
+  -webkit-tap-highlight-color: transparent;
+
+  /** Prevent page overscrolling: https://developer.mozilla.org/en-US/docs/Web/CSS/overscroll-behavior */
+  overscroll-behavior: none;
+}
+
+html,
+body {
+  height: 100%;
+  min-width: 0px;
+  font-size: 100%;
+  overflow-x: hidden;
+}
+
+/* Set 75% font size between 768px and 1600px */
+@media screen and (min-width: 768px) and (max-width: 1600px) {
+  html,
+  body {
+    font-size: 75%;
+  }
+}
+
+#tsparticles {
+  height: 80vh;
+  z-index: 0;
+}
