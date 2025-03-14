@@ -39,10 +39,6 @@ export abstract class ERC20SwapNode extends SwapNode implements IERC20SwapNode {
    * @param functionLength - The number of outputs responsible for running node.buildStep()
    * @param outputFnIndex - The index of the output in the node.buildStep() output that returns the output of this node
    */
-  abstract readonly outputInfo: {
-    fnReturnLen: number;
-    fnReturnIndex: number;
-  }
 
   /**
    * The slippage for the swap occuring via this node
@@ -159,11 +155,6 @@ export class WellSwapNode extends ERC20SwapNode {
 
   readonly allowanceTarget: Address;
 
-  readonly outputInfo = {
-    fnReturnLen: 1,
-    fnReturnIndex: 0,
-  }
-
   constructor(context: SwapContext, well: Token, sellToken: Token, buyToken: Token) {
     super(context, sellToken, buyToken);
     this.well = well;
@@ -250,11 +241,6 @@ export class ZeroXSwapNode extends ERC20SwapNode {
   quote: ZeroXQuoteV2Response | undefined;
 
   readonly amountOutCopySlot: number = 0;
-
-  readonly outputInfo = {
-    fnReturnLen: 2,
-    fnReturnIndex: 1,
-  }
 
   get allowanceTarget() {
     if (!this.quote?.transaction) {
@@ -356,11 +342,6 @@ export class WellSyncSwapNode extends ERC20SwapNode {
   readonly transferAmountInPasteSlot = 1;
 
   readonly allowanceTarget: Address;
-
-  readonly outputInfo = {
-    fnReturnLen: 1,
-    fnReturnIndex: 0,
-  }
 
   constructor(context: SwapContext, sellToken: Token, buyToken: Token) {
     super(context, sellToken, buyToken);
@@ -485,11 +466,6 @@ export class WellRemoveSingleSidedSwapNode extends ERC20SwapNode {
   readonly amountInPasteSlot: number = 0;
 
   readonly allowanceTarget: Address;
-
-  readonly outputInfo = {
-    fnReturnLen: 1,
-    fnReturnIndex: 0,
-  }
 
   constructor(context: SwapContext, sellToken: Token, buyToken: Token) {
     super(context, sellToken, buyToken);

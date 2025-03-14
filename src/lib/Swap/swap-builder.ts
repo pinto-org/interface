@@ -76,7 +76,7 @@ export class SwapBuilder {
     if (!exists(slot) || !exists(pipe)) {
       return undefined;
     }
-    
+
     const s = calculatePipeCallClipboardSlot(pipe.workflow.getSteps().length, slot);
     console.debug("[Swap/getPipeCallClipboardSlot]", {
       node,
@@ -133,7 +133,7 @@ export class SwapBuilder {
     for (const [i, node] of this.#nodes.entries()) {
       // 1st leg of the swap
       if (i === 0) {
-        
+
         // Wrap ETH before loading pipeline
         if (isWrapEthNode(node)) {
           toMode = FarmToMode.INTERNAL;
@@ -155,33 +155,28 @@ export class SwapBuilder {
       if (isERC20Node(node)) {
         if (isWellNode(node)) {
           this.#advPipe.add(
-            this.#getApproveERC20MaxAllowance(node), 
-            this.#makeERC20WorkflowOptions(node)
+            this.#getApproveERC20MaxAllowance(node)
           );
           this.#advPipe.add(
             node.buildStep(
               { copySlot: this.#getPrevNodeCopySlot(i), recipient: pipelineAddress[this.#context.chainId] },
               this.#advPipe.getClipboardContext(),
             ),
-            { tag: node.thisTag, ...node.outputInfo },
+            { tag: node.thisTag },
           );
         } else if (isZeroXNode(node)) {
           this.#advPipe.add(
-            this.#getApproveERC20MaxAllowance(node), 
-            this.#makeERC20WorkflowOptions(node)
+            this.#getApproveERC20MaxAllowance(node)
           );
-          this.#advPipe.add(node.buildStep(), { 
-            tag: node.thisTag, 
-            ...node.outputInfo,
+          this.#advPipe.add(node.buildStep(), {
+            tag: node.thisTag
           });
         } else if (isWellSyncNode(node)) {
           this.#advPipe.add(
             node.transferStep({ copySlot: this.#getPrevNodeCopySlot(i) }, this.#advPipe.getClipboardContext()),
-            this.#makeERC20WorkflowOptions(node, "transfer"),
           );
           this.#advPipe.add(node.buildStep({ recipient: pipelineAddress[this.#context.chainId] }), {
             tag: node.thisTag,
-            ...node.outputInfo,
           });
         } else if (isWellRemoveSingleSidedNode(node)) {
           const isFirst = this.#advPipe.length === 0;
@@ -189,13 +184,11 @@ export class SwapBuilder {
             throw new Error("Error building swap: WellRemoveSingleSidedSwapNode must be the first txn in a sequence.");
           }
           this.#advPipe.add(
-            this.#getApproveERC20MaxAllowance(node), 
-            this.#makeERC20WorkflowOptions(node)
+            this.#getApproveERC20MaxAllowance(node)
           );
           // just send to pipeline regardless of mode
           this.#advPipe.add(node.buildStep({ recipient: pipelineAddress[this.#context.chainId] }), {
             tag: node.thisTag,
-            ...node.outputInfo,
           });
 
           // throw error here for now since we haven't sufficiently tested withdrawing as any arbitrary token yet.
@@ -243,20 +236,6 @@ export class SwapBuilder {
           });
         }
       }
-    }
-  }
-
-  #makeERC20WorkflowOptions(node: ERC20SwapNode, key: "approve" | "transfer" = "approve") {
-    const sell = node.sellToken.address;
-    const buy = node.buyToken.address;
-    const other = key === "approve" ? `-${node.allowanceTarget}` : "";
-    const tag = `token-${key}-${sell}-${buy}${other}`;
-
-    return {
-      tag,
-      fnLen: 1,
-      fnReturnLen: key === "transfer" ? 0 : 1,
-      fnReturnIndex: key === "transfer" ? undefined : 0,
     }
   }
 
