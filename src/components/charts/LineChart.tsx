@@ -78,6 +78,12 @@ const LineChart = React.memo(
   }: LineChartProps) => {
     const chartRef = useRef<Chart | null>(null);
     const activeIndexRef = useRef<number | undefined>(activeIndex);
+    // Add a ref to track animation progress
+    const animationProgressRef = useRef<number>(0);
+    // Add a ref to track animation frame ID for cleanup
+    const animationFrameRef = useRef<number | null>(null);
+    // Add a ref to track if animation is running
+    const isAnimatingRef = useRef<boolean>(false);
 
     useEffect(() => {
       activeIndexRef.current = activeIndex;
@@ -169,6 +175,12 @@ const LineChart = React.memo(
 
     const chartData = useCallback(
       (ctx: CanvasRenderingContext2D | null): ChartData => {
+        // Reset animation when chart data changes
+        if (animationProgressRef.current === 1) {
+          animationProgressRef.current = 0;
+          isAnimatingRef.current = false;
+        }
+
         return {
           labels: data.map((d) => d[xKey]),
           datasets: data[0].values.map((_, idx: number) => {
@@ -282,11 +294,47 @@ const LineChart = React.memo(
     const horizontalReferenceLinePlugin: Plugin = useMemo<Plugin>(
       () => ({
         id: "horizontalReferenceLine",
+        afterInit: (chart: Chart) => {
+          // Reset animation progress when chart is initialized
+          animationProgressRef.current = 0;
+          isAnimatingRef.current = false; // Don't start animation yet
+        },
+        beforeRender: (chart: Chart) => {
+          // Start animation if not already running
+          if (!isAnimatingRef.current && animationProgressRef.current < 1) {
+            isAnimatingRef.current = true;
+
+            // Start animation loop
+            const animate = () => {
+              // Increment animation progress - adjust speed to match Chart.js default animation
+              animationProgressRef.current = Math.min(1, animationProgressRef.current + 0.02);
+
+              // Redraw chart
+              if (chartRef.current) {
+                chartRef.current.draw();
+              }
+
+              // Continue animation if not complete
+              if (animationProgressRef.current < 1 && isAnimatingRef.current) {
+                animationFrameRef.current = requestAnimationFrame(animate);
+              } else {
+                isAnimatingRef.current = false;
+                animationFrameRef.current = null;
+              }
+            };
+
+            // Start animation
+            animationFrameRef.current = requestAnimationFrame(animate);
+          }
+        },
         afterDraw: (chart: Chart) => {
           const ctx = chart.ctx;
           if (!ctx || horizontalReferenceLines.length === 0) return;
 
           ctx.save();
+
+          // Use the tracked animation progress
+          const animationProgress = animationProgressRef.current;
 
           // Draw each horizontal reference line
           horizontalReferenceLines.forEach((line) => {
@@ -295,14 +343,21 @@ const LineChart = React.memo(
 
             // Only draw if within chart area
             if (y >= chart.chartArea.top && y <= chart.chartArea.bottom) {
+              // Calculate the animated position for the line
+              // Start from the bottom of the chart and move up based on animation progress
+              const startY = chart.chartArea.bottom;
+              const animatedY = startY - (startY - y) * animationProgress;
+
               ctx.beginPath();
               if (line.dash) {
                 ctx.setLineDash(line.dash);
               } else {
                 ctx.setLineDash([4, 4]); // Default dash pattern
               }
-              ctx.moveTo(chart.chartArea.left, y);
-              ctx.lineTo(chart.chartArea.right, y);
+
+              // Draw the line with animation
+              ctx.moveTo(chart.chartArea.left, animatedY);
+              ctx.lineTo(chart.chartArea.right, animatedY);
               ctx.strokeStyle = line.color;
               ctx.lineWidth = 1;
               ctx.stroke();
@@ -310,40 +365,23 @@ const LineChart = React.memo(
               // Reset dash pattern
               ctx.setLineDash([]);
 
-              // Add label if provided
-              if (line.label) {
+              // Add label if provided - only show when animation is complete or nearly complete
+              if (line.label && animationProgress > 0.9) {
+                // Fade in the label text
+                const textOpacity = (animationProgress - 0.9) * 10; // 0.9 -> 0, 1.0 -> 1
                 ctx.font = "12px Arial";
                 ctx.fillStyle = line.color;
-
-                // Measure text width to ensure it doesn't get cut off
-                const textWidth = ctx.measureText(line.label).width;
-                const rightPadding = 10; // Padding from right edge
-
-                // Position the label at the right side of the chart with padding
-                const labelX = chart.chartArea.right - textWidth - rightPadding;
-                const labelPadding = 5; // Padding between line and text
-                const textHeight = 12; // Approximate height of the text
-
-                // Check if the line is too close to the top of the chart
-                const isNearTop = y - textHeight - labelPadding < chart.chartArea.top;
-
-                // Check if the line is too close to the bottom of the chart
-                const isNearBottom = y + textHeight + labelPadding > chart.chartArea.bottom;
-
-                // Set text alignment
                 ctx.textAlign = "left";
-
-                // Position the label based on proximity to chart edges
-                let labelY;
                 ctx.textBaseline = "bottom";
-                labelY = y - labelPadding;
-                if (isNearTop) {
-                  ctx.textBaseline = "top";
-                  labelY = y + labelPadding;
-                } else if (isNearBottom) {
-                  labelY = y - labelPadding;
-                }
+
+                // Position the label at the right side of the chart with some padding
+                const labelX = chart.chartArea.right - 70;
+                const labelY = y - 5; // Position slightly above the line
+
                 ctx.fillText(line.label, labelX, labelY);
+
+                // Reset opacity
+                ctx.globalAlpha = 1;
               }
             }
           });
@@ -589,6 +627,28 @@ const LineChart = React.memo(
         };
       }
     }, [size]);
+
+    // Reset animation progress when chart data changes or when component unmounts
+    useEffect(() => {
+      // Reset animation state
+      animationProgressRef.current = 0;
+      isAnimatingRef.current = true;
+
+      // Cancel any existing animation frame
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+
+      return () => {
+        // Cancel any pending animation frames when component unmounts
+        if (animationFrameRef.current !== null) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
+        }
+        isAnimatingRef.current = false;
+      };
+    }, [data, horizontalReferenceLines, size, useLogarithmicScale]);
 
     return (
       <ReactChart
