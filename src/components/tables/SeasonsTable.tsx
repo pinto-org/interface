@@ -234,11 +234,8 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn, sortedColu
     if (!offset) {
       return;
     }
-    console.info("🚀 ~ calculateHeight ~ offset:", offset)
     const windowHeight = window.innerHeight;
-    console.info("🚀 ~ calculateHeight ~ windowHeight:", windowHeight)
     const newHeight = windowHeight - offset
-    console.info("🚀 ~ calculateHeight ~ newHeight:", newHeight)
     setHeight(Math.max(newHeight - paginationPadding, 500))
   }
 
