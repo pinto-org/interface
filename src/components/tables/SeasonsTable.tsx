@@ -362,12 +362,11 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn, sortedColu
   return (
     <Table overscroll className="table-fixed w-[0px]" ref={tableRef}>
       <TableHeader>
-        <TableRow noHoverMute className="bg-gradient-light z-[1] [&>*]:text-pinto-gray-5">
-          {seasonColumns.map(({ id, name, classes, width }) => {
+        <TableRow noHoverMute className="z-[1] [&>*]:text-pinto-gray-5">
+          {seasonColumns.map(({ id, name, classes }) => {
             if (hiddenFields.includes(id)) return null;
-            const widthClass = `w-[${width}px]`;
             return (
-              <TableHead className={`sticky top-0 z-[1] ${classes} ${widthClass}`} key={id}>
+              <TableHead className={`sticky top-0 z-[1] ${classes}`} key={id}>
                 {!nonHideableFields.includes(id) ? (
                   <TooltipProvider>
                     <Tooltip delayDuration={0}>
