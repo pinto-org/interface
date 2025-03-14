@@ -1,3 +1,4 @@
+import SeasonalAggregateChart from "@/components/charts/SeasonalAggregateChart";
 import SeasonalChart, { tabToSeasonalLookback, TimeTab } from "@/components/charts/SeasonalChart";
 import {
   useSeasonalMcap,
@@ -14,13 +15,15 @@ const PintoExplorer = () => {
   const [liquidityTab, setLiquidityTab] = useState(TimeTab.Week);
   const [supplyTab, setSupplyTab] = useState(TimeTab.Week);
   const [mcapTab, setMcapTab] = useState(TimeTab.Week);
-
+  const [activeTokenSupplyTab, setActiveTokenSupplyTab] = useState(0);
   const season = useSunData().current;
 
   const priceData = useSeasonalPrice(Math.max(0, season - tabToSeasonalLookback(priceTab)), season);
   const liquidityData = useSeasonalTotalLiquidity(Math.max(0, season - tabToSeasonalLookback(liquidityTab)), season);
   const supplyData = useSeasonalSupply(Math.max(0, season - tabToSeasonalLookback(supplyTab)), season);
   const mcapData = useSeasonalMcap(Math.max(0, season - tabToSeasonalLookback(mcapTab)), season);
+
+
 
   return (
     <>
@@ -74,6 +77,20 @@ const PintoExplorer = () => {
             tickValueFormatter={f.largePriceFormatter}
           />
         </div>
+      </div>
+      <div className="w-full">
+        <SeasonalAggregateChart
+          title="Token Supply Location"
+          size="large"
+          fillArea
+          activeTab={mcapTab}
+          activeTokenSupplyTab={activeTokenSupplyTab}
+          onChangeTokenSupplyTab={setActiveTokenSupplyTab}
+          onChangeTab={setMcapTab}
+          useSeasonalResult={mcapData}
+          valueFormatter={f.price0dFormatter}
+          tickValueFormatter={f.largePriceFormatter}
+        />
       </div>
     </>
   );
