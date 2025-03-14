@@ -25,7 +25,7 @@ function AppLayout({ children }) {
     <div>
       <Navbar />
       <ScrollToTop />
-      <div className={cn("relative z-[1] w-screen ")}>{children}</div>
+      <div className={cn("relative z-[1] w-screen min-h-screen")}>{children}</div>
     </div>
   );
 }

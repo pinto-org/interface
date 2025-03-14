@@ -21,9 +21,10 @@ export interface IPageContainer
   extends React.HTMLAttributes<HTMLDivElement>,
   VariantProps<typeof pageContainerVariants> {
   bottomMarginOnMobile?: boolean;
+  removeBottomPadding?: boolean;
 }
 
-const PageContainer = ({ variant = "lg", bottomMarginOnMobile = false, ...props }: IPageContainer) => {
+const PageContainer = ({ removeBottomPadding, bottomMarginOnMobile = false, variant = "lg", ...props }: IPageContainer) => {
   return (
     <div>
       <div
@@ -31,8 +32,8 @@ const PageContainer = ({ variant = "lg", bottomMarginOnMobile = false, ...props 
         className={cn(
           "relative",
           "flex flex-col w-full items-center",
-          "pt-2 px-4 pb-4", // mobile
-          "sm:px-8 sm:pt-5 sm:pb-20 sm:mt-10", // above mobile
+          `pt-2 px-4 ${removeBottomPadding ? "" : "pb-4"}`, // mobile
+          `sm:px-8 sm:pt-5 ${removeBottomPadding ? "" : "sm:pb-20"} sm:mt-10`, // above mobile
           bottomMarginOnMobile ? "mb-[75px] sm:mb-0" : "mb-0"
         )}
       >

@@ -30,6 +30,7 @@ const TABS = [
   {
     urlSlug: "seasons",
     tabName: "Seasons",
+    description: 'Seasons are how Pinto keeps time. Each Season is about 1 hour. Pinto adjusts the supply and various incentives every Season to facilitate price stability.'
   },
   {
     urlSlug: "all",
@@ -52,9 +53,11 @@ const Explorer = () => {
   );
 
   const selectedIdx = TABS.findIndex((t) => t.urlSlug === tab);
+  const description = TABS[selectedIdx].description
+  const removeBottomPadding = selectedIdx === 4; //Remove on seasons table for the pagination to fit nicely on the bottm
 
   return (
-    <PageContainer variant="xl">
+    <PageContainer variant="xl" removeBottomPadding={removeBottomPadding}>
       <div className="flex flex-col w-full items-center">
         <div className="flex flex-col w-full gap-4 sm:gap-8">
           <div className="flex flex-col gap-2 sm:ml-4">
@@ -72,6 +75,10 @@ const Explorer = () => {
               ))}
             </div>
           </div>
+          {description && (<div className="px-4 grid grid-column-0">
+            <span >Seasons</span>
+            <span className="text-pinto-gray-4">{description}</span>
+          </div>)}
           <Separator />
           {selectedIdx === 0 && <PintoExplorer />}
           {selectedIdx === 1 && <SiloExplorer />}
