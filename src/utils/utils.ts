@@ -2,7 +2,13 @@ import { TokenValue } from "@/classes/TokenValue";
 import { FarmerBalance } from "@/state/useFarmerBalances";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { FarmFromMode } from "./types";
+import { FarmFromMode, Token, TokenDepositData } from "./types";
+import { DepositData } from "./types";
+import { diamondABI } from "@/constants/abi/diamondABI";
+import { calculateConvertData } from "@/utils/convert";
+import { encodeFunctionData } from "viem";
+import { DepositGroup } from "@/components/CombineSelect";
+import convert from "@/encoders/silo/convert";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -181,4 +187,147 @@ export function identifyPlantDeposits(
   });
 
   return plantDepositMap;
+}
+
+interface RatioDeposit {
+  stem: string;
+  ratio: TokenValue;
+}
+
+export function createSmartGroups(deposits: DepositData[], targetGroups: number = 20): DepositGroup[] {
+  const MAX_DEPOSITS = 200;
+  const MIN_BDV = TokenValue.fromHuman(25, 6);
+
+  // Filter and map deposits, including BDV for small deposit handling
+  const validDeposits = deposits
+    .filter((d) => !d.isGerminating)
+    .map((d) => ({
+      stem: d.stem.toHuman(),
+      ratio: d.stalk.total.div(d.depositBdv),
+      bdv: d.depositBdv,
+    }))
+    .sort((a, b) => b.ratio.sub(a.ratio).toNumber());
+
+  // Only slice if we have more than MAX_DEPOSITS
+  const slicedDeposits = validDeposits.length > MAX_DEPOSITS 
+    ? validDeposits.slice(-MAX_DEPOSITS)
+    : validDeposits;
+
+  if (slicedDeposits.length === 0) return [];
+
+  // Calculate ratio differences between adjacent deposits
+  const ratioDiffs = slicedDeposits.slice(1).map((deposit, i) => ({
+    diff: slicedDeposits[i].ratio.sub(deposit.ratio),
+    index: i + 1,
+    // Don't create breakpoint if current or next deposit is small
+    isValidBreakpoint: !(
+      slicedDeposits[i].bdv.lte(MIN_BDV) || 
+      slicedDeposits[i + 1].bdv.lte(MIN_BDV)
+    ),
+  }));
+
+  // Sort ratio differences to find natural breakpoints, excluding small deposits
+  const sortedDiffs = [...ratioDiffs]
+    .filter(d => d.isValidBreakpoint)
+    .sort((a, b) => b.diff.sub(a.diff).toNumber());
+
+  // Select the top N-1 breakpoints (for N groups)
+  const numBreakpoints = Math.min(targetGroups - 1, sortedDiffs.length);
+  const breakpoints = sortedDiffs
+    .slice(0, numBreakpoints)
+    .sort((a, b) => a.index - b.index)
+    .map((b) => b.index);
+
+  // Create groups based on calculated breakpoints
+  const newGroups: DepositGroup[] = [];
+  let groupId = 1;
+  let currentGroup: typeof validDeposits[0][] = [];
+
+  slicedDeposits.forEach((deposit, index) => {
+    currentGroup.push(deposit);
+
+    // Only create new group at breakpoint if it wouldn't leave a small deposit alone
+    const isBreakpoint = breakpoints.includes(index + 1);
+    const nextDeposit = slicedDeposits[index + 1];
+    const isLastDeposit = index === slicedDeposits.length - 1;
+    
+    const shouldBreak = isBreakpoint || isLastDeposit;
+    const wouldLeaveSmallDeposit = nextDeposit && nextDeposit.bdv.lte(MIN_BDV);
+
+    if (shouldBreak && !wouldLeaveSmallDeposit) {
+      if (currentGroup.length > 0) {
+        newGroups.push({
+          id: groupId++,
+          deposits: currentGroup.map((d) => d.stem),
+        });
+      }
+      currentGroup = [];
+    }
+  });
+
+  return newGroups;
+}
+
+export function encodeGroupCombineCalls(
+  validGroups: DepositGroup[],
+  token: Token,
+  deposits: DepositData[],
+): `0x${string}`[] {
+  // Exclude groups with only one deposit, since they are already alone
+  const groupsToEncode = validGroups.filter((group) => group.deposits.length > 1);
+
+  return groupsToEncode.map((group) => {
+    // Get selected deposits for this group
+    const selectedDepositData = group.deposits
+      .map((stem) => deposits.find((d) => d.stem.toHuman() === stem))
+      .filter(Boolean);
+
+    const totalAmount = selectedDepositData.reduce((sum, deposit) => {
+      if (!deposit) return sum;
+      return deposit.amount.add(sum);
+    }, TokenValue.ZERO);
+
+    const convertData = calculateConvertData(token, token, totalAmount, totalAmount);
+    if (!convertData) throw new Error("Failed to prepare combine data");
+
+    const stems = selectedDepositData.filter((d): d is DepositData => d !== undefined).map((d) => d.stem.toBigInt());
+    const amounts = selectedDepositData
+      .filter((d): d is DepositData => d !== undefined)
+      .map((d) => d.amount.toBigInt());
+
+    // Use the imported convert function instead
+    return convert(convertData, stems, amounts).callData;
+  });
+}
+
+// Add a new function to handle claim reward grouping and encoding
+export function encodeClaimRewardCombineCalls(
+  deposits: DepositData[],
+  token: Token,
+  targetGroups: number = 20,
+): `0x${string}`[] {
+  console.log("Processing deposits for", token.symbol, ":", {
+    depositCount: deposits.length,
+  });
+
+  // Use our existing smart grouping logic
+  const groups = createSmartGroups(deposits, targetGroups);
+
+  console.log("Created groups for", token.symbol, ":", {
+    groupCount: groups.length,
+    groups: groups.map((g) => ({
+      id: g.id,
+      depositCount: g.deposits.length,
+    })),
+  });
+
+  // Use our existing encode function
+  const result = encodeGroupCombineCalls(groups, token, deposits);
+
+  console.log("Final encoded calls for", token.symbol, ":", {
+    groupCount: groups.length,
+    encodedCallCount: result.length,
+  });
+
+  return result;
 }
