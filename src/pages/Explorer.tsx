@@ -10,6 +10,7 @@ import PintoExplorer from "./explorer/PintoExplorer";
 
 import SeasonsExplorer from "./explorer/SeasonsExplorer";
 import SiloExplorer from "./explorer/SiloExplorer";
+import useIsMobile from "@/hooks/display/useIsMobile";
 const TABS = [
   {
     urlSlug: "pinto",
@@ -52,6 +53,7 @@ const Explorer = () => {
     [handleChangeTab],
   );
 
+  const isMobile = useIsMobile();
   const selectedIdx = TABS.findIndex((t) => t.urlSlug === tab);
   const description = TABS[selectedIdx].description
   const removeBottomPadding = selectedIdx === 4; //Remove on seasons table for the pagination to fit nicely on the bottm
@@ -75,7 +77,7 @@ const Explorer = () => {
               ))}
             </div>
           </div>
-          {description && (<div className="px-4 grid grid-column-0">
+          {!isMobile && description && (<div className="px-4 grid grid-column-0">
             <span >Seasons</span>
             <span className="text-pinto-gray-4">{description}</span>
           </div>)}
