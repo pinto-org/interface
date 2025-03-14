@@ -133,7 +133,7 @@ const SeasonsExplorer = () => {
     }
   }
 
-  const pagination = (<div className="self-center w-[100vw] flex justify-center flex-row gap-x-2 bg-pinto-gray-1 border border-pinto-gray-2 h-16 sticky bottom-0 left-0 right-0 sm:mt[-1rem] mt-[-2rem] font-medium z-[1]">
+  const pagination = (<div className="self-center w-[100vw] flex justify-center flex-row gap-x-2 bg-pinto-gray-1 border border-pinto-gray-2 h-16 sticky bottom-0 left-0 right-0 sm:mt[-.5rem] mt-[-1rem] font-medium z-[1]">
     <div className="w-full min-w-0 3xl:max-w-[1550px] 3xl:px-0 sm:px-8 px-6 flex items-center gap-2">
       <Button variant="pagination" size="xs" onClick={goToPreviousPage} disabled={page === 1 || seasonsData.isFetching}>
         <ArrowLeftIcon />

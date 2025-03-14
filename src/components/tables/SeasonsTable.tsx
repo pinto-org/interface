@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/Separator";
 import { TokenValue } from "@/classes/TokenValue";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { areEqual, ListChildComponentProps, VariableSizeList } from "react-window";
-
+import useIsMobile from "@/hooks/display/useIsMobile";
 enum SeasonsTableCellType {
   Default = "default",
   TwoColumn = "twoColumn",
@@ -157,7 +157,6 @@ const caseIdToDescriptiveText = (caseId: number, column: "price" | "soil_demand"
 };
 
 const nonHideableFields = ["season"];
-const paginationPadding = 64
 
 interface SeasonsTableProps {
   seasonsData: SeasonsTableData[];
@@ -186,7 +185,10 @@ interface SeasonsTableProps {
 export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn, sortedColumn, setSortedColumn }: SeasonsTableProps) => {
 
   const tableRef = useRef<HTMLTableElement>(null);
+  const isMobile = useIsMobile();
   const [height, setHeight] = useState(500);
+  const paginationPadding = isMobile ? 62 : 64
+
 
   const SeasonsTableCell = ({
     cellType = SeasonsTableCellType.Default,
@@ -230,7 +232,7 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn, sortedColu
   }, [hiddenFields]);
 
   const calculateHeight = () => {
-    const offset = 575//tableRef.current?.offsetHeight || 0;
+    const offset = isMobile ? 225 : 575//tableRef.current?.offsetHeight || 0;
     if (!offset) {
       return;
     }
