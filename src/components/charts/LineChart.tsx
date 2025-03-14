@@ -314,35 +314,13 @@ const LineChart = React.memo(
               if (line.label) {
                 ctx.font = "12px Arial";
                 ctx.fillStyle = line.color;
-
-                // Measure text width to ensure it doesn't get cut off
-                const textWidth = ctx.measureText(line.label).width;
-                const rightPadding = 10; // Padding from right edge
-
-                // Position the label at the right side of the chart with padding
-                const labelX = chart.chartArea.right - textWidth - rightPadding;
-                const labelPadding = 5; // Padding between line and text
-                const textHeight = 12; // Approximate height of the text
-
-                // Check if the line is too close to the top of the chart
-                const isNearTop = y - textHeight - labelPadding < chart.chartArea.top;
-
-                // Check if the line is too close to the bottom of the chart
-                const isNearBottom = y + textHeight + labelPadding > chart.chartArea.bottom;
-
-                // Set text alignment
                 ctx.textAlign = "left";
-
-                // Position the label based on proximity to chart edges
-                let labelY;
                 ctx.textBaseline = "bottom";
-                labelY = y - labelPadding;
-                if (isNearTop) {
-                  ctx.textBaseline = "top";
-                  labelY = y + labelPadding;
-                } else if (isNearBottom) {
-                  labelY = y - labelPadding;
-                }
+
+                // Position the label at the right side of the chart with some padding
+                const labelX = chart.chartArea.right - 70;
+                const labelY = y - 5; // Position slightly above the line
+
                 ctx.fillText(line.label, labelX, labelY);
               }
             }
