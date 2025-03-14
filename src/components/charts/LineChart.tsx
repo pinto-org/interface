@@ -78,6 +78,8 @@ const LineChart = React.memo(
   }: LineChartProps) => {
     const chartRef = useRef<Chart | null>(null);
     const activeIndexRef = useRef<number | undefined>(activeIndex);
+    // Add a ref to track animation progress
+    const animationProgressRef = useRef<number>(0);
 
     useEffect(() => {
       activeIndexRef.current = activeIndex;
@@ -282,11 +284,37 @@ const LineChart = React.memo(
     const horizontalReferenceLinePlugin: Plugin = useMemo<Plugin>(
       () => ({
         id: "horizontalReferenceLine",
+        beforeDraw: (chart: Chart) => {
+          // Update animation progress on each frame
+          if (chart.ctx) {
+            // If there are active elements, animation is complete
+            if (chart.getActiveElements().length > 0) {
+              animationProgressRef.current = 1;
+            } else {
+              // Gradually increase animation progress
+              // Chart.js default animation duration is ~1000ms (60 frames at 60fps)
+              // So we increment by ~1/60 for each frame to match that duration
+              animationProgressRef.current = Math.min(1, animationProgressRef.current + 0.016);
+
+              // Request next frame if animation is not complete
+              if (animationProgressRef.current < 1) {
+                requestAnimationFrame(() => {
+                  if (chartRef.current) {
+                    chartRef.current.draw();
+                  }
+                });
+              }
+            }
+          }
+        },
         afterDraw: (chart: Chart) => {
           const ctx = chart.ctx;
           if (!ctx || horizontalReferenceLines.length === 0) return;
 
           ctx.save();
+
+          // Use the tracked animation progress
+          const animationProgress = animationProgressRef.current;
 
           // Draw each horizontal reference line
           horizontalReferenceLines.forEach((line) => {
@@ -295,14 +323,21 @@ const LineChart = React.memo(
 
             // Only draw if within chart area
             if (y >= chart.chartArea.top && y <= chart.chartArea.bottom) {
+              // Calculate the animated position for the line
+              // Start from the bottom of the chart and move up based on animation progress
+              const startY = chart.chartArea.bottom;
+              const animatedY = startY - (startY - y) * animationProgress;
+
               ctx.beginPath();
               if (line.dash) {
                 ctx.setLineDash(line.dash);
               } else {
                 ctx.setLineDash([4, 4]); // Default dash pattern
               }
-              ctx.moveTo(chart.chartArea.left, y);
-              ctx.lineTo(chart.chartArea.right, y);
+
+              // Draw the line with animation
+              ctx.moveTo(chart.chartArea.left, animatedY);
+              ctx.lineTo(chart.chartArea.right, animatedY);
               ctx.strokeStyle = line.color;
               ctx.lineWidth = 1;
               ctx.stroke();
@@ -310,25 +345,22 @@ const LineChart = React.memo(
               // Reset dash pattern
               ctx.setLineDash([]);
 
-              // Add label if provided
-              if (line.label) {
+              // Add label if provided - only show when animation is complete or nearly complete
+              if (line.label && animationProgress > 0.9) {
+                // Fade in the label text
+                const textOpacity = (animationProgress - 0.9) * 10; // 0.9 -> 0, 1.0 -> 1
                 ctx.font = "12px Arial";
                 ctx.fillStyle = line.color;
+                // Apply opacity to the text color
+                ctx.globalAlpha = Math.min(1, textOpacity);
 
                 // Measure text width to ensure it doesn't get cut off
                 const textWidth = ctx.measureText(line.label).width;
                 const rightPadding = 10; // Padding from right edge
 
                 // Position the label at the right side of the chart with padding
-                const labelX = chart.chartArea.right - textWidth - rightPadding;
                 const labelPadding = 5; // Padding between line and text
                 const textHeight = 12; // Approximate height of the text
-
-                // Check if the line is too close to the top of the chart
-                const isNearTop = y - textHeight - labelPadding < chart.chartArea.top;
-
-                // Check if the line is too close to the bottom of the chart
-                const isNearBottom = y + textHeight + labelPadding > chart.chartArea.bottom;
 
                 // Set text alignment
                 ctx.textAlign = "left";
@@ -336,14 +368,16 @@ const LineChart = React.memo(
                 // Position the label based on proximity to chart edges
                 let labelY;
                 ctx.textBaseline = "bottom";
-                labelY = y - labelPadding;
-                if (isNearTop) {
+                labelY = animatedY - labelPadding;
+                // Check if the line is too close to the top of the chart
+                if (animatedY - textHeight - labelPadding < chart.chartArea.top) {
                   ctx.textBaseline = "top";
-                  labelY = y + labelPadding;
-                } else if (isNearBottom) {
-                  labelY = y - labelPadding;
+                  labelY = animatedY + 2 * labelPadding;
                 }
-                ctx.fillText(line.label, labelX, labelY);
+                ctx.fillText(line.label, chart.chartArea.right - textWidth - rightPadding, labelY);
+
+                // Reset opacity
+                ctx.globalAlpha = 1;
               }
             }
           });
@@ -589,6 +623,16 @@ const LineChart = React.memo(
         };
       }
     }, [size]);
+
+    // Reset animation progress when chart data changes or when component unmounts
+    useEffect(() => {
+      animationProgressRef.current = 0;
+
+      return () => {
+        // Cancel any pending animation frames when component unmounts
+        animationProgressRef.current = 1; // Set to 1 to prevent further animation
+      };
+    }, [data, horizontalReferenceLines, size, useLogarithmicScale]);
 
     return (
       <ReactChart
