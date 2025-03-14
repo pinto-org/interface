@@ -9,7 +9,7 @@ import Error404 from "./pages/Error404";
 import Explorer from "./pages/Explorer";
 import Field from "./pages/Field";
 import Landing from "./pages/Landing";
-import { Market } from "./pages/Market";
+import { Market as MarketPage } from "./pages/Market";
 import Overview from "./pages/Overview";
 import Silo from "./pages/Silo";
 import SiloToken from "./pages/SiloToken";
@@ -17,6 +17,7 @@ import Swap from "./pages/Swap";
 import Transfer from "./pages/Transfer";
 import Whitepaper from "./pages/Whitepaper";
 import NewUserView from "./pages/overview/NewUserView";
+import Tractor from "./components/Tractor/Tractor";
 import { useMetaCRM } from "./utils/meta-crm";
 import { externalLinks } from "./constants/links";
 
@@ -79,7 +80,7 @@ function ProtectedLayout() {
         path="/market/pods"
         element={
           <PageMetaWrapper metaKey="market">
-            <Market />
+            <MarketPage />
           </PageMetaWrapper>
         }
       />
@@ -87,7 +88,7 @@ function ProtectedLayout() {
         path="/market/pods/:mode"
         element={
           <PageMetaWrapper metaKey="market">
-            <Market />
+            <MarketPage />
           </PageMetaWrapper>
         }
       />
@@ -95,7 +96,7 @@ function ProtectedLayout() {
         path="/market/pods/:mode/:id"
         element={
           <PageMetaWrapper metaKey="market">
-            <Market />
+            <MarketPage />
           </PageMetaWrapper>
         }
       />
@@ -136,6 +137,14 @@ function ProtectedLayout() {
         element={
           <PageMetaWrapper metaKey="404">
             <Error404 />
+          </PageMetaWrapper>
+        }
+      />
+      <Route
+        path="/tractor/:tab"
+        element={
+          <PageMetaWrapper metaKey="tractor">
+            <Tractor />
           </PageMetaWrapper>
         }
       />
