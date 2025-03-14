@@ -23,6 +23,7 @@ import {
 import { UnwrapEthSwapNode, WrapEthSwapNode } from "./nodes/NativeSwapNode";
 import { ClipboardContext, SwapNode } from "./nodes/SwapNode";
 import { BeanSwapNodeQuote } from "./swap-router";
+import { deriveCopySlotFromReturnData } from "@/utils/bytes";
 
 type SwapBuilderContext = {
   chainId: number;
@@ -63,7 +64,7 @@ export class SwapBuilder {
     this.#nodes = [];
   }
 
-  getPipeCallClipboardSlot(pasteSlot: number, token: Token, copySlot?: number) {
+  getPipeCallClipboardSlot(pasteSlot: number, token: Token) {
     const node = this.#nodes.find((n) => tokensEqual(n.buyToken, token));
 
     if (!node) {
@@ -77,22 +78,74 @@ export class SwapBuilder {
       return undefined;
     }
 
-    const s = calculatePipeCallClipboardSlot(pipe.workflow.getSteps().length, slot);
+    const copySlot = calculatePipeCallClipboardSlot(pipe.workflow.getSteps().length, slot);
     console.debug("[Swap/getPipeCallClipboardSlot]", {
       node,
       pipe: pipe,
       "0pipeIndex": pipe.index,
       "1slot": slot,
       "2pasteSlot": pasteSlot,
-      calcSlot: s,
+      copySlot: copySlot,
     });
 
 
     return Clipboard.encodeSlot(
       pipe.index,
-      copySlot ?? calculatePipeCallClipboardSlot(pipe.workflow.getSteps().length, slot + 1),
+      copySlot,
       pasteSlot,
     );
+  }
+
+  async deriveClipboardWithOutputToken(
+    token: Token,
+    pasteSlot: number,
+    account: Address | undefined,
+  ) {
+    const node = this.#nodes.find((n) => tokensEqual(n.buyToken, token));
+    if (!node) {
+      throw new Error(`No node found for token ${token.symbol}`);
+    }
+    const amountOutSlot = node instanceof ERC20SwapNode ? node.amountOutCopySlot : undefined;
+
+    if (!exists(amountOutSlot)) {
+      throw new Error(`Cannot derive function copy slot for node ${node.name}`);
+    }
+
+    const pipe = this.advFarm.getAdvPipeIndex(this.#advPipe.name);
+    const functionSlot = pipe?.workflow.getTag(node.thisTag);
+
+    if (!exists(functionSlot) || !exists(pipe)) {
+      if (!exists(functionSlot)) {
+        throw new Error(`No function slot found for token ${token.symbol}`);
+      }
+      throw new Error(`No pipe found for token ${token.symbol}`);
+    }
+
+    const result = await this.advFarm.simulate({ account });
+    if (!result.result) {
+      throw new Error(`Error simulating transaction`);
+    }
+
+    const { copySlot, summary } = deriveCopySlotFromReturnData(
+      result.result[pipe.index],
+      functionSlot,
+      amountOutSlot
+    );
+
+    const clipboard = Clipboard.encodeSlot(pipe.index, copySlot, pasteSlot);
+
+    console.debug("[Swap/builder/deriveClipboardWithOutputToken]", {
+      node,
+      pipe,
+      copySlot,
+      pasteSlot,
+      clipboard,
+    })
+
+    return {
+      summary,
+      clipboard,
+    }
   }
 
   async build(
@@ -335,9 +388,6 @@ export class SwapBuilder {
 
     this.#advPipe.add(approve, {
       tag: `offload-token-approve-${outToken.address}-${node.allowanceTarget}`,
-      fnLen: 1,
-      fnReturnLen: 0,
-      fnReturnIndex: 1,
     });
 
     console.debug("[Swap/SwapBuilder/offloadPipeline/approve]", {
@@ -349,8 +399,6 @@ export class SwapBuilder {
 
     this.#advPipe.add(transfer, {
       tag: `offload-token-transfer-${outToken.address}-${recipient}`,
-      fnLen: 1,
-      fnReturnLen: 0,
     });
 
     console.debug("[Swap/SwapBuilder/offloadPipeline/transfer]", {

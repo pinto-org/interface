@@ -5,7 +5,7 @@ import encoders from "@/encoders";
 import { beanstalkAddress } from "@/generated/contractHooks";
 import { AdvancedFarmCall, AdvancedPipeCall, TypedAdvancedFarmCalls } from "@/utils/types";
 import { HashString, MayArray } from "@/utils/types.generic";
-import { exists } from "@/utils/utils";
+import { arrayify, exists } from "@/utils/utils";
 import { Address, StateOverride, decodeFunctionResult } from "viem";
 import { readContract, simulateContract } from "viem/actions";
 import { Config as WagmiConfig } from "wagmi";
@@ -15,15 +15,13 @@ import { Config as WagmiConfig } from "wagmi";
  * @param value - Eth value specified in the call
  * @param clipboard - Clipboard specified in the call
  * @param tag - Tag specified in the call
+ * @param noReturn - call(s) returns nothing. If an Array, the index(s) (w/in the call array) represent the call(s) that returns nothing.
  */
 interface WorkflowOptions {
   value?: TV;
   clipboard?: HashString;
   tag?: string;
-  fnLen?: number;
-  noReturn?: boolean | number; // call returns nothing
-  fnReturnLen?: number;
-  fnReturnIndex?: number;
+  noReturn?: boolean | number[]; // call returns nothing
 }
 
 abstract class FarmWorkflow<T extends AdvancedFarmCall> {
@@ -35,9 +33,9 @@ abstract class FarmWorkflow<T extends AdvancedFarmCall> {
 
   protected tagMap: Map<string, number>;
 
-  protected fnReturn: { tag: string; returnDataFnIndex: number; }[];
+  protected noReturnIndexes: number[];
 
-  protected fnReturnLength: number;
+  protected noReturns: boolean[];
 
   protected steps: T[];
 
@@ -46,9 +44,9 @@ abstract class FarmWorkflow<T extends AdvancedFarmCall> {
     this.chainId = chainId;
     this.config = config;
     this.tagMap = new Map();
-    this.fnReturn = [];
-    this.fnReturnLength = 0;
     this.steps = [];
+    this.noReturnIndexes = [];
+    this.noReturns = [];
   }
 
   get length() {
@@ -68,8 +66,10 @@ abstract class FarmWorkflow<T extends AdvancedFarmCall> {
   }
 
   add(input: MayArray<T>, options?: WorkflowOptions) {
+    const startIdx = this.steps.length;
+
     if (Array.isArray(input)) {
-      this.add(input);
+      this.steps.push(...input);
     } else {
       this.steps.push(input);
     }
@@ -79,15 +79,19 @@ abstract class FarmWorkflow<T extends AdvancedFarmCall> {
       this.tagMap.set(options.tag, this.steps.length - 1);
     }
 
-    if (exists(options?.fnReturnLen)) {
-      const k = this.fnReturnLength + (options.fnLen ?? (Array.isArray(input) ? input.length : 1));
+    if (exists(options?.noReturn)) {
+      if (typeof options.noReturn === "boolean") {
+        const noReturnIndexes = arrayify(input, (_, idx) => startIdx + idx);
+        this.noReturnIndexes.push(...noReturnIndexes);
 
-      // const returnIndex = this.fnReturnLength + options.fnReturnIndex;
+      } else {
+        if (!Array.isArray(input)) {
+          throw new Error("noReturn must be an array if input is not an array.");
+        }
 
-      // const newFnReturnLen = this.fnReturnLength + options.fnReturnLen;
-      //  const reverseIndex = options.fnReturnLen - 1 - 
+        const noReturnIndexes = arrayify(input, (_, i) => startIdx + i);
 
-      //  const fnIndex = newFnReturnLen - 1;
+      }
     }
 
     return this;
@@ -96,8 +100,8 @@ abstract class FarmWorkflow<T extends AdvancedFarmCall> {
   clear() {
     this.steps = [];
     this.tagMap.clear();
-    this.fnReturn = [];
-    this.fnReturnLength = 0;
+    this.noReturnIndexes = [];
+    this.noReturns = [];
   }
 }
 
