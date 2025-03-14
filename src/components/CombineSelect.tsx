@@ -15,19 +15,24 @@ import { toast } from "sonner";
 import DepositSelectDialog from "./DepositSelectDialog";
 import { LeftArrowIcon } from "./Icons";
 import { Button } from "./ui/Button";
+import { encodeGroupCombineCalls } from "@/utils/utils";
+
+export interface DepositGroup {
+  id: number;
+  deposits: string[];
+}
 
 interface CombineSelectProps {
   setTransferData: Dispatch<SetStateAction<DepositTransferData[]>>;
   token: Token;
-  size?: "small";
   disabled?: boolean;
 }
 
-export default function CombineSelect({ setTransferData, token, size, disabled }: CombineSelectProps) {
+export default function CombineSelect({ setTransferData, token, disabled }: CombineSelectProps) {
   const protocolAddress = useProtocolAddress();
-  const depositedBalances = useFarmerSiloNew().deposits;
-  const farmerDeposits = depositedBalances.get(token);
-  const [selected, setSelected] = useState<string[]>([]);
+  const depositedBalances = useFarmerSiloNew();
+  const farmerDeposits = depositedBalances.deposits.get(token);
+  const [groups, setGroups] = useState<DepositGroup[]>([{ id: 1, deposits: [] }]);
   const [open, setOpen] = useState(false);
   const invalidateSun = useInvalidateSun();
   const qc = useQueryClient();
@@ -49,48 +54,34 @@ export default function CombineSelect({ setTransferData, token, size, disabled }
   });
 
   const handleCombine = useCallback(async () => {
-    if (!selected.length || !farmerDeposits) return;
-    setSubmitting(true);
+    if (!farmerDeposits || !groups.length || !groups[0]?.deposits?.length) return;
+
+    const validGroups = groups.filter((group) => group.deposits.length > 1);
+    if (validGroups.length === 0) return;
 
     try {
-      // Get selected deposits
-      const selectedDepositData = selected
-        .map((stem) => farmerDeposits.deposits.find((d) => d.stem.toHuman() === stem))
-        .filter(Boolean);
+      setSubmitting(true);
+      toast.loading("Combining deposits...");
 
-      // Calculate total amount
-      const totalAmount = selectedDepositData.reduce((sum, deposit) => {
-        if (!deposit) return sum;
-        return deposit.amount.add(sum);
-      }, TokenValue.ZERO);
-
-      // using the same from and to token does an L2L
-      const convertData = calculateConvertData(token, token, totalAmount, totalAmount);
-
-      if (!convertData) {
-        toast.error("Failed to prepare combine data");
-        return;
-      }
-
-      const stems = selectedDepositData.filter((d): d is DepositData => d !== undefined).map((d) => d.stem.toBigInt());
-
-      const amounts = selectedDepositData
-        .filter((d): d is DepositData => d !== undefined)
-        .map((d) => d.amount.toBigInt());
+      const encodedCalls = encodeGroupCombineCalls(validGroups, token, farmerDeposits.deposits);
 
       await writeWithEstimateGas({
         address: protocolAddress,
         abi: diamondABI,
-        functionName: "convert",
-        args: [convertData, stems, amounts],
+        functionName: "farm",
+        args: [encodedCalls],
       });
+
       setOpen(false);
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error("Combine deposits failed", e);
+      toast.dismiss();
+      toast.error("Combine failed");
+      throw e;
     } finally {
       setSubmitting(false);
     }
-  }, [selected, farmerDeposits, token, protocolAddress, writeWithEstimateGas, setSubmitting]);
+  }, [farmerDeposits, groups, token, protocolAddress, writeWithEstimateGas, setSubmitting]);
 
   return (
     <>
@@ -108,11 +99,13 @@ export default function CombineSelect({ setTransferData, token, size, disabled }
         onOpenChange={setOpen}
         token={token}
         farmerDeposits={farmerDeposits}
-        selected={selected}
-        setSelected={setSelected}
+        selected={groups.flatMap((g) => g.deposits)}
+        setSelected={() => {}}
         setTransferData={setTransferData}
         mode="combine"
         onCombine={handleCombine}
+        groups={groups}
+        setGroups={setGroups}
       />
     </>
   );
