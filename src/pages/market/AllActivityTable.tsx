@@ -1,5 +1,5 @@
-import { MarketActivityTable } from "./MarketActivityTable";
 import { useAllMarket } from "@/state/market/useAllMarket";
+import { MarketActivityTable } from "./MarketActivityTable";
 
 export function AllActivityTable() {
   const marketData = useAllMarket();

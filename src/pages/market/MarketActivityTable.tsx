@@ -162,8 +162,8 @@ export function MarketActivityTable({ marketData, titleText, farmer }: MarketAct
                       evt.listing
                         ? evt.podAmount.div(evt.listing.originalPodAmount)
                         : evt.beanAmountFilled
-                            // biome-ignore lint/style/noNonNullAssertion: Only one of listing/orer can be undefined
-                            .div(evt.order!.originalOrderBeans)
+                          // biome-ignore lint/style/noNonNullAssertion: Only one of listing/orer can be undefined
+                          .div(evt.order!.originalOrderBeans)
                     ).mul(100);
                     if (farmer) {
                       status = `${evt.fromFarmer === farmer.toLowerCase() ? "SOLD" : "BOUGHT"} - ${evt.listing ? "LISTING" : "ORDER"}`;
