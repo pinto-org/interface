@@ -9,7 +9,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { areEqual, ListChildComponentProps, VariableSizeList } from "react-window";
 import useIsMobile from "@/hooks/display/useIsMobile";
-import { calculateCropScales } from "@/utils/convert";
+import { calculateCropScales, convertDeltaDemandToPercentage, convertDeltaDemandToPercentage } from "@/utils/convert";
 import { caseIdToDescriptiveText } from "@/utils/utils";
 
 enum SeasonsTableCellType {
@@ -55,16 +55,6 @@ const TwoColumnCell = ({
     <TableCell className={className}>{cellContent}</TableCell>
   );
 };
-
-const convertDeltaDemandToPercentage = (deltaDemand: number) => {
-  if (deltaDemand === 0) return "0%";
-  if (deltaDemand === 1e18) return "100%";
-  if (deltaDemand === 1e36) return "∞%";
-
-  // Scale the value between 0-100%
-  const scaledValue = (deltaDemand / 1e18) * 100;
-  return `${TokenValue.fromHuman(scaledValue, 0).toHuman("short")}%`;
-}
 
 const nonHideableFields = ["season"];
 
