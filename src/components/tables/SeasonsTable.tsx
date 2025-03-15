@@ -9,7 +9,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { areEqual, ListChildComponentProps, VariableSizeList } from "react-window";
 import useIsMobile from "@/hooks/display/useIsMobile";
-import { calculateCropScales, convertDeltaDemandToPercentage, convertDeltaDemandToPercentage } from "@/utils/convert";
+import { calculateCropScales, convertDeltaDemandToPercentage } from "@/utils/convert";
 import { caseIdToDescriptiveText } from "@/utils/utils";
 
 enum SeasonsTableCellType {
