@@ -19,16 +19,14 @@ import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import { useInvalidateSun } from "@/state/useSunData";
-import { deriveCopySlotFromReturnData } from "@/utils/bytes";
 import { stringEq, stringToNumber } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
-import { HashString } from "@/utils/types.generic";
-import { cn, exists } from "@/utils/utils";
+import { cn } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useAccount, useChainId, useConfig } from "wagmi";
+import { useAccount } from "wagmi";
 
 const useFilterTokens = (siloToken: Token, balances: ReturnType<typeof useFarmerBalances>["balances"]) => {
   return useMemo(() => {
@@ -70,9 +68,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.INTERNAL_EXTERNAL);
   const [slippage, setSlippage] = useState(0.5);
   const qc = useQueryClient();
-
-  const config = useConfig();
-  const chainId = useChainId();
 
   useEffect(() => {
     // If we are still calculating the preferred token, set the token to the preferred token once it's been set.
