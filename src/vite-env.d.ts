@@ -22,6 +22,10 @@ interface ImportMetaEnv {
    */
   readonly VITE_APY_ENDPOINT: string;
   /**
+   * 
+   */
+  readonly VITE_ROUTER_ENDPOINT: string;
+  /**
    * RPC URL for the testnet
    */
   readonly VITE_TENDERLY_RPC_URL?: string;

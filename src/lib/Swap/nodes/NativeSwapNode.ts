@@ -26,6 +26,7 @@ export abstract class NativeSwapNode extends SwapNode {
     if (amount) {
       this.sellAmount = amount;
       this.buyAmount = amount;
+      this.minBuyAmount = amount;
     }
     return this;
   }

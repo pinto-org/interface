@@ -22,6 +22,6 @@ export const defaultQuerySettingsFast = {
  */
 export const defaultQuerySettingsQuote = {
   ...defaultQuerySettingsFast,
-  staleTime: FIFTEEN_SECONDS / 4,
-  refetchInterval: FIFTEEN_SECONDS / 4,
+  staleTime: FIFTEEN_SECONDS,
+  refetchInterval: FIFTEEN_SECONDS,
 };

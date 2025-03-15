@@ -23,6 +23,7 @@ import {
 import { UnwrapEthSwapNode, WrapEthSwapNode } from "./nodes/NativeSwapNode";
 import { SwapNode } from "./nodes/SwapNode";
 import { SwapPriceCache } from "./price-cache";
+import { AdvancedPipeWorkflow } from "../farm/workflow";
 
 export interface BeanSwapNodeQuote {
   /**
@@ -112,9 +113,22 @@ class WellsRouter {
 
   #context: SwapContext;
 
+  #advPipe: AdvancedPipeWorkflow | null;
+
   constructor(priceCache: SwapPriceCache, context: SwapContext) {
     this.#priceCache = priceCache;
     this.#context = context;
+    this.#advPipe = new AdvancedPipeWorkflow(context.chainId, context.config);
+  }
+
+  #getAdvancedPipe() {
+    if (!this.#advPipe) {
+      this.#advPipe = new AdvancedPipeWorkflow(this.#context.chainId, this.#context.config);
+    } else {
+      this.#advPipe.clear();
+    }
+
+    return this.#advPipe;
   }
 
   /**
@@ -224,17 +238,14 @@ class WellsRouter {
       throw new Error(`Error building multi-well route. Could not find well for ${buyToken.symbol}`);
     }
 
-    const pipe: AdvancedPipeCall[] = [
-      encoders.well.getSwapOut(sellTokenWell, sellToken, this.#context.mainToken, amount),
-      encoders.well.getSwapOut(buyTokenWell, this.#context.mainToken, buyToken, amount, Clipboard.encodeSlot(0, 0, 2)),
-    ];
+    const advPipe = this.#getAdvancedPipe();
 
-    const encodedResult = await readContract(this.#context.config.getClient({ chainId: this.#context.chainId }), {
-      address: beanstalkAddress[this.#context.chainId],
-      abi: abiSnippets.advancedPipe,
-      functionName: "advancedPipe",
-      args: [pipe, 0n],
-    });
+    advPipe.add([
+      encoders.well.getSwapOut(sellTokenWell, sellToken, this.#context.mainToken, amount),
+      encoders.well.getSwapOut(buyTokenWell, this.#context.mainToken, buyToken, amount, Clipboard.encodeSlot(0, 0, 2))
+    ]);
+
+    const encodedResult = await advPipe.readStatic();
 
     const decodedResults = (encodedResult as HashString[]).map((r) => decodeGetSwapOut(r));
 
@@ -360,11 +371,10 @@ export class SwapQuoter {
       return this.#makeQuote(nodes, sellToken, buyToken, amount, slippage);
     }
 
-    const sellingWETH = tokensEqual(this.context.wrappedNative, sellToken);
-    const buyingWETH = tokensEqual(this.context.wrappedNative, buyToken);
-
-    const wrappingETH = tokensEqual(this.context.native, sellToken);
-    const unwrappingETH = tokensEqual(this.context.native, buyToken);
+    const sellingWETH = Boolean(sellToken.isWrappedNative);
+    const buyingWETH = Boolean(buyToken.isWrappedNative);
+    const wrappingETH = Boolean(sellToken.isNative);
+    const unwrappingETH = Boolean(buyToken.isNative);
 
     // Update token prices
     await this.priceCache.updatePrices(forceRefresh);
@@ -449,9 +459,8 @@ export class SwapQuoter {
    */
   async #nonLPQuote(swapFragment: QuoteSourceFragment, sellAmount: TV, slippage: number, options?: SwapOptions) {
     const { sellToken, buyToken } = swapFragment;
-    //
-    const sellingMain = tokensEqual(sellToken, this.context.mainToken);
-    const buyingMain = tokensEqual(buyToken, this.context.mainToken);
+    const sellingMain = Boolean(sellToken.isMain);
+    const buyingMain = Boolean(buyToken.isMain);
 
     if (tokensEqual(sellToken, buyToken)) {
       throw new Error("[Swap Router] Cannot swap main token with itself");
@@ -493,12 +502,20 @@ export class SwapQuoter {
     }
 
     // Get the best route from the wells router
-    const routes = await this.wellsRouter.getBestWellBeanOutRoute(usdIn, slippage, options);
+    const [routes, dexAggNode] = await Promise.all([
+      this.wellsRouter.getBestWellBeanOutRoute(usdIn, slippage, options),
+      this.#handleZeroXQuote(sellToken, buyToken, sellAmount, slippage),
+    ]);
 
     const route = routes?.[0];
 
     if (!route) {
       throw new Error("[Swap Router] No route found");
+    }
+
+    // If the zeroX quote is better than the best route, return the zeroX quote
+    if (dexAggNode.buyAmount.gt(route.amountOut)) {
+      return [dexAggNode];
     }
 
     const thruToken = route.sellToken;
@@ -518,13 +535,16 @@ export class SwapQuoter {
       });
     }
 
-    // If the direct path is the best path, return the direct path node.
+    // // If the direct path is the best path, return the direct path node.
     if (directPathIsBestPath && directNode) {
       return [directNode];
     }
 
     // Quote the swap from the sell token to the intermediary token.
-    const nonMain2NonMainNodes = await this.#handleNonPintoSwap(sellToken, thruToken, sellAmount, slippage, options);
+    const nonMain2NonMainNodes = await this.#handleNonPintoSwap(sellToken, thruToken, sellAmount, slippage, {
+      ...options,
+      excludePintoExchange: true,
+    });
 
     // Swap from the intermediary token to the main token
     const well = this.context.underlying2LP[getTokenIndex(thruToken)];
@@ -549,6 +569,15 @@ export class SwapQuoter {
 
   /**
    * Handle quote for selling PINTO -> NON_PINTO
+   * 
+   * Notes: 
+   * 
+   * 1. If we are disabling 0x quotes (for example, if swapping between PINTO & WSOL)
+   *    -> returns the direct well route
+   * 2. Fetch well routes & fetch from dex aggregator
+   * 
+   * 3. Compare the approximate USD value of the 
+   * 
    */
   async #handleSellMain(
     sellToken: Token,
@@ -561,36 +590,51 @@ export class SwapQuoter {
       return this.#handleDirectRoute(sellToken, buyToken, sellAmount, slippage);
     }
 
-    // Get the best route from the wells router
-    const routes = await this.wellsRouter.getBestWellBeanInRoute(sellAmount, slippage, options);
-    const route = routes?.[0];
+    // Get the best route from the wells router & fetch from zeroX
+    const [routes, dexAggNode] = await Promise.all([
+      this.wellsRouter.getBestWellBeanInRoute(sellAmount, slippage, options),
+      this.#handleZeroXQuote(sellToken, buyToken, sellAmount, slippage),
+    ]);
+
+    // Set the USD values for the dex aggregator node to compare against the well route outputs
+    dexAggNode.setUSDValues(this.priceCache);
+
+    const highestOutputWellRoute = routes?.[0];
     const directPath = routes.find((route) => tokensEqual(route.buyToken, buyToken));
 
-    if (!routes.length || !route?.well) {
+    if (!routes.length || !highestOutputWellRoute?.well) {
       throw new Error("[Swap Router] Error building quote");
     }
 
-    const thruToken = route.buyToken;
+    const thruToken = highestOutputWellRoute.buyToken;
     const nodes: SwapNode[] = [];
 
+    const directPathIsBestPath = tokensEqual(thruToken, buyToken);
+
     // Create the first swap node (main token to intermediary token)
-    const firstNode = new WellSwapNode(this.context, route.well, sellToken, thruToken);
+    const firstNode = new WellSwapNode(this.context, highestOutputWellRoute.well, sellToken, thruToken);
     firstNode.setFields({
       sellAmount: sellAmount,
-      buyAmount: route.amountOut,
-      minBuyAmount: route.minAmountOut,
+      buyAmount: highestOutputWellRoute.amountOut,
+      minBuyAmount: highestOutputWellRoute.minAmountOut,
       slippage,
     });
     nodes.push(firstNode);
 
     // If the intermediary token is the target token, return the nodes
-    if (tokensEqual(thruToken, buyToken)) {
+    if (directPathIsBestPath) {
+      // If the zeroX quote is better than the best route, return the zeroX quote
+      if (dexAggNode.usdOut.gt(highestOutputWellRoute.usdValueOut)) {
+        return [dexAggNode];
+      }
+
       return nodes;
     }
 
     // Otherwise, quote swapping from the intermediary token to the target token
     const nonDirectNodes = await this.#handleNonPintoSwap(thruToken, buyToken, firstNode.buyAmount, slippage, {
       ...options,
+      excludePintoExchange: true,
     });
 
     const lastStep = extractLast(nonDirectNodes);
@@ -608,7 +652,17 @@ export class SwapQuoter {
         slippage,
       });
 
+      // If the zeroX quote is better than the best route, return the zeroX quote
+      if (dexAggNode.buyAmount.gt(directNode.buyAmount)) {
+        return [dexAggNode];
+      }
+
       return [directNode];
+    }
+
+    // If the zeroX quote is better than the best route, return the zeroX quote
+    if (lastStep?.buyAmount.lt(dexAggNode.buyAmount)) {
+      return [dexAggNode];
     }
 
     nodes.push(...nonDirectNodes);
@@ -643,10 +697,11 @@ export class SwapQuoter {
     slippage: number,
     options?: SwapOptions & {
       well2WellDisabled?: boolean;
+      excludePintoExchange?: boolean;
     },
   ): Promise<SwapNode[]> {
     const [zeroXNode, well2WellQuote] = await Promise.all([
-      options?.aggDisabled ? undefined : this.#handleZeroXQuote(sellToken, buyToken, sellAmount, slippage),
+      options?.aggDisabled ? undefined : this.#handleZeroXQuote(sellToken, buyToken, sellAmount, slippage, options?.excludePintoExchange),
       options?.well2WellDisabled ? undefined : this.#handleWell2WellQuote(sellToken, buyToken, sellAmount, slippage),
     ]);
 
@@ -695,9 +750,9 @@ export class SwapQuoter {
     return nodes;
   }
 
-  async #handleZeroXQuote(sellToken: Token, buyToken: Token, sellAmount: TV, slippage: number) {
+  async #handleZeroXQuote(sellToken: Token, buyToken: Token, sellAmount: TV, slippage: number, excludePintoExchange: boolean = false) {
     const node = new ZeroXSwapNode(this.context, sellToken, buyToken);
-    await node.quoteForward(sellAmount, slippage);
+    await node.quoteForward(sellAmount, slippage, excludePintoExchange);
     return node;
   }
 

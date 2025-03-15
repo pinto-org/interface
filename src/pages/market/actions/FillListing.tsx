@@ -146,7 +146,7 @@ export default function FillListing() {
   const balanceFromMode = getBalanceFromMode(tokenInBalance, balanceFrom);
   const balanceExceedsMax = balanceFromMode.gt(0) && maxFillAmount && balanceFromMode.gte(maxFillAmount);
 
-  const onSubmit = useCallback(() => {
+  const onSubmit = useCallback(async () => {
     if (!listing) {
       throw new Error("Listing not found");
     }
@@ -177,8 +177,8 @@ export default function FillListing() {
             Number(balanceFrom), // fromMode
           ],
         });
-      } else if (swapBuild) {
-        const fillClipboard = swapBuild.getPipeCallClipboardSlot(9, mainToken);
+      } else if (swapBuild?.advancedFarm.length) {
+        const { clipboard } = await swapBuild.deriveClipboardWithOutputToken(mainToken, 9, account.address);
 
         const advFarm = [...swapBuild.advancedFarm];
         advFarm.push(
@@ -193,7 +193,7 @@ export default function FillListing() {
             Number(listing.mode), // mode
             TV.ZERO, // amountIn (from clipboard)
             FarmFromMode.INTERNAL, // fromMode
-            fillClipboard,
+            clipboard,
           ),
         );
 
@@ -204,6 +204,8 @@ export default function FillListing() {
           args: [advFarm],
           value: (value ?? TV.ZERO).toBigInt(),
         });
+      } else {
+        throw new Error("No quote");
       }
     } catch (e) {
       console.error(e);

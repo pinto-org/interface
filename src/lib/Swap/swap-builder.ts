@@ -9,7 +9,7 @@ import { stringEq } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
 import { AdvancedPipeCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { HashString } from "@/utils/types.generic";
-import { calculatePipeCallClipboardSlot, exists } from "@/utils/utils";
+import { exists } from "@/utils/utils";
 import { Address } from "viem";
 import { Config as WagmiConfig } from "wagmi";
 import { AdvancedFarmWorkflow, AdvancedPipeWorkflow } from "../farm/workflow";
@@ -23,6 +23,7 @@ import {
 import { UnwrapEthSwapNode, WrapEthSwapNode } from "./nodes/NativeSwapNode";
 import { ClipboardContext, SwapNode } from "./nodes/SwapNode";
 import { BeanSwapNodeQuote } from "./swap-router";
+import { deriveCopySlotFromReturnData, calculatePipeCallClipboardSlot } from "@/utils/bytes";
 
 type SwapBuilderContext = {
   chainId: number;
@@ -70,17 +71,74 @@ export class SwapBuilder {
       return undefined;
     }
 
+    const copySlot = calculatePipeCallClipboardSlot(pipe.workflow.getSteps().length, slot);
     console.debug("[Swap/getPipeCallClipboardSlot]", {
+      node,
+      pipe: pipe,
       "0pipeIndex": pipe.index,
       "1slot": slot,
       "2pasteSlot": pasteSlot,
+      copySlot: copySlot,
     });
+
 
     return Clipboard.encodeSlot(
       pipe.index,
-      calculatePipeCallClipboardSlot(pipe.workflow.getSteps().length, slot),
+      copySlot,
       pasteSlot,
     );
+  }
+
+  async deriveClipboardWithOutputToken(
+    token: Token,
+    pasteSlot: number,
+    account: Address | undefined,
+  ) {
+    const node = this.#nodes.find((n) => tokensEqual(n.buyToken, token));
+    if (!node) {
+      throw new Error(`No node found for token ${token.symbol}`);
+    }
+    const amountOutSlot = node instanceof ERC20SwapNode ? node.amountOutCopySlot : undefined;
+
+    if (!exists(amountOutSlot)) {
+      throw new Error(`Cannot derive function copy slot for node ${node.name}`);
+    }
+
+    const pipe = this.advFarm.getAdvPipeIndex(this.#advPipe.name);
+    const functionSlot = pipe?.workflow.getTag(node.thisTag);
+
+    if (!exists(functionSlot) || !exists(pipe)) {
+      if (!exists(functionSlot)) {
+        throw new Error(`No function slot found for token ${token.symbol}`);
+      }
+      throw new Error(`No pipe found for token ${token.symbol}`);
+    }
+
+    const result = await this.advFarm.simulate({ account });
+    if (!result.result) {
+      throw new Error(`Error simulating transaction`);
+    }
+
+    const { copySlot, summary } = deriveCopySlotFromReturnData(
+      result.result[pipe.index],
+      functionSlot,
+      amountOutSlot
+    );
+
+    const clipboard = Clipboard.encodeSlot(pipe.index, copySlot, pasteSlot);
+
+    console.debug("[Swap/builder/deriveClipboardWithOutputToken]", {
+      node,
+      pipe,
+      copySlot,
+      pasteSlot,
+      clipboard,
+    })
+
+    return {
+      summary,
+      clipboard,
+    }
   }
 
   async build(
@@ -89,7 +147,7 @@ export class SwapBuilder {
     farmToMode: FarmToMode,
     caller: Address,
     recipient: Address,
-    id?: string,
+    id?: string
   ) {
     this.#initWorkflow(quote, id);
 
@@ -121,10 +179,10 @@ export class SwapBuilder {
     for (const [i, node] of this.#nodes.entries()) {
       // 1st leg of the swap
       if (i === 0) {
-        toMode = FarmToMode.INTERNAL;
 
         // Wrap ETH before loading pipeline
         if (isWrapEthNode(node)) {
+          toMode = FarmToMode.INTERNAL;
           this.advFarm.add(this.#getWrapETH(node, toMode, i), { tag: node.thisTag });
           fromMode = FarmFromMode.INTERNAL_TOLERANT;
         }
@@ -152,24 +210,25 @@ export class SwapBuilder {
           );
         } else if (isZeroXNode(node)) {
           this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
-          this.#advPipe.add(node.buildStep(), { tag: node.thisTag });
+          this.#advPipe.add(node.buildStep(), {
+            tag: node.thisTag
+          });
         } else if (isWellSyncNode(node)) {
           this.#advPipe.add(
             node.transferStep({ copySlot: this.#getPrevNodeCopySlot(i) }, this.#advPipe.getClipboardContext()),
           );
           this.#advPipe.add(node.buildStep({ recipient: pipelineAddress[this.#context.chainId] }), {
-            tag: node.thisTag,
+            tag: node.thisTag
           });
         } else if (isWellRemoveSingleSidedNode(node)) {
           const isFirst = this.#advPipe.length === 0;
           if (!isFirst) {
             throw new Error("Error building swap: WellRemoveSingleSidedSwapNode must be the first txn in a sequence.");
           }
-
           this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
           // just send to pipeline regardless of mode
           this.#advPipe.add(node.buildStep({ recipient: pipelineAddress[this.#context.chainId] }), {
-            tag: node.thisTag,
+            tag: node.thisTag
           });
 
           // throw error here for now since we haven't sufficiently tested withdrawing as any arbitrary token yet.

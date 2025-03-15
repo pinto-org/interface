@@ -175,7 +175,6 @@ function Sow({ isMorning }: SowProps) {
       // temperature at 6 decimals
       const _minTemp = TokenValue.fromHuman(minTemperature, PODS.decimals);
       const minTemp = (_minTemp.gt(currentTemperature) ? _minTemp : currentTemperature).subSlippage(slippage);
-      console.log("minTemp", minTemp);
 
       const minSoil = TokenValue.ZERO;
 
@@ -187,28 +186,24 @@ function Sow({ isMorning }: SowProps) {
           args: [amount.toBigInt(), minTemp.toBigInt(), minSoil.toBigInt(), Number(balanceFrom)],
         });
       }
-      if (!swapBuild) {
+      if (!swapBuild || !swapBuild.advFarm.length) {
         throw new Error("No swap quote");
       }
-      const advFarm = [...swapBuild.advancedFarm];
-      console.log("advFarm", advFarm);
+      
+      const { clipboard } = await swapBuild.deriveClipboardWithOutputToken(mainToken, 0, account.address);
+      const sowCallStruct = sowWithMin(amount, minTemp, minSoil, FarmFromMode.INTERNAL, clipboard);
 
-      const sow = sowWithMin(
-        amount,
-        minTemp,
-        minSoil,
-        FarmFromMode.INTERNAL,
-        swapBuild.getPipeCallClipboardSlot(0, mainToken),
-      );
+      const advFarm = [...swapBuild.advFarm.getSteps()];
+      advFarm.push(sowCallStruct);
 
-      advFarm.push(sow);
+      const value = tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n;
 
       return writeWithEstimateGas({
         address: diamond,
         abi: beanstalkAbi,
         functionName: "advancedFarm",
         args: [advFarm],
-        value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
+        value,
       });
     } catch (e) {
       console.error(e);
