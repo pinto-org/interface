@@ -152,22 +152,23 @@ class OneSidedPairToken extends SiloConvertLP2LPConvertStrategy {
       clipboard: Clipboard.encode([]),
     });
 
-    // pipe.add(
-    //   OneSidedPairToken.snippets.erc20BalanceOf(swap.buyToken, pipelineAddress[resolveChainId(this.context.chainId)])
-    // );
+    // 4. get balance of buyToken
+    pipe.add(
+      OneSidedPairToken.snippets.erc20BalanceOf(swap.buyToken, pipelineAddress[resolveChainId(this.context.chainId)])
+    );
 
-    // // 4. transfer swap result to target well
-    // pipe.add(
-    //   OneSidedPairToken.snippets.erc20Transfer(
-    //     swap.buyToken,
-    //     target.well.pool.address,
-    //     TV.MAX_UINT256, // overriden w/ clipboard
-    //     Clipboard.encodeSlot(4, 0, 1),
-    //   ),
-    // );
+    // 5. transfer swap result to target well
+    pipe.add(
+      OneSidedPairToken.snippets.erc20Transfer(
+        swap.buyToken,
+        target.well.pool.address,
+        TV.MAX_UINT256, // overriden w/ clipboard
+        Clipboard.encodeSlot(4, 0, 1),
+      ),
+    );
 
-    // // 5. call Sync on target well
-    // pipe.add(OneSidedPairToken.snippets.wellSync(target.well, PIPELINE_ADDRESS, target.minAmountOut));
+    // 6. call Sync on target well
+    pipe.add(OneSidedPairToken.snippets.wellSync(target.well, PIPELINE_ADDRESS, target.minAmountOut));
 
     return pipe;
   }

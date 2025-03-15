@@ -57,8 +57,6 @@ abstract class FarmWorkflow<T extends AdvancedFarmCall> {
   }
 
   add(input: MayArray<T>, options?: WorkflowOptions) {
-    const startIdx = this.steps.length;
-
     if (Array.isArray(input)) {
       this.steps.push(...input);
     } else {
