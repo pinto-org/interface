@@ -13,7 +13,7 @@ const endpoint = import.meta.env.VITE_ROUTER_ENDPOINT ?? "";
 
 const endpointSlug = "swap/allowance-holder/quote";
 
-const routerEndpoint = `${endpoint}/${endpointSlug}`;
+const routerEndpoint = endpoint ? `${endpoint}/${endpointSlug}` : undefined;
 
 export class ZeroX {
   /**
