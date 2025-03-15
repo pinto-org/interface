@@ -6,8 +6,6 @@
 
 ## Setup
 
-Install the dependencies
-
 ```shell
 yarn
 yarn generate
