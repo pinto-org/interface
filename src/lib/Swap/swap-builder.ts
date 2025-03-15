@@ -9,7 +9,7 @@ import { stringEq } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
 import { AdvancedPipeCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { HashString } from "@/utils/types.generic";
-import { calculatePipeCallClipboardSlot, exists } from "@/utils/utils";
+import { exists } from "@/utils/utils";
 import { Address } from "viem";
 import { Config as WagmiConfig } from "wagmi";
 import { AdvancedFarmWorkflow, AdvancedPipeWorkflow } from "../farm/workflow";
@@ -23,19 +23,12 @@ import {
 import { UnwrapEthSwapNode, WrapEthSwapNode } from "./nodes/NativeSwapNode";
 import { ClipboardContext, SwapNode } from "./nodes/SwapNode";
 import { BeanSwapNodeQuote } from "./swap-router";
-import { deriveCopySlotFromReturnData } from "@/utils/bytes";
+import { deriveCopySlotFromReturnData, calculatePipeCallClipboardSlot } from "@/utils/bytes";
 
 type SwapBuilderContext = {
   chainId: number;
   config: WagmiConfig;
 };
-
-/**
- * @param appendBalanceOfToken - Append a balanceOf call to the advanced Pipe call.
- */
-export interface ISwapBuilderOptions {
-  appendBalanceOfToken?: boolean;
-}
 
 export class SwapBuilder {
   #context: SwapBuilderContext;

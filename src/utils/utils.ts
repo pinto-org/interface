@@ -75,11 +75,6 @@ export function arrayify<T, U = T>(value: MayArray<T>, map?: (v: T, i: number, a
   return map ? array.map(map) : array;
 }
 
-export function calculatePipeCallClipboardSlot(pipeCallLength: number, slot: number) {
-  if (!pipeCallLength || !slot) return 0;
-  return 2 + pipeCallLength + (1 + slot * 2);
-}
-
 export function getBalanceFromMode(balance: FarmerBalance | undefined, mode: FarmFromMode) {
   if (!balance) return TokenValue.ZERO;
   switch (mode) {
