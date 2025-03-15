@@ -14,4 +14,5 @@ test('tokensEqual', () => {
 
   expect(tokensEqual(main, eth)).toBe(false);
   expect(tokensEqual(eth, weth)).toBe(false);
+  expect(tokensEqual(main, undefined)).toBe(false);
 })
