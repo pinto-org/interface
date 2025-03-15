@@ -5,7 +5,9 @@ import IconImage from "@/components/ui/IconImage";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/Dropdown";
 import { Button } from "@/components/ui/Button";
 import { nonHideableFields, SeasonColumn } from "@/pages/explorer/SeasonsExplorer";
-
+import useIsMobile from "@/hooks/display/useIsMobile";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/Drawer";
+import { useState } from "react";
 interface HideColumnDropdownProps {
     seasonColumns: SeasonColumn[]
     hiddenFields: string[]
@@ -15,16 +17,49 @@ interface HideColumnDropdownProps {
 
 export const HideColumnDropdown = ({ seasonColumns, hiddenFields, toggleColumn, resetAllHiddenColumns }: HideColumnDropdownProps) => {
 
+    const isMobile = useIsMobile();
     const columnDropdownLabel = hiddenFields.length > 0 ? `${hiddenFields.length} column${hiddenFields.length > 1 ? 's' : ''} hidden` : 'Hide Columns'
+    const [isOpen, setIsOpen] = useState(false);
+
+    const toggle = () => {
+        setIsOpen(!isOpen);
+    }
+
+    const trigger = (
+        <Button className="justify-between sm:h-6 h-8 rounded-full" variant="outline">
+            <IconImage className="mr-2" src={eyeballCrossed} size={4} />
+            {columnDropdownLabel}
+        </Button>
+    )
+
+    if (isMobile) {
+        return (
+            <Drawer open={isOpen} onOpenChange={() => toggle()}>
+                <DrawerTrigger>{trigger}</DrawerTrigger>
+                <DrawerContent>
+                    {seasonColumns.map(({ id, dropdownName, name }) => {
+                        if (nonHideableFields.includes(id)) {
+                            return null
+                        }
+                        const checked = hiddenFields.includes(id)
+                        const extraClasses = hiddenFields.includes(id) ? 'line-through' : ''
+                        return (
+                            <div key={id} onClick={() => toggleColumn(id)} className={`flex items-center px-8 ${extraClasses}`}>
+                                {!checked && <IconImage className="absolute left-2 flex items-center justify-center" src={eyeballCrossed} size={4} />}
+                                <span >{dropdownName || name}</span>
+                            </div>
+                        )
+                    })}
+                    <Button className="w-full text-base h-8 rounded-none" onClick={resetAllHiddenColumns} variant="outline">Reset</Button>
+                </DrawerContent>
+            </Drawer>
+        );
+    }
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger asChild className="rounded-full border border-pinto-gray-2 bg-pinto-gray-1 text-base h-6">
-                <Button className="justify-between" variant="outline">
-                    <IconImage className="mr-2" src={eyeballCrossed} size={4} />
-                    {columnDropdownLabel}
-                    <IconImage className="ml-2" src={chevronDown} size={4} />
-                </Button>
+            <DropdownMenuTrigger asChild className="border border-pinto-gray-2 bg-pinto-gray-1 text-base">
+                {trigger}
             </DropdownMenuTrigger>
             <DropdownMenuContent className="overflow-auto" avoidCollisions={false} onCloseAutoFocus={() => { }} align="start">
                 {seasonColumns.map(({ id, dropdownName, name }) => {
