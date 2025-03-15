@@ -200,9 +200,7 @@ export class SwapBuilder {
       // No need to update Farm modes until we offload pipeline.
       if (isERC20Node(node)) {
         if (isWellNode(node)) {
-          this.#advPipe.add(
-            this.#getApproveERC20MaxAllowance(node)
-          );
+          this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
           this.#advPipe.add(
             node.buildStep(
               { copySlot: this.#getPrevNodeCopySlot(i), recipient: pipelineAddress[this.#context.chainId] },
@@ -211,9 +209,7 @@ export class SwapBuilder {
             { tag: node.thisTag },
           );
         } else if (isZeroXNode(node)) {
-          this.#advPipe.add(
-            this.#getApproveERC20MaxAllowance(node)
-          );
+          this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
           this.#advPipe.add(node.buildStep(), {
             tag: node.thisTag
           });
@@ -222,19 +218,17 @@ export class SwapBuilder {
             node.transferStep({ copySlot: this.#getPrevNodeCopySlot(i) }, this.#advPipe.getClipboardContext()),
           );
           this.#advPipe.add(node.buildStep({ recipient: pipelineAddress[this.#context.chainId] }), {
-            tag: node.thisTag,
+            tag: node.thisTag
           });
         } else if (isWellRemoveSingleSidedNode(node)) {
           const isFirst = this.#advPipe.length === 0;
           if (!isFirst) {
             throw new Error("Error building swap: WellRemoveSingleSidedSwapNode must be the first txn in a sequence.");
           }
-          this.#advPipe.add(
-            this.#getApproveERC20MaxAllowance(node)
-          );
+          this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
           // just send to pipeline regardless of mode
           this.#advPipe.add(node.buildStep({ recipient: pipelineAddress[this.#context.chainId] }), {
-            tag: node.thisTag,
+            tag: node.thisTag
           });
 
           // throw error here for now since we haven't sufficiently tested withdrawing as any arbitrary token yet.
@@ -336,17 +330,14 @@ export class SwapBuilder {
      * - use previous node info.
      */
     if (isUnwrapEthNode(node)) {
-      // console.log("isUnwrapEthNode: ", node);
       tag = node.tagNeeded; // get-WETH
       outToken = node.sellToken; // WETH
       copySlot = this.#getPrevNodeCopySlot(i); // WETH amountOutCopySlot
     } else if (isERC20Node(node)) {
-      // console.log("isERC20Node: ", node);
       tag = node.thisTag;
       outToken = node.buyToken;
       copySlot = node.amountOutCopySlot;
     } else {
-      console.log("FAILURE: ", node);
       throw new Error("Error building swap offloading pipeline: Cannot determine approval token for transfer.");
     }
 
@@ -379,9 +370,7 @@ export class SwapBuilder {
       throw new Error("Misconfigured Swap Route. Cannot transfer non-ERC20 with no target.");
     }
 
-    this.#advPipe.add(approve, {
-      tag: `offload-token-approve-${outToken.address}-${node.allowanceTarget}`,
-    });
+    this.#advPipe.add(approve);
 
     console.debug("[Swap/SwapBuilder/offloadPipeline/approve]", {
       target: outToken.address,
@@ -390,9 +379,7 @@ export class SwapBuilder {
       spender: "PINTOSTALK",
     });
 
-    this.#advPipe.add(transfer, {
-      tag: `offload-token-transfer-${outToken.address}-${recipient}`,
-    });
+    this.#advPipe.add(transfer);
 
     console.debug("[Swap/SwapBuilder/offloadPipeline/transfer]", {
       recipient: recipient,

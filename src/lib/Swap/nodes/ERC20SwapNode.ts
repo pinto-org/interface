@@ -36,11 +36,6 @@ export abstract class ERC20SwapNode extends SwapNode implements IERC20SwapNode {
   readonly buyToken: Token;
 
   /**
-   * @param functionLength - The number of outputs responsible for running node.buildStep()
-   * @param outputFnIndex - The index of the output in the node.buildStep() output that returns the output of this node
-   */
-
-  /**
    * The slippage for the swap occuring via this node
    */
   slippage: number = 0;

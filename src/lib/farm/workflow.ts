@@ -5,7 +5,6 @@ import encoders from "@/encoders";
 import { beanstalkAddress } from "@/generated/contractHooks";
 import { AdvancedFarmCall, AdvancedPipeCall, TypedAdvancedFarmCalls } from "@/utils/types";
 import { HashString, MayArray } from "@/utils/types.generic";
-import { arrayify, exists } from "@/utils/utils";
 import { Address, StateOverride, decodeFunctionResult } from "viem";
 import { readContract, simulateContract } from "viem/actions";
 import { Config as WagmiConfig } from "wagmi";
@@ -15,13 +14,11 @@ import { Config as WagmiConfig } from "wagmi";
  * @param value - Eth value specified in the call
  * @param clipboard - Clipboard specified in the call
  * @param tag - Tag specified in the call
- * @param noReturn - call(s) returns nothing. If an Array, the index(s) (w/in the call array) represent the call(s) that returns nothing.
  */
 interface WorkflowOptions {
   value?: TV;
   clipboard?: HashString;
   tag?: string;
-  noReturn?: boolean | number[]; // call returns nothing
 }
 
 abstract class FarmWorkflow<T extends AdvancedFarmCall> {
@@ -33,10 +30,6 @@ abstract class FarmWorkflow<T extends AdvancedFarmCall> {
 
   protected tagMap: Map<string, number>;
 
-  protected noReturnIndexes: number[];
-
-  protected noReturns: boolean[];
-
   protected steps: T[];
 
   constructor(chainId: number, config: WagmiConfig, name: string = "adv-farm") {
@@ -45,8 +38,6 @@ abstract class FarmWorkflow<T extends AdvancedFarmCall> {
     this.config = config;
     this.tagMap = new Map();
     this.steps = [];
-    this.noReturnIndexes = [];
-    this.noReturns = [];
   }
 
   get length() {
@@ -79,29 +70,12 @@ abstract class FarmWorkflow<T extends AdvancedFarmCall> {
       this.tagMap.set(options.tag, this.steps.length - 1);
     }
 
-    if (exists(options?.noReturn)) {
-      if (typeof options.noReturn === "boolean") {
-        const noReturnIndexes = arrayify(input, (_, idx) => startIdx + idx);
-        this.noReturnIndexes.push(...noReturnIndexes);
-
-      } else {
-        if (!Array.isArray(input)) {
-          throw new Error("noReturn must be an array if input is not an array.");
-        }
-
-        const noReturnIndexes = arrayify(input, (_, i) => startIdx + i);
-
-      }
-    }
-
     return this;
   }
 
   clear() {
-    this.steps = [];
     this.tagMap.clear();
-    this.noReturnIndexes = [];
-    this.noReturns = [];
+    this.steps = [];
   }
 }
 
