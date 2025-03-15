@@ -1,11 +1,37 @@
+import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerDepositsForAccountQuery } from "@/state/useFarmerDepositedBalances";
 import { useFarmerPlotsQuery } from "@/state/useFarmerField";
 import useTokenData from "@/state/useTokenData";
+import { useChainAddress } from "@/utils/chain";
 import { useSetAtom } from "jotai";
 import { useEffect } from "react";
-import { useAccount } from "wagmi";
+import { Address } from "viem";
+import { useAccount, useReadContract } from "wagmi";
 import { farmerStatusAtom } from "./status.atoms";
+
+const querySettings = {
+  staleTime: 1000 * 60 * 20, // 20 minutes, in milliseconds
+  refetchInterval: 1000 * 60 * 20, // 20 minutes, in milliseconds
+};
+
+function useFarmerDepositsForAccountQuery(address?: Address) {
+  const diamondAddress = useChainAddress(beanstalkAddress);
+  const account = useAccount();
+
+  const readAddress = address ?? account.address;
+
+  return useReadContract({
+    address: diamondAddress,
+    abi: beanstalkAbi,
+    functionName: "getDepositsForAccount",
+    args: [readAddress as Address],
+    query: {
+      ...querySettings,
+      refetchOnWindowFocus: true,
+      enabled: Boolean(readAddress),
+    },
+  });
+}
 
 export default function useUpdateFarmerStatus() {
   const depositsQuery = useFarmerDepositsForAccountQuery();

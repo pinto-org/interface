@@ -5,7 +5,7 @@ import DepositSelect from "@/components/DepositSelect";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import useIsMobile from "@/hooks/display/useIsMobile";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { Token } from "@/utils/types";
 import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import DepositsList from "../../DepositsList";
@@ -28,7 +28,7 @@ export default function StepTwo({
   usingMax,
   backToFirstStep,
 }: StepTwoProps) {
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const depositedBalances = farmerSilo.deposits;
   const depositedData = [...depositedBalances.entries()].map(([token, depositData]) => ({ token, depositData }));
   const isMobile = useIsMobile();

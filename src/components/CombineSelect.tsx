@@ -4,7 +4,7 @@ import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
 import { DepositTransferData } from "@/pages/transfer/actions/TransferDeposits";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { useInvalidateSun } from "@/state/useSunData";
 import { calculateConvertData } from "@/utils/convert";
@@ -25,14 +25,14 @@ interface CombineSelectProps {
 
 export default function CombineSelect({ setTransferData, token, size, disabled }: CombineSelectProps) {
   const protocolAddress = useProtocolAddress();
-  const depositedBalances = useFarmerSiloNew().deposits;
+  const depositedBalances = useFarmerSilo().deposits;
   const farmerDeposits = depositedBalances.get(token);
   const [selected, setSelected] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
   const invalidateSun = useInvalidateSun();
   const qc = useQueryClient();
 
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const farmerBalances = useFarmerBalances();
   const { queryKeys: priceQueryKeys } = usePriceData();
 

@@ -11,7 +11,7 @@ import { S_MAIN_TOKEN } from "@/constants/tokens";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useFarmerDepositAllowance from "@/state/useFarmerDepositAllowance";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloWrappedTokenToUSD } from "@/state/useSiloWrappedTokenData";
 import useTokenData from "@/state/useTokenData";
 import { useChainConstant } from "@/utils/chain";
@@ -28,8 +28,8 @@ import { toast } from "sonner";
 import { useAccount, useReadContract } from "wagmi";
 
 export default function WrapToken({ siloToken }: { siloToken: Token }) {
-  const farmerDeposits = useFarmerSiloNew();
-  const contractSilo = useFarmerSiloNew(siloToken.address);
+  const farmerDeposits = useFarmerSilo();
+  const contractSilo = useFarmerSilo(siloToken.address);
   const farmerBalances = useFarmerBalances();
   const { mainToken } = useTokenData();
   const { address: account } = useAccount();

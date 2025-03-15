@@ -15,7 +15,7 @@ import { usePreferredInputToken } from "@/hooks/usePreferredInputToken";
 import useTransaction from "@/hooks/useTransaction";
 import usePriceImpactSummary from "@/hooks/wells/usePriceImpactSummary";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import { useInvalidateSun } from "@/state/useSunData";
@@ -48,7 +48,7 @@ const useFilterTokens = (siloToken: Token, balances: ReturnType<typeof useFarmer
 function Deposit({ siloToken }: { siloToken: Token }) {
   const diamondAddress = useProtocolAddress();
   const farmerBalances = useFarmerBalances();
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const invalidateSun = useInvalidateSun();
   const { filterSet, filterPreferred } = useFilterTokens(siloToken, farmerBalances.balances);
   const { queryKeys: priceQueryKeys } = usePriceData();
