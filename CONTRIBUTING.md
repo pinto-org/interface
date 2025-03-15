@@ -18,15 +18,15 @@ Don't forget to setup your IDE with `biome` for formatting and linting.
 
 ## Project structure
 
-- **classes** Generic classes used throughout the application (e.g., number handling, clipboard utilities).
-- **components** Generic components shared across pages.
-- **constants** Contains constants, configuration values, and ABIs.
-- **encoders** Functions for encoding contract function data.
-- **hooks** Reusable hooks for common functionalities.
-- **lib** Specialized classes related to specific actions (e.g., swaps, conversions).
-- **pages** Individual page components and their associated non-generic components.
-- **state** State management via Wagmi and Jotai hooks.
-- **utils** General-purpose utility functions.
+- **classes**: Generic classes used throughout the application (e.g., number handling, clipboard utilities).
+- **components**: Generic components shared across pages.
+- **constants**: Contains constants, configuration values, and ABIs.
+- **encoders**: Functions for encoding contract function data.
+- **hooks**: Reusable hooks for common functionalities.
+- **lib**: Specialized classes related to specific actions (e.g., swaps, conversions).
+- **pages**: Individual page components and their associated non-generic components.
+- **state**: State management via Wagmi and Jotai hooks.
+- **utils**: General-purpose utility functions.
 
 ## Tests
 
@@ -42,7 +42,7 @@ When submitting an issue, please follow these guidelines to ensure clarity and e
 
 3. **Clearly identify the issue:** Simplify and isolate the issue to determine the specific conditions causing it.
 
-4. **Add attachments** &mdash; Attach relevant screenshots or screen recordings to illustrate the issue clearly.
+4. **Add attachments:** Attach relevant screenshots or screen recordings to illustrate the issue clearly.
 
 A thorough bug report minimizes the need for follow-up questions. Please include detailed information such as your environment details, precise reproduction steps, affected browsers and operating systems, and the expected outcome.
 
