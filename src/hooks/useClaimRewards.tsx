@@ -1,6 +1,6 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
 import { useInvalidateSun, useSunData } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
@@ -18,7 +18,7 @@ export function useClaimRewards() {
   const chainId = useChainId();
   const queryClient = useQueryClient();
   const account = useAccount().address;
-  const data = useFarmerSiloNew();
+  const data = useFarmerSilo();
   const siloData = useSiloData();
   const isRaining = useSunData().raining;
   const whitelistedTokens = useTokenData().whitelistedTokens;

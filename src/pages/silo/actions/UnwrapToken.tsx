@@ -3,31 +3,31 @@ import { ComboInputField } from "@/components/ComboInputField";
 import MobileActionBar from "@/components/MobileActionBar";
 import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
+import { Label } from "@/components/ui/Label";
 import { siloedPintoABI } from "@/constants/abi/siloedPintoABI";
+import { useTokenMap } from "@/hooks/pinto/useTokenMap";
+import useTransaction from "@/hooks/useTransaction";
 import { FarmerBalance, useFarmerBalances } from "@/state/useFarmerBalances";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import useTokenData from "@/state/useTokenData";
 import { pickCratesAsCrates, sortCratesByStem } from "@/utils/convert";
+import { tryExtractErrorMessage } from "@/utils/error";
 import { isValidAddress, stringToStringNum } from "@/utils/string";
+import { tokensEqual } from "@/utils/token";
 import { FarmFromMode, Token } from "@/utils/types";
 import { getBalanceFromMode, noop } from "@/utils/utils";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAccount, useReadContract } from "wagmi";
-import { Label } from "@/components/ui/Label";
-import useTransaction from "@/hooks/useTransaction";
-import { toast } from "sonner";
-import { tryExtractErrorMessage } from "@/utils/error";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTokenMap } from "@/hooks/pinto/useTokenMap";
-import { tokensEqual } from "@/utils/token";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { useAccount, useReadContract } from "wagmi";
 
 const balancesToShow = [FarmFromMode.INTERNAL, FarmFromMode.EXTERNAL];
 
 export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   // State
   const farmerBalances = useFarmerBalances();
-  const { queryKeys: farmerDepositsQueryKeys } = useFarmerSiloNew();
-  const contractBalances = useFarmerSiloNew(siloToken.isSiloWrapped ? siloToken.address : undefined);
+  const { queryKeys: farmerDepositsQueryKeys } = useFarmerSilo();
+  const contractBalances = useFarmerSilo(siloToken.isSiloWrapped ? siloToken.address : undefined);
   const { address: account, isConnecting } = useAccount();
   const { mainToken } = useTokenData();
   const qc = useQueryClient();
@@ -38,9 +38,9 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   // Local State
   const [amountIn, setAmountIn] = useState<string>("0");
   const [balanceSource, setBalanceSource] = useState<FarmFromMode>(
-    farmerBalances.isFetched ? getPreferredBalanceSource(farmerBalance) : FarmFromMode.EXTERNAL
+    farmerBalances.isFetched ? getPreferredBalanceSource(farmerBalance) : FarmFromMode.EXTERNAL,
   );
-  const [didInitBalanceSource, setDidInitBalanceSource] = useState<boolean>(farmerBalances.isFetched ? true : false);
+  const [didInitBalanceSource, setDidInitBalanceSource] = useState<boolean>(!!farmerBalances.isFetched);
   const [inputError, setInputError] = useState<boolean>(false);
 
   // Derived
@@ -56,11 +56,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   // Transaction
   const onSuccess = useCallback(() => {
     setAmountIn("0");
-    const keys = [
-      ...contractBalances.queryKeys,
-      ...farmerBalances.queryKeys,
-      ...farmerDepositsQueryKeys,
-    ];
+    const keys = [...contractBalances.queryKeys, ...farmerBalances.queryKeys, ...farmerDepositsQueryKeys];
     keys.forEach((key) => qc.invalidateQueries({ queryKey: key }));
   }, [contractBalances, farmerBalances, farmerDepositsQueryKeys]);
 
@@ -85,7 +81,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
         address: siloToken.address,
         abi: siloedPintoABI,
         functionName: "redeemToSilo",
-        args: [amountTV.toBigInt(), account, account, balanceSource]
+        args: [amountTV.toBigInt(), account, account, balanceSource],
       });
     } catch (e) {
       console.error(e);
@@ -112,14 +108,17 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   const inputAltText = `${getInputAltTextWithSource(balanceSource)} Balance:`;
 
   const baseDisabled = !account || !validAmountIn || !balance.gte(amountTV) || inputError;
-  const buttonDisabled = baseDisabled || isConfirming || submitting || output?.amount.lte(0) || inputError || quoteQuery.isLoading;
+  const buttonDisabled =
+    baseDisabled || isConfirming || submitting || output?.amount.lte(0) || inputError || quoteQuery.isLoading;
 
   const sourceIsInternal = balanceSource === FarmFromMode.INTERNAL;
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col">
-        <Label variant="section" expanded>Amount to Unwrap</Label>
+        <Label variant="section" expanded>
+          Amount to Unwrap
+        </Label>
         <ComboInputField
           amount={amountIn}
           selectedToken={siloToken}
@@ -138,12 +137,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
         />
       </div>
       {output?.amount.gt(0) && validAmountIn ? (
-        <SiloOutputDisplay
-          token={mainToken}
-          amount={output.amount}
-          stalk={output.stalk.total}
-          seeds={output.seeds}
-        />
+        <SiloOutputDisplay token={mainToken} amount={output.amount} stalk={output.stalk.total} seeds={output.seeds} />
       ) : null}
       <div className="flex-row hidden sm:flex">
         <SmartSubmitButton
@@ -173,7 +167,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
         />
       </MobileActionBar>
     </div>
-  )
+  );
 }
 
 // -----------------------------------------------------------------------
@@ -192,20 +186,20 @@ function useUnwrapTokenQuoteQuery(amount: TV, tokenIn: Token, tokenOut: Token, d
       select: (data: bigint) => {
         const res = TV.fromBigInt(data, tokenOut.decimals);
         return res;
-      }
-    }
+      },
+    },
   });
 }
 
 function useUnwrapQuoteOutputSummary(
-  data: ReturnType<typeof useFarmerSiloNew>['deposits'],
+  data: ReturnType<typeof useFarmerSilo>["deposits"],
   token: Token,
   quote: TV | undefined,
 ) {
   // sort by latest deposit first
   const sortedDeposits = useMemo(() => {
     const depositsData = data.get(token);
-    return sortCratesByStem(depositsData?.deposits ?? [], 'desc')
+    return sortCratesByStem(depositsData?.deposits ?? [], "desc");
   }, [data, token]);
 
   return useMemo(() => {
@@ -226,7 +220,7 @@ function useFilterOutTokens(token: Token) {
     });
     return set;
   }, [tokenMap, token]);
-};
+}
 
 function getPreferredBalanceSource(balance: FarmerBalance | undefined) {
   if (!balance || balance.total.eq(0)) return FarmFromMode.EXTERNAL;
@@ -242,6 +236,6 @@ function getInputAltTextWithSource(source: FarmFromMode) {
     case FarmFromMode.INTERNAL:
       return "Farm";
     default:
-      return "Combined"
+      return "Combined";
   }
 }

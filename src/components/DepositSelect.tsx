@@ -1,5 +1,5 @@
 import { DepositTransferData } from "@/pages/transfer/actions/TransferDeposits";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { Token } from "@/utils/types";
 import { Dispatch, SetStateAction, useState } from "react";
 import DepositSelectDialog from "./DepositSelectDialog";
@@ -17,7 +17,7 @@ export default function DepositSelect({
   size?: "small" | undefined;
   disabled?: boolean | undefined;
 }) {
-  const depositedBalances = useFarmerSiloNew().deposits;
+  const depositedBalances = useFarmerSilo().deposits;
   const farmerDeposits = depositedBalances.get(token);
   const [selected, setSelected] = useState<string[]>([]);
   const [open, setOpen] = useState(false);

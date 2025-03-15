@@ -31,7 +31,7 @@ import { useWellUnderlying } from "@/hooks/wells/wells";
 import { SiloConvert, SiloConvertSummary } from "@/lib/siloConvert/SiloConvert";
 import { SiloConvertMaxConvertQuoter } from "@/lib/siloConvert/SiloConvert.maxConvertQuoter";
 import ConvertProvider, { SiloTokenConvertPath, useConvertState } from "@/state/context/convert.provider";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { PoolData, usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import { useInvalidateSun } from "@/state/useSunData";
@@ -55,7 +55,7 @@ interface BaseConvertProps {
 interface ConvertProps extends BaseConvertProps {
   siloConvert: SiloConvert;
   queryClient: ReturnType<typeof useQueryClient>;
-  farmerDeposits: ReturnType<typeof useFarmerSiloNew>["deposits"];
+  farmerDeposits: ReturnType<typeof useFarmerSilo>["deposits"];
   farmerActiveStalk: TV;
   deltaP: TV;
   convertExceptions: ReturnType<typeof useConvertExceptions>;
@@ -238,7 +238,7 @@ function ConvertForm({
 
   // if url mode === 'max', set amount in to max convert
   useEffect(() => {
-    if (mode !== 'max' || !targetToken || didInitAmountMax || maxConvert.lte(0)) return;
+    if (mode !== "max" || !targetToken || didInitAmountMax || maxConvert.lte(0)) return;
     setDidInitAmountMax(true);
     setAmountIn(maxConvert.toHuman());
   }, [mode, targetToken, didInitAmountMax, maxConvert]);
@@ -324,7 +324,13 @@ function ConvertForm({
   };
 
   const LP2LPMinConvertWarning = () => {
-    if (!siloToken.isLP || !targetToken?.isLP || maxConvertQueryData.lte(0) || maxConvertQueryData.eq(SiloConvertMaxConvertQuoter.NO_MAX_CONVERT_AMOUNT)) return null;
+    if (
+      !siloToken.isLP ||
+      !targetToken?.isLP ||
+      maxConvertQueryData.lte(0) ||
+      maxConvertQueryData.eq(SiloConvertMaxConvertQuoter.NO_MAX_CONVERT_AMOUNT)
+    )
+      return null;
 
     return (
       <Warning variant="info">
@@ -481,7 +487,7 @@ const SiloConvertProvider = ({ children }: { children: React.ReactNode }) => {
     const token = tokenMap[getTokenIndex(tokenValue)];
 
     if (token) {
-      setTargetToken(token)
+      setTargetToken(token);
       if (modeValue) {
         setMode(modeValue);
       }
@@ -548,7 +554,7 @@ const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
   const queryClient = useQueryClient();
   const siloConvert = useSiloConvert();
 
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const { pools, queryKeys: priceQueryKeys, deltaB } = usePriceData();
   const { queryKeys: siloQueryKeys } = useSiloData();
 
