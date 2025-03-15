@@ -382,3 +382,24 @@ export function calculateConvertData(fromToken: Token, toToken: Token, amountIn:
     console.error("CONVERT: Unknown conversion pathway");
   }
 }
+
+export function calculateCropScales(value: number, isRaining: boolean) {
+  const minInput = 0;
+  const maxInput = 1e18 * 100; // value is 1-100 not 0.0 -  1.0
+  const maxOutput = 100;
+
+  // Calculate crop scalar
+  const scalarMinOutput = 0;
+  const scalarValue = scalarMinOutput + ((value - minInput) * (maxOutput - scalarMinOutput)) / (maxInput - minInput);
+  const cropScalar = (Math.min(Math.max(scalarValue, scalarMinOutput), maxOutput)).toFixed(1);
+
+  // Calculate crop ratio
+  const ratioMinOutput = isRaining ? 33 : 50;
+  const ratioValue = ratioMinOutput + ((value - minInput) * (maxOutput - ratioMinOutput)) / (maxInput - minInput);
+  const cropRatio = Math.min(Math.max(ratioValue, ratioMinOutput), maxOutput).toFixed(1);
+
+  return {
+    cropScalar,
+    cropRatio,
+  };
+};
