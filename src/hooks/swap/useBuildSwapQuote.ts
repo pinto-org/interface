@@ -6,6 +6,7 @@ import { useCallback } from "react";
 import { Address } from "viem";
 import { useAccount, useChainId, useConfig } from "wagmi";
 import { SWAP_QUERY_KEY_PREDICATE } from "./useSwap";
+import { defaultQuerySettingsQuote } from "@/constants/query";
 
 export default function useBuildSwapQuote(
   quote: BeanSwapNodeQuote | undefined,
@@ -52,7 +53,8 @@ export default function useBuildSwapQuote(
 
       return builder;
     },
-    enabled: !!quote && !!account && !!swapCaller && !!swapRecipient && !disabled
+    enabled: !!quote && !!account && !!swapCaller && !!swapRecipient && !disabled,
+    ...defaultQuerySettingsQuote
   });
 
 
