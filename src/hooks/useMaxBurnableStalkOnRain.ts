@@ -1,6 +1,6 @@
 import { TV } from "@/classes/TokenValue";
 import { STALK } from "@/constants/internalTokens";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSunData } from "@/state/useSunData";
 import { exists } from "@/utils/utils";
 import { useMemo } from "react";
@@ -8,7 +8,7 @@ import { useAccount } from "wagmi";
 
 export default function useMaxBurnableStalkOnRain() {
   const account = useAccount();
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const raining = useSunData().raining;
 
   const rainRoots = farmerSilo.flood.roots;

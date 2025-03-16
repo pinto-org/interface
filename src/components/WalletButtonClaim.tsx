@@ -5,7 +5,7 @@ import useTransaction from "@/hooks/useTransaction";
 import { navbarPanelAtom } from "@/state/app/navBar.atoms";
 import { useDestinationBalance } from "@/state/useDestinationBalance";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
@@ -40,7 +40,7 @@ export default function WalletButtonClaim() {
   };
 
   const { queryKeys } = useFarmerBalances();
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const siloQueryKeys = farmerSilo.queryKeys;
   const priceData = usePriceData();
   const { whitelistedTokens } = useTokenData();

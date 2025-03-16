@@ -1,9 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Label } from "@/components/ui/Label";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 
 function SiloBalances() {
-  const farmerData = useFarmerSiloNew();
+  const farmerData = useFarmerSilo();
 
   return (
     <Card className="h-fit w-[300px]">

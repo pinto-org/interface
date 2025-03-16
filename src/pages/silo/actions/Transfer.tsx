@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import useTokenData from "@/state/useTokenData";
 import { sortAndPickCrates } from "@/utils/convert";
 import { useQueryClient } from "@tanstack/react-query";
@@ -18,7 +18,7 @@ import { useWriteContract } from "wagmi";
 function Transfer() {
   const account = useAccount();
   const chainId = useChainId();
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const farmerDeposits = farmerSilo.deposits;
   const BEAN = useTokenData().mainToken;
   const [fromToken, setFromToken] = useState(BEAN);
