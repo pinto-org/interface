@@ -13,18 +13,17 @@ import { Separator } from "@/components/ui/Separator";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useIsWSOL, useTokenMap, useWSOL } from "@/hooks/pinto/useTokenMap";
-import useBuildSwapQuote, { useBuildSwapQuoteAsync } from "@/hooks/swap/useBuildSwapQuote";
+import { useBuildSwapQuoteAsync } from "@/hooks/swap/useBuildSwapQuote";
 import useSwap from "@/hooks/swap/useSwap";
 import useSwapSummary from "@/hooks/swap/useSwapSummary";
 import { usePreferredInputToken } from "@/hooks/usePreferredInputToken";
 import useTransaction from "@/hooks/useTransaction";
 import { useDestinationBalance } from "@/state/useDestinationBalance";
-import { useAmountExceedsBalance, useFarmerBalances } from "@/state/useFarmerBalances";
+import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useTokenData from "@/state/useTokenData";
 import { stringToNumber } from "@/utils/string";
 import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { FarmFromMode, Token } from "@/utils/types";
-import { getBalanceFromMode } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -44,7 +43,7 @@ const handleOnError = (e: any) => {
 
 export default function Swap() {
   const queryClient = useQueryClient();
-  const { balances: tokenBalances,  queryKeys } = useFarmerBalances();
+  const { queryKeys } = useFarmerBalances();
   const { mainToken: BEAN, nativeToken: ETH, siloWrappedToken, thirdPartyWrappedNativeToken } = useTokenData();
   const diamond = useProtocolAddress();
 
@@ -73,10 +72,6 @@ export default function Swap() {
     s.add(thirdPartyWrappedNativeToken);
     return s;
   }, [tokenMap, siloWrappedToken, thirdPartyWrappedNativeToken]);
-
-  const tokenBalance = getBalanceFromMode(tokenBalances.get(tokenIn), balanceFrom);
-
-  const exceedsBalance = useAmountExceedsBalance(tokenIn, tokenBalance, amountIn);
 
   const {
     data: swapData,

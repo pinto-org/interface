@@ -4,7 +4,7 @@ import { WETH_TOKEN } from "@/constants/tokens";
 import encoders from "@/encoders";
 import transferToken from "@/encoders/transferToken";
 import { beanstalkAddress, pipelineAddress } from "@/generated/contractHooks";
-import { calculatePipeCallClipboardSlot, extractABIDynamicArrayCopySlot } from "@/utils/bytes";
+import { extractABIDynamicArrayCopySlot } from "@/utils/bytes";
 import { resolveChainId } from "@/utils/chain";
 import { stringEq } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
@@ -57,38 +57,6 @@ export class SwapBuilder {
     this.#advPipe = new AdvancedPipeWorkflow(this.#context.chainId, this.#context.config);
     this.advFarm = new AdvancedFarmWorkflow(this.#context.chainId, this.#context.config);
     this.#nodes = [];
-  }
-
-  getPipeCallClipboardSlot(pasteSlot: number, token: Token) {
-    const node = this.#nodes.find((n) => tokensEqual(n.buyToken, token));
-
-    if (!node) {
-      return undefined;
-    }
-
-    const pipe = this.advFarm.getAdvPipeIndex(this.#advPipe.name);
-    const slot = pipe?.workflow.getTag(node.thisTag);
-
-    if (!exists(slot) || !exists(pipe)) {
-      return undefined;
-    }
-
-    const copySlot = calculatePipeCallClipboardSlot(pipe.workflow.getSteps().length, slot);
-    console.debug("[Swap/getPipeCallClipboardSlot]", {
-      node,
-      pipe: pipe,
-      "0pipeIndex": pipe.index,
-      "1slot": slot,
-      "2pasteSlot": pasteSlot,
-      copySlot: copySlot,
-    });
-
-
-    return Clipboard.encodeSlot(
-      pipe.index,
-      copySlot,
-      pasteSlot,
-    );
   }
 
   async deriveClipboardWithOutputToken(
@@ -263,21 +231,13 @@ export class SwapBuilder {
         if (isUnwrapEthNode(node)) {
           fromMode = FarmFromMode.INTERNAL;
 
-          const wrappedNative = WETH_TOKEN[resolveChainId(this.#context.chainId)];
-
-          const derivedClipboard = await this.advFarm.simulate({ account: this.#context.account }).then((response) => {
-            if (!response.result) {
-              throw new Error("Error simulating swap workflow");
-            }
-
-            return this.deriveClipboardWithOutputToken(wrappedNative, 0, this.#context.account);
-          });
+          const derivedClipboard = await this.deriveClipboardWithOutputToken(node.sellToken, 0, this.#context.account);
 
           console.debug("[Swap/builder/unwrapETH] deriveClipboardWithOutputToken", {
             derivedClipboard,
           });
 
-          const unwrap = this.#getUnwrapETH(node, fromMode, i, undefined, derivedClipboard.clipboard);
+          const unwrap = node.buildStep({ fromMode, copySlot: undefined }, undefined, derivedClipboard.clipboard);
 
           this.advFarm.add(unwrap, {
             tag: node.thisTag,

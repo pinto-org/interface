@@ -165,7 +165,7 @@ export function parseABIDynamicArrayReturnData(returnData: HashString): {
         const dataIndex = summary.lengthIndex - offset + j + 1;
         const dataValue = data[dataIndex];
 
-        summary.data.push({ data: dataValue, index: dataIndex });
+        summary.data.push({ data: dataValue, index: dataIndex + offset });
       }
     }
 

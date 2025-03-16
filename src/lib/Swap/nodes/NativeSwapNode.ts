@@ -86,6 +86,7 @@ export class UnwrapEthSwapNode extends NativeSwapNode {
       allowanceTarget: this.allowanceTarget,
       fromMode,
       clipboard: [context?.indexMap.get(this.tagNeeded), copySlot, 0],
+      utilizedClipboard: clipboard,
       farmStruct,
     });
 
