@@ -4,6 +4,7 @@ import { WETH_TOKEN } from "@/constants/tokens";
 import encoders from "@/encoders";
 import transferToken from "@/encoders/transferToken";
 import { beanstalkAddress, pipelineAddress } from "@/generated/contractHooks";
+import { calculatePipeCallClipboardSlot, extractABIDynamicArrayCopySlot } from "@/utils/bytes";
 import { resolveChainId } from "@/utils/chain";
 import { stringEq } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
@@ -23,7 +24,6 @@ import {
 import { UnwrapEthSwapNode, WrapEthSwapNode } from "./nodes/NativeSwapNode";
 import { ClipboardContext, SwapNode } from "./nodes/SwapNode";
 import { BeanSwapNodeQuote } from "./swap-router";
-import { deriveCopySlotFromReturnData, calculatePipeCallClipboardSlot } from "@/utils/bytes";
 
 type SwapBuilderContext = {
   chainId: number;
@@ -119,7 +119,7 @@ export class SwapBuilder {
       throw new Error(`Error simulating transaction`);
     }
 
-    const { copySlot, summary } = deriveCopySlotFromReturnData(
+    const { copySlot, summary } = extractABIDynamicArrayCopySlot(
       result.result[pipe.index],
       functionSlot,
       amountOutSlot

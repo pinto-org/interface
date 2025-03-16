@@ -1,31 +1,50 @@
-import { exists } from '@/utils/utils';
-import { HashString } from './types.generic';
+import { exists } from "@/utils/utils";
+import { HashString } from "./types.generic";
 
 /**
  * Splits a hexadecimal string into an array of 32-byte chunks.
- * 
+ *
  * @param data - A hexadecimal string (with or without '0x' prefix)
  *               Each chunk in the return data represents a 32-byte word (64 hexadecimal characters).
- * 
+ *
  * @returns An array of HashString values, where each element is a 32-byte chunk prefixed with '0x'.
  *          Each chunk maintains consistent length of 64 hexadecimal characters (32 bytes).
- * 
+ *
  * @example
  * const data = "0x123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0";
- * const chunks = chunkReturnDataToBytes32BigIntArray(data);
+ * const chunks = splitHexToBytes32Words(data);
  * // Returns: ["0x123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0"]
  */
-export function chunkHexToBytes32BigIntArray(data: HashString): HashString[] {
-  // Remove "0x" prefix
+export function splitHexToBytes32Words(data: HashString | string): HashString[] {
+  // Normalize and sanitize input
   const hexWithoutPrefix = data.startsWith("0x") ? data.slice(2) : data;
+
+  // Handle empty input
+  if (hexWithoutPrefix.length === 0) return [];
+
+  // Validate hex characters
+  if (!/^[0-9a-fA-F]*$/.test(hexWithoutPrefix)) {
+    throw new Error("Invalid hex string: contains non-hexadecimal characters.");
+  }
+
+  // Ensure even length (since hex is byte-based, 2 characters per byte)
+  if (hexWithoutPrefix.length % 2 !== 0) {
+    throw new Error("Invalid hex string: Hex string must have an even length.");
+  }
 
   // Each 32-byte word is 64 hex characters
   const chunkSize = 64;
   const chunks: HashString[] = [];
 
   for (let i = 0; i < hexWithoutPrefix.length; i += chunkSize) {
-    const chunk = `0x${hexWithoutPrefix.slice(i, i + chunkSize)}` as HashString;
-    chunks.push(chunk);
+    let chunkContent = hexWithoutPrefix.slice(i, i + chunkSize);
+
+    // Pad incomplete chunk to 64 hex chars with zeros
+    if (chunkContent.length < chunkSize) {
+      chunkContent = chunkContent.padEnd(chunkSize, '0');
+    }
+
+    chunks.push(`0x${chunkContent}` as HashString);
   }
   return chunks;
 }
@@ -34,7 +53,7 @@ export function chunkHexToBytes32BigIntArray(data: HashString): HashString[] {
  * Represents the decoded structure of an ABI-encoded function return value.
  * This interface maps the standard Solidity ABI dynamic array encoding format,
  * where data is stored in specific memory slots following the Ethereum ABI specification.
- * 
+ *
  * @property locationOfLengthIndex - Index where the pointer to the length data is stored (offset by 2 for header)
  * @property lengthIndex - Index where the actual length of the return data is stored
  * @property length - Number of 32-byte words in the return data (derived from lengthIndex)
@@ -42,7 +61,7 @@ export function chunkHexToBytes32BigIntArray(data: HashString): HashString[] {
  *                  Each item contains:
  *                  - data: The actual 32-byte word as a hex string
  *                  - index: The absolute position of this word in the full return data
- * 
+ *
  * @example
  * {
  *   locationOfLengthIndex: 2,    // Points to position 0x60
@@ -66,24 +85,24 @@ export interface ParsedABIReturnData {
 
 /**
  * Parses and decodes ABI-encoded return data from Ethereum function calls.
- * 
+ *
  * This function processes raw hexadecimal return data from contract calls (particularly
  * from advancedPipe/advancedFarm operations) and structures it according to the Ethereum
  * ABI encoding specification for dynamic arrays.
- * 
+ *
  * @param returnData - Raw hexadecimal string containing ABI-encoded return data
- * 
+ *
  * @returns An object containing:
  *   - summary: Array of ParsedABIReturnData objects, each representing a decoded function return
  *   - data: The complete array of 32-byte chunks from the original return data
- * 
+ *
  * @example
  * // For an advancedPipe call with multiple operations
  * const returnData = "0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000070000000000000000000000000000000000000000000000000000000000000...";
- * const result = summarizeFunctionReturnData(returnData);
+ * const result = parseABIDynamicArrayReturnData(returnData);
  * // result.summary contains structured data for each function call
  * // result.data contains all raw 32-byte chunks
- * 
+ *
  * @remarks
  * The function follows Ethereum ABI encoding rules where:
  * - First 32 bytes contain a pointer to the data location
@@ -91,14 +110,22 @@ export interface ParsedABIReturnData {
  * - Subsequent bytes contain pointers to individual elements
  * - Each element has its own length prefix followed by actual data
  */
-export function summarizeFunctionReturnData(
-  returnData: HashString,
-): {
-  summary: ParsedABIReturnData[],
-  data: HashString[],
+export function parseABIDynamicArrayReturnData(returnData: HashString): {
+  summary: ParsedABIReturnData[];
+  data: HashString[];
 } {
   // Split the hex string into an array of 32-byte chunks
-  const raw = chunkHexToBytes32BigIntArray(returnData);
+  const raw = splitHexToBytes32Words(returnData);
+
+  if (!raw.length) {
+    return {
+      summary: [], data: []
+    }
+  }
+
+  if (raw.length < 2) {
+    throw new Error("Invalid return data: Not enough data to parse");
+  }
 
   // Destructure the array:
   // - First element (index 0) contains the location pointer (ignored with _)
@@ -128,20 +155,17 @@ export function summarizeFunctionReturnData(
       // Calculate how many 32-byte words this function returned
       length: Number(BigInt(data[lengthIndex]) / 32n),
       data: [],
-    }
+    };
 
     // Only process if this function actually returned data
     if (summary.length > 0) {
       for (let j = 0; j < summary.length; j += 1) {
         // Calculate the absolute index of this data word
-        // (lengthIndex + 1) points to the first data word, then we add j for subsequent words
-        const dataIndex = summary.lengthIndex + j + 1;
+        // (lengthIndex - offset + 1) points to the first data word, then we add j for subsequent words
+        const dataIndex = summary.lengthIndex - offset + j + 1;
         const dataValue = data[dataIndex];
 
-        summary.data.push({
-          data: dataValue,
-          index: dataIndex,
-        });
+        summary.data.push({ data: dataValue, index: dataIndex });
       }
     }
 
@@ -155,37 +179,36 @@ export function summarizeFunctionReturnData(
 
 /**
  * Extracts a specific data slot from ABI-encoded return data based on function position and parameter index.
- * 
+ *
  * This function is used to locate specific return values within complex nested function calls,
  * particularly for accessing return values from advancedPipe/advancedFarm operations that need
  * to be referenced in subsequent operations.
- * 
+ *
  * @param returnData - Raw hexadecimal string containing ABI-encoded return data from a contract call
  * @param functionSlot - Zero-based index of the function within the pipe sequence
  *                       (e.g., for the 3rd function in an advancedPipe, use 2)
  * @param paramIndex - Zero-based index of the parameter to extract from the function's return data
  *                     (e.g., if a function returns multiple values, use 0 for the first return value)
- * 
+ *
  * @returns An object containing:
  *   - copySlot: The absolute index of the requested return value in the raw data array
  *   - summary: The complete parsed structure of the return data (for debugging or advanced usage)
- * 
+ *
  * @throws Error if the requested slot cannot be found in the return data
- * 
+ *
  * @example
  * // To get the return value from the 5th function (index 4) in a pipe
  * const returnData = "0x..."; // Return data from advancedPipe
- * const result = deriveCopySlotFromReturnData(returnData, 4, 0);
+ * const result = extractABIDynamicArrayCopySlot(returnData, 4, 0);
  * // result.copySlot can be used to reference this value in subsequent operations
  */
-export function deriveCopySlotFromReturnData(
-  returnData: `0x${string}`,
-  functionSlot: number,
-  paramIndex: number,
-) {
+export function extractABIDynamicArrayCopySlot(returnData: `0x${string}`, functionSlot: number, paramIndex: number) {
+  if (functionSlot < 0 || paramIndex < 0) {
+    throw new Error("Invalid function or parameter index");
+  }
   try {
     // Parse the raw return data into a structured format
-    const summary = summarizeFunctionReturnData(returnData);
+    const summary = parseABIDynamicArrayReturnData(returnData);
 
     const fnData = summary.summary?.[functionSlot];
     // Extract the absolute index of the requested parameter
@@ -202,17 +225,17 @@ export function deriveCopySlotFromReturnData(
     console.error("Unable to determine copy slot", {
       functionSlot,
       paramIndex,
-      returnData
+      returnData,
     });
     throw e;
   }
 }
 
 /**
- * USE CAREFULLY. This function assumes that: 
+ * USE CAREFULLY. This function assumes that:
  * - each call w/in advPipe returns 32 bytes.
  * - each call returns a single value.
- * 
+ *
  * OPT TO USE deriveCopySlotFromReturnData() unless you have a very good reason to use this function.
  */
 export function calculatePipeCallClipboardSlot(pipeCallLength: number, slot: number) {
@@ -220,45 +243,44 @@ export function calculatePipeCallClipboardSlot(pipeCallLength: number, slot: num
   return 2 + pipeCallLength + (1 + slot * 2);
 }
 
-
 /**
  * ABI-encoded return data structure from advancedPipe/advancedFarm calls.
- * 
+ *
  * This documentation explains the memory layout of return data from complex nested contract calls
  * and provides a detailed breakdown of how data is organized in the Ethereum ABI encoding format.
- * 
+ *
  * MEMORY LAYOUT OVERVIEW:
- * 
+ *
  * For an advancedPipe with multiple function calls, the return data follows this structure:
- * 
+ *
  * 1. HEADER SECTION (Indexes 0-1):
  *    - Index 0: Location pointer to the data array (typically 0x20 = 32 bytes)
  *    - Index 1: Number of function calls in the pipe (e.g., 7 for a pipe with 7 operations)
- * 
+ *
  * 2. POINTER SECTION (Indexes 2 to 1+pipeLength):
  *    - Contains pointers to where each function's return data length is stored
  *    - Each value is a byte offset that must be divided by 32 to get the actual array index
  *    - Example: Value 0xE0 (224) at index 2 means the length is at index 224/32 = 7
- * 
+ *
  * 3. DATA SECTION (Remaining indexes):
  *    - For each function call:
  *      a. Length word: Number of 32-byte words returned by this function
  *      b. Data words: The actual return values (1 or more 32-byte words)
- * 
+ *
  * CLIPBOARD SLOT CALCULATION:
- * 
+ *
  * To reference a specific return value in subsequent operations, use this formula:
  * slot = (2 + pipeLength) + (sum of all previous function return lengths in words) + functionSlot + paramIndex
- * 
+ *
  * Example calculation for the 5th function (index 4) in a pipe with 7 functions:
  * - Header: 2 words
  * - Pipe length: 7 functions
  * - Previous return lengths: [0](32) + [1](96) + [2](32) + [3](32) + [4](32) = 224 bytes = 7 words
  * - Function slot: 4
  * - Parameter index: 0 (first return value)
- * 
+ *
  * Therefore: 2 + 7 + 7 + 4 + 0 = 20
- * 
+ *
  * This means the return value is at index 20 in the raw data array.
  */
 

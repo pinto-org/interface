@@ -164,9 +164,9 @@ function Deposit({ siloToken }: { siloToken: Token }) {
       if (!account.address) {
         throw new Error("No account connected");
       }
-      
+
       const buyAmount = shouldSwap ? swapData?.buyAmount : TokenValue.fromHuman(amountIn, tokenIn.decimals);
-      
+
       if (!shouldSwap && buyAmount) {
         setSubmitting(true);
         toast.loading(`Depositing...`);
@@ -175,14 +175,10 @@ function Deposit({ siloToken }: { siloToken: Token }) {
           address: diamondAddress,
           abi: depositABI,
           functionName: "deposit",
-          args: [
-            siloToken.address,
-            buyAmount.blockchainString,
-            Number(balanceFrom)
-          ]
-        })
+          args: [siloToken.address, buyAmount.blockchainString, Number(balanceFrom)],
+        });
       }
-      
+
       if (!swapData || !swapBuild?.advancedFarm?.length) {
         throw new Error("No quote");
       }
@@ -336,7 +332,7 @@ const advFarmABI = [
     name: "advancedFarm",
     outputs: [{ name: "results", internalType: "bytes[]", type: "bytes[]" }],
     stateMutability: "payable",
-  }
+  },
 ] as const;
 
 const depositABI = [
@@ -354,5 +350,5 @@ const depositABI = [
     ],
     stateMutability: "payable",
     type: "function",
-  }
+  },
 ] as const;
