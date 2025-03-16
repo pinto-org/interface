@@ -44,7 +44,7 @@ const FrameAnimator = ({ size = 40, duration = 100, repeat = true, className = "
         ))}
       </div>
 
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-full bg-transparent">
         {/* Current frame */}
         <img
           src={frames[currentFrame].src}
