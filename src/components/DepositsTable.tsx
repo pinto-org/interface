@@ -2,11 +2,11 @@ import depositIcon from "@/assets/protocol/Deposit.svg";
 import seedIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
+import DepositDialog from "@/components/DepositDialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { ToggleGroupItem } from "@/components/ui/ToggleGroup";
-import DepositDialog from "@/components/DepositDialog";
 import { useDenomination } from "@/hooks/useAppSettings";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { formatter, truncateHex } from "@/utils/format";
 import { stringEq } from "@/utils/string";
@@ -44,11 +44,7 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
         ref={ref}
         className={`h-[4.5rem] transition-all ${
           deposit.isGerminating ? "bg-pinto-off-green/15" : deposit.isPlantDeposit ? "bg-pinto-green-4/15" : "bg-white"
-        } text-[1rem] ${
-          useToggle 
-            ? "hover:bg-pinto-green-1/50" 
-            : "hover:cursor-pointer hover:bg-pinto-green-1/50"
-        }`}
+        } text-[1rem] ${useToggle ? "hover:bg-pinto-green-1/50" : "hover:cursor-pointer hover:bg-pinto-green-1/50"}`}
         onClick={() => onRowClick(deposit)}
       >
         <TableCell className="hidden md:table-cell pinto-sm">
@@ -134,12 +130,13 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
         </TableCell>
       </TableRow>
     );
-  }
+  },
 );
 
 export default function DepositsTable({ token, selected, useToggle, mode }: DepositsTableProps) {
-  const farmerDeposits = useFarmerSiloNew().deposits;
-  const isLoading = useFarmerSiloNew().isLoading;
+  const farmerSilo = useFarmerSilo();
+  const farmerDeposits = farmerSilo.deposits;
+  const isLoading = farmerSilo.isLoading;
   const tokenData = farmerDeposits.get(token);
   const priceData = usePriceData();
   const [selectedDeposit, setSelectedDeposit] = useState<DepositData | null>(null);
@@ -231,7 +228,7 @@ export default function DepositsTable({ token, selected, useToggle, mode }: Depo
         </Table>
       </div>
       {selectedDeposit && (
-        <DepositDialog 
+        <DepositDialog
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           deposit={selectedDeposit}

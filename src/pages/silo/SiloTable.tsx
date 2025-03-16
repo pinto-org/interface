@@ -15,7 +15,7 @@ import Text from "@/components/ui/Text";
 import { PINTO } from "@/constants/tokens";
 import { useDenomination } from "@/hooks/useAppSettings";
 import useFarmerActions from "@/hooks/useFarmerActions";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { EMAWindows, SiloYieldsByToken, useSiloYieldsByToken } from "@/state/useSiloAPYs";
 import { useSiloData } from "@/state/useSiloData";
@@ -32,7 +32,7 @@ import { useNavigate } from "react-router-dom";
 function SiloTable({ hovering }: { hovering: boolean }) {
   const siloData = useSiloData();
   const mainToken = useTokenData().mainToken;
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const farmerDeposits = farmerSilo.deposits;
   const SILO_WHITELIST = useTokenData().whitelistedTokens;
   const priceData = usePriceData();

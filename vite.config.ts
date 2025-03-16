@@ -2,10 +2,11 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig } from "vite";
 import strip from '@rollup/plugin-strip';
+import { configDefaults } from 'vitest/config';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => ({
-  plugins: [react(),{
+  plugins: [react(), {
     name: "markdown-loader",
     transform(code, id) {
       if (id.slice(-3) === ".md") {
@@ -13,7 +14,7 @@ export default defineConfig(({ command }) => ({
         return `export default ${JSON.stringify(code)};`;
       }
     }
-  } ],
+  }],
   // server: {
   //   hmr: {
   //     overlay: true,
@@ -36,4 +37,9 @@ export default defineConfig(({ command }) => ({
       ],
     },
   },
+  test: {
+    globals: true,
+    include: [...configDefaults.include, 'src/__tests/**/*.test.ts'],
+    environment: "node", // reconfigure later to include browser tests
+  }
 }));

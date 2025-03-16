@@ -12,7 +12,7 @@ import Text from "@/components/ui/Text";
 import useIsSmallDesktop from "@/hooks/display/useIsSmallDesktop";
 import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { getClaimText } from "@/utils/string";
@@ -26,7 +26,7 @@ import { useNavigate } from "react-router-dom";
 import SiloTable from "./silo/SiloTable";
 
 function Silo() {
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const farmerActions = useFarmerActions();
   const tokenData = useTokenData();
   const priceData = usePriceData();
