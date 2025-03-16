@@ -346,12 +346,16 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
                 setAmount={setAmountIn}
                 setToken={setTokenIn}
                 setBalanceFrom={setBalanceFrom}
+                setError={setInputError}
                 selectedToken={tokenIn}
+                error={inputError}
                 balanceFrom={balanceFrom}
                 disableButton={isConfirming}
+                connectedAccount={!!account.address}
                 altText={balanceExceedsSoil ? "Usable balance:" : undefined}
                 tokenSelectLoading={preferredLoading || !didSetPreferred}
                 filterTokens={filterTokens}
+                disableClamping={true}
               />
             </div>
             {totalSoil.eq(0) && maxSow?.lte(0) && (
@@ -411,115 +415,28 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
           <div className="hidden sm:flex flex-row gap-2">
             <SmartSubmitButton
               variant={isMorning ? "morning" : "gradient"}
-              disabled={
-                isLoading || isConfirming || submitting || !ready || !canProceed
-              }
+              disabled={ctaDisabled}
               token={tokenIn}
               amount={amountIn}
               balanceFrom={balanceFrom}
               submitFunction={onSubmit}
-              submitButtonText="Sow"
+              submitButtonText={buttonText}
             />
           </div>
           <MobileActionBar>
             <SmartSubmitButton
               variant={isMorning ? "morning" : "gradient"}
-              disabled={isLoading || isConfirming || submitting || !ready}
+              disabled={ctaDisabled}
               token={tokenIn}
               amount={amountIn}
               balanceFrom={balanceFrom}
               submitFunction={onSubmit}
-              submitButtonText="Sow"
+              submitButtonText={buttonText}
               className="h-full"
             />
           </MobileActionBar>
         </div>
-        <ComboInputField
-          amount={amountIn}
-          disableInput={isConfirming}
-          customMaxAmount={
-            maxSow?.gt(0)
-              ? TokenValue.min(balanceFromMode, maxSow)
-              : TokenValue.ZERO
-          }
-          setAmount={setAmountIn}
-          setToken={setTokenIn}
-          setBalanceFrom={setBalanceFrom}
-          setError={setInputError}
-          selectedToken={tokenIn}
-          error={inputError}
-          balanceFrom={balanceFrom}
-          disableButton={isConfirming}
-          connectedAccount={!!account.address}
-          altText={balanceExceedsSoil ? "Usable balance:" : undefined}
-          tokenSelectLoading={preferredLoading || !didSetPreferred}
-          filterTokens={filterTokens}
-          disableClamping={true}
-        />
       </div>
-      {totalSoil.eq(0) && maxSow?.lte(0) && (
-        <Warning>
-          Your usable balance is 0.00 because there is no Soil available.
-        </Warning>
-      )}
-      {isLoading ? (
-        <div className="flex flex-col w-full h-[224px] items-center justify-center">
-          <FrameAnimator size={64} />
-        </div>
-      ) : ready ? (
-        <div className="flex flex-col gap-6 px-2">
-          <OutputDisplay>
-            <OutputDisplay.Item label="Pods">
-              <OutputDisplay.Value
-                value={formatter.token(pods, PODS)}
-                token={PODS}
-                suffix={PODS.symbol}
-              />
-            </OutputDisplay.Item>
-            <OutputDisplay.Item label="Place in line">
-              <OutputDisplay.Value value={formatter.noDec(podLine)} />
-            </OutputDisplay.Item>
-          </OutputDisplay>
-          <Warning>
-            Pods become redeemable for Pinto 1:1 when they reach the front of
-            the Pod Line.
-          </Warning>
-        </div>
-      ) : null}
-      {!tokenIn.isMain && swapSummary?.swap && (
-        <RoutingAndSlippageInfo
-          title="Total Swap Slippage"
-          swapSummary={swapSummary}
-          preferredSummary="swap"
-          txnType="Swap"
-          tokenIn={tokenIn}
-          tokenOut={mainToken}
-        />
-      )}
-      {slippageWarning}
-      <div className="hidden sm:flex flex-row gap-2">
-        <SmartSubmitButton
-          variant={isMorning ? "morning" : "gradient"}
-          disabled={ctaDisabled}
-          token={tokenIn}
-          amount={amountIn}
-          balanceFrom={balanceFrom}
-          submitFunction={onSubmit}
-          submitButtonText={buttonText}
-        />
-      </div>
-      <MobileActionBar>
-        <SmartSubmitButton
-          variant={isMorning ? "morning" : "gradient"}
-          disabled={ctaDisabled}
-          token={tokenIn}
-          amount={amountIn}
-          balanceFrom={balanceFrom}
-          submitFunction={onSubmit}
-          submitButtonText={buttonText}
-          className="h-full"
-        />
-      </MobileActionBar>
     </div>
   );
 }
