@@ -16,6 +16,8 @@ import { Address } from "viem";
 import { readContract } from "viem/actions";
 import { ClipboardContext, ISwapNode, SwapNode } from "./SwapNode";
 import erc20BalanceOf from '@/encoders/erc20BalanceOf';
+import { MAIN_TOKEN, S_MAIN_TOKEN } from '@/constants/tokens';
+import { siloedPintoABI } from '@/constants/abi/siloedPintoABI';
 
 interface IERC20SwapNode {
   minBuyAmount: TV;
@@ -513,6 +515,65 @@ export class WellRemoveSingleSidedSwapNode extends ERC20SwapNode {
     }
 
     console.debug("[Swap/WellRemoveSingleSidedSwapNode] build:", {
+      ...this.getHuman(),
+      recipient: stringEq(pipelineAddress[this.context.chainId], recipient) ? "PIPELINE" : recipient,
+      pipeStruct,
+    });
+
+    return pipeStruct;
+  }
+}
+
+interface SiloedPintoWrapNodeBuildParams {
+  recipient: Address;
+}
+
+export class SiloedPintoWrapNode extends ERC20SwapNode {
+  readonly name = "SwapNode: SiloedPintoWrap";
+
+  readonly amountOutCopySlot: number = 0;
+
+  readonly amountInPasteSlot: number = 0;
+
+  readonly allowanceTarget: Address;
+
+  constructor(context: SwapContext) {
+    const sellToken = MAIN_TOKEN[resolveChainId(context.chainId)];
+    const buyToken = S_MAIN_TOKEN[resolveChainId(context.chainId)];
+    super(context, sellToken, buyToken);
+    this.allowanceTarget = buyToken.address;
+  }
+
+  async quoteForward(sellAmount: TV, slippage: number) {
+    this.setFields({ sellAmount, slippage });
+    this.validateQuoteForward();
+
+    const quote = await readContract(this.context.config.getClient({ chainId: this.context.chainId }), {
+      abi: siloedPintoABI,
+      address: this.sellToken.address,
+      functionName: "previewMint",
+      args: [sellAmount.toBigInt()],
+    });
+
+    const buyAmount = TV.fromBigInt(quote, this.buyToken.decimals);
+
+
+    this.setFields({ buyAmount, minBuyAmount: buyAmount });
+
+    return this;
+  }
+
+  buildStep({ recipient }: SiloedPintoWrapNodeBuildParams): AdvancedPipeCall {
+    this.validateAll();
+
+    const pipeStruct = encoders.siloedPinto.depositERC20(
+      this.sellAmount,
+      recipient,
+      this.buyToken.address,
+      Clipboard.encode([]),
+    );
+
+    console.debug("[Swap/SiloedPintoWrapNode] build:", {
       ...this.getHuman(),
       recipient: stringEq(pipelineAddress[this.context.chainId], recipient) ? "PIPELINE" : recipient,
       pipeStruct,
