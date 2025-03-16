@@ -272,24 +272,17 @@ export default function WalletButtonPanel({ togglePanel }) {
 
     const hasSiloWrappedToken = tokens.reduce(
       (result, token) => {
-        if (token.isSiloWrapped === true || token.is3PSiloWrapped === true) {
+        if (token.isSiloWrapped || token.is3PSiloWrapped) {
           const tokenBalance = farmerBalances.get(token);
-          if (tokenBalance) {
-            return {
-              internal: tokenBalance.internal.gt(0),
-              external: tokenBalance.external.gt(0),
-              total: tokenBalance.total.gt(0),
-            };
-          }
-          return result;
+          return {
+            internal: tokenBalance?.internal.gt(0) || result.internal,
+            external: tokenBalance?.external.gt(0) || result.external,
+            total: tokenBalance?.total.gt(0) || result.total,
+          };
         }
         return result;
       },
-      {
-        internal: false,
-        external: false,
-        total: false,
-      },
+      { internal: false, external: false, total: false },
     );
 
     return { totalBalance, hasSiloWrappedToken, tokens };
