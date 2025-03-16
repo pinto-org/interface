@@ -17,7 +17,7 @@ import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useHarvestableIndex, useTotalSoil } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
@@ -33,7 +33,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 const Overview = () => {
   // Hooks
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
   const farmerActions = useFarmerActions();
   const tokenData = useTokenData();

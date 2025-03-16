@@ -5,7 +5,7 @@ import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { PODS } from "@/constants/internalTokens";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter, truncateHex } from "@/utils/format";
@@ -103,7 +103,7 @@ function ComboInputField({
   const { balances } = useFarmerBalances();
   const farmerTokenBalance = selectedToken ? balances.get(selectedToken) : undefined;
 
-  const depositedBalances = useFarmerSiloNew().deposits;
+  const depositedBalances = useFarmerSilo().deposits;
   const farmerDepositedTokenBalance = selectedToken ? depositedBalances.get(selectedToken) : undefined;
   const isPrivateMode = usePrivateMode();
 

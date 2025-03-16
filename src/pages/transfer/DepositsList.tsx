@@ -2,14 +2,14 @@ import seedsIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { Label } from "@/components/ui/Label";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { formatter } from "@/utils/format";
 import { useMemo } from "react";
 import { DepositTransferData } from "./actions/TransferDeposits";
 
 export default function DepositsList({ transferData }: { transferData?: DepositTransferData[] }) {
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const farmerDeposits = farmerSilo.deposits;
   const priceData = usePriceData();
 
