@@ -183,7 +183,7 @@ const StatPanel = ({
       {mode === "stalk" && variant === "overview" && (
         <>
           <span className="text-pinto-gray-5">
-            <PrivateModeWrapper varient="percent">
+            <PrivateModeWrapper variant="percent">
               {isBalancesLoading ? (
                 <Skeleton className="flex w-16 h-4 sm:w-20 sm:h-6 rounded-[0.75rem]" />
               ) : mainValue.lt(0.01) ? (
@@ -196,7 +196,7 @@ const StatPanel = ({
           </span>{" "}
           {showActionValues && actionValue && (
             <span className="text-pinto-stalk-gold">
-              <PrivateModeWrapper varient="percent">
+              <PrivateModeWrapper variant="percent">
                 {isBalancesLoading ? (
                   <Skeleton className="flex w-16 h-4 sm:w-20 sm:h-6 rounded-[0.75rem]" />
                 ) : (
@@ -208,7 +208,7 @@ const StatPanel = ({
           )}
           {showActionValues && actionValue && (
             <span className="text-pinto-stalk-gold">
-              <PrivateModeWrapper varient="percent">
+              <PrivateModeWrapper variant="percent">
                 {isBalancesLoading ? (
                   <Skeleton className="flex w-16 h-4 sm:w-20 sm:h-6 rounded-[0.75rem]" />
                 ) : (

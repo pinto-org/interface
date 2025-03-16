@@ -79,13 +79,13 @@ export default function StatPanelAltDisplay({
           <span className="inline-flex items-center gap-1">
             <span className="inline-flex items-center gap-1">
               <span>Deposited Value: </span>
-              <PrivateModeWrapper varient="short">
+              <PrivateModeWrapper variant="short">
                 {depositedValue.lte(0) ? "-" : formatter.usd(depositedValue)}
               </PrivateModeWrapper>
 
               {claimableValue.gt(0) && (
                 <span className="text-pinto-green-4">
-                  + <PrivateModeWrapper varient="short">{formatter.usd(claimableValue)}</PrivateModeWrapper>
+                  + <PrivateModeWrapper variant="short">{formatter.usd(claimableValue)}</PrivateModeWrapper>
                 </span>
               )}
             </span>
