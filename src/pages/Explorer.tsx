@@ -59,7 +59,7 @@ const Explorer = () => {
   const removeBottomPadding = selectedIdx === 4; //Remove on seasons table for the pagination to fit nicely on the bottm
 
   return (
-    <PageContainer variant="xl" removeBottomPadding={removeBottomPadding}>
+    <PageContainer variant="xlAltExplorer" removeBottomPadding={removeBottomPadding}>
       <div className="flex flex-col w-full items-center">
         <div className="flex flex-col w-full gap-4 sm:gap-8">
           <div className="flex flex-col gap-2 sm:ml-4">
