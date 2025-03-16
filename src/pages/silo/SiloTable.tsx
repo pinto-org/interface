@@ -137,32 +137,32 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                     <div className="sm:hidden">
                       <div className="pinto-xs inline-flex gap-0.5">
                         <span className="text-pinto-gray-4">Value:</span>
-                        <PrivateModeWrapper>
-                          {farmerSilo.isLoading ? (
-                            <Skeleton className="w-16 h-4 rounded-[0.75rem]" />
-                          ) : (
-                            <span>
+                        {farmerSilo.isLoading ? (
+                          <Skeleton className="w-16 h-4 rounded-[0.75rem]" />
+                        ) : (
+                          <span>
+                            <PrivateModeWrapper>
                               {formatter.usd(
                                 farmerDeposits.get(token)?.currentBDV.mul(token.isMain ? priceData.price : _poolPrice),
                               )}
-                            </span>
-                          )}
-                        </PrivateModeWrapper>
+                            </PrivateModeWrapper>
+                          </span>
+                        )}
                       </div>
                     </div>
                     {earnedPinto && token.isMain && (
                       <div className="sm:hidden">
                         <div className="pinto-xs inline-flex gap-0.5">
                           <span className="text-pinto-gray-4">Claimable:</span>
-                          <PrivateModeWrapper>
-                            {farmerSilo.isLoading ? (
-                              <Skeleton className="w-16 h-4 rounded-[0.75rem]" />
-                            ) : (
-                              <span className="text-pinto-green">
+                          {farmerSilo.isLoading ? (
+                            <Skeleton className="w-16 h-4 rounded-[0.75rem]" />
+                          ) : (
+                            <span className="text-pinto-green">
+                              <PrivateModeWrapper>
                                 {formatter.usd(farmerActions.claimRewards.outputs.beanGain.mul(priceData.price))}
-                              </span>
-                            )}
-                          </PrivateModeWrapper>
+                              </PrivateModeWrapper>
+                            </span>
+                          )}
                         </div>
                       </div>
                     )}
@@ -174,14 +174,18 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                       <div className="pinto-xs sm:pinto-sm inline-flex items-center gap-1 opacity-70 flex-wrap">
                         <InlineCenterSpan gap1>
                           <IconImage src={stalkIcon} alt={"stalk"} size={4} />
-                          {formatter.noDec(data.rewards.stalk)}
+                          <PrivateModeWrapper>
+                            {formatter.noDec(data.rewards.stalk)}
+                          </PrivateModeWrapper>
                         </InlineCenterSpan>
                         Stalk
                       </div>
                       <div className="pinto-xs sm:pinto-sm inline-flex items-center gap-1 opacity-70 flex-wrap">
                         <InlineCenterSpan gap1>
                           <IconImage src={seedsIcon} alt={"seeds"} size={4} />
-                          {formatter.twoDec(data.rewards.seeds)}
+                          <PrivateModeWrapper>
+                            {formatter.twoDec(data.rewards.seeds)}
+                          </PrivateModeWrapper>
                         </InlineCenterSpan>
                         Seeds
                       </div>
@@ -198,7 +202,9 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                   {farmerSilo.isLoading ? (
                     <Skeleton className="w-20 h-6 rounded-[0.75rem] ml-auto" />
                   ) : _pool || token.isMain ? (
-                    formatter.usd(totalBDV?.mul(_pool ? _pool.price : priceData.price))
+                    <PrivateModeWrapper>
+                      {formatter.usd(totalBDV?.mul(_pool ? _pool.price : priceData.price))}
+                    </PrivateModeWrapper>
                   ) : (
                     "-"
                   )}
@@ -214,7 +220,9 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                             <Skeleton className="w-20 h-6 rounded-[0.75rem]" />
                           ) : (
                             <div className="pinto-sm text-right text-pinto-green-4">
-                              {formatter.number(farmerDeposits.get(token)?.amount.add(gains.bdvGain))}
+                              <PrivateModeWrapper>
+                                {formatter.number(farmerDeposits.get(token)?.amount.add(gains.bdvGain))}
+                              </PrivateModeWrapper>
                             </div>
                           )}
                           <div className="pinto-sm text-pinto-green-4 hidden min-[1600px]:block">{token.name}</div>
@@ -224,7 +232,9 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                             <Skeleton className="w-20 h-6 rounded-[0.75rem]" />
                           ) : (
                             <div className="pinto-sm-thin text-right text-pinto-green-4">
-                              {formatter.usd(currentBDV.mul(priceData.price).add(gains.beanGain.mul(priceData.price)))}
+                              <PrivateModeWrapper>
+                                {formatter.usd(currentBDV.mul(priceData.price).add(gains.beanGain.mul(priceData.price)))}
+                              </PrivateModeWrapper>
                             </div>
                           )}
                         </div>
@@ -236,24 +246,22 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                             <span className="inline-flex items-center gap-1">
                               <IconImage src={token.logoURI} size={6} />
 
-                              <PrivateModeWrapper>
-                                {farmerSilo.isLoading ? (
-                                  <Skeleton className="w-20 h-6 rounded-[0.75rem]" />
-                                ) : (
-                                  <div className="pinto-sm">{formatter.number(farmerDeposits.get(token)?.amount)}</div>
-                                )}
-                              </PrivateModeWrapper>
-                              {earnedPinto ? (
+                              {farmerSilo.isLoading ? (
+                                <Skeleton className="w-20 h-6 rounded-[0.75rem]" />
+                              ) : (
                                 <PrivateModeWrapper>
-                                  <>
-                                    <div className="pinto-sm text-right text-pinto-green-4">
-                                      + {formatter.number(gains.bdvGain)}
-                                    </div>
-                                    <div className="pinto-sm text-pinto-green-4 hidden min-[1600px]:block">
-                                      {token.name}
-                                    </div>
-                                  </>
+                                  <div className="pinto-sm">{formatter.number(farmerDeposits.get(token)?.amount)}</div>
                                 </PrivateModeWrapper>
+                              )}
+                              {earnedPinto ? (
+                                <>
+                                  <div className="pinto-sm text-right text-pinto-green-4">
+                                    + <PrivateModeWrapper>{formatter.number(gains.bdvGain)}</PrivateModeWrapper>
+                                  </div>
+                                  <div className="pinto-sm text-pinto-green-4 hidden min-[1600px]:block">
+                                    {token.name}
+                                  </div>
+                                </>
                               ) : (
                                 <div className="pinto-sm hidden min-[1600px]:block">{token.name}</div>
                               )}
@@ -261,21 +269,23 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                             {earnedPinto ? (
                               // if there are earned pinto, show the gains
                               <div className="inline-flex items-center gap-1">
-                                <PrivateModeWrapper>
-                                  {farmerSilo.isLoading ? (
-                                    <Skeleton className="w-20 h-6 rounded-[0.75rem]" />
-                                  ) : (
-                                    <>
-                                      <div className="pinto-sm-thin text-right text-pinto-light">
+                                {farmerSilo.isLoading ? (
+                                  <Skeleton className="w-20 h-6 rounded-[0.75rem]" />
+                                ) : (
+                                  <>
+                                    <div className="pinto-sm-thin text-right text-pinto-light">
+                                      <PrivateModeWrapper>
                                         {`${denomination === "USD" ? formatter.usd((userData?.currentBDV || TokenValue.ZERO).mul(priceData.price)) : formatter.pdv(userData?.depositBDV)}`}{" "}
-                                        +{" "}
-                                      </div>
-                                      <div className="pinto-sm-thin text-right text-pinto-green-4">
+                                      </PrivateModeWrapper>
+                                      +{" "}
+                                    </div>
+                                    <div className="pinto-sm-thin text-right text-pinto-green-4">
+                                      <PrivateModeWrapper>
                                         {`${denomination === "USD" ? formatter.usd(farmerActions.claimRewards.outputs.beanGain.mul(priceData.price)) : formatter.pdv(gains.bdvGain)}`}{" "}
-                                      </div>
-                                    </>
-                                  )}
-                                </PrivateModeWrapper>
+                                      </PrivateModeWrapper>
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             ) : (
                               // if there is no earned pinto, show the total

@@ -154,11 +154,13 @@ const StatPanel = ({
                 </PrivateModeWrapper>
               </span>
               <span className="text-pinto-green-4">
-                {isBalancesLoading ? (
-                  <Skeleton className="flex w-16 h-4 sm:w-20 sm:h-6 rounded-[0.75rem]" />
-                ) : (
-                  `+${formatter.pdv(actionValue)}`
-                )}
+                <PrivateModeWrapper>
+                  {isBalancesLoading ? (
+                    <Skeleton className="flex w-16 h-4 sm:w-20 sm:h-6 rounded-[0.75rem]" />
+                  ) : (
+                    `+${formatter.pdv(actionValue)}`
+                  )}
+                </PrivateModeWrapper>
               </span>
             </>
           ) : (
@@ -181,28 +183,32 @@ const StatPanel = ({
       {mode === "stalk" && variant === "overview" && (
         <>
           <span className="text-pinto-gray-5">
-            {isBalancesLoading ? (
-              <Skeleton className="flex w-16 h-4 sm:w-20 sm:h-6 rounded-[0.75rem]" />
-            ) : mainValue.lt(0.01) ? (
-              "0.00"
-            ) : (
-              formatter.xDec(secondaryValue, 3)
-            )}
+            <PrivateModeWrapper varient="percent">
+              {isBalancesLoading ? (
+                <Skeleton className="flex w-16 h-4 sm:w-20 sm:h-6 rounded-[0.75rem]" />
+              ) : mainValue.lt(0.01) ? (
+                "0.00"
+              ) : (
+                formatter.xDec(secondaryValue, 3)
+              )}
+            </PrivateModeWrapper>
             %
           </span>{" "}
           {showActionValues && actionValue && (
             <span className="text-pinto-stalk-gold">
-              {isBalancesLoading ? (
-                <Skeleton className="flex w-16 h-4 sm:w-20 sm:h-6 rounded-[0.75rem]" />
-              ) : (
-                formatter.xDec(secondaryValue, 3)
-              )}
+              <PrivateModeWrapper varient="percent">
+                {isBalancesLoading ? (
+                  <Skeleton className="flex w-16 h-4 sm:w-20 sm:h-6 rounded-[0.75rem]" />
+                ) : (
+                  formatter.xDec(secondaryValue, 3)
+                )}
+              </PrivateModeWrapper>
               %
             </span>
           )}
           {showActionValues && actionValue && (
             <span className="text-pinto-stalk-gold">
-              <PrivateModeWrapper>
+              <PrivateModeWrapper varient="percent">
                 {isBalancesLoading ? (
                   <Skeleton className="flex w-16 h-4 sm:w-20 sm:h-6 rounded-[0.75rem]" />
                 ) : (

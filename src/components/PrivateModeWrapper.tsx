@@ -25,8 +25,16 @@ export const privateModeObsfucation: string = asterisks[2].repeat(5)
 
 export const obfuscatedWalletAddress = '0x1234...ABCD'
 
-export const PrivateModeWrapper = ({ children }: { children: React.ReactNode }) => {
+export type PrivateModeVarient = 'default' | 'short' | 'percent'
+
+export const PrivateModeWrapper = ({ varient = 'default', children }: { varient?: PrivateModeVarient, children: React.ReactNode }) => {
     const isPrivateMode = usePrivateMode();
-    return isPrivateMode ? privateModeObsfucation : children
+    let obfuscation = privateModeObsfucation;
+    if (varient === 'short') {
+        obfuscation = privateModeObsfucation.slice(0, 2);
+    } else if (varient === 'percent') {
+        obfuscation = privateModeObsfucation.slice(0, 3);
+    }
+    return isPrivateMode ? obfuscation : children
 
 }

@@ -131,7 +131,9 @@ export default function FarmerDepositsTable({
             <div className="inline-flex items-center gap-1">
               <IconImage src={mainToken.logoURI} size={4} />
               <div className="pinto-sm text-pinto-green-4 inline-flex gap-1">
-                <span>{formatter.number(beanGain)}</span>
+                <PrivateModeWrapper>
+                  <span>{formatter.number(beanGain)}</span>
+                </PrivateModeWrapper>
                 <span className="max-[1300px]:hidden block">{mainToken.name}</span>
               </div>
             </div>
@@ -150,7 +152,11 @@ export default function FarmerDepositsTable({
           >
             <div className="inline-flex items-center gap-1">
               <IconImage src={stalkIcon} size={4} />
-              <div className="pinto-sm text-pinto-green-4">{formatter.number(stalkGain)}</div>
+              <div className="pinto-sm text-pinto-green-4">
+                <PrivateModeWrapper>
+                  {formatter.number(stalkGain)}
+                </PrivateModeWrapper>
+              </div>
             </div>
           </motion.div>
         </TableCell>
@@ -167,7 +173,11 @@ export default function FarmerDepositsTable({
           >
             <div className="inline-flex items-center gap-1">
               <IconImage src={seedIcon} size={4} />
-              <div className="pinto-sm text-pinto-green-4">{formatter.number(seedGain)}</div>
+              <div className="pinto-sm text-pinto-green-4">
+                <PrivateModeWrapper>
+                  {formatter.number(seedGain)}
+                </PrivateModeWrapper>
+              </div>
             </div>
           </motion.div>
         </TableCell>
@@ -297,10 +307,13 @@ export default function FarmerDepositsTable({
                               (addClaimable && beanGain.gt(0) && <UpArrowIcon color={"currentColor"} />)}
                             <IconImage src={token.logoURI} size={4} />
                             <div className="font-[400] text-[1rem]">
-                              {formatter.token(
-                                userData?.amount.add(rewardGains.beanGain).add(addClaimable ? beanGain : 0),
-                                token,
-                              )}{" "}
+                              <PrivateModeWrapper>
+                                {formatter.token(
+                                  userData?.amount.add(rewardGains.beanGain).add(addClaimable ? beanGain : 0),
+                                  token,
+                                )}
+                              </PrivateModeWrapper>
+                              {" "}
                               {token.name}
                             </div>
                           </div>
@@ -372,12 +385,14 @@ export default function FarmerDepositsTable({
                             (addClaimable && stalkGain.gt(0.01))) && <UpArrowIcon color={"currentColor"} />}
                           <IconImage src={stalkIcon} size={4} />
                           <div>
-                            {formatter.twoDec(
-                              userData?.stalk.base
-                                .add(grownStalk)
-                                .add(updateGains.stalkGain)
-                                .add(addClaimable ? stalkGain : 0),
-                            )}
+                            <PrivateModeWrapper>
+                              {formatter.twoDec(
+                                userData?.stalk.base
+                                  .add(grownStalk)
+                                  .add(updateGains.stalkGain)
+                                  .add(addClaimable ? stalkGain : 0),
+                              )}
+                            </PrivateModeWrapper>
                           </div>
                           {germinatingStalk.gt(0) && (
                             <TooltipSimple content={"This Stalk is germinating."}>
@@ -431,12 +446,14 @@ export default function FarmerDepositsTable({
                             (addClaimable && seedGain.gt(0.01) && <UpArrowIcon color={"currentColor"} />)}
                           <IconImage src={seedIcon} size={4} />
                           <div>
-                            {formatter.twoDec(
-                              userData?.seeds
-                                .add(rewardGains.seedGain)
-                                .add(updateGains.seedGain)
-                                .add(addClaimable ? seedGain : 0),
-                            )}
+                            <PrivateModeWrapper>
+                              {formatter.twoDec(
+                                userData?.seeds
+                                  .add(rewardGains.seedGain)
+                                  .add(updateGains.seedGain)
+                                  .add(addClaimable ? seedGain : 0),
+                              )}
+                            </PrivateModeWrapper>
                           </div>
                         </div>
                         {data.update?.seedsFromBDVIncrease.gt(0.01) && (

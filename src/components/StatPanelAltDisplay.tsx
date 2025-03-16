@@ -7,6 +7,7 @@ import { Dispatch, SetStateAction } from "react";
 import { useNavigate } from "react-router-dom";
 import TooltipSimple from "./TooltipSimple";
 import { Separator } from "./ui/Separator";
+import { PrivateModeWrapper } from "./PrivateModeWrapper";
 
 interface StatPanelAltDisplayProps {
   depositedValue: TokenValue;
@@ -27,7 +28,7 @@ export default function StatPanelAltDisplay({
   siloWrappedInternal = TokenValue.ZERO,
   farmBalance = TokenValue.ZERO,
   claimableFlood = TokenValue.ZERO,
-  setHoveredButton = () => {},
+  setHoveredButton = () => { },
 }: StatPanelAltDisplayProps) {
   const [panelState, setPanelState] = useAtom(navbarPanelAtom);
   const { submitClaimRewards } = useClaimRewards();
@@ -77,8 +78,16 @@ export default function StatPanelAltDisplay({
         >
           <span className="inline-flex items-center gap-1">
             <span className="inline-flex items-center gap-1">
-              Deposited Value: {depositedValue.lte(0) ? "-" : formatter.usd(depositedValue)}
-              {claimableValue.gt(0) && <span className="text-pinto-green-4">+ {formatter.usd(claimableValue)}</span>}
+              <span>Deposited Value: </span>
+              <PrivateModeWrapper varient="short">
+                {depositedValue.lte(0) ? "-" : formatter.usd(depositedValue)}
+              </PrivateModeWrapper>
+
+              {claimableValue.gt(0) && (
+                <span className="text-pinto-green-4">
+                  + <PrivateModeWrapper varient="short">{formatter.usd(claimableValue)}</PrivateModeWrapper>
+                </span>
+              )}
             </span>
             <TooltipSimple
               variant={claimableValue.gt(0) ? "green" : "gray"}
@@ -97,7 +106,12 @@ export default function StatPanelAltDisplay({
           onClick={() => navigate(`/wrap`)}
         >
           <span className="inline-flex items-center gap-1">
-            <span>sPINTO: {siloWrappedValue.lte(0) ? "-" : formatter.usd(siloWrappedValue)}</span>
+            <span>
+              sPINTO:{" "}
+              <PrivateModeWrapper>
+                {siloWrappedValue.lte(0) ? "-" : formatter.usd(siloWrappedValue)}
+              </PrivateModeWrapper>
+            </span>
             <TooltipSimple variant="gray" content={getSiloWrappedTooltip()} />
           </span>
           <span className="absolute top-4 opacity-0 transition-all sm:group-hover:top-6 sm:group-hover:opacity-100 pinto-sm-light text-pinto-gray-3 text-center w-full">
@@ -115,7 +129,12 @@ export default function StatPanelAltDisplay({
           onClick={() => openWalletPanel(false, true)}
         >
           <span className="inline-flex items-center gap-1">
-            <span>Farm Balance: {farmBalance.lte(0) ? "-" : formatter.usd(farmBalance)}</span>
+            <span>
+              Farm Balance:{" "}
+              <PrivateModeWrapper>
+                {farmBalance.lte(0) ? "-" : formatter.usd(farmBalance)}
+              </PrivateModeWrapper>
+            </span>
             <TooltipSimple
               variant="gray"
               content={"Value of your Farm Balance, ERC-20 tokens stored by the protocol on your behalf."}
