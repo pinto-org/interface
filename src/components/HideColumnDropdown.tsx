@@ -36,21 +36,23 @@ export const HideColumnDropdown = ({ seasonColumns, hiddenFields, toggleColumn, 
         return (
             <Drawer open={isOpen} onOpenChange={() => toggle()}>
                 <DrawerTrigger>{trigger}</DrawerTrigger>
-                <DrawerContent>
-                    {seasonColumns.map(({ id, dropdownName, name }) => {
-                        if (nonHideableFields.includes(id)) {
-                            return null
-                        }
-                        const checked = hiddenFields.includes(id)
-                        const extraClasses = hiddenFields.includes(id) ? 'line-through' : ''
-                        return (
-                            <div key={id} onClick={() => toggleColumn(id)} className={`flex items-center px-8 ${extraClasses}`}>
-                                {!checked && <IconImage className="absolute left-2 flex items-center justify-center" src={eyeballCrossed} size={4} />}
-                                <span >{dropdownName || name}</span>
-                            </div>
-                        )
-                    })}
-                    <Button className="w-full text-base h-8 rounded-none" onClick={resetAllHiddenColumns} variant="outline">Reset</Button>
+                <DrawerContent className="px-4 pb-2">
+                    <div className="max-h-[300px] overflow-auto my-2">
+                        {seasonColumns.map(({ id, dropdownName, name }) => {
+                            if (nonHideableFields.includes(id)) {
+                                return null
+                            }
+                            const checked = hiddenFields.includes(id)
+                            const extraClasses = hiddenFields.includes(id) ? 'line-through' : ''
+                            return (
+                                <div key={id} onClick={() => toggleColumn(id)} className={`flex items-center h-[36px] gap-2 ${extraClasses}`}>
+                                    <IconImage className={`${!checked ? 'opacity-100' : 'opacity-0'} flex items-center justify-center`} src={eyeballCrossed} size={4} />
+                                    <span >{dropdownName || name}</span>
+                                </div>
+                            )
+                        })}
+                    </div>
+                    <Button className="w-full text-base h-10" onClick={resetAllHiddenColumns} variant="outline">Reset</Button>
                 </DrawerContent>
             </Drawer>
         );
