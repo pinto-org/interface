@@ -28,6 +28,7 @@ import { BeanSwapNodeQuote } from "./swap-router";
 type SwapBuilderContext = {
   chainId: number;
   config: WagmiConfig;
+  account: Address | undefined;
 };
 
 export class SwapBuilder {
@@ -47,10 +48,11 @@ export class SwapBuilder {
     return [...this.#advPipe.getSteps()];
   }
 
-  constructor(chainId: number, config: WagmiConfig) {
+  constructor(chainId: number, config: WagmiConfig, account: Address | undefined) {
     this.#context = {
       chainId,
       config,
+      account,
     };
     this.#advPipe = new AdvancedPipeWorkflow(this.#context.chainId, this.#context.config);
     this.advFarm = new AdvancedFarmWorkflow(this.#context.chainId, this.#context.config);
@@ -263,13 +265,19 @@ export class SwapBuilder {
 
           const wrappedNative = WETH_TOKEN[resolveChainId(this.#context.chainId)];
 
-          const unwrap = this.#getUnwrapETH(
-            node,
-            fromMode,
-            i,
-            undefined,
-            this.getPipeCallClipboardSlot(0, wrappedNative),
-          );
+          const derivedClipboard = await this.advFarm.simulate({ account: this.#context.account }).then((response) => {
+            if (!response.result) {
+              throw new Error("Error simulating swap workflow");
+            }
+
+            return this.deriveClipboardWithOutputToken(wrappedNative, 0, this.#context.account);
+          });
+
+          console.debug("[Swap/builder/unwrapETH] deriveClipboardWithOutputToken", {
+            derivedClipboard,
+          });
+
+          const unwrap = this.#getUnwrapETH(node, fromMode, i, undefined, derivedClipboard.clipboard);
 
           this.advFarm.add(unwrap, {
             tag: node.thisTag,

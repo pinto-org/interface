@@ -6,6 +6,7 @@ import { Token } from "@/utils/types";
 import { useMemo } from "react";
 import { useAccount, useBalance, useReadContract } from "wagmi";
 import useTokenData from "./useTokenData";
+import { stringToStringNum } from "@/utils/string";
 
 const settings = {
   staleTime: 1000 * 60 * 2,
@@ -87,4 +88,18 @@ export function useFarmerBalances() {
     queryKeys: [queryKey, nativeBalance.queryKey],
     refetch: refetch,
   }), [queriesLoading, balanceData, queriesFetched, queryKey, nativeBalance.queryKey, refetch]);
+}
+
+export function useAmountExceedsBalance(
+  token: Token,
+  balance: TokenValue | undefined,
+  amount: string
+) {
+  if (!balance || balance.isZero) {
+    return true;
+  }
+
+  const amountIn = TokenValue.fromHuman(stringToStringNum(amount), token.decimals);
+
+  return amountIn.gt(balance);
 }
