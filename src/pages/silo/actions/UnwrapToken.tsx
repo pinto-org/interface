@@ -1,20 +1,29 @@
 import { TV } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
+import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import MobileActionBar from "@/components/MobileActionBar";
+import RoutingAndSlippageInfo from "@/components/RoutingAndSlippageInfo";
 import SiloOutputDisplay from "@/components/SiloOutputDisplay";
+import SlippageButton from "@/components/SlippageButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
+import TokenSelectBase from "@/components/TokenSelectBase";
 import { Label } from "@/components/ui/Label";
+import { Switch, SwitchThumb } from "@/components/ui/Switch";
 import { siloedPintoABI } from "@/constants/abi/siloedPintoABI";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
+import { useBuildSwapQuoteAsync } from "@/hooks/swap/useBuildSwapQuote";
+import useSwap from "@/hooks/swap/useSwap";
+import useSwapSummary from "@/hooks/swap/useSwapSummary";
 import useTransaction from "@/hooks/useTransaction";
 import { FarmerBalance, useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import useTokenData from "@/state/useTokenData";
 import { pickCratesAsCrates, sortCratesByStem } from "@/utils/convert";
 import { tryExtractErrorMessage } from "@/utils/error";
+import { formatter } from "@/utils/format";
 import { isValidAddress, stringToStringNum } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
-import { FarmFromMode, Token } from "@/utils/types";
+import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { getBalanceFromMode, noop } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -32,26 +41,39 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   const { mainToken } = useTokenData();
   const qc = useQueryClient();
   const filterTokens = useFilterOutTokens(siloToken);
+  const tokenOptions = useUnwrapTokenOptions();
 
   const farmerBalance = farmerBalances.balances.get(siloToken);
 
   // Local State
+  const [slippage, setSlippage] = useState<number>(0.1);
   const [amountIn, setAmountIn] = useState<string>("0");
-  const [balanceSource, setBalanceSource] = useState<FarmFromMode>(
-    farmerBalances.isFetched ? getPreferredBalanceSource(farmerBalance) : FarmFromMode.EXTERNAL,
-  );
+  const [balanceSource, setBalanceSource] = useState<FarmFromMode>(FarmFromMode.EXTERNAL);
+
+  const [toSilo, setToSilo] = useState<boolean>(true);
   const [didInitBalanceSource, setDidInitBalanceSource] = useState<boolean>(!!farmerBalances.isFetched);
   const [inputError, setInputError] = useState<boolean>(false);
+  const [tokenOut, setTokenOut] = useState<Token>(mainToken);
+  const [toMode, setToMode] = useState<FarmToMode>(FarmToMode.INTERNAL);
 
   // Derived
   const balance = getBalanceFromMode(farmerBalance, balanceSource) ?? TV.ZERO;
   const amountTV = TV.fromHuman(stringToStringNum(amountIn), siloToken.decimals);
   const validAmountIn = amountTV.gt(0);
-  const quoteDisabled = !siloToken.isSiloWrapped;
+  const quoteDisabled = !siloToken.isSiloWrapped || !toSilo;
 
   // Queries & Hooks
   const { data: quote, ...quoteQuery } = useUnwrapTokenQuoteQuery(amountTV, siloToken, mainToken, quoteDisabled);
   const output = useUnwrapQuoteOutputSummary(contractBalances.deposits, mainToken, quote);
+  const swap = useSwap({
+    tokenIn: siloToken,
+    tokenOut,
+    slippage,
+    amountIn: amountTV,
+    disabled: toSilo, // disable quote if we are unwrapping to silo deposit
+  });
+  const swapSummary = useSwapSummary(swap.data);
+  const buildSwapQuote = useBuildSwapQuoteAsync(swap.data, balanceSource, toMode, account, account);
 
   // Transaction
   const onSuccess = useCallback(() => {
@@ -96,12 +118,13 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
 
   // Effects
   useEffect(() => {
-    if (didInitBalanceSource || !farmerBalance || farmerBalances.isLoading || isConnecting) return;
+    if (didInitBalanceSource || !farmerBalance || farmerBalances.isLoading || isConnecting) {
+      return;
+    }
 
-    const setAsExternal = farmerBalance.total.eq(0) || farmerBalance.external.gt(farmerBalance.internal);
-    setBalanceSource(setAsExternal ? FarmFromMode.EXTERNAL : FarmFromMode.INTERNAL);
+    setBalanceSource(getPreferredBalanceSource(farmerBalance));
     setDidInitBalanceSource(true);
-  }, [didInitBalanceSource, farmerBalances.isLoading, farmerBalance]);
+  }, [didInitBalanceSource, farmerBalances.isLoading, farmerBalance, isConnecting]);
 
   // Display State
   const buttonText = amountTV.gt(balance) ? "Insufficient Balance" : "Unwrap";
@@ -116,9 +139,12 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col">
-        <Label variant="section" expanded>
-          Amount to Unwrap
-        </Label>
+        <div className="flex flex-row justify-between items-center">
+          <Label variant="section" expanded>
+            Amount to Unwrap
+          </Label>
+          {!toSilo && <SlippageButton slippage={slippage} setSlippage={setSlippage} />}
+        </div>
         <ComboInputField
           amount={amountIn}
           selectedToken={siloToken}
@@ -135,9 +161,53 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
           filterTokens={filterTokens}
           isLoading={!didInitBalanceSource}
         />
+        <div className="flex flex-row w-full justify-between items-center mt-6">
+          <div className="pinto-sm sm:pinto-body-light sm:text-pinto-light text-pinto-light">
+            Unwrap as {mainToken.symbol} deposit
+          </div>
+          <Switch
+            checked={toSilo}
+            onCheckedChange={() => setToSilo((prev) => !prev)}
+          >
+            <SwitchThumb />
+          </Switch>
+        </div>
       </div>
-      {output?.amount.gt(0) && validAmountIn ? (
+      {toSilo && output?.amount.gt(0) && validAmountIn ? (
         <SiloOutputDisplay token={mainToken} amount={output.amount} stalk={output.stalk.total} seeds={output.seeds} />
+      ) : null}
+      {!toSilo ? (
+        <div>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col">
+              <Label className="flex h-10 items-center">Destination</Label>
+              <DestinationBalanceSelect setBalanceTo={setToMode} balanceTo={toMode} />
+            </div>
+            <div className="flex flex-col w-full py-4 gap-2">
+              <div className="pinto-body-light text-pinto-light">Unwrap as</div>
+              <div className="flex flex-col w-full gap-1">
+                <div className="flex flex-row items-center justify-between w-full">
+                  <div className="flex flex-col gap-1">
+                    <div className="pinto-h3">{formatter.token(swap.data?.buyAmount, tokenOut)}</div>
+                  </div>
+                  <TokenSelectBase tokens={tokenOptions} selected={tokenOut} selectToken={setTokenOut} />
+                </div>
+                <div className="pinto-sm-light text-pinto-light">{formatter.usd(swap.data?.usdOut)}</div>
+              </div>
+            </div>
+          </div>
+          {swap.data ? (
+            <RoutingAndSlippageInfo
+              title="Total Unwrap Slippage"
+              swapSummary={swapSummary}
+              priceImpactSummary={undefined}
+              preferredSummary="swap"
+              tokenIn={siloToken}
+              tokenOut={tokenOut}
+              txnType="Swap"
+            />
+          ) : null}
+        </div>
       ) : null}
       <div className="flex-row hidden sm:flex">
         <SmartSubmitButton
@@ -174,6 +244,20 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
 // =======================================================================
 
 // ================================ HOOKS ================================
+
+const useUnwrapTokenOptions = () => {
+  const tokenMap = useTokenMap();
+  const [tokens, setTokens] = useState<Token[]>([]);
+
+  useEffect(() => {
+    const tokens = Object.values(tokenMap);
+    const filtered = tokens.filter((t) => !t.isSiloWrapped && !t.isLP && !t.is3PSiloWrapped);
+
+    setTokens(filtered);
+  }, [tokenMap]);
+
+  return tokens;
+}
 
 function useUnwrapTokenQuoteQuery(amount: TV, tokenIn: Token, tokenOut: Token, disabled: boolean = false) {
   return useReadContract({

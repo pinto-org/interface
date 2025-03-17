@@ -19,6 +19,7 @@ import { ArrowRightIcon, CornerBottomLeftIcon } from "@radix-ui/react-icons";
 import { Separator } from "@radix-ui/react-separator";
 import React, { createContext, useContext } from "react";
 import IconImage from "./ui/IconImage";
+import sPINTOLogo from '@/assets/tokens/sPINTO.png'
 
 type SiloTxn = "Swap" | "Deposit" | "Convert" | "Withdraw";
 
@@ -332,6 +333,27 @@ const PriceImpactContent = ({ variant = "sm-light", showTokenName = false }: IPr
   );
 };
 
+const getDetailsWithExchange = (exchange: SwapSummaryExchange) => {
+  let logo = "";
+  let text = "";
+
+  if (exchange === "pinto-exchange") {
+    logo = pintoExchangeLogo;
+    text = "Pinto-Exchange";
+  } else if (exchange === "0x") {
+    logo = swap0xlogo;
+    text = "0x-Swap";
+  } else if (exchange === "base") {
+    logo = baseLogo;
+    text = "Base";
+  } else if (exchange === "sPinto") {
+    logo = sPINTOLogo;
+    text = "sPINTO";
+  }
+
+  return { logo, text };
+}
+
 const RoutesFormContent = () => {
   const { swapSummary, priceImpactSummary, txnType, tokenOut } = useRoutingAndSlippageInfoContext();
   const exchanges = swapSummary?.swap?.exchanges;
@@ -349,21 +371,14 @@ const RoutesFormContent = () => {
         <div className="pinto-sm">Router</div>
         <div className="flex flex-row gap-x-2">
           {exchanges?.map((exchange) => {
-            if (exchange === "pinto-exchange") {
-              return (
-                <div className="pinto-sm flex flex-row items-center gap-x-1" key={`exchange-${exchange}`}>
-                  <IconImage src={pintoExchangeLogo} alt="Pinto Exchange" size={4} />
-                  Pinto Exchange
-                </div>
-              );
-            } else if (exchange === "0x") {
-              return (
-                <div className="pinto-sm flex flex-row items-center gap-x-1" key={`exchange-${exchange}`}>
-                  <IconImage src={swap0xlogo} alt="0x" size={4} />
-                  0x Swap
-                </div>
-              );
-            }
+            const { logo, text } = getDetailsWithExchange(exchange);
+
+            return (
+              <div className="pinto-sm flex flex-row items-center gap-x-1" key={`exchange-${exchange}`}>
+                <IconImage src={logo} alt={text} size={4} />
+                {text}
+              </div>
+            )
           })}
         </div>
       </div>
@@ -402,13 +417,12 @@ const SlippageDialogHeader = () => {
 };
 
 const RouteExchangeDetails = ({ exchange, feePct }: { exchange: SwapSummaryExchange; feePct?: number }) => {
-  const icon = exchange === "pinto-exchange" ? pintoExchangeLogo : exchange === "0x" ? swap0xlogo : baseLogo;
-  const text = exchange === "pinto-exchange" ? "Pinto-Exchange" : exchange === "0x" ? "0x-Swap" : "Base";
+  const { logo, text } = getDetailsWithExchange(exchange);
 
   return (
     <div className="flex flex-row items-center gap-x-1 pinto-sm-light text-pinto-light">
       <CornerBottomLeftIcon className="w-4 h-4 pb-1" />
-      <IconImage src={icon} nudge={1} alt={text} className="opacity-60" size={4} />
+      <IconImage src={logo} nudge={1} alt={text} className="opacity-60" size={4} />
       <div className="inline">
         {text}
         {exchange === "0x" && exists(feePct) ? <span> ({formatter.xDec(feePct, 3)}% fee)</span> : null}
