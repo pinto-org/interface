@@ -8,6 +8,7 @@ import { useAccount, useChainId, useConfig } from "wagmi";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { useChainConstant } from "@/utils/chain";
 import { SwapOptions, SwapQuoter } from "../../lib/Swap/swap-router";
+import { defaultQuerySettingsQuote } from "@/constants/query";
 
 const useRouter = () => {
   const chainId = useChainId();
@@ -75,6 +76,8 @@ export default function useSwap({ tokenIn, tokenOut, amountIn, slippage, disable
       return swapResult;
     },
     enabled: !!account && !!tokenIn && !!tokenOut && amountIn.gt(0) && !!slippage && !disabled,
+    ...defaultQuerySettingsQuote
+
   });
 
   const resetSwap = useCallback(() => {

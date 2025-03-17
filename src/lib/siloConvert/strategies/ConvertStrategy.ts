@@ -3,7 +3,7 @@ import { TV } from "@/classes/TokenValue";
 import { Token } from "@/utils/types";
 
 import { AdvancedFarmWorkflow, AdvancedPipeWorkflow } from "@/lib/farm/workflow";
-import { ZeroExQuoteResponse } from "@/lib/matcha/types";
+import { ZeroXQuoteV2Response } from "@/lib/matcha/types";
 import { SiloConvertContext } from "@/lib/siloConvert/SiloConvert";
 import { ExtendedPickedCratesDetails } from "@/utils/convert";
 import { HashString } from "@/utils/types.generic";
@@ -21,7 +21,7 @@ export interface SiloConvertTargetSummary {
 export interface SiloConvertSwapQuote {
   sellToken: Token;
   buyToken: Token;
-  quote: ZeroExQuoteResponse;
+  quote: ZeroXQuoteV2Response;
   buyAmount: TV;
   sellAmount: TV;
   sellAmountUSD: TV;

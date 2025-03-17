@@ -4,7 +4,7 @@ import { abiSnippets } from "@/constants/abiSnippets";
 import { PIPELINE_ADDRESS } from "@/constants/address";
 import { AdvancedFarmWorkflow, AdvancedPipeWorkflow } from "@/lib/farm/workflow";
 import { ZeroX } from "@/lib/matcha/ZeroX";
-import { ZeroExQuoteResponse } from "@/lib/matcha/types";
+import { ZeroXQuoteV2Response } from "@/lib/matcha/types";
 import { ExtendedPickedCratesDetails } from "@/utils/convert";
 import { tokensEqual } from "@/utils/token";
 import { Token } from "@/utils/types";
@@ -12,6 +12,8 @@ import { HashString } from "@/utils/types.generic";
 import { decodeFunctionResult, encodeFunctionData } from "viem";
 import { ConvertStrategyQuote } from "./ConvertStrategy";
 import { SiloConvertLP2LPConvertStrategy, SourceSummaryLP2LP, TargetSummaryLP2LP } from "./LP2LPConvertStrategy";
+import { pipelineAddress } from "@/generated/contractHooks";
+import { resolveChainId } from "@/utils/chain";
 
 class OneSidedPairToken extends SiloConvertLP2LPConvertStrategy {
   // The index of the token in the well to remove liquidity from.
@@ -60,7 +62,7 @@ class OneSidedPairToken extends SiloConvertLP2LPConvertStrategy {
     const amountsOut = await this.#getRemoveLiquidityOut(deposits, advancedFarm);
     const pairAmountOut = amountsOut[this.removeIndex];
 
-    const swapParams = this.generateSwapQuoteParams(this.addToken, this.removeToken, pairAmountOut, slippage / 100);
+    const swapParams = this.generateSwapQuoteParams(this.addToken, this.removeToken, pairAmountOut, slippage);
 
     // Swap
     const swapQuotes = await ZeroX.quote(swapParams);
@@ -136,31 +138,36 @@ class OneSidedPairToken extends SiloConvertLP2LPConvertStrategy {
         source.amountIn,
         this.removeToken,
         source.minAmountOut[this.removeIndex],
-        PIPELINE_ADDRESS,
+        pipelineAddress[resolveChainId(this.context.chainId)],
       ),
     );
 
     // 2. approve swap contract to spend sellToken
-    pipe.add(OneSidedPairToken.snippets.erc20Approve(swap.sellToken, swap.quote.allowanceTarget));
+    pipe.add(OneSidedPairToken.snippets.erc20Approve(swap.sellToken, swap.quote.transaction.to));
 
     // 3. swap removeToken for addToken via 0x
     pipe.add({
-      target: swap.quote.to as `0x${string}`,
-      callData: swap.quote.data as `0x${string}`,
+      target: swap.quote.transaction.to,
+      callData: swap.quote.transaction.data,
       clipboard: Clipboard.encode([]),
     });
 
-    // 4. transfer swap result to target well
+    // 4. get balance of buyToken
+    pipe.add(
+      OneSidedPairToken.snippets.erc20BalanceOf(swap.buyToken, pipelineAddress[resolveChainId(this.context.chainId)])
+    );
+
+    // 5. transfer swap result to target well
     pipe.add(
       OneSidedPairToken.snippets.erc20Transfer(
         swap.buyToken,
         target.well.pool.address,
         TV.MAX_UINT256, // overriden w/ clipboard
-        Clipboard.encodeSlot(3, 0, 1),
+        Clipboard.encodeSlot(4, 0, 1),
       ),
     );
 
-    // 5. call Sync on target well
+    // 6. call Sync on target well
     pipe.add(OneSidedPairToken.snippets.wellSync(target.well, PIPELINE_ADDRESS, target.minAmountOut));
 
     return pipe;
@@ -168,8 +175,8 @@ class OneSidedPairToken extends SiloConvertLP2LPConvertStrategy {
 
   // ------------------------------ Private Methods ------------------------------ //
 
-  async #getAddLiquidityOut(swapQuote: ZeroExQuoteResponse, advancedFarm: AdvancedFarmWorkflow) {
-    const buyAmount = TV.fromBlockchain(swapQuote.buyAmount, this.addToken.decimals);
+  async #getAddLiquidityOut(swapQuote: ZeroXQuoteV2Response, advancedFarm: AdvancedFarmWorkflow) {
+    const buyAmount = TV.fromBlockchain(swapQuote.minBuyAmount, this.addToken.decimals);
 
     const amountsIn = [TV.ZERO, buyAmount];
     if (this.addIndex === 0) {
