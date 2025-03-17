@@ -65,12 +65,12 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
 
   const usingDeposits = source === "deposits";
 
-  const { 
-    allowance, 
-    setAllowance, 
-    queryKey: allowanceQueryKey, 
-    loading: allowanceLoading, 
-    confirming: allowanceConfirming 
+  const {
+    allowance,
+    setAllowance,
+    queryKey: allowanceQueryKey,
+    loading: allowanceLoading,
+    confirming: allowanceConfirming
   } = useFarmerDepositAllowance(Boolean(usingDeposits && tokenIsSiloWrappedToken));
 
   const amountInTV = TV.fromHuman(amountIn, mainToken.decimals);
@@ -125,11 +125,11 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
         setSubmitting(true);
 
         const picked = sortAndPickCrates("wrap", amount, deposits.deposits);
-  
+
         const extracted = extractStemsAndAmountsFromCrates(picked.crates);
-  
+
         toast.loading("Wrapping...");
-  
+
         return writeWithEstimateGas({
           address: siloToken.address,
           abi: siloedPintoABI,
@@ -152,7 +152,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
       if (!swapBuild) {
         throw new Error("Failed to build swap");
       }
-      
+
       const value = token.isNative ? TV.fromHuman(amountIn, token.decimals) : undefined;
 
       return writeWithEstimateGas({
@@ -198,16 +198,14 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
   const amountExceedsBalance = !usingDeposits && amountInTV.gt(0) && amountInTV.gt(balance ?? 0n);
 
   const quoting = usingDeposits ? quote.isLoading : swap.isLoading;
-  
+
   const exceedsBalance = usingDeposits ? amountExceedsBalance : amountExceedsDeposits;
-  
+
   const buttonText = exceedsBalance ? "Insufficient funds" : needsDepositAllowanceIncrease ? "Approve" : "Wrap";
 
   const disabledFromLoading = confirming || quoting || submitting || isConfirming;
-  
-  const buttonDisabled = !account || inputDisabled || !isValidAmount || exceedsBalance || inputError || disabledFromLoading;
 
-  console.log(allowance);
+  const buttonDisabled = !account || inputDisabled || !isValidAmount || exceedsBalance || inputError || disabledFromLoading;
 
   return (
     <div className="flex flex-col gap-6">
@@ -240,7 +238,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
         <div className="flex flex-row w-full justify-between items-center mt-4">
           <div className="pinto-sm sm:pinto-body-light sm:text-pinto-light text-pinto-light">Use {mainToken.symbol} deposits</div>
           <Switch
-            checked={source === "deposits"}  
+            checked={source === "deposits"}
             onCheckedChange={() => {
               setAmountIn("0");
               setSource((prev) => prev === "deposits" ? "balances" : "deposits");
@@ -345,7 +343,7 @@ const usePreviewDeposit = (amountInTV: TV, enabled: boolean = true) => {
 
   return useMemo(() => {
     return {
-      data: query.data, 
+      data: query.data,
       isLoading: query.isLoading,
     }
   }, [query.data, query.isLoading]);
