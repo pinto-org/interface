@@ -1,17 +1,15 @@
 import { Clipboard } from "@/classes/Clipboard";
 import { TV } from "@/classes/TokenValue";
-import { WETH_TOKEN } from "@/constants/tokens";
 import encoders from "@/encoders";
 import transferToken from "@/encoders/transferToken";
 import { beanstalkAddress, pipelineAddress } from "@/generated/contractHooks";
 import { extractABIDynamicArrayCopySlot } from "@/utils/bytes";
-import { resolveChainId } from "@/utils/chain";
 import { stringEq } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
 import { AdvancedPipeCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { HashString } from "@/utils/types.generic";
 import { exists } from "@/utils/utils";
-import { Address, encodeFunctionData } from "viem";
+import { Address } from "viem";
 import { Config as WagmiConfig } from "wagmi";
 import { AdvancedFarmWorkflow, AdvancedPipeWorkflow } from "../farm/workflow";
 import {
@@ -26,7 +24,6 @@ import {
 import { UnwrapEthSwapNode, WrapEthSwapNode } from "./nodes/NativeSwapNode";
 import { ClipboardContext, SwapNode } from "./nodes/SwapNode";
 import { BeanSwapNodeQuote } from "./swap-router";
-import { siloedPintoABI } from "@/constants/abi/siloedPintoABI";
 
 type SwapBuilderContext = {
   chainId: number;
