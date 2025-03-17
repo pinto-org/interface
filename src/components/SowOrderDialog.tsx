@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { useAccount } from "wagmi";
 import { isDev } from "@/utils/utils"; // Only used for pre-filling form data for faster developing, remove before prod
 import { Blueprint } from "@/lib/Tractor/types";
+import { InfoOutlinedIcon, WarningIcon } from "@/components/Icons";
 
 interface SowOrderDialogProps {
   open: boolean;
@@ -173,6 +174,21 @@ export default function SowOrderDialog({
     }
   }, [isDev]);
 
+  // Add this function to check if the pod line length is valid
+  const isPodLineLengthValid = () => {
+    try {
+      // Remove commas and convert to a number
+      const inputLength = parseFloat(podLineLength.replace(/,/g, ""));
+      const currentLength = parseFloat(
+        formatter.number(podLine).replace(/,/g, "")
+      );
+
+      return !Number.isNaN(inputLength) && inputLength > currentLength;
+    } catch (e) {
+      return false;
+    }
+  };
+
   const handleNext = async () => {
     try {
       console.time("handleNext total");
@@ -228,6 +244,17 @@ export default function SowOrderDialog({
 
   if (!open) return null;
 
+  const inputIds = {
+    totalAmount: "total-amount-input",
+    minPerSeason: "min-per-season-input",
+    maxPerSeason: "max-per-season-input",
+    fundOrder: "fund-order-select",
+    temperature: "temperature-input",
+    podLineLength: "pod-line-length-input",
+    morningAuction: "morning-auction-input",
+    operatorTip: "operator-tip-input",
+  };
+
   return (
     <>
       <div className="absolute inset-0 flex flex-col">
@@ -249,11 +276,15 @@ export default function SowOrderDialog({
             <div className="flex flex-col gap-6 flex-1">
               {/* I want to Sow up to */}
               <div className="flex flex-col gap-2">
-                <label className="text-[#9C9C9C] text-base font-light">
+                <label
+                  htmlFor={inputIds.totalAmount}
+                  className="text-[#9C9C9C] text-base font-light"
+                >
                   I want to Sow up to
                 </label>
                 <div className="flex items-center border border-[#D9D9D9] rounded-xl bg-white">
                   <Input
+                    id={inputIds.totalAmount}
                     className="h-12 px-3 py-1.5 border-0 rounded-l-xl flex-1"
                     placeholder="0.00"
                     value={totalAmount}
@@ -275,23 +306,26 @@ export default function SowOrderDialog({
 
               {/* Fund order using */}
               <div className="flex flex-col gap-2">
-                <label className="text-[#9C9C9C] text-base font-light">
+                <label
+                  htmlFor={inputIds.fundOrder}
+                  className="text-[#9C9C9C] text-base font-light"
+                >
                   Fund order using
                 </label>
                 <Select
                   value={
                     selectedTokenStrategy.type === "LOWEST_SEEDS"
-                      ? "lowest-seeds"
+                      ? "LOWEST_SEEDS"
                       : selectedTokenStrategy.type === "LOWEST_PRICE"
-                        ? "lowest-price"
+                        ? "LOWEST_PRICE"
                         : selectedTokenStrategy.type === "SPECIFIC_TOKEN"
                           ? selectedTokenStrategy.address
-                          : undefined
+                          : ""
                   }
                   onValueChange={(value) => {
-                    if (value === "lowest-seeds") {
+                    if (value === "LOWEST_SEEDS") {
                       setSelectedTokenStrategy({ type: "LOWEST_SEEDS" });
-                    } else if (value === "lowest-price") {
+                    } else if (value === "LOWEST_PRICE") {
                       setSelectedTokenStrategy({ type: "LOWEST_PRICE" });
                     } else {
                       setSelectedTokenStrategy({
@@ -301,7 +335,10 @@ export default function SowOrderDialog({
                     }
                   }}
                 >
-                  <SelectTrigger className="h-12 px-3 py-1.5 border border-[#D9D9D9] rounded-xl flex items-center">
+                  <SelectTrigger
+                    id={inputIds.fundOrder}
+                    className="h-12 px-3 py-1.5 border border-[#D9D9D9] rounded-xl flex items-center"
+                  >
                     <SelectValue
                       placeholder="Select token"
                       className="w-full flex-1 text-left min-w-0"
@@ -309,7 +346,7 @@ export default function SowOrderDialog({
                   </SelectTrigger>
                   <SelectContent className="w-full min-w-[var(--radix-select-trigger-width)]">
                     <SelectItem
-                      value="lowest-seeds"
+                      value="LOWEST_SEEDS"
                       className="w-full pr-3 [&>span]:w-full relative pl-8"
                     >
                       <div className="w-full flex items-center justify-start">
@@ -319,7 +356,7 @@ export default function SowOrderDialog({
                       </div>
                     </SelectItem>
                     <SelectItem
-                      value="lowest-price"
+                      value="LOWEST_PRICE"
                       className="w-full pr-3 [&>span]:w-full relative pl-8"
                     >
                       <div className="w-full flex items-center">
@@ -367,10 +404,14 @@ export default function SowOrderDialog({
 
               {/* Execute if Available Soil is at least */}
               <div className="flex flex-col gap-2">
-                <label className="text-[#9C9C9C] text-base font-light">
+                <label
+                  htmlFor={inputIds.minPerSeason}
+                  className="text-[#9C9C9C] text-base font-light"
+                >
                   Execute if Available Soil is at least
                 </label>
                 <Input
+                  id={inputIds.minPerSeason}
                   className={`h-12 px-3 py-1.5 border ${
                     error ? "border-red-500" : "border-[#D9D9D9]"
                   } rounded-xl`}
@@ -386,11 +427,15 @@ export default function SowOrderDialog({
 
               {/* Max amount to sow per Season */}
               <div className="flex flex-col gap-2">
-                <label className="text-[#9C9C9C] text-base font-light">
+                <label
+                  htmlFor={inputIds.maxPerSeason}
+                  className="text-[#9C9C9C] text-base font-light"
+                >
                   Max amount to sow per Season
                 </label>
                 <div className="flex items-center border border-[#D9D9D9] rounded-xl bg-white">
                   <Input
+                    id={inputIds.maxPerSeason}
                     className={`h-12 px-3 py-1.5 border-0 rounded-l-xl flex-1 ${
                       error ? "border-red-500" : ""
                     }`}
@@ -412,10 +457,14 @@ export default function SowOrderDialog({
 
               {/* Execute when Temperature is at least */}
               <div className="flex flex-col gap-2">
-                <label className="text-[#9C9C9C] text-base font-light">
+                <label
+                  htmlFor={inputIds.temperature}
+                  className="text-[#9C9C9C] text-base font-light"
+                >
                   Execute when Temperature is at least
                 </label>
                 <Input
+                  id={inputIds.temperature}
                   className="h-12 px-3 py-1.5 border border-[#D9D9D9] rounded-xl"
                   placeholder="400%"
                   value={temperature}
@@ -428,15 +477,32 @@ export default function SowOrderDialog({
 
               {/* Execute when the length of the Pod Line is at most */}
               <div className="flex flex-col gap-2">
-                <label className="text-[#9C9C9C] text-base font-light">
+                <label
+                  htmlFor={inputIds.podLineLength}
+                  className="text-[#9C9C9C] text-base font-light"
+                >
                   Execute when the length of the Pod Line is at most
                 </label>
                 <Input
-                  className="h-12 px-3 py-1.5 border border-[#D9D9D9] rounded-xl"
+                  id={inputIds.podLineLength}
+                  className={`h-12 px-3 py-1.5 border ${
+                    !isPodLineLengthValid()
+                      ? "border-red-500"
+                      : "border-[#D9D9D9]"
+                  } rounded-xl`}
                   placeholder="9,000,000"
                   value={podLineLength}
                   onChange={(e) => setPodLineLength(e.target.value)}
                 />
+                {!isPodLineLengthValid() && (
+                  <div className="bg-red-100 border border-red-300 text-red-600 px-4 py-3 rounded-lg flex items-start gap-2">
+                    <WarningIcon color="#DC2626" width={25} height={25} />
+                    <span>
+                      Pod Line is length is {formatter.number(podLine)}, this
+                      order cannot execute under current conditions.
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between gap-2 mt-1 w-full">
                   <Button
                     variant="outline"
@@ -503,7 +569,10 @@ export default function SowOrderDialog({
 
               {/* Execute during the Morning Auction */}
               <div className="flex flex-col gap-2">
-                <label className="text-[#9C9C9C] text-base font-light">
+                <label
+                  htmlFor={inputIds.morningAuction}
+                  className="text-[#9C9C9C] text-base font-light"
+                >
                   Execute during the Morning Auction
                 </label>
                 <div className="flex justify-between gap-2 w-full">
@@ -534,11 +603,15 @@ export default function SowOrderDialog({
 
               {/* After Morning Auction buttons */}
               <div className="flex flex-col gap-2">
-                <label className="text-[#9C9C9C] text-base font-light">
+                <label
+                  htmlFor={inputIds.operatorTip}
+                  className="text-[#9C9C9C] text-base font-light"
+                >
                   Operator Tip
                 </label>
                 <div className="flex items-center border border-[#D9D9D9] rounded-xl bg-white">
                   <Input
+                    id={inputIds.operatorTip}
                     className="h-12 px-3 py-1.5 border-0 rounded-l-xl flex-1"
                     placeholder="0.00"
                     value={operatorTip}
@@ -568,11 +641,11 @@ export default function SowOrderDialog({
                 </Button>
                 <Button
                   className={`flex-1 h-[60px] rounded-full text-2xl font-medium ${
-                    error
+                    error || !isPodLineLengthValid()
                       ? "bg-[#D9D9D9] text-[#9C9C9C]"
                       : "bg-gradient-to-r from-[#46A955] to-[#1F9C5A] text-white"
                   }`}
-                  disabled={!!error || isLoading}
+                  disabled={!!error || !isPodLineLengthValid() || isLoading}
                   onClick={handleNext}
                 >
                   {isLoading ? (
