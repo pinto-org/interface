@@ -100,7 +100,7 @@ export class SwapPriceCache {
           address: this.#context.siloWrappedToken.address,
           abi: siloedPintoABI,
           functionName: "previewRedeem",
-          args: [BigInt(10 ** this.#context.mainToken.decimals)],
+          args: [BigInt(10 ** this.#context.siloWrappedToken.decimals)],
         }
       )
     ]);
@@ -117,6 +117,7 @@ export class SwapPriceCache {
         }
         const mainTokenPrice = TV.fromBlockchain(price, 6);
         priceMap.set(token, mainTokenPrice);
+        priceMap.set(this.#context.siloWrappedToken, mainTokenPrice);
       } else if (price.price) {
         priceMap.set(this.#context.mainToken, TV.fromBlockchain(price.price, 6));
 
@@ -162,7 +163,7 @@ export class SwapPriceCache {
       address: this.#context.siloWrappedToken.address,
       abi: siloedPintoABI,
       functionName: "previewRedeem",
-      args: [BigInt(10 ** this.#context.mainToken.decimals)],
+      args: [BigInt(10 ** this.#context.siloWrappedToken.decimals)],
     };
 
     return {
@@ -178,7 +179,7 @@ export class SwapPriceCache {
     priceMap: Map<Token, TV>
   ): void {
     const baseAmount = TV.fromHuman(1, this.#context.mainToken.decimals);
-    const redemptionAmount = TV.fromBigInt(amount, this.#context.siloWrappedToken.decimals);
+    const redemptionAmount = TV.fromBigInt(amount, this.#context.mainToken.decimals);
     const mainTokenUSD = priceMap.get(this.#context.mainToken);
 
     if (!mainTokenUSD) {

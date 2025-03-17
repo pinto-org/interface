@@ -386,7 +386,7 @@ const RoutesFormContent = () => {
         <div className="pinto-sm">Route Slippage</div>
         <div className="pinto-sm">{formatter.pct(totalSlippage)}</div>
       </div>
-      {!tokenOut.isMain && (
+      {!tokenOut.isMain && priceImpactSummary?.priceImpact && (
         <div className="flex flex-row justify-between">
           <div className="flex flex-row gap-x-1">
             <div className="pinto-sm text-pinto-primary flex flex-row gap-x-1">

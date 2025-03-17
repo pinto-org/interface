@@ -1,11 +1,13 @@
 import { TV } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
+import FrameAnimator from "@/components/LoadingSpinner";
 import MobileActionBar from "@/components/MobileActionBar";
 import RoutingAndSlippageInfo from "@/components/RoutingAndSlippageInfo";
 import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
+import TextSkeleton from "@/components/TextSkeleton";
 import TokenSelectBase from "@/components/TokenSelectBase";
 import { Label } from "@/components/ui/Label";
 import { Switch, SwitchThumb } from "@/components/ui/Switch";
@@ -161,7 +163,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
           filterTokens={filterTokens}
           isLoading={!didInitBalanceSource}
         />
-        <div className="flex flex-row w-full justify-between items-center mt-6">
+        <div className="flex flex-row w-full justify-between items-center mt-4">
           <div className="pinto-sm sm:pinto-body-light sm:text-pinto-light text-pinto-light">
             Unwrap as {mainToken.symbol} deposit
           </div>
@@ -183,20 +185,28 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
               <Label className="flex h-10 items-center">Destination</Label>
               <DestinationBalanceSelect setBalanceTo={setToMode} balanceTo={toMode} />
             </div>
-            <div className="flex flex-col w-full py-4 gap-2">
+            <div className="flex flex-col w-full pt-4 pb-2 gap-2">
               <div className="pinto-body-light text-pinto-light">Unwrap as</div>
               <div className="flex flex-col w-full gap-1">
                 <div className="flex flex-row items-center justify-between w-full">
                   <div className="flex flex-col gap-1">
-                    <div className="pinto-h3">{formatter.token(swap.data?.buyAmount, tokenOut)}</div>
+                    <TextSkeleton height="h3" loading={swap.isLoading} className="w-20">
+                      <div className="pinto-h3">{formatter.token(swap.data?.buyAmount, tokenOut)}</div>
+                    </TextSkeleton>
                   </div>
                   <TokenSelectBase tokens={tokenOptions} selected={tokenOut} selectToken={setTokenOut} />
                 </div>
-                <div className="pinto-sm-light text-pinto-light">{formatter.usd(swap.data?.usdOut)}</div>
+                <TextSkeleton height="sm" className="w-20" loading={swap.isLoading}>
+                  <div className="pinto-sm-light text-pinto-light">{formatter.usd(swap.data?.usdOut)}</div>
+                </TextSkeleton>
               </div>
             </div>
           </div>
-          {swap.data ? (
+          {swap.isLoading ? (
+            <div className="flex flex-row items-center justify-center h-[5.5rem]">
+              <FrameAnimator size={64} />
+            </div>
+          ) : swap.data ? (
             <RoutingAndSlippageInfo
               title="Total Unwrap Slippage"
               swapSummary={swapSummary}
