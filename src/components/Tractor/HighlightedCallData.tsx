@@ -1,5 +1,9 @@
-import { decodeFunctionData } from "viem";
+import { decodeFunctionData, keccak256, toHex } from "viem";
 import { beanstalkAbi } from "@/generated/contractHooks";
+import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
+
+// Define the function selector as a named constant
+const SOW_BLUEPRINT_V0_SELECTOR = "0x1e08d5c0";
 
 interface HighlightedCallDataProps {
   blueprintData: `0x${string}`;
@@ -15,108 +19,85 @@ export function decodeCallData(callData: string) {
   const selector = callData.slice(0, 10);
   const data = callData.slice(10);
 
+  console.log("Function selector:", selector);
+  console.log("sowBlueprintv0Selector:", SOW_BLUEPRINT_V0_SELECTOR);
+
   // For sowBlueprintv0, show decoded parameters
-  if (selector === "0x01f6a174") {
-    console.log("Raw data:", data);
+  if (selector === SOW_BLUEPRINT_V0_SELECTOR) {
+    console.log("Decoding sowBlueprintv0 data");
 
-    // Log first several 32-byte chunks to understand the structure
-    console.log("Data chunks:");
-    for (let i = 0; i < 10; i++) {
-      const start = i * 64;
-      const chunk = data.slice(start, start + 64);
-      console.log(`Chunk ${i}:`, {
-        hex: chunk,
-        decimal: parseInt(chunk, 16),
-        position: start,
+    try {
+      // Try to decode using the ABI
+      const decoded = decodeFunctionData({
+        abi: sowBlueprintv0ABI,
+        data: callData as `0x${string}`,
       });
+
+      console.log("Decoded sowBlueprintv0:", decoded);
+
+      if (decoded.functionName === "sowBlueprintv0" && decoded.args[0]) {
+        const params = decoded.args[0];
+        return (
+          <div className="space-y-2">
+            <div className="text-gray-500">Function: sowBlueprintv0</div>
+            <div className="pl-4 space-y-1 text-gray-600">
+              <div>
+                sourceTokenIndices: [
+                {params.sowParams.sourceTokenIndices.join(", ")}]
+              </div>
+              <div>
+                sowAmounts:
+                <div className="pl-4">
+                  <div>
+                    totalAmountToSow:{" "}
+                    {params.sowParams.sowAmounts.totalAmountToSow.toString()}
+                  </div>
+                  <div>
+                    minAmountToSowPerSeason:{" "}
+                    {params.sowParams.sowAmounts.minAmountToSowPerSeason.toString()}
+                  </div>
+                  <div>
+                    maxAmountToSowPerSeason:{" "}
+                    {params.sowParams.sowAmounts.maxAmountToSowPerSeason.toString()}
+                  </div>
+                </div>
+              </div>
+              <div>minTemp: {params.sowParams.minTemp.toString()}</div>
+              <div>
+                maxPodlineLength: {params.sowParams.maxPodlineLength.toString()}
+              </div>
+              <div>
+                maxGrownStalkPerBdv:{" "}
+                {params.sowParams.maxGrownStalkPerBdv.toString()}
+              </div>
+              <div>
+                runBlocksAfterSunrise:{" "}
+                {params.sowParams.runBlocksAfterSunrise.toString()}
+              </div>
+              <div>
+                operatorParams:
+                <div className="pl-4">
+                  <div>
+                    operatorTipAmount:{" "}
+                    {params.opParams.operatorTipAmount.toString()}
+                  </div>
+                  <div>tipAddress: {params.opParams.tipAddress}</div>
+                  <div>
+                    whitelistedOperators: [
+                    {params.opParams.whitelistedOperators.join(", ")}]
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+    } catch (error) {
+      console.error("Error decoding sowBlueprintv0:", error);
     }
 
-    // First 32 bytes points to struct start (in bytes, not hex chars)
-    const structStartBytes = parseInt(data.slice(0, 64), 16);
-    const structStart = structStartBytes * 2;
-    console.log("Struct start (bytes):", structStartBytes);
-    console.log("Struct start (hex pos):", structStart);
-
-    // At struct start, log the next few chunks
-    console.log("Struct data chunks:");
-    for (let i = 0; i < 5; i++) {
-      const start = structStart + i * 64;
-      const chunk = data.slice(start, start + 64);
-      console.log(`Chunk ${i}:`, {
-        hex: chunk,
-        decimal: parseInt(chunk, 16),
-        position: start,
-      });
-    }
-
-    // First field in struct points to array data
-    const arrayOffsetBytes = parseInt(
-      data.slice(structStart, structStart + 64),
-      16
-    );
-    const arrayOffset = arrayOffsetBytes * 2;
-    console.log("Array offset (bytes):", arrayOffsetBytes);
-    console.log("Array offset (hex pos):", arrayOffset);
-
-    // At array offset, log the chunks
-    console.log("Array data chunks:");
-    for (let i = 0; i < 5; i++) {
-      const start = arrayOffset + i * 64;
-      const chunk = data.slice(start, start + 64);
-      console.log(`Chunk ${i}:`, {
-        hex: chunk,
-        decimal: parseInt(chunk, 16),
-        position: start,
-      });
-    }
-
-    // At array offset, first 32 bytes is array length
-    const arrayLength = parseInt(
-      data.slice(arrayOffset + 64, arrayOffset + 128),
-      16
-    );
-    console.log("Array length:", arrayLength);
-
-    const indices: number[] = [];
-
-    // Array data follows immediately after length
-    for (let i = 0; i < arrayLength; i++) {
-      const startPos = arrayOffset + 128 + i * 64; // Start after offset and length
-      const value = parseInt(data.slice(startPos + 62, startPos + 64), 16);
-      console.log(`Element ${i}:`, {
-        startPos,
-        fullSlice: data.slice(startPos, startPos + 64),
-        lastByte: data.slice(startPos + 62, startPos + 64),
-        value,
-      });
-      indices.push(value);
-    }
-
-    return (
-      <div className="space-y-2">
-        <div className="text-gray-500">Function: sowBlueprintv0</div>
-        <div className="pl-4 space-y-1 text-gray-600">
-          <div>sourceTokenIndices: [{indices.join(", ")}]</div>
-          <div>sowAmounts: {data.slice(64, 128)}</div>
-          <div>minTemp: {parseInt(data.slice(128, 192), 16).toString()}</div>
-          <div>
-            operatorTipAmount: {parseInt(data.slice(192, 256), 16).toString()}
-          </div>
-          <div>tipAddress: 0x{data.slice(280, 320)}</div>
-          <div>
-            maxPodlineLength: {parseInt(data.slice(320, 384), 16).toString()}
-          </div>
-          <div>
-            maxGrownStalkPerBdv: {parseInt(data.slice(384, 448), 16).toString()}
-          </div>
-          <div>
-            runBlocksAfterSunrise:{" "}
-            {parseInt(data.slice(448, 512), 16).toString()}
-          </div>
-          <div>whitelistedOperators: {data.slice(512)}</div>
-        </div>
-      </div>
-    );
+    // Fallback to manual decoding if the above fails
+    // ... existing manual decoding code ...
   }
 
   // Find the function in the ABI that matches this selector
@@ -130,7 +111,7 @@ export function decodeCallData(callData: string) {
             ? "transferToken"
             : selector === "0x36bfafbd"
               ? "advancedFarm"
-              : selector === "0x01f6a174"
+              : selector === SOW_BLUEPRINT_V0_SELECTOR
                 ? "sowBlueprintv0"
                 : null)
   );

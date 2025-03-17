@@ -34,11 +34,10 @@ function encodePasteInstruction(copyByteIndex: bigint, pasteCallIndex: bigint, p
 }
 
 // Add the TokenStrategy type
-export type TokenStrategy = 
+export type TokenStrategy =
   | { type: "LOWEST_SEEDS" }
   | { type: "LOWEST_PRICE" }
   | { type: "SPECIFIC_TOKEN"; address: string };
-
 
 /**
  * Creates blueprint data from Tractor inputs
@@ -78,7 +77,7 @@ export function createSowTractorData({
   const maxAmount = BigInt(Math.floor(parseFloat(maxAmountToSowPerSeason) * 1e6));
   const maxPodline = BigInt(Math.floor(parseFloat(maxPodlineLength) * 1e6));
   const maxGrownStalk = BigInt(Math.floor(parseFloat(maxGrownStalkPerBdv) * 1e6));
-  const runBlocks = BigInt(runBlocksAfterSunrise === "true" ? 0 : 300);  // 0 for morning auction, 300 otherwise
+  const runBlocks = BigInt(runBlocksAfterSunrise === "true" ? 0 : 300); // 0 for morning auction, 300 otherwise
   const temp = BigInt(Math.floor(parseFloat(temperature) * 1e6));
   const tip = BigInt(Math.floor(parseFloat(operatorTip) * 1e6));
 
@@ -98,35 +97,48 @@ export function createSowTractorData({
 
   // Create the SowBlueprintStruct
   const sowBlueprintStruct = {
-    sourceTokenIndices: tokenStrategy.type === "LOWEST_SEEDS" 
-      ? [255] 
-      : tokenStrategy.type === "LOWEST_PRICE"
-      ? [254]
-      : [] as number[],
-    sowAmounts: [
-      totalAmount,
-      minAmount,
-      maxAmount
-    ] as const,
-    minTemp: temp,
-    operatorTipAmount: tip,
-    tipAddress: "0x0000000000000000000000000000000000000000" as `0x${string}`,
-    maxPodlineLength: maxPodline,
-    maxGrownStalkPerBdv: maxGrownStalk,
-    runBlocksAfterSunrise: runBlocks,
-    whitelistedOperators: whitelistedOperators as readonly `0x${string}`[],
+    sowParams: {
+      sourceTokenIndices:
+        tokenStrategy.type === "LOWEST_SEEDS"
+          ? [255]
+          : tokenStrategy.type === "LOWEST_PRICE"
+            ? [254]
+            : ([] as number[]),
+      sowAmounts: {
+        totalAmountToSow: totalAmount,
+        minAmountToSowPerSeason: minAmount,
+        maxAmountToSowPerSeason: maxAmount,
+      },
+      minTemp: temp,
+      maxPodlineLength: maxPodline,
+      maxGrownStalkPerBdv: maxGrownStalk,
+      runBlocksAfterSunrise: runBlocks,
+    },
+    opParams: {
+      whitelistedOperators: whitelistedOperators as readonly `0x${string}`[],
+      tipAddress: "0x0000000000000000000000000000000000000000" as `0x${string}`,
+      operatorTipAmount: tip,
+    },
   };
 
   console.log("Struct before encoding:", {
-    sourceTokenIndices: sowBlueprintStruct.sourceTokenIndices,
-    sowAmounts: sowBlueprintStruct.sowAmounts.map(n => n.toString()),
-    minTemp: sowBlueprintStruct.minTemp.toString(),
-    operatorTipAmount: sowBlueprintStruct.operatorTipAmount.toString(),
-    tipAddress: sowBlueprintStruct.tipAddress,
-    maxPodlineLength: sowBlueprintStruct.maxPodlineLength.toString(),
-    maxGrownStalkPerBdv: sowBlueprintStruct.maxGrownStalkPerBdv.toString(),
-    runBlocksAfterSunrise: sowBlueprintStruct.runBlocksAfterSunrise.toString(),
-    whitelistedOperators: sowBlueprintStruct.whitelistedOperators,
+    sowParams: {
+      sourceTokenIndices: sowBlueprintStruct.sowParams.sourceTokenIndices,
+      sowAmounts: {
+        totalAmountToSow: sowBlueprintStruct.sowParams.sowAmounts.totalAmountToSow.toString(),
+        minAmountToSowPerSeason: sowBlueprintStruct.sowParams.sowAmounts.minAmountToSowPerSeason.toString(),
+        maxAmountToSowPerSeason: sowBlueprintStruct.sowParams.sowAmounts.maxAmountToSowPerSeason.toString(),
+      },
+      minTemp: sowBlueprintStruct.sowParams.minTemp.toString(),
+      maxPodlineLength: sowBlueprintStruct.sowParams.maxPodlineLength.toString(),
+      maxGrownStalkPerBdv: sowBlueprintStruct.sowParams.maxGrownStalkPerBdv.toString(),
+      runBlocksAfterSunrise: sowBlueprintStruct.sowParams.runBlocksAfterSunrise.toString(),
+    },
+    opParams: {
+      whitelistedOperators: sowBlueprintStruct.opParams.whitelistedOperators,
+      tipAddress: sowBlueprintStruct.opParams.tipAddress,
+      operatorTipAmount: sowBlueprintStruct.opParams.operatorTipAmount.toString(),
+    },
   });
 
   // Encode the function call with the struct
@@ -171,6 +183,39 @@ export function decodeSowTractorData(encodedData: `0x${string}`): {
   operatorTip: string;
 } {
   try {
+    // First try to decode as a direct sowBlueprintv0 call
+    try {
+      const decoded = decodeFunctionData({
+        abi: sowBlueprintv0ABI,
+        data: encodedData,
+      });
+
+      console.log("Decoded:", decoded);
+
+      if (decoded.functionName === "sowBlueprintv0") {
+        const params = decoded.args[0];
+
+        // Extract values from the nested structure
+        const totalAmount = params.sowParams.sowAmounts.totalAmountToSow;
+        const minAmount = params.sowParams.sowAmounts.minAmountToSowPerSeason;
+        const temp = params.sowParams.minTemp;
+        const tip = params.opParams.operatorTipAmount;
+
+        // Convert from blockchain values (6 decimals) to human readable
+        return {
+          pintoAmount: TokenValue.fromBlockchain(totalAmount, 6).toHuman(),
+          temperature: TokenValue.fromBlockchain(temp, 6).toHuman(),
+          minPintoAmount: TokenValue.fromBlockchain(minAmount, 6).toHuman(),
+          fromMode: FarmFromMode.INTERNAL, // Default for blueprint
+          operatorTip: TokenValue.fromBlockchain(tip, 6).toHuman(),
+        };
+      }
+    } catch (e) {
+      // If it's not a direct sowBlueprintv0 call, continue with existing logic
+      console.log("Not a direct sowBlueprintv0 call, trying advancedFarm...");
+    }
+
+    // Existing logic for advancedFarm calls
     const decoded = decodeFunctionData({
       abi: beanstalkAbi,
       data: encodedData,
@@ -287,7 +332,7 @@ export interface RequisitionEvent {
   blockNumber: number;
   timestamp?: number;
   isCancelled?: boolean;
-  requisitionType: "sowWithMin" | "unknown";
+  requisitionType: "sowBlueprintv0" | "unknown";
 }
 
 export async function loadPublishedRequisitions(
@@ -310,11 +355,11 @@ export async function loadPublishedRequisitions(
           return null;
         }
 
-        let requisitionType: "sowWithMin" | "unknown" = "unknown";
+        let requisitionType: "sowBlueprintv0" | "unknown" = "unknown";
         try {
           const decodedData = decodeSowTractorData(requisition.blueprint.data);
           if (decodedData) {
-            requisitionType = "sowWithMin";
+            requisitionType = "sowBlueprintv0";
           }
         } catch (error) {
           // If decoding fails, keep type as unknown
@@ -365,7 +410,7 @@ export function parsePasteInstructions(requisition: RequisitionEvent): PasteInst
     }
 
     const fields: PasteField[] = [];
-    if (requisition.requisitionType === "sowWithMin") {
+    if (requisition.requisitionType === "sowBlueprintv0") {
       fields.push({ name: "Operator Address", type: "address" });
     }
 
