@@ -4,6 +4,7 @@ import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import MobileActionBar from "@/components/MobileActionBar";
 import SlippageButton from "@/components/SlippageButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
+import TextSkeleton from "@/components/TextSkeleton";
 import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
 import { Switch, SwitchThumb } from "@/components/ui/Switch";
@@ -226,7 +227,8 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
           tokenNameOverride={usingDeposits ? "DEP. PINTO" : undefined}
           error={inputError}
           setError={setInputError}
-          selectedToken={token}
+          selectedToken={usingDeposits ? mainToken : token}
+          customMaxAmount={usingDeposits ? depositedAmount : balance}
           disabled={inputDisabled}
           disableButton={usingDeposits}
           disableInput={inputDisabled}
@@ -252,13 +254,17 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
       <div className="flex flex-row w-full justify-between items-center">
         <div className="pinto-sm sm:pinto-body-light sm:text-pinto-light text-pinto-light">I receive</div>
         <div className="flex flex-col gap-1 text-right">
-          <div className="pinto-h3 flex flex-row gap-2 items-center whitespace-nowrap self-end">
-            <IconImage src={siloToken.logoURI} size={6} />
-            <span>
-              {formatter.token(amountOut ?? 0n, siloToken)} {siloToken.symbol}
-            </span>
-          </div>
-          <div className="pinto-sm-light text-pinto-light">{formatter.usd(amountOutUSD.totalUSD)}</div>
+          <TextSkeleton height="h3" className="w-52 self-end" loading={swap.isLoading}>
+            <div className="pinto-h3 flex flex-row gap-2 items-center whitespace-nowrap self-end">
+              <IconImage src={siloToken.logoURI} size={6} />
+              <span>
+                {formatter.token(amountOut ?? 0n, siloToken)} {siloToken.symbol}
+              </span>
+            </div>
+          </TextSkeleton>
+          <TextSkeleton height="sm" className="w-16 self-end" loading={swap.isLoading}>
+            <div className="pinto-sm-light text-pinto-light">{formatter.usd(amountOutUSD.totalUSD)}</div>
+          </TextSkeleton>
         </div>
       </div>
       <div className="flex flex-col">
