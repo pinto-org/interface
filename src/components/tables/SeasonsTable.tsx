@@ -268,7 +268,7 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn, sortedColu
           {seasonColumns.map(({ id, name, classes }) => {
             if (hiddenFields.includes(id)) return null;
             return (
-              <TableHead className={`sticky top-0 z-[1] ${classes}`} key={id}>
+              <TableHead className={`sticky top-0 z-[1] ${classes}`} key={id} onClick={() => hideColumn(id)}>
                 {!nonHideableFields.includes(id) ? (
                   <TooltipProvider>
                     <Tooltip delayDuration={0}>
@@ -282,7 +282,7 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn, sortedColu
                             onClick={() => setSortedColumn({ column: id, dir: getRotationForColumn(sortedColumn, id) })}
                             src={leftArrowIcon}
                             size={4} /> */}
-                          <IconImage className="cursor-pointer" onClick={() => hideColumn(id)} src={eyeballCrossed} size={4} />
+                          <IconImage className="cursor-pointer" src={eyeballCrossed} size={4} />
                         </TooltipContent>
                       </TooltipPortal>
                     </Tooltip>
