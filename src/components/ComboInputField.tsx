@@ -125,18 +125,6 @@ function ComboInputField({
     : TokenValue.ZERO;
   const protocolTokenPrice = tokenPrices.tokenPrices.get(tokenData.mainToken)?.instant || TokenValue.ZERO;
 
-  useEffect(() => {
-    if (!isUserInput) {
-      setInternalAmount(amountAsTokenValue);
-      setDisplayValue(amount);
-    }
-
-    if (connectedAccount && amountAsTokenValue.gt(maxAmount)) {
-      setError?.(true);
-    } else {
-      setError?.(false);
-    }
-  }, [amount, amountAsTokenValue, connectedAccount]);
 
   const pct = useMemo(() => {
     if (mode === "plots") return TokenValue.ONE;
@@ -196,6 +184,19 @@ function ComboInputField({
     }
     return maxAmount;
   }, [mode, selectedPlots, tokenAndBalanceMap, selectedToken, maxAmount]);
+
+  useEffect(() => {
+    if (!isUserInput) {
+      setInternalAmount(amountAsTokenValue);
+      setDisplayValue(amount);
+    }
+
+    if (connectedAccount && amountAsTokenValue.gt(maxAmount)) {
+      setError?.(true);
+    } else {
+      setError?.(false);
+    }
+  }, [amount, amountAsTokenValue, connectedAccount, maxAmount]);
 
   // clamp the internal amount to the max amount
   useEffect(() => {

@@ -167,7 +167,7 @@ export function useFarmerSilo(address?: `0x${string}`) {
   });
 
   // Fetch deposit data
-  const { data: deposits } = useReadContract({
+  const { data: deposits, ...depositsQuery } = useReadContract({
     address: protocolAddress,
     abi: beanstalkAbi,
     functionName: "getDepositsForAccount",
@@ -441,6 +441,7 @@ export function useFarmerSilo(address?: `0x${string}`) {
       earnedBeansBalance.queryKey,
       grownStalkPerToken.queryKey,
       mowStatusPerToken.queryKey,
+      depositsQuery.queryKey,
       floodData.queryKey,
       rootsQuery.queryKey,
     ],
@@ -449,6 +450,7 @@ export function useFarmerSilo(address?: `0x${string}`) {
       earnedBeansBalance.queryKey,
       grownStalkPerToken.queryKey,
       mowStatusPerToken.queryKey,
+      depositsQuery.queryKey,
       floodData.queryKey,
       rootsQuery.queryKey,
     ],
@@ -458,6 +460,26 @@ export function useFarmerSilo(address?: `0x${string}`) {
     if (!grownStalkPerToken.data) return TokenValue.ZERO;
     return Array.from(grownStalkPerToken.data).reduce((acc, curr) => acc.add(curr[1]), TokenValue.ZERO);
   }, [grownStalkPerToken.data]);
+
+  const refetch = useCallback(async () => {
+    return Promise.all([
+      activeStalkBalance.refetch(),
+      earnedBeansBalance.refetch(),
+      depositsQuery.refetch(),
+      // plantEvents.refetch(),
+      // depositEvents.refetch(),
+      floodData.refetch(),
+      grownStalkPerToken.refetch(),
+      mowStatusPerToken.refetch(),
+    ])
+  }, [
+    activeStalkBalance.refetch,
+    earnedBeansBalance.refetch,
+    depositsQuery.refetch,
+    floodData.refetch,
+    grownStalkPerToken.refetch,
+    mowStatusPerToken.refetch
+  ]);
 
   return {
     // Balances
@@ -486,30 +508,13 @@ export function useFarmerSilo(address?: `0x${string}`) {
     isLoading:
       activeStalkBalance.isLoading ||
       earnedBeansBalance.isLoading ||
+      depositsQuery.isLoading ||
       floodData.isLoading ||
       grownStalkPerToken.isLoading ||
       mowStatusPerToken.isLoading,
 
     // Query management
     queryKeys,
-    refetch: useCallback(() => {
-      return Promise.all([
-        activeStalkBalance.refetch(),
-        earnedBeansBalance.refetch(),
-        // plantEvents.refetch(),
-        // depositEvents.refetch(),
-        floodData.refetch(),
-        grownStalkPerToken.refetch(),
-        mowStatusPerToken.refetch(),
-      ]);
-    }, [
-      activeStalkBalance,
-      earnedBeansBalance,
-      // plantEvents,
-      // depositEvents,
-      floodData,
-      grownStalkPerToken,
-      mowStatusPerToken,
-    ]),
+    refetch: refetch
   };
 }
