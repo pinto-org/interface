@@ -7,7 +7,8 @@ import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
 import Warning from "@/components/ui/Warning";
 import { siloedPintoABI } from "@/constants/abi/siloedPintoABI";
-import { S_MAIN_TOKEN } from "@/constants/tokens";
+import { MAIN_TOKEN, S_MAIN_TOKEN } from "@/constants/tokens";
+import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useFarmerDepositAllowance from "@/state/useFarmerDepositAllowance";
@@ -20,12 +21,17 @@ import { tryExtractErrorMessage } from "@/utils/error";
 import { formatter } from "@/utils/format";
 import { isValidAddress } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
-import { FarmToMode, Token } from "@/utils/types";
-import { noop } from "@/utils/utils";
+import { FarmFromMode, FarmToMode, Token } from "@/utils/types"
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAccount, useReadContract } from "wagmi";
+
+const SILO_DEPOSIT_MAIN_TOKEN = {
+  ...MAIN_TOKEN,
+  address: "0x",
+  symbol: "Dep. PINTO"
+} as const;
 
 export default function WrapToken({ siloToken }: { siloToken: Token }) {
   const farmerDeposits = useFarmerSilo();
@@ -38,7 +44,23 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
 
   const [amountIn, setAmountIn] = useState<string>("0");
   const [inputError, setInputError] = useState<boolean>(false);
+  const [balanceFrom, setBalanceFrom] = useState<FarmFromMode>(FarmFromMode.INTERNAL_EXTERNAL);
   const [mode, setMode] = useState<FarmToMode>(FarmToMode.EXTERNAL);
+  const [token, setToken] = useState<Token>(mainToken);
+
+  const tokenMap = useTokenMap();
+
+  const filterTokens = useMemo(() => {
+    const set = new Set<Token>();
+
+    for (const token of Object.values(tokenMap)) {
+      if (token.isSiloWrapped || token.isLP || token.is3PSiloWrapped) {
+        set.add(token)
+      }
+    }
+
+    return set;
+  }, [tokenMap]);
 
   const deposits = farmerDeposits.deposits.get(mainToken);
 
@@ -91,9 +113,9 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
       if (!isValidAddress(account)) {
         throw new Error("Signer required");
       }
-      if (!deposits || !deposits.deposits.length) {
-        throw new Error("No deposits found");
-      }
+      // if (!deposits || !deposits.deposits.length) {
+      //   throw new Error("No deposits found");
+      // }
 
       const amount = TV.fromHuman(amountIn, mainToken.decimals);
 
@@ -103,17 +125,18 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
 
       setSubmitting(true);
 
-      const picked = sortAndPickCrates("wrap", amount, deposits.deposits);
+      // const picked = sortAndPickCrates("wrap", amount, deposits.deposits);
 
-      const extracted = extractStemsAndAmountsFromCrates(picked.crates);
+      // const extracted = extractStemsAndAmountsFromCrates(picked.crates);
 
-      toast.loading("Wrapping...");
+      // toast.loading("Wrapping...");
 
       return writeWithEstimateGas({
         address: siloToken.address,
         abi: siloedPintoABI,
-        functionName: "depositFromSilo",
-        args: [extracted.stems, extracted.amounts, account, Number(mode)],
+        functionName: "deposit",
+        args: [amount.toBigInt(), account],
+        // args: [extracted.stems, extracted.amounts, account, Number(mode)],
       });
     } catch (e: any) {
       console.error(e);
@@ -157,14 +180,17 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
         <ComboInputField
           amount={amountIn}
           setAmount={setAmountIn}
-          setToken={noop}
-          tokenNameOverride="DEP. PINTO"
+          setToken={setToken}
+          filterTokens={filterTokens}
+          setBalanceFrom={setBalanceFrom}
+          balanceFrom={balanceFrom}
+          // tokenNameOverride="DEP. PINTO"
           error={inputError}
           setError={setInputError}
-          selectedToken={mainToken}
-          customMaxAmount={deposits?.amount}
+          selectedToken={token}
+          // customMaxAmount={deposits?.amount}
           disabled={inputDisabled}
-          disableButton
+          // disableButton
           disableInput={inputDisabled}
           altText="Deposited Balance:"
           altTextMobile="Deposited:"
@@ -199,6 +225,10 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
           submitFunction={handleButtonSubmit}
           disabled={buttonDisabled}
           submitButtonText={needsAllowanceIncrease ? "Approve" : "Wrap"}
+          spender={siloToken.address}
+          amount={amountIn}
+          token={token}
+          balanceFrom={balanceFrom}
           variant="gradient"
           size="xxl"
         />
@@ -208,6 +238,10 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
           submitFunction={handleButtonSubmit}
           disabled={buttonDisabled}
           submitButtonText={needsAllowanceIncrease ? "Approve" : "Wrap"}
+          spender={siloToken.address}
+          amount={amountIn}
+          token={token}
+          balanceFrom={balanceFrom}
           variant="gradient"
           className="h-full"
           size="xxl"
