@@ -8,6 +8,7 @@ export interface FarmerStatus {
   hasDeposits: boolean;
   hasUndepositedBalance: boolean;
   hasBalanceOnBase: boolean;
+  hasSiloWrappedTokenBalance: boolean;
   didLoad: boolean;
 }
 
@@ -18,5 +19,6 @@ export const farmerStatusAtom = atomWithImmer<FarmerStatus>({
   hasDeposits: false,
   hasUndepositedBalance: true,
   hasBalanceOnBase: true,
+  hasSiloWrappedTokenBalance: false,
   didLoad: false,
 });
