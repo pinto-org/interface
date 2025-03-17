@@ -10,7 +10,11 @@ import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
-import { useInvalidateField, usePodLine, useTotalSoil } from "@/state/useFieldData";
+import {
+  useInvalidateField,
+  usePodLine,
+  useTotalSoil,
+} from "@/state/useFieldData";
 import { useTemperature } from "@/state/useFieldData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
@@ -25,10 +29,16 @@ import settingsIcon from "@/assets/misc/Settings.svg";
 import FrameAnimator from "@/components/LoadingSpinner";
 import MobileActionBar from "@/components/MobileActionBar";
 
-import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
+import RoutingAndSlippageInfo, {
+  useRoutingAndSlippageWarning,
+} from "@/components/RoutingAndSlippageInfo";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/Popover";
 import useDelayedLoading from "@/hooks/display/useDelayedLoading";
 import useBuildSwapQuote from "@/hooks/swap/useBuildSwapQuote";
 import useMaxBuy from "@/hooks/swap/useMaxBuy";
@@ -37,12 +47,18 @@ import useSwapSummary from "@/hooks/swap/useSwapSummary";
 import { usePreferredInputToken } from "@/hooks/usePreferredInputToken";
 import { useDebouncedEffect } from "@/utils/useDebounce";
 import { getBalanceFromMode } from "@/utils/utils";
+import { Link } from "react-router-dom";
+import { LightningIcon } from "@/components/Icons";
+import SowOrderDialog from "@/components/SowOrderDialog";
 
 type SowProps = {
   isMorning: boolean;
+  onShowOrder: () => void;
 };
 
-const useFilterTokens = (balances: ReturnType<typeof useFarmerBalances>["balances"]) => {
+const useFilterTokens = (
+  balances: ReturnType<typeof useFarmerBalances>["balances"]
+) => {
   return useMemo(() => {
     const set = new Set<Token>();
 
@@ -56,7 +72,7 @@ const useFilterTokens = (balances: ReturnType<typeof useFarmerBalances>["balance
   }, [balances]);
 };
 
-function Sow({ isMorning }: SowProps) {
+function Sow({ isMorning, onShowOrder }: SowProps) {
   const temperature = useTemperature();
   const farmerBalances = useFarmerBalances();
   const totalSoil = useTotalSoil().totalSoil;
@@ -77,7 +93,9 @@ function Sow({ isMorning }: SowProps) {
 
   const [amountIn, setAmountIn] = useState("0");
   const [tokenIn, setTokenIn] = useState(preferredToken);
-  const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.INTERNAL_EXTERNAL);
+  const [balanceFrom, setBalanceFrom] = useState(
+    FarmFromMode.INTERNAL_EXTERNAL
+  );
   const [slippage, setSlippage] = useState(0.1);
   const [inputError, setInputError] = useState(false);
 
@@ -95,11 +113,17 @@ function Sow({ isMorning }: SowProps) {
   const swap = useSwap({
     tokenIn: tokenIn,
     tokenOut: mainToken,
-    amountIn: tokenIn.isMain ? TV.ZERO : TV.fromHuman(amountIn, tokenIn.decimals),
+    amountIn: tokenIn.isMain
+      ? TV.ZERO
+      : TV.fromHuman(amountIn, tokenIn.decimals),
     slippage,
     disabled: tokenIn.isMain || stringToNumber(amountIn) <= 0 || maxSow?.lte(0),
   });
-  const swapBuild = useBuildSwapQuote(swap.data, balanceFrom, FarmToMode.INTERNAL);
+  const swapBuild = useBuildSwapQuote(
+    swap.data,
+    balanceFrom,
+    FarmToMode.INTERNAL
+  );
   const swapSummary = useSwapSummary(swap.data);
 
   const { slippageWarning, canProceed } = useRoutingAndSlippageWarning({
@@ -109,7 +133,9 @@ function Sow({ isMorning }: SowProps) {
   });
 
   const currentTemperature = temperature.scaled;
-  const [minTemperature, setMinTemperature] = useState(Math.max(currentTemperature.toNumber(), 1));
+  const [minTemperature, setMinTemperature] = useState(
+    Math.max(currentTemperature.toNumber(), 1)
+  );
 
   const tokenInBalance = farmerBalances.balances.get(tokenIn);
 
@@ -117,15 +143,24 @@ function Sow({ isMorning }: SowProps) {
     setAmountIn("0");
     swap.resetSwap();
     invalidateField("all");
-    farmerFieldQueryKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
+    farmerFieldQueryKeys.forEach((key) =>
+      queryClient.invalidateQueries({ queryKey: key })
+    );
     queryClient.invalidateQueries({ queryKey: farmerBalances.queryKeys });
-  }, [queryClient, farmerFieldQueryKeys, farmerBalances.queryKeys, invalidateField, swap.resetSwap]);
+  }, [
+    queryClient,
+    farmerFieldQueryKeys,
+    farmerBalances.queryKeys,
+    invalidateField,
+    swap.resetSwap,
+  ]);
 
-  const { writeWithEstimateGas, isConfirming, submitting, setSubmitting } = useTransaction({
-    successCallback: onSuccess,
-    errorMessage: "Sow failed",
-    successMessage: "Sow successful",
-  });
+  const { writeWithEstimateGas, isConfirming, submitting, setSubmitting } =
+    useTransaction({
+      successCallback: onSuccess,
+      errorMessage: "Sow failed",
+      successMessage: "Sow successful",
+    });
 
   const isUsingMain = stringEq(tokenIn.address, mainToken.address);
 
@@ -174,7 +209,9 @@ function Sow({ isMorning }: SowProps) {
 
       // temperature at 6 decimals
       const _minTemp = TokenValue.fromHuman(minTemperature, PODS.decimals);
-      const minTemp = (_minTemp.gt(currentTemperature) ? _minTemp : currentTemperature).subSlippage(slippage);
+      const minTemp = (
+        _minTemp.gt(currentTemperature) ? _minTemp : currentTemperature
+      ).subSlippage(slippage);
       console.log("minTemp", minTemp);
 
       const minSoil = TokenValue.ZERO;
@@ -184,7 +221,12 @@ function Sow({ isMorning }: SowProps) {
           address: diamond,
           abi: beanstalkAbi,
           functionName: "sowWithMin",
-          args: [amount.toBigInt(), minTemp.toBigInt(), minSoil.toBigInt(), Number(balanceFrom)],
+          args: [
+            amount.toBigInt(),
+            minTemp.toBigInt(),
+            minSoil.toBigInt(),
+            Number(balanceFrom),
+          ],
         });
       }
       if (!swapBuild) {
@@ -198,7 +240,7 @@ function Sow({ isMorning }: SowProps) {
         minTemp,
         minSoil,
         FarmFromMode.INTERNAL,
-        swapBuild.getPipeCallClipboardSlot(0, mainToken),
+        swapBuild.getPipeCallClipboardSlot(0, mainToken)
       );
 
       advFarm.push(sow);
@@ -208,7 +250,9 @@ function Sow({ isMorning }: SowProps) {
         abi: beanstalkAbi,
         functionName: "advancedFarm",
         args: [advFarm],
-        value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
+        value: tokenIn.isNative
+          ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt()
+          : 0n,
       });
     } catch (e) {
       console.error(e);
@@ -261,97 +305,138 @@ function Sow({ isMorning }: SowProps) {
   const ready = pods?.gt(0) && podLine.gte(0) && maxSow?.gt(0);
 
   const balanceFromMode = getBalanceFromMode(tokenInBalance, balanceFrom);
-  const balanceExceedsSoil = balanceFromMode.gt(0) && maxSow && balanceFromMode.gte(maxSow);
+  const balanceExceedsSoil =
+    balanceFromMode.gt(0) && maxSow && balanceFromMode.gte(maxSow);
 
-  const ctaDisabled = isLoading || isConfirming || submitting || !ready || inputError || !canProceed;
+  const ctaDisabled =
+    isLoading ||
+    isConfirming ||
+    submitting ||
+    !ready ||
+    inputError ||
+    !canProceed;
 
   const buttonText = inputError ? "Amount too large" : "Sow";
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <div className="flex flex-row justify-between items-center">
-          <div className="pinto-body-light text-pinto-light">Amount and token to sow</div>
-          <SettingsPoppover
-            slippage={slippage}
-            setSlippage={setSlippage}
-            minTemperature={minTemperature}
-            setMinTemperature={setMinTemperature}
-          />
+    <div className="relative">
+      <div className="flex flex-col">
+        <div className={`flex flex-col gap-6`}>
+          <div className="relative min-h-fit">
+            <div className={`block`}>
+              <div className="flex flex-row justify-between items-center">
+                <div className="pinto-body-light text-pinto-light">
+                  Amount and token to sow
+                </div>
+                <SettingsPoppover
+                  slippage={slippage}
+                  setSlippage={setSlippage}
+                  minTemperature={minTemperature}
+                  setMinTemperature={setMinTemperature}
+                />
+              </div>
+              <ComboInputField
+                amount={amountIn}
+                disableInput={isConfirming}
+                customMaxAmount={
+                  maxSow?.gt(0)
+                    ? TokenValue.min(balanceFromMode, maxSow)
+                    : TokenValue.ZERO
+                }
+                setAmount={setAmountIn}
+                setToken={setTokenIn}
+                setBalanceFrom={setBalanceFrom}
+                setError={setInputError}
+                selectedToken={tokenIn}
+                error={inputError}
+                balanceFrom={balanceFrom}
+                disableButton={isConfirming}
+                connectedAccount={!!account.address}
+                altText={balanceExceedsSoil ? "Usable balance:" : undefined}
+                tokenSelectLoading={preferredLoading || !didSetPreferred}
+                filterTokens={filterTokens}
+                disableClamping={true}
+              />
+            </div>
+            {totalSoil.eq(0) && maxSow?.lte(0) && (
+              <Warning>
+                Your usable balance is 0.00 because there is no Soil available.
+              </Warning>
+            )}
+            {isLoading ? (
+              <div className="flex flex-col w-full h-[224px] items-center justify-center">
+                <FrameAnimator size={64} />
+              </div>
+            ) : ready ? (
+              <div className="flex flex-col gap-6 px-2">
+                <OutputDisplay>
+                  <OutputDisplay.Item label="Pods">
+                    <OutputDisplay.Value
+                      value={formatter.token(pods, PODS)}
+                      token={PODS}
+                      suffix={PODS.symbol}
+                    />
+                  </OutputDisplay.Item>
+                  <OutputDisplay.Item label="Place in line">
+                    <OutputDisplay.Value value={formatter.noDec(podLine)} />
+                  </OutputDisplay.Item>
+                </OutputDisplay>
+                <Warning>
+                  Pods become redeemable for Pinto 1:1 when they reach the front
+                  of the Pod Line.
+                </Warning>
+              </div>
+            ) : null}
+            {!tokenIn.isMain && (
+              <RoutingAndSlippageInfo
+                title="Total Swap Slippage"
+                swapSummary={swapSummary}
+                preferredSummary="swap"
+                txnType="Swap"
+                tokenIn={tokenIn}
+                tokenOut={mainToken}
+              />
+            )}
+            {slippageWarning}
+            <div className="flex justify-center mt-4">
+              <Link
+                onClick={(e) => {
+                  e.preventDefault();
+                  onShowOrder();
+                }}
+                to="/tractor"
+                className="flex items-center gap-2 text-sm text-pinto-dark hover:underline"
+              >
+                <LightningIcon className="w-5 h-5" />
+                Set up an order to sow automatically using Tractor
+              </Link>
+            </div>
+          </div>
+          <div className="hidden sm:flex flex-row gap-2">
+            <SmartSubmitButton
+              variant={isMorning ? "morning" : "gradient"}
+              disabled={ctaDisabled}
+              token={tokenIn}
+              amount={amountIn}
+              balanceFrom={balanceFrom}
+              submitFunction={onSubmit}
+              submitButtonText={buttonText}
+            />
+          </div>
+          <MobileActionBar>
+            <SmartSubmitButton
+              variant={isMorning ? "morning" : "gradient"}
+              disabled={ctaDisabled}
+              token={tokenIn}
+              amount={amountIn}
+              balanceFrom={balanceFrom}
+              submitFunction={onSubmit}
+              submitButtonText={buttonText}
+              className="h-full"
+            />
+          </MobileActionBar>
         </div>
-        <ComboInputField
-          amount={amountIn}
-          disableInput={isConfirming}
-          customMaxAmount={maxSow?.gt(0) ? TokenValue.min(balanceFromMode, maxSow) : TokenValue.ZERO}
-          setAmount={setAmountIn}
-          setToken={setTokenIn}
-          setBalanceFrom={setBalanceFrom}
-          setError={setInputError}
-          selectedToken={tokenIn}
-          error={inputError}
-          balanceFrom={balanceFrom}
-          disableButton={isConfirming}
-          connectedAccount={!!account.address}
-          altText={balanceExceedsSoil ? "Usable balance:" : undefined}
-          tokenSelectLoading={preferredLoading || !didSetPreferred}
-          filterTokens={filterTokens}
-          disableClamping={true}
-        />
       </div>
-      {totalSoil.eq(0) && maxSow?.lte(0) && (
-        <Warning>Your usable balance is 0.00 because there is no Soil available.</Warning>
-      )}
-      {isLoading ? (
-        <div className="flex flex-col w-full h-[224px] items-center justify-center">
-          <FrameAnimator size={64} />
-        </div>
-      ) : ready ? (
-        <div className="flex flex-col gap-6 px-2">
-          <OutputDisplay>
-            <OutputDisplay.Item label="Pods">
-              <OutputDisplay.Value value={formatter.token(pods, PODS)} token={PODS} suffix={PODS.symbol} />
-            </OutputDisplay.Item>
-            <OutputDisplay.Item label="Place in line">
-              <OutputDisplay.Value value={formatter.noDec(podLine)} />
-            </OutputDisplay.Item>
-          </OutputDisplay>
-          <Warning>Pods become redeemable for Pinto 1:1 when they reach the front of the Pod Line.</Warning>
-        </div>
-      ) : null}
-      {!tokenIn.isMain && swapSummary?.swap && (
-        <RoutingAndSlippageInfo
-          title="Total Swap Slippage"
-          swapSummary={swapSummary}
-          preferredSummary="swap"
-          txnType="Swap"
-          tokenIn={tokenIn}
-          tokenOut={mainToken}
-        />
-      )}
-      {slippageWarning}
-      <div className="hidden sm:flex flex-row gap-2">
-        <SmartSubmitButton
-          variant={isMorning ? "morning" : "gradient"}
-          disabled={ctaDisabled}
-          token={tokenIn}
-          amount={amountIn}
-          balanceFrom={balanceFrom}
-          submitFunction={onSubmit}
-          submitButtonText={buttonText}
-        />
-      </div>
-      <MobileActionBar>
-        <SmartSubmitButton
-          variant={isMorning ? "morning" : "gradient"}
-          disabled={ctaDisabled}
-          token={tokenIn}
-          amount={amountIn}
-          balanceFrom={balanceFrom}
-          submitFunction={onSubmit}
-          submitButtonText={buttonText}
-          className="h-full"
-        />
-      </MobileActionBar>
     </div>
   );
 }
@@ -370,14 +455,15 @@ const SettingsPoppover = ({
   setMinTemperature: React.Dispatch<React.SetStateAction<number>>;
 }) => {
   const [internalAmount, setInternalAmount] = useState(slippage);
-  const [internalMinTemperature, setInternalMinTemperature] = useState(minTemperature);
+  const [internalMinTemperature, setInternalMinTemperature] =
+    useState(minTemperature);
 
   useDebouncedEffect(
     () => {
       setSlippage(internalAmount);
     },
     [internalAmount],
-    100,
+    100
   );
 
   useDebouncedEffect(
@@ -385,17 +471,25 @@ const SettingsPoppover = ({
       setMinTemperature(internalMinTemperature);
     },
     [internalMinTemperature],
-    100,
+    100
   );
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant={"ghost"} noPadding className="rounded-full w-10 h-10 ">
-          <img src={settingsIcon} className="w-4 h-4 transition-all" alt="slippage" />
+          <img
+            src={settingsIcon}
+            className="w-4 h-4 transition-all"
+            alt="slippage"
+          />
         </Button>
       </PopoverTrigger>
-      <PopoverContent side="bottom" align="end" className="w-52 flex flex-col shadow-none">
+      <PopoverContent
+        side="bottom"
+        align="end"
+        className="w-52 flex flex-col shadow-none"
+      >
         <div className="flex flex-col gap-4">
           <div className="pinto-md">Slippage Tolerance</div>
           <div className="flex flex-row gap-2">
@@ -415,7 +509,9 @@ const SettingsPoppover = ({
               inputMode="numeric"
               min={0}
               value={internalMinTemperature}
-              onChange={(e) => setInternalMinTemperature(Number(e.target.value))}
+              onChange={(e) =>
+                setInternalMinTemperature(Number(e.target.value))
+              }
             />
             <div className="text-xl self-center">%</div>
           </div>

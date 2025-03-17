@@ -27,6 +27,9 @@ import { diamondFarmerABI } from "@/constants/abi/diamondFarmerABI";
  */
 import { viewSeasonABI } from "@/constants/abi/viewSeasonABI";
 import { viewSiloABI } from "@/constants/abi/viewSiloABI";
+import { siloHelpersABI } from "@/constants/abi/SiloHelpersABI";
+
+const SILO_HELPERS_ADDRESS = "0x207b78B23Ee4b9F9D9b07102Ed5bBf8573004B8A";
 
 const TESTNET_CHAIN_ID = 41337;
 
@@ -112,6 +115,18 @@ const config = defineConfig(() => {
           [localhost.id]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933", // base
           [TESTNET_CHAIN_ID]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933", // base
           [foundry.id]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933", // base
+        },
+      },
+      {
+        name: "siloHelpers",
+        abi: siloHelpersABI as Abi,
+        address: {
+          [mainnet.id]: SILO_HELPERS_ADDRESS,
+          [arbitrum.id]: SILO_HELPERS_ADDRESS,
+          [base.id]: SILO_HELPERS_ADDRESS,
+          [localhost.id]: SILO_HELPERS_ADDRESS,
+          [TESTNET_CHAIN_ID]: SILO_HELPERS_ADDRESS,
+          [foundry.id]: SILO_HELPERS_ADDRESS,
         },
       },
     ],
