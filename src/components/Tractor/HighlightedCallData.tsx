@@ -193,7 +193,56 @@ export function HighlightedCallData({
     return decodeCallData(blueprintData);
   }
 
+  // For requisition data, try to parse and format the JSON
+  if (isRequisitionData) {
+    try {
+      // If it's JSON data, try to parse and format it
+      const jsonData = JSON.parse(targetData);
+      const formattedJson = JSON.stringify(jsonData, null, 2);
+
+      if (decodeAbi) {
+        // If we're in decode mode, show the formatted JSON
+        return (
+          <div className={className}>
+            <pre>{formattedJson}</pre>
+          </div>
+        );
+      }
+
+      // If we're not in decode mode, show the formatted JSON with syntax highlighting
+      return (
+        <div className={className}>
+          <pre>{formattedJson}</pre>
+        </div>
+      );
+    } catch (e) {
+      console.error("Failed to parse JSON:", e);
+      // If parsing fails, fall back to the original display
+    }
+  }
+
   try {
+    // For sowBlueprintv0 data
+    if (blueprintData.startsWith(SOW_BLUEPRINT_V0_SELECTOR)) {
+      if (decodeAbi) {
+        return (
+          <div className={className}>
+            <div className="space-y-4">
+              <div>
+                <div className="text-sm text-gray-500 mb-1">
+                  sowBlueprintv0 call:
+                </div>
+                <div className="text-gray-500">
+                  {decodeCallData(blueprintData)}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+      return <div className={className}>{targetData}</div>;
+    }
+
     const decoded = decodeFunctionData({
       abi: beanstalkAbi,
       data: blueprintData,

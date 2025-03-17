@@ -200,11 +200,14 @@ export default function SowOrderDialog({
       }
 
       console.time("createBlueprint");
+      // Calculate uint256 max (2^256 - 1)
+      const UINT256_MAX = BigInt(2) ** BigInt(256) - BigInt(1);
+
       const newBlueprint = createBlueprint({
         publisher: address,
         data,
         operatorPasteInstrs,
-        maxNonce: BigInt(1),
+        maxNonce: UINT256_MAX,
       });
       console.timeEnd("createBlueprint");
 
