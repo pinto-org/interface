@@ -333,7 +333,7 @@ const PriceImpactContent = ({ variant = "sm-light", showTokenName = false }: IPr
   );
 };
 
-const getDetailsWithExchange = (exchange: SwapSummaryExchange) => {
+const getDetailsWithExchange = (exchange: SwapSummaryExchange, noBase = false) => {
   let logo = "";
   let text = "";
 
@@ -343,7 +343,7 @@ const getDetailsWithExchange = (exchange: SwapSummaryExchange) => {
   } else if (exchange === "0x") {
     logo = swap0xlogo;
     text = "0x-Swap";
-  } else if (exchange === "base") {
+  } else if (exchange === "base" && !noBase) {
     logo = baseLogo;
     text = "Base";
   } else if (exchange === "sPinto") {
@@ -371,7 +371,9 @@ const RoutesFormContent = () => {
         <div className="pinto-sm">Router</div>
         <div className="flex flex-row gap-x-2">
           {exchanges?.map((exchange) => {
-            const { logo, text } = getDetailsWithExchange(exchange);
+            const { logo, text } = getDetailsWithExchange(exchange, true);
+
+            if (exchange === "base") return null;
 
             return (
               <div className="pinto-sm flex flex-row items-center gap-x-1" key={`exchange-${exchange}`}>

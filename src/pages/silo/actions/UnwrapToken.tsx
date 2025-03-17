@@ -12,6 +12,8 @@ import TokenSelectBase from "@/components/TokenSelectBase";
 import { Label } from "@/components/ui/Label";
 import { Switch, SwitchThumb } from "@/components/ui/Switch";
 import { siloedPintoABI } from "@/constants/abi/siloedPintoABI";
+import { abiSnippets } from "@/constants/abiSnippets";
+import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useBuildSwapQuoteAsync } from "@/hooks/swap/useBuildSwapQuote";
 import useSwap from "@/hooks/swap/useSwap";
@@ -41,6 +43,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   const contractBalances = useFarmerSilo(siloToken.isSiloWrapped ? siloToken.address : undefined);
   const { address: account, isConnecting } = useAccount();
   const { mainToken } = useTokenData();
+  const diamond = useProtocolAddress();
   const qc = useQueryClient();
   const filterTokens = useFilterOutTokens(siloToken);
   const tokenOptions = useUnwrapTokenOptions();
@@ -90,7 +93,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
     successCallback: onSuccess,
   });
 
-  const onSubmit = useCallback(() => {
+  const onSubmit = useCallback(async () => {
     try {
       // validations
       if (!isValidAddress(account)) throw new Error("Signer required");
@@ -98,14 +101,35 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
       if (balance.lt(amountTV)) throw new Error("Insufficient balance");
 
       // transaction
+      if (toSilo) {
+        setSubmitting(true);
+        toast.loading(`Unwrapping ${siloToken.symbol}...`);
+
+        return writeWithEstimateGas({
+          address: siloToken.address,
+          abi: siloedPintoABI,
+          functionName: "redeemToSilo",
+          args: [amountTV.toBigInt(), account, account, balanceSource],
+        });
+      }
+
+      if (!swap.data || !buildSwapQuote) {
+        throw new Error("Swap quote not found");
+      }
+
       setSubmitting(true);
       toast.loading(`Unwrapping ${siloToken.symbol}...`);
 
+      const swapBuild = await buildSwapQuote();
+      if (!swapBuild) {
+        throw new Error("Failed to build swap");
+      }
+
       return writeWithEstimateGas({
-        address: siloToken.address,
-        abi: siloedPintoABI,
-        functionName: "redeemToSilo",
-        args: [amountTV.toBigInt(), account, account, balanceSource],
+        address: diamond,
+        abi: abiSnippets.advancedFarm,
+        functionName: "advancedFarm",
+        args: [swapBuild.advancedFarm]
       });
     } catch (e) {
       console.error(e);
@@ -132,9 +156,16 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   const buttonText = amountTV.gt(balance) ? "Insufficient Balance" : "Unwrap";
   const inputAltText = `${getInputAltTextWithSource(balanceSource)} Balance:`;
 
+  const quotingSwap = !toSilo && validAmountIn && swap.isLoading;
+  const quotingRedeemToSilo = toSilo && validAmountIn && quoteQuery.isLoading;
+
+  const quoting = toSilo ? quotingRedeemToSilo : quotingSwap;
+
+  const outputNotReady = toSilo ? output?.amount.lte(0) : swap.data?.buyAmount.lte(0);
+
   const baseDisabled = !account || !validAmountIn || !balance.gte(amountTV) || inputError;
   const buttonDisabled =
-    baseDisabled || isConfirming || submitting || output?.amount.lte(0) || inputError || quoteQuery.isLoading;
+    baseDisabled || isConfirming || submitting || outputNotReady || inputError || quoting;
 
   const sourceIsInternal = balanceSource === FarmFromMode.INTERNAL;
 
