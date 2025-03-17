@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { useAccount, useBalance, useReadContract } from "wagmi";
 import useTokenData from "./useTokenData";
 
+
 const settings = {
   staleTime: 1000 * 60 * 2,
   refetchInterval: 1000 * 60 * 3, // 3 minutes, in milliseconds

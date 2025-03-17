@@ -8,6 +8,12 @@ import { useCallback, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { useAccount, useChainId, useConfig } from "wagmi";
 
+
+/**
+ * NOTE: B/c 0xV2 utilizes permits, LP<>LP convert quotes will fail if the local block time is further ahead than the permit's expiration.
+ * Testing LP<>LP converts locally must be done by impersonating an account that already has deposits on a fork that has not been forwarded.
+ */
+
 export const siloConvertQueryPrefix = ["silo-convert"] as const;
 
 export default function useSiloConvert() {

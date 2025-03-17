@@ -1,12 +1,12 @@
+import { ZeroX } from '@/lib/matcha/ZeroX';
 import { Clipboard } from "@/classes/Clipboard";
 import { TV } from "@/classes/TokenValue";
-import { PIPELINE_ADDRESS } from "@/constants/address";
 import encoders from "@/encoders";
 import erc20Approve from "@/encoders/erc20Approve";
 import erc20Transfer from "@/encoders/erc20Transfer";
 import sync from "@/encoders/sync";
 import { AdvancedFarmWorkflow, AdvancedPipeWorkflow } from "@/lib/farm/workflow";
-import { ZeroExQuoteResponse } from "@/lib/matcha/types";
+import { ZeroXQuoteV2Parameters, ZeroXQuoteV2Response } from "@/lib/matcha/types";
 import { ExtendedPickedCratesDetails } from "@/utils/convert";
 import { stringEq } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
@@ -21,6 +21,9 @@ import {
   SiloConvertSwapQuote,
   SiloConvertTargetSummary,
 } from "./ConvertStrategy";
+import { resolveChainId } from "@/utils/chain";
+import { pipelineAddress } from '@/generated/contractHooks';
+import { isAddress } from 'viem';
 
 export interface SourceSummaryLP2LP extends SiloConvertSourceSummary {
   well: ExtendedPoolData;
@@ -120,20 +123,24 @@ export abstract class LP2LPStrategy extends SiloConvertStrategy {
    * @param slippage - The slippage percentage.
    * @returns The swap quote params.
    */
-  protected generateSwapQuoteParams(buyToken: Token, sellToken: Token, sellAmount: TV, slippage: number) {
-    return {
-      sellToken: sellToken.address,
+  protected generateSwapQuoteParams(buyToken: Token, sellToken: Token, sellAmount: TV, slippage: number, disablePintoExchange: boolean = true): ZeroXQuoteV2Parameters {
+    const pipeline = pipelineAddress[resolveChainId(this.context.chainId)];
+
+    return ZeroX.generateQuoteParams({
+      chainId: this.context.chainId,
       buyToken: buyToken.address,
+      sellToken: sellToken.address,
       sellAmount: sellAmount.blockchainString,
-      takerAddress: PIPELINE_ADDRESS as HashString,
-      shouldSellEntireBalance: "true",
-      skipValidation: "true",
-      slippagePercentage: slippage.toString(),
-    };
+      taker: pipeline,
+      txOrigin: this.context.account,
+      sellEntireBalance: true,
+      slippageBps: ZeroX.slippageToSlippageBps(slippage),
+      excludedSources: disablePintoExchange ? "Pinto" : undefined,
+    });
   }
 
   protected makeSwapSummary(
-    quote: ZeroExQuoteResponse,
+    quote: ZeroXQuoteV2Response,
     sellToken: Token,
     buyToken: Token,
     sellTokenUSD: TV,
@@ -142,19 +149,20 @@ export abstract class LP2LPStrategy extends SiloConvertStrategy {
     const sellAmount = TV.fromBlockchain(quote.sellAmount, sellToken.decimals);
     const buyAmount = TV.fromBlockchain(quote.buyAmount, buyToken.decimals);
 
-    const usdIn = sellTokenUSD.mul(sellAmount);
-    const usdOut = buyTokenUSD.mul(buyAmount);
+    // USD always in 6 decimal precision
+    const usdIn = sellTokenUSD.mul(sellAmount).reDecimal(6);
+    const usdOut = buyTokenUSD.mul(buyAmount).reDecimal(6);
 
     let feeDetails: SiloConvertSwapQuote["fee"] | undefined;
 
     const fee = quote.fees?.zeroExFee;
 
     if (fee) {
-      const feeToken = stringEq(fee.feeToken, sellToken.address) ? sellToken : buyToken;
-      const feeAmount = TV.fromBlockchain(fee.feeAmount, feeToken.decimals);
+      const feeToken = stringEq(fee.token, sellToken.address) ? sellToken : buyToken;
+      const feeAmount = TV.fromBlockchain(fee.amount, feeToken.decimals);
       const feeTokenUSD = tokensEqual(feeToken, sellToken) ? sellTokenUSD : buyTokenUSD;
 
-      const feeTotalUSD = feeAmount.mul(feeTokenUSD);
+      const feeTotalUSD = feeAmount.mul(feeTokenUSD).reDecimal(6);
 
       feeDetails = {
         amount: feeAmount,
@@ -229,6 +237,16 @@ export abstract class LP2LPStrategy extends SiloConvertStrategy {
         ...erc20Transfer(recipient, amount, token.address, clipboard),
         target: token.address,
       };
+    },
+    erc20BalanceOf: (token: Token, account: HashString): AdvancedPipeCall => {
+      if (!account || !isAddress(account)) {
+        throw new Error("Cannot use invalid account address");
+      }
+
+      return {
+        ...encoders.token.erc20BalanceOf(account),
+        target: token.address,
+      }
     },
     // // Well Methods
     removeLiquidity: (
