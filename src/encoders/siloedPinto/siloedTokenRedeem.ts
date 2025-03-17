@@ -7,10 +7,10 @@ import { Clipboard } from "@/classes/Clipboard";
 
 
 export default function siloedTokenRedeem(
-  shares: TV, recipient:
-    Address,
-  target: Address,
+  shares: TV,
+  recipient: Address,
   owner: Address,
+  target: Address,
   clipboard: HashString = Clipboard.encode([])
 ): AdvancedPipeCall {
   const callData = encodeFunctionData({
