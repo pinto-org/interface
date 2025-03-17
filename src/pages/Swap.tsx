@@ -67,9 +67,9 @@ export default function Swap() {
   const { balanceTo, setBalanceTo } = useDestinationBalance();
 
   const filterTokens = useMemo(() => {
-    const s = new Set(Object.values(tokenMap).filter((t) => t.isLP));
-    // s.add(siloWrappedToken);
-    s.add(siloWrappedToken3p);
+    const s = new Set(Object.values(tokenMap).filter((t) => {
+      return t.isLP || t.isSiloWrapped || t.is3PSiloWrapped
+    }));
     return s;
   }, [tokenMap, siloWrappedToken, siloWrappedToken3p]);
 
