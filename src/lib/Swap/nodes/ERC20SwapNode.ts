@@ -554,6 +554,7 @@ export class WellRemoveSingleSidedSwapNode extends ERC20SwapNode {
 
 interface SiloWrappedTokenWrapNodeBuildParams {
   recipient: Address;
+  copySlot: number | undefined;
 }
 
 export class SiloWrappedTokenWrapNode extends ERC20SwapNode {
@@ -591,14 +592,23 @@ export class SiloWrappedTokenWrapNode extends ERC20SwapNode {
     return this;
   }
 
-  buildStep({ recipient }: SiloWrappedTokenWrapNodeBuildParams): AdvancedPipeCall {
+  buildStep({ recipient, copySlot }: SiloWrappedTokenWrapNodeBuildParams, clipboardContext?: ClipboardContext): AdvancedPipeCall {
     this.validateAll();
+
+    let clipboard: HashString | undefined = undefined;
+
+    if (exists(copySlot) && exists(clipboardContext)) {
+      const copyIndex = clipboardContext.indexMap.get(this.tagNeeded);
+      if (exists(copyIndex)) {
+        clipboard = Clipboard.encodeSlot(copyIndex, copySlot, this.amountInPasteSlot);
+      }
+    }
 
     const pipeStruct = encoders.siloedPinto.depositERC20(
       this.sellAmount,
       recipient,
       this.buyToken.address,
-      Clipboard.encode([]),
+      clipboard,
     );
 
     console.debug("[Swap/SiloedPintoWrapNode] build:", {
@@ -616,6 +626,7 @@ export class SiloWrappedTokenWrapNode extends ERC20SwapNode {
 interface SiloWrappedTokenUnwrapNodeBuildParams {
   recipient: Address;
   owner: Address;
+  copySlot: number | undefined;
 }
 
 export class SiloWrappedTokenUnwrapNode extends ERC20SwapNode {
@@ -653,14 +664,24 @@ export class SiloWrappedTokenUnwrapNode extends ERC20SwapNode {
     return this;
   };
 
-  buildStep({ recipient }: SiloWrappedTokenUnwrapNodeBuildParams): AdvancedPipeCall {
+  buildStep({ recipient, owner, copySlot }: SiloWrappedTokenUnwrapNodeBuildParams, clipboardContext?: ClipboardContext): AdvancedPipeCall {
     this.validateAll();
+
+    let clipboard: HashString | undefined = undefined;
+
+    if (exists(copySlot) && exists(clipboardContext)) {
+      const copyIndex = clipboardContext.indexMap.get(this.tagNeeded);
+      if (exists(copyIndex)) {
+        clipboard = Clipboard.encodeSlot(copyIndex, copySlot, this.amountInPasteSlot);
+      }
+    }
 
     const pipeStruct = encoders.siloedPinto.redeemERC20(
       this.sellAmount,
       recipient,
-      this.buyToken.address,
-      Clipboard.encode([]),
+      owner,
+      this.sellToken.address,
+      clipboard,
     );
 
     console.debug("[Swap/SiloedPintoUnwrapNode] build:", {
