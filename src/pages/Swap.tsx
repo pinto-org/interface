@@ -44,7 +44,7 @@ const handleOnError = (e: any) => {
 export default function Swap() {
   const queryClient = useQueryClient();
   const { queryKeys } = useFarmerBalances();
-  const { mainToken: BEAN, nativeToken: ETH, siloWrappedToken, thirdPartyWrappedNativeToken } = useTokenData();
+  const { mainToken: BEAN, nativeToken: ETH, siloWrappedToken, siloWrappedToken3p } = useTokenData();
   const diamond = useProtocolAddress();
 
   const isWSOL = useIsWSOL();
@@ -69,9 +69,9 @@ export default function Swap() {
   const filterTokens = useMemo(() => {
     const s = new Set(Object.values(tokenMap).filter((t) => t.isLP));
     // s.add(siloWrappedToken);
-    s.add(thirdPartyWrappedNativeToken);
+    s.add(siloWrappedToken3p);
     return s;
-  }, [tokenMap, siloWrappedToken, thirdPartyWrappedNativeToken]);
+  }, [tokenMap, siloWrappedToken, siloWrappedToken3p]);
 
   const {
     data: swapData,
