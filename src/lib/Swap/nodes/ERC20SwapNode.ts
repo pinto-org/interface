@@ -27,6 +27,10 @@ interface IERC20SwapNode {
 
 type IERC20SwapNodeUnion = IERC20SwapNode & ISwapNode;
 
+/** ========================================================================================================== */
+/** ---------------------------------------- Abstract Class -------------------------------------------------- */
+/** ========================================================================================================== */
+
 /**
  * Abstract class for swaps involving only ERC20 tokens.
  *
@@ -46,7 +50,6 @@ export abstract class ERC20SwapNode extends SwapNode implements IERC20SwapNode {
    * The minimum amount of buyToken that should be received after the swap. (buyAmount less slippage)
    */
   minBuyAmount: TV = TV.ZERO;
-
 
   /**
    * The index pointing towards the amount buyAmount receieved at run-time to be copied
@@ -135,102 +138,15 @@ export abstract class ERC20SwapNode extends SwapNode implements IERC20SwapNode {
   }
 }
 
-interface WellSwapBuildParams {
-  copySlot: number | undefined;
-  recipient: Address;
-}
+/** ========================================================================================================== */
+/** ---------------------------------------- Implementations ------------------------------------------------- */
+/** ========================================================================================================== */
 
-// prettier-ignore
-export class WellSwapNode extends ERC20SwapNode {
-  readonly name: string;
+/** ---------------------------------------------------------------------------------------------------------- */
+/** ---------------------------------------- Dex Aggregator -------------------------------------------------- */
+/** ---------------------------------------------------------------------------------------------------------- */
 
-  readonly well: Token;
-
-  readonly amountOutCopySlot = 0;
-
-  readonly amountInPasteSlot = 2;
-
-  readonly allowanceTarget: Address;
-
-  constructor(context: SwapContext, well: Token, sellToken: Token, buyToken: Token) {
-    super(context, sellToken, buyToken);
-    this.well = well;
-    this.name = `SwapNode: Well ${this.well.symbol}`;
-    this.allowanceTarget = this.well.address;
-  }
-
-  async quoteForward(sellAmount: TV, slippage: number) {
-    this.setFields({ sellAmount, slippage });
-    this.validateQuoteForward();
-
-    const result = await readContract(this.context.config.getClient({ chainId: this.context.chainId }), {
-      abi: basinWellABI,
-      address: this.well.address,
-      functionName: "getSwapOut",
-      args: [this.sellToken.address, this.buyToken.address, this.sellAmount.toBigInt()],
-    });
-
-    const buyAmount = TV.fromBigInt(result, this.buyToken.decimals);
-    const minBuyAmount = buyAmount.subSlippage(this.slippage);
-    this.setFields({ buyAmount, minBuyAmount });
-
-    console.debug("[Swap/WellSwapNode] quoteForward:", {
-      ...this.getHuman(),
-    });
-
-    return this;
-  }
-
-  buildStep({ copySlot, recipient }: WellSwapBuildParams, clipboardContext?: ClipboardContext): AdvancedPipeCall {
-    this.validateAll();
-
-    let clipboard: HashString | undefined = undefined;
-
-    if (exists(copySlot) && exists(clipboardContext)) {
-      const copyIndex = clipboardContext.indexMap.get(this.tagNeeded);
-      if (exists(copyIndex)) {
-        clipboard = Clipboard.encodeSlot(copyIndex, copySlot, this.amountInPasteSlot);
-      }
-    }
-
-    const pipeStruct = encoders.well.swapFrom(
-      this.well,
-      this.sellToken,
-      this.buyToken,
-      this.sellAmount,
-      this.minBuyAmount,
-      recipient,
-      TV.MAX_UINT256.toBigInt(),
-      clipboard,
-    );
-
-    if (!pipeStruct.target) {
-      throw new Error("Target required to encode Well Swap Node");
-    }
-
-    console.debug("[Swap/WellSwapNode] build:", {
-      ...this.getHuman(),
-      well: this.well.symbol,
-      recipient: stringEq(pipelineAddress[this.context.chainId], recipient) ? "PIPELINE" : recipient,
-      clipboard: [clipboardContext?.indexMap.get(this.tagNeeded), copySlot, this.amountInPasteSlot],
-      pipeStruct,
-    });
-
-    return pipeStruct;
-  }
-
-  override validateTokens() {
-    super.validateTokens();
-    if (this.well.tokens?.length !== 2) {
-      throw this.makeErrorWithContext("Cannot configure well swap with non-pair wells");
-    }
-    if (!this.well.tokens.some((token) => stringEq(token, this.sellToken.address))) {
-      throw this.makeErrorWithContext(
-        `Invalid token Sell Token. Well ${this.well.name} does not contain ${this.sellToken.symbol}`,
-      );
-    }
-  }
-}
+// ----------------------------------------- Matcha 0x -------------------------------------------------------
 
 export class ZeroXSwapNode extends ERC20SwapNode {
   name: string = "SwapNode: ZeroX";
@@ -326,6 +242,110 @@ export class ZeroXSwapNode extends ERC20SwapNode {
     };
   }
 }
+
+
+/** ---------------------------------------------------------------------------------------------------------- */
+/** ---------------------------------------- Basin Well Methods ---------------------------------------------- */
+/** ---------------------------------------------------------------------------------------------------------- */
+
+// ----------------------------------------- Well SwapFrom ---------------------------------------------------
+interface WellSwapBuildParams {
+  copySlot: number | undefined;
+  recipient: Address;
+}
+
+export class WellSwapNode extends ERC20SwapNode {
+  readonly name: string;
+
+  readonly well: Token;
+
+  readonly amountOutCopySlot = 0;
+
+  readonly amountInPasteSlot = 2;
+
+  readonly allowanceTarget: Address;
+
+  constructor(context: SwapContext, well: Token, sellToken: Token, buyToken: Token) {
+    super(context, sellToken, buyToken);
+    this.well = well;
+    this.name = `SwapNode: Well ${this.well.symbol}`;
+    this.allowanceTarget = this.well.address;
+  }
+
+  async quoteForward(sellAmount: TV, slippage: number) {
+    this.setFields({ sellAmount, slippage });
+    this.validateQuoteForward();
+
+    const result = await readContract(this.context.config.getClient({ chainId: this.context.chainId }), {
+      abi: basinWellABI,
+      address: this.well.address,
+      functionName: "getSwapOut",
+      args: [this.sellToken.address, this.buyToken.address, this.sellAmount.toBigInt()],
+    });
+
+    const buyAmount = TV.fromBigInt(result, this.buyToken.decimals);
+    const minBuyAmount = buyAmount.subSlippage(this.slippage);
+    this.setFields({ buyAmount, minBuyAmount });
+
+    console.debug("[Swap/WellSwapNode] quoteForward:", {
+      ...this.getHuman(),
+    });
+
+    return this;
+  }
+
+  buildStep({ copySlot, recipient }: WellSwapBuildParams, clipboardContext?: ClipboardContext): AdvancedPipeCall {
+    this.validateAll();
+
+    let clipboard: HashString | undefined = undefined;
+
+    if (exists(copySlot) && exists(clipboardContext)) {
+      const copyIndex = clipboardContext.indexMap.get(this.tagNeeded);
+      if (exists(copyIndex)) {
+        clipboard = Clipboard.encodeSlot(copyIndex, copySlot, this.amountInPasteSlot);
+      }
+    }
+
+    const pipeStruct = encoders.well.swapFrom(
+      this.well,
+      this.sellToken,
+      this.buyToken,
+      this.sellAmount,
+      this.minBuyAmount,
+      recipient,
+      TV.MAX_UINT256.toBigInt(),
+      clipboard,
+    );
+
+    if (!pipeStruct.target) {
+      throw new Error("Target required to encode Well Swap Node");
+    }
+
+    console.debug("[Swap/WellSwapNode] build:", {
+      ...this.getHuman(),
+      well: this.well.symbol,
+      recipient: stringEq(pipelineAddress[this.context.chainId], recipient) ? "PIPELINE" : recipient,
+      clipboard: [clipboardContext?.indexMap.get(this.tagNeeded), copySlot, this.amountInPasteSlot],
+      pipeStruct,
+    });
+
+    return pipeStruct;
+  }
+
+  override validateTokens() {
+    super.validateTokens();
+    if (this.well.tokens?.length !== 2) {
+      throw this.makeErrorWithContext("Cannot configure well swap with non-pair wells");
+    }
+    if (!this.well.tokens.some((token) => stringEq(token, this.sellToken.address))) {
+      throw this.makeErrorWithContext(
+        `Invalid token Sell Token. Well ${this.well.name} does not contain ${this.sellToken.symbol}`,
+      );
+    }
+  }
+}
+
+// ----------------------------------------- Well Sync ---------------------------------------------------
 
 interface WellSyncSwapBuildParams {
   recipient: Address;
@@ -451,6 +471,8 @@ export class WellSyncSwapNode extends ERC20SwapNode {
   }
 }
 
+// ----------------------------------------- Well Remove Liquidity One Token -----------------------------
+
 interface WellRemoveSingleSidedSwapNodeBuildParams {
   recipient: Address;
 }
@@ -524,12 +546,18 @@ export class WellRemoveSingleSidedSwapNode extends ERC20SwapNode {
   }
 }
 
-interface SiloedPintoWrapNodeBuildParams {
+/** ---------------------------------------------------------------------------------------------------------- */
+/** ---------------------------------------- Silo Deposit Methods -------------------------------------------- */
+/** ---------------------------------------------------------------------------------------------------------- */
+
+// ----------------------------------------- Siloed Pinto Wrap ------------------------------------------------
+
+interface SiloWrappedTokenWrapNodeBuildParams {
   recipient: Address;
 }
 
-export class SiloedPintoWrapNode extends ERC20SwapNode {
-  readonly name = "SwapNode: SiloedPintoWrap";
+export class SiloWrappedTokenWrapNode extends ERC20SwapNode {
+  readonly name = "SwapNode: SiloWrappedTokenWrapNode";
 
   readonly amountOutCopySlot: number = 0;
 
@@ -544,26 +572,26 @@ export class SiloedPintoWrapNode extends ERC20SwapNode {
     this.allowanceTarget = buyToken.address;
   }
 
-  async quoteForward(sellAmount: TV, slippage: number) {
+  // slippage is ignored for Silo Wrap
+  async quoteForward(sellAmount: TV, slippage: number = 0) {
     this.setFields({ sellAmount, slippage });
     this.validateQuoteForward();
 
     const quote = await readContract(this.context.config.getClient({ chainId: this.context.chainId }), {
       abi: siloedPintoABI,
       address: this.sellToken.address,
-      functionName: "previewMint",
+      functionName: "previewDeposit",
       args: [sellAmount.toBigInt()],
     });
 
     const buyAmount = TV.fromBigInt(quote, this.buyToken.decimals);
-
 
     this.setFields({ buyAmount, minBuyAmount: buyAmount });
 
     return this;
   }
 
-  buildStep({ recipient }: SiloedPintoWrapNodeBuildParams): AdvancedPipeCall {
+  buildStep({ recipient }: SiloWrappedTokenWrapNodeBuildParams): AdvancedPipeCall {
     this.validateAll();
 
     const pipeStruct = encoders.siloedPinto.depositERC20(
@@ -574,6 +602,68 @@ export class SiloedPintoWrapNode extends ERC20SwapNode {
     );
 
     console.debug("[Swap/SiloedPintoWrapNode] build:", {
+      ...this.getHuman(),
+      recipient: stringEq(pipelineAddress[this.context.chainId], recipient) ? "PIPELINE" : recipient,
+      pipeStruct,
+    });
+
+    return pipeStruct;
+  }
+}
+
+// ----------------------------------------- Siloed Pinto Unwrap ----------------------------------------------
+
+interface SiloWrappedTokenUnwrapNodeBuildParams {
+  recipient: Address;
+  owner: Address;
+}
+
+export class SiloWrappedTokenUnwrapNode extends ERC20SwapNode {
+  readonly name = "SwapNode: SiloWrappedTokenUnwrapNode";
+
+  readonly amountOutCopySlot: number = 0;
+
+  readonly amountInPasteSlot: number = 0;
+
+  readonly allowanceTarget: Address;
+
+  constructor(context: SwapContext) {
+    const sellToken = S_MAIN_TOKEN[resolveChainId(context.chainId)];
+    const buyToken = MAIN_TOKEN[resolveChainId(context.chainId)];
+    super(context, sellToken, buyToken);
+    this.allowanceTarget = sellToken.address;
+  }
+
+  // slippage is ignored for Silo Unwrap
+  async quoteForward(sellAmount: TV, slippage: number = 0) {
+    this.setFields({ sellAmount, slippage });
+    this.validateQuoteForward();
+
+    const quote = await readContract(this.context.config.getClient({ chainId: this.context.chainId }), {
+      abi: siloedPintoABI,
+      address: this.sellToken.address,
+      functionName: "previewRedeem",
+      args: [sellAmount.toBigInt()],
+    });
+
+    const buyAmount = TV.fromBigInt(quote, this.buyToken.decimals);
+
+    this.setFields({ buyAmount, minBuyAmount: buyAmount });
+
+    return this;
+  };
+
+  buildStep({ recipient }: SiloWrappedTokenUnwrapNodeBuildParams): AdvancedPipeCall {
+    this.validateAll();
+
+    const pipeStruct = encoders.siloedPinto.redeemERC20(
+      this.sellAmount,
+      recipient,
+      this.buyToken.address,
+      Clipboard.encode([]),
+    );
+
+    console.debug("[Swap/SiloedPintoUnwrapNode] build:", {
       ...this.getHuman(),
       recipient: stringEq(pipelineAddress[this.context.chainId], recipient) ? "PIPELINE" : recipient,
       pipeStruct,
