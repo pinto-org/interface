@@ -53,10 +53,12 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   // Local State
   const [slippage, setSlippage] = useState<number>(0.1);
   const [amountIn, setAmountIn] = useState<string>("0");
-  const [balanceSource, setBalanceSource] = useState<FarmFromMode>(FarmFromMode.EXTERNAL);
+  const [balanceSource, setBalanceSource] = useState<FarmFromMode>(
+    getPreferredBalanceSource(farmerBalance)
+  );
 
   const [toSilo, setToSilo] = useState<boolean>(true);
-  const [didInitBalanceSource, setDidInitBalanceSource] = useState<boolean>(!!farmerBalances.isFetched);
+  const [didInitBalanceSource, setDidInitBalanceSource] = useState(!!farmerBalances.isFetched);
   const [inputError, setInputError] = useState<boolean>(false);
   const [tokenOut, setTokenOut] = useState<Token>(mainToken);
   const [toMode, setToMode] = useState<FarmToMode>(FarmToMode.INTERNAL);
@@ -147,7 +149,6 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
     if (didInitBalanceSource || !farmerBalance || farmerBalances.isLoading || isConnecting) {
       return;
     }
-
     setBalanceSource(getPreferredBalanceSource(farmerBalance));
     setDidInitBalanceSource(true);
   }, [didInitBalanceSource, farmerBalances.isLoading, farmerBalance, isConnecting]);

@@ -40,7 +40,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
   const farmerDeposits = useFarmerSilo();
   const contractSilo = useFarmerSilo(siloToken.address);
   const farmerBalances = useFarmerBalances();
-  const { address: account } = useAccount();
+  const { address: account, isConnecting } = useAccount();
   const qc = useQueryClient();
   const diamond = useProtocolAddress();
 
@@ -54,6 +54,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
   const [mode, setMode] = useState<FarmToMode>(FarmToMode.EXTERNAL);
   const [token, setToken] = useState<Token>(mainToken);
   const [source, setSource] = useState<AssetOrigin>("deposits");
+  const [didInitSource, setDidInitSource] = useState(false);
 
   const filterTokens = useFilterTokens();
   const tokenIsSiloWrappedToken = tokensEqual(siloToken, sMainToken);
@@ -184,6 +185,18 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
   const amountOut = usingDeposits ? quote.data : swap.data?.buyAmount;
   const amountOutUSD = useSiloWrappedTokenToUSD(amountOut);
 
+  useEffect(() => {
+    if (didInitSource || !farmerTokenBalance || !deposits || isConnecting) {
+      return;
+    }
+
+    if (deposits?.amount.lte(0)) {
+      setSource("balances");
+    }
+
+    setDidInitSource(true);
+  }, [farmerTokenBalance, deposits, didInitSource, isConnecting]);
+
   // Tokens other than main token are not supported
   if (!tokenIsSiloWrappedToken) {
     return null;
@@ -219,6 +232,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
         </div>
         <ComboInputField
           amount={amountIn}
+          isLoading={!didInitSource}
           setAmount={setAmountIn}
           setToken={setToken}
           filterTokens={filterTokens}
@@ -239,15 +253,17 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
         />
         <div className="flex flex-row w-full justify-between items-center mt-4">
           <div className="pinto-sm sm:pinto-body-light sm:text-pinto-light text-pinto-light">Use {mainToken.symbol} deposits</div>
-          <Switch
-            checked={source === "deposits"}
-            onCheckedChange={() => {
-              setAmountIn("0");
-              setSource((prev) => prev === "deposits" ? "balances" : "deposits");
-            }}
-          >
-            <SwitchThumb />
-          </Switch>
+          <TextSkeleton loading={!didInitSource} className="w-11 h-6">
+            <Switch
+              checked={source === "deposits"}
+              onCheckedChange={() => {
+                setAmountIn("0");
+                setSource((prev) => prev === "deposits" ? "balances" : "deposits");
+              }}
+            >
+              <SwitchThumb />
+            </Switch>
+          </TextSkeleton>
         </div>
       </div>
 
