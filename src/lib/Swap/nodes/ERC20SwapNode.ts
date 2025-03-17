@@ -579,7 +579,7 @@ export class SiloWrappedTokenWrapNode extends ERC20SwapNode {
 
     const quote = await readContract(this.context.config.getClient({ chainId: this.context.chainId }), {
       abi: siloedPintoABI,
-      address: this.sellToken.address,
+      address: this.buyToken.address,
       functionName: "previewDeposit",
       args: [sellAmount.toBigInt()],
     });

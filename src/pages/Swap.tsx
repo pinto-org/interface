@@ -68,7 +68,7 @@ export default function Swap() {
 
   const filterTokens = useMemo(() => {
     const s = new Set(Object.values(tokenMap).filter((t) => t.isLP));
-    s.add(siloWrappedToken);
+    // s.add(siloWrappedToken);
     s.add(thirdPartyWrappedNativeToken);
     return s;
   }, [tokenMap, siloWrappedToken, thirdPartyWrappedNativeToken]);
