@@ -46,6 +46,8 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
 
   const mainToken = useChainConstant(MAIN_TOKEN);
   const sMainToken = useChainConstant(S_MAIN_TOKEN);
+  const deposits = farmerDeposits.deposits.get(mainToken);
+  const depositedAmount = deposits?.amount;
 
   const [slippage, setSlippage] = useState<number>(0.1);
   const [amountIn, setAmountIn] = useState<string>("0");
@@ -53,14 +55,12 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
   const [balanceFrom, setBalanceFrom] = useState<FarmFromMode>(FarmFromMode.INTERNAL_EXTERNAL);
   const [mode, setMode] = useState<FarmToMode>(FarmToMode.EXTERNAL);
   const [token, setToken] = useState<Token>(mainToken);
-  const [source, setSource] = useState<AssetOrigin>("deposits");
-  const [didInitSource, setDidInitSource] = useState(false);
+  const [source, setSource] = useState<AssetOrigin>(depositedAmount ? "deposits" : "balances");
+  const [didInitSource, setDidInitSource] = useState(depositedAmount !== undefined);
 
   const filterTokens = useFilterTokens();
   const tokenIsSiloWrappedToken = tokensEqual(siloToken, sMainToken);
 
-  const deposits = farmerDeposits.deposits.get(mainToken);
-  const depositedAmount = deposits?.amount;
 
   const farmerTokenBalance = farmerBalances.balances.get(token);
   const balance = getBalanceFromMode(farmerTokenBalance, balanceFrom);

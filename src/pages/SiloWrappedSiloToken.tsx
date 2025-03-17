@@ -40,7 +40,7 @@ export default function SiloWrappedSiloToken({ token }: { token: Token }) {
   const navigate = useNavigate();
 
   // Queries | Hooks
-  const { deposits, isLoading: depositsLoading } = useFarmerSilo(token.address);
+  const { deposits } = useFarmerSilo(token.address);
   const exchangeRate = useSiloWrappedTokenExchangeRateQuery();
   const totalSupply = useSiloWrappedTokenTotalSupply();
   const priceData = usePriceData();
@@ -50,7 +50,7 @@ export default function SiloWrappedSiloToken({ token }: { token: Token }) {
   const apys = useSiloWrappedDepositsAPYs();
 
   // Display State
-  const overviewStatsLoading = depositsLoading || exchangeRate.isLoading || totalSupply.isLoading;
+  const overviewStatsLoading = Boolean(!deposits || exchangeRate.data?.lte(0) || totalSupply.data?.lte(0));
   const balancesLoading = balances.isLoading || priceData.loading;
 
   const showContents = !isMobile || (!currentAction && isMobile);
@@ -295,11 +295,13 @@ const SiloedTokenOverviewStats = ({
   deposits,
   exchangeRate,
   totalSupply,
-  loading,
+  loading: isLoading,
 }: ISiloedTokenOverviewStats) => {
   const { mainToken, siloWrappedToken } = useTokenData();
 
   const depositsData = deposits?.get(mainToken);
+
+  const loading = isLoading || !depositsData;
 
   const rate = exchangeRate ? TV.fromHuman(1, exchangeRate.decimals).div(exchangeRate) : TV.ZERO;
 
