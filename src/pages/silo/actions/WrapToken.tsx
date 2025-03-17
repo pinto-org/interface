@@ -29,7 +29,7 @@ import { tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types"
 import { getBalanceFromMode } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAccount, useReadContract } from "wagmi";
 
@@ -71,7 +71,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     queryKey: allowanceQueryKey, 
     loading: allowanceLoading, 
     confirming: allowanceConfirming 
-  } = useFarmerDepositAllowance(usingDeposits && tokenIsSiloWrappedToken);
+  } = useFarmerDepositAllowance(Boolean(usingDeposits && tokenIsSiloWrappedToken));
 
   const amountInTV = TV.fromHuman(amountIn, mainToken.decimals);
 
@@ -84,6 +84,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     amountIn: TV.fromHuman(stringToStringNum(amountIn), token.decimals),
     disabled: usingDeposits
   });
+
   const buildSwap = useBuildSwapQuoteAsync(swap.data, balanceFrom, mode, account, account);
 
   const quote = usePreviewDeposit(amountInTV, usingDeposits);
@@ -158,7 +159,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
         address: diamond,
         abi: diamondABI,
         functionName: "advancedFarm",
-        args: [swapBuild.advFarm],
+        args: [swapBuild.advancedFarm],
         value: value?.toBigInt(),
       });
     } catch (e: any) {
@@ -191,15 +192,22 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
 
   const isValidAmount = amountInTV.gt(0);
 
-  const inputDisabled = !deposits?.convertibleAmount;
+  const inputDisabled = usingDeposits ? !deposits?.amount : !balance;
+
+  const amountExceedsDeposits = usingDeposits && amountInTV.gt(0) && amountInTV.gt(depositedAmount ?? 0n);
+  const amountExceedsBalance = !usingDeposits && amountInTV.gt(0) && amountInTV.gt(balance ?? 0n);
+
+  const quoting = usingDeposits ? quote.isLoading : swap.isLoading;
   
-  const exceedsBalance = usingDeposits
-    ? amountInTV.gt(0) && amountInTV.gt(depositedAmount ?? 0n) 
-    : amountInTV.gt(0) && amountInTV.gt(balance ?? 0n);
+  const exceedsBalance = usingDeposits ? amountExceedsBalance : amountExceedsDeposits;
   
   const buttonText = exceedsBalance ? "Insufficient funds" : needsDepositAllowanceIncrease ? "Approve" : "Wrap";
+
+  const disabledFromLoading = confirming || quoting || submitting || isConfirming;
   
-  const buttonDisabled = !account || inputDisabled || submitting || isConfirming || !isValidAmount || confirming || exceedsBalance;
+  const buttonDisabled = !account || inputDisabled || !isValidAmount || exceedsBalance || inputError || disabledFromLoading;
+
+  console.log(allowance);
 
   return (
     <div className="flex flex-col gap-6">
@@ -221,7 +229,6 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
           error={inputError}
           setError={setInputError}
           selectedToken={token}
-          customMaxAmount={usingDeposits ? depositedAmount: balance}
           disabled={inputDisabled}
           disableButton={usingDeposits}
           disableInput={inputDisabled}
@@ -234,7 +241,10 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
           <div className="pinto-sm sm:pinto-body-light sm:text-pinto-light text-pinto-light">Use {mainToken.symbol} deposits</div>
           <Switch
             checked={source === "deposits"}  
-            onCheckedChange={() => setSource((prev) => prev === "deposits" ? "balances" : "deposits")}
+            onCheckedChange={() => {
+              setAmountIn("0");
+              setSource((prev) => prev === "deposits" ? "balances" : "deposits");
+            }}
           >
             <SwitchThumb />
           </Switch>
@@ -320,7 +330,7 @@ const useFilterTokens = () => {
 
 const usePreviewDeposit = (amountInTV: TV, enabled: boolean = true) => {
   const siloToken = useChainConstant(S_MAIN_TOKEN);
-  return useReadContract({
+  const query = useReadContract({
     address: siloToken.address,
     abi: siloedPintoABI,
     functionName: "previewDeposit",
@@ -332,4 +342,11 @@ const usePreviewDeposit = (amountInTV: TV, enabled: boolean = true) => {
       },
     },
   });
+
+  return useMemo(() => {
+    return {
+      data: query.data, 
+      isLoading: query.isLoading,
+    }
+  }, [query.data, query.isLoading]);
 };

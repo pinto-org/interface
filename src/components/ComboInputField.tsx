@@ -126,6 +126,7 @@ function ComboInputField({
   const protocolTokenPrice = tokenPrices.tokenPrices.get(tokenData.mainToken)?.instant || TokenValue.ZERO;
 
 
+
   const pct = useMemo(() => {
     if (mode === "plots") return TokenValue.ONE;
     if (!farmerDepositedTokenBalance || !farmerDepositedTokenBalance.amount.gt(0)) {
@@ -185,6 +186,14 @@ function ComboInputField({
     return maxAmount;
   }, [mode, selectedPlots, tokenAndBalanceMap, selectedToken, maxAmount]);
 
+  // clamp the internal amount to the max amount
+  useEffect(() => {
+    if (internalAmount.gt(maxAmount) && !disableClamping) {
+      setInternalAmount(maxAmount);
+      setDisplayValue(maxAmount.toHuman());
+    }
+  }, [selectedToken, maxAmount, disableClamping]);
+
   useEffect(() => {
     if (!isUserInput) {
       setInternalAmount(amountAsTokenValue);
@@ -196,15 +205,7 @@ function ComboInputField({
     } else {
       setError?.(false);
     }
-  }, [amount, amountAsTokenValue, connectedAccount, maxAmount]);
-
-  // clamp the internal amount to the max amount
-  useEffect(() => {
-    if (internalAmount.gt(maxAmount) && !disableClamping) {
-      setInternalAmount(maxAmount);
-      setDisplayValue(maxAmount.toHuman());
-    }
-  }, [selectedToken, maxAmount, disableClamping]);
+  }, [amount, amountAsTokenValue, connectedAccount]);
 
   /**
    * If the amount is < customMinAmount, set the internal amount to customMinAmount
