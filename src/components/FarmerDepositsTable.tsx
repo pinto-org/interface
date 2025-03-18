@@ -90,7 +90,7 @@ export default function FarmerDepositsTable({
 
     return (
       <TableRow
-        className="bg-pinto-green-1 hover:bg-pinto-green-1/50 hover:opacity-50 hover:cursor-pointer text-pinto-green-4/70"
+        className={`bg-pinto-green-1 hover:bg-pinto-green-1/50 hover:opacity-50 hover:cursor-pointer text-pinto-green-4/70 ${showRow ? "pointer-events-auto" : "pointer-events-none"}`}
         data-action-target="claimable-rewards"
         ref={rewardsRef}
         initial={initialState}

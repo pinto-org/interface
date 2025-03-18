@@ -1,11 +1,9 @@
 import { Clipboard } from "@/classes/Clipboard";
 import { TV } from "@/classes/TokenValue";
-import { WETH_TOKEN } from "@/constants/tokens";
 import encoders from "@/encoders";
 import transferToken from "@/encoders/transferToken";
 import { beanstalkAddress, pipelineAddress } from "@/generated/contractHooks";
 import { extractABIDynamicArrayCopySlot } from "@/utils/bytes";
-import { resolveChainId } from "@/utils/chain";
 import { stringEq } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
 import { AdvancedPipeCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
@@ -16,6 +14,8 @@ import { Config as WagmiConfig } from "wagmi";
 import { AdvancedFarmWorkflow, AdvancedPipeWorkflow } from "../farm/workflow";
 import {
   ERC20SwapNode,
+  SiloWrappedTokenUnwrapNode,
+  SiloWrappedTokenWrapNode,
   WellRemoveSingleSidedSwapNode,
   WellSwapNode,
   WellSyncSwapNode,
@@ -46,6 +46,10 @@ export class SwapBuilder {
 
   get advancedPipe() {
     return [...this.#advPipe.getSteps()];
+  }
+
+  get pipelineAddress() {
+    return pipelineAddress[this.#context.chainId];
   }
 
   constructor(chainId: number, config: WagmiConfig, account: Address | undefined) {
@@ -169,44 +173,91 @@ export class SwapBuilder {
 
       // No need to update Farm modes until we offload pipeline.
       if (isERC20Node(node)) {
-        if (isWellNode(node)) {
-          this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
-          this.#advPipe.add(
-            node.buildStep(
-              { copySlot: this.#getPrevNodeCopySlot(i), recipient: pipelineAddress[this.#context.chainId] },
-              this.#advPipe.getClipboardContext(),
-            ),
-            { tag: node.thisTag },
-          );
-        } else if (isZeroXNode(node)) {
-          this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
-          this.#advPipe.add(node.buildStep(), {
-            tag: node.thisTag
-          });
-        } else if (isWellSyncNode(node)) {
-          this.#advPipe.add(
-            node.transferStep({ copySlot: this.#getPrevNodeCopySlot(i) }, this.#advPipe.getClipboardContext()),
-          );
-          this.#advPipe.add(node.buildStep({ recipient: pipelineAddress[this.#context.chainId] }), {
-            tag: node.thisTag
-          });
-        } else if (isWellRemoveSingleSidedNode(node)) {
-          const isFirst = this.#advPipe.length === 0;
-          if (!isFirst) {
-            throw new Error("Error building swap: WellRemoveSingleSidedSwapNode must be the first txn in a sequence.");
+        switch (true) {
+          /** Well Swap */
+          case isWellNode(node): {
+            this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
+            this.#advPipe.add(
+              node.buildStep(
+                { copySlot: this.#getPrevNodeCopySlot(i), recipient: this.pipelineAddress },
+                this.#advPipe.getClipboardContext(),
+              ),
+              { tag: node.thisTag },
+            );
+            break;
           }
-          this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
-          // just send to pipeline regardless of mode
-          this.#advPipe.add(node.buildStep({ recipient: pipelineAddress[this.#context.chainId] }), {
-            tag: node.thisTag
-          });
+          /** Matcha 0x Swap */
+          case isZeroXNode(node): {
+            this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
+            this.#advPipe.add(node.buildStep(), {
+              tag: node.thisTag
+            });
+            break;
+          }
+          /** Well Sync */
+          case isWellSyncNode(node): {
+            this.#advPipe.add(
+              node.transferStep({ copySlot: this.#getPrevNodeCopySlot(i) }, this.#advPipe.getClipboardContext()),
+            );
+            this.#advPipe.add(node.buildStep({ recipient: this.pipelineAddress }), {
+              tag: node.thisTag
+            });
+            break;
+          }
+          /** Well Remove Single Sided */
+          case isWellRemoveSingleSidedNode(node): {
+            const isFirst = this.#advPipe.length === 0;
+            if (!isFirst) {
+              throw new Error("Error building swap: WellRemoveSingleSidedSwapNode must be the first txn in a sequence.");
+            }
+            this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
+            // just send to pipeline regardless of mode
+            this.#advPipe.add(node.buildStep({ recipient: this.pipelineAddress }), {
+              tag: node.thisTag
+            });
 
-          // throw error here for now since we haven't sufficiently tested withdrawing as any arbitrary token yet.
-          if (this.#nodes.length - 1 !== i) {
-            throw new Error("Remove liquidity must be last in swap sequence.");
+            // throw error here for now since we haven't sufficiently tested withdrawing as any arbitrary token yet.
+            if (this.#nodes.length - 1 !== i) {
+              throw new Error("Remove liquidity must be last in swap sequence.");
+            }
+            break;
           }
-        } else {
-          throw new Error("Error building swap: Unknown SwapNode type.");
+          /** Silo Wrapped Wrap */
+          case isSiloWrappedWrapNode(node): {
+            this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
+            this.#advPipe.add(
+              node.buildStep(
+                {
+                  recipient: this.pipelineAddress,
+                  copySlot: this.#getPrevNodeCopySlot(i)
+                },
+                this.#advPipe.getClipboardContext()
+              ),
+              { tag: node.thisTag }
+            );
+            break;
+          }
+          /** Silo Wrapped Unwrap */
+          case isSiloWrappedUnwrapNode(node): {
+            this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
+
+            this.#advPipe.add(
+              node.buildStep(
+                {
+                  recipient: this.pipelineAddress,
+                  owner: this.pipelineAddress,
+                  copySlot: this.#getPrevNodeCopySlot(i)
+                },
+                this.#advPipe.getClipboardContext()
+              ),
+              { tag: node.thisTag }
+            );
+            break;
+          }
+          /** No matching cases. Throw */
+          default: {
+            throw new Error("Error building swap: Unknown SwapNode type.");
+          }
         }
       }
 
@@ -478,3 +529,9 @@ const isWellSyncNode = (node: SwapNode): node is WellSyncSwapNode => {
 const isWellRemoveSingleSidedNode = (node: SwapNode): node is WellRemoveSingleSidedSwapNode => {
   return node instanceof WellRemoveSingleSidedSwapNode;
 };
+const isSiloWrappedWrapNode = (node: SwapNode): node is SiloWrappedTokenWrapNode => {
+  return node instanceof SiloWrappedTokenWrapNode;
+}
+const isSiloWrappedUnwrapNode = (node: SwapNode): node is SiloWrappedTokenUnwrapNode => {
+  return node instanceof SiloWrappedTokenUnwrapNode;
+}
