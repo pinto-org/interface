@@ -337,18 +337,23 @@ const getDetailsWithExchange = (exchange: SwapSummaryExchange, noBase = false) =
   let logo = "";
   let text = "";
 
-  if (exchange === "pinto-exchange") {
-    logo = pintoExchangeLogo;
-    text = "Pinto-Exchange";
-  } else if (exchange === "0x") {
-    logo = swap0xlogo;
-    text = "0x-Swap";
-  } else if (exchange === "base" && !noBase) {
-    logo = baseLogo;
-    text = "Base";
-  } else if (exchange === "sPinto") {
-    logo = sPINTOLogo;
-    text = "sPINTO";
+  switch (exchange) {
+    case "pinto-exchange":
+      logo = pintoExchangeLogo;
+      text = "Pinto-Exchange";
+      break;
+    case "0x":
+      logo = swap0xlogo;
+      text = "0x-Swap";
+      break;
+    case "sPinto":
+      logo = sPINTOLogo;
+      text = "sPINTO";
+      break;
+    case "base":
+      logo = baseLogo;
+      text = "Base";
+      break;
   }
 
   return { logo, text };
