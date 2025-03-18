@@ -8,7 +8,7 @@ import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import TextSkeleton from "@/components/TextSkeleton";
-import TokenSelectBase from "@/components/TokenSelectBase";
+import TokenSelectWithBalances from "@/components/TokenSelectWithBalances";
 import { Label } from "@/components/ui/Label";
 import { Switch, SwitchThumb } from "@/components/ui/Switch";
 import { siloedPintoABI } from "@/constants/abi/siloedPintoABI";
@@ -47,6 +47,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   const qc = useQueryClient();
   const filterTokens = useFilterOutTokens(siloToken);
   const tokenOptions = useUnwrapTokenOptions();
+  const destinationTokenFilter = useFilterDestinationTokens();
 
   const farmerBalance = farmerBalances.balances.get(siloToken);
 
@@ -226,7 +227,12 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
                       <div className="pinto-h3">{formatter.token(swap.data?.buyAmount, tokenOut)}</div>
                     </TextSkeleton>
                   </div>
-                  <TokenSelectBase tokens={tokenOptions} selected={tokenOut} selectToken={setTokenOut} />
+                  <TokenSelectWithBalances
+                    selectedToken={tokenOut}
+                    setToken={setTokenOut}
+                    noBalances={true}
+                    filterTokens={destinationTokenFilter}
+                  />
                 </div>
                 <TextSkeleton height="sm" className="w-20" loading={swap.isLoading}>
                   <div className="pinto-sm-light text-pinto-light">{formatter.usd(swap.data?.usdOut)}</div>
@@ -296,6 +302,19 @@ const useUnwrapTokenOptions = () => {
     const filtered = tokens.filter((t) => !t.isSiloWrapped && !t.isLP && !t.is3PSiloWrapped);
 
     setTokens(filtered);
+  }, [tokenMap]);
+
+  return tokens;
+}
+
+const useFilterDestinationTokens = () => {
+  const tokenMap = useTokenMap();
+  const [tokens, setTokens] = useState<Set<Token>>(new Set());
+
+  useEffect(() => {
+    const tokens = Object.values(tokenMap);
+    const filtered = tokens.filter((t) => t.isSiloWrapped || t.isLP || t.is3PSiloWrapped);
+    setTokens(new Set(filtered));
   }, [tokenMap]);
 
   return tokens;
