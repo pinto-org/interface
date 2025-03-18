@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/Label";
 import { Switch, SwitchThumb } from "@/components/ui/Switch";
 import { siloedPintoABI } from "@/constants/abi/siloedPintoABI";
 import { abiSnippets } from "@/constants/abiSnippets";
+import { defaultQuerySettingsQuote } from "@/constants/query";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useBuildSwapQuoteAsync } from "@/hooks/swap/useBuildSwapQuote";
@@ -25,7 +26,7 @@ import useTokenData from "@/state/useTokenData";
 import { pickCratesAsCrates, sortCratesByStem } from "@/utils/convert";
 import { tryExtractErrorMessage } from "@/utils/error";
 import { formatter } from "@/utils/format";
-import { isValidAddress, stringToStringNum } from "@/utils/string";
+import { isValidAddress, stringToNumber, stringToStringNum } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { getBalanceFromMode, noop } from "@/utils/utils";
@@ -46,7 +47,6 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   const diamond = useProtocolAddress();
   const qc = useQueryClient();
   const filterTokens = useFilterOutTokens(siloToken);
-  const tokenOptions = useUnwrapTokenOptions();
   const destinationTokenFilter = useFilterDestinationTokens();
 
   const farmerBalance = farmerBalances.balances.get(siloToken);
@@ -61,7 +61,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   const [toSilo, setToSilo] = useState<boolean>(true);
   const [didInitBalanceSource, setDidInitBalanceSource] = useState(!!farmerBalances.isFetched);
   const [inputError, setInputError] = useState<boolean>(false);
-  const [tokenOut, setTokenOut] = useState<Token>(mainToken);
+  const [tokenOut, setTokenOut] = useState<Token | undefined>(undefined);
   const [toMode, setToMode] = useState<FarmToMode>(FarmToMode.INTERNAL);
 
   // Derived
@@ -78,7 +78,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
     tokenOut,
     slippage,
     amountIn: amountTV,
-    disabled: toSilo, // disable quote if we are unwrapping to silo deposit
+    disabled: toSilo || !tokenOut, // disable quote if we are unwrapping to silo deposit
   });
   const swapSummary = useSwapSummary(swap.data);
   const buildSwapQuote = useBuildSwapQuoteAsync(swap.data, balanceSource, toMode, account, account);
@@ -202,14 +202,22 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
           </div>
           <Switch
             checked={toSilo}
-            onCheckedChange={() => setToSilo((prev) => !prev)}
+            onCheckedChange={() => {
+              setTokenOut(undefined)
+              setToSilo((prev) => !prev)
+            }}
           >
             <SwitchThumb />
           </Switch>
         </div>
       </div>
-      {toSilo && output?.amount.gt(0) && validAmountIn ? (
-        <SiloOutputDisplay token={mainToken} amount={output.amount} stalk={output.stalk.total} seeds={output.seeds} />
+      {toSilo && validAmountIn ? (
+        <SiloOutputDisplay
+          token={mainToken}
+          amount={output?.amount ?? TV.ZERO}
+          stalk={output?.stalk.total ?? TV.ZERO}
+          seeds={output?.seeds ?? TV.ZERO}
+        />
       ) : null}
       {!toSilo ? (
         <div>
@@ -224,7 +232,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
                 <div className="flex flex-row items-center justify-between w-full">
                   <div className="flex flex-col gap-1">
                     <TextSkeleton height="h3" loading={swap.isLoading} className="w-20">
-                      <div className="pinto-h3">{formatter.token(swap.data?.buyAmount, tokenOut)}</div>
+                      <div className="pinto-h3">{formatter.token(swap.data?.buyAmount, tokenOut ?? mainToken)}</div>
                     </TextSkeleton>
                   </div>
                   <TokenSelectWithBalances
@@ -244,7 +252,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
             <div className="flex flex-row items-center justify-center h-[5.5rem]">
               <FrameAnimator size={64} />
             </div>
-          ) : swap.data ? (
+          ) : swap.data && tokenOut ? (
             <RoutingAndSlippageInfo
               title="Total Unwrap Slippage"
               swapSummary={swapSummary}
@@ -293,20 +301,6 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
 
 // ================================ HOOKS ================================
 
-const useUnwrapTokenOptions = () => {
-  const tokenMap = useTokenMap();
-  const [tokens, setTokens] = useState<Token[]>([]);
-
-  useEffect(() => {
-    const tokens = Object.values(tokenMap);
-    const filtered = tokens.filter((t) => !t.isSiloWrapped && !t.isLP && !t.is3PSiloWrapped);
-
-    setTokens(filtered);
-  }, [tokenMap]);
-
-  return tokens;
-}
-
 const useFilterDestinationTokens = () => {
   const tokenMap = useTokenMap();
   const [tokens, setTokens] = useState<Set<Token>>(new Set());
@@ -321,19 +315,40 @@ const useFilterDestinationTokens = () => {
 }
 
 function useUnwrapTokenQuoteQuery(amount: TV, tokenIn: Token, tokenOut: Token, disabled: boolean = false) {
-  return useReadContract({
+  const [quote, setQuote] = useState<TV | undefined>(undefined);
+
+  const query = useReadContract({
     address: tokenIn.address,
     abi: siloedPintoABI,
     functionName: "previewRedeem",
     args: [amount.toBigInt()],
     query: {
+      ...defaultQuerySettingsQuote,
       enabled: amount.gt(0) && !disabled,
-      select: (data: bigint) => {
-        const res = TV.fromBigInt(data, tokenOut.decimals);
-        return res;
-      },
     },
   });
+
+  const amountStr = amount.toHuman();
+
+  // Use UseEffect here to update quote return data to enable caching of previous quotes.
+  // This is necessary to prevent flickering of quote return values when the query is loading.
+
+  // Effects. 
+  useEffect(() => {
+    if (!query.data) return;
+    setQuote(TV.fromBigInt(query.data, tokenOut.decimals));
+  }, [query.data, tokenOut.decimals]);
+
+  useEffect(() => {
+    if (stringToNumber(amountStr) <= 0 || query.isError) {
+      setQuote(undefined);
+    }
+  }, [amountStr, query.isError]);
+
+  return {
+    ...query,
+    data: quote,
+  }
 }
 
 function useUnwrapQuoteOutputSummary(

@@ -123,7 +123,12 @@ export default function TokenSelectWithBalances({
               <div className="hidden sm:block pinto-body-light">{tokenNameOverride ?? selectedToken.symbol}</div>
               {!disabled && <img src={arrowDown} className="w-4 h-4" alt={"open token select dialog"} />}
             </>
-          ) : "Set Token"}
+          ) : (
+            <>
+              <div className="pinto-body-light">{"Select Token"}</div>
+              {!disabled && <img src={arrowDown} className="w-4 h-4" alt={"open token select dialog"} />}
+            </>
+          )}
         </Button>
       </DialogTrigger>
       <DialogContent className="font-pinto overflow-x-clip">
