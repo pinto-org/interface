@@ -1,7 +1,9 @@
 import { TV } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
+import FrameAnimator from "@/components/LoadingSpinner";
 import MobileActionBar from "@/components/MobileActionBar";
+import RoutingAndSlippageInfo from "@/components/RoutingAndSlippageInfo";
 import SlippageButton from "@/components/SlippageButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import TextSkeleton from "@/components/TextSkeleton";
@@ -16,6 +18,7 @@ import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useBuildSwapQuoteAsync } from "@/hooks/swap/useBuildSwapQuote";
 import useSwap from "@/hooks/swap/useSwap";
+import useSwapSummary from "@/hooks/swap/useSwapSummary";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useFarmerDepositAllowance from "@/state/useFarmerDepositAllowance";
@@ -28,7 +31,7 @@ import { formatter } from "@/utils/format";
 import { isValidAddress, stringToStringNum } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types"
-import { getBalanceFromMode } from "@/utils/utils";
+import { exists, getBalanceFromMode } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -53,20 +56,25 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
   const [amountIn, setAmountIn] = useState<string>("0");
   const [inputError, setInputError] = useState<boolean>(false);
   const [balanceFrom, setBalanceFrom] = useState<FarmFromMode>(FarmFromMode.INTERNAL_EXTERNAL);
-  const [mode, setMode] = useState<FarmToMode>(FarmToMode.EXTERNAL);
+  const [mode, setMode] = useState<FarmToMode | undefined>(undefined);
   const [token, setToken] = useState<Token>(mainToken);
   const [source, setSource] = useState<AssetOrigin>(depositedAmount ? "deposits" : "balances");
   const [didInitSource, setDidInitSource] = useState(depositedAmount !== undefined);
 
   const filterTokens = useFilterTokens();
+
+  // derived state
   const tokenIsSiloWrappedToken = tokensEqual(siloToken, sMainToken);
-
-
   const farmerTokenBalance = farmerBalances.balances.get(token);
   const balance = getBalanceFromMode(farmerTokenBalance, balanceFrom);
-
   const usingDeposits = source === "deposits";
+  const amountInTV = TV.fromHuman(amountIn, mainToken.decimals);
 
+  const amountExceedsDeposits = usingDeposits && amountInTV.gt(0) && amountInTV.gt(depositedAmount ?? 0n);
+  const amountExceedsBalance = !usingDeposits && amountInTV.gt(0) && amountInTV.gt(balance ?? 0n);
+  const exceedsBalance = usingDeposits ? amountExceedsBalance : amountExceedsDeposits;
+
+  // Allowance. If wrapping deposits, we need to approve usage of silo deposits.
   const {
     allowance,
     setAllowance,
@@ -75,10 +83,9 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     confirming: allowanceConfirming
   } = useFarmerDepositAllowance(Boolean(usingDeposits && tokenIsSiloWrappedToken));
 
-  const amountInTV = TV.fromHuman(amountIn, mainToken.decimals);
-
   const needsDepositAllowanceIncrease = usingDeposits && !allowanceLoading && amountInTV.gt(allowance ?? 0n);
 
+  // Swap / Quote
   const swap = useSwap({
     tokenIn: token,
     tokenOut: siloToken,
@@ -86,11 +93,14 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     amountIn: TV.fromHuman(stringToStringNum(amountIn), token.decimals),
     disabled: usingDeposits
   });
-
+  const swapSummary = useSwapSummary(swap.data);
   const buildSwap = useBuildSwapQuoteAsync(swap.data, balanceFrom, mode, account, account);
-
   const quote = usePreviewDeposit(amountInTV, usingDeposits);
 
+  const amountOut = usingDeposits ? quote.data : swap.data?.buyAmount;
+  const amountOutUSD = useSiloWrappedTokenToUSD(amountOut);
+
+  // Transaction hooks
   const onSuccess = () => {
     setAmountIn("0");
     swap.resetSwap();
@@ -109,27 +119,26 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     successCallback: onSuccess,
   });
 
+  // Callbacks
   const handleWrap = useCallback(async () => {
     try {
       if (!isValidAddress(account)) {
         throw new Error("Signer required");
       }
-
       if (source === "deposits") {
         const amount = TV.fromHuman(amountIn, mainToken.decimals);
         if (!deposits || !deposits.deposits.length) {
           throw new Error("No deposits found");
         }
+        if (exceedsBalance) {
+          throw new Error("Insufficient deposits")
+        }
         if (amount.lte(0)) {
           throw new Error("Invalid amount");
         }
-
         setSubmitting(true);
-
         const picked = sortAndPickCrates("wrap", amount, deposits.deposits);
-
         const extracted = extractStemsAndAmountsFromCrates(picked.crates);
-
         toast.loading("Wrapping...");
 
         return writeWithEstimateGas({
@@ -143,14 +152,12 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
       if (!swap.data || !buildSwap) {
         throw new Error("Invalid swap quote");
       }
-      if (inputError) {
-        throw new Error("Insufficient funds");
+      if (exceedsBalance) {
+        throw new Error("Insufficient funds")
       }
 
       setSubmitting(true);
-
       const swapBuild = await buildSwap();
-
       if (!swapBuild) {
         throw new Error("Failed to build swap");
       }
@@ -172,7 +179,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     } finally {
       setSubmitting(false);
     }
-  }, [amountIn, siloToken.decimals, deposits, mode, account]);
+  }, [amountIn, siloToken.decimals, deposits, mode, account, swap.data, buildSwap, inputError]);
 
   const handleButtonSubmit = useCallback(async () => {
     if (needsDepositAllowanceIncrease) {
@@ -182,9 +189,8 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     return handleWrap();
   }, [amountInTV, needsDepositAllowanceIncrease, setAllowance, handleWrap]);
 
-  const amountOut = usingDeposits ? quote.data : swap.data?.buyAmount;
-  const amountOutUSD = useSiloWrappedTokenToUSD(amountOut);
 
+  // Effects
   useEffect(() => {
     if (didInitSource || !farmerTokenBalance || !deposits || isConnecting) {
       return;
@@ -202,24 +208,16 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     return null;
   }
 
+  // Derived booleans
   const confirming = allowanceConfirming || isConfirming || submitting;
-
   const isValidAmount = amountInTV.gt(0);
-
   const inputDisabled = usingDeposits ? !deposits?.amount : !balance;
-
-  const amountExceedsDeposits = usingDeposits && amountInTV.gt(0) && amountInTV.gt(depositedAmount ?? 0n);
-  const amountExceedsBalance = !usingDeposits && amountInTV.gt(0) && amountInTV.gt(balance ?? 0n);
-
   const quoting = usingDeposits ? quote.isLoading : swap.isLoading;
-
-  const exceedsBalance = usingDeposits ? amountExceedsBalance : amountExceedsDeposits;
+  const disabledFromLoading = confirming || quoting || submitting || isConfirming;
+  const toModeSelected = exists(mode);
+  const buttonDisabled = !account || inputDisabled || !isValidAmount || exceedsBalance || inputError || disabledFromLoading || !toModeSelected;
 
   const buttonText = exceedsBalance ? "Insufficient funds" : needsDepositAllowanceIncrease ? "Approve" : "Wrap";
-
-  const disabledFromLoading = confirming || quoting || submitting || isConfirming;
-
-  const buttonDisabled = !account || inputDisabled || !isValidAmount || exceedsBalance || inputError || disabledFromLoading;
 
   return (
     <div className="flex flex-col gap-6">
@@ -289,6 +287,29 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
         </div>
         <DestinationBalanceSelect setBalanceTo={setMode} balanceTo={mode} />
       </div>
+      {isValidAmount && !usingDeposits ? (
+        <>
+          {swap.isLoading ? (
+            <div className="flex flex-row items-center justify-center h-[4.5rem]">
+              <FrameAnimator size={64} />
+            </div>
+          )
+            : swapSummary && swap.data ? (
+              <div>
+                <RoutingAndSlippageInfo
+                  title="Total Wrap Slippage"
+                  swapSummary={swapSummary}
+                  priceImpactSummary={undefined}
+                  preferredSummary="swap"
+                  tokenIn={token}
+                  tokenOut={siloToken}
+                  txnType="Swap"
+                  noMarginTopOnTrigger={true}
+                />
+              </div>
+            ) : null}
+        </>
+      ) : null}
       <Warning variant="info">
         <div className="pinto-sm-light text-pinto-light">
           Unwrapping sPinto in the future will result in receiving Stalk and Seed associated with the{" "}

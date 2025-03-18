@@ -7,6 +7,7 @@ import { Address } from "viem";
 import { useAccount, useChainId, useConfig } from "wagmi";
 import { SWAP_QUERY_KEY_PREDICATE } from "./useSwap";
 import { defaultQuerySettingsQuote } from "@/constants/query";
+import { exists } from "@/utils/utils";
 
 export default function useBuildSwapQuote(
   quote: BeanSwapNodeQuote | undefined,
@@ -70,7 +71,7 @@ export default function useBuildSwapQuote(
 export function useBuildSwapQuoteAsync(
   quote: BeanSwapNodeQuote | undefined,
   fromMode: FarmFromMode,
-  toMode: FarmToMode,
+  toMode?: FarmToMode,
   caller?: Address,
   recipient?: Address,
 ) {
@@ -82,7 +83,7 @@ export function useBuildSwapQuoteAsync(
   const swapRecipient = recipient ?? account.address;
 
   const build = useCallback(async () => {
-    if (!quote || !swapCaller || !swapRecipient || !account.address) {
+    if (!quote || !swapCaller || !swapRecipient || !account.address || !exists(toMode)) {
       return undefined;
     }
 

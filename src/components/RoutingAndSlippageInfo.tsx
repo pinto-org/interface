@@ -33,6 +33,7 @@ interface RoutingAndSlippageInfoContext {
   priceImpactSummary?: PriceImpactSummary;
   secondaryPriceImpactSummary?: PriceImpactSummary;
   wellToken?: Token;
+  noMarginTopOnTrigger?: boolean;
 }
 
 interface RoutingAndSlippageInfoProps extends RoutingAndSlippageInfoContext {
@@ -64,6 +65,7 @@ const RoutingAndSlippageInfo = (props: RoutingAndSlippageInfoProps) => {
             txnType: props.txnType,
             wellToken: props.wellToken,
             convertSummary: props.convertSummary,
+            noMarginTopOnTrigger: props.noMarginTopOnTrigger,
           }}
         >
           <DialogTrigger
@@ -105,10 +107,13 @@ export default RoutingAndSlippageInfo;
 // -------------------------------------------------------------------------------
 
 const FormRouterAndSlippage = () => {
-  const { preferredSummary, txnType } = useRoutingAndSlippageInfoContext();
+  const { preferredSummary, txnType, noMarginTopOnTrigger } = useRoutingAndSlippageInfoContext();
 
   return (
-    <div className="flex flex-col bg-pinto-gray-1 border border-pinto-gray-2 rounded-md p-3 gap-y-3 mt-4 hover:bg-pinto-green-1 hover:border-pinto-green-4 cursor-pointer">
+    <div className={cn(
+      "flex flex-col bg-pinto-gray-1 border border-pinto-gray-2 rounded-md p-3 gap-y-3 mt-4 hover:bg-pinto-green-1 hover:border-pinto-green-4 cursor-pointer",
+      noMarginTopOnTrigger && "mt-0"
+    )}>
       {preferredSummary === "swap" ? <RoutesFormContent /> : null}
       {preferredSummary === "priceImpact" ? (
         txnType === "Convert" ? (
