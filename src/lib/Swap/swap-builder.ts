@@ -173,70 +173,91 @@ export class SwapBuilder {
 
       // No need to update Farm modes until we offload pipeline.
       if (isERC20Node(node)) {
-        if (isWellNode(node)) {
-          this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
-          this.#advPipe.add(
-            node.buildStep(
-              { copySlot: this.#getPrevNodeCopySlot(i), recipient: this.pipelineAddress },
-              this.#advPipe.getClipboardContext(),
-            ),
-            { tag: node.thisTag },
-          );
-        } else if (isZeroXNode(node)) {
-          this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
-          this.#advPipe.add(node.buildStep(), {
-            tag: node.thisTag
-          });
-        } else if (isWellSyncNode(node)) {
-          this.#advPipe.add(
-            node.transferStep({ copySlot: this.#getPrevNodeCopySlot(i) }, this.#advPipe.getClipboardContext()),
-          );
-          this.#advPipe.add(node.buildStep({ recipient: this.pipelineAddress }), {
-            tag: node.thisTag
-          });
-        } else if (isWellRemoveSingleSidedNode(node)) {
-          const isFirst = this.#advPipe.length === 0;
-          if (!isFirst) {
-            throw new Error("Error building swap: WellRemoveSingleSidedSwapNode must be the first txn in a sequence.");
+        switch (true) {
+          /** Well Swap */
+          case isWellNode(node): {
+            this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
+            this.#advPipe.add(
+              node.buildStep(
+                { copySlot: this.#getPrevNodeCopySlot(i), recipient: this.pipelineAddress },
+                this.#advPipe.getClipboardContext(),
+              ),
+              { tag: node.thisTag },
+            );
+            break;
           }
-          this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
-          // just send to pipeline regardless of mode
-          this.#advPipe.add(node.buildStep({ recipient: this.pipelineAddress }), {
-            tag: node.thisTag
-          });
-
-          // throw error here for now since we haven't sufficiently tested withdrawing as any arbitrary token yet.
-          if (this.#nodes.length - 1 !== i) {
-            throw new Error("Remove liquidity must be last in swap sequence.");
+          /** Matcha 0x Swap */
+          case isZeroXNode(node): {
+            this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
+            this.#advPipe.add(node.buildStep(), {
+              tag: node.thisTag
+            });
+            break;
           }
-        } else if (isSiloWrappedWrapNode(node)) {
-          this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
-          this.#advPipe.add(
-            node.buildStep(
-              {
-                recipient: this.pipelineAddress,
-                copySlot: this.#getPrevNodeCopySlot(i)
-              },
-              this.#advPipe.getClipboardContext()
-            ),
-            { tag: node.thisTag }
-          );
-        } else if (isSiloWrappedUnwrapNode(node)) {
-          this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
+          /** Well Sync */
+          case isWellSyncNode(node): {
+            this.#advPipe.add(
+              node.transferStep({ copySlot: this.#getPrevNodeCopySlot(i) }, this.#advPipe.getClipboardContext()),
+            );
+            this.#advPipe.add(node.buildStep({ recipient: this.pipelineAddress }), {
+              tag: node.thisTag
+            });
+            break;
+          }
+          /** Well Remove Single Sided */
+          case isWellRemoveSingleSidedNode(node): {
+            const isFirst = this.#advPipe.length === 0;
+            if (!isFirst) {
+              throw new Error("Error building swap: WellRemoveSingleSidedSwapNode must be the first txn in a sequence.");
+            }
+            this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
+            // just send to pipeline regardless of mode
+            this.#advPipe.add(node.buildStep({ recipient: this.pipelineAddress }), {
+              tag: node.thisTag
+            });
 
-          this.#advPipe.add(
-            node.buildStep(
-              {
-                recipient: this.pipelineAddress,
-                owner: this.pipelineAddress,
-                copySlot: this.#getPrevNodeCopySlot(i)
-              },
-              this.#advPipe.getClipboardContext()
-            ),
-            { tag: node.thisTag }
-          );
-        } else {
-          throw new Error("Error building swap: Unknown SwapNode type.");
+            // throw error here for now since we haven't sufficiently tested withdrawing as any arbitrary token yet.
+            if (this.#nodes.length - 1 !== i) {
+              throw new Error("Remove liquidity must be last in swap sequence.");
+            }
+            break;
+          }
+          /** Silo Wrapped Wrap */
+          case isSiloWrappedWrapNode(node): {
+            this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
+            this.#advPipe.add(
+              node.buildStep(
+                {
+                  recipient: this.pipelineAddress,
+                  copySlot: this.#getPrevNodeCopySlot(i)
+                },
+                this.#advPipe.getClipboardContext()
+              ),
+              { tag: node.thisTag }
+            );
+            break;
+          }
+          /** Silo Wrapped Unwrap */
+          case isSiloWrappedUnwrapNode(node): {
+            this.#advPipe.add(this.#getApproveERC20MaxAllowance(node));
+
+            this.#advPipe.add(
+              node.buildStep(
+                {
+                  recipient: this.pipelineAddress,
+                  owner: this.pipelineAddress,
+                  copySlot: this.#getPrevNodeCopySlot(i)
+                },
+                this.#advPipe.getClipboardContext()
+              ),
+              { tag: node.thisTag }
+            );
+            break;
+          }
+          /** No matching cases. Throw */
+          default: {
+            throw new Error("Error building swap: Unknown SwapNode type.");
+          }
         }
       }
 
