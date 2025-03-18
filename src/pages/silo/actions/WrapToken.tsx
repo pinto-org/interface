@@ -59,7 +59,9 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
   const [mode, setMode] = useState<FarmToMode | undefined>(undefined);
   const [token, setToken] = useState<Token>(mainToken);
   const [source, setSource] = useState<AssetOrigin>(depositedAmount ? "deposits" : "balances");
-  const [didInitSource, setDidInitSource] = useState(depositedAmount !== undefined);
+  const [didInitSource, setDidInitSource] = useState(
+    isConnecting ? false : depositedAmount !== undefined
+  );
 
   const filterTokens = useFilterTokens();
 
