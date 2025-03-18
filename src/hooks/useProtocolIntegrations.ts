@@ -21,13 +21,13 @@ const baseIntegrations: Record<string, ProtocolIntegrationSummary> = {
     logoURI: creamFinanceLogo,
     ctaMessage: (token: Token) => `Borrow against ${token.symbol} on CREAM Finance`
   },
-  // SPECTRA: {
-  //   protocol: "SPECTRA",
-  //   name: "Spectra",
-  //   url: "https://app.spectra.finance/pools",
-  //   logoURI: spectraLogo,
-  //   ctaMessage: (token: Token) => `Get Fixed rates or trade yield with ${token.symbol} on Spectra`
-  // }
+  SPECTRA: {
+    protocol: "SPECTRA",
+    name: "Spectra",
+    url: "https://app.spectra.finance/pools",
+    logoURI: spectraLogo,
+    ctaMessage: (token: Token) => `Get Fixed rates or trade yield with ${token.symbol} on Spectra`
+  }
 } as const;
 
 const integrationURLs: ChainLookup<Record<string, ProtocolIntegrationSummary>> = {
