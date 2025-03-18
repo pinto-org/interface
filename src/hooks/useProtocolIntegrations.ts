@@ -24,7 +24,7 @@ const baseIntegrations: Record<string, ProtocolIntegrationSummary> = {
   SPECTRA: {
     protocol: "SPECTRA",
     name: "Spectra",
-    url: "https://app.spectra.finance/pools",
+    url: "https://app.spectra.finance/pools/base:0xd8e4662ffd6b202cf85e3783fb7252ff0a423a72",
     logoURI: spectraLogo,
     ctaMessage: (token: Token) => `Get Fixed rates or trade yield with ${token.symbol} on Spectra`
   }
