@@ -120,8 +120,8 @@ export default function useSeasonsData(
       fromSeason,
       toSeason,
       queryVars: {},
-      historicalQueryFnFactory: stalkQueryFnFactory,
-      currentQueryFnFactory: stalkQueryFnFactory,
+      historicalQueryFnFactory: stalkQueryFnFactory as any, // TODO: better type support
+      currentQueryFnFactory: stalkQueryFnFactory as any, // TODO: better type support
       resultTimestamp: (entry) => {
         return new Date(Number(entry.timestamp) * 1000);
       },
