@@ -21,7 +21,7 @@ export type SeasonalQueryConfig<T> = {
   currentQueryFnFactory: QueryFnFactory<T>;
   resultTimestamp: ResultTimestampFn<T>;
   convertResult: ConvertEntryFn<T>;
-  orderBy: 'asc' | 'desc';
+  orderBy?: 'asc' | 'desc';
 };
 
 export type QueryFnFactory<T> = (vars: SeasonalQueryVars) => () => Promise<T[]>;
