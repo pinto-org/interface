@@ -255,7 +255,7 @@ const IntegrationLinks = ({ token }: { token: Token }) => {
   if (!integrations) return null;
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
       {Object.entries(integrations).map(([name, integration]) => {
         return (
           <div
@@ -276,7 +276,7 @@ const IntegrationLinks = ({ token }: { token: Token }) => {
           </div>
         );
       })}
-    </>
+    </div>
   );
 };
 
