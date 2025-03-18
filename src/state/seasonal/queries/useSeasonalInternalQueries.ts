@@ -24,7 +24,7 @@ export type SeasonalQueryConfig<T> = {
   orderBy?: 'asc' | 'desc';
 };
 
-export type QueryFnFactory<T> = (vars: SeasonalQueryVars) => () => Promise<T[]>;
+export type QueryFnFactory<T> = (vars: SeasonalQueryVars) => () => Promise<T[] | {[key: string]: T[]}>;
 export type ResultTimestampFn<T> = (d: T) => Date;
 export type ConvertEntryFn<T> = (d: T, timestamp: Date) => SeasonalChartData;
 
