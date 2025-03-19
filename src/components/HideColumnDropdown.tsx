@@ -1,6 +1,5 @@
 
 import eyeballCrossed from "@/assets/misc/eyeball-crossed.svg";
-import chevronDown from "@/assets/misc/ChevronDown.svg";
 import IconImage from "@/components/ui/IconImage";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/Dropdown";
 import { Button } from "@/components/ui/Button";

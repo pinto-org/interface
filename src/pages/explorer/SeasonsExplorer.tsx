@@ -3,10 +3,7 @@ import FrameAnimator from "@/components/LoadingSpinner";
 import { SeasonsTable } from "@/components/tables/SeasonsTable";
 import { HideColumnDropdown } from "@/components/HideColumnDropdown";
 import { useEffect, useState } from "react";
-import leftArrowIcon from "@/assets/misc/LeftArrow.svg";
-import IconImage from "@/components/ui/IconImage";
 import { Button } from "@/components/ui/Button";
-import closeIcon from "@/assets/misc/closeIcon.svg";
 import { useSunData } from "@/state/useSunData";
 import { ArrowLeftIcon } from "@radix-ui/react-icons"
 import ReactDOM from "react-dom";
@@ -54,7 +51,6 @@ const SeasonsExplorer = () => {
   const [displayPage, setDisplayPage] = useState<number | string>('1');
   const [page, setPage] = useState(1);
   const [jumpToSeason, setJumpToSeason] = useState(0);
-  const [sortedColumn, setSortedColumn] = useState<SortColumn>({ column: '', dir: 'asc' });
   const [seasons, setSeasons] = useState<any>([]);
   const [fromSeason, setFromSeason] = useState(currentSeason);
 
@@ -172,24 +168,12 @@ const SeasonsExplorer = () => {
           toggleColumn={toggleColumn}
           resetAllHiddenColumns={resetAllHiddenColumns}
         />
-        {sortedColumn.column &&
-          (<div
-            className="flex flex-row gap-x-1 text-pinto-green-4 items-center rounded-full border border-pinto-green-4 bg-pinto-green-1 text-base h-6 px-2 cursor-pointer"
-            onClick={() => setSortedColumn({ column: '', dir: 'desc' })}>
-            <IconImage className={`cursor-pointer ${sortedColumn.dir === 'asc' ? 'rotate-90' : '-rotate-90'}`} src={leftArrowIcon} size={4} />
-            <span>Sort By {seasonColumns.find(column => column.id === sortedColumn.column)?.name}</span>
-            <IconImage src={closeIcon} size={2} />
-          </div>)
-        }
       </div>
       {isLoading ? <FrameAnimator className="flex self-center" size={250} /> :
         <SeasonsTable
           seasonsData={seasons}
           hiddenFields={hiddenFields}
           hideColumn={hideColumn}
-          toggleColumn={toggleColumn}
-          sortedColumn={sortedColumn}
-          setSortedColumn={setSortedColumn}
         />
       }
       {displayPagination}
