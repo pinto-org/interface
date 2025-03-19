@@ -125,15 +125,15 @@ const SeasonsExplorer = () => {
     setJumpToSeason(season);
   }
 
+  const handleJumpToSeason = (e: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLInputElement>) => {
+    const seasonToJumpTo = calculateSeasonPageToJump(jumpToSeason)
+    setPage(seasonToJumpTo);
+    setDisplayPage(seasonToJumpTo);
+  }
+
   const onJumpToSeasonKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      const seasonConvertedToNumber = Number(e.currentTarget.value)
-      if (!seasonConvertedToNumber) {
-        return;
-      }
-      const seasonToJumpTo = calculateSeasonPageToJump(seasonConvertedToNumber)
-      setPage(seasonToJumpTo);
-      setDisplayPage(seasonToJumpTo);
+      handleJumpToSeason(e);
     }
   }
 
@@ -151,7 +151,7 @@ const SeasonsExplorer = () => {
       {!isMobile && (<>
         <span>Jump to Season</span>
         <input className="border border-pinto-gray-4 w-14 px-[4px] text-center rounded-[4px]" type="text" onKeyDown={onJumpToSeasonKeyDown} value={jumpToSeason} onChange={onJumpToSeasonChange} />
-        <Button variant="pagination" size="xs" onClick={() => setPage(calculateSeasonPageToJump(Number(jumpToSeason)))} disabled={seasonsData.isFetching}>
+        <Button variant="pagination" size="xs" onClick={handleJumpToSeason} disabled={seasonsData.isFetching}>
           <ArrowLeftIcon className=" rotate-180" />
         </Button>
       </>)}
