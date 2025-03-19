@@ -1,9 +1,7 @@
 import { TableCell } from "@/components/ui/Table";
-import { Tooltip, TooltipProvider, TooltipTrigger } from "@/components/ui/Tooltip";
-import { TooltipContent, TooltipPortal } from "@radix-ui/react-tooltip";
 import { seasonColumns } from "@/pages/explorer/SeasonsExplorer";
 import { TwoColumnCell } from "./TwoColumnCell";
-
+import TooltipSimple from "../TooltipSimple";
 export enum SeasonsTableCellType {
   Default = "default",
   TwoColumn = "twoColumn",
@@ -38,16 +36,14 @@ export const SeasonsTableCell = ({
     default:
       return hoverContent ? (
         <TableCell className={`${className} ${additionalClasses}`}>
-          <TooltipProvider>
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger>{value}</TooltipTrigger>
-              <TooltipPortal>
-                <TooltipContent className="z-50 overflow-hidden" side="right" sideOffset={4}>
-                  {hoverContent}
-                </TooltipContent>
-              </TooltipPortal>
-            </Tooltip>
-          </TooltipProvider>
+          <TooltipSimple
+            content={hoverContent}
+            variant="unstyled"
+            rawTriggerClassName="hidden sm:inline-block"
+            clickable
+          >
+            {value}
+          </TooltipSimple>
         </TableCell>
       ) : (
         <TableCell className={`${className} ${additionalClasses}`}>{value}</TableCell>

@@ -1,6 +1,5 @@
 import { TableCell } from "@/components/ui/Table";
-import { Tooltip, TooltipProvider, TooltipTrigger } from "@/components/ui/Tooltip";
-import { TooltipContent, TooltipPortal } from "@radix-ui/react-tooltip";
+import TooltipSimple from "../TooltipSimple";
 
 interface TwoColumnCellProps {
   className: string;
@@ -27,16 +26,14 @@ export const TwoColumnCell = ({
 
   return hoverContent ? (
     <TableCell className={className}>
-      <TooltipProvider>
-        <Tooltip delayDuration={0}>
-          <TooltipTrigger>{cellContent}</TooltipTrigger>
-          <TooltipPortal>
-            <TooltipContent className="z-50 overflow-hidden" side="right" sideOffset={4}>
-              {hoverContent}
-            </TooltipContent>
-          </TooltipPortal>
-        </Tooltip>
-      </TooltipProvider>
+      <TooltipSimple
+        content={hoverContent}
+        variant="unstyled"
+        rawTriggerClassName="hidden sm:inline-block"
+        clickable
+      >
+        {cellContent}
+      </TooltipSimple>
     </TableCell>
   ) : (
     <TableCell className={className}>{cellContent}</TableCell>
