@@ -191,12 +191,11 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
                 {!nonHideableFields.includes(id) ? (
                   <TooltipSimple
                     variant="unstyled"
-                    rawTriggerClassName="hidden sm:inline-block"
+                    rawTriggerClassName="hidden sm:inline-block cursor-pointer"
                     content={<IconImage className="cursor-pointer" src={eyeballCrossed} size={4} />}
                     side="left"
                     align="end"
                     sideOffset={4}
-                    clickable
                   >
                     <span className="self-end">{name}</span>
                   </TooltipSimple>

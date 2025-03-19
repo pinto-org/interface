@@ -16,7 +16,6 @@ interface TooltipSimpleProps {
   triggerClassName?: string; // TODO this needs refactoring
   rawTriggerClassName?: string; // TODO this needs refactoring
   sideOffset?: number;
-  clickable?: boolean;
 }
 
 const variantMap = {
@@ -41,11 +40,10 @@ export default function TooltipSimple({
   triggerClassName,
   rawTriggerClassName,
   sideOffset = 0,
-  clickable,
   ...props
 }: TooltipSimpleProps) {
   const ContentComponent = variant === "unstyled" ? TooltipContent : RadixStyledTooltipContent;
-  const topLevelTriggerClassName = rawTriggerClassName || `${showOnMobile ? "" : "hidden sm:flex"} ${clickable ? "cursor-pointer" : ""}`
+  const topLevelTriggerClassName = rawTriggerClassName || `${showOnMobile ? "" : "hidden sm:flex"}`
   return (
     <TooltipProvider>
       <Tooltip delayDuration={0}>

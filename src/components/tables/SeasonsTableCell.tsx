@@ -39,8 +39,7 @@ export const SeasonsTableCell = ({
           <TooltipSimple
             content={hoverContent}
             variant="unstyled"
-            rawTriggerClassName="hidden sm:inline-block"
-            clickable
+            rawTriggerClassName="hidden sm:inline-block cursor-pointer"
           >
             {value}
           </TooltipSimple>
