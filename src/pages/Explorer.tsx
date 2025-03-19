@@ -1,6 +1,5 @@
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
-import Text from "@/components/ui/Text";
 import useRouterTabs, { UseRouterTabsOptions } from "@/hooks/useRouterTabs";
 import { useCallback } from "react";
 import AllExplorer from "./explorer/AllExplorer";
@@ -10,7 +9,6 @@ import PintoExplorer from "./explorer/PintoExplorer";
 
 import SeasonsExplorer from "./explorer/SeasonsExplorer";
 import SiloExplorer from "./explorer/SiloExplorer";
-import useIsMobile from "@/hooks/display/useIsMobile";
 const TABS = [
   {
     urlSlug: "pinto",
@@ -53,7 +51,6 @@ const Explorer = () => {
     [handleChangeTab],
   );
 
-  const isMobile = useIsMobile();
   const selectedIdx = TABS.findIndex((t) => t.urlSlug === tab);
   const description = TABS[selectedIdx].description
   const removeBottomPadding = selectedIdx === 4; //Remove on seasons table for the pagination to fit nicely on the bottm
@@ -77,7 +74,7 @@ const Explorer = () => {
               ))}
             </div>
           </div>
-          {!isMobile && description && (<div className="px-4 grid grid-column-0">
+          {description && (<div className="hidden sm:grid px-4 grid-column-0">
             <span >Seasons</span>
             <span className="text-pinto-gray-4">{description}</span>
           </div>)}
