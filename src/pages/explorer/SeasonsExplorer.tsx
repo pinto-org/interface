@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { useSunData } from "@/state/useSunData";
 import { ArrowLeftIcon } from "@radix-ui/react-icons"
-import ReactDOM from "react-dom";
 import useIsMobile from "@/hooks/display/useIsMobile";
 export interface SeasonColumn {
   id: string;
@@ -133,49 +132,7 @@ const SeasonsExplorer = () => {
     }
   }
 
-  const pagination = (<div className="self-center w-[100vw] flex justify-center flex-row sm:px-8 px-6 gap-x-2 bg-pinto-gray-1 border border-pinto-gray-2 h-16 sticky bottom-0 left-0 right-0 sm:mt[-1rem] mt-[-2rem] font-medium z-[1]">
-    <div className="w-full min-w-0 2xl:max-w-[1550px] 3xl:max-w-[1980px] flex items-center gap-2">
-      <Button
-        variant="pagination"
-        size="xs"
-        onClick={goToPreviousPage}
-        disabled={page === 1 || seasonsData.isFetching}
-        className="cursor-pointer"
-      >
-        <ArrowLeftIcon />
-      </Button>
-      <span>Page</span>
-      <input className="border border-pinto-gray-4 w-12 px-[4px] text-center rounded-[4px]" type="text" value={displayPage} onKeyDown={onDisplayPageKeyDown} onChange={(e) => setDisplayPage(e.target.value)} />
-      <span> of {totalPages}</span>
-      <Button
-        variant="pagination"
-        size="xs"
-        onClick={goToNextPage}
-        disabled={page === totalPages || seasonsData.isFetching}
-        className="cursor-pointer"
-      >
-        <ArrowLeftIcon className=" rotate-180" />
-      </Button>
-      {!isMobile && (<>
-        <span>Jump to Season</span>
-        <input className="border border-pinto-gray-4 w-14 px-[4px] text-center rounded-[4px]" type="text" onKeyDown={onJumpToSeasonKeyDown} value={jumpToSeason} onChange={onJumpToSeasonChange} />
-        <Button
-          variant="pagination"
-          size="xs"
-          onClick={handleJumpToSeason}
-          disabled={seasonsData.isFetching}
-          className="cursor-pointer"
-        >
-          <ArrowLeftIcon className=" rotate-180" />
-        </Button>
-      </>)}
-      <span className="text-pinto-gray-4">{currentSeason} Records</span>
-    </div>
-  </div>)
-
   const isLoading = seasonsData.isFetching && seasonsData.data?.length === 0
-  // I hate this implementation, our frame animator is relatively positioned so the stickiness of the pagination attaches to the spinner while loading
-  const displayPagination = isLoading ? ReactDOM.createPortal(pagination, document.body) : pagination
 
   return (
     <>
@@ -194,7 +151,45 @@ const SeasonsExplorer = () => {
           hideColumn={hideColumn}
         />
       }
-      {displayPagination}
+      <div className="self-center w-[100vw] flex justify-center flex-row sm:px-8 px-6 gap-x-2 bg-pinto-gray-1 border border-pinto-gray-2 h-16 fixed bottom-0 left-0 right-0 font-medium z-[1]">
+        <div className="w-full min-w-0 2xl:max-w-[1550px] 3xl:max-w-[1980px] flex items-center gap-2">
+          <Button
+            variant="pagination"
+            size="xs"
+            onClick={goToPreviousPage}
+            disabled={page === 1 || seasonsData.isFetching}
+            className="cursor-pointer"
+          >
+            <ArrowLeftIcon />
+          </Button>
+          <span>Page</span>
+          <input className="border border-pinto-gray-4 w-12 px-[4px] text-center rounded-[4px]" type="text" value={displayPage} onKeyDown={onDisplayPageKeyDown} onChange={(e) => setDisplayPage(e.target.value)} />
+          <span> of {totalPages}</span>
+          <Button
+            variant="pagination"
+            size="xs"
+            onClick={goToNextPage}
+            disabled={page === totalPages || seasonsData.isFetching}
+            className="cursor-pointer"
+          >
+            <ArrowLeftIcon className=" rotate-180" />
+          </Button>
+          {!isMobile && (<>
+            <span>Jump to Season</span>
+            <input className="border border-pinto-gray-4 w-14 px-[4px] text-center rounded-[4px]" type="text" onKeyDown={onJumpToSeasonKeyDown} value={jumpToSeason} onChange={onJumpToSeasonChange} />
+            <Button
+              variant="pagination"
+              size="xs"
+              onClick={handleJumpToSeason}
+              disabled={seasonsData.isFetching}
+              className="cursor-pointer"
+            >
+              <ArrowLeftIcon className=" rotate-180" />
+            </Button>
+          </>)}
+          <span className="text-pinto-gray-4">{currentSeason} Records</span>
+        </div>
+      </div>
     </>
   );
 };

@@ -42,7 +42,7 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
     }
     const windowHeight = window.innerHeight;
     const newHeight = windowHeight - offset
-    setHeight(Math.max(newHeight - paginationPadding, 500))
+    setHeight(Math.max(newHeight - paginationPadding, 600))
   }
 
   useEffect(() => {
@@ -214,7 +214,7 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
           </TableRow>
         )}
         <VariableSizeList
-          className="overscroll-auto"
+          className="overscroll-auto sm:mb-16 mb-0"
           height={height}
           itemCount={seasonsData.length}
           itemSize={() => 50}
