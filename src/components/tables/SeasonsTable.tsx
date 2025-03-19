@@ -189,34 +189,17 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
             return (
               <TableHead className={`sticky top-0 z-[1] ${classes}`} key={id} onClick={() => hideColumn(id)}>
                 {!nonHideableFields.includes(id) ? (
-                  // <TooltipSimple
-                  //   variant="unstyled"
-                  //   triggerClassName="cursor-pointer"
-                  //   content={<IconImage className="cursor-pointer" src={eyeballCrossed} size={4} />}
-                  //   side="left"
-                  //   align="end"
-                  //   sideOffset={4}
-                  //   clickable
-                  // >
-                  //   <span className={classes}>{name}</span>
-                  // </TooltipSimple>
-                  <TooltipProvider>
-                    <Tooltip delayDuration={0}>
-                      <TooltipTrigger >
-                        <span>{name}</span>
-                      </TooltipTrigger>
-                      <TooltipPortal>
-                        <TooltipContent className="z-50 overflow-hidden flex" side="left" sideOffset={4}>
-                          {/* <IconImage
-                            className={`cursor-pointer ${getRotationClassNameForColumn(sortedColumn, id)}`}
-                            onClick={() => setSortedColumn({ column: id, dir: getRotationForColumn(sortedColumn, id) })}
-                            src={leftArrowIcon}
-                            size={4} /> */}
-                          <IconImage className="cursor-pointer" src={eyeballCrossed} size={4} />
-                        </TooltipContent>
-                      </TooltipPortal>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <TooltipSimple
+                    variant="unstyled"
+                    rawTriggerClassName="hidden sm:inline-block"
+                    content={<IconImage className="cursor-pointer" src={eyeballCrossed} size={4} />}
+                    side="left"
+                    align="end"
+                    sideOffset={4}
+                    clickable
+                  >
+                    <span className="self-end">{name}</span>
+                  </TooltipSimple>
                 ) : (
                   <span>{name}</span>
                 )}
