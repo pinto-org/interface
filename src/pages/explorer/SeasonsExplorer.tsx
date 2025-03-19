@@ -135,19 +135,37 @@ const SeasonsExplorer = () => {
 
   const pagination = (<div className="self-center w-[100vw] flex justify-center flex-row sm:px-8 px-6 gap-x-2 bg-pinto-gray-1 border border-pinto-gray-2 h-16 sticky bottom-0 left-0 right-0 sm:mt[-1rem] mt-[-2rem] font-medium z-[1]">
     <div className="w-full min-w-0 2xl:max-w-[1550px] 3xl:max-w-[1980px] flex items-center gap-2">
-      <Button variant="pagination" size="xs" onClick={goToPreviousPage} disabled={page === 1 || seasonsData.isFetching}>
+      <Button
+        variant="pagination"
+        size="xs"
+        onClick={goToPreviousPage}
+        disabled={page === 1 || seasonsData.isFetching}
+        className="cursor-pointer"
+      >
         <ArrowLeftIcon />
       </Button>
       <span>Page</span>
       <input className="border border-pinto-gray-4 w-12 px-[4px] text-center rounded-[4px]" type="text" value={displayPage} onKeyDown={onDisplayPageKeyDown} onChange={(e) => setDisplayPage(e.target.value)} />
       <span> of {totalPages}</span>
-      <Button variant="pagination" size="xs" onClick={goToNextPage} disabled={page === totalPages || seasonsData.isFetching}>
+      <Button
+        variant="pagination"
+        size="xs"
+        onClick={goToNextPage}
+        disabled={page === totalPages || seasonsData.isFetching}
+        className="cursor-pointer"
+      >
         <ArrowLeftIcon className=" rotate-180" />
       </Button>
       {!isMobile && (<>
         <span>Jump to Season</span>
         <input className="border border-pinto-gray-4 w-14 px-[4px] text-center rounded-[4px]" type="text" onKeyDown={onJumpToSeasonKeyDown} value={jumpToSeason} onChange={onJumpToSeasonChange} />
-        <Button variant="pagination" size="xs" onClick={handleJumpToSeason} disabled={seasonsData.isFetching}>
+        <Button
+          variant="pagination"
+          size="xs"
+          onClick={handleJumpToSeason}
+          disabled={seasonsData.isFetching}
+          className="cursor-pointer"
+        >
           <ArrowLeftIcon className=" rotate-180" />
         </Button>
       </>)}
