@@ -11,6 +11,7 @@ import useIsMobile from "@/hooks/display/useIsMobile";
 import { calculateCropScales, convertDeltaDemandToPercentage } from "@/utils/convert";
 import { caseIdToDescriptiveText } from "@/utils/utils";
 import { SeasonsTableCell, SeasonsTableCellType } from "./SeasonsTableCell";
+import TooltipSimple from "../TooltipSimple";
 
 interface SeasonsTableProps {
   seasonsData: SeasonsTableData[];
@@ -188,6 +189,17 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
             return (
               <TableHead className={`sticky top-0 z-[1] ${classes}`} key={id} onClick={() => hideColumn(id)}>
                 {!nonHideableFields.includes(id) ? (
+                  // <TooltipSimple
+                  //   variant="unstyled"
+                  //   triggerClassName="cursor-pointer"
+                  //   content={<IconImage className="cursor-pointer" src={eyeballCrossed} size={4} />}
+                  //   side="left"
+                  //   align="end"
+                  //   sideOffset={4}
+                  //   clickable
+                  // >
+                  //   <span className={classes}>{name}</span>
+                  // </TooltipSimple>
                   <TooltipProvider>
                     <Tooltip delayDuration={0}>
                       <TooltipTrigger >
