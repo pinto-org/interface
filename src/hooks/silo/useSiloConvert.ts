@@ -1,4 +1,5 @@
 import { TV } from "@/classes/TokenValue";
+import { diamondABI } from "@/constants/abi/diamondABI";
 import { defaultQuerySettingsQuote } from "@/constants/query";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { SiloConvert } from "@/lib/siloConvert/SiloConvert";
@@ -6,7 +7,9 @@ import { DepositData, Token, TokenDepositData } from "@/utils/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo } from "react";
 import { toast } from "sonner";
-import { useAccount, useChainId, useConfig } from "wagmi";
+import { useAccount, useChainId, useConfig, useReadContract } from "wagmi";
+import { useSiloConvertResult } from "./useSiloConvertResult";
+import { STALK } from "@/constants/internalTokens";
 
 
 /**
@@ -133,4 +136,62 @@ export function useSiloConvertQuote(
   }, [query.error, target?.address, isDefaultConvert, sourceAmount]);
 
   return { ...query, queryKey };
+}
+
+// ------------------------------ CONVERT DOWN PENALTY ------------------------------
+
+const selectGrownStalkPenalty = (result: readonly [bigint, bigint]) => {
+  const newGrownStalk = TV.fromBigInt(result[0], STALK.decimals);
+  const lossGrownStalk = TV.fromBigInt(result[1], STALK.decimals);
+
+  const totalGrownStalk = newGrownStalk.add(lossGrownStalk);
+
+  const isPenalty = lossGrownStalk.gt(0);
+  const penaltyRatio = isPenalty ? lossGrownStalk.div(totalGrownStalk).toNumber() : 0;
+
+  return {
+    newGrownStalk,
+    lossGrownStalk,
+    isPenalty,
+    penaltyRatio,
+  }
+}
+
+export const useSiloConvertDownPenaltyQuery = (
+  source: Token,
+  target: Token | undefined,
+  result: ReturnType<typeof useSiloConvertResult>,
+  enabled: boolean = true,
+) => {
+  const diamond = useProtocolAddress();
+
+  const isConvertDown = Boolean(source.isMain && target?.isLP);
+  const well = isConvertDown ? target : undefined;
+
+  const fromBdv = result?.fromBdv;
+  const grownStalk = result?.fromGrownStalk;
+
+  const query = useReadContract({
+    address: diamond,
+    abi: diamondABI,
+    functionName: "downPenalizedGrownStalk",
+    args: [
+      well?.address ?? "0x",
+      fromBdv?.toBigInt() ?? 0n,
+      grownStalk?.toBigInt() ?? 0n,
+    ],
+    query: {
+      enabled: Boolean(well && fromBdv?.gt(0) && isConvertDown && enabled),
+      select: selectGrownStalkPenalty,
+    }
+  });
+
+  useEffect(() => {
+    console.log("downPenalizedGrownStalk", {
+      new: TV.fromBigInt(query.data?.[0] ?? 0n, STALK.decimals).toHuman(),
+      loss: TV.fromBigInt(query.data?.[1] ?? 0n, STALK.decimals).toHuman(),
+    });
+  }, [query.data]);
+
+  return query;
 }
