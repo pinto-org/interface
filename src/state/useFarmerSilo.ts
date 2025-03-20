@@ -13,7 +13,7 @@ import { getTokenIndex } from "@/utils/token";
 import { DepositData, Token, TokenDepositData } from "@/utils/types";
 import { unpackStem } from "@/utils/utils";
 import { useCallback, useMemo } from "react";
-import { Address, decodeAbiParameters, encodeFunctionData, parseAbiItem, toHex } from "viem";
+import { Address, decodeAbiParameters, encodeFunctionData, toHex } from "viem";
 import { useAccount, useChainId, useConfig, usePublicClient, useReadContract, useSimulateContract } from "wagmi";
 import { usePriceData } from "./usePriceData";
 import { useSiloData } from "./useSiloData";
@@ -301,6 +301,7 @@ export function useFarmerSilo(address?: `0x${string}`) {
         const _currentBDV = depositAmount.mul(siloTokenData.tokenBDV);
         const seeds = _depositBDV.mul(siloTokenData.rewards.seeds);
 
+        const stalkAtDeposit = _depositBDV.reDecimal(STALK.decimals);
         const totalStalkGrown = _depositBDV.mul(siloTokenData.stemTip.sub(depositStem)).div(10000);
         const mowableStalk = _depositBDV.mul(siloTokenData.stemTip.sub(lastStem)).div(10000);
         const grownStalk = mowableStalk;
@@ -333,11 +334,12 @@ export function useFarmerSilo(address?: `0x${string}`) {
           depositBdv: _depositBDV,
           currentBdv: _currentBDV,
           stalk: {
-            base: baseStalk,
-            grown: grownStalk,
-            germinating: germinatingStalk,
-            total: baseStalk.add(grownStalk).add(germinatingStalk),
-            grownSinceDeposit: totalStalkGrown,
+            initial: stalkAtDeposit,
+            base: baseStalk.reDecimal(STALK.decimals),
+            grown: grownStalk.reDecimal(STALK.decimals),
+            germinating: germinatingStalk.reDecimal(STALK.decimals),
+            total: baseStalk.add(grownStalk).add(germinatingStalk).reDecimal(STALK.decimals),
+            grownSinceDeposit: totalStalkGrown.reDecimal(STALK.decimals),
           },
           seeds,
           isGerminating,
