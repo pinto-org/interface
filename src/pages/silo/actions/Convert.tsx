@@ -21,6 +21,7 @@ import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import useSiloConvert, {
   useClearSiloConvertQueries,
+  useSiloConvertDownPenaltyQuery,
   useSiloConvertQuote,
   useSiloMaxConvertQuery,
 } from "@/hooks/silo/useSiloConvert";
@@ -87,14 +88,11 @@ function ConvertForm({
   const invalidateSun = useInvalidateSun();
 
   const minAmountIn = convertExceptions.minAmountIn;
-
   const isDefaultConvert = siloToken.isMain || targetToken?.isMain;
-
   const defaultConvertDeltaPEnabled = siloToken.isMain ? deltaP.gt(0) : siloToken.isLP ? deltaP.lt(0) : false;
-
   const deltaPEnabled = Boolean(isDefaultConvert && defaultConvertDeltaPEnabled);
-
   const targetDeposits = targetToken ? farmerDeposits.get(targetToken) : undefined;
+  const isDownConvert = Boolean(siloToken.isMain && targetToken?.isLP);
 
   const deposits = farmerDeposits.get(siloToken);
   const convertibleDeposits = deposits?.convertibleDeposits;
@@ -129,6 +127,8 @@ function ConvertForm({
   } = useSiloConvertQuote(siloConvert, siloToken, targetToken, amountIn, convertibleDeposits, slippage, quoteEnabled);
 
   const convertResults = useSiloConvertResult(siloToken, targetToken, quote?.quotes, quote?.results);
+  const stalkPenaltyQuery = useSiloConvertDownPenaltyQuery(siloToken, targetToken, convertResults, quoteConditionsEnabled);
+  const convertDownPenalty = isDownConvert ? stalkPenaltyQuery.data?.lossGrownStalk : undefined;
 
   const priceImpact = useDeterminePriceImpact(quote?.postPriceData);
   const priceImpactSummary1 = !siloToken.isMain ? priceImpact.get(siloToken) : undefined;
@@ -146,7 +146,7 @@ function ConvertForm({
     // PipelineConvert will mow the source & target deposits.
     const mowAmount = depositsMowAmount?.add(targetDepositsMowAmount ?? 0n) ?? TV.ZERO;
     // Add mow amounts & subtract any germinating stalk as a result of the convert.
-    const currTotalStalk = farmerActiveStalk.add(mowAmount).sub(convertResults.toGerminatingStalk);
+    const currTotalStalk = farmerActiveStalk.add(mowAmount).sub(convertResults.germinatingStalk);
 
     // Add the expected delta stalk
     return currTotalStalk.add(convertResults.deltaStalk);
@@ -310,10 +310,10 @@ function ConvertForm({
   };
 
   const GerminatingStalkWarning = () => {
-    if (!convertResults || convertResults.toGerminatingStalk.lte(0)) return null;
+    if (!convertResults || convertResults.germinatingStalk.lte(0)) return null;
 
-    const germinating = convertResults.toGerminatingStalk;
-    const germinatingSeasons = convertResults.toGerminatingSeasons;
+    const germinating = convertResults.germinatingStalk;
+    const germinatingSeasons = convertResults.germinatingSeasons;
 
     return (
       <Warning variant="info" className="text-pinto-off-green bg-pinto-off-green-bg border border-pinto-off-green">
@@ -401,7 +401,7 @@ function ConvertForm({
         <ConvertWarning />
         <LP2LPMinConvertWarning />
       </div>
-      <ConvertTokenOutput quote={quote} amount={convertResults?.amountOut || TV.ZERO} siloToken={siloToken} />
+      <ConvertTokenOutput quote={quote} amount={convertResults?.totalAmountOut || TV.ZERO} siloToken={siloToken} />
       <div className="flex flex-col">
         {loading && !quoteQuery.isError ? (
           <div className="flex flex-col w-full h-[181px] items-center justify-center">
@@ -411,7 +411,7 @@ function ConvertForm({
           <>
             <GerminatingStalkWarning />
             <SiloOutputDisplay
-              amount={convertResults.amountOut}
+              amount={convertResults.totalAmountOut}
               token={targetToken}
               stalk={convertResults.deltaStalk}
               seeds={convertResults.deltaSeed}
