@@ -5,7 +5,7 @@ import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { SiloConvert } from "@/lib/siloConvert/SiloConvert";
 import { DepositData, Token, TokenDepositData } from "@/utils/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAccount, useChainId, useConfig, useReadContract } from "wagmi";
 import { useSiloConvertResult } from "./useSiloConvertResult";
@@ -140,6 +140,13 @@ export function useSiloConvertQuote(
 
 // ------------------------------ CONVERT DOWN PENALTY ------------------------------
 
+export interface SiloConvertGrownStalkPenaltyBreakdown {
+  newGrownStalk: TV;
+  lossGrownStalk: TV;
+  isPenalty: boolean;
+  penaltyRatio: number;
+}
+
 const selectGrownStalkPenalty = (result: readonly [bigint, bigint]) => {
   const newGrownStalk = TV.fromBigInt(result[0], STALK.decimals);
   const lossGrownStalk = TV.fromBigInt(result[1], STALK.decimals);
@@ -163,6 +170,12 @@ export const useSiloConvertDownPenaltyQuery = (
   result: ReturnType<typeof useSiloConvertResult>,
   enabled: boolean = true,
 ) => {
+  const [struct, setStruct] = useState<SiloConvertGrownStalkPenaltyBreakdown>({
+    newGrownStalk: TV.ZERO,
+    lossGrownStalk: TV.ZERO,
+    isPenalty: false,
+    penaltyRatio: 0,
+  });
   const diamond = useProtocolAddress();
 
   const isConvertDown = Boolean(source.isMain && target?.isLP);
@@ -170,6 +183,8 @@ export const useSiloConvertDownPenaltyQuery = (
 
   const fromBdv = result?.fromBdv;
   const grownStalk = result?.fromGrownStalk;
+
+  const queryEnabled = Boolean(well && fromBdv?.gt(0) && isConvertDown && enabled);
 
   const query = useReadContract({
     address: diamond,
@@ -181,17 +196,22 @@ export const useSiloConvertDownPenaltyQuery = (
       grownStalk?.toBigInt() ?? 0n,
     ],
     query: {
-      enabled: Boolean(well && fromBdv?.gt(0) && isConvertDown && enabled),
+      enabled: queryEnabled,
       select: selectGrownStalkPenalty,
     }
   });
 
   useEffect(() => {
-    console.log("downPenalizedGrownStalk", {
-      new: TV.fromBigInt(query.data?.[0] ?? 0n, STALK.decimals).toHuman(),
-      loss: TV.fromBigInt(query.data?.[1] ?? 0n, STALK.decimals).toHuman(),
-    });
+    const amount = query.data?.lossGrownStalk ?? TV.ZERO;
+    const structAmount = struct?.lossGrownStalk ?? TV.ZERO;
+
+    if (amount.eq(structAmount)) return;
+    query.data && setStruct(query.data);
   }, [query.data]);
 
-  return query;
+
+  return {
+    ...query,
+    data: struct,
+  }
 }

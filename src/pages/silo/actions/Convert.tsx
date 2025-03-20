@@ -127,8 +127,7 @@ function ConvertForm({
   } = useSiloConvertQuote(siloConvert, siloToken, targetToken, amountIn, convertibleDeposits, slippage, quoteEnabled);
 
   const convertResults = useSiloConvertResult(siloToken, targetToken, quote?.quotes, quote?.results);
-  const stalkPenaltyQuery = useSiloConvertDownPenaltyQuery(siloToken, targetToken, convertResults, quoteConditionsEnabled);
-  const convertDownPenalty = isDownConvert ? stalkPenaltyQuery.data?.lossGrownStalk : undefined;
+  const grownStalkPenaltyQuery = useSiloConvertDownPenaltyQuery(siloToken, targetToken, convertResults, isDownConvert);
 
   const priceImpact = useDeterminePriceImpact(quote?.postPriceData);
   const priceImpactSummary1 = !siloToken.isMain ? priceImpact.get(siloToken) : undefined;
@@ -309,8 +308,10 @@ function ConvertForm({
     return <Warning variant="info">{msg}</Warning>;
   };
 
+  const renderGerminatingStalkWarning = !(!convertResults || convertResults.germinatingStalk.lte(0));
+
   const GerminatingStalkWarning = () => {
-    if (!convertResults || convertResults.germinatingStalk.lte(0)) return null;
+    if (!renderGerminatingStalkWarning) return null;
 
     const germinating = convertResults.germinatingStalk;
     const germinatingSeasons = convertResults.germinatingSeasons;
@@ -323,14 +324,13 @@ function ConvertForm({
     );
   };
 
+  const renderDownPenaltyWarning = !(!siloToken.isLP ||
+    !targetToken?.isLP ||
+    maxConvertQueryData.lte(0) ||
+    maxConvertQueryData.eq(SiloConvertMaxConvertQuoter.NO_MAX_CONVERT_AMOUNT));
+
   const LP2LPMinConvertWarning = () => {
-    if (
-      !siloToken.isLP ||
-      !targetToken?.isLP ||
-      maxConvertQueryData.lte(0) ||
-      maxConvertQueryData.eq(SiloConvertMaxConvertQuoter.NO_MAX_CONVERT_AMOUNT)
-    )
-      return null;
+    if (!renderDownPenaltyWarning) return null;
 
     return (
       <Warning variant="info">
@@ -340,16 +340,32 @@ function ConvertForm({
     );
   };
 
+  const renderMinAmountWarning = minAmountIn?.gt(0) && !isValidAmountIn;
+
   const MinAmountWarning = () => {
-    if (minAmountIn?.gt(0) && !isValidAmountIn) {
-      return (
-        <Warning variant="info">
-          A minimum amount of {formatter.token(minAmountIn, siloToken)} {siloToken.symbol} is required to convert.
-        </Warning>
-      );
-    }
-    return null;
+    if (!renderMinAmountWarning) return null;
+
+    return (
+      <Warning variant="info">
+        A minimum amount of {formatter.token(minAmountIn, siloToken)} {siloToken.symbol} is required to convert.
+      </Warning>
+    );
   };
+
+  const renderGrownStalkPenaltyWarning = grownStalkPenaltyQuery.data?.isPenalty;
+
+  const GrownStalkPenaltyWarning = () => {
+    if (!renderGrownStalkPenaltyWarning) return null;
+    const penaltyPct = (grownStalkPenaltyQuery.data?.penaltyRatio ?? 0) * 100;
+
+    return (
+      <Warning variant="warning">
+        This conversion incurs a {formatter.pct(penaltyPct)} Grown Stalk penalty.
+      </Warning>
+    )
+  }
+
+  const warningRendered = renderGerminatingStalkWarning || renderDownPenaltyWarning || renderMinAmountWarning || renderGrownStalkPenaltyWarning;
 
   const disabled =
     !targetToken ||
@@ -396,11 +412,14 @@ function ConvertForm({
           disableButton
         />
       </div>
-      <div className="flex flex-col gap-2">
-        <MinAmountWarning />
-        <ConvertWarning />
-        <LP2LPMinConvertWarning />
-      </div>
+      {warningRendered ? (
+        <div className="flex flex-col gap-2">
+          <MinAmountWarning />
+          <ConvertWarning />
+          <LP2LPMinConvertWarning />
+          <GrownStalkPenaltyWarning />
+        </div>
+      ) : null}
       <ConvertTokenOutput quote={quote} amount={convertResults?.totalAmountOut || TV.ZERO} siloToken={siloToken} />
       <div className="flex flex-col">
         {loading && !quoteQuery.isError ? (
