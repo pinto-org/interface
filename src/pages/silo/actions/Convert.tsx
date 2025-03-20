@@ -324,10 +324,12 @@ function ConvertForm({
     );
   };
 
-  const renderDownPenaltyWarning = !(!siloToken.isLP ||
+  const renderDownPenaltyWarning = !(
+    !siloToken.isLP ||
     !targetToken?.isLP ||
     maxConvertQueryData.lte(0) ||
-    maxConvertQueryData.eq(SiloConvertMaxConvertQuoter.NO_MAX_CONVERT_AMOUNT));
+    maxConvertQueryData.eq(SiloConvertMaxConvertQuoter.NO_MAX_CONVERT_AMOUNT)
+  );
 
   const LP2LPMinConvertWarning = () => {
     if (!renderDownPenaltyWarning) return null;
@@ -359,13 +361,15 @@ function ConvertForm({
     const penaltyPct = (grownStalkPenaltyQuery.data?.penaltyRatio ?? 0) * 100;
 
     return (
-      <Warning variant="warning">
-        This conversion incurs a {formatter.pct(penaltyPct)} Grown Stalk penalty.
-      </Warning>
-    )
-  }
+      <Warning variant="warning">This conversion incurs a {formatter.pct(penaltyPct)} Grown Stalk penalty.</Warning>
+    );
+  };
 
-  const warningRendered = renderGerminatingStalkWarning || renderDownPenaltyWarning || renderMinAmountWarning || renderGrownStalkPenaltyWarning;
+  const warningRendered =
+    renderGerminatingStalkWarning ||
+    renderDownPenaltyWarning ||
+    renderMinAmountWarning ||
+    renderGrownStalkPenaltyWarning;
 
   const disabled =
     !targetToken ||
