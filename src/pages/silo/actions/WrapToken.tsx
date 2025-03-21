@@ -181,7 +181,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     } finally {
       setSubmitting(false);
     }
-  }, [amountIn, siloToken.decimals, deposits, mode, account, swap.data, buildSwap, inputError]);
+  }, [amountIn, siloToken.decimals, deposits, mode, account, swap.data, inputError, buildSwap, writeWithEstimateGas, setSubmitting]);
 
   const handleButtonSubmit = useCallback(async () => {
     if (needsDepositAllowanceIncrease) {

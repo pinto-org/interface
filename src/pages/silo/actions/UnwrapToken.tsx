@@ -54,9 +54,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   // Local State
   const [slippage, setSlippage] = useState<number>(0.1);
   const [amountIn, setAmountIn] = useState<string>("0");
-  const [balanceSource, setBalanceSource] = useState<FarmFromMode>(
-    getPreferredBalanceSource(farmerBalance)
-  );
+  const [balanceSource, setBalanceSource] = useState<FarmFromMode>(getPreferredBalanceSource(farmerBalance));
 
   const [toSilo, setToSilo] = useState<boolean>(true);
   const [didInitBalanceSource, setDidInitBalanceSource] = useState(!!farmerBalances.isFetched);
@@ -86,6 +84,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   // Transaction
   const onSuccess = useCallback(() => {
     setAmountIn("0");
+    setTokenOut(undefined);
     const keys = [...contractBalances.queryKeys, ...farmerBalances.queryKeys, ...farmerDepositsQueryKeys];
     keys.forEach((key) => qc.invalidateQueries({ queryKey: key }));
   }, [contractBalances, farmerBalances, farmerDepositsQueryKeys]);
@@ -132,7 +131,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
         address: diamond,
         abi: abiSnippets.advancedFarm,
         functionName: "advancedFarm",
-        args: [swapBuild.advancedFarm]
+        args: [swapBuild.advancedFarm],
       });
     } catch (e) {
       console.error(e);
@@ -143,7 +142,18 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
     } finally {
       setSubmitting(false);
     }
-  }, [account, amountTV, balance, balanceSource, siloToken, setSubmitting]);
+  }, [
+    account,
+    diamond,
+    amountTV,
+    balance,
+    balanceSource,
+    siloToken,
+    swap.data,
+    buildSwapQuote,
+    setSubmitting,
+    writeWithEstimateGas,
+  ]);
 
   // Effects
   useEffect(() => {
@@ -166,8 +176,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   const outputNotReady = toSilo ? output?.amount.lte(0) : swap.data?.buyAmount.lte(0);
 
   const baseDisabled = !account || !validAmountIn || !balance.gte(amountTV) || inputError;
-  const buttonDisabled =
-    baseDisabled || isConfirming || submitting || outputNotReady || inputError || quoting;
+  const buttonDisabled = baseDisabled || isConfirming || submitting || outputNotReady || inputError || quoting;
 
   const sourceIsInternal = balanceSource === FarmFromMode.INTERNAL;
 
@@ -203,8 +212,8 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
           <Switch
             checked={toSilo}
             onCheckedChange={() => {
-              setTokenOut(undefined)
-              setToSilo((prev) => !prev)
+              setTokenOut(undefined);
+              setToSilo((prev) => !prev);
             }}
           >
             <SwitchThumb />
@@ -312,7 +321,7 @@ const useFilterDestinationTokens = () => {
   }, [tokenMap]);
 
   return tokens;
-}
+};
 
 function useUnwrapTokenQuoteQuery(amount: TV, tokenIn: Token, tokenOut: Token, disabled: boolean = false) {
   const [quote, setQuote] = useState<TV | undefined>(undefined);
@@ -333,7 +342,7 @@ function useUnwrapTokenQuoteQuery(amount: TV, tokenIn: Token, tokenOut: Token, d
   // Use UseEffect here to update quote return data to enable caching of previous quotes.
   // This is necessary to prevent flickering of quote return values when the query is loading.
 
-  // Effects. 
+  // Effects.
   useEffect(() => {
     if (!query.data) return;
     setQuote(TV.fromBigInt(query.data, tokenOut.decimals));
@@ -348,7 +357,7 @@ function useUnwrapTokenQuoteQuery(amount: TV, tokenIn: Token, tokenOut: Token, d
   return {
     ...query,
     data: quote,
-  }
+  };
 }
 
 function useUnwrapQuoteOutputSummary(
