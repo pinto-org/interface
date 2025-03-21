@@ -30,7 +30,7 @@ import { tryExtractErrorMessage } from "@/utils/error";
 import { formatter } from "@/utils/format";
 import { isValidAddress, stringToStringNum } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
-import { FarmFromMode, FarmToMode, Token } from "@/utils/types"
+import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { exists, getBalanceFromMode } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -59,9 +59,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
   const [mode, setMode] = useState<FarmToMode | undefined>(undefined);
   const [token, setToken] = useState<Token>(mainToken);
   const [source, setSource] = useState<AssetOrigin>(depositedAmount ? "deposits" : "balances");
-  const [didInitSource, setDidInitSource] = useState(
-    isConnecting ? false : depositedAmount !== undefined
-  );
+  const [didInitSource, setDidInitSource] = useState(isConnecting ? false : depositedAmount !== undefined);
 
   const filterTokens = useFilterTokens();
 
@@ -82,7 +80,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     setAllowance,
     queryKey: allowanceQueryKey,
     loading: allowanceLoading,
-    confirming: allowanceConfirming
+    confirming: allowanceConfirming,
   } = useFarmerDepositAllowance(Boolean(usingDeposits && tokenIsSiloWrappedToken));
 
   const needsDepositAllowanceIncrease = usingDeposits && !allowanceLoading && amountInTV.gt(allowance ?? 0n);
@@ -93,7 +91,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     tokenOut: siloToken,
     slippage: slippage,
     amountIn: TV.fromHuman(stringToStringNum(amountIn), token.decimals),
-    disabled: usingDeposits
+    disabled: usingDeposits,
   });
   const swapSummary = useSwapSummary(swap.data);
   const buildSwap = useBuildSwapQuoteAsync(swap.data, balanceFrom, mode, account, account);
@@ -133,7 +131,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
           throw new Error("No deposits found");
         }
         if (exceedsBalance) {
-          throw new Error("Insufficient deposits")
+          throw new Error("Insufficient deposits");
         }
         if (amount.lte(0)) {
           throw new Error("Invalid amount");
@@ -155,7 +153,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
         throw new Error("Invalid swap quote");
       }
       if (exceedsBalance) {
-        throw new Error("Insufficient funds")
+        throw new Error("Insufficient funds");
       }
 
       setSubmitting(true);
@@ -181,7 +179,18 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     } finally {
       setSubmitting(false);
     }
-  }, [amountIn, siloToken.decimals, deposits, mode, account, swap.data, buildSwap, inputError]);
+  }, [
+    amountIn,
+    siloToken.decimals,
+    deposits,
+    mode,
+    account,
+    swap.data,
+    inputError,
+    buildSwap,
+    writeWithEstimateGas,
+    setSubmitting,
+  ]);
 
   const handleButtonSubmit = useCallback(async () => {
     if (needsDepositAllowanceIncrease) {
@@ -190,7 +199,6 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
 
     return handleWrap();
   }, [amountInTV, needsDepositAllowanceIncrease, setAllowance, handleWrap]);
-
 
   // Effects
   useEffect(() => {
@@ -217,7 +225,14 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
   const quoting = usingDeposits ? quote.isLoading : swap.isLoading;
   const disabledFromLoading = confirming || quoting || submitting || isConfirming;
   const toModeSelected = exists(mode);
-  const buttonDisabled = !account || inputDisabled || !isValidAmount || exceedsBalance || inputError || disabledFromLoading || !toModeSelected;
+  const buttonDisabled =
+    !account ||
+    inputDisabled ||
+    !isValidAmount ||
+    exceedsBalance ||
+    inputError ||
+    disabledFromLoading ||
+    !toModeSelected;
 
   const buttonText = exceedsBalance ? "Insufficient funds" : needsDepositAllowanceIncrease ? "Approve" : "Wrap";
 
@@ -252,13 +267,15 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
           connectedAccount={!!account}
         />
         <div className="flex flex-row w-full justify-between items-center mt-4">
-          <div className="pinto-sm sm:pinto-body-light sm:text-pinto-light text-pinto-light">Use {mainToken.symbol} deposits</div>
+          <div className="pinto-sm sm:pinto-body-light sm:text-pinto-light text-pinto-light">
+            Use {mainToken.symbol} deposits
+          </div>
           <TextSkeleton loading={!didInitSource} className="w-11 h-6">
             <Switch
               checked={source === "deposits"}
               onCheckedChange={() => {
                 setAmountIn("0");
-                setSource((prev) => prev === "deposits" ? "balances" : "deposits");
+                setSource((prev) => (prev === "deposits" ? "balances" : "deposits"));
               }}
             >
               <SwitchThumb />
@@ -295,21 +312,20 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
             <div className="flex flex-row items-center justify-center h-[4.5rem]">
               <FrameAnimator size={64} />
             </div>
-          )
-            : swapSummary && swap.data ? (
-              <div>
-                <RoutingAndSlippageInfo
-                  title="Total Wrap Slippage"
-                  swapSummary={swapSummary}
-                  priceImpactSummary={undefined}
-                  preferredSummary="swap"
-                  tokenIn={token}
-                  tokenOut={siloToken}
-                  txnType="Swap"
-                  noMarginTopOnTrigger={true}
-                />
-              </div>
-            ) : null}
+          ) : swapSummary && swap.data ? (
+            <div>
+              <RoutingAndSlippageInfo
+                title="Total Wrap Slippage"
+                swapSummary={swapSummary}
+                priceImpactSummary={undefined}
+                preferredSummary="swap"
+                tokenIn={token}
+                tokenOut={siloToken}
+                txnType="Swap"
+                noMarginTopOnTrigger={true}
+              />
+            </div>
+          ) : null}
         </>
       ) : null}
       <Warning variant="info">
@@ -351,7 +367,6 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
 
 // -------------------------------
 
-
 const useFilterTokens = () => {
   const tokenMap = useTokenMap();
 
@@ -369,7 +384,7 @@ const useFilterTokens = () => {
   }, [tokenMap]);
 
   return filter;
-}
+};
 
 const usePreviewDeposit = (amountInTV: TV, enabled: boolean = true) => {
   const siloToken = useChainConstant(S_MAIN_TOKEN);
@@ -390,6 +405,6 @@ const usePreviewDeposit = (amountInTV: TV, enabled: boolean = true) => {
     return {
       data: query.data,
       isLoading: query.isLoading,
-    }
+    };
   }, [query.data, query.isLoading]);
 };
