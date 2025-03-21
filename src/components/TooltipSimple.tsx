@@ -13,8 +13,7 @@ interface TooltipSimpleProps {
   side?: "top" | "right" | "bottom" | "left";
   align?: "start" | "center" | "end";
   showOnMobile?: boolean;
-  triggerClassName?: string; // TODO this needs refactoring
-  rawTriggerClassName?: string; // TODO this needs refactoring
+  triggerClassName?: string;
   sideOffset?: number;
 }
 
@@ -38,16 +37,14 @@ export default function TooltipSimple({
   align = "center",
   showOnMobile,
   triggerClassName,
-  rawTriggerClassName,
   sideOffset = 0,
   ...props
 }: TooltipSimpleProps) {
   const ContentComponent = variant === "unstyled" ? TooltipContent : RadixStyledTooltipContent;
-  const topLevelTriggerClassName = rawTriggerClassName || `${showOnMobile ? "" : "hidden sm:flex"}`
   return (
     <TooltipProvider>
       <Tooltip delayDuration={0}>
-        <TooltipTrigger asChild className={topLevelTriggerClassName}>
+        <TooltipTrigger asChild className={`${showOnMobile ? "" : "hidden sm:flex"}`}>
           {children || (
             <span
               className={cn(

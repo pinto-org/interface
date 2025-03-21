@@ -35,14 +35,11 @@ export const SeasonsTableCell = ({
       return <TwoColumnCell className={`${className} ${additionalClasses}`} value={value} subValue={subValue} hoverContent={hoverContent} hiddenFields={hiddenFields} />;
     default:
       return hoverContent ? (
-        <TableCell className={`${className} ${additionalClasses}`}>
-          <TooltipSimple
-            content={hoverContent}
-            variant="unstyled"
-            rawTriggerClassName="hidden sm:inline-block cursor-pointer"
-          >
+        <TableCell className={`${className} ${additionalClasses} group`}>
+          <div className="flex items-center justify-end gap-2">
+            <div className="opacity-0 group-hover:opacity-100">{hoverContent}</div>
             {value}
-          </TooltipSimple>
+          </div>
         </TableCell>
       ) : (
         <TableCell className={`${className} ${additionalClasses}`}>{value}</TableCell>

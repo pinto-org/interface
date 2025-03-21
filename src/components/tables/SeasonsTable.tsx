@@ -20,6 +20,8 @@ interface SeasonsTableProps {
 }
 
 export const nonHideableFields = ['season']
+const paginationPadding = 50;
+
 
 export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsTableProps) => {
 
@@ -36,13 +38,15 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
   }, [hiddenFields]);
 
   const calculateHeight = () => {
-    const offset = isMobile ? 225 : 575//tableRef.current?.offsetHeight || 0;
-    if (!offset) {
+    const elem = document.getElementById('pinto-navbar')
+    if (!elem) {
       return;
     }
     const windowHeight = window.innerHeight;
-    const newHeight = windowHeight - offset
-    setHeight(Math.max(newHeight - paginationPadding, 600))
+    const headerOffset = elem?.getBoundingClientRect().height
+    const columnDropdownOffset = isMobile ? 100 : 90
+    const newHeight = windowHeight - headerOffset - paginationPadding - columnDropdownOffset
+    setHeight(newHeight)
   }
 
   useEffect(() => {
@@ -179,7 +183,6 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
       </TableRow>
     );
   }, areEqual);
-
   return (
     <Table overscroll className="table-fixed w-[0px]" ref={tableRef}>
       <TableHeader>
@@ -187,18 +190,12 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
           {seasonColumns.map(({ id, name, classes }) => {
             if (hiddenFields.includes(id)) return null;
             return (
-              <TableHead className={`sticky top-0 z-[1] ${classes}`} key={id} onClick={() => hideColumn(id)}>
+              <TableHead className={`sticky top-0 z-[1] ${classes} group ${!nonHideableFields.includes(id) ? 'cursor-pointer' : ''}`} key={id} onClick={() => hideColumn(id)}>
                 {!nonHideableFields.includes(id) ? (
-                  <TooltipSimple
-                    variant="unstyled"
-                    rawTriggerClassName="hidden sm:inline-block cursor-pointer"
-                    content={<IconImage className="cursor-pointer" src={eyeballCrossed} size={4} />}
-                    side="left"
-                    align="end"
-                    sideOffset={4}
-                  >
-                    <span className="self-end">{name}</span>
-                  </TooltipSimple>
+                  <div className="flex items-center justify-end gap-2">
+                    <IconImage className="cursor-pointer opacity-0 group-hover:opacity-100" src={eyeballCrossed} size={4} />
+                    <span>{name}</span>
+                  </div>
                 ) : (
                   <span>{name}</span>
                 )}
@@ -214,7 +211,7 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
           </TableRow>
         )}
         <VariableSizeList
-          className="overscroll-auto sm:mb-16 mb-0"
+          className="overscroll-auto mb-[50px]"
           height={height}
           itemCount={seasonsData.length}
           itemSize={() => 50}
