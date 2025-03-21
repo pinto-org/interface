@@ -40,7 +40,7 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
     }
     const windowHeight = window.innerHeight;
     const headerOffset = elem?.getBoundingClientRect().height
-    const columnDropdownOffset = isMobile ? 100 : 90
+    const columnDropdownOffset = isMobile ? 105 : 80
     const newHeight = windowHeight - headerOffset - paginationPadding - columnDropdownOffset
     setHeight(newHeight)
   }
