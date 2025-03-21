@@ -97,9 +97,9 @@ const Overview = () => {
 
     const claimSiloPct = siloData.totalStalk.gt(0)
       ? farmerSilo.activeStalkBalance
-          .add(farmerActions.claimRewards.outputs.stalkGain)
-          .div(siloData.totalStalk)
-          .mul(100)
+        .add(farmerActions.claimRewards.outputs.stalkGain)
+        .div(siloData.totalStalk)
+        .mul(100)
       : TokenValue.ZERO;
 
     const harvestSiloPct = siloData.totalStalk.gt(0)
@@ -398,7 +398,7 @@ const Overview = () => {
                     }
                   />
                 )*/}
-                <div className="absolute right-0 top-20 h-4" data-action-target="helper-target" />
+                {/* <div className="absolute right-0 top-20 h-4" data-action-target="helper-target" />
                 {currentTab === "deposits" && canWrap && (
                   <HelperLink
                     text={"Wrap Deposited Pinto"}
@@ -417,7 +417,7 @@ const Overview = () => {
                     }
                     onClick={() => navigate(`/wrap`)}
                   />
-                )}
+                )} */}
               </div>
             ) : (
               <EmptyTable type="deposits" />

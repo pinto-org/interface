@@ -250,10 +250,6 @@ export default function WalletButtonPanel({ togglePanel }) {
 
     const totalBalance = tokens.reduce(
       (totals, token) => {
-        if (token.isSiloWrapped === true || token.is3PSiloWrapped === true) {
-          return totals;
-        }
-
         const tokenBalance = farmerBalances.get(token);
         const price = priceData.tokenPrices.get(token)?.instant || 0;
 

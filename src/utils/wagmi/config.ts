@@ -19,6 +19,11 @@ const getTransportsConfig = (): TransportsConfig => {
   const config: TransportsConfig = {};
 
   for (const chain of getEnvEnabledChains()) {
+    if (chain === undefined) {
+      console.error(
+        'Your VITE_CHAINS environment variable is not set correctly, try setting it to something like `VITE_CHAINS="41337,1337,8453,42161"`',
+      );
+    }
     config[chain.id] = http(chain.rpcUrls.default.http[0]);
   }
 

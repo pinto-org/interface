@@ -41,7 +41,6 @@ export default function SmartSubmitButton({
   const queryClient = useQueryClient();
   const farmerBalances = useFarmerBalances().balances;
   const diamond = useProtocolAddress();
-
   const baseAllowanceQueryEnabled = !!account.address && !!token && !token.isNative;
 
   const {
@@ -94,7 +93,7 @@ export default function SmartSubmitButton({
   });
 
   const needsApproval = useMemo(() => {
-    if (!token || !balanceFrom || token.isNative) {
+    if (!token || !exists(balanceFrom) || token.isNative) {
       return false;
     }
 

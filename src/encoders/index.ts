@@ -22,6 +22,9 @@ import getWellSwapOut from "./well/getWellSwapOut";
 import swapFrom from "./well/swapFrom";
 import wellRemoveLiquidity, { wellRemoveLiquidityOneToken } from "./wellRemoveLiquidity";
 import wrapEth from "./wrapEth";
+import erc20BalanceOf from "./erc20BalanceOf";
+import siloedTokenDeposit from "./siloedPinto/siloedTokenDeposit";
+import siloedTokenRedeem from "./siloedPinto/siloedTokenRedeem";
 
 const encoders = {
   advancedPipe,
@@ -44,9 +47,15 @@ const encoders = {
     getAmountOut,
   },
 
+  siloedPinto: {
+    depositERC20: siloedTokenDeposit,
+    redeemERC20: siloedTokenRedeem
+  },
+
   token: {
     transferToken,
     erc20Transfer,
+    erc20BalanceOf,
     erc20Approve,
     unwrapEth,
     wrapEth,

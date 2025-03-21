@@ -24,7 +24,7 @@ export default function useTokenData() {
 
   const sMainToken = useChainConstant(S_MAIN_TOKEN);
 
-  const { mainToken, nativeToken, wrappedNativeToken, lpTokens, preferredTokens, thirdPartyWrappedNativeToken } =
+  const { mainToken, nativeToken, wrappedNativeToken, lpTokens, preferredTokens, siloWrappedToken3p } =
     useMemo(() => {
       const _lpTokens: Token[] = [];
       const _preferredTokens: Token[] = [];
@@ -49,7 +49,7 @@ export default function useTokenData() {
         mainToken: _mainToken,
         nativeToken: _nativeToken,
         wrappedNativeToken: _wrappedNativeToken,
-        thirdPartyWrappedNativeToken: _3pWrappedNativeToken,
+        siloWrappedToken3p: _3pWrappedNativeToken,
         lpTokens: _lpTokens,
         preferredTokens: _preferredTokens,
       };
@@ -106,9 +106,9 @@ export default function useTokenData() {
     () => ({
       mainToken: mainToken,
       siloWrappedToken: sMainToken,
+      siloWrappedToken3p: siloWrappedToken3p,
       nativeToken: nativeToken,
       wrappedNativeToken: wrappedNativeToken,
-      thirdPartyWrappedNativeToken: thirdPartyWrappedNativeToken,
       lpTokens: lpTokens,
       preferredTokens: preferredTokens,
       whitelistedTokens: [mainToken, ...lpTokens],
