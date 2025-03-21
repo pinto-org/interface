@@ -13,6 +13,7 @@ const FarmerExplorer = () => {
   const plantedData = useFarmerSeasonalPlantedPinto(Math.max(0, season - tabToSeasonalLookback(plantedTab)), season);
   const grownStalkData = useFarmerSeasonalClaimedGrownStalkBalance(Math.max(0, season - tabToSeasonalLookback(grownStalkTab)), season);
   const stalkOwnershipData = useFarmerSeasonalStalkOwnership(Math.max(0, season - tabToSeasonalLookback(stalkOwnershipTab)), season);
+  console.log("🚀 ~ FarmerExplorer ~ Math.max(0, season - tabToSeasonalLookback(stalkOwnershipTab)), season:", Math.max(0, season - tabToSeasonalLookback(stalkOwnershipTab)), season)
 
   return (
     <>

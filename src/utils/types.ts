@@ -276,6 +276,12 @@ export type UseSeasonalResult = {
   isError: boolean;
 };
 
+export type UseMultiSeasonalResult = {
+  data: {[key: string]: SeasonalChartData[]} | undefined;
+  isLoading: boolean;
+  isError: boolean;
+};
+
 export type BlockInfo = {
   blockNumber: number;
   timestamp: DateTime;

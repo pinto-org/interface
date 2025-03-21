@@ -230,8 +230,8 @@ const PlotRow = forwardRef<HTMLTableRowElement, PlotRowProps>(
               {placeInLine.gt(999999) && isMobile
                 ? placeInLine.toHuman("ultraShort")
                 : formatter.number(isHarvesting ? TokenValue.ZERO : placeInLine.eq(0) ? 0.001 : placeInLine, {
-                    minValue: 0.01,
-                  })}
+                  minValue: 0.01,
+                })}
               <span className="block sm:hidden md:block lg:hidden min-[1350px]:block text-pinto-light">
                 in the Pod Line
               </span>
@@ -266,10 +266,10 @@ export default function PlotsTable({
   // Update the harvestable plot logic to only use it for the claimable row
   const harvestablePlot = hasHarvestablePods
     ? {
-        ...(farmerField.plots.find((plot) => plot.harvestablePods.gt(0)) || farmerField.plots[0]),
-        // For the claimable row, we only want to show harvestable pods
-        pods: farmerField.plots.reduce((sum, plot) => sum.add(plot.harvestablePods), TokenValue.ZERO),
-      }
+      ...(farmerField.plots.find((plot) => plot.harvestablePods.gt(0)) || farmerField.plots[0]),
+      // For the claimable row, we only want to show harvestable pods
+      pods: farmerField.plots.reduce((sum, plot) => sum.add(plot.harvestablePods), TokenValue.ZERO),
+    }
     : undefined;
 
   const numHarvestable = useMemo(() => {

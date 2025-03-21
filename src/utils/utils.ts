@@ -185,3 +185,32 @@ export function identifyPlantDeposits(
 
   return plantDepositMap;
 }
+
+export function caseIdToDescriptiveText(caseId: number, column: "price" | "soil_demand" | "pod_rate" | "l2sr") {
+  switch (column) {
+    case "price":
+      if ((caseId % 36) % 9 < 3) return "P < $1.00";
+      else if ((caseId % 36) % 9 < 6) return "P > $1.00";
+      //(caseId % 36 < 9)
+      else return "P > Q";
+    case "soil_demand":
+      if (caseId % 3 === 0) return "Decreasing";
+      else if (caseId % 3 === 1) return "Steady";
+      else return "Increasing";
+    case "pod_rate":
+      if ((caseId % 36) / 9 === 0) return "Excessively Low";
+      else if ((caseId % 36) / 9 === 1) return "Reasonably Low";
+      else if ((caseId % 36) / 9 === 2) return "Reasonably High";
+      else return "Excessively High";
+    case "l2sr":
+      if (caseId / 36 === 0) {
+        return "Extremely Low";
+      } else if (caseId / 36 === 1) {
+        return "Reasonably Low";
+      } else if (caseId / 36 === 2) {
+        return "Reasonably High";
+      } else {
+        return "Extremely High";
+      }
+  }
+};

@@ -22,10 +22,10 @@ import { externalLinks } from "./constants/links";
 
 function AppLayout({ children }) {
   return (
-    <div>
+    <div className="min-h-screen">
       <Navbar />
       <ScrollToTop />
-      <div className={cn("relative z-[1] w-screen ")}>{children}</div>
+      <div className={cn("relative z-[1] w-screen")}>{children}</div>
     </div>
   );
 }
