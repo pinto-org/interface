@@ -2,16 +2,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import eyeballCrossed from "@/assets/misc/eyeball-crossed.svg";
 import IconImage from "@/components/ui/IconImage";
 import { SeasonsTableData } from "@/state/useSeasonsData";
-import { Tooltip, TooltipProvider, TooltipTrigger } from "@/components/ui/Tooltip";
-import { TooltipContent, TooltipPortal } from "@radix-ui/react-tooltip";
-import { seasonColumns, SortColumn } from "@/pages/explorer/SeasonsExplorer";
+import { seasonColumns } from "@/pages/explorer/SeasonsExplorer";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { areEqual, ListChildComponentProps, VariableSizeList } from "react-window";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import { calculateCropScales, convertDeltaDemandToPercentage } from "@/utils/convert";
 import { caseIdToDescriptiveText } from "@/utils/utils";
 import { SeasonsTableCell, SeasonsTableCellType } from "./SeasonsTableCell";
-import TooltipSimple from "../TooltipSimple";
 
 interface SeasonsTableProps {
   seasonsData: SeasonsTableData[];
@@ -28,7 +25,6 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
   const tableRef = useRef<HTMLTableElement>(null);
   const isMobile = useIsMobile();
   const [height, setHeight] = useState(500);
-  const paginationPadding = isMobile ? 62 : 64
 
   const calculatedWidth = useMemo(() => {
     return seasonColumns.reduce((acc, column) => {
