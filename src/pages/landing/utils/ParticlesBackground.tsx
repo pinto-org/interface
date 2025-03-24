@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useCallback, forwardRef, useImperativeHandle, useState } from "react";
+import { Container } from "@tsparticles/engine";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
+import React, { useEffect, useRef, useCallback, forwardRef, useImperativeHandle, useState } from "react";
 import { loadFull } from "tsparticles";
 import particleConfig from "./particleConfig";
-import { Container } from "@tsparticles/engine";
 
 export interface ParticlesBackgroundHandle {
   loadTheme: (theme: string) => void;

@@ -43,27 +43,27 @@ function validateNoMissingSeasons(seasonData: SeasonalChartData[]) {
     throw new Error("seasonData is missing seasons");
   }
 
-  return { earliest, latest }
+  return { earliest, latest };
 }
 
 /**
  * Combine two seasonal queries into a single array of seasonal chart data
- * 
- * This function assumes that data1 and data2 are both: 
+ *
+ * This function assumes that data1 and data2 are both:
  * - data sparsed such that there is a value for every season [earliest, latest]
- * 
- * In the case where two queries have different season ranges, 
+ *
+ * In the case where two queries have different season ranges,
  * the returned data will be truncated to the earliest and latest seasons where both queries have data.
- * 
+ *
  * @throws {Error} if one of the queries is missing seasons.
- * 
+ *
  * @returns {SeasonalChartData[]} the combined seasonal data in ascending order.
  */
 export function mergeUseSeasonalQueriesResults(
-  seasonData1: UseSeasonalResult['data'],
-  seasonData2: UseSeasonalResult['data'],
+  seasonData1: UseSeasonalResult["data"],
+  seasonData2: UseSeasonalResult["data"],
   combine: (hourly1: number, hourly2: number) => number,
-): UseSeasonalResult['data'] {
+): UseSeasonalResult["data"] {
   // If either query is missing data, return empty
   if (!seasonData1?.length || !seasonData2?.length) {
     return [];
@@ -132,7 +132,7 @@ export function alignChartData(datasets: SeasonalChartData[][]): SeasonalChartDa
 
   if (minSeason === Infinity || maxSeason === -Infinity) {
     return undefined;
-  };
+  }
 
   // Step 2: Clip datasets to [minSeason, maxSeason] and remove season duplicates
   const alignedDatasets = datasets.map((dataset) => {
@@ -177,9 +177,12 @@ export function useNormalizeMayMultipleSeasonalData(results: UseSeasonalResult[]
     return alignChartData(resultsData);
   }, [resultsData]);
 
-  return useMemo(() => ({
-    data: data,
-    isLoading: isLoading,
-    isError: isError,
-  }), [data, isLoading, isError]);
+  return useMemo(
+    () => ({
+      data: data,
+      isLoading: isLoading,
+      isError: isError,
+    }),
+    [data, isLoading, isError],
+  );
 }

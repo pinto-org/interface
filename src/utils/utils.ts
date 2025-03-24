@@ -3,6 +3,7 @@ import { FarmerBalance } from "@/state/useFarmerBalances";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { FarmFromMode } from "./types";
+import { MayArray } from "./types.generic";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -14,7 +15,7 @@ export const generateID = (prefix = "") => {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
-export const noop = () => { };
+export const noop = () => {};
 
 export function unpackStem(data: string | number | bigint): bigint {
   // Convert input to BigInt if it isn't already
@@ -67,9 +68,11 @@ export const isObject = (value: unknown): value is Record<string, unknown> => {
   return !!value && typeof value === "object" && !Array.isArray(value);
 };
 
-export function calculatePipeCallClipboardSlot(pipeCallLength: number, slot: number) {
-  if (!pipeCallLength || !slot) return 0;
-  return 2 + pipeCallLength + (1 + slot * 2);
+export function arrayify<T>(value: MayArray<T>): T[];
+export function arrayify<T, U>(value: MayArray<T>, map: (v: T, i: number, arr: T[]) => U): U[];
+export function arrayify<T, U = T>(value: MayArray<T>, map?: (v: T, i: number, arr: T[]) => U): (T | U)[] {
+  const array = Array.isArray(value) ? value : [value];
+  return map ? array.map(map) : array;
 }
 
 export function getBalanceFromMode(balance: FarmerBalance | undefined, mode: FarmFromMode) {
@@ -181,4 +184,33 @@ export function identifyPlantDeposits(
   });
 
   return plantDepositMap;
+}
+
+export function caseIdToDescriptiveText(caseId: number, column: "price" | "soil_demand" | "pod_rate" | "l2sr") {
+  switch (column) {
+    case "price":
+      if ((caseId % 36) % 9 < 3) return "P < $1.00";
+      else if ((caseId % 36) % 9 < 6) return "P > $1.00";
+      //(caseId % 36 < 9)
+      else return "P > Q";
+    case "soil_demand":
+      if (caseId % 3 === 0) return "Decreasing";
+      else if (caseId % 3 === 1) return "Steady";
+      else return "Increasing";
+    case "pod_rate":
+      if ((caseId % 36) / 9 === 0) return "Excessively Low";
+      else if ((caseId % 36) / 9 === 1) return "Reasonably Low";
+      else if ((caseId % 36) / 9 === 2) return "Reasonably High";
+      else return "Excessively High";
+    case "l2sr":
+      if (caseId / 36 === 0) {
+        return "Extremely Low";
+      } else if (caseId / 36 === 1) {
+        return "Reasonably Low";
+      } else if (caseId / 36 === 2) {
+        return "Reasonably High";
+      } else {
+        return "Extremely High";
+      }
+  }
 }

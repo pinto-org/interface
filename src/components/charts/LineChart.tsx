@@ -14,15 +14,7 @@ import {
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { ReactChart } from "../ReactChart";
 
-Chart.register(
-  LineController,
-  LineElement,
-  LinearScale,
-  LogarithmicScale,
-  CategoryScale,
-  PointElement,
-  Filler
-);
+Chart.register(LineController, LineElement, LinearScale, LogarithmicScale, CategoryScale, PointElement, Filler);
 
 export type LineChartData = {
   values: number[];
@@ -30,7 +22,7 @@ export type LineChartData = {
 
 export type MakeGradientFunction = (
   ctx: CanvasRenderingContext2D | null,
-  position: number
+  position: number,
 ) => CanvasGradient | undefined;
 
 export type LineChartReferenceDotProps = {
@@ -116,14 +108,8 @@ const LineChart = React.memo(
       }
 
       // Otherwise calculate based on data
-      const maxData = data.reduce(
-        (acc, next) => Math.max(acc, ...next.values),
-        Number.MIN_SAFE_INTEGER
-      );
-      const minData = data.reduce(
-        (acc, next) => Math.min(acc, ...next.values),
-        Number.MAX_SAFE_INTEGER
-      );
+      const maxData = data.reduce((acc, next) => Math.max(acc, ...next.values), Number.MIN_SAFE_INTEGER);
+      const minData = data.reduce((acc, next) => Math.min(acc, ...next.values), Number.MAX_SAFE_INTEGER);
 
       let minTick = Math.max(0, minData - (maxData - minData) * 0.1);
       if (minTick === maxData) {
@@ -185,7 +171,7 @@ const LineChart = React.memo(
           }),
         };
       },
-      [data, makeLineGradients, makeAreaGradients, xKey]
+      [data, makeLineGradients, makeAreaGradients, xKey],
     );
 
     const gradientPlugin = useMemo(() => {
@@ -276,7 +262,7 @@ const LineChart = React.memo(
           }
         },
       }),
-      [fillArea] // Removed morningIndex from dependencies
+      [fillArea], // Removed morningIndex from dependencies
     );
 
     const horizontalReferenceLinePlugin: Plugin = useMemo<Plugin>(
@@ -334,7 +320,8 @@ const LineChart = React.memo(
                 ctx.textAlign = "left";
 
                 // Position the label based on proximity to chart edges
-                let labelY;
+                // biome-ignore lint/suspicious/noExplicitAny:
+                let labelY: any;
                 ctx.textBaseline = "bottom";
                 labelY = y - labelPadding;
                 if (isNearTop) {
@@ -351,7 +338,7 @@ const LineChart = React.memo(
           ctx.restore();
         },
       }),
-      [horizontalReferenceLines]
+      [horizontalReferenceLines],
     );
 
     const selectionPointPlugin: Plugin = useMemo<Plugin>(
@@ -380,28 +367,28 @@ const LineChart = React.memo(
               x + rectWidth / 2,
               y - rectHeight / 2,
               x + rectWidth / 2,
-              y - rectHeight / 2 + cornerRadius
+              y - rectHeight / 2 + cornerRadius,
             );
             ctx.lineTo(x + rectWidth / 2, y + rectHeight / 2 - cornerRadius);
             ctx.quadraticCurveTo(
               x + rectWidth / 2,
               y + rectHeight / 2,
               x + rectWidth / 2 - cornerRadius,
-              y + rectHeight / 2
+              y + rectHeight / 2,
             );
             ctx.lineTo(x - rectWidth / 2 + cornerRadius, y + rectHeight / 2);
             ctx.quadraticCurveTo(
               x - rectWidth / 2,
               y + rectHeight / 2,
               x - rectWidth / 2,
-              y + rectHeight / 2 - cornerRadius
+              y + rectHeight / 2 - cornerRadius,
             );
             ctx.lineTo(x - rectWidth / 2, y - rectHeight / 2 + cornerRadius);
             ctx.quadraticCurveTo(
               x - rectWidth / 2,
               y - rectHeight / 2,
               x - rectWidth / 2 + cornerRadius,
-              y - rectHeight / 2
+              y - rectHeight / 2,
             );
             ctx.closePath();
 
@@ -434,7 +421,7 @@ const LineChart = React.memo(
           }
         },
       }),
-      [fillArea] // Removed morningIndex from dependencies
+      [fillArea], // Removed morningIndex from dependencies
     );
 
     const selectionCallbackPlugin: Plugin = useMemo<Plugin>(
@@ -444,7 +431,7 @@ const LineChart = React.memo(
           onMouseOver?.(chart.getActiveElements()[0]?.index);
         },
       }),
-      []
+      [],
     );
 
     const chartOptions: ChartOptions = useMemo(() => {
@@ -506,8 +493,7 @@ const LineChart = React.memo(
                   return "";
                 }
 
-                const tickLabel =
-                  xValue instanceof Date ? `${xValue.getMonth() + 1}/${xValue.getDate()}` : xValue;
+                const tickLabel = xValue instanceof Date ? `${xValue.getMonth() + 1}/${xValue.getDate()}` : xValue;
 
                 if (typeof activeIndex === "number") {
                   if (index === 0 || index === values.length - 1) {
@@ -573,7 +559,7 @@ const LineChart = React.memo(
         horizontalReferenceLinePlugin,
         selectionPointPlugin,
         selectionCallbackPlugin,
-      ]
+      ],
     );
 
     const chartDimensions = useMemo(() => {
@@ -601,6 +587,6 @@ const LineChart = React.memo(
         height={chartDimensions.h}
       />
     );
-  }
+  },
 );
 export default LineChart;

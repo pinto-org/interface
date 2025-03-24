@@ -1,11 +1,11 @@
+import { TV, TokenValue } from "@/classes/TokenValue";
+import { useHarvestableIndex } from "@/state/useFieldData";
+import { formatter } from "@/utils/format";
+import { Plot } from "@/utils/types";
 import { Dispatch, InputHTMLAttributes, SetStateAction, useEffect, useMemo } from "react";
-import { TokenValue, TV } from "@/classes/TokenValue";
 import PlotSelect from "./PlotSelect";
 import SimpleInputField from "./SimpleInputField";
-import { Plot } from "@/utils/types";
-import { useHarvestableIndex } from "@/state/useFieldData";
 import Text from "./ui/Text";
-import { formatter } from "@/utils/format";
 
 export interface ComboPlotInputProps extends InputHTMLAttributes<HTMLInputElement> {
   selectedPlots: Plot[];

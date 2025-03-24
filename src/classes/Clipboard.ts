@@ -85,10 +85,10 @@ export class Clipboard {
    * Prepare types and packed data for a Paste operation.
    */
   private static prepare<T extends ClipboardType>(type: T, pasteParams: PasteParamsByType[T], etherValue: bigint) {
-    let hasValue = etherValue > 0;
+    const hasValue = etherValue > 0;
     let types: { name: string; type: string }[] = [];
     let encodeData: (string | string[])[] = [];
-    let typeBytes: `0x${string}` = `0x0${type}0${hasValue ? 1 : 0}`;
+    const typeBytes: `0x${string}` = `0x0${type}0${hasValue ? 1 : 0}`;
 
     switch (type) {
       case 0: {

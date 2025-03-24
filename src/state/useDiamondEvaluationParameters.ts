@@ -20,7 +20,7 @@ export interface EvaluationParameters {
   baseReward: bigint;
   minAvgGsPerBdv: bigint;
   rainingMinBeanMaxLpGpPerBdvRatio: bigint;
-};
+}
 
 export const useDiamondEvalulationParameters = () => {
   const diamond = useProtocolAddress();
@@ -33,7 +33,7 @@ export const useDiamondEvalulationParameters = () => {
     query: {
       staleTime: Infinity,
       refetchIntervalInBackground: false,
-    }
+    },
   });
 
   const data = queryData as EvaluationParameters | undefined;
@@ -45,19 +45,19 @@ export const useDiamondEvalulationParameters = () => {
       if (season < SEASON_2710) {
         return {
           ...data,
-          ...seasonalDeploymentChanges[SEASON_2710]
-        }
+          ...seasonalDeploymentChanges[SEASON_2710],
+        };
       }
 
       return data;
-    }
+    };
   }, [data]);
 
   return {
     ...query,
-    getEvaluationParametersWithSeason
-  }
-}
+    getEvaluationParametersWithSeason,
+  };
+};
 
 // ---------- Constants ----------
 
@@ -66,8 +66,8 @@ const SEASON_2710 = 2710;
 
 const seasonalDeploymentChanges: Record<number, Partial<EvaluationParameters>> = {
   [SEASON_2710]: {
-    maxBeanMaxLpGpPerBdvRatio: BigInt(100e18)
-  }
+    maxBeanMaxLpGpPerBdvRatio: BigInt(100e18),
+  },
 } as const;
 
 // ---------- ABI ----------

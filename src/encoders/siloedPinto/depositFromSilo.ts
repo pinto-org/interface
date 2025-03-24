@@ -11,29 +11,24 @@ export default function depositFromSilo(
   recipient: Address,
   toMode: FarmToMode,
   clipboard: HashString = Clipboard.encode([]),
-  target?: Address
+  target?: Address,
 ): AdvancedFarmCall | AdvancedPipeCall {
   const callData = encodeFunctionData({
     abi: siloedPintoABI,
     functionName: "depositFromSilo",
-    args: [
-      stems.map((stem) => stem.toBigInt()),
-      amounts.map((amount) => amount.toBigInt()),
-      recipient,
-      Number(toMode)
-    ]
+    args: [stems.map((stem) => stem.toBigInt()), amounts.map((amount) => amount.toBigInt()), recipient, Number(toMode)],
   });
 
   if (target) {
     return {
       target,
       callData,
-      clipboard
+      clipboard,
     } as AdvancedPipeCall;
   }
 
   return {
     callData,
-    clipboard
+    clipboard,
   } as AdvancedFarmCall;
 }

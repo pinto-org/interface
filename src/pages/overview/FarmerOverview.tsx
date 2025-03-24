@@ -398,7 +398,7 @@ const Overview = () => {
                     }
                   />
                 )*/}
-                <div className="absolute right-0 top-20 h-4" data-action-target="helper-target" />
+                {/* <div className="absolute right-0 top-20 h-4" data-action-target="helper-target" />
                 {currentTab === "deposits" && canWrap && (
                   <HelperLink
                     text={"Wrap Deposited Pinto"}
@@ -417,7 +417,7 @@ const Overview = () => {
                     }
                     onClick={() => navigate(`/wrap`)}
                   />
-                )}
+                )} */}
               </div>
             ) : (
               <EmptyTable type="deposits" />

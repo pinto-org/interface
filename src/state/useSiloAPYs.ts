@@ -31,7 +31,7 @@ export type EMAWindows<T> = {
 /**
  * Yields for a single token, across different EMA windows.
  */
-export interface SiloTokenYield extends EMAWindows<number> { }
+export interface SiloTokenYield extends EMAWindows<number> {}
 
 /**
  * API response from /silo/yields
@@ -107,7 +107,7 @@ export function useSiloYieldsQuery<TSelect = SiloYieldsAPIResponse>(
       return failureCount < 2;
     },
     ...(arg || {}),
-    enabled: !!endpoint
+    enabled: !!endpoint,
   });
 }
 

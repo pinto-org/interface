@@ -1,3 +1,4 @@
+import { mockAddressAtom } from "@/Web3Provider";
 import { morningFieldDevModeAtom } from "@/state/protocol/field/field.atoms";
 import { getMorningResult, getNowRounded } from "@/state/protocol/sun";
 import { morningAtom, seasonAtom, sunQueryKeysAtom } from "@/state/protocol/sun/sun.atoms";
@@ -20,7 +21,6 @@ import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { Input } from "./ui/Input";
 import Text from "./ui/Text";
-import { mockAddressAtom } from "@/Web3Provider";
 
 type ServerStatus = "running" | "not-running" | "checking";
 
@@ -267,18 +267,16 @@ export default function DevPage() {
         <Card className="p-6">
           <h2 className="text-2xl mb-4">Mock Configuration</h2>
           <div className="flex flex-col gap-4">
-            <div className="text-sm text-gray-500">
-              Configure the mock wallet address for local development
-            </div>
+            <div className="text-sm text-gray-500">Configure the mock wallet address for local development</div>
             <div className="flex gap-2">
               <Input
-                placeholder="Mock Wallet Address" 
+                placeholder="Mock Wallet Address"
                 value={mockAddress}
                 onChange={(e) => {
                   const newAddress = e.target.value as `0x${string}`;
                   setMockAddress(newAddress); // Always update the input
                   if (isAddress(newAddress)) {
-                    localStorage.setItem('mockAddress', newAddress);
+                    localStorage.setItem("mockAddress", newAddress);
                   }
                 }}
                 className={`flex-1 ${mockAddress && !isAddress(mockAddress) ? "border-pinto-red-2" : ""}`}
@@ -500,7 +498,6 @@ export default function DevPage() {
           </div>
         </Card>
         <MorningAuctionDev executeTask={executeTask} skipBlocks={skipBlocks} />
-
       </div>
     </div>
   );

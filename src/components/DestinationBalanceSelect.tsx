@@ -3,7 +3,7 @@ import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
 
 interface DestinationBalanceSelect {
   setBalanceTo: (value: FarmToMode) => void;
-  balanceTo: FarmToMode;
+  balanceTo: FarmToMode | undefined;
   variant?: "small" | "transferFlow";
 }
 

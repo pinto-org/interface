@@ -1,10 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ConnectKitProvider } from "connectkit";
+import { atom, useAtom } from "jotai";
 import { ReactNode, useEffect, useMemo } from "react";
 import { createTestClient } from "viem";
 import { http, WagmiProvider, createConfig } from "wagmi";
 import { mock } from "wagmi/connectors";
+import { isValidAddress } from "./utils/string";
 import { isLocalhost, isNetlifyPreview, isProd } from "./utils/utils";
 import {
   TENDERLY_RPC_URL,
@@ -13,8 +15,6 @@ import {
   tenderlyTestnetNetwork as testnet,
 } from "./utils/wagmi/chains";
 import config from "./utils/wagmi/config";
-import { atom, useAtom } from 'jotai';
-import { isValidAddress } from "./utils/string";
 
 // biome-ignore lint/suspicious/noExplicitAny: React Query needs this to serialize BigInts
 (BigInt.prototype as any).toJSON = function () {
@@ -68,7 +68,6 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-
 // New component to handle mock connector logic
 function MockConnectorManager() {
   const [mockAddress] = useAtom(mockAddressAtom);
@@ -87,9 +86,10 @@ function MockConnectorManager() {
 // Add atom for mock address with stored value or default
 export const mockAddressAtom = atom<`0x${string}`>(
   // default to local storage
-  (localStorage.getItem('mockAddress') as `0x${string}` || null) ||
-  // if none in local storage, use env variable
-  '0x'
+  (localStorage.getItem("mockAddress") as `0x${string}`) ||
+    null ||
+    // if none in local storage, use env variable
+    "0x",
 );
 
 export const anvilTestClient = createTestClient({
@@ -108,7 +108,6 @@ const getDefaultChainId = () => {
   return localhost.id;
 };
 
-
 // Create config with current mock address value
 const useEnvConfig = () => {
   const [mockAddress] = useAtom(mockAddressAtom);
@@ -122,11 +121,13 @@ const useEnvConfig = () => {
     return createConfig({
       connectors: [mock({ accounts: [mockAddress], features: { defaultConnected: true, reconnect: true } })],
       chains: [localhost, base],
-      client() { return anvilTestClient; }
-    })
+      client() {
+        return anvilTestClient;
+      },
+    });
   }, [mockAddress]);
 
   const envConfig = isLocal && localConfig ? localConfig : config;
 
   return envConfig;
-}
+};

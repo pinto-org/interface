@@ -13,8 +13,11 @@ import { AdvancedPipeCall, Token } from "@/utils/types";
 import { AddressLookup, HashString } from "@/utils/types.generic";
 import { readContract } from "viem/actions";
 import { Config as WagmiConfig } from "wagmi";
+import { AdvancedPipeWorkflow } from "../farm/workflow";
 import {
   ERC20SwapNode,
+  SiloWrappedTokenUnwrapNode,
+  SiloWrappedTokenWrapNode,
   WellRemoveSingleSidedSwapNode,
   WellSwapNode,
   WellSyncSwapNode,
@@ -112,9 +115,22 @@ class WellsRouter {
 
   #context: SwapContext;
 
+  #advPipe: AdvancedPipeWorkflow | null;
+
   constructor(priceCache: SwapPriceCache, context: SwapContext) {
     this.#priceCache = priceCache;
     this.#context = context;
+    this.#advPipe = new AdvancedPipeWorkflow(context.chainId, context.config);
+  }
+
+  #getAdvancedPipe() {
+    if (!this.#advPipe) {
+      this.#advPipe = new AdvancedPipeWorkflow(this.#context.chainId, this.#context.config);
+    } else {
+      this.#advPipe.clear();
+    }
+
+    return this.#advPipe;
   }
 
   /**
@@ -224,17 +240,14 @@ class WellsRouter {
       throw new Error(`Error building multi-well route. Could not find well for ${buyToken.symbol}`);
     }
 
-    const pipe: AdvancedPipeCall[] = [
+    const advPipe = this.#getAdvancedPipe();
+
+    advPipe.add([
       encoders.well.getSwapOut(sellTokenWell, sellToken, this.#context.mainToken, amount),
       encoders.well.getSwapOut(buyTokenWell, this.#context.mainToken, buyToken, amount, Clipboard.encodeSlot(0, 0, 2)),
-    ];
+    ]);
 
-    const encodedResult = await readContract(this.#context.config.getClient({ chainId: this.#context.chainId }), {
-      address: beanstalkAddress[this.#context.chainId],
-      abi: abiSnippets.advancedPipe,
-      functionName: "advancedPipe",
-      args: [pipe, 0n],
-    });
+    const encodedResult = await advPipe.readStatic();
 
     const decodedResults = (encodedResult as HashString[]).map((r) => decodeGetSwapOut(r));
 
@@ -291,6 +304,10 @@ export interface SwapContext {
    * PINTO
    */
   mainToken: Token;
+  /**
+   * Silo Deposit Token
+   */
+  siloWrappedToken: Token;
 }
 
 export interface SwapOptions {
@@ -360,67 +377,175 @@ export class SwapQuoter {
       return this.#makeQuote(nodes, sellToken, buyToken, amount, slippage);
     }
 
-    const sellingWETH = tokensEqual(this.context.wrappedNative, sellToken);
-    const buyingWETH = tokensEqual(this.context.wrappedNative, buyToken);
-
-    const wrappingETH = tokensEqual(this.context.native, sellToken);
-    const unwrappingETH = tokensEqual(this.context.native, buyToken);
-
     // Update token prices
     await this.priceCache.updatePrices(forceRefresh);
 
-    // Handle WETH to ETH swap (unwrap)
-    if (sellingWETH && unwrappingETH) {
-      const unwrapEthNode = new UnwrapEthSwapNode(this.context);
-      unwrapEthNode.setFields({ sellAmount: amount });
-      return this.#makeQuote([unwrapEthNode], sellToken, buyToken, amount, slippage);
+    const { quote, thruToken } = await this.#startSwapWithWrapIsh(nodes, sellToken, buyToken, amount, slippage);
+
+    if (quote) return quote;
+
+    // If thruToken is defined, set the sellThru to the thruToken.
+    const sellThru = thruToken ?? sellToken;
+    let buyThru: Token = buyToken;
+
+    // update the buyThru token if necessary.
+    if (buyToken.isSiloWrapped) {
+      buyThru = this.context.mainToken;
+    } else if (buyToken.isNative) {
+      buyThru = this.context.wrappedNative;
     }
 
-    // Handle ETH to other token swaps (wrap ETH)
-    if (wrappingETH) {
-      const wrapEthNode = new WrapEthSwapNode(this.context);
-      wrapEthNode.setFields({ sellAmount: amount });
+    // Get the amount to swap for the ERC20 only quote.
+    const erc20SwapAmountIn = extractLast(nodes)?.buyAmount ?? amount;
 
-      // If buying WETH, return the wrap node
-      if (buyingWETH) {
-        return this.#makeQuote([wrapEthNode], sellToken, buyToken, amount, slippage);
-      }
-
-      // Add the wrap node to the nodes array
-      nodes.push(wrapEthNode);
-    }
-
-    // Handle ERC20 token swaps
-    const swapNodes = await this.#erc20OnlyQuote(sellToken, buyToken, amount, slippage, options);
+    // Handle ERC20 token swaps. Does not include wrapping or unwrapping.
+    const swapNodes = await this.#erc20OnlyQuote(sellThru, buyThru, erc20SwapAmountIn, slippage, options);
     nodes.push(...swapNodes);
 
-    // Handle swapping to ETH (unwrap)
-    if (unwrappingETH) {
-      // We can cast to SwapNode here because we know we will have at least 1 node in 'nodes'
-      const lastSwapNode = extractLast(nodes) as SwapNode;
-      const unwrapEthNode = new UnwrapEthSwapNode(this.context);
-
-      unwrapEthNode.setFields({ sellAmount: lastSwapNode.buyAmount });
-
-      nodes.push(unwrapEthNode);
-    }
+    // Handle wrapping / unwrapping to the buy token if necessary at the end of the swap.
+    await this.#endSwapWithWrapIsh(nodes, buyToken);
 
     // Return the final quote
     return this.#makeQuote(nodes, sellToken, buyToken, amount, slippage);
   }
 
   /**
+   * Handle wrapping & unwrapping swaps
+   *
+   * In the case where we are only wrapping or unwrapping, we can return the quote immediately.
+   */
+  async #startSwapWithWrapIsh(
+    nodes: SwapNode[],
+    sellToken: Token,
+    buyToken: Token,
+    amount: TV,
+    slippage: number,
+  ): Promise<{
+    thruToken?: Token;
+    quote?: BeanSwapNodeQuote;
+  }> {
+    let thruToken: Token | undefined;
+
+    const makeQuoteObject = (node: SwapNode) => {
+      return {
+        quote: this.#makeQuote([node], sellToken, buyToken, amount, slippage),
+      };
+    };
+
+    // ----- Handle ONLY Wrapping & Unwrapping Swaps -----
+
+    // ONLY MAIN -> SiloWrappedToken swap. No more swaps needed.
+    if (sellToken.isMain && buyToken.isSiloWrapped) {
+      const siloWrapNode = new SiloWrappedTokenWrapNode(this.context);
+      await siloWrapNode.quoteForward(amount);
+      return makeQuoteObject(siloWrapNode);
+    }
+
+    // ONLY WETH -> ETH Swap. No more swaps needed.
+    if (sellToken.isWrappedNative && buyToken.isNative) {
+      const unwrapWETHNode = new UnwrapEthSwapNode(this.context);
+      unwrapWETHNode.setFields({ sellAmount: amount });
+      return makeQuoteObject(unwrapWETHNode);
+    }
+
+    // ----- Handle Wrap -> X Swaps -----
+
+    // ETH -> X Swaps
+    if (sellToken.isNative) {
+      const wrapETHNode = new WrapEthSwapNode(this.context);
+      wrapETHNode.setFields({ sellAmount: amount });
+
+      // If ONLY wrapping ETH -> WETH, return the quote. No more swaps needed.
+      if (buyToken.isWrappedNative) {
+        return makeQuoteObject(wrapETHNode);
+      }
+      // set the thru token to be WETH & add to nodes
+      thruToken = this.context.wrappedNative;
+      nodes.push(wrapETHNode);
+    }
+
+    // SiloWrappedToken -> X swaps
+    if (sellToken.isSiloWrapped) {
+      const siloWrapNode = new SiloWrappedTokenUnwrapNode(this.context);
+      await siloWrapNode.quoteForward(amount);
+
+      // If ONLY unwrapping SiloWrappedToken -> Main, return. No more swaps needed.
+      if (buyToken.isMain) {
+        return makeQuoteObject(siloWrapNode);
+      }
+      // set the thru token to be main & add to nodes
+      thruToken = this.context.mainToken;
+      nodes.push(siloWrapNode);
+    }
+
+    return { thruToken };
+  }
+
+  /**
+   * Handle wrapping / unwrapping to the buy token if necessary at the end of the swap.
+   *
+   * Assumes that nodes.length !== 0
+   */
+  async #endSwapWithWrapIsh(nodes: SwapNode[], buyToken: Token): Promise<void> {
+    const prevNode = extractLast(nodes) as SwapNode;
+    if (!prevNode) {
+      throw new Error("[Swap Router/endSwapWithWrapIsh] No swap nodes found");
+    }
+
+    const thruToken = prevNode.buyToken;
+    const amount = prevNode.buyAmount;
+
+    const isWrappingToSilo = Boolean(buyToken.isSiloWrapped);
+    const isUnwrappingtoETH = Boolean(buyToken.isNative);
+
+    if (isWrappingToSilo && isUnwrappingtoETH) {
+      throw new Error("[Swap Router/endSwapWithWrapIsh] buy Token Misconfigured. Cannot be both silo wrapped & native");
+    }
+
+    // if buyToken = siloWrappedToken
+    if (isWrappingToSilo) {
+      // if thruToken is not main, throw
+      if (!thruToken.isMain) {
+        throw new Error(
+          `[Swap Router/endSwapWithWrapIsh] Invalid Sell Token. Expected Main, but got non-main token, ${thruToken.address}`,
+        );
+      }
+
+      const siloWrapNode = new SiloWrappedTokenWrapNode(this.context);
+      await siloWrapNode.quoteForward(amount);
+      nodes.push(siloWrapNode);
+    }
+
+    // if buyToken = ETH
+    else if (isUnwrappingtoETH) {
+      // if thruToken is not WETH, throw
+      if (!thruToken.isWrappedNative) {
+        throw new Error(
+          `[Swap Router/endSwapWithWrapIsh] Invalid Thru Token. Expected WETH, but got ${thruToken.symbol}`,
+        );
+      }
+
+      const unwrapEthNode = new UnwrapEthSwapNode(this.context);
+      unwrapEthNode.setFields({ sellAmount: amount });
+      nodes.push(unwrapEthNode);
+    }
+  }
+
+  /**
    * Handle quote for ERC20 only swaps
    */
-  async #erc20OnlyQuote(_sellToken: Token, _buyToken: Token, sellAmount: TV, slippage: number, options?: SwapOptions) {
-    const sellToken = _sellToken.isNative ? this.context.wrappedNative : _sellToken;
-    const buyToken = _buyToken.isNative ? this.context.wrappedNative : _buyToken;
+  async #erc20OnlyQuote(sellToken: Token, buyToken: Token, sellAmount: TV, slippage: number, options?: SwapOptions) {
+    if (!isPureERC20(sellToken) || !isPureERC20(buyToken)) {
+      throw new Error(
+        `[Swap Router/erc20OnlyQuote] Invalid tokens. Expected non native & non silo wrapped tokens, but got SELL: ${sellToken.symbol}, BUY: ${buyToken.symbol}`,
+      );
+    }
 
     const {
       swap: swapFragment,
       sync: syncFragment,
       remove: removeFragment,
-    } = this.#splitSwapsAndSync(sellToken, buyToken, options);
+    } = this.#fragmentizeSwap(sellToken, buyToken, options);
 
     const nodes: SwapNode[] = [];
 
@@ -449,9 +574,8 @@ export class SwapQuoter {
    */
   async #nonLPQuote(swapFragment: QuoteSourceFragment, sellAmount: TV, slippage: number, options?: SwapOptions) {
     const { sellToken, buyToken } = swapFragment;
-    //
-    const sellingMain = tokensEqual(sellToken, this.context.mainToken);
-    const buyingMain = tokensEqual(buyToken, this.context.mainToken);
+    const sellingMain = Boolean(sellToken.isMain);
+    const buyingMain = Boolean(buyToken.isMain);
 
     if (tokensEqual(sellToken, buyToken)) {
       throw new Error("[Swap Router] Cannot swap main token with itself");
@@ -493,12 +617,20 @@ export class SwapQuoter {
     }
 
     // Get the best route from the wells router
-    const routes = await this.wellsRouter.getBestWellBeanOutRoute(usdIn, slippage, options);
+    const [routes, dexAggNode] = await Promise.all([
+      this.wellsRouter.getBestWellBeanOutRoute(usdIn, slippage, options),
+      this.#handleZeroXQuote(sellToken, buyToken, sellAmount, slippage),
+    ]);
 
     const route = routes?.[0];
 
     if (!route) {
       throw new Error("[Swap Router] No route found");
+    }
+
+    // If the zeroX quote is better than the best route, return the zeroX quote
+    if (dexAggNode.buyAmount.gt(route.amountOut)) {
+      return [dexAggNode];
     }
 
     const thruToken = route.sellToken;
@@ -518,13 +650,16 @@ export class SwapQuoter {
       });
     }
 
-    // If the direct path is the best path, return the direct path node.
+    // // If the direct path is the best path, return the direct path node.
     if (directPathIsBestPath && directNode) {
       return [directNode];
     }
 
     // Quote the swap from the sell token to the intermediary token.
-    const nonMain2NonMainNodes = await this.#handleNonPintoSwap(sellToken, thruToken, sellAmount, slippage, options);
+    const nonMain2NonMainNodes = await this.#handleNonPintoSwap(sellToken, thruToken, sellAmount, slippage, {
+      ...options,
+      excludePintoExchange: true,
+    });
 
     // Swap from the intermediary token to the main token
     const well = this.context.underlying2LP[getTokenIndex(thruToken)];
@@ -549,6 +684,15 @@ export class SwapQuoter {
 
   /**
    * Handle quote for selling PINTO -> NON_PINTO
+   *
+   * Notes:
+   *
+   * 1. If we are disabling 0x quotes (for example, if swapping between PINTO & WSOL)
+   *    -> returns the direct well route
+   * 2. Fetch well routes & fetch from dex aggregator
+   *
+   * 3. Compare the approximate USD value of the
+   *
    */
   async #handleSellMain(
     sellToken: Token,
@@ -561,36 +705,51 @@ export class SwapQuoter {
       return this.#handleDirectRoute(sellToken, buyToken, sellAmount, slippage);
     }
 
-    // Get the best route from the wells router
-    const routes = await this.wellsRouter.getBestWellBeanInRoute(sellAmount, slippage, options);
-    const route = routes?.[0];
+    // Get the best route from the wells router & fetch from zeroX
+    const [routes, dexAggNode] = await Promise.all([
+      this.wellsRouter.getBestWellBeanInRoute(sellAmount, slippage, options),
+      this.#handleZeroXQuote(sellToken, buyToken, sellAmount, slippage),
+    ]);
+
+    // Set the USD values for the dex aggregator node to compare against the well route outputs
+    dexAggNode.setUSDValues(this.priceCache);
+
+    const highestOutputWellRoute = routes?.[0];
     const directPath = routes.find((route) => tokensEqual(route.buyToken, buyToken));
 
-    if (!routes.length || !route?.well) {
+    if (!routes.length || !highestOutputWellRoute?.well) {
       throw new Error("[Swap Router] Error building quote");
     }
 
-    const thruToken = route.buyToken;
+    const thruToken = highestOutputWellRoute.buyToken;
     const nodes: SwapNode[] = [];
 
+    const directPathIsBestPath = tokensEqual(thruToken, buyToken);
+
     // Create the first swap node (main token to intermediary token)
-    const firstNode = new WellSwapNode(this.context, route.well, sellToken, thruToken);
+    const firstNode = new WellSwapNode(this.context, highestOutputWellRoute.well, sellToken, thruToken);
     firstNode.setFields({
       sellAmount: sellAmount,
-      buyAmount: route.amountOut,
-      minBuyAmount: route.minAmountOut,
+      buyAmount: highestOutputWellRoute.amountOut,
+      minBuyAmount: highestOutputWellRoute.minAmountOut,
       slippage,
     });
     nodes.push(firstNode);
 
     // If the intermediary token is the target token, return the nodes
-    if (tokensEqual(thruToken, buyToken)) {
+    if (directPathIsBestPath) {
+      // If the zeroX quote is better than the best route, return the zeroX quote
+      if (dexAggNode.usdOut.gt(highestOutputWellRoute.usdValueOut)) {
+        return [dexAggNode];
+      }
+
       return nodes;
     }
 
     // Otherwise, quote swapping from the intermediary token to the target token
     const nonDirectNodes = await this.#handleNonPintoSwap(thruToken, buyToken, firstNode.buyAmount, slippage, {
       ...options,
+      excludePintoExchange: true,
     });
 
     const lastStep = extractLast(nonDirectNodes);
@@ -608,7 +767,17 @@ export class SwapQuoter {
         slippage,
       });
 
+      // If the zeroX quote is better than the best route, return the zeroX quote
+      if (dexAggNode.buyAmount.gt(directNode.buyAmount)) {
+        return [dexAggNode];
+      }
+
       return [directNode];
+    }
+
+    // If the zeroX quote is better than the best route, return the zeroX quote
+    if (lastStep?.buyAmount.lt(dexAggNode.buyAmount)) {
+      return [dexAggNode];
     }
 
     nodes.push(...nonDirectNodes);
@@ -643,10 +812,13 @@ export class SwapQuoter {
     slippage: number,
     options?: SwapOptions & {
       well2WellDisabled?: boolean;
+      excludePintoExchange?: boolean;
     },
   ): Promise<SwapNode[]> {
     const [zeroXNode, well2WellQuote] = await Promise.all([
-      options?.aggDisabled ? undefined : this.#handleZeroXQuote(sellToken, buyToken, sellAmount, slippage),
+      options?.aggDisabled
+        ? undefined
+        : this.#handleZeroXQuote(sellToken, buyToken, sellAmount, slippage, options?.excludePintoExchange),
       options?.well2WellDisabled ? undefined : this.#handleWell2WellQuote(sellToken, buyToken, sellAmount, slippage),
     ]);
 
@@ -695,9 +867,15 @@ export class SwapQuoter {
     return nodes;
   }
 
-  async #handleZeroXQuote(sellToken: Token, buyToken: Token, sellAmount: TV, slippage: number) {
+  async #handleZeroXQuote(
+    sellToken: Token,
+    buyToken: Token,
+    sellAmount: TV,
+    slippage: number,
+    excludePintoExchange: boolean = false,
+  ) {
     const node = new ZeroXSwapNode(this.context, sellToken, buyToken);
-    await node.quoteForward(sellAmount, slippage);
+    await node.quoteForward(sellAmount, slippage, excludePintoExchange);
     return node;
   }
 
@@ -733,7 +911,7 @@ export class SwapQuoter {
   /// -------------------------- UTILITY METHODS --------------------------
 
   /**
-   * Splits the swap into swap, add liquidity, and remove liquidity routes.
+   * Splits the swap into swap, well liquidity, and silo wrapping routes.
    *
    * If sell token is LP:
    *  - LP -> Underlying
@@ -751,7 +929,7 @@ export class SwapQuoter {
    * - WETH -> PINTOWETH  ===> WETH  -> PINTOWETH
    * - PINTO -> PINTOWETH ===> PINTO -> PINTOWETH
    */
-  #splitSwapsAndSync(sellToken: Token, buyToken: Token, options?: SwapOptions) {
+  #fragmentizeSwap(sellToken: Token, buyToken: Token, options?: SwapOptions) {
     if (sellToken.isNative || buyToken.isNative) {
       throw new Error("[Swap Router] Cannot split swaps and sync native tokens");
     }
@@ -759,10 +937,12 @@ export class SwapQuoter {
     const routes: {
       remove: LiquidityQuoteSourceFragment | undefined;
       swap: QuoteSourceFragment | undefined;
+      swapThru?: QuoteSourceFragment | undefined;
       sync: LiquidityQuoteSourceFragment | undefined;
     } = {
       remove: undefined,
       swap: undefined,
+      swapThru: undefined,
       sync: undefined,
     };
 
@@ -781,6 +961,20 @@ export class SwapQuoter {
       };
 
       // TODO: Add support for LP -> NON_UNDERLYING
+
+      return routes;
+    }
+
+    if (sellToken.isSiloWrapped) {
+      routes.swap = {
+        sellToken: sellToken,
+        buyToken: this.context.mainToken,
+      };
+
+      routes.swapThru = {
+        sellToken: this.context.mainToken,
+        buyToken: buyToken,
+      };
 
       return routes;
     }
@@ -963,9 +1157,10 @@ function makeSwapContext(_chainId: number, config: WagmiConfig): SwapContext {
   const weth = tokens[chainId].find((t) => t.isWrappedNative);
   const eth = tokens[chainId].find((t) => t.isNative);
   const main = tokens[chainId].find((t) => t.isMain);
+  const siloWrapped = tokens[chainId].find((t) => t.isSiloWrapped);
 
-  if (!weth || !eth || !main) {
-    throw new Error("[Swap Router] WETH and ETH, or MAIN tokens not found");
+  if (!weth || !eth || !main || !siloWrapped) {
+    throw new Error("[Swap Router] WETH and ETH, MAIN, or SILO_WRAPPED_MAIN tokens not found");
   }
 
   const underlying2LP: Record<string, Token> = {};
@@ -997,10 +1192,15 @@ function makeSwapContext(_chainId: number, config: WagmiConfig): SwapContext {
     wrappedNative: weth,
     native: eth,
     mainToken: main,
+    siloWrappedToken: siloWrapped,
   };
 }
 
 function extractLast<T>(arr: T[]) {
   if (!arr.length) return undefined;
   return arr[arr.length - 1];
+}
+
+function isPureERC20(token: Token) {
+  return !token.isSiloWrapped && !token.isNative;
 }

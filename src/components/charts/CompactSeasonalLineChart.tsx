@@ -1,17 +1,14 @@
+import { CloseIconAlt } from "@/components/Icons";
 import FrameAnimator from "@/components/LoadingSpinner.tsx";
+import IconImage from "@/components/ui/IconImage";
+import { useNormalizeMayMultipleSeasonalData } from "@/state/seasonal/utils";
 import { formatDate } from "@/utils/format";
 import { UseSeasonalResult } from "@/utils/types";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CloseIconAlt } from "@/components/Icons";
 import { LineChartData, MakeGradientFunction } from "./LineChart";
-import {
-  metallicGreenStrokeGradientFn,
-  metallicMorningStrokeGradientFn,
-} from "./chartHelpers";
 import MultiAxisLineChart, { MultiAxisYAxisConfig } from "./MultiAxisLineChart";
-import { useNormalizeMayMultipleSeasonalData } from "@/state/seasonal/utils";
 import { SeasonalChartData, TimeTab } from "./SeasonalChart";
-import IconImage from "@/components/ui/IconImage";
+import { metallicGreenStrokeGradientFn, metallicMorningStrokeGradientFn } from "./chartHelpers";
 
 interface CompactSeasonalChartProps {
   titles: (string | JSX.Element)[];
@@ -26,7 +23,7 @@ interface CompactSeasonalChartProps {
   className?: string;
   hideXTicks?: boolean;
   hideYTicks?: boolean;
-  token?: { logoURI: string, symbol: string };
+  token?: { logoURI: string; symbol: string };
 }
 
 const gradients = [metallicGreenStrokeGradientFn, metallicMorningStrokeGradientFn];
@@ -97,7 +94,7 @@ const CompactSeasonalLineChart = ({
       return {
         min: min - 0.0001,
         max: max + 0.0001,
-      }
+      };
     }
 
     return { min: min * 0.99, max: max * 1.01 };
@@ -110,15 +107,15 @@ const CompactSeasonalLineChart = ({
       datasets: (allData ?? []).map((result, i) => ({
         values: result.map((d) => d.value),
         yAxisID: `y${i + 1}`,
-        label: labels[i]
+        label: labels[i],
       })),
       labels: labels,
       yAxisConfigs: (allData ?? []).map((data, i) => ({
         id: `y${i + 1}`,
-        position: i === 0 ? "left" : "right" as NonNullable<MultiAxisYAxisConfig['position']>,
+        position: i === 0 ? "left" : ("right" as NonNullable<MultiAxisYAxisConfig["position"]>),
         min: minmax.min,
         max: minmax.max,
-        ticksCallback: tickValueFormatter?.[i]
+        ticksCallback: tickValueFormatter?.[i],
       })),
     };
   }, [allData, minmax]);
@@ -127,9 +124,11 @@ const CompactSeasonalLineChart = ({
     <div className={className}>
       <div className="flex flex-col w-full gap-2">
         {titles.map((title, i) => (
-          <div className="flex flex-row items-center justify-between">
+          <div key={`compact-seasonal-line-${i}`} className="flex flex-row items-center justify-between">
             {typeof title === "string" ? (
-              <span key={i} className="pinto-sm-light text-pinto-primary">{title}</span>
+              <span key={i} className="pinto-sm-light text-pinto-primary">
+                {title}
+              </span>
             ) : (
               title
             )}
@@ -142,12 +141,8 @@ const CompactSeasonalLineChart = ({
           </div>
         ))}
         <div className="flex flex-col gap-1 pinto-xs font-light text-pinto-light">
-          <span>
-            Season {displayData?.[0]?.season}
-          </span>
-          <span>
-            {displayData?.[0]?.timestamp ? formatDate(displayData[0].timestamp) : "--"}
-          </span>
+          <span>Season {displayData?.[0]?.season}</span>
+          <span>{displayData?.[0]?.timestamp ? formatDate(displayData[0].timestamp) : "--"}</span>
         </div>
       </div>
       {!allData && !displayData && (

@@ -137,7 +137,8 @@ function filterBalances(
     const tokenIndex = getTokenIndex(address);
     const token = tokenMap[tokenIndex];
 
-    const shouldFilter = (args?.filterLP && token.isLP) || remove.has(tokenIndex) || (!!args?.enableSiloWrapped && token.isSiloWrapped);
+    const shouldFilter =
+      (args?.filterLP && token.isLP) || remove.has(tokenIndex) || (!!args?.enableSiloWrapped && token.isSiloWrapped);
 
     if (shouldFilter && !tokensEqual(token, args?.token)) {
       delete balances[tokenIndex];

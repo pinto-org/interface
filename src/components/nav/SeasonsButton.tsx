@@ -3,6 +3,7 @@ import sunIcon from "@/assets/protocol/Sun.png";
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
 import Panel from "@/components/ui/Panel";
+import { useDiamondEvalulationParameters } from "@/state/useDiamondEvaluationParameters";
 import useFieldSnapshots from "@/state/useFieldSnapshots";
 import useSiloSnapshots from "@/state/useSiloSnapshots";
 import { useSeason } from "@/state/useSunData";
@@ -20,7 +21,6 @@ import { ScrollArea, ScrollBar } from "../ui/ScrollArea";
 import { Separator } from "../ui/Separator";
 import { Skeleton } from "../ui/Skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/Table";
-import { useDiamondEvalulationParameters } from "@/state/useDiamondEvaluationParameters";
 
 interface SeasonsButtonPanel {
   season: number;

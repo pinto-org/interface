@@ -2,8 +2,8 @@ import { generateID } from "@/utils/utils";
 import { noop } from "@/utils/utils";
 import { Chart } from "chart.js";
 import type { ChartData, ChartOptions, ChartType, Plugin, UpdateMode } from "chart.js";
+import { CategoryScale, Filler, LineController, LineElement, LinearScale, PointElement } from "chart.js";
 import React, { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
-import { LineController, LineElement, LinearScale, CategoryScale, PointElement, Filler } from "chart.js";
 import type { ForwardRefExoticComponent, RefAttributes } from "react";
 
 interface ReactChartComponent extends ForwardRefExoticComponent<ChartProps & RefAttributes<Chart | null>> {

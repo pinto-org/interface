@@ -1,11 +1,16 @@
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/Tooltip";
+import {
+  TooltipContent as RadixStyledTooltipContent,
+  Tooltip,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/Tooltip";
 import { cn } from "@/utils/utils";
-import { TooltipPortal } from "@radix-ui/react-tooltip";
+import { TooltipContent, TooltipPortal } from "@radix-ui/react-tooltip";
 import { ReactNode } from "react";
 import { InfoOutlinedIcon, InfoSolidIcon } from "./Icons";
 
 interface TooltipSimpleProps {
-  variant?: "pinto" | "stalk" | "seeds" | "pods" | "gray" | "outlined" | "green";
+  variant?: "pinto" | "stalk" | "seeds" | "pods" | "gray" | "outlined" | "green" | "unstyled";
   children?: ReactNode;
   content?: ReactNode;
   opaque?: boolean;
@@ -14,7 +19,19 @@ interface TooltipSimpleProps {
   align?: "start" | "center" | "end";
   showOnMobile?: boolean;
   triggerClassName?: string;
+  sideOffset?: number;
 }
+
+const variantMap = {
+  pinto: "text-pinto",
+  stalk: "text-pinto-stalk-gold",
+  seeds: "text-pinto-seed-silver",
+  pods: "text-pinto-pod-bronze",
+  gray: "text-pinto-gray-4",
+  green: "text-pinto-green-4",
+  outlined: "text-pinto-gray-4",
+  unstyled: "",
+};
 
 export default function TooltipSimple({
   variant = "pinto",
@@ -25,8 +42,10 @@ export default function TooltipSimple({
   align = "center",
   showOnMobile,
   triggerClassName,
+  sideOffset = 0,
   ...props
 }: TooltipSimpleProps) {
+  const ContentComponent = variant === "unstyled" ? TooltipContent : RadixStyledTooltipContent;
   return (
     <TooltipProvider>
       <Tooltip delayDuration={0}>
@@ -34,43 +53,22 @@ export default function TooltipSimple({
           {children || (
             <span
               className={cn(
-                `${opaque ? "opacity-[0.4]" : "opacity-100"} ${
-                  variant === "pinto"
-                    ? "text-pinto"
-                    : variant === "stalk"
-                      ? "text-pinto-stalk-gold"
-                      : variant === "seeds"
-                        ? "text-pinto-seed-silver"
-                        : variant === "pods"
-                          ? "text-pinto-pod-bronze"
-                          : variant === "gray"
-                            ? "text-pinto-gray-4"
-                            : variant === "green"
-                              ? "text-pinto-green-4"
-                              : variant === "outlined"
-                                ? "text-pinto-gray-4"
-                                : "text-pinto-gray-4"
-                }`,
+                `${opaque ? "opacity-[0.4]" : "opacity-100"} ${variantMap[variant] || "text-pinto-gray-4"}`,
                 triggerClassName,
               )}
             >
-              {variant === "pinto" ||
-              variant === "gray" ||
-              variant === "stalk" ||
-              variant === "seeds" ||
-              variant === "pods" ||
-              variant === "green" ? (
+              {["pinto", "gray", "stalk", "seeds", "pods", "green"].includes(variant) ? (
                 <InfoSolidIcon color="currentColor" height="1rem" width="1rem" />
               ) : (
-                <InfoOutlinedIcon color="currentColor" height="1rem" width="1rem"/>
+                <InfoOutlinedIcon color="currentColor" height="1rem" width="1rem" />
               )}
             </span>
           )}
         </TooltipTrigger>
         <TooltipPortal>
-          <TooltipContent side={side} align={align} {...props}>
+          <ContentComponent side={side} align={align} sideOffset={sideOffset} {...props}>
             {content}
-          </TooltipContent>
+          </ContentComponent>
         </TooltipPortal>
       </Tooltip>
     </TooltipProvider>

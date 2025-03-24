@@ -1,4 +1,4 @@
-import { TokenValue, TV } from "@/classes/TokenValue";
+import { TV, TokenValue } from "@/classes/TokenValue";
 import useTokenData from "@/state/useTokenData";
 import { Token } from "@/utils/types";
 import useSwap from "./useSwap";

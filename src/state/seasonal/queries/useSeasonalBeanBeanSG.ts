@@ -1,8 +1,8 @@
 import { subgraphs } from "@/constants/subgraph";
-import { useChainId } from "wagmi";
 import { BeanHourlySnapshot, BeanSeasonalBeanDocument, BeanSeasonalBeanQuery } from "@/generated/gql/graphql";
-import { paginateSubgraph, PaginationSettings } from "@/utils/paginateSubgraph";
+import { PaginationSettings, paginateSubgraph } from "@/utils/paginateSubgraph";
 import { UseSeasonalResult } from "@/utils/types";
+import { useChainId } from "wagmi";
 import useSeasonalQueries, { ConvertEntryFn, SeasonalQueryVars } from "./useSeasonalInternalQueries";
 
 const paginateSettings: PaginationSettings<

@@ -7,6 +7,7 @@ export interface PaginationSettings<R, T, K extends keyof T, V> {
   primaryPropertyName: Extract<K, string>;
   idField: Extract<keyof R, string>;
   nextVars: (value1000: R, prevVars: V) => V | undefined;
+  orderBy?: "asc" | "desc";
 }
 
 type ResultObject<T, K extends keyof T, R> = {
@@ -46,6 +47,51 @@ export const paginateSubgraph = async <R, T, V>(
     prevPageIds = pageIds;
 
     vars = settings.nextVars(results[k][PAGE_SIZE - 1], vars);
+  }
+
+  return allResults;
+};
+
+export const paginateMultiQuerySubgraph = async <R, T, V>(
+  settings: PaginationSettings<R, T, keyof T, V>,
+  url: string,
+  document: RequestDocument | TypedQueryDocumentNode<T, V>,
+  initialVars: V,
+): Promise<{ [key: string]: R[] }> => {
+  let vars: V | undefined = initialVars;
+  const prevPageIds: { [key: string]: string[] } = {};
+  const k = "id"; //settings.primaryPropertyName;
+
+  const allResults: { [key: string]: R[] } = {};
+  while (vars) {
+    const results = (await request<T>(url, document, vars)) as ResultObject<T, any, R>;
+
+    Object.entries(results).forEach(([key, value]: [string, any]) => {
+      if (!allResults[key]) {
+        allResults[key] = [];
+      }
+
+      if (!prevPageIds[key]) {
+        prevPageIds[key] = [];
+      }
+
+      if (value.length > 0 && !value[0][settings.idField]) {
+        throw new Error(`The result did not include the identity column ${settings.idField}`);
+      }
+
+      const pageIds: string[] = [];
+
+      for (const r of value) {
+        if (!prevPageIds[key].includes(r[settings.idField] as string)) {
+          pageIds.push(r[settings.idField] as string);
+          allResults[key].push(r);
+        }
+      }
+      prevPageIds[key] = pageIds;
+    });
+
+    const firstQueryKey = Object.keys(results)[0];
+    vars = settings.nextVars(results[firstQueryKey][PAGE_SIZE - 1], vars);
   }
 
   return allResults;

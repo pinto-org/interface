@@ -1,5 +1,5 @@
-import { Address, encodeFunctionData, erc20Abi } from "viem";
 import { Clipboard } from "@/classes/Clipboard";
+import { Address, encodeFunctionData, erc20Abi } from "viem";
 
 export default function erc20BalanceOf(account?: Address, target?: Address, clipboard?: `0x${string}`) {
   if (!account) {

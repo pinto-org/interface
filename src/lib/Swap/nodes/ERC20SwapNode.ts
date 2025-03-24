@@ -1,11 +1,15 @@
 import { Clipboard } from "@/classes/Clipboard";
 import { TV } from "@/classes/TokenValue";
 import { basinWellABI } from "@/constants/abi/basinWellABI";
+import { siloedPintoABI } from "@/constants/abi/siloedPintoABI";
+import { MAIN_TOKEN, S_MAIN_TOKEN } from "@/constants/tokens";
 import encoders from "@/encoders";
+import erc20BalanceOf from "@/encoders/erc20BalanceOf";
 import { pipelineAddress } from "@/generated/contractHooks";
 import { SwapContext } from "@/lib/Swap/swap-router";
 import { ZeroX } from "@/lib/matcha/ZeroX";
-import { ZeroExQuoteResponse } from "@/lib/matcha/types";
+import { ZeroXQuoteV2Response } from "@/lib/matcha/types";
+import { resolveChainId } from "@/utils/chain";
 import { stringEq } from "@/utils/string";
 import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { AdvancedPipeCall, Token } from "@/utils/types";
@@ -22,6 +26,10 @@ interface IERC20SwapNode {
 }
 
 type IERC20SwapNodeUnion = IERC20SwapNode & ISwapNode;
+
+/** ========================================================================================================== */
+/** ---------------------------------------- Abstract Class -------------------------------------------------- */
+/** ========================================================================================================== */
 
 /**
  * Abstract class for swaps involving only ERC20 tokens.
@@ -52,6 +60,17 @@ export abstract class ERC20SwapNode extends SwapNode implements IERC20SwapNode {
     super(context);
     this.sellToken = sellToken;
     this.buyToken = buyToken;
+  }
+
+  getBalanceOfTokenEncoded(token: "sell" | "buy", address: Address): AdvancedPipeCall {
+    const callData = erc20BalanceOf(address, token === "sell" ? this.sellToken.address : this.buyToken.address);
+
+    // should never happen, but sanity check
+    if (!callData.target) {
+      throw new Error("Target required to encode balanceOf");
+    }
+
+    return callData;
   }
 
   /**
@@ -119,12 +138,123 @@ export abstract class ERC20SwapNode extends SwapNode implements IERC20SwapNode {
   }
 }
 
+/** ========================================================================================================== */
+/** ---------------------------------------- Implementations ------------------------------------------------- */
+/** ========================================================================================================== */
+
+/** ---------------------------------------------------------------------------------------------------------- */
+/** ---------------------------------------- Dex Aggregator -------------------------------------------------- */
+/** ---------------------------------------------------------------------------------------------------------- */
+
+// ----------------------------------------- Matcha 0x -------------------------------------------------------
+
+export class ZeroXSwapNode extends ERC20SwapNode {
+  name: string = "SwapNode: ZeroX";
+
+  quote: ZeroXQuoteV2Response | undefined;
+
+  readonly amountOutCopySlot: number = 0;
+
+  get allowanceTarget() {
+    if (!this.quote?.transaction) {
+      throw this.makeErrorWithContext(
+        "Error building zeroX swap: Quote must be set fetched before getting allowance target.",
+      );
+    }
+    return this.quote.transaction.to;
+  }
+
+  setQuote(quote: ZeroXQuoteV2Response) {
+    this.quote = quote;
+    return this;
+  }
+
+  async quoteForward(sellAmount: TV, slippage: number, excludePintoExchange: boolean = false) {
+    this.setFields({ sellAmount, slippage });
+    this.validateQuoteForward();
+
+    const [quote] = await ZeroX.quote({
+      chainId: this.context.chainId,
+      sellToken: this.sellToken.address,
+      buyToken: this.buyToken.address,
+      sellAmount: this.sellAmount.blockchainString,
+      taker: pipelineAddress[resolveChainId(this.context.chainId)],
+      txOrigin: pipelineAddress[resolveChainId(this.context.chainId)],
+      sellEntireBalance: true,
+      slippageBps: ZeroX.slippageToSlippageBps(this.slippage),
+      excludedSources: excludePintoExchange ? "Pinto" : undefined,
+    });
+
+    this.quote = quote;
+
+    console.debug("[Swap/ZeroXSwapNode] QUOTE:", quote);
+
+    if (!this.quote?.transaction?.to || !this.quote?.transaction?.data) {
+      throw this.makeErrorWithContext("Error building zeroX swap: no transaction data found.");
+    }
+
+    const buyAmount = TV.fromBlockchain(quote.buyAmount, this.buyToken.decimals);
+    const minBuyAmount = TV.fromBlockchain(quote.minBuyAmount, this.buyToken.decimals);
+
+    this.setFields({ buyAmount, minBuyAmount: minBuyAmount });
+
+    console.debug("[Swap/ZeroXSwapNode] quoteForward:", {
+      ...this.getHuman(),
+      quote,
+    });
+    return this;
+  }
+
+  buildStep(): AdvancedPipeCall[] {
+    this.validateAll();
+    const zeroXQuote = this.quote;
+    if (!zeroXQuote) {
+      throw this.makeErrorWithContext("Error building zeroX swap: no quote found. Run quoteForward first.");
+    }
+
+    const encoded = zeroXQuote.transaction.data;
+
+    const pipeStruct: AdvancedPipeCall = {
+      target: zeroXQuote.transaction.to,
+      callData: encoded,
+      clipboard: Clipboard.encode([]),
+    };
+
+    console.debug("[Swap/ZeroXSwapNode/] build:", {
+      ...this.getHuman(),
+      quote: this.quote,
+      pipeStruct,
+    });
+
+    const balanceStruct = this.getBalanceOfTokenEncoded("buy", pipelineAddress[this.context.chainId]);
+
+    return [pipeStruct, balanceStruct];
+  }
+
+  getFeeFromQuote() {
+    const fee = this.quote?.fees?.zeroExFee;
+    // assumes that fee is either sell token or buy token since the fee is taken from on-chain.
+    const feeToken = this.getNodeToken(fee?.token);
+
+    if (!fee || !feeToken) return undefined;
+
+    return {
+      fee: TV.fromBlockchain(fee.amount, feeToken.decimals),
+      feeToken,
+    };
+  }
+}
+
+/** ---------------------------------------------------------------------------------------------------------- */
+/** ---------------------------------------- Basin Well Methods ---------------------------------------------- */
+/** ---------------------------------------------------------------------------------------------------------- */
+
+// ----------------------------------------- Well SwapFrom ---------------------------------------------------
 interface WellSwapBuildParams {
   copySlot: number | undefined;
   recipient: Address;
 }
 
-// prettier-ignore
 export class WellSwapNode extends ERC20SwapNode {
   readonly name: string;
 
@@ -216,94 +346,7 @@ export class WellSwapNode extends ERC20SwapNode {
   }
 }
 
-export class ZeroXSwapNode extends ERC20SwapNode {
-  name: string = "SwapNode: ZeroX";
-
-  quote: ZeroExQuoteResponse | undefined;
-
-  readonly amountOutCopySlot: number = 0;
-
-  get allowanceTarget() {
-    return this.quote?.allowanceTarget || "0x";
-  }
-
-  setQuote(quote: ZeroExQuoteResponse) {
-    this.quote = quote;
-    return this;
-  }
-
-  async quoteForward(sellAmount: TV, slippage: number) {
-    this.setFields({ sellAmount, slippage });
-    this.validateQuoteForward();
-    this.validateTokenIsNotBEAN(this.sellToken);
-    this.validateTokenIsNotBEAN(this.buyToken);
-
-    const [quote] = await ZeroX.quote({
-      sellToken: this.sellToken.address,
-      buyToken: this.buyToken.address,
-      sellAmount: this.sellAmount.toBlockchain(),
-      takerAddress: pipelineAddress[this.context.chainId],
-      shouldSellEntireBalance: "true",
-      skipValidation: "true",
-      slippagePercentage: (this.slippage / 100).toString(),
-    });
-
-    this.quote = quote;
-
-    const buyAmount = TV.fromBlockchain(quote.buyAmount, this.buyToken.decimals);
-
-    this.setFields({ buyAmount, minBuyAmount: buyAmount });
-
-    console.debug("[Swap/ZeroXSwapNode] quoteForward:", {
-      ...this.getHuman(),
-      quote,
-    });
-    return this;
-  }
-
-  buildStep(): AdvancedPipeCall {
-    this.validateAll();
-    const zeroXQuote = this.quote;
-    if (!zeroXQuote) {
-      throw this.makeErrorWithContext("Error building zeroX swap: no quote found. Run quoteForward first.");
-    }
-
-    const encoded = zeroXQuote.data;
-
-    const pipeStruct: AdvancedPipeCall = {
-      target: zeroXQuote.allowanceTarget,
-      callData: encoded,
-      clipboard: Clipboard.encode([]),
-    };
-
-    console.debug("[Swap/ZeroXSwapNode/] build:", {
-      ...this.getHuman(),
-      quote: this.quote,
-      pipeStruct,
-    });
-
-    return pipeStruct;
-  }
-
-  getFeeFromQuote() {
-    const fee = this.quote?.fees?.zeroExFee;
-    // assumes that fee is either sell token or buy token since the fee is taken from on-chain.
-    const feeToken = this.getNodeToken(fee?.feeToken);
-
-    if (!fee || !feeToken) return undefined;
-
-    return {
-      fee: TV.fromBlockchain(fee.feeAmount, feeToken.decimals),
-      feeToken,
-    };
-  }
-
-  private validateTokenIsNotBEAN(token: Token) {
-    if (token.isMain) {
-      throw this.makeErrorWithContext("Cannot swap Main Token via 0x. For Main Token quotes, use WELLS instead.");
-    }
-  }
-}
+// ----------------------------------------- Well Sync ---------------------------------------------------
 
 interface WellSyncSwapBuildParams {
   recipient: Address;
@@ -429,6 +472,8 @@ export class WellSyncSwapNode extends ERC20SwapNode {
   }
 }
 
+// ----------------------------------------- Well Remove Liquidity One Token -----------------------------
+
 interface WellRemoveSingleSidedSwapNodeBuildParams {
   recipient: Address;
 }
@@ -493,6 +538,155 @@ export class WellRemoveSingleSidedSwapNode extends ERC20SwapNode {
     }
 
     console.debug("[Swap/WellRemoveSingleSidedSwapNode] build:", {
+      ...this.getHuman(),
+      recipient: stringEq(pipelineAddress[this.context.chainId], recipient) ? "PIPELINE" : recipient,
+      pipeStruct,
+    });
+
+    return pipeStruct;
+  }
+}
+
+/** ---------------------------------------------------------------------------------------------------------- */
+/** ---------------------------------------- Silo Deposit Methods -------------------------------------------- */
+/** ---------------------------------------------------------------------------------------------------------- */
+
+// ----------------------------------------- Siloed Pinto Wrap ------------------------------------------------
+
+interface SiloWrappedTokenWrapNodeBuildParams {
+  recipient: Address;
+  copySlot: number | undefined;
+}
+
+export class SiloWrappedTokenWrapNode extends ERC20SwapNode {
+  readonly name = "SwapNode: SiloWrappedTokenWrapNode";
+
+  readonly amountOutCopySlot: number = 0;
+
+  readonly amountInPasteSlot: number = 0;
+
+  readonly allowanceTarget: Address;
+
+  constructor(context: SwapContext) {
+    const sellToken = MAIN_TOKEN[resolveChainId(context.chainId)];
+    const buyToken = S_MAIN_TOKEN[resolveChainId(context.chainId)];
+    super(context, sellToken, buyToken);
+    this.allowanceTarget = buyToken.address;
+  }
+
+  // slippage is ignored for Silo Wrap
+  async quoteForward(sellAmount: TV, slippage: number = 0) {
+    this.setFields({ sellAmount, slippage });
+    this.validateQuoteForward();
+
+    const quote = await readContract(this.context.config.getClient({ chainId: this.context.chainId }), {
+      abi: siloedPintoABI,
+      address: this.buyToken.address,
+      functionName: "previewDeposit",
+      args: [sellAmount.toBigInt()],
+    });
+
+    const buyAmount = TV.fromBigInt(quote, this.buyToken.decimals);
+
+    this.setFields({ buyAmount, minBuyAmount: buyAmount });
+
+    return this;
+  }
+
+  buildStep(
+    { recipient, copySlot }: SiloWrappedTokenWrapNodeBuildParams,
+    clipboardContext?: ClipboardContext,
+  ): AdvancedPipeCall {
+    this.validateAll();
+
+    let clipboard: HashString | undefined = undefined;
+
+    if (exists(copySlot) && exists(clipboardContext)) {
+      const copyIndex = clipboardContext.indexMap.get(this.tagNeeded);
+      if (exists(copyIndex)) {
+        clipboard = Clipboard.encodeSlot(copyIndex, copySlot, this.amountInPasteSlot);
+      }
+    }
+
+    const pipeStruct = encoders.siloedPinto.depositERC20(this.sellAmount, recipient, this.buyToken.address, clipboard);
+
+    console.debug("[Swap/SiloedPintoWrapNode] build:", {
+      ...this.getHuman(),
+      recipient: stringEq(pipelineAddress[this.context.chainId], recipient) ? "PIPELINE" : recipient,
+      pipeStruct,
+    });
+
+    return pipeStruct;
+  }
+}
+
+// ----------------------------------------- Siloed Pinto Unwrap ----------------------------------------------
+
+interface SiloWrappedTokenUnwrapNodeBuildParams {
+  recipient: Address;
+  owner: Address;
+  copySlot: number | undefined;
+}
+
+export class SiloWrappedTokenUnwrapNode extends ERC20SwapNode {
+  readonly name = "SwapNode: SiloWrappedTokenUnwrapNode";
+
+  readonly amountOutCopySlot: number = 0;
+
+  readonly amountInPasteSlot: number = 0;
+
+  readonly allowanceTarget: Address;
+
+  constructor(context: SwapContext) {
+    const sellToken = S_MAIN_TOKEN[resolveChainId(context.chainId)];
+    const buyToken = MAIN_TOKEN[resolveChainId(context.chainId)];
+    super(context, sellToken, buyToken);
+    this.allowanceTarget = sellToken.address;
+  }
+
+  // slippage is ignored for Silo Unwrap
+  async quoteForward(sellAmount: TV, slippage: number = 0) {
+    this.setFields({ sellAmount, slippage });
+    this.validateQuoteForward();
+
+    const quote = await readContract(this.context.config.getClient({ chainId: this.context.chainId }), {
+      abi: siloedPintoABI,
+      address: this.sellToken.address,
+      functionName: "previewRedeem",
+      args: [sellAmount.toBigInt()],
+    });
+
+    const buyAmount = TV.fromBigInt(quote, this.buyToken.decimals);
+
+    this.setFields({ buyAmount, minBuyAmount: buyAmount });
+
+    return this;
+  }
+
+  buildStep(
+    { recipient, owner, copySlot }: SiloWrappedTokenUnwrapNodeBuildParams,
+    clipboardContext?: ClipboardContext,
+  ): AdvancedPipeCall {
+    this.validateAll();
+
+    let clipboard: HashString | undefined = undefined;
+
+    if (exists(copySlot) && exists(clipboardContext)) {
+      const copyIndex = clipboardContext.indexMap.get(this.tagNeeded);
+      if (exists(copyIndex)) {
+        clipboard = Clipboard.encodeSlot(copyIndex, copySlot, this.amountInPasteSlot);
+      }
+    }
+
+    const pipeStruct = encoders.siloedPinto.redeemERC20(
+      this.sellAmount,
+      recipient,
+      owner,
+      this.sellToken.address,
+      clipboard,
+    );
+
+    console.debug("[Swap/SiloedPintoUnwrapNode] build:", {
       ...this.getHuman(),
       recipient: stringEq(pipelineAddress[this.context.chainId], recipient) ? "PIPELINE" : recipient,
       pipeStruct,

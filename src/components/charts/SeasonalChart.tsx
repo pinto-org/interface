@@ -99,7 +99,7 @@ const SeasonalChart = ({
       setAllData(null);
       setDisplayData(null);
     },
-    [onChangeTab]
+    [onChangeTab],
   );
 
   const chartData = useMemo<LineChartData[]>(() => {
@@ -138,7 +138,7 @@ const SeasonalChart = ({
         setDisplayData(allData[index ?? allData.length - 1]);
       }
     },
-    [allData]
+    [allData],
   );
 
   return (
@@ -174,9 +174,7 @@ const SeasonalChart = ({
             }}
           >
             <div className="absolute inset-0 flex items-center justify-center">
-              {useSeasonalResult.isLoading && !useSeasonalResult.isError && (
-                <FrameAnimator size={75} />
-              )}
+              {useSeasonalResult.isLoading && !useSeasonalResult.isError && <FrameAnimator size={75} />}
               {useSeasonalResult.isError && (
                 <>
                   <CloseIconAlt color={"red"} />

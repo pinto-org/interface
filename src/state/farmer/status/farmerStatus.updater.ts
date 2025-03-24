@@ -1,3 +1,4 @@
+import { MAIN_TOKEN, S_MAIN_TOKEN } from "@/constants/tokens";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerPlotsQuery } from "@/state/useFarmerField";
@@ -7,7 +8,6 @@ import { useEffect } from "react";
 import { Address } from "viem";
 import { useAccount, useReadContract } from "wagmi";
 import { farmerStatusAtom } from "./status.atoms";
-import { MAIN_TOKEN, S_MAIN_TOKEN } from "@/constants/tokens";
 
 const querySettings = {
   staleTime: 1000 * 60 * 20, // 20 minutes, in milliseconds

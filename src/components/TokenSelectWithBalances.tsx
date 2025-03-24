@@ -19,17 +19,18 @@ import {
 import { ScrollArea } from "./ui/ScrollArea";
 import { Separator } from "./ui/Separator";
 import { Skeleton } from "./ui/Skeleton";
-import Text from "./ui/Text";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
 import { PrivateModeWrapper } from "./PrivateModeWrapper";
 function TokenSelectItem({
   token,
   balanceAmount,
+  noBalance,
   price,
   onClick,
 }: {
   token: Token;
   balanceAmount: TokenValue;
+  noBalance?: boolean;
   price: TokenValue;
   onClick: () => void;
 }) {
@@ -51,18 +52,16 @@ function TokenSelectItem({
             </div>
           </div>
         </div>
-        <div className="flex flex-col gap-y-1">
-          <div className="flex justify-end font-[340] text-[1.5rem] text-black">
-            <PrivateModeWrapper>
+        {!noBalance && (
+          <div className="flex flex-col gap-y-1">
+            <div className="flex justify-end font-[340] text-[1.5rem] text-black">
               {formatter.token(balanceAmount, token)}
-            </PrivateModeWrapper>
-          </div>
-          <div className="flex justify-end font-[340] text-[1rem] text-pinto-gray-4">
-            <PrivateModeWrapper>
+            </div>
+            <div className="flex justify-end font-[340] text-[1rem] text-pinto-gray-4">
               {formatter.usd(price.mul(balanceAmount))}
-            </PrivateModeWrapper>
+            </div>
           </div>
-        </div>
+        )}
       </ToggleGroupItem>
     </DialogClose>
   );
@@ -76,6 +75,7 @@ export default function TokenSelectWithBalances({
   setBalanceFrom,
   balanceFrom,
   balancesToShow,
+  noBalances,
   size,
   disabled,
   isLoading,
@@ -83,7 +83,8 @@ export default function TokenSelectWithBalances({
   selectKey,
 }: {
   setToken: React.Dispatch<React.SetStateAction<Token>> | ((token: Token) => void);
-  selectedToken: Token;
+  selectedToken?: Token;
+  noBalances?: boolean;
   tokenNameOverride?: string;
   tokenAndBalanceMap?: Map<Token, TokenValue> | undefined;
   setBalanceFrom?: React.Dispatch<React.SetStateAction<FarmFromMode>> | undefined;
@@ -112,7 +113,7 @@ export default function TokenSelectWithBalances({
               <Skeleton className={size === "small" ? "w-5 h-5 rounded-full" : "w-6 h-6 rounded-full"} />
               <Skeleton className={cn("h-5 rounded-sm", !disabled ? "sm:w-20" : "sm:w-14")} />
             </>
-          ) : (
+          ) : selectedToken ? (
             <>
               <img
                 src={selectedToken.logoURI}
@@ -120,6 +121,11 @@ export default function TokenSelectWithBalances({
                 className={`${size === "small" ? "w-5 h-5" : "w-6 h-6"}`}
               />
               <div className="hidden sm:block pinto-body-light">{tokenNameOverride ?? selectedToken.symbol}</div>
+              {!disabled && <img src={arrowDown} className="w-4 h-4" alt={"open token select dialog"} />}
+            </>
+          ) : (
+            <>
+              <div className="pinto-body-light">{"Select Token"}</div>
               {!disabled && <img src={arrowDown} className="w-4 h-4" alt={"open token select dialog"} />}
             </>
           )}
@@ -146,7 +152,7 @@ export default function TokenSelectWithBalances({
                 <ToggleGroup
                   key={`toggle-group-${selectKey}`}
                   type="single"
-                  value={selectedToken.address.toLowerCase()}
+                  value={selectedToken?.address.toLowerCase()}
                   className="flex flex-col w-full h-auto justify-between gap-2"
                 >
                   {tokenAndBalanceMap
@@ -165,6 +171,7 @@ export default function TokenSelectWithBalances({
                           balanceAmount={balance}
                           price={price}
                           onClick={() => setToken(token)}
+                          noBalance={noBalances}
                         />
                       );
                     })
@@ -194,6 +201,7 @@ export default function TokenSelectWithBalances({
                           balanceAmount={balanceAmount}
                           price={price}
                           onClick={() => setToken(token)}
+                          noBalance={noBalances}
                         />
                       );
                     })}

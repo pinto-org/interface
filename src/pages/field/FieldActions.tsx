@@ -3,9 +3,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { useParamsTabs } from "@/hooks/useRouterTabs";
 import { useMorning } from "@/state/useSunData";
 import clsx from "clsx";
+import { useEffect } from "react";
 import Harvest from "./actions/Harvest";
 import Sow from "./actions/Sow";
-import { useEffect } from "react";
 
 const slugs = ["sow", "harvest"] as const;
 

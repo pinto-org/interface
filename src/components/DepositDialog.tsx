@@ -29,8 +29,11 @@ export default function DepositDialog({ open, onOpenChange, deposit, token, pric
   const currentBdv = formatter.twoDec(deposit.currentBdv);
   const stalkBase = formatter.twoDec(deposit.stalk.base);
   const grownStalk = deposit.isGerminating ? 0 : formatter.twoDec(deposit.stalk.total.sub(deposit.depositBdv));
-  const claimableGrownStalk = deposit.isGerminating || deposit.stalk.grown.isZero ? "text-pinto-gray-4" : "text-pinto-green";
-  const formattedGrownStalk = deposit.isGerminating ? 0 : formatter.twoDec(deposit.stalk.grown, { showPositiveSign: true });
+  const claimableGrownStalk =
+    deposit.isGerminating || deposit.stalk.grown.isZero ? "text-pinto-gray-4" : "text-pinto-green";
+  const formattedGrownStalk = deposit.isGerminating
+    ? 0
+    : formatter.twoDec(deposit.stalk.grown, { showPositiveSign: true });
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
@@ -85,28 +88,43 @@ export default function DepositDialog({ open, onOpenChange, deposit, token, pric
               <div className="flex flex-col gap-4 h-full justify-between">
                 <div className="flex justify-between min-h-6 items-center">
                   <span className="text-pinto-gray-4">Deposit Owner</span>
-                  <span className="text-primary">{`${truncateHex(address ?? '0x0')}`} <span className="text-pinto-gray-4">{`${'(me)'}`}</span>
+                  <span className="text-primary">
+                    {`${truncateHex(address ?? "0x0")}`} <span className="text-pinto-gray-4">{`${"(me)"}`}</span>
                   </span>
                 </div>
                 <div className="flex justify-between min-h-6 items-center">
-                  <span className="text-pinto-gray-4 flex flex-row gap-1 items-center"> Stem
-                    <TooltipSimple variant="outlined" showOnMobile content={"Stem is the internal accounting unit used to credit deposits with Grown Stalk."} /></span>
+                  <span className="text-pinto-gray-4 flex flex-row gap-1 items-center">
+                    {" "}
+                    Stem
+                    <TooltipSimple
+                      variant="outlined"
+                      showOnMobile
+                      content={"Stem is the internal accounting unit used to credit deposits with Grown Stalk."}
+                    />
+                  </span>
                   <span className="text-primary">{formatter.twoDec(deposit.stem)}</span>
                 </div>
                 <div className="flex justify-between min-h-6 items-center">
                   <span className="text-pinto-gray-4">Amount</span>
-                  <span className="text-primary flex flex-row gap-1 items-center"><IconImage src={token.logoURI} alt={token.name} size={4} />{formatter.token(deposit.amount, token)}</span>
+                  <span className="text-primary flex flex-row gap-1 items-center">
+                    <IconImage src={token.logoURI} alt={token.name} size={4} />
+                    {formatter.token(deposit.amount, token)}
+                  </span>
                 </div>
                 <div className="flex justify-between min-h-6 items-center">
-                  <span className="text-pinto-gray-4 flex flex-row gap-1 items-center"> Recorded PDV
+                  <span className="text-pinto-gray-4 flex flex-row gap-1 items-center">
+                    {" "}
+                    Recorded PDV
                     <TooltipSimple
                       variant="outlined"
                       showOnMobile
                       content={
                         <div className="pinto-sm">
-                          PDV is Pinto Denominated Value or the value of your Deposit <br /> denominated in the price of Pinto.
-                          Base Stalk and Seed are credited <br /> to your Deposit based on the PDV of your deposit.
-                          Any time you interact <br /> with a Deposit, your Deposit will automatically update to the current PDV <br /> if it's higher than the PDV of your last interaction, or your recorded PDV. <br />
+                          PDV is Pinto Denominated Value or the value of your Deposit <br /> denominated in the price of
+                          Pinto. Base Stalk and Seed are credited <br /> to your Deposit based on the PDV of your
+                          deposit. Any time you interact <br /> with a Deposit, your Deposit will automatically update
+                          to the current PDV <br /> if it's higher than the PDV of your last interaction, or your
+                          recorded PDV. <br />
                           This means you'll have a greater amount of Base Stalk and Seed.
                         </div>
                       }
@@ -115,17 +133,22 @@ export default function DepositDialog({ open, onOpenChange, deposit, token, pric
                   <span className="text-primary">{`${depositBdv} PDV`}</span>
                 </div>
                 <div className="flex justify-between min-h-6 items-center">
-                  <span className="text-pinto-gray-4 flex flex-row gap-1 items-center"> Current PDV
+                  <span className="text-pinto-gray-4 flex flex-row gap-1 items-center">
+                    {" "}
+                    Current PDV
                     <TooltipSimple
                       variant="outlined"
                       showOnMobile
                       content={
                         <div className="pinto-sm">
-                          PDV is Pinto Denominated Value or the value of your Deposit <br /> denominated in the price of Pinto.
-                          Base Stalk and Seed are credited <br /> to your Deposit based on the PDV of your deposit.
-                          Any time you interact <br /> with a Deposit, your Deposit will automatically update to the current PDV <br /> if it's higher than the PDV of your last interaction, or your recorded PDV. <br />
+                          PDV is Pinto Denominated Value or the value of your Deposit <br /> denominated in the price of
+                          Pinto. Base Stalk and Seed are credited <br /> to your Deposit based on the PDV of your
+                          deposit. Any time you interact <br /> with a Deposit, your Deposit will automatically update
+                          to the current PDV <br /> if it's higher than the PDV of your last interaction, or your
+                          recorded PDV. <br />
                           This means you'll have a greater amount of Base Stalk and Seed.
-                        </div>}
+                        </div>
+                      }
                     />
                   </span>
                   <span className="text-primary">{`${currentBdv} PDV`}</span>
@@ -133,10 +156,11 @@ export default function DepositDialog({ open, onOpenChange, deposit, token, pric
                 <div className="flex justify-between min-h-6 items-center">
                   <span className="text-pinto-gray-4">Current Value</span>
                   <span className="text-primary">
-                    {`${denomination === "USD"
-                      ? formatter.usd((deposit.currentBdv || TokenValue.ZERO).mul(price))
-                      : formatter.pdv(deposit.depositBdv)
-                      }`}
+                    {`${
+                      denomination === "USD"
+                        ? formatter.usd((deposit.currentBdv || TokenValue.ZERO).mul(price))
+                        : formatter.pdv(deposit.depositBdv)
+                    }`}
                   </span>
                 </div>
                 <div className="flex justify-between min-h-12 items-start">
@@ -147,13 +171,14 @@ export default function DepositDialog({ open, onOpenChange, deposit, token, pric
                       {stalkBase}
                     </span>
                     <div className="flex flex-col text-right">
-                      <span className="text-pinto-gray-4">Base Stalk:{" "}<span className="text-pinto-gray-4">{depositBdv}</span></span>
-                      <span className="text-pinto-gray-4">Grown Stalk:{" "}<span className="text-pinto-gray-4">{grownStalk}</span></span>
                       <span className="text-pinto-gray-4">
-                        Claimable Grown Stalk:{" "}
-                        <span className={claimableGrownStalk}>
-                          {formattedGrownStalk}
-                        </span>
+                        Base Stalk: <span className="text-pinto-gray-4">{depositBdv}</span>
+                      </span>
+                      <span className="text-pinto-gray-4">
+                        Grown Stalk: <span className="text-pinto-gray-4">{grownStalk}</span>
+                      </span>
+                      <span className="text-pinto-gray-4">
+                        Claimable Grown Stalk: <span className={claimableGrownStalk}>{formattedGrownStalk}</span>
                       </span>
                     </div>
                   </div>

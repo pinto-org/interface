@@ -29,14 +29,8 @@ const PintoExplorer = () => {
   const season = useSunData().current;
 
   const priceData = useSeasonalPrice(Math.max(0, season - tabToSeasonalLookback(priceTab)), season);
-  const liquidityData = useSeasonalTotalLiquidity(
-    Math.max(0, season - tabToSeasonalLookback(liquidityTab)),
-    season
-  );
-  const supplyData = useSeasonalSupply(
-    Math.max(0, season - tabToSeasonalLookback(supplyTab)),
-    season
-  );
+  const liquidityData = useSeasonalTotalLiquidity(Math.max(0, season - tabToSeasonalLookback(liquidityTab)), season);
+  const supplyData = useSeasonalSupply(Math.max(0, season - tabToSeasonalLookback(supplyTab)), season);
   const mcapData = useSeasonalMcap(Math.max(0, season - tabToSeasonalLookback(mcapTab)), season);
 
   // Dynamically calculate y-axis ranges based on the actual price data

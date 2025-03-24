@@ -1,0 +1,45 @@
+query seasonsTableBean($from: Int, $to: Int) {
+  seasons(first: 1000, orderBy: season, orderDirection: desc, where: {  season_gte: $from, season_lte: $to } ) {
+    id
+    beanHourlySnapshot {
+      l2sr
+      twaPrice
+      instPrice
+      twaDeltaB
+      instDeltaB
+      season {
+        season
+      }
+    }
+  }
+}
+
+
+# Sorting version, more complicated
+
+# query seasonsTableBean($orderBy: Season_orderBy, $where: Season_filter) {
+#   seasons(
+#     first: 1000, 
+#     orderBy: $orderBy, 
+#     orderDirection: desc, 
+#     where: $where
+#   ) {
+#     id
+#     beanHourlySnapshot {
+#       l2sr
+#       twaPrice
+#       instPrice
+#       twaDeltaB
+#       instDeltaB
+#       season {
+#         season
+#       }
+#     }
+#   }
+# }
+
+# Example query
+# {
+#   "orderBy": "beanHourlySnapshot__l2sr",
+#   "where": { "or": [{  "beanHourlySnapshot_": { "instPrice_gt": 1, "instPrice_lte": 2  }}, { "season_gte": 31 }] }
+# }

@@ -130,19 +130,6 @@ function ComboInputField({
     : TokenValue.ZERO;
   const protocolTokenPrice = tokenPrices.tokenPrices.get(tokenData.mainToken)?.instant || TokenValue.ZERO;
 
-  useEffect(() => {
-    if (!isUserInput) {
-      setInternalAmount(amountAsTokenValue);
-      setDisplayValue(amount);
-    }
-
-    if (connectedAccount && amountAsTokenValue.gt(maxAmount)) {
-      setError?.(true);
-    } else {
-      setError?.(false);
-    }
-  }, [amount, amountAsTokenValue, connectedAccount]);
-
   const pct = useMemo(() => {
     if (mode === "plots") return TokenValue.ONE;
     if (!farmerDepositedTokenBalance || !farmerDepositedTokenBalance.amount.gt(0)) {
@@ -209,6 +196,19 @@ function ComboInputField({
       setDisplayValue(maxAmount.toHuman());
     }
   }, [selectedToken, maxAmount, disableClamping]);
+
+  useEffect(() => {
+    if (!isUserInput) {
+      setInternalAmount(amountAsTokenValue);
+      setDisplayValue(amount);
+    }
+
+    if (connectedAccount && amountAsTokenValue.gt(maxAmount)) {
+      setError?.(true);
+    } else {
+      setError?.(false);
+    }
+  }, [amount, amountAsTokenValue, connectedAccount]);
 
   /**
    * If the amount is < customMinAmount, set the internal amount to customMinAmount

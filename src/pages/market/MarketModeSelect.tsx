@@ -1,7 +1,7 @@
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Separator } from "@/components/ui/Separator";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { useCallback } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 interface MarketModeSelectProps {
   onMainSelectionChange?: (v: string) => void;

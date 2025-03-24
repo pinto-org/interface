@@ -50,11 +50,7 @@ export default function SiloActionBox({ farmerDeposits, token }: SiloActionBoxPr
         />
       )}
       {token.isMain && (
-        <Button
-          variant="silo-action"
-          className="w-full"
-          onClick={() => navigate("/wrap")}
-        >
+        <Button variant="silo-action" className="w-full" onClick={() => navigate("/wrap")}>
           <div className="flex flex-row gap-2 items-center">
             <IconImage src={token.logoURI} size={6} alt={token.symbol} />
             Wrap {token.symbol} Deposits

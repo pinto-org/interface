@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 import { useAccount, useChainId, useConfig } from "wagmi";
 
+import { defaultQuerySettingsQuote } from "@/constants/query";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { useChainConstant } from "@/utils/chain";
 import { SwapOptions, SwapQuoter } from "../../lib/Swap/swap-router";
@@ -18,7 +19,7 @@ const useRouter = () => {
   }, [chainId, config]);
 };
 
-const useSwapOptions = (tokenIn: Token, tokenOut: Token): SwapOptions => {
+const useSwapOptions = (tokenIn: Token, tokenOut: Token | undefined): SwapOptions => {
   const isWSOL = useIsWSOL();
   const wsol = useWSOL();
   const pintoWSOL = usePINTOWSOL();
@@ -26,7 +27,7 @@ const useSwapOptions = (tokenIn: Token, tokenOut: Token): SwapOptions => {
 
   return useMemo(() => {
     const wsolIn = isWSOL(tokenIn);
-    const wsolOut = isWSOL(tokenOut);
+    const wsolOut = Boolean(tokenOut && isWSOL(tokenOut));
 
     // Route all NON_PINTO -> PINTOWSOL through PINTO.
     // Since we are routing through PINTO, we can use 0x since we are not swapping for WSOL.
@@ -34,7 +35,7 @@ const useSwapOptions = (tokenIn: Token, tokenOut: Token): SwapOptions => {
     lpRouteOverrides.set(pintoWSOL, mainToken);
 
     // In the case where user is going from WSOL => NON_PINTOWSOL LP, add single sided PINTO liquidity.
-    if (wsolIn && tokenOut.isLP) {
+    if (wsolIn && tokenOut?.isLP) {
       lpRouteOverrides.set(tokenOut, mainToken);
     }
 
@@ -49,7 +50,7 @@ const useSwapOptions = (tokenIn: Token, tokenOut: Token): SwapOptions => {
 
 export type UseSwapParams = {
   tokenIn: Token;
-  tokenOut: Token;
+  tokenOut: Token | undefined;
   amountIn: TV;
   slippage: number;
   disabled?: boolean;
@@ -64,9 +65,12 @@ export default function useSwap({ tokenIn, tokenOut, amountIn, slippage, disable
   const swapOptions = useSwapOptions(tokenIn, tokenOut);
   const queryClient = useQueryClient();
 
+  const hasSwapVars = !!tokenIn && !!tokenOut && amountIn.gt(0) && !!slippage;
+
   const swapNodesQuery = useQuery({
-    queryKey: [SWAP_QUERY_KEY_PREDICATE, tokenIn.address, tokenOut.address, amountIn, slippage],
+    queryKey: [SWAP_QUERY_KEY_PREDICATE, tokenIn.address, tokenOut?.address, amountIn, slippage],
     queryFn: async () => {
+      if (!tokenOut) return;
       const swapResult = await router.route(tokenIn, tokenOut, amountIn, slippage, swapOptions).catch((e) => {
         console.error("Error routing swap: ", e);
         throw e;
@@ -74,7 +78,8 @@ export default function useSwap({ tokenIn, tokenOut, amountIn, slippage, disable
       console.debug("\n--------[Swap/useSwap] Query: ", swapResult, "\n");
       return swapResult;
     },
-    enabled: !!account && !!tokenIn && !!tokenOut && amountIn.gt(0) && !!slippage && !disabled,
+    enabled: !!account && hasSwapVars && !disabled,
+    ...defaultQuerySettingsQuote,
   });
 
   const resetSwap = useCallback(() => {

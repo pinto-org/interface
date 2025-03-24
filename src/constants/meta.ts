@@ -1,5 +1,3 @@
-
-
 export interface MetaProps {
   title: string;
   url: string;
@@ -26,16 +24,9 @@ const slugs = [
   "wrap",
 ] as const;
 
-const nestedSlugs = [
-  "PINTOUSDC",
-  "PINTOcbBTC",
-  "PINTOWSOL",
-  "PINTOWETH",
-  "PINTOcbETH",
-  "PINTO",
-] as const;
+const nestedSlugs = ["PINTOUSDC", "PINTOcbBTC", "PINTOWSOL", "PINTOWETH", "PINTOcbETH", "PINTO"] as const;
 
-export type MetaSlug = typeof slugs[number] | typeof nestedSlugs[number];
+export type MetaSlug = (typeof slugs)[number] | (typeof nestedSlugs)[number];
 
 const PINTO_META: Record<MetaSlug, MetaProps> = {
   index: {
@@ -56,7 +47,8 @@ const PINTO_META: Record<MetaSlug, MetaProps> = {
   silo: {
     title: "Silo: The Pinto Deposit Facility",
     url: "https://pinto.money/silo",
-    description: "Pinto's permissionless deposit facility is designed to attract and retain liquidity and reduce volatility. Depositors earn Stalk and Seeds to benefit from protocol-native financial incentives, including seigniorage.",
+    description:
+      "Pinto's permissionless deposit facility is designed to attract and retain liquidity and reduce volatility. Depositors earn Stalk and Seeds to benefit from protocol-native financial incentives, including seigniorage.",
   },
   transfer: {
     title: "Transfer: Send protocol native assets",
@@ -66,7 +58,8 @@ const PINTO_META: Record<MetaSlug, MetaProps> = {
   field: {
     title: "Field: The Pinto Credit Facility",
     url: "https://pinto.money/field",
-    description: "Pinto's permissionless credit facility is designed to attract lenders to the protocol during periods of excess supply. Lenders Pinto (Sow) for Pods, the protocol-native debt asset, which are repaid on a first in first out basis.",
+    description:
+      "Pinto's permissionless credit facility is designed to attract lenders to the protocol during periods of excess supply. Lenders Pinto (Sow) for Pods, the protocol-native debt asset, which are repaid on a first in first out basis.",
   },
   swap: {
     title: "Swap: Buy and Sell Pinto",
@@ -76,12 +69,14 @@ const PINTO_META: Record<MetaSlug, MetaProps> = {
   market: {
     title: "Pod Market: Trade Pods",
     url: "https://pinto.money/market",
-    description: "Trade Pods, the protocol-native debt asset of Pinto, in a censorship resistant, trustless and permissionless marketplace.",
+    description:
+      "Trade Pods, the protocol-native debt asset of Pinto, in a censorship resistant, trustless and permissionless marketplace.",
   },
   explorer: {
     title: "Explorer: Pinto Analytics",
     url: "https://pinto.money/explorer",
-    description: "Explore real-time charts and historical data on Pinto's market activity and overall protocol health, including liquidity and stability.",
+    description:
+      "Explore real-time charts and historical data on Pinto's market activity and overall protocol health, including liquidity and stability.",
   },
   PINTO: {
     title: "PINTO | Pinto",
@@ -116,8 +111,9 @@ const PINTO_META: Record<MetaSlug, MetaProps> = {
   wrap: {
     title: "Wrap and Unwrap Pinto | sPinto",
     url: "https://pinto.money/wrap",
-    description: "sPinto is a yield bearing token denominated in Pinto. It wraps Pinto Silo deposits and adheres to the ERC-20 and ERC-4626 standards. The token will increase in Pinto denominated value as yield accrues and does not rebase."
-  }
+    description:
+      "sPinto is a yield bearing token denominated in Pinto. It wraps Pinto Silo deposits and adheres to the ERC-20 and ERC-4626 standards. The token will increase in Pinto denominated value as yield accrues and does not rebase.",
+  },
 };
 
 export default PINTO_META;

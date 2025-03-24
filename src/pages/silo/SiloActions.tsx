@@ -2,12 +2,12 @@ import { Separator } from "@/components/ui/Separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { useParamsTabs } from "@/hooks/useRouterTabs";
 import { Token } from "@/utils/types";
+import { cn } from "@/utils/utils";
 import Convert from "./actions/Convert";
 import Deposit from "./actions/Deposit";
+import UnwrapToken from "./actions/UnwrapToken";
 import Withdraw from "./actions/Withdraw";
 import WrapToken from "./actions/WrapToken";
-import UnwrapToken from "./actions/UnwrapToken";
-import { cn } from "@/utils/utils";
 
 interface SiloToken {
   token: Token;
@@ -15,11 +15,15 @@ interface SiloToken {
 
 const SLUGS = {
   wrappable: ["wrap", "unwrap"],
-  nonWrappable: ["deposit", "withdraw", "convert"]
+  nonWrappable: ["deposit", "withdraw", "convert"],
 } as const;
 
 export default function SiloActions({ token }: SiloToken) {
-  const [tab, handleChangeTab] = useParamsTabs(token.isSiloWrapped ? SLUGS.wrappable : SLUGS.nonWrappable, "action", true);
+  const [tab, handleChangeTab] = useParamsTabs(
+    token.isSiloWrapped ? SLUGS.wrappable : SLUGS.nonWrappable,
+    "action",
+    true,
+  );
 
   return (
     <Tabs value={tab} onValueChange={handleChangeTab} className="w-full">
@@ -66,4 +70,3 @@ export default function SiloActions({ token }: SiloToken) {
     </Tabs>
   );
 }
-

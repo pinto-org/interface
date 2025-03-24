@@ -43,6 +43,8 @@ const buttonVariants = cva(
         morning: "bg-pinto-morning-orange text-pinto-morning",
         gradient:
           "bg-gradient-primary hover:bg-gradient-primary-hover text-white disabled:text-white disabled:opacity-60",
+        pagination:
+          "bg-pinto-green-1 text-pinto-green hover:bg-pinto-green-1/80 transition-all rounded-sm disabled:bg-transparent disabled:text-pinto-gray-4 text-pinto-green-4",
       },
       size: {
         default: `h-10 w-max px-2 py-2 sm:px-4 sm:py-2 ${deriveTextStyles("body-light", true)}`,
@@ -51,6 +53,7 @@ const buttonVariants = cva(
         lg: "h-10 rounded-md px-8",
         md: `h-10 px-2 py-2 sm:px-4 sm:py-2 ${deriveTextStyles("sm", true)}`,
         sm: `h-8 rounded-md px-3 ${deriveTextStyles("xs", true)}`,
+        xs: `h-6 rounded-[4px] px-1`,
         icon: "h-9 w-9 min-w-9 sm:h-12 sm:w-12 sm:min-w-12",
       },
       width: {
@@ -80,7 +83,7 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-  VariantProps<typeof buttonVariants> {
+    VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
 
