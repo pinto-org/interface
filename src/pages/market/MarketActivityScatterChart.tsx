@@ -344,7 +344,7 @@ export function MarketActivityScatterChart({
       plugins: [customTooltipPlugin, crosshairPlugin, pulsingEffectPlugin, zoomInfoPlugin],
     });
 
-    // Restore zoom
+    // Restore zoom function
     try {
       const zoomState = JSON.parse(sessionStorage.getItem("chartZoomState") || "{}");
       if (zoomState.xMin != null) {
