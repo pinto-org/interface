@@ -1,4 +1,8 @@
+import FrameAnimator from "@/components/LoadingSpinner";
 import { Separator } from "@/components/ui/Separator";
+import { MarketActivityScatterChart } from "@/pages/market/MarketActivityScatterChart";
+import { useAllMarket } from "@/state/market/useAllMarket";
+import { Fill, Listing, Order } from "@/utils/types";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AllActivityTable } from "./market/AllActivityTable";
@@ -14,10 +18,42 @@ import FillOrder from "./market/actions/FillOrder";
 const TABLE_SLUGS = ["activity", "listings", "orders", "my-activity"];
 const TABLE_LABELS = ["Activity", "Listings", "Orders", "My Activity"];
 
+interface ChartData {
+  data: (Listing | Order | Fill)[];
+  isLoaded: boolean;
+  isFetching: boolean;
+  queryKey: readonly unknown[];
+}
+
 export function Market() {
   const { mode, id } = useParams();
   const [tab, handleChangeTab] = useState(TABLE_SLUGS[0]);
   const navigate = useNavigate();
+  const marketData = useAllMarket();
+
+  const [isChartLoading, setIsChartLoading] = useState(false);
+  const [chartData, setChartData] = useState<ChartData | null>(null);
+
+  useEffect(() => {
+    if (marketData.isLoaded && marketData.data && marketData.data.length > 0 && !chartData) {
+      const clonedData: ChartData = {
+        data: [...marketData.data],
+        isLoaded: true,
+        isFetching: false,
+        queryKey: [],
+      };
+
+      setChartData(clonedData);
+    }
+  }, [marketData.isLoaded, marketData.data, chartData]);
+
+  const handleChartPointClick = useCallback(() => {
+    setIsChartLoading(true);
+
+    setTimeout(() => {
+      setIsChartLoading(false);
+    }, 300);
+  }, []);
 
   // Upon initial page load only, navigate to a page other than Activity if the url is granular.
   // In general it is allowed to be on Activity tab with these granular urls, hence the empty dependency array.
@@ -66,7 +102,23 @@ export function Market() {
         <div className={`flex flex-col`}>
           <div className="flex flex-row gap-4 border-t border-pinto-gray-2 mt-4 h-[calc(100vh-7.75rem)] lg:h-[calc(100vh-11rem)] overflow-hidden">
             <div className="flex flex-col flex-grow ml-4">
-              <div className="flex gap-10 ml-2.5 mt-8 mb-[1.625rem]">
+              <div className="w-full h-[28rem] mb-8 relative">
+                {isChartLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-10">
+                    <FrameAnimator className="-mt-5 -mb-12" size={80} />
+                  </div>
+                )}
+
+                {chartData && (
+                  <MarketActivityScatterChart
+                    key={`market-chart`}
+                    marketData={chartData}
+                    titleText=""
+                    onPointClick={handleChartPointClick}
+                  />
+                )}
+              </div>
+              <div className="flex gap-10 ml-2.5 mb-4">
                 {TABLE_SLUGS.map((s, idx) => (
                   <p
                     key={s}
@@ -78,7 +130,7 @@ export function Market() {
                 ))}
               </div>
               <Separator />
-              <div className="flex-grow overflow-auto scrollbar-none -ml-4 -mr-4">
+              <div className="flex-grow overflow-auto scrollbar-none -ml-4 -mr-4 mt-4">
                 {tab === TABLE_SLUGS[0] && <AllActivityTable />}
                 {tab === TABLE_SLUGS[1] && <PodListingsTable />}
                 {tab === TABLE_SLUGS[2] && <PodOrdersTable />}
