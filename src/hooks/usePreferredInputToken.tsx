@@ -176,7 +176,7 @@ export function usePreferredInputSiloDepositToken(farmerSilo: ReturnType<typeof 
     [farmerSilo.deposits, tokenMap, priceData, chainId],
   );
 
-  const preferredToken = sortedByBDVDescending.length ? sortedByBDVDescending[0]?.token : fallbackToken ?? mainToken;
+  const preferredToken = sortedByBDVDescending.length ? sortedByBDVDescending[0]?.token : (fallbackToken ?? mainToken);
 
   return {
     preferredToken,

@@ -101,7 +101,7 @@ export default function CreateOrder() {
   const swapSummary = useSwapSummary(swapData);
   const beansInOrder = !shouldSwap
     ? TokenValue.fromHuman(amountIn, tokenIn.decimals)
-    : swapSummary?.swap.routes[swapSummary?.swap.routes.length - 1].amountOut ?? TV.ZERO;
+    : (swapSummary?.swap.routes[swapSummary?.swap.routes.length - 1].amountOut ?? TV.ZERO);
 
   const value = tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals) : undefined;
 

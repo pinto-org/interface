@@ -122,10 +122,12 @@
 
 @layer components {
   .bg-gradient-light {
-    background: linear-gradient(90deg,
+    background: linear-gradient(
+        90deg,
         rgba(233, 231, 224, 0.1) 0%,
         rgba(254, 225, 140, 0.1) 52.5%,
-        rgba(241, 248, 140, 0.1) 100%), linear-gradient(0deg, #ffffff, #ffffff);
+        rgba(241, 248, 140, 0.1) 100%
+      ), linear-gradient(0deg, #ffffff, #ffffff);
   }
 
   .h1 {
@@ -150,11 +152,12 @@
   }
 
   .bg-morning-light {
-    background: linear-gradient(90deg,
-        rgba(233, 231, 224, 0.2) 0%,
-        rgba(254, 225, 140, 0.2) 0.01%,
-        rgba(241, 248, 140, 0.4) 100%);
-
+    background: linear-gradient(
+      90deg,
+      rgba(233, 231, 224, 0.2) 0%,
+      rgba(254, 225, 140, 0.2) 0.01%,
+      rgba(241, 248, 140, 0.4) 100%
+    );
   }
 }
 
@@ -202,7 +205,6 @@ body {
 
 /* Set 75% font size between 768px and 1600px */
 @media screen and (min-width: 768px) and (max-width: 1600px) {
-
   html,
   body {
     font-size: 75%;

@@ -192,7 +192,7 @@ function Sow({ isMorning }: SowProps) {
 
       const mainTokenAmount = isUsingMain
         ? TV.fromHuman(amountIn || 0n, mainToken.decimals)
-        : swap.data?.buyAmount ?? TV.ZERO;
+        : (swap.data?.buyAmount ?? TV.ZERO);
 
       if (!mainTokenAmount.gt(0)) {
         throw new Error("Sow amount must be greater than 0");

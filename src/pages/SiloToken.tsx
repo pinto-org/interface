@@ -176,7 +176,7 @@ export default function SiloToken() {
   const location = window.location.pathname;
   const isWrap = location === "/wrap";
 
-  const siloToken = tokens[getTokenIndex(isWrap ? wrappedMain : tokenAddress ?? "")];
+  const siloToken = tokens[getTokenIndex(isWrap ? wrappedMain : (tokenAddress ?? ""))];
 
   useEffect(() => {
     if (!siloToken || siloToken.is3PSiloWrapped) {
