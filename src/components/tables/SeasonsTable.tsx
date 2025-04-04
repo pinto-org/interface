@@ -21,6 +21,7 @@ const paginationPadding = 50;
 export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsTableProps) => {
   const tableRef = useRef<HTMLTableElement>(null);
   const [height, setHeight] = useState(500);
+  const VariableSizeListComponent = VariableSizeList as unknown as React.ComponentType<any>;
 
   const calculatedWidth = useMemo(() => {
     return seasonColumns.reduce((acc, column) => {
@@ -197,7 +198,7 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
             <TableCell colSpan={seasonColumns.length}>Currently No Data to show</TableCell>
           </TableRow>
         )}
-        <VariableSizeList<any>
+        <VariableSizeListComponent
           className="overscroll-auto mb-[50px] scrollbar-none"
           height={height}
           itemCount={seasonsData.length}
@@ -206,7 +207,7 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
           overscanCount={4}
         >
           {RenderRow}
-        </VariableSizeList>
+        </VariableSizeListComponent>
       </TableBody>
     </Table>
   );

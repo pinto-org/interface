@@ -48,7 +48,7 @@ const Text = React.forwardRef(
       loadingWidth,
       ...props
     }: TextProps<C>,
-    ref?: React.ComponentPropsWithRef<C>["ref"],
+    ref?: React.ForwardedRef<React.ComponentPropsWithRef<C>["ref"]>,
   ) => {
     const Component = as || "div";
 
