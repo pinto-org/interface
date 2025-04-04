@@ -198,7 +198,7 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
             <TableCell colSpan={seasonColumns.length}>Currently No Data to show</TableCell>
           </TableRow>
         )}
-        <VariableSizeListComponent
+        <VariableSizeList
           className="overscroll-auto mb-[50px] scrollbar-none"
           height={height}
           itemCount={seasonsData.length}
@@ -207,7 +207,7 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
           overscanCount={4}
         >
           {RenderRow}
-        </VariableSizeListComponent>
+        </VariableSizeList>
       </TableBody>
     </Table>
   );
