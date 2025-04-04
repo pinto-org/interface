@@ -49,7 +49,6 @@
     "bottleneck": "^2.19.5",
     "buffer": "^6.0.3",
     "chart.js": "^4.4.4",
-    "chartjs-plugin-zoom": "^2.2.0",
     "class-variance-authority": "0.7.0",
     "clsx": "2.1.1",
     "connectkit": "^1.8.2",
