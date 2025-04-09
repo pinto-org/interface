@@ -55,6 +55,9 @@ export default function SowOrderDialog({ open, onOpenChange }: SowOrderDialogPro
   const [isLoading, setIsLoading] = useState(false);
   const publicClient = usePublicClient();
   const [showTokenSelectionDialog, setShowTokenSelectionDialog] = useState(false);
+  const [runBlocksAfterSunrise, setRunBlocksAfterSunrise] = useState("0");
+  const [operatorAddress, setOperatorAddress] = useState("");
+  const [whitelistedOperators, setWhitelistedOperators] = useState<`0x${string}`[]>([]);
 
   // Get LP tokens
   const lpTokens = useMemo(() => whitelistedTokens.filter((t) => t.isLP), [whitelistedTokens]);
@@ -239,9 +242,9 @@ export default function SowOrderDialog({ open, onOpenChange }: SowOrderDialogPro
         maxAmountToSowPerSeason: maxPerSeason || "0",
         maxPodlineLength: podLineLength || "0",
         maxGrownStalkPerBdv: "10000000000000000", // default of 100 grown stalk per bdv, which would take about 21 years at 4 seeds. TODO: add input for this in the future
-        runBlocksAfterSunrise: "0",
+        runBlocksAfterSunrise: runBlocksAfterSunrise || "0",
         operatorTip: operatorTip || "0",
-        whitelistedOperators: [],
+        whitelistedOperators: whitelistedOperators,
         tokenStrategy: selectedTokenStrategy,
         publicClient,
       });
@@ -341,6 +344,8 @@ export default function SowOrderDialog({ open, onOpenChange }: SowOrderDialogPro
     podLineLength: "pod-line-length-input",
     morningAuction: "morning-auction-input",
     operatorTip: "operator-tip-input",
+    runBlocksAfterSunrise: "run-blocks-after-sunrise-input",
+    operatorAddress: "operator-address-input",
   };
 
   return (
@@ -598,6 +603,68 @@ export default function SowOrderDialog({ open, onOpenChange }: SowOrderDialogPro
                     No
                   </Button>
                 </div>
+              </div>
+
+              {/* Run Blocks After Sunrise */}
+              <div className="flex flex-col gap-2">
+                <label htmlFor={inputIds.runBlocksAfterSunrise} className="text-[#9C9C9C] text-base font-light">
+                  Run Blocks After Sunrise
+                </label>
+                <Input
+                  id={inputIds.runBlocksAfterSunrise}
+                  className="h-12 px-3 py-1.5 border border-[#D9D9D9] rounded-xl"
+                  placeholder="0"
+                  value={runBlocksAfterSunrise}
+                  onChange={(e) => setRunBlocksAfterSunrise(e.target.value.replace(/[^0-9]/g, ""))}
+                  type="text"
+                />
+              </div>
+
+              {/* Operator Whitelist */}
+              <div className="flex flex-col gap-2">
+                <label htmlFor={inputIds.operatorAddress} className="text-[#9C9C9C] text-base font-light">
+                  Add Operator Address
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    id={inputIds.operatorAddress}
+                    className="h-12 px-3 py-1.5 border border-[#D9D9D9] rounded-xl flex-1"
+                    placeholder="0x..."
+                    value={operatorAddress}
+                    onChange={(e) => setOperatorAddress(e.target.value)}
+                    type="text"
+                  />
+                  <Button
+                    variant="outline"
+                    className="h-12 px-4 py-2 rounded-xl bg-gradient-to-r from-[#46A955] to-[#1F9C5A] text-white"
+                    onClick={() => {
+                      if (operatorAddress && operatorAddress.startsWith("0x") && operatorAddress.length === 42) {
+                        setWhitelistedOperators([...whitelistedOperators, operatorAddress as `0x${string}`]);
+                        setOperatorAddress("");
+                      }
+                    }}
+                  >
+                    Add
+                  </Button>
+                </div>
+                {whitelistedOperators.length > 0 && (
+                  <div className="flex flex-col gap-2 mt-2">
+                    {whitelistedOperators.map((address, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                        <span className="text-sm font-mono">{address}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setWhitelistedOperators(whitelistedOperators.filter((_, i) => i !== index));
+                          }}
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* After Morning Auction buttons */}

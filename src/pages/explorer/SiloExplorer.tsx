@@ -1,5 +1,4 @@
-import SeasonalChart, { tabToSeasonalLookback, TimeTab } from "@/components/charts/SeasonalChart";
-import {
+import SeasonalChart, { tabToSeasonalLookback, TimeTab } from "@/components/charts/SeasonalChart";import {
   useSeasonalAvgSeeds,
   useSeasonalL2SR,
   useSeasonalStalk,
