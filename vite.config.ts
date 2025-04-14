@@ -4,6 +4,10 @@ import { defineConfig } from "vite";
 import strip from '@rollup/plugin-strip';
 import { configDefaults } from 'vitest/config';
 
+const ReactCompilerConfig = {
+  target: '18' // '17' | '18' | '19'
+};
+
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => ({
   plugins: [react(), {
@@ -33,6 +37,13 @@ export default defineConfig(({ command }) => ({
         strip({
           functions: ['console.debug'],
           include: '**/*.(ts|tsx)',
+        }),
+        react({
+          babel: {
+            plugins: [
+              ["babel-plugin-react-compiler", ReactCompilerConfig],
+            ],
+          },
         }),
       ],
     },
