@@ -14,7 +14,7 @@ import FillOrder from "./market/actions/FillOrder";
 const TABLE_SLUGS = ["activity", "listings", "orders", "my-activity"];
 const TABLE_LABELS = ["Activity", "Listings", "Orders", "My Activity"];
 
-export function Market() {
+export default function Market() {
   const { mode, id } = useParams();
   const [tab, handleChangeTab] = useState(TABLE_SLUGS[0]);
   const navigate = useNavigate();

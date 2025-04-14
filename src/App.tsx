@@ -1,31 +1,49 @@
 import META from "@/constants/meta";
 import { cn, isDev } from "@/utils/utils";
+import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import DevPage from "./components/DevPage";
 import PageMetaWrapper from "./components/PageMetaWrapper";
 import ScrollToTop from "./components/ScrollToTop";
 import Navbar from "./components/nav/nav/Navbar";
 import { externalLinks } from "./constants/links";
-import Error404 from "./pages/Error404";
-import Explorer from "./pages/Explorer";
-import Field from "./pages/Field";
-import Landing from "./pages/Landing";
-import { Market } from "./pages/Market";
-import Overview from "./pages/Overview";
-import Silo from "./pages/Silo";
-import SiloToken from "./pages/SiloToken";
-import Swap from "./pages/Swap";
-import Transfer from "./pages/Transfer";
-import Whitepaper from "./pages/Whitepaper";
-import NewUserView from "./pages/overview/NewUserView";
 import { useMetaCRM } from "./utils/meta-crm";
+
+// Eagerly load small/critical components
+import Error404 from "./pages/Error404";
+
+// Lazy load chunk 1: Landing page
+const Landing = lazy(() => import("./pages/Landing"));
+const Whitepaper = lazy(() => import("./pages/Whitepaper"));
+const NewUserView = lazy(() => import("./pages/overview/NewUserView"));
+
+// Lazy load chunk 2: Explorer page
+const Explorer = lazy(() => import("./pages/Explorer"));
+
+// Lazy load chunk 3: Main application components
+const Overview = lazy(() => import("./pages/Overview"));
+const Silo = lazy(() => import("./pages/Silo"));
+const SiloToken = lazy(() => import("./pages/SiloToken"));
+const Field = lazy(() => import("./pages/Field"));
+const Swap = lazy(() => import("./pages/Swap"));
+const Market = lazy(() => import("./pages/Market"));
+const Transfer = lazy(() => import("./pages/Transfer"));
+const DevPage = lazy(() => import("./components/DevPage"));
+
+// Loading component for Suspense fallback
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="w-16 h-16 border-4 border-blue-400 border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 function AppLayout({ children }) {
   return (
     <div className="min-h-screen">
       <Navbar />
       <ScrollToTop />
-      <div className={cn("relative z-[1] w-screen")}>{children}</div>
+      <div className={cn("relative z-[1] w-screen")}>
+        <Suspense fallback={<LoadingSpinner />}>{children}</Suspense>
+      </div>
     </div>
   );
 }
@@ -115,36 +133,36 @@ function ProtectedLayout() {
           </PageMetaWrapper>
         }
       />
-      <Route
-        path="/explorer/"
-        element={
-          <PageMetaWrapper metaKey="explorer">
-            <Explorer />
-          </PageMetaWrapper>
-        }
-      />
-      <Route
-        path="/explorer/:tab"
-        element={
-          <PageMetaWrapper metaKey="explorer">
-            <Explorer />
-          </PageMetaWrapper>
-        }
-      />
-      <Route
-        path="/404"
-        element={
-          <PageMetaWrapper metaKey="404">
-            <Error404 />
-          </PageMetaWrapper>
-        }
-      />
       {isDev() && <Route path="/dev" element={<DevPage />} />}
       <Route
         path="*"
         element={
           <PageMetaWrapper metaKey="404">
             <Error404 />
+          </PageMetaWrapper>
+        }
+      />
+    </Routes>
+  );
+}
+
+// Separate Explorer routes for chunk 2
+function ExplorerRoutes() {
+  return (
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <PageMetaWrapper metaKey="explorer">
+            <Explorer />
+          </PageMetaWrapper>
+        }
+      />
+      <Route
+        path="/:tab"
+        element={
+          <PageMetaWrapper metaKey="explorer">
+            <Explorer />
           </PageMetaWrapper>
         }
       />
@@ -159,6 +177,7 @@ function App() {
     <BrowserRouter>
       <AppLayout>
         <Routes>
+          {/* Chunk 1: Landing page routes */}
           <Route
             index
             element={
@@ -176,13 +195,30 @@ function App() {
             }
           />
           <Route path="/whitepaper" element={<Whitepaper />} />
+
+          {/* Chunk 2: Explorer routes */}
+          <Route path="/explorer/*" element={<ExplorerRoutes />} />
+
+          {/* Chunk 3: Main app routes */}
           <Route path="/*" element={<ProtectedLayout />} />
+
+          {/* External redirect */}
           <Route
             path="/announcing-pinto"
             Component={() => {
               window.location.replace(externalLinks.announcingPinto);
               return null;
             }}
+          />
+
+          {/* 404 route */}
+          <Route
+            path="/404"
+            element={
+              <PageMetaWrapper metaKey="404">
+                <Error404 />
+              </PageMetaWrapper>
+            }
           />
         </Routes>
       </AppLayout>
