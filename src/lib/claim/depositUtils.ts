@@ -239,41 +239,42 @@ export async function simulateGetSortedDeposits(
     
     console.log(`Found ${sortableTokens.length} tokens with deposits to sort`);
     
-    // Process the input farm calls to extract callData
-    const rawCallDataArray: `0x${string}`[] = [];
+    // Extract callData from base farm calls
+    const baseCallDataArray: `0x${string}`[] = [];
     
-    // Handle farmCalls based on its type
-    /*if (Array.isArray(farmCalls)) {
-      // Process each farm call to extract just the callData
+    if (Array.isArray(farmCalls)) {
       for (const call of farmCalls) {
         if (!call) continue;
         
-        // Handle both object format and direct string format
         if (typeof call === 'string') {
-          // It's already a callData string
-          rawCallDataArray.push(call.startsWith('0x') ? call as `0x${string}` : `0x${call}` as `0x${string}`);
+          baseCallDataArray.push(call.startsWith('0x') ? call as `0x${string}` : `0x${call}` as `0x${string}`);
         } else if (call.callData) {
-          // It's an object with callData property
           const callData = typeof call.callData === 'string' 
             ? (call.callData.startsWith('0x') ? call.callData : `0x${call.callData}`) as `0x${string}`
             : "0x" as `0x${string}`;
           
-          rawCallDataArray.push(callData);
+          baseCallDataArray.push(callData);
         }
       }
     }
     
-    console.log(`Added ${rawCallDataArray.length} raw call data items from input farm calls`);*/
+    console.log(`Extracted ${baseCallDataArray.length} base call data items`);
     
-    // For each token with deposits, create a call to TractorHelpers.getSortedDeposits
-    for (const token of sortableTokens) {
+    // Create a result object to store simulation results for each token
+    const results = {
+      sortedDeposits: {} as Record<string, { stems: bigint[], depositIds: bigint[] }>
+    };
+    
+    // Get just the first token with deposits
+    if (sortableTokens.length > 0) {
+      const token = sortableTokens[0];
+      console.log(`Processing only the first token for sorted deposits: ${token.symbol} (${token.address})`);
+      
       try {
         if (!token.address) {
-          console.log(`Skipping token without address: ${token.symbol || 'unknown'}`);
-          continue;
+          console.log(`Cannot process token without address`);
+          return results;
         }
-        
-        console.log(`Processing token for sorted deposits: ${token.symbol} (${token.address})`);
         
         // Create call to get sorted deposits using the imported ABI
         const getSortedDepositsCallData = encodeFunctionData({
@@ -292,114 +293,149 @@ export async function simulateGetSortedDeposits(
               callData: getSortedDepositsCallData, 
               clipboard: "0x" as `0x${string}` 
             }], 
-            0n
+            0n // Value parameter (only 2 parameters based on Beanstalk ABI)
           ]
         });
         
-        // Wrap the advancedPipe call inside an advancedFarm call using the full Beanstalk ABI
-        const advancedFarmCallData = encodeFunctionData({
-          abi: beanstalkAbi,
-          functionName: "advancedFarm",
-          args: [[{ 
-            callData: pipeCallData,
-            clipboard: "0x" as `0x${string}`
-          }]]
+        // Log detailed info about the advancedPipe call
+        console.log("advancedPipe encoding details:", {
+          target: tractorHelpersAddress,
+          callData: getSortedDepositsCallData,
+          functionName: "advancedPipe",
+          pipeCallData: pipeCallData.substring(0, 66) + "..." // Truncate for readability
         });
         
-        // Add the advancedFarm call to our array of calls
-        rawCallDataArray.push(advancedFarmCallData);
+        // We need to make sure we have the right function signature for advancedFarm
+        // Create farmCalls array with proper typing for advancedFarm
+        const formattedFarmCalls: { callData: `0x${string}`; clipboard: `0x${string}` }[] = [
+          ...baseCallDataArray.map(callData => ({
+            callData,
+            clipboard: "0x" as `0x${string}`
+          })), 
+          {
+            callData: pipeCallData,
+            clipboard: "0x" as `0x${string}`
+          }
+        ];
         
-        console.log(`Added nested advancedFarm->advancedPipe call for token ${token.symbol} (${token.address})`);
+        // Wrap everything in an advancedFarm call - using proper format
+        console.log(`Creating advancedFarm call with ${formattedFarmCalls.length} inner calls...`);
+        
+        try {
+          // Try encoding the advancedFarm call with proper format
+          const advancedFarmCallData = encodeFunctionData({
+            abi: beanstalkAbi,
+            functionName: "advancedFarm",
+            args: [formattedFarmCalls] // Properly formatted calls
+          });
+          
+          console.log(`Successfully encoded advancedFarm call, first 66 chars: ${advancedFarmCallData.substring(0, 66)}...`);
+          
+          console.log(`Running advancedFarm simulation for single token ${token.symbol}...`);
+          
+          try {
+            // Run simulation directly using advancedFarm
+            const tokenSimulationResult = await publicClient.simulateContract({
+              address: beanstalkAddress,
+              abi: beanstalkAbi,
+              functionName: "advancedFarm",
+              args: [formattedFarmCalls],
+              account,
+            });
+            
+            console.log(`Simulation for token ${token.symbol} successful!`);
+            
+            // Process simulation results for this token
+            const deposits = token.deposited.deposits || {};
+            const depositCount = Object.keys(deposits).length;
+            
+            console.log(`Token ${token.symbol}: ${depositCount} deposits`);
+            
+            if (depositCount > 0) {
+              // For tokens with deposits, extract results from simulation
+              // Here we're just logging for demonstration
+              const stems = Object.keys(deposits).slice(0, 10);
+              const amounts = stems.map(stem => 
+                deposits[stem].amount.toString()
+              );
+              
+              console.log(`First few stems: ${stems.join(', ')}`);
+              console.log(`First few amounts: ${amounts.join(', ')}`);
+              
+              // Pack address and stem to create deposit IDs
+              const createDepositId = (tokenAddress: `0x${string}`, stem: string) => {
+                // Simple implementation if packAddressAndStem isn't available
+                return BigInt(stem);
+              };
+              
+              const depositIds = stems.map(stem => 
+                createDepositId(token.address, stem)
+              );
+              
+              console.log(`First few depositIds: ${depositIds.join(', ')}`);
+              
+              // Store in results
+              results.sortedDeposits[token.address] = {
+                stems: stems.map(s => BigInt(s)),
+                depositIds
+              };
+            }
+          } catch (simulationErr: any) {
+            console.error(`Error simulating advancedFarm transaction for token ${token.symbol}:`, simulationErr);
+            
+            // Try to extract helpful error information
+            const errorMessage = simulationErr.toString();
+            console.error("Error details:", {
+              message: errorMessage,
+              // Extract any revert reasons if possible
+              revertReason: errorMessage.includes("revert") ? 
+                errorMessage.substring(errorMessage.indexOf("revert") + 7) : "Unknown"
+            });
+            
+            // Log detailed transaction data for debugging
+            console.error(`Simulation transaction details for ${token.symbol}:`);
+            
+            // Log the transaction contract address
+            console.error(`- Contract address: ${beanstalkAddress}`);
+            
+            // Log the account address
+            console.error(`- Account address: ${account}`);
+            
+            // Log TractorHelpers address
+            console.error(`- TractorHelpers address: ${tractorHelpersAddress}`);
+            
+            // Log each call in the advancedFarm
+            console.error("- AdvancedFarm inner calls:");
+            formattedFarmCalls.forEach((call, index) => {
+              console.error(`  Call #${index}: ${call.callData.substring(0, 10)}...`);
+            });
+            
+            // Encode the advancedFarm function with args for full transaction data
+            try {
+              const advancedFarmCalldata = encodeFunctionData({
+                abi: beanstalkAbi,
+                functionName: "advancedFarm",
+                args: [formattedFarmCalls],
+              });
+              
+              console.error(`- Full transaction data for simulator: ${advancedFarmCalldata} end`);
+            } catch (encodeErr) {
+              console.error("Error encoding advancedFarm call data:", encodeErr);
+            }
+          }
+        } catch (encodeErr) {
+          console.error("Error encoding advancedFarm function:", encodeErr);
+        }
       } catch (err) {
         console.error(`Error creating pipe call for token ${token.symbol}:`, err);
       }
+    } else {
+      console.log("No tokens found to process for sorted deposits");
     }
     
-    // Simulate the farm transaction to get sorted deposits
-    console.log(`Simulating farm transaction with ${rawCallDataArray.length} calls...`);
-    
-    // If we have no calls to make, return early
-    if (rawCallDataArray.length === 0) {
-      console.log("No calls to simulate, returning empty result");
-      return {
-        simulationResult: null,
-        sortedDeposits: {}
-      };
-    }
-    
-    try {
-      // A much simpler approach using a direct function call
-      const simulationResult = await publicClient.simulateContract({
-        address: beanstalkAddress,
-        abi: beanstalkAbi,
-        functionName: "farm",
-        args: [rawCallDataArray],
-        account,
-      });
-      
-      console.log("Farm simulation successful:", {
-        gasUsed: simulationResult.request?.gas,
-        resultType: typeof simulationResult.result,
-        resultLength: Array.isArray(simulationResult.result) ? simulationResult.result.length : 'not an array'
-      });
-      
-      // Process simulation results
-      const results = {
-        simulationResult,
-        sortedDeposits: {} as Record<string, { stems: bigint[], depositIds: bigint[] }>
-      };
-      
-      // Extract results for each token
-      for (const token of sortableTokens) {
-        try {
-          if (!token.address) continue;
-          
-          const deposits = token.deposited.deposits || {};
-          const depositCount = Object.keys(deposits).length;
-          
-          console.log(`Token ${token.symbol}: ${depositCount} deposits`);
-          
-          if (depositCount > 0) {
-            // For tokens with deposits, extract results from simulation
-            // Here we're just logging for demonstration
-            const stems = Object.keys(deposits).slice(0, 10);
-            const amounts = stems.map(stem => 
-              deposits[stem].amount.toString()
-            );
-            
-            console.log(`First few stems: ${stems.join(', ')}`);
-            console.log(`First few amounts: ${amounts.join(', ')}`);
-            
-            // Pack address and stem to create deposit IDs
-            const createDepositId = (tokenAddress: `0x${string}`, stem: string) => {
-              // Simple implementation if packAddressAndStem isn't available
-              return BigInt(stem);
-            };
-            
-            const depositIds = stems.map(stem => 
-              createDepositId(token.address, stem)
-            );
-            
-            console.log(`First few depositIds: ${depositIds.join(', ')}`);
-            
-            // Store in results
-            results.sortedDeposits[token.address] = {
-              stems: stems.map(s => BigInt(s)),
-              depositIds
-            };
-          }
-        } catch (err) {
-          console.error(`Error extracting sorted deposits for ${token.symbol}:`, err);
-        }
-      }
-      
-      return results;
-    } catch (err) {
-      console.error("Error simulating farm transaction:", err);
-      throw err;
-    }
+    return results;
   } catch (err) {
-    console.error("Error simulating farm transaction:", err);
+    console.error("Error processing sorted deposits:", err);
     throw err;
   }
 }

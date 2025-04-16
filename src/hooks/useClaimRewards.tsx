@@ -87,15 +87,15 @@ export function useClaimRewards() {
         try {
           console.log("Running simulation for debugging purposes...");
           
-          // Directly use the raw encodeFunctionData results as an array of hex strings
-          // These are already properly formatted hex strings
-          const rawCallDataArray: `0x${string}`[] = [
+          // Create direct callData array without the convert operations to avoid balance errors
+          const simulationOnlyCallData: `0x${string}`[] = [
             plant, 
-            mow,
-            ...updateData 
+            mow
+            // Exclude updateData which contains the convert operations
+            // ...updateData 
           ];
           
-          console.log(`Created ${rawCallDataArray.length} raw callData items`);
+          console.log(`Created ${simulationOnlyCallData.length} raw callData items for simulation (excluding convert operations)`);
           
           // Log some information about the farmer deposits to help debug
           console.log("Farmer deposits info:", {
@@ -136,7 +136,7 @@ export function useClaimRewards() {
           }
           
           // Log the structure for debugging
-          console.log("Raw call data array first 2 items:", rawCallDataArray.slice(0, 2));
+          console.log("Raw call data array first 2 items:", simulationOnlyCallData.slice(0, 2));
           console.log("Number of formatted tokens:", Object.keys(formattedTokens).length);
           
           const contractAddress = beanstalkAddress[chainId as keyof typeof beanstalkAddress];
@@ -145,7 +145,7 @@ export function useClaimRewards() {
           const simulationResults = await simulateGetSortedDeposits(
             account as `0x${string}`,
             formattedTokens,
-            rawCallDataArray,
+            simulationOnlyCallData, // Use simulation-only calls without convert operations
             publicClient,
             contractAddress as `0x${string}`,
             TRACTOR_HELPERS_ADDRESS as `0x${string}`
@@ -153,14 +153,14 @@ export function useClaimRewards() {
           
           console.log("Simulation completed for debugging:", {
             hasResults: !!simulationResults,
-            gasEstimated: simulationResults?.simulationResult?.request?.gas || 'unknown',
             sortedDepositsCount: Object.keys(simulationResults?.sortedDeposits || {}).length,
             tokens: Object.keys(simulationResults?.sortedDeposits || {}).map(addr => 
               `Token ${addr}: ${simulationResults.sortedDeposits[addr].stems.length} stems`
             )
           });
+          
+          return; //return so we don't have to reset the test env each time
         } catch (simError) {
-          // If simulation fails, log but continue with the transaction
           console.error("Simulation failed:", simError);
           console.log("Continuing with transaction despite simulation failure");
           return; //return so we don't have to reset the test env each time
