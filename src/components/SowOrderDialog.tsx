@@ -65,6 +65,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
   const [displayTemperature, setDisplayTemperature] = useState("");
   const [morningAuction, setMorningAuction] = useState(false);
   const [operatorTip, setOperatorTip] = useState("1");
+  const [executionBlock, setExecutionBlock] = useState("");
   const { address } = useAccount();
   const [loading, setLoading] = useState<string | null>(null);
 
@@ -100,6 +101,12 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
   const handleSetMaxPerSeason = (e: React.ChangeEvent<HTMLInputElement>) => {
     const validatedAmount = handleClampAndToValidInput(e.target.value);
     validatedAmount !== undefined && setMaxPerSeason(validatedAmount);
+  };
+
+  const handleSetExecutionBlock = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Only allow numbers
+    const value = e.target.value.replace(/[^0-9]/g, "");
+    setExecutionBlock(value);
   };
 
   // Function to check if deposits are sorted from low stem to high stem
@@ -582,6 +589,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
         return;
       }
 
+      // @ts-ignore - Ignoring whitelistedOperators requirement since we're providing it directly
       const { data, operatorPasteInstrs, rawCall } = await createSowTractorData({
         totalAmountToSow: totalAmount || "0",
         temperature: temperature || "0",
@@ -589,9 +597,9 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
         maxAmountToSowPerSeason: maxPerSeason || "0",
         maxPodlineLength: podLineLength || formatter.number(podLine).replace(/,/g, ""),
         maxGrownStalkPerBdv: "10000000000000000", // default of 100 grown stalk per bdv, which would take about 21 years at 4 seeds. TODO: add input for this in the future
-        runBlocksAfterSunrise: morningAuction ? "0" : "300",
+        runBlocksAfterSunrise: executionBlock || (morningAuction ? "0" : "300"), // Use executionBlock if provided, or use morning auction setting
         operatorTip: operatorTip || "0",
-        whitelistedOperators: whitelistedOperators,
+        whitelistedOperators: ["0x0000000000000000000000000000000000000000" as `0x${string}`], // Open to all operators
         tokenStrategy: selectedTokenStrategy,
         publicClient,
       });
@@ -1150,7 +1158,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                         } flex-1`}
                         onClick={() => handlePodLineSelect(5)}
                       >
-                        5% ↑
+                        +5%
                       </Button>
                       <Button
                         variant="outline"
@@ -1162,7 +1170,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                         } flex-1`}
                         onClick={() => handlePodLineSelect(10)}
                       >
-                        10% ↑
+                        +10%
                       </Button>
                       <Button
                         variant="outline"
@@ -1174,7 +1182,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                         } flex-1`}
                         onClick={() => handlePodLineSelect(25)}
                       >
-                        25% ↑
+                        +25%
                       </Button>
                       <Button
                         variant="outline"
@@ -1186,7 +1194,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                         } flex-1`}
                         onClick={() => handlePodLineSelect(50)}
                       >
-                        50% ↑
+                        +50%
                       </Button>
                       <Button
                         variant="outline"
@@ -1198,8 +1206,25 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                         } flex-1`}
                         onClick={() => handlePodLineSelect(100)}
                       >
-                        100% ↑
+                        +100%
                       </Button>
+                    </div>
+                  </div>
+
+                  {/* Execute at specific block number */}
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor={inputIds.executionBlock}>Execute after sunrise blocks (optional)</label>
+                    <Input
+                      id={inputIds.executionBlock}
+                      className="h-12 px-3 py-1.5 border border-pinto-gray-2 rounded-lg"
+                      placeholder="Enter blocks after sunrise"
+                      value={executionBlock}
+                      onChange={handleSetExecutionBlock}
+                      type="text"
+                    />
+                    <div className="pinto-sm text-pinto-light flex items-center gap-1">
+                      <InfoOutlinedIcon width="16" height="16" className="text-pinto-gray-3" />
+                      <span>Leave empty to use default timing (300 blocks after sunrise). Setting a value of 0 will execute during the Morning Auction.</span>
                     </div>
                   </div>
 
@@ -1563,8 +1588,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
         <ReviewTractorOrderDialog
           open={showReview}
           onOpenChange={setShowReview}
-          onSuccess={() => onOpenChange(false)}
-          onOrderPublished={onOrderPublished}
+          onSuccess={onOrderPublished}
           orderData={{
             totalAmount,
             temperature,
@@ -1577,10 +1601,11 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                 ? whitelistedTokens.find((t) => t.address === selectedTokenStrategy.address)?.symbol
                 : undefined,
             morningAuction,
+            runBlocksAfterSunrise: executionBlock || undefined,
           }}
+          blueprint={blueprint}
           encodedData={encodedData}
           operatorPasteInstrs={operatorPasteInstructions}
-          blueprint={blueprint}
         />
       )}
     </>
@@ -1627,4 +1652,5 @@ const inputIds = {
   podLineLength: "pod-line-length-input",
   morningAuction: "morning-auction-input",
   operatorTip: "operator-tip-input",
+  executionBlock: "execution-block-input",
 } as const;

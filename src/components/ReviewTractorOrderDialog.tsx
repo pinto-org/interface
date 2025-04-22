@@ -53,6 +53,7 @@ interface ReviewTractorOrderProps {
     tokenStrategy?: "LOWEST_SEEDS" | "LOWEST_PRICE" | "SPECIFIC_TOKEN";
     tokenSymbol?: string;
     morningAuction?: boolean;
+    runBlocksAfterSunrise?: string;
   };
   encodedData: `0x${string}`;
   operatorPasteInstrs: `0x${string}`[];
@@ -367,6 +368,14 @@ export default function ReviewTractorOrderDialog({
                               AND {orderData.morningAuction ? "during" : "after"} the Morning Auction
                             </span>
                           </li>
+                          {orderData.runBlocksAfterSunrise && orderData.runBlocksAfterSunrise !== "300" && (
+                          <li className="flex items-center gap-2">
+                            <CornerBottomLeftIcon className="text-gray-300 ml-4" />
+                            <span className="font-antarctica font-light text-[#9C9C9C]">
+                              AND wait <span className="text-pinto-green-4">{orderData.runBlocksAfterSunrise}</span> blocks after sunrise
+                            </span>
+                          </li>
+                          )}
                         </ul>
                       </div>
                     </div>
