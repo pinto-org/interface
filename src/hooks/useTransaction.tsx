@@ -114,9 +114,12 @@ export default function useTransaction({
     mutation: {
       onError: (error) => {
         console.error("failed: ", error);
-        if (onError) return onError(error);
-        // if txn is has been prepared but not submitted and it errors, there is no hash. Handle it here.
-        sendErrorToast(error, errorMessage);
+
+        const errorHandled = onError?.(error) ?? false;
+        if (!errorHandled) {
+          // if txn is has been prepared but not submitted and it errors, there is no hash. Handle it here.
+          sendErrorToast(error, errorMessage);
+        }
       },
     },
   });

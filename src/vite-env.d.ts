@@ -18,9 +18,9 @@ interface ImportMetaEnv {
    */
   readonly VITE_CHAINS: string;
   /**
-   * URL for the apy endpoint
+   * main API endpoint for services
    */
-  readonly VITE_APY_ENDPOINT: string;
+  readonly VITE_BASE_ENDPOINT: string;
   /**
    * RPC URL for the testnet
    */

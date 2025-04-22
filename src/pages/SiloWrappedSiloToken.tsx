@@ -11,11 +11,15 @@ import { Separator } from "@/components/ui/Separator";
 import { SEEDS, STALK } from "@/constants/internalTokens";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import { useProtocolIntegrationLinks } from "@/hooks/useProtocolIntegrations";
+import { ProtocolIntegration, ProtocolIntegrationQueryReturnType } from "@/state/integrations/types";
+import { useSpectraYieldSummary } from "@/state/integrations/useSpectraYieldSummary";
+import { useSeasonalPrice, useSeasonalWrappedDepositExchangeRate } from "@/state/seasonal/seasonalDataHooks";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloWrappedDepositsAPYs } from "@/state/useSiloWrappedDepositsAPYs";
 import { useSiloWrappedTokenExchangeRateQuery, useSiloWrappedTokenTotalSupply } from "@/state/useSiloWrappedTokenData";
+import { useSeason } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
@@ -23,14 +27,12 @@ import { cn } from "@/utils/utils";
 import { ArrowDownIcon, ArrowUpIcon } from "@radix-ui/react-icons";
 import { CornerBottomLeftIcon } from "@radix-ui/react-icons";
 import clsx from "clsx";
+import { useMemo } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAccount } from "wagmi";
 import SiloActions from "./silo/SiloActions";
 import SiloTokenPageHeader, { SiloTokenPageSubHeader } from "./siloToken/SiloTokenPageHeader";
 import SiloedTokenCharts from "./wrap/SiloedTokenCharts";
-import { useSeasonalPrice, useSeasonalWrappedDepositExchangeRate } from "@/state/seasonal/seasonalDataHooks";
-import { useSeason } from "@/state/useSunData";
-import { useMemo } from "react";
 
 export default function SiloWrappedSiloToken({ token }: { token: Token }) {
   // URL Params
@@ -40,7 +42,7 @@ export default function SiloWrappedSiloToken({ token }: { token: Token }) {
   const navigate = useNavigate();
 
   // Queries | Hooks
-  const { deposits, isLoading: depositsLoading } = useFarmerSiloNew(token.address);
+  const { deposits } = useFarmerSilo(token.address);
   const exchangeRate = useSiloWrappedTokenExchangeRateQuery();
   const totalSupply = useSiloWrappedTokenTotalSupply();
   const priceData = usePriceData();
@@ -50,7 +52,7 @@ export default function SiloWrappedSiloToken({ token }: { token: Token }) {
   const apys = useSiloWrappedDepositsAPYs();
 
   // Display State
-  const overviewStatsLoading = depositsLoading || exchangeRate.isLoading || totalSupply.isLoading;
+  const overviewStatsLoading = Boolean(!deposits || exchangeRate.data?.lte(0) || totalSupply.data?.lte(0));
   const balancesLoading = balances.isLoading || priceData.loading;
 
   const showContents = !isMobile || (!currentAction && isMobile);
@@ -159,7 +161,7 @@ interface IBalanceSectionProps {
   loading: boolean;
 }
 
-const useDelta24SeasonPrice = ({ token, deltaSeason }: { token: Token, deltaSeason: number }) => {
+const useDelta24SeasonPrice = ({ token, deltaSeason }: { token: Token; deltaSeason: number }) => {
   const season = useSeason();
 
   // use the lookback params as the chart
@@ -178,8 +180,8 @@ const useDelta24SeasonPrice = ({ token, deltaSeason }: { token: Token, deltaSeas
     return TV.fromHuman(deltaSeasonsPriceUSD, 6);
   }, [priceQuery.data, exchangeQuery.data, deltaSeason]);
 
-  return { data: usd, isLoading }
-}
+  return { data: usd, isLoading };
+};
 
 const BalanceSection = ({ token, tokenPrices, farmerBalances, loading }: IBalanceSectionProps) => {
   const account = useAccount();
@@ -187,7 +189,10 @@ const BalanceSection = ({ token, tokenPrices, farmerBalances, loading }: IBalanc
 
   const delta24Seasons = season - 24;
 
-  const { data: delta24SeasonsPriceUSD, isLoading: delta24SeasonsPriceLoading } = useDelta24SeasonPrice({ token, deltaSeason: delta24Seasons })
+  const { data: delta24SeasonsPriceUSD, isLoading: delta24SeasonsPriceLoading } = useDelta24SeasonPrice({
+    token,
+    deltaSeason: delta24Seasons,
+  });
 
   const usdPrice = tokenPrices.get(token)?.instant;
   const balance = farmerBalances.get(token)?.total;
@@ -195,9 +200,10 @@ const BalanceSection = ({ token, tokenPrices, farmerBalances, loading }: IBalanc
   const totalUSD = usdPrice?.mul(balance ?? TV.ZERO) ?? TV.ZERO;
   const delta24SeasonsTotalUSD = delta24SeasonsPriceUSD?.mul(balance ?? TV.ZERO) ?? TV.ZERO;
 
-  const deltaPct = delta24SeasonsTotalUSD?.gt(0) && totalUSD?.gt(0)
-    ? totalUSD.sub(delta24SeasonsTotalUSD)?.div(delta24SeasonsTotalUSD)?.mul(100)
-    : undefined;
+  const deltaPct =
+    delta24SeasonsTotalUSD?.gt(0) && totalUSD?.gt(0)
+      ? totalUSD.sub(delta24SeasonsTotalUSD)?.div(delta24SeasonsTotalUSD)?.mul(100)
+      : undefined;
 
   const Icon = deltaPct?.gt(0) ? ArrowUpIcon : ArrowDownIcon;
 
@@ -245,21 +251,38 @@ const BalanceSection = ({ token, tokenPrices, farmerBalances, loading }: IBalanc
   );
 };
 
+type ProtocolIntegrationToQueryLookup = Partial<
+  Record<ProtocolIntegration, ProtocolIntegrationQueryReturnType["data"]>
+>;
+
 const IntegrationLinks = ({ token }: { token: Token }) => {
   const integrations = useProtocolIntegrationLinks();
+
+  const spectra = useSpectraYieldSummary();
+
+  const queries = [spectra];
+
+  const byIntegration: ProtocolIntegrationToQueryLookup = queries.reduce((acc, query) => {
+    acc[query.integration] = query.data;
+    return acc;
+  }, {});
 
   if (!integrations) return null;
 
   return (
-    <>
-      {Object.entries(integrations).map(([name, integration]) => {
+    <div className="flex flex-col gap-4">
+      {Object.entries(integrations).map(([key, integration]) => {
+        const queryData = byIntegration[key as ProtocolIntegration];
+
         return (
           <div
-            key={`protocol-integration-${name}`}
-            className="flex flex-row items-center justify-between p-4 box-border rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border"
+            key={`protocol-integration-${key}`}
+            className="flex flex-row items-center justify-between p-4 box-border rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border gap-2"
           >
             <div className="pinto-sm-light text-pinto-light">
-              {typeof integration.ctaMessage === "function" ? integration.ctaMessage(token) : integration.ctaMessage}
+              {typeof integration.ctaMessage === "function"
+                ? integration.ctaMessage(token, queryData)
+                : integration.ctaMessage}
             </div>
             <Button asChild variant="outline-secondary" className="rounded-[12px] min-w-min">
               <Link to={integration.url} target="_blank" rel="noopener noreferrer">
@@ -272,13 +295,13 @@ const IntegrationLinks = ({ token }: { token: Token }) => {
           </div>
         );
       })}
-    </>
+    </div>
   );
 };
 
 interface ISiloedTokenOverviewStats {
   token: Token;
-  deposits: ReturnType<typeof useFarmerSiloNew>["deposits"];
+  deposits: ReturnType<typeof useFarmerSilo>["deposits"];
   exchangeRate: ReturnType<typeof useSiloWrappedTokenExchangeRateQuery>["data"];
   totalSupply: ReturnType<typeof useSiloWrappedTokenTotalSupply>["data"];
   loading: boolean;
@@ -291,11 +314,13 @@ const SiloedTokenOverviewStats = ({
   deposits,
   exchangeRate,
   totalSupply,
-  loading,
+  loading: isLoading,
 }: ISiloedTokenOverviewStats) => {
   const { mainToken, siloWrappedToken } = useTokenData();
 
   const depositsData = deposits?.get(mainToken);
+
+  const loading = isLoading || !depositsData;
 
   const rate = exchangeRate ? TV.fromHuman(1, exchangeRate.decimals).div(exchangeRate) : TV.ZERO;
 

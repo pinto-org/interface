@@ -1,11 +1,6 @@
 import * as THREE from "three";
 
-export const createSlideGeometry = (
-  width,
-  height,
-  animationPhase,
-  onMaxAnimationTimeCalculated
-) => {
+export const createSlideGeometry = (width, height, animationPhase, onMaxAnimationTimeCalculated) => {
   {
     const plane = new THREE.PlaneGeometry(width, height, width * 2, height * 2);
 
@@ -42,17 +37,17 @@ export const createSlideGeometry = (
       const a = new THREE.Vector3(
         positions[(faceOffset + 0) * 3],
         positions[(faceOffset + 0) * 3 + 1],
-        positions[(faceOffset + 0) * 3 + 2]
+        positions[(faceOffset + 0) * 3 + 2],
       );
       const b = new THREE.Vector3(
         positions[(faceOffset + 1) * 3],
         positions[(faceOffset + 1) * 3 + 1],
-        positions[(faceOffset + 1) * 3 + 2]
+        positions[(faceOffset + 1) * 3 + 2],
       );
       const c = new THREE.Vector3(
         positions[(faceOffset + 2) * 3],
         positions[(faceOffset + 2) * 3 + 1],
-        positions[(faceOffset + 2) * 3 + 2]
+        positions[(faceOffset + 2) * 3 + 2],
       );
       const centroid = new THREE.Vector3().add(a).add(b).add(c).divideScalar(3);
 
@@ -66,29 +61,11 @@ export const createSlideGeometry = (
       // Animation timings
       const duration = THREE.MathUtils.randFloat(minDuration, maxDuration);
 
-      const delayX = THREE.MathUtils.mapLinear(
-        centroid.x,
-        -width * 0.5,
-        width * 0.5,
-        0.0,
-        maxDelayX
-      );
+      const delayX = THREE.MathUtils.mapLinear(centroid.x, -width * 0.5, width * 0.5, 0.0, maxDelayX);
       const delayY =
         animationPhase === "in"
-          ? THREE.MathUtils.mapLinear(
-              Math.abs(centroid.y),
-              0,
-              height * 0.5,
-              0.0,
-              maxDelayY
-            )
-          : THREE.MathUtils.mapLinear(
-              Math.abs(centroid.y),
-              0,
-              height * 0.5,
-              maxDelayY,
-              0.0
-            );
+          ? THREE.MathUtils.mapLinear(Math.abs(centroid.y), 0, height * 0.5, 0.0, maxDelayY)
+          : THREE.MathUtils.mapLinear(Math.abs(centroid.y), 0, height * 0.5, maxDelayY, 0.0);
 
       let tDelay = delayX + delayY * stretch * duration;
       let tDuration = duration;
@@ -107,8 +84,7 @@ export const createSlideGeometry = (
 
       for (let v = 0; v < 3; v++) {
         const vIndex = faceOffset + v;
-        aAnimation[vIndex * 2] =
-          delayX + delayY + Math.random() * stretch * duration;
+        aAnimation[vIndex * 2] = delayX + delayY + Math.random() * stretch * duration;
         aAnimation[vIndex * 2 + 1] = duration;
       }
 
@@ -131,41 +107,20 @@ export const createSlideGeometry = (
 
       for (let v = 0; v < 3; v++) {
         const vIndex = faceOffset + v;
-        aStartPosition.set(
-          [startPosition.x, startPosition.y, startPosition.z],
-          vIndex * 3
-        );
+        aStartPosition.set([startPosition.x, startPosition.y, startPosition.z], vIndex * 3);
         aControl0.set([control0.x, control0.y, control0.z], vIndex * 3);
         aControl1.set([control1.x, control1.y, control1.z], vIndex * 3);
-        aEndPosition.set(
-          [endPosition.x, endPosition.y, endPosition.z],
-          vIndex * 3
-        );
+        aEndPosition.set([endPosition.x, endPosition.y, endPosition.z], vIndex * 3);
       }
     }
 
     positionAttribute.needsUpdate = true;
 
-    nonIndexedPlane.setAttribute(
-      "aAnimation",
-      new THREE.BufferAttribute(aAnimation, 2)
-    );
-    nonIndexedPlane.setAttribute(
-      "aStartPosition",
-      new THREE.BufferAttribute(aStartPosition, 3)
-    );
-    nonIndexedPlane.setAttribute(
-      "aControl0",
-      new THREE.BufferAttribute(aControl0, 3)
-    );
-    nonIndexedPlane.setAttribute(
-      "aControl1",
-      new THREE.BufferAttribute(aControl1, 3)
-    );
-    nonIndexedPlane.setAttribute(
-      "aEndPosition",
-      new THREE.BufferAttribute(aEndPosition, 3)
-    );
+    nonIndexedPlane.setAttribute("aAnimation", new THREE.BufferAttribute(aAnimation, 2));
+    nonIndexedPlane.setAttribute("aStartPosition", new THREE.BufferAttribute(aStartPosition, 3));
+    nonIndexedPlane.setAttribute("aControl0", new THREE.BufferAttribute(aControl0, 3));
+    nonIndexedPlane.setAttribute("aControl1", new THREE.BufferAttribute(aControl1, 3));
+    nonIndexedPlane.setAttribute("aEndPosition", new THREE.BufferAttribute(aEndPosition, 3));
 
     return nonIndexedPlane;
   }
@@ -176,7 +131,7 @@ function getControlPoint0(centroid: THREE.Vector3) {
   return new THREE.Vector3(
     THREE.MathUtils.randFloat(0.1, 0.3) * 50,
     signY * THREE.MathUtils.randFloat(0.1, 0.3) * 70,
-    THREE.MathUtils.randFloatSpread(20)
+    THREE.MathUtils.randFloatSpread(20),
   );
 }
 
@@ -185,6 +140,6 @@ function getControlPoint1(centroid: THREE.Vector3) {
   return new THREE.Vector3(
     THREE.MathUtils.randFloat(0.3, 0.6) * 50,
     -signY * THREE.MathUtils.randFloat(0.3, 0.6) * 70,
-    THREE.MathUtils.randFloatSpread(20)
+    THREE.MathUtils.randFloatSpread(20),
   );
 }

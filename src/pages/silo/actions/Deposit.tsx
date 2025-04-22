@@ -15,7 +15,7 @@ import { usePreferredInputToken } from "@/hooks/usePreferredInputToken";
 import useTransaction from "@/hooks/useTransaction";
 import usePriceImpactSummary from "@/hooks/wells/usePriceImpactSummary";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import { useInvalidateSun } from "@/state/useSunData";
@@ -48,7 +48,7 @@ const useFilterTokens = (siloToken: Token, balances: ReturnType<typeof useFarmer
 function Deposit({ siloToken }: { siloToken: Token }) {
   const diamondAddress = useProtocolAddress();
   const farmerBalances = useFarmerBalances();
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const invalidateSun = useInvalidateSun();
   const { filterSet, filterPreferred } = useFilterTokens(siloToken, farmerBalances.balances);
   const { queryKeys: priceQueryKeys } = usePriceData();
@@ -164,19 +164,33 @@ function Deposit({ siloToken }: { siloToken: Token }) {
       if (!account.address) {
         throw new Error("No account connected");
       }
-      if (shouldSwap && !swapData) {
-        throw new Error("No quote");
-      }
-      setSubmitting(true);
-      const advFarm = shouldSwap && swapBuild ? [...swapBuild.advancedFarm] : [];
 
       const buyAmount = shouldSwap ? swapData?.buyAmount : TokenValue.fromHuman(amountIn, tokenIn.decimals);
-      const fromMode = shouldSwap ? FarmFromMode.INTERNAL : balanceFrom;
-      const depositClipboard = shouldSwap && swapBuild ? swapBuild.getPipeCallClipboardSlot(1, siloToken) : undefined;
 
-      advFarm.push(deposit(siloToken, buyAmount, fromMode, depositClipboard));
+      if (!shouldSwap && buyAmount) {
+        setSubmitting(true);
+        toast.loading(`Depositing...`);
 
-      const value = tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n;
+        return writeWithEstimateGas({
+          address: diamondAddress,
+          abi: depositABI,
+          functionName: "deposit",
+          args: [siloToken.address, buyAmount.blockchainString, Number(balanceFrom)],
+        });
+      }
+
+      if (!swapData || !swapBuild?.advancedFarm?.length) {
+        throw new Error("No quote");
+      }
+      const value = tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals) : undefined;
+
+      const advFarm = [...swapBuild.advFarm.getSteps()];
+      const { clipboard } = await swapBuild.deriveClipboardWithOutputToken(siloToken, 1, account.address, {
+        value: value ?? TokenValue.ZERO,
+      });
+
+      const depositCallStruct = deposit(siloToken, buyAmount, FarmFromMode.INTERNAL, clipboard);
+      advFarm.push(depositCallStruct);
 
       toast.loading(`Depositing...`);
 
@@ -185,7 +199,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
         abi: advFarmABI,
         functionName: "advancedFarm",
         args: [advFarm],
-        value: value,
+        value: value?.toBigInt(),
       });
     } catch (e: unknown) {
       console.error(e);
@@ -319,5 +333,23 @@ const advFarmABI = [
     name: "advancedFarm",
     outputs: [{ name: "results", internalType: "bytes[]", type: "bytes[]" }],
     stateMutability: "payable",
+  },
+] as const;
+
+const depositABI = [
+  {
+    inputs: [
+      { internalType: "address", name: "token", type: "address" },
+      { internalType: "uint256", name: "_amount", type: "uint256" },
+      { internalType: "enum LibTransfer.From", name: "mode", type: "uint8" },
+    ],
+    name: "deposit",
+    outputs: [
+      { internalType: "uint256", name: "amount", type: "uint256" },
+      { internalType: "uint256", name: "_bdv", type: "uint256" },
+      { internalType: "int96", name: "stem", type: "int96" },
+    ],
+    stateMutability: "payable",
+    type: "function",
   },
 ] as const;

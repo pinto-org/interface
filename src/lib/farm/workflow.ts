@@ -9,6 +9,11 @@ import { Address, StateOverride, decodeFunctionResult } from "viem";
 import { readContract, simulateContract } from "viem/actions";
 import { Config as WagmiConfig } from "wagmi";
 
+/**
+ * @param value - Eth value specified in the call
+ * @param clipboard - Clipboard specified in the call
+ * @param tag - Tag specified in the call
+ */
 interface WorkflowOptions {
   value?: TV;
   clipboard?: HashString;
@@ -52,9 +57,7 @@ abstract class FarmWorkflow<T extends AdvancedFarmCall> {
 
   add(input: MayArray<T>, options?: WorkflowOptions) {
     if (Array.isArray(input)) {
-      input.forEach((call) => {
-        this.add(call);
-      });
+      this.steps.push(...input);
     } else {
       this.steps.push(input);
     }
@@ -68,8 +71,8 @@ abstract class FarmWorkflow<T extends AdvancedFarmCall> {
   }
 
   clear() {
-    this.steps = [];
     this.tagMap.clear();
+    this.steps = [];
   }
 }
 

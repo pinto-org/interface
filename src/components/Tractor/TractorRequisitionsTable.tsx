@@ -1,13 +1,13 @@
-import { RequisitionEvent, loadPublishedRequisitions } from "@/lib/Tractor/utils";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
-import { useAccount, usePublicClient } from "wagmi";
-import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { diamondABI } from "@/constants/abi/diamondABI";
-import { toast } from "sonner";
-import { useEffect, useState, useCallback } from "react";
-import { decodeSowTractorData } from "@/lib/Tractor/utils";
 import { Button } from "@/components/ui/Button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
+import { diamondABI } from "@/constants/abi/diamondABI";
+import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
+import { RequisitionEvent, loadPublishedRequisitions } from "@/lib/Tractor/utils";
+import { decodeSowTractorData } from "@/lib/Tractor/utils";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { useAccount, usePublicClient } from "wagmi";
 
 interface TractorRequisitionsTableProps {
   refreshTrigger?: number;
@@ -104,7 +104,7 @@ export function TractorRequisitionsTable({ refreshTrigger = 0 }: TractorRequisit
                   },
                   operatorParams: {
                     operatorTipAmountAsString: decoded.operatorParams.operatorTipAmountAsString,
-                  }
+                  },
                 };
               }
             } catch (error) {

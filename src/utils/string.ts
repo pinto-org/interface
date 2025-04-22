@@ -1,7 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { isAddress } from "viem";
 import { HashString } from "./types.generic";
 import { exists } from "./utils";
-import { isAddress } from "viem";
 
 export const truncateAddress = (
   address: string | HashString | undefined,
@@ -27,16 +27,16 @@ export const stringEq = (a: Stringable, b: Stringable) => {
 const invalidNumInputs = new Set([".", "e", "nan", "-", "+"]);
 
 export const toValidStringNumInput = (val: string): string => {
-  if (!val) return '0';
+  if (!val) return "0";
   const valid = val.replace(/[e\-\+]/g, "");
   return valid;
-}
+};
 
 export const stringToStringNum = (val: string) => {
-  if (!val) return 0;
-  if (invalidNumInputs.has(val.toLowerCase())) return 0;
+  if (!val) return "0";
+  if (invalidNumInputs.has(val.toLowerCase())) return "0";
   return val;
-}
+};
 
 export const stringToNumber = (val: string) => {
   if (!val) return 0;
@@ -62,4 +62,4 @@ export const getClaimText = (beanRewards: TokenValue, stalkRewards: TokenValue, 
 export const isValidAddress = (address: string | HashString | undefined) => {
   if (!address) return false;
   return isAddress(address);
-}
+};

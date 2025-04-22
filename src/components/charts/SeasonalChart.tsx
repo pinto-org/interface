@@ -34,6 +34,12 @@ export enum TimeTab {
 }
 export const TIME_TABS = ["Week", "Month", "All"];
 
+// Interface for y-axis range configuration by time period
+export interface YAxisRangeConfig {
+  min?: number;
+  max?: number;
+}
+
 interface SeasonalChartProps {
   title: string;
   size: "small" | "large";
@@ -45,6 +51,14 @@ interface SeasonalChartProps {
   fillArea?: boolean;
   statVariant?: "explorer" | "non-colored";
   className?: string;
+  useLogarithmicScale?: boolean;
+  showReferenceLineAtOne?: boolean;
+  // New props for custom y-axis ranges
+  yAxisRanges?: {
+    [TimeTab.Week]?: YAxisRangeConfig;
+    [TimeTab.Month]?: YAxisRangeConfig;
+    [TimeTab.AllTime]?: YAxisRangeConfig;
+  };
 }
 
 const morningStrokeGradients = [metallicMorningStrokeGradientFn];
@@ -63,6 +77,9 @@ const SeasonalChart = ({
   fillArea,
   statVariant = "explorer",
   className,
+  useLogarithmicScale = false,
+  showReferenceLineAtOne = false,
+  yAxisRanges,
 }: SeasonalChartProps) => {
   const [allData, setAllData] = useState<SeasonalChartData[] | null>(null);
   const [displayData, setDisplayData] = useState<SeasonalChartData | null>(null);
@@ -94,6 +111,26 @@ const SeasonalChart = ({
     }
     return [];
   }, [allData]);
+
+  const horizontalReferenceLines = useMemo(() => {
+    if (showReferenceLineAtOne) {
+      return [
+        {
+          value: 1,
+          color: "#9C9C9C",
+          dash: [2, 10],
+          label: "$1.00 target",
+        },
+      ];
+    }
+    return [];
+  }, [showReferenceLineAtOne]);
+
+  // Get the current y-axis range based on active tab
+  const currentYAxisRange = useMemo(() => {
+    if (!yAxisRanges) return undefined;
+    return yAxisRanges[activeTab];
+  }, [yAxisRanges, activeTab]);
 
   const handleMouseOver = useCallback(
     (index: number) => {
@@ -193,6 +230,10 @@ const SeasonalChart = ({
                   makeAreaGradients={fillArea ? areaGradients : undefined}
                   valueFormatter={tickValueFormatter}
                   onMouseOver={handleMouseOver}
+                  useLogarithmicScale={useLogarithmicScale}
+                  horizontalReferenceLines={horizontalReferenceLines}
+                  yAxisMin={currentYAxisRange?.min}
+                  yAxisMax={currentYAxisRange?.max}
                 />
               </div>
             )}

@@ -1,6 +1,6 @@
-import { Link, useNavigate } from "react-router-dom";
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Error404() {
   const navigate = useNavigate();

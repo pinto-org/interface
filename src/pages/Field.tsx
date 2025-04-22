@@ -7,32 +7,128 @@ import { LeftArrowIcon, UpDownArrowsIcon } from "@/components/Icons";
 import { OnlyMorningCard } from "@/components/MorningCard";
 import PlotsTable from "@/components/PlotsTable";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
-import Text from "@/components/ui/Text";
 import MorningTemperatureChart from "@/pages/field/MorningTemperature";
 import {
   useUpdateMorningSoilOnInterval,
   useUpdateMorningTemperatureOnInterval,
 } from "@/state/protocol/field/field.updater";
 
+import CornerBorders from "@/components/CornerBorders";
 import MobileActionBar from "@/components/MobileActionBar";
+import SowOrderDialog, { AnimateSowOrderDialog } from "@/components/SowOrderDialog";
 import TooltipSimple from "@/components/TooltipSimple";
-import IconImage from "@/components/ui/IconImage";
 import { Skeleton } from "@/components/ui/Skeleton";
 import useIsMobile from "@/hooks/display/useIsMobile";
+import { inputExceedsSoilAtom } from "@/state/protocol/field/field.atoms";
 import { useFarmerField } from "@/state/useFarmerField";
-import { useHarvestableIndex, useHarvestableIndexLoading } from "@/state/useFieldData";
+import { useHarvestableIndex, useHarvestableIndexLoading, useTotalSoil } from "@/state/useFieldData";
 import { useMorning } from "@/state/useSunData";
 import { formatter } from "@/utils/format";
-import { useEffect, useMemo, useState } from "react";
+import { SizeIcon } from "@radix-ui/react-icons";
+import { useAtomValue } from "jotai";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useNavigate, useSearchParams } from "react-router-dom";
 import FieldActions from "./field/FieldActions";
+import FieldActivity from "./field/FieldActivity";
 import FieldStats from "./field/FieldStats";
 import MorningPanel from "./field/MorningPanel";
 import TemperatureChart from "./field/Temperature";
 import TractorOrdersPanel from "./field/TractorOrdersPanel";
-import FieldActivity from "./field/FieldActivity";
+
+// Add a custom hook to track the current sow amount
+function useTotalSowAmount() {
+  // Simple hook to simulate fetching the current sow amount
+  // In a real implementation, this would fetch from the proper data source
+  const [data, setData] = useState<TokenValue | null>(null);
+  const { totalSoil } = useTotalSoil();
+
+  // Simulate fetching data - in reality this would use proper data sources
+  useEffect(() => {
+    // Check localStorage for a debug value to simulate exceeding soil
+    const debugExceedSoil = localStorage.getItem("debug_exceed_soil") === "true";
+
+    if (debugExceedSoil && totalSoil) {
+      // Set a value higher than available soil for testing
+      setData(totalSoil.mul(1.2)); // 120% of available soil
+    } else {
+      // For now, set to null or some reasonable value
+      setData(null);
+    }
+  }, [totalSoil]);
+
+  return { data, isLoading: false };
+}
+
+// TractorButton component
+function TractorButton({ onClick }: { onClick: () => void }) {
+  const [hoveredTractor, setHoveredTractor] = useState(false);
+  const { totalSoil, isLoading: totalSoilLoading } = useTotalSoil();
+  // Use the atom value directly instead of localStorage
+  const inputExceedsSoil = useAtomValue(inputExceedsSoilAtom);
+
+  // Create the animation styles on mount
+  useEffect(() => {
+    const styleEl = document.createElement("style");
+    styleEl.innerHTML = `
+      @keyframes pulse-scale {
+        0%, 100% { transform: scale(0.98); }
+        50% { transform: scale(1.02); }
+      }
+    `;
+    document.head.appendChild(styleEl);
+
+    return () => {
+      document.head.removeChild(styleEl);
+    };
+  }, []);
+
+  return (
+    <div className="relative w-full">
+      <button
+        type="button"
+        onClick={onClick}
+        className="group box-border flex flex-col items-start p-4 gap-1 w-full rounded-[1rem] transition-colors duration-200 bg-white border border-pinto-gray-2 relative"
+        onMouseEnter={() => setHoveredTractor(true)}
+        onMouseLeave={() => setHoveredTractor(false)}
+        style={{
+          ...(inputExceedsSoil || hoveredTractor
+            ? {
+                backgroundColor: "#E5F5E5",
+                borderColor: "#387F5C",
+              }
+            : {}),
+          // If input exceeds soil, apply special highlight styling
+          ...(inputExceedsSoil && {
+            boxShadow: "0 0 0 2px rgba(56, 127, 92, 0.5)",
+            animation: "pulse-scale 1.5s ease-in-out infinite",
+          }),
+        }}
+      >
+        {/* Position the icon absolutely to place it on the right side and vertically centered */}
+        <SizeIcon
+          className={`absolute top-1/2 right-4 transform -translate-y-1/2 w-5 h-5 text-[#404040] ${
+            inputExceedsSoil || hoveredTractor ? "hidden" : "block"
+          }`}
+        />
+
+        <div className="flex flex-row items-center gap-1">
+          <span className={`pinto-h4 ${inputExceedsSoil || hoveredTractor ? "text-pinto-green-4" : "text-[#404040]"}`}>
+            🚜 Want to Sow with size?
+          </span>
+        </div>
+        <span
+          className={`pinto-body-light ${inputExceedsSoil || hoveredTractor ? "text-pinto-green-3" : "text-[#9C9C9C]"}`}
+        >
+          Set up a Tractor Order to automate Sowing
+        </span>
+      </button>
+      <CornerBorders rowNumber={0} active={hoveredTractor} standalone={true} cornerRadius="1rem" />
+    </div>
+  );
+}
 
 function Field() {
   useUpdateMorningTemperatureOnInterval();
@@ -40,7 +136,38 @@ function Field() {
   const farmerField = useFarmerField();
   const harvestableIndex = useHarvestableIndex();
   const harvestableIndexLoading = useHarvestableIndexLoading();
-  const [activeTab, setActiveTab] = useState<'activity' | 'pods' | 'tractor'>('activity');
+  const [searchParams] = useSearchParams();
+  const isMobile = useIsMobile();
+  const [tractorRefreshCounter, setTractorRefreshCounter] = useState(0);
+  const [showSowOrder, setShowSowOrder] = useState(false);
+
+  const refreshTractorOrders = useCallback(() => {
+    setTractorRefreshCounter((prev) => prev + 1);
+  }, []);
+
+  const currentAction = searchParams.get("action");
+
+  // Set the active tab (default to 'activity' or 'pods' on mobile)
+  const [activeTab, setActiveTab] = useState(() => {
+    // Get tab from query params if available
+    const tabParam = searchParams.get("tab");
+
+    // On mobile devices, default to 'pods'
+    if (isMobile) {
+      return tabParam === "activity" || tabParam === "pods" || tabParam === "tractor" ? tabParam : "pods";
+    }
+
+    // On desktop, use the param or default to 'activity'
+    return tabParam === "activity" || tabParam === "pods" || tabParam === "tractor" ? tabParam : "activity";
+  });
+
+  // Effect to update activeTab when URL parameters change
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam === "activity" || tabParam === "pods" || tabParam === "tractor") {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   const hasPods = farmerField.plots.length > 0;
   const totalPods = useMemo(
@@ -56,10 +183,6 @@ function Field() {
   );
 
   const navigate = useNavigate();
-
-  const isMobile = useIsMobile();
-  const [params] = useSearchParams();
-  const currentAction = params.get("action");
 
   const morning = useMorning();
 
@@ -113,54 +236,68 @@ function Field() {
               </Button>
             </div>
           )}
-          
+
           {(!isMobile || (!currentAction && isMobile)) && (
             <>
-              <div className="flex flex-row justify-between items-center">
+              <div className="flex flex-row justify-between items-center overflow-x-auto scrollbar-none">
                 <div className="flex space-x-1">
-                  <button 
-                    className={`pinto-h3 py-2 px-4 ${activeTab === 'activity' ? 'text-pinto-dark' : 'text-pinto-gray-4'}`}
-                    onClick={() => setActiveTab('activity')}
+                  <button
+                    type="button"
+                    className={`pinto-h3 py-2 pr-4 pl-0 text-left ${activeTab === "activity" ? "text-pinto-dark" : "text-pinto-gray-4"}`}
+                    onClick={() => {
+                      setActiveTab("activity");
+                      const params = new URLSearchParams(window.location.search);
+                      params.set("tab", "activity");
+                      navigate(`/field?${params.toString()}`);
+                    }}
                   >
                     Field Activity
                   </button>
-                  <button 
-                    className={`pinto-h3 py-2 px-4 ${activeTab === 'pods' ? 'text-pinto-dark' : 'text-pinto-gray-4'}`}
-                    onClick={() => setActiveTab('pods')}
-                  >
-                    My Pods
-                  </button>
-                  <button 
-                    className={`pinto-h3 py-2 px-4 ${activeTab === 'tractor' ? 'text-pinto-dark' : 'text-pinto-gray-4'}`}
-                    onClick={() => setActiveTab('tractor')}
+                  <button
+                    type="button"
+                    className={`pinto-h3 py-2 pr-4 pl-0 text-left ${activeTab === "tractor" ? "text-pinto-dark" : "text-pinto-gray-4"}`}
+                    onClick={() => {
+                      setActiveTab("tractor");
+                      const params = new URLSearchParams(window.location.search);
+                      params.set("tab", "tractor");
+                      navigate(`/field?${params.toString()}`);
+                    }}
                   >
                     My Tractor Orders
                   </button>
+                  <button
+                    type="button"
+                    className={`pinto-h3 py-2 pr-4 pl-0 text-left ${activeTab === "pods" ? "text-pinto-dark" : "text-pinto-gray-4"}`}
+                    onClick={() => {
+                      setActiveTab("pods");
+                      const params = new URLSearchParams(window.location.search);
+                      params.set("tab", "pods");
+                      navigate(`/field?${params.toString()}`);
+                    }}
+                  >
+                    My Pods
+                  </button>
                 </div>
-                
-                {activeTab === 'pods' && (
-                  <div className="flex flex-row gap-2 items-center">
-                    <img src={podIcon} className="w-8 h-8" alt={"total pods"} />
-                    {harvestableIndexLoading ? (
-                      <Skeleton className="w-6 h-8" />
-                    ) : (
-                      <div className="pinto-h3">{formatter.number(totalPods)}</div>
-                    )}
-                  </div>
-                )}
+
+                <div className="flex flex-row gap-2 items-center">
+                  <img src={podIcon} className="w-8 h-8" alt={"total pods"} />
+                  {harvestableIndexLoading ? (
+                    <Skeleton className="w-6 h-8" />
+                  ) : (
+                    <div className="pinto-h3">{formatter.number(totalPods)}</div>
+                  )}
+                </div>
               </div>
-              
-              {activeTab === 'activity' && (
-                <FieldActivity />
-              )}
-              
-              {activeTab === 'pods' && (
+
+              {activeTab === "activity" && <FieldActivity />}
+
+              {activeTab === "pods" && (
                 <div>{hasPods ? <PlotsTable showClaimable disableHover /> : <EmptyTable type="plots-field" />}</div>
               )}
-              
-              {activeTab === 'tractor' && (
+
+              {activeTab === "tractor" && (
                 <div className="w-full">
-                  <TractorOrdersPanel />
+                  <TractorOrdersPanel refreshData={tractorRefreshCounter} />
                 </div>
               )}
             </>
@@ -171,10 +308,26 @@ function Field() {
          */}
         <div className="flex flex-col gap-6 w-full mb-14 sm:mb-0 lg:max-w-[384px] 3xl:max-w-[518px] 3xl:min-w-[425px] lg:mt-[5.25rem]">
           {(!isMobile || (currentAction && isMobile)) && (
-            <OnlyMorningCard onlyMorning className="p-4 w-full">
-              <FieldActions />
-            </OnlyMorningCard>
+            <div className="relative">
+              <OnlyMorningCard onlyMorning className="p-4 w-full">
+                <FieldActions onTractorOrderPublished={refreshTractorOrders} />
+              </OnlyMorningCard>
+              {showSowOrder && (
+                <AnimateSowOrderDialog className="absolute inset-x-0 -top-[calc(-1rem)] z-10">
+                  <Card className="rounded-xl z-10 mx-auto w-[95%]" id="sow-order-dialog">
+                    <div className="flex flex-col w-full items-center p-4">
+                      <SowOrderDialog
+                        open={showSowOrder}
+                        onOpenChange={setShowSowOrder}
+                        onOrderPublished={refreshTractorOrders}
+                      />
+                    </div>
+                  </Card>
+                </AnimateSowOrderDialog>
+              )}
+            </div>
           )}
+          {!isMobile && <TractorButton onClick={() => setShowSowOrder(true)} />}
           {!isMobile && (
             <div className="p-2 rounded-[1rem] bg-pinto-off-white border-pinto-gray-2 border flex flex-col gap-2">
               <Button

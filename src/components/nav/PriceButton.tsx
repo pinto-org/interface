@@ -27,7 +27,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "../ui/Card";
 import { ScrollArea } from "../ui/ScrollArea";
 import { Separator } from "../ui/Separator";
 import { Skeleton } from "../ui/Skeleton";
-import { Switch, SwitchThumb } from "../ui/Switch";
+import { Switch } from "../ui/Switch";
 
 function PriceButtonPanel() {
   const priceData = usePriceData();
@@ -396,23 +396,11 @@ function PriceButtonPanel() {
                   Show time-weighted average values
                   <TooltipSimple content={"Show the time-weighted average ΔP and price in each pool."} />
                 </div>
-                <Switch
-                  checked={useTwa}
-                  onCheckedChange={() => setUseTwa(!useTwa)}
-                  className="sm:h-14 sm:w-[6.5rem] border h-11 w-20"
-                >
-                  <SwitchThumb className="w-9 h-9 sm:w-12 sm:h-12 data-[state=checked]:translate-x-[2.375rem] data-[state=unchecked]:translate-x-0.5 sm:data-[state=checked]:translate-x-[3.125rem] sm:data-[state=unchecked]:translate-x-0.5" />
-                </Switch>
+                <Switch checked={useTwa} onCheckedChange={() => setUseTwa(!useTwa)} variant="omegaLarge" />
               </div>
               <div className="flex flex-row justify-between h-14 items-center">
                 <div className="pinto-sm sm:pinto-body">Show ΔP and total liquidity on all Wells</div>
-                <Switch
-                  checked={expandAll}
-                  onCheckedChange={() => setExpandAll(!expandAll)}
-                  className="sm:h-14 sm:w-[6.5rem] border h-11 w-20"
-                >
-                  <SwitchThumb className="w-9 h-9 sm:w-12 sm:h-12 data-[state=checked]:translate-x-[2.375rem] data-[state=unchecked]:translate-x-0.5 sm:data-[state=checked]:translate-x-[3.125rem] sm:data-[state=unchecked]:translate-x-0.5" />
-                </Switch>
+                <Switch checked={expandAll} onCheckedChange={() => setExpandAll(!expandAll)} variant="omegaLarge" />
               </div>
             </div>
           )}

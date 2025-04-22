@@ -7,9 +7,9 @@ import FarmerOverview from "./overview/FarmerOverview";
 import NewUserView from "./overview/NewUserView";
 
 const Overview = () => {
-  const { address, hasDeposits, hasPlots, loading, didLoad } = useFarmerStatus();
+  const { address, hasDeposits, hasPlots, hasSiloWrappedTokenBalance, loading, didLoad } = useFarmerStatus();
 
-  const isNewUser = !address || (!hasDeposits && !hasPlots);
+  const isNewUser = !address || (!hasDeposits && !hasPlots && !hasSiloWrappedTokenBalance);
 
   const { loading: isLoading, setLoading } = useDelayedLoading(1500, !didLoad);
 

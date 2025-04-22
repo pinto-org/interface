@@ -1,1268 +1,1268 @@
 export const tractorHelpersABI = [
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "_beanstalk",
-        "type": "address"
+        internalType: "address",
+        name: "_beanstalk",
+        type: "address",
       },
       {
-        "internalType": "address",
-        "name": "_beanstalkPrice",
-        "type": "address"
+        internalType: "address",
+        name: "_beanstalkPrice",
+        type: "address",
       },
       {
-        "internalType": "address",
-        "name": "_owner",
-        "type": "address"
+        internalType: "address",
+        name: "_owner",
+        type: "address",
       },
       {
-        "internalType": "address",
-        "name": "_priceManipulation",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "_priceManipulation",
+        type: "address",
+      },
     ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    stateMutability: "nonpayable",
+    type: "constructor",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
     ],
-    "name": "OwnableInvalidOwner",
-    "type": "error"
+    name: "OwnableInvalidOwner",
+    type: "error",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
     ],
-    "name": "OwnableUnauthorizedAccount",
-    "type": "error"
+    name: "OwnableUnauthorizedAccount",
+    type: "error",
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "bytes4",
-        "name": "functionSelector",
-        "type": "bytes4"
+        indexed: true,
+        internalType: "bytes4",
+        name: "functionSelector",
+        type: "bytes4",
       },
       {
-        "indexed": false,
-        "internalType": "bool",
-        "name": "isPaused",
-        "type": "bool"
-      }
+        indexed: false,
+        internalType: "bool",
+        name: "isPaused",
+        type: "bool",
+      },
     ],
-    "name": "FunctionPaused",
-    "type": "event"
+    name: "FunctionPaused",
+    type: "event",
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": false,
-        "internalType": "enum TractorHelpers.RewardType",
-        "name": "rewardType",
-        "type": "uint8"
+        indexed: false,
+        internalType: "enum TractorHelpers.RewardType",
+        name: "rewardType",
+        type: "uint8",
       },
       {
-        "indexed": false,
-        "internalType": "address",
-        "name": "publisher",
-        "type": "address"
+        indexed: true,
+        internalType: "address",
+        name: "publisher",
+        type: "address",
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "operator",
-        "type": "address"
+        indexed: true,
+        internalType: "address",
+        name: "operator",
+        type: "address",
       },
       {
-        "indexed": false,
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
+        indexed: false,
+        internalType: "address",
+        name: "token",
+        type: "address",
       },
       {
-        "indexed": false,
-        "internalType": "int256",
-        "name": "amount",
-        "type": "int256"
-      }
+        indexed: false,
+        internalType: "int256",
+        name: "amount",
+        type: "int256",
+      },
     ],
-    "name": "OperatorReward",
-    "type": "event"
+    name: "OperatorReward",
+    type: "event",
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "previousOwner",
-        "type": "address"
+        indexed: true,
+        internalType: "address",
+        name: "previousOwner",
+        type: "address",
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
+        indexed: true,
+        internalType: "address",
+        name: "newOwner",
+        type: "address",
+      },
     ],
-    "name": "OwnershipTransferred",
-    "type": "event"
+    name: "OwnershipTransferred",
+    type: "event",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "a",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "a",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "b",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "b",
+        type: "uint256",
+      },
     ],
-    "name": "add",
-    "outputs": [
+    name: "add",
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "pure",
-    "type": "function"
+    stateMutability: "pure",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "selector",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "selector",
+        type: "uint256",
       },
       {
-        "internalType": "bytes32[]",
-        "name": "options",
-        "type": "bytes32[]"
-      }
+        internalType: "bytes32[]",
+        name: "options",
+        type: "bytes32[]",
+      },
     ],
-    "name": "bytes32Switch",
-    "outputs": [
+    name: "bytes32Switch",
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
     ],
-    "stateMutability": "pure",
-    "type": "function"
+    stateMutability: "pure",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bool",
-        "name": "condition",
-        "type": "bool"
-      }
+        internalType: "bool",
+        name: "condition",
+        type: "bool",
+      },
     ],
-    "name": "check",
-    "outputs": [],
-    "stateMutability": "pure",
-    "type": "function"
+    name: "check",
+    outputs: [],
+    stateMutability: "pure",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "components": [
+        components: [
           {
-            "internalType": "address[]",
-            "name": "sourceTokens",
-            "type": "address[]"
+            internalType: "address[]",
+            name: "sourceTokens",
+            type: "address[]",
           },
           {
-            "internalType": "int96[][]",
-            "name": "stems",
-            "type": "int96[][]"
+            internalType: "int96[][]",
+            name: "stems",
+            type: "int96[][]",
           },
           {
-            "internalType": "uint256[][]",
-            "name": "amounts",
-            "type": "uint256[][]"
+            internalType: "uint256[][]",
+            name: "amounts",
+            type: "uint256[][]",
           },
           {
-            "internalType": "uint256[]",
-            "name": "availableBeans",
-            "type": "uint256[]"
+            internalType: "uint256[]",
+            name: "availableBeans",
+            type: "uint256[]",
           },
           {
-            "internalType": "uint256",
-            "name": "totalAvailableBeans",
-            "type": "uint256"
-          }
+            internalType: "uint256",
+            name: "totalAvailableBeans",
+            type: "uint256",
+          },
         ],
-        "internalType": "struct LibTractorHelpers.WithdrawalPlan[]",
-        "name": "plans",
-        "type": "tuple[]"
-      }
+        internalType: "struct LibTractorHelpers.WithdrawalPlan[]",
+        name: "plans",
+        type: "tuple[]",
+      },
     ],
-    "name": "combineWithdrawalPlans",
-    "outputs": [
+    name: "combineWithdrawalPlans",
+    outputs: [
       {
-        "components": [
+        components: [
           {
-            "internalType": "address[]",
-            "name": "sourceTokens",
-            "type": "address[]"
+            internalType: "address[]",
+            name: "sourceTokens",
+            type: "address[]",
           },
           {
-            "internalType": "int96[][]",
-            "name": "stems",
-            "type": "int96[][]"
+            internalType: "int96[][]",
+            name: "stems",
+            type: "int96[][]",
           },
           {
-            "internalType": "uint256[][]",
-            "name": "amounts",
-            "type": "uint256[][]"
+            internalType: "uint256[][]",
+            name: "amounts",
+            type: "uint256[][]",
           },
           {
-            "internalType": "uint256[]",
-            "name": "availableBeans",
-            "type": "uint256[]"
+            internalType: "uint256[]",
+            name: "availableBeans",
+            type: "uint256[]",
           },
           {
-            "internalType": "uint256",
-            "name": "totalAvailableBeans",
-            "type": "uint256"
-          }
+            internalType: "uint256",
+            name: "totalAvailableBeans",
+            type: "uint256",
+          },
         ],
-        "internalType": "struct LibTractorHelpers.WithdrawalPlan",
-        "name": "",
-        "type": "tuple"
-      }
+        internalType: "struct LibTractorHelpers.WithdrawalPlan",
+        name: "",
+        type: "tuple",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "a",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "a",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "b",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "b",
+        type: "uint256",
+      },
     ],
-    "name": "div",
-    "outputs": [
+    name: "div",
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "pure",
-    "type": "function"
+    stateMutability: "pure",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "a",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "a",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "b",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "b",
+        type: "uint256",
+      },
     ],
-    "name": "eq",
-    "outputs": [
+    name: "eq",
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
     ],
-    "stateMutability": "pure",
-    "type": "function"
+    stateMutability: "pure",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bytes4",
-        "name": "",
-        "type": "bytes4"
-      }
+        internalType: "bytes4",
+        name: "",
+        type: "bytes4",
+      },
     ],
-    "name": "functionPaused",
-    "outputs": [
+    name: "functionPaused",
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "depositId",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "depositId",
+        type: "uint256",
+      },
     ],
-    "name": "getAddressAndStem",
-    "outputs": [
+    name: "getAddressAndStem",
+    outputs: [
       {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
+        internalType: "address",
+        name: "token",
+        type: "address",
       },
       {
-        "internalType": "int96",
-        "name": "stem",
-        "type": "int96"
-      }
+        internalType: "int96",
+        name: "stem",
+        type: "int96",
+      },
     ],
-    "stateMutability": "pure",
-    "type": "function"
+    stateMutability: "pure",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
+        internalType: "address",
+        name: "account",
+        type: "address",
       },
       {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
     ],
-    "name": "getBeanAmountAvailable",
-    "outputs": [
+    name: "getBeanAmountAvailable",
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "beanAmountAvailable",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "beanAmountAvailable",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "getBeanstalkPrice",
-    "outputs": [
+    inputs: [],
+    name: "getBeanstalkPrice",
+    outputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
+        internalType: "address",
+        name: "account",
+        type: "address",
       },
       {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
+        internalType: "address",
+        name: "token",
+        type: "address",
       },
       {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
       },
       {
-        "internalType": "int96",
-        "name": "minStem",
-        "type": "int96"
+        internalType: "int96",
+        name: "minStem",
+        type: "int96",
       },
       {
-        "components": [
+        components: [
           {
-            "internalType": "address[]",
-            "name": "sourceTokens",
-            "type": "address[]"
+            internalType: "address[]",
+            name: "sourceTokens",
+            type: "address[]",
           },
           {
-            "internalType": "int96[][]",
-            "name": "stems",
-            "type": "int96[][]"
+            internalType: "int96[][]",
+            name: "stems",
+            type: "int96[][]",
           },
           {
-            "internalType": "uint256[][]",
-            "name": "amounts",
-            "type": "uint256[][]"
+            internalType: "uint256[][]",
+            name: "amounts",
+            type: "uint256[][]",
           },
           {
-            "internalType": "uint256[]",
-            "name": "availableBeans",
-            "type": "uint256[]"
+            internalType: "uint256[]",
+            name: "availableBeans",
+            type: "uint256[]",
           },
           {
-            "internalType": "uint256",
-            "name": "totalAvailableBeans",
-            "type": "uint256"
-          }
+            internalType: "uint256",
+            name: "totalAvailableBeans",
+            type: "uint256",
+          },
         ],
-        "internalType": "struct LibTractorHelpers.WithdrawalPlan",
-        "name": "excludingPlan",
-        "type": "tuple"
-      }
+        internalType: "struct LibTractorHelpers.WithdrawalPlan",
+        name: "excludingPlan",
+        type: "tuple",
+      },
     ],
-    "name": "getDepositStemsAndAmountsToWithdraw",
-    "outputs": [
+    name: "getDepositStemsAndAmountsToWithdraw",
+    outputs: [
       {
-        "internalType": "int96[]",
-        "name": "stems",
-        "type": "int96[]"
+        internalType: "int96[]",
+        name: "stems",
+        type: "int96[]",
       },
       {
-        "internalType": "uint256[]",
-        "name": "amounts",
-        "type": "uint256[]"
+        internalType: "uint256[]",
+        name: "amounts",
+        type: "uint256[]",
       },
       {
-        "internalType": "uint256",
-        "name": "availableAmount",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "availableAmount",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
+        internalType: "address",
+        name: "account",
+        type: "address",
       },
       {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
+        internalType: "address",
+        name: "token",
+        type: "address",
       },
       {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
       },
       {
-        "internalType": "int96",
-        "name": "minStem",
-        "type": "int96"
-      }
+        internalType: "int96",
+        name: "minStem",
+        type: "int96",
+      },
     ],
-    "name": "getDepositStemsAndAmountsToWithdraw",
-    "outputs": [
+    name: "getDepositStemsAndAmountsToWithdraw",
+    outputs: [
       {
-        "internalType": "int96[]",
-        "name": "stems",
-        "type": "int96[]"
+        internalType: "int96[]",
+        name: "stems",
+        type: "int96[]",
       },
       {
-        "internalType": "uint256[]",
-        "name": "amounts",
-        "type": "uint256[]"
+        internalType: "uint256[]",
+        name: "amounts",
+        type: "uint256[]",
       },
       {
-        "internalType": "uint256",
-        "name": "availableAmount",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "availableAmount",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "getHighestSeedToken",
-    "outputs": [
+    inputs: [],
+    name: "getHighestSeedToken",
+    outputs: [
       {
-        "internalType": "address",
-        "name": "highestSeedToken",
-        "type": "address"
+        internalType: "address",
+        name: "highestSeedToken",
+        type: "address",
       },
       {
-        "internalType": "uint256",
-        "name": "seedAmount",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "seedAmount",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "beanAmount",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "beanAmount",
+        type: "uint256",
       },
       {
-        "internalType": "address",
-        "name": "well",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "well",
+        type: "address",
+      },
     ],
-    "name": "getLPTokensToWithdrawForBeans",
-    "outputs": [
+    name: "getLPTokensToWithdrawForBeans",
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "lpAmount",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "lpAmount",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "getLowestSeedToken",
-    "outputs": [
+    inputs: [],
+    name: "getLowestSeedToken",
+    outputs: [
       {
-        "internalType": "address",
-        "name": "lowestSeedToken",
-        "type": "address"
+        internalType: "address",
+        name: "lowestSeedToken",
+        type: "address",
       },
       {
-        "internalType": "uint256",
-        "name": "seedAmount",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "seedAmount",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
+        internalType: "address",
+        name: "account",
+        type: "address",
       },
       {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
     ],
-    "name": "getSortedDeposits",
-    "outputs": [
+    name: "getSortedDeposits",
+    outputs: [
       {
-        "internalType": "int96[]",
-        "name": "stems",
-        "type": "int96[]"
+        internalType: "int96[]",
+        name: "stems",
+        type: "int96[]",
       },
       {
-        "internalType": "uint256[]",
-        "name": "amounts",
-        "type": "uint256[]"
-      }
+        internalType: "uint256[]",
+        name: "amounts",
+        type: "uint256[]",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "getSortedWhitelistedTokensBySeeds",
-    "outputs": [
+    inputs: [],
+    name: "getSortedWhitelistedTokensBySeeds",
+    outputs: [
       {
-        "internalType": "address[]",
-        "name": "tokens",
-        "type": "address[]"
+        internalType: "address[]",
+        name: "tokens",
+        type: "address[]",
       },
       {
-        "internalType": "uint256[]",
-        "name": "seeds",
-        "type": "uint256[]"
-      }
+        internalType: "uint256[]",
+        name: "seeds",
+        type: "uint256[]",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
     ],
-    "name": "getTokenIndex",
-    "outputs": [
+    name: "getTokenIndex",
+    outputs: [
       {
-        "internalType": "uint8",
-        "name": "index",
-        "type": "uint8"
-      }
+        internalType: "uint8",
+        name: "index",
+        type: "uint8",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "getTokensAscendingPrice",
-    "outputs": [
+    inputs: [],
+    name: "getTokensAscendingPrice",
+    outputs: [
       {
-        "internalType": "uint8[]",
-        "name": "tokenIndices",
-        "type": "uint8[]"
+        internalType: "uint8[]",
+        name: "tokenIndices",
+        type: "uint8[]",
       },
       {
-        "internalType": "uint256[]",
-        "name": "prices",
-        "type": "uint256[]"
-      }
+        internalType: "uint256[]",
+        name: "prices",
+        type: "uint256[]",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "getTokensAscendingSeeds",
-    "outputs": [
+    inputs: [],
+    name: "getTokensAscendingSeeds",
+    outputs: [
       {
-        "internalType": "uint8[]",
-        "name": "tokenIndices",
-        "type": "uint8[]"
+        internalType: "uint8[]",
+        name: "tokenIndices",
+        type: "uint8[]",
       },
       {
-        "internalType": "uint256[]",
-        "name": "seeds",
-        "type": "uint256[]"
-      }
+        internalType: "uint256[]",
+        name: "seeds",
+        type: "uint256[]",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
     ],
-    "name": "getUserDepositedTokens",
-    "outputs": [
+    name: "getUserDepositedTokens",
+    outputs: [
       {
-        "internalType": "address[]",
-        "name": "depositedTokens",
-        "type": "address[]"
-      }
+        internalType: "address[]",
+        name: "depositedTokens",
+        type: "address[]",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "getWhitelistStatusAddresses",
-    "outputs": [
+    inputs: [],
+    name: "getWhitelistStatusAddresses",
+    outputs: [
       {
-        "internalType": "address[]",
-        "name": "",
-        "type": "address[]"
-      }
+        internalType: "address[]",
+        name: "",
+        type: "address[]",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
+        internalType: "address",
+        name: "account",
+        type: "address",
       },
       {
-        "internalType": "uint8[]",
-        "name": "tokenIndices",
-        "type": "uint8[]"
+        internalType: "uint8[]",
+        name: "tokenIndices",
+        type: "uint8[]",
       },
       {
-        "internalType": "uint256",
-        "name": "targetAmount",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "targetAmount",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "maxGrownStalkPerBdv",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "maxGrownStalkPerBdv",
+        type: "uint256",
+      },
     ],
-    "name": "getWithdrawalPlan",
-    "outputs": [
+    name: "getWithdrawalPlan",
+    outputs: [
       {
-        "components": [
+        components: [
           {
-            "internalType": "address[]",
-            "name": "sourceTokens",
-            "type": "address[]"
+            internalType: "address[]",
+            name: "sourceTokens",
+            type: "address[]",
           },
           {
-            "internalType": "int96[][]",
-            "name": "stems",
-            "type": "int96[][]"
+            internalType: "int96[][]",
+            name: "stems",
+            type: "int96[][]",
           },
           {
-            "internalType": "uint256[][]",
-            "name": "amounts",
-            "type": "uint256[][]"
+            internalType: "uint256[][]",
+            name: "amounts",
+            type: "uint256[][]",
           },
           {
-            "internalType": "uint256[]",
-            "name": "availableBeans",
-            "type": "uint256[]"
+            internalType: "uint256[]",
+            name: "availableBeans",
+            type: "uint256[]",
           },
           {
-            "internalType": "uint256",
-            "name": "totalAvailableBeans",
-            "type": "uint256"
-          }
+            internalType: "uint256",
+            name: "totalAvailableBeans",
+            type: "uint256",
+          },
         ],
-        "internalType": "struct LibTractorHelpers.WithdrawalPlan",
-        "name": "plan",
-        "type": "tuple"
-      }
+        internalType: "struct LibTractorHelpers.WithdrawalPlan",
+        name: "plan",
+        type: "tuple",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
+        internalType: "address",
+        name: "account",
+        type: "address",
       },
       {
-        "internalType": "uint8[]",
-        "name": "tokenIndices",
-        "type": "uint8[]"
+        internalType: "uint8[]",
+        name: "tokenIndices",
+        type: "uint8[]",
       },
       {
-        "internalType": "uint256",
-        "name": "targetAmount",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "targetAmount",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "maxGrownStalkPerBdv",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "maxGrownStalkPerBdv",
+        type: "uint256",
       },
       {
-        "components": [
+        components: [
           {
-            "internalType": "address[]",
-            "name": "sourceTokens",
-            "type": "address[]"
+            internalType: "address[]",
+            name: "sourceTokens",
+            type: "address[]",
           },
           {
-            "internalType": "int96[][]",
-            "name": "stems",
-            "type": "int96[][]"
+            internalType: "int96[][]",
+            name: "stems",
+            type: "int96[][]",
           },
           {
-            "internalType": "uint256[][]",
-            "name": "amounts",
-            "type": "uint256[][]"
+            internalType: "uint256[][]",
+            name: "amounts",
+            type: "uint256[][]",
           },
           {
-            "internalType": "uint256[]",
-            "name": "availableBeans",
-            "type": "uint256[]"
+            internalType: "uint256[]",
+            name: "availableBeans",
+            type: "uint256[]",
           },
           {
-            "internalType": "uint256",
-            "name": "totalAvailableBeans",
-            "type": "uint256"
-          }
+            internalType: "uint256",
+            name: "totalAvailableBeans",
+            type: "uint256",
+          },
         ],
-        "internalType": "struct LibTractorHelpers.WithdrawalPlan",
-        "name": "excludingPlan",
-        "type": "tuple"
-      }
+        internalType: "struct LibTractorHelpers.WithdrawalPlan",
+        name: "excludingPlan",
+        type: "tuple",
+      },
     ],
-    "name": "getWithdrawalPlanExcludingPlan",
-    "outputs": [
+    name: "getWithdrawalPlanExcludingPlan",
+    outputs: [
       {
-        "components": [
+        components: [
           {
-            "internalType": "address[]",
-            "name": "sourceTokens",
-            "type": "address[]"
+            internalType: "address[]",
+            name: "sourceTokens",
+            type: "address[]",
           },
           {
-            "internalType": "int96[][]",
-            "name": "stems",
-            "type": "int96[][]"
+            internalType: "int96[][]",
+            name: "stems",
+            type: "int96[][]",
           },
           {
-            "internalType": "uint256[][]",
-            "name": "amounts",
-            "type": "uint256[][]"
+            internalType: "uint256[][]",
+            name: "amounts",
+            type: "uint256[][]",
           },
           {
-            "internalType": "uint256[]",
-            "name": "availableBeans",
-            "type": "uint256[]"
+            internalType: "uint256[]",
+            name: "availableBeans",
+            type: "uint256[]",
           },
           {
-            "internalType": "uint256",
-            "name": "totalAvailableBeans",
-            "type": "uint256"
-          }
+            internalType: "uint256",
+            name: "totalAvailableBeans",
+            type: "uint256",
+          },
         ],
-        "internalType": "struct LibTractorHelpers.WithdrawalPlan",
-        "name": "plan",
-        "type": "tuple"
-      }
+        internalType: "struct LibTractorHelpers.WithdrawalPlan",
+        name: "plan",
+        type: "tuple",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "a",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "a",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "b",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "b",
+        type: "uint256",
+      },
     ],
-    "name": "gt",
-    "outputs": [
+    name: "gt",
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
     ],
-    "stateMutability": "pure",
-    "type": "function"
+    stateMutability: "pure",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "a",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "a",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "b",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "b",
+        type: "uint256",
+      },
     ],
-    "name": "gte",
-    "outputs": [
+    name: "gte",
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
     ],
-    "stateMutability": "pure",
-    "type": "function"
+    stateMutability: "pure",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address[]",
-        "name": "whitelistedOperators",
-        "type": "address[]"
-      }
+        internalType: "address[]",
+        name: "whitelistedOperators",
+        type: "address[]",
+      },
     ],
-    "name": "isOperatorWhitelisted",
-    "outputs": [
+    name: "isOperatorWhitelisted",
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "a",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "a",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "b",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "b",
+        type: "uint256",
+      },
     ],
-    "name": "lt",
-    "outputs": [
+    name: "lt",
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
     ],
-    "stateMutability": "pure",
-    "type": "function"
+    stateMutability: "pure",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "a",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "a",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "b",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "b",
+        type: "uint256",
+      },
     ],
-    "name": "lte",
-    "outputs": [
+    name: "lte",
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
     ],
-    "stateMutability": "pure",
-    "type": "function"
+    stateMutability: "pure",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "a",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "a",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "b",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "b",
+        type: "uint256",
+      },
     ],
-    "name": "mod",
-    "outputs": [
+    name: "mod",
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "pure",
-    "type": "function"
+    stateMutability: "pure",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "a",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "a",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "b",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "b",
+        type: "uint256",
+      },
     ],
-    "name": "mul",
-    "outputs": [
+    name: "mul",
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "pure",
-    "type": "function"
+    stateMutability: "pure",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "a",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "a",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "b",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "b",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "c",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "c",
+        type: "uint256",
+      },
     ],
-    "name": "mulDiv",
-    "outputs": [
+    name: "mulDiv",
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "pure",
-    "type": "function"
+    stateMutability: "pure",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "a",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "a",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "b",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "b",
+        type: "uint256",
+      },
     ],
-    "name": "neq",
-    "outputs": [
+    name: "neq",
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
     ],
-    "stateMutability": "pure",
-    "type": "function"
+    stateMutability: "pure",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [
+    inputs: [],
+    name: "owner",
+    outputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bytes4",
-        "name": "functionSelector",
-        "type": "bytes4"
-      }
+        internalType: "bytes4",
+        name: "functionSelector",
+        type: "bytes4",
+      },
     ],
-    "name": "pauseFunction",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "pauseFunction",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "renounceOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    inputs: [],
+    name: "renounceOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "a",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "a",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "b",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "b",
+        type: "uint256",
+      },
     ],
-    "name": "sub",
-    "outputs": [
+    name: "sub",
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "pure",
-    "type": "function"
+    stateMutability: "pure",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
+        internalType: "address",
+        name: "token",
+        type: "address",
       },
       {
-        "internalType": "address",
-        "name": "publisher",
-        "type": "address"
+        internalType: "address",
+        name: "publisher",
+        type: "address",
       },
       {
-        "internalType": "address",
-        "name": "tipAddress",
-        "type": "address"
+        internalType: "address",
+        name: "tipAddress",
+        type: "address",
       },
       {
-        "internalType": "int256",
-        "name": "tipAmount",
-        "type": "int256"
+        internalType: "int256",
+        name: "tipAmount",
+        type: "int256",
       },
       {
-        "internalType": "enum LibTransfer.From",
-        "name": "from",
-        "type": "uint8"
+        internalType: "enum LibTransfer.From",
+        name: "from",
+        type: "uint8",
       },
       {
-        "internalType": "enum LibTransfer.To",
-        "name": "to",
-        "type": "uint8"
-      }
+        internalType: "enum LibTransfer.To",
+        name: "to",
+        type: "uint8",
+      },
     ],
-    "name": "tip",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "tip",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "newOwner",
+        type: "address",
+      },
     ],
-    "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "transferOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bytes4",
-        "name": "functionSelector",
-        "type": "bytes4"
-      }
+        internalType: "bytes4",
+        name: "functionSelector",
+        type: "bytes4",
+      },
     ],
-    "name": "unpauseFunction",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "unpauseFunction",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
+        internalType: "address",
+        name: "account",
+        type: "address",
       },
       {
-        "internalType": "uint8[]",
-        "name": "tokenIndices",
-        "type": "uint8[]"
+        internalType: "uint8[]",
+        name: "tokenIndices",
+        type: "uint8[]",
       },
       {
-        "internalType": "uint256",
-        "name": "targetAmount",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "targetAmount",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "maxGrownStalkPerBdv",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "maxGrownStalkPerBdv",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "slippageRatio",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "slippageRatio",
+        type: "uint256",
       },
       {
-        "internalType": "enum LibTransfer.To",
-        "name": "mode",
-        "type": "uint8"
+        internalType: "enum LibTransfer.To",
+        name: "mode",
+        type: "uint8",
       },
       {
-        "components": [
+        components: [
           {
-            "internalType": "address[]",
-            "name": "sourceTokens",
-            "type": "address[]"
+            internalType: "address[]",
+            name: "sourceTokens",
+            type: "address[]",
           },
           {
-            "internalType": "int96[][]",
-            "name": "stems",
-            "type": "int96[][]"
+            internalType: "int96[][]",
+            name: "stems",
+            type: "int96[][]",
           },
           {
-            "internalType": "uint256[][]",
-            "name": "amounts",
-            "type": "uint256[][]"
+            internalType: "uint256[][]",
+            name: "amounts",
+            type: "uint256[][]",
           },
           {
-            "internalType": "uint256[]",
-            "name": "availableBeans",
-            "type": "uint256[]"
+            internalType: "uint256[]",
+            name: "availableBeans",
+            type: "uint256[]",
           },
           {
-            "internalType": "uint256",
-            "name": "totalAvailableBeans",
-            "type": "uint256"
-          }
+            internalType: "uint256",
+            name: "totalAvailableBeans",
+            type: "uint256",
+          },
         ],
-        "internalType": "struct LibTractorHelpers.WithdrawalPlan",
-        "name": "plan",
-        "type": "tuple"
-      }
+        internalType: "struct LibTractorHelpers.WithdrawalPlan",
+        name: "plan",
+        type: "tuple",
+      },
     ],
-    "name": "withdrawBeansFromSources",
-    "outputs": [
+    name: "withdrawBeansFromSources",
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "payable",
-    "type": "function"
-  }
+    stateMutability: "payable",
+    type: "function",
+  },
 ] as const;

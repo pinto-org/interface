@@ -1,9 +1,9 @@
 import podIcon from "@/assets/protocol/Pod.png";
 import AddressLink from "@/components/AddressLink";
 import { Label } from "@/components/ui/Label";
+import { useHarvestableIndex } from "@/state/useFieldData";
 import { formatter } from "@/utils/format";
 import { PodTransferData } from "../TransferPods";
-import { useHarvestableIndex } from "@/state/useFieldData";
 
 interface FinalStepProps {
   destination: string | undefined;

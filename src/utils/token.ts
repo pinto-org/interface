@@ -186,13 +186,13 @@ export const WHITELISTED_TOKEN_ADDRESSES: Address[] = [
   "0x3e111115A82dF6190e36ADf0d552880663A4dBF1", // PINTOcbETH LP - index 2
   "0x3e11226fe3d85142B734ABCe6e58918d5828d1b4", // PINTOcbBTC LP - index 3
   "0x3e1133aC082716DDC3114bbEFEeD8B1731eA9cb1", // PINTOUSDC LP - index 4
-  "0x3e11444c7650234c748D743D8d374fcE2eE5E6C9"  // PINTOWSOL LP - index 5
+  "0x3e11444c7650234c748D743D8d374fcE2eE5E6C9", // PINTOWSOL LP - index 5
 ];
 
 /**
  * Maps a token index to its human-readable name
  * Used for displaying token strategies in various UI components
- * 
+ *
  * @param index - The token index
  * @returns A human-readable name for the token
  */
@@ -200,7 +200,7 @@ export const getTokenNameByIndex = (index: number): string => {
   // Special indices that aren't actual tokens
   if (index === 254) return "PINTO Price";
   if (index === 255) return "PINTO Seeds";
-  
+
   // Check if index is within the whitelisted addresses array
   if (index >= 0 && index < WHITELISTED_TOKEN_ADDRESSES.length) {
     const address = WHITELISTED_TOKEN_ADDRESSES[index];
@@ -213,8 +213,7 @@ export const getTokenNameByIndex = (index: number): string => {
       return `Token ${index} (${address.slice(0, 6)}...${address.slice(-4)})`;
     }
   }
-  
+
   // Fallback for unknown indices
   return `PINTO Token ${index}`;
 };
-

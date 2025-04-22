@@ -1,8 +1,10 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { FarmerBalance } from "@/state/useFarmerBalances";
+import { calculateConvertData } from "@/utils/convert";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { FarmFromMode } from "./types";
+import { FarmFromMode, Token } from "./types";
+import { MayArray } from "./types.generic";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -14,7 +16,7 @@ export const generateID = (prefix = "") => {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
-export const noop = () => { };
+export const noop = () => {};
 
 export function unpackStem(data: string | number | bigint): bigint {
   // Convert input to BigInt if it isn't already
@@ -67,9 +69,11 @@ export const isObject = (value: unknown): value is Record<string, unknown> => {
   return !!value && typeof value === "object" && !Array.isArray(value);
 };
 
-export function calculatePipeCallClipboardSlot(pipeCallLength: number, slot: number) {
-  if (!pipeCallLength || !slot) return 0;
-  return 2 + pipeCallLength + (1 + slot * 2);
+export function arrayify<T>(value: MayArray<T>): T[];
+export function arrayify<T, U>(value: MayArray<T>, map: (v: T, i: number, arr: T[]) => U): U[];
+export function arrayify<T, U = T>(value: MayArray<T>, map?: (v: T, i: number, arr: T[]) => U): (T | U)[] {
+  const array = Array.isArray(value) ? value : [value];
+  return map ? array.map(map) : array;
 }
 
 export function getBalanceFromMode(balance: FarmerBalance | undefined, mode: FarmFromMode) {
@@ -181,4 +185,9 @@ export function identifyPlantDeposits(
   });
 
   return plantDepositMap;
+}
+
+interface RatioDeposit {
+  stem: string;
+  ratio: TokenValue;
 }

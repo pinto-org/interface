@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    name: Build and Test
+    steps:
+      # 1. Check out the repository
+      - name: Check out source repository
+        uses: actions/checkout@v3
+
+      # 2. Setup Node
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+          cache: 'yarn'
+      
+      # 3. Cache node_modules
+      # - name: Cache Node Modules
+      #   id: node-modules-cache
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: "**/node_modules"
+      #     key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      # 4. Install dependencies (only if no cache was found)
+      - name: Install dependencies
+        # if: steps.node-modules-cache.outputs.cache-hit != 'true'
+        run: yarn install
+      
+      # 5. Build only if build artifacts aren't cached
+      - name: Build
+        run: yarn build
+
+      # 6. Run tests
+      - name: Run tests
+        run: yarn test
+
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+          cache: 'yarn'
+
+      # - name: Cache Node Modules
+      #   id: node-modules-cache-lint
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: "**/node_modules"
+      #     key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install dependencies
+        # if: steps.node-modules-cache-lint.outputs.cache-hit != 'true'
+        run: yarn install 
+
+      - name: Check Linting errors
+        run: yarn lint:check-errors-only
+

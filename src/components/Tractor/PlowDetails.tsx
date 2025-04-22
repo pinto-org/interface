@@ -1,14 +1,14 @@
-import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/Dialog";
-import { RequisitionEvent } from "@/lib/Tractor/utils";
 import { Button } from "@/components/ui/Button";
-import { useCallback } from "react";
-import { toast } from "sonner";
-import { useAccount, usePublicClient } from "wagmi";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
+import { RequisitionEvent } from "@/lib/Tractor/utils";
 import { useQueryClient } from "@tanstack/react-query";
+import React, { useState } from "react";
+import { useCallback } from "react";
+import { toast } from "sonner";
+import { useAccount, usePublicClient } from "wagmi";
 
 const UINT256_MAX = BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935");
 
@@ -30,10 +30,10 @@ export function PlowDetails({ requisition, isOpen, onClose, onSuccess }: PlowDet
   const handleSuccess = useCallback(() => {
     // Close the dialog
     onClose();
-    
+
     // Call any additional success handling passed from parent
     if (onSuccess) onSuccess();
-    
+
     // Invalidate queries to refresh data
     // Add specific query invalidation as needed
     // queryClient.invalidateQueries({ queryKey: ['tractorRequisitions'] });
@@ -145,7 +145,7 @@ export function PlowDetails({ requisition, isOpen, onClose, onSuccess }: PlowDet
               </div>
             </div>
 
-            <div className="flex justify-end space-x-2 pt-4">
+            {/* <div className="flex justify-end space-x-2 pt-4">
               <Button variant="outline" onClick={onClose}>
                 Cancel
               </Button>
@@ -155,7 +155,7 @@ export function PlowDetails({ requisition, isOpen, onClose, onSuccess }: PlowDet
               <Button onClick={handlePlow} disabled={submitting}>
                 {submitting ? "Plowing..." : "Plow"}
               </Button>
-            </div>
+            </div> */}
           </div>
         )}
       </DialogContent>

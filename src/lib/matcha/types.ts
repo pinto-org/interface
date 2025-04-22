@@ -1,317 +1,280 @@
 import { HashString } from "@/utils/types.generic";
 import { Address } from "viem";
 
-export interface ZeroExAPI {
-  /**
-   * The ERC20 token address of the token you want to sell. It is recommended to always use the token address
-   * instead of token symbols (e.g. ETH ) which may not be recognized by the API.
-   */
-  sellToken: Address;
-  /**
-   * The ERC20 token address of the token you want to receive. It is recommended to always use the token address
-   * instead of token symbols (e.g. ETH ) which may not be recognized by the API.
-   */
-  buyToken: Address;
-  /**
-   * (Optional) The amount of sellToken (in sellToken base units) you want to send. Either sellAmount or buyAmount
-   * must be present in a request. Specifying sellAmount is the recommended way to interact with
-   * 0x API as it covers all on-chain sources.
-   */
-  sellAmount?: string;
-  /**
-   * (Optional) The amount of buyToken(in buyToken base units) you want to receive. Either sellAmount
-   * or buyAmount must be present in a request. Note that some on-chain sources do not allow
-   * specifying buyAmount, when using buyAmount these sources are excluded.
-   */
-  buyAmount?: string;
-  /**
-   * (Optional, default is 0.01 for 1%) The maximum acceptable slippage of the buyToken amount if sellAmount
-   * is provided; The maximum acceptable slippage of the sellAmount amount if buyAmount is provided
-   * (e.g. 0.03 for 3% slippage allowed). The lowest possible value that can be set for this parameter
-   * is 0; in other words, no amount of slippage would be allowed. If no value for this optional parameter is
-   * provided in the API request, the default slippage percentage is 1%.
-   */
-  slippagePercentage?: string;
-  /**
-   * (Optional, defaults to ethgasstation "fast") The target gas price (in wei) for the swap transaction.
-   * If the price is too low to achieve the quote, an error will be returned.
-   */
-  gasPrice?: string;
-  /**
-   * (Optional) The address which will fill the quote. While optional, we highly recommend providing this
-   * parameter if possible so that the API can more accurately estimate the gas required for the swap transaction.
-   * This helps when validating the entire transaction for success, and catches revert issues. If the validation
-   * fails, a Revert Error will be returned in the response. The quote should be fillable if this address is provided.
-   *
-   * Also, make sure this address has enough token balance. Additionally, including the takerAddress is required
-   * if you want to integrate RFQ liquidity.
-   */
-  takerAddress?: string;
-  /**
-   * (Optional) Liquidity sources (Uniswap, SushiSwap, 0x, Curve, etc) that will not be included in the provided quote.
-   * See the docs for a full list of sources.
-   *
-   * This parameter cannot be combined with includedSources.
-   */
-  excludedSources?: string;
-  /**
-   * (Optional) Typically used to filter for RFQ liquidity without any other DEX orders which this is useful
-   * for testing your RFQ integration. To do so, set it to 0x.
-   *
-   * This parameter cannot be combined with excludedSources.
-   */
-  includedSources?: string;
-  /**
-   * (Optional) Normally, whenever a takerAddress is provided, the API will validate the quote for the user.
-   *
-   * For more details, see "How does takerAddress help with catching issues?" in the docs.
-   *
-   * When this parameter is set to true, that validation will be skipped.
-   *
-   * Also see Quote Validation in the docs. .
-   */
-  skipValidation?: string;
-  /**
-   * (Optional) The ETH address that should receive affiliate fees specified with buyTokenPercentageFee.
-   * Can be used combination with buyTokenPercentageFee to set a commission/trading fee when using the API.
-   *
-   * Learn more about how to setup a trading fee/commission fee/transaction fee in the FAQs.
-   */
-  feeRecipient?: string;
-  /**
-   * (Optional) The percentage (denoted as a decimal between 0 - 1.0 where 1.0 represents 100%) of
-   * the buyAmount that should be attributed to feeRecipient as affiliate fees. Note that this requires
-   * that the feeRecipient parameter is also specified in the request. Learn more about how to setup
-   * a trading fee/commission fee/transaction fee in the FAQs.
-   */
-  buyTokenPercentageFee?: string;
-  /**
-   * (Optional, defaults to 100%) The percentage (between 0 - 1.0) of allowed price impact.
-   *
-   * When priceImpactProtectionPercentage is set, estimatedPriceImpact is returned which estimates the change
-   * in the price of the specified asset that would be caused by the executed swap due to price impact.
-   *
-   * If the estimated price impact is above the percentage indicated, an error will be returned. For example,
-   * if PriceImpactProtectionPercentage=.15 (15%), any quote with a price impact higher than 15% will return an error.
-   *
-   * This is an opt-in feature, the default value of 1.0 will disable the feature. When it is set to 1.0 (100%)
-   * it means that every transaction is allowed to pass.
-   *
-   * Note: When we fail to calculate Price Impact we will return null and Price Impact Protection will be disabled
-   * See affects on estimatedPriceImpact in the Response fields. Read more about price
-   * impact protection and how to set it up in the docs.
-   */
-  priceImpactProtectionPercentage?: string;
-  /**
-   * (Optional) The recipient address of any trade surplus fees. If specified, this address will collect trade surplus
-   * when applicable. Otherwise, trade surplus will not be collected.
-   *
-   * Note: Trade surplus is only sent to this address for sells. It is a no-op for buys.
-   * Read more about "Can I collect trade surplus?" in the FAQs.
-   */
-  feeRecipientTradeSurplus?: string;
-  /**
-   * (Optional) A boolean field. If set to true, the 0x Swap API quote request should sell the entirety of the
-   * caller's takerToken balance. A sellAmount is still required, even if it is a best guess, because it is
-   * how a reasonable minimum received amount is determined after slippage.
-   *
-   * Note: This parameter is only required for special cases, such as when setting up a multi-step transaction
-   * or composable operation, where the entire balance is not known ahead of time. Read more about
-   * "Is there a way to sell assets via Swap API if the exact sellToken amount is not known
-   * before the transaction is executed?" in the FAQs.
-   */
-  shouldSellEntireBalance?: string;
-}
-
-interface ZeroExOrder {
-  type: number;
-  source: string;
-  makerToken: string;
-  takerToken: string;
-  makerAmount: string;
-  takerAmount: string;
-  fillData: any;
-  fill: any;
-}
-
-interface ZeroExFee {
-  feeType: string | "volume";
-  feeToken: string;
-  feeAmount: string;
-  billingType: string | "on-chain";
-}
-
-interface ZeroExSource {
-  name: string;
-  proportion: string;
-}
-
 /**
- * Response type from 0x quote-v1 swap API.
- *
- * @link https://0x.org/docs/1.0/0x-swap-api/api-references/get-swap-v1-quote
+ * Zero X V2 API params
+ * @link https://0x.org/docs/api#tag/Swap/operation/swap::allowanceHolder::getQuote
  */
-export interface ZeroExQuoteResponse {
+
+export interface ZeroXQuoteV2Parameters {
   /**
-   *
+   * The chain ID to use for the quote.
    */
   chainId: number;
   /**
-   * If {buyAmount} was specifed in the request, it provides the price of buyToken in sellToken & vice versa.
-   * Does not include slippage
+   * The contract address of the token to buy
    */
-  price: string;
+  buyToken: Address;
   /**
-   * Similar to price, but with fees removed from the price calculation. Price as if not fee is charged.
+   * The contract address of the token to sell
    */
-  grossPrice: string;
+  sellToken: Address;
   /**
-   * When priceImpactProtectionPercentage is set, this value returns the estimated change in the price of
-   * the specified asset that would be caused by the executed swap.
-   */
-  estimatedPriceImpact: string | null;
-  /**
-   * The amount of ether (in wei) that should be sent with the transaction.
-   */
-  value: string;
-  /**
-   * The gas price (in wei) that should be used to send the transaction.
-   * The transaction needs to be sent with this gasPrice or lower for the transaction to be successful.
-   */
-  gasPrice: string;
-  /**
-   * The estimated gas limit that should be used to send the transaction to guarantee settlement.
-   * While a computed estimate is returned in all responses, an accurate estimate will only be returned if
-   * a takerAddress is included in the request.
-   */
-  gas: string;
-  /**
-   * The estimate for the amount of gas that will actually be used in the transaction. Always less than gas.
-   */
-  estimatedGas: string;
-  /**
-   * The maximum amount of ether (in wei) that will be paid towards the protocol fee, and what is used to compute the value field of the transaction.
-   * Note, as of ZEIP-91, protocol fees have been removed for all order types.
-   */
-  protocolFee: string;
-  /**
-   * The minimum amount of ether (in wei) that will be paid towards the protocol fee during the transaction.
-   */
-  minimumProtocolFee: string;
-  /**
-   * The ERC20 token address of the token you want to receive in quote.
-   */
-  buyTokenAddress: Address;
-  /**
-   * The amount of buyToken (in buyToken units) that would be bought in this swap.
-   * Certain on-chain sources do not allow specifying buyAmount, when using buyAmount these sources are excluded.
-   */
-  buyAmount: string;
-  /**
-   * Similar to buyAmount but with fees removed. This is the buyAmount as if no fee is charged.
-   */
-  grossBuyAmount: string;
-  /**
-   * The ERC20 token address of the token you want to sell with quote.
-   */
-  sellTokenAddress: Address;
-  /**
-   * The amount of sellToken (in sellToken units) that would be sold in this swap.
-   * Specifying sellAmount is the recommended way to interact with 0xAPI as it covers all on-chain sources.
+   * The amount of sellToken in sellToken base units to sell
    */
   sellAmount: string;
   /**
-   * Similar to sellAmount but with fees removed.
-   * This is the sellAmount as if no fee is charged.
-   * Note: Currently, this will be the same as sellAmount as fees can only be configured to occur on the buyToken.
+   * The address which holds the sellToken balance and has the allowance set for the swap.
    */
-  grossSellAmount: string;
+  taker?: Address;
   /**
-   * The percentage distribution of buyAmount or sellAmount split between each liquidity source.
+   * The contract address of the external account that started the transaction. This is only needed if taker is a smart contract.
    */
-  sources: ZeroExSource[];
+  txOrigin?: Address;
   /**
-   * The target contract address for which the user needs to have an allowance in order to be able to complete the swap.
-   * Typically this is the 0x Exchange Proxy contract address for the specified chain.
-   * For swaps with "ETH" as sellToken, wrapping "ETH" to "WETH" or unwrapping "WETH" to "ETH" no allowance is needed,
-   * a null address of 0x0000000000000000000000000000000000000000 is then returned instead.
+   * The wallet address to receive the specified trading fees.
+   * You must also specify the swapFeeToken and swapFeeBps in the request to use this feature.
    */
-  allowanceTarget: Address;
+  swapFeeRecipient?: Address;
   /**
-   * The rate between ETH and sellToken
+   * The amount in Bps of the swapFeeToken to charge and deliver to the swapFeeRecipient.
+   * You must also specify the swapFeeRecipient and swapFeeToken in the request to use this feature.
+   * For security, this field has a default limit of 1000 Bps.
    */
-  sellTokenToEthRate: string;
+  swapFeeBps?: number;
   /**
-   * The rate between ETH and buyToken
+   * The address to receive any trade surplus. If specified, this address will receive trade surplus when applicable.
+   * Otherwise, the taker will receive the surplus
    */
-  buyTokenToEthRate: string;
+  tradeSurplusRecipient?: Address;
   /**
-   * The address of the contract to send call data to.
+   * The target gas price (in wei) for the swap transaction. If not provided, the default value is based on the 0x gas price oracle
    */
-  to: Address;
+  gasPrice?: string;
   /**
-   *
+   * [0 .. 10_000]
+   * The maximum acceptable slippage of the buyToken in Bps. If this parameter is set to 0, no slippage will be tolerated.
+   * If not provided, the default slippage tolerance is 100Bps
    */
-  from: Address;
+  slippageBps?: number;
   /**
-   * The call data
+   * Liquidity sources e.g. Uniswap_V3, SushiSwap, 0x_RFQ to exclude from the provided quote.
+   * See https://api.0x.org/sources?chainId= with the desired chain's ID for a full list of sources.
+   * Separate multiple sources with a comma
    */
-  data: HashString;
+  excludedSources?: string;
   /**
-   * The price which must be met or else the entire transaction will revert. This price is influenced by the slippagePercentage parameter.
-   * On-chain sources may encounter price movements from quote to settlement.
+   * If set to true, the taker's entire sellToken balance will be sold during trade execution.
+   * The sellAmount should be the maximum estimated value, as close as possible to the actual taker's balance to ensure the best routing.
+   * Selling more than the sellAmount may cause the trade to revert. This feature is designed for cases where the precise sell amount is determined during execution
    */
-  guaranteedPrice: string;
-  /**
-   * The details used to fill orders, used by market makers. If orders is not empty, there will be a type on each order.
-   * For wrap/unwrap, orders is empty. otherwise, should be populated.
-   */
-  orders: ZeroExOrder[];
-  /**
-   * 0x Swap API fees that would be charged.
-   */
-  fees: Record<string, ZeroExFee>;
-  /**
-   *
-   */
-  decodedUniqueId: string;
-  /**
-   *
-   */
-  auxiliaryChainData: any;
+  sellEntireBalance?: boolean;
 }
 
-export interface MinimumViableSwapQuote {
+export interface ZeroXQuoteHeaders {
   /**
-   * The ERC20 token address of the token you want to receive in quote.
+   * The 0x API key to use for the request.
    */
-  buyTokenAddress: Address;
+  "0x-api-key": string;
   /**
-   * The ERC20 token address of the token you want to sell with quote.
+   * The version of the 0x API to use for the request.
    */
-  sellTokenAddress: Address;
+  "0x-version": "v2" | "v1";
+}
+
+export type ZeroXSwapFeeType =
+  | "zeroExFee" // The fee charged by 0x for the trade.
+  | "integratorFee" // The specified fee to charge and deliver to the 'swapFeeRecipient'
+  | "gasFee"; // The gas fee to be used in submitting the transaction.
+
+export interface ZeroXSwapFeeDetails {
   /**
-   * The address of the contract to send call data to.
+   * The amount of token charged as the fee.
    */
-  to: Address;
+  amount: string;
   /**
-   * The target contract address for which the user needs to have an allowance in order to be able to complete the swap.
+   * The address of the token charged as the fee.
    */
-  allowanceTarget: Address;
+  token: Address;
   /**
-   * The amount of buyToken (in buyToken units) that would be bought in this swap.
+   * Usually "volume" | "gas"
+   */
+  type: string;
+}
+
+export interface ZeroXQuoteV2Response {
+  /**
+   * The block number at which the liquidity sources were sampled to generate the quote.
+   * Indicates the freshness of the quote.
+   */
+  blockNumber: string;
+  /**
+   * The amount of buyToken (in buyToken units) that will be bought in the swap
    */
   buyAmount: string;
   /**
-   * The amount of sellToken (in sellToken units) that would be sold in this swap.
+   * The contract address of the token to buy in the swap
+   */
+  buyToken: Address;
+  /**
+   * The fees charged for the trade.
+   */
+  fees: Record<ZeroXSwapFeeType, ZeroXSwapFeeDetails | null>;
+  /**
+   * An object containing potential issues discovered during 0x validation that can prevent the swap from being executed successfully by the taker
+   */
+  issues: {
+    /**
+     * Details of allowances that the taker must set for in order to execute the swap successfully. Null if no allowance is required
+     */
+    allowance: {
+      /**
+       * The taker's current allowance of the spender
+       */
+      actual: Address;
+      /**
+       * The address to set the allowance on
+       */
+      spender: Address;
+    } | null;
+    /**
+     * Details of balance of the sellToken that the taker must hold. Null if the taker has sufficient balance
+     */
+    balance: {
+      /**
+       * The contract address of the token
+       */
+      token: Address;
+      /**
+       * The current balance of the sellToken in the taker address
+       */
+      actual: string;
+      /**
+       * The balance of the sellToken required for the swap to execute successfully
+       */
+      expected: string;
+    } | null;
+    /**
+     * This is set to true when 0x cannot validate the transaction.
+     * This happens when the taker has an insufficient balance of the sellToken and 0x is unable to perform ehanced quote validation with the low balance.
+     * Note that this does not necessarily mean that the trade will revert
+     */
+    simulationIncomplete: boolean;
+    /**
+     * A list of invalid sources present in excludedSources request.
+     */
+    invalidSourcesPassed: string[];
+    /**
+     * This validates the availability of liquidity for the quote requested. The rest of the fields will only be returned if true
+     */
+    liquidityAvailable: boolean;
+  };
+  /**
+   * The price which must be met or else the transaction will revert.
+   * This price is influenced by the slippageBps parameter. On-chain sources may encounter price movements from quote to settlement
+   */
+  minBuyAmount: string;
+  route: {
+    /**
+     * Details of each segment that 0x routes the swap through
+     */
+    fills: {
+      /**
+       * The contract address of the input token
+       */
+      from: Address;
+      /**
+       * The contract address of the output token
+       */
+      to: Address;
+      /**
+       * The liquidity source used in the route
+       */
+      source: string;
+      /**
+       * The proportion of the trade to be filled by the source
+       */
+      proportionBps: string;
+    }[];
+    /**
+     * Properties of the tokens involved in the swap
+     */
+    tokens: {
+      /**
+       * The token address. This is the unique identifier of the token
+       */
+      address: Address;
+      /**
+       * The token symbol. This is not guaranteed to be unique, as multiple tokens can have the same symbol
+       */
+      symbol: string;
+    }[];
+  };
+  /**
+   * The amount of sellToken (in sellToken units) that will be sold in this swap
    */
   sellAmount: string;
   /**
-   * The amount of ether (in wei) that should be sent with the transaction.
+   * The contract address of the token to sell in the swap
    */
-  value: string;
+  sellToken: Address;
   /**
-   * The call data
+   * Swap-related metadata for the buy and sell token in the swap
    */
-  data: string;
+  tokenMetadata: {
+    /**
+     * Swap-related metadata for the buy token
+     */
+    buyToken: {
+      /**
+       * The buy tax in bps of the token.
+       * Since each token could have arbitrary implementation, this field is best effort, meaning it would be set to null if the system is not able to determine the tax
+       */
+      buyTaxBps: string | null;
+      /**
+       * The sell tax in bps of the token.
+       * Since each token could have arbitrary implementation, this field is best effort, meaning it would be set to null if the system is not able to determine the tax
+       */
+      sellTaxBps: string | null;
+    };
+
+    sellToken: {
+      buyTaxBps: string | null;
+      sellTaxBps: string | null;
+    };
+  };
+  /**
+   * The estimated total network cost of the swap.
+   * On chains where there is no L1 data cost, it is calculated as gas * gasPrice. On chains where there is an L1 data cost, it is calculated as gas*gasPrice + L1 data
+   */
+  totalNetworkFee: string | null;
+  /**
+   * The details required to submit the transaction
+   */
+  transaction: {
+    /**
+     * The address of the target contract to send call data to
+     */
+    to: Address;
+    /**
+     * The calldata containing transaction execution details to be sent to the to address
+     */
+    data: HashString;
+    /**
+     * The estimated gas limit that should be used to send the transaction to guarantee settlement
+     */
+    gas: string | null;
+    /**
+     * The gas price (in wei) that should be used to send the transaction
+     */
+    gasPrice: string;
+    /**
+     * The amount of ether (in wei) that should be sent with the transaction
+     */
+    value: string;
+  };
+  /**
+   * The unique ZeroEx identifier of the request
+   */
+  zid: string;
 }

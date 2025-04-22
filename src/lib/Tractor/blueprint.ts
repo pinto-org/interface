@@ -1,8 +1,8 @@
-import { Address, encodeAbiParameters, keccak256, encodePacked, getAddress } from "viem";
-import { Blueprint, Requisition } from "./types";
-import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { useReadContract, useSignTypedData, useChainId } from "wagmi";
 import { diamondABI } from "@/constants/abi/diamondABI";
+import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { Address, encodeAbiParameters, encodePacked, getAddress, keccak256 } from "viem";
+import { useChainId, useReadContract, useSignTypedData } from "wagmi";
+import { Blueprint, Requisition } from "./types";
 
 // EIP-712 Domain and Types
 const DOMAIN_TYPE = {
@@ -45,7 +45,7 @@ export function createBlueprint({
     data,
     operatorPasteInstrs,
     maxNonce,
-    startTime: startTime ?? now - 10n * 3600n, // Default 10 hours before now
+    startTime: startTime ?? now - 24n * 3600n, // Default 24 hours before now, this makes testing easier
     endTime: endTime ?? BigInt(2) ** BigInt(256) - BigInt(1), // Default uint256 max
   };
 }

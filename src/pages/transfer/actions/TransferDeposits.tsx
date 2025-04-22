@@ -5,7 +5,7 @@ import { STALK } from "@/constants/internalTokens";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useMaxBurnableStalkOnRain from "@/hooks/useMaxBurnableStalkOnRain";
 import useTransaction from "@/hooks/useTransaction";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { sortAndPickCrates } from "@/utils/convert";
 import { DepositData, type Token } from "@/utils/types";
 import { exists } from "@/utils/utils";
@@ -28,7 +28,7 @@ export default function TransferDeposits() {
   const account = useAccount();
   const chainId = useChainId();
   const navigate = useNavigate();
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const maxBurnableStalk = useMaxBurnableStalkOnRain();
 
   const [step, setStep] = useState(1);

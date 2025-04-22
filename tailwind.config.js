@@ -119,7 +119,7 @@ module.exports = {
           "morning-yellow-1": "#FEE18C",
           "morning-yellow-2": "#F1F88C",
           "warning-yellow": "#DCB505",
-          "warning-orange": "ED7A00",
+          "warning-orange": "#ED7A00",
           "stalk-gold": "#D3B567",
           "seed-silver": "#7B9387",
           "pod-bronze": "#9F7F54",

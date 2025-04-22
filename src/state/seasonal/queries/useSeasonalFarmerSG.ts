@@ -5,9 +5,9 @@ import { UseSeasonalResult } from "@/utils/types";
 import { useChainId } from "wagmi";
 import useSeasonalQueries, { ConvertEntryFn, SeasonalQueryVars } from "./useSeasonalInternalQueries";
 
-import { useAccount } from "wagmi";
-import { useCallback } from "react";
 import { isValidAddress } from "@/utils/string";
+import { useCallback } from "react";
+import { useAccount } from "wagmi";
 
 const paginateSettings: PaginationSettings<
   SiloHourlySnapshot,
@@ -39,9 +39,12 @@ export default function useSeasonalFarmerSG(
   const chainId = useChainId();
   const { address } = useAccount();
 
-  const queryFnFactory = useCallback((vars: SeasonalQueryVars) => {
-    return () => paginateSubgraph(paginateSettings, subgraphs[chainId].beanstalk, FarmerSeasonalSiloDocument, vars);
-  }, [chainId]);
+  const queryFnFactory = useCallback(
+    (vars: SeasonalQueryVars) => {
+      return () => paginateSubgraph(paginateSettings, subgraphs[chainId].beanstalk, FarmerSeasonalSiloDocument, vars);
+    },
+    [chainId],
+  );
 
   const account = (siloAccount || address)?.toLowerCase();
 
@@ -59,6 +62,6 @@ export default function useSeasonalFarmerSG(
       convertResult: convertResult,
     },
     true, // sparseData
-    queryDisabled
+    queryDisabled,
   );
 }

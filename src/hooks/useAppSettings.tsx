@@ -1,4 +1,4 @@
-import { appSettingsAtom, Denomination } from "@/state/app/app.atoms";
+import { Denomination, appSettingsAtom } from "@/state/app/app.atoms";
 import { useAtom } from "jotai";
 import { useCallback } from "react";
 

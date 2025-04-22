@@ -1,6 +1,6 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
 import { useFrame, useLoader } from "@react-three/fiber";
-import { MeshStandardMaterial, Color, Vector3} from "three";
+import React, { useRef, useEffect, useState, useCallback } from "react";
+import { Color, MeshStandardMaterial, Vector3 } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 type CoinModelProps = {
@@ -36,7 +36,7 @@ const CoinModel: React.FC<CoinModelProps> = ({
   useEffect(() => {
     if (modelRef.current) {
       // Traverse the loaded model and replace materials
-      
+
       modelRef.current.traverse((child: any) => {
         if (child.isMesh) {
           // Replace with a MeshStandardMaterial
@@ -49,8 +49,7 @@ const CoinModel: React.FC<CoinModelProps> = ({
               metalness: 1.0, // Set metalness to 1.0 to match the fully metallic look
               roughness: 0.1, // Keep roughness at 0.2 to match the same level of shininess
               transparent: true,
-              opacity: 1.00, // Start fully transparent
-              
+              opacity: 1.0, // Start fully transparent
             });
             child.layers.set(1); // Layer 1 for the coin
           } else if (child.material.name === "coininnerring") {
@@ -60,7 +59,7 @@ const CoinModel: React.FC<CoinModelProps> = ({
               metalness: 1.0,
               roughness: 0.1,
               transparent: true,
-              opacity: 1.00, // Start fully transparent
+              opacity: 1.0, // Start fully transparent
             });
             child.layers.set(1); // Layer 1 for the coin
           } else if (child.material.name === "coinface") {
@@ -70,7 +69,7 @@ const CoinModel: React.FC<CoinModelProps> = ({
               metalness: 1.0,
               roughness: 0.2,
               transparent: true,
-              opacity: 1.00, // Start fully transparent
+              opacity: 1.0, // Start fully transparent
             });
             child.layers.set(1); // Layer 1 for the coin
           } else if (child.material.name === "icon") {
@@ -94,17 +93,17 @@ const CoinModel: React.FC<CoinModelProps> = ({
 
   useFrame(() => {
     if (!modelRef.current || !isInitialized) return;
-  
+
     // Ensure the model moves to the target position
     const positionReached = modelRef.current.position.distanceTo(targetPosition.current) < 0.2;
     if (!positionReached) {
-      modelRef.current.position.lerp(targetPosition.current, 0.10);
+      modelRef.current.position.lerp(targetPosition.current, 0.1);
     } else {
       // Scale up the model
       const targetScale = new Vector3(12, 12, 12); // Desired scale
       const currentScale = modelRef.current.scale;
       const targetRotation = new Vector3(0, Math.PI * 10, 0); // 360 degrees in Y-axis
-  
+
       if (currentScale.distanceTo(targetScale) > 0.06) {
         // Lerp the scale
         currentScale.lerp(targetScale, 0.14);
@@ -121,19 +120,16 @@ const CoinModel: React.FC<CoinModelProps> = ({
         setMaterialProperties(modelRef.current);
         rotationEnabled.current = true; // Enable rotation
       }
-  
+
       // Lerp colors
       modelRef.current.traverse((child: any) => {
         if (child.isMesh && child.material) {
           // const startColor = new Color(0xF7931A); // Orange
           // const endColorOuterRing = new Color(0x45906a); // Outer ring and face
           // const endColorInnerRing = new Color(0x68ad8b); // Inner ring
-  
-          const progress = Math.min(
-            Math.max(((currentScale.x - 10) / (12 - 10)), 0),
-            1
-          );
-  
+
+          const progress = Math.min(Math.max((currentScale.x - 10) / (12 - 10), 0), 1);
+
           if (child.material.name === "coinouterring") {
             // child.material.color.lerpColors(startColor, endColorOuterRing, progress);
           } else if (child.material.name === "coininnerring") {
@@ -144,54 +140,46 @@ const CoinModel: React.FC<CoinModelProps> = ({
             const newOpacity = Math.min(child.material.opacity + 0.015, 0.99);
             child.material.opacity = newOpacity;
           }
-  
+
           child.material.needsUpdate = true;
         }
       });
     }
-  
+
     // Add rotation logic after scaling, colors, and materials are done
     if (rotationEnabled.current) {
       // Current rotation value in radians
       const currentRotation = modelRef.current.rotation.y % (2 * Math.PI);
-  
+
       // Define thresholds for slowing down near edges
       const preSideThreshold = Math.PI / 2 - 0.35; // 90 degrees - 20 degrees
       const postSideThreshold = Math.PI / 2 + 0.35; // 90 degrees + 20 degrees
       const negPreSideThreshold = -Math.PI / 2 + 0.35;
       const negPostSideThreshold = -Math.PI / 2 - 0.35;
-  
+
       // Gradually slow down rotation as it approaches thresholds
-      let speedFactor = 1; // Default speed multiplier
+      const speedFactor = 1; // Default speed multiplier
       if (
-        (currentRotation > preSideThreshold && currentRotation < postSideThreshold) || 
+        (currentRotation > preSideThreshold && currentRotation < postSideThreshold) ||
         (currentRotation < negPreSideThreshold && currentRotation > negPostSideThreshold)
       ) {
         const distanceToThreshold = Math.min(
           Math.abs(currentRotation - preSideThreshold),
-          Math.abs(currentRotation - negPreSideThreshold)
+          Math.abs(currentRotation - negPreSideThreshold),
         );
       }
-  
+
       // Adjust rotation speed
       modelRef.current.rotation.y += rotateDirection * speedFactor;
-  
+
       // Detect when to switch rotation direction
-      if (
-        currentRotation > preSideThreshold &&
-        currentRotation < preSideThreshold + 0.1
-      ) {
+      if (currentRotation > preSideThreshold && currentRotation < preSideThreshold + 0.1) {
         setRotateDirection(-0.005); // Start rotating to the left earlier
-      } else if (
-        currentRotation < negPreSideThreshold &&
-        currentRotation > negPreSideThreshold - 0.1
-      ) {
+      } else if (currentRotation < negPreSideThreshold && currentRotation > negPreSideThreshold - 0.1) {
         setRotateDirection(0.005); // Start rotating to the right earlier
       }
     }
   });
-  
-  
 
   const setMaterialProperties = (model: any) => {
     model.traverse((child: any) => {
@@ -202,7 +190,7 @@ const CoinModel: React.FC<CoinModelProps> = ({
           coinface: { metalness: 1.0, roughness: 0.2 },
           icon: { metalness: 0.7, roughness: 0.3, emissiveIntensity: 2.0, emissive: 0x2f7150 },
         };
-  
+
         const props = finalProperties[child.material.name];
         if (props) {
           child.material.metalness = props.metalness;
@@ -212,7 +200,7 @@ const CoinModel: React.FC<CoinModelProps> = ({
       }
     });
   };
-  
+
   const handlePointerOver = useCallback(() => {
     if (targetPosition.current) {
       targetPosition.current.set(20, position[1], position[2] + 2); // Move closer on Z-axis

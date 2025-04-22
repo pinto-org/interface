@@ -13,10 +13,10 @@ const labelVariants = cva(
         section: "pinto-sm-light sm:pinto-body-light text-pinto-light sm:text-pinto-light",
       },
       expanded: {
-        true: "flex h-10 items-center"
-      }
-    }
-  }
+        true: "flex h-10 items-center",
+      },
+    },
+  },
 );
 
 const Label = React.forwardRef<

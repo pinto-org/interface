@@ -1,4 +1,3 @@
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   CategoryScale,
   Chart,
@@ -11,16 +10,17 @@ import {
   Plugin,
   PointElement,
 } from "chart.js";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { ReactChart } from "../ReactChart";
-import { MakeGradientFunction, defaultLineChartOptions, scalesX, plugins } from "./chartHelpers";
 import { LineChartData } from "./LineChart";
+import { MakeGradientFunction, defaultLineChartOptions, plugins, scalesX } from "./chartHelpers";
 
 Chart.register(LineController, LineElement, LinearScale, CategoryScale, PointElement, Filler);
 
 export interface MultiAxisDataset extends LineChartData {
   /** Which Y-axis to map to. Example: "y", "y2", "y3", etc. */
   yAxisID: string;
-};
+}
 
 export interface MultiAxisYAxisConfig {
   id: string;
@@ -87,10 +87,10 @@ const MultiAxisLineChart = React.memo(
           grid: {
             display: true,
             drawTicks: false,
-            color: (context) => scalesX.grid.color(activeIndex)(context)
+            color: (context) => scalesX.grid.color(activeIndex)(context),
           },
           border: {
-            display: tickConfig?.hideXTicks ? false : true,
+            display: !Boolean(tickConfig?.hideXTicks),
           },
           ticks: {
             padding: 0,
@@ -102,7 +102,7 @@ const MultiAxisLineChart = React.memo(
             maxTicksLimit: 6,
             callback: (_value, index, values) => {
               return scalesX.ticksWithXValue(_value, index, values, labels[index], activeIndex);
-            }
+            },
           },
         },
       };
@@ -124,7 +124,7 @@ const MultiAxisLineChart = React.memo(
           },
           border: {
             display: true,
-            color: "rgba(0, 0, 0, 0.1)"
+            color: "rgba(0, 0, 0, 0.1)",
           },
           ticks: {
             display: !Boolean(tickConfig?.hideYTicks),
@@ -167,11 +167,12 @@ const MultiAxisLineChart = React.memo(
             const borderColorFnOrHex = makeLineGradients[idx];
             const areaColorFnOrHex = makeAreaGradients?.[idx];
 
-            const borderColor = typeof borderColorFnOrHex === "string"
-              ? borderColorFnOrHex
-              : borderColorFnOrHex(ctx, idx);
+            const borderColor =
+              typeof borderColorFnOrHex === "string" ? borderColorFnOrHex : borderColorFnOrHex(ctx, idx);
             const backgroundColor = areaColorFnOrHex
-              ? (typeof areaColorFnOrHex === "string" ? areaColorFnOrHex : areaColorFnOrHex(ctx, idx))
+              ? typeof areaColorFnOrHex === "string"
+                ? areaColorFnOrHex
+                : areaColorFnOrHex(ctx, idx)
               : undefined;
 
             return {
@@ -191,19 +192,12 @@ const MultiAxisLineChart = React.memo(
       [datasets, labels, makeLineGradients, makeAreaGradients],
     );
 
-
     const gradientPlugin = useMemo(
       () => plugins.gradientShift(activeIndexRef, makeLineGradients, makeAreaGradients),
       [makeLineGradients, makeAreaGradients],
     );
-    const verticalLinePlugin = useMemo<Plugin<"line">>(
-      () => plugins.verticalLine(activeIndexRef, false),
-      [],
-    );
-    const selectionPointPlugin = useMemo<Plugin<"line">>(
-      () => plugins.selectionPoint(activeIndexRef, false),
-      [],
-    );
+    const verticalLinePlugin = useMemo<Plugin<"line">>(() => plugins.verticalLine(activeIndexRef, false), []);
+    const selectionPointPlugin = useMemo<Plugin<"line">>(() => plugins.selectionPoint(activeIndexRef, false), []);
     const selectionCallbackPlugin: Plugin = useMemo<Plugin>(
       () => plugins.selectionCallback(onMouseOver),
       [onMouseOver],

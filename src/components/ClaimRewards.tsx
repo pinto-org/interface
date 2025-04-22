@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
 import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { getClaimText } from "@/utils/string";
@@ -46,7 +46,7 @@ const getCombinedRewardString = (
 
 export default function ClaimRewards({ trigger }: RewardsClaimProps) {
   const account = useAccount();
-  const data = useFarmerSiloNew();
+  const data = useFarmerSilo();
   const { mainToken: mainToken } = useTokenData();
   const farmerActions = useFarmerActions();
   const claimableText = getClaimText(

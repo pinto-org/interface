@@ -13,17 +13,24 @@ const pageContainerVariants = cva("flex flex-col w-full min-w-0", {
       xlAlt: "lg:w-[95%] 2xl:w-[90%] lg:min-w-[700px] lg:max-w-[1550px]",
       xlAltField: "lg:min-w-[700px] lg:max-w-[1300px] min-[1550px]:w-[90%] min-[1550px]:max-w-[1650px]",
       xlAltSwap: "sm:max-w-[560px] min-[1601px]:max-w-[700px]",
+      xlAltExplorer: "2xl:max-w-[1550px] 3xl:max-w-[2560px]",
     },
   },
 });
 
 export interface IPageContainer
   extends React.HTMLAttributes<HTMLDivElement>,
-  VariantProps<typeof pageContainerVariants> {
+    VariantProps<typeof pageContainerVariants> {
   bottomMarginOnMobile?: boolean;
+  removeBottomPadding?: boolean;
 }
 
-const PageContainer = ({ variant = "lg", bottomMarginOnMobile = false, ...props }: IPageContainer) => {
+const PageContainer = ({
+  removeBottomPadding,
+  bottomMarginOnMobile = false,
+  variant = "lg",
+  ...props
+}: IPageContainer) => {
   return (
     <div>
       <div
@@ -31,9 +38,9 @@ const PageContainer = ({ variant = "lg", bottomMarginOnMobile = false, ...props 
         className={cn(
           "relative",
           "flex flex-col w-full items-center",
-          "pt-2 px-4 pb-4", // mobile
-          "sm:px-8 sm:pt-5 sm:pb-20 sm:mt-10", // above mobile
-          bottomMarginOnMobile ? "mb-[75px] sm:mb-0" : "mb-0"
+          `pt-2 px-4 ${removeBottomPadding ? "" : "pb-4"}`, // mobile
+          `sm:px-8 sm:pt-5 ${removeBottomPadding ? "" : "sm:pb-20"} sm:mt-10`, // above mobile
+          bottomMarginOnMobile ? "mb-[75px] sm:mb-0" : "mb-0",
         )}
       >
         <div className={cn(pageContainerVariants({ variant }), props.className)}>{props.children}</div>

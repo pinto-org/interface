@@ -1,5 +1,9 @@
 import SeasonalChart, { tabToSeasonalLookback, TimeTab } from "@/components/charts/SeasonalChart";
-import { useFarmerSeasonalPlantedPinto, useFarmerSeasonalClaimedGrownStalkBalance, useFarmerSeasonalStalkOwnership } from "@/state/seasonal/seasonalDataHooks";
+import {
+  useFarmerSeasonalClaimedGrownStalkBalance,
+  useFarmerSeasonalPlantedPinto,
+  useFarmerSeasonalStalkOwnership,
+} from "@/state/seasonal/seasonalDataHooks";
 import { useSunData } from "@/state/useSunData";
 import { chartFormatters as f } from "@/utils/format";
 import { useState } from "react";
@@ -11,8 +15,19 @@ const FarmerExplorer = () => {
   const season = useSunData().current;
 
   const plantedData = useFarmerSeasonalPlantedPinto(Math.max(0, season - tabToSeasonalLookback(plantedTab)), season);
-  const grownStalkData = useFarmerSeasonalClaimedGrownStalkBalance(Math.max(0, season - tabToSeasonalLookback(grownStalkTab)), season);
-  const stalkOwnershipData = useFarmerSeasonalStalkOwnership(Math.max(0, season - tabToSeasonalLookback(stalkOwnershipTab)), season);
+  const grownStalkData = useFarmerSeasonalClaimedGrownStalkBalance(
+    Math.max(0, season - tabToSeasonalLookback(grownStalkTab)),
+    season,
+  );
+  const stalkOwnershipData = useFarmerSeasonalStalkOwnership(
+    Math.max(0, season - tabToSeasonalLookback(stalkOwnershipTab)),
+    season,
+  );
+  console.log(
+    "🚀 ~ FarmerExplorer ~ Math.max(0, season - tabToSeasonalLookback(stalkOwnershipTab)), season:",
+    Math.max(0, season - tabToSeasonalLookback(stalkOwnershipTab)),
+    season,
+  );
 
   return (
     <>

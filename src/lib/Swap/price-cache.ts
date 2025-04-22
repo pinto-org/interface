@@ -1,5 +1,6 @@
 import { TV } from "@/classes/TokenValue";
 import { diamondPriceABI } from "@/constants/abi/diamondPriceABI";
+import { siloedPintoABI } from "@/constants/abi/siloedPintoABI";
 import { abiSnippets } from "@/constants/abiSnippets";
 import { beanstalkAddress, beanstalkPriceAddress } from "@/generated/contractHooks";
 import { SwapContext } from "@/lib/Swap/swap-router";
@@ -8,6 +9,7 @@ import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { Token } from "@/utils/types";
 import { multicall } from "@wagmi/core";
 import { ContractFunctionParameters } from "viem";
+import { readContract } from "viem/actions";
 
 const TWO_MINS = 1000 * 60 * 2;
 
@@ -85,10 +87,20 @@ export class SwapPriceCache {
   async #fetchPrices() {
     const { tokens, contracts, price: priceContract } = this.#buildMulticall();
 
-    const prices = await multicall(this.#context.config, {
-      contracts: [...contracts, priceContract],
-      allowFailure: false,
-    });
+    const [prices, redemptionForOneMainToken] = await Promise.all([
+      // all token prices
+      multicall(this.#context.config, {
+        contracts: [...contracts, priceContract],
+        allowFailure: false,
+      }),
+      // silo wrapped token redemption for 1 main token
+      readContract(this.#context.config.getClient({ chainId: this.#context.chainId }), {
+        address: this.#context.siloWrappedToken.address,
+        abi: siloedPintoABI,
+        functionName: "previewRedeem",
+        args: [BigInt(10 ** this.#context.siloWrappedToken.decimals)],
+      }),
+    ]);
 
     const priceMap = new Map<Token, TV>();
     const wellPriceMap = new Map<Token, TV>();
@@ -100,7 +112,9 @@ export class SwapPriceCache {
         if (token.isWrappedNative) {
           priceMap.set(this.#context.native, TV.fromBlockchain(price, 6));
         }
-        priceMap.set(token, TV.fromBlockchain(price, 6));
+        const mainTokenPrice = TV.fromBlockchain(price, 6);
+        priceMap.set(token, mainTokenPrice);
+        priceMap.set(this.#context.siloWrappedToken, mainTokenPrice);
       } else if (price.price) {
         priceMap.set(this.#context.mainToken, TV.fromBlockchain(price.price, 6));
 
@@ -113,6 +127,8 @@ export class SwapPriceCache {
         });
       }
     }
+
+    this.#updatePriceMapWithSiloWrappedToken(redemptionForOneMainToken, priceMap);
 
     return {
       priceMap,
@@ -140,10 +156,32 @@ export class SwapPriceCache {
       args: [],
     };
 
+    const siloWrappedExchangeRate: ContractFunctionParameters<typeof siloedPintoABI> = {
+      address: this.#context.siloWrappedToken.address,
+      abi: siloedPintoABI,
+      functionName: "previewRedeem",
+      args: [BigInt(10 ** this.#context.siloWrappedToken.decimals)],
+    };
+
     return {
       tokens,
       contracts: contracts,
+      siloWrappedExchangeRate,
       price,
     };
+  }
+
+  #updatePriceMapWithSiloWrappedToken(amount: bigint, priceMap: Map<Token, TV>): void {
+    const baseAmount = TV.fromHuman(1, this.#context.mainToken.decimals);
+    const redemptionAmount = TV.fromBigInt(amount, this.#context.mainToken.decimals);
+    const mainTokenUSD = priceMap.get(this.#context.mainToken);
+
+    if (!mainTokenUSD) {
+      return;
+    }
+
+    const siloWrappedUSD = redemptionAmount.div(baseAmount).mul(mainTokenUSD).reDecimal(6);
+
+    priceMap.set(this.#context.siloWrappedToken, siloWrappedUSD);
   }
 }

@@ -1,9 +1,13 @@
+import { TV } from "@/classes/TokenValue";
 import { MAIN_TOKEN, NATIVE_TOKEN, S_MAIN_TOKEN } from "@/constants/tokens";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { usePriceData } from "@/state/usePriceData";
 import { useChainConstant, useResolvedChainId } from "@/utils/chain";
-import { getTokenIndex, tokensEqual } from "@/utils/token";
+import { getChainTokenMap, getTokenIndex, tokensEqual } from "@/utils/token";
 import { Token } from "@/utils/types";
 import { Lookup } from "@/utils/types.generic";
 import { useMemo } from "react";
+import { useAccount, useChainId } from "wagmi";
 import { useLPTokenToNonPintoUnderlyingMap, useTokenMap } from "./pinto/useTokenMap";
 import useUSDExtendedFarmerBalances, { USDExtendedFarmerBalances } from "./useUSDExtendedFarmerBalances";
 
@@ -33,6 +37,7 @@ export interface UsePreferredTokenProps {
 }
 
 export function usePreferredInputToken(args?: UsePreferredTokenProps) {
+  const { isConnecting } = useAccount();
   const { data: farmerBalances, loading } = useUSDExtendedFarmerBalances();
   const lp2Underlying = useLPTokenToNonPintoUnderlyingMap("lp2Underlying");
 
@@ -71,7 +76,7 @@ export function usePreferredInputToken(args?: UsePreferredTokenProps) {
   }, [farmerBalances, tokenMap, args, lp2Underlying, chainId, siloWrapped]);
 
   return {
-    loading,
+    loading: loading || isConnecting,
     preferredToken,
   };
 }
@@ -137,7 +142,8 @@ function filterBalances(
     const tokenIndex = getTokenIndex(address);
     const token = tokenMap[tokenIndex];
 
-    const shouldFilter = (args?.filterLP && token.isLP) || remove.has(tokenIndex) || (!!args?.enableSiloWrapped && token.isSiloWrapped);
+    const shouldFilter =
+      (args?.filterLP && token.isLP) || remove.has(tokenIndex) || (!!args?.enableSiloWrapped && token.isSiloWrapped);
 
     if (shouldFilter && !tokensEqual(token, args?.token)) {
       delete balances[tokenIndex];
@@ -156,3 +162,42 @@ function getTokensWithBalances(balances: Lookup<USDExtendedFarmerBalances>): USD
 
   return hasBalance;
 }
+
+export function usePreferredInputSiloDepositToken(farmerSilo: ReturnType<typeof useFarmerSilo>, fallbackToken?: Token) {
+  const mainToken = useChainConstant(MAIN_TOKEN);
+  const chainId = useChainId();
+  const { isConnecting } = useAccount();
+
+  const tokenMap = useTokenMap();
+  const priceData = usePriceData();
+
+  const sortedByBDVDescending = useMemo(
+    () => sortByBDVDescending(farmerSilo.deposits, chainId),
+    [farmerSilo.deposits, tokenMap, priceData, chainId],
+  );
+
+  const preferredToken = sortedByBDVDescending.length ? sortedByBDVDescending[0]?.token : fallbackToken ?? mainToken;
+
+  return {
+    preferredToken,
+    isLoading: farmerSilo.isLoading || priceData.loading || isConnecting,
+  };
+}
+
+const sortByBDVDescending = (farmerDeposits: ReturnType<typeof useFarmerSilo>["deposits"], chainId: number) => {
+  const tokens = getChainTokenMap(chainId);
+
+  const values: { token: Token; bdv: TV }[] = [];
+
+  for (const token of Object.values(tokens)) {
+    if (!token.isMain && !token.isLP) continue;
+
+    const deposit = farmerDeposits.get(token);
+    values.push({
+      token,
+      bdv: deposit?.currentBDV ?? TV.ZERO,
+    });
+  }
+
+  return values.sort((a, b) => b.bdv.sub(a.bdv).toNumber());
+};

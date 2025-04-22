@@ -1,7 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
-import { UpDownArrowsIcon, UpRightArrowIcon } from "@/components/Icons";
+import { UpDownArrowsIcon } from "@/components/Icons";
 import MobileActionBar from "@/components/MobileActionBar";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
 import SlippageButton from "@/components/SlippageButton";
@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/Separator";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useIsWSOL, useTokenMap, useWSOL } from "@/hooks/pinto/useTokenMap";
-import useBuildSwapQuote from "@/hooks/swap/useBuildSwapQuote";
+import { useBuildSwapQuoteAsync } from "@/hooks/swap/useBuildSwapQuote";
 import useSwap from "@/hooks/swap/useSwap";
 import useSwapSummary from "@/hooks/swap/useSwapSummary";
 import { usePreferredInputToken } from "@/hooks/usePreferredInputToken";
@@ -26,14 +26,25 @@ import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { FarmFromMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
+
+const handleOnError = (e: any) => {
+  if (e instanceof Error || "message" in e || "shortMessage" in e) {
+    const msg = e.shortMessage || e.message;
+    if (!msg.toLowerCase().includes("user rejected the request")) {
+      toast.error("Swap failed. Try increasing slippage.");
+      return true;
+    }
+  }
+
+  return false;
+};
 
 export default function Swap() {
   const queryClient = useQueryClient();
   const { queryKeys } = useFarmerBalances();
-  const { mainToken: BEAN, nativeToken: ETH, siloWrappedToken } = useTokenData();
+  const { mainToken: BEAN, nativeToken: ETH, siloWrappedToken, siloWrappedToken3p } = useTokenData();
   const diamond = useProtocolAddress();
 
   const isWSOL = useIsWSOL();
@@ -56,10 +67,13 @@ export default function Swap() {
   const { balanceTo, setBalanceTo } = useDestinationBalance();
 
   const filterTokens = useMemo(() => {
-    const s = new Set(Object.values(tokenMap).filter((t) => t.isLP));
-    s.add(siloWrappedToken);
+    const s = new Set(
+      Object.values(tokenMap).filter((t) => {
+        return t.isLP || t.isSiloWrapped || t.is3PSiloWrapped;
+      }),
+    );
     return s;
-  }, [tokenMap, siloWrappedToken]);
+  }, [tokenMap, siloWrappedToken, siloWrappedToken3p]);
 
   const {
     data: swapData,
@@ -73,7 +87,7 @@ export default function Swap() {
   });
 
   // const value = tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals) : undefined;
-  const swapBuild = useBuildSwapQuote(swapData, balanceFrom, balanceTo);
+  const buildSwap = useBuildSwapQuoteAsync(swapData, balanceFrom, balanceTo, account.address, account.address);
   const swapSummary = useSwapSummary(swapData);
   // const priceImpactQuery = usePriceImpactSummary(swapBuild?.advFarm, tokenIn, value);
   // const priceImpactSummary = priceImpactQuery?.get(tokenOut);
@@ -101,13 +115,16 @@ export default function Swap() {
     }
   }, [amountIn]);
 
+  const onSuccess = useCallback(() => {
+    setAmountIn("0");
+    setAmountOut("0");
+    queryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
+    resetSwap();
+  }, [queryClient, queryKeys, resetSwap]);
+
   const { writeWithEstimateGas, setSubmitting, submitting, isConfirming } = useTransaction({
-    successCallback: () => {
-      setAmountIn("0");
-      setAmountOut("0");
-      queryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
-      resetSwap();
-    },
+    successCallback: onSuccess,
+    onError: handleOnError,
     successMessage: "Swap success",
     errorMessage: "Swap failed",
     token: tokenIn,
@@ -151,7 +168,12 @@ export default function Swap() {
     toast.loading("Swapping...");
     try {
       if (!account.address) throw new Error("Signer required");
-      if (!swapData || !swapBuild) throw new Error("No swap data");
+      if (!swapData) throw new Error("No swap data");
+
+      const swapBuild = await buildSwap();
+
+      if (!swapBuild) throw new Error("No swap build");
+
       return writeWithEstimateGas({
         address: diamond,
         abi: beanstalkAbi,
@@ -159,7 +181,7 @@ export default function Swap() {
         args: [swapBuild.advancedFarm],
         value: tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n,
       });
-    } catch (e) {
+    } catch (e: any) {
       console.error("Error submitting swap: ", e);
       toast.dismiss();
       toast.error("Swap failed");
@@ -167,9 +189,9 @@ export default function Swap() {
     } finally {
       setSubmitting(false);
     }
-  }, [swapData, swapBuild, amountIn, tokenIn, account.address, diamond, writeWithEstimateGas, setSubmitting]);
+  }, [swapData, amountIn, tokenIn, account.address, diamond, writeWithEstimateGas, setSubmitting, buildSwap]);
 
-  const swapNotReady = !swapData || !swapBuild || !!swapQuery.error;
+  const swapNotReady = !swapData || !!swapQuery.error;
 
   const disabled =
     submitting ||
@@ -259,15 +281,17 @@ export default function Swap() {
                 </div>
               ) : null}
             </div>
-            <RoutingAndSlippageInfo
-              title="Total Swap Slippage"
-              swapSummary={swapSummary}
-              priceImpactSummary={undefined}
-              preferredSummary="swap"
-              tokenIn={tokenIn}
-              tokenOut={tokenOut}
-              txnType="Swap"
-            />
+            {swapData && !swapQuery.isLoading ? (
+              <RoutingAndSlippageInfo
+                title="Total Swap Slippage"
+                swapSummary={swapSummary}
+                priceImpactSummary={undefined}
+                preferredSummary="swap"
+                tokenIn={tokenIn}
+                tokenOut={tokenOut}
+                txnType="Swap"
+              />
+            ) : null}
             {slippageWarning}
             <div className="mt-2 hidden sm:flex">
               <SmartSubmitButton

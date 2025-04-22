@@ -2,9 +2,9 @@ import { subgraphs } from "@/constants/subgraph";
 import { AllPodListingsDocument } from "@/generated/gql/graphql";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
+import { useMemo } from "react";
 import { useChainId } from "wagmi";
 import { useHarvestableIndex } from "../useFieldData";
-import { useMemo } from "react";
 import { useQueryKeys } from "../useQueryKeys";
 
 export default function usePodListings() {

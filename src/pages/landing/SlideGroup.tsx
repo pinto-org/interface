@@ -116,15 +116,15 @@ const SlideGroup = ({
             undefined,
             (error) => {
               reject(error);
-            }
+            },
           );
-        })
+        }),
     );
     return Promise.all(promises);
   };
-  
+
   // PRELOAD IMAGES
-  useEffect(() => {  
+  useEffect(() => {
     const initialLoad = landingImages.slice(0, 2);
     const remainingLoad = landingImages.slice(2);
 
@@ -136,8 +136,8 @@ const SlideGroup = ({
       preloadTextures(remainingLoad).then((loadedRemaining) => {
         setTextures((prev) => [...prev, ...loadedRemaining]);
       });
-    }
-    loadTextures();    
+    };
+    loadTextures();
   }, [landingImages]);
 
   return (

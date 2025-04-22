@@ -5,7 +5,7 @@ import DepositSelect from "@/components/DepositSelect";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import useIsMobile from "@/hooks/display/useIsMobile";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { Token } from "@/utils/types";
 import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import DepositsList from "../../DepositsList";
@@ -28,7 +28,7 @@ export default function StepTwo({
   usingMax,
   backToFirstStep,
 }: StepTwoProps) {
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const depositedBalances = farmerSilo.deposits;
   const depositedData = [...depositedBalances.entries()].map(([token, depositData]) => ({ token, depositData }));
   const isMobile = useIsMobile();
@@ -170,42 +170,47 @@ export default function StepTwo({
         {usingMax ? (
           <DepositsList />
         ) : (
-          transferData.map((data, index) => (
-            <div className="flex flex-col gap-2" key={`depositSelect_${data.token.address}`}>
-              <div className="flex flex-row items-center justify-between">
-                <Label className="font-[400]">Amount of Deposited {data.token.name} to send</Label>
-                <div className="hidden sm:block">
-                  {data.deposits.length > 1 && <DepositSelect setTransferData={setTransferData} token={data.token} />}
+          transferData.map((data, index) => {
+            const deposits = depositedBalances.get(data.token)?.deposits.length || 0;
+            const showDepositOrderMessage =
+              Number(data.amount) > 0 &&
+              Number(data.amount) < Number(customMaxAmounts.get(data.token.address)?.toHuman()) &&
+              deposits > 1;
+            return (
+              <div className="flex flex-col gap-2" key={`depositSelect_${data.token.address}`}>
+                <div className="flex flex-row items-center justify-between">
+                  <Label className="font-[400]">Amount of Deposited {data.token.name} to send</Label>
+                  <div className="hidden sm:block">
+                    {deposits > 1 && <DepositSelect setTransferData={setTransferData} token={data.token} />}
+                  </div>
                 </div>
-              </div>
-              <div className="flex flex-col gap-4">
-                <ComboInputField
-                  key={`depositInput_${data.token.address}_${index}`}
-                  setToken={(token) => handleTokenChange(index)(token)}
-                  selectedToken={data.token}
-                  amount={data.amount}
-                  setAmount={(amount) => handleAmountChange(index)(amount)}
-                  tokenAndBalanceMap={tokenAndBalanceMap}
-                  altText={getAltText(data.token)}
-                  customMaxAmount={customMaxAmounts.get(data.token.address)}
-                  disableInput={shouldDisableInput(data.token, data.deposits.length)}
-                  disableDebounce
-                  disableButton
-                  mode="deposits"
-                />
-                <div className="sm:hidden">
-                  {data.deposits.length > 1 && <DepositSelect setTransferData={setTransferData} token={data.token} />}
-                </div>
-                {Number(data.amount) > 0 &&
-                  Number(data.amount) < Number(customMaxAmounts.get(data.token.address)?.toHuman()) &&
-                  data.deposits.length > 1 && (
+                <div className="flex flex-col gap-4">
+                  <ComboInputField
+                    key={`depositInput_${data.token.address}_${index}`}
+                    setToken={(token) => handleTokenChange(index)(token)}
+                    selectedToken={data.token}
+                    amount={data.amount}
+                    setAmount={(amount) => handleAmountChange(index)(amount)}
+                    tokenAndBalanceMap={tokenAndBalanceMap}
+                    altText={getAltText(data.token)}
+                    customMaxAmount={customMaxAmounts.get(data.token.address)}
+                    disableInput={shouldDisableInput(data.token, data.deposits.length)}
+                    disableDebounce
+                    disableButton
+                    mode="deposits"
+                  />
+                  <div className="sm:hidden">
+                    {deposits > 1 && <DepositSelect setTransferData={setTransferData} token={data.token} />}
+                  </div>
+                  {showDepositOrderMessage && (
                     <div className="pinto-sm-light text-pinto-light">
                       Deposits with the least Grown Stalk will be sent first.
                     </div>
                   )}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
         <div className="flex flex-col gap-2">
           <Label>Send deposits to</Label>

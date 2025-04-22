@@ -1,9 +1,13 @@
 import { TokenValue } from "@/classes/TokenValue";
 import DepositsTable from "@/components/DepositsTable";
+import { createSmartGroups } from "@/lib/claim/depositUtils";
 import { DepositTransferData } from "@/pages/transfer/actions/TransferDeposits";
+import { tokensEqual } from "@/utils/token";
 import { DepositData, Token, TokenDepositData } from "@/utils/types";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { useAccount } from "wagmi";
+import { DepositGroup } from "./CombineSelect";
+import { CloseIcon, PlusIcon } from "./Icons";
 import { Button } from "./ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/Dialog";
 import { Separator } from "./ui/Separator";
@@ -19,6 +23,8 @@ interface DepositSelectDialogProps {
   setTransferData: Dispatch<SetStateAction<DepositTransferData[]>>;
   mode: "send" | "combine";
   onCombine?: () => void;
+  groups?: DepositGroup[];
+  setGroups?: (groups: DepositGroup[]) => void;
 }
 
 export default function DepositSelectDialog({
@@ -31,50 +37,89 @@ export default function DepositSelectDialog({
   setTransferData,
   mode,
   onCombine,
+  groups,
+  setGroups,
 }: DepositSelectDialogProps) {
   const account = useAccount();
+  const [activeGroupId, setActiveGroupId] = useState<number>(1);
 
-  // Function to handle deposit selection
-  const handleDepositSelection = (value: string[]) => {
-    setSelected(value);
+  const addNewGroup = () => {
+    if (!setGroups || !groups) return;
+    const newId = Math.max(...groups.map((g) => g.id), 0) + 1;
+    setGroups([...groups, { id: newId, deposits: [] }]);
+    setActiveGroupId(newId);
+  };
 
-    // Only update transfer data if there are selections
-    if (value.length > 0 && farmerDeposits) {
-      // Get all selected deposits
-      const selectedDeposits = value.reduce<DepositData[]>((acc, depositStem) => {
-        const deposit = farmerDeposits.deposits.find((deposit) => deposit.stem.toHuman() === depositStem);
-        if (deposit) {
-          acc.push(deposit);
-        }
-        return acc;
-      }, []);
+  const removeGroup = (groupId: number) => {
+    if (!setGroups || !groups) return;
 
-      // Calculate total amount from selected deposits
-      const totalAmount = selectedDeposits.reduce((sum, deposit) => deposit.amount.add(sum), TokenValue.ZERO).toHuman();
+    // Remove the group
+    const filteredGroups = groups.filter((g) => g.id !== groupId);
 
-      // Create the DepositTransferData object for this token
-      const newTransferData: DepositTransferData = {
-        token: token,
-        amount: totalAmount,
-        deposits: selectedDeposits,
-      };
+    // Reassign sequential IDs starting from 1
+    const reorderedGroups = filteredGroups.map((group, index) => ({
+      ...group,
+      id: index + 1,
+    }));
 
-      // Update transfer data while preserving other tokens
-      setTransferData((prev) => {
-        const tokenIndex = prev.findIndex((item) => item.token.address.toLowerCase() === token.address.toLowerCase());
+    setGroups(reorderedGroups);
 
-        if (tokenIndex === -1) {
-          return [...prev, newTransferData];
-        } else {
-          return prev.map((item, index) => (index === tokenIndex ? newTransferData : item));
-        }
-      });
-    } else {
-      // Clear transfer data for this token when no deposits are selected
-      setTransferData((prev) =>
-        prev.filter((item) => item.token.address.toLowerCase() !== token.address.toLowerCase()),
-      );
+    // Update active group ID
+    if (activeGroupId === groupId) {
+      setActiveGroupId(reorderedGroups[0]?.id || 1);
+    } else if (activeGroupId > groupId) {
+      // If we were looking at a group after the deleted one, update its ID
+      setActiveGroupId(activeGroupId - 1);
     }
+  };
+
+  // Unified deposit selection handler
+  const handleDepositSelection = (value: string[]) => {
+    if (mode === "combine") {
+      if (!setGroups || !groups) return;
+      setGroups(groups.map((group) => (group.id === activeGroupId ? { ...group, deposits: value } : group)));
+    } else {
+      // Handle transfer mode
+      setSelected(value);
+
+      // Only update transfer data if there are selections
+      if (value.length > 0 && farmerDeposits) {
+        const selectedDeposits = value.reduce<DepositData[]>((acc, depositStem) => {
+          const deposit = farmerDeposits.deposits.find((deposit) => deposit.stem.toHuman() === depositStem);
+          if (deposit) {
+            acc.push(deposit);
+          }
+          return acc;
+        }, []);
+
+        const totalAmount = selectedDeposits
+          .reduce((sum, deposit) => deposit.amount.add(sum), TokenValue.ZERO)
+          .toHuman();
+
+        const newTransferData: DepositTransferData = {
+          token: token,
+          amount: totalAmount,
+          deposits: selectedDeposits,
+        };
+
+        setTransferData((prev) => {
+          const tokenIndex = prev.findIndex((item) => tokensEqual(item.token, token));
+          if (tokenIndex === -1) {
+            return [...prev, newTransferData];
+          } else {
+            return prev.map((item, index) => (index === tokenIndex ? newTransferData : item));
+          }
+        });
+      } else {
+        setTransferData((prev) => prev.filter((item) => !tokensEqual(item.token, token)));
+      }
+    }
+  };
+
+  const handleSmartGroup = () => {
+    if (!setGroups || !farmerDeposits) return;
+    const newGroups = createSmartGroups(farmerDeposits.deposits);
+    setGroups(newGroups);
   };
 
   const getDialogTitle = () => {
@@ -101,6 +146,11 @@ export default function DepositSelectDialog({
     return false;
   };
 
+  const getOtherGroupsDeposits = (currentGroupId: number) => {
+    if (!groups) return [];
+    return groups.filter((g) => g.id !== currentGroupId).flatMap((g) => g.deposits);
+  };
+
   // If token is not available, don't render the dialog
   if (!token) return null;
 
@@ -118,16 +168,63 @@ export default function DepositSelectDialog({
           <DialogDescription className="flex flex-col">
             {account.address ? (
               <>
+                {mode === "combine" && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {groups?.map((group) => (
+                      <div key={group.id} className="flex items-center mb-2">
+                        <Button
+                          variant={activeGroupId === group.id ? "default" : "outline"}
+                          onClick={() => setActiveGroupId(group.id)}
+                          className="mr-1"
+                        >
+                          Group {group.id} ({group.deposits.length})
+                        </Button>
+                        {groups.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeGroup(group.id)}
+                            className="h-8 w-8 p-0 flex items-center justify-center"
+                          >
+                            <CloseIcon width="1rem" height="1rem" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                    <Button variant="outline" onClick={addNewGroup} className="p-2 mb-2">
+                      <PlusIcon width="1rem" height="1rem" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleSmartGroup}
+                      className="px-3 py-2 mb-2"
+                      title="Smart Group deposits by similar Stalk/PDV"
+                    >
+                      Smart Group
+                    </Button>
+                  </div>
+                )}
+
                 <div className="-mt-1.5 -mx-6">
                   {farmerDeposits ? (
                     <ToggleGroup
                       type="multiple"
-                      value={selected}
-                      defaultValue={farmerDeposits.deposits.map((deposit) => deposit.stem.toHuman())}
+                      value={
+                        mode === "combine" ? groups?.find((g) => g.id === activeGroupId)?.deposits || [] : selected
+                      }
                       onValueChange={handleDepositSelection}
                       className="flex flex-col w-auto h-auto justify-between gap-2"
                     >
-                      <DepositsTable token={token} selected={selected} useToggle mode={mode} />
+                      <DepositsTable
+                        token={token}
+                        selected={
+                          mode === "combine" ? groups?.find((g) => g.id === activeGroupId)?.deposits || [] : selected
+                        }
+                        useToggle
+                        mode={mode}
+                        disabledDeposits={mode === "combine" ? getOtherGroupsDeposits(activeGroupId) : undefined}
+                        groups={mode === "combine" ? groups : undefined}
+                      />
                     </ToggleGroup>
                   ) : (
                     <div>Data error!</div>

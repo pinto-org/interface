@@ -1,23 +1,26 @@
+import { TokenValue } from "@/classes/TokenValue";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
+import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
-import { usePublicClient } from "wagmi";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import { PINTO } from "@/constants/tokens";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { toast } from "sonner";
-import { useEffect, useState, useCallback, useRef } from "react";
-import { 
-  OrderbookEntry, 
-  loadOrderbookData, 
-  decodeSowTractorData, 
+import { Blueprint } from "@/lib/Tractor/types";
+import {
+  OrderbookEntry,
   SowBlueprintData,
-  getSowBlueprintDisplayData
+  decodeSowTractorData,
+  getSowBlueprintDisplayData,
+  loadOrderbookData,
 } from "@/lib/Tractor/utils";
 import { formatter } from "@/utils/format";
 import { getChainToken } from "@/utils/token";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { usePublicClient } from "wagmi";
 import { useChainId } from "wagmi";
-import { TokenValue } from "@/classes/TokenValue";
-import { PINTO } from "@/constants/tokens";
-import IconImage from "@/components/ui/IconImage";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import LoadingSpinner from "../LoadingSpinner";
+import ReviewTractorOrderDialog, { ExecutionData } from "../ReviewTractorOrderDialog";
 import { Plow } from "./Plow";
 
 const BASESCAN_URL = "https://basescan.org/address/";
@@ -27,6 +30,8 @@ export function SoilOrderbookContent() {
   const [requisitions, setRequisitions] = useState<OrderbookEntry[]>([]);
   const [latestBlockInfo, setLatestBlockInfo] = useState<{ number: number; timestamp: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<OrderbookEntry | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const protocolAddress = useProtocolAddress();
   const publicClient = usePublicClient();
   const chainId = useChainId();
@@ -39,7 +44,7 @@ export function SoilOrderbookContent() {
     latestBlockInfo,
     isLoading,
     requisitionsCount: requisitions.length,
-    loadAttempted: loadAttempted.current
+    loadAttempted: loadAttempted.current,
   });
 
   // Cleanup function to prevent state updates after unmount
@@ -63,9 +68,9 @@ export function SoilOrderbookContent() {
         const latestBlock = await publicClient.getBlock();
         console.log("Got latest block:", {
           number: latestBlock.number,
-          timestamp: latestBlock.timestamp
+          timestamp: latestBlock.timestamp,
         });
-        
+
         const blockInfo = {
           number: Number(latestBlock.number),
           timestamp: Number(latestBlock.timestamp) * 1000,
@@ -83,9 +88,9 @@ export function SoilOrderbookContent() {
     (events: OrderbookEntry[]) => {
       console.log("Calculating timestamps for events:", {
         eventCount: events.length,
-        latestBlockInfo
+        latestBlockInfo,
       });
-      
+
       if (!latestBlockInfo || events.length === 0) return events;
 
       return events.map((event) => {
@@ -106,35 +111,37 @@ export function SoilOrderbookContent() {
       hasPublicClient: !!publicClient,
       hasProtocolAddress: !!protocolAddress,
       isMounted: isMounted.current,
-      loadAttempted: loadAttempted.current
+      loadAttempted: loadAttempted.current,
     });
 
     if (isLoading || !publicClient || !protocolAddress) {
       console.log("Skipping load - conditions not met:", {
         isLoading,
         hasPublicClient: !!publicClient,
-        hasProtocolAddress: !!protocolAddress
+        hasProtocolAddress: !!protocolAddress,
       });
       return;
     }
-    
+
     setIsLoading(true);
     try {
       console.log("Starting to load orderbook data...");
       // Use the new loadOrderbookData function
       const orderbookData = await loadOrderbookData(
-        undefined, 
-        protocolAddress, 
+        undefined,
+        protocolAddress,
         publicClient,
-        latestBlockInfo ? { 
-          number: BigInt(latestBlockInfo.number), 
-          timestamp: BigInt(latestBlockInfo.timestamp / 1000) 
-        } : undefined
+        latestBlockInfo
+          ? {
+              number: BigInt(latestBlockInfo.number),
+              timestamp: BigInt(latestBlockInfo.timestamp / 1000),
+            }
+          : undefined,
       );
 
       console.log("Got orderbook data:", {
         dataCount: orderbookData.length,
-        isMounted: isMounted.current
+        isMounted: isMounted.current,
       });
 
       // Get approximate timestamps
@@ -173,7 +180,7 @@ export function SoilOrderbookContent() {
       latestBlockInfo,
       isLoading,
       isMounted: isMounted.current,
-      loadAttempted: loadAttempted.current
+      loadAttempted: loadAttempted.current,
     });
 
     if (protocolAddress && publicClient && latestBlockInfo && !isLoading && !loadAttempted.current) {
@@ -185,7 +192,7 @@ export function SoilOrderbookContent() {
         hasPublicClient: !!publicClient,
         hasLatestBlockInfo: !!latestBlockInfo,
         isLoading,
-        loadAttempted: loadAttempted.current
+        loadAttempted: loadAttempted.current,
       });
     }
   }, [protocolAddress, publicClient, latestBlockInfo, loadAllRequisitions, isLoading]);
@@ -193,31 +200,81 @@ export function SoilOrderbookContent() {
   const formatDate = (timestamp: number | undefined) => {
     if (!timestamp) return "Unknown";
     const date = new Date(timestamp);
-    
+
     // Format: MM/DD/YY hh:mmAM/PM
-    return date.toLocaleDateString('en-US', {
-      month: '2-digit',
-      day: '2-digit',
-      year: '2-digit'
-    }) + ' ' + date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    }).replace(' ', '');
+    return (
+      date.toLocaleDateString("en-US", {
+        month: "2-digit",
+        day: "2-digit",
+        year: "2-digit",
+      }) +
+      " " +
+      date
+        .toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        })
+        .replace(" ", "")
+    );
+  };
+
+  const handleRowClick = (requisition: OrderbookEntry) => {
+    setSelectedOrder(requisition);
+    setViewDialogOpen(true);
+  };
+
+  // Generate order data for the review dialog from the requisition
+  const getOrderDataForReview = () => {
+    if (!selectedOrder) return null;
+
+    try {
+      const decodedData = decodeSowTractorData(selectedOrder.requisition.blueprint.data);
+      if (!decodedData) return null;
+
+      return {
+        totalAmount: TokenValue.fromBlockchain(decodedData.sowAmounts.totalAmountToSow, 6).toHuman(),
+        temperature: decodedData.minTempAsString,
+        podLineLength: decodedData.maxPodlineLengthAsString,
+        minSoil: decodedData.sowAmounts.minAmountToSowPerSeasonAsString,
+        operatorTip: TokenValue.fromBlockchain(decodedData.operatorParams.operatorTipAmount, 6).toHuman(),
+        tokenStrategy: "LOWEST_SEEDS" as const, // Default, adjust based on your data
+      };
+    } catch (error) {
+      console.error("Failed to decode data for requisition:", error);
+      return null;
+    }
   };
 
   return (
     <div className="overflow-x-auto">
       <Table>
-        <TableHeader>
-          <TableRow className="bg-gray-50">
-            <TableHead className="py-3 font-antarctica font-light text-[#9C9C9C] text-base leading-[110%]">Temperature</TableHead>
-            <TableHead className="py-3 font-antarctica font-light text-[#9C9C9C] text-base leading-[110%]">Max Podline Length</TableHead>
-            <TableHead className="py-3 font-antarctica font-light text-[#9C9C9C] text-base leading-[110%]">Total Soil Order Size</TableHead>
-            <TableHead className="py-3 font-antarctica font-light text-[#9C9C9C] text-base leading-[110%]">Available Pinto</TableHead>
-            <TableHead className="py-3 font-antarctica font-light text-[#9C9C9C] text-base leading-[110%]">Blueprint Hash</TableHead>
-            <TableHead className="py-3 font-antarctica font-light text-[#9C9C9C] text-base leading-[110%]">Publisher</TableHead>
-            <TableHead className="py-3 font-antarctica font-light text-[#9C9C9C] text-base leading-[110%]">Created at</TableHead>
+        <TableHeader className="[&_tr]:border-b-0">
+          <TableRow className="border-b-0">
+            <TableHead className="py-2 font-antarctica font-light text-[#9C9C9C] text-base leading-[110%]">
+              Temperature
+            </TableHead>
+            <TableHead className="py-2 font-antarctica font-light text-[#9C9C9C] text-base leading-[110%]">
+              Max Podline Length
+            </TableHead>
+            <TableHead className="py-2 font-antarctica font-light text-[#9C9C9C] text-base leading-[110%]">
+              Total Soil Order Size
+            </TableHead>
+            <TableHead className="py-2 font-antarctica font-light text-[#9C9C9C] text-base leading-[110%]">
+              Available Pinto
+            </TableHead>
+            <TableHead className="py-2 font-antarctica font-light text-[#9C9C9C] text-base leading-[110%]">
+              Max per Season
+            </TableHead>
+            <TableHead className="py-2 font-antarctica font-light text-[#9C9C9C] text-base leading-[110%]">
+              Blueprint Hash
+            </TableHead>
+            <TableHead className="py-2 font-antarctica font-light text-[#9C9C9C] text-base leading-[110%]">
+              Publisher
+            </TableHead>
+            <TableHead className="py-2 font-antarctica font-light text-[#9C9C9C] text-base leading-[110%]">
+              Created at
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -231,74 +288,114 @@ export function SoilOrderbookContent() {
 
             // Get temperature
             const temperature = decodedData ? parseFloat(decodedData.minTempAsString) : 0;
-            
+
             // Get max pod line length
-            const maxPodLineLength = decodedData ? decodedData.maxPodlineLengthAsString : "Unknown";
-            
+            const maxPodLineLength = decodedData
+              ? parseInt(decodedData.maxPodlineLengthAsString).toLocaleString()
+              : "Unknown";
+
             // Total order size
-            const totalSize = decodedData ? 
-              formatter.number(TokenValue.fromBlockchain(decodedData.sowAmounts.totalAmountToSow, 6)) : 
-              "Unknown";
+            const totalSize = decodedData
+              ? formatter.number(TokenValue.fromBlockchain(decodedData.sowAmounts.totalAmountToSow, 6))
+              : "Unknown";
 
             // Available Pinto
             const availablePinto = formatter.number(req.currentlySowable);
 
             return (
-              <TableRow key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                <TableCell className="py-3">
-                  ≥ {temperature.toFixed(0)}%
-                </TableCell>
-                <TableCell className="py-3">
-                  ≤ {maxPodLineLength}
-                </TableCell>
-                <TableCell className="py-3">
+              <TableRow
+                key={index}
+                className="border-b border-gray-100 hover:bg-pinto-green-1 cursor-pointer transition-colors"
+                noHoverMute
+                onClick={() => handleRowClick(req)}
+              >
+                <TableCell className="py-2">≥ {temperature.toFixed(0)}%</TableCell>
+                <TableCell className="py-2">≤ {maxPodLineLength}</TableCell>
+                <TableCell className="py-2">
                   <div className="flex items-center gap-1">
-                    <IconImage 
-                      src={PINTO.logoURI}
-                      alt="PINTO" 
-                      size={5} 
-                    />
+                    <IconImage src={PINTO.logoURI} alt="PINTO" size={4} />
                     {totalSize}
                   </div>
                 </TableCell>
-                <TableCell className="py-3">
+                <TableCell className="py-2">
                   <div className="flex items-center gap-1">
-                    <IconImage 
-                      src={PINTO.logoURI}
-                      alt="PINTO" 
-                      size={5} 
-                    />
+                    <IconImage src={PINTO.logoURI} alt="PINTO" size={4} />
                     {availablePinto}
                   </div>
                 </TableCell>
-                <TableCell className="py-3 text-pinto-dark">
+                <TableCell className="py-2">
+                  <div className="flex items-center gap-1">
+                    <IconImage src={PINTO.logoURI} alt="PINTO" size={4} />
+                    {decodedData && decodedData.sowAmounts.maxAmountToSowPerSeasonAsString
+                      ? formatter.number(
+                          TokenValue.fromHuman(decodedData.sowAmounts.maxAmountToSowPerSeasonAsString, 6),
+                        )
+                      : "Unknown"}
+                  </div>
+                </TableCell>
+                <TableCell className="py-2 text-pinto-dark">
                   {`0x${req.requisition.blueprintHash.slice(2, 7)}...${req.requisition.blueprintHash.slice(-4)}`}
                 </TableCell>
-                <TableCell className="py-3">
+                <TableCell className="py-2">
                   <a
                     href={`${BASESCAN_URL}${req.requisition.blueprint.publisher}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-pinto-dark underline hover:opacity-80"
+                    onClick={(e) => e.stopPropagation()} // Prevent row click when clicking the link
                   >
                     {`0x${req.requisition.blueprint.publisher.slice(2, 7)}...${req.requisition.blueprint.publisher.slice(-4)}`}
                   </a>
                 </TableCell>
-                <TableCell className="py-3">
-                  {formatDate(req.timestamp)}
-                </TableCell>
+                <TableCell className="py-2">{formatDate(req.timestamp)}</TableCell>
               </TableRow>
             );
           })}
           {requisitions.length === 0 && (
             <TableRow>
-              <TableCell colSpan={7} className="p-4 text-center text-gray-500">
-                {isLoading ? "Loading tractor orders..." : "No active requisitions found"}
+              <TableCell colSpan={8} className="p-2 text-center text-gray-500">
+                {isLoading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <LoadingSpinner size={20} />
+                    <span>Loading tractor orders...</span>
+                  </div>
+                ) : (
+                  "No active requisitions found"
+                )}
               </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
+
+      {/* Review Tractor Order Dialog */}
+      {selectedOrder && (
+        <ReviewTractorOrderDialog
+          open={viewDialogOpen}
+          onOpenChange={setViewDialogOpen}
+          orderData={
+            getOrderDataForReview() || {
+              totalAmount: "0",
+              temperature: "0",
+              podLineLength: "0",
+              minSoil: "0",
+              operatorTip: "0",
+            }
+          }
+          encodedData={selectedOrder.requisition.blueprint.data}
+          operatorPasteInstrs={Array.from(selectedOrder.requisition.blueprint.operatorPasteInstrs) as `0x${string}`[]}
+          blueprint={
+            {
+              ...selectedOrder.requisition.blueprint,
+              operatorPasteInstrs: Array.from(
+                selectedOrder.requisition.blueprint.operatorPasteInstrs,
+              ) as `0x${string}`[],
+            } as Blueprint
+          }
+          isViewOnly={true}
+          executionHistory={[]} // No execution history in the current data model
+        />
+      )}
     </div>
   );
 }
@@ -323,30 +420,26 @@ export function SoilOrderbookDialog({ open, onOpenChange }: SoilOrderbookDialogP
         <DialogHeader className="pb-4">
           <DialogTitle className="text-xl font-antarctica font-bold">Tractor</DialogTitle>
         </DialogHeader>
-        
+
         <div className="w-full">
-          <div className="flex gap-4 border-b">
+          <div className="flex gap-4 border-b pinto-sm">
             <button
-              className={`pb-2 font-antarctica ${activeTab === "view" ? "border-b-2 border-green-600 font-medium" : "text-gray-500"}`}
+              type="button"
+              className={`pb-2 font-antarctica ${activeTab === "view" ? "border-b-2 border-green-600 font-medium" : "border-b-2 border-transparent text-pinto-gray-4"}`}
               onClick={() => setActiveTab("view")}
             >
               View Soil Orders
             </button>
             <button
-              className={`pb-2 font-antarctica ${activeTab === "execute" ? "border-b-2 border-green-600 font-medium" : "text-gray-500"}`}
+              type="button"
+              className={`pb-2 font-antarctica ${activeTab === "execute" ? "border-b-2 border-green-600 font-medium" : "border-b-2 border-transparent text-pinto-gray-4"}`}
               onClick={() => setActiveTab("execute")}
             >
               Execute Soil Orders
             </button>
           </div>
-          
-          <div className="pt-6">
-            {activeTab === "view" ? (
-              <SoilOrderbookContent />
-            ) : (
-              <Plow />
-            )}
-          </div>
+
+          <div className="pt-6">{activeTab === "view" ? <SoilOrderbookContent /> : <Plow />}</div>
         </div>
       </DialogContent>
     </Dialog>

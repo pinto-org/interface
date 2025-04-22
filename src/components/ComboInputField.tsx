@@ -5,7 +5,7 @@ import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { PODS } from "@/constants/internalTokens";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter, truncateHex } from "@/utils/format";
@@ -15,7 +15,8 @@ import { useDebouncedEffect } from "@/utils/useDebounce";
 import { cn } from "@/utils/utils";
 import { Dispatch, InputHTMLAttributes, SetStateAction, useCallback, useEffect, useMemo, useState } from "react";
 import PlotSelect from "./PlotSelect";
-import TokenSelectWithBalances from "./TokenSelectWithBalances";
+import TextSkeleton from "./TextSkeleton";
+import TokenSelectWithBalances, { TransformTokenLabelsFunction } from "./TokenSelectWithBalances";
 import { Button } from "./ui/Button";
 import { Skeleton } from "./ui/Skeleton";
 
@@ -61,6 +62,9 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
   selectedPlots?: Plot[];
   setPlots?: Dispatch<SetStateAction<Plot[]>>;
   plotSelectionType?: "single" | "multiple";
+
+  // Token select props
+  transformTokenLabels?: TransformTokenLabelsFunction;
 }
 
 function ComboInputField({
@@ -96,12 +100,13 @@ function ComboInputField({
   tokenSelectLoading,
   filterTokens,
   selectKey,
+  transformTokenLabels,
 }: ComboInputProps) {
   const tokenData = useTokenData();
   const { balances } = useFarmerBalances();
   const farmerTokenBalance = selectedToken ? balances.get(selectedToken) : undefined;
 
-  const depositedBalances = useFarmerSiloNew().deposits;
+  const depositedBalances = useFarmerSilo().deposits;
   const farmerDepositedTokenBalance = selectedToken ? depositedBalances.get(selectedToken) : undefined;
 
   // Convert input string amount to TokenValue
@@ -124,19 +129,6 @@ function ComboInputField({
     ? tokenPrices.tokenPrices.get(selectedToken)?.instant || TokenValue.ZERO
     : TokenValue.ZERO;
   const protocolTokenPrice = tokenPrices.tokenPrices.get(tokenData.mainToken)?.instant || TokenValue.ZERO;
-
-  useEffect(() => {
-    if (!isUserInput) {
-      setInternalAmount(amountAsTokenValue);
-      setDisplayValue(amount);
-    }
-
-    if (connectedAccount && amountAsTokenValue.gt(maxAmount)) {
-      setError?.(true);
-    } else {
-      setError?.(false);
-    }
-  }, [amount, amountAsTokenValue, connectedAccount]);
 
   const pct = useMemo(() => {
     if (mode === "plots") return TokenValue.ONE;
@@ -204,6 +196,19 @@ function ComboInputField({
       setDisplayValue(maxAmount.toHuman());
     }
   }, [selectedToken, maxAmount, disableClamping]);
+
+  useEffect(() => {
+    if (!isUserInput) {
+      setInternalAmount(amountAsTokenValue);
+      setDisplayValue(amount);
+    }
+
+    if (connectedAccount && amountAsTokenValue.gt(maxAmount)) {
+      setError?.(true);
+    } else {
+      setError?.(false);
+    }
+  }, [amount, amountAsTokenValue, connectedAccount]);
 
   /**
    * If the amount is < customMinAmount, set the internal amount to customMinAmount
@@ -311,10 +316,8 @@ function ComboInputField({
         )}
       >
         <div className="flex flex-col gap-2">
-          <div className="flex flex-row gap-2 items-center">
-            {isLoading ? (
-              <Skeleton className="flex w-full h-8 rounded-[0.75rem]" />
-            ) : (
+          <div className={cn("flex flex-row items-center", isLoading && "justify-between gap-2")}>
+            <TextSkeleton loading={isLoading} className="flex flex-col w-full h-8">
               <input
                 min={0}
                 type="number"
@@ -325,7 +328,7 @@ function ComboInputField({
                 value={disableInput ? amount : displayValue}
                 onChange={(e) => changeValue(e.target.value)}
               />
-            )}
+            </TextSkeleton>
             {mode === "plots"
               ? setPlots && (
                   <PlotSelect type={plotSelectionType || "single"} selectedPlots={selectedPlots} setPlots={setPlots} />
@@ -333,10 +336,8 @@ function ComboInputField({
               : setToken &&
                 selectedToken && (
                   <TokenSelectWithBalances
-                    setToken={setToken}
                     selectedToken={selectedToken}
                     tokenNameOverride={tokenNameOverride}
-                    setBalanceFrom={setBalanceFrom}
                     balanceFrom={balanceFrom}
                     balancesToShow={balancesToShow}
                     tokenAndBalanceMap={tokenAndBalanceMap}
@@ -344,6 +345,9 @@ function ComboInputField({
                     isLoading={tokenSelectLoading}
                     filterTokens={filterTokens}
                     selectKey={selectKey}
+                    setToken={setToken}
+                    setBalanceFrom={setBalanceFrom}
+                    transformTokenLabels={transformTokenLabels}
                   />
                 )}
           </div>
@@ -351,11 +355,9 @@ function ComboInputField({
             <div className="flex flex-row gap-2 justify-between items-center">
               <div className="font-[340] text-[1rem] text-pinto-gray-4 flex flex-row gap-2 items-center">
                 {shouldShowAdditionalInfo() && mode !== "plots" ? (
-                  isLoading ? (
-                    <Skeleton className="flex w-8 h-4 rounded-lg" />
-                  ) : (
-                    formatter.usd(inputValue)
-                  )
+                  <TextSkeleton loading={isLoading} className="flex w-8 h-4 rounded-lg">
+                    {formatter.usd(inputValue)}
+                  </TextSkeleton>
                 ) : null}
                 {mode === "deposits" && shouldShowAdditionalInfo() && (
                   <>

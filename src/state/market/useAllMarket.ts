@@ -3,8 +3,8 @@ import { AllMarketActivityDocument } from "@/generated/gql/graphql";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 import { useChainId } from "wagmi";
-import { useMarketEntities } from "./useMarketEntities";
 import { useQueryKeys } from "../useQueryKeys";
+import { useMarketEntities } from "./useMarketEntities";
 
 export function useAllMarket() {
   const chainId = useChainId();

@@ -1,20 +1,20 @@
-import { Token, UseSeasonalResult } from "@/utils/types";
-import useSeasonalBeanBeanSG from "./queries/useSeasonalBeanBeanSG";
-import useSeasonalBeanstalkSiloSG from "./queries/useSeasonalBeanstalkSiloSG";
-import useSeasonalFarmerSG from "./queries/useSeasonalFarmerSG";
-import { PODS, STALK } from "@/constants/internalTokens";
 import { TV } from "@/classes/TokenValue";
+import { PODS, STALK } from "@/constants/internalTokens";
 import { MAIN_TOKEN, PINTO, S_MAIN_TOKEN } from "@/constants/tokens";
+import { SiloHourlySnapshot } from "@/generated/gql/graphql";
+import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { useChainConstant } from "@/utils/chain";
+import { Token, UseSeasonalResult } from "@/utils/types";
+import { HashString } from "@/utils/types.generic";
+import { useMemo } from "react";
+import { useAccount } from "wagmi";
+import useSeasonalBeanBeanSG from "./queries/useSeasonalBeanBeanSG";
 import useSeasonalBeanSeasonSG from "./queries/useSeasonalBeanSeasonSG";
 import useSeasonalBeanstalkFieldSG from "./queries/useSeasonalBeanstalkFieldSG";
+import useSeasonalBeanstalkSiloSG from "./queries/useSeasonalBeanstalkSiloSG";
 import useSeasonalBeanstalkWrappedDepositsSG from "./queries/useSeasonalBeanstalkWrappedDepositsSG";
-import { useChainConstant } from "@/utils/chain";
-import { SiloHourlySnapshot } from "@/generated/gql/graphql";
-import { HashString } from "@/utils/types.generic";
+import useSeasonalFarmerSG from "./queries/useSeasonalFarmerSG";
 import useSeasonalFarmerSiloAssetTokenSG from "./queries/useSeasonalFarmerSiloAssetTokenSG";
-import { useAccount } from "wagmi";
-import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { useMemo } from "react";
 import { mergeUseSeasonalQueriesResults } from "./utils";
 
 /** ==================== Bean BeanHourlySnapshot ==================== **/
@@ -61,7 +61,6 @@ export function useSeasonalL2SR(fromSeason: number, toSeason: number): UseSeason
   });
 }
 
-
 /** ==================== Bean Season ==================== **/
 
 export function useSeasonalTotalLiquidity(fromSeason: number, toSeason: number): UseSeasonalResult {
@@ -76,12 +75,12 @@ export function useSeasonalTotalLiquidity(fromSeason: number, toSeason: number):
 
 /** ==================== Farmer SiloHourlySnapshot ==================== **/
 
-// ----- Helper functions ----- 
+// ----- Helper functions -----
 function calcSeasonalGrownStalk(siloHourly: SiloHourlySnapshot) {
   return TV.fromBlockchain(
     BigInt(siloHourly.stalk) +
-    BigInt(siloHourly.germinatingStalk) -
-    BigInt(siloHourly.depositedBDV) * BigInt(10) ** BigInt(10),
+      BigInt(siloHourly.germinatingStalk) -
+      BigInt(siloHourly.depositedBDV) * BigInt(10) ** BigInt(10),
     STALK.decimals,
   );
 }
@@ -91,7 +90,7 @@ function calcGrownStalkPerBDV(siloHourly: SiloHourlySnapshot, bdvDecimals: numbe
   return grownStalk.div(depositedBDV);
 }
 
-// ----- Seasonal Hooks ----- 
+// ----- Seasonal Hooks -----
 export function useFarmerSeasonalPlantedPinto(fromSeason: number, toSeason: number): UseSeasonalResult {
   return useSeasonalFarmerSG(fromSeason, toSeason, (siloHourly, timestamp) => ({
     season: Number(siloHourly.season),
@@ -108,11 +107,7 @@ export function useFarmerSeasonalClaimedGrownStalkBalance(fromSeason: number, to
   }));
 }
 
-export function useFarmerSeasonalGrownStalkPerDepositedBDV(
-  fromSeason: number,
-  toSeason: number,
-  account?: HashString,
-) {
+export function useFarmerSeasonalGrownStalkPerDepositedBDV(fromSeason: number, toSeason: number, account?: HashString) {
   const token = useChainConstant(MAIN_TOKEN);
 
   return useSeasonalFarmerSG(
@@ -121,9 +116,9 @@ export function useFarmerSeasonalGrownStalkPerDepositedBDV(
     (siloHourly, timestamp) => ({
       season: Number(siloHourly.season),
       value: calcGrownStalkPerBDV(siloHourly, token.decimals).toNumber(),
-      timestamp
+      timestamp,
     }),
-    account
+    account,
   );
 }
 
@@ -153,7 +148,12 @@ export function useFarmerSeasonalStalkOwnership(fromSeason: number, toSeason: nu
  * The Seasonal total deposited amount of a token by a farmer
  * If 'account' is not provided, the connected wallet address will be used.
  */
-export function useFarmerSeasonalSiloAssetDepositedAmount(fromSeason: number, toSeason: number, token: Token, account?: string) {
+export function useFarmerSeasonalSiloAssetDepositedAmount(
+  fromSeason: number,
+  toSeason: number,
+  token: Token,
+  account?: string,
+) {
   const { address } = useAccount();
 
   const siloAccount = account ?? address ?? "";
@@ -168,10 +168,15 @@ export function useFarmerSeasonalSiloAssetDepositedAmount(fromSeason: number, to
       value: TV.fromBlockchain(siloAssetHourly.depositedAmount, token.decimals).toNumber(),
       timestamp,
     }),
-  )
+  );
 }
 
-export function useFarmerSeasonalSiloAssetPercentageOfTotalDeposited(fromSeason: number, toSeason: number, token: Token, account?: string): UseSeasonalResult {
+export function useFarmerSeasonalSiloAssetPercentageOfTotalDeposited(
+  fromSeason: number,
+  toSeason: number,
+  token: Token,
+  account?: string,
+): UseSeasonalResult {
   const diamond = useProtocolAddress();
 
   const siloAssetDepositedAmount = useFarmerSeasonalSiloAssetDepositedAmount(fromSeason, toSeason, token, account);
@@ -189,14 +194,13 @@ export function useFarmerSeasonalSiloAssetPercentageOfTotalDeposited(fromSeason:
       return mergeUseSeasonalQueriesResults(
         siloAssetDepositedAmount.data,
         overallDepositedAmount.data,
-        (accountHourly, overallHourly) => accountHourly / overallHourly
-      )
+        (accountHourly, overallHourly) => accountHourly / overallHourly,
+      );
     } catch (error) {
       console.error(error);
       return [];
     }
   }, [siloAssetDepositedAmount.data, overallDepositedAmount.data, isLoading, isError]);
-
 
   return { data, isLoading, isError };
 }
@@ -207,6 +211,14 @@ export function useSeasonalStalk(fromSeason: number, toSeason: number): UseSeaso
   return useSeasonalBeanstalkSiloSG(fromSeason, toSeason, (siloHourly, timestamp) => ({
     season: Number(siloHourly.season),
     value: TV.fromBlockchain(siloHourly.stalk, STALK.decimals).toNumber(),
+    timestamp,
+  }));
+}
+
+export function useSeasonalBDV(fromSeason: number, toSeason: number): UseSeasonalResult {
+  return useSeasonalBeanstalkSiloSG(fromSeason, toSeason, (siloHourly, timestamp) => ({
+    season: Number(siloHourly.season),
+    value: TV.fromBlockchain(siloHourly.depositedBDV, PINTO.decimals).toNumber(),
     timestamp,
   }));
 }

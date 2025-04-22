@@ -1,5 +1,5 @@
+import { ArcElement, Chart, ChartData, ChartOptions, PieController } from "chart.js";
 import { ReactChart } from "./ReactChart";
-import { PieController, ArcElement, ChartOptions, ChartData, Chart } from "chart.js";
 
 Chart.register(PieController, ArcElement);
 

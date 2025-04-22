@@ -1,6 +1,6 @@
+import { useFarmerBalances } from "@/state/useFarmerBalances";
 // utils/useBalanceToMode.ts
 import { FarmToMode } from "@/utils/types";
-import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useEffect, useState } from "react";
 
 export const useDestinationBalance = () => {

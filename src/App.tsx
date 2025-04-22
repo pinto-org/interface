@@ -5,6 +5,7 @@ import DevPage from "./components/DevPage";
 import PageMetaWrapper from "./components/PageMetaWrapper";
 import ScrollToTop from "./components/ScrollToTop";
 import Navbar from "./components/nav/nav/Navbar";
+import { externalLinks } from "./constants/links";
 import Error404 from "./pages/Error404";
 import Explorer from "./pages/Explorer";
 import Field from "./pages/Field";
@@ -19,14 +20,13 @@ import Whitepaper from "./pages/Whitepaper";
 import NewUserView from "./pages/overview/NewUserView";
 
 import { useMetaCRM } from "./utils/meta-crm";
-import { externalLinks } from "./constants/links";
 
 function AppLayout({ children }) {
   return (
-    <div>
+    <div className="min-h-screen">
       <Navbar />
       <ScrollToTop />
-      <div className={cn("relative z-[1] w-screen ")}>{children}</div>
+      <div className={cn("relative z-[1] w-screen")}>{children}</div>
     </div>
   );
 }

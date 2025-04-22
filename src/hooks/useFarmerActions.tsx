@@ -1,7 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { PoolData, usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import { useSunData } from "@/state/useSunData";
@@ -416,7 +416,7 @@ function calculateUpdateGains(depositData: TokenDepositData, siloTokenData: Silo
 export default function useFarmerActions(): FarmerActions {
   const account = useAccount();
   const farmerBalances = useFarmerBalances();
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const farmerDeposits = farmerSilo.deposits;
   const farmerField = useFarmerField();
   const priceData = usePriceData();

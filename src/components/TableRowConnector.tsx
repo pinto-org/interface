@@ -282,7 +282,7 @@ const TableRowConnector = ({
           <motion.div
             initial={{ offsetDistance: "1%", color: mode === "connect" ? startCapColor : endCapColor }}
             animate={{
-              offsetDistance: "99%",
+              offsetDistance: mode === "singleLine" ? "95%" : "99%",
               color: [
                 mode === "connect" ? startCapColor : endCapColor, // 0%
                 mode === "connect" ? startCapColor : endCapColor, // 35%

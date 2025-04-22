@@ -279,68 +279,88 @@ export default function PlotsTable({
     }, TokenValue.ZERO);
   }, [farmerField.plots]);
 
+  const totalBeansSown = useMemo(() => {
+    return farmerField.plots.reduce((sum, plot) => {
+      if (plot.beansPerPod) {
+        return sum.add(plot.pods.mul(plot.beansPerPod));
+      }
+      return sum;
+    }, TokenValue.ZERO);
+  }, [farmerField.plots]);
+
   return (
-    <Table>
-      <TableBody className="[&_tr:first-child]:border-t [&_tr:last-child]:border-b">
-        {hasHarvestablePods &&
-          showClaimable &&
-          harvestablePlot &&
-          (useToggle ? (
-            <ToggleGroupItem
-              value={harvestablePlot.index.toHuman()}
-              aria-label={`Select Plot ${harvestablePlot.index.toHuman()}`}
-              key={`toggle_${harvestablePlot.index.toHuman()}`}
-              asChild
-            >
-              <PlotRow
-                plot={harvestablePlot}
-                harvestableIndex={harvestableIndex}
-                useToggle
-                isSelected={selected?.includes(harvestablePlot.index.toHuman())}
-                showClaimable
-                isMobile={isMobile}
-              />
-            </ToggleGroupItem>
-          ) : (
-            <PlotRow
-              plot={harvestablePlot}
-              harvestableIndex={harvestableIndex}
-              key={`plot_${harvestablePlot.index.toHuman()}`}
-              numHarvestable={numHarvestable}
-              showClaimable
-              isMobile={isMobile}
-            />
-          ))}
-        {plotsToShow.map((plot) => {
-          if (useToggle) {
-            return (
+    <>
+      <Table>
+        <TableBody className="[&_tr:first-child]:border-t [&_tr:last-child]:border-b">
+          {hasHarvestablePods &&
+            showClaimable &&
+            harvestablePlot &&
+            (useToggle ? (
               <ToggleGroupItem
-                value={plot.index.toHuman()}
-                aria-label={`Select Plot ${plot.index.toHuman()}`}
-                key={`toggle_${plot.index.toHuman()}`}
+                value={harvestablePlot.index.toHuman()}
+                aria-label={`Select Plot ${harvestablePlot.index.toHuman()}`}
+                key={`toggle_${harvestablePlot.index.toHuman()}`}
                 asChild
               >
                 <PlotRow
-                  plot={plot}
+                  plot={harvestablePlot}
                   harvestableIndex={harvestableIndex}
                   useToggle
-                  isSelected={selected?.includes(plot.index.toHuman())}
+                  isSelected={selected?.includes(harvestablePlot.index.toHuman())}
+                  showClaimable
                   isMobile={isMobile}
                 />
               </ToggleGroupItem>
+            ) : (
+              <PlotRow
+                plot={harvestablePlot}
+                harvestableIndex={harvestableIndex}
+                key={`plot_${harvestablePlot.index.toHuman()}`}
+                numHarvestable={numHarvestable}
+                showClaimable
+                isMobile={isMobile}
+              />
+            ))}
+          {plotsToShow.map((plot) => {
+            if (useToggle) {
+              return (
+                <ToggleGroupItem
+                  value={plot.index.toHuman()}
+                  aria-label={`Select Plot ${plot.index.toHuman()}`}
+                  key={`toggle_${plot.index.toHuman()}`}
+                  asChild
+                >
+                  <PlotRow
+                    plot={plot}
+                    harvestableIndex={harvestableIndex}
+                    useToggle
+                    isSelected={selected?.includes(plot.index.toHuman())}
+                    isMobile={isMobile}
+                  />
+                </ToggleGroupItem>
+              );
+            }
+            return (
+              <PlotRow
+                plot={plot}
+                harvestableIndex={harvestableIndex}
+                key={`plot_${plot.index.toHuman()}`}
+                disableHover={disableHover}
+                isMobile={isMobile}
+              />
             );
-          }
-          return (
-            <PlotRow
-              plot={plot}
-              harvestableIndex={harvestableIndex}
-              key={`plot_${plot.index.toHuman()}`}
-              disableHover={disableHover}
-              isMobile={isMobile}
-            />
-          );
-        })}
-      </TableBody>
-    </Table>
+          })}
+        </TableBody>
+      </Table>
+      {totalBeansSown.gt(0) && (
+        <div className="flex items-center gap-1.5 mt-2 pl-2">
+          <IconImage size={4} src={pintoIcon} />
+          <div className="text-base text-pinto-gray-4">
+            Total Pinto Sown:{" "}
+            <span className="text-pinto-gray-4">{formatter.number(totalBeansSown, { minValue: 0.01 })}</span>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

@@ -8,11 +8,10 @@ import StatPanel from "@/components/StatPanel";
 import TableRowConnector from "@/components/TableRowConnector";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
-import Text from "@/components/ui/Text";
 import useIsSmallDesktop from "@/hooks/display/useIsSmallDesktop";
 import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { getClaimText } from "@/utils/string";
@@ -26,7 +25,7 @@ import { useNavigate } from "react-router-dom";
 import SiloTable from "./silo/SiloTable";
 
 function Silo() {
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const farmerActions = useFarmerActions();
   const tokenData = useTokenData();
   const priceData = usePriceData();
@@ -49,6 +48,7 @@ function Silo() {
   const convertEnabled = farmerActions.convertDeposits.enabled;
   const convertFrom = farmerActions.convertDeposits.bestConversion.from;
   const convertTo = farmerActions.convertDeposits.bestConversion.to;
+  const bestDeposit = farmerActions.optimalDepositToken?.token;
 
   const claimEnabled =
     farmerActions.claimRewards.outputs.beanGain.gt(0.01) ||
@@ -240,12 +240,12 @@ function Silo() {
                   }
                 />
               )} */}
-              {/* 
               {!convertEnabled && bestDeposit && (
                 <TableRowConnector
                   toTarget={`token-row-${bestDeposit.address}`}
                   color="#246645"
                   mode="singleLine"
+                  capHeight={isSmallDesktop ? 52 : 68}
                   extensionLength={40}
                   dotted={true}
                   endCapColor={bestDeposit.color}
@@ -262,14 +262,17 @@ function Silo() {
                         {`Deposit ${bestDeposit.name}`}
                       </div>
                       <div className="flex flex-col gap-4">
-                        <Text data-action-target="convert" variant="sm-light" className="text-pinto-gray-4 text-end">
+                        <div
+                          data-action-target="convert"
+                          className="text-pinto-gray-4 pinto-sm-light text-end w-[12rem]"
+                        >
                           {`${bestDeposit.name} currently has the highest incentive for Depositors.`}
-                        </Text>
+                        </div>
                       </div>
                     </div>
                   }
                 />
-              )}*/}
+              )}
             </div>
           </div>
         </div>

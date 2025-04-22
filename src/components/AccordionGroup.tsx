@@ -27,21 +27,12 @@ export default function AccordionGroup({ groupTitle, items, ...props }: IAccordi
     // Gap is 5 b/c accordion trigger has p-y of 4
     <div className="flex flex-col gap-5 w-full" {...props}>
       <div className="pinto-h3 text-pinto-primary">{groupTitle}</div>
-      <Accordion
-        defaultChecked
-        className="AccordionRoot"
-        type="multiple"
-        defaultValue={defaultChecked}
-      >
+      <Accordion defaultChecked className="AccordionRoot" type="multiple" defaultValue={defaultChecked}>
         <div className="flex flex-col w-full gap-1">
           {items.map(({ title, content, key }, i) => (
             <AccordionItem className="AccordionItem" value={key} key={`accordion-group-item-${i}-${key}`}>
               <AccordionTrigger>
-                {typeof title === "string" ? (
-                  <div className="pinto-lg text-pinto-secondary">{title}</div>
-                ) : (
-                  title
-                )}
+                {typeof title === "string" ? <div className="pinto-lg text-pinto-secondary">{title}</div> : title}
               </AccordionTrigger>
               <AccordionContent>
                 {typeof title === "string" ? (
@@ -55,5 +46,5 @@ export default function AccordionGroup({ groupTitle, items, ...props }: IAccordi
         </div>
       </Accordion>
     </div>
-  )
+  );
 }

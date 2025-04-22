@@ -21,7 +21,7 @@ import useTransaction from "@/hooks/useTransaction";
 import usePriceImpactSummary from "@/hooks/wells/usePriceImpactSummary";
 import { AdvancedFarmWorkflow } from "@/lib/farm/workflow";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import useFieldSnapshots from "@/state/useFieldSnapshots";
 import { usePriceData } from "@/state/usePriceData";
 import useSiloSnapshots from "@/state/useSiloSnapshots";
@@ -58,7 +58,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   const config = useConfig();
   const account = useAccount();
   const chainId = useChainId();
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const fieldSnapshots = useFieldSnapshots();
   const siloSnapshots = useSiloSnapshots();
   const invalidateSun = useInvalidateSun();
@@ -93,7 +93,9 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     return data;
   }, [siloToken, farmerDepositData]);
 
-  const exceedsBalance = farmerDepositData?.amount.lt(TokenValue.fromHuman(stringToStringNum(amount), siloToken.decimals));
+  const exceedsBalance = farmerDepositData?.amount.lt(
+    TokenValue.fromHuman(stringToStringNum(amount), siloToken.decimals),
+  );
 
   const shouldSwap = !tokensEqual(siloToken, tokenOut) && !siloToken.isMain;
 
@@ -223,7 +225,15 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   };
 
   const withdrawOutput = useMemo(() => {
-    if (!amount || stringToNumber(amount) <= 0 || !deposits || inputError || exceedsBalance || (shouldSwap && !swapData?.buyAmount?.gt(0))) return undefined;
+    if (
+      !amount ||
+      stringToNumber(amount) <= 0 ||
+      !deposits ||
+      inputError ||
+      exceedsBalance ||
+      (shouldSwap && !swapData?.buyAmount?.gt(0))
+    )
+      return undefined;
 
     const siloTokenToRemove = TokenValue.fromHuman(amount, siloToken.decimals);
 
@@ -248,7 +258,12 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const swapReady = swapBuild && swapData?.buyAmount?.gt(0);
   const disabled =
-    !stringToNumber(amount) || !account.address || submitting || isConfirming || (shouldSwap && !swapReady) || exceedsBalance;
+    !stringToNumber(amount) ||
+    !account.address ||
+    submitting ||
+    isConfirming ||
+    (shouldSwap && !swapReady) ||
+    exceedsBalance;
 
   return (
     <div className="flex flex-col gap-4">
@@ -315,21 +330,12 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       </div>
       {slippageWarning}
       <div className="hidden sm:flex">
-        <Button
-          onClick={onSubmit}
-          disabled={disabled || !canProceed}
-          {...sharedButtonProps}
-        >
+        <Button onClick={onSubmit} disabled={disabled || !canProceed} {...sharedButtonProps}>
           {exceedsBalance ? "Insufficient Balance" : "Withdraw"}
         </Button>
       </div>
       <MobileActionBar>
-        <Button
-          onClick={onSubmit}
-          disabled={disabled || !canProceed}
-          {...sharedButtonProps}
-          className="h-full"
-        >
+        <Button onClick={onSubmit} disabled={disabled || !canProceed} {...sharedButtonProps} className="h-full">
           {exceedsBalance ? "Insufficient Balance" : "Withdraw"}
         </Button>
       </MobileActionBar>

@@ -4,8 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 import { useMemo } from "react";
 import { useChainId } from "wagmi";
-import { useMarketEntities } from "./useMarketEntities";
 import { useQueryKeys } from "../useQueryKeys";
+import { useMarketEntities } from "./useMarketEntities";
 
 export function useFarmerMarket(farmer: `0x${string}` | undefined) {
   const chainId = useChainId();

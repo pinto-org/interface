@@ -1,5 +1,10 @@
 import { TV } from "@/classes/TokenValue";
-import { WellSyncSwapNode, ZeroXSwapNode } from "@/lib/Swap/nodes/ERC20SwapNode";
+import {
+  SiloWrappedTokenUnwrapNode,
+  SiloWrappedTokenWrapNode,
+  WellSyncSwapNode,
+  ZeroXSwapNode,
+} from "@/lib/Swap/nodes/ERC20SwapNode";
 import { NativeSwapNode } from "@/lib/Swap/nodes/NativeSwapNode";
 import { SwapNode } from "@/lib/Swap/nodes/SwapNode";
 import { BeanSwapNodeQuote } from "@/lib/Swap/swap-router";
@@ -8,7 +13,7 @@ import { Token } from "@/utils/types";
 import { exists } from "@/utils/utils";
 import { useMemo } from "react";
 
-export type SwapSummaryExchange = "pinto-exchange" | "0x" | "base";
+export type SwapSummaryExchange = "pinto-exchange" | "0x" | "base" | "sPinto";
 
 export interface BaseSwapSummary {
   sellToken: Token;
@@ -125,6 +130,9 @@ function node2Route(node: SwapNode): SwapRouteSummary {
 function getExchangeFromNode(node: SwapNode): SwapSummaryExchange {
   if (node instanceof ZeroXSwapNode) return "0x";
   if (node instanceof NativeSwapNode) return "base";
+  if (node instanceof SiloWrappedTokenWrapNode || node instanceof SiloWrappedTokenUnwrapNode) {
+    return "sPinto";
+  }
   return "pinto-exchange";
 }
 

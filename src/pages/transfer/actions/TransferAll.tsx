@@ -3,7 +3,7 @@ import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { FarmFromMode, FarmToMode } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -27,7 +27,7 @@ export default function TransferAll() {
   const farmerBalances = useFarmerBalances();
   const balancesToSend = [...farmerBalances.balances].map(([token, balance]) => ({ token, balance }));
 
-  const farmerSilo = useFarmerSiloNew();
+  const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
   const farmerDeposits = farmerSilo.deposits;
   const depositsToSend = [...farmerDeposits].map(([token, deposit]) => ({ token, deposit }));

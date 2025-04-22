@@ -6,6 +6,7 @@ import { useFarmerField } from "@/state/useFarmerField";
 import { useHarvestableIndex } from "@/state/useFieldData";
 import { formatter } from "@/utils/format";
 import { Plot } from "@/utils/types";
+import { Description } from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import CheckmarkCircle from "./CheckmarkCircle";
@@ -23,7 +24,6 @@ import { ScrollArea } from "./ui/ScrollArea";
 import { Separator } from "./ui/Separator";
 import Text from "./ui/Text";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
-import { Description } from "@radix-ui/react-dialog";
 
 function PlotSelectItem({
   plot,

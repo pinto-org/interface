@@ -2,6 +2,7 @@ import swap0xlogo from "@/assets/misc/0x.svg";
 import baseLogo from "@/assets/misc/base-logo.svg";
 import pintoExchangeLogo from "@/assets/misc/pinto-exchange-logo.svg";
 import { default as pintoIcon, default as pintoIconOriginal } from "@/assets/tokens/PINTO.png";
+import sPINTOLogo from "@/assets/tokens/sPINTO.png";
 import { TV } from "@/classes/TokenValue";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
@@ -32,6 +33,7 @@ interface RoutingAndSlippageInfoContext {
   priceImpactSummary?: PriceImpactSummary;
   secondaryPriceImpactSummary?: PriceImpactSummary;
   wellToken?: Token;
+  noMarginTopOnTrigger?: boolean;
 }
 
 interface RoutingAndSlippageInfoProps extends RoutingAndSlippageInfoContext {
@@ -63,6 +65,7 @@ const RoutingAndSlippageInfo = (props: RoutingAndSlippageInfoProps) => {
             txnType: props.txnType,
             wellToken: props.wellToken,
             convertSummary: props.convertSummary,
+            noMarginTopOnTrigger: props.noMarginTopOnTrigger,
           }}
         >
           <DialogTrigger
@@ -104,10 +107,15 @@ export default RoutingAndSlippageInfo;
 // -------------------------------------------------------------------------------
 
 const FormRouterAndSlippage = () => {
-  const { preferredSummary, txnType } = useRoutingAndSlippageInfoContext();
+  const { preferredSummary, txnType, noMarginTopOnTrigger } = useRoutingAndSlippageInfoContext();
 
   return (
-    <div className="flex flex-col bg-pinto-gray-1 border border-pinto-gray-2 rounded-md p-3 gap-y-3 mt-4 hover:bg-pinto-green-1 hover:border-pinto-green-4 cursor-pointer">
+    <div
+      className={cn(
+        "flex flex-col bg-pinto-gray-1 border border-pinto-gray-2 rounded-md p-3 gap-y-3 mt-4 hover:bg-pinto-green-1 hover:border-pinto-green-4 cursor-pointer",
+        noMarginTopOnTrigger && "mt-0",
+      )}
+    >
       {preferredSummary === "swap" ? <RoutesFormContent /> : null}
       {preferredSummary === "priceImpact" ? (
         txnType === "Convert" ? (
@@ -332,6 +340,32 @@ const PriceImpactContent = ({ variant = "sm-light", showTokenName = false }: IPr
   );
 };
 
+const getDetailsWithExchange = (exchange: SwapSummaryExchange, noBase = false) => {
+  let logo = "";
+  let text = "";
+
+  switch (exchange) {
+    case "pinto-exchange":
+      logo = pintoExchangeLogo;
+      text = "Pinto-Exchange";
+      break;
+    case "0x":
+      logo = swap0xlogo;
+      text = "0x-Swap";
+      break;
+    case "sPinto":
+      logo = sPINTOLogo;
+      text = "sPINTO";
+      break;
+    case "base":
+      logo = baseLogo;
+      text = "Base";
+      break;
+  }
+
+  return { logo, text };
+};
+
 const RoutesFormContent = () => {
   const { swapSummary, priceImpactSummary, txnType, tokenOut } = useRoutingAndSlippageInfoContext();
   const exchanges = swapSummary?.swap?.exchanges;
@@ -349,21 +383,16 @@ const RoutesFormContent = () => {
         <div className="pinto-sm">Router</div>
         <div className="flex flex-row gap-x-2">
           {exchanges?.map((exchange) => {
-            if (exchange === "pinto-exchange") {
-              return (
-                <div className="pinto-sm flex flex-row items-center gap-x-1" key={`exchange-${exchange}`}>
-                  <IconImage src={pintoExchangeLogo} alt="Pinto Exchange" size={4} />
-                  Pinto Exchange
-                </div>
-              );
-            } else if (exchange === "0x") {
-              return (
-                <div className="pinto-sm flex flex-row items-center gap-x-1" key={`exchange-${exchange}`}>
-                  <IconImage src={swap0xlogo} alt="0x" size={4} />
-                  0x Swap
-                </div>
-              );
-            }
+            const { logo, text } = getDetailsWithExchange(exchange, true);
+
+            if (exchange === "base") return null;
+
+            return (
+              <div className="pinto-sm flex flex-row items-center gap-x-1" key={`exchange-${exchange}`}>
+                <IconImage src={logo} alt={text} size={4} />
+                {text}
+              </div>
+            );
           })}
         </div>
       </div>
@@ -371,7 +400,7 @@ const RoutesFormContent = () => {
         <div className="pinto-sm">Route Slippage</div>
         <div className="pinto-sm">{formatter.pct(totalSlippage)}</div>
       </div>
-      {!tokenOut.isMain && (
+      {!tokenOut.isMain && priceImpactSummary?.priceImpact && (
         <div className="flex flex-row justify-between">
           <div className="flex flex-row gap-x-1">
             <div className="pinto-sm text-pinto-primary flex flex-row gap-x-1">
@@ -402,13 +431,12 @@ const SlippageDialogHeader = () => {
 };
 
 const RouteExchangeDetails = ({ exchange, feePct }: { exchange: SwapSummaryExchange; feePct?: number }) => {
-  const icon = exchange === "pinto-exchange" ? pintoExchangeLogo : exchange === "0x" ? swap0xlogo : baseLogo;
-  const text = exchange === "pinto-exchange" ? "Pinto-Exchange" : exchange === "0x" ? "0x-Swap" : "Base";
+  const { logo, text } = getDetailsWithExchange(exchange);
 
   return (
     <div className="flex flex-row items-center gap-x-1 pinto-sm-light text-pinto-light">
       <CornerBottomLeftIcon className="w-4 h-4 pb-1" />
-      <IconImage src={icon} nudge={1} alt={text} className="opacity-60" size={4} />
+      <IconImage src={logo} nudge={1} alt={text} className="opacity-60" size={4} />
       <div className="inline">
         {text}
         {exchange === "0x" && exists(feePct) ? <span> ({formatter.xDec(feePct, 3)}% fee)</span> : null}
@@ -647,7 +675,8 @@ export const useRoutingAndSlippageWarning = ({
   totalSlippage,
   txnType,
   priceImpact,
-}: { totalSlippage: number | undefined; txnType: SiloTxn; priceImpact: number | undefined }) => {
+  noMarginTop = false,
+}: { totalSlippage: number | undefined; txnType: SiloTxn; priceImpact: number | undefined; noMarginTop?: boolean }) => {
   const [isChecked, setIsChecked] = React.useState(false);
 
   const required = exists(totalSlippage) && totalSlippage >= SLIPPAGE_THRESHOLD;
@@ -655,7 +684,10 @@ export const useRoutingAndSlippageWarning = ({
   const slippageWarning = required ? (
     <form>
       <div
-        className={`flex flex-col sm:flex-row items-start sm:items-center gap-y-2 sm:gap-x-2 bg-pinto-red-1 border border-pinto-red-2 p-3 rounded-sm mt-4`}
+        className={cn(
+          `flex flex-col sm:flex-row items-start sm:items-center gap-y-2 sm:gap-x-2 bg-pinto-red-1 border border-pinto-red-2 p-3 rounded-sm`,
+          noMarginTop ? "mt-0" : "mt-4",
+        )}
       >
         <Checkbox
           id="slippage-warning-terms"

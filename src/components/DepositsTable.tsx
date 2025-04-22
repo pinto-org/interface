@@ -2,18 +2,21 @@ import depositIcon from "@/assets/protocol/Deposit.svg";
 import seedIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
+import DepositDialog from "@/components/DepositDialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { ToggleGroupItem } from "@/components/ui/ToggleGroup";
-import DepositDialog from "@/components/DepositDialog";
+import deposit from "@/encoders/deposit";
+import price from "@/encoders/ecosystem/price";
 import { useDenomination } from "@/hooks/useAppSettings";
-import { useFarmerSiloNew } from "@/state/useFarmerSiloNew";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { formatter, truncateHex } from "@/utils/format";
 import { stringEq } from "@/utils/string";
-import { DepositData, Token } from "@/utils/types";
+import { DepositData, Token, TokenDepositData } from "@/utils/types";
 import { cn } from "@/utils/utils";
 import { HTMLMotionProps } from "framer-motion";
 import React, { useState } from "react";
+import { div } from "three/webgpu";
 import CheckmarkCircle from "./CheckmarkCircle";
 import IconImage from "./ui/IconImage";
 
@@ -22,40 +25,93 @@ interface DepositsTableProps {
   selected?: string[];
   useToggle?: boolean;
   mode?: "send" | "combine";
+  disabledDeposits?: string[];
+  groups?: { id: number; deposits: string[] }[];
 }
 
-interface DepositRowProps extends HTMLMotionProps<"tr"> {
+interface DepositRowProps {
   deposit: DepositData;
   token: Token;
   price: TokenValue;
   useToggle?: boolean;
   isSelected?: boolean;
+  disabled?: boolean;
+  groupId?: number;
+  groups?: { id: number; deposits: string[] }[];
+  farmerDeposits?: TokenDepositData;
   isLoading: boolean;
   onRowClick: (deposit: DepositData) => void;
 }
 
-const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React.HTMLAttributes<HTMLTableRowElement>>(
-  ({ deposit, token, price, useToggle, isSelected, isLoading, onRowClick, ...props }, ref) => {
+type TableRowProps = HTMLMotionProps<"tr"> & React.HTMLAttributes<HTMLTableRowElement> & { noHoverMute?: boolean };
+
+const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & TableRowProps>(
+  (
+    {
+      deposit,
+      token,
+      price,
+      useToggle,
+      isSelected,
+      disabled,
+      groupId,
+      groups,
+      farmerDeposits,
+      isLoading,
+      onRowClick,
+      ...props
+    },
+    ref,
+  ) => {
     const denomination = useDenomination();
+
+    const getGroupCombinedRatio = (groupId: number) => {
+      const group = groups?.find((g) => g.id === groupId);
+      if (!group) return null;
+
+      const groupDeposits = group.deposits
+        .map((stem) => farmerDeposits?.deposits.find((d) => d.stem.toHuman() === stem))
+        .filter((d): d is DepositData => d !== undefined);
+
+      const totalStalk = groupDeposits.reduce((sum, d) => sum.add(d.stalk.total), TokenValue.ZERO);
+      const totalBdv = groupDeposits.reduce((sum, d) => sum.add(d.depositBdv), TokenValue.ZERO);
+
+      return totalBdv.gt(0) ? totalStalk.div(totalBdv) : TokenValue.ZERO;
+    };
 
     return (
       <TableRow
         {...props}
         ref={ref}
-        className={`h-[4.5rem] transition-all ${
-          deposit.isGerminating ? "bg-pinto-off-green/15" : deposit.isPlantDeposit ? "bg-pinto-green-4/15" : "bg-white"
-        } text-[1rem] ${
-          useToggle 
-            ? "hover:bg-pinto-green-1/50" 
-            : "hover:cursor-pointer hover:bg-pinto-green-1/50"
-        }`}
-        onClick={() => onRowClick(deposit)}
+        className={cn(
+          "h-[4.5rem] transition-all",
+          deposit.isGerminating ? "bg-pinto-off-green/15" : deposit.isPlantDeposit ? "bg-pinto-green-4/15" : "bg-white",
+          "text-[1rem]",
+          !useToggle ? "pointer-events-none" : "hover:cursor-pointer hover:bg-pinto-green-1/50",
+          disabled && "bg-pinto-gray-2/30 hover:bg-pinto-gray-2/30 opacity-60 cursor-not-allowed",
+        )}
+        onClick={!disabled ? () => onRowClick(deposit) : undefined}
       >
         <TableCell className="hidden md:table-cell pinto-sm">
           <div className="gap-2 pl-2 flex items-center">
             {useToggle && <CheckmarkCircle isSelected={isSelected} />}
             <img src={depositIcon} alt="deposit icon" />
-            <span>{truncateHex(deposit.idHex)}</span>
+            <span
+              className={`${useToggle ? "hover:underline hover:cursor-pointer" : ""}`}
+              onClick={
+                useToggle
+                  ? (e) => {
+                      e.stopPropagation(); // Stop the event from bubbling up to TableRow
+                      onRowClick(deposit);
+                    }
+                  : undefined
+              }
+            >
+              {truncateHex(deposit.idHex)}
+            </span>
+            {groupId && (
+              <span className="ml-2 text-xs px-2 py-0.5 text-pinto-green-4 whitespace-nowrap">Group {groupId}</span>
+            )}
           </div>
         </TableCell>
         <TableCell className="pinto-sm text-left px-4 md:px-0 md:text-right">
@@ -123,6 +179,26 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
             </div>
           )}
         </TableCell>
+        <TableCell className="pinto-sm text-right">
+          <div className="flex flex-row gap-1 items-center justify-end">
+            <IconImage src={stalkIcon} size={4} />
+            <div className="opacity-70">
+              {deposit.depositBdv.gt(0) ? (
+                <>
+                  {formatter.xDec(deposit.stalk.total.div(deposit.depositBdv), 3)}
+                  {groupId && (
+                    <>
+                      {" → "}
+                      {formatter.xDec(getGroupCombinedRatio(groupId), 3)}
+                    </>
+                  )}
+                </>
+              ) : (
+                "0"
+              )}
+            </div>
+          </div>
+        </TableCell>
         <TableCell className="pinto-sm text-right p-4">
           <div className="flex flex-row gap-1 items-center justify-end">
             <IconImage src={seedIcon} size={4} />
@@ -134,12 +210,22 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & React
         </TableCell>
       </TableRow>
     );
-  }
+  },
 );
 
-export default function DepositsTable({ token, selected, useToggle, mode }: DepositsTableProps) {
-  const farmerDeposits = useFarmerSiloNew().deposits;
-  const isLoading = useFarmerSiloNew().isLoading;
+const empty: NonNullable<DepositsTableProps["selected"]> = [];
+
+export default function DepositsTable({
+  token,
+  selected = empty,
+  useToggle,
+  mode,
+  disabledDeposits,
+  groups,
+}: DepositsTableProps) {
+  const farmerSilo = useFarmerSilo();
+  const farmerDeposits = farmerSilo.deposits;
+  const isLoading = farmerSilo.isLoading;
   const tokenData = farmerDeposits.get(token);
   const priceData = usePriceData();
   const [selectedDeposit, setSelectedDeposit] = useState<DepositData | null>(null);
@@ -147,6 +233,16 @@ export default function DepositsTable({ token, selected, useToggle, mode }: Depo
 
   const pool = priceData.pools.find((poolData) => stringEq(poolData.pool.address, token.address));
   const poolPrice = pool?.price ?? TokenValue.ZERO;
+
+  const isDepositInOtherGroup = (stem: string) => {
+    return disabledDeposits?.includes(stem) || false;
+  };
+
+  const getGroupId = (stem: string) => {
+    if (!groups) return undefined;
+    const group = groups.find((g) => g.deposits.includes(stem));
+    return group?.id;
+  };
 
   const handleRowClick = (deposit: DepositData) => {
     setSelectedDeposit(deposit);
@@ -162,11 +258,14 @@ export default function DepositsTable({ token, selected, useToggle, mode }: Depo
               <TableHead className="text-black font-[400] text-[1rem] w-[15%] p-4 hidden md:table-cell">
                 Deposit ID
               </TableHead>
-              <TableHead className="text-black text-left md:text-right font-[400] text-[1rem] w-[33.333%] md:w-[32.5%] px-4 md:px-2">
+              <TableHead className="text-black text-left md:text-right font-[400] text-[1rem] w-[33.333%] md:w-[25%] px-4 md:px-2">
                 Amount Deposited
               </TableHead>
-              <TableHead className="text-black text-right font-[400] text-[1rem] w-[33.333%] md:w-[32.5%]">
+              <TableHead className="text-black text-right font-[400] text-[1rem] w-[33.333%] md:w-[25%]">
                 Stalk
+              </TableHead>
+              <TableHead className="text-black text-right font-[400] text-[1rem] w-[33.333%] md:w-[15%]">
+                Stalk/PDV
               </TableHead>
               <TableHead className="text-black text-right font-[400] text-[1rem] w-[33.333%] md:w-[20%] p-4">
                 Seeds
@@ -188,38 +287,44 @@ export default function DepositsTable({ token, selected, useToggle, mode }: Depo
                   return a.stem.sub(b.stem).toNumber();
                 })
                 .map((deposit) => {
-                  const isDisabled = mode === "combine" && deposit.isGerminating;
+                  const stem = deposit.stem.toHuman();
+                  const isDepositDisabled = isDepositInOtherGroup(stem);
+                  const isGerminating = mode === "combine" && deposit.isGerminating;
+
                   if (useToggle) {
                     return (
                       <ToggleGroupItem
-                        value={deposit.stem.toHuman()}
+                        value={stem}
                         aria-label={`Select ${token.name}`}
-                        key={`toggle_${deposit.stem.toHuman()}`}
+                        key={stem}
                         asChild
-                        disabled={isDisabled}
-                        className={cn(
-                          "w-full table h-auto p-4 data-[state=on]:bg-pinto-gray-1 hover:bg-pinto-gray-1 rounded-none border-none",
-                          isDisabled && "opacity-50 cursor-not-allowed",
-                        )}
+                        disabled={isDepositDisabled || isGerminating}
                       >
                         <DepositRow
                           deposit={deposit}
                           price={token.isMain ? priceData.price : poolPrice}
                           token={token}
                           useToggle
-                          isSelected={selected?.includes(deposit.stem.toHuman())}
+                          isSelected={selected.includes(stem) ?? false}
+                          disabled={isDepositDisabled || isGerminating}
+                          groupId={getGroupId(stem)}
+                          groups={groups}
+                          farmerDeposits={tokenData}
                           isLoading={isLoading}
                           onRowClick={handleRowClick}
                         />
                       </ToggleGroupItem>
                     );
                   }
+
                   return (
                     <DepositRow
+                      key={stem}
                       deposit={deposit}
                       price={token.isMain ? priceData.price : poolPrice}
                       token={token}
-                      key={deposit.stem.toHuman()}
+                      groups={groups}
+                      farmerDeposits={tokenData}
                       isLoading={isLoading}
                       onRowClick={handleRowClick}
                       className="table w-full"
@@ -231,7 +336,7 @@ export default function DepositsTable({ token, selected, useToggle, mode }: Depo
         </Table>
       </div>
       {selectedDeposit && (
-        <DepositDialog 
+        <DepositDialog
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           deposit={selectedDeposit}

@@ -2,9 +2,11 @@ import { Clipboard } from "@/classes/Clipboard";
 import { TV } from "@/classes/TokenValue";
 import { abiSnippets } from "@/constants/abiSnippets";
 import { PIPELINE_ADDRESS } from "@/constants/address";
+import { pipelineAddress } from "@/generated/contractHooks";
 import { AdvancedFarmWorkflow, AdvancedPipeWorkflow } from "@/lib/farm/workflow";
 import { ZeroX } from "@/lib/matcha/ZeroX";
-import { ZeroExQuoteResponse } from "@/lib/matcha/types";
+import { ZeroXQuoteV2Response } from "@/lib/matcha/types";
+import { resolveChainId } from "@/utils/chain";
 import { ExtendedPickedCratesDetails } from "@/utils/convert";
 import { Token } from "@/utils/types";
 import { HashString } from "@/utils/types.generic";
@@ -33,7 +35,7 @@ class Eq2EQStrategy extends SiloConvertLP2LPConvertStrategy {
     const removeLPResult = await this.getRemoveLiquidityOut(deposits, advancedFarm);
 
     const pairAmount = removeLPResult[this.sourceWell.pair.index];
-    const swapParams = this.generateSwapQuoteParams(this.buyToken, this.sellToken, pairAmount, slippage / 100);
+    const swapParams = this.generateSwapQuoteParams(this.buyToken, this.sellToken, pairAmount, slippage);
 
     // Swap
     const swapQuotes = await ZeroX.quote(swapParams);
@@ -181,14 +183,19 @@ class Eq2EQStrategy extends SiloConvertLP2LPConvertStrategy {
     );
 
     // 2: Approve swap contract to spend sellToken
-    pipe.add(Eq2EQStrategy.snippets.erc20Approve(swap.sellToken, swap.quote.allowanceTarget));
+    pipe.add(Eq2EQStrategy.snippets.erc20Approve(swap.sellToken, swap.quote.transaction.to));
 
     // 3: Swap non-bean token of well 1 for non-bean token of well 2
     pipe.add({
-      target: swap.quote.to as `0x${string}`,
-      callData: swap.quote.data as `0x${string}`,
+      target: swap.quote.transaction.to,
+      callData: swap.quote.transaction.data,
       clipboard: Clipboard.encode([]),
     });
+
+    // 4: check balance of buyToken in pipeline.
+    pipe.add(
+      Eq2EQStrategy.snippets.erc20BalanceOf(swap.buyToken, pipelineAddress[resolveChainId(this.context.chainId)]),
+    );
 
     // 4: transfer swap result to target well
     pipe.add(
@@ -196,7 +203,7 @@ class Eq2EQStrategy extends SiloConvertLP2LPConvertStrategy {
         swap.buyToken,
         target.well.pool.address,
         TV.ZERO, // overriden w/ clipboard
-        Clipboard.encodeSlot(3, 0, 1),
+        Clipboard.encodeSlot(4, 0, 1),
       ),
     );
 
@@ -224,11 +231,11 @@ class Eq2EQStrategy extends SiloConvertLP2LPConvertStrategy {
 
   // ------------------------------ Private Methods ------------------------------ //
 
-  #getAddLiquidityParams(removeLPResult: TV[], swapQuote: ZeroExQuoteResponse): TV[] {
+  #getAddLiquidityParams(removeLPResult: TV[], swapQuote: ZeroXQuoteV2Response): TV[] {
     const [_, token1] = this.targetWell.tokens;
 
     const mainAmountIn = removeLPResult[this.sourceIndexes.main];
-    const buyAmount = TV.fromBlockchain(swapQuote.buyAmount, token1.decimals);
+    const buyAmount = TV.fromBlockchain(swapQuote.minBuyAmount, token1.decimals);
 
     const amountsIn = [mainAmountIn, buyAmount];
 

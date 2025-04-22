@@ -1,25 +1,25 @@
-import { useQuery } from "@tanstack/react-query";
-import { useSeason } from "./useSunData";
-import request from "graphql-request";
-import { useChainId } from "wagmi";
 import { subgraphs } from "@/constants/subgraph";
 import {
   BeanstalkSeasonalWrappedDepositErc20Query,
-  BeanstalkSeasonalWrappedDepositErc20Document as Document
+  BeanstalkSeasonalWrappedDepositErc20Document as Document,
 } from "@/generated/gql/graphql";
-import { exists } from "@/utils/utils";
-import { EMAWindows } from "./useSiloAPYs";
 import { formatter } from "@/utils/format";
+import { exists } from "@/utils/utils";
+import { useQuery } from "@tanstack/react-query";
+import request from "graphql-request";
+import { useChainId } from "wagmi";
 import { truncateBeanstalkWrappedDespositsSeasons } from "./seasonal/queries/useSeasonalBeanstalkWrappedDepositsSG";
+import { EMAWindows } from "./useSiloAPYs";
+import { useSeason } from "./useSunData";
 
 const toSafeNumber = (value: any) => {
   if (exists(value)) {
     if (typeof value === "string") return Number(value);
     if (typeof value === "number") return value;
-  };
+  }
 
   return 0;
-}
+};
 
 const toEMAs = (data: BeanstalkSeasonalWrappedDepositErc20Query["wrappedDepositERC20HourlySnapshots"][number]) => {
   return {
@@ -27,16 +27,16 @@ const toEMAs = (data: BeanstalkSeasonalWrappedDepositErc20Query["wrappedDepositE
     ema168: toSafeNumber(data.apy7d),
     ema720: toSafeNumber(data.apy30d),
     ema2160: toSafeNumber(data.apy90d),
-  }
-}
+  };
+};
 
 type SiloWrappedDepositsAPYsResult = {
   delta24h: Partial<EMAWindows<number>>;
   current: Partial<EMAWindows<number>>;
-}
+};
 
 const transformAPYs = (
-  queryResult: BeanstalkSeasonalWrappedDepositErc20Query
+  queryResult: BeanstalkSeasonalWrappedDepositErc20Query,
 ): SiloWrappedDepositsAPYsResult | undefined => {
   const data = queryResult.wrappedDepositERC20HourlySnapshots;
   if (!data.length) {
@@ -52,15 +52,15 @@ const transformAPYs = (
     ema168: lookback?.ema168 ? current.ema168 - lookback.ema168 : 0,
     ema720: lookback?.ema720 ? current.ema720 - lookback.ema720 : 0,
     ema2160: lookback?.ema2160 ? current.ema2160 - lookback.ema2160 : 0,
-  }
+  };
 
   return {
     current,
     delta24h,
-  }
-}
+  };
+};
 
-const formatAPY = (apy: number) => formatter.pct(apy * 100)
+const formatAPY = (apy: number) => formatter.pct(apy * 100);
 
 export function useSiloWrappedDepositsAPYs() {
   const season = useSeason();
@@ -69,7 +69,7 @@ export function useSiloWrappedDepositsAPYs() {
   const truncatedSeasons = truncateBeanstalkWrappedDespositsSeasons(season - 24, season);
 
   const query = useQuery({
-    queryKey: ['s-wrapped-deposit-apys', season],
+    queryKey: ["s-wrapped-deposit-apys", season],
     queryFn: async () => {
       return request(subgraphs[chainId].beanstalk, Document, {
         from: truncatedSeasons.fromSeason,
@@ -83,5 +83,5 @@ export function useSiloWrappedDepositsAPYs() {
   return {
     ...query,
     format: formatAPY,
-  }
+  };
 }

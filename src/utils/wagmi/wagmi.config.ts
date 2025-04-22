@@ -11,10 +11,11 @@ import { pipelineABI } from "@/constants/abi/PipelineABI";
 import { depotABI } from "@/constants/abi/depotABI";
 import { junctionABI } from "@/constants/abi/junctionABI";
 
-import { JUNCTION_ADDRESS } from "@/constants/address";
-import { diamondFarmerABI } from "@/constants/abi/diamondFarmerABI";
 import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
+import { diamondFarmerABI } from "@/constants/abi/diamondFarmerABI";
+import { JUNCTION_ADDRESS } from "@/constants/address";
 
+import { tractorHelpersABI } from "@/constants/abi/TractorHelpersABI";
 /**
  * Diamond cut fragmented facets
  *
@@ -28,11 +29,8 @@ import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
  */
 import { viewSeasonABI } from "@/constants/abi/viewSeasonABI";
 import { viewSiloABI } from "@/constants/abi/viewSiloABI";
-import { tractorHelpersABI } from "@/constants/abi/TractorHelpersABI";
-
-// Export these constants so they can be imported elsewhere
-export const SILO_HELPERS_ADDRESS = "0x8D75F9F7f4F4C4eFAB9402261bC864f21DF0c649" as const;
-export const SOW_BLUEPRINT_V0_ADDRESS = "0x30760501864c379788FD6A303fb7b9Cf391fE5De" as const;
+import { TRACTOR_HELPERS_ADDRESS } from "@/constants/address";
+import { SOW_BLUEPRINT_V0_ADDRESS } from "@/constants/address";
 
 const TESTNET_CHAIN_ID = 41337;
 
@@ -121,15 +119,15 @@ const config = defineConfig(() => {
         },
       },
       {
-        name: "siloHelpers",
+        name: "tractorHelpers",
         abi: tractorHelpersABI as Abi,
         address: {
-          [mainnet.id]: SILO_HELPERS_ADDRESS,
-          [arbitrum.id]: SILO_HELPERS_ADDRESS,
-          [base.id]: SILO_HELPERS_ADDRESS,
-          [localhost.id]: SILO_HELPERS_ADDRESS,
-          [TESTNET_CHAIN_ID]: SILO_HELPERS_ADDRESS,
-          [foundry.id]: SILO_HELPERS_ADDRESS,
+          [mainnet.id]: TRACTOR_HELPERS_ADDRESS,
+          [arbitrum.id]: TRACTOR_HELPERS_ADDRESS,
+          [base.id]: TRACTOR_HELPERS_ADDRESS,
+          [localhost.id]: TRACTOR_HELPERS_ADDRESS,
+          [TESTNET_CHAIN_ID]: TRACTOR_HELPERS_ADDRESS,
+          [foundry.id]: TRACTOR_HELPERS_ADDRESS,
         },
       },
       {
@@ -142,7 +140,7 @@ const config = defineConfig(() => {
           [localhost.id]: SOW_BLUEPRINT_V0_ADDRESS,
           [TESTNET_CHAIN_ID]: SOW_BLUEPRINT_V0_ADDRESS,
           [foundry.id]: SOW_BLUEPRINT_V0_ADDRESS,
-        }
+        },
       },
     ],
     plugins: [

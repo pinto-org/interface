@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+.DropdownMenuContent {
+  width: var(--radix-dropdown-menu-trigger-width);
+  max-height: var(--radix-dropdown-menu-content-available-height);
+}
+
 @layer base {
   @font-face {
     font-family: "Pinto";
@@ -9,30 +14,35 @@
     font-display: swap;
     src: url("@/assets/fonts/Pinto-Regular.woff2") format("woff2");
   }
+
   @font-face {
     font-family: "Pinto";
     font-weight: 400;
     font-display: swap;
     src: url("@/assets/fonts/Pinto-Book.woff2") format("woff2");
   }
+
   @font-face {
     font-family: "Pinto";
     font-weight: 340;
     font-display: swap;
     src: url("@/assets/fonts/Pinto-Book.woff2") format("woff2");
   }
+
   @font-face {
     font-family: "Pinto";
     font-weight: 300;
     font-display: swap;
     src: url("@/assets/fonts/Pinto-Light.woff2") format("woff2");
   }
+
   @font-face {
     font-family: "Pinto";
     font-weight: 600;
     font-display: swap;
     src: url("@/assets/fonts/Pinto-Medium.woff2") format("woff2");
   }
+
   @font-face {
     font-family: "Roboto";
     font-weight: 300;
@@ -111,37 +121,42 @@
 }
 
 @layer components {
-	.bg-gradient-light {
-		background: linear-gradient(
-				90deg,
-				rgba(233, 231, 224, 0.1) 0%,
-				rgba(254, 225, 140, 0.1) 52.5%,
-				rgba(241, 248, 140, 0.1) 100%
-			), linear-gradient(0deg, #ffffff, #ffffff);
-	}
+  .bg-gradient-light {
+    background: linear-gradient(90deg,
+        rgba(233, 231, 224, 0.1) 0%,
+        rgba(254, 225, 140, 0.1) 52.5%,
+        rgba(241, 248, 140, 0.1) 100%), linear-gradient(0deg, #ffffff, #ffffff);
+  }
+
   .h1 {
-    font-size: 3.425rem;  /* 54.86px / 16 = 3.425rem */
+    font-size: 3.425rem;
+    /* 54.86px / 16 = 3.425rem */
     font-weight: 300;
-    line-height: 1.1;  /* 60.35px / 54.86px ≈ 1.1 */
+    line-height: 1.1;
+    /* 60.35px / 54.86px ≈ 1.1 */
     letter-spacing: -0.02em;
   }
+
   .body {
-    font-size: 1.25rem;  /* 20px / 16 = 1.25rem */
+    font-size: 1.25rem;
+    /* 20px / 16 = 1.25rem */
     font-weight: 400;
-    line-height: 1.1;  /* 22px / 20px = 1.1 */
+    line-height: 1.1;
+    /* 22px / 20px = 1.1 */
   }
+
   .convert-color {
     color: var(--convert-color);
-	}
-	.bg-morning-light {
-		background: linear-gradient(
-			90deg, 
-			rgba(233, 231, 224, 0.2) 0%, 
-			rgba(254, 225, 140, 0.2) 0.01%, 
-			rgba(241, 248, 140, 0.4) 100%
-			);
+  }
 
-	}
+  .bg-morning-light {
+    background: linear-gradient(90deg,
+        rgba(233, 231, 224, 0.2) 0%,
+        rgba(254, 225, 140, 0.2) 0.01%,
+        rgba(241, 248, 140, 0.4) 100%);
+
+  }
+  
   /* Used for text boxes in Tractor order blueprint visualization */
   .text-box {
     @apply bg-gray-100 px-2 py-1 rounded-lg text-gray-400;
@@ -152,6 +167,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-gradient-light text-foreground font-pinto;
   }
@@ -161,6 +177,7 @@
   .text-pinto-h1 {
     @apply h1;
   }
+
   .text-pinto-body {
     @apply body;
   }
@@ -190,6 +207,7 @@ body {
 
 /* Set 75% font size between 768px and 1600px */
 @media screen and (min-width: 768px) and (max-width: 1600px) {
+
   html,
   body {
     font-size: 75%;
