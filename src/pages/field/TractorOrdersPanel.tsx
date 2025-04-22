@@ -32,9 +32,10 @@ type ExecutionData = Awaited<ReturnType<typeof fetchTractorExecutions>>[number];
 
 interface TractorOrdersPanelProps {
   refreshData?: number; // A value that changes to trigger a refresh
+  onCreateOrder?: () => void; // Callback to create a new order
 }
 
-const TractorOrdersPanel = ({ refreshData }: TractorOrdersPanelProps) => {
+const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelProps) => {
   const { address } = useAccount();
   const protocolAddress = useProtocolAddress();
   const publicClient = usePublicClient();
@@ -201,7 +202,7 @@ const TractorOrdersPanel = ({ refreshData }: TractorOrdersPanelProps) => {
   }
 
   if (requisitions.length === 0 && executions.length === 0) {
-    return <EmptyTable type="tractor" />;
+    return <EmptyTable type="tractor" onTractorClick={onCreateOrder} />;
   }
 
   return (

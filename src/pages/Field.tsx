@@ -297,7 +297,7 @@ function Field() {
 
               {activeTab === "tractor" && (
                 <div className="w-full">
-                  <TractorOrdersPanel refreshData={tractorRefreshCounter} />
+                  <TractorOrdersPanel refreshData={tractorRefreshCounter} onCreateOrder={() => setShowSowOrder(true)} />
                 </div>
               )}
             </>
