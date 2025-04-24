@@ -134,9 +134,9 @@ const FieldActivity: React.FC = () => {
     const decodedData = getDecodedTractorData(order);
     if (decodedData && decodedData.runBlocksAfterSunriseAsString) {
       const runBlocks = parseInt(decodedData.runBlocksAfterSunriseAsString);
-      if (runBlocks >= 300 && currentTemperature.scaled) {
+      if (runBlocks >= 300 && currentTemperature.max) {
         // After morning auction - use max of current temperature and minimum temperature
-        const currentTemp = currentTemperature.scaled.toNumber();
+        const currentTemp = currentTemperature.max.toNumber();
         return Math.max(currentTemp, minTemp);
       }
     }
@@ -177,7 +177,7 @@ const FieldActivity: React.FC = () => {
         );
 
         // Filter out orders with predicted temperatures greater than current temperature + 1%
-        const currentTemp = currentTemperature.scaled?.toNumber() || 0;
+        const currentTemp = currentTemperature.max?.toNumber() || 0;
 
         const filteredOrders = orderbook.filter((order) => {
           const predictedTemp = getPredictedSowTemperature(order);

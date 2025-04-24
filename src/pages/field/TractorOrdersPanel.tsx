@@ -22,7 +22,8 @@ import {
 } from "@/lib/Tractor/utils";
 import { formatter } from "@/utils/format";
 import { getTokenNameByIndex } from "@/utils/token";
-import { ClockIcon, CornerBottomLeftIcon, Cross1Icon } from "@radix-ui/react-icons";
+import { CalendarIcon, ClockIcon, CornerBottomLeftIcon, Cross1Icon } from "@radix-ui/react-icons";
+import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { decodeFunctionData } from "viem";
 import { usePublicClient } from "wagmi";
@@ -247,6 +248,9 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
               ? blueprintExecutions.sort((a, b) => b.blockNumber - a.blockNumber)[0]
               : null;
 
+          // Format the publish date
+          const publishDate = req.timestamp ? format(new Date(req.timestamp), "dd MMM yyyy") : "Unknown";
+
           // Determine token strategy based on sourceTokenIndices
           let strategyText = "Unknown strategy";
           if (data.sourceTokenIndices.includes(255)) {
@@ -375,6 +379,10 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
 
               {/* External actions - positioned outside the cell */}
               <div className="absolute right-[-190px] top-0 h-full flex flex-col justify-center gap-4 pl-4">
+                <div className="flex items-center gap-2 text-pinto-gray-4 font-antarctica text-sm">
+                  <CalendarIcon className="h-4 w-4" />
+                  <span className="inline-block w-36 whitespace-nowrap">Published {publishDate}</span>
+                </div>
                 <div className="flex items-center gap-2 text-pinto-gray-4 font-antarctica text-sm">
                   <ClockIcon className="h-4 w-4" />
                   <span className="inline-block w-36 whitespace-nowrap">

@@ -631,7 +631,7 @@ export function Plow() {
       <Table>
         <TableHeader>
           <TableRow className="border-b border-pinto-gray-3/20">
-            <TableHead className="px-1.5 text-left text-xs font-antarctica font-light text-pinto-gray-4">
+            <TableHead className="px-0 text-left text-xs font-antarctica font-light text-pinto-gray-4">
               Created At
             </TableHead>
             <TableHead className="px-1.5 text-left text-xs font-antarctica font-light text-pinto-gray-4">
@@ -682,7 +682,7 @@ export function Plow() {
                 noHoverMute
                 onClick={() => handlePlow(req)}
               >
-                <TableCell className="px-1.5" style={{ paddingTop: "0.375rem", paddingBottom: "0.375rem" }}>
+                <TableCell className="px-0" style={{ paddingTop: "0.375rem", paddingBottom: "0.375rem" }}>
                   {req.timestamp ? new Date(req.timestamp).toLocaleString(undefined, dateOptions) : "Unknown"}
                 </TableCell>
                 <TableCell className="px-1.5 text-sm" style={{ paddingTop: "0.375rem", paddingBottom: "0.375rem" }}>

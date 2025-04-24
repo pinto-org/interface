@@ -10,7 +10,7 @@ import { createRequisition, useSignRequisition } from "@/lib/Tractor";
 import { useGetBlueprintHash } from "@/lib/Tractor/blueprint";
 import { Blueprint } from "@/lib/Tractor/types";
 import { formatter } from "@/utils/format";
-import { CornerBottomLeftIcon } from "@radix-ui/react-icons";
+import { CheckIcon, CornerBottomLeftIcon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -630,13 +630,20 @@ export default function ReviewTractorOrderDialog({
                   conditions or until Order cancellation
                 </p>
                 <Row className="flex flex-row gap-2 shrink-0 smaller-button-text">
-                  <SmartSubmitButton
-                    variant="gradient"
-                    disabled={signing || !!signedRequisitionData}
-                    submitFunction={handleSignBlueprint}
-                    submitButtonText={signing ? "Signing..." : signedRequisitionData ? "Signed" : "Sign Order"}
-                    className="w-min"
-                  />
+                  {signedRequisitionData ? (
+                    <div className="flex items-center gap-2 text-pinto-green-4 font-medium px-6">
+                      <CheckIcon width={24} height={24} />
+                      <span>Signed</span>
+                    </div>
+                  ) : (
+                    <SmartSubmitButton
+                      variant="gradient"
+                      disabled={signing}
+                      submitFunction={handleSignBlueprint}
+                      submitButtonText={signing ? "Signing..." : "Sign Order"}
+                      className="w-min"
+                    />
+                  )}
 
                   <SmartSubmitButton
                     variant="gradient"

@@ -88,19 +88,148 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     return parsed;
   };
 
-  const handleSetTotalAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const validatedAmount = handleClampAndToValidInput(e.target.value);
-    validatedAmount !== undefined && setTotalAmount(validatedAmount);
+  // Create a comprehensive validation function that handles all validation cases
+  const validateAllInputs = (
+    minSoilAmount: string,
+    maxSeasonAmount: string,
+    totalSowAmount: string,
+    podLineLengthValue: string,
+    temperatureValue: string,
+  ) => {
+    // Skip validation if required fields are empty
+    if (!minSoilAmount && !maxSeasonAmount && !totalSowAmount && !podLineLengthValue && !temperatureValue) {
+      setError(null);
+      return;
+    }
+
+    try {
+      // Validate min, max, and total amounts if available
+      if (minSoilAmount && maxSeasonAmount) {
+        const minClean = minSoilAmount.replace(/,/g, "");
+        const maxClean = maxSeasonAmount.replace(/,/g, "");
+
+        const min = TokenValue.fromHuman(minClean, PINTO.decimals);
+        const max = TokenValue.fromHuman(maxClean, PINTO.decimals);
+
+        if (min.gt(max)) {
+          setError("Min per Season must be less than or equal to Max per Season");
+          return;
+        }
+      }
+
+      if (minSoilAmount && totalSowAmount) {
+        const minClean = minSoilAmount.replace(/,/g, "");
+        const totalClean = totalSowAmount.replace(/,/g, "");
+
+        const min = TokenValue.fromHuman(minClean, PINTO.decimals);
+        const total = TokenValue.fromHuman(totalClean, PINTO.decimals);
+
+        if (min.gt(total)) {
+          setError("Min per Season cannot exceed the total amount to Sow");
+          return;
+        }
+      }
+
+      if (maxSeasonAmount && totalSowAmount) {
+        const maxClean = maxSeasonAmount.replace(/,/g, "");
+        const totalClean = totalSowAmount.replace(/,/g, "");
+
+        const max = TokenValue.fromHuman(maxClean, PINTO.decimals);
+        const total = TokenValue.fromHuman(totalClean, PINTO.decimals);
+
+        if (max.gt(total)) {
+          setError("Max per Season cannot exceed the total amount to Sow");
+          return;
+        }
+      }
+
+      // Validate pod line length if provided
+      if (podLineLengthValue) {
+        try {
+          const inputLength = parseFloat(podLineLengthValue.replace(/,/g, ""));
+          if (Number.isNaN(inputLength)) {
+            setError("Pod Line Length must be a valid number");
+            return;
+          }
+        } catch (e) {
+          setError("Invalid Pod Line Length");
+          return;
+        }
+      }
+
+      // Validate temperature if provided
+      if (temperatureValue) {
+        try {
+          const tempValue = parseFloat(temperatureValue.replace(/[%,]/g, ""));
+          if (Number.isNaN(tempValue)) {
+            setError("Temperature must be a valid number");
+            return;
+          }
+        } catch (e) {
+          setError("Invalid Temperature");
+          return;
+        }
+      }
+
+      // If we made it here, no errors were found
+      setError(null);
+    } catch (e) {
+      console.error("Validation error:", e);
+      setError("Invalid number format");
+    }
   };
 
+  // Update the handleSetMinSoil function to use the new validation
   const handleSetMinSoil = (e: React.ChangeEvent<HTMLInputElement>) => {
     const validatedAmount = handleClampAndToValidInput(e.target.value);
-    validatedAmount !== undefined && setMinSoil(validatedAmount);
+    if (validatedAmount !== undefined) {
+      setMinSoil(validatedAmount);
+      validateAllInputs(validatedAmount, maxPerSeason, totalAmount, podLineLength, temperature);
+    }
   };
 
+  // Update the handleSetMaxPerSeason function to use the new validation
   const handleSetMaxPerSeason = (e: React.ChangeEvent<HTMLInputElement>) => {
     const validatedAmount = handleClampAndToValidInput(e.target.value);
-    validatedAmount !== undefined && setMaxPerSeason(validatedAmount);
+    if (validatedAmount !== undefined) {
+      setMaxPerSeason(validatedAmount);
+      validateAllInputs(minSoil, validatedAmount, totalAmount, podLineLength, temperature);
+    }
+  };
+
+  // Update the handleSetTotalAmount function to use the new validation
+  const handleSetTotalAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const validatedAmount = handleClampAndToValidInput(e.target.value);
+    if (validatedAmount !== undefined) {
+      setTotalAmount(validatedAmount);
+      validateAllInputs(minSoil, maxPerSeason, validatedAmount, podLineLength, temperature);
+    }
+  };
+
+  // Validate whenever any of the values changes
+  useEffect(() => {
+    validateAllInputs(minSoil, maxPerSeason, totalAmount, podLineLength, temperature);
+  }, [minSoil, maxPerSeason, totalAmount, podLineLength, temperature]);
+
+  // Set initial pod line length to current + 100% when component mounts
+  // useEffect(() => {
+  //   const increase = podLine.mul(100).div(100); // Calculate 100% increase
+  //   const newValue = podLine.add(increase);
+  //   const formattedValue = formatter.number(newValue);
+  //   setPodLineLength(formattedValue);
+  //   setRawPodLineLength(formattedValue.replace(/,/g, ""));
+  // }, [podLine]); // Only run when podLine changes
+
+  // Add a function to calculate what the value would be for a given percentage
+  const calculatePodLineValue = (increment: number) => {
+    const increase = podLine.mul(increment).div(100);
+    const newValue = podLine.add(increase);
+    return formatter.number(newValue);
+  };
+
+  // Add a function to check if a button should be highlighted
+  const isButtonActive = (increment: number) => {
+    return podLineLength === calculatePodLineValue(increment);
   };
 
   const handleSetExecutionBlock = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -355,6 +484,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
       const formattedValue = formatter.number(podLine);
       setPodLineLength(formattedValue);
       setRawPodLineLength(formattedValue.replace(/,/g, ""));
+      validateAllInputs(minSoil, maxPerSeason, totalAmount, formattedValue, temperature);
     } else {
       // Calculate new value with percentage increase
       const increase = podLine.mul(increment).div(100);
@@ -362,87 +492,11 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
       const formattedValue = formatter.number(newValue);
       setPodLineLength(formattedValue);
       setRawPodLineLength(formattedValue.replace(/,/g, ""));
+      validateAllInputs(minSoil, maxPerSeason, totalAmount, formattedValue, temperature);
     }
   };
 
-  // Update the validateSoilAmounts function to check against total amount too
-  const validateSoilAmounts = (minSoilAmount: string, maxSeasonAmount: string, totalSowAmount: string) => {
-    // Skip validation if any values are missing
-    if (!minSoilAmount || !maxSeasonAmount || !totalSowAmount) {
-      setError(null);
-      return;
-    }
-
-    try {
-      // Remove commas and convert to numbers first
-      const minClean = minSoilAmount.replace(/,/g, "");
-      const maxClean = maxSeasonAmount.replace(/,/g, "");
-      const totalClean = totalSowAmount.replace(/,/g, "");
-
-      const min = TokenValue.fromHuman(minClean, PINTO.decimals);
-      const max = TokenValue.fromHuman(maxClean, PINTO.decimals);
-      const total = TokenValue.fromHuman(totalClean, PINTO.decimals);
-
-      if (min.gt(max)) {
-        setError("Min per Season must be less than or equal to Max per Season");
-      } else if (min.gt(total)) {
-        setError("Min per Season cannot exceed the total amount to Sow");
-      } else {
-        setError(null);
-      }
-    } catch (e) {
-      console.error("Validation error:", e);
-      setError("Invalid number format");
-    }
-  };
-
-  // Validate whenever any of the values changes
-  useEffect(() => {
-    validateSoilAmounts(minSoil, maxPerSeason, totalAmount);
-  }, [minSoil, maxPerSeason, totalAmount]);
-
-  // Set initial pod line length to current + 100% when component mounts
-  // useEffect(() => {
-  //   const increase = podLine.mul(100).div(100); // Calculate 100% increase
-  //   const newValue = podLine.add(increase);
-  //   const formattedValue = formatter.number(newValue);
-  //   setPodLineLength(formattedValue);
-  //   setRawPodLineLength(formattedValue.replace(/,/g, ""));
-  // }, [podLine]); // Only run when podLine changes
-
-  // Add a function to calculate what the value would be for a given percentage
-  const calculatePodLineValue = (increment: number) => {
-    const increase = podLine.mul(increment).div(100);
-    const newValue = podLine.add(increase);
-    return formatter.number(newValue);
-  };
-
-  // Add a function to check if a button should be highlighted
-  const isButtonActive = (increment: number) => {
-    return podLineLength === calculatePodLineValue(increment);
-  };
-
-  // This code is used to generate random numbers for quick order creation in dev mode
-  /*useEffect(() => {
-    if (isDev()) {
-      // Generate random numbers within specified ranges
-      const randomTotal = Math.floor(Math.random() * (10000 - 1000) + 1000);
-      const randomTemp = Math.floor(Math.random() * (900-100) + 100);
-      const randomMaxSeason = Math.floor(Math.random() * (1000 - 500) + 500);
-      const randomMinSoil = Math.floor(Math.random() * (100 - 50) + 50);
-      const randomPodLineLength = Math.floor(Math.random() * (70000000 - 35000000) + 35000000);
-
-      setTotalAmount(randomTotal.toString());
-      setTemperature(randomTemp.toString());
-      setPodLineLength(randomPodLineLength.toString());
-      setMinSoil(randomMinSoil.toString());
-      setOperatorTip("0.1");
-      setMaxPerSeason(randomMaxSeason.toString());
-      setSelectedTokenStrategy({ type: "LOWEST_SEEDS" });
-    }
-  }, [isDev]);*/
-
-  // Add this function to check if the pod line length is valid
+  // Add a function to check if the pod line length is valid
   const isPodLineLengthValid = () => {
     try {
       // Empty is not valid, we require a value
@@ -872,6 +926,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     // Remove % and any non-numeric characters except decimal
     const cleanValue = handleClampAndToValidInput(value, temperature) ?? "";
     cleanValue && setTemperature(cleanValue); // Store clean value without %
+    validateAllInputs(minSoil, maxPerSeason, totalAmount, podLineLength, cleanValue);
 
     // Add % for display
     const newDisplayValue = `${cleanValue}%`;

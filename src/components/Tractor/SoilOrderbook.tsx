@@ -1,5 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
+import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/Dialog";
 import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
@@ -251,7 +251,7 @@ export function SoilOrderbookContent() {
       <Table>
         <TableHeader className="[&_tr]:border-b-0">
           <TableRow className="border-b-0">
-            <TableHead className="py-2 font-antarctica font-light text-[#9C9C9C] text-base leading-[110%]">
+            <TableHead className="py-2 px-0 font-antarctica font-light text-[#9C9C9C] text-base leading-[110%]">
               Temperature
             </TableHead>
             <TableHead className="py-2 font-antarctica font-light text-[#9C9C9C] text-base leading-[110%]">
@@ -309,7 +309,7 @@ export function SoilOrderbookContent() {
                 noHoverMute
                 onClick={() => handleRowClick(req)}
               >
-                <TableCell className="py-2">≥ {temperature.toFixed(0)}%</TableCell>
+                <TableCell className="py-2 px-0">≥ {temperature.toFixed(0)}%</TableCell>
                 <TableCell className="py-2">≤ {maxPodLineLength}</TableCell>
                 <TableCell className="py-2">
                   <div className="flex items-center gap-1">
@@ -416,32 +416,35 @@ export function SoilOrderbookDialog({ open, onOpenChange }: SoilOrderbookDialogP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl w-[95vw] bg-gray-50 border border-gray-200">
-        <DialogHeader className="pb-4">
-          <DialogTitle className="text-xl font-antarctica font-bold">Tractor</DialogTitle>
-        </DialogHeader>
+      <DialogPortal>
+        <DialogOverlay className="fixed inset-0 backdrop-blur-sm bg-black/30" />
+        <DialogContent className="max-w-7xl w-[95vw] bg-gray-50 border border-gray-200">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-xl font-antarctica font-bold">Tractor</DialogTitle>
+          </DialogHeader>
 
-        <div className="w-full">
-          <div className="flex gap-4 border-b pinto-sm">
-            <button
-              type="button"
-              className={`pb-2 font-antarctica ${activeTab === "view" ? "border-b-2 border-green-600 font-medium" : "border-b-2 border-transparent text-pinto-gray-4"}`}
-              onClick={() => setActiveTab("view")}
-            >
-              View Soil Orders
-            </button>
-            <button
-              type="button"
-              className={`pb-2 font-antarctica ${activeTab === "execute" ? "border-b-2 border-green-600 font-medium" : "border-b-2 border-transparent text-pinto-gray-4"}`}
-              onClick={() => setActiveTab("execute")}
-            >
-              Execute Soil Orders
-            </button>
+          <div className="w-full">
+            <div className="flex gap-4 border-b pinto-sm">
+              <button
+                type="button"
+                className={`pb-2 font-antarctica ${activeTab === "view" ? "border-b-2 border-green-600 font-medium" : "border-b-2 border-transparent text-pinto-gray-4"}`}
+                onClick={() => setActiveTab("view")}
+              >
+                View Soil Orders
+              </button>
+              <button
+                type="button"
+                className={`pb-2 font-antarctica ${activeTab === "execute" ? "border-b-2 border-green-600 font-medium" : "border-b-2 border-transparent text-pinto-gray-4"}`}
+                onClick={() => setActiveTab("execute")}
+              >
+                Execute Soil Orders
+              </button>
+            </div>
+
+            <div className="pt-6">{activeTab === "view" ? <SoilOrderbookContent /> : <Plow />}</div>
           </div>
-
-          <div className="pt-6">{activeTab === "view" ? <SoilOrderbookContent /> : <Plow />}</div>
-        </div>
-      </DialogContent>
+        </DialogContent>
+      </DialogPortal>
     </Dialog>
   );
 }
