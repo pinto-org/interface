@@ -599,7 +599,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
         maxGrownStalkPerBdv: "10000000000000000", // default of 100 grown stalk per bdv, which would take about 21 years at 4 seeds. TODO: add input for this in the future
         runBlocksAfterSunrise: executionBlock || (morningAuction ? "0" : "300"), // Use executionBlock if provided, or use morning auction setting
         operatorTip: operatorTip || "0",
-        whitelistedOperators: ["0x0000000000000000000000000000000000000000" as `0x${string}`], // Open to all operators
+        whitelistedOperators: [], // Open to all operators with empty array
         tokenStrategy: selectedTokenStrategy,
         publicClient,
       });
