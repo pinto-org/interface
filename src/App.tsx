@@ -1,24 +1,10 @@
-import META from "@/constants/meta";
 import { cn, isDev } from "@/utils/utils";
-import React, { Suspense, lazy } from "react";
+import { Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import PageMetaWrapper from "./components/PageMetaWrapper";
 import ScrollToTop from "./components/ScrollToTop";
 import Navbar from "./components/nav/nav/Navbar";
 import { externalLinks } from "./constants/links";
-
-import Error404 from "./pages/Error404";
-import Explorer from "./pages/Explorer";
-import Field from "./pages/Field";
-import Landing from "./pages/Landing";
-import { Market as MarketPage } from "./pages/Market";
-import Overview from "./pages/Overview";
-import Silo from "./pages/Silo";
-import SiloToken from "./pages/SiloToken";
-import Swap from "./pages/Swap";
-import Transfer from "./pages/Transfer";
-import Whitepaper from "./pages/Whitepaper";
-import NewUserView from "./pages/overview/NewUserView";
 
 import { useMetaCRM } from "./utils/meta-crm";
 
@@ -39,7 +25,7 @@ const Silo = lazy(() => import("./pages/Silo"));
 const SiloToken = lazy(() => import("./pages/SiloToken"));
 const Field = lazy(() => import("./pages/Field"));
 const Swap = lazy(() => import("./pages/Swap"));
-const Market = lazy(() => import("./pages/Market"));
+const MarketPage = lazy(() => import("./pages/Market"));
 const Transfer = lazy(() => import("./pages/Transfer"));
 const DevPage = lazy(() => import("./components/DevPage"));
 
