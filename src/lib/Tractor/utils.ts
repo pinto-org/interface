@@ -806,6 +806,7 @@ export interface OrderbookEntry extends Omit<RequisitionEvent, "decodedData"> {
   totalAvailablePinto: TokenValue;
   currentlySowable: TokenValue;
   amountSowableNextSeason: TokenValue;
+  amountSowableNextSeasonConsideringAvailableSoil: TokenValue;
   estimatedPlaceInLine: TokenValue;
   withdrawalPlan?: WithdrawalPlan;
 }
@@ -830,6 +831,7 @@ export async function loadOrderbookData(
   protocolAddress: `0x${string}` | undefined,
   publicClient: PublicClient | null,
   latestBlock?: { number: bigint; timestamp: bigint } | null,
+  maxTemperature?: number,
 ): Promise<OrderbookEntry[]> {
   if (!protocolAddress || !publicClient) return [];
 
@@ -1075,6 +1077,7 @@ export async function loadOrderbookData(
           totalAvailablePinto,
           currentlySowable,
           amountSowableNextSeason,
+          amountSowableNextSeasonConsideringAvailableSoil: TokenValue.ZERO, // Initialize to zero, will be set in second pass
           estimatedPlaceInLine,
           withdrawalPlan,
         });
@@ -1086,10 +1089,101 @@ export async function loadOrderbookData(
           totalAvailablePinto: TokenValue.ZERO,
           currentlySowable: TokenValue.ZERO,
           amountSowableNextSeason: TokenValue.ZERO,
+          amountSowableNextSeasonConsideringAvailableSoil: TokenValue.ZERO,
           estimatedPlaceInLine: TokenValue.fromBlockchain(runningPlaceInLine.toBigInt(), 6),
           withdrawalPlan: undefined,
         });
       }
+    }
+
+    // Get the total amount of soil available from the protocol
+    let availableSoil = TokenValue.ZERO;
+    try {
+      // Query for the most recent Soil event
+      const soilEvents = await publicClient.getContractEvents({
+        address: protocolAddress,
+        abi: diamondABI,
+        eventName: "Soil",
+        fromBlock: TRACTOR_DEPLOYMENT_BLOCK,
+        toBlock: "latest",
+      });
+
+      // Get the most recent event (should be the last one)
+      if (soilEvents.length > 0) {
+        const latestSoilEvent = soilEvents[soilEvents.length - 1];
+        const soilAmount = latestSoilEvent.args?.soil;
+
+        if (soilAmount) {
+          availableSoil = TokenValue.fromBlockchain(soilAmount, 6);
+          console.debug(`\nCurrent soil from latest Soil event: ${availableSoil.toHuman()}`);
+        }
+      } else {
+        console.debug(`No Soil events found, falling back to estimation`);
+      }
+
+      // If we couldn't get soil from events, fall back to estimate
+      if (availableSoil.eq(0)) {
+        availableSoil = orderbookData.reduce((total, entry) => total.add(entry.currentlySowable), TokenValue.ZERO);
+        console.debug(`\nEstimated soil from orderbook data: ${availableSoil.toHuman()}`);
+      }
+    } catch (error) {
+      console.error("Failed to get soil from events:", error);
+      // Fall back to estimating soil as the sum of all currentlySowable values
+      availableSoil = orderbookData.reduce((total, entry) => total.add(entry.currentlySowable), TokenValue.ZERO);
+      console.debug(`\nFalling back to estimated soil: ${availableSoil.toHuman()}`);
+    }
+
+    // Sort orderbook entries by operator tip amount (highest first)
+    const orderbookDataWithTips = orderbookData.map((entry) => {
+      const decodedData = decodeSowTractorData(entry.requisition.blueprint.data);
+      const tipAmount = decodedData?.operatorParams.operatorTipAmount || 0n;
+      return {
+        entry,
+        tipAmount,
+      };
+    });
+
+    // Sort by tip amount (highest first)
+    orderbookDataWithTips.sort((a, b) => Number(b.tipAmount - a.tipAmount));
+
+    console.debug("\nAllocating available soil based on operator tip priority:");
+
+    // Track remaining soil as we allocate it
+    let remainingSoil = availableSoil;
+
+    // Second pass: allocate soil based on tip priority
+    for (let i = 0; i < orderbookDataWithTips.length; i++) {
+      const { entry, tipAmount } = orderbookDataWithTips[i];
+      const tipAmountFormatted = TokenValue.fromBlockchain(tipAmount, 6).toHuman();
+      const decodedData = decodeSowTractorData(entry.requisition.blueprint.data);
+      const orderTemp = decodedData ? parseFloat(decodedData.minTempAsString) : 0;
+
+      console.debug(
+        `Order #${i + 1} - Tip: ${tipAmountFormatted}, Temp: ${orderTemp}%, Requested: ${entry.amountSowableNextSeason.toHuman()}`,
+      );
+
+      // Skip orders with temperature higher than the max temperature (if provided)
+      if (maxTemperature !== undefined && orderTemp > maxTemperature) {
+        console.debug(`  Temperature too high (max: ${maxTemperature}%), allocated: 0`);
+        entry.amountSowableNextSeasonConsideringAvailableSoil = TokenValue.ZERO;
+        continue;
+      }
+
+      // If no soil left, set to zero
+      if (remainingSoil.lte(0)) {
+        entry.amountSowableNextSeasonConsideringAvailableSoil = TokenValue.ZERO;
+        console.debug(`  No soil remaining, allocated: 0`);
+        continue;
+      }
+
+      // Calculate how much this order can sow considering available soil
+      const allocatedAmount = TokenValue.min(entry.amountSowableNextSeason, remainingSoil);
+      entry.amountSowableNextSeasonConsideringAvailableSoil = allocatedAmount;
+
+      // Subtract from remaining soil
+      remainingSoil = remainingSoil.sub(allocatedAmount);
+
+      console.debug(`  Allocated: ${allocatedAmount.toHuman()}, Remaining soil: ${remainingSoil.toHuman()}`);
     }
 
     return orderbookData;

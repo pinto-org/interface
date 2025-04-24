@@ -21,6 +21,7 @@ interface TooltipSimpleProps {
   triggerClassName?: string;
   className?: string;
   sideOffset?: number;
+  disabled?: boolean;
 }
 
 const variantMap = {
@@ -45,9 +46,15 @@ export default function TooltipSimple({
   triggerClassName,
   className,
   sideOffset = 0,
+  disabled = false,
   ...props
 }: TooltipSimpleProps) {
   const ContentComponent = variant === "unstyled" ? TooltipContent : RadixStyledTooltipContent;
+
+  if (disabled) {
+    return <>{children}</>;
+  }
+
   return (
     <TooltipProvider>
       <Tooltip delayDuration={0}>

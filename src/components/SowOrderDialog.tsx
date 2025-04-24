@@ -34,6 +34,7 @@ import { toast } from "sonner";
 import { PublicClient, encodeFunctionData } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { Col, Row } from "./Container";
+import TooltipSimple from "./TooltipSimple";
 import { Button } from "./ui/Button";
 import { Dialog, DialogContent, DialogOverlay, DialogPortal } from "./ui/Dialog";
 import { Input } from "./ui/Input";
@@ -472,6 +473,15 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
   }, [rawPodLineLength]);
 
   const handlePodLineSelect = (increment: number) => {
+    // If the button is already active (same value), clear the input
+    if (isButtonActive(increment)) {
+      setPodLineLength("");
+      setRawPodLineLength("");
+      validateAllInputs(minSoil, maxPerSeason, totalAmount, "", temperature);
+      return;
+    }
+
+    // Otherwise, set to the calculated value
     if (increment === 0) {
       // Set to current pod line length in human readable format
       const formattedValue = formatter.number(podLine);
@@ -487,6 +497,18 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
       setRawPodLineLength(formattedValue.replace(/,/g, ""));
       validateAllInputs(minSoil, maxPerSeason, totalAmount, formattedValue, temperature);
     }
+  };
+
+  // Add handling for pasting into the pod line length input
+  const handlePodLineLengthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cleanValue = handleClampAndToValidInput(e.target.value, podLineLength) ?? "";
+
+    // Store raw input and update displayed value
+    setRawPodLineLength(cleanValue);
+    setPodLineLength(cleanValue);
+
+    // Run validation
+    validateAllInputs(minSoil, maxPerSeason, totalAmount, cleanValue, temperature);
   };
 
   // Add a function to check if the pod line length is valid
@@ -506,11 +528,16 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
   // Add this function to check if all required fields are filled
   const areRequiredFieldsFilled = () => {
     return (
-      temperature &&
+      temperature !== "" &&
+      temperature !== undefined &&
+      temperature !== null &&
+      minSoil !== "" &&
       minSoil !== undefined &&
       minSoil !== null &&
+      maxPerSeason !== "" &&
       maxPerSeason !== undefined &&
       maxPerSeason !== null &&
+      totalAmount !== "" &&
       totalAmount !== undefined &&
       totalAmount !== null &&
       isPodLineLengthValid()
@@ -992,6 +1019,45 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     }
   };
 
+  // Add this function to check which fields are missing
+  const getMissingFields = (
+    temperature: string,
+    minSoil: string,
+    maxPerSeason: string,
+    totalAmount: string,
+    isPodLineLengthValidFn: () => boolean,
+  ) => {
+    const missingFields: string[] = [];
+
+    if (!temperature || temperature === "") {
+      missingFields.push("Temperature");
+    }
+    if (!minSoil || minSoil === "") {
+      missingFields.push("Min Soil per Season");
+    }
+    if (!maxPerSeason || maxPerSeason === "") {
+      missingFields.push("Max per Season");
+    }
+    if (!totalAmount || totalAmount === "") {
+      missingFields.push("Total Amount");
+    }
+    if (!isPodLineLengthValidFn()) {
+      missingFields.push("Pod Line Length");
+    }
+
+    return missingFields;
+  };
+
+  // Add handler for operator tip input changes
+  const handleOperatorTipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value.replace(/[^0-9.,]/g, "");
+    setOperatorTip(newValue);
+
+    // Check if the new value matches any of our buttons
+    const activeButton = checkActiveTipButton(newValue);
+    setActiveTipButton(activeButton);
+  };
+
   if (!open) return null;
 
   return (
@@ -1186,11 +1252,19 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                       placeholder={formatter.number(podLine)}
                       value={podLineLength}
                       onChange={(e) => {
-                        const cleanValue = handleClampAndToValidInput(e.target.value, podLineLength) ?? "";
+                        const cleanValue = e.target.value.replace(/[^0-9.,]/g, "");
 
-                        // Store raw input and update displayed value
+                        // Set raw value immediately to enable pasting
                         setRawPodLineLength(cleanValue);
-                        setPodLineLength(cleanValue);
+
+                        // Set formatted value and validate
+                        if (cleanValue) {
+                          setPodLineLength(cleanValue);
+                          validateAllInputs(minSoil, maxPerSeason, totalAmount, cleanValue, temperature);
+                        } else {
+                          setPodLineLength("");
+                          validateAllInputs(minSoil, maxPerSeason, totalAmount, "", temperature);
+                        }
                       }}
                     />
 
@@ -1304,13 +1378,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                         className="h-12 px-3 py-1.5 flex-1 rounded-l-lg focus:outline-none text-base font-light"
                         placeholder="0.00"
                         value={operatorTip}
-                        onChange={(e) => {
-                          const newValue = e.target.value.replace(/[^0-9.,]/g, "");
-                          setOperatorTip(newValue);
-                          // Check if the new value matches any of our buttons
-                          const activeButton = checkActiveTipButton(newValue);
-                          setActiveTipButton(activeButton);
-                        }}
+                        onChange={handleOperatorTipChange}
                         type="text"
                       />
                       <div className="flex items-center gap-2 px-4 rounded-r-lg font-semibold bg-white">
@@ -1437,27 +1505,55 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                     className="flex-1 rounded-full text-2xl font-medium"
                   />
                 ) : (
-                  <Button
-                    size="xlargest"
-                    rounded="full"
-                    className={`flex-1 ${
-                      (formStep === 1 && (!areRequiredFieldsFilled() || !!error)) || isLoading
-                        ? "bg-pinto-gray-2 text-[#9C9C9C]"
-                        : "bg-[#387F5C] text-white"
-                    }`}
-                    disabled={(formStep === 1 && (!areRequiredFieldsFilled() || !!error)) || isLoading}
-                    onClick={handleNext}
+                  <TooltipSimple
+                    content={
+                      formStep === 1 && (!areRequiredFieldsFilled() || !!error) ? (
+                        <div className="p-1">
+                          <div className="font-medium mb-1">Please fill in the following fields:</div>
+                          <ul className="list-disc pl-4 text-sm">
+                            {getMissingFields(
+                              temperature,
+                              minSoil,
+                              maxPerSeason,
+                              totalAmount,
+                              isPodLineLengthValid,
+                            ).map((field) => (
+                              <li key={field}>{field}</li>
+                            ))}
+                            {error && <li className="text-red-500 mt-1">{error}</li>}
+                          </ul>
+                        </div>
+                      ) : null
+                    }
+                    side="top"
+                    align="center"
+                    // Only show tooltip when there are missing fields or errors
+                    disabled={!(formStep === 1 && (!areRequiredFieldsFilled() || !!error))}
                   >
-                    {isLoading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
-                      </div>
-                    ) : formStep === 1 ? (
-                      "Next"
-                    ) : (
-                      "Review"
-                    )}
-                  </Button>
+                    <div className="flex-1">
+                      <Button
+                        size="xlargest"
+                        rounded="full"
+                        className={`w-full ${
+                          (formStep === 1 && (!areRequiredFieldsFilled() || !!error)) || isLoading
+                            ? "bg-pinto-gray-2 text-[#9C9C9C]"
+                            : "bg-[#387F5C] text-white"
+                        }`}
+                        disabled={(formStep === 1 && (!areRequiredFieldsFilled() || !!error)) || isLoading}
+                        onClick={handleNext}
+                      >
+                        {isLoading ? (
+                          <div className="flex items-center gap-2">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
+                          </div>
+                        ) : formStep === 1 ? (
+                          "Next"
+                        ) : (
+                          "Review"
+                        )}
+                      </Button>
+                    </div>
+                  </TooltipSimple>
                 )}
               </Row>
             </div>

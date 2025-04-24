@@ -99,6 +99,7 @@ const FieldActivity = () => {
           protocolAddress,
           publicClient,
           latestBlockInfo,
+          currentTemperature?.max ? currentTemperature.max.toNumber() : undefined,
         );
 
         // Filter out orders with predicted temperatures greater than current temperature + 1%
@@ -423,7 +424,7 @@ const TractorOrderRow = React.memo(
           <div className="flex items-center justify-end gap-1">
             <IconImage src={pintoIcon} alt="PINTO" size={3} />
             <span className="text-xs font-light text-pinto-gray-4">
-              {`${formatNumberWithCommas(parseFloat(order.amountSowableNextSeason.toHuman()).toFixed(2))}`}
+              {`${formatNumberWithCommas(parseFloat(order.amountSowableNextSeasonConsideringAvailableSoil.toHuman()).toFixed(2))}`}
             </span>
           </div>
         </td>
@@ -678,7 +679,7 @@ const estimateOrderPods = (order: OrderbookEntry, currentTemperature: { max: Tok
   const temp = getPredictedSowTemperature(order, currentTemperature);
 
   // Calculate pods as PINTO amount * (1 + temperature/100)
-  return order.amountSowableNextSeason.mul(1 + temp / 100);
+  return order.amountSowableNextSeasonConsideringAvailableSoil.mul(1 + temp / 100);
 };
 
 // -------------------- FORMATTING --------------------
