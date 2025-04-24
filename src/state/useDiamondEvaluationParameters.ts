@@ -48,6 +48,12 @@ export const useDiamondEvalulationParameters = () => {
           ...seasonalDeploymentChanges[SEASON_2710],
         };
       }
+      if (season < SEASON_3571) {
+        return {
+          ...data,
+          ...seasonalDeploymentChanges[SEASON_3571],
+        };
+      }
 
       return data;
     };
@@ -64,9 +70,15 @@ export const useDiamondEvalulationParameters = () => {
 // PI-6 deployed at season 2710
 const SEASON_2710 = 2710;
 
+// PI-8 deployed at season 3571
+const SEASON_3571 = 3571;
+
 const seasonalDeploymentChanges: Record<number, Partial<EvaluationParameters>> = {
   [SEASON_2710]: {
     maxBeanMaxLpGpPerBdvRatio: BigInt(100e18),
+  },
+  [SEASON_3571]: {
+    maxBeanMaxLpGpPerBdvRatio: BigInt(150e18),
   },
 } as const;
 

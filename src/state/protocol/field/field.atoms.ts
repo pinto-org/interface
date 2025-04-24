@@ -14,6 +14,9 @@ export const fieldTemperatureAtom = atomWithImmer<FieldTemperature>({
   isLoading: true,
 });
 
+// Shared state between Sow and Field for tractor button animation
+export const inputExceedsSoilAtom = atom<boolean>(false);
+
 export const fieldPodlineAtom = atomWithImmer<FieldPodLine>({
   podIndex: TV.NEGATIVE_ONE,
   harvestableIndex: TV.NEGATIVE_ONE,

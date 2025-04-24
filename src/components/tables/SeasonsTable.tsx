@@ -69,7 +69,7 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
       <TableRow key={data.season} style={style} noHoverMute>
         <SeasonsTableCell
           cellType={SeasonsTableCellType.TwoColumn}
-          className="text-left"
+          className="text-left h-[50px]"
           columnKey="season"
           value={data.season}
           subValue={DateTime.fromSeconds(data.timestamp).toFormat(trulyTheBestTimeFormat)}

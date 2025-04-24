@@ -21,9 +21,23 @@ const heights = {
   "same-xs": "h-[.875rem]",
 };
 
-const desktopHeights = Object.fromEntries(
-  Object.entries(heights).map(([key, value]) => [key, `sm:${value}`]),
-) as Record<keyof typeof heights, string>;
+const desktopHeights = {
+  h1: "sm:h-[3.772rem]",
+  h2: "sm:h-[2.475rem]",
+  h3: "sm:h-[2.2rem]",
+  h4: "sm:h-[1.65rem]",
+  lg: "sm:h-[1.375rem]",
+  body: "sm:h-[1.375rem]",
+  sm: "sm:h-[1.1rem]",
+  xs: "sm:h-[.9625rem]",
+  "same-h1": "sm:h-[3.429rem]",
+  "same-h2": "sm:h-[2.25rem]",
+  "same-h3": "sm:h-[2rem]",
+  "same-h4": "sm:h-[1.5rem]",
+  "same-body": "sm:h-[1.25rem]",
+  "same-sm": "sm:h-[1rem]",
+  "same-xs": "sm:h-[.875rem]",
+};
 
 /**
  * mapped to font size heights

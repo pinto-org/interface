@@ -10,6 +10,12 @@ export const PIPELINE_ADDRESS: HashString = "0xb1bE0001f5a373b69b1E132b420e6D968
 
 export const JUNCTION_ADDRESS: HashString = "0x5A5A5AF07D8a389472AdC1E60aA71BAC89Fcff8b";
 
+export const TRACTOR_HELPERS_ADDRESS: HashString = "0x2808b14d287F8CA77eb25B16575aF187d5A05119";
+
+export const SOW_BLUEPRINT_V0_ADDRESS: HashString = "0xbb0a41927895F8ca2b4ECCc659ba158735fCF28B";
+
+export const SOW_BLUEPRINT_V0_SELECTOR = "0x3ca8e1b2" as const;
+
 export const WELL_FUNCTION_ADDRESSES: ChainLookup<{
   stable2: HashString;
   cp2: HashString;

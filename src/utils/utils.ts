@@ -1,8 +1,9 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { FarmerBalance } from "@/state/useFarmerBalances";
+import { calculateConvertData } from "@/utils/convert";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { FarmFromMode } from "./types";
+import { FarmFromMode, Token } from "./types";
 import { MayArray } from "./types.generic";
 
 export function cn(...inputs: ClassValue[]) {
@@ -57,6 +58,10 @@ export function exists<T>(value: T | undefined | null): value is NonNullable<T> 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export function existsNot(value: any): value is undefined | null {
   return !exists(value);
+}
+
+export function isFunction<T>(v: T | (() => T)): v is () => T {
+  return typeof v === "function";
 }
 
 /**
@@ -184,4 +189,9 @@ export function identifyPlantDeposits(
   });
 
   return plantDepositMap;
+}
+
+interface RatioDeposit {
+  stem: string;
+  ratio: TokenValue;
 }

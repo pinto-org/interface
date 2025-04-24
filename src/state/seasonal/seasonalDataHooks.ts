@@ -11,7 +11,9 @@ import { useAccount } from "wagmi";
 import useSeasonalBeanBeanSG from "./queries/useSeasonalBeanBeanSG";
 import useSeasonalBeanSeasonSG from "./queries/useSeasonalBeanSeasonSG";
 import useSeasonalBeanstalkFieldSG from "./queries/useSeasonalBeanstalkFieldSG";
-import useSeasonalBeanstalkSiloSG from "./queries/useSeasonalBeanstalkSiloSG";
+import useSeasonalBeanstalkSiloSG, {
+  useSeasonalBeanstalkSiloActiveFarmersSG,
+} from "./queries/useSeasonalBeanstalkSiloSG";
 import useSeasonalBeanstalkWrappedDepositsSG from "./queries/useSeasonalBeanstalkWrappedDepositsSG";
 import useSeasonalFarmerSG from "./queries/useSeasonalFarmerSG";
 import useSeasonalFarmerSiloAssetTokenSG from "./queries/useSeasonalFarmerSiloAssetTokenSG";
@@ -227,6 +229,14 @@ export function useSeasonalAvgSeeds(fromSeason: number, toSeason: number): UseSe
   return useSeasonalBeanstalkSiloSG(fromSeason, toSeason, (siloHourly, timestamp) => ({
     season: Number(siloHourly.season),
     value: TV.fromBlockchain(siloHourly.avgGrownStalkPerBdvPerSeason, STALK.decimals - 4).toNumber(),
+    timestamp,
+  }));
+}
+
+export function useSeasonalSiloActiveFarmers(fromSeason: number, toSeason: number): UseSeasonalResult {
+  return useSeasonalBeanstalkSiloActiveFarmersSG(fromSeason, toSeason, (siloHourly, timestamp) => ({
+    season: Number(siloHourly.season),
+    value: siloHourly.activeFarmers,
     timestamp,
   }));
 }

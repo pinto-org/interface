@@ -1,10 +1,10 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import { generateCombineAndL2LCallData } from "@/lib/claim/depositUtils";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
 import { useInvalidateSun, useSunData } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
-import { calculateConvertData } from "@/utils/convert";
 import { useQueryClient } from "@tanstack/react-query";
 import { estimateGas } from "@wagmi/core";
 import { useCallback, useState } from "react";
@@ -58,44 +58,8 @@ export function useClaimRewards() {
         args: [account, tokensToMow],
       });
 
-      // Collect all eligible deposits into a flat array with their token info
-      const allDeposits = Array.from(farmerDeposits.entries())
-        .filter(([token]) => !token.isMain) // Filter out main token deposits
-        .flatMap(([token, depositData]) =>
-          depositData.deposits
-            .filter((deposit) => {
-              const bdvDiff = deposit.currentBdv.sub(deposit.depositBdv);
-              const onePercent = deposit.depositBdv.mul(0.01);
-              const minThreshold = TokenValue.min(onePercent, TokenValue.ONE);
-              return bdvDiff.gt(minThreshold) && !deposit.isGerminating;
-            })
-            .map((deposit) => ({
-              token,
-              deposit,
-              bdvDifference: deposit.currentBdv.sub(deposit.depositBdv),
-            })),
-        );
-
-      // Sort by BDV difference (highest to lowest) and take top 10
-      const top10Deposits = allDeposits
-        .filter((deposit) => deposit.bdvDifference.gte(TokenValue.ONE))
-        .sort((a, b) => (b.bdvDifference.gt(a.bdvDifference) ? 1 : -1))
-        .slice(0, 10);
-
-      // Generate convert data for top 10
-      const updateData: `0x${string}`[] = isRaining
-        ? [] // Prevents L2L converts when it's raining
-        : top10Deposits.map(({ token, deposit }) => {
-            const convertData = calculateConvertData(token, token, deposit.amount, deposit.amount);
-            if (!convertData) {
-              throw new Error("Invalid convert data");
-            }
-            return encodeFunctionData({
-              abi: beanstalkAbi,
-              functionName: "convert",
-              args: [convertData, [deposit.stem.toBigInt()], [deposit.amount.toBigInt()]],
-            });
-          });
+      // Generate convert calls with smart limits using our utility function
+      const updateData = generateCombineAndL2LCallData(farmerDeposits);
 
       const _gas = await estimateGas(config, {
         to: beanstalkAddress[chainId as keyof typeof beanstalkAddress],

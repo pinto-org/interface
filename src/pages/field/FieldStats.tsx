@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/Skeleton";
+import TextSkeleton from "@/components/TextSkeleton";
 import { usePodLine, usePodLoading, useTemperature, useTotalSoil } from "@/state/useFieldData";
 import { useMorning, useSunData } from "@/state/useSunData";
 import { formatter } from "@/utils/format";
@@ -19,6 +19,8 @@ const FieldStats = () => {
   const pLine = normalizeTV(podLine);
   const maxTemperature = normalizeTV(temperatures.max);
 
+  const isLoading = temperatures.isLoading || soilIsLoading.isLoading || podLoading;
+
   return (
     <div className="flex flex-row gap-x-12 gap-y-4 flex-wrap w-full">
       <div className="flex flex-col flex-grow gap-1 sm:gap-2">
@@ -30,17 +32,14 @@ const FieldStats = () => {
             {isMorning ? "Temperature after the Morning Auction" : "Interest rate for Sowing Pinto"}
           </div>
         </div>
-        <div className="flex flex-col gap-1">
+
+        <TextSkeleton desktopHeight="same-h3" height="body" className="w-14" loading={isLoading}>
           <div
             className={`pinto-body sm:pinto-h3 ${isMorning ? "text-pinto-light sm:text-pinto-light" : "text-pinto-primary sm:text-pinto-primary"}`}
           >
-            {temperatures.isLoading ? (
-              <Skeleton className="w-14 h-[2.2rem]" />
-            ) : (
-              `${formatter.pct(isMorning ? maxTemperature : scaledTemperature)}`
-            )}
+            {formatter.pct(isMorning ? maxTemperature : scaledTemperature)}
           </div>
-        </div>
+        </TextSkeleton>
       </div>
       <div className="flex flex-col flex-grow gap-1 sm:gap-2">
         <div className="flex flex-col gap-1">
@@ -50,15 +49,9 @@ const FieldStats = () => {
           </div>
         </div>
         <div className="flex flex-col gap-1">
-          <div className="pinto-body sm:pinto-h3">
-            {soilIsLoading.isLoading ? (
-              <Skeleton className="w-14 h-[2.2rem]" />
-            ) : (
-              formatter.number(soil, {
-                minValue: 0.01,
-              })
-            )}
-          </div>
+          <TextSkeleton desktopHeight="same-h3" height="body" className="w-14" loading={isLoading}>
+            <div className="pinto-body sm:pinto-h3">{formatter.number(soil, { minValue: 0.01 })}</div>
+          </TextSkeleton>
           {isMorning && abovePeg && (
             <div className="pinto-xs sm:pinto-sm-light text-pinto-morning sm:text-pinto-morning inline-block tabular-nums">
               <MorningIntervalCountdown prefix={"Decreasing in"} />
@@ -73,9 +66,10 @@ const FieldStats = () => {
             FIFO queue of Pods that are not yet redeemable
           </div>
         </div>
-        {/* //TODO h: add podLine isLoading boolean */}
         <div className="pinto-body sm:pinto-h3">
-          {podLoading ? <Skeleton className="w-14 h-[2.2rem]" /> : formatter.number(pLine)}
+          <TextSkeleton desktopHeight="h3" height="body" className="w-32" loading={isLoading}>
+            {formatter.number(pLine)}
+          </TextSkeleton>
         </div>
       </div>
     </div>

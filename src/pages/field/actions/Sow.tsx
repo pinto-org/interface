@@ -8,6 +8,7 @@ import sowWithMin from "@/encoders/sowWithMin";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
+import { inputExceedsSoilAtom } from "@/state/protocol/field/field.atoms";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useInvalidateField, usePodLine, useTotalSoil } from "@/state/useFieldData";
@@ -16,7 +17,8 @@ import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { stringToNumber, stringToStringNum } from "@/utils/string";
 import { AdvancedFarmCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSetAtom } from "jotai";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 
@@ -48,9 +50,10 @@ import { AnimatePresence, motion } from "framer-motion";
 
 type SowProps = {
   isMorning: boolean;
+  onShowOrder: () => void;
 };
 
-function Sow({ isMorning }: SowProps) {
+function Sow({ isMorning, onShowOrder }: SowProps) {
   // Hooks
   const diamond = useProtocolAddress();
   const { mainToken } = useTokenData();
@@ -336,6 +339,14 @@ function Sow({ isMorning }: SowProps) {
 
   // Derived State
   const hasSoil = Boolean(!totalSoilLoading && totalSoil.gt(0));
+  const inputExceedsSoil = hasSoil && soilSown && totalSoil && soilSown.gt(totalSoil);
+  const setInputExceedsSoil = useSetAtom(inputExceedsSoilAtom);
+
+  // Update shared state for the TractorButton animation in Field.tsx
+  useEffect(() => {
+    // Update the atom value instead of using localStorage
+    setInputExceedsSoil(Boolean(inputExceedsSoil));
+  }, [inputExceedsSoil, setInputExceedsSoil]);
 
   const initializing = !didSetPreferred || (hasSoil ? maxBuyQuery.isLoading : false);
 
@@ -357,8 +368,8 @@ function Sow({ isMorning }: SowProps) {
   const animationHeight = getAnimateHeight({ fromSilo, hasSoil, tokenIn });
 
   return (
-    <Col className="gap-4">
-      <div>
+    <Col className="gap-4 w-full">
+      <Col className="w-full">
         <Row className="justify-between items-center">
           <div className="pinto-body-light text-pinto-light">Amount and token to Sow</div>
           <SettingsPoppover
@@ -389,7 +400,7 @@ function Sow({ isMorning }: SowProps) {
           filterTokens={filterTokens}
           disableClamping={true}
         />
-      </div>
+      </Col>
       <Row className="justify-between my-2">
         <div className="pinto-sm sm:pinto-body-light sm:text-pinto-light text-pinto-light">Use Silo Deposits</div>
         <TextSkeleton loading={false} className="w-11 h-6">
@@ -477,6 +488,7 @@ function Sow({ isMorning }: SowProps) {
         )}
       </AnimatePresence>
       {slippageWarning}
+
       <div className="hidden sm:flex flex-row gap-2">
         <SmartSubmitButton
           variant={isMorning ? "morning" : "gradient"}
@@ -645,7 +657,7 @@ const heightMapping = {
   },
   fromBalance: {
     isMain: { 0: "13.75rem", 1: "19rem" },
-    notMain: { 0: "19.25rem", 1: "24.5rem" },
+    notMain: { 0: "18.5rem", 1: "24.5rem" },
   },
 } as const;
 

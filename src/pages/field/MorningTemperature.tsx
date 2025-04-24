@@ -1,5 +1,5 @@
-import LineChart, { LineChartData, MakeGradientFunction } from "@/components/charts/LineChart";
-import Text from "@/components/ui/Text";
+import LineChart, { LineChartData } from "@/components/charts/LineChart";
+
 import { formatter } from "@/utils/format";
 import { useCallback, useMemo, useState } from "react";
 
@@ -8,20 +8,7 @@ import { metallicMorningAreaGradientFn, metallicMorningStrokeGradientFn } from "
 import { MorningIntervalCountdown } from "@/pages/field/MorningCountdown";
 import useCalculateTemperature from "@/state/useCalculateTemperature";
 import { useMorning } from "@/state/useSunData";
-import { chartFormatters as f } from "@/utils/format";
-import {
-  CategoryScale,
-  Chart as ChartJS,
-  Legend,
-  LineElement,
-  LinearScale,
-  PointElement,
-  Title,
-  Tooltip,
-} from "chart.js";
 import { Morning } from "../../state/protocol/sun";
-
-// ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Title, Tooltip, Legend);
 
 const makeLineGradients = [metallicMorningStrokeGradientFn];
 const makeAreaGradients = [metallicMorningAreaGradientFn];
@@ -49,7 +36,7 @@ const MorningTemperatureChart = () => {
   }, []);
 
   return (
-    <MorningCard className="flex flex-col w-full p-6">
+    <MorningCard className="flex flex-col w-full p-6 h-[423px] lg:h-[435px]">
       <div className="flex flex-col w-full gap-2">
         <Stat morning={morning} data={mappedData} hoveredIndex={hoveredIndex} />
         <div className="w-full h-[300px]">

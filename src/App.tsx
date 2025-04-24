@@ -6,6 +6,20 @@ import PageMetaWrapper from "./components/PageMetaWrapper";
 import ScrollToTop from "./components/ScrollToTop";
 import Navbar from "./components/nav/nav/Navbar";
 import { externalLinks } from "./constants/links";
+
+import Error404 from "./pages/Error404";
+import Explorer from "./pages/Explorer";
+import Field from "./pages/Field";
+import Landing from "./pages/Landing";
+import { Market as MarketPage } from "./pages/Market";
+import Overview from "./pages/Overview";
+import Silo from "./pages/Silo";
+import SiloToken from "./pages/SiloToken";
+import Swap from "./pages/Swap";
+import Transfer from "./pages/Transfer";
+import Whitepaper from "./pages/Whitepaper";
+import NewUserView from "./pages/overview/NewUserView";
+
 import { useMetaCRM } from "./utils/meta-crm";
 
 // Eagerly load small/critical components
@@ -97,7 +111,7 @@ function ProtectedLayout() {
         path="/market/pods"
         element={
           <PageMetaWrapper metaKey="market">
-            <Market />
+            <MarketPage />
           </PageMetaWrapper>
         }
       />
@@ -105,7 +119,7 @@ function ProtectedLayout() {
         path="/market/pods/:mode"
         element={
           <PageMetaWrapper metaKey="market">
-            <Market />
+            <MarketPage />
           </PageMetaWrapper>
         }
       />
@@ -113,7 +127,7 @@ function ProtectedLayout() {
         path="/market/pods/:mode/:id"
         element={
           <PageMetaWrapper metaKey="market">
-            <Market />
+            <MarketPage />
           </PageMetaWrapper>
         }
       />
