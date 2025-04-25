@@ -132,6 +132,35 @@ export function generateCombineAndL2LCallData(farmerDeposits: Map<Token, TokenDe
 }
 
 /**
+ * First decodes the outer farm call result, which is an array of results from each subcall
+ * @param resultData The raw hex data from the farm call simulation result
+ * @returns The array of results, with each item being the result of a subcall
+ */
+function decodeFarmCallResult(resultData: `0x${string}`): `0x${string}`[] | undefined {
+  try {
+    console.log("Decoding farm call result");
+    // The farm call returns an array of bytes
+    const decoded = decodeAbiParameters(
+      [{ type: 'bytes[]' }],
+      resultData
+    );
+
+    if (!decoded || !decoded[0] || !Array.isArray(decoded[0])) {
+      console.error("Failed to decode farm call result");
+      return undefined;
+    }
+
+    const results = decoded[0] as `0x${string}`[];
+    console.log(`Successfully decoded farm call result with ${results.length} items`);
+
+    return results;
+  } catch (error) {
+    console.error("Error decoding farm call result:", error);
+    return undefined;
+  }
+}
+
+/**
  * Decodes the raw result data from a getSortedDeposits simulation
  * @param resultData The raw hex data from the simulation result
  * @returns Object containing the decoded stems and amounts, or undefined if decoding fails
@@ -197,6 +226,185 @@ function decodeSortedDepositsResult(
 }
 
 /**
+ * Creates a pipe call that retrieves sorted deposits for a farmer and token
+ * @param address Farmer address
+ * @param tokenAddress Token address
+ * @returns Encoded function call for pipe with getSortedDeposits
+ */
+export function getSortedDepositsCallForFarmerAndToken(
+  address: `0x${string}`,
+  tokenAddress: `0x${string}`
+): `0x${string}` {
+  // Create a call to getSortedDeposits from the TractorHelpers contract
+  const getSortedDepositsCall = encodeFunctionData({
+    abi: tractorHelpersABI,
+    functionName: "getSortedDeposits",
+    args: [address, tokenAddress],
+  });
+
+  // Create a pipe call that calls getSortedDeposits
+  return encodeFunctionData({
+    abi: beanstalkAbi,
+    functionName: "pipe",
+    args: [
+      {
+        target: TRACTOR_HELPERS_ADDRESS as `0x${string}`, // Target contract for the call
+        data: getSortedDepositsCall, // The call data for getSortedDeposits
+      },
+    ],
+  });
+}
+
+/**
+ * Simulates a transaction on Tenderly
+ * @param protocolAddress The contract address to call
+ * @param calldata The encoded function call data
+ * @param fromAddress The caller address
+ * @returns The simulation result data
+ */
+export async function simulateOnTenderly(
+  protocolAddress: `0x${string}`,
+  calldata: `0x${string}`,
+  fromAddress: `0x${string}`,
+): Promise<{ success: boolean, results?: any[], decodedOutput?: any, error?: string }> {
+  try {
+    // Get Tenderly API credentials from environment variables
+    const TENDERLY_USER = import.meta.env.VITE_TENDERLY_USER;
+    const TENDERLY_PROJECT = import.meta.env.VITE_TENDERLY_PROJECT;
+    const TENDERLY_ACCESS_KEY = import.meta.env.VITE_TENDERLY_ACCESS_KEY;
+
+    if (!TENDERLY_USER || !TENDERLY_PROJECT || !TENDERLY_ACCESS_KEY) {
+      throw new Error("Missing Tenderly configuration. Please set TENDERLY environment variables.");
+    }
+
+    const url = `https://api.tenderly.co/api/v1/account/${TENDERLY_USER}/project/${TENDERLY_PROJECT}/simulate`;
+
+    // Prepare the simulation request
+    const body = {
+      network_id: '8453', // Base
+      from: fromAddress,
+      to: protocolAddress,
+      input: calldata,
+      simulation_type: "abi", // Main options are full or abi, full is a really big response
+      // Additional simulation parameters can be added here if needed
+      save: false, // Don't save the simulation
+      save_if_fails: false, // Don't save even if it fails
+    };
+
+    console.log("Sending simulation request to Tenderly API...");
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Access-Key': TENDERLY_ACCESS_KEY,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Tenderly API responded with status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data || !data.transaction) {
+      throw new Error("Invalid response from Tenderly API");
+    }
+
+    const simulation = data.transaction;
+
+    if (simulation.status) {
+      console.log("Tenderly simulation successful");
+
+      // Just log a small part of the response for debugging
+      console.log("Tenderly transaction status:", simulation.status);
+
+      // Define the results array
+      let callResults: `0x${string}`[] = [];
+      let decodedOutputValue;
+
+      // Extract the output specifically from call_trace.output
+      if (simulation.transaction_info && simulation.transaction_info.call_trace) {
+        console.log("Found call_trace in transaction_info");
+
+        // Check if we have decoded_output which is much easier to work with
+        if (simulation.transaction_info.call_trace.decoded_output &&
+          Array.isArray(simulation.transaction_info.call_trace.decoded_output) &&
+          simulation.transaction_info.call_trace.decoded_output.length > 0) {
+
+          console.log("Found decoded_output in call_trace");
+
+          // Get the first decoded output object
+          const decodedOutput = simulation.transaction_info.call_trace.decoded_output[0];
+
+          // Check if it has a value array (for farm call results)
+          if (decodedOutput && decodedOutput.value && Array.isArray(decodedOutput.value)) {
+            console.log(`Found ${decodedOutput.value.length} values in decoded_output`);
+
+            // The last item should be our getSortedDeposits result
+            decodedOutputValue = decodedOutput.value[decodedOutput.value.length - 1];
+
+            if (decodedOutputValue) {
+              console.log(`Found getSortedDeposits result in decoded_output: ${decodedOutputValue.slice(0, 100)}${decodedOutputValue.length > 100 ? '...' : ''}`);
+            }
+          }
+        }
+
+        // If we didn't get the decoded output, fall back to the raw output
+        if (!decodedOutputValue) {
+          // Get the output directly from the call_trace
+          const callTraceOutput = simulation.transaction_info.call_trace.output;
+          if (callTraceOutput && callTraceOutput !== "0x") {
+            console.log(`Found output in call_trace: ${callTraceOutput.slice(0, 100)}${callTraceOutput.length > 100 ? '...' : ''}`);
+            callResults.push(callTraceOutput as `0x${string}`);
+          } else {
+            console.log("No output found in call_trace or output is empty");
+
+            // If the main call trace doesn't have output, check subcalls
+            if (simulation.transaction_info.call_trace.calls && simulation.transaction_info.call_trace.calls.length > 0) {
+              console.log(`Checking ${simulation.transaction_info.call_trace.calls.length} subcalls for outputs`);
+
+              // Look for the last subcall that might be our pipe call
+              for (let i = simulation.transaction_info.call_trace.calls.length - 1; i >= 0; i--) {
+                const subcall = simulation.transaction_info.call_trace.calls[i];
+                if (subcall.output && subcall.output !== "0x") {
+                  console.log(`Found output in subcall ${i}: ${subcall.output.slice(0, 100)}${subcall.output.length > 100 ? '...' : ''}`);
+                  callResults.push(subcall.output as `0x${string}`);
+                  break; // Just get the first valid output we find
+                }
+              }
+            }
+          }
+        }
+      } else {
+        console.log("No call_trace found in transaction_info");
+      }
+
+      return {
+        success: true,
+        results: callResults,
+        decodedOutput: decodedOutputValue
+      };
+    } else {
+      console.error("Tenderly simulation failed:", simulation.error_message);
+      return {
+        success: false,
+        error: simulation.error_message,
+      };
+    }
+  } catch (error) {
+    console.error("Error during Tenderly simulation:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+
+
+/**
  * Simulates and prepares farm calls for token deposits in one comprehensive function
  *
  * @param token Token to process
@@ -218,35 +426,30 @@ export async function simulateAndPrepareFarmCalls(
   console.log(`Simulating and preparing farm calls for ${token.symbol}`);
 
   try {
-    // Create a call to getSortedDeposits from the TractorHelpers contract
-    const getSortedDepositsCall = encodeFunctionData({
-      abi: tractorHelpersABI,
-      functionName: "getSortedDeposits",
-      args: [address, token.address as `0x${string}`],
-    });
-
-    // Create a pipe call that calls getSortedDeposits
-    const pipeCall = encodeFunctionData({
-      abi: beanstalkAbi,
-      functionName: "pipe",
-      args: [
-        {
-          target: TRACTOR_HELPERS_ADDRESS as `0x${string}`, // Target contract for the call
-          data: getSortedDepositsCall, // The call data for getSortedDeposits
-        },
-      ],
-    });
+    // Get the pipe call for sorted deposits using our utility function
+    const pipeCall = getSortedDepositsCallForFarmerAndToken(
+      address,
+      token.address as `0x${string}`
+    );
 
     // Prepare the farm calls array
     const farmCalls: `0x${string}`[] = [];
 
+    var combineCalls: `0x${string}`[] = [];
+
     // If farmer deposits are provided, add combine and L2L calls first
     if (farmerDeposits && farmerDeposits.size > 0) {
       // Generate convert calls with smart limits using our utility function
-      const combineCalls = generateCombineAndL2LCallData(farmerDeposits);
+      combineCalls = generateCombineAndL2LCallData(farmerDeposits);
       if (combineCalls.length > 0) {
         console.log(`Adding ${combineCalls.length} combine/L2L calls to execute before sort deposits`);
         farmCalls.push(...combineCalls);
+
+        console.log(
+          "Simulation compare L2L calls for token:",
+          token.symbol,
+          combineCalls
+        );
       } else {
         console.log("No combine/L2L calls needed");
       }
@@ -258,50 +461,65 @@ export async function simulateAndPrepareFarmCalls(
     farmCalls.push(pipeCall);
     console.log(`Total farm calls to execute in simulation: ${farmCalls.length}`);
 
-    // Simulate the farm call
-    const simulationResult = await publicClient.simulateContract({
-      address: protocolAddress,
-      abi: beanstalkAbi,
-      functionName: "farm",
-      args: [farmCalls], // Farm takes an array of encoded function calls
-      account: address,
+    console.log("Simulation farm calls:");
+    farmCalls.forEach((call, index) => {
+      console.log(`  [${index}]: ${call}`);
     });
 
-    console.log("Simulation completed successfully");
-    console.log("Number of results:", simulationResult.result?.length || 0);
+    // Extract the last part of farmCalls to get the getSortedDeposits call details
+    // This will help us identify it in the trace
+    const lastCall = farmCalls[farmCalls.length - 1];
+    // Get the function selector (first 10 characters after 0x)
+    const pipeSelector = lastCall.substring(0, 10);
+    console.log("Pipe call selector:", pipeSelector);
 
-    // The getSortedDeposits result will be the last item in the results array
-    const sortDepositsResult = simulationResult.result?.[simulationResult.result.length - 1];
+    // Extract the TractorHelpers address from the call data
+    const tractorHelpersAddressInCall = pipeCall.indexOf(TRACTOR_HELPERS_ADDRESS.toLowerCase().substring(2));
+    console.log("TractorHelpers address position in call data:", tractorHelpersAddressInCall > 0 ? "found" : "not found");
 
-    if (!sortDepositsResult) {
-      console.error("Sort deposits result is undefined");
+    // Encode the farm function call that we'll send to Tenderly
+    const farmCallData = encodeFunctionData({
+      abi: beanstalkAbi,
+      functionName: "farm",
+      args: [farmCalls]
+    });
+
+    console.log("Simulating via Tenderly instead of Viem...");
+
+    // Use Tenderly for simulation instead of Viem
+    const simulationResult = await simulateOnTenderly(
+      protocolAddress,
+      farmCallData,
+      address
+    );
+
+    if (!simulationResult.success) {
+      console.error("Tenderly simulation failed:", simulationResult.error);
       return null;
     }
 
-    console.log(`Sort deposits result length: ${(sortDepositsResult as `0x${string}`).length}`);
+    console.log("Tenderly simulation completed successfully");
+    console.log("Number of results:", simulationResult);
 
-    // Decode the result data
-    const decodedResult = decodeSortedDepositsResult(sortDepositsResult as `0x${string}`);
 
-    if (!decodedResult || !decodedResult.stems || decodedResult.stems.length === 0) {
+
+    // Use the decoded output from Tenderly if available
+    let sortedDepositsData: { stems: bigint[]; amounts: bigint[] } | undefined;
+
+    if (simulationResult.decodedOutput) {
+      console.log("Using decoded output from Tenderly: ", simulationResult.decodedOutput);
+      sortedDepositsData = decodeSortedDepositsResult(simulationResult.decodedOutput as `0x${string}`);
+    }
+
+    if (!sortedDepositsData || !sortedDepositsData.stems || sortedDepositsData.stems.length === 0) {
       console.error("Failed to decode sorted deposits result");
       return null;
     }
 
-    console.log(`Successfully decoded ${decodedResult.stems.length} stems and amounts`);
-
-    // Extract the combine/L2L calls from the simulation result
-    // Note: We want all calls except the last one (the pipe call)
-    const combineCalls: `0x${string}`[] = [];
-
-    // Only add combine calls if we have them in the simulation
-    if (farmCalls.length > 1) {
-      combineCalls.push(...farmCalls.slice(0, -1));
-      console.log(`Extracted ${combineCalls.length} combine/L2L calls`);
-    }
+    console.log(`Successfully obtained ${sortedDepositsData.stems.length} stems and amounts`);
 
     // Convert the sorted stems to deposit IDs and reverse them for proper sorting order
-    const reversedDepositIds = createReversedDepositIds(token.address, decodedResult.stems);
+    const reversedDepositIds = createReversedDepositIds(token.address, sortedDepositsData.stems);
 
     console.log(`Generated ${reversedDepositIds.length} deposit IDs from sorted stems`);
 
@@ -321,6 +539,11 @@ export async function simulateAndPrepareFarmCalls(
 
     // Log details about the operations
     console.log(`Final farm calls: ${finalFarmCalls.length} total (${combineCalls.length} combine + 1 update)`);
+
+    console.log("Final farm calls:");
+    finalFarmCalls.forEach((call, index) => {
+      console.log(`  [${index}]: ${call}`);
+    });
 
     return finalFarmCalls;
   } catch (error) {
@@ -420,6 +643,12 @@ export async function generateBatchSortDepositsCallData(
         // Include all calls from simulateAndPrepareFarmCalls including combines
         callData.push(...farmCalls);
         console.log(`Added ${farmCalls.length} calls for ${token.symbol} (includes combine operations)`);
+
+        console.log(
+          "Final compare L2L calls for token:",
+          token.symbol,
+          farmCalls
+        );
       }
     } catch (error) {
       console.error(`Error processing ${token.symbol}:`, error);

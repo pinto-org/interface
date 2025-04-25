@@ -596,13 +596,13 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
           account: effectiveAddress,
         })
         .catch((e) => {
-          console.error("Simulation failed:", e);
+          console.error("Combine & Sort All Simulation failed:", e);
           return { error: e };
         });
 
       if ("error" in simulateFirst) {
         console.error("Transaction would fail in simulation, not submitting");
-        toast.error("Transaction would fail: " + (simulateFirst.error as any)?.shortMessage || "unknown error");
+        toast.error("Combine & Sort All Transaction would fail: " + (simulateFirst.error as any)?.shortMessage || "unknown error");
         setSubmitting(false);
         setSortingAllTokens(false);
         return;
