@@ -17,14 +17,14 @@ import useTransaction from "@/hooks/useTransaction";
 import { createBlueprint } from "@/lib/Tractor/blueprint";
 import { Blueprint } from "@/lib/Tractor/types";
 import { TokenStrategy, createSowTractorData, getAverageTipPaid } from "@/lib/Tractor/utils";
-import { generateBatchSortDepositsCallData, needsCombining } from "@/lib/claim/depositUtils";
+import { generateBatchSortDepositsCallData, needsCombining, encodeClaimRewardCombineCalls, simulateAndPrepareFarmCalls } from "@/lib/claim/depositUtils";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePodLine, useTemperature } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { isValidAddress } from "@/utils/string";
-import { DepositData } from "@/utils/types";
+import { DepositData, Token, TokenDepositData } from "@/utils/types";
 import { isLocalhost } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
@@ -304,6 +304,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
 
   // Add these new declarations for combine and sort functionality
   const [sortingAllTokens, setSortingAllTokens] = useState(false);
+  const [combineComplete, setCombineComplete] = useState(false);
   const publicClient = usePublicClient();
   const protocolAddress = useProtocolAddress();
   const queryClient = useQueryClient();
@@ -542,6 +543,246 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
       totalAmount !== null &&
       isPodLineLengthValid()
     );
+  };
+
+  // Function to handle only combining deposits
+  const handleCombineDeposits = async () => {
+    if (!address || !publicClient || !protocolAddress || !farmerDeposits) return;
+
+    const effectiveAddress = isLocal && isValidAddress(mockAddress) ? mockAddress : address;
+    console.log("Combine Deposits - Using address:", effectiveAddress);
+
+    setSortingAllTokens(true);
+    setSubmitting(true);
+
+    try {
+      toast.info("Preparing to combine deposits...");
+
+      console.log(`Processing ${farmerDeposits.size} tokens for combining`);
+
+      // Generate only combine calls
+      const combineCalls: `0x${string}`[] = [];
+
+      // Process each token in the farmer's deposits
+      for (const [token, depositData] of farmerDeposits.entries()) {
+        if (!depositData.deposits.length) {
+          console.log(`Skipping ${token.symbol} - no deposits`);
+          continue;
+        }
+
+        try {
+          // Only generate combine calls
+          const tokenCombineCalls = encodeClaimRewardCombineCalls(depositData.deposits, token);
+          if (tokenCombineCalls.length > 0) {
+            combineCalls.push(...tokenCombineCalls);
+            console.log(`Added ${tokenCombineCalls.length} combine calls for ${token.symbol}`);
+          }
+        } catch (error) {
+          console.error(`Error processing ${token.symbol}:`, error);
+        }
+      }
+
+      if (!combineCalls || combineCalls.length === 0) {
+        toast.warning("No combine calls were generated");
+        setSortingAllTokens(false);
+        setSubmitting(false);
+        // Mark combine as complete even if no calls were needed
+        setCombineComplete(true);
+        return;
+      }
+
+      // Output raw calldata for debugging
+      const rawCalldata = encodeFunctionData({
+        abi: beanstalkAbi,
+        functionName: "farm",
+        args: [combineCalls],
+      });
+
+      console.log(`=== Raw Combine Farm Calldata ===`);
+      console.log(rawCalldata);
+      console.log(`Number of combine calls: ${combineCalls.length}`);
+      console.log("======================================");
+
+      toast.info(`Executing ${combineCalls.length} operations to combine deposits...`);
+
+      // Simulate the transaction
+      const simulateFirst = await publicClient
+        .simulateContract({
+          address: protocolAddress,
+          abi: beanstalkAbi,
+          functionName: "farm",
+          args: [combineCalls],
+          account: effectiveAddress,
+        })
+        .catch((e) => {
+          console.error("Simulation failed:", e);
+          return { error: e };
+        });
+
+      if ("error" in simulateFirst) {
+        console.error("Transaction would fail in simulation, not submitting");
+        toast.error("Transaction would fail: " + (simulateFirst.error as any)?.shortMessage || "unknown error");
+        setSubmitting(false);
+        setSortingAllTokens(false);
+        return;
+      }
+
+      // Execute with higher gas limit to prevent running out of gas
+      await writeWithEstimateGas({
+        address: protocolAddress,
+        abi: beanstalkAbi,
+        functionName: "farm",
+        args: [combineCalls],
+      });
+      
+      // Mark combine step as complete on success
+      setCombineComplete(true);
+    } catch (error) {
+      console.error("Error processing deposits for combining:", error);
+
+      // Extract error details for debugging
+      const errorObj = error as any;
+
+      if (errorObj.cause) console.log("Error cause:", errorObj.cause);
+      if (errorObj.details) console.log("Error details:", errorObj.details);
+      if (errorObj.data) console.log("Error data:", errorObj.data);
+      if (errorObj.reason) console.log("Error reason:", errorObj.reason);
+      if (errorObj.shortMessage) console.log("Short message:", errorObj.shortMessage);
+
+      // Display toast with specific error information
+      const errorMessage =
+        errorObj.shortMessage || errorObj.reason || errorObj.cause?.message || (error as Error).message;
+
+      toast.error(`Failed to combine deposits: ${errorMessage}`);
+
+      setSubmitting(false);
+      setSortingAllTokens(false);
+    }
+  };
+
+  // Function to handle only sorting deposits
+  const handleSortDeposits = async () => {
+    if (!address || !publicClient || !protocolAddress || !farmerDeposits) return;
+
+    const effectiveAddress = isLocal && isValidAddress(mockAddress) ? mockAddress : address;
+    console.log("Sort Deposits - Using address:", effectiveAddress);
+
+    setSortingAllTokens(true);
+    setSubmitting(true);
+
+    try {
+      toast.info("Preparing to sort deposits...");
+
+      console.log(`Processing ${farmerDeposits.size} tokens for sorting`);
+
+      // Generate only sort calls (no combine)
+      const sortCalls: `0x${string}`[] = [];
+
+      // Process each token in the farmer's deposits
+      for (const [token, depositData] of farmerDeposits.entries()) {
+        if (!depositData.deposits.length) {
+          console.log(`Skipping ${token.symbol} - no deposits`);
+          continue;
+        }
+
+        try {
+          // Create a map with only this token's deposits
+          const singleTokenMap = new Map<Token, TokenDepositData>();
+          singleTokenMap.set(token, depositData);
+
+          // Create empty map to avoid combining again
+          const emptyMap = new Map<Token, TokenDepositData>();
+
+          // Only generate sort calls, pass empty map for combines
+          const farmCalls = await simulateAndPrepareFarmCalls(
+            token,
+            effectiveAddress as `0x${string}`,
+            publicClient,
+            protocolAddress,
+            emptyMap, // Empty map to skip combine operations
+            effectiveAddress as `0x${string}`,
+          );
+
+          if (farmCalls && farmCalls.length > 0) {
+            sortCalls.push(...farmCalls);
+            console.log(`Added ${farmCalls.length} sort calls for ${token.symbol}`);
+          }
+        } catch (error) {
+          console.error(`Error processing ${token.symbol}:`, error);
+        }
+      }
+
+      if (!sortCalls || sortCalls.length === 0) {
+        toast.warning("No sort calls were generated");
+        setSortingAllTokens(false);
+        setSubmitting(false);
+        return;
+      }
+
+      // Output raw calldata for debugging
+      const rawCalldata = encodeFunctionData({
+        abi: beanstalkAbi,
+        functionName: "farm",
+        args: [sortCalls],
+      });
+
+      console.log(`=== Raw Sort Farm Calldata ===`);
+      console.log(rawCalldata);
+      console.log(`Number of sort calls: ${sortCalls.length}`);
+      console.log("======================================");
+
+      toast.info(`Executing ${sortCalls.length} operations to sort deposits...`);
+
+      // Simulate the transaction
+      const simulateFirst = await publicClient
+        .simulateContract({
+          address: protocolAddress,
+          abi: beanstalkAbi,
+          functionName: "farm",
+          args: [sortCalls],
+          account: effectiveAddress,
+        })
+        .catch((e) => {
+          console.error("Simulation failed:", e);
+          return { error: e };
+        });
+
+      if ("error" in simulateFirst) {
+        console.error("Transaction would fail in simulation, not submitting");
+        toast.error("Transaction would fail: " + (simulateFirst.error as any)?.shortMessage || "unknown error");
+        setSubmitting(false);
+        setSortingAllTokens(false);
+        return;
+      }
+
+      // Execute with higher gas limit to prevent running out of gas
+      await writeWithEstimateGas({
+        address: protocolAddress,
+        abi: beanstalkAbi,
+        functionName: "farm",
+        args: [sortCalls],
+      });
+    } catch (error) {
+      console.error("Error processing deposits for sorting:", error);
+
+      // Extract error details for debugging
+      const errorObj = error as any;
+
+      if (errorObj.cause) console.log("Error cause:", errorObj.cause);
+      if (errorObj.details) console.log("Error details:", errorObj.details);
+      if (errorObj.data) console.log("Error data:", errorObj.data);
+      if (errorObj.reason) console.log("Error reason:", errorObj.reason);
+      if (errorObj.shortMessage) console.log("Short message:", errorObj.shortMessage);
+
+      // Display toast with specific error information
+      const errorMessage =
+        errorObj.shortMessage || errorObj.reason || errorObj.cause?.message || (error as Error).message;
+
+      toast.error(`Failed to sort deposits: ${errorMessage}`);
+
+      setSubmitting(false);
+      setSortingAllTokens(false);
+    }
   };
 
   // New function to handle combine and sort all deposits
@@ -1058,6 +1299,30 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     setActiveTipButton(activeButton);
   };
 
+  // Determine if any tokens need combining (more than 20 deposits)
+  const needsCombiningValue = useMemo(() => {
+    if (!farmerDeposits || farmerDeposits.size === 0) return false;
+    
+    // Check if any token has more than 20 deposits
+    return Array.from(farmerDeposits.entries()).some(
+      ([_, depositData]) => depositData.deposits.length > 20
+    );
+  }, [farmerDeposits]);
+
+  // Auto-skip combine step if no tokens need combining
+  useEffect(() => {
+    if (formStep === 0 && !needsCombiningValue) {
+      setCombineComplete(true);
+    }
+  }, [formStep, needsCombiningValue]);
+
+  // Prepare the message for the step 2 header
+  const step2Message = useMemo(() => {
+    return needsCombiningValue ? 
+      "Step 2: Sort your deposits to optimize them for Tractor orders." :
+      "Your deposits are already combined. Sort your deposits to optimize them for Tractor orders.";
+  }, [needsCombiningValue]);
+
   if (!open) return null;
 
   return (
@@ -1075,8 +1340,16 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                   </div>
                   <h3 className="text-center pinto-h3 mt-4 mb-2">Fragmented Silo Deposits</h3>
                   <p className="text-center pinto-body text-gray-700 mb-2">
-                    Pinto does not combine and sort deposits by default, due to gas costs. A one-time claim and combine
-                    will optimize your deposits and allow you to create Tractor orders.
+                    Pinto requires a two-step process to optimize your deposits:
+                    {combineComplete ? (
+                      <strong className="block mt-2 text-amber-700">
+                        {step2Message}
+                      </strong>
+                    ) : (
+                      <strong className="block mt-2 text-amber-700">
+                        Step 1: Combine your deposits to reduce their total number.
+                      </strong>
+                    )}
                   </p>
 
                   {/* Display tokens needing optimization */}
@@ -1499,9 +1772,15 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                     size="xlargest"
                     rounded="full"
                     variant="gradient"
-                    submitFunction={handleCombineAndSortAll}
+                    submitFunction={combineComplete ? handleSortDeposits : handleCombineDeposits}
                     disabled={sortingAllTokens || submitting}
-                    submitButtonText={sortingAllTokens || submitting ? "Optimizing..." : "Combine & Sort"}
+                    submitButtonText={
+                      sortingAllTokens || submitting 
+                        ? "Optimizing..." 
+                        : combineComplete 
+                          ? "Sort Deposits" 
+                          : needsCombiningValue ? "Combine Deposits" : "Sort Deposits Only"
+                    }
                     className="flex-1 rounded-full text-2xl font-medium"
                   />
                 ) : (
