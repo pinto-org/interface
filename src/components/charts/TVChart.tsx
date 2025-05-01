@@ -506,7 +506,7 @@ const TVChart = ({ formattedData, height = 500, timePeriod, selected }: TVChartP
                         </div>
                       </div>
                       <div className="pinto-h3 text-black">
-                        {value ? chartSetupData[chartId].tickFormatter(value) : "-"}
+                        {value !== null && value !== undefined ? chartSetupData[chartId].tickFormatter(value) : "-"}
                       </div>
                     </div>
                     {index === 0 && (

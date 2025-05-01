@@ -373,6 +373,54 @@ const createFieldCharts = (mainToken: Token): ChartSetupBase[] => [
   },
 ];
 
+const createAPYCharts = (mainToken: Token): ChartSetupBase[] => [
+  {
+    id: "pinto30d",
+    type: "Silo",
+    name: "30D Deposited Pinto vAPY",
+    tooltipTitle: "30D Deposited Pinto vAPY",
+    tooltipHoverText: "The 30D variable Pinto APY for Deposited Pinto in the Silo.",
+    shortDescription: "Deposited Pinto 30D vAPY.",
+    icon: mainToken.logoURI,
+    timeScaleKey: "timestamp",
+    priceScaleKey: "pinto30d",
+    valueAxisType: "vAPY",
+    valueFormatter: (v: number) => v * 100,
+    tickFormatter: (v: number) => formatPct(v, { minDecimals: 2, maxDecimals: 2 }),
+    shortTickFormatter: (v: number) => formatPct(v, { minDecimals: 2, maxDecimals: 2 }),
+  },
+  {
+    id: "pinto7d",
+    type: "Silo",
+    name: "7D Deposited Pinto vAPY",
+    tooltipTitle: "7D Deposited Pinto vAPY",
+    tooltipHoverText: "The 7D variable Pinto APY for Deposited Pinto in the Silo.",
+    shortDescription: "Deposited Pinto 7D vAPY.",
+    icon: mainToken.logoURI,
+    timeScaleKey: "timestamp",
+    priceScaleKey: "pinto7d",
+    valueAxisType: "vAPY",
+    valueFormatter: (v: number) => v * 100,
+    tickFormatter: (v: number) => formatPct(v, { minDecimals: 2, maxDecimals: 2 }),
+    shortTickFormatter: (v: number) => formatPct(v, { minDecimals: 2, maxDecimals: 2 }),
+  },
+  {
+    id: "pinto24h",
+    type: "Silo",
+    name: "24H Deposited Pinto vAPY",
+    tooltipTitle: "24H Deposited Pinto vAPY",
+    tooltipHoverText: "The 24H variable Pinto APY for Deposited Pinto in the Silo.",
+    shortDescription: "Deposited Pinto 24H vAPY.",
+    icon: mainToken.logoURI,
+    timeScaleKey: "timestamp",
+    priceScaleKey: "pinto24h",
+    valueAxisType: "vAPY",
+    valueFormatter: (v: number) => v * 100,
+    tickFormatter: (v: number) => formatPct(v, { minDecimals: 2, maxDecimals: 2 }),
+    shortTickFormatter: (v: number) => formatPct(v, { minDecimals: 2, maxDecimals: 2 }),
+  },
+];
+
 export function useChartSetupData() {
   const { mainToken, lpTokens, whitelistedTokens } = useTokenData();
 
@@ -394,7 +442,9 @@ export function useChartSetupData() {
       // Add deposit & APY charts here
     }
 
-    const output: ChartSetup[] = [...pintoCharts, ...fieldCharts].map((setupData, index) => ({
+    const apyCharts = createAPYCharts(mainToken);
+
+    const output: ChartSetup[] = [...pintoCharts, ...fieldCharts, ...apyCharts].map((setupData, index) => ({
       ...setupData,
       index: index,
     }));

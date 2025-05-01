@@ -2,15 +2,11 @@ import FrameAnimator from "@/components/LoadingSpinner.tsx";
 import { formatDate } from "@/utils/format";
 import { UseSeasonalResult } from "@/utils/types";
 import { cn } from "@/utils/utils";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { CloseIconAlt } from "../Icons";
-import Text from "../ui/Text";
-import LineChart, { LineChartData, MakeGradientFunction } from "./LineChart";
-import {
-  metallicGreenStrokeGradientFn,
-  metallicMorningAreaGradientFn,
-  metallicMorningStrokeGradientFn,
-} from "./chartHelpers";
+import LineChart, { LineChartData } from "./LineChart";
+import TimeTabsSelector, { TimeTab } from "./TimeTabs";
+import { gradientFunctions, metallicMorningAreaGradientFn, metallicMorningStrokeGradientFn } from "./chartHelpers";
 
 export const tabToSeasonalLookback = (tab: TimeTab): number => {
   if (tab === TimeTab.Week) {
@@ -26,13 +22,6 @@ export interface SeasonalChartData {
   value: number;
   timestamp: Date;
 }
-
-export enum TimeTab {
-  Week = 0,
-  Month = 1,
-  AllTime = 2,
-}
-export const TIME_TABS = ["Week", "Month", "All"];
 
 // Interface for y-axis range configuration by time period
 export interface YAxisRangeConfig {
@@ -62,7 +51,7 @@ interface SeasonalChartProps {
 }
 
 const morningStrokeGradients = [metallicMorningStrokeGradientFn];
-const greenStrokeGradients = [metallicGreenStrokeGradientFn];
+const greenStrokeGradients = [gradientFunctions.metallicGreen];
 
 const areaGradients = [metallicMorningAreaGradientFn];
 
@@ -93,8 +82,8 @@ const SeasonalChart = ({
     }
   }, [inputData, allData]);
 
-  const handleChangeTabFactory = useCallback(
-    (tab: TimeTab) => () => {
+  const handleChangeTab = useCallback(
+    (tab: TimeTab) => {
       onChangeTab(tab);
       setAllData(null);
       setDisplayData(null);
@@ -105,12 +94,12 @@ const SeasonalChart = ({
   const chartData = useMemo<LineChartData[]>(() => {
     if (allData) {
       return allData.map((d) => ({
-        values: [d.value],
+        values: [useLogarithmicScale ? Math.max(0.000001, d.value) : d.value],
         timestamp: d.timestamp,
       }));
     }
     return [];
-  }, [allData]);
+  }, [allData, useLogarithmicScale]);
 
   const horizontalReferenceLines = useMemo(() => {
     if (showReferenceLineAtOne) {
@@ -149,18 +138,7 @@ const SeasonalChart = ({
         >
           {title}
         </div>
-        <div className="flex gap-4 sm:gap-8">
-          {TIME_TABS.map((tabName: string, idx: number) => (
-            <div
-              key={tabName}
-              data-state={activeTab === idx ? "active" : "inactive"}
-              onClick={handleChangeTabFactory(idx)}
-              className={`${activeTab === idx ? "text-pinto-green-3 sm:text-pinto-green-3" : "text-pinto-light sm:text-pinto-light"} pinto-sm sm:pinto-body-light cursor-pointer data-[state=inactive]:hover:text-pinto-green-4`}
-            >
-              {tabName}
-            </div>
-          ))}
-        </div>
+        <TimeTabsSelector tab={activeTab} setTab={handleChangeTab} />
       </div>
 
       {!allData && !displayData && (

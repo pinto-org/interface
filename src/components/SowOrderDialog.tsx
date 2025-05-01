@@ -596,26 +596,26 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
       toast.info(`Executing ${callData.length} operations for all tokens (combines + sort updates)...`);
 
       // Execute the farm transaction using writeWithEstimateGas with higher gas limit
-      const simulateFirst = await publicClient
-        .simulateContract({
-          address: protocolAddress,
-          abi: beanstalkAbi,
-          functionName: "farm",
-          args: [callData],
-          account: effectiveAddress,
-        })
-        .catch((e) => {
-          console.debug("Simulation failed:", e);
-          return { error: e };
-        });
+      // const simulateFirst = await publicClient
+      //   .simulateContract({
+      //     address: protocolAddress,
+      //     abi: beanstalkAbi,
+      //     functionName: "farm",
+      //     args: [callData],
+      //     account: effectiveAddress,
+      //   })
+      //   .catch((e) => {
+      //     console.debug("Simulation failed:", e);
+      //     return { error: e };
+      //   });
 
-      if ("error" in simulateFirst) {
-        // console.error("Transaction would fail in simulation, not submitting");
-        toast.error("Transaction would fail: " + (simulateFirst.error as any)?.shortMessage || "unknown error");
-        setSubmitting(false);
-        setSortingAllTokens(false);
-        return;
-      }
+      // if ("error" in simulateFirst) {
+      //   // console.error("Transaction would fail in simulation, not submitting");
+      //   toast.error("Transaction would fail: " + (simulateFirst.error as any)?.shortMessage || "unknown error");
+      //   setSubmitting(false);
+      //   setSortingAllTokens(false);
+      //   return;
+      // }
 
       // Execute with higher gas limit to prevent running out of gas
       await writeWithEstimateGas({

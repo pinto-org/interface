@@ -717,19 +717,53 @@ export async function fetchTractorExecutions(
       // Add block number to the set for batch fetching
       blockNumbers.add(receipt.blockNumber);
 
-      // Find the Sow event in the transaction logs
-      const sowEvent = receipt.logs.find((log) => {
+      // Get the blueprint hash from the Tractor event
+      const blueprintHash = event.args?.blueprintHash as `0x${string}`;
+
+      // First, find the TractorExecutionBegan event with matching blueprint hash
+      let tractorExecutionBeganIndex = -1;
+      let tractorExecutionBeganEvent: any = null;
+
+      for (let i = 0; i < receipt.logs.length; i++) {
+        const log = receipt.logs[i];
         try {
           const decoded = decodeEventLog({
             abi: diamondABI,
             data: log.data,
             topics: log.topics,
           });
-          return decoded.eventName === "Sow";
+
+          if (decoded.eventName === "TractorExecutionBegan" && decoded.args?.blueprintHash === blueprintHash) {
+            tractorExecutionBeganIndex = i;
+            tractorExecutionBeganEvent = decoded;
+            break;
+          }
         } catch {
-          return false;
+          // Skip logs that can't be decoded
         }
-      });
+      }
+
+      // If we found the TractorExecutionBegan event, look for the first Sow event after it
+      let sowEvent: any = null;
+      if (tractorExecutionBeganIndex >= 0) {
+        for (let i = tractorExecutionBeganIndex + 1; i < receipt.logs.length; i++) {
+          const log = receipt.logs[i];
+          try {
+            const decoded = decodeEventLog({
+              abi: diamondABI,
+              data: log.data,
+              topics: log.topics,
+            });
+
+            if (decoded.eventName === "Sow") {
+              sowEvent = log;
+              break;
+            }
+          } catch {
+            // Skip logs that can't be decoded
+          }
+        }
+      }
 
       // Decode the Sow event if found
       let sowData: SowEventArgs | undefined;
@@ -753,11 +787,23 @@ export async function fetchTractorExecutions(
         }
       }
 
+      // Create the tractorExecutionBeganData object conditionally
+      const tractorExecutionBeganData = tractorExecutionBeganEvent
+        ? {
+            operator: tractorExecutionBeganEvent.args?.operator as `0x${string}`,
+            publisher: tractorExecutionBeganEvent.args?.publisher as `0x${string}`,
+            blueprintHash: tractorExecutionBeganEvent.args?.blueprintHash as `0x${string}`,
+            nonce: tractorExecutionBeganEvent.args?.nonce as bigint,
+            gasleft: tractorExecutionBeganEvent.args?.gasleft as bigint,
+          }
+        : undefined;
+
       return {
         blockNumber: receipt.blockNumber,
         event,
         receipt,
         sowData,
+        tractorExecutionBeganEvent: tractorExecutionBeganData,
       };
     }),
   );
@@ -783,6 +829,7 @@ export async function fetchTractorExecutions(
       transactionHash: result.event.transactionHash,
       timestamp: blockTimestamps.get(result.blockNumber.toString()),
       sowEvent: result.sowData,
+      tractorExecutionBeganEvent: result.tractorExecutionBeganEvent,
     };
   });
 }

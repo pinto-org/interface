@@ -1,3 +1,4 @@
+import { API_SERVICES } from "@/constants/endpoints";
 import { deployedCommitHash, isDev, isObject } from "./utils";
 
 interface ErrorWithShortMessage {
@@ -23,8 +24,6 @@ export const tryExtractErrorMessage = (value: unknown, defaultMessage: string): 
 
 // Discord webhook for logging site-wide errors
 export const activateDiscordLogging = () => {
-  const webhookUrl =
-    "https://discord.com/api/webhooks/1365024536386605210/vuTrpuicFeFYgpkPKoUcX34Whpii5crIIR9GFAwvsmy5LIvQLqiRxTam0wWH0SzQrZ7a";
   // Dont send messages with this content
   const WEBHOOK_BLACKLIST = [
     "validateDOMNesting",
@@ -42,7 +41,7 @@ export const activateDiscordLogging = () => {
 
     if (!isDev()) {
       const content =
-        `🚨 ${(deployedCommitHash() ?? "").slice(0, 7)} Console error on ${window.location.href}:\n${args.map((arg) => (typeof arg === "object" ? JSON.stringify(arg) : String(arg))).join(" ")}`
+        `🚨 ${(deployedCommitHash() ?? "").slice(0, 7)} Console error on ${window.location.href}:\n${args.map((arg) => (arg instanceof Error ? arg.message : typeof arg === "object" ? JSON.stringify(arg) : String(arg))).join(" ")}`
           // Prevent discord link previews
           .replace(/(https?:\/\/[^\s]+)/g, "<$1>")
           // Hide wallet addresses
@@ -53,7 +52,7 @@ export const activateDiscordLogging = () => {
       }
 
       // Send to Discord
-      fetch(webhookUrl, {
+      fetch(`${API_SERVICES.pinto}/proxy/ui-errors`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -12,6 +12,7 @@ import { PaginationSettings, paginateMultiQuerySubgraph, paginateSubgraph } from
 import { Duration } from "luxon";
 import { useMemo } from "react";
 import { useChainId } from "wagmi";
+import { APYWindow, useSeasonalAPYs } from "./seasonal/queries/useSeasonalAPY";
 import useSeasonalQueries, {
   SeasonalQueryVars,
   useMultiSeasonalQueries,
@@ -52,6 +53,9 @@ export interface SeasonsTableData {
   numberOfSows: number;
   numberOfSowers: number;
   stalk: TokenValue;
+  pinto30d: number;
+  pinto7d: number;
+  pinto24h: number;
 }
 
 const stalkPaginateSettings: PaginationSettings<Season, AdvancedChartBeanStalkQuery, "seasons", SeasonalQueryVars> = {
@@ -98,7 +102,7 @@ export default function useSeasonsDataChart(fromSeason: number, toSeason: number
     return paginateSubgraph(beanPaginateSettings, subgraphs[chainId].bean, AdvancedChartBeanDocument, vars);
   };
 
-  const useStalkQuery = useMultiSeasonalQueries("seasonsTableStalk", {
+  const useStalkQuery = useMultiSeasonalQueries("all_seasonsTableStalk", {
     fromSeason,
     toSeason,
     queryVars: {},
@@ -113,7 +117,7 @@ export default function useSeasonsDataChart(fromSeason: number, toSeason: number
     orderBy: "desc",
   }) as any;
 
-  const useBeanQuery = useSeasonalQueries("seasonsTableBean", {
+  const useBeanQuery = useSeasonalQueries("all_seasonsTableBean", {
     fromSeason: fromSeason,
     toSeason: toSeason,
     queryVars: {},
@@ -128,13 +132,24 @@ export default function useSeasonsDataChart(fromSeason: number, toSeason: number
     orderBy: "desc",
   });
 
+  const useAPYQuery = useSeasonalAPYs(tokenData.mainToken.address, fromSeason, toSeason);
+
   const transformedData = useMemo(() => {
-    if (!useBeanQuery.data || !useStalkQuery.data) {
+    if (
+      Object.keys(useStalkQuery.data || {}).length === 0 ||
+      Object.keys(useBeanQuery.data || {}).length === 0 ||
+      Object.keys(useAPYQuery.data || {}).length === 0
+    ) {
       return [];
     }
-    const stalkResults = useStalkQuery?.data;
-    const beanResults = (useBeanQuery?.data as any) || [];
-    const { fieldHourlySnapshots, siloHourlySnapshots, seasons: stalkSeasons } = stalkResults || ({} as any);
+    const stalkResults = useStalkQuery.data;
+    const beanResults = useBeanQuery?.data || ([] as any);
+    const { fieldHourlySnapshots, siloHourlySnapshots, seasons: stalkSeasons } = stalkResults;
+    const {
+      [APYWindow.MONTHLY]: apy30d,
+      [APYWindow.WEEKLY]: apy7d,
+      [APYWindow.DAILY]: apy24h,
+    } = useAPYQuery?.data || {};
     const transformedData: SeasonsTableData[] = beanResults.reduce((acc: SeasonsTableData[], season, idx) => {
       const currFieldHourlySnapshots = fieldHourlySnapshots[idx];
       const currSiloHourlySnapshots = siloHourlySnapshots[idx];
@@ -181,6 +196,9 @@ export default function useSeasonsDataChart(fromSeason: number, toSeason: number
         numberOfSowers: currFieldHourlySnapshots.numberOfSowers,
         numberOfSows: currFieldHourlySnapshots.numberOfSows,
         stalk: TokenValue.fromBlockchain(currSiloHourlySnapshots.stalk || 0n, STALK.decimals),
+        pinto30d: apy30d?.[idx]?.value || 0,
+        pinto7d: apy7d?.[idx]?.value || 0,
+        pinto24h: apy24h?.[idx]?.value || 0,
         timestamp: Number(season.beanHourlySnapshot.season.timestamp || 0),
       });
       return acc;

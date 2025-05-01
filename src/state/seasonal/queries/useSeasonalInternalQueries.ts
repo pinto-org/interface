@@ -87,6 +87,7 @@ export default function useSeasonalQueries<T>(
     },
     enabled: !!historicalVars.to && !disabled,
     staleTime: Infinity,
+    gcTime: 20 * 60 * 1000,
     retry: 1,
     retryDelay: 2000,
     meta: {

@@ -2,6 +2,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import { SeasonalChartData } from "@/components/charts/SeasonalChart";
 import { PlotSource } from "@/generated/gql/graphql";
 import { ProtocolIntegration } from "@/state/integrations/types";
+import { APYWindow } from "@/state/seasonal/queries/useSeasonalAPY";
 import { QueryKey, UseQueryOptions } from "@tanstack/react-query";
 import { DateTime } from "luxon";
 import { ReactNode } from "react";
@@ -309,6 +310,13 @@ export type UseSeasonalResult = {
 
 export type UseMultiSeasonalResult = {
   data: { [key: string]: SeasonalChartData[] } | undefined;
+  isLoading: boolean;
+  isError: boolean;
+};
+
+export type SeasonalAPYChartData = Record<APYWindow, SeasonalChartData[]>;
+export type UseSeasonalAPYResult = {
+  data: SeasonalAPYChartData | undefined;
   isLoading: boolean;
   isError: boolean;
 };
