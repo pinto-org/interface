@@ -1,4 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
+import useAppSettings, { usePrivateMode } from "@/hooks/useAppSettings";
 import { navbarPanelAtom } from "@/state/app/navBar.atoms";
 import { FarmerBalance, useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
@@ -13,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { useAccount, useDisconnect, useEnsAvatar, useEnsName } from "wagmi";
 import ChainButton from "./ChainButton";
 import { BackwardArrowDotsIcon, LeftArrowIcon, UpDownArrowsIcon } from "./Icons";
+import { obfuscatedWalletAddress } from "./PrivateModeWrapper";
 import WalletButtonClaim from "./WalletButtonClaim";
 import WalletButtonTransfer from "./WalletButtonTransfer";
 import WalletPanelTokenDisplay from "./WalletPanelTokenDisplay";
@@ -21,8 +23,6 @@ import { CardContent, CardFooter, CardHeader } from "./ui/Card";
 import { ScrollArea } from "./ui/ScrollArea";
 import { Separator } from "./ui/Separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/Tabs";
-import useAppSettings, { usePrivateMode } from "@/hooks/useAppSettings";
-import { obfuscatedWalletAddress } from "./PrivateModeWrapper";
 
 // Wallet header component
 interface WalletHeaderProps {
@@ -293,9 +293,9 @@ export default function WalletButtonPanel({ togglePanel }) {
     return <WalletButtonTransfer />;
   }
 
-  let walletAddress = ensName ? ensName : address ? `${address.substring(0, 7)}...${address.substring(38, 42)}` : ""
+  let walletAddress = ensName ? ensName : address ? `${address.substring(0, 7)}...${address.substring(38, 42)}` : "";
   if (isPrivateMode) {
-    walletAddress = obfuscatedWalletAddress
+    walletAddress = obfuscatedWalletAddress;
   }
 
   return (

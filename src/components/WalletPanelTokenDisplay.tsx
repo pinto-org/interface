@@ -1,11 +1,11 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { PrivateModeWrapper } from "@/components/PrivateModeWrapper";
+import { usePrivateMode } from "@/hooks/useAppSettings";
 import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
 import DonutChart from "./DonutChart";
 import { ChevronDownIcon } from "./Icons";
 import { Toggle } from "./ui/Toggle";
-import { PrivateModeWrapper } from "@/components/PrivateModeWrapper";
-import { usePrivateMode } from "@/hooks/useAppSettings";
 
 interface TokenBalances {
   external: TokenValue;
@@ -89,9 +89,7 @@ const WalletPanelTokenDisplay = ({
                 </>
               ) : (
                 <div className="pinto-xs sm:pinto-sm text-pinto-light sm:text-pinto-light">
-                  <PrivateModeWrapper>
-                    {`${displayBalance.toHuman("short")} ${token.symbol}`}
-                  </PrivateModeWrapper>
+                  <PrivateModeWrapper>{`${displayBalance.toHuman("short")} ${token.symbol}`}</PrivateModeWrapper>
                 </div>
               )}
             </span>

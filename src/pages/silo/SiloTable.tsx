@@ -6,6 +6,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import APYTooltip from "@/components/APYTooltip";
 import { InlineCenterSpan } from "@/components/Container";
 import { UpArrowIcon } from "@/components/Icons";
+import { PrivateModeWrapper } from "@/components/PrivateModeWrapper";
 import TooltipSimple from "@/components/TooltipSimple";
 import IconImage from "@/components/ui/IconImage";
 import { Separator } from "@/components/ui/Separator";
@@ -15,7 +16,6 @@ import Text from "@/components/ui/Text";
 import { PINTO } from "@/constants/tokens";
 import { useDenomination } from "@/hooks/useAppSettings";
 import useFarmerActions from "@/hooks/useFarmerActions";
-import { PrivateModeWrapper } from "@/components/PrivateModeWrapper";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { EMAWindows, SiloYieldsByToken, useSiloYieldsByToken } from "@/state/useSiloAPYs";
@@ -174,18 +174,14 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                       <div className="pinto-xs sm:pinto-sm inline-flex items-center gap-1 opacity-70 flex-wrap">
                         <InlineCenterSpan gap1>
                           <IconImage src={stalkIcon} alt={"stalk"} size={4} />
-                          <PrivateModeWrapper>
-                            {formatter.noDec(data.rewards.stalk)}
-                          </PrivateModeWrapper>
+                          <PrivateModeWrapper>{formatter.noDec(data.rewards.stalk)}</PrivateModeWrapper>
                         </InlineCenterSpan>
                         Stalk
                       </div>
                       <div className="pinto-xs sm:pinto-sm inline-flex items-center gap-1 opacity-70 flex-wrap">
                         <InlineCenterSpan gap1>
                           <IconImage src={seedsIcon} alt={"seeds"} size={4} />
-                          <PrivateModeWrapper>
-                            {formatter.twoDec(data.rewards.seeds)}
-                          </PrivateModeWrapper>
+                          <PrivateModeWrapper>{formatter.twoDec(data.rewards.seeds)}</PrivateModeWrapper>
                         </InlineCenterSpan>
                         Seeds
                       </div>
@@ -233,7 +229,9 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                           ) : (
                             <div className="pinto-sm-thin text-right text-pinto-green-4">
                               <PrivateModeWrapper>
-                                {formatter.usd(currentBDV.mul(priceData.price).add(gains.beanGain.mul(priceData.price)))}
+                                {formatter.usd(
+                                  currentBDV.mul(priceData.price).add(gains.beanGain.mul(priceData.price)),
+                                )}
                               </PrivateModeWrapper>
                             </div>
                           )}

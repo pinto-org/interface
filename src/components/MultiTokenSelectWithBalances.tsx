@@ -5,6 +5,7 @@ import { Address } from "viem";
 import { useAccount } from "wagmi";
 import CheckmarkCircle from "./CheckmarkCircle";
 import { CheckmarkIcon, PlusIcon } from "./Icons";
+import { PrivateModeWrapper } from "./PrivateModeWrapper";
 import { Button } from "./ui/Button";
 import {
   Dialog,
@@ -18,7 +19,6 @@ import {
 import { ScrollArea } from "./ui/ScrollArea";
 import { Separator } from "./ui/Separator";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
-import { PrivateModeWrapper } from "./PrivateModeWrapper";
 
 function TokenSelectItem({
   token,

@@ -2,6 +2,7 @@ import arrowDown from "@/assets/misc/ChevronDown.svg";
 import podIcon from "@/assets/protocol/Pod.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { PODS } from "@/constants/internalTokens";
+import { usePrivateMode } from "@/hooks/useAppSettings";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useHarvestableIndex } from "@/state/useFieldData";
 import { formatter } from "@/utils/format";
@@ -10,6 +11,7 @@ import { Description } from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import CheckmarkCircle from "./CheckmarkCircle";
+import { PrivateModeWrapper, privateModeObsfucation } from "./PrivateModeWrapper";
 import { Button } from "./ui/Button";
 import {
   Dialog,
@@ -23,8 +25,6 @@ import {
 import { ScrollArea } from "./ui/ScrollArea";
 import { Separator } from "./ui/Separator";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
-import { privateModeObsfucation, PrivateModeWrapper } from "./PrivateModeWrapper";
-import { usePrivateMode } from "@/hooks/useAppSettings";
 
 function PlotSelectItem({
   plot,
@@ -40,7 +40,7 @@ function PlotSelectItem({
   const isSelected = selectedPlots.includes(plot.index.toHuman());
   const isPrivateMode = usePrivateMode();
 
-  const podLineValue = isPrivateMode ? privateModeObsfucation : plot.index.sub(harvestableIndex).toHuman("short")
+  const podLineValue = isPrivateMode ? privateModeObsfucation : plot.index.sub(harvestableIndex).toHuman("short");
 
   const content = (
     <ToggleGroupItem
@@ -57,13 +57,9 @@ function PlotSelectItem({
       </div>
       <div className="flex flex-col gap-1">
         <div className="flex justify-end font-[340] text-[1.5rem] text-black">
-          <PrivateModeWrapper>
-            {plot.pods?.gt(0) ? formatter.number(plot.pods) : 0}
-          </PrivateModeWrapper>
+          <PrivateModeWrapper>{plot.pods?.gt(0) ? formatter.number(plot.pods) : 0}</PrivateModeWrapper>
         </div>
-        <div className="flex justify-end font-[340] text-[1rem] text-pinto-gray-4">
-          {`@ ${podLineValue} in Line`}
-        </div>
+        <div className="flex justify-end font-[340] text-[1rem] text-pinto-gray-4">{`@ ${podLineValue} in Line`}</div>
       </div>
     </ToggleGroupItem>
   );

@@ -2,7 +2,6 @@ import { Denomination, appSettingsAtom } from "@/state/app/app.atoms";
 import { useAtom } from "jotai";
 import { useCallback } from "react";
 
-
 export default function useAppSettings() {
   const [appSettings, setAppSettings] = useAtom(appSettingsAtom);
 

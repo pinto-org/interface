@@ -4,6 +4,7 @@ import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { PODS } from "@/constants/internalTokens";
 import useIsMobile from "@/hooks/display/useIsMobile";
+import { usePrivateMode } from "@/hooks/useAppSettings";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useHarvestableIndex } from "@/state/useFieldData";
 import { formatter, truncateHex } from "@/utils/format";
@@ -14,11 +15,10 @@ import React, { forwardRef, HTMLAttributes, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import CheckmarkCircle from "./CheckmarkCircle";
 import { RightArrowIcon } from "./Icons";
+import { PrivateModeWrapper } from "./PrivateModeWrapper";
 import IconImage from "./ui/IconImage";
 import { Table, TableBody, TableCell, TableRow } from "./ui/Table";
 import { ToggleGroupItem } from "./ui/ToggleGroup";
-import { PrivateModeWrapper } from "./PrivateModeWrapper";
-import { usePrivateMode } from "@/hooks/useAppSettings";
 
 type PlotRowProps = HTMLMotionProps<"tr"> &
   React.HTMLAttributes<HTMLTableRowElement> & {
@@ -75,9 +75,7 @@ const PlotRow = forwardRef<HTMLTableRowElement, PlotRowProps>(
           <TableCell className="text-right px-2">
             <div className="inline-flex items-center">
               <div className="pinto-sm sm:pinto-body-light text-pinto-green-4 sm:text-pinto-green-4">
-                <PrivateModeWrapper>
-                  {formatter.token(numHarvestable, PODS)} Claimable
-                </PrivateModeWrapper>
+                <PrivateModeWrapper>{formatter.token(numHarvestable, PODS)} Claimable</PrivateModeWrapper>
               </div>
             </div>
           </TableCell>
@@ -113,7 +111,8 @@ const PlotRow = forwardRef<HTMLTableRowElement, PlotRowProps>(
                   <div className="pinto-body-light text-pinto-light">(purchased from Pod Market)</div>
                 ) : plot.source === "TRANSFER" && plot.preTransferOwner && !isPrivateMode ? (
                   <div className="pinto-body-light text-pinto-light">
-                    (transferred from <PrivateModeWrapper>{truncateHex(plot.preTransferOwner, 6, 4)}</PrivateModeWrapper>)
+                    (transferred from{" "}
+                    <PrivateModeWrapper>{truncateHex(plot.preTransferOwner, 6, 4)}</PrivateModeWrapper>)
                   </div>
                 ) : null}
               </div>
@@ -250,8 +249,8 @@ const PlotRow = forwardRef<HTMLTableRowElement, PlotRowProps>(
                 {placeInLine.gt(999999) && isMobile
                   ? placeInLine.toHuman("ultraShort")
                   : formatter.number(isHarvesting ? TokenValue.ZERO : placeInLine.eq(0) ? 0.001 : placeInLine, {
-                    minValue: 0.01,
-                  })}
+                      minValue: 0.01,
+                    })}
               </PrivateModeWrapper>
               <span className="block sm:hidden md:block lg:hidden min-[1350px]:block text-pinto-light">
                 in the Pod Line
@@ -287,10 +286,10 @@ export default function PlotsTable({
   // Update the harvestable plot logic to only use it for the claimable row
   const harvestablePlot = hasHarvestablePods
     ? {
-      ...(farmerField.plots.find((plot) => plot.harvestablePods.gt(0)) || farmerField.plots[0]),
-      // For the claimable row, we only want to show harvestable pods
-      pods: farmerField.plots.reduce((sum, plot) => sum.add(plot.harvestablePods), TokenValue.ZERO),
-    }
+        ...(farmerField.plots.find((plot) => plot.harvestablePods.gt(0)) || farmerField.plots[0]),
+        // For the claimable row, we only want to show harvestable pods
+        pods: farmerField.plots.reduce((sum, plot) => sum.add(plot.harvestablePods), TokenValue.ZERO),
+      }
     : undefined;
 
   const numHarvestable = useMemo(() => {

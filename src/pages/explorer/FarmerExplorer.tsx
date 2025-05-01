@@ -37,7 +37,7 @@ const FarmerExplorer = () => {
         <span>Please turn off Private mode to view the charts here</span>
         <span>this can be done by clicking the value in the wallet</span>
       </div>
-    )
+    );
   }
   return (
     <>

@@ -18,8 +18,8 @@ import { HTMLMotionProps } from "framer-motion";
 import React, { useState } from "react";
 import { div } from "three/webgpu";
 import CheckmarkCircle from "./CheckmarkCircle";
-import IconImage from "./ui/IconImage";
 import { PrivateModeWrapper } from "./PrivateModeWrapper";
+import IconImage from "./ui/IconImage";
 
 interface DepositsTableProps {
   token: Token;
@@ -119,9 +119,7 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & Table
           <div className="flex flex-row gap-1 items-center justify-start md:justify-end">
             <IconImage src={token.logoURI} size={4} />
             <div className="opacity-70">
-              <PrivateModeWrapper>
-                {`${formatter.token(deposit.amount, token)}`}
-              </PrivateModeWrapper>
+              <PrivateModeWrapper>{`${formatter.token(deposit.amount, token)}`}</PrivateModeWrapper>
             </div>
             <span className="opacity-70 hidden md:block">{token.name}</span>
           </div>
@@ -139,9 +137,7 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & Table
                 {deposit.stalk.base.gt(0) && (
                   <>
                     <div className="hidden md:block opacity-60">
-                      <PrivateModeWrapper>
-                        {formatter.twoDec(deposit.stalk.base)}
-                      </PrivateModeWrapper>
+                      <PrivateModeWrapper>{formatter.twoDec(deposit.stalk.base)}</PrivateModeWrapper>
                     </div>
                     <div className="md:hidden opacity-60">
                       <PrivateModeWrapper>
@@ -166,8 +162,8 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & Table
                         {deposit.stalk.germinating.gt(9999)
                           ? `${deposit.stalk.base.gt(0) ? "+" : ""}${deposit.stalk.germinating.toHuman("ultraShort")}`
                           : formatter.twoDec(deposit.stalk.germinating, {
-                            showPositiveSign: deposit.stalk.base.gt(0),
-                          })}
+                              showPositiveSign: deposit.stalk.base.gt(0),
+                            })}
                       </PrivateModeWrapper>
                     </div>
                   </>
@@ -176,9 +172,7 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & Table
             ) : (
               <>
                 <div className="hidden md:block opacity-70">
-                  <PrivateModeWrapper>
-                    {formatter.twoDec(deposit.stalk.base)}
-                  </PrivateModeWrapper>
+                  <PrivateModeWrapper>{formatter.twoDec(deposit.stalk.base)}</PrivateModeWrapper>
                 </div>
                 <div className="md:hidden opacity-70">
                   <PrivateModeWrapper>
@@ -230,9 +224,7 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & Table
           <div className="flex flex-row gap-1 items-center justify-end">
             <IconImage src={seedIcon} size={4} />
             <div className="hidden md:block opacity-70">
-              <PrivateModeWrapper>
-                {formatter.twoDec(deposit.seeds)}
-              </PrivateModeWrapper>
+              <PrivateModeWrapper>{formatter.twoDec(deposit.seeds)}</PrivateModeWrapper>
             </div>
             <div className="md:hidden opacity-70">
               <PrivateModeWrapper>

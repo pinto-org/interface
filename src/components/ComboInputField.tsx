@@ -4,6 +4,7 @@ import seedIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { PODS } from "@/constants/internalTokens";
+import { usePrivateMode } from "@/hooks/useAppSettings";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
@@ -15,12 +16,11 @@ import { useDebouncedEffect } from "@/utils/useDebounce";
 import { cn } from "@/utils/utils";
 import { Dispatch, InputHTMLAttributes, SetStateAction, useCallback, useEffect, useMemo, useState } from "react";
 import PlotSelect from "./PlotSelect";
+import { PrivateModeWrapper, privateModeObsfucation } from "./PrivateModeWrapper";
 import TextSkeleton from "./TextSkeleton";
 import TokenSelectWithBalances, { TransformTokenLabelsFunction } from "./TokenSelectWithBalances";
 import { Button } from "./ui/Button";
 import { Skeleton } from "./ui/Skeleton";
-import { privateModeObsfucation, PrivateModeWrapper } from "./PrivateModeWrapper";
-import { usePrivateMode } from "@/hooks/useAppSettings";
 
 const ETH_GAS_RESERVE = TokenValue.fromHuman("0.0003333333333", 18); // Reserve $1 of gas if eth is $3k
 
@@ -123,9 +123,11 @@ function ComboInputField({
   }, [amount, getDecimals]);
 
   // Internal state uses TokenValue
-  const [internalAmount, setInternalAmount] = useState<TokenValue>(isPrivateMode ? TokenValue.ZERO : amountAsTokenValue);
-  const [displayValue, setDisplayValue] = useState(isPrivateMode ? '0' : amount);
-  // this default feels hacky, but when I type, isUserInput is not being set to true, we need it true to skip the 
+  const [internalAmount, setInternalAmount] = useState<TokenValue>(
+    isPrivateMode ? TokenValue.ZERO : amountAsTokenValue,
+  );
+  const [displayValue, setDisplayValue] = useState(isPrivateMode ? "0" : amount);
+  // this default feels hacky, but when I type, isUserInput is not being set to true, we need it true to skip the
   // useEffect below which resets it max which we want to avoid in private mode
   const [isUserInput, setIsUserInput] = useState(!!isPrivateMode);
 
@@ -336,25 +338,25 @@ function ComboInputField({
             </TextSkeleton>
             {mode === "plots"
               ? setPlots && (
-                <PlotSelect type={plotSelectionType || "single"} selectedPlots={selectedPlots} setPlots={setPlots} />
-              )
+                  <PlotSelect type={plotSelectionType || "single"} selectedPlots={selectedPlots} setPlots={setPlots} />
+                )
               : setToken &&
-              selectedToken && (
-                <TokenSelectWithBalances
-                  selectedToken={selectedToken}
-                  tokenNameOverride={tokenNameOverride}
-                  balanceFrom={balanceFrom}
-                  balancesToShow={balancesToShow}
-                  tokenAndBalanceMap={tokenAndBalanceMap}
-                  disabled={disableButton}
-                  isLoading={tokenSelectLoading}
-                  filterTokens={filterTokens}
-                  selectKey={selectKey}
-                  setToken={setToken}
-                  setBalanceFrom={setBalanceFrom}
-                  transformTokenLabels={transformTokenLabels}
-                />
-              )}
+                selectedToken && (
+                  <TokenSelectWithBalances
+                    selectedToken={selectedToken}
+                    tokenNameOverride={tokenNameOverride}
+                    balanceFrom={balanceFrom}
+                    balancesToShow={balancesToShow}
+                    tokenAndBalanceMap={tokenAndBalanceMap}
+                    disabled={disableButton}
+                    isLoading={tokenSelectLoading}
+                    filterTokens={filterTokens}
+                    selectKey={selectKey}
+                    setToken={setToken}
+                    setBalanceFrom={setBalanceFrom}
+                    transformTokenLabels={transformTokenLabels}
+                  />
+                )}
           </div>
           {!disableInlineBalance && (
             <div className="flex flex-row gap-2 justify-between items-center">

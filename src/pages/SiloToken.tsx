@@ -13,6 +13,7 @@ import { ExternalLinkIcon } from "@/components/Icons";
 import InlineStats from "@/components/InlineStats";
 import MobileActionBar from "@/components/MobileActionBar";
 import PageMetaWrapper from "@/components/PageMetaWrapper";
+import { PrivateModeWrapper } from "@/components/PrivateModeWrapper";
 import SiloActionBox from "@/components/SiloActionBox";
 import TooltipSimple from "@/components/TooltipSimple";
 import { Button } from "@/components/ui/Button";
@@ -44,7 +45,6 @@ import { toast } from "sonner";
 import { useChainId, useConfig } from "wagmi";
 import SiloWrappedSiloToken from "./SiloWrappedSiloToken";
 import SiloActions from "./silo/SiloActions";
-import { PrivateModeWrapper } from "@/components/PrivateModeWrapper";
 import SiloTokenPageHeader, { SiloTokenPageSubHeader } from "./siloToken/SiloTokenPageHeader";
 
 function SiloTokenInner({ siloToken }: { siloToken: Token }) {
@@ -396,24 +396,18 @@ const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price, isMobile }:
             {hasOnlyGerminating ? (
               <TooltipSimple content={"This Stalk is germinating."}>
                 <div className="pinto-h4 font-thin sm:font-regular text-pinto-off-green/60">
-                  <PrivateModeWrapper>
-                    {formatter.twoDec(farmerDeposits?.stalk.total)}
-                  </PrivateModeWrapper>
+                  <PrivateModeWrapper>{formatter.twoDec(farmerDeposits?.stalk.total)}</PrivateModeWrapper>
                 </div>
               </TooltipSimple>
             ) : (
               <div className="pinto-h4 font-thin sm:font-regular">
-                <PrivateModeWrapper>
-                  {formatter.twoDec(stalkAmount)}
-                </PrivateModeWrapper>
+                <PrivateModeWrapper>{formatter.twoDec(stalkAmount)}</PrivateModeWrapper>
               </div>
             )}
             {!hasOnlyGerminating && hasGerminating && (
               <TooltipSimple content={"This Stalk is germinating."}>
                 <div className="pinto-h4 font-thin sm:font-regular text-pinto-off-green/60">
-                  <PrivateModeWrapper>
-                    +{formatter.twoDec(farmerDeposits?.stalk.germinating)}
-                  </PrivateModeWrapper>
+                  <PrivateModeWrapper>+{formatter.twoDec(farmerDeposits?.stalk.germinating)}</PrivateModeWrapper>
                 </div>
               </TooltipSimple>
             )}
@@ -425,9 +419,7 @@ const FarmerSiloTokenDeposits = ({ siloToken, farmerDeposits, price, isMobile }:
           </div>
           <div className="pinto-h4 font-thin sm:font-regular inline-flex gap-1">
             <IconImage src={seedsIcon} size={6} alt="Seeds" />
-            <PrivateModeWrapper>
-              {formatter.twoDec(farmerDeposits?.seeds)}
-            </PrivateModeWrapper>
+            <PrivateModeWrapper>{formatter.twoDec(farmerDeposits?.seeds)}</PrivateModeWrapper>
           </div>
         </div>
       </div>

@@ -102,9 +102,9 @@ function TractorButton({ onClick }: { onClick: () => void }) {
         style={{
           ...(inputExceedsSoil || hoveredTractor
             ? {
-              backgroundColor: "#E5F5E5",
-              borderColor: "#387F5C",
-            }
+                backgroundColor: "#E5F5E5",
+                borderColor: "#387F5C",
+              }
             : {}),
           // If input exceeds soil, apply special highlight styling
           ...(inputExceedsSoil && {
@@ -115,8 +115,9 @@ function TractorButton({ onClick }: { onClick: () => void }) {
       >
         {/* Position the icon absolutely to place it on the right side and vertically centered */}
         <SizeIcon
-          className={`absolute top-1/2 right-4 transform -translate-y-1/2 w-5 h-5 text-[#404040] ${inputExceedsSoil || hoveredTractor ? "hidden" : "block"
-            }`}
+          className={`absolute top-1/2 right-4 transform -translate-y-1/2 w-5 h-5 text-[#404040] ${
+            inputExceedsSoil || hoveredTractor ? "hidden" : "block"
+          }`}
         />
 
         <div className="flex flex-row items-center gap-1">

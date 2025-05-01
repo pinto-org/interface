@@ -18,8 +18,8 @@ import { motion } from "framer-motion";
 import { Dispatch, RefObject, SetStateAction, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import CornerBorders from "./CornerBorders";
-import TooltipSimple from "./TooltipSimple";
 import { PrivateModeWrapper } from "./PrivateModeWrapper";
+import TooltipSimple from "./TooltipSimple";
 interface FarmerDepositsTableProps {
   rewardsRef?: RefObject<HTMLTableRowElement>;
   hoveredButton?: string;
@@ -153,9 +153,7 @@ export default function FarmerDepositsTable({
             <div className="inline-flex items-center gap-1">
               <IconImage src={stalkIcon} size={4} />
               <div className="pinto-sm text-pinto-green-4">
-                <PrivateModeWrapper>
-                  {formatter.number(stalkGain)}
-                </PrivateModeWrapper>
+                <PrivateModeWrapper>{formatter.number(stalkGain)}</PrivateModeWrapper>
               </div>
             </div>
           </motion.div>
@@ -174,9 +172,7 @@ export default function FarmerDepositsTable({
             <div className="inline-flex items-center gap-1">
               <IconImage src={seedIcon} size={4} />
               <div className="pinto-sm text-pinto-green-4">
-                <PrivateModeWrapper>
-                  {formatter.number(seedGain)}
-                </PrivateModeWrapper>
+                <PrivateModeWrapper>{formatter.number(seedGain)}</PrivateModeWrapper>
               </div>
             </div>
           </motion.div>
@@ -274,18 +270,16 @@ export default function FarmerDepositsTable({
                   <TableCell>
                     <div className="flex flex-col items-end text-right">
                       {!hoveringClaim ||
-                        (rewardGains.beanGain.lt(0.01) &&
-                          updateGains.bdvGain.lt(0.01) &&
-                          addClaimable &&
-                          beanGain.lt(0.01)) ? (
+                      (rewardGains.beanGain.lt(0.01) &&
+                        updateGains.bdvGain.lt(0.01) &&
+                        addClaimable &&
+                        beanGain.lt(0.01)) ? (
                         <>
                           <div className="inline-flex items-center gap-1">
                             <IconImage src={token.logoURI} size={4} />
                             <div className="text-black/70 font-[400] text-[1rem] inline-flex items-center gap-1">
                               <span>
-                                <PrivateModeWrapper>
-                                  {formatter.token(userData?.amount, token)}
-                                </PrivateModeWrapper>
+                                <PrivateModeWrapper>{formatter.token(userData?.amount, token)}</PrivateModeWrapper>
                               </span>
                               <span className="max-[1300px]:hidden block">{token.name}</span>
                             </div>
@@ -312,8 +306,7 @@ export default function FarmerDepositsTable({
                                   userData?.amount.add(rewardGains.beanGain).add(addClaimable ? beanGain : 0),
                                   token,
                                 )}
-                              </PrivateModeWrapper>
-                              {" "}
+                              </PrivateModeWrapper>{" "}
                               {token.name}
                             </div>
                           </div>
@@ -323,18 +316,18 @@ export default function FarmerDepositsTable({
                             <PrivateModeWrapper>
                               {denomination === "USD"
                                 ? formatter.usd(
-                                  userData?.currentBDV
-                                    .add(rewardGains.bdvGain)
-                                    .add(updateGains.bdvGain)
-                                    .add(addClaimable ? BDVGain : 0)
-                                    .mul(token.isMain ? priceData.price : poolPrice),
-                                )
+                                    userData?.currentBDV
+                                      .add(rewardGains.bdvGain)
+                                      .add(updateGains.bdvGain)
+                                      .add(addClaimable ? BDVGain : 0)
+                                      .mul(token.isMain ? priceData.price : poolPrice),
+                                  )
                                 : formatter.pdv(
-                                  userData?.depositBDV
-                                    .add(rewardGains.bdvGain)
-                                    .add(updateGains.bdvGain)
-                                    .add(addClaimable ? BDVGain : 0),
-                                )}
+                                    userData?.depositBDV
+                                      .add(rewardGains.bdvGain)
+                                      .add(updateGains.bdvGain)
+                                      .add(addClaimable ? BDVGain : 0),
+                                  )}
                             </PrivateModeWrapper>
                           </div>
                         </>
@@ -343,7 +336,7 @@ export default function FarmerDepositsTable({
                   </TableCell>
                   <TableCell className="text-black/70 font-[400] text-[1rem] text-right hidden sm:table-cell">
                     {!hoveringClaim ||
-                      (updateGains.stalkGain.lt(0.01) && grownStalk.lt(0.01) && addClaimable && stalkGain.lt(0.01)) ? (
+                    (updateGains.stalkGain.lt(0.01) && grownStalk.lt(0.01) && addClaimable && stalkGain.lt(0.01)) ? (
                       <div className="flex flex-col items-end">
                         <div className="inline-flex items-center gap-1">
                           <IconImage src={stalkIcon} size={4} />
@@ -367,9 +360,7 @@ export default function FarmerDepositsTable({
                             <span className="hidden min-[1350px]:block">Claimable Grown Stalk:</span>
                             <span className="min-[1350px]:hidden">Claimable:</span>
                             <span className="text-pinto-green-4/70">
-                              <PrivateModeWrapper>
-                                +{formatter.twoDec(grownStalk)}
-                              </PrivateModeWrapper>
+                              <PrivateModeWrapper>+{formatter.twoDec(grownStalk)}</PrivateModeWrapper>
                             </span>
                           </div>
                         )}
@@ -401,10 +392,10 @@ export default function FarmerDepositsTable({
                                   {formatter.twoDec(germinatingStalk, {
                                     showPositiveSign: Boolean(
                                       amountOfDeposits > 1 ||
-                                      userData?.stalk.base
-                                        .add(grownStalk)
-                                        .add(updateGains.stalkGain)
-                                        .add(addClaimable ? stalkGain : 0),
+                                        userData?.stalk.base
+                                          .add(grownStalk)
+                                          .add(updateGains.stalkGain)
+                                          .add(addClaimable ? stalkGain : 0),
                                     ),
                                   })}
                                 </PrivateModeWrapper>
@@ -414,7 +405,10 @@ export default function FarmerDepositsTable({
                         </div>
                         {data.update?.stalkFromBDVIncrease.gt(0.01) && (
                           <div>
-                            Bonus Stalk for updating PDV: <PrivateModeWrapper><span>{formatter.twoDec(updateGains.bdvGain)}</span></PrivateModeWrapper>
+                            Bonus Stalk for updating PDV:{" "}
+                            <PrivateModeWrapper>
+                              <span>{formatter.twoDec(updateGains.bdvGain)}</span>
+                            </PrivateModeWrapper>
                           </div>
                         )}
                       </div>
@@ -422,17 +416,15 @@ export default function FarmerDepositsTable({
                   </TableCell>
                   <TableCell className="text-black/70 font-[400] text-[1rem] text-right p-4 hidden sm:table-cell">
                     {!hoveringClaim ||
-                      (rewardGains.seedGain.lt(0.01) &&
-                        updateGains.seedGain.lt(0.01) &&
-                        addClaimable &&
-                        seedGain.lt(0.01)) ? (
+                    (rewardGains.seedGain.lt(0.01) &&
+                      updateGains.seedGain.lt(0.01) &&
+                      addClaimable &&
+                      seedGain.lt(0.01)) ? (
                       <div className="flex flex-col items-end">
                         <div className="inline-flex items-center gap-1">
                           <IconImage src={seedIcon} size={4} />
                           <div>
-                            <PrivateModeWrapper>
-                              {formatter.twoDec(userData?.seeds)}
-                            </PrivateModeWrapper>
+                            <PrivateModeWrapper>{formatter.twoDec(userData?.seeds)}</PrivateModeWrapper>
                           </div>
                         </div>
                       </div>
@@ -458,7 +450,10 @@ export default function FarmerDepositsTable({
                         </div>
                         {data.update?.seedsFromBDVIncrease.gt(0.01) && (
                           <div>
-                            Bonus Seeds for updating PDV: <PrivateModeWrapper><span>{formatter.twoDec(updateGains.seedGain)}</span></PrivateModeWrapper>
+                            Bonus Seeds for updating PDV:{" "}
+                            <PrivateModeWrapper>
+                              <span>{formatter.twoDec(updateGains.seedGain)}</span>
+                            </PrivateModeWrapper>
                           </div>
                         )}
                       </div>

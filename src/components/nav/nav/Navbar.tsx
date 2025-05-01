@@ -235,10 +235,10 @@ const Navbar = () => {
                           ? `Claim ${formatter.usd(floodValue)} from Flood`
                           : `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet ${hasInternal ? "+ Farm Balances" : "Balance"}`
                           */
-                        /*
+                          /*
                       `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet Balance`
                       */
-                        `Manage Wallet Balance`
+                          `Manage Wallet Balance`
                     }
                     className={`absolute top-[9.375rem] right-[22.5rem] flex flex-row-reverse`}
                     sourceAnchor="right"

@@ -5,9 +5,9 @@ import { formatter } from "@/utils/format";
 import { useAtom } from "jotai";
 import { Dispatch, SetStateAction } from "react";
 import { useNavigate } from "react-router-dom";
+import { PrivateModeWrapper } from "./PrivateModeWrapper";
 import TooltipSimple from "./TooltipSimple";
 import { Separator } from "./ui/Separator";
-import { PrivateModeWrapper } from "./PrivateModeWrapper";
 
 interface StatPanelAltDisplayProps {
   depositedValue: TokenValue;
@@ -28,7 +28,7 @@ export default function StatPanelAltDisplay({
   siloWrappedInternal = TokenValue.ZERO,
   farmBalance = TokenValue.ZERO,
   claimableFlood = TokenValue.ZERO,
-  setHoveredButton = () => { },
+  setHoveredButton = () => {},
 }: StatPanelAltDisplayProps) {
   const [panelState, setPanelState] = useAtom(navbarPanelAtom);
   const { submitClaimRewards } = useClaimRewards();
@@ -108,9 +108,7 @@ export default function StatPanelAltDisplay({
           <span className="inline-flex items-center gap-1">
             <span>
               sPINTO:{" "}
-              <PrivateModeWrapper>
-                {siloWrappedValue.lte(0) ? "-" : formatter.usd(siloWrappedValue)}
-              </PrivateModeWrapper>
+              <PrivateModeWrapper>{siloWrappedValue.lte(0) ? "-" : formatter.usd(siloWrappedValue)}</PrivateModeWrapper>
             </span>
             <TooltipSimple variant="gray" content={getSiloWrappedTooltip()} />
           </span>
@@ -131,9 +129,7 @@ export default function StatPanelAltDisplay({
           <span className="inline-flex items-center gap-1">
             <span>
               Farm Balance:{" "}
-              <PrivateModeWrapper>
-                {farmBalance.lte(0) ? "-" : formatter.usd(farmBalance)}
-              </PrivateModeWrapper>
+              <PrivateModeWrapper>{farmBalance.lte(0) ? "-" : formatter.usd(farmBalance)}</PrivateModeWrapper>
             </span>
             <TooltipSimple
               variant="gray"

@@ -3,13 +3,13 @@ import podIcon from "@/assets/protocol/Pod.png";
 import seedIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
+import { PrivateModeWrapper } from "@/components/PrivateModeWrapper";
 import { Skeleton } from "@/components/ui/Skeleton";
+import useAppSettings from "@/hooks/useAppSettings";
 import { formatter } from "@/utils/format";
 import { ReactNode } from "react";
 import TooltipSimple from "./TooltipSimple";
 import DenominationSwitcher from "./ui/DenominationSwitcher";
-import useAppSettings from "@/hooks/useAppSettings";
-import { PrivateModeWrapper } from "@/components/PrivateModeWrapper";
 
 interface StatPanelProps {
   mode: "depositedValue" | "stalk" | "seeds" | "pods";
@@ -47,7 +47,6 @@ const StatPanel = ({
   showActionValues = false,
   isBalancesLoading = false,
 }: StatPanelProps) => {
-
   const { togglePrivateMode } = useAppSettings();
   const getIcon = (iconMode: typeof mode) =>
     ({
@@ -69,7 +68,9 @@ const StatPanel = ({
       {!(mainValue.eq(0) && auxValue?.gt(0)) && (
         <span className={`${size === "large" ? "pinto-h2" : "pinto-body-light"} sm:pinto-inherit tracking-[0.01em]`}>
           <PrivateModeWrapper>
-            <span className={`${size === "large" ? "pinto-h2" : "pinto-body-light"} sm:pinto-inherit tracking-[0.01em]`}>
+            <span
+              className={`${size === "large" ? "pinto-h2" : "pinto-body-light"} sm:pinto-inherit tracking-[0.01em]`}
+            >
               {isBalancesLoading ? (
                 <Skeleton
                   className={`flex ${size === "large" ? "w-24 h-8 sm:w-32 sm:h-12" : "w-20 h-6 sm:w-24 sm:h-8"} rounded-[0.75rem]`}
@@ -108,16 +109,17 @@ const StatPanel = ({
       )}
       {showActionValues && mainValueChange && mainValueChange?.abs().gt(0.01) && (
         <div
-          className={`pl-2 tracking-[0.01em] ${mainValueChange.lt(0)
-            ? "text-pinto-gray-4 sm:text-pinto-gray-4"
-            : mode === "depositedValue"
-              ? "text-pinto-green-4 sm:text-pinto-green-4"
-              : mode === "stalk"
-                ? "text-pinto-stalk-gold sm:text-pinto-stalk-gold"
-                : mode === "seeds"
-                  ? "text-pinto-seed-silver sm:text-pinto-seed-silver"
-                  : "text-pinto-pod-bronze sm:text-pinto-pod-bronze"
-            }
+          className={`pl-2 tracking-[0.01em] ${
+            mainValueChange.lt(0)
+              ? "text-pinto-gray-4 sm:text-pinto-gray-4"
+              : mode === "depositedValue"
+                ? "text-pinto-green-4 sm:text-pinto-green-4"
+                : mode === "stalk"
+                  ? "text-pinto-stalk-gold sm:text-pinto-stalk-gold"
+                  : mode === "seeds"
+                    ? "text-pinto-seed-silver sm:text-pinto-seed-silver"
+                    : "text-pinto-pod-bronze sm:text-pinto-pod-bronze"
+          }
 
         ${size === "large" ? "pinto-h2 sm:pinto-h1" : "pinto-body-light sm:pinto-h3"}`}
         >
@@ -219,99 +221,90 @@ const StatPanel = ({
           )}{" "}
           of Stalk supply
         </>
-      )
-      }
-      {
-        mode === "stalk" && variant === "silo" && (
-          <div className={`${showActionValues || secondaryValue.lt(0.01) ? "opacity-0" : "opacity-100"}`}>
-            Claimable Stalk:
-            <span className="pl-2 text-pinto-stalk-gold">
+      )}
+      {mode === "stalk" && variant === "silo" && (
+        <div className={`${showActionValues || secondaryValue.lt(0.01) ? "opacity-0" : "opacity-100"}`}>
+          Claimable Stalk:
+          <span className="pl-2 text-pinto-stalk-gold">
+            <PrivateModeWrapper>
+              {isBalancesLoading ? (
+                <Skeleton className="flex w-20 h-4 sm:w-24 sm:h-6 rounded-[0.75rem]" />
+              ) : (
+                formatter.twoDec(secondaryValue, { showPositiveSign: true })
+              )}
+            </PrivateModeWrapper>
+          </span>
+        </div>
+      )}
+      {mode === "seeds" && variant === "overview" && (
+        <span className="inline-flex gap-1">
+          {showActionValues && actionValue ? (
+            <span className="text-pinto-seed-silver">
               <PrivateModeWrapper>
                 {isBalancesLoading ? (
                   <Skeleton className="flex w-20 h-4 sm:w-24 sm:h-6 rounded-[0.75rem]" />
                 ) : (
-                  formatter.twoDec(secondaryValue, { showPositiveSign: true })
+                  `+${formatter.twoDec(mainValue.add(actionValue).div(10000))}`
                 )}
               </PrivateModeWrapper>
             </span>
-          </div>
-        )
-      }
-      {
-        mode === "seeds" && variant === "overview" && (
-          <span className="inline-flex gap-1">
-            {showActionValues && actionValue ? (
-              <span className="text-pinto-seed-silver">
-                <PrivateModeWrapper>
-                  {isBalancesLoading ? (
-                    <Skeleton className="flex w-20 h-4 sm:w-24 sm:h-6 rounded-[0.75rem]" />
-                  ) : (
-                    `+${formatter.twoDec(mainValue.add(actionValue).div(10000))}`
-                  )}
-                </PrivateModeWrapper>
-              </span>
-            ) : (
+          ) : (
+            <span className="text-pinto-gray-5">
+              <PrivateModeWrapper>
+                {isBalancesLoading ? (
+                  <Skeleton className="flex w-20 h-4 sm:w-24 sm:h-6 rounded-[0.75rem]" />
+                ) : (
+                  `+${formatter.twoDec(mainValue.div(10000))}`
+                )}
+              </PrivateModeWrapper>
+            </span>
+          )}
+          <span>Grown Stalk per Season</span>
+        </span>
+      )}
+      {mode === "seeds" && variant === "silo" && (
+        <div className={`${showActionValues || secondaryValue.lt(0.01) ? "opacity-0" : "opacity-100"} pinto-inherit`}>
+          Claimable Seeds:
+          <span className="pl-2 text-pinto-seed-silver">
+            <PrivateModeWrapper>
+              {isBalancesLoading ? (
+                <Skeleton className="flex w-20 h-4 sm:w-24 sm:h-6 rounded-[0.75rem]" />
+              ) : (
+                formatter.twoDec(secondaryValue, { showPositiveSign: true })
+              )}
+            </PrivateModeWrapper>
+          </span>
+        </div>
+      )}
+      {mode === "pods" && (
+        <div>
+          {!mainValueChange || mainValueChange.eq(0) ? (
+            <div>
+              Next position in line:{" "}
               <span className="text-pinto-gray-5">
                 <PrivateModeWrapper>
                   {isBalancesLoading ? (
                     <Skeleton className="flex w-20 h-4 sm:w-24 sm:h-6 rounded-[0.75rem]" />
                   ) : (
-                    `+${formatter.twoDec(mainValue.div(10000))}`
+                    secondaryValue.toHuman("short")
                   )}
                 </PrivateModeWrapper>
               </span>
-            )}
-            <span>Grown Stalk per Season</span>
-          </span>
-        )
-      }
-      {
-        mode === "seeds" && variant === "silo" && (
-          <div className={`${showActionValues || secondaryValue.lt(0.01) ? "opacity-0" : "opacity-100"} pinto-inherit`}>
-            Claimable Seeds:
-            <span className="pl-2 text-pinto-seed-silver">
+            </div>
+          ) : (
+            <span className="text-pinto-pod-bronze">
               <PrivateModeWrapper>
                 {isBalancesLoading ? (
-                  <Skeleton className="flex w-20 h-4 sm:w-24 sm:h-6 rounded-[0.75rem]" />
+                  <Skeleton className="flex w-24 h-4 sm:w-28 sm:h-6 rounded-[0.75rem]" />
                 ) : (
-                  formatter.twoDec(secondaryValue, { showPositiveSign: true })
+                  `${formatter.twoDec(mainValueChange.abs())} Pods are Harvestable`
                 )}
               </PrivateModeWrapper>
             </span>
-          </div>
-        )
-      }
-      {
-        mode === "pods" && (
-          <div>
-            {!mainValueChange || mainValueChange.eq(0) ? (
-              <div>
-                Next position in line:{" "}
-                <span className="text-pinto-gray-5">
-                  <PrivateModeWrapper>
-                    {isBalancesLoading ? (
-                      <Skeleton className="flex w-20 h-4 sm:w-24 sm:h-6 rounded-[0.75rem]" />
-                    ) : (
-                      secondaryValue.toHuman("short")
-                    )}
-                  </PrivateModeWrapper>
-                </span>
-              </div>
-            ) : (
-              <span className="text-pinto-pod-bronze">
-                <PrivateModeWrapper>
-                  {isBalancesLoading ? (
-                    <Skeleton className="flex w-24 h-4 sm:w-28 sm:h-6 rounded-[0.75rem]" />
-                  ) : (
-                    `${formatter.twoDec(mainValueChange.abs())} Pods are Harvestable`
-                  )}
-                </PrivateModeWrapper>
-              </span>
-            )}
-          </div>
-        )
-      }
-    </div >
+          )}
+        </div>
+      )}
+    </div>
   );
 
   const TitleDisplay = () => (
@@ -331,12 +324,13 @@ const StatPanel = ({
 
   const MainValueDisplay = () => (
     <div
-      className={`${mainValue.add(auxValue || TokenValue.ZERO).lt(0.01) && !showActionValues
-        ? "opacity-[0.4]"
-        : showActionValues && secondaryValue.gt(0.01)
-          ? "opacity-100"
-          : "opacity-100"
-        } ${size === "large" ? "pinto-h2 sm:pinto-h1" : "pinto-body-light sm:pinto-h3"}`}
+      className={`${
+        mainValue.add(auxValue || TokenValue.ZERO).lt(0.01) && !showActionValues
+          ? "opacity-[0.4]"
+          : showActionValues && secondaryValue.gt(0.01)
+            ? "opacity-100"
+            : "opacity-100"
+      } ${size === "large" ? "pinto-h2 sm:pinto-h1" : "pinto-body-light sm:pinto-h3"}`}
     >
       <ValueDisplay />
     </div>
