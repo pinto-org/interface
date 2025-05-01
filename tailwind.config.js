@@ -28,39 +28,39 @@ module.exports = {
     extend: {
       fontSize: {
         // Original font sizes
-        'h1': ['3.429rem', { lineHeight: '3.772rem' }],
-        'h2': ['2.25rem', { lineHeight: '2.475rem' }],
-        'h3': ['1.75rem', { lineHeight: '2.2rem' }],
-        'h4': ['1.5rem', { lineHeight: '1.65rem' }],
-        'lg': ['1.5rem', { lineHeight: '1.375rem' }],
-        'body': ['1.25rem', { lineHeight: '1.375rem' }],
-        'sm': ['1rem', { lineHeight: '1.1rem' }],
-        'xs': ['0.875rem', { lineHeight: '.9625rem' }],
-        'inherit': 'inherit'
+        h1: ["3.429rem", { lineHeight: "3.772rem" }],
+        h2: ["2.25rem", { lineHeight: "2.475rem" }],
+        h3: ["1.75rem", { lineHeight: "2.2rem" }],
+        h4: ["1.5rem", { lineHeight: "1.65rem" }],
+        lg: ["1.5rem", { lineHeight: "1.375rem" }],
+        body: ["1.25rem", { lineHeight: "1.375rem" }],
+        sm: ["1rem", { lineHeight: "1.1rem" }],
+        xs: ["0.875rem", { lineHeight: ".9625rem" }],
+        inherit: "inherit",
       },
       fontWeight: {
-        thin: '300',
-        light: '340',
-        regular: '400',
-        medium: '500',
-        'inherit': 'inherit'
+        thin: "300",
+        light: "340",
+        regular: "400",
+        medium: "500",
+        inherit: "inherit",
       },
       letterSpacing: {
-        'body-light': '-0.025rem',
-        'h3': '-0.04rem',
-        'h2': '-0.0315rem',
-        'h4': '-0.003rem',
-        'inherit': 'inherit'
+        "body-light": "-0.025rem",
+        h3: "-0.04rem",
+        h2: "-0.0315rem",
+        h4: "-0.003rem",
+        inherit: "inherit",
       },
       lineHeight: {
-        'same-h1': '3.429rem',
-        'same-h2': '2.25rem',
-        'same-h3': '2rem',
-        'same-h4': '1.5rem',
-        'same-body': '1.25rem',
-        'same-sm': '1rem',
-        'same-xs': '0.875rem',
-        'inherit': 'inherit'
+        "same-h1": "3.429rem",
+        "same-h2": "2.25rem",
+        "same-h3": "2rem",
+        "same-h4": "1.5rem",
+        "same-body": "1.25rem",
+        "same-sm": "1rem",
+        "same-xs": "0.875rem",
+        inherit: "inherit",
       },
       colors: {
         border: "hsl(var(--border))",
@@ -119,19 +119,19 @@ module.exports = {
           "morning-yellow-1": "#FEE18C",
           "morning-yellow-2": "#F1F88C",
           "warning-yellow": "#DCB505",
-          "warning-orange": "ED7A00",
+          "warning-orange": "#ED7A00",
           "stalk-gold": "#D3B567",
           "seed-silver": "#7B9387",
           "pod-bronze": "#9F7F54",
           "red-2": "#FF0000",
-          "morning": "#D9AD0F",
+          morning: "#D9AD0F",
           "morning-orange": "#FBE39B",
-          'primary': "#000000", // black clsx("text-black"),
-          'secondary': "#404040", // pinto-gray-5 clsx("text-pinto-gray-5"),
-          'light': "#9C9C9C", // pinto-gray-4 clsx("text-pinto-gray-4"),
-          'lighter': "#B9B9B9", // pinto-gray-3 clsx("text-pinto-gray-3"),
-          'success': "#00C767", // pinto-green-2 clsx("text-pinto-green-2"),
-          'error': "#FF0000", // pinto-red-2 clsx("text-pinto-red-2"),
+          primary: "#000000", // black clsx("text-black"),
+          secondary: "#404040", // pinto-gray-5 clsx("text-pinto-gray-5"),
+          light: "#9C9C9C", // pinto-gray-4 clsx("text-pinto-gray-4"),
+          lighter: "#B9B9B9", // pinto-gray-3 clsx("text-pinto-gray-3"),
+          success: "#00C767", // pinto-green-2 clsx("text-pinto-green-2"),
+          error: "#FF0000", // pinto-red-2 clsx("text-pinto-red-2"),
         },
       },
       backgroundImage: {
@@ -155,6 +155,7 @@ module.exports = {
           "linear-gradient(90deg, rgba(233, 231, 224, 0.02) 0%, rgba(254, 225, 140, 0.02) 0.01%, rgba(241, 248, 140, 0.04) 100%)",
         "gradient-lighter-2":
           "linear-gradient(90deg, #E9E7E0 0%, #FEE18C 52.5%, #F1F88C 100%)",
+        "dot-grid": "radial-gradient(#D9D9D9 2px, transparent 2px)",
       },
       borderRadius: {
         xl: "calc(var(--radius) + 8px)", // 20px
@@ -168,6 +169,7 @@ module.exports = {
       fontFamily: {
         pinto: ["Pinto", "system-ui", "sans-serif"],
         roboto: ["Roboto", "system-ui", "sans-serif"],
+        menlo: ["Menlo", "Monaco", "Courier New", "monospace"],
       },
       gridTemplateColumns: {
         frame: "350px, 1fr, 200px",
@@ -216,65 +218,68 @@ module.exports = {
             display: "none",
           },
           "-ms-overflow-style": "none", // IE 10+
-          "scrollbar-width": "none",   // Firefox
+          "scrollbar-width": "none", // Firefox
         },
       },
     },
   },
   plugins: [
-    require("tailwindcss-animate"), 
+    require("tailwindcss-animate"),
     ({ addComponents }) => {
       addComponents({
         // Text variants as complete utilities
-        '.pinto-h1': {
-          '@apply text-h1 font-thin tracking-normal text-pinto-primary': {},
+        ".pinto-h1": {
+          "@apply text-h1 font-thin tracking-normal text-pinto-primary": {},
         },
-        '.pinto-h2': {
-          '@apply text-h2 font-thin tracking-h2 text-pinto-primary': {},
+        ".pinto-h2": {
+          "@apply text-h2 font-thin tracking-h2 text-pinto-primary": {},
         },
-        '.pinto-h3': {
-          '@apply text-h3 font-light tracking-h3 text-pinto-primary sm:text-[2rem]': {},
+        ".pinto-h3": {
+          "@apply text-h3 font-light tracking-h3 text-pinto-primary sm:text-[2rem]":
+            {},
         },
-        '.pinto-h4': {
-          '@apply text-h4 font-regular tracking-h4 text-pinto-primary': {},
+        ".pinto-h4": {
+          "@apply text-h4 font-regular tracking-h4 text-pinto-primary": {},
         },
-        '.pinto-lg': {
-          '@apply text-lg font-light text-pinto-primary': {}
+        ".pinto-lg": {
+          "@apply text-lg font-light text-pinto-primary": {},
         },
-        '.pinto-body': {
-          '@apply text-body font-regular text-pinto-primary': {},
+        ".pinto-body": {
+          "@apply text-body font-regular text-pinto-primary": {},
         },
-        '.pinto-body-light': {
-          '@apply text-body font-light tracking-body-light text-pinto-primary': {},
+        ".pinto-body-light": {
+          "@apply text-body font-light tracking-body-light text-pinto-primary":
+            {},
         },
-        '.pinto-body-bold': {
-          '@apply text-body font-medium text-pinto-primary': {},
+        ".pinto-body-bold": {
+          "@apply text-body font-medium text-pinto-primary": {},
         },
-        '.pinto-sm': {
-          '@apply text-sm font-regular text-pinto-primary': {},
+        ".pinto-sm": {
+          "@apply text-sm font-regular text-pinto-primary": {},
         },
-        '.pinto-sm-light': {
-          '@apply text-sm font-light text-pinto-primary': {},
+        ".pinto-sm-light": {
+          "@apply text-sm font-light text-pinto-primary": {},
         },
-        '.pinto-sm-bold': {
-          '@apply text-sm font-medium text-pinto-primary': {},
+        ".pinto-sm-bold": {
+          "@apply text-sm font-medium text-pinto-primary": {},
         },
-        '.pinto-xs': {
-          '@apply text-xs font-light text-pinto-primary': {},
+        ".pinto-xs": {
+          "@apply text-xs font-light text-pinto-primary": {},
         },
-        '.pinto-inherit': {
-          '@apply text-inherit leading-inherit font-inherit tracking-inherit': {},
+        ".pinto-inherit": {
+          "@apply text-inherit leading-inherit font-inherit tracking-inherit":
+            {},
         },
-      })
+      });
     },
     ({ addUtilities }) => {
       addUtilities({
-        '.scrollbar-none': {
-          '-ms-overflow-style': 'none', // IE 10+
-          'scrollbar-width': 'none',   // Firefox
+        ".scrollbar-none": {
+          "-ms-overflow-style": "none", // IE 10+
+          "scrollbar-width": "none", // Firefox
         },
-        '.scrollbar-none::-webkit-scrollbar': {
-          display: 'none', // Chrome, Safari, Opera
+        ".scrollbar-none::-webkit-scrollbar": {
+          display: "none", // Chrome, Safari, Opera
         },
       });
     },

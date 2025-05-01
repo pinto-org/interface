@@ -41,6 +41,8 @@ VITE_ALCHEMY_API_KEY=
 VITE_ZEROEX_API_KEY=
 # Comma separated list of chain ids. (ex: "1337,8543")
 VITE_CHAINS=
+# base endpoint domain
+VITE_BASE_ENDPOINT=
 ```
 
 

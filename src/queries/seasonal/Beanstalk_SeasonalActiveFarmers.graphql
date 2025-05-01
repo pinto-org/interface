@@ -1,0 +1,12 @@
+query BeanstalkSeasonalSiloActiveFarmers($from: Int, $to: Int, $silo: String) {
+  siloHourlySnapshots(
+    where: { season_gte: $from, season_lte: $to, silo: $silo, stalk_gt: 0 }
+    first: 1000
+    orderBy: season
+    orderDirection: desc
+  ) {
+    id
+    season
+    activeFarmers
+  }
+}

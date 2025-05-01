@@ -99,8 +99,11 @@ export function useFarmerField() {
     return Promise.all([plotsSGQuery.refetch(), plotsQuery.refetch()]);
   }, [plotsSGQuery.refetch, plotsQuery.refetch]);
 
+  const isLoading = plotsSGQuery.isLoading || plotsQuery.isLoading;
+
   return useMemo(() => {
     return {
+      isLoading,
       plots: combinedPlotsData,
       totalPods: plotsQueryData?.totalPods ?? TokenValue.ZERO,
       totalUnharvestablePods: plotsQueryData?.totalUnharvestablePods ?? TokenValue.ZERO,
@@ -108,7 +111,7 @@ export function useFarmerField() {
       queryKeys: [queryKey, plotsQuery.queryKey],
       refetch,
     };
-  }, [combinedPlotsData, plotsQuery.queryKey, plotsQueryData, queryKey, refetch]);
+  }, [combinedPlotsData, plotsQuery.queryKey, plotsQueryData, queryKey, refetch, isLoading]);
 }
 
 type PlotsResponse = {

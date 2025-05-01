@@ -182,14 +182,15 @@ function Deposit({ siloToken }: { siloToken: Token }) {
       if (!swapData || !swapBuild?.advancedFarm?.length) {
         throw new Error("No quote");
       }
+      const value = tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals) : undefined;
 
       const advFarm = [...swapBuild.advFarm.getSteps()];
-      const { clipboard } = await swapBuild.deriveClipboardWithOutputToken(siloToken, 1, account.address);
+      const { clipboard } = await swapBuild.deriveClipboardWithOutputToken(siloToken, 1, account.address, {
+        value: value ?? TokenValue.ZERO,
+      });
 
       const depositCallStruct = deposit(siloToken, buyAmount, FarmFromMode.INTERNAL, clipboard);
       advFarm.push(depositCallStruct);
-
-      const value = tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals).toBigInt() : 0n;
 
       toast.loading(`Depositing...`);
 
@@ -198,7 +199,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
         abi: advFarmABI,
         functionName: "advancedFarm",
         args: [advFarm],
-        value: value,
+        value: value?.toBigInt(),
       });
     } catch (e: unknown) {
       console.error(e);

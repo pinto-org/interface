@@ -1,8 +1,9 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { FarmerBalance } from "@/state/useFarmerBalances";
+import { calculateConvertData } from "@/utils/convert";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { FarmFromMode } from "./types";
+import { FarmFromMode, Token } from "./types";
 import { MayArray } from "./types.generic";
 
 export function cn(...inputs: ClassValue[]) {
@@ -50,6 +51,10 @@ export const isDev = () => {
   return isLocalhost() || isNetlifyPreview() || process.env.NODE_ENV === "development";
 };
 
+export const deployedCommitHash = () => {
+  return import.meta.env.VITE_COMMIT_HASH;
+};
+
 export function exists<T>(value: T | undefined | null): value is NonNullable<T> {
   return value !== undefined && value !== null;
 }
@@ -57,6 +62,10 @@ export function exists<T>(value: T | undefined | null): value is NonNullable<T> 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export function existsNot(value: any): value is undefined | null {
   return !exists(value);
+}
+
+export function isFunction<T>(v: T | (() => T)): v is () => T {
+  return typeof v === "function";
 }
 
 /**
@@ -186,31 +195,59 @@ export function identifyPlantDeposits(
   return plantDepositMap;
 }
 
-export function caseIdToDescriptiveText(caseId: number, column: "price" | "soil_demand" | "pod_rate" | "l2sr") {
-  switch (column) {
-    case "price":
-      if ((caseId % 36) % 9 < 3) return "P < $1.00";
-      else if ((caseId % 36) % 9 < 6) return "P > $1.00";
-      //(caseId % 36 < 9)
-      else return "P > Q";
-    case "soil_demand":
-      if (caseId % 3 === 0) return "Decreasing";
-      else if (caseId % 3 === 1) return "Steady";
-      else return "Increasing";
-    case "pod_rate":
-      if ((caseId % 36) / 9 === 0) return "Excessively Low";
-      else if ((caseId % 36) / 9 === 1) return "Reasonably Low";
-      else if ((caseId % 36) / 9 === 2) return "Reasonably High";
-      else return "Excessively High";
-    case "l2sr":
-      if (caseId / 36 === 0) {
-        return "Extremely Low";
-      } else if (caseId / 36 === 1) {
-        return "Reasonably Low";
-      } else if (caseId / 36 === 2) {
-        return "Reasonably High";
-      } else {
-        return "Extremely High";
-      }
+/**
+ * Converts hex string to rgba
+ */
+export const hexToRgba = (hex: string, alpha?: number) => {
+  const stripped = hex.replace("#", "").split("");
+  if (stripped.length % 3 !== 0 || stripped.length > 6) {
+    throw new Error(`unexpected invalid hex value: ${hex}`);
   }
+
+  const isCondensedHex = stripped.length === 3;
+  const hexArr = stripped
+    .reduce((prev, curr) => {
+      let _prev = prev;
+      if (isCondensedHex) {
+        _prev += curr;
+      }
+      _prev += curr;
+      return _prev;
+    }, "" as string)
+    .toString();
+
+  const r = parseInt(hexArr.slice(0, 2), 16);
+  const g = parseInt(hexArr.slice(2, 4), 16);
+  const b = parseInt(hexArr.slice(4, 6), 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha ?? 1})`;
+};
+
+export function safeJSONParse<T, F = false>(jsonString: string | null | undefined, fallbackValue: F): T | F {
+  try {
+    if (jsonString === null || jsonString === undefined) {
+      return fallbackValue;
+    }
+    return JSON.parse(jsonString) as T;
+  } catch (error) {
+    console.error("Failed to parse JSON:", error);
+    return fallbackValue;
+  }
+}
+
+export function safeJSONStringify<T>(value: T | null | undefined, fallbackValue: string = "{}"): string {
+  try {
+    if (value === null || value === undefined) {
+      return fallbackValue;
+    }
+    return JSON.stringify(value);
+  } catch (error) {
+    console.error("Failed to stringify object:", error);
+    return fallbackValue;
+  }
+}
+
+interface RatioDeposit {
+  stem: string;
+  ratio: TokenValue;
 }

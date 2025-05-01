@@ -22,6 +22,7 @@ import useTokenData from "./useTokenData";
 
 export interface SeasonsTableData {
   season: number;
+  timestamp: number;
   caseId: number;
   beanToMaxLpGpPerBdvRatio: number;
   deltaBeanToMaxLpGpPerBdvRatio: number;
@@ -163,13 +164,14 @@ export default function useSeasonsData(fromSeason: number, toSeason: number) {
       acc.push({
         ...acc[season.beanHourlySnapshot.season.season],
         season: season.beanHourlySnapshot.season.season,
+        timestamp: Number(season.timestamp),
         caseId: Number(currFieldHourlySnapshots.caseId || 0),
         instDeltaB: TokenValue.fromHuman(season.beanHourlySnapshot.instDeltaB, tokenData.mainToken.decimals),
         instPrice: TokenValue.fromHuman(season.beanHourlySnapshot.instPrice, tokenData.mainToken.decimals),
         l2sr: TokenValue.fromHuman(season.beanHourlySnapshot.l2sr * 100, 2),
         twaDeltaB: TokenValue.fromHuman(season.beanHourlySnapshot.twaDeltaB, 2),
         twaPrice: TokenValue.fromHuman(season.beanHourlySnapshot.twaPrice, 4),
-        blocksToSoldOutSoil: timeSown,
+        blocksToSoldOutSoil: timeSown ?? "0",
         issuedSoil: TokenValue.fromBlockchain(currFieldHourlySnapshots.issuedSoil, tokenData.mainToken.decimals),
         podRate: TokenValue.fromHuman(currFieldHourlySnapshots.podRate || 0n, 18).mul(100),
         sownBeans: TokenValue.fromBlockchain(currFieldHourlySnapshots.sownBeans, tokenData.mainToken.decimals),

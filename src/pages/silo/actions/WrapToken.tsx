@@ -9,7 +9,7 @@ import SmartSubmitButton from "@/components/SmartSubmitButton";
 import TextSkeleton from "@/components/TextSkeleton";
 import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
-import { Switch, SwitchThumb } from "@/components/ui/Switch";
+import { Switch } from "@/components/ui/Switch";
 import Warning from "@/components/ui/Warning";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { siloedPintoABI } from "@/constants/abi/siloedPintoABI";
@@ -253,7 +253,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
           filterTokens={filterTokens}
           setBalanceFrom={setBalanceFrom}
           balanceFrom={balanceFrom}
-          tokenNameOverride={usingDeposits ? "DEP. PINTO" : undefined}
+          tokenNameOverride={usingDeposits ? "Dep. PINTO" : undefined}
           error={inputError}
           setError={setInputError}
           selectedToken={usingDeposits ? mainToken : token}
@@ -277,9 +277,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
                 setAmountIn("0");
                 setSource((prev) => (prev === "deposits" ? "balances" : "deposits"));
               }}
-            >
-              <SwitchThumb />
-            </Switch>
+            />
           </TextSkeleton>
         </div>
       </div>

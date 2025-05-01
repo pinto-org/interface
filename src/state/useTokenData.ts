@@ -1,11 +1,9 @@
-import { TokenValue } from "@/classes/TokenValue";
 import { LP_TOKENS, MAIN_TOKEN, S_MAIN_TOKEN, tokens } from "@/constants/tokens";
 import { useChainConstant, useResolvedChainId } from "@/utils/chain";
 import { Token } from "@/utils/types";
 import { useMemo } from "react";
-import { Abi, erc20Abi } from "viem";
 import { base } from "viem/chains";
-import { useAccount, useChainId, useReadContracts } from "wagmi";
+import { useChainId } from "wagmi";
 
 export function useWhitelistedTokens() {
   const chainId = useResolvedChainId();
@@ -20,7 +18,6 @@ export function useWhitelistedTokens() {
 
 export default function useTokenData() {
   const chainId = useChainId();
-  const account = useAccount();
 
   const sMainToken = useChainConstant(S_MAIN_TOKEN);
 
@@ -54,53 +51,6 @@ export default function useTokenData() {
     };
   }, [chainId]);
 
-  const contracts = useMemo(() => {
-    const tokensToGetAllowance = [mainToken, sMainToken, ...lpTokens, ...preferredTokens].filter(Boolean) as Token[];
-    const contractQueries: { address: `0x${string}`; abi: Abi; functionName: string }[] = [];
-    for (const token of tokensToGetAllowance) {
-      contractQueries.push({
-        address: token.address,
-        abi: erc20Abi,
-        functionName: "allowance",
-      });
-    }
-
-    return {
-      tokensToGetAllowance,
-      contractQueries,
-    };
-  }, [mainToken, sMainToken, lpTokens, preferredTokens]);
-
-  const {
-    data: allowances,
-    queryKey,
-    refetch,
-  } = useReadContracts({
-    contracts: contracts.contractQueries,
-    query: {
-      enabled: Boolean(account.address),
-      refetchInterval: 60000,
-      select: (data) => {
-        const allowances = new Map<Token, TokenValue>();
-        if (data) {
-          for (const [index, allowance] of data.entries()) {
-            const _token = contracts.tokensToGetAllowance[index];
-            if (!allowance.result) continue;
-
-            allowances.set(
-              _token,
-              allowance.result
-                ? TokenValue.fromBlockchain(allowance.result as bigint, _token.decimals)
-                : TokenValue.fromBlockchain(0n, _token.decimals),
-            );
-          }
-          allowances.set(nativeToken, TokenValue.MAX_UINT256);
-        }
-        return allowances;
-      },
-    },
-  });
-
   return useMemo(
     () => ({
       mainToken: mainToken,
@@ -111,10 +61,7 @@ export default function useTokenData() {
       lpTokens: lpTokens,
       preferredTokens: preferredTokens,
       whitelistedTokens: [mainToken, ...lpTokens],
-      allowances: allowances,
-      queryKey: queryKey,
-      refetch: refetch,
     }),
-    [sMainToken, mainToken, nativeToken, wrappedNativeToken, lpTokens, preferredTokens, allowances, queryKey, refetch],
+    [sMainToken, mainToken, nativeToken, wrappedNativeToken, lpTokens, preferredTokens],
   );
 }

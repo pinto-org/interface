@@ -61,8 +61,8 @@ const Explorer = () => {
       <div className="flex flex-col w-full items-center">
         <div className="flex flex-col w-full gap-4 sm:gap-8">
           <div className="flex flex-col gap-2 sm:ml-4">
-            <div className="pinto-h2 sm:pinto-h1">Explorer</div>
-            <div className="flex gap-6 sm:gap-10 mt-4 sm:mt-8 overflow-x-auto scrollbar-none">
+            <div className="pinto-h2 sm:pinto-h1 ml-[-3px]">Explorer</div>
+            <div className="flex gap-6 sm:gap-10 mt-4 sm:mt-8 overflow-x-auto scrollbar-none  ml-[-1px]">
               {TABS.map(({ tabName, urlSlug }, idx) => (
                 <div
                   key={tabName}

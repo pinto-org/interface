@@ -11,9 +11,11 @@ import { pipelineABI } from "@/constants/abi/PipelineABI";
 import { depotABI } from "@/constants/abi/depotABI";
 import { junctionABI } from "@/constants/abi/junctionABI";
 
+import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
+import { diamondFarmerABI } from "@/constants/abi/diamondFarmerABI";
 import { JUNCTION_ADDRESS } from "@/constants/address";
 
-import { diamondFarmerABI } from "@/constants/abi/diamondFarmerABI";
+import { tractorHelpersABI } from "@/constants/abi/TractorHelpersABI";
 /**
  * Diamond cut fragmented facets
  *
@@ -27,6 +29,8 @@ import { diamondFarmerABI } from "@/constants/abi/diamondFarmerABI";
  */
 import { viewSeasonABI } from "@/constants/abi/viewSeasonABI";
 import { viewSiloABI } from "@/constants/abi/viewSiloABI";
+import { TRACTOR_HELPERS_ADDRESS } from "@/constants/address";
+import { SOW_BLUEPRINT_V0_ADDRESS } from "@/constants/address";
 
 const TESTNET_CHAIN_ID = 41337;
 
@@ -112,6 +116,30 @@ const config = defineConfig(() => {
           [localhost.id]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933", // base
           [TESTNET_CHAIN_ID]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933", // base
           [foundry.id]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933", // base
+        },
+      },
+      {
+        name: "tractorHelpers",
+        abi: tractorHelpersABI as Abi,
+        address: {
+          [mainnet.id]: TRACTOR_HELPERS_ADDRESS,
+          [arbitrum.id]: TRACTOR_HELPERS_ADDRESS,
+          [base.id]: TRACTOR_HELPERS_ADDRESS,
+          [localhost.id]: TRACTOR_HELPERS_ADDRESS,
+          [TESTNET_CHAIN_ID]: TRACTOR_HELPERS_ADDRESS,
+          [foundry.id]: TRACTOR_HELPERS_ADDRESS,
+        },
+      },
+      {
+        name: "sowBlueprintv0",
+        abi: sowBlueprintv0ABI as Abi,
+        address: {
+          [mainnet.id]: SOW_BLUEPRINT_V0_ADDRESS,
+          [arbitrum.id]: SOW_BLUEPRINT_V0_ADDRESS,
+          [base.id]: SOW_BLUEPRINT_V0_ADDRESS,
+          [localhost.id]: SOW_BLUEPRINT_V0_ADDRESS,
+          [TESTNET_CHAIN_ID]: SOW_BLUEPRINT_V0_ADDRESS,
+          [foundry.id]: SOW_BLUEPRINT_V0_ADDRESS,
         },
       },
     ],

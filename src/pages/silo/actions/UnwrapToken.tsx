@@ -10,7 +10,7 @@ import SmartSubmitButton from "@/components/SmartSubmitButton";
 import TextSkeleton from "@/components/TextSkeleton";
 import TokenSelectWithBalances from "@/components/TokenSelectWithBalances";
 import { Label } from "@/components/ui/Label";
-import { Switch, SwitchThumb } from "@/components/ui/Switch";
+import { Switch } from "@/components/ui/Switch";
 import { siloedPintoABI } from "@/constants/abi/siloedPintoABI";
 import { abiSnippets } from "@/constants/abiSnippets";
 import { defaultQuerySettingsQuote } from "@/constants/query";
@@ -275,9 +275,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
               setTokenOut(undefined);
               setToSilo((prev) => !prev);
             }}
-          >
-            <SwitchThumb />
-          </Switch>
+          />
         </div>
       </div>
       {txnType === "redeemToSilo" && validAmountIn ? (

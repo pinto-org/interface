@@ -10,21 +10,15 @@ import {
 } from "@/components/ui/Dropdown";
 import IconImage from "@/components/ui/IconImage";
 import useIsMobile from "@/hooks/display/useIsMobile";
-import { SeasonColumn, nonHideableFields } from "@/pages/explorer/SeasonsExplorer";
+import { SeasonColumn, nonHideableFields, seasonColumns } from "@/pages/explorer/SeasonsExplorer";
 import { useState } from "react";
 interface HideColumnDropdownProps {
-  seasonColumns: SeasonColumn[];
   hiddenFields: string[];
   toggleColumn: (id: string) => void;
   resetAllHiddenColumns: () => void;
 }
 
-export const HideColumnDropdown = ({
-  seasonColumns,
-  hiddenFields,
-  toggleColumn,
-  resetAllHiddenColumns,
-}: HideColumnDropdownProps) => {
+export const HideColumnDropdown = ({ hiddenFields, toggleColumn, resetAllHiddenColumns }: HideColumnDropdownProps) => {
   const isMobile = useIsMobile();
   const columnDropdownLabel =
     hiddenFields.length > 0
@@ -37,11 +31,47 @@ export const HideColumnDropdown = ({
   };
 
   const trigger = (
-    <Button className="justify-between sm:h-6 h-8 rounded-full" variant="outline">
+    <Button className="justify-between sm:h-6 h-8 rounded-full w-[200px] sm:w-[140px] 3xl:w-[190px]" variant="outline">
       <IconImage className="mr-2" src={eyeballCrossed} size={4} />
-      {columnDropdownLabel}
+      <span className="w-full text-center">{columnDropdownLabel}</span>
     </Button>
   );
+
+  if (isMobile) {
+    return (
+      <Drawer open={isOpen} onOpenChange={() => toggle()}>
+        <DrawerTrigger>{trigger}</DrawerTrigger>
+        <DrawerContent className="px-4 pb-2">
+          <div className="max-h-[300px] overflow-auto my-2">
+            {seasonColumns.map(({ id, dropdownName, name }) => {
+              if (nonHideableFields.includes(id)) {
+                return null;
+              }
+              const checked = hiddenFields.includes(id);
+              const extraClasses = hiddenFields.includes(id) ? "line-through" : "";
+              return (
+                <div
+                  key={id}
+                  onClick={() => toggleColumn(id)}
+                  className={`flex items-center h-[36px] gap-2 ${extraClasses}`}
+                >
+                  <IconImage
+                    className={`${!checked ? "opacity-100" : "opacity-0"} flex items-center justify-center`}
+                    src={eyeballCrossed}
+                    size={4}
+                  />
+                  <span>{dropdownName || name}</span>
+                </div>
+              );
+            })}
+          </div>
+          <Button className="w-full text-base h-10" onClick={resetAllHiddenColumns} variant="outline">
+            Reset
+          </Button>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
 
   if (isMobile) {
     return (

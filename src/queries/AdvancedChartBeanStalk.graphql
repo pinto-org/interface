@@ -1,0 +1,52 @@
+query advancedChartBeanStalk($from: Int, $to: Int) {
+  seasons(first: 1000, orderBy: season, orderDirection: desc, where: { season_gte: $from, season_lte: $to }) {
+    id
+    rewardBeans
+    price
+    deltaBeans
+    raining
+    season
+  }
+  fieldHourlySnapshots(
+    first: 1000
+    orderBy: season
+    orderDirection: desc
+    where: { field: "0xd1a0d188e861ed9d15773a2f3574a2e94134ba8f", season_gte: $from, season_lte: $to }
+  ) {
+    id
+    caseId
+    issuedSoil
+    deltaSownBeans
+    sownBeans
+    deltaPodDemand
+    blocksToSoldOutSoil
+    podRate
+    temperature
+    deltaTemperature
+    season
+    cultivationFactor
+    harvestableIndex
+    harvestablePods
+    harvestedPods
+    numberOfSowers
+    numberOfSows
+    podIndex
+    realRateOfReturn
+    seasonBlock
+    soil
+    soilSoldOut
+    unharvestablePods
+}
+  siloHourlySnapshots(
+    first: 1000
+    orderBy: season
+    orderDirection: desc
+    where: { silo: "0xd1a0d188e861ed9d15773a2f3574a2e94134ba8f", season_gte: $from, season_lte: $to }
+  ) {
+    id
+    beanToMaxLpGpPerBdvRatio
+    deltaBeanToMaxLpGpPerBdvRatio
+    season
+    stalk
+  }
+}

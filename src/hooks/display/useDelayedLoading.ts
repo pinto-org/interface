@@ -1,4 +1,3 @@
-import { exists } from "@/utils/utils";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface IUseDelayedLoading {

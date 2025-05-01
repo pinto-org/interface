@@ -18,20 +18,20 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: "20"
           cache: 'yarn'
       
       # 3. Cache node_modules
-      - name: Cache Node Modules
-        id: node-modules-cache
-        uses: actions/cache@v3
-        with:
-          path: "**/node_modules"
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      # - name: Cache Node Modules
+      #   id: node-modules-cache
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: "**/node_modules"
+      #     key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
       # 4. Install dependencies (only if no cache was found)
       - name: Install dependencies
-        if: steps.node-modules-cache.outputs.cache-hit != 'true'
+        # if: steps.node-modules-cache.outputs.cache-hit != 'true'
         run: yarn install
       
       # 5. Build only if build artifacts aren't cached
@@ -52,19 +52,19 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: "20"
           cache: 'yarn'
 
-      - name: Cache Node Modules
-        id: node-modules-cache-lint
-        uses: actions/cache@v3
-        with:
-          path: "**/node_modules"
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      # - name: Cache Node Modules
+      #   id: node-modules-cache-lint
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: "**/node_modules"
+      #     key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
-      - name: Install dependencies (if needed)
-        if: steps.node-modules-cache-lint.outputs.cache-hit != 'true'
-        run: yarn install
+      - name: Install dependencies
+        # if: steps.node-modules-cache-lint.outputs.cache-hit != 'true'
+        run: yarn install 
 
       - name: Check Linting errors
         run: yarn lint:check-errors-only

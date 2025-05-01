@@ -42,7 +42,6 @@ export default function DepositSelect({
         {getButtonText()}
         <ChevronRightIcon color="currentColor" height={"1rem"} width={"1rem"} />
       </Button>
-
       <DepositSelectDialog
         open={open}
         onOpenChange={setOpen}

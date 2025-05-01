@@ -13,7 +13,7 @@ const pageContainerVariants = cva("flex flex-col w-full min-w-0", {
       xlAlt: "lg:w-[95%] 2xl:w-[90%] lg:min-w-[700px] lg:max-w-[1550px]",
       xlAltField: "lg:min-w-[700px] lg:max-w-[1300px] min-[1550px]:w-[90%] min-[1550px]:max-w-[1650px]",
       xlAltSwap: "sm:max-w-[560px] min-[1601px]:max-w-[700px]",
-      xlAltExplorer: "2xl:max-w-[1550px] 3xl:max-w-[2000px]",
+      xlAltExplorer: "2xl:max-w-[1550px] 3xl:max-w-[2560px]",
     },
   },
 });

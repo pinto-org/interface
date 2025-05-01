@@ -11,17 +11,17 @@ const defaultData = {
   germinatingStalk: TV.ZERO,
   germinatingSeasons: 0,
   totalAmountOut: TV.ZERO,
-  totalToStalk: TV.ZERO,
-  totalToBaseStalk: TV.ZERO,
-  totalToGrownStalk: TV.ZERO,
-  totalToSeed: TV.ZERO,
-  totalFromStalk: TV.ZERO,
-  totalFromBaseStalk: TV.ZERO,
-  totalFromGrownStalk: TV.ZERO,
-  totalFromSeed: TV.ZERO,
+  toTotalStalk: TV.ZERO,
+  toInitialStalk: TV.ZERO,
+  toGrownStalk: TV.ZERO,
+  toSeed: TV.ZERO,
+  fromTotalStalk: TV.ZERO,
+  fromInitialStalk: TV.ZERO,
+  fromGrownStalk: TV.ZERO,
+  fromSeed: TV.ZERO,
   deltaBdv: TV.ZERO,
-  totalFromBdv: TV.ZERO,
-  totalToBdv: TV.ZERO,
+  fromBdv: TV.ZERO,
+  toBdv: TV.ZERO,
 };
 
 export function useSiloConvertResult(
@@ -55,69 +55,50 @@ export function useSiloConvertResult(
         const targetDeltaStem = targetStemTip.sub(result.toStem);
         const grownStalkBigInt = willGerminate ? 0n : targetDeltaStem.toBigInt() * result.toBdv.toBigInt();
 
-        const toBaseStalk = result.toBdv.reDecimal(STALK.decimals);
+        const toInitialStalk = result.toBdv.reDecimal(STALK.decimals);
         const toGrownStalk = TV.fromBigInt(grownStalkBigInt, STALK.decimals);
-        const toTotalStalk = toBaseStalk.add(toGrownStalk);
+        const toTotalStalk = toInitialStalk.add(toGrownStalk);
         const toSeed = targetRewards.seeds.mul(result.toBdv);
         const fromBdv = picked.totalBDV;
+
         const toBdv = result.toBdv;
         const deltaBdv = toBdv.sub(fromBdv);
 
-        return {
-          germinatingStalk: willGerminate ? prev.germinatingStalk.add(toBaseStalk) : TV.ZERO,
+        const struct: typeof defaultData = {
+          germinatingStalk: willGerminate ? prev.germinatingStalk.add(toInitialStalk) : TV.ZERO,
           germinatingSeasons: willGerminate && !prev.germinatingSeasons ? germinatingSeasons : prev.germinatingSeasons,
           totalAmountOut: prev.totalAmountOut.add(result.toAmount),
-          totalToBaseStalk: prev.totalToBaseStalk.add(toBaseStalk),
-          totalToGrownStalk: prev.totalToGrownStalk.add(toGrownStalk),
-          totalToSeed: prev.totalToSeed.add(toSeed),
-          totalToStalk: willGerminate ? prev.totalToStalk : prev.totalToStalk.add(toTotalStalk),
-          totalFromStalk: prev.totalFromStalk.add(picked.totalStalk),
-          totalFromBaseStalk: prev.totalFromBaseStalk.add(picked.totalBaseStalk),
-          totalFromGrownStalk: prev.totalFromGrownStalk.add(picked.totalGrownStalk),
-          totalFromSeed: prev.totalFromSeed.add(picked.totalSeeds),
+          toTotalStalk: willGerminate ? prev.toTotalStalk : prev.toTotalStalk.add(toTotalStalk),
+          toInitialStalk: prev.toInitialStalk.add(toInitialStalk),
+          toGrownStalk: prev.toGrownStalk.add(toGrownStalk),
+          toSeed: prev.toSeed.add(toSeed),
+          fromTotalStalk: prev.fromTotalStalk.add(picked.totalStalk),
+          fromInitialStalk: prev.fromInitialStalk.add(picked.totalInitialStalk),
+          fromGrownStalk: prev.fromGrownStalk.add(picked.totalGrownStalkSinceDeposit),
+          fromSeed: prev.fromSeed.add(picked.totalSeeds),
           deltaBdv: prev.deltaBdv.add(deltaBdv),
-          totalFromBdv: prev.totalFromBdv.add(fromBdv),
-          totalToBdv: prev.totalToBdv.add(toBdv),
+          fromBdv: prev.fromBdv.add(fromBdv),
+          toBdv: prev.toBdv.add(toBdv),
         };
+
+        return struct;
       },
       { ...defaultData },
     );
 
-    const totalDeltaBaseStalk = calc.totalToBaseStalk.sub(calc.totalFromBaseStalk);
-    const totalDeltaGrownStalk = calc.totalToGrownStalk.sub(calc.totalFromGrownStalk);
-    const totalDeltaStalk = totalDeltaBaseStalk.add(totalDeltaGrownStalk);
-    const totalDeltaSeed = calc.totalToSeed.sub(calc.totalFromSeed);
+    const deltaInitialStalk = calc.toInitialStalk.sub(calc.fromInitialStalk);
+    const deltaGrownStalk = calc.toGrownStalk.sub(calc.fromGrownStalk);
+    const deltaStalk = deltaInitialStalk.add(deltaGrownStalk);
+    const deltaSeed = calc.toSeed.sub(calc.fromSeed);
 
-    return {
-      toGerminatingStalk: calc.germinatingStalk,
-      toGerminatingSeasons: calc.germinatingSeasons,
-      deltaGrownStalk: totalDeltaGrownStalk,
-      deltaBaseStalk: totalDeltaBaseStalk,
-      deltaStalk: totalDeltaStalk,
-      deltaSeed: totalDeltaSeed,
-      deltaBdv: calc.deltaBdv,
-      amountOut: calc.totalAmountOut,
+    const data = {
+      ...calc,
+      deltaGrownStalk,
+      deltaInitialStalk,
+      deltaStalk,
+      deltaSeed,
     };
+
+    return data;
   }, [quote, results, siloTokenData, source, target]);
 }
-
-// console.debug("[SiloConvert/useSiloConvertResult]: ", {
-//   fromTotalBaseStalk: calc.totalFromBaseStalk.toHuman(),
-//   fromTotalGrownStalk: calc.totalFromGrownStalk.toHuman(),
-//   fromTotalStalk: calc.totalFromStalk.toHuman(),
-//   fromTotalSeed: calc.totalFromSeed.toHuman(),
-//   toTotalBaseStalk: calc.totalToBaseStalk.toHuman(),
-//   toTotalGrownStalk: calc.totalToGrownStalk.toHuman(),
-//   toTotalTotalStalk: calc.totalToStalk.toHuman(),
-//   toTotalToSeed: calc.totalToSeed.toHuman(),
-//   toTotalAmountOut: calc.totalAmountOut.toHuman(),
-//   deltaBaseStalk: totalDeltaBaseStalk.toHuman(),
-//   deltaGrownStalk: totalDeltaGrownStalk.toHuman(),
-//   deltaStalk: totalDeltaStalk.toHuman(),
-//   deltaSeed: totalDeltaSeed.toHuman(),
-//   deltaBdv: calc.deltaBdv.toHuman(),
-//   totalFromBdv: calc.totalFromBdv.toHuman(),
-//   totalToBdv: calc.totalToBdv.toHuman(),
-//   quote,
-//   results,
-// });

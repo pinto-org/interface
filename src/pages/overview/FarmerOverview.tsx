@@ -12,6 +12,7 @@ import TableRowConnector from "@/components/TableRowConnector";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import useIsMobile from "@/hooks/display/useIsMobile";
 import useIsSmallDesktop from "@/hooks/display/useIsSmallDesktop";
 import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
@@ -30,6 +31,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import TractorOrdersPanel from "../field/TractorOrdersPanel";
 
 const Overview = () => {
   // Hooks
@@ -80,8 +82,18 @@ const Overview = () => {
   const canWrap = farmerActions.canWrapPinto;
   const enablePintoToLPHelper = farmerSilo.deposits.get(mainToken)?.convertibleAmount.gt(0) && priceData.deltaB.gt(100);
 
+  // Get mobile status from hook
+  const isMobile = useIsMobile();
+
   // State
-  const [currentTab, setCurrentTab] = useState(hasOnlyPods ? "pods" : "deposits");
+  const [currentTab, setCurrentTab] = useState<"deposits" | "pods" | "tractor">(() => {
+    // Default to "pods" on mobile, or if hasOnlyPods is true on desktop
+    if (isMobile) {
+      return "pods";
+    } else {
+      return hasOnlyPods ? "pods" : "deposits";
+    }
+  });
   const [hoveredButton, setHoveredButton] = useState("");
 
   const [hoveredId, setHoveredId] = useAtom(hoveredIdAtom);
@@ -310,21 +322,52 @@ const Overview = () => {
         ) : null}
       </AnimatePresence>
       <div className="flex flex-col items-center">
-        <Tabs defaultValue="deposits" className="w-full" value={currentTab} onValueChange={setCurrentTab}>
-          <TabsList
-            className={`h-0 bg-transparent p-0 border-0 -ml-3 flex ${hasOnlyPods ? "flex-row-reverse justify-end" : "flex-row justify-start"}`}
-          >
+        <Tabs
+          defaultValue="deposits"
+          className="w-full"
+          value={currentTab}
+          onValueChange={(value) => setCurrentTab(value as "deposits" | "pods" | "tractor")}
+        >
+          <TabsList className="h-0 bg-transparent p-0 border-0 -ml-3 flex flex-row justify-start">
+            {/* Conditionally render My Deposits and My Pods based on hasOnlyPods */}
+            {hasOnlyPods ? (
+              <>
+                <TabsTrigger
+                  className="font-[400] text-[1.5rem] sm:text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
+                  value="pods"
+                >
+                  My Pods
+                </TabsTrigger>
+                <TabsTrigger
+                  className="font-[400] text-[1.5rem] sm:text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
+                  value="deposits"
+                >
+                  My Deposits
+                </TabsTrigger>
+              </>
+            ) : (
+              <>
+                <TabsTrigger
+                  className="font-[400] text-[1.5rem] sm:text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
+                  value="deposits"
+                >
+                  My Deposits
+                </TabsTrigger>
+                <TabsTrigger
+                  className="font-[400] text-[1.5rem] sm:text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
+                  value="pods"
+                >
+                  My Pods
+                </TabsTrigger>
+              </>
+            )}
+
+            {/* Always render My Tractor Orders last */}
             <TabsTrigger
-              className="font-[400] text-[1.5rem] sm:text-[2rem]  text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
-              value="deposits"
+              className="hidden sm:flex font-[400] text-[1.5rem] sm:text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
+              value="tractor"
             >
-              My Deposits
-            </TabsTrigger>
-            <TabsTrigger
-              className="font-[400] text-[1.5rem] sm:text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
-              value="pods"
-            >
-              My Pods
+              My Tractor Orders
             </TabsTrigger>
           </TabsList>
           {/*convertEnabled && convertFrom && convertTo && currentTab === "deposits" && (
@@ -431,6 +474,11 @@ const Overview = () => {
             ) : (
               <EmptyTable type="plots" />
             )}
+          </TabsContent>
+          <TabsContent className="mt-8" value="tractor">
+            <div className="overflow-visible">
+              <TractorOrdersPanel />
+            </div>
           </TabsContent>
         </Tabs>
       </div>

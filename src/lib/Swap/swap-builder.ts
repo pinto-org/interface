@@ -63,7 +63,12 @@ export class SwapBuilder {
     this.#nodes = [];
   }
 
-  async deriveClipboardWithOutputToken(token: Token, pasteSlot: number, account: Address | undefined) {
+  async deriveClipboardWithOutputToken(
+    token: Token,
+    pasteSlot: number,
+    account: Address | undefined,
+    simulateArgs?: Parameters<typeof this.advFarm.simulate>[0],
+  ) {
     const node = this.#nodes.find((n) => tokensEqual(n.buyToken, token));
     if (!node) {
       throw new Error(`No node found for token ${token.symbol}`);
@@ -84,20 +89,42 @@ export class SwapBuilder {
       throw new Error(`No pipe found for token ${token.symbol}`);
     }
 
-    const result = await this.advFarm.simulate({ account });
+    const result = await this.advFarm.simulate({ account, ...simulateArgs });
     if (!result.result) {
       throw new Error(`Error simulating transaction`);
     }
 
+    let offset = 0;
+
+    if (!simulateArgs?.before?.length) {
+      offset = 0;
+    } else if (simulateArgs.before instanceof AdvancedFarmWorkflow) {
+      offset = Math.min(0, simulateArgs.before.length - 1);
+    } else if (Array.isArray(simulateArgs.before)) {
+      offset = simulateArgs.before.reduce((acc, curr) => {
+        if (curr instanceof AdvancedPipeWorkflow) {
+          return acc + 1;
+        } else if (curr instanceof AdvancedFarmWorkflow) {
+          return acc + Math.min(0, curr.length - 1);
+        }
+
+        return acc + 1;
+      }, 0);
+    }
+
+    const returnIndex = pipe.index + offset;
+
     const { copySlot, summary } = extractABIDynamicArrayCopySlot(
-      result.result[pipe.index],
+      result.result[returnIndex],
       functionSlot,
       amountOutSlot,
     );
 
-    const clipboard = Clipboard.encodeSlot(pipe.index, copySlot, pasteSlot);
+    const clipboard = Clipboard.encodeSlot(returnIndex, copySlot, pasteSlot);
 
     console.debug("[Swap/builder/deriveClipboardWithOutputToken]", {
+      advFarmOffset: offset,
+      returnIndex: pipe.index + offset,
       node,
       pipe,
       copySlot,

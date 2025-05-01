@@ -142,7 +142,7 @@ export default function FillListing() {
   const mainTokensIn = isUsingMain ? TokenValue.fromHuman(amountIn, mainToken.decimals) : swapData?.buyAmount;
 
   const tokenInBalance = farmerBalances.balances.get(tokenIn);
-  const maxFillAmount = useMaxBuy(tokenIn, slippage, mainTokensToFill);
+  const { data: maxFillAmount } = useMaxBuy(tokenIn, slippage, mainTokensToFill);
   const balanceFromMode = getBalanceFromMode(tokenInBalance, balanceFrom);
   const balanceExceedsMax = balanceFromMode.gt(0) && maxFillAmount && balanceFromMode.gte(maxFillAmount);
 
@@ -178,7 +178,9 @@ export default function FillListing() {
           ],
         });
       } else if (swapBuild?.advancedFarm.length) {
-        const { clipboard } = await swapBuild.deriveClipboardWithOutputToken(mainToken, 9, account.address);
+        const { clipboard } = await swapBuild.deriveClipboardWithOutputToken(mainToken, 9, account.address, {
+          value: value ?? TV.ZERO,
+        });
 
         const advFarm = [...swapBuild.advancedFarm];
         advFarm.push(

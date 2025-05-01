@@ -2,6 +2,9 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export const renderAnnouncement = true;
 
+const ANNOUNCEMENT_URL =
+  "https://mirror.xyz/0xEA13D1fB14934E41Ee7074198af8F089a6d956B5/hH9-i4IJrU_BBiRRh2m8tc29JsQnrEt1AeGzbH1w06k";
+
 export default function AnnouncementBanner() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -29,12 +32,12 @@ const AnnouncementBannerContent = () => {
     <div className="flex flex-row justify-center">
       <div className="pinto-sm text-black text-center">
         <Link
-          to={"/whitepaper"}
+          to={ANNOUNCEMENT_URL}
           rel="noopener noreferrer"
           target="_blank"
           className="pinto-sm text-pinto-green-4 cursor-pointer underline inline"
         >
-          The Pinto Whitepaper is now available!
+          The Soil Orderbook, powered by Tractor, is live! 🚜
         </Link>
       </div>
     </div>

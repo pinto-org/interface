@@ -1,5 +1,6 @@
 import { TV } from "@/classes/TokenValue";
 import { siloedPintoABI } from "@/constants/abi/siloedPintoABI";
+import { defaultQuerySettings } from "@/constants/query";
 import { S_MAIN_TOKEN } from "@/constants/tokens";
 import { useChainConstant } from "@/utils/chain";
 import { Token } from "@/utils/types";
@@ -26,6 +27,7 @@ export const useSiloWrappedTokenExchangeRateQuery = () => {
     functionName: "previewDeposit",
     args: [BigInt(10 ** mainToken.decimals)],
     query: {
+      ...defaultQuerySettings,
       select: (data) => {
         return getExchangeRate(mainToken, siloWrappedToken, data);
       },

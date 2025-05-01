@@ -675,7 +675,8 @@ export const useRoutingAndSlippageWarning = ({
   totalSlippage,
   txnType,
   priceImpact,
-}: { totalSlippage: number | undefined; txnType: SiloTxn; priceImpact: number | undefined }) => {
+  noMarginTop = false,
+}: { totalSlippage: number | undefined; txnType: SiloTxn; priceImpact: number | undefined; noMarginTop?: boolean }) => {
   const [isChecked, setIsChecked] = React.useState(false);
 
   const required = exists(totalSlippage) && totalSlippage >= SLIPPAGE_THRESHOLD;
@@ -683,7 +684,10 @@ export const useRoutingAndSlippageWarning = ({
   const slippageWarning = required ? (
     <form>
       <div
-        className={`flex flex-col sm:flex-row items-start sm:items-center gap-y-2 sm:gap-x-2 bg-pinto-red-1 border border-pinto-red-2 p-3 rounded-sm mt-4`}
+        className={cn(
+          `flex flex-col sm:flex-row items-start sm:items-center gap-y-2 sm:gap-x-2 bg-pinto-red-1 border border-pinto-red-2 p-3 rounded-sm`,
+          noMarginTop ? "mt-0" : "mt-4",
+        )}
       >
         <Checkbox
           id="slippage-warning-terms"

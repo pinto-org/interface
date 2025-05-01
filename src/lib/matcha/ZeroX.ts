@@ -5,11 +5,12 @@ import { exists } from "@/utils/utils";
 
 import { TV } from "@/classes/TokenValue";
 import { ZERO_ADDRESS_HEX } from "@/constants/address";
+import { API_SERVICES } from "@/constants/endpoints";
 import { getChainTokenMap, getTokenIndex } from "@/utils/token";
 
 type RequestParams = Omit<RequestInit, "headers" | "method">;
 
-const endpoint = import.meta.env.VITE_ROUTER_ENDPOINT ?? "";
+const endpoint = API_SERVICES.router;
 
 const endpointSlug = "swap/allowance-holder/quote";
 

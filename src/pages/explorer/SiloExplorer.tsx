@@ -1,6 +1,7 @@
 import SeasonalChart, { tabToSeasonalLookback, TimeTab } from "@/components/charts/SeasonalChart";
 import {
   useSeasonalAvgSeeds,
+  useSeasonalBDV,
   useSeasonalL2SR,
   useSeasonalStalk,
   useSeasonalTotalLiquidity,
@@ -14,6 +15,7 @@ const SiloExplorer = () => {
   const [l2srTab, setL2srTab] = useState(TimeTab.Week);
   const [avgSeedsTab, setAvgSeedsTab] = useState(TimeTab.Week);
   const [stalkTab, setStalkTab] = useState(TimeTab.Week);
+  const [bdvTab, setBdvTab] = useState(TimeTab.Week);
 
   const season = useSunData().current;
 
@@ -21,6 +23,7 @@ const SiloExplorer = () => {
   const l2srData = useSeasonalL2SR(Math.max(0, season - tabToSeasonalLookback(l2srTab)), season);
   const avgSeedsData = useSeasonalAvgSeeds(Math.max(0, season - tabToSeasonalLookback(avgSeedsTab)), season);
   const stalkData = useSeasonalStalk(Math.max(0, season - tabToSeasonalLookback(stalkTab)), season);
+  const bdvData = useSeasonalBDV(Math.max(0, season - tabToSeasonalLookback(bdvTab)), season);
 
   return (
     <>
@@ -58,16 +61,32 @@ const SiloExplorer = () => {
         valueFormatter={f.number6dFormatter}
         tickValueFormatter={f.number2dFormatter}
       /> */}
-      <SeasonalChart
-        title="Stalk Supply"
-        size="large"
-        fillArea
-        activeTab={stalkTab}
-        onChangeTab={setStalkTab}
-        useSeasonalResult={stalkData}
-        valueFormatter={f.number0dFormatter}
-        tickValueFormatter={f.largeNumberFormatter}
-      />
+      <div className="flex flex-col sm:flex-row w-full sm:space-x-8 mt-8">
+        <div className="w-full sm:w-1/2">
+          <SeasonalChart
+            title="Stalk Supply"
+            size="small"
+            fillArea
+            activeTab={stalkTab}
+            onChangeTab={setStalkTab}
+            useSeasonalResult={stalkData}
+            valueFormatter={f.number0dFormatter}
+            tickValueFormatter={f.largeNumberFormatter}
+          />
+        </div>
+        <div className="w-full sm:w-1/2">
+          <SeasonalChart
+            title="Total Deposited PDV"
+            size="small"
+            fillArea
+            activeTab={bdvTab}
+            onChangeTab={setBdvTab}
+            useSeasonalResult={bdvData}
+            valueFormatter={f.number0dFormatter}
+            tickValueFormatter={f.largeNumberFormatter}
+          />
+        </div>
+      </div>
     </>
   );
 };

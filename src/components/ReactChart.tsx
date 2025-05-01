@@ -6,7 +6,7 @@ import { CategoryScale, Filler, LineController, LineElement, LinearScale, PointE
 import React, { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import type { ForwardRefExoticComponent, RefAttributes } from "react";
 
-interface ReactChartComponent extends ForwardRefExoticComponent<ChartProps & RefAttributes<Chart | null>> {
+interface ReactChartComponent extends ForwardRefExoticComponent<ChartProps<ChartType> & RefAttributes<Chart | null>> {
   register: typeof Chart.register | typeof noop;
 }
 
@@ -24,10 +24,10 @@ function getChartInputFn<T>(valueOrFn: ReactChartInput<T>): ChartInputFunction<T
   return isInputFunctionType(valueOrFn) ? valueOrFn : () => valueOrFn;
 }
 
-export interface ChartProps {
-  data: ReactChartInput<ChartData>;
-  options: ReactChartInput<ChartOptions>;
-  type: ChartType;
+export interface ChartProps<T extends ChartType> {
+  data: ReactChartInput<ChartData<T>>;
+  options: ReactChartInput<ChartOptions<T>>;
+  type: T;
   plugins?: Plugin[];
   updateMode?: UpdateMode;
   id?: string;
@@ -35,8 +35,8 @@ export interface ChartProps {
   width?: number;
 }
 
-export const ReactChart = forwardRef<Chart | null, ChartProps>(
-  ({ id, data, options, type, plugins, updateMode, height, width }: ChartProps, ref) => {
+export const ReactChart = forwardRef<Chart | null, ChartProps<ChartType>>(
+  ({ id, data, options, type, plugins, updateMode, height, width }: ChartProps<ChartType>, ref) => {
     const chartInstance = useRef<Chart>({
       update: noop,
       destroy: noop,

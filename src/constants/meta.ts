@@ -22,6 +22,7 @@ const slugs = [
   "PINTOcbETH",
   "PINTO",
   "wrap",
+  "tractor",
 ] as const;
 
 const nestedSlugs = ["PINTOUSDC", "PINTOcbBTC", "PINTOWSOL", "PINTOWETH", "PINTOcbETH", "PINTO"] as const;
@@ -113,6 +114,12 @@ const PINTO_META: Record<MetaSlug, MetaProps> = {
     url: "https://pinto.money/wrap",
     description:
       "sPinto is a yield bearing token denominated in Pinto. It wraps Pinto Silo deposits and adheres to the ERC-20 and ERC-4626 standards. The token will increase in Pinto denominated value as yield accrues and does not rebase.",
+  },
+  tractor: {
+    title: "Pinto | Tractor",
+    description:
+      "Automate your Pinto farming with Tractor, the tool for creating Blueprints and executing them on your behalf.",
+    url: "https://pinto.money/tractor",
   },
 };
 

@@ -1,11 +1,11 @@
 import eyeballCrossed from "@/assets/misc/eyeball-crossed.svg";
 import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
-import useIsMobile from "@/hooks/display/useIsMobile";
 import { seasonColumns } from "@/pages/explorer/SeasonsExplorer";
 import { SeasonsTableData } from "@/state/useSeasonsData";
-import { calculateCropScales, convertDeltaDemandToPercentage } from "@/utils/convert";
-import { caseIdToDescriptiveText } from "@/utils/utils";
+import { trulyTheBestTimeFormat } from "@/utils/format";
+import { calculateCropScales, caseIdToDescriptiveText, convertDeltaDemandToPercentage } from "@/utils/season";
+import { DateTime } from "luxon";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ListChildComponentProps, VariableSizeList, areEqual } from "react-window";
 import { SeasonsTableCell, SeasonsTableCellType } from "./SeasonsTableCell";
@@ -21,7 +21,6 @@ const paginationPadding = 50;
 
 export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsTableProps) => {
   const tableRef = useRef<HTMLTableElement>(null);
-  const isMobile = useIsMobile();
   const [height, setHeight] = useState(500);
 
   const calculatedWidth = useMemo(() => {
@@ -63,35 +62,28 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
 
   const RenderRow = React.memo(({ index, style }: ListChildComponentProps<SeasonsTableData>) => {
     const data = seasonsData[index];
-    const { cropScalar, cropRatio } = calculateCropScales(data.beanToMaxLpGpPerBdvRatio, data.raining);
+    const { cropScalar, cropRatio } = calculateCropScales(data.beanToMaxLpGpPerBdvRatio, data.raining, data.season);
     const deltaCropScalar = (data.deltaBeanToMaxLpGpPerBdvRatio / 1e18).toFixed(1);
-    // Hide the first 3 seasons because the data is crazy as the system wasn't yet initialized
-    if (data.season <= 3) {
-      return (
-        <TableRow key={data.season} style={style} noHoverMute>
-          {seasonColumns.map(({ id }) => {
-            return (
-              <SeasonsTableCell
-                key={id}
-                columnKey={id}
-                value={id === "season" ? data.season : "N/A"}
-                hiddenFields={hiddenFields}
-              />
-            );
-          })}
-        </TableRow>
-      );
-    }
+    const priceDescriptiveText = caseIdToDescriptiveText(data.caseId, "price");
     return (
       <TableRow key={data.season} style={style} noHoverMute>
-        <SeasonsTableCell className="text-left" columnKey="season" value={data.season} hiddenFields={hiddenFields} />
+        <SeasonsTableCell
+          cellType={SeasonsTableCellType.TwoColumn}
+          className="text-left h-[50px]"
+          columnKey="season"
+          value={data.season}
+          subValue={DateTime.fromSeconds(data.timestamp).toFormat(trulyTheBestTimeFormat)}
+          hiddenFields={hiddenFields}
+        />
         <SeasonsTableCell
           columnKey="instantDeltaP"
           value={`${data.instDeltaB.toNumber() > 0 ? "+" : ""}${data.instDeltaB.toHuman("short")}`}
           hiddenFields={hiddenFields}
+          notApplicable={data.season <= 3}
         />
         <SeasonsTableCell
           columnKey="twaDeltaP"
+          notApplicable={data.season <= 3}
           value={`${data.twaDeltaB.toNumber() > 0 ? "+" : ""}${data.twaDeltaB.toHuman("short")}`}
           hiddenFields={hiddenFields}
         />
@@ -115,15 +107,17 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
           hiddenFields={hiddenFields}
         />
         <SeasonsTableCell
-          cellType={SeasonsTableCellType.TwoColumn}
+          cellType={priceDescriptiveText ? SeasonsTableCellType.TwoColumn : SeasonsTableCellType.Default}
           columnKey="twaPrice"
+          notApplicable={data.season <= 3}
           value={`$${data.twaPrice.toHuman("short")}`}
-          subValue={caseIdToDescriptiveText(data.caseId, "price")}
+          subValue={priceDescriptiveText}
           hiddenFields={hiddenFields}
         />
         <SeasonsTableCell
           cellType={SeasonsTableCellType.TwoColumn}
           columnKey="l2sr"
+          notApplicable={data.season <= 3}
           value={`${data.l2sr.toHuman("short")}%`}
           subValue={caseIdToDescriptiveText(data.caseId, "l2sr")}
           hiddenFields={hiddenFields}
@@ -178,7 +172,7 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
     );
   }, areEqual);
   return (
-    <Table overscroll className="table-fixed w-[0px]" ref={tableRef}>
+    <Table overscroll className="table-fixed w-[0px] mx-4" ref={tableRef}>
       <TableHeader>
         <TableRow noHoverMute className="z-[1] [&>*]:text-pinto-gray-5">
           {seasonColumns.map(({ id, name, classes }) => {
@@ -213,7 +207,7 @@ export const SeasonsTable = ({ seasonsData, hiddenFields, hideColumn }: SeasonsT
           </TableRow>
         )}
         <VariableSizeList
-          className="overscroll-auto mb-[50px]"
+          className="overscroll-auto mb-[50px] scrollbar-none"
           height={height}
           itemCount={seasonsData.length}
           itemSize={() => 50}

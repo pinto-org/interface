@@ -33,8 +33,8 @@ export const toValidStringNumInput = (val: string): string => {
 };
 
 export const stringToStringNum = (val: string) => {
-  if (!val) return 0;
-  if (invalidNumInputs.has(val.toLowerCase())) return 0;
+  if (!val) return "0";
+  if (invalidNumInputs.has(val.toLowerCase())) return "0";
   return val;
 };
 

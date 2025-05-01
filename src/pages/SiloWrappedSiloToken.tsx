@@ -11,6 +11,8 @@ import { Separator } from "@/components/ui/Separator";
 import { SEEDS, STALK } from "@/constants/internalTokens";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import { useProtocolIntegrationLinks } from "@/hooks/useProtocolIntegrations";
+import { ProtocolIntegration, ProtocolIntegrationQueryReturnType } from "@/state/integrations/types";
+import { useSpectraYieldSummary } from "@/state/integrations/useSpectraYieldSummary";
 import { useSeasonalPrice, useSeasonalWrappedDepositExchangeRate } from "@/state/seasonal/seasonalDataHooks";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
@@ -249,21 +251,38 @@ const BalanceSection = ({ token, tokenPrices, farmerBalances, loading }: IBalanc
   );
 };
 
+type ProtocolIntegrationToQueryLookup = Partial<
+  Record<ProtocolIntegration, ProtocolIntegrationQueryReturnType["data"]>
+>;
+
 const IntegrationLinks = ({ token }: { token: Token }) => {
   const integrations = useProtocolIntegrationLinks();
+
+  const spectra = useSpectraYieldSummary();
+
+  const queries = [spectra];
+
+  const byIntegration: ProtocolIntegrationToQueryLookup = queries.reduce((acc, query) => {
+    acc[query.integration] = query.data;
+    return acc;
+  }, {});
 
   if (!integrations) return null;
 
   return (
     <div className="flex flex-col gap-4">
-      {Object.entries(integrations).map(([name, integration]) => {
+      {Object.entries(integrations).map(([key, integration]) => {
+        const queryData = byIntegration[key as ProtocolIntegration];
+
         return (
           <div
-            key={`protocol-integration-${name}`}
-            className="flex flex-row items-center justify-between p-4 box-border rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border"
+            key={`protocol-integration-${key}`}
+            className="flex flex-row items-center justify-between p-4 box-border rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border gap-2"
           >
             <div className="pinto-sm-light text-pinto-light">
-              {typeof integration.ctaMessage === "function" ? integration.ctaMessage(token) : integration.ctaMessage}
+              {typeof integration.ctaMessage === "function"
+                ? integration.ctaMessage(token, queryData)
+                : integration.ctaMessage}
             </div>
             <Button asChild variant="outline-secondary" className="rounded-[12px] min-w-min">
               <Link to={integration.url} target="_blank" rel="noopener noreferrer">

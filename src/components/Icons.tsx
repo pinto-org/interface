@@ -424,3 +424,159 @@ export const BurgerIcon = ({ size = 6, color = "#000000", ...props }: IconProps)
     </svg>
   );
 };
+
+export const CalendarIcon = ({ size = 6, color = "#9C9C9C", ...props }: IconProps) => {
+  return (
+    <svg
+      width={size * 4}
+      height={size * 4}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={cn(props.className)}
+    >
+      <g id="Group">
+        <path id="Path" d="M7.5 3V6" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path id="Path_2" d="M16.5 3V6" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          id="Path_3"
+          d="M8.5 11.5H7.5"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          id="Path_4"
+          d="M8.5 15H7.5"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          id="Path_5"
+          d="M12.5 11.5H11.5"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          id="Path_6"
+          d="M12.5 15H11.5"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          id="Path_7"
+          d="M16.5 11.5H15.5"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          id="Path_8"
+          d="M16.5 15H15.5"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <rect
+          id="Rectangle"
+          x="3"
+          y="4.5"
+          width="18"
+          height="16.5"
+          rx="3"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </g>
+    </svg>
+  );
+};
+
+export const ClockIcon = ({ size = 6, color = "#9C9C9C", ...props }: IconProps) => {
+  return (
+    <svg
+      width={size * 4}
+      height={size * 4}
+      viewBox="0 0 15 15"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={cn(props.className)}
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M7.50009 0.877014C3.84241 0.877014 0.877258 3.84216 0.877258 7.49984C0.877258 11.1575 3.8424 14.1227 7.50009 14.1227C11.1578 14.1227 14.1229 11.1575 14.1229 7.49984C14.1229 3.84216 11.1577 0.877014 7.50009 0.877014ZM1.82726 7.49984C1.82726 4.36683 4.36708 1.82701 7.50009 1.82701C10.6331 1.82701 13.1729 4.36683 13.1729 7.49984C13.1729 10.6328 10.6331 13.1727 7.50009 13.1727C4.36708 13.1727 1.82726 10.6328 1.82726 7.49984ZM8 4.50001C8 4.22387 7.77614 4.00001 7.5 4.00001C7.22386 4.00001 7 4.22387 7 4.50001V7.50001C7 7.63262 7.05268 7.7598 7.14645 7.85357L9.14645 9.85357C9.34171 10.0488 9.65829 10.0488 9.85355 9.85357C10.0488 9.65831 10.0488 9.34172 9.85355 9.14646L8 7.29291V4.50001Z"
+        fill={color}
+      />
+    </svg>
+  );
+};
+
+export const SearchIcon = ({ size = 6, color = "#9C9C9C", ...props }: IconProps) => {
+  return (
+    <svg
+      width={size * 4}
+      height={size * 4}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={cn(props.className)}
+    >
+      <path
+        id="Icon"
+        d="M21 21L16.65 16.65M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z"
+        stroke={color}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
+export const LightningIcon = ({ color = "#404040", width = 11, height = 16, className }: SVGProps) => (
+  <svg
+    width={width}
+    height={height}
+    viewBox="0 0 11 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M6.69668 0.540354C6.9086 0.631038 7.03107 0.854857 6.99317 1.08223L6.09021 6.50001H10.5C10.6893 6.50001 10.8625 6.60701 10.9472 6.77641C11.0319 6.9458 11.0136 7.1485 10.8999 7.30001L4.89998 15.3C4.76168 15.4844 4.51522 15.5503 4.30329 15.4597C4.09136 15.369 3.96889 15.1452 4.00679 14.9178L4.90975 9.5H0.499998C0.310618 9.5 0.137488 9.393 0.0527876 9.22361C-0.0319024 9.05422 -0.0136324 8.85151 0.0999976 8.7L6.09998 0.700038C6.23829 0.515625 6.48475 0.44967 6.69668 0.540354ZM1.5 8.50001H5.49998C5.64696 8.50001 5.78649 8.56467 5.88149 8.67682C5.97649 8.78896 6.01734 8.93723 5.99318 9.0822L5.33028 13.0596L9.50001 7.50001H5.49998C5.35301 7.50001 5.21348 7.43534 5.11847 7.3232C5.02347 7.21105 4.98262 7.06279 5.00679 6.91781L5.66969 2.94042L1.5 8.50001Z"
+      fill={color}
+    />
+  </svg>
+);
+
+export const WarningIcon = ({ color = "#FF0000", width = 24, height = 21, className }: SVGProps) => (
+  <svg
+    width={width}
+    height={height}
+    viewBox="0 0 24 21"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M13.5126 0.972217C12.8301 -0.173031 11.1715 -0.173031 10.4889 0.972219L0.258666 18.1371C-0.440537 19.3102 0.404786 20.7982 1.77051 20.7982H22.231C23.5968 20.7982 24.4421 19.3102 23.7429 18.1371L13.5126 0.972217ZM11.8633 1.79136C11.9254 1.68725 12.0762 1.68725 12.1382 1.79136L22.3685 18.9563C22.4321 19.0628 22.3552 19.1982 22.231 19.1982H1.77051C1.64637 19.1982 1.56951 19.0628 1.63307 18.9563L11.8633 1.79136ZM10.9238 7.17597C10.9003 6.56496 11.3893 6.0568 12.0008 6.0568C12.6123 6.0568 13.1012 6.56496 13.0777 7.17599L12.8315 13.5774C12.8143 14.0238 12.4475 14.3768 12.0008 14.3768C11.5541 14.3768 11.1872 14.0238 11.17 13.5774L10.9238 7.17597ZM13.2006 16.7598C13.2006 17.4225 12.6633 17.9598 12.0006 17.9598C11.3379 17.9598 10.8006 17.4225 10.8006 16.7598C10.8006 16.0971 11.3379 15.5598 12.0006 15.5598C12.6633 15.5598 13.2006 16.0971 13.2006 16.7598Z"
+      fill={color}
+    />
+  </svg>
+);

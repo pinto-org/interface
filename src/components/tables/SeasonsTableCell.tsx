@@ -10,6 +10,7 @@ export enum SeasonsTableCellType {
 export interface SeasonsTableCellProps {
   cellType?: SeasonsTableCellType;
   columnKey: string;
+  notApplicable?: boolean;
   value?: any;
   subValue?: any;
   className?: string;
@@ -20,6 +21,7 @@ export interface SeasonsTableCellProps {
 export const SeasonsTableCell = ({
   cellType = SeasonsTableCellType.Default,
   columnKey,
+  notApplicable = false,
   value,
   subValue,
   className = "text-right",
@@ -29,16 +31,18 @@ export const SeasonsTableCell = ({
   if (hiddenFields.includes(columnKey)) return null;
   const column = seasonColumns.find((c) => c.id === columnKey);
   const additionalClasses = column?.classes;
+  const displayValue = notApplicable ? "N/A" : value;
+  const displaySubValue = notApplicable ? "N/A" : subValue;
 
   switch (cellType) {
     case SeasonsTableCellType.TwoColumn:
       return (
         <TwoColumnCell
           className={`${className} ${additionalClasses}`}
-          value={value}
-          subValue={subValue}
+          columnKey={columnKey}
+          value={displayValue}
+          subValue={displaySubValue}
           hoverContent={hoverContent}
-          hiddenFields={hiddenFields}
         />
       );
     default:
@@ -46,11 +50,11 @@ export const SeasonsTableCell = ({
         <TableCell className={`${className} ${additionalClasses} group`}>
           <div className="flex items-center justify-end gap-2">
             <div className="opacity-0 group-hover:opacity-100">{hoverContent}</div>
-            {value}
+            {displayValue}
           </div>
         </TableCell>
       ) : (
-        <TableCell className={`${className} ${additionalClasses}`}>{value}</TableCell>
+        <TableCell className={`${className} ${additionalClasses}`}>{displayValue}</TableCell>
       );
   }
 };

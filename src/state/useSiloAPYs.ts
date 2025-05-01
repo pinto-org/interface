@@ -1,4 +1,5 @@
 import { TV } from "@/classes/TokenValue";
+import { API_SERVICES } from "@/constants/endpoints";
 import { defaultQuerySettings } from "@/constants/query";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { getTokenIndex } from "@/utils/token";
@@ -58,15 +59,13 @@ const normalizeYields = (yields: SiloYieldsAPIResponse["yields"][EmaWindow]) => 
   return Object.fromEntries(entries) as SiloYieldsAPIResponse["yields"][EmaWindow];
 };
 
-const endpoint = import.meta.env.VITE_APY_ENDPOINT;
-
 export function useSiloYieldsQuery<TSelect = SiloYieldsAPIResponse>(
   arg?: ConstrainedUseQueryArgs<SiloYieldsAPIResponse, TSelect>,
 ) {
   return useQuery<SiloYieldsAPIResponse, Error, TSelect, QueryKey>({
     queryKey: ["api", "silo", "yields"],
     queryFn: async () => {
-      const res = await fetch(`${endpoint}/silo/yield`, {
+      const res = await fetch(`${API_SERVICES.pinto}/silo/yield`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -107,7 +106,7 @@ export function useSiloYieldsQuery<TSelect = SiloYieldsAPIResponse>(
       return failureCount < 2;
     },
     ...(arg || {}),
-    enabled: !!endpoint,
+    enabled: !!API_SERVICES.pinto,
   });
 }
 

@@ -31,6 +31,8 @@ export interface PickedCratesDetails {
 export interface ExtendedPickedCratesDetails extends PickedCratesDetails {
   totalBaseStalk: TokenValue;
   totalGrownStalk: TokenValue;
+  totalInitialStalk: TokenValue;
+  totalGrownStalkSinceDeposit: TokenValue;
 }
 
 /**
@@ -69,12 +71,14 @@ export function pickCrates(deposits: DepositData[], amount: TokenValue): PickedC
       ? deposit.amount
       : amount.sub(totalAmount);
     const cratePct = amountToRemoveFromCrate.div(deposit.amount);
-    const crateBDV = cratePct.mul(deposit.depositBdv);
-    const crateSeeds = cratePct.mul(deposit.seeds);
+    const crateBDV = deposit.depositBdv.mul(cratePct);
+    const crateSeeds = deposit.seeds.mul(cratePct);
 
-    const baseStalk = cratePct.mul(deposit.stalk.base);
-    const grownStalk = cratePct.mul(deposit.stalk.grown);
-    const crateStalk = cratePct.mul(deposit.stalk.total);
+    const baseStalk = deposit.stalk.base.mul(cratePct);
+    const grownStalk = deposit.stalk.grown.mul(cratePct);
+    const crateStalk = deposit.stalk.total.mul(cratePct);
+    const initialStalk = deposit.stalk.initial.mul(cratePct);
+    const grownSinceDepositStalk = deposit.stalk.grownSinceDeposit.mul(cratePct);
 
     totalAmount = totalAmount.add(amountToRemoveFromCrate);
     totalBDV = totalBDV.add(crateBDV);
@@ -86,9 +90,11 @@ export function pickCrates(deposits: DepositData[], amount: TokenValue): PickedC
       amount: amountToRemoveFromCrate,
       bdv: crateBDV,
       stalk: {
+        initial: initialStalk,
         total: crateStalk,
         base: baseStalk,
         grown: grownStalk,
+        grownSinceDeposit: grownSinceDepositStalk,
       },
       seeds: crateSeeds,
       isGerminating: deposit.isGerminating,
@@ -129,6 +135,8 @@ export function pickCratesMultiple(
     let totalBDV = TokenValue.ZERO;
     let totalStalk = TokenValue.ZERO;
     let totalBaseStalk = TokenValue.ZERO;
+    let totalInitialStalk = TokenValue.ZERO;
+    let totalGrownStalkSinceDeposit = TokenValue.ZERO;
     let totalGrownStalk = TokenValue.ZERO;
     let totalSeeds = TokenValue.ZERO;
 
@@ -141,13 +149,17 @@ export function pickCratesMultiple(
         ? deposit.amount
         : amount.sub(totalAmount);
       const cratePct = amountToRemoveFromCrate.div(deposit.amount);
-      const crateBDV = cratePct.mul(deposit.depositBdv);
-      const crateCurrentBDV = cratePct.mul(deposit.currentBdv);
-      const crateSeeds = cratePct.mul(deposit.seeds);
 
-      const baseStalk = cratePct.mul(deposit.stalk.base);
-      const grownStalk = cratePct.mul(deposit.stalk.grown);
-      const crateStalk = cratePct.mul(deposit.stalk.total);
+      // update decimals to match the correct decimals
+      const crateBDV = deposit.depositBdv.mul(cratePct);
+      const crateCurrentBDV = deposit.currentBdv.mul(cratePct);
+      const crateSeeds = deposit.seeds.mul(cratePct);
+
+      const baseStalk = deposit.stalk.base.mul(cratePct);
+      const grownStalk = deposit.stalk.grown.mul(cratePct);
+      const crateStalk = deposit.stalk.total.mul(cratePct);
+      const initialStalk = deposit.stalk.initial.mul(cratePct);
+      const grownSinceDepositStalk = deposit.stalk.grownSinceDeposit.mul(cratePct);
 
       totalAmount = totalAmount.add(amountToRemoveFromCrate);
       totalBDV = totalBDV.add(crateBDV);
@@ -155,15 +167,19 @@ export function pickCratesMultiple(
       totalBaseStalk = totalBaseStalk.add(baseStalk);
       totalGrownStalk = totalGrownStalk.add(grownStalk);
       totalStalk = totalStalk.add(crateStalk);
+      totalInitialStalk = totalInitialStalk.add(initialStalk);
+      totalGrownStalkSinceDeposit = totalGrownStalkSinceDeposit.add(grownSinceDepositStalk);
 
       cratesToWithdrawFrom.push({
         stem: deposit.stem,
         amount: amountToRemoveFromCrate,
         bdv: crateBDV,
         stalk: {
+          initial: initialStalk,
           total: crateStalk,
           base: baseStalk,
           grown: grownStalk,
+          grownSinceDeposit: grownSinceDepositStalk,
         },
         seeds: crateSeeds,
         isGerminating: deposit.isGerminating,
@@ -192,9 +208,11 @@ export function pickCratesMultiple(
     return {
       totalAmount,
       totalBDV,
+      totalInitialStalk,
       totalStalk,
       totalBaseStalk,
       totalGrownStalk,
+      totalGrownStalkSinceDeposit,
       totalSeeds,
       crates: cratesToWithdrawFrom,
     };
@@ -210,11 +228,12 @@ export function pickCratesAsCrates(sortedDeposits: DepositData[], quote: TokenVa
   let aggAmount = TokenValue.ZERO;
   let aggSeeds = TokenValue.ZERO;
   const aggStalk = {
-    base: TokenValue.ZERO,
-    grown: TokenValue.ZERO,
-    germinating: TokenValue.ZERO,
-    total: TokenValue.ZERO,
-    grownSinceDeposit: TokenValue.ZERO,
+    initial: TokenValue.fromHuman("0", STALK.decimals),
+    base: TokenValue.fromHuman("0", STALK.decimals),
+    grown: TokenValue.fromHuman("0", STALK.decimals),
+    germinating: TokenValue.fromHuman("0", STALK.decimals),
+    total: TokenValue.fromHuman("0", STALK.decimals),
+    grownSinceDeposit: TokenValue.fromHuman("0", STALK.decimals),
   };
 
   sortedDeposits.some((d) => {
@@ -223,16 +242,17 @@ export function pickCratesAsCrates(sortedDeposits: DepositData[], quote: TokenVa
     const cratePct = amount.div(d.depositBdv);
     const seeds = d.seeds.mul(cratePct);
 
-    aggStalk.base = aggStalk.base.add(cratePct.mul(d.stalk.base));
-    aggStalk.grown = aggStalk.grown.add(cratePct.mul(d.stalk.grown));
-    aggStalk.germinating = aggStalk.germinating.add(cratePct.mul(d.stalk.germinating));
-    aggStalk.total = aggStalk.total.add(cratePct.mul(d.stalk.total));
-    aggStalk.grownSinceDeposit = aggStalk.grownSinceDeposit.add(cratePct.mul(d.stalk.grownSinceDeposit));
+    aggStalk.base = aggStalk.base.add(d.stalk.base.mul(cratePct));
+    aggStalk.grown = aggStalk.grown.add(d.stalk.grown.mul(cratePct));
+    aggStalk.germinating = aggStalk.germinating.add(d.stalk.germinating.mul(cratePct));
+    aggStalk.total = aggStalk.total.add(d.stalk.total.mul(cratePct));
+    aggStalk.grownSinceDeposit = aggStalk.grownSinceDeposit.add(d.stalk.grownSinceDeposit.mul(cratePct));
+    aggStalk.initial = aggStalk.initial.add(d.stalk.initial.mul(cratePct));
 
     aggAmount = aggAmount.add(amount);
     aggSeeds = aggSeeds.add(seeds);
 
-    const { base, grown, germinating, total, grownSinceDeposit } = d.stalk;
+    const { base, grown, germinating, total, grownSinceDeposit, initial } = d.stalk;
 
     toDeposits.push({
       ...d,
@@ -240,9 +260,10 @@ export function pickCratesAsCrates(sortedDeposits: DepositData[], quote: TokenVa
       depositBdv: d.depositBdv.mul(cratePct),
       currentBdv: d.currentBdv.mul(cratePct),
       stalk: {
+        initial: initial.mul(cratePct),
         base: base.mul(cratePct),
         grown: grown.mul(cratePct),
-        germinating: germinating.mul(cratePct).reDecimal(STALK.decimals),
+        germinating: germinating.mul(cratePct),
         total: total.mul(cratePct),
         grownSinceDeposit: grownSinceDeposit.mul(cratePct),
       },
@@ -386,35 +407,4 @@ export function calculateConvertData(fromToken: Token, toToken: Token, amountIn:
   } else {
     console.error("CONVERT: Unknown conversion pathway");
   }
-}
-
-export function calculateCropScales(value: number, isRaining: boolean) {
-  const minInput = 0;
-  const maxInput = 1e18 * 100; // value is 1-100 not 0.0 -  1.0
-  const maxOutput = 100;
-
-  // Calculate crop scalar
-  const scalarMinOutput = 0;
-  const scalarValue = scalarMinOutput + ((value - minInput) * (maxOutput - scalarMinOutput)) / (maxInput - minInput);
-  const cropScalar = Math.min(Math.max(scalarValue, scalarMinOutput), maxOutput).toFixed(1);
-
-  // Calculate crop ratio
-  const ratioMinOutput = isRaining ? 33 : 50;
-  const ratioValue = ratioMinOutput + ((value - minInput) * (maxOutput - ratioMinOutput)) / (maxInput - minInput);
-  const cropRatio = Math.min(Math.max(ratioValue, ratioMinOutput), maxOutput).toFixed(1);
-
-  return {
-    cropScalar,
-    cropRatio,
-  };
-}
-
-export function convertDeltaDemandToPercentage(deltaDemand: number) {
-  if (deltaDemand === 0) return "0%";
-  if (deltaDemand === 1e18) return "100%";
-  if (deltaDemand === 1e36) return "∞%";
-
-  // Scale the value between 0-100%
-  const scaledValue = (deltaDemand / 1e18) * 100;
-  return `${TokenValue.fromHuman(scaledValue, 0).toHuman("short")}%`;
 }

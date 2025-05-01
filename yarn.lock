@@ -858,6 +858,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@date-fns/tz@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@date-fns/tz@npm:1.2.0"
+  checksum: 10c0/411e9d4303b10951f6fd0189d18fb845f0d934a575df2176bc10daf664282c765fb6b057a977e446bbb1229151d89e7788978600a019f1fc24b5c75276d496bd
+  languageName: node
+  linkType: hard
+
 "@ecies/ciphers@npm:^0.2.1":
   version: 0.2.2
   resolution: "@ecies/ciphers@npm:0.2.2"
@@ -4939,10 +4946,36 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/query-core@npm:5.74.3":
+  version: 5.74.3
+  resolution: "@tanstack/query-core@npm:5.74.3"
+  checksum: 10c0/ad28c2a4b9c39b23fb4a621474f134320f4cf5a2ea62a12918ca27d95b4b4a8b15316d5eceba04debbe2ecc7453f4dbaeb8deede7eeef07a83ad6ee42659b326
+  languageName: node
+  linkType: hard
+
 "@tanstack/query-devtools@npm:5.51.1":
   version: 5.51.1
   resolution: "@tanstack/query-devtools@npm:5.51.1"
   checksum: 10c0/244367572faf5af1dbaf4a64654547fe92e913a888ca889e01ce7715c9834ac1d10107767c45478fe8d890c7b8b43c55c58f97a8db1755f08804623d51d3ec20
+  languageName: node
+  linkType: hard
+
+"@tanstack/query-persist-client-core@npm:5.74.3":
+  version: 5.74.3
+  resolution: "@tanstack/query-persist-client-core@npm:5.74.3"
+  dependencies:
+    "@tanstack/query-core": "npm:5.74.3"
+  checksum: 10c0/236c20cb4e11a182ef9886fbab39d66d454785db0a7495e8828df30f635359ea4210481e3cb3724569e3ab1e003abbe97edf674ca487b9de9b643c64c1117322
+  languageName: node
+  linkType: hard
+
+"@tanstack/query-sync-storage-persister@npm:^5.74.3":
+  version: 5.74.3
+  resolution: "@tanstack/query-sync-storage-persister@npm:5.74.3"
+  dependencies:
+    "@tanstack/query-core": "npm:5.74.3"
+    "@tanstack/query-persist-client-core": "npm:5.74.3"
+  checksum: 10c0/1785d2f3ee735895eada02e0206c52bd5615aa917618320c06a556a887d1fdd841ee7a2453d45371144e8b806eef408242d68395874b11587281b261faf4db19
   languageName: node
   linkType: hard
 
@@ -4955,6 +4988,18 @@ __metadata:
     "@tanstack/react-query": ^5.51.1
     react: ^18 || ^19
   checksum: 10c0/39922b3d31c3ef5fcc1b7ecc16b18feeb17955ddc623f3ba688b6a903d284a349d12a8d645024ddb5373f7da80c0090af1aadf8ab0e3164f5c99e94a8bba07de
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-query-persist-client@npm:^5.74.3":
+  version: 5.74.3
+  resolution: "@tanstack/react-query-persist-client@npm:5.74.3"
+  dependencies:
+    "@tanstack/query-persist-client-core": "npm:5.74.3"
+  peerDependencies:
+    "@tanstack/react-query": ^5.74.3
+    react: ^18 || ^19
+  checksum: 10c0/a8d938ddcfe02f25844c6a823d895673081bc292c98ad5a5534cbf45fa4fac9617d4951ebe766c1b303e42f3bf110f1f30740dadd366f7c4d5f743aa125fa912
   languageName: node
   linkType: hard
 
@@ -7438,12 +7483,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"date-fns-jalali@npm:^4.1.0-0":
+  version: 4.1.0-0
+  resolution: "date-fns-jalali@npm:4.1.0-0"
+  checksum: 10c0/f9ad98d9f7e8e5abe0d070dc806b0c8baded2b1208626c42e92cbd2605b5171f5714d6b79b20cc2666267d821699244c9d0b5e93274106cf57d6232da77596ed
+  languageName: node
+  linkType: hard
+
 "date-fns@npm:^2.29.3":
   version: 2.30.0
   resolution: "date-fns@npm:2.30.0"
   dependencies:
     "@babel/runtime": "npm:^7.21.0"
   checksum: 10c0/e4b521fbf22bc8c3db332bbfb7b094fd3e7627de0259a9d17c7551e2d2702608a7307a449206065916538e384f37b181565447ce2637ae09828427aed9cb5581
+  languageName: node
+  linkType: hard
+
+"date-fns@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "date-fns@npm:4.1.0"
+  checksum: 10c0/b79ff32830e6b7faa009590af6ae0fb8c3fd9ffad46d930548fbb5acf473773b4712ae887e156ba91a7b3dc30591ce0f517d69fd83bd9c38650fdc03b4e0bac8
   languageName: node
   linkType: hard
 
@@ -8236,6 +8295,13 @@ __metadata:
   version: 11.0.0
   resolution: "extract-files@npm:11.0.0"
   checksum: 10c0/7ac1cd693d081099d7c29f2b36aad199f92c5ea234c2016eb37ba213dddaefe74d54566f0675de5917d35cf98670183c2c9a0d96094727eb2c6dae02be7fc308
+  languageName: node
+  linkType: hard
+
+"fancy-canvas@npm:2.1.0":
+  version: 2.1.0
+  resolution: "fancy-canvas@npm:2.1.0"
+  checksum: 10c0/2b863b1548214ac793a5104154be389dbca6847c53c8bda88e4309f14bcdb498f4da21e368b573f3ab5f458d3b47c3f0ef731a7b90c8264b23c1cf0bfc9d1da3
   languageName: node
   linkType: hard
 
@@ -9108,8 +9174,10 @@ __metadata:
     "@react-three/fiber": "npm:^8.17.10"
     "@rollup/plugin-strip": "npm:^3.0.4"
     "@tailwindcss/typography": "npm:^0.5.15"
+    "@tanstack/query-sync-storage-persister": "npm:^5.74.3"
     "@tanstack/react-query": "npm:^5.59.13"
     "@tanstack/react-query-devtools": "npm:5.51.1"
+    "@tanstack/react-query-persist-client": "npm:^5.74.3"
     "@tsparticles/engine": "npm:^3.5.0"
     "@tsparticles/react": "npm:^3.0.0"
     "@types/lodash": "npm:^4"
@@ -9128,16 +9196,19 @@ __metadata:
     class-variance-authority: "npm:0.7.0"
     clsx: "npm:2.1.1"
     connectkit: "npm:^1.8.2"
+    date-fns: "npm:^4.1.0"
     framer-motion: "npm:^11.11.11"
     graphql: "npm:16.9.0"
     graphql-request: "npm:7.1.0"
     immer: "npm:^10.1.1"
     jotai: "npm:^2.10.2"
     jotai-immer: "npm:^0.4.1"
+    lightweight-charts: "npm:^5.0.3"
     lodash: "npm:^4.17.21"
     luxon: "npm:^3.5.0"
     postcss: "npm:8.4.39"
     react: "npm:^18.3.1"
+    react-day-picker: "npm:^9.6.4"
     react-dom: "npm:^18.3.1"
     react-helmet-async: "npm:^2.0.5"
     react-hook-form: "npm:^7.52.1"
@@ -9651,6 +9722,15 @@ __metadata:
   dependencies:
     immediate: "npm:~3.0.5"
   checksum: 10c0/56dd113091978f82f9dc5081769c6f3b947852ecf9feccaf83e14a123bc630c2301439ce6182521e5fbafbde88e88ac38314327a4e0493a1bea7e0699a7af808
+  languageName: node
+  linkType: hard
+
+"lightweight-charts@npm:^5.0.3":
+  version: 5.0.3
+  resolution: "lightweight-charts@npm:5.0.3"
+  dependencies:
+    fancy-canvas: "npm:2.1.0"
+  checksum: 10c0/380282044b4bb090687657461e5d6067c4335ee6a4b5965d3440393b511141c8a7c1abb8baa75f0b364afc919121aaafb36051051a5d2bbc621636dcf422f713
   languageName: node
   linkType: hard
 
@@ -11315,6 +11395,19 @@ __metadata:
   peerDependencies:
     react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
   checksum: 10c0/6f0a62ce02f37d5b7b7959006b33eaa9c0949c404b25e78a3f19d8bdb7b31c8e30b836863601c3464dec847d45976e62274291ce60015892999094be1a0e7e03
+  languageName: node
+  linkType: hard
+
+"react-day-picker@npm:^9.6.4":
+  version: 9.6.4
+  resolution: "react-day-picker@npm:9.6.4"
+  dependencies:
+    "@date-fns/tz": "npm:^1.2.0"
+    date-fns: "npm:^4.1.0"
+    date-fns-jalali: "npm:^4.1.0-0"
+  peerDependencies:
+    react: ">=16.8.0"
+  checksum: 10c0/bd720c18e661bc35932048f57fd2c648ca2dfe0bff641d736d065365d35959c6ef0d8bc5e09787cc8beae912d145a8a1503c054dd61339e566129922ad98f0c2
   languageName: node
   linkType: hard
 

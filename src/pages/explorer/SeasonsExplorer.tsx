@@ -18,7 +18,7 @@ export interface SeasonColumn {
 export const nonHideableFields = ["season"];
 
 export const seasonColumns: SeasonColumn[] = [
-  { id: "season", name: "Season", classes: "text-left  w-[100px]", width: 100 },
+  { id: "season", name: "Season", classes: "text-left  w-[150px]", width: 150 },
   {
     id: "instantDeltaP",
     name: "Instant. ∆P",
@@ -28,15 +28,15 @@ export const seasonColumns: SeasonColumn[] = [
   },
   { id: "twaDeltaP", name: "TWA ∆P", classes: "text-right  w-[125px]", width: 125 },
   { id: "pintoSupply", name: "Pinto Supply", classes: "text-right  w-[135px]", width: 135 },
-  { id: "totalSoil", name: "Total Soil", classes: "text-right  w-[125px]", width: 125 },
+  { id: "totalSoil", name: "Total Soil", classes: "text-right  w-[110px]", width: 110 },
   { id: "soilSown", name: "Soil Sown", classes: "text-right  w-[125px]", width: 125 },
-  { id: "timeSown", name: "Time Sown", classes: "text-right  w-[125px]", width: 125 },
+  { id: "timeSown", name: "Time All Sown", classes: "text-right  w-[150px]", width: 150 },
   { id: "price", name: "Price", classes: "text-right  w-[125px]", width: 125 },
   { id: "twaPrice", name: "TWA Price", classes: "text-right  w-[125px]", width: 125 },
   { id: "l2sr", name: "L2SR", classes: "text-right  w-[150px]", width: 150 },
   { id: "podRate", name: "Pod Rate", classes: "text-right  w-[150px]", width: 150 },
   { id: "deltaDemand", name: "Delta Demand", classes: "text-right  w-[150px]", width: 150 },
-  { id: "cropScalar", name: "Crop Scalar", classes: "text-right  w-[125px]", width: 125 },
+  { id: "cropScalar", name: "Crop Scalar", classes: "text-right  w-[150px]", width: 150 },
   { id: "cropRatio", name: "Crop Ratio", classes: "text-right  w-[125px]", width: 125 },
   { id: "temperature", name: "Max Temperature", classes: "text-right w-[175px]", width: 175 },
 ];
@@ -64,7 +64,7 @@ const SeasonsExplorer = () => {
   const seasonsData = useSeasonsData(fromSeason, currentSeason);
 
   const calculateSeasonPageToJump = (season: number) => {
-    return Math.ceil((currentSeason - season) / PAGE_SIZE);
+    return Math.min(Math.floor((currentSeason - season) / PAGE_SIZE) + 1, totalPages);
   };
 
   useEffect(() => {
@@ -142,9 +142,8 @@ const SeasonsExplorer = () => {
 
   return (
     <>
-      <div className="flex flex-row gap-x-2">
+      <div className="flex flex-row gap-x-2 ml-4">
         <HideColumnDropdown
-          seasonColumns={seasonColumns}
           hiddenFields={hiddenFields}
           toggleColumn={toggleColumn}
           resetAllHiddenColumns={resetAllHiddenColumns}
@@ -155,8 +154,8 @@ const SeasonsExplorer = () => {
       ) : (
         <SeasonsTable seasonsData={seasons} hiddenFields={hiddenFields} hideColumn={hideColumn} />
       )}
-      <div className="self-center w-[100vw] flex justify-center flex-row sm:px-8 px-6 gap-x-2 bg-pinto-gray-1 border border-pinto-gray-2 h-[50px] fixed bottom-0 left-0 right-0 font-medium z-[1]">
-        <div className="w-full min-w-0 2xl:max-w-[1550px] 3xl:max-w-[2000px] flex items-center gap-2">
+      <div className="self-center w-[100vw] flex justify-center flex-row gap-x-2 bg-pinto-gray-1 border border-pinto-gray-2 h-[50px] fixed bottom-0 left-0 right-0 font-medium z-[1]">
+        <div className="w-full min-w-0 2xl:max-w-[1550px] 3xl:max-w-[2560px] flex items-center gap-2 sm:px-12 px-8 3xl:px-4">
           <Button
             variant="pagination"
             size="xs"
