@@ -17,6 +17,11 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn run format"
+    }
+  },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
     "@netlify/functions": "^2.8.1",
@@ -58,6 +63,7 @@
     "framer-motion": "^11.11.11",
     "graphql": "16.9.0",
     "graphql-request": "7.1.0",
+    "husky": "^9.1.7",
     "immer": "^10.1.1",
     "jotai": "^2.10.2",
     "jotai-immer": "^0.4.1",
