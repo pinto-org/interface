@@ -51,6 +51,10 @@ export const isDev = () => {
   return isLocalhost() || isNetlifyPreview() || process.env.NODE_ENV === "development";
 };
 
+export const deployedCommitHash = () => {
+  return import.meta.env.VITE_COMMIT_HASH;
+};
+
 export function exists<T>(value: T | undefined | null): value is NonNullable<T> {
   return value !== undefined && value !== null;
 }
@@ -189,6 +193,58 @@ export function identifyPlantDeposits(
   });
 
   return plantDepositMap;
+}
+
+/**
+ * Converts hex string to rgba
+ */
+export const hexToRgba = (hex: string, alpha?: number) => {
+  const stripped = hex.replace("#", "").split("");
+  if (stripped.length % 3 !== 0 || stripped.length > 6) {
+    throw new Error(`unexpected invalid hex value: ${hex}`);
+  }
+
+  const isCondensedHex = stripped.length === 3;
+  const hexArr = stripped
+    .reduce((prev, curr) => {
+      let _prev = prev;
+      if (isCondensedHex) {
+        _prev += curr;
+      }
+      _prev += curr;
+      return _prev;
+    }, "" as string)
+    .toString();
+
+  const r = parseInt(hexArr.slice(0, 2), 16);
+  const g = parseInt(hexArr.slice(2, 4), 16);
+  const b = parseInt(hexArr.slice(4, 6), 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha ?? 1})`;
+};
+
+export function safeJSONParse<T, F = false>(jsonString: string | null | undefined, fallbackValue: F): T | F {
+  try {
+    if (jsonString === null || jsonString === undefined) {
+      return fallbackValue;
+    }
+    return JSON.parse(jsonString) as T;
+  } catch (error) {
+    console.error("Failed to parse JSON:", error);
+    return fallbackValue;
+  }
+}
+
+export function safeJSONStringify<T>(value: T | null | undefined, fallbackValue: string = "{}"): string {
+  try {
+    if (value === null || value === undefined) {
+      return fallbackValue;
+    }
+    return JSON.stringify(value);
+  } catch (error) {
+    console.error("Failed to stringify object:", error);
+    return fallbackValue;
+  }
 }
 
 interface RatioDeposit {

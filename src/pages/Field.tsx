@@ -146,7 +146,6 @@ function Field() {
   const isMobile = useIsMobile();
   const [tractorRefreshCounter, setTractorRefreshCounter] = useState(0);
   const [showSowOrder, setShowSowOrder] = useState(false);
-  const [shouldHideShowOrders, setShouldHideShowOrders] = useState(false);
 
   const { address, isConnecting } = useAccount();
 
@@ -171,6 +170,16 @@ function Field() {
     // On desktop, use the param or default to 'activity'
     return tabParam === "activity" || tabParam === "pods" || tabParam === "tractor" ? tabParam : "activity";
   });
+
+  // On mobile, if the tab is not 'pods', set it to 'pods'
+  useEffect(() => {
+    if (isMobile) {
+      const tabParams = searchParams.get("tab");
+      if (tabParams !== "pods") {
+        setActiveTab("pods");
+      }
+    }
+  }, [isMobile]);
 
   // Effect to update activeTab when URL parameters change
   useEffect(() => {
@@ -250,7 +259,7 @@ function Field() {
                 <div className="flex space-x-1">
                   <button
                     type="button"
-                    className={`pinto-h3 py-2 pr-4 pl-0 text-left ${activeTab === "activity" ? "text-pinto-secondary" : "text-pinto-gray-4"}`}
+                    className={`hidden sm:block pinto-h3 py-2 pr-4 pl-0 text-left ${activeTab === "activity" ? "text-pinto-secondary" : "text-pinto-gray-4"}`}
                     onClick={() => {
                       setActiveTab("activity");
                       const params = new URLSearchParams(window.location.search);
@@ -262,7 +271,7 @@ function Field() {
                   </button>
                   <button
                     type="button"
-                    className={`pinto-h3 py-2 pr-4 pl-0 text-left ${activeTab === "tractor" ? "text-pinto-secondary" : "text-pinto-gray-4"}`}
+                    className={`hidden sm:block pinto-h3 py-2 pr-4 pl-0 text-left ${activeTab === "tractor" ? "text-pinto-secondary" : "text-pinto-gray-4"}`}
                     onClick={() => {
                       setActiveTab("tractor");
                       const params = new URLSearchParams(window.location.search);

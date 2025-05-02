@@ -501,6 +501,7 @@ export default function PriceButton({ isOpen = false, togglePanel, ...props }: I
       panelProps={{
         className: "max-w-panel-price w-panel-price mt-4",
       }}
+      screenReaderTitle="Price Panel"
       trigger={
         <Button
           variant="outline-primary"

@@ -6,20 +6,12 @@ import { Label } from "@/components/ui/Label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover";
 import { Switch } from "@/components/ui/Switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { PINTO } from "@/constants/tokens";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { Blueprint } from "@/lib/Tractor/types";
-import {
-  OrderbookEntry,
-  SowBlueprintData,
-  decodeSowTractorData,
-  getSowBlueprintDisplayData,
-  loadOrderbookData,
-} from "@/lib/Tractor/utils";
+import { OrderbookEntry, SowBlueprintData, decodeSowTractorData, loadOrderbookData } from "@/lib/Tractor/utils";
 import { useTemperature } from "@/state/useFieldData";
 import { formatter } from "@/utils/format";
-import { getChainToken } from "@/utils/token";
 import { cn } from "@/utils/utils";
 import { GearIcon } from "@radix-ui/react-icons";
 import { Separator } from "@radix-ui/react-separator";
@@ -28,8 +20,9 @@ import React from "react";
 import { toast } from "sonner";
 import { usePublicClient } from "wagmi";
 import { useChainId } from "wagmi";
+import { Col, Row } from "../Container";
 import LoadingSpinner from "../LoadingSpinner";
-import ReviewTractorOrderDialog, { ExecutionData } from "../ReviewTractorOrderDialog";
+import ReviewTractorOrderDialog from "../ReviewTractorOrderDialog";
 import { Plow } from "./Plow";
 
 const BASESCAN_URL = "https://basescan.org/address/";
@@ -43,7 +36,7 @@ interface SoilOrderbookContentProps {
 
 // Shared logic for loading and displaying the orderbook data
 export function SoilOrderbookContent({
-  showZeroAvailable = true,
+  showZeroAvailable = false,
   sortBy = "temperature",
   showAboveCurrentTemp = true,
 }: SoilOrderbookContentProps) {
@@ -381,7 +374,9 @@ export function SoilOrderbookContent({
             // Sum max per season
             if (data.sowAmounts.maxAmountToSowPerSeasonAsString) {
               const maxPerSeason = TokenValue.fromHuman(data.sowAmounts.maxAmountToSowPerSeasonAsString, 6);
-              totalMaxPerSeason = totalMaxPerSeason.add(maxPerSeason);
+              // Use the lower of maxPerSeason or available Pinto
+              const effectiveMaxPerSeason = req.currentlySowable.lt(maxPerSeason) ? req.currentlySowable : maxPerSeason;
+              totalMaxPerSeason = totalMaxPerSeason.add(effectiveMaxPerSeason);
             }
           }
         }
@@ -399,28 +394,28 @@ export function SoilOrderbookContent({
   const summaryData = calculateSummaryData();
 
   // Flag to enable/disable temperature indicator row - set to false to hide, true to show. We are awaiting design on this.
-  const showTemperatureIndicator = false;
+  const showTemperatureIndicator = true;
 
   // Helper function to render the temperature indicator row
   const renderTemperatureIndicatorRow = () => (
-    <TableRow className="border-b-0">
-      <TableCell className="py-1 px-0 text-pinto-green-4 border-b-0" colSpan={2}>
-        ↑ {formatter.pct(temperature.max)} - Current Temp
+    <TableRow className="bg-white [&_td]:border-t [&_td]:border-pinto-gray-2 [&_td]:border-b">
+      <TableCell className="py-3 pl-6 text-pinto-green-4" colSpan={2}>
+        Current Temperature: {formatter.pct(temperature.max)}
       </TableCell>
-      <TableCell className="py-1 border-b-0 text-pinto-green-4 justify-end text-right">Totals:</TableCell>
-      <TableCell className="py-1 text-right border-b-0">
-        <div className="flex items-center justify-start gap-1">
+      <TableCell className="py-3 text-pinto-green-4 justify-end text-right">Soil Orders at Current Temp:</TableCell>
+      <TableCell className="py-3 text-right">
+        <div className="flex items-center justify-end gap-1">
           <IconImage src={PINTO.logoURI} alt="PINTO" size={4} />
           <span className="text-pinto-green-4 font-medium">{formatter.number(summaryData.totalAvailablePinto)}</span>
         </div>
       </TableCell>
-      <TableCell className="py-1 text-right border-b-0">
-        <div className="flex items-center justify-start gap-1">
+      <TableCell className="py-3 text-right">
+        <div className="flex items-center justify-end gap-1">
           <IconImage src={PINTO.logoURI} alt="PINTO" size={4} />
           <span className="text-pinto-green-4 font-medium">{formatter.number(summaryData.totalMaxPerSeason)}</span>
         </div>
       </TableCell>
-      <TableCell className="py-1 border-b-0" colSpan={5} />
+      <TableCell className="py-3" colSpan={5} />
     </TableRow>
   );
 
@@ -454,29 +449,35 @@ export function SoilOrderbookContent({
         noHoverMute
         onClick={() => handleRowClick(req)}
       >
-        <TableCell className="py-2 px-0">≥ {temperature.toFixed(0)}%</TableCell>
-        <TableCell className="py-2">≤ {maxPodLineLength}</TableCell>
-        <TableCell className="py-2">
-          <div className="flex items-center gap-1">
+        <TableCell className="py-2 px-0 pl-6 whitespace-nowrap">≥ {temperature.toFixed(0)}%</TableCell>
+        <TableCell className="py-2 whitespace-nowrap">≤ {maxPodLineLength}</TableCell>
+        <TableCell className="py-2 text-right">
+          <div className="flex items-center gap-1 justify-end">
             <IconImage src={PINTO.logoURI} alt="PINTO" size={4} />
             {totalSize}
           </div>
         </TableCell>
-        <TableCell className="py-2">
-          <div className="flex items-center gap-1">
+        <TableCell className="py-2 text-right">
+          <div className="flex items-center gap-1 justify-end">
             <IconImage src={PINTO.logoURI} alt="PINTO" size={4} />
             {availablePinto}
           </div>
         </TableCell>
-        <TableCell className="py-2">
-          <div className="flex items-center gap-1">
+        <TableCell className="py-2 text-right">
+          <div className="flex items-center gap-1 justify-end">
             <IconImage src={PINTO.logoURI} alt="PINTO" size={4} />
             {decodedData && decodedData.sowAmounts.maxAmountToSowPerSeasonAsString
-              ? formatter.number(TokenValue.fromHuman(decodedData.sowAmounts.maxAmountToSowPerSeasonAsString, 6))
+              ? (() => {
+                  const maxPerSeason = TokenValue.fromHuman(decodedData.sowAmounts.maxAmountToSowPerSeasonAsString, 6);
+                  const effectiveMaxPerSeason = req.currentlySowable.lt(maxPerSeason)
+                    ? req.currentlySowable
+                    : maxPerSeason;
+                  return formatter.number(effectiveMaxPerSeason);
+                })()
               : "Unknown"}
           </div>
         </TableCell>
-        <TableCell className="py-2">
+        <TableCell className="py-2 text-right">
           {decodedData && decodedData.runBlocksAfterSunrise !== undefined ? (
             Number(decodedData.runBlocksAfterSunrise) < 300 ? (
               <span className="text-pinto-green-4 font-medium">Yes</span>
@@ -487,8 +488,8 @@ export function SoilOrderbookContent({
             "Unknown"
           )}
         </TableCell>
-        <TableCell className="py-2">
-          <div className="flex items-center gap-1">
+        <TableCell className="py-2 text-right">
+          <div className="flex items-center gap-1 justify-end">
             <IconImage src={PINTO.logoURI} alt="PINTO" size={4} />
             {decodedData && decodedData.operatorParams.operatorTipAmount
               ? formatter.number(TokenValue.fromBlockchain(decodedData.operatorParams.operatorTipAmount, 6), {
@@ -498,10 +499,10 @@ export function SoilOrderbookContent({
               : "Unknown"}
           </div>
         </TableCell>
-        <TableCell className="py-2 text-pinto-dark">
+        <TableCell className="py-2 text-pinto-dark text-right">
           {`0x${req.requisition.blueprintHash.slice(2, 7)}...${req.requisition.blueprintHash.slice(-4)}`}
         </TableCell>
-        <TableCell className="py-2">
+        <TableCell className="py-2 text-right">
           <a
             href={`${BASESCAN_URL}${req.requisition.blueprint.publisher}`}
             target="_blank"
@@ -512,7 +513,7 @@ export function SoilOrderbookContent({
             {`0x${req.requisition.blueprint.publisher.slice(2, 7)}...${req.requisition.blueprint.publisher.slice(-4)}`}
           </a>
         </TableCell>
-        <TableCell className="py-2">{formatDate(req.timestamp)}</TableCell>
+        <TableCell className="py-2 pr-6 text-right">{formatDate(req.timestamp)}</TableCell>
       </TableRow>
     );
   };
@@ -520,20 +521,18 @@ export function SoilOrderbookContent({
   return (
     <div className="overflow-x-auto">
       <Table>
-        <TableHeader className="[&_tr]:border-b-0">
+        <TableHeader className="[&_tr]:border-b-0 [&_th]:text-pinto-light">
           <TableRow className="border-b-0">
-            <TableHead className="py-2 px-0 font-light text-[#9C9C9C] text-base leading-[110%]">Temperature</TableHead>
-            <TableHead className="py-2 font-light text-[#9C9C9C] text-base leading-[110%]">
-              Max Podline Length
-            </TableHead>
-            <TableHead className="py-2 font-light text-[#9C9C9C] text-base leading-[110%]">
-              Total Soil Order Size
-            </TableHead>
-            <TableHead className="py-2 font-light text-[#9C9C9C] text-base leading-[110%]">Available Pinto</TableHead>
-            <TableHead className="py-2 font-light text-[#9C9C9C] text-base leading-[110%]">Max per Season</TableHead>
-            <TableHead className="py-2 font-light text-[#9C9C9C] text-base leading-[110%]">Blueprint Hash</TableHead>
-            <TableHead className="py-2 font-light text-[#9C9C9C] text-base leading-[110%]">Publisher</TableHead>
-            <TableHead className="py-2 font-light text-[#9C9C9C] text-base leading-[110%]">Created at</TableHead>
+            <TableHead className="py-2 px-0 pl-6">Temperature</TableHead>
+            <TableHead className="py-2">Max Podline Length</TableHead>
+            <TableHead className="py-2 text-right">Total Soil Order Size</TableHead>
+            <TableHead className="py-2 text-right">Available Pinto</TableHead>
+            <TableHead className="py-2 text-right">Max per Season</TableHead>
+            <TableHead className="py-2 text-right">Morning Auction</TableHead>
+            <TableHead className="py-2 text-right">Operator Tip</TableHead>
+            <TableHead className="py-2 text-right">Blueprint Hash</TableHead>
+            <TableHead className="py-2 text-right">Publisher</TableHead>
+            <TableHead className="py-2 pr-6 text-right">Created at</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -557,7 +556,7 @@ export function SoilOrderbookContent({
             renderTemperatureIndicatorRow()}
           {sortedRequisitions.length === 0 && (
             <TableRow>
-              <TableCell colSpan={10} className="p-2 text-center text-gray-500">
+              <TableCell colSpan={10} className="p-2 text-center text-gray-500 h-72">
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
                     <LoadingSpinner size={20} />
@@ -612,7 +611,7 @@ interface SoilOrderbookDialogProps {
 
 export function SoilOrderbookDialog({ open, onOpenChange }: SoilOrderbookDialogProps) {
   const [activeTab, setActiveTab] = useState<"view" | "execute">("view");
-  const [showZeroAvailable, setShowZeroAvailable] = useState(true);
+  const [showZeroAvailable, setShowZeroAvailable] = useState(false);
   const [sortBy, setSortBy] = useState<"temperature" | "tip">("temperature");
   const [showAboveCurrentTemp, setShowAboveCurrentTemp] = useState(true);
 
@@ -635,50 +634,56 @@ export function SoilOrderbookDialog({ open, onOpenChange }: SoilOrderbookDialogP
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
-        <DialogOverlay className="fixed inset-0 backdrop-blur-sm bg-black/30" />
-        <DialogContent className="max-w-[90rem] w-[98vw] bg-gray-50 border border-gray-200 p-0">
-          <DialogHeader className="pt-2">
+        <DialogOverlay className="fixed inset-0 backdrop-blur-[2px] bg-white/50" />
+        <DialogContent
+          id="content-dialog"
+          className="max-w-[98rem] w-[95vw] bg-gray-50 border border-gray-200 p-0 sm:p-0 gap-2"
+        >
+          <DialogHeader className="px-6 pt-6 pb-0">
             <DialogTitle className="text-xl font-bold">Tractor Soil Orders</DialogTitle>
           </DialogHeader>
-
-          <div className="w-full">
-            <div className="border-b">
-              <div className="flex items-end justify-between">
-                <div className="flex gap-4">
+          <Col className="w-full">
+            <Col className="border-b">
+              <Row className="flex items-center justify-between">
+                <Row className="gap-4 px-6">
                   <button
                     type="button"
-                    className={`pb-2 pt-1 ${activeTab === "view" ? "border-b-2 border-pinto-green-4 font-medium -mb-[2px]" : "border-b-2 border-transparent text-pinto-gray-4 -mb-[2px]"}`}
+                    className={cn(
+                      "py-4 border-box border-b-2 border-transparent pinto-sm text-pinto-gray-4",
+                      activeTab === "view" && "text-pinto-primary border-pinto-green-4 font-medium",
+                    )}
                     onClick={() => setActiveTab("view")}
                   >
                     View Soil Orders
                   </button>
                   <button
                     type="button"
-                    className={`pb-2 pt-1 ${activeTab === "execute" ? "border-b-2 border-pinto-green-4 font-medium -mb-[2px]" : "border-b-2 border-transparent text-pinto-gray-4 -mb-[2px]"}`}
+                    className={cn(
+                      "py-4 border-box border-b-2 border-transparent pinto-sm text-pinto-gray-4",
+                      activeTab === "execute" && "text-pinto-primary border-pinto-green-4 font-medium",
+                    )}
                     onClick={() => setActiveTab("execute")}
                   >
                     Execute Soil Orders
                   </button>
-                </div>
+                </Row>
 
-                <div className="pb-2">
+                <Col className="mr-4 items-center justify-center">
                   {activeTab === "view" && (
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
-                          type="button"
                           variant="ghost"
                           size="sm"
-                          className="rounded-full h-8"
+                          rounded="full"
+                          className="h-8 p-2"
                           aria-label="Table Settings"
                         >
                           <GearIcon className="h-5 w-5 text-pinto-gray-4" />
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-80 p-4" align="end">
-                        <h3 className="text-xs font-medium mb-3" style={{ fontSize: "1rem", lineHeight: "1rem" }}>
-                          Table Settings
-                        </h3>
+                        <div className="pinto-sm font-medium mb-3 leading-same-sm">Table Settings</div>
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
                             <SmallLabel htmlFor="show-zero-available">Show Zero Available Pinto</SmallLabel>
@@ -734,11 +739,10 @@ export function SoilOrderbookDialog({ open, onOpenChange }: SoilOrderbookDialogP
                       </PopoverContent>
                     </Popover>
                   )}
-                </div>
-              </div>
-            </div>
-
-            <div className="py-4">
+                </Col>
+              </Row>
+            </Col>
+            <Col className={cn("pt-4 pb-6 w-full min-h-72")}>
               {activeTab === "view" ? (
                 <SoilOrderbookContent
                   showZeroAvailable={showZeroAvailable}
@@ -746,10 +750,12 @@ export function SoilOrderbookDialog({ open, onOpenChange }: SoilOrderbookDialogP
                   showAboveCurrentTemp={showAboveCurrentTemp}
                 />
               ) : (
-                <Plow />
+                <Col className="px-6">
+                  <Plow />
+                </Col>
               )}
-            </div>
-          </div>
+            </Col>
+          </Col>
         </DialogContent>
       </DialogPortal>
     </Dialog>

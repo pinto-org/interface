@@ -1,4 +1,6 @@
-import SeasonalChart, { tabToSeasonalLookback, TimeTab } from "@/components/charts/SeasonalChart";
+import SeasonalAPYChart from "@/components/charts/SeasonalAPYChart";
+import SeasonalChart, { tabToSeasonalLookback } from "@/components/charts/SeasonalChart";
+import { TimeTab } from "@/components/charts/TimeTabs";
 import {
   useSeasonalAvgSeeds,
   useSeasonalBDV,
@@ -27,6 +29,7 @@ const SiloExplorer = () => {
 
   return (
     <>
+      {/* For debugging, cant double comment out with the comment in the middle */}
       <div className="flex flex-col sm:flex-row w-full sm:space-x-8">
         <div className="w-full sm:w-1/2">
           <SeasonalChart
@@ -87,6 +90,7 @@ const SiloExplorer = () => {
           />
         </div>
       </div>
+      <SeasonalAPYChart season={season} size="large" />
     </>
   );
 };

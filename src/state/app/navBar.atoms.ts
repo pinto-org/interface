@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 
-export type NavbarPanelType = "price" | "seasons" | "wallet" | "mobile-navi";
+export type NavbarPanelType = "price" | "seasons" | "wallet" | "mobile-navi" | "chart-select" | undefined;
 
 // Define specific view states for each panel type
 export interface WalletPanelState {
@@ -10,7 +10,7 @@ export interface WalletPanelState {
 }
 
 export interface NavbarPanelState {
-  openPanel: NavbarPanelType | undefined;
+  openPanel: NavbarPanelType;
   backdropMounted: boolean;
   backdropVisible: boolean;
   walletPanel: WalletPanelState;

@@ -247,8 +247,10 @@ export default function DepositSelectDialog({
 
                             if (selected.length === stems.length) {
                               setSelected([]);
+                              handleDepositSelection([]);
                             } else {
                               setSelected(stems);
+                              handleDepositSelection(stems);
                             }
                           }}
                           className="h-14 text-pinto-green-4"

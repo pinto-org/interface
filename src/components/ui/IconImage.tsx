@@ -2,7 +2,7 @@ import { cn } from "@/utils/utils";
 import { ChevronUpIcon } from "@radix-ui/react-icons";
 import { IconProps } from "@radix-ui/react-icons/dist/types";
 import clsx from "clsx";
-import React from "react";
+import React, { memo } from "react";
 
 export interface IconImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, "src"> {
   /**
@@ -77,7 +77,7 @@ const nudgeProps = {
   6: clsx("relative bottom-[0.375rem]"), // 6px
 };
 
-const IconImage = ({ size = 6, mobileSize, src, nudge = 0, ...props }: IconImageProps) => {
+const IconImage = memo(({ size = 6, mobileSize, src, nudge = 0, ...props }: IconImageProps) => {
   if (typeof src === "string") {
     return (
       <img
@@ -95,6 +95,6 @@ const IconImage = ({ size = 6, mobileSize, src, nudge = 0, ...props }: IconImage
       className={cn(makeIconImageClassName(size, mobileSize), "flex-shrink-0", nudgeProps[nudge], props.className)}
     />
   );
-};
+});
 
 export default IconImage;

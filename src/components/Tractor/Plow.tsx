@@ -168,8 +168,8 @@ export function Plow() {
       try {
         // Use the baseGasClient to fetch gas price from Base network
         const price = await baseGasClient.getGasPrice();
-        console.log("Current Base network gas price:", price.toString(), "wei");
-        console.log("Current Base network gas price:", (Number(price) / 1e9).toFixed(2), "gwei");
+        console.debug("Current Base network gas price:", price.toString(), "wei");
+        console.debug("Current Base network gas price:", (Number(price) / 1e9).toFixed(2), "gwei");
         setGasPrice(price);
       } catch (error) {
         console.error("Failed to fetch gas price:", error);
@@ -185,7 +185,7 @@ export function Plow() {
   const { data: requisitions = [], isLoading } = useQuery({
     queryKey: ["requisitions", protocolAddress, latestBlock?.number, temperatures.scaled?.toString()],
     queryFn: async () => {
-      console.log("Loading requisitions...");
+      console.debug("Loading requisitions...");
       if (!publicClient || !protocolAddress) return [];
 
       const events = await loadPublishedRequisitions(
@@ -195,11 +195,14 @@ export function Plow() {
         latestBlock,
         "sowBlueprintv0",
       );
-      console.log("Loaded requisitions:", events);
+      console.debug("Loaded requisitions:", events);
 
       // Get current temperature
       const currentTemperature = temperatures.scaled;
-      console.log("Current temperature:", currentTemperature?.toHuman ? `${currentTemperature.toHuman()}%` : "Unknown");
+      console.debug(
+        "Current temperature:",
+        currentTemperature?.toHuman ? `${currentTemperature.toHuman()}%` : "Unknown",
+      );
 
       // Filter out requisitions with zero or negative tip, cancelled requisitions,
       // and those with minTemp higher than current temperature
@@ -215,7 +218,7 @@ export function Plow() {
         if (currentTemperature && req.decodedData.minTemp) {
           const reqMinTemp = TokenValue.fromBlockchain(req.decodedData.minTemp, 6);
           if (reqMinTemp.gt(currentTemperature)) {
-            console.log(
+            console.debug(
               `Filtered out requisition with minTemp ${reqMinTemp.toHuman()}% > current temp ${currentTemperature.toHuman()}%`,
             );
             return false;
@@ -224,7 +227,7 @@ export function Plow() {
 
         return tipAmount > 0n;
       });
-      console.log("Filtered requisitions (executable with positive tips):", filteredEvents.length);
+      console.debug("Filtered requisitions (executable with positive tips):", filteredEvents.length);
 
       return filteredEvents;
     },
@@ -289,7 +292,7 @@ export function Plow() {
       return;
     }
 
-    console.log("Sorting requisitions by profit");
+    console.debug("Sorting requisitions by profit");
 
     // Use a stable sort to avoid unnecessary reordering
     const sorted = [...requisitions].sort((a, b) => {
@@ -385,7 +388,7 @@ export function Plow() {
           });
 
           // Debug log
-          console.log(`Gas estimate for ${req.requisition.blueprintHash}:`, gasEstimate.toString());
+          console.debug(`Gas estimate for ${req.requisition.blueprintHash}:`, gasEstimate.toString());
 
           // Store gas estimate
           setGasEstimates((prev) => {
@@ -394,16 +397,16 @@ export function Plow() {
             return next;
           });
 
-          console.log(`Simulation successful for ${req.requisition.blueprintHash}`);
+          console.debug(`Simulation successful for ${req.requisition.blueprintHash}`);
           setSuccessfulSimulations((prev) => new Set(prev).add(req.requisition.blueprintHash));
         } catch (error) {
-          console.error(`Simulation failed for ${req.requisition.blueprintHash}:`, error);
+          // console.error(`Simulation failed for ${req.requisition.blueprintHash}:`, error);
 
           // Log additional details for debugging
-          console.log("Simulation details:");
-          console.log("Blueprint Hash:", req.requisition.blueprintHash);
-          console.log("To Address:", protocolAddress);
-          console.log("From Address:", address || "Unknown");
+          console.debug("Simulation details:");
+          console.debug("Blueprint Hash:", req.requisition.blueprintHash);
+          console.debug("To Address:", protocolAddress);
+          console.debug("From Address:", address || "Unknown");
 
           // Try to log call args
           try {
@@ -420,9 +423,9 @@ export function Plow() {
                 "0x",
               ],
             });
-            console.log("Encoded Call Data:", encodedCallData);
-            console.log("Simulator Ready Format:");
-            console.log(
+            console.debug("Encoded Call Data:", encodedCallData);
+            console.debug("Simulator Ready Format:");
+            console.debug(
               JSON.stringify(
                 {
                   to: protocolAddress,
@@ -520,7 +523,7 @@ export function Plow() {
         });
 
         // Debug log
-        console.log("Gas estimate:", gasEstimate.toString());
+        console.debug("Gas estimate:", gasEstimate.toString());
 
         // Store gas estimate
         setGasEstimates((prev) => {
@@ -532,13 +535,13 @@ export function Plow() {
         toast.success("Simulation successful");
         setSuccessfulSimulations((prev) => new Set(prev).add(req.requisition.blueprintHash));
       } catch (error) {
-        console.error("Simulation failed:", error);
+        // console.error("Simulation failed:", error);
 
         // Log additional details for debugging
-        console.log("Simulation details:");
-        console.log("Blueprint Hash:", req.requisition.blueprintHash);
-        console.log("To Address:", protocolAddress);
-        console.log("From Address:", address || "Unknown");
+        console.debug("Simulation details:");
+        console.debug("Blueprint Hash:", req.requisition.blueprintHash);
+        console.debug("To Address:", protocolAddress);
+        console.debug("From Address:", address || "Unknown");
 
         // Try to encode and log call data for simulator use
         try {
@@ -554,9 +557,9 @@ export function Plow() {
               "0x",
             ],
           });
-          console.log("Encoded Call Data:", encodedCallData);
-          console.log("Simulator Ready Format:");
-          console.log(
+          console.debug("Encoded Call Data:", encodedCallData);
+          console.debug("Simulator Ready Format:");
+          console.debug(
             JSON.stringify(
               {
                 to: protocolAddress,
@@ -623,7 +626,7 @@ export function Plow() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center gap-2 py-4">
+      <div className="flex items-center justify-center gap-2 py-4 min-h-72">
         <LoadingSpinner size={20} />
         <span>Loading requisitions...</span>
       </div>
@@ -772,9 +775,9 @@ export function Plow() {
                             const currentGasPrice = gasPrice || BigInt(1_000_000_000);
 
                             // Debug log the values
-                            console.log("Gas estimate:", gas.toString());
-                            console.log("Gas price:", currentGasPrice.toString());
-                            console.log("ETH price:", ethPrice.toString());
+                            console.debug("Gas estimate:", gas.toString());
+                            console.debug("Gas price:", currentGasPrice.toString());
+                            console.debug("ETH price:", ethPrice.toString());
 
                             // Calculate gas cost in wei, then convert to USD
                             const gasCostInWei = gas * currentGasPrice;
@@ -785,10 +788,10 @@ export function Plow() {
                             // Calculate USD directly from ETH amount
                             const gasCostInUsd = gasCostInEth * ethPriceInUsd;
 
-                            console.log("Gas cost in Wei:", gasCostInWei.toString());
-                            console.log("Gas cost in ETH:", gasCostInEth.toFixed(18));
-                            console.log("ETH price in USD:", ethPriceInUsd.toFixed(2));
-                            console.log("Gas cost in USD:", gasCostInUsd.toFixed(6));
+                            console.debug("Gas cost in Wei:", gasCostInWei.toString());
+                            console.debug("Gas cost in ETH:", gasCostInEth.toFixed(18));
+                            console.debug("ETH price in USD:", ethPriceInUsd.toFixed(2));
+                            console.debug("Gas cost in USD:", gasCostInUsd.toFixed(6));
 
                             return `${formatter.number(gas.toString())} ($${gasCostInUsd.toFixed(6)})`;
                           })()}

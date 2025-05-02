@@ -1,4 +1,4 @@
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/Drawer";
+import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "@/components/ui/Drawer";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import useIsTablet from "@/hooks/display/useIsTablet";
 import { cn } from "@/utils/utils";
@@ -41,16 +41,29 @@ interface IPanel extends ISidebar {
   toggle: () => void;
   panelProps?: React.ComponentProps<typeof Card>;
   drawerProps?: React.ComponentProps<typeof Drawer>;
+  screenReaderTitle?: string;
 }
 
-const Panel = ({ trigger, isOpen, side, toggle, panelProps, drawerProps, ...props }: IPanel) => {
+const Panel = ({
+  trigger,
+  isOpen,
+  side,
+  toggle,
+  panelProps,
+  drawerProps,
+  screenReaderTitle = "Panel",
+  ...props
+}: IPanel) => {
   const isMobile = useIsMobile();
 
   if (isMobile) {
     return (
       <Drawer {...drawerProps} open={isOpen} onOpenChange={() => toggle()}>
         <DrawerTrigger>{trigger}</DrawerTrigger>
-        <DrawerContent>{props.children}</DrawerContent>
+        <DrawerContent>
+          <DrawerTitle className="sr-only">{screenReaderTitle}</DrawerTitle>
+          {props.children}
+        </DrawerContent>
       </Drawer>
     );
   }

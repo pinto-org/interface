@@ -102,18 +102,18 @@ const Footer = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
 };
 Footer.displayName = "ResponsiveDialog.Footer";
 
-const Title = forwardRef<HTMLHeadingElement, ResponsiveProps<typeof DialogTitle>>((props, ref) => {
+const Title = ({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) => {
   const isDesktop = useContext(ResponsiveDialogContext);
   const Component = isDesktop ? DialogTitle : DrawerTitle;
-  return <Component ref={ref} {...props} />;
-});
+  return <Component className={className} {...props} />;
+};
 Title.displayName = "ResponsiveDialog.Title";
 
-const Description = forwardRef<HTMLParagraphElement, ResponsiveProps<typeof DialogDescription>>((props, ref) => {
+const Description = ({ className, ...props }: HTMLAttributes<HTMLParagraphElement>) => {
   const isDesktop = useContext(ResponsiveDialogContext);
   const Component = isDesktop ? DialogDescription : DrawerDescription;
-  return <Component ref={ref} {...props} />;
-});
+  return <Component className={className} {...props} />;
+};
 Description.displayName = "ResponsiveDialog.Description";
 
 const Close = forwardRef<HTMLButtonElement, ResponsiveProps<typeof DialogClose>>((props, ref) => {

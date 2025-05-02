@@ -5,8 +5,6 @@ import { TokenValue } from "@/classes/TokenValue";
 import DepositDialog from "@/components/DepositDialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { ToggleGroupItem } from "@/components/ui/ToggleGroup";
-import deposit from "@/encoders/deposit";
-import price from "@/encoders/ecosystem/price";
 import { useDenomination } from "@/hooks/useAppSettings";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
@@ -16,7 +14,6 @@ import { DepositData, Token, TokenDepositData } from "@/utils/types";
 import { cn } from "@/utils/utils";
 import { HTMLMotionProps } from "framer-motion";
 import React, { useState } from "react";
-import { div } from "three/webgpu";
 import CheckmarkCircle from "./CheckmarkCircle";
 import IconImage from "./ui/IconImage";
 
@@ -87,15 +84,15 @@ const DepositRow = React.forwardRef<HTMLTableRowElement, DepositRowProps & Table
           "h-[4.5rem] transition-all",
           deposit.isGerminating ? "bg-pinto-off-green/15" : deposit.isPlantDeposit ? "bg-pinto-green-4/15" : "bg-white",
           "text-[1rem]",
-          !useToggle ? "pointer-events-none" : "hover:cursor-pointer hover:bg-pinto-green-1/50",
-          disabled && "bg-pinto-gray-2/30 hover:bg-pinto-gray-2/30 opacity-60 cursor-not-allowed",
+          "hover:cursor-pointer hover:bg-pinto-green-1/50",
+          disabled && "pointer-events-none bg-pinto-gray-2/30 hover:bg-pinto-gray-2/30 opacity-60 cursor-not-allowed",
         )}
-        onClick={!disabled ? () => onRowClick(deposit) : undefined}
+        onClick={!useToggle ? () => onRowClick(deposit) : props.onClick}
       >
         <TableCell className="hidden md:table-cell pinto-sm">
           <div className="gap-2 pl-2 flex items-center">
             {useToggle && <CheckmarkCircle isSelected={isSelected} />}
-            <img src={depositIcon} alt="deposit icon" />
+            <img src={depositIcon} alt="deposit icon" className="min-w-6 min-h-4" />
             <span
               className={`${useToggle ? "hover:underline hover:cursor-pointer" : ""}`}
               onClick={

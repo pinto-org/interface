@@ -1,3 +1,4 @@
+import { chartColors } from "@/state/useChartSetupData";
 import { Chart, ChartOptions, Plugin, ScriptableScaleContext } from "chart.js";
 import { MutableRefObject } from "react";
 
@@ -43,19 +44,19 @@ export const positionalGradientVertical = (ctx: CanvasRenderingContext2D, colors
 
 // stroke configs
 const metallicGreenStrokeColors = ["#59f0a7", "#00C767", "#246645", "#00C767", "#F2F6F9"];
+const metallicRedStrokeColors = ["#FF7E7E", "#FF0000", "#8B0000", "#FF0000", "#F2F6F9"];
+const metallicBlueStrokeColors = ["#7EB5FF", "#0066FF", "#003380", "#0066FF", "#F2F6F9"];
 
 const metallicMorningStrokeColors = ["#F6F3E9", "#FEF400", "#BB9400"];
 const metallicMorningStrokePositions = [0, 0.52, 1];
 
-// Draws a dynamic gradient depending on mouse position in the chart
-export const metallicGreenStrokeGradientFn: MakeGradientFunction = (
-  ctx: CanvasRenderingContext2D | null,
-  position: number,
-) => {
-  if (ctx) {
-    const positions = [position - 1, position - 0.5, position, position + 0.5, position + 1];
-    return positionalGradient(ctx, metallicGreenStrokeColors, positions);
-  }
+const strokeGradientFnFactory = (colors: string[]) => {
+  return (ctx: CanvasRenderingContext2D | null, position: number) => {
+    if (ctx) {
+      const positions = [position - 1, position - 0.5, position, position + 0.5, position + 1];
+      return positionalGradient(ctx, colors, positions);
+    }
+  };
 };
 
 // Draws a dynamic gradient depending on mouse position in the chart
@@ -68,15 +69,20 @@ export const metallicMorningStrokeGradientFn: MakeGradientFunction = (
   }
 };
 
-const gradientFunctionMap = {
+export const gradientFunctions = {
   metallicMorning: metallicMorningStrokeGradientFn,
-  metallicGreen: metallicGreenStrokeGradientFn,
-} as const;
+  metallicGreen: strokeGradientFnFactory(metallicGreenStrokeColors),
+  metallicRed: strokeGradientFnFactory(metallicRedStrokeColors),
+  metallicBlue: strokeGradientFnFactory(metallicBlueStrokeColors),
+  solidGreen: strokeGradientFnFactory(Array.from({ length: 5 }).map((_) => chartColors[0].lineColor)),
+  solidBlue: strokeGradientFnFactory(Array.from({ length: 5 }).map((_) => chartColors[1].lineColor)),
+  solidRed: strokeGradientFnFactory(Array.from({ length: 5 }).map((_) => chartColors[2].lineColor)),
+};
 
 export function getStrokeGradientFunctions(
-  options: (keyof typeof gradientFunctionMap | string)[],
+  options: (keyof typeof gradientFunctions | string)[],
 ): (MakeGradientFunction | string)[] {
-  return options.map((option) => gradientFunctionMap[option] || option);
+  return options.map((option) => gradientFunctions[option] || option);
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -150,7 +156,7 @@ export const defaultLineChartOptions: Omit<ChartOptions<"line">, "scales"> = {
       display: false,
     },
     tooltip: {
-      enabled: false, // We’re customizing hover logic ourselves
+      enabled: false, // We're customizing hover logic ourselves
     },
   },
 } as const;

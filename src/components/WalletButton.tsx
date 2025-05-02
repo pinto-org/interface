@@ -33,6 +33,7 @@ const WalletButton = forwardRef<HTMLButtonElement, WalletButtonProps>(
         panelProps={{
           className: `max-w-panel-price w-panel-price mt-4 ${isOpen ? `translate-x-12 mr-0 lg:translate-x-12 lg:mr-12` : `translate-x-full -mr-20 lg:-mr-12`}`,
         }}
+        screenReaderTitle="Wallet Panel"
         trigger={
           <Button
             onClick={() => (address ? togglePanel() : modal.setOpen(true))}

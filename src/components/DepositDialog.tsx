@@ -38,6 +38,7 @@ export default function DepositDialog({ open, onOpenChange, deposit, token, pric
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
       <ResponsiveDialog.Content className="w-full sm:w-[calc(100%-2rem)] max-w-[65rem] sm:p-0 mx-auto">
+        <ResponsiveDialog.Title className="sr-only">Deposit Details</ResponsiveDialog.Title>
         <div className="flex flex-col sm:flex-row h-full">
           <div className="flex flex-col p-6 sm:min-w-[33rem] h-full justify-between max-[530px]:min-w-0">
             <div className="flex flex-col h-full">

@@ -30,6 +30,12 @@ export type LineChartReferenceDotProps = {
   y: any;
 };
 
+// For providing custom scaling other than logarithmic.
+export type CustomChartValueTransform = {
+  to: (value: number) => number;
+  from: (value: number) => number;
+};
+
 export interface LineChartProps {
   data: LineChartData[];
   size: "small" | "large";
@@ -48,9 +54,10 @@ export interface LineChartProps {
     dash?: number[];
     label?: string;
   }[];
-  // New props for custom y-axis range
+  // Props for custom y-axis range
   yAxisMin?: number;
   yAxisMax?: number;
+  customValueTransform?: CustomChartValueTransform;
 }
 
 const LineChart = React.memo(
@@ -67,6 +74,7 @@ const LineChart = React.memo(
     horizontalReferenceLines = [],
     yAxisMin,
     yAxisMax,
+    customValueTransform,
   }: LineChartProps) => {
     const chartRef = useRef<Chart | null>(null);
     const activeIndexRef = useRef<number | undefined>(activeIndex);
@@ -111,6 +119,7 @@ const LineChart = React.memo(
       const maxData = data.reduce((acc, next) => Math.max(acc, ...next.values), Number.MIN_SAFE_INTEGER);
       const minData = data.reduce((acc, next) => Math.min(acc, ...next.values), Number.MAX_SAFE_INTEGER);
 
+      const maxTick = maxData === minData && maxData === 0 ? 1 : maxData;
       let minTick = Math.max(0, minData - (maxData - minData) * 0.1);
       if (minTick === maxData) {
         minTick = maxData * 0.99;
@@ -118,12 +127,12 @@ const LineChart = React.memo(
 
       // For logarithmic scale, ensure minTick is positive
       if (useLogarithmicScale && minTick <= 0) {
-        minTick = 0.01; // Small positive value
+        minTick = 0.000001; // Small positive value
       }
 
       // Use custom min/max if provided
       let finalMin = yAxisMin !== undefined ? yAxisMin : minTick;
-      let finalMax = yAxisMax !== undefined ? yAxisMax : maxData;
+      let finalMax = yAxisMax !== undefined ? yAxisMax : maxTick;
 
       // Ensure 1.0 is visible if there's a reference line at 1.0
       if (horizontalReferenceLines.some((line) => line.value === 1)) {
@@ -399,8 +408,7 @@ const LineChart = React.memo(
 
           // Draw selection point for the hovered data point
           const activeElements = chart.getActiveElements();
-          if (activeElements.length > 0) {
-            const activeElement = activeElements[0];
+          for (const activeElement of activeElements) {
             const datasetIndex = activeElement.datasetIndex;
             const index = activeElement.index;
             const dataPoint = chart.getDatasetMeta(datasetIndex).data[index];
@@ -536,14 +544,18 @@ const LineChart = React.memo(
               padding: 0,
               maxTicksLimit: 3,
               callback: (value) => {
-                const num = typeof value === "string" ? Number(value) : value;
+                let num = typeof value === "string" ? Number(value) : value;
+                // If there is custom scaling for this chart, reverse it to get the original value
+                if (customValueTransform !== undefined) {
+                  num = customValueTransform.from(num);
+                }
                 return valueFormatter ? valueFormatter(num) : value;
               },
             },
           },
         },
       };
-    }, [data, xKey, yTickMin, yTickMax, valueFormatter, useLogarithmicScale]);
+    }, [data, xKey, yTickMin, yTickMax, valueFormatter, useLogarithmicScale, customValueTransform]);
 
     const allPlugins = useMemo<Plugin[]>(
       () => [

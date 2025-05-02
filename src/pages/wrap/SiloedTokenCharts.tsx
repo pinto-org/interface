@@ -1,6 +1,6 @@
 import CompactSeasonalLineChart from "@/components/charts/CompactSeasonalLineChart";
-import { TimeTab, tabToSeasonalLookback } from "@/components/charts/SeasonalChart";
-import TimeTabsSelector from "@/components/charts/TimeTabs";
+import { tabToSeasonalLookback } from "@/components/charts/SeasonalChart";
+import TimeTabsSelector, { TimeTab } from "@/components/charts/TimeTabs";
 import { getAreaGradientFunctions, getStrokeGradientFunctions } from "@/components/charts/chartHelpers";
 import IconImage from "@/components/ui/IconImage";
 import { STALK } from "@/constants/internalTokens";

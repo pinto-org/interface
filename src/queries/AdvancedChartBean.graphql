@@ -1,0 +1,24 @@
+query advancedChartBean($from: Int, $to: Int) {
+  seasons(first: 1000, orderBy: season, orderDirection: desc, where: {  season_gte: $from, season_lte: $to } ) {
+    id
+    timestamp
+    beanHourlySnapshot {
+      l2sr
+      twaPrice
+      instPrice
+      twaDeltaB
+      instDeltaB
+      season {
+        season
+        timestamp
+      }
+      crosses
+      marketCap
+      supply
+      supplyInPegLP
+      twaBeanLiquidityUSD
+      twaLiquidityUSD
+      twaNonBeanLiquidityUSD
+    }
+  }
+}

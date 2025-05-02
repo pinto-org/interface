@@ -91,9 +91,9 @@ export function PlowDetails({ requisition, isOpen, onClose, onSuccess }: PlowDet
       });
 
       toast.success("Simulation successful");
-      console.log("Simulation result:", simulation);
+      console.debug("Simulation result:", simulation);
     } catch (error) {
-      console.error("Simulation failed:", error);
+      // console.error("Simulation failed:", error);
       toast.error(`Simulation failed: ${(error as Error).message}`);
     } finally {
       setIsSimulating(false);

@@ -7,8 +7,9 @@ import { UseSeasonalResult } from "@/utils/types";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { LineChartData, MakeGradientFunction } from "./LineChart";
 import MultiAxisLineChart, { MultiAxisYAxisConfig } from "./MultiAxisLineChart";
-import { SeasonalChartData, TimeTab } from "./SeasonalChart";
-import { metallicGreenStrokeGradientFn, metallicMorningStrokeGradientFn } from "./chartHelpers";
+import { SeasonalChartData } from "./SeasonalChart";
+import { TimeTab } from "./TimeTabs";
+import { gradientFunctions, metallicMorningStrokeGradientFn } from "./chartHelpers";
 
 interface CompactSeasonalChartProps {
   titles: (string | JSX.Element)[];
@@ -26,7 +27,7 @@ interface CompactSeasonalChartProps {
   token?: { logoURI: string; symbol: string };
 }
 
-const gradients = [metallicGreenStrokeGradientFn, metallicMorningStrokeGradientFn];
+const gradients = [gradientFunctions.metallicGreen, metallicMorningStrokeGradientFn];
 
 const CompactSeasonalLineChart = ({
   titles,

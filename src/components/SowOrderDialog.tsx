@@ -36,8 +36,17 @@ import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { Col, Row } from "./Container";
 import TooltipSimple from "./TooltipSimple";
 import { Button } from "./ui/Button";
-import { Dialog, DialogContent, DialogOverlay, DialogPortal } from "./ui/Dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+} from "./ui/Dialog";
 import { Input } from "./ui/Input";
+import { Separator } from "./ui/Separator";
 
 interface SowOrderDialogProps {
   open: boolean;
@@ -549,7 +558,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     if (!address || !publicClient || !protocolAddress || !farmerDeposits) return;
 
     const effectiveAddress = isLocal && isValidAddress(mockAddress) ? mockAddress : address;
-    console.log("Combine & Sort All - Using address:", effectiveAddress);
+    console.debug("Combine & Sort All - Using address:", effectiveAddress);
 
     setSortingAllTokens(true);
     setSubmitting(true);
@@ -557,7 +566,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     try {
       toast.info("Preparing to combine and sort all deposits...");
 
-      console.log(`Processing ${farmerDeposits.size} tokens for sorting`);
+      console.debug(`Processing ${farmerDeposits.size} tokens for sorting`);
 
       // Use the utility function to generate batch sort deposits call data
       const callData = await generateBatchSortDepositsCallData(
@@ -579,34 +588,34 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
         args: [callData],
       });
 
-      console.log(`=== Raw Farm Calldata for All Tokens ===`);
-      console.log(rawCalldata);
-      console.log(`Number of calls: ${callData.length}`);
-      console.log("======================================");
+      console.debug(`=== Raw Farm Calldata for All Tokens ===`);
+      console.debug(rawCalldata);
+      console.debug(`Number of calls: ${callData.length}`);
+      console.debug("======================================");
 
       toast.info(`Executing ${callData.length} operations for all tokens (combines + sort updates)...`);
 
       // Execute the farm transaction using writeWithEstimateGas with higher gas limit
-      const simulateFirst = await publicClient
-        .simulateContract({
-          address: protocolAddress,
-          abi: beanstalkAbi,
-          functionName: "farm",
-          args: [callData],
-          account: effectiveAddress,
-        })
-        .catch((e) => {
-          console.error("Simulation failed:", e);
-          return { error: e };
-        });
+      // const simulateFirst = await publicClient
+      //   .simulateContract({
+      //     address: protocolAddress,
+      //     abi: beanstalkAbi,
+      //     functionName: "farm",
+      //     args: [callData],
+      //     account: effectiveAddress,
+      //   })
+      //   .catch((e) => {
+      //     console.debug("Simulation failed:", e);
+      //     return { error: e };
+      //   });
 
-      if ("error" in simulateFirst) {
-        console.error("Transaction would fail in simulation, not submitting");
-        toast.error("Transaction would fail: " + (simulateFirst.error as any)?.shortMessage || "unknown error");
-        setSubmitting(false);
-        setSortingAllTokens(false);
-        return;
-      }
+      // if ("error" in simulateFirst) {
+      //   // console.error("Transaction would fail in simulation, not submitting");
+      //   toast.error("Transaction would fail: " + (simulateFirst.error as any)?.shortMessage || "unknown error");
+      //   setSubmitting(false);
+      //   setSortingAllTokens(false);
+      //   return;
+      // }
 
       // Execute with higher gas limit to prevent running out of gas
       await writeWithEstimateGas({
@@ -621,11 +630,11 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
       // Extract error details for debugging
       const errorObj = error as any;
 
-      if (errorObj.cause) console.log("Error cause:", errorObj.cause);
-      if (errorObj.details) console.log("Error details:", errorObj.details);
-      if (errorObj.data) console.log("Error data:", errorObj.data);
-      if (errorObj.reason) console.log("Error reason:", errorObj.reason);
-      if (errorObj.shortMessage) console.log("Short message:", errorObj.shortMessage);
+      if (errorObj.cause) console.debug("Error cause:", errorObj.cause);
+      if (errorObj.details) console.debug("Error details:", errorObj.details);
+      if (errorObj.data) console.debug("Error data:", errorObj.data);
+      if (errorObj.reason) console.debug("Error reason:", errorObj.reason);
+      if (errorObj.shortMessage) console.debug("Short message:", errorObj.shortMessage);
 
       // Display toast with specific error information
       const errorMessage =
@@ -677,8 +686,8 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
         publicClient,
       });
 
-      console.log("createSowTractorData, data:", data);
-      console.log("rawCall:", rawCall);
+      console.debug("createSowTractorData, data:", data);
+      console.debug("rawCall:", rawCall);
 
       if (!address) {
         toast.error("Please connect your wallet");
@@ -1570,12 +1579,15 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
             style={{ padding: 0, gap: 0 }}
           >
             <div className="p-3">
-              <div className="flex justify-between items-center mb-2">
-                <div className="pinto-body font-medium text-pinto-primary">Select Token from Silo Deposits</div>
-              </div>
-              <p className="text-gray-500 mb-2">Tractor allows you to fund Orders for Soil using Deposits</p>
-              <div className="w-full h-[1px] bg-pinto-gray-2 mb-6" />
-
+              <DialogHeader className="mb-6 -mt-1">
+                <DialogTitle className="font-medium mb-1 text-[1.25rem] tracking-normal">
+                  Select Token from Silo Deposits
+                </DialogTitle>
+                <DialogDescription className="text-gray-500 pb-1">
+                  Tractor allows you to fund Orders for Soil using Deposits
+                </DialogDescription>
+                <Separator />
+              </DialogHeader>
               {/* Dynamic funding source options */}
               <div className="flex flex-col gap-4 mb-6">
                 <div className="text-gray-500">Dynamic funding source</div>
