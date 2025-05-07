@@ -7,6 +7,11 @@ export interface TotalSoil {
   isLoading: boolean;
 }
 
+export interface InitialSoil {
+  initialSoil: TV;
+  isLoading: boolean;
+}
+
 export interface FieldTemperature {
   max: TV;
   scaled: TV;
@@ -42,12 +47,14 @@ export type Field = Prettify<
  * Query keys for the field.
  * - temperature: FieldTemperature query key
  * - soil: FieldSoil query key
+ * - initialSoil: FieldInitialSoil query key
  * - podLine: FieldPodLine query key
  * - weather: FieldWeather query key
  */
 export interface FieldQueryKeys {
   temperature: QueryKey;
   soil: QueryKey;
+  initialSoil: QueryKey;
   podLine: QueryKey;
   weather: QueryKey;
 }

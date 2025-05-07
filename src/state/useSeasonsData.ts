@@ -1,23 +1,19 @@
 import { TokenValue } from "@/classes/TokenValue";
-import { SeasonalChartData } from "@/components/charts/SeasonalChart";
 import { subgraphs } from "@/constants/subgraph";
+import { Season as BeanSeason, BeanSeasonsTableDocument, BeanSeasonsTableQuery } from "@/generated/gql/pinto/graphql";
 import {
-  Season,
-  SeasonsTableBeanDocument,
-  SeasonsTableBeanQuery,
-  SeasonsTableBeanStalkDocument,
-  SeasonsTableBeanStalkQuery,
-} from "@/generated/gql/graphql";
+  Season as BeanstalkSeason,
+  BeanstalkSeasonsTableDocument,
+  BeanstalkSeasonsTableQuery,
+} from "@/generated/gql/pintostalk/graphql";
 import { PaginationSettings, paginateMultiQuerySubgraph, paginateSubgraph } from "@/utils/paginateSubgraph";
 import { Duration } from "luxon";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useChainId } from "wagmi";
 import useSeasonalQueries, {
-  ConvertEntryFn,
   SeasonalQueryVars,
   useMultiSeasonalQueries,
 } from "./seasonal/queries/useSeasonalInternalQueries";
-import { useSeason } from "./useSunData";
 import useTokenData from "./useTokenData";
 
 export interface SeasonsTableData {
@@ -73,10 +69,15 @@ console.info('whereClauseValues', whereClauseValues)
 
 */
 
-const stalkPaginateSettings: PaginationSettings<Season, SeasonsTableBeanStalkQuery, "seasons", SeasonalQueryVars> = {
+const stalkPaginateSettings: PaginationSettings<
+  BeanstalkSeason,
+  BeanstalkSeasonsTableQuery,
+  "seasons",
+  SeasonalQueryVars
+> = {
   primaryPropertyName: "seasons",
   idField: "id",
-  nextVars: (value1000: Season, prevVars: SeasonalQueryVars) => {
+  nextVars: (value1000: BeanstalkSeason, prevVars: SeasonalQueryVars) => {
     if (value1000) {
       return {
         ...prevVars,
@@ -86,10 +87,10 @@ const stalkPaginateSettings: PaginationSettings<Season, SeasonsTableBeanStalkQue
   },
 };
 
-const beanPaginateSettings: PaginationSettings<Season, SeasonsTableBeanQuery, "seasons", SeasonalQueryVars> = {
+const beanPaginateSettings: PaginationSettings<BeanSeason, BeanSeasonsTableQuery, "seasons", SeasonalQueryVars> = {
   primaryPropertyName: "seasons",
   idField: "id",
-  nextVars: (value1000: Season, prevVars: SeasonalQueryVars) => {
+  nextVars: (value1000: BeanSeason, prevVars: SeasonalQueryVars) => {
     if (value1000) {
       return {
         ...prevVars,
@@ -108,13 +109,13 @@ export default function useSeasonsData(fromSeason: number, toSeason: number) {
     return await paginateMultiQuerySubgraph(
       stalkPaginateSettings,
       subgraphs[chainId].beanstalk,
-      SeasonsTableBeanStalkDocument,
+      BeanstalkSeasonsTableDocument,
       vars,
     );
   };
 
   const beanQueryFnFactory = (vars: SeasonalQueryVars) => async () => {
-    return await paginateSubgraph(beanPaginateSettings, subgraphs[chainId].bean, SeasonsTableBeanDocument, vars);
+    return await paginateSubgraph(beanPaginateSettings, subgraphs[chainId].bean, BeanSeasonsTableDocument, vars);
   };
 
   const useStalkQuery = useMultiSeasonalQueries("seasonsTableStalk", {

@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/Separator";
 import Text from "@/components/ui/Text";
 import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
-import { AllPodOrdersQuery } from "@/generated/gql/graphql";
+import { AllPodOrdersQuery } from "@/generated/gql/pintostalk/graphql";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";

@@ -25,9 +25,9 @@ const Link = ({
   [x: string]: any;
 }) => {
   const location = useLocation();
-  const isActive =
-    active ||
-    (href === "/" ? href === location.pathname : href ? location.pathname.includes(href?.substring(1)) : false);
+  const topMenuCheck = href ? location.pathname.includes(href?.substring(1)) : false;
+  const bottomMenuCheck = href ? location.pathname.startsWith(href) : false;
+  const isActive = active || (href === "/" ? href === location.pathname : topMenu ? topMenuCheck : bottomMenuCheck);
 
   if (href) {
     return (
@@ -91,6 +91,41 @@ const AppNavi = () => {
   );
 };
 
+const DataNavi = ({ setNaviTab }) => {
+  return (
+    <motion.div
+      onMouseLeave={() => setNaviTab("home")}
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.2 }}
+    >
+      <NavigationMenu>
+        <NavigationMenuList>
+          <NavigationMenuItem>
+            <Link href={navLinks.explorer_pinto}>Pinto</Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Link href={navLinks.explorer_silo}>Silo</Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Link href={navLinks.explorer_field}>Field</Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Link href={navLinks.explorer_farmer}>Farmer</Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Link href={navLinks.explorer_seasons}>Seasons</Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Link href={navLinks.explorer_all}>All</Link>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+      </NavigationMenu>
+    </motion.div>
+  );
+};
+
 const LearnNavi = ({ setNaviTab }) => {
   return (
     <motion.div
@@ -130,7 +165,7 @@ const MoreNavi = ({ setNaviTab }) => {
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
-            <Link href={navLinks.about}> About </Link>
+            <Link href={navLinks.about}>About</Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
             <Link href={navLinks.blog} rel="noopener noreferrer" target="_blank">
@@ -180,7 +215,7 @@ export default function Navi() {
               Home
             </Link>
           </NavigationMenuItem>
-          <NavigationMenuItem onMouseEnter={() => setNaviTab("home")}>
+          <NavigationMenuItem onMouseEnter={() => setNaviTab("data")}>
             <Link active={naviTab === "data"} href={navLinks.explorer} topMenu>
               Data
             </Link>
@@ -200,6 +235,7 @@ export default function Navi() {
 
       <AnimatePresence mode="wait">
         {naviTab === "home" && <AppNavi />}
+        {naviTab === "data" && <DataNavi setNaviTab={setNaviTab} />}
         {naviTab === "learn" && <LearnNavi setNaviTab={setNaviTab} />}
         {naviTab === "more" && <MoreNavi setNaviTab={setNaviTab} />}
       </AnimatePresence>

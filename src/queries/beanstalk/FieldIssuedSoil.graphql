@@ -1,0 +1,12 @@
+query fieldIssuedSoil($season: Int, $field_contains_nocase: String) {
+  fieldHourlySnapshots(
+    first: 1
+    orderBy: season
+    orderDirection: desc
+    where: {season: $season, field_contains_nocase: $field_contains_nocase}
+  ) {
+    issuedSoil
+    season
+    soil
+  }
+}

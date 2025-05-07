@@ -2,7 +2,7 @@ import { subgraphs } from "@/constants/subgraph";
 import {
   BeanstalkSeasonalWrappedDepositErc20Query,
   BeanstalkSeasonalWrappedDepositErc20Document as Document,
-} from "@/generated/gql/graphql";
+} from "@/generated/gql/pintostalk/graphql";
 import { formatter } from "@/utils/format";
 import { exists } from "@/utils/utils";
 import { useQuery } from "@tanstack/react-query";

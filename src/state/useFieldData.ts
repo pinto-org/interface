@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { FieldQueryKeys } from "./protocol/field";
 import {
   fieldAtom,
+  fieldInitialSoilAtom,
   fieldPodlineAtom,
   fieldQueryKeysAtom,
   fieldTemperatureAtom,
@@ -26,6 +27,10 @@ export function useField() {
 
 export function useTotalSoil() {
   return useAtomValue(fieldTotalSoilAtom);
+}
+
+export function useInitialSoil() {
+  return useAtomValue(fieldInitialSoilAtom);
 }
 
 export function useFieldWeather() {

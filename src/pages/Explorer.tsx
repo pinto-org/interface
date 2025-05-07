@@ -6,9 +6,10 @@ import AllExplorer from "./explorer/AllExplorer";
 import FarmerExplorer from "./explorer/FarmerExplorer";
 import FieldExplorer from "./explorer/FieldExplorer";
 import PintoExplorer from "./explorer/PintoExplorer";
-
 import SeasonsExplorer from "./explorer/SeasonsExplorer";
 import SiloExplorer from "./explorer/SiloExplorer";
+import TractorExplorer from "./explorer/TractorExplorer";
+
 const TABS = [
   {
     urlSlug: "pinto",
@@ -31,6 +32,10 @@ const TABS = [
     tabName: "Seasons",
     description:
       "Seasons are how Pinto keeps time. Each Season is about 1 hour. Pinto adjusts the supply and various incentives every Season to facilitate price stability.",
+  },
+  {
+    urlSlug: "tractor",
+    tabName: "Tractor",
   },
   {
     urlSlug: "all",
@@ -87,7 +92,8 @@ const Explorer = () => {
           {selectedIdx === 2 && <FieldExplorer />}
           {selectedIdx === 3 && <FarmerExplorer />}
           {selectedIdx === 4 && <SeasonsExplorer />}
-          {selectedIdx === 5 && <AllExplorer />}
+          {selectedIdx === 5 && <TractorExplorer />}
+          {selectedIdx === 6 && <AllExplorer />}
         </div>
       </div>
     </PageContainer>

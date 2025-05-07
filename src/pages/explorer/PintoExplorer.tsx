@@ -78,6 +78,7 @@ const PintoExplorer = () => {
         <div className="w-full sm:w-1/2">
           <SeasonalChart
             title="Pinto Price"
+            tooltip="The Current Price of Pinto in USD."
             size="small"
             activeTab={priceTab}
             onChangeTab={setPriceTab}
@@ -92,6 +93,7 @@ const PintoExplorer = () => {
         <div className="w-full sm:w-1/2">
           <SeasonalChart
             title="Total Liquidity"
+            tooltip="The total USD value of tokens in liquidity pools on the Minting Whitelist."
             size="small"
             fillArea
             activeTab={liquidityTab}
@@ -106,6 +108,7 @@ const PintoExplorer = () => {
         <div className="w-full sm:w-1/2">
           <SeasonalChart
             title="Pinto Supply"
+            tooltip="The total Pinto supply."
             size="small"
             fillArea
             activeTab={supplyTab}
@@ -118,6 +121,7 @@ const PintoExplorer = () => {
         <div className="w-full sm:w-1/2">
           <SeasonalChart
             title="Market Capitalization"
+            tooltip="The USD value of the Pinto supply."
             size="small"
             fillArea
             activeTab={mcapTab}

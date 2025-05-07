@@ -3,10 +3,9 @@ import {
   BeanstalkSeasonalWrappedDepositErc20Document,
   BeanstalkSeasonalWrappedDepositErc20Query,
   WrappedDepositErc20HourlySnapshot,
-} from "@/generated/gql/graphql";
+} from "@/generated/gql/pintostalk/graphql";
 import { PaginationSettings, paginateSubgraph } from "@/utils/paginateSubgraph";
 import { UseSeasonalResult } from "@/utils/types";
-import { isDev } from "@/utils/utils";
 import { useCallback } from "react";
 import { useChainId } from "wagmi";
 import useSeasonalQueries, { ConvertEntryFn, SeasonalQueryVars } from "./useSeasonalInternalQueries";

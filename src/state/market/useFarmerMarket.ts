@@ -1,8 +1,7 @@
 import { subgraphs } from "@/constants/subgraph";
-import { FarmerMarketActivityDocument } from "@/generated/gql/graphql";
+import { FarmerMarketActivityDocument } from "@/generated/gql/pintostalk/graphql";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
-import { useMemo } from "react";
 import { useChainId } from "wagmi";
 import { useQueryKeys } from "../useQueryKeys";
 import { useMarketEntities } from "./useMarketEntities";

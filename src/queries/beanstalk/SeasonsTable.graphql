@@ -1,4 +1,4 @@
-query seasonsTableBeanStalk($from: Int, $to: Int) {
+query BeanstalkSeasonsTable($from: Int, $to: Int) {
   seasons(first: 1000, orderBy: season, orderDirection: desc, where: { season_gte: $from, season_lte: $to }) {
     id
     rewardBeans

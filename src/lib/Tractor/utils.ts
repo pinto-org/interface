@@ -1,24 +1,21 @@
-import { TokenValue } from "@/classes/TokenValue";
+import { TV, TokenValue } from "@/classes/TokenValue";
 import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
 import { tractorHelpersABI } from "@/constants/abi/TractorHelpersABI";
 import { diamondABI } from "@/constants/abi/diamondABI";
-import { SOW_BLUEPRINT_V0_ADDRESS, SOW_BLUEPRINT_V0_SELECTOR, TRACTOR_HELPERS_ADDRESS } from "@/constants/address";
-import { PINTO } from "@/constants/tokens";
+import { SOW_BLUEPRINT_V0_ADDRESS, TRACTOR_HELPERS_ADDRESS } from "@/constants/address";
+import { TIME_TO_BLOCKS } from "@/constants/blocks";
+import { PODS } from "@/constants/internalTokens";
+import { MAIN_TOKEN } from "@/constants/tokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
-import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { FarmFromMode } from "@/utils/types";
-import {
-  Address,
-  SignableMessage,
-  decodeEventLog,
-  decodeFunctionData,
-  encodeAbiParameters,
-  encodeFunctionData,
-  keccak256,
-} from "viem";
+import { getChainConstant } from "@/hooks/useChainConstant";
+import { TEMPERATURE_DECIMALS } from "@/state/protocol/field";
+import { resolveChainId } from "@/utils/chain";
+import { FarmFromMode, MinimumViableBlock } from "@/utils/types";
+import { MayArray } from "@/utils/types.generic";
+import { arrayify } from "@/utils/utils";
+import { BlockTag, SignableMessage, decodeEventLog, decodeFunctionData, encodeFunctionData } from "viem";
 import { PublicClient } from "viem";
-import { type BaseError, useContractWrite } from "wagmi";
-import { Requisition } from "./types";
+import { Requisition, SowOrderTokenStrategy } from "./types";
 
 // Block number at which Tractor was deployed - use this as starting point for event queries
 export const TRACTOR_DEPLOYMENT_BLOCK = 28930876n;
@@ -45,12 +42,6 @@ export const TRACTOR_DEPLOYMENT_BLOCK = 28930876n;
   return combined as `0x${string}`;
 }*/
 
-// Add the TokenStrategy type
-export type TokenStrategy =
-  | { type: "LOWEST_SEEDS" }
-  | { type: "LOWEST_PRICE" }
-  | { type: "SPECIFIC_TOKEN"; address: `0x${string}` };
-
 // Add this helper function outside createSowTractorData
 async function getTokenIndex(publicClient: PublicClient, tokenAddress: `0x${string}`): Promise<number> {
   const index = await publicClient.readContract({
@@ -62,6 +53,10 @@ async function getTokenIndex(publicClient: PublicClient, tokenAddress: `0x${stri
 
   return Number(index);
 }
+
+// ────────────────────────────────────────────────────────────────────────────────
+// Create Sow V0 Tractor Order & Sign Requisition
+// ────────────────────────────────────────────────────────────────────────────────
 
 /**
  * Creates blueprint data from Tractor inputs
@@ -88,7 +83,7 @@ export async function createSowTractorData({
   runBlocksAfterSunrise: string;
   operatorTip: string;
   whitelistedOperators: `0x${string}`[];
-  tokenStrategy: TokenStrategy;
+  tokenStrategy: SowOrderTokenStrategy;
   publicClient: PublicClient;
 }): Promise<{ data: `0x${string}`; operatorPasteInstrs: `0x${string}`[]; rawCall: `0x${string}` }> {
   // Add more detailed debug logs
@@ -267,6 +262,10 @@ export interface SowBlueprintData {
   fromMode: FarmFromMode;
 }
 
+// ────────────────────────────────────────────────────────────────────────────────
+// Decode Sow Tractor Data
+// ────────────────────────────────────────────────────────────────────────────────
+
 /**
  * Decodes sow data from encoded function call
  */
@@ -295,8 +294,6 @@ export function decodeSowTractorData(encodedData: `0x${string}`): SowBlueprintDa
               abi: beanstalkAbi,
               data: pipeCallData,
             });
-
-            // console.debug("Advanced Pipe decoded:", advancedPipeDecoded);
 
             if (advancedPipeDecoded.functionName === "advancedPipe" && advancedPipeDecoded.args[0]) {
               const pipeCalls = advancedPipeDecoded.args[0] as {
@@ -428,24 +425,43 @@ export function findOperatorPlaceholderOffset(encodedData: `0x${string}`): numbe
   return index / 2; // Convert from hex characters to bytes
 }
 
-export async function fetchTractorEvents(publicClient: PublicClient, protocolAddress: `0x${string}`) {
-  // Get published requisitions
-  const publishEvents = await publicClient.getContractEvents({
-    address: protocolAddress,
-    abi: diamondABI,
-    eventName: "PublishRequisition",
-    fromBlock: TRACTOR_DEPLOYMENT_BLOCK,
-    toBlock: "latest",
-  });
+// async function paginateGetContractEvents<T>(
+//   publicClient: PublicClient,
+//   request: (args: { fromBlock: BlockTag | bigint; toBlock: BlockTag | bigint }) => Promise<T[]>,
+//   latestBlock: MinimumViableBlock<bigint>,
+// ) {
+//   const events: T[] = [];
+//   let fromBlock: BlockTag | bigint = TRACTOR_DEPLOYMENT_BLOCK;
+//   let toBlock: BlockTag | bigint = "latest";
 
-  // Get cancelled blueprints
-  const cancelEvents = await publicClient.getContractEvents({
+//   while (true) {
+//     const results = await request({ fromBlock, toBlock });
+//     events.push(...results);
+//   }
+// }
+
+// ────────────────────────────────────────────────────────────────────────────────
+// Fetch Tractor Events
+// ────────────────────────────────────────────────────────────────────────────────
+
+export async function fetchTractorEvents(
+  publicClient: PublicClient,
+  protocolAddress: `0x${string}`,
+  blockFrom?: bigint,
+) {
+  const fromBlock = blockFrom ?? TRACTOR_DEPLOYMENT_BLOCK;
+  const sharedArgs = {
     address: protocolAddress,
     abi: diamondABI,
-    eventName: "CancelBlueprint",
-    fromBlock: TRACTOR_DEPLOYMENT_BLOCK,
+    fromBlock,
     toBlock: "latest",
-  });
+  } as const;
+
+  // Get published requisitions & cancelled blueprints
+  const [publishEvents, cancelEvents] = await Promise.all([
+    publicClient.getContractEvents({ eventName: "PublishRequisition", ...sharedArgs }),
+    publicClient.getContractEvents({ eventName: "CancelBlueprint", ...sharedArgs }),
+  ]);
 
   // Create a set of cancelled blueprint hashes
   const cancelledHashes = new Set(
@@ -456,6 +472,10 @@ export async function fetchTractorEvents(publicClient: PublicClient, protocolAdd
 
   return { publishEvents, cancelledHashes };
 }
+
+// ────────────────────────────────────────────────────────────────────────────────
+// Requisitions
+// ────────────────────────────────────────────────────────────────────────────────
 
 export interface RequisitionData {
   blueprint: {
@@ -482,17 +502,24 @@ export interface RequisitionEvent {
 // First, export the requisition type as a standalone type for reuse
 export type RequisitionType = "sowBlueprintv0" | "unknown";
 
-export async function loadPublishedRequisitions(
-  address: string | undefined,
-  protocolAddress: `0x${string}` | undefined,
-  publicClient: PublicClient | null,
-  latestBlock?: { number: bigint; timestamp: bigint } | null,
-  requisitionType?: RequisitionType | RequisitionType[], // Add requisition type filter
-) {
-  if (!protocolAddress || !publicClient) return [];
+type SelectRequisitionTypeArgs = {
+  latestBlock: MinimumViableBlock<bigint>;
+  data: Awaited<ReturnType<typeof fetchTractorEvents>>;
+};
 
-  try {
-    const { publishEvents, cancelledHashes } = await fetchTractorEvents(publicClient, protocolAddress);
+export const getSelectRequisitionType = (requisitionsType: MayArray<RequisitionType> | undefined, address?: string) => {
+  return (args: SelectRequisitionTypeArgs | undefined) => {
+    if (!args) return undefined;
+
+    const requisitionsSet = requisitionsType && new Set<RequisitionType>(arrayify(requisitionsType));
+
+    const {
+      data: { publishEvents, cancelledHashes },
+      latestBlock,
+    } = args;
+
+    const latestTimestamp = Number(latestBlock.timestamp);
+    const latestBlockNumber = Number(latestBlock.number);
 
     const filteredEvents = publishEvents
       .map((event) => {
@@ -512,19 +539,14 @@ export async function loadPublishedRequisitions(
         }
 
         // Filter by requisition type if provided
-        if (requisitionType) {
-          const typeArray = Array.isArray(requisitionType) ? requisitionType : [requisitionType];
-          if (!typeArray.includes(eventRequisitionType)) {
-            return null;
-          }
+        if (!!requisitionsSet?.size) {
+          if (!requisitionsSet.has(eventRequisitionType)) return null;
         }
 
         // Calculate timestamp if we have the latest block info
         let timestamp: number | undefined = undefined;
         if (latestBlock) {
           // Convert all BigInt values to Number before arithmetic operations
-          const latestTimestamp = Number(latestBlock.timestamp);
-          const latestBlockNumber = Number(latestBlock.number);
           const eventBlockNumber = Number(event.blockNumber);
 
           // Calculate timestamp (approximately 2 seconds per block)
@@ -543,6 +565,26 @@ export async function loadPublishedRequisitions(
       .filter((event): event is NonNullable<typeof event> => event !== null);
 
     return filteredEvents;
+  };
+};
+
+export async function loadPublishedRequisitions(
+  address: string | undefined,
+  protocolAddress: `0x${string}` | undefined,
+  publicClient: PublicClient | null,
+  latestBlock?: { number: bigint; timestamp: bigint } | null,
+  requisitionType?: MayArray<RequisitionType>, // Add requisition type filter
+  fromBlock?: bigint,
+) {
+  if (!protocolAddress || !publicClient) return [];
+
+  try {
+    const data = await fetchTractorEvents(publicClient, protocolAddress, fromBlock);
+    const selectRequisitionType = getSelectRequisitionType(requisitionType, address);
+    return selectRequisitionType({
+      latestBlock: { number: latestBlock?.number ?? 0n, timestamp: latestBlock?.timestamp ?? 0n },
+      data,
+    });
   } catch (error) {
     console.error("Error loading published requisitions:", error);
     throw new Error("Failed to load published requisitions");
@@ -680,20 +722,43 @@ export function getSowBlueprintDisplayData(data: SowBlueprintData): SowBlueprint
     tipAddress: data.operatorParams.tipAddress,
   };
 }
+export interface PublisherTractorExecution {
+  blockNumber: number;
+  operator: `0x${string}`;
+  publisher: `0x${string}`;
+  blueprintHash: `0x${string}`;
+  transactionHash: `0x${string}`;
+  timestamp: number | undefined;
+  sowEvent: SowEventArgs | undefined;
+}
 
-interface SowEventArgs {
+interface SowEventArgs<T extends bigint | TokenValue = TokenValue> {
   account: `0x${string}`;
   fieldId: bigint;
-  index: bigint;
-  beans: bigint;
-  pods: bigint;
+  index: T;
+  beans: T;
+  pods: T;
 }
 
 export async function fetchTractorExecutions(
   publicClient: PublicClient,
   protocolAddress: `0x${string}`,
   publisher: `0x${string}`,
+  latestBlock: MinimumViableBlock<bigint>,
+  lookbackBlocks?: bigint,
 ) {
+  const chainId = publicClient.chain?.id;
+  if (!chainId) throw new Error("[Tractor/fetchTractorExecutions] No chain ID found");
+
+  console.debug("[Tractor/fetchTractorExecutions] FETCHING(executions for publisher):", publisher);
+
+  let fromBlock = TRACTOR_DEPLOYMENT_BLOCK;
+
+  if (lookbackBlocks !== undefined) {
+    const newFromBlock = latestBlock.number - BigInt(lookbackBlocks);
+    fromBlock = newFromBlock > TRACTOR_DEPLOYMENT_BLOCK ? newFromBlock : TRACTOR_DEPLOYMENT_BLOCK;
+  }
+
   // Get Tractor events
   const tractorEvents = await publicClient.getContractEvents({
     address: protocolAddress,
@@ -702,9 +767,11 @@ export async function fetchTractorExecutions(
     args: {
       publisher: publisher,
     },
-    fromBlock: TRACTOR_DEPLOYMENT_BLOCK,
+    fromBlock: fromBlock ?? TRACTOR_DEPLOYMENT_BLOCK,
     toBlock: "latest",
   });
+
+  console.debug("[Tractor/fetchTractorExecutions] RESPONSE(Tractor events):", tractorEvents);
 
   // Process transaction receipts and collect block numbers
   const blockNumbers = new Set<bigint>();
@@ -723,6 +790,8 @@ export async function fetchTractorExecutions(
       // First, find the TractorExecutionBegan event with matching blueprint hash
       let tractorExecutionBeganIndex = -1;
       let tractorExecutionBeganEvent: any = null;
+
+      const mainToken = getChainConstant(resolveChainId(chainId), MAIN_TOKEN);
 
       for (let i = 0; i < receipt.logs.length; i++) {
         const log = receipt.logs[i];
@@ -773,14 +842,14 @@ export async function fetchTractorExecutions(
             abi: diamondABI,
             data: sowEvent.data,
             topics: sowEvent.topics,
-          }) as { args: SowEventArgs };
+          }) as { args: SowEventArgs<bigint> };
 
           sowData = {
             account: decoded.args.account,
             fieldId: decoded.args.fieldId,
-            index: decoded.args.index,
-            beans: decoded.args.beans,
-            pods: decoded.args.pods,
+            index: TV.fromBigInt(decoded.args.index, PODS.decimals),
+            beans: TV.fromBigInt(decoded.args.beans, mainToken.decimals),
+            pods: TV.fromBigInt(decoded.args.pods, PODS.decimals),
           };
         } catch (error) {
           console.error("Failed to decode Sow event:", error);
@@ -820,7 +889,7 @@ export async function fetchTractorExecutions(
   });
 
   // Assemble the final result
-  return processingResults.map((result) => {
+  const processed = processingResults.map((result) => {
     return {
       blockNumber: Number(result.blockNumber),
       operator: result.event.args?.operator as `0x${string}`,
@@ -832,20 +901,14 @@ export async function fetchTractorExecutions(
       tractorExecutionBeganEvent: result.tractorExecutionBeganEvent,
     };
   });
+
+  console.debug("[Tractor/fetchTractorExecutions] RESPONSE", processed);
+  return processed;
 }
 
-// Add interface for tracking deposits
-interface Deposit {
-  stem: bigint;
-  amount: bigint;
-  used: boolean;
-}
-
-interface AccountDeposits {
-  [account: string]: {
-    [token: string]: Deposit[];
-  };
-}
+// ────────────────────────────────────────────────────────────────────────────────
+// Orderbook Entry
+// ────────────────────────────────────────────────────────────────────────────────
 
 // Update the interface to make decodedData optional
 export interface OrderbookEntry extends Omit<RequisitionEvent, "decodedData"> {
@@ -855,13 +918,9 @@ export interface OrderbookEntry extends Omit<RequisitionEvent, "decodedData"> {
   amountSowableNextSeason: TokenValue;
   amountSowableNextSeasonConsideringAvailableSoil: TokenValue;
   estimatedPlaceInLine: TokenValue;
+  minTemp: TokenValue;
   withdrawalPlan?: WithdrawalPlan;
-}
-
-// Then update the processing interface
-interface OrderbookEntryWithProcessingData extends Omit<OrderbookEntry, "decodedData"> {
-  decodedData: SowBlueprintData | null;
-  withdrawalPlan?: WithdrawalPlan;
+  isComplete?: boolean;
 }
 
 // Add this type definition after the OrderbookEntryWithProcessingData interface
@@ -873,53 +932,62 @@ export interface WithdrawalPlan {
   totalAvailableBeans: bigint;
 }
 
+// ────────────────────────────────────────────────────────────────────────────────
+// Load Orderbook Data
+// ────────────────────────────────────────────────────────────────────────────────
+
 export async function loadOrderbookData(
   address: string | undefined,
   protocolAddress: `0x${string}` | undefined,
   publicClient: PublicClient | null,
   latestBlock?: { number: bigint; timestamp: bigint } | null,
   maxTemperature?: number,
+  activeApiEntries?: OrderbookEntry[],
+  lookbackBlocks?: bigint,
 ): Promise<OrderbookEntry[]> {
   if (!protocolAddress || !publicClient) return [];
+
+  const knownBlueprintHashes = new Set<string>(
+    activeApiEntries?.map((order) => order.requisition.blueprintHash.toLowerCase()) ?? [],
+  );
+
+  console.debug("[TRACTOR/loadOrderbookData] knownBlueprintHashes:", knownBlueprintHashes);
+
+  const fromBlock =
+    lookbackBlocks && latestBlock?.number ? latestBlock.number - lookbackBlocks : TRACTOR_DEPLOYMENT_BLOCK;
 
   try {
     // First, get the current pod line from the protocol
     let currentPodLine = TokenValue.ZERO;
-    try {
-      // Get the current pod index and harvestable index to calculate the current pod line
-      const podIndexResult = await publicClient.readContract({
-        address: protocolAddress,
-        abi: diamondABI,
-        functionName: "podIndex",
-        args: [0n],
-      });
-
-      const harvestableIndexResult = await publicClient.readContract({
-        address: protocolAddress,
-        abi: diamondABI,
-        functionName: "harvestableIndex",
-        args: [0n],
-      });
-
-      if (podIndexResult && harvestableIndexResult) {
-        // Pod line is podIndex - harvestableIndex
-        currentPodLine = TokenValue.fromBlockchain(podIndexResult - harvestableIndexResult, 6);
-        console.debug(`Current Pod Line: ${currentPodLine.toHuman()}`);
-      }
-    } catch (error) {
-      console.error("Failed to get current pod line:", error);
-      // Continue with zero if we can't get the current pod line
-    }
 
     // Fetch SowOrderComplete events to identify completed orders
-    console.debug("Fetching SowOrderComplete events...");
-    const sowOrderCompleteEvents = await publicClient.getContractEvents({
-      address: SOW_BLUEPRINT_V0_ADDRESS,
-      abi: sowBlueprintv0ABI,
-      eventName: "SowOrderComplete",
-      fromBlock: TRACTOR_DEPLOYMENT_BLOCK,
-      toBlock: "latest",
-    });
+    console.debug("[TRACTOR/loadOrderbookData] Fetching...");
+
+    const [podIndexResult, harvestableIndexResult, sowOrderCompleteEvents, requisitions = []] = await Promise.all([
+      publicClient.readContract({ address: protocolAddress, abi: diamondABI, args: [0n], functionName: "podIndex" }),
+      publicClient.readContract({
+        address: protocolAddress,
+        abi: diamondABI,
+        args: [0n],
+        functionName: "harvestableIndex",
+      }),
+      publicClient.getContractEvents({
+        address: SOW_BLUEPRINT_V0_ADDRESS,
+        abi: sowBlueprintv0ABI,
+        eventName: "SowOrderComplete",
+        fromBlock: fromBlock,
+        toBlock: "latest",
+      }),
+      loadPublishedRequisitions(address, protocolAddress, publicClient, latestBlock, "sowBlueprintv0", fromBlock),
+    ]);
+
+    if (podIndexResult && harvestableIndexResult) {
+      // Pod line is podIndex - harvestableIndex
+      currentPodLine = TokenValue.fromBlockchain(podIndexResult - harvestableIndexResult, 6);
+    } else {
+      console.error("[TRACTOR/loadOrderbookData] Failed to get current pod line");
+      // Continue with zero if we can't get the current pod line
+    }
 
     // Create a set of completed blueprint hashes
     const completedOrders = new Set<`0x${string}`>(
@@ -928,22 +996,14 @@ export async function loadOrderbookData(
         .filter((hash): hash is `0x${string}` => hash !== undefined),
     );
 
-    console.debug(`Found ${completedOrders.size} completed orders`);
-
-    const requisitions = await loadPublishedRequisitions(
-      address,
-      protocolAddress,
-      publicClient,
-      latestBlock,
-      "sowBlueprintv0",
-    );
-
     // Filter out cancelled and completed orders
-    const activeRequisitions = requisitions.filter(
-      (req) => !req.isCancelled && !completedOrders.has(req.requisition.blueprintHash),
-    );
-
-    console.debug(`Total requisitions: ${requisitions.length}, Active: ${activeRequisitions.length}`);
+    const activeRequisitions = requisitions.filter((req) => {
+      const hash = req.requisition.blueprintHash;
+      if (knownBlueprintHashes.has(hash.toLowerCase())) {
+        return false;
+      }
+      return !req.isCancelled && !completedOrders.has(req.requisition.blueprintHash);
+    });
 
     // Decode data and sort requisitions by temperature (lowest first)
     const requisitionsWithTemperature = activeRequisitions.map((requisition) => {
@@ -958,16 +1018,26 @@ export async function loadOrderbookData(
     // Sort requisitions by temperature
     requisitionsWithTemperature.sort((a, b) => Number(a.temperature - b.temperature));
 
+    console.debug("[TRACTOR/loadOrderbookData] initial fetch results: ", {
+      raw: {
+        podIndexResult,
+        harvestableIndexResult,
+        completedOrders,
+        activeRequisitions,
+        requisitionsWithTemperature,
+      },
+      currentPodLine: currentPodLine.toHuman(),
+      activeRequisitions: activeRequisitions.length,
+      completedOrders: completedOrders.size,
+    });
+
     // Track used withdrawal plans per publisher for allocation priority
     const publisherWithdrawalPlans: { [publisher: string]: any[] } = {};
 
     // Process requisitions in a single loop (already sorted by temperature)
-    const orderbookData: OrderbookEntry[] = [];
+    const orderbookData: OrderbookEntry[] = [...(activeApiEntries ?? []).filter((entry) => !entry.isComplete)];
 
     console.debug("\nProcessing orderbook data:");
-
-    // Running total of place in line, starting with current pod line
-    let runningPlaceInLine = currentPodLine;
 
     for (let i = 0; i < requisitionsWithTemperature.length; i++) {
       const { requisition, decodedData } = requisitionsWithTemperature[i];
@@ -1095,25 +1165,6 @@ export async function loadOrderbookData(
           console.debug(`Amount sowable next season: ${amountSowableNextSeason.toHuman()}`);
         }
 
-        // Calculate the place in line for this order
-        const estimatedPlaceInLine = TokenValue.fromBlockchain(runningPlaceInLine.toBigInt(), 6);
-        console.debug(`Estimated place in line: ${estimatedPlaceInLine.toHuman()}`);
-
-        // If this order will have some pods sown next season, update the running place in line
-        // for future orders by adding this order's pod amount
-        if (amountSowableNextSeason.gt(0)) {
-          // Get the temperature for this order
-          const temp = decodedData ? parseFloat(decodedData.minTempAsString) : 0;
-
-          // Calculate the pods that will be minted (PINTO amount * (1 + temperature/100))
-          const podsToMint = amountSowableNextSeason.mul(1 + temp / 100);
-          console.debug(`Estimated pods to mint: ${podsToMint.toHuman()} (temp: ${temp}%)`);
-
-          // Update the running place in line for the next order
-          runningPlaceInLine = runningPlaceInLine.add(podsToMint);
-          console.debug(`Updated running place in line: ${runningPlaceInLine.toHuman()}`);
-        }
-
         if (!withdrawalPlan) {
           throw new Error("Failed to get withdrawal plan");
         }
@@ -1125,7 +1176,8 @@ export async function loadOrderbookData(
           currentlySowable,
           amountSowableNextSeason,
           amountSowableNextSeasonConsideringAvailableSoil: TokenValue.ZERO, // Initialize to zero, will be set in second pass
-          estimatedPlaceInLine,
+          estimatedPlaceInLine: TokenValue.ZERO, // Initialize to zero, will be set in second pass
+          minTemp: TokenValue.fromBigInt(decodedData?.minTemp || 0n, TEMPERATURE_DECIMALS),
           withdrawalPlan,
         });
       } catch (error) {
@@ -1137,21 +1189,38 @@ export async function loadOrderbookData(
           currentlySowable: TokenValue.ZERO,
           amountSowableNextSeason: TokenValue.ZERO,
           amountSowableNextSeasonConsideringAvailableSoil: TokenValue.ZERO,
-          estimatedPlaceInLine: TokenValue.fromBlockchain(runningPlaceInLine.toBigInt(), 6),
+          estimatedPlaceInLine: TokenValue.fromBlockchain(0n, 6),
+          minTemp: TokenValue.ZERO,
           withdrawalPlan: undefined,
         });
       }
     }
 
-    // Get the total amount of soil available from the protocol
+    // Running total of place in line, starting with current pod line
+    let runningPlaceInLine = currentPodLine;
+
+    orderbookData.sort((a, b) => a.minTemp.sub(b.minTemp).toNumber());
+
+    for (let i = 0; i < orderbookData.length; i++) {
+      const entry = orderbookData[i];
+      // If this order will have some pods sown next season, update the running place in line
+      // for future orders by adding this order's pod amount
+      if (entry.amountSowableNextSeason.gt(0)) {
+        entry.estimatedPlaceInLine = TokenValue.fromBlockchain(runningPlaceInLine.toBigInt(), PODS.decimals);
+        const podsToMint = entry.amountSowableNextSeason.mul(entry.minTemp.add(1).div(100)).reDecimal(PODS.decimals);
+        runningPlaceInLine = runningPlaceInLine.add(podsToMint);
+      }
+    }
+
     let availableSoil = TokenValue.ZERO;
+    // Get the total amount of soil available from the protocol
     try {
       // Query for the most recent Soil event
       const soilEvents = await publicClient.getContractEvents({
         address: protocolAddress,
         abi: diamondABI,
         eventName: "Soil",
-        fromBlock: TRACTOR_DEPLOYMENT_BLOCK,
+        fromBlock: TIME_TO_BLOCKS.month,
         toBlock: "latest",
       });
 
@@ -1174,7 +1243,7 @@ export async function loadOrderbookData(
         console.debug(`\nEstimated soil from orderbook data: ${availableSoil.toHuman()}`);
       }
     } catch (error) {
-      console.error("Failed to get soil from events:", error);
+      console.error("Failed to get soil from on chain:", error);
       // Fall back to estimating soil as the sum of all currentlySowable values
       availableSoil = orderbookData.reduce((total, entry) => total.add(entry.currentlySowable), TokenValue.ZERO);
       console.debug(`\nFalling back to estimated soil: ${availableSoil.toHuman()}`);
@@ -1185,6 +1254,7 @@ export async function loadOrderbookData(
       const decodedData = decodeSowTractorData(entry.requisition.blueprint.data);
       const tipAmount = decodedData?.operatorParams.operatorTipAmount || 0n;
       return {
+        decodedData,
         entry,
         tipAmount,
       };
@@ -1200,9 +1270,8 @@ export async function loadOrderbookData(
 
     // Second pass: allocate soil based on tip priority
     for (let i = 0; i < orderbookDataWithTips.length; i++) {
-      const { entry, tipAmount } = orderbookDataWithTips[i];
+      const { entry, tipAmount, decodedData } = orderbookDataWithTips[i];
       const tipAmountFormatted = TokenValue.fromBlockchain(tipAmount, 6).toHuman();
-      const decodedData = decodeSowTractorData(entry.requisition.blueprint.data);
       const orderTemp = decodedData ? parseFloat(decodedData.minTempAsString) : 0;
 
       console.debug(
@@ -1240,21 +1309,25 @@ export async function loadOrderbookData(
   }
 }
 
+// ────────────────────────────────────────────────────────────────────────────────
+// OPERATOR AVERAGE TIP PAID
+// ────────────────────────────────────────────────────────────────────────────────
+
 /**
  * Calculates the average tip paid from OperatorReward events in the last 14 days.
  * Returns 1 if no events are found.
  */
-export async function getAverageTipPaid(publicClient: PublicClient): Promise<number> {
+export async function getAverageTipPaid(
+  publicClient: PublicClient,
+  currentBlock: MinimumViableBlock<bigint>,
+  lookbackBlocks: bigint = TIME_TO_BLOCKS.fortnight,
+): Promise<number> {
+  console.debug("[Tractor/getAverageTipPaid] FETCHING", { currentBlock, lookbackBlocks });
+
   try {
-    // Calculate blocks for 14 days (14 * 24 * 60 * 60 / 2 = 604800 blocks)
-    const BLOCKS_PER_14_DAYS = 604800n;
-
-    // Get current block number
-    const currentBlock = await publicClient.getBlockNumber();
-
-    // Calculate starting block (use max of deployment block or 14 days ago)
-    const fourteenDaysAgoBlock = currentBlock > BLOCKS_PER_14_DAYS ? currentBlock - BLOCKS_PER_14_DAYS : 0n;
-    const fromBlock = fourteenDaysAgoBlock > TRACTOR_DEPLOYMENT_BLOCK ? fourteenDaysAgoBlock : TRACTOR_DEPLOYMENT_BLOCK;
+    // Calculate starting block (use max of deployment block or lookback. Default is 14 days)
+    const lookback = currentBlock.number > lookbackBlocks ? currentBlock.number - lookbackBlocks : 0n;
+    const fromBlock = lookback > TRACTOR_DEPLOYMENT_BLOCK ? lookback : TRACTOR_DEPLOYMENT_BLOCK;
 
     // Query for OperatorReward events
     const events = await publicClient.getContractEvents({
@@ -1305,9 +1378,17 @@ export async function getAverageTipPaid(publicClient: PublicClient): Promise<num
 
     // Calculate average in human-readable form
     const avgTipAmount = Number(totalTipAmount) / (validEventCount * 1e6);
+    const result = avgTipAmount > 0 ? avgTipAmount : 1;
+
+    console.debug("[Tractor/getAverageTipPaid] RESPONSE", {
+      totalTipAmount,
+      validEventCount,
+      avgTipAmount,
+      result,
+    });
 
     // If we somehow got a non-positive number, return the default
-    return avgTipAmount > 0 ? avgTipAmount : 1;
+    return result;
   } catch (error) {
     console.error("Error getting average tip amount:", error);
     // Return default value in case of error

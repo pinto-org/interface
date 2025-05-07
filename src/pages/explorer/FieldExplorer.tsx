@@ -30,6 +30,7 @@ const FieldExplorer = () => {
     <>
       <SeasonalChart
         title="Pod Rate"
+        tooltip="The ratio of Unharvestable Pods per Pinto. The Pod Rate is used by Pinto as a proxy for its health."
         size="large"
         fillArea
         activeTab={podRateTab}
@@ -42,6 +43,7 @@ const FieldExplorer = () => {
         <div className="w-full sm:w-1/2">
           <SeasonalChart
             title="Max Temperature"
+            tooltip="The maximum interest rate for Sowing Pinto."
             size="small"
             activeTab={tempTab}
             onChangeTab={setTempTab}
@@ -53,6 +55,7 @@ const FieldExplorer = () => {
         <div className="w-full sm:w-1/2">
           <SeasonalChart
             title="Pod Line"
+            tooltip="The total number of Unharvestable Pods."
             size="small"
             fillArea
             activeTab={podlineTab}
@@ -67,6 +70,7 @@ const FieldExplorer = () => {
         <div className="w-full sm:w-1/2">
           <SeasonalChart
             title="Sown Pinto"
+            tooltip="The total number of Pinto Sown."
             size="small"
             fillArea
             activeTab={sownTab}
@@ -79,6 +83,7 @@ const FieldExplorer = () => {
         <div className="w-full sm:w-1/2">
           <SeasonalChart
             title="Pods Harvested"
+            tooltip="The total number of Pods Harvested."
             size="small"
             fillArea
             activeTab={harvestedTab}

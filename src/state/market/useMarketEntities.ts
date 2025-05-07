@@ -1,7 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { PODS } from "@/constants/internalTokens";
 import { PINTO } from "@/constants/tokens";
-import { AllMarketActivityQuery } from "@/generated/gql/graphql";
+import { AllMarketActivityQuery } from "@/generated/gql/pintostalk/graphql";
 import { Fill, Listing, Order } from "@/utils/types";
 import { QueryKey } from "@tanstack/react-query";
 import { useMemo } from "react";

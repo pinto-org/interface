@@ -1,5 +1,9 @@
 import { subgraphs } from "@/constants/subgraph";
-import { FarmerSeasonalSiloDocument, FarmerSeasonalSiloQuery, SiloHourlySnapshot } from "@/generated/gql/graphql";
+import {
+  FarmerSeasonalSiloDocument,
+  FarmerSeasonalSiloQuery,
+  SiloHourlySnapshot,
+} from "@/generated/gql/pintostalk/graphql";
 import { PaginationSettings, paginateSubgraph } from "@/utils/paginateSubgraph";
 import { UseSeasonalResult } from "@/utils/types";
 import { useChainId } from "wagmi";

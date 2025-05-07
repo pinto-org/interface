@@ -1,4 +1,4 @@
-query advancedChartBean($from: Int, $to: Int) {
+query BeanAdvancedChart($from: Int, $to: Int) {
   seasons(first: 1000, orderBy: season, orderDirection: desc, where: {  season_gte: $from, season_lte: $to } ) {
     id
     timestamp

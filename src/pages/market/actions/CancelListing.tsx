@@ -2,7 +2,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
-import { AllPodListingsQuery } from "@/generated/gql/graphql";
+import { AllPodListingsQuery } from "@/generated/gql/pintostalk/graphql";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
 import { useHarvestableIndex } from "@/state/useFieldData";

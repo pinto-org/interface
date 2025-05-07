@@ -1,8 +1,7 @@
 import { subgraphs } from "@/constants/subgraph";
-import { AllPodListingsDocument } from "@/generated/gql/graphql";
+import { AllPodListingsDocument } from "@/generated/gql/pintostalk/graphql";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
-import { useMemo } from "react";
 import { useChainId } from "wagmi";
 import { useHarvestableIndex } from "../useFieldData";
 import { useQueryKeys } from "../useQueryKeys";

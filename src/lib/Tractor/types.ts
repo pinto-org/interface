@@ -24,3 +24,9 @@ export interface PublishedRequisition {
   blueprintHash: string;
   blockNumber: number;
 }
+
+// Add the TokenStrategy type
+export type SowOrderTokenStrategy =
+  | { type: "LOWEST_SEEDS" }
+  | { type: "LOWEST_PRICE" }
+  | { type: "SPECIFIC_TOKEN"; address: `0x${string}` };

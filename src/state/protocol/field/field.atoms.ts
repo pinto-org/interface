@@ -1,10 +1,15 @@
 import { TV } from "@/classes/TokenValue";
 import { atom } from "jotai";
 import { atomWithImmer } from "jotai-immer";
-import { Field, FieldPodLine, FieldQueryKeys, FieldTemperature, FieldWeather, TotalSoil } from ".";
+import { Field, FieldPodLine, FieldQueryKeys, FieldTemperature, FieldWeather, InitialSoil, TotalSoil } from ".";
 
 export const fieldTotalSoilAtom = atom<TotalSoil>({
   totalSoil: TV.fromHuman(-1, 6),
+  isLoading: true,
+});
+
+export const fieldInitialSoilAtom = atom<InitialSoil>({
+  initialSoil: TV.fromHuman(-1, 6),
   isLoading: true,
 });
 
@@ -49,6 +54,7 @@ export const fieldAtom = atom<Field>((get) => {
 export const fieldQueryKeysAtom = atomWithImmer<FieldQueryKeys>({
   temperature: [],
   soil: [],
+  initialSoil: [],
   weather: [],
   podLine: [],
 });

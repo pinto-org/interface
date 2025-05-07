@@ -1,7 +1,6 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { subgraphs } from "@/constants/subgraph";
-import { beanstalkAddress } from "@/generated/contractHooks";
-import { SeasonalNewPintoSnapshotsDocument, SiloSnapshotsDocument } from "@/generated/gql/graphql";
+import { SeasonalNewPintoSnapshotsDocument } from "@/generated/gql/pintostalk/graphql";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 import { useEffect, useMemo } from "react";

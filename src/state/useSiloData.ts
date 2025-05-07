@@ -3,7 +3,7 @@ import { ZERO_ADDRESS } from "@/constants/address";
 import { SEEDS, STALK } from "@/constants/internalTokens";
 import { subgraphs } from "@/constants/subgraph";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
-import { SiloYieldsDocument } from "@/generated/gql/graphql";
+import { SiloYieldsDocument } from "@/generated/gql/pintostalk/graphql";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";

@@ -1,5 +1,5 @@
 import { subgraphs } from "@/constants/subgraph";
-import { AllMarketActivityDocument } from "@/generated/gql/graphql";
+import { AllMarketActivityDocument } from "@/generated/gql/pintostalk/graphql";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 import { useChainId } from "wagmi";

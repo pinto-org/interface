@@ -103,15 +103,18 @@ export const AdvancedChart = () => {
       const selectedChart = chartSetupData[selection];
       const _output: TVChartFormattedData[] = [];
       seasonsData.data.forEach((seasonData, index) => {
-        const formatValue = selectedChart.valueFormatter;
-        const dataPoint = {
-          value: formatValue(seasonData[selectedChart.priceScaleKey]),
-          time: new Date(seasonData.timestamp).getTime() as UTCTimestamp,
-          customValues: {
-            season: seasonData.season,
-          },
-        };
-        _output.push(dataPoint);
+        // Verify a datapoint is available for this season (some data, like tractor, is not since season 1)
+        if (selectedChart.priceScaleKey in seasonData) {
+          const formatValue = selectedChart.valueFormatter;
+          const dataPoint = {
+            value: formatValue(seasonData[selectedChart.priceScaleKey]),
+            time: new Date(seasonData.timestamp).getTime() as UTCTimestamp,
+            customValues: {
+              season: seasonData.season,
+            },
+          };
+          _output.push(dataPoint);
+        }
       });
       output.push(_output.reverse());
     });

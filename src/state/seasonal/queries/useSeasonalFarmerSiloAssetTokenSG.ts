@@ -3,7 +3,7 @@ import {
   FarmerSeasonalSiloAssetTokenDocument as Document,
   FarmerSeasonalSiloAssetTokenQuery,
   SiloAssetHourlySnapshot,
-} from "@/generated/gql/graphql";
+} from "@/generated/gql/pintostalk/graphql";
 import { PaginationSettings, paginateSubgraph } from "@/utils/paginateSubgraph";
 import { isValidAddress } from "@/utils/string";
 import { UseSeasonalResult } from "@/utils/types";

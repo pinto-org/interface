@@ -3,26 +3,27 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
-import { RequisitionEvent, loadPublishedRequisitions } from "@/lib/Tractor/utils";
+import { RequisitionEvent } from "@/lib/Tractor/utils";
 import { decodeSowTractorData } from "@/lib/Tractor/utils";
-import { useCallback, useEffect, useState } from "react";
+import useTractorPublishedRequisitions from "@/state/tractor/useTractorPublishedRequisitions";
+import { useEffect } from "react";
 import { toast } from "sonner";
-import { useAccount, usePublicClient } from "wagmi";
+import { useAccount } from "wagmi";
 
 interface TractorRequisitionsTableProps {
   refreshTrigger?: number;
 }
 
 export function TractorRequisitionsTable({ refreshTrigger = 0 }: TractorRequisitionsTableProps) {
-  const [requisitions, setRequisitions] = useState<RequisitionEvent[]>([]);
   const { address } = useAccount();
   const protocolAddress = useProtocolAddress();
-  const publicClient = usePublicClient();
 
   const { writeWithEstimateGas, submitting } = useTransaction({
     successMessage: "Blueprint cancelled successfully",
     errorMessage: "Failed to cancel blueprint",
   });
+
+  const { data: requisitions = [], ...requisitionsQuery } = useTractorPublishedRequisitions(address);
 
   const handleCancelBlueprint = async (requisitionData: RequisitionEvent) => {
     if (!address || !protocolAddress) return;
@@ -37,33 +38,18 @@ export function TractorRequisitionsTable({ refreshTrigger = 0 }: TractorRequisit
       });
       toast.success("Blueprint cancelled successfully");
       // Refresh the list
-      loadRequisitions();
+      requisitionsQuery.refetch();
     } catch (error) {
       console.error("Error cancelling blueprint:", error);
       toast.error("Failed to cancel blueprint");
     }
   };
 
-  const loadRequisitions = useCallback(async () => {
-    try {
-      if (!publicClient) return;
-      const events = await loadPublishedRequisitions(address, protocolAddress, publicClient);
-      setRequisitions(events);
-    } catch (error) {
-      console.error("Failed to load published requisitions:", error);
-      toast.error("Failed to load published requisitions");
-    }
-  }, [address, protocolAddress, publicClient]);
-
-  useEffect(() => {
-    loadRequisitions();
-  }, [loadRequisitions]);
-
   useEffect(() => {
     if (refreshTrigger > 0) {
-      loadRequisitions();
+      requisitionsQuery.refetch();
     }
-  }, [refreshTrigger, loadRequisitions]);
+  }, [refreshTrigger, requisitionsQuery.refetch]);
 
   return (
     <div className="overflow-x-auto">

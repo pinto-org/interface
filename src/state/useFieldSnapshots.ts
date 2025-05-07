@@ -2,7 +2,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import { PODS } from "@/constants/internalTokens";
 import { subgraphs } from "@/constants/subgraph";
 import { beanstalkAddress } from "@/generated/contractHooks";
-import { FieldSnapshotsDocument } from "@/generated/gql/graphql";
+import { FieldSnapshotsDocument } from "@/generated/gql/pintostalk/graphql";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 import { useChainId } from "wagmi";

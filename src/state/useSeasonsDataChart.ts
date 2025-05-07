@@ -1,13 +1,12 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { PODS, STALK } from "@/constants/internalTokens";
 import { subgraphs } from "@/constants/subgraph";
+import { BeanAdvancedChartDocument, BeanAdvancedChartQuery, Season as BeanSeason } from "@/generated/gql/pinto/graphql";
 import {
-  AdvancedChartBeanDocument,
-  AdvancedChartBeanQuery,
-  AdvancedChartBeanStalkDocument,
-  AdvancedChartBeanStalkQuery,
-  Season,
-} from "@/generated/gql/graphql";
+  BeanstalkAdvancedChartDocument,
+  BeanstalkAdvancedChartQuery,
+  Season as BeanstalkSeason,
+} from "@/generated/gql/pintostalk/graphql";
 import { PaginationSettings, paginateMultiQuerySubgraph, paginateSubgraph } from "@/utils/paginateSubgraph";
 import { Duration } from "luxon";
 import { useMemo } from "react";
@@ -17,6 +16,7 @@ import useSeasonalQueries, {
   SeasonalQueryVars,
   useMultiSeasonalQueries,
 } from "./seasonal/queries/useSeasonalInternalQueries";
+import useSeasonalTractorSnapshots from "./seasonal/queries/useSeasonalTractorSnapshots";
 import useTokenData from "./useTokenData";
 
 export interface SeasonsTableData {
@@ -30,12 +30,12 @@ export interface SeasonsTableData {
   instDeltaB: TokenValue;
   instPrice: TokenValue;
   issuedSoil: TokenValue;
+  cultivationFactor: TokenValue;
   l2sr: TokenValue;
   podRate: TokenValue;
   price: TokenValue;
   raining: boolean;
   rewardBeans: TokenValue;
-  deltaDemand: TokenValue;
   deltaSownBeans: TokenValue;
   sownBeans: TokenValue;
   temperature: number;
@@ -56,12 +56,25 @@ export interface SeasonsTableData {
   pinto30d: number;
   pinto7d: number;
   pinto24h: number;
+  tractorSownPinto: TokenValue;
+  tractorPodsMinted: TokenValue;
+  tractorSowingQueue: TokenValue;
+  tractorMaxSeasonalSow: TokenValue;
+  tractorCumulativeTips: TokenValue;
+  tractorMaxActiveTip: TokenValue;
+  tractorExecutions: number;
+  tractorPublishers: number;
 }
 
-const stalkPaginateSettings: PaginationSettings<Season, AdvancedChartBeanStalkQuery, "seasons", SeasonalQueryVars> = {
+const stalkPaginateSettings: PaginationSettings<
+  BeanstalkSeason,
+  BeanstalkAdvancedChartQuery,
+  "seasons",
+  SeasonalQueryVars
+> = {
   primaryPropertyName: "seasons",
   idField: "id",
-  nextVars: (value1000: Season, prevVars: SeasonalQueryVars) => {
+  nextVars: (value1000: BeanstalkSeason, prevVars: SeasonalQueryVars) => {
     if (value1000) {
       return {
         ...prevVars,
@@ -71,10 +84,10 @@ const stalkPaginateSettings: PaginationSettings<Season, AdvancedChartBeanStalkQu
   },
 };
 
-const beanPaginateSettings: PaginationSettings<Season, AdvancedChartBeanQuery, "seasons", SeasonalQueryVars> = {
+const beanPaginateSettings: PaginationSettings<BeanSeason, BeanAdvancedChartQuery, "seasons", SeasonalQueryVars> = {
   primaryPropertyName: "seasons",
   idField: "id",
-  nextVars: (value1000: Season, prevVars: SeasonalQueryVars) => {
+  nextVars: (value1000: BeanSeason, prevVars: SeasonalQueryVars) => {
     if (value1000) {
       return {
         ...prevVars,
@@ -93,13 +106,13 @@ export default function useSeasonsDataChart(fromSeason: number, toSeason: number
     return paginateMultiQuerySubgraph(
       stalkPaginateSettings,
       subgraphs[chainId].beanstalk,
-      AdvancedChartBeanStalkDocument,
+      BeanstalkAdvancedChartDocument,
       vars,
     );
   };
 
   const beanQueryFnFactory = (vars: SeasonalQueryVars) => async () => {
-    return paginateSubgraph(beanPaginateSettings, subgraphs[chainId].bean, AdvancedChartBeanDocument, vars);
+    return paginateSubgraph(beanPaginateSettings, subgraphs[chainId].bean, BeanAdvancedChartDocument, vars);
   };
 
   const useStalkQuery = useMultiSeasonalQueries("all_seasonsTableStalk", {
@@ -134,11 +147,14 @@ export default function useSeasonsDataChart(fromSeason: number, toSeason: number
 
   const useAPYQuery = useSeasonalAPYs(tokenData.mainToken.address, fromSeason, toSeason);
 
+  const useTractorQuery = useSeasonalTractorSnapshots("SOW_V0", fromSeason, toSeason, (e: any) => e, "desc");
+
   const transformedData = useMemo(() => {
     if (
       Object.keys(useStalkQuery.data || {}).length === 0 ||
       Object.keys(useBeanQuery.data || {}).length === 0 ||
-      Object.keys(useAPYQuery.data || {}).length === 0
+      Object.keys(useAPYQuery.data || {}).length === 0 ||
+      Object.keys(useTractorQuery.data || {}).length === 0
     ) {
       return [];
     }
@@ -150,6 +166,8 @@ export default function useSeasonsDataChart(fromSeason: number, toSeason: number
       [APYWindow.WEEKLY]: apy7d,
       [APYWindow.DAILY]: apy24h,
     } = useAPYQuery?.data || {};
+    const tractorSnapshots = useTractorQuery?.data || ([] as any);
+
     const transformedData: SeasonsTableData[] = beanResults.reduce((acc: SeasonsTableData[], season, idx) => {
       const currFieldHourlySnapshots = fieldHourlySnapshots[idx];
       const currSiloHourlySnapshots = siloHourlySnapshots[idx];
@@ -157,8 +175,7 @@ export default function useSeasonsDataChart(fromSeason: number, toSeason: number
       const timeSown = currFieldHourlySnapshots.blocksToSoldOutSoil
         ? Duration.fromMillis(currFieldHourlySnapshots.blocksToSoldOutSoil * 2 * 1000).toFormat("mm:ss")
         : "-";
-      acc.push({
-        ...acc[season.beanHourlySnapshot.season.season],
+      const allData: Partial<SeasonsTableData> = {
         season: season.beanHourlySnapshot.season.season,
         caseId: Number(currFieldHourlySnapshots.caseId || 0),
         instDeltaB: TokenValue.fromHuman(season.beanHourlySnapshot.instDeltaB, tokenData.mainToken.decimals),
@@ -200,11 +217,44 @@ export default function useSeasonsDataChart(fromSeason: number, toSeason: number
         pinto7d: apy7d?.[idx]?.value || 0,
         pinto24h: apy24h?.[idx]?.value || 0,
         timestamp: Number(season.beanHourlySnapshot.season.timestamp || 0),
-      });
+      };
+      if (currFieldHourlySnapshots.cultivationFactor !== null) {
+        allData.cultivationFactor = TokenValue.fromHuman(currFieldHourlySnapshots.cultivationFactor, 2);
+      }
+      // Ensure tractor api response is fully caught up/in sync
+      if (tractorSnapshots[idx]?.season === allData.season) {
+        allData.tractorSownPinto = TokenValue.fromBlockchain(
+          tractorSnapshots[idx]?.totalPintoSown || 0n,
+          PODS.decimals,
+        );
+        allData.tractorPodsMinted = TokenValue.fromBlockchain(
+          tractorSnapshots[idx]?.totalPodsMinted || 0n,
+          PODS.decimals,
+        );
+        allData.tractorSowingQueue = TokenValue.fromBlockchain(
+          tractorSnapshots[idx]?.totalCascadeFundedBelowTemp || 0n,
+          PODS.decimals,
+        );
+        allData.tractorMaxSeasonalSow = TokenValue.fromBlockchain(
+          tractorSnapshots[idx]?.maxSowThisSeason || 0n,
+          PODS.decimals,
+        );
+        allData.tractorCumulativeTips = TokenValue.fromBlockchain(
+          tractorSnapshots[idx]?.totalTipsPaid || 0n,
+          PODS.decimals,
+        );
+        allData.tractorMaxActiveTip = TokenValue.fromBlockchain(
+          tractorSnapshots[idx]?.currentMaxTip || 0n,
+          PODS.decimals,
+        );
+        allData.tractorExecutions = tractorSnapshots[idx]?.totalExecutions || 0;
+        allData.tractorPublishers = tractorSnapshots[idx]?.uniquePublishers || 0;
+      }
+      acc.push(allData as SeasonsTableData);
       return acc;
     }, [] as SeasonsTableData[]);
     return transformedData;
-  }, [useBeanQuery.data, useStalkQuery.data]);
+  }, [useBeanQuery.data, useStalkQuery.data, useAPYQuery.data, useTractorQuery.data, tokenData.mainToken.decimals]);
 
   return {
     isFetching: useBeanQuery.isLoading || useStalkQuery.isLoading,

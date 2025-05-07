@@ -34,6 +34,7 @@ const FarmerExplorer = () => {
     <>
       <SeasonalChart
         title="Planted Pinto"
+        tooltip="Total amount of Pinto planted."
         size="large"
         fillArea
         activeTab={plantedTab}
@@ -46,6 +47,7 @@ const FarmerExplorer = () => {
         <div className="w-full sm:w-1/2">
           <SeasonalChart
             title="Claimed Grown Stalk Balance"
+            tooltip="Total Grown Stalk claimed."
             size="small"
             activeTab={grownStalkTab}
             onChangeTab={setGrownStalkTab}
@@ -57,6 +59,7 @@ const FarmerExplorer = () => {
         <div className="w-full sm:w-1/2">
           <SeasonalChart
             title="Stalk Ownership %"
+            tooltip="Percentage of ownership of the Silo."
             size="small"
             activeTab={stalkOwnershipTab}
             onChangeTab={setStalkOwnershipTab}

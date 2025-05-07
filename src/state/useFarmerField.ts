@@ -4,7 +4,7 @@ import { PODS } from "@/constants/internalTokens";
 import { subgraphs } from "@/constants/subgraph";
 import { PINTO } from "@/constants/tokens";
 import { useReadFarmer_GetPlotsFromAccount } from "@/generated/contractHooks";
-import { FarmerPlotsDocument, FarmerPlotsQuery } from "@/generated/gql/graphql";
+import { FarmerPlotsDocument, FarmerPlotsQuery } from "@/generated/gql/pintostalk/graphql";
 import { Plot } from "@/utils/types";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";

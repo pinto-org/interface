@@ -1,5 +1,5 @@
 import { subgraphs } from "@/constants/subgraph";
-import { BeanSeasonalSeasonPoolsDocument, BeanSeasonalSeasonPoolsQuery, Season } from "@/generated/gql/graphql";
+import { BeanSeasonalSeasonPoolsDocument, BeanSeasonalSeasonPoolsQuery, Season } from "@/generated/gql/pinto/graphql";
 import { PaginationSettings, paginateSubgraph } from "@/utils/paginateSubgraph";
 import { UseSeasonalResult } from "@/utils/types";
 import { useChainId } from "wagmi";

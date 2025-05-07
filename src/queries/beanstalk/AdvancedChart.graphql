@@ -1,4 +1,4 @@
-query advancedChartBeanStalk($from: Int, $to: Int) {
+query BeanstalkAdvancedChart($from: Int, $to: Int) {
   seasons(first: 1000, orderBy: season, orderDirection: desc, where: { season_gte: $from, season_lte: $to }) {
     id
     rewardBeans

@@ -4,33 +4,24 @@ import { Button } from "@/components/ui/Button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { useLatestBlock } from "@/hooks/useLatestBlock";
+import { useGasPrice } from "@/hooks/useGasPrice";
 import useTransaction from "@/hooks/useTransaction";
-import { RequisitionEvent, decodeSowTractorData, loadPublishedRequisitions } from "@/lib/Tractor/utils";
+import { RequisitionEvent } from "@/lib/Tractor/utils";
+import useTractorPublishedRequisitions from "@/state/tractor/useTractorPublishedRequisitions";
 import { useTemperature } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
-import { BASE_RPC_URL } from "@/utils/wagmi/chains";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { http, createPublicClient, encodeFunctionData } from "viem";
-import { base } from "viem/chains";
+import { encodeFunctionData } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
 import LoadingSpinner from "../LoadingSpinner";
 import { PlowDetails } from "./PlowDetails";
 
 const BASESCAN_URL = "https://basescan.org/address/";
-const UINT256_MAX = BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935");
-
-// Create a client specifically for fetching Base network gas price
-const baseGasClient = createPublicClient({
-  chain: base,
-  transport: http(BASE_RPC_URL),
-});
 
 // Helper function to extract error message from error
 const extractErrorMessage = (error: unknown): string => {
@@ -109,7 +100,7 @@ const calculateProfit = (
   req: RequisitionEvent,
   successfulSimulations: Set<string>,
   gasEstimates: Map<string, bigint>,
-  gasPrice: bigint | null,
+  gasPrice: bigint | undefined,
   mainToken: Token,
   nativeToken: Token,
   tokenPrices: Map<Token, { instant: TokenValue; twa: TokenValue }>,
@@ -145,15 +136,13 @@ export function Plow() {
   const protocolAddress = useProtocolAddress();
   const publicClient = usePublicClient();
   const { address } = useAccount();
-  const { data: latestBlock } = useLatestBlock();
-  const queryClient = useQueryClient();
   const { tokenPrices } = usePriceData();
   const { mainToken, nativeToken } = useTokenData();
   const temperatures = useTemperature();
 
   // Add state for gas estimates
   const [gasEstimates, setGasEstimates] = useState<Map<string, bigint>>(new Map());
-  const [gasPrice, setGasPrice] = useState<bigint | null>(null);
+  const { data: gasPrice } = useGasPrice();
 
   // Add state for sorted requisitions
   const [sortedRequisitions, setSortedRequisitions] = useState<RequisitionEvent[]>([]);
@@ -162,79 +151,41 @@ export function Plow() {
   // Add state to track if any order has been executed, requiring resimulation
   const [hasExecutedOrder, setHasExecutedOrder] = useState(false);
 
-  // Fetch gas price periodically
-  useEffect(() => {
-    const fetchGasPrice = async () => {
-      try {
-        // Use the baseGasClient to fetch gas price from Base network
-        const price = await baseGasClient.getGasPrice();
-        console.debug("Current Base network gas price:", price.toString(), "wei");
-        console.debug("Current Base network gas price:", (Number(price) / 1e9).toFixed(2), "gwei");
-        setGasPrice(price);
-      } catch (error) {
-        console.error("Failed to fetch gas price:", error);
-      }
-    };
+  const { isLoading, ...requisitionsQuery } = useTractorPublishedRequisitions();
 
-    fetchGasPrice();
-    const interval = setInterval(fetchGasPrice, 30000); // Update every 30 seconds
+  const requisitions = useMemo(() => {
+    if (!requisitionsQuery.data) return [];
 
-    return () => clearInterval(interval);
-  }, []);
+    const currentTemperature = temperatures.scaled;
+    console.debug("Current temperature:", currentTemperature?.toHuman ? `${currentTemperature.toHuman()}%` : "Unknown");
 
-  const { data: requisitions = [], isLoading } = useQuery({
-    queryKey: ["requisitions", protocolAddress, latestBlock?.number, temperatures.scaled?.toString()],
-    queryFn: async () => {
-      console.debug("Loading requisitions...");
-      if (!publicClient || !protocolAddress) return [];
+    // Filter out requisitions with zero or negative tip, cancelled requisitions,
+    // and those with minTemp higher than current temperature
+    const filteredEvents = requisitionsQuery.data.filter((req) => {
+      // Skip cancelled requisitions
+      if (req.isCancelled) return false;
 
-      const events = await loadPublishedRequisitions(
-        undefined,
-        protocolAddress,
-        publicClient,
-        latestBlock,
-        "sowBlueprintv0",
-      );
-      console.debug("Loaded requisitions:", events);
+      // Skip requisitions with invalid data or non-positive tip
+      if (!req.decodedData || !req.decodedData.operatorParams) return false;
+      const tipAmount = req.decodedData.operatorParams.operatorTipAmount;
 
-      // Get current temperature
-      const currentTemperature = temperatures.scaled;
-      console.debug(
-        "Current temperature:",
-        currentTemperature?.toHuman ? `${currentTemperature.toHuman()}%` : "Unknown",
-      );
-
-      // Filter out requisitions with zero or negative tip, cancelled requisitions,
-      // and those with minTemp higher than current temperature
-      const filteredEvents = events.filter((req) => {
-        // Skip cancelled requisitions
-        if (req.isCancelled) return false;
-
-        // Skip requisitions with invalid data or non-positive tip
-        if (!req.decodedData || !req.decodedData.operatorParams) return false;
-        const tipAmount = req.decodedData.operatorParams.operatorTipAmount;
-
-        // Skip requisitions with temperature requirements higher than current temperature
-        if (currentTemperature && req.decodedData.minTemp) {
-          const reqMinTemp = TokenValue.fromBlockchain(req.decodedData.minTemp, 6);
-          if (reqMinTemp.gt(currentTemperature)) {
-            console.debug(
-              `Filtered out requisition with minTemp ${reqMinTemp.toHuman()}% > current temp ${currentTemperature.toHuman()}%`,
-            );
-            return false;
-          }
+      // Skip requisitions with temperature requirements higher than current temperature
+      if (currentTemperature && req.decodedData.minTemp) {
+        const reqMinTemp = TokenValue.fromBlockchain(req.decodedData.minTemp, 6);
+        if (reqMinTemp.gt(currentTemperature)) {
+          console.debug(
+            `Filtered out requisition with minTemp ${reqMinTemp.toHuman()}% > current temp ${currentTemperature.toHuman()}%`,
+          );
+          return false;
         }
+      }
 
-        return tipAmount > 0n;
-      });
-      console.debug("Filtered requisitions (executable with positive tips):", filteredEvents.length);
+      return tipAmount > 0n;
+    });
+    console.debug("Filtered requisitions (executable with positive tips):", filteredEvents.length);
 
-      return filteredEvents;
-    },
-    enabled: !!protocolAddress && !!publicClient && !!latestBlock,
-    staleTime: 30_000,
-    refetchInterval: 30_000,
-  });
+    return filteredEvents;
+  }, [requisitionsQuery.data, temperatures.scaled]);
 
   const handlePlow = useCallback((requisition: RequisitionEvent) => {
     setSelectedRequisition(requisition);
@@ -272,7 +223,7 @@ export function Plow() {
       // Add to completed executions
       setCompletedExecutions((prev) => new Set(prev).add(receipt.transactionHash));
       // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ["requisitions"] });
+      requisitionsQuery.refetch();
     },
   });
 

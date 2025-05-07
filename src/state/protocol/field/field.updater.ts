@@ -2,16 +2,22 @@ import { TV } from "@/classes/TokenValue";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { PODS } from "@/constants/internalTokens";
 import { defaultQuerySettings } from "@/constants/query";
+import { subgraphs } from "@/constants/subgraph";
+import { FieldIssuedSoilDocument } from "@/generated/gql/pintostalk/graphql";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
 import { useInvalidateField } from "@/state/useFieldData";
+import { useSeason } from "@/state/useSunData";
 import { exists, isDev } from "@/utils/utils";
+import { useQuery } from "@tanstack/react-query";
+import request from "graphql-request";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useRef } from "react";
-import { useReadContract, useReadContracts } from "wagmi";
+import { useChainId, useReadContract, useReadContracts } from "wagmi";
 import { getMorningTemperature } from ".";
 import { morningAtom } from "../sun/sun.atoms";
 import {
+  fieldInitialSoilAtom,
   fieldPodlineAtom,
   fieldQueryKeysAtom,
   fieldTemperatureAtom,
@@ -98,12 +104,53 @@ const useUpdateTotalSoil = () => {
     console.debug("[protocol/field/useUpdateTotalSoil]: data", query.data);
 
     setTotalSoil((prev) => {
-      const newSoil = TV.fromBlockchain(query.data, SOIL_DECIMALS);
+      const newSoil = TV.fromBlockchain(query.data as bigint, SOIL_DECIMALS);
       // return old value if it hasn't changed. Prevents new object reference of TokenValue.
       if (prev.totalSoil.eq(newSoil)) return prev;
       // otherwise, return the new value
       return {
         totalSoil: newSoil,
+        isLoading: false,
+      };
+    });
+  }, [query.data]);
+};
+
+const useUpdateInitialSoil = () => {
+  const diamond = useProtocolAddress();
+  const chainId = useChainId();
+  const season = useSeason();
+  const setInitialSoil = useSetAtom(fieldInitialSoilAtom);
+
+  const _queryKey = ["initialSoil", season, chainId];
+
+  const query = useQuery({
+    queryKey: _queryKey,
+    queryFn: async () => {
+      return request(subgraphs[chainId].beanstalk, FieldIssuedSoilDocument, {
+        season: season,
+        field_contains_nocase: diamond,
+      });
+    },
+    enabled: !!season && season > 0,
+    staleTime: Infinity,
+  });
+
+  useUpdateQueryKeys(fieldQueryKeysAtom, _queryKey, "initialSoil");
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies:
+  useEffect(() => {
+    if (!exists(query?.data)) return;
+
+    console.debug("[protocol/field/useUpdateInitialSoil]: data", query.data);
+
+    setInitialSoil((prev) => {
+      const newSoil = TV.fromBlockchain(query.data.fieldHourlySnapshots[0]?.issuedSoil || 0, SOIL_DECIMALS);
+      // return old value if it hasn't changed. Prevents new object reference of TokenValue.
+      if (prev.initialSoil.eq(newSoil)) return prev;
+      // otherwise, return the new value
+      return {
+        initialSoil: newSoil,
         isLoading: false,
       };
     });
@@ -194,6 +241,7 @@ export const useUpdateField = () => {
   useUpdatePodline();
   useUpdateWeather();
   useUpdateTotalSoil();
+  useUpdateInitialSoil();
 };
 
 // ---------------------------------------- ABI ----------------------------------------
@@ -204,6 +252,12 @@ const soilABI = [
     name: "totalSoil",
     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "initialSoil",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
     type: "function",
   },
 ] as const;

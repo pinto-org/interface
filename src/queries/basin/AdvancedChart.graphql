@@ -1,0 +1,23 @@
+query BasinAdvancedChart($from: Int, $to: Int) {
+  beanstalkHourlySnapshots(
+    first: 1000
+    orderBy: season__season
+    orderDirection: desc
+    where: { season_: { season_gte: $from, season_lte: $to }}
+  ) {
+    id
+    createdTimestamp
+    season {
+      id
+    }
+    deltaBuyVolumeUSD
+    deltaSellVolumeUSD
+    deltaTradeVolumeUSD
+    cumulativeTradeVolumeUSD
+    deltaConvertDownVolumeUSD
+    deltaConvertUpVolumeUSD
+    deltaConvertVolumeUSD
+    cumulativeConvertVolumeUSD
+    totalLiquidityUSD
+  }
+}

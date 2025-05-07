@@ -14,7 +14,7 @@ interface ChartSetupBase {
   /**
    * Chart type, used to categorize charts in the Select panel
    */
-  type: "Pinto" | "Field" | "Silo";
+  type: "Pinto" | "Field" | "Silo" | "Tractor";
   /**
    * Name of variable to be used to fill the time scale. Usually "timestamp"
    */
@@ -264,6 +264,37 @@ const createFieldCharts = (mainToken: Token): ChartSetupBase[] => [
     shortTickFormatter: (v: number) => formatPct(v, { minDecimals: 2, maxDecimals: 2 }),
   },
   {
+    id: "issuedSoil",
+    type: "Field",
+    name: "Issued Soil",
+    tooltipTitle: "Issued Soil",
+    tooltipHoverText: "The amount of Soil available every Season.",
+    shortDescription: "The amount of Soil available every Season.",
+    icon: mainToken.logoURI,
+    timeScaleKey: "timestamp",
+    priceScaleKey: "issuedSoil",
+    valueAxisType: "issuedSoil",
+    valueFormatter: (v: TokenValue) => v.toNumber(),
+    tickFormatter: (v: number) => TokenValue.fromHuman(v, 2).toHuman("short"),
+    shortTickFormatter: (v: number) => TokenValue.fromHuman(v, 2).toHuman("short"),
+  },
+  {
+    id: "cultivationFactor",
+    type: "Field",
+    name: "Cultivation Factor",
+    tooltipTitle: "Cultivation Factor",
+    tooltipHoverText:
+      "The Cultivation Factor scales the amount of Soil issuance every Season. This factor fluctuates every Season based on whether all Soil was sold out in the prior Season.",
+    shortDescription: "The Cultivation Factor scales the amount of Soil issuance every Season.",
+    icon: podIcon,
+    timeScaleKey: "timestamp",
+    priceScaleKey: "cultivationFactor",
+    valueAxisType: "cultivationFactor",
+    valueFormatter: (v: TokenValue) => v.toNumber(),
+    tickFormatter: (v: number) => formatPct(v, { minDecimals: 2, maxDecimals: 2 }),
+    shortTickFormatter: (v: number) => formatPct(v, { minDecimals: 2, maxDecimals: 2 }),
+  },
+  {
     id: "podRate",
     type: "Field",
     name: "Pod Rate",
@@ -313,14 +344,29 @@ const createFieldCharts = (mainToken: Token): ChartSetupBase[] => [
   {
     id: "pintoSown",
     type: "Field",
-    name: "Pinto Sown",
-    tooltipTitle: "Pinto Sown",
-    tooltipHoverText: "The total number of Pinto Sown at the beginning of every Season.",
+    name: "Pinto Sown (Cumulative)",
+    tooltipTitle: "Pinto Sown (Cumulative)",
+    tooltipHoverText: "The total number of Pinto Sown as of the beginning of every Season.",
     shortDescription: "The total number of Pinto Sown.",
     icon: mainToken.logoURI,
     timeScaleKey: "timestamp",
     priceScaleKey: "sownBeans",
     valueAxisType: "PINTO_amount",
+    valueFormatter: (v: TokenValue) => v.toNumber(),
+    tickFormatter: (v: number) => TokenValue.fromHuman(v, 2).toHuman("short"),
+    shortTickFormatter: (v: number) => TokenValue.fromHuman(v, 2).toHuman("short"),
+  },
+  {
+    id: "pintoSownSeasonally",
+    type: "Field",
+    name: "Pinto Sown (Seasonal)",
+    tooltipTitle: "Pinto Sown (Seasonal)",
+    tooltipHoverText: "The total number of Pinto Sown during the Season.",
+    shortDescription: "The total number of Pinto Sown during the Season.",
+    icon: mainToken.logoURI,
+    timeScaleKey: "timestamp",
+    priceScaleKey: "deltaSownBeans",
+    valueAxisType: "deltaSownBeans",
     valueFormatter: (v: TokenValue) => v.toNumber(),
     tickFormatter: (v: number) => TokenValue.fromHuman(v, 2).toHuman("short"),
     shortTickFormatter: (v: number) => TokenValue.fromHuman(v, 2).toHuman("short"),
@@ -421,6 +467,129 @@ const createAPYCharts = (mainToken: Token): ChartSetupBase[] => [
   },
 ];
 
+const createTractorCharts = (mainToken: Token): ChartSetupBase[] => [
+  {
+    id: "tractorSownPinto",
+    type: "Tractor",
+    name: "Tractor: Sown Pinto",
+    tooltipTitle: "Pinto Sown using Tractor",
+    tooltipHoverText: "Cumulative Pinto Sown using Tractor.",
+    shortDescription: "Cumulative Pinto Sown using Tractor.",
+    icon: mainToken.logoURI,
+    timeScaleKey: "timestamp",
+    priceScaleKey: "tractorSownPinto",
+    valueAxisType: "sownBeans",
+    valueFormatter: (v: TokenValue) => v.toNumber(),
+    tickFormatter: (v: number) => TokenValue.fromHuman(v, 2).toHuman("short"),
+    shortTickFormatter: (v: number) => TokenValue.fromHuman(v, 2).toHuman("short"),
+  },
+  {
+    id: "tractorPodsMinted",
+    type: "Tractor",
+    name: "Tractor: Pods Minted",
+    tooltipTitle: "Pods Minted using Tractor",
+    tooltipHoverText: "Cumulative Pods Minted using Tractor.",
+    shortDescription: "Cumulative Pods Minted using Tractor.",
+    icon: podIcon,
+    timeScaleKey: "timestamp",
+    priceScaleKey: "tractorPodsMinted",
+    valueAxisType: "sownBeans",
+    valueFormatter: (v: TokenValue) => v.toNumber(),
+    tickFormatter: (v: number) => TokenValue.fromHuman(v, 2).toHuman("short"),
+    shortTickFormatter: (v: number) => TokenValue.fromHuman(v, 2).toHuman("short"),
+  },
+  {
+    id: "tractorSowingQueue",
+    type: "Tractor",
+    name: "Tractor: Sowing Queue",
+    tooltipTitle: "Pinto Queued to be Sown",
+    tooltipHoverText: "Pinto Queued to be Sown at or below the current Max Temperature.",
+    shortDescription: "Pinto Queued to be Sown.",
+    icon: mainToken.logoURI,
+    timeScaleKey: "timestamp",
+    priceScaleKey: "tractorSowingQueue",
+    valueAxisType: "tractorSowingQueue",
+    valueFormatter: (v: TokenValue) => v.toNumber(),
+    tickFormatter: (v: number) => TokenValue.fromHuman(v, 2).toHuman("short"),
+    shortTickFormatter: (v: number) => TokenValue.fromHuman(v, 2).toHuman("short"),
+  },
+  {
+    id: "tractorMaxSeasonalSow",
+    type: "Tractor",
+    name: "Tractor: Queued Max Sow",
+    tooltipTitle: "Queued Max Sow each Season",
+    tooltipHoverText: "Queued max Pinto that can be Sown each Season.",
+    shortDescription: "Queued max Pinto that can be Sown each Season.",
+    icon: mainToken.logoURI,
+    timeScaleKey: "timestamp",
+    priceScaleKey: "tractorMaxSeasonalSow",
+    valueAxisType: "tractorMaxSeasonalSow",
+    valueFormatter: (v: TokenValue) => v.toNumber(),
+    tickFormatter: (v: number) => TokenValue.fromHuman(v, 2).toHuman("short"),
+    shortTickFormatter: (v: number) => TokenValue.fromHuman(v, 2).toHuman("short"),
+  },
+  {
+    id: "tractorCumulativeTips",
+    type: "Tractor",
+    name: "Tractor: Cumulative Operator Tipped Pinto",
+    tooltipTitle: "Total Pinto tipped to Tractor Operators",
+    tooltipHoverText: "Cumulative Pinto tipped to Tractor Operators.",
+    shortDescription: "Cumulative Pinto tipped to Tractor Operators.",
+    icon: mainToken.logoURI,
+    timeScaleKey: "timestamp",
+    priceScaleKey: "tractorCumulativeTips",
+    valueAxisType: "tractorCumulativeTips",
+    valueFormatter: (v: TokenValue) => v.toNumber(),
+    tickFormatter: (v: number) => TokenValue.fromHuman(v, 2).toHuman("short"),
+    shortTickFormatter: (v: number) => TokenValue.fromHuman(v, 2).toHuman("short"),
+  },
+  {
+    id: "tractorMaxActiveTip",
+    type: "Tractor",
+    name: "Tractor: Maximum Active Tip",
+    tooltipTitle: "Current Maximum Tip",
+    tooltipHoverText: "Current Maximum Tip Offered in Sow Orders.",
+    shortDescription: "Current Maximum Tip Offered in Sow Orders.",
+    icon: mainToken.logoURI,
+    timeScaleKey: "timestamp",
+    priceScaleKey: "tractorMaxActiveTip",
+    valueAxisType: "tractorMaxActiveTip",
+    valueFormatter: (v: TokenValue) => v.toNumber(),
+    tickFormatter: (v: number) => TokenValue.fromHuman(v, 2).toHuman("short"),
+    shortTickFormatter: (v: number) => TokenValue.fromHuman(v, 2).toHuman("short"),
+  },
+  {
+    id: "tractorExecutions",
+    type: "Tractor",
+    name: "Tractor: Executions",
+    tooltipTitle: "Cumulative Tractor Execution Count",
+    tooltipHoverText: "Count of Sow order executions.",
+    shortDescription: "Count of Sow order executions.",
+    icon: mainToken.logoURI,
+    timeScaleKey: "timestamp",
+    priceScaleKey: "tractorExecutions",
+    valueAxisType: "tractorExecutions",
+    valueFormatter: (v: number) => v,
+    tickFormatter: (v: number) => v.toFixed(0),
+    shortTickFormatter: (v: number) => v.toFixed(0),
+  },
+  {
+    id: "tractorPublishers",
+    type: "Tractor",
+    name: "Tractor: Unique Publishers",
+    tooltipTitle: "Unique Tractor Order Publishers",
+    tooltipHoverText: "Count of unique publishers of Tractor Sow orders.",
+    shortDescription: "Count of unique publishers of Tractor Sow orders.",
+    icon: mainToken.logoURI,
+    timeScaleKey: "timestamp",
+    priceScaleKey: "tractorPublishers",
+    valueAxisType: "tractorPublishers",
+    valueFormatter: (v: number) => v,
+    tickFormatter: (v: number) => v.toFixed(0),
+    shortTickFormatter: (v: number) => v.toFixed(0),
+  },
+];
+
 export function useChartSetupData() {
   const { mainToken, lpTokens, whitelistedTokens } = useTokenData();
 
@@ -444,10 +613,14 @@ export function useChartSetupData() {
 
     const apyCharts = createAPYCharts(mainToken);
 
-    const output: ChartSetup[] = [...pintoCharts, ...fieldCharts, ...apyCharts].map((setupData, index) => ({
-      ...setupData,
-      index: index,
-    }));
+    const tractorCharts = createTractorCharts(mainToken);
+
+    const output: ChartSetup[] = [...pintoCharts, ...fieldCharts, ...apyCharts, ...tractorCharts].map(
+      (setupData, index) => ({
+        ...setupData,
+        index: index,
+      }),
+    );
 
     return output;
   }, [mainToken, lpTokens, whitelistedTokens]); // Include all dependencies

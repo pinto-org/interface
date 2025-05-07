@@ -18,4 +18,3 @@ query FarmerSeasonalSiloAssetToken($from: Int, $to: Int, $siloAsset: String) {
     createdAt
   }
 }
-

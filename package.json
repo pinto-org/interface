@@ -15,7 +15,8 @@
     "format": "biome format --write",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepare": "husky"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -99,6 +100,7 @@
     "autoprefixer": "10.4.19",
     "babel-plugin-react-compiler": "^19.0.0-beta-e993439-20250405",
     "eslint-plugin-react-compiler": "^19.0.0-beta-e993439-20250405",
+    "husky": "^9.1.7",
     "postcss": "8.4.39",
     "tailwindcss": "3.4.6",
     "ts-node": "^10.9.2",

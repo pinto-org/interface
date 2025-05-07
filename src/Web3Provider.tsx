@@ -25,9 +25,6 @@ import config from "./utils/wagmi/config";
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: {
-      gcTime: 1000 * 60 * 60 * 24 * 30, // 30 days
-    },
     dehydrate: {
       shouldDehydrateQuery: (query) => {
         return query.meta?.persist === true;
@@ -53,7 +50,7 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
        */}
       <PersistQueryClientProvider
         client={queryClient}
-        persistOptions={{ persister: localStoragePersister, buster: "20250422" }}
+        persistOptions={{ persister: localStoragePersister, buster: "20250501" }}
       >
         <MockConnectorManager />
         <ConnectKitProvider

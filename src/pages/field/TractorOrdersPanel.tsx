@@ -3,35 +3,26 @@ import { TokenValue } from "@/classes/TokenValue";
 import { Col, Row } from "@/components/Container";
 import EmptyTable from "@/components/EmptyTable";
 import ReviewTractorOrderDialog from "@/components/ReviewTractorOrderDialog";
-import TooltipSimple from "@/components/TooltipSimple";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import IconImage from "@/components/ui/IconImage";
 import { Skeleton } from "@/components/ui/Skeleton";
-import Text from "@/components/ui/Text";
-import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
-import { createRequisition } from "@/lib/Tractor";
 import { Blueprint } from "@/lib/Tractor/types";
-import {
-  RequisitionEvent,
-  decodeSowTractorData,
-  fetchTractorExecutions,
-  loadPublishedRequisitions,
-} from "@/lib/Tractor/utils";
+import { RequisitionEvent } from "@/lib/Tractor/utils";
+import usePublisherTractorExecutions from "@/state/tractor/useTractorExecutions";
+import useTractorPublishedRequisitions from "@/state/tractor/useTractorPublishedRequisitions";
 import { formatter } from "@/utils/format";
+import { stringEq } from "@/utils/string";
 import { getTokenNameByIndex } from "@/utils/token";
 import { CalendarIcon, ClockIcon, CornerBottomLeftIcon, Cross1Icon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { decodeFunctionData } from "viem";
-import { usePublicClient } from "wagmi";
 import { useAccount } from "wagmi";
-
-type ExecutionData = Awaited<ReturnType<typeof fetchTractorExecutions>>[number];
 
 interface TractorOrdersPanelProps {
   refreshData?: number; // A value that changes to trigger a refresh
@@ -41,25 +32,44 @@ interface TractorOrdersPanelProps {
 const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelProps) => {
   const { address } = useAccount();
   const protocolAddress = useProtocolAddress();
-  const publicClient = usePublicClient();
-  const [loading, setLoading] = useState(true);
-  const [requisitions, setRequisitions] = useState<RequisitionEvent[]>([]);
-  const [executions, setExecutions] = useState<ExecutionData[]>([]);
-  const [error, setError] = useState<string | null>(null);
 
   // State for the dialog
   const [selectedOrder, setSelectedOrder] = useState<RequisitionEvent | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [rawSowBlueprintCall, setRawSowBlueprintCall] = useState<`0x${string}` | null>(null);
 
+  const { data: executions = [], ...executionsQuery } = usePublisherTractorExecutions(address, !!address);
+  const { data: requisitions = [], ...requisitionsQuery } = useTractorPublishedRequisitions(
+    address,
+    "sowBlueprintv0",
+    !!address,
+  );
+
+  // derived
+  const dataHasLoaded = address ? Boolean(executions?.length && requisitions?.length) : true;
+  const loading = executionsQuery.isLoading || requisitionsQuery.isLoading || !dataHasLoaded;
+
+  const error = executionsQuery.error || requisitionsQuery.error;
+
+  const [lastRefetchedCounter, setLastRefetchedCounter] = useState<number>(0);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only refresh when refresh data counter changes
+  useEffect(() => {
+    if (refreshData && dataHasLoaded && lastRefetchedCounter !== refreshData) {
+      setLastRefetchedCounter(refreshData);
+      executionsQuery.refetch();
+      requisitionsQuery.refetch();
+    }
+  }, [refreshData, dataHasLoaded]);
+
   // Add transaction handling for cancel order
   const { writeWithEstimateGas, submitting } = useTransaction({
     successMessage: "Order cancelled successfully",
     errorMessage: "Failed to cancel order",
-    successCallback: () => {
-      // Refresh data after cancellation
-      fetchData();
-    },
+    successCallback: useCallback(() => {
+      executionsQuery.refetch();
+      requisitionsQuery.refetch();
+    }, [executionsQuery.refetch, requisitionsQuery.refetch]),
   });
 
   const handleCancelBlueprint = async (req: RequisitionEvent, e: React.MouseEvent) => {
@@ -78,48 +88,6 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
       console.error("Error cancelling blueprint:", error);
     }
   };
-
-  const fetchData = async () => {
-    if (!address || !protocolAddress || !publicClient) {
-      setRequisitions([]);
-      setExecutions([]);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Fetch published requisitions, filtered to sowBlueprintv0 type
-      const latestBlock = await publicClient.getBlock({ blockTag: "latest" });
-      const userRequisitions = await loadPublishedRequisitions(
-        address,
-        protocolAddress,
-        publicClient,
-        { number: latestBlock.number, timestamp: latestBlock.timestamp },
-        "sowBlueprintv0", // Only get sow blueprint requisitions
-      );
-
-      // Filter out cancelled requisitions
-      const activeRequisitions = userRequisitions.filter((req) => !req.isCancelled);
-
-      // Fetch executions
-      const userExecutions = await fetchTractorExecutions(publicClient, protocolAddress, address);
-
-      setRequisitions(activeRequisitions);
-      setExecutions(userExecutions);
-    } catch (err) {
-      console.error("Failed to load tractor orders:", err);
-      setError("Failed to load tractor orders");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [address, protocolAddress, publicClient, refreshData]); // Add refreshData as dependency
 
   // Extract the sowBlueprintv0 call from the advancedFarm call
   const extractSowBlueprintCall = (data: `0x${string}`): `0x${string}` | null => {
@@ -169,7 +137,7 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
     try {
       // Use the existing function to extract the sowBlueprintv0 call from the advancedFarm call
       const sowCall = extractSowBlueprintCall(req.requisition.blueprint.data);
-      console.log("Extracted sowCall:", sowCall);
+      console.debug("[TractorOrdersPanel] Extracted sowCall:", sowCall);
       setRawSowBlueprintCall(sowCall);
     } catch (error) {
       console.error("Failed to extract sowBlueprintv0 call data:", error);
@@ -210,197 +178,192 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
 
   return (
     <div className="flex flex-col gap-4 w-full">
-      {requisitions
-        .sort((a, b) => {
-          // Sort by block number in descending order (newest first)
-          return b.blockNumber - a.blockNumber;
-        })
-        .map((req, index) => {
-          if (req.requisitionType !== "sowBlueprintv0" || !req.decodedData) return null;
+      {requisitions.map((req, index) => {
+        if (req.requisitionType !== "sowBlueprintv0" || !req.decodedData) return null;
 
-          const data = req.decodedData;
-          const totalAmount = TokenValue.fromBlockchain(data.sowAmounts.totalAmountToSow, 6);
-          const minTemp = TokenValue.fromBlockchain(data.minTemp, 6);
+        const data = req.decodedData;
+        const totalAmount = TokenValue.fromBlockchain(data.sowAmounts.totalAmountToSow, 6);
+        const minTemp = TokenValue.fromBlockchain(data.minTemp, 6);
 
-          // Get executions for this blueprint
-          const blueprintExecutions = executions.filter((exec) => exec.blueprintHash === req.requisition.blueprintHash);
+        // Get executions for this blueprint
+        const blueprintExecutions = executions.filter((exec) =>
+          stringEq(exec.blueprintHash, req.requisition.blueprintHash),
+        );
 
-          // Count how many times this blueprint has been executed
-          const executionCount = blueprintExecutions.length;
+        // Count how many times this blueprint has been executed
+        const executionCount = blueprintExecutions.length;
 
-          // Calculate total PINTO sown so far for this blueprint
-          const totalSown = blueprintExecutions.reduce((acc, exec) => {
-            if (exec.sowEvent) {
-              return acc.add(TokenValue.fromBlockchain(exec.sowEvent.beans, 6));
-            }
-            return acc;
-          }, TokenValue.ZERO);
-
-          // Calculate percentage completion
-          const percentComplete = totalAmount.gt(0) ? totalSown.div(totalAmount).mul(100) : TokenValue.ZERO;
-
-          // Get percentage as number for display
-          const percentCompleteNumber = Math.min(percentComplete.toHuman ? Number(percentComplete.toHuman()) : 0, 100);
-
-          const isComplete = percentComplete.gte(100);
-
-          // Find latest execution for this blueprint
-          const latestExecution =
-            blueprintExecutions.length > 0
-              ? blueprintExecutions.sort((a, b) => b.blockNumber - a.blockNumber)[0]
-              : null;
-
-          // Format the publish date
-          const publishDate = req.timestamp ? format(new Date(req.timestamp), "dd MMM yyyy") : "Unknown";
-
-          // Determine token strategy based on sourceTokenIndices
-          let strategyText = "Unknown strategy";
-          if (data.sourceTokenIndices.includes(255)) {
-            strategyText = "Lowest Seeds";
-          } else if (data.sourceTokenIndices.includes(254)) {
-            strategyText = "Lowest Price";
-          } else {
-            strategyText = "Specific Token";
+        // Calculate total PINTO sown so far for this blueprint
+        const totalSown = blueprintExecutions.reduce((acc, exec) => {
+          if (exec.sowEvent) {
+            return acc.add(exec.sowEvent.beans);
           }
+          return acc;
+        }, TokenValue.ZERO);
 
-          return (
-            <Col key={`requisition-${index}`} className="gap-2">
-              <Card
-                className="box-border flex flex-col p-4 gap-2 bg-white border border-pinto-gray-2 rounded-xl cursor-pointer hover:border-pinto-green-4 transition-colors"
-                onClick={() => handleOrderClick(req)}
-              >
-                <div className="flex flex-col gap-2 w-full">
-                  {/* Header row with all the pills and labels */}
-                  <div className="flex justify-between items-center w-full">
-                    <div className="flex items-center gap-0">
-                      {/* Withdraw pill */}
-                      <div className="flex items-center px-2 py-1 bg-pinto-green-4 rounded-xl">
-                        <span className="text-white text-sm font-normal whitespace-nowrap">Withdraw</span>
-                      </div>
-                      {/* Divider */}
-                      <div className="border-t-2 border-pinto-gray-2 w-6 flex-shrink-0" />
-                      {/* From label */}
-                      <div className="bg-[#F8F8F8] px-2 py-1 rounded-xl">
-                        <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap">from Silo</span>
-                      </div>
-                      {/* Divider */}
-                      <div className="border-t-2 border-pinto-gray-2 w-6 flex-shrink-0" />
-                      {/* Sow pill */}
-                      <div className="flex items-center px-2 py-1 bg-pinto-green-4 rounded-xl">
-                        <span className="text-white text-sm font-normal whitespace-nowrap">Sow</span>
-                      </div>
-                      {/* Divider */}
-                      <div className="border-t-2 border-pinto-gray-2 w-6 flex-shrink-0" />
-                      {/* Up to */}
-                      <div className="bg-[#F8F8F8] px-2 py-1 rounded-xl">
-                        <div className="flex items-center gap-1">
-                          <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap">up to</span>
-                          <IconImage src={pintoIcon} size={4} />
-                          <span className="text-pinto-green-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                            {formatter.number(totalAmount)} PINTO
-                            <span className="text-pinto-gray-4">
-                              {" "}
-                              (max{" "}
-                              {formatter.number(TokenValue.fromBlockchain(data.sowAmounts.maxAmountToSowPerSeason, 6))}{" "}
-                              per Season)
-                            </span>
-                          </span>
-                        </div>
-                      </div>
+        // Calculate percentage completion
+        const percentComplete = totalAmount.gt(0) ? totalSown.div(totalAmount).mul(100) : TokenValue.ZERO;
+
+        // Get percentage as number for display
+        const percentCompleteNumber = Math.min(percentComplete.toHuman ? Number(percentComplete.toHuman()) : 0, 100);
+
+        const isComplete = percentComplete.gte(100);
+
+        // Find latest execution for this blueprint
+        const latestExecution =
+          blueprintExecutions.length > 0 ? blueprintExecutions.sort((a, b) => b.blockNumber - a.blockNumber)[0] : null;
+
+        // Format the publish date
+        const publishDate = req.timestamp ? format(new Date(req.timestamp), "dd MMM yyyy") : "Unknown";
+
+        // Determine token strategy based on sourceTokenIndices
+        let strategyText = "Unknown strategy";
+        if (data.sourceTokenIndices.includes(255)) {
+          strategyText = "Lowest Seeds";
+        } else if (data.sourceTokenIndices.includes(254)) {
+          strategyText = "Lowest Price";
+        } else {
+          strategyText = "Specific Token";
+        }
+
+        return (
+          <Col key={`requisition-${index}`} className="gap-2">
+            <Card
+              className="box-border flex flex-col p-4 gap-2 bg-white border border-pinto-gray-2 rounded-xl cursor-pointer hover:border-pinto-green-4 transition-colors"
+              onClick={() => handleOrderClick(req)}
+            >
+              <div className="flex flex-col gap-2 w-full">
+                {/* Header row with all the pills and labels */}
+                <div className="flex justify-between items-center w-full">
+                  <div className="flex items-center gap-0">
+                    {/* Withdraw pill */}
+                    <div className="flex items-center px-2 py-1 bg-pinto-green-4 rounded-xl">
+                      <span className="text-white text-sm font-normal whitespace-nowrap">Withdraw</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-pinto-gray-4 text-sm whitespace-nowrap">Operator Tip:</span>
-                      <div className="bg-[#F8F8F8] px-2 py-1 rounded-xl flex items-center gap-1">
+                    {/* Divider */}
+                    <div className="border-t-2 border-pinto-gray-2 w-6 flex-shrink-0" />
+                    {/* From label */}
+                    <div className="bg-[#F8F8F8] px-2 py-1 rounded-xl">
+                      <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap">from Silo</span>
+                    </div>
+                    {/* Divider */}
+                    <div className="border-t-2 border-pinto-gray-2 w-6 flex-shrink-0" />
+                    {/* Sow pill */}
+                    <div className="flex items-center px-2 py-1 bg-pinto-green-4 rounded-xl">
+                      <span className="text-white text-sm font-normal whitespace-nowrap">Sow</span>
+                    </div>
+                    {/* Divider */}
+                    <div className="border-t-2 border-pinto-gray-2 w-6 flex-shrink-0" />
+                    {/* Up to */}
+                    <div className="bg-[#F8F8F8] px-2 py-1 rounded-xl">
+                      <div className="flex items-center gap-1">
+                        <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap">up to</span>
                         <IconImage src={pintoIcon} size={4} />
                         <span className="text-pinto-green-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                          {formatter.number(TokenValue.fromBlockchain(data.operatorParams.operatorTipAmount, 6))} PINTO
+                          {formatter.number(totalAmount)} PINTO
+                          <span className="text-pinto-gray-4">
+                            {" "}
+                            (max{" "}
+                            {formatter.number(TokenValue.fromBlockchain(data.sowAmounts.maxAmountToSowPerSeason, 6))}{" "}
+                            per Season)
+                          </span>
                         </span>
                       </div>
                     </div>
                   </div>
-
-                  {/* Strategy description - new row */}
-                  <div className="flex items-center pl-6 gap-2">
-                    <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
-                    <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                      Withdraw Deposited Tokens from the Silo with the{" "}
-                      {data.sourceTokenIndices.includes(255)
-                        ? "Lowest Seeds"
-                        : data.sourceTokenIndices.includes(254)
-                          ? "Best Price"
-                          : getTokenNameByIndex(data.sourceTokenIndices[0])}
-                    </span>
-                  </div>
-
-                  {/* Execution conditions */}
-                  <div className="flex justify-between items-end w-full">
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center pl-6 gap-2">
-                        <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
-                        <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                          Execute when Temperature is at least {formatPercentage(data.minTemp)}
-                        </span>
-                      </div>
-                      <div className="flex items-center pl-6 gap-2">
-                        <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
-                        <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                          AND when Pod Line Length is at most{" "}
-                          {formatter.number(TokenValue.fromHuman(data.maxPodlineLengthAsString, 6))}
-                        </span>
-                      </div>
-                      <div className="flex items-center pl-6 gap-2">
-                        <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
-                        <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                          AND when Available Soil is at least {data.sowAmounts.minAmountToSowPerSeasonAsString}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-pinto-gray-4 text-sm whitespace-nowrap">Operator Tip:</span>
+                    <div className="bg-[#F8F8F8] px-2 py-1 rounded-xl flex items-center gap-1">
                       <IconImage src={pintoIcon} size={4} />
-                      <span className="text-pinto-gray-4 text-sm whitespace-nowrap overflow-hidden text-ellipsis">
-                        PINTO Sown through this Order:
-                        <span className="text-black">
-                          {" "}
-                          {formatter.number(totalSown)}/{formatter.number(totalAmount)}
-                        </span>
-                        <span className="text-pinto-gray-4"> ({Math.round(percentCompleteNumber)}%)</span>
+                      <span className="text-pinto-green-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
+                        {formatter.number(TokenValue.fromBlockchain(data.operatorParams.operatorTipAmount, 6))} PINTO
                       </span>
                     </div>
                   </div>
-
-                  {isComplete && (
-                    <div className="mt-2 p-2 bg-pinto-green-1 rounded-lg border border-pinto-green-4 text-pinto-green-4 text-center font-medium">
-                      Order Completed!
-                    </div>
-                  )}
                 </div>
-              </Card>
 
-              {/* External actions - positioned outside the cell */}
-              <Row className="self-end gap-2 pinto-sm text-pinto-light">
-                <div className="inline-flex items-center gap-2">
-                  <CalendarIcon className="h-4 w-4" />
-                  <span className="inline-block whitespace-nowrap">Published {publishDate}</span>
-                </div>
-                <Row className="inline-flex items-center gap-2">
-                  <ClockIcon className="h-4 w-4" />
-                  <span className="inline-block whitespace-nowrap">
-                    Executed {executionCount} time{executionCount !== 1 ? "s" : ""}
+                {/* Strategy description - new row */}
+                <div className="flex items-center pl-6 gap-2">
+                  <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
+                  <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
+                    Withdraw Deposited Tokens from the Silo with the{" "}
+                    {data.sourceTokenIndices.includes(255)
+                      ? "Lowest Seeds"
+                      : data.sourceTokenIndices.includes(254)
+                        ? "Best Price"
+                        : getTokenNameByIndex(data.sourceTokenIndices[0])}
                   </span>
-                </Row>
-                <Button
-                  variant="ghost"
-                  className="inline-flex items-center gap-1 text-sm text-pinto-red-2 hover:bg-pinto-red-1"
-                  onClick={(e) => handleCancelBlueprint(req, e)}
-                  disabled={submitting}
-                >
-                  <Cross1Icon className="h-4 w-4" />
-                  <span>Cancel</span>
-                </Button>
+                </div>
+
+                {/* Execution conditions */}
+                <div className="flex justify-between items-end w-full">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center pl-6 gap-2">
+                      <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
+                      <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
+                        Execute when Temperature is at least {formatPercentage(data.minTemp)}
+                      </span>
+                    </div>
+                    <div className="flex items-center pl-6 gap-2">
+                      <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
+                      <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
+                        AND when Pod Line Length is at most{" "}
+                        {formatter.number(TokenValue.fromHuman(data.maxPodlineLengthAsString, 6))}
+                      </span>
+                    </div>
+                    <div className="flex items-center pl-6 gap-2">
+                      <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
+                      <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
+                        AND when Available Soil is at least {data.sowAmounts.minAmountToSowPerSeasonAsString}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <IconImage src={pintoIcon} size={4} />
+                    <span className="text-pinto-gray-4 text-sm whitespace-nowrap overflow-hidden text-ellipsis">
+                      PINTO Sown through this Order:
+                      <span className="text-black">
+                        {" "}
+                        {formatter.number(totalSown)}/{formatter.number(totalAmount)}
+                      </span>
+                      <span className="text-pinto-gray-4"> ({Math.round(percentCompleteNumber)}%)</span>
+                    </span>
+                  </div>
+                </div>
+
+                {isComplete && (
+                  <div className="mt-2 p-2 bg-pinto-green-1 rounded-lg border border-pinto-green-4 text-pinto-green-4 text-center font-medium">
+                    Order Completed!
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            {/* External actions - positioned outside the cell */}
+            <Row className="self-end gap-2 pinto-sm text-pinto-light">
+              <div className="inline-flex items-center gap-2">
+                <CalendarIcon className="h-4 w-4" />
+                <span className="inline-block whitespace-nowrap">Published {publishDate}</span>
+              </div>
+              <Row className="inline-flex items-center gap-2">
+                <ClockIcon className="h-4 w-4" />
+                <span className="inline-block whitespace-nowrap">
+                  Executed {executionCount} time{executionCount !== 1 ? "s" : ""}
+                </span>
               </Row>
-            </Col>
-          );
-        })}
+              <Button
+                variant="ghost"
+                className="inline-flex items-center gap-1 text-sm text-pinto-red-2 hover:bg-pinto-red-1"
+                onClick={(e) => handleCancelBlueprint(req, e)}
+                disabled={submitting}
+              >
+                <Cross1Icon className="h-4 w-4" />
+                <span>Cancel</span>
+              </Button>
+            </Row>
+          </Col>
+        );
+      })}
 
       {/* Dialog for order details */}
       {selectedOrder && selectedOrder.decodedData && (

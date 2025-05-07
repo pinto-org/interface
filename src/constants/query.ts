@@ -1,10 +1,19 @@
 const TWENTY_MINS = 1000 * 60 * 20;
 
+const FIVE_MINS = 1000 * 60 * 5;
+
 const FIFTEEN_SECONDS = 1000 * 60;
 
 export const defaultQuerySettings = {
   staleTime: TWENTY_MINS,
   refetchInterval: TWENTY_MINS,
+  refetchIntervalInBackground: false,
+  refetchOnWindowFocus: true,
+};
+
+export const defaultQuerySettingsMedium = {
+  staleTime: FIVE_MINS,
+  refetchInterval: FIVE_MINS,
   refetchIntervalInBackground: false,
   refetchOnWindowFocus: true,
 };

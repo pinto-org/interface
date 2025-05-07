@@ -17,6 +17,7 @@ import {
 } from "lightweight-charts";
 import { MutableRefObject, useEffect, useMemo, useRef, useState } from "react";
 import { GearIcon } from "../Icons";
+import TooltipSimple from "../TooltipSimple";
 import { ResponsivePopover } from "../ui/ResponsivePopover";
 
 export type TVChartFormattedData = {
@@ -91,26 +92,39 @@ function getTimezoneCorrectedTime(utcTime: Date, tickMarkType: TickMarkType) {
 }
 
 function setTimePeriod(chart: MutableRefObject<IChartApi | undefined>, timePeriod: IRange<Time> | undefined) {
-  if (!chart.current) return;
+  const chartTimescale = chart.current?.timeScale();
+  if (!chartTimescale) return;
+
   const from = timePeriod?.from;
   const to = timePeriod?.to;
 
-  if (!from) {
-    chart.current.timeScale().fitContent();
-  } else if (from && to) {
-    const newFrom = new Date(from.valueOf() as number);
-    const newTo = new Date(to.valueOf() as number);
-    chart.current.timeScale().setVisibleRange({
-      from: Math.floor(newFrom.valueOf() / 1000) as Time,
-      to: Math.floor(newTo.valueOf() / 1000) as Time,
-    });
-  } else if (from) {
-    const newFrom = new Date(from.valueOf() as number);
-    const newTo = new Date(from.valueOf() as number);
-    chart.current.timeScale().setVisibleRange({
-      from: Math.floor(newFrom.valueOf() / 1000) as Time,
-      to: Math.floor(newTo.valueOf() / 1000) as Time,
-    });
+  const setVisibleRange = () => {
+    if (!from) {
+      chartTimescale.fitContent();
+    } else if (from && to) {
+      const newFrom = new Date(from.valueOf() as number);
+      const newTo = new Date(to.valueOf() as number);
+      chartTimescale.setVisibleRange({
+        from: Math.floor(newFrom.valueOf() / 1000) as Time,
+        to: Math.floor(newTo.valueOf() / 1000) as Time,
+      });
+    } else if (from) {
+      const newFrom = new Date(from.valueOf() as number);
+      const newTo = new Date(from.valueOf() as number);
+      chartTimescale.setVisibleRange({
+        from: Math.floor(newFrom.valueOf() / 1000) as Time,
+        to: Math.floor(newTo.valueOf() / 1000) as Time,
+      });
+    }
+  };
+
+  // Solution to errors on local dev when reloading
+  try {
+    setVisibleRange();
+  } catch {
+    setTimeout(() => {
+      setVisibleRange();
+    }, 0);
   }
 }
 
@@ -329,7 +343,7 @@ const TVChart = ({ formattedData, height = 500, timePeriod, selected }: TVChartP
         const seriesValueBefore = series.dataByIndex(param.logical?.valueOf() as number, -1);
         const seriesValueAfter = series.dataByIndex(param.logical?.valueOf() as number, 1);
         //@ts-ignore
-        hoveredValues.push(seriesValueBefore && seriesValueAfter ? seriesValueBefore?.value : 0);
+        hoveredValues.push(seriesValueBefore && seriesValueAfter ? seriesValueBefore?.value : undefined);
         hoveredSeason = Math.max(hoveredSeason, (seriesValueBefore?.customValues?.season as number) || 0);
       });
 
@@ -489,20 +503,9 @@ const TVChart = ({ formattedData, height = 500, timePeriod, selected }: TVChartP
                       style={{ borderColor: chartColors[index].lineColor }}
                     >
                       <div className="flex flex-row">
-                        <div className="flex">
+                        <div className="flex items-center gap-1">
                           <div className="pinto-body-light text-pinto-gray-4">{tooltipTitle}</div>
-                          {/*
-                          {tooltipHoverText && (
-                            <div
-                              className="tooltip"
-                              data-tip={tooltipHoverText}
-                              data-placement={isMobile ? "top" : "right"}
-                            >
-                              <div className="text-secondary inline mb-2 text-[11px]">HELP</div>
-                            </div>
-                            
-                          )}
-                            */}
+                          {tooltipHoverText && <TooltipSimple variant={"gray"} content={tooltipHoverText} />}
                         </div>
                       </div>
                       <div className="pinto-h3 text-black">

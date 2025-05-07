@@ -1,5 +1,5 @@
 import { subgraphs } from "@/constants/subgraph";
-import { BeanHourlySnapshot, BeanSeasonalBeanDocument, BeanSeasonalBeanQuery } from "@/generated/gql/graphql";
+import { BeanHourlySnapshot, BeanSeasonalBeanDocument, BeanSeasonalBeanQuery } from "@/generated/gql/pinto/graphql";
 import { PaginationSettings, paginateSubgraph } from "@/utils/paginateSubgraph";
 import { UseSeasonalResult } from "@/utils/types";
 import { useChainId } from "wagmi";

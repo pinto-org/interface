@@ -5,7 +5,7 @@ import {
   BeanstalkSeasonalSiloDocument,
   BeanstalkSeasonalSiloQuery,
   SiloHourlySnapshot,
-} from "@/generated/gql/graphql";
+} from "@/generated/gql/pintostalk/graphql";
 import { PaginationSettings, paginateSubgraph } from "@/utils/paginateSubgraph";
 import { UseSeasonalResult } from "@/utils/types";
 import { useChainId } from "wagmi";
