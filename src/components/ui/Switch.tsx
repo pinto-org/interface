@@ -44,8 +44,10 @@ const switchThumbVariants = cva(baseSwitchThumbClass, {
   variants: {
     variant: {
       default: "h-4 w-4 data-[state=checked]:translate-x-[1.0625rem] data-[state=unchecked]:translate-x-[0.125rem]",
-      omegaLarge:
-        "w-4 h-34 sm:w-12 sm:h-12 data-[state=checked]:translate-x-[2.375rem] data-[state=unchecked]:translate-x-0.5 sm:data-[state=checked]:translate-x-[3.125rem] sm:data-[state=unchecked]:translate-x-[0.25625rem]",
+      omegaLarge: clsx(
+        "w-9 h-9 data-[state=checked]:translate-x-[2.5rem] data-[state=unchecked]:translate-x-[0.1875rem]", // mobile
+        "sm:w-12 sm:h-12 sm:data-[state=checked]:translate-x-[3.125rem] sm:data-[state=unchecked]:translate-x-[0.25625rem]", // mobile +
+      ),
     },
   },
 });
