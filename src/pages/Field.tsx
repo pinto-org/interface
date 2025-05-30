@@ -260,44 +260,15 @@ function Field() {
             <>
               <div className="flex flex-row justify-between items-center overflow-x-auto scrollbar-none">
                 <div className="flex space-x-1">
-                  <button
-                    type="button"
-                    className={`hidden sm:block pinto-h3 py-2 pr-4 pl-0 text-left ${activeTab === "activity" ? "text-pinto-secondary" : "text-pinto-gray-4"}`}
-                    onClick={() => {
-                      setActiveTab("activity");
-                      const params = new URLSearchParams(window.location.search);
-                      params.set("tab", "activity");
-                      navigate(`/field?${params.toString()}`);
-                    }}
-                  >
-                    Field Activity
-                  </button>
-                  <button
-                    type="button"
-                    className={`hidden sm:block pinto-h3 py-2 pr-4 pl-0 text-left ${activeTab === "tractor" ? "text-pinto-secondary" : "text-pinto-gray-4"}`}
-                    onClick={() => {
-                      setActiveTab("tractor");
-                      const params = new URLSearchParams(window.location.search);
-                      params.set("tab", "tractor");
-                      navigate(`/field?${params.toString()}`);
-                    }}
-                  >
-                    My Tractor Orders
-                  </button>
-                  <button
-                    type="button"
-                    className={`pinto-h3 py-2 pr-4 pl-0 text-left ${activeTab === "pods" ? "text-pinto-secondary" : "text-pinto-gray-4"}`}
-                    onClick={() => {
-                      setActiveTab("pods");
-                      const params = new URLSearchParams(window.location.search);
-                      params.set("tab", "pods");
-                      navigate(`/field?${params.toString()}`);
-                    }}
-                  >
-                    My Pods
-                  </button>
+                  {FIELD_TABLE_TABS.map((tabKey, i) => (
+                    <FieldTableTab
+                      key={`field-table-tab-${tabKey}-${i.toString()}`}
+                      activeTab={activeTab}
+                      setActiveTab={setActiveTab}
+                      tab={tabKey as keyof typeof TABS_TO_TITLE}
+                    />
+                  ))}
                 </div>
-
                 <div className="flex flex-row gap-2 items-center">
                   <img src={podIcon} className="w-8 h-8" alt={"total pods"} />
                   <TextSkeleton loading={isPodsLoading} height="h3" className="w-20">
@@ -410,6 +381,43 @@ function Field() {
 }
 
 export default Field;
+
+const TABS_TO_TITLE = {
+  activity: "Field Activity",
+  tractor: "My Tractor Orders",
+  pods: "My Pods",
+} as const;
+
+const FIELD_TABLE_TABS = [...Object.keys(TABS_TO_TITLE)] as const;
+
+const FieldTableTab = ({
+  activeTab,
+  setActiveTab,
+  tab,
+}: {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  tab: keyof typeof TABS_TO_TITLE;
+}) => {
+  const navigate = useNavigate();
+
+  const handleNavigate = () => {
+    setActiveTab(tab);
+    const params = new URLSearchParams(window.location.search);
+    params.set("tab", tab);
+    navigate(`/field?${params.toString()}`, { replace: true });
+  };
+
+  return (
+    <button
+      type="button"
+      className={`hidden sm:block pinto-h3 py-2 pr-4 pl-0 text-left ${activeTab === tab ? "text-pinto-secondary" : "text-pinto-gray-4"}`}
+      onClick={handleNavigate}
+    >
+      {TABS_TO_TITLE[tab]}
+    </button>
+  );
+};
 
 const FieldCharts = ({ show }: { show: boolean }) => {
   const { isMorning } = useMorning();
