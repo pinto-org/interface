@@ -45,30 +45,6 @@ import MorningPanel from "./field/MorningPanel";
 import TemperatureChart from "./field/Temperature";
 import TractorOrdersPanel from "./field/TractorOrdersPanel";
 
-// Add a custom hook to track the current sow amount
-function useTotalSowAmount() {
-  // Simple hook to simulate fetching the current sow amount
-  // In a real implementation, this would fetch from the proper data source
-  const [data, setData] = useState<TokenValue | null>(null);
-  const { totalSoil } = useTotalSoil();
-
-  // Simulate fetching data - in reality this would use proper data sources
-  useEffect(() => {
-    // Check localStorage for a debug value to simulate exceeding soil
-    const debugExceedSoil = localStorage.getItem("debug_exceed_soil") === "true";
-
-    if (debugExceedSoil && totalSoil) {
-      // Set a value higher than available soil for testing
-      setData(totalSoil.mul(1.2)); // 120% of available soil
-    } else {
-      // For now, set to null or some reasonable value
-      setData(null);
-    }
-  }, [totalSoil]);
-
-  return { data, isLoading: false };
-}
-
 // TractorButton component
 function TractorButton({ onClick }: { onClick: () => void }) {
   const [hoveredTractor, setHoveredTractor] = useState(false);
@@ -173,6 +149,7 @@ function Field() {
   });
 
   // On mobile, if the tab is not 'pods', set it to 'pods'
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (isMobile) {
       const tabParams = searchParams.get("tab");
@@ -520,3 +497,27 @@ const FieldFAQ: IBaseAccordionContent[] = [
     ),
   },
 ] as const;
+
+// // Add a custom hook to track the current sow amount
+// function useTotalSowAmount() {
+//   // Simple hook to simulate fetching the current sow amount
+//   // In a real implementation, this would fetch from the proper data source
+//   const [data, setData] = useState<TokenValue | null>(null);
+//   const { totalSoil } = useTotalSoil();
+
+//   // Simulate fetching data - in reality this would use proper data sources
+//   useEffect(() => {
+//     // Check localStorage for a debug value to simulate exceeding soil
+//     const debugExceedSoil = localStorage.getItem("debug_exceed_soil") === "true";
+
+//     if (debugExceedSoil && totalSoil) {
+//       // Set a value higher than available soil for testing
+//       setData(totalSoil.mul(1.2)); // 120% of available soil
+//     } else {
+//       // For now, set to null or some reasonable value
+//       setData(null);
+//     }
+//   }, [totalSoil]);
+
+//   return { data, isLoading: false };
+// }

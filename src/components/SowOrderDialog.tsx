@@ -24,13 +24,14 @@ import { usePodLine, useTemperature } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
-import { isValidAddress } from "@/utils/string";
+import { isValidAddress, stringEq } from "@/utils/string";
 import { DepositData } from "@/utils/types";
-import { isLocalhost } from "@/utils/utils";
+import { cn, isLocalhost } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
+import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
@@ -80,7 +81,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
   const [loading, setLoading] = useState<string | null>(null);
 
   const handleClampAndToValidInput = (input: string, prevValue?: string) => {
-    const parsed = input.replace(/[^0-9.,]/g, "");
+    const parsed = input.replace(/[^0-9.]/g, "");
 
     const split = parsed.split(".");
     // prevent multiple decimals of If input has gt 6 decimal places, prevent input
@@ -478,32 +479,35 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     };
   }, [rawPodLineLength]);
 
-  const handlePodLineSelect = (increment: number) => {
-    // If the button is already active (same value), clear the input
-    if (isButtonActive(increment)) {
-      setPodLineLength("");
-      setRawPodLineLength("");
-      validateAllInputs(minSoil, maxPerSeason, totalAmount, "", temperature);
-      return;
-    }
+  const handlePodLineSelect = useCallback(
+    (increment: number) => {
+      // If the button is already active (same value), clear the input
+      if (isButtonActive(increment)) {
+        setPodLineLength("");
+        setRawPodLineLength("");
+        validateAllInputs(minSoil, maxPerSeason, totalAmount, "", temperature);
+        return;
+      }
 
-    // Otherwise, set to the calculated value
-    if (increment === 0) {
-      // Set to current pod line length in human readable format
-      const formattedValue = formatter.number(podLine);
-      setPodLineLength(formattedValue);
-      setRawPodLineLength(formattedValue.replace(/,/g, ""));
-      validateAllInputs(minSoil, maxPerSeason, totalAmount, formattedValue, temperature);
-    } else {
-      // Calculate new value with percentage increase
-      const increase = podLine.mul(increment).div(100);
-      const newValue = podLine.add(increase);
-      const formattedValue = formatter.number(newValue);
-      setPodLineLength(formattedValue);
-      setRawPodLineLength(formattedValue.replace(/,/g, ""));
-      validateAllInputs(minSoil, maxPerSeason, totalAmount, formattedValue, temperature);
-    }
-  };
+      // Otherwise, set to the calculated value
+      if (increment === 0) {
+        // Set to current pod line length in human readable format
+        const formattedValue = formatter.number(podLine);
+        setPodLineLength(formattedValue);
+        setRawPodLineLength(formattedValue.replace(/,/g, ""));
+        validateAllInputs(minSoil, maxPerSeason, totalAmount, formattedValue, temperature);
+      } else {
+        // Calculate new value with percentage increase
+        const increase = podLine.mul(increment).div(100);
+        const newValue = podLine.add(increase);
+        const formattedValue = formatter.number(newValue);
+        setPodLineLength(formattedValue);
+        setRawPodLineLength(formattedValue.replace(/,/g, ""));
+        validateAllInputs(minSoil, maxPerSeason, totalAmount, formattedValue, temperature);
+      }
+    },
+    [podLine, minSoil, maxPerSeason, totalAmount, temperature, isButtonActive, validateAllInputs],
+  );
 
   // Add handling for pasting into the pod line length input
   const handlePodLineLengthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -514,7 +518,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     setPodLineLength(cleanValue);
 
     // Run validation
-    validateAllInputs(minSoil, maxPerSeason, totalAmount, cleanValue, temperature);
+    // validateAllInputs(minSoil, maxPerSeason, totalAmount, cleanValue, temperature);
   };
 
   // Add a function to check if the pod line length is valid
@@ -1248,7 +1252,6 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                       type="text"
                     />
                   </div>
-
                   {/* Execute when the length of the Pod Line is at most */}
                   <div className="flex flex-col gap-2">
                     <label htmlFor={inputIds.podLineLength}>Execute when the length of the Pod Line is at most</label>
@@ -1258,8 +1261,9 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                       placeholder={formatter.number(podLine)}
                       value={podLineLength}
                       onChange={(e) => {
+                        // return handlePodLineLengthChange(e);
+                        // handleClampAndToValidInput
                         const cleanValue = e.target.value.replace(/[^0-9.,]/g, "");
-
                         // Set raw value immediately to enable pasting
                         setRawPodLineLength(cleanValue);
 
@@ -1273,99 +1277,30 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                         }
                       }}
                     />
-
                     <div className="flex justify-between gap-2 mt-1 w-full">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] pinto-sm whitespace-nowrap ${
-                          isButtonActive(5)
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        } flex-1`}
-                        onClick={() => handlePodLineSelect(5)}
-                      >
-                        5% ↑
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] pinto-sm whitespace-nowrap ${
-                          isButtonActive(10)
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        } flex-1`}
-                        onClick={() => handlePodLineSelect(10)}
-                      >
-                        10% ↑
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] pinto-sm whitespace-nowrap ${
-                          isButtonActive(25)
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        } flex-1`}
-                        onClick={() => handlePodLineSelect(25)}
-                      >
-                        25% ↑
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] pinto-sm whitespace-nowrap ${
-                          isButtonActive(50)
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        } flex-1`}
-                        onClick={() => handlePodLineSelect(50)}
-                      >
-                        50% ↑
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] pinto-sm whitespace-nowrap ${
-                          isButtonActive(100)
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        } flex-1`}
-                        onClick={() => handlePodLineSelect(100)}
-                      >
-                        100% ↑
-                      </Button>
+                      {PODLINE_PCT_OPTIONS.map((option, i) => (
+                        <SelectionButton
+                          key={`podline-pct-option-${option.value}-${i.toString()}`}
+                          isActive={isButtonActive(option.value)}
+                          onClick={() => handlePodLineSelect(option.value)}
+                        >
+                          {option.label}
+                        </SelectionButton>
+                      ))}
                     </div>
                   </div>
-
-                  {/* Execute during the Morning Auction */}
+                  {/**
+                   * Execute during the Morning Auction
+                   * */}
                   <div className="flex flex-col gap-2">
                     <label htmlFor={inputIds.morningAuction}>Execute during the Morning Auction</label>
                     <div className="flex justify-between gap-2 w-full">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] pinto-sm whitespace-nowrap ${
-                          morningAuction
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        } flex-1`}
-                        onClick={() => setMorningAuction(true)}
-                      >
+                      <SelectionButton isActive={morningAuction} onClick={() => setMorningAuction(true)}>
                         Yes
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] text-[1rem] pinto-sm whitespace-nowrap ${
-                          !morningAuction
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        } flex-1`}
-                        onClick={() => setMorningAuction(false)}
-                      >
+                      </SelectionButton>
+                      <SelectionButton isActive={!morningAuction} onClick={() => setMorningAuction(false)}>
                         No
-                      </Button>
+                      </SelectionButton>
                     </div>
                   </div>
                 </Col>
@@ -1392,70 +1327,20 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                         <span className="text-base font-normal">PINTO</span>
                       </div>
                     </div>
-
+                    {/**
+                     * Operator Tip Presets
+                     */}
                     <div className="flex justify-between gap-2 mb-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`${styles.inputs} ${
-                          activeTipButton === "down5"
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        }`}
-                        onClick={() => handleTipButtonClick("down5")}
-                      >
-                        5% ↓
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`${styles.inputs} ${
-                          activeTipButton === "down1"
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        }`}
-                        onClick={() => handleTipButtonClick("down1")}
-                      >
-                        1% ↓
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`${styles.inputs} ${
-                          activeTipButton === "average"
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        }`}
-                        onClick={() => handleTipButtonClick("average")}
-                      >
-                        Average
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`${styles.inputs} ${
-                          activeTipButton === "up1"
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        }`}
-                        onClick={() => handleTipButtonClick("up1")}
-                      >
-                        1% ↑
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`${styles.inputs} ${
-                          activeTipButton === "up5"
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        }`}
-                        onClick={() => handleTipButtonClick("up5")}
-                      >
-                        5% ↑
-                      </Button>
+                      {OPERATOR_TIP_OPTIONS.map((option) => (
+                        <SelectionButton
+                          key={`operator-tip-preset-${option.value}`}
+                          isActive={stringEq(activeTipButton, option.value)}
+                          onClick={() => handleTipButtonClick(option.value)}
+                        >
+                          {option.label}
+                        </SelectionButton>
+                      ))}
                     </div>
-
                     <div className="text-[#9C9C9C] text-base font-light mb-32">
                       each time they Sow part of my Tractor Order.
                     </div>
@@ -1735,6 +1620,33 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
   );
 }
 
+// ────────────────────────────────────────────────────────────────────────────────
+// Select Operator Tip
+// ────────────────────────────────────────────────────────────────────────────────
+
+// ────────────────────────────────────────────────────────────────────────────────
+// Shared Selection Button
+// ────────────────────────────────────────────────────────────────────────────────
+
+const SelectionButton = ({
+  isActive,
+  onClick,
+  children,
+}: { isActive: boolean; onClick: () => void; children: React.ReactNode }) => {
+  return (
+    <Button
+      variant="outline-select"
+      size="sm"
+      rounded="full"
+      selected={isActive}
+      className="px-4 py-2 pinto-sm h-[2rem] sm:h-[2.25rem] flex-1"
+      onClick={onClick}
+    >
+      {children}
+    </Button>
+  );
+};
+
 export const AnimateSowOrderDialog = ({
   children,
   className,
@@ -1761,8 +1673,9 @@ export const AnimateSowOrderDialog = ({
 };
 
 const styles = {
-  inputs:
+  inputs: clsx(
     "rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] pinto-sm whitespace-nowrap flex-1",
+  ),
 } as const;
 
 //
@@ -1776,3 +1689,23 @@ const inputIds = {
   morningAuction: "morning-auction-input",
   operatorTip: "operator-tip-input",
 } as const;
+
+// ────────────────────────────────────────────────────────────────────────────────
+// PRESET OPTIONS
+// ────────────────────────────────────────────────────────────────────────────────
+
+const PODLINE_PCT_OPTIONS = [
+  { label: "5% ↑", value: 5 },
+  { label: "10% ↑", value: 10 },
+  { label: "25% ↑", value: 25 },
+  { label: "50% ↑", value: 50 },
+  { label: "100% ↑", value: 100 },
+] as const;
+
+const OPERATOR_TIP_OPTIONS = [
+  { value: "down5", label: "5% ↓" },
+  { value: "down1", label: "1% ↓" },
+  { value: "average", label: "Average" },
+  { value: "up1", label: "1% ↑" },
+  { value: "up5", label: "5% ↑" },
+] as const;
