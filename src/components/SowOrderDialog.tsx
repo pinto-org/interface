@@ -1678,21 +1678,24 @@ const SowOrderFormStep1 = () => {
         <label htmlFor={inputIds.totalAmount} onClick={(e) => e.preventDefault()}>
           I want to Sow up to
         </label>
-        <div className="flex rounded-lg overflow-hidden border border-pinto-gray-2 group focus-within:border-[#2F8957]">
+        <div
+        //  className="flex rounded-lg overflow-hidden border border-pinto-gray-2 group focus-within:border-[#2F8957]"
+        >
           <div className="flex-1">
             <TokenValueInput
               id={inputIds.totalAmount}
-              shouldClamp
               className={styles.input}
               value={totalAmount}
               setValue={setTotalAmount}
               valueDecimals={6}
               min={min}
+              endIcon={
+                <div className="flex items-center gap-2 px-4 bg-white">
+                  <IconImage src={pintoIcon} size={6} alt="PINTO" />
+                  <span className="text-black">PINTO</span>
+                </div>
+              }
             />
-          </div>
-          <div className="flex items-center gap-2 px-4 bg-white">
-            <img src={pintoIcon} alt="PINTO" className="w-6 h-6" />
-            <span className="text-black">PINTO</span>
           </div>
         </div>
       </div>

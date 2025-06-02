@@ -10,19 +10,29 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   containerClassName?: string;
 }
 
+const RawInputField = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <input
+        className={cn(
+          "flex h-12 w-full rounded-[0.75rem] border border-input bg-white px-3 py-1 text-[1.25rem] text-black shadow-none transition-colors file:border-0 file:bg-transparent file:text-[1.25rem] file:font-medium placeholder:text-pinto-gray-3 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-transparent",
+          className,
+        )}
+        ref={ref}
+        {...props}
+      />
+    );
+  },
+);
+
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, containerClassName, type, startIcon, endIcon, ...props }, ref) => {
     return (
       <div className={cn("relative", containerClassName)}>
         {startIcon && <div className="absolute left-0 top-1/2 -translate-y-1/2 pointer-events-none">{startIcon}</div>}
-        <input
+        <RawInputField
           type={type}
-          className={cn(
-            "flex h-12 w-full rounded-[0.75rem] border border-input bg-white px-3 py-1 text-[1.25rem] text-black shadow-none transition-colors file:border-0 file:bg-transparent file:text-[1.25rem] file:font-medium placeholder:text-pinto-gray-3 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
-            startIcon && "pl-10",
-            endIcon && "pr-10",
-            className,
-          )}
+          className={cn(startIcon && "pl-10", endIcon && "pr-10", className)}
           ref={ref}
           {...props}
         />
@@ -39,6 +49,7 @@ export { Input };
 interface NumberInputProps extends Omit<InputProps, "value" | "type" | "min" | "max"> {
   // required
   value?: TV;
+  error?: boolean;
   valueDecimals: number;
   setValue: (value: TV) => void;
   shouldClamp?: boolean;
@@ -53,6 +64,7 @@ export const TokenValueInput = React.forwardRef<HTMLInputElement, NumberInputPro
       className,
       containerClassName,
       startIcon,
+      error,
       endIcon,
       value,
       valueDecimals,
@@ -120,16 +132,17 @@ export const TokenValueInput = React.forwardRef<HTMLInputElement, NumberInputPro
     );
 
     return (
-      <div className={cn("relative", containerClassName)}>
+      <div
+        className={cn(
+          "relative flex content-center rounded-lg overflow-hidden border border-pinto-gray-blue transition-colors focus-within:outline-none focus-within:ring-1",
+          error ? "border-pinto-error focus-within:ring-errorRing" : "border-pinto-gray-blue focus-within:ring-ring",
+          containerClassName,
+        )}
+      >
         {startIcon && <div className="absolute left-0 top-1/2 -translate-y-1/2 pointer-events-none">{startIcon}</div>}
-        <input
+        <RawInputField
           type="text"
-          className={cn(
-            "flex h-12 w-full rounded-[0.75rem] border border-input bg-white px-3 py-1 text-[1.25rem] text-black shadow-none transition-colors file:border-0 file:bg-transparent file:text-[1.25rem] file:font-medium placeholder:text-pinto-gray-3 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
-            startIcon && "pl-10",
-            endIcon && "pr-10",
-            className,
-          )}
+          className={cn(startIcon && "pl-10", endIcon && "pr-10", className)}
           ref={ref}
           value={displayValue}
           placeholder={placeholder}
