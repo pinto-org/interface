@@ -34,7 +34,7 @@ const buttonVariants = cva(
         "outline-primary": `${outlineBase} ${primaryBase}`,
         "outline-secondary": `${outlineBase} ${secondaryBase}`,
         "outline-gray-shadow": `${outlineBase} ${outlineShadowBase}`,
-        "outline-select": `${outlineBase} ${roundedBase} whitespace-nowrap flex-1 shadow-none`,
+        "outline-select": `${outlineBase} whitespace-nowrap flex-1 shadow-none`,
         "outline-white": "border border-pinto-gray-2 bg-white hover:bg-pinto-gray-2/50 hover:text-accent-foreground",
         secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-pinto-gray-2/50",
@@ -77,6 +77,7 @@ const buttonVariants = cva(
         true: "p-0 sm:p-0",
       },
       selected: {
+        default: "",
         false: "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50",
         true: "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]",
       },
@@ -104,7 +105,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       noShrink = true,
       noPadding = false,
       rounded,
-      selected = false,
+      selected = "default",
       width = "default",
       ...props
     },

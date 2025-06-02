@@ -26,15 +26,19 @@ import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { isValidAddress, stringEq } from "@/utils/string";
 import { DepositData } from "@/utils/types";
-import { isLocalhost } from "@/utils/utils";
+import { cn, isLocalhost } from "@/utils/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { div } from "three/webgpu";
 import { encodeFunctionData } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import * as z from "zod";
 import { Col, Row } from "./Container";
 import TooltipSimple from "./TooltipSimple";
 import { Button } from "./ui/Button";
@@ -47,8 +51,45 @@ import {
   DialogPortal,
   DialogTitle,
 } from "./ui/Dialog";
-import { Input, TokenValueInput } from "./ui/Input";
+import { Input } from "./ui/Input";
 import { Separator } from "./ui/Separator";
+
+// Form schema
+const sowOrderSchema = z
+  .object({
+    totalAmount: z.string().min(1, "Total amount is required"),
+    minSoil: z.string().min(1, "Min per season is required"),
+    maxPerSeason: z.string().min(1, "Max per season is required"),
+    podLineLength: z.string().min(1, "Pod line length is required"),
+    temperature: z.string().min(1, "Temperature is required"),
+    operatorTip: z.string().min(1, "Operator tip is required"),
+    morningAuction: z.boolean(),
+    step: z.number(),
+  })
+  .refine(
+    (data) => {
+      const minSoil = parseFloat(data.minSoil.replace(/,/g, ""));
+      const maxPerSeason = parseFloat(data.maxPerSeason.replace(/,/g, ""));
+      const totalAmount = parseFloat(data.totalAmount.replace(/,/g, ""));
+
+      if (minSoil > maxPerSeason) {
+        return false;
+      }
+      if (minSoil > totalAmount) {
+        return false;
+      }
+      if (maxPerSeason > totalAmount) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Invalid input values",
+      path: ["totalAmount"],
+    },
+  );
+
+type SowOrderFormData = z.infer<typeof sowOrderSchema>;
 
 interface SowOrderDialogProps {
   open: boolean;
@@ -59,7 +100,26 @@ interface SowOrderDialogProps {
 // 0.000001 is the min for PINTO input & temperature
 const minInput = TokenValue.fromHuman(0.000001, 6);
 
-export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }: SowOrderDialogProps) {
+const SowOrderFormProvider = ({ children }: { children: React.ReactNode }) => {
+  const form = useForm<SowOrderFormData>({
+    resolver: zodResolver(sowOrderSchema),
+    defaultValues: {
+      totalAmount: "",
+    },
+  });
+
+  return (
+    <FormProvider {...form}>
+      <form>{children}</form>
+    </FormProvider>
+  );
+};
+
+const SowOrderForm1 = () => {
+  return <div>asdf</div>;
+};
+
+export default function SowOrderDialogV2({ open, onOpenChange, onOrderPublished }: SowOrderDialogProps) {
   const podLine = usePodLine();
   const currentTemperature = useTemperature();
   const [podLineLength, setPodLineLength] = useState("");
@@ -401,7 +461,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     whitelistedTokens.forEach((token) => {
       if (token.isLP) {
         const lpDollarValue = swapResults.get(token.address);
-        if (lpDollarValue && lpDollarValue.gt(highestValue)) {
+        if (lpDollarValue?.gt(highestValue)) {
           highestValue = lpDollarValue;
           tokenWithHighestValue = token.address;
           tokenType = "SPECIFIC_TOKEN";
@@ -1105,6 +1165,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                         </ul>
                       </div>
                     )}
+
                     {tokensThatNeedCombining.length > 0 && (
                       <div>
                         <p className="text-sm font-medium text-pinto-warning-orange mb-2">
@@ -1135,7 +1196,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                   </div>
 
                   {/* I want to Sow up to */}
-                  {/* <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2">
                     <label htmlFor={inputIds.totalAmount}>I want to Sow up to</label>
                     <div className="flex rounded-lg overflow-hidden border border-pinto-gray-2 group focus-within:border-[#2F8957]">
                       <div className="flex-1">
@@ -1153,8 +1214,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                         <span className="text-black">PINTO</span>
                       </div>
                     </div>
-                  </div> */}
-                  <SowOrderFormStep1 />
+                  </div>
 
                   {/* Min and Max per Season - combined in a single row */}
                   <div className="flex flex-col gap-2">
@@ -1621,89 +1681,8 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
-// Sow Order Form Step 1
+// Select Operator Tip
 // ────────────────────────────────────────────────────────────────────────────────
-
-const nonAmounts = new Set([".", ""]);
-
-const formatAmount = (amount: string) => {
-  if (nonAmounts.has(amount)) return amount;
-  const cleaned = amount.replace(/[^0-9.]/g, "");
-  const [pre, post] = cleaned.split(".") ?? [];
-
-  if (post?.length > 6) return amount;
-
-  const mayDot = post?.length > 0 ? "." : "";
-  const back = post?.length > 0 ? post : "";
-
-  return `${formatter.number(pre, { minDecimals: 0, maxDecimals: 0 })}${mayDot}${back}`;
-};
-
-const SowOrderFormStep1 = () => {
-  const [totalAmount, setTotalAmount] = useState<TokenValue>(TokenValue.ZERO);
-
-  // const handleClampAndToValidInput = (input: string, prevValue?: string) => {
-  //   const parsed = input.replace(/[^0-9.]/g, "");
-
-  //   const split = parsed.split(".");
-  //   // prevent multiple decimals of If input has gt 6 decimal places, prevent input
-  //   if (split.length > 2 || (split.length === 2 && split[1].length > 6)) return prevValue;
-
-  //   const newAmount = TokenValue.fromHuman(parsed || "0", 6);
-  //   // if 0-ish amount, return the parsed value
-  //   if (newAmount.eq(0)) return parsed;
-  //   // if the amount is less than the min input, return the min input
-  //   if (minInput.gt(newAmount)) {
-  //     return minInput.toHuman();
-  //   }
-
-  //   // return the parsed value
-  //   return parsed;
-  // };
-
-  // // Update the handleSetTotalAmount function to use the new validation
-  // const handleSetTotalAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const validatedAmount = handleClampAndToValidInput(e.target.value);
-  //   if (validatedAmount !== undefined) {
-  //     setTotalAmount(validatedAmount);
-  //     // validateAllInputs(minSoil, maxPerSeason, validatedAmount, podLineLength, temperature);
-  //   }
-  // };
-
-  const min = TokenValue.fromHuman("0.00004", 6);
-
-  return (
-    <>
-      <div className="flex flex-col gap-2">
-        <label htmlFor={inputIds.totalAmount} onClick={(e) => e.preventDefault()}>
-          I want to Sow up to
-        </label>
-        <div className="flex rounded-lg overflow-hidden border border-pinto-gray-2 group focus-within:border-[#2F8957]">
-          <div className="flex-1">
-            <TokenValueInput
-              id={inputIds.totalAmount}
-              shouldClamp
-              className={styles.input}
-              value={totalAmount}
-              setValue={setTotalAmount}
-              valueDecimals={6}
-              min={min}
-            />
-          </div>
-          <div className="flex items-center gap-2 px-4 bg-white">
-            <img src={pintoIcon} alt="PINTO" className="w-6 h-6" />
-            <span className="text-black">PINTO</span>
-          </div>
-        </div>
-      </div>
-      {/* </Col> */}
-    </>
-  );
-};
-
-const styles = {
-  input: clsx("h-12 px-3 py-1.5 border-0 rounded-l-lg flex-1 focus-visible:ring-0 focus-visible:ring-offset-0"),
-};
 
 // ────────────────────────────────────────────────────────────────────────────────
 // Shared Selection Button
@@ -1752,6 +1731,12 @@ export const AnimateSowOrderDialog = ({
     </div>
   );
 };
+
+const styles = {
+  inputs: clsx(
+    "rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] pinto-sm whitespace-nowrap flex-1",
+  ),
+} as const;
 
 //
 const inputIds = {
