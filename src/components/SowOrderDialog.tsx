@@ -34,11 +34,11 @@ import { MayArray } from "@/utils/types.generic";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Form, FormProvider, useForm, useFormContext, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
-import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { useAccount, usePublicClient } from "wagmi";
 import { z } from "zod";
 import { Col, Row } from "./Container";
 import TooltipSimple from "./TooltipSimple";
@@ -60,9 +60,6 @@ interface SowOrderDialogProps {
   onOpenChange: (open: boolean) => void;
   onOrderPublished?: () => void;
 }
-
-// 0.000001 is the min for PINTO input & temperature
-const minInput = TokenValue.fromHuman(0.000001, 6);
 
 // Form Schema
 
@@ -114,16 +111,16 @@ const schema = z
     tokenStrategy: z.enum(["LOWEST_SEEDS", "LOWEST_PRICE", "SPECIFIC_TOKEN"]),
     tokenAddress: z.string().optional(),
   })
-  // .refine(
-  //   ({ temperature }) => {
-  //     const temp = sanitizeInputValue(temperature, 6);
-  //     return temp.tv?.gt(0) ?? false;
-  //   },
-  //   {
-  //     message: errorMessages.tempGT0,
-  //     path: [FormKeys.temperature],
-  //   },
-  // )
+  .refine(
+    ({ temperature }) => {
+      const temp = sanitizeInputValue(temperature, 6);
+      return temp.tv?.gt(0) ?? false;
+    },
+    {
+      message: errorMessages.tempGT0,
+      path: [FormKeys.temperature],
+    },
+  )
   .superRefine(
     // minSoil must be lt maxPerSeason
     ({ minSoil, maxPerSeason, totalAmount }, ctx) => {
