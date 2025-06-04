@@ -1,83 +1,120 @@
 import { TV } from "@/classes/TokenValue";
+import { Col, Row } from "@/components/Container";
 import { formatter } from "@/utils/format";
 import { useDebouncedEffect } from "@/utils/useDebounce";
 import { cn, exists } from "@/utils/utils";
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   startIcon?: React.ReactNode;
   endIcon?: React.ReactNode;
+  below?: JSX.Element;
+  error?: boolean;
+  label?: string | JSX.Element;
   containerClassName?: string;
 }
 
-const RawInputField = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-  ({ className, ...props }, ref) => {
+export interface InputFieldBorderWrapperProps extends React.HTMLAttributes<HTMLDivElement> {
+  error?: boolean;
+  disabled?: boolean;
+}
+
+const InputFieldBorderWrapper = React.forwardRef<HTMLDivElement, InputFieldBorderWrapperProps>(
+  ({ className, error, disabled, ...props }, ref) => {
     return (
-      <input
+      <Col
         className={cn(
-          "flex h-12 w-full rounded-[0.75rem] border border-input bg-white px-3 py-1 text-[1.25rem] text-black shadow-none transition-colors file:border-0 file:bg-transparent file:text-[1.25rem] file:font-medium placeholder:text-pinto-gray-3 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-transparent",
+          "w-full px-3 py-1 rounded-lg overflow-hidden box-border content-center",
+          "border border-pinto-gray-blue bg-white focus-within:ring-ring",
+          "shadow-none transition-colors placeholder:text-pinto-gray-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+          "focus-within:outline-none focus-visible:outline-none", // focus behavior
+          !disabled && "focus-within:ring-1 focus-within:ring-ring", // non-disabled behavior. Prevent focus-within
+          error && "border-pinto-error focus-within:ring-[0.5px] focus-within:ring-pinto-error", // error behavior
+          disabled && "pointer-events-none cursor-not-allowed bg-transparent opacity-50", // Disabled
           className,
         )}
         ref={ref}
         {...props}
-      />
+      >
+        {props.children}
+      </Col>
     );
   },
 );
 
+InputFieldBorderWrapper.displayName = "InputFieldBorderWrapper";
+
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, containerClassName, type, startIcon, endIcon, ...props }, ref) => {
+  ({ className, containerClassName, type, error, disabled, startIcon, endIcon, below, ...props }, ref) => {
     return (
-      <div className={cn("relative", containerClassName)}>
-        {startIcon && <div className="absolute left-0 top-1/2 -translate-y-1/2 pointer-events-none">{startIcon}</div>}
-        <RawInputField
-          type={type}
-          className={cn(startIcon && "pl-10", endIcon && "pr-10", className)}
-          ref={ref}
-          {...props}
-        />
-        {endIcon && <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">{endIcon}</div>}
-      </div>
+      <InputFieldBorderWrapper error={error} disabled={disabled} className={containerClassName}>
+        <Row className={cn("flex w-full")}>
+          {startIcon && <div className="flex-shrink-0">{startIcon}</div>}
+          <input
+            type="text"
+            ref={ref}
+            className={cn(
+              "flex w-full flex-row min-w-0 bg-white box-border py-1.5",
+              "text-[1rem] sm:text-[1.25rem] text-black placeholder:text-pinto-gray-3 shadow-none focus-visible:outline-none", // Typography
+              "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none", // Input
+              className,
+            )}
+            disabled={disabled}
+            aria-invalid={!!error}
+            aria-describedby={error ? "invalid-input" : undefined}
+            inputMode="numeric"
+            {...props}
+          />
+          {endIcon && <div className="flex-shrink-0">{endIcon}</div>}
+        </Row>
+        {below && <>{below}</>}
+      </InputFieldBorderWrapper>
     );
   },
 );
 
 Input.displayName = "Input";
 
-export { Input };
+export { Input, InputFieldBorderWrapper };
 
 interface NumberInputProps extends Omit<InputProps, "value" | "type" | "min" | "max"> {
-  // required
-  value?: TV;
+  value: TV | undefined;
+  setValue: React.Dispatch<React.SetStateAction<TV | undefined>> | ((value: TV | undefined) => void);
   error?: boolean;
+  isPercent?: boolean;
   valueDecimals: number;
-  setValue: (value: TV) => void;
   shouldClamp?: boolean;
-  // optional
   min?: TV;
   max?: TV;
 }
 
+const initTVState = (value: TV | undefined, valueDecimals: number) => {
+  if (!value) {
+    return "";
+  }
+  return formatter.number(value.toHuman(), { minDecimals: 0, maxDecimals: valueDecimals });
+};
+
 export const TokenValueInput = React.forwardRef<HTMLInputElement, NumberInputProps>(
   (
     {
-      className,
-      containerClassName,
-      startIcon,
-      error,
-      endIcon,
       value,
       valueDecimals,
       shouldClamp = false,
       min,
       max,
-      placeholder = "0",
+      placeholder = "0.00",
+      isPercent = false,
       setValue,
       ...props
     },
     ref,
   ) => {
-    const [displayValue, setDisplayValue] = useState(!value || value?.isZero ? "" : value.toHuman());
+    const [displayValue, setDisplayValue] = useState(initTVState(value, valueDecimals));
+
+    useEffect(() => {
+      console.log("value: ", value?.toHuman());
+    }, [value]);
 
     const clamp = useCallback(
       (amt: TV) => {
@@ -92,7 +129,7 @@ export const TokenValueInput = React.forwardRef<HTMLInputElement, NumberInputPro
     const handleChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        const sanitized = sanitizeValue(value, valueDecimals);
+        const sanitized = sanitizeInputValue(value, valueDecimals);
 
         setDisplayValue(sanitized.str);
         props.onChange?.(e);
@@ -102,29 +139,40 @@ export const TokenValueInput = React.forwardRef<HTMLInputElement, NumberInputPro
 
     // Handle the blur event
     const handleBlur = useCallback(() => {
-      const sanitized = sanitizeValue(displayValue, valueDecimals);
+      const sanitized = sanitizeInputValue(displayValue, valueDecimals);
       if (!shouldClamp) {
-        setDisplayValue(formatter.number(sanitized.strValue, { minDecimals: 0, maxDecimals: valueDecimals }));
+        if (sanitized.nonAmount) {
+          setDisplayValue(sanitized.str);
+        } else {
+          setDisplayValue(formatter.number(sanitized.strValue, { minDecimals: 0, maxDecimals: valueDecimals }));
+        }
         return;
       }
 
-      const clamped = shouldClamp ? clamp(sanitized.tv) : sanitized.tv;
-
-      if (!clamped.eq(sanitized.tv)) {
-        setDisplayValue(formatter.number(clamped.toHuman(), { minDecimals: 0, maxDecimals: valueDecimals }));
-        setValue(clamped);
+      if (sanitized.tv) {
+        const clamped = shouldClamp ? clamp(sanitized.tv) : sanitized.tv;
+        if (!clamped?.eq(sanitized.tv)) {
+          if (sanitized.nonAmount) {
+            setDisplayValue(sanitized.str);
+          } else {
+            setDisplayValue(formatter.number(clamped.toHuman(), { minDecimals: 0, maxDecimals: valueDecimals }));
+            setValue(clamped);
+          }
+        }
+      } else {
+        setDisplayValue(sanitized.str);
       }
     }, [displayValue, valueDecimals, shouldClamp, clamp, setValue]);
 
     const handleOnFocus = useCallback(() => {
-      const sanitized = sanitizeValue(displayValue, valueDecimals);
+      const sanitized = sanitizeInputValue(displayValue, valueDecimals);
       setDisplayValue(sanitized.str);
     }, [displayValue, valueDecimals]);
 
     // debounce the value change
     useDebouncedEffect(
       () => {
-        const sanitized = sanitizeValue(displayValue, valueDecimals);
+        const sanitized = sanitizeInputValue(displayValue, valueDecimals);
         setValue(sanitized.tv);
       },
       [displayValue, valueDecimals, setValue],
@@ -132,27 +180,17 @@ export const TokenValueInput = React.forwardRef<HTMLInputElement, NumberInputPro
     );
 
     return (
-      <div
-        className={cn(
-          "relative flex content-center rounded-lg overflow-hidden border border-pinto-gray-blue transition-colors focus-within:outline-none focus-within:ring-1",
-          error ? "border-pinto-error focus-within:ring-errorRing" : "border-pinto-gray-blue focus-within:ring-ring",
-          containerClassName,
-        )}
-      >
-        {startIcon && <div className="absolute left-0 top-1/2 -translate-y-1/2 pointer-events-none">{startIcon}</div>}
-        <RawInputField
-          type="text"
-          className={cn(startIcon && "pl-10", endIcon && "pr-10", className)}
-          ref={ref}
-          value={displayValue}
-          placeholder={placeholder}
-          onChange={handleChange}
-          onFocus={handleOnFocus}
-          onBlur={handleBlur}
-          {...props}
-        />
-        {endIcon && <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">{endIcon}</div>}
-      </div>
+      <Input
+        type="text"
+        ref={ref}
+        value={displayValue}
+        placeholder={placeholder}
+        onChange={handleChange}
+        onFocus={handleOnFocus}
+        onBlur={handleBlur}
+        inputMode="numeric"
+        {...props}
+      />
     );
   },
 );
@@ -163,18 +201,23 @@ TokenValueInput.displayName = "TokenValueInput";
 // Helper Functions
 // ────────────────────────────────────────────────────────────────────────────────
 
-const nonAmounts = new Set([".", ""]);
+const nonAmounts = new Set<string>([".", ""]);
 
 const cleanAmount = (value: string) => value.replace(/[^0-9.]/g, "");
+
+export const isValidInputValue = (value: string) => !nonAmounts.has(value);
 
 /**
  * Sanitize the user input
  */
-const sanitizeValue = (value: string, valueDecimals: number) => {
-  const nonAmounts = new Set<string>([".", ""]);
-  // if the value is a non-amount ("", ".", etc) return default values
+export const sanitizeInputValue = (value: string, valueDecimals: number) => {
   if (nonAmounts.has(value)) {
-    return { str: value, strValue: "0", tv: TV.ZERO };
+    return {
+      str: value,
+      strValue: "",
+      tv: undefined,
+      nonAmount: true,
+    };
   }
 
   let str = "";
@@ -210,11 +253,6 @@ const sanitizeValue = (value: string, valueDecimals: number) => {
     str,
     strValue,
     tv,
+    nonAmount: false,
   };
-};
-
-const toMinMax = (value: string | undefined, valueDecimals: number) => {
-  if (!value) return undefined;
-  if (nonAmounts.has(value)) return TV.fromHuman(value, valueDecimals);
-  return TV.fromHuman(value, valueDecimals);
 };

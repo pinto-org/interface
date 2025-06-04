@@ -68,6 +68,30 @@ export function isFunction<T>(v: T | (() => T)): v is () => T {
   return typeof v === "function";
 }
 
+type NonFunction<T> = T extends Function ? never : T;
+
+/**
+ * Wraps a callback in a try/catch block and returns the result.
+ * If the callback throws an error, the onError function is called with the error.
+ * If the onError function is not provided, the error is rethrown.
+ * @param callback - The callback to wrap.
+ * @param onError - The function to call if the callback throws an error.
+ * @returns The result of the callback.
+ */
+export function wrapTryCatch<T>(
+  callback: () => NonFunction<T>,
+  onError: ((e: any) => NonFunction<T>) | NonFunction<T>,
+): NonFunction<T> {
+  try {
+    return callback();
+  } catch (e) {
+    if (typeof onError === "function") {
+      return (onError as (e: any) => NonFunction<T>)(e);
+    }
+    return onError satisfies NonFunction<T>;
+  }
+}
+
 /**
  * Check if a value is an object
  * @param value - The value to check
