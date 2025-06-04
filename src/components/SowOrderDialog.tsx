@@ -193,15 +193,14 @@ const defaultFormValues: FormSchema = {
 export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }: SowOrderDialogProps) {
   const currentTemperature = useTemperature();
   const podLine = usePodLine();
-  
+
   const farmerSilo = useFarmerSilo();
   const farmerDeposits = farmerSilo.deposits;
   const { whitelistedTokens, mainToken } = useTokenData();
   const priceData = usePriceData();
-  
+
   const [operatorTip, setOperatorTip] = useState("1");
   const { address } = useAccount();
-  const [loading, setLoading] = useState<string | null>(null);
 
   const form = useForm<FormSchema>({
     values: { ...defaultFormValues },
@@ -211,7 +210,6 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
   });
 
   // Create a comprehensive validation function that handles all validation cases
-  
 
   const { unsortedTokensInfo, tokensThatNeedCombining, needsOptimization } = useSowOrderDialogData(farmerDeposits);
 
@@ -293,12 +291,22 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     return results;
   }, [lpTokens, swapQuotes]);
 
-  useInitializeTokenStrategy({
+  const tokenWithHighestValue = useTokenWithHighestValue({
     farmerDeposits,
     price: priceData.price,
     swapResults,
-    setValue: form.setValue,
   });
+
+  const [didInitStrategy, setDidInitStrategy] = useState(false);
+  useEffect(() => {
+    if (didInitStrategy) return;
+    setDidInitStrategy(true);
+
+    form.setValue(FormKeys.tokenStrategy, tokenWithHighestValue.type, { shouldValidate: false });
+    if (tokenWithHighestValue.type === "SPECIFIC_TOKEN") {
+      form.setValue(FormKeys.tokenAddress, tokenWithHighestValue.address, { shouldValidate: false });
+    }
+  }, [didInitStrategy, tokenWithHighestValue, form.setValue]);
 
   // Add state for the review dialog
   const [showReview, setShowReview] = useState(false);
@@ -439,8 +447,6 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
 
   // Update handleNext to remove formSubmitAttempted
   const handleNext = async () => {
-
-
     // Step 0 does nothing on Next since we handle the claim button separately
     if (formStep === 0) {
       return;
@@ -465,21 +471,24 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
         return;
       }
 
-      const { 
-        tokenStrategy, 
-        tokenAddress, 
-        temperature, 
-        minSoil, 
-        maxPerSeason, 
-        totalAmount, 
-        podLineLength, 
-        morningAuction 
+      const {
+        tokenStrategy,
+        tokenAddress,
+        temperature,
+        minSoil,
+        maxPerSeason,
+        totalAmount,
+        podLineLength,
+        morningAuction,
       } = form.getValues();
 
-      const strategy: SowOrderTokenStrategy = tokenStrategy === "SPECIFIC_TOKEN" ? {
-        type: tokenStrategy,
-        address: tokenAddress as `0x${string}`,
-      } : { type: tokenStrategy };
+      const strategy: SowOrderTokenStrategy =
+        tokenStrategy === "SPECIFIC_TOKEN"
+          ? {
+              type: tokenStrategy,
+              address: tokenAddress as `0x${string}`,
+            }
+          : { type: tokenStrategy };
 
       const { data, operatorPasteInstrs, rawCall } = await createSowTractorData({
         totalAmountToSow: totalAmount || "0",
@@ -555,8 +564,6 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
       onOpenChange(false);
     }
   };
-
-  
 
   // Helper function to calculate tip values for different percentages
   const getTipValue = (type: "down5" | "down1" | "average" | "up1" | "up5") => {
@@ -962,8 +969,8 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                   ) : (
                     <TooltipSimple
                       content={
-                        formStep === 1 && (!areRequiredFieldsFilled()) ? (
-                        // formStep === 1 && (!areRequiredFieldsFilled() || !!error) ? (
+                        formStep === 1 && !areRequiredFieldsFilled() ? (
+                          // formStep === 1 && (!areRequiredFieldsFilled() || !!error) ? (
                           <div className="p-1">
                             <div className="font-medium mb-1">Please fill in the following fields:</div>
                             <ul className="list-disc pl-4 text-sm">
@@ -985,7 +992,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                       side="top"
                       align="center"
                       // Only show tooltip when there are missing fields or errors
-                      disabled={!(formStep === 1 && (!areRequiredFieldsFilled()))}
+                      disabled={!(formStep === 1 && !areRequiredFieldsFilled())}
                       // disabled={!(formStep === 1 && (!areRequiredFieldsFilled() || !!error))}
                     >
                       <div className="flex-1">
@@ -994,12 +1001,12 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                           rounded="full"
                           className={`w-full ${
                             // (formStep === 1 && (!areRequiredFieldsFilled() || !!error)) || isLoading
-                            (formStep === 1 && (!areRequiredFieldsFilled())) || isLoading
+                            (formStep === 1 && !areRequiredFieldsFilled()) || isLoading
                               ? "bg-pinto-gray-2 text-[#9C9C9C]"
                               : "bg-[#387F5C] text-white"
                           }`}
                           // disabled={(formStep === 1 && (!areRequiredFieldsFilled() || !!error)) || isLoading}
-                          disabled={(formStep === 1 && (!areRequiredFieldsFilled())) || isLoading}
+                          disabled={(formStep === 1 && !areRequiredFieldsFilled()) || isLoading}
                           onClick={handleNext}
                         >
                           {isLoading ? (
@@ -1649,20 +1656,16 @@ const useSowOrderDialogData = (farmerDeposits: ReturnType<typeof useFarmerSilo>[
   };
 };
 
-const useInitializeTokenStrategy = ({
+const useTokenWithHighestValue = ({
   farmerDeposits,
   price,
   swapResults,
-  setValue,
 }: {
   farmerDeposits: ReturnType<typeof useFarmerSilo>["deposits"];
   price: ReturnType<typeof usePriceData>["price"];
   swapResults: Map<string, TokenValue>;
-  setValue: ReturnType<typeof useFormContext<FormSchema>>["setValue"];
 }) => {
   const whitelistedTokens = useWhitelistedTokens();
-
-  const [didInitStrategy, setDidInitStrategy] = useState(false);
 
   // Calculate the token with the highest dollar value
   const tokenWithHighestValue = useMemo(() => {
@@ -1708,16 +1711,7 @@ const useInitializeTokenStrategy = ({
     } as SowOrderTokenStrategy;
   }, [farmerDeposits, whitelistedTokens, price, swapResults]);
 
-
-  useEffect(() => {
-    if (didInitStrategy) return;
-    setDidInitStrategy(true);
-  
-    setValue(FormKeys.tokenStrategy, tokenWithHighestValue.type, { shouldValidate: false });
-    if (tokenWithHighestValue.type === "SPECIFIC_TOKEN") {
-      setValue(FormKeys.tokenAddress, tokenWithHighestValue.address, { shouldValidate: false });
-    }
-  }, [didInitStrategy, tokenWithHighestValue, setValue]);
+  return tokenWithHighestValue;
 };
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -1747,128 +1741,127 @@ const FieldKeyToPairFieldKeys: Partial<Record<keyof typeof FormKeys, Array<keyof
   [FormKeys.tokenStrategy]: [FormKeys.tokenAddress],
 } as const;
 
-
 // // Add a function to get the dollar value for the selected strategy
-  // const getSelectedTokenDollarValue = () => {
-  //   if (selectedTokenStrategy.type === "SPECIFIC_TOKEN" && selectedTokenStrategy.address) {
-  //     const token = whitelistedTokens.find((t) => t.address === selectedTokenStrategy.address);
+// const getSelectedTokenDollarValue = () => {
+//   if (selectedTokenStrategy.type === "SPECIFIC_TOKEN" && selectedTokenStrategy.address) {
+//     const token = whitelistedTokens.find((t) => t.address === selectedTokenStrategy.address);
 
-  //     // If it's PINTO token, use its direct value multiplied by price
-  //     if (token?.symbol === "PINTO") {
-  //       const pintoDeposit = farmerDeposits.get(token);
-  //       return pintoDeposit?.amount ? pintoDeposit.amount.mul(priceData.price) : TokenValue.ZERO;
-  //     }
+//     // If it's PINTO token, use its direct value multiplied by price
+//     if (token?.symbol === "PINTO") {
+//       const pintoDeposit = farmerDeposits.get(token);
+//       return pintoDeposit?.amount ? pintoDeposit.amount.mul(priceData.price) : TokenValue.ZERO;
+//     }
 
-  //     return swapResults.get(selectedTokenStrategy.address) || TokenValue.ZERO;
-  //   } else if (selectedTokenStrategy.type === "LOWEST_PRICE" || selectedTokenStrategy.type === "LOWEST_SEEDS") {
-  //     // Sum all token dollar values
-  //     let totalValue = TokenValue.ZERO;
+//     return swapResults.get(selectedTokenStrategy.address) || TokenValue.ZERO;
+//   } else if (selectedTokenStrategy.type === "LOWEST_PRICE" || selectedTokenStrategy.type === "LOWEST_SEEDS") {
+//     // Sum all token dollar values
+//     let totalValue = TokenValue.ZERO;
 
-  //     // Include PINTO tokens in the calculation
-  //     const pintoToken = whitelistedTokens.find((t) => t.symbol === "PINTO");
-  //     if (pintoToken) {
-  //       const pintoDeposit = farmerDeposits.get(pintoToken);
-  //       if (pintoDeposit?.amount) {
-  //         totalValue = totalValue.add(pintoDeposit.amount.mul(priceData.price));
-  //       }
-  //     }
+//     // Include PINTO tokens in the calculation
+//     const pintoToken = whitelistedTokens.find((t) => t.symbol === "PINTO");
+//     if (pintoToken) {
+//       const pintoDeposit = farmerDeposits.get(pintoToken);
+//       if (pintoDeposit?.amount) {
+//         totalValue = totalValue.add(pintoDeposit.amount.mul(priceData.price));
+//       }
+//     }
 
-  //     // Add all LP token values
-  //     swapResults.forEach((value) => {
-  //       totalValue = totalValue.add(value);
-  //     });
+//     // Add all LP token values
+//     swapResults.forEach((value) => {
+//       totalValue = totalValue.add(value);
+//     });
 
-  //     return totalValue;
-  //   }
-  //   return TokenValue.ZERO;
-  // };
+//     return totalValue;
+//   }
+//   return TokenValue.ZERO;
+// };
 
-  // const validateAllInputs = (
-  //   minSoilAmount: string,
-  //   maxSeasonAmount: string,
-  //   totalSowAmount: string,
-  //   podLineLengthValue: string,
-  //   temperatureValue: string,
-  // ) => {
-  //   // Skip validation if required fields are empty
-  //   if (!minSoilAmount && !maxSeasonAmount && !totalSowAmount && !podLineLengthValue && !temperatureValue) {
-  //     setError(null);
-  //     return;
-  //   }
+// const validateAllInputs = (
+//   minSoilAmount: string,
+//   maxSeasonAmount: string,
+//   totalSowAmount: string,
+//   podLineLengthValue: string,
+//   temperatureValue: string,
+// ) => {
+//   // Skip validation if required fields are empty
+//   if (!minSoilAmount && !maxSeasonAmount && !totalSowAmount && !podLineLengthValue && !temperatureValue) {
+//     setError(null);
+//     return;
+//   }
 
-  //   try {
-  //     // Validate min, max, and total amounts if available
-  //     if (minSoilAmount && maxSeasonAmount) {
-  //       const minClean = minSoilAmount.replace(/,/g, "");
-  //       const maxClean = maxSeasonAmount.replace(/,/g, "");
+//   try {
+//     // Validate min, max, and total amounts if available
+//     if (minSoilAmount && maxSeasonAmount) {
+//       const minClean = minSoilAmount.replace(/,/g, "");
+//       const maxClean = maxSeasonAmount.replace(/,/g, "");
 
-  //       const min = TokenValue.fromHuman(minClean, PINTO.decimals);
-  //       const max = TokenValue.fromHuman(maxClean, PINTO.decimals);
+//       const min = TokenValue.fromHuman(minClean, PINTO.decimals);
+//       const max = TokenValue.fromHuman(maxClean, PINTO.decimals);
 
-  //       if (min.gt(max)) {
-  //         setError("Min per Season must be less than or equal to Max per Season");
-  //         return;
-  //       }
-  //     }
+//       if (min.gt(max)) {
+//         setError("Min per Season must be less than or equal to Max per Season");
+//         return;
+//       }
+//     }
 
-  //     if (minSoilAmount && totalSowAmount) {
-  //       const minClean = minSoilAmount.replace(/,/g, "");
-  //       const totalClean = totalSowAmount.replace(/,/g, "");
+//     if (minSoilAmount && totalSowAmount) {
+//       const minClean = minSoilAmount.replace(/,/g, "");
+//       const totalClean = totalSowAmount.replace(/,/g, "");
 
-  //       const min = TokenValue.fromHuman(minClean, PINTO.decimals);
-  //       const total = TokenValue.fromHuman(totalClean, PINTO.decimals);
+//       const min = TokenValue.fromHuman(minClean, PINTO.decimals);
+//       const total = TokenValue.fromHuman(totalClean, PINTO.decimals);
 
-  //       if (min.gt(total)) {
-  //         setError("Min per Season cannot exceed the total amount to Sow");
-  //         return;
-  //       }
-  //     }
+//       if (min.gt(total)) {
+//         setError("Min per Season cannot exceed the total amount to Sow");
+//         return;
+//       }
+//     }
 
-  //     if (maxSeasonAmount && totalSowAmount) {
-  //       const maxClean = maxSeasonAmount.replace(/,/g, "");
-  //       const totalClean = totalSowAmount.replace(/,/g, "");
+//     if (maxSeasonAmount && totalSowAmount) {
+//       const maxClean = maxSeasonAmount.replace(/,/g, "");
+//       const totalClean = totalSowAmount.replace(/,/g, "");
 
-  //       const max = TokenValue.fromHuman(maxClean, PINTO.decimals);
-  //       const total = TokenValue.fromHuman(totalClean, PINTO.decimals);
+//       const max = TokenValue.fromHuman(maxClean, PINTO.decimals);
+//       const total = TokenValue.fromHuman(totalClean, PINTO.decimals);
 
-  //       if (max.gt(total)) {
-  //         setError("Max per Season cannot exceed the total amount to Sow");
-  //         return;
-  //       }
-  //     }
+//       if (max.gt(total)) {
+//         setError("Max per Season cannot exceed the total amount to Sow");
+//         return;
+//       }
+//     }
 
-  //     // Validate pod line length if provided
-  //     if (podLineLengthValue) {
-  //       try {
-  //         const inputLength = parseFloat(podLineLengthValue.replace(/,/g, ""));
-  //         if (Number.isNaN(inputLength)) {
-  //           setError("Pod Line Length must be a valid number");
-  //           return;
-  //         }
-  //       } catch (e) {
-  //         setError("Invalid Pod Line Length");
-  //         return;
-  //       }
-  //     }
+//     // Validate pod line length if provided
+//     if (podLineLengthValue) {
+//       try {
+//         const inputLength = parseFloat(podLineLengthValue.replace(/,/g, ""));
+//         if (Number.isNaN(inputLength)) {
+//           setError("Pod Line Length must be a valid number");
+//           return;
+//         }
+//       } catch (e) {
+//         setError("Invalid Pod Line Length");
+//         return;
+//       }
+//     }
 
-  //     // Validate temperature if provided
-  //     if (temperatureValue) {
-  //       try {
-  //         const tempValue = parseFloat(temperatureValue.replace(/[%,]/g, ""));
-  //         if (Number.isNaN(tempValue)) {
-  //           setError("Temperature must be a valid number");
-  //           return;
-  //         }
-  //       } catch (e) {
-  //         setError("Invalid Temperature");
-  //         return;
-  //       }
-  //     }
+//     // Validate temperature if provided
+//     if (temperatureValue) {
+//       try {
+//         const tempValue = parseFloat(temperatureValue.replace(/[%,]/g, ""));
+//         if (Number.isNaN(tempValue)) {
+//           setError("Temperature must be a valid number");
+//           return;
+//         }
+//       } catch (e) {
+//         setError("Invalid Temperature");
+//         return;
+//       }
+//     }
 
-  //     // If we made it here, no errors were found
-  //     setError(null);
-  //   } catch (e) {
-  //     console.error("Validation error:", e);
-  //     setError("Invalid number format");
-  //   }
-  // };
+//     // If we made it here, no errors were found
+//     setError(null);
+//   } catch (e) {
+//     console.error("Validation error:", e);
+//     setError("Invalid number format");
+//   }
+// };
