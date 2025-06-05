@@ -3,7 +3,7 @@ import arrowDown from "@/assets/misc/ChevronDown.svg";
 import seedIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import pintoIcon from "@/assets/tokens/PINTO.png";
-import { TV, TokenValue } from "@/classes/TokenValue";
+import { TokenValue } from "@/classes/TokenValue";
 import { InfoOutlinedIcon, WarningIcon } from "@/components/Icons";
 import ReviewTractorOrderDialog from "@/components/ReviewTractorOrderDialog";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
@@ -52,7 +52,7 @@ import {
   DialogPortal,
   DialogTitle,
 } from "./ui/Dialog";
-import { Input, isValidInputValue, sanitizeInputValue } from "./ui/Input";
+import { Input, isValidNumericInputValue, sanitizeNumericInputValue } from "./ui/Input";
 import { Separator } from "./ui/Separator";
 
 interface SowOrderDialogProps {
@@ -61,6 +61,32 @@ interface SowOrderDialogProps {
   onOrderPublished?: () => void;
 }
 
+// const tvProcessor = (decimals: number) => (v: unknown) => {
+//   if (typeof v !== "string") return undefined;
+//   const raw = v.trim();
+
+//   // Allow only digits + max one dot
+//   const isValidFormat = /^(\d+(\.\d{0,})?)?$/.test(raw.replace(/,/g, ""));
+//   if (!isValidFormat) return undefined;
+
+//   const cleaned = raw.replace(/,/g, "");
+//   return TokenValue.fromHuman(cleaned, decimals);
+// };
+
+// const tvValidator = z
+//   .custom<TokenValue>((val) => val instanceof TokenValue, {
+//     message: "Invalid number",
+//   })
+//   .refine((v) => v.gt(0), "Must be greater than zero");
+
+/**
+ * Builds a Zod schema that:
+ *  • Accepts a string coming from an <input>
+ *  • Strips commas/percent signs/etc.
+ *  • Converts to TokenValue with desired decimals
+ *  • Ensures > 0
+ */
+// export const tv = (decimals: number) => z.preprocess(zodUtils.preProcessStringToTV(decimals), tvValidator);
 // Form Schema
 
 const FormKeys = {
@@ -113,7 +139,7 @@ const schema = z
   })
   .refine(
     ({ temperature }) => {
-      const temp = sanitizeInputValue(temperature, 6);
+      const temp = sanitizeNumericInputValue(temperature, 6);
       return temp.tv?.gt(0) ?? false;
     },
     {
@@ -124,9 +150,9 @@ const schema = z
   .superRefine(
     // minSoil must be lt maxPerSeason
     ({ minSoil, maxPerSeason, totalAmount }, ctx) => {
-      const max = sanitizeInputValue(maxPerSeason, 6);
-      const min = sanitizeInputValue(minSoil, 6);
-      const total = sanitizeInputValue(totalAmount, 6);
+      const max = sanitizeNumericInputValue(maxPerSeason, 6);
+      const min = sanitizeNumericInputValue(minSoil, 6);
+      const total = sanitizeNumericInputValue(totalAmount, 6);
 
       if (max.tv && max.tv.lte(0)) {
         ctx.addIssue({
@@ -288,18 +314,20 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     return results;
   }, [lpTokens, swapQuotes]);
 
+  // Token Strategy
+  const [didInitStrategy, setDidInitStrategy] = useState(false);
+
   const tokenWithHighestValue = useTokenWithHighestValue({
     farmerDeposits,
     price: priceData.price,
     swapResults,
   });
 
-  const [didInitStrategy, setDidInitStrategy] = useState(false);
   useEffect(() => {
     if (didInitStrategy) return;
     setDidInitStrategy(true);
-
     form.setValue(FormKeys.tokenStrategy, tokenWithHighestValue.type, { shouldValidate: false });
+
     if (tokenWithHighestValue.type === "SPECIFIC_TOKEN") {
       form.setValue(FormKeys.tokenAddress, tokenWithHighestValue.address, { shouldValidate: false });
     }
@@ -316,10 +344,10 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
   useEffect(() => {
     if (!didInitOperatorTip) {
       // Only set the initial operator tip to the average tip value
-      setOperatorTip(averageTipValue.toFixed(2));
+      form.setValue(FormKeys.operatorTip, averageTipValue.toFixed(2));
       setDidInitOperatorTip(true);
     }
-  }, [averageTipValue, didInitOperatorTip]);
+  }, [averageTipValue, didInitOperatorTip, form.setValue]);
 
   // Update operatorTip if averageTipValue changes and the active button is "average"
   useEffect(() => {
@@ -872,65 +900,8 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                   // ------------------------------
                   // Step 2 - Operator Tip
                   // ------------------------------
-                  <Col className="gap-6">
-                    <Col>
-                      {/* Title and separator for Step 2 */}
-                      <Col className="gap-2">
-                        <div className="pinto-body font-medium text-pinto-secondary mb-4">🚜 Tip per Execution</div>
-                        <div className="h-[1px] w-full bg-pinto-gray-2 mb-6" />
-                      </Col>
-                      <div className="pinto-sm-light text-pinto-light gap-2 mb-4">I'm willing to pay someone</div>
-                      <div className="flex rounded-lg border border-pinto-gray-2 gap-2 mb-2">
-                        <input
-                          className="h-12 px-3 py-1.5 flex-1 rounded-l-lg focus:outline-none text-base font-light"
-                          placeholder="0.00"
-                          value={operatorTip}
-                          onChange={handleOperatorTipChange}
-                          type="text"
-                        />
-                        <div className="flex items-center gap-2 px-4 rounded-r-lg font-semibold bg-white">
-                          <img src={pintoIcon} alt="PINTO" className="w-6 h-6" />
-                          <span className="text-base font-normal">PINTO</span>
-                        </div>
-                      </div>
-                      {/**
-                       * Operator Tip Presets
-                       */}
-                      <div className="flex justify-between gap-2 mb-2">
-                        {OPERATOR_TIP_OPTIONS.map((option) => (
-                          <SelectionButton
-                            key={`operator-tip-preset-${option.value}`}
-                            isActive={stringEq(activeTipButton, option.value)}
-                            onClick={() => handleTipButtonClick(option.value)}
-                          >
-                            {option.label}
-                          </SelectionButton>
-                        ))}
-                      </div>
-                      <div className="text-[#9C9C9C] text-base font-light mb-32">
-                        each time they Sow part of my Tractor Order.
-                      </div>
-
-                      <div className="flex flex-col gap-2">
-                        <div className="flex justify-between">
-                          <div className="text-[#9C9C9C] text-base font-light">
-                            Estimated total number of executions
-                          </div>
-                          <div className="text-black text-base font-light">{calculateEstimatedExecutions()}</div>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <div className="text-[#9C9C9C] text-base font-light">Estimated total tip</div>
-                          <div className="flex items-center text-black text-base font-light">
-                            {calculateEstimatedTotalTip()}
-                            <img src={pintoIcon} alt="PINTO" className="w-5 h-5 mx-1" />
-                            PINTO
-                          </div>
-                        </div>
-                      </div>
-                    </Col>
-                  </Col>
+                  <OperatorTipForm averageTipValue={averageTipValue} />
                 )}
-
                 {/**
                  * Error message boxes
                  */}
@@ -1070,6 +1041,212 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
 // Form Field Components
 // ────────────────────────────────────────────────────────────────────────────────
 
+const OperatorTipForm = ({
+  averageTipValue,
+}: {
+  averageTipValue: number;
+}) => {
+  const mainToken = useChainConstant(MAIN_TOKEN);
+
+  const { control, setValue, register } = useFormContext<FormSchema>();
+
+  const totalAmount = useWatch({ control, name: FormKeys.totalAmount });
+  const maxPerSeason = useWatch({ control, name: FormKeys.maxPerSeason });
+  const minSoil = useWatch({ control, name: FormKeys.minSoil });
+  const operatorTip = useWatch({ control, name: FormKeys.operatorTip });
+
+  // Calculate the estimated number of executions
+  const calculateEstimatedExecutions = () => {
+    // If any of the required values are missing, return a default
+    const total = sanitizeNumericInputValue(totalAmount, mainToken.decimals).tv;
+    const min = sanitizeNumericInputValue(minSoil, mainToken.decimals).tv;
+    const max = sanitizeNumericInputValue(maxPerSeason, mainToken.decimals).tv;
+
+    if (!min || !max || !total) {
+      return "~0";
+    }
+
+    try {
+      // Remove commas and convert to numbers
+
+      // Check for zero values to avoid division by zero
+      if (total?.eq(0) || max?.eq(0)) {
+        return "~0";
+      }
+
+      // If min is zero, upper bound is infinity
+      if (min.eq(0)) {
+        // Calculate only the lower bound
+        let lowerBound = Math.floor(total.div(max).toNumber());
+        lowerBound = Math.max(1, lowerBound);
+        return `~${lowerBound}-∞`;
+      }
+
+      // Calculate both bounds
+      let lowerBound = Math.floor(total.div(max).toNumber());
+      let upperBound = Math.ceil(total.div(min).toNumber());
+
+      // Handle edge cases and ensure sensible values
+      lowerBound = Math.max(1, lowerBound);
+      upperBound = Math.max(lowerBound, upperBound);
+
+      // Format the result
+      if (lowerBound === upperBound) {
+        return `~${lowerBound}`;
+      } else {
+        return `~${lowerBound}-${upperBound}`;
+      }
+    } catch (e) {
+      console.error("Error calculating executions:", e);
+      return "~0";
+    }
+  };
+
+  // Helper function to calculate tip values for different percentages
+  const getTipValue = useCallback(
+    (type: "down5" | "down1" | "average" | "up1" | "up5") => {
+      const baseValue = averageTipValue;
+      switch (type) {
+        case "down5":
+          return (baseValue * 0.95).toFixed(2);
+        case "down1":
+          return (baseValue * 0.99).toFixed(2);
+        case "average":
+          return baseValue.toFixed(2);
+        case "up1":
+          return (baseValue * 1.01).toFixed(2);
+        case "up5":
+          return (baseValue * 1.05).toFixed(2);
+      }
+    },
+    [averageTipValue],
+  );
+
+  const optionsToTipValue = useMemo(() => {
+    return Object.fromEntries(
+      OPERATOR_TIP_OPTIONS.map((option) => {
+        return [option.value as OperatorTipPreset, getTipValue(option.value) as string] as const;
+      }),
+    );
+  }, [averageTipValue]);
+
+  // Also add a function to calculate the estimated total tip
+  const calculateEstimatedTotalTip = () => {
+    if (!operatorTip || !totalAmount || !maxPerSeason) {
+      return "~0";
+    }
+
+    try {
+      // Remove commas and convert to numbers
+      // const totalClean = getValues(FormKeys.totalAmount).replace(/,/g, "");
+      // const minClean = getValues(FormKeys.minSoil).replace(/,/g, "");
+      // const maxClean = getValues(FormKeys.maxPerSeason).replace(/,/g, "");
+
+      // Convert to TokenValue for precision math
+      const total = sanitizeNumericInputValue(totalAmount, mainToken.decimals).tv;
+      const min = sanitizeNumericInputValue(minSoil, mainToken.decimals).tv;
+      const max = sanitizeNumericInputValue(maxPerSeason, mainToken.decimals).tv;
+
+      if (!total || !min || !max) {
+        return "~0";
+      }
+
+      // Parse the operator tip
+      const tipValue = parseFloat(operatorTip as string);
+
+      // Check for zero values
+      if (total?.eq(0) || max?.eq(0) || Number.isNaN(tipValue)) {
+        return "~0";
+      }
+
+      // Calculate lower bound (based on max per season)
+      let lowerBound = Math.floor(total.div(max).toNumber());
+      lowerBound = Math.max(1, lowerBound);
+      const lowerTip = lowerBound * tipValue;
+
+      // If min is zero, upper bound is infinity
+      if (min.eq(0)) {
+        return `~${lowerTip.toFixed(2)}-∞`;
+      }
+
+      // Calculate upper bound
+      let upperBound = Math.ceil(total.div(min).toNumber());
+      upperBound = Math.max(lowerBound, upperBound);
+      const upperTip = upperBound * tipValue;
+
+      // Format the result
+      if (lowerTip === upperTip) {
+        return `~${lowerTip.toFixed(2)}`;
+      } else {
+        return `~${lowerTip.toFixed(2)}-${upperTip.toFixed(2)}`;
+      }
+    } catch (e) {
+      console.error("Error calculating total tip:", e);
+      return "~0";
+    }
+  };
+
+  return (
+    <Col className="gap-6">
+      <Col>
+        {/* Title and separator for Step 2 */}
+        <Col className="gap-2">
+          <div className="pinto-body font-medium text-pinto-secondary mb-4">🚜 Tip per Execution</div>
+          <div className="h-[1px] w-full bg-pinto-gray-2 mb-6" />
+        </Col>
+        <div className="pinto-sm-light text-pinto-light gap-2 mb-4">I'm willing to pay someone</div>
+        <div className="flex rounded-lg border border-pinto-gray-2 gap-2 mb-2">
+          <input
+            className="h-12 px-3 py-1.5 flex-1 rounded-l-lg focus:outline-none text-base font-light"
+            placeholder="0.00"
+            {...register("operatorTip", { required: true })}
+            type="text"
+          />
+          <div className="flex items-center gap-2 px-4 rounded-r-lg font-semibold bg-white">
+            <img src={pintoIcon} alt="PINTO" className="w-6 h-6" />
+            <span className="text-base font-normal">PINTO</span>
+          </div>
+        </div>
+        {/**
+         * Operator Tip Presets
+         */}
+        <div className="flex justify-between gap-2 mb-2">
+          {OPERATOR_TIP_OPTIONS.map((option) => {
+            const tipValue = getTipValue(option.value);
+            const isActive = stringEq(tipValue, operatorTip);
+
+            return (
+              <SelectionButton
+                key={`operator-tip-preset-${option.value}`}
+                isActive={isActive}
+                onClick={() => setValue(FormKeys.operatorTip, optionsToTipValue[option.value])}
+              >
+                {option.label}
+              </SelectionButton>
+            );
+          })}
+        </div>
+        <div className="text-[#9C9C9C] text-base font-light mb-32">each time they Sow part of my Tractor Order.</div>
+
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between">
+            <div className="text-[#9C9C9C] text-base font-light">Estimated total number of executions</div>
+            <div className="text-black text-base font-light">{calculateEstimatedExecutions()}</div>
+          </div>
+          <div className="flex justify-between items-center">
+            <div className="text-[#9C9C9C] text-base font-light">Estimated total tip</div>
+            <div className="flex items-center text-black text-base font-light">
+              {calculateEstimatedTotalTip()}
+              <img src={pintoIcon} alt="PINTO" className="w-5 h-5 mx-1" />
+              PINTO
+            </div>
+          </div>
+        </div>
+      </Col>
+    </Col>
+  );
+};
+
 const InputFieldWithKey = ({
   fieldKey,
   decimals,
@@ -1107,20 +1284,20 @@ const InputFieldWithKey = ({
   } = useFormContext();
 
   const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const cleaned = sanitizeInputValue(e.target.value, decimals);
+    const cleaned = sanitizeNumericInputValue(e.target.value, decimals);
     setValue(fieldKey, cleaned.str);
   };
 
   const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    const amt = sanitizeInputValue(val, decimals);
+    const amt = sanitizeNumericInputValue(val, decimals);
 
     setValue(fieldKey, amt.str);
   };
 
   const handleOnBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const fieldValue = e.target?.value || "";
-    const amt = sanitizeInputValue(fieldValue, decimals);
+    const amt = sanitizeNumericInputValue(fieldValue, decimals);
     if (amt.nonAmount) return;
 
     setValue(
@@ -1137,7 +1314,7 @@ const InputFieldWithKey = ({
     if (!pairFieldKeys) return;
 
     arrayify(pairFieldKeys).forEach((pairFieldKey) => {
-      if (isValidInputValue(getValues(pairFieldKey))) {
+      if (isValidNumericInputValue(getValues(pairFieldKey))) {
         trigger(pairFieldKey);
       }
     });
@@ -1171,10 +1348,7 @@ const InputFieldWithKey = ({
   );
 };
 
-// ────────────────────────────────────────────────────────────────────────────────
 // Pod Line Length Preset Selection
-// ────────────────────────────────────────────────────────────────────────────────
-
 const PodLineLengthPresetSelection = () => {
   const podLine = usePodLine();
 
@@ -1190,7 +1364,7 @@ const PodLineLengthPresetSelection = () => {
     [podLine],
   );
 
-  const sanitized = sanitizeInputValue(value, 6);
+  const sanitized = sanitizeNumericInputValue(value, 6);
 
   const presetValues = useMemo(
     () =>
@@ -1206,7 +1380,7 @@ const PodLineLengthPresetSelection = () => {
     const calculated = calculatePodLineValue(increment);
 
     const val = presetValues[increment];
-    const sanitized = sanitizeInputValue(getValues(FormKeys.podLineLength), 6);
+    const sanitized = sanitizeNumericInputValue(getValues(FormKeys.podLineLength), 6);
     const isSelected = val?.eq(sanitized?.tv || TokenValue.ZERO) ?? false;
 
     if (isSelected) {
@@ -1242,15 +1416,7 @@ const PodLineLengthPresetSelection = () => {
   );
 };
 
-// ────────────────────────────────────────────────────────────────────────────────
 // Morning Auction Preset Selection
-// ────────────────────────────────────────────────────────────────────────────────
-
-const morningAuctionOptions = [
-  { label: "Yes", value: true },
-  { label: "No", value: false },
-] as const;
-
 const MorningAuctionSelection = () => {
   const { control, setValue } = useFormContext();
 
@@ -1276,6 +1442,7 @@ const MorningAuctionSelection = () => {
   );
 };
 
+// Fund Order Using
 const FundOrderUsingTrigger = ({ setOpen }: { setOpen: (open: boolean) => void }) => {
   const { control } = useFormContext();
   const whitelistedTokens = useWhitelistedTokens();
@@ -1327,6 +1494,7 @@ const FundOrderUsingTrigger = ({ setOpen }: { setOpen: (open: boolean) => void }
   );
 };
 
+// Form Errors
 const FormErrors = () => {
   const {
     formState: { errors },
@@ -1723,12 +1891,20 @@ const PODLINE_PCT_OPTIONS = [
   { label: "100% ↑", value: 100 },
 ] as const;
 
-const OPERATOR_TIP_OPTIONS = [
+const OperatorTipPresets = ["down5", "down1", "average", "up1", "up5"] as const;
+type OperatorTipPreset = (typeof OperatorTipPresets)[number];
+
+const OPERATOR_TIP_OPTIONS: { value: OperatorTipPreset; label: string }[] = [
   { value: "down5", label: "5% ↓" },
   { value: "down1", label: "1% ↓" },
   { value: "average", label: "Average" },
   { value: "up1", label: "1% ↑" },
   { value: "up5", label: "5% ↑" },
+] as const;
+
+const morningAuctionOptions = [
+  { label: "Yes", value: true },
+  { label: "No", value: false },
 ] as const;
 
 const FieldKeyToPairFieldKeys: Partial<Record<keyof typeof FormKeys, Array<keyof typeof FormKeys>>> = {

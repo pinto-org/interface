@@ -1,9 +1,7 @@
 import { TV } from "@/classes/TokenValue";
 import { Col, Row } from "@/components/Container";
-import { formatter } from "@/utils/format";
-import { useDebouncedEffect } from "@/utils/useDebounce";
-import { cn, exists } from "@/utils/utils";
-import React, { useCallback, useEffect, useState } from "react";
+import { cn } from "@/utils/utils";
+import React from "react";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   startIcon?: React.ReactNode;
@@ -75,127 +73,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
 Input.displayName = "Input";
 
-export { Input, InputFieldBorderWrapper };
-
-interface NumberInputProps extends Omit<InputProps, "value" | "type" | "min" | "max"> {
-  value: TV | undefined;
-  setValue: React.Dispatch<React.SetStateAction<TV | undefined>> | ((value: TV | undefined) => void);
-  error?: boolean;
-  isPercent?: boolean;
-  valueDecimals: number;
-  shouldClamp?: boolean;
-  min?: TV;
-  max?: TV;
-}
-
-const initTVState = (value: TV | undefined, valueDecimals: number) => {
-  if (!value) {
-    return "";
-  }
-  return formatter.number(value.toHuman(), { minDecimals: 0, maxDecimals: valueDecimals });
+type ButtonRadioProps = React.InputHTMLAttributes<HTMLInputElement> & {
+  label: string;
 };
 
-export const TokenValueInput = React.forwardRef<HTMLInputElement, NumberInputProps>(
-  (
-    {
-      value,
-      valueDecimals,
-      shouldClamp = false,
-      min,
-      max,
-      placeholder = "0.00",
-      isPercent = false,
-      setValue,
-      ...props
-    },
-    ref,
-  ) => {
-    const [displayValue, setDisplayValue] = useState(initTVState(value, valueDecimals));
-
-    useEffect(() => {
-      console.log("value: ", value?.toHuman());
-    }, [value]);
-
-    const clamp = useCallback(
-      (amt: TV) => {
-        if (min && amt.lt(min)) return min;
-        if (max && amt.gt(max)) return max;
-
-        return amt;
-      },
-      [min, max],
-    );
-
-    const handleChange = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        const sanitized = sanitizeInputValue(value, valueDecimals);
-
-        setDisplayValue(sanitized.str);
-        props.onChange?.(e);
-      },
-      [props.onChange, valueDecimals],
-    );
-
-    // Handle the blur event
-    const handleBlur = useCallback(() => {
-      const sanitized = sanitizeInputValue(displayValue, valueDecimals);
-      if (!shouldClamp) {
-        if (sanitized.nonAmount) {
-          setDisplayValue(sanitized.str);
-        } else {
-          setDisplayValue(formatter.number(sanitized.strValue, { minDecimals: 0, maxDecimals: valueDecimals }));
-        }
-        return;
-      }
-
-      if (sanitized.tv) {
-        const clamped = shouldClamp ? clamp(sanitized.tv) : sanitized.tv;
-        if (!clamped?.eq(sanitized.tv)) {
-          if (sanitized.nonAmount) {
-            setDisplayValue(sanitized.str);
-          } else {
-            setDisplayValue(formatter.number(clamped.toHuman(), { minDecimals: 0, maxDecimals: valueDecimals }));
-            setValue(clamped);
-          }
-        }
-      } else {
-        setDisplayValue(sanitized.str);
-      }
-    }, [displayValue, valueDecimals, shouldClamp, clamp, setValue]);
-
-    const handleOnFocus = useCallback(() => {
-      const sanitized = sanitizeInputValue(displayValue, valueDecimals);
-      setDisplayValue(sanitized.str);
-    }, [displayValue, valueDecimals]);
-
-    // debounce the value change
-    useDebouncedEffect(
-      () => {
-        const sanitized = sanitizeInputValue(displayValue, valueDecimals);
-        setValue(sanitized.tv);
-      },
-      [displayValue, valueDecimals, setValue],
-      50,
-    );
-
-    return (
-      <Input
-        type="text"
-        ref={ref}
-        value={displayValue}
-        placeholder={placeholder}
-        onChange={handleChange}
-        onFocus={handleOnFocus}
-        onBlur={handleBlur}
-        inputMode="numeric"
-        {...props}
-      />
-    );
-  },
-);
-
-TokenValueInput.displayName = "TokenValueInput";
+export { Input, InputFieldBorderWrapper };
 
 // ────────────────────────────────────────────────────────────────────────────────
 // Helper Functions
@@ -205,26 +87,38 @@ const nonAmounts = new Set<string>([".", ""]);
 
 const cleanAmount = (value: string) => value.replace(/[^0-9.]/g, "");
 
-export const isValidInputValue = (value: string) => !nonAmounts.has(value);
+export interface SanitizedNumericStrInput {
+  str: string;
+  strValue: string;
+  tv: TV | undefined;
+  nonAmount: boolean;
+}
+
+const sanitizedNonAmount: SanitizedNumericStrInput = {
+  str: "",
+  strValue: "",
+  tv: undefined,
+  nonAmount: true,
+} as const;
+
+export const isValidNumericInputValue = (value: string) => !nonAmounts.has(value);
 
 /**
  * Sanitize the user input
  */
-export const sanitizeInputValue = (value: string, valueDecimals: number) => {
-  if (nonAmounts.has(value)) {
-    return {
-      str: value,
-      strValue: "",
-      tv: undefined,
-      nonAmount: true,
-    };
-  }
+export const sanitizeNumericInputValue = (value: string, valueDecimals: number): SanitizedNumericStrInput => {
+  const obj = { ...sanitizedNonAmount, str: value };
 
-  let str = "";
-  let strValue = "";
+  // Early return for special cases
+  if (nonAmounts.has(value)) {
+    return obj;
+  }
 
   // remove all non-numeric characters
   const cleaned = cleanAmount(value);
+  if (!cleaned) {
+    return obj;
+  }
 
   // treat all values after the first decimal point as decimal place.
   const [pre, ...post] = cleaned.split(".");
@@ -237,22 +131,18 @@ export const sanitizeInputValue = (value: string, valueDecimals: number) => {
   const back = decimals.slice(0, valueDecimals);
 
   if (startsWithDot) {
-    str = `.${back}`;
-    strValue = `0.${back}`;
+    obj.str = `.${back}`;
+    obj.strValue = `0.${back}`;
   } else if (endsWithDot) {
-    str = `${pre}.`;
-    strValue = `${pre}`;
+    obj.str = `${pre}.`;
+    obj.strValue = `${pre}.0`;
   } else {
-    strValue = `${pre}${mayDot}${back}`;
-    str = strValue;
+    obj.strValue = `${pre}${mayDot}${back}`;
+    obj.str = obj.strValue;
   }
 
-  const tv = TV.fromHuman(strValue, valueDecimals);
+  obj.tv = TV.fromHuman(obj.strValue, valueDecimals);
+  obj.nonAmount = false;
 
-  return {
-    str,
-    strValue,
-    tv,
-    nonAmount: false,
-  };
+  return obj;
 };
