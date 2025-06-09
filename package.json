@@ -79,7 +79,7 @@
     "tsparticles": "^3.5.0",
     "vaul": "^1.1.0",
     "viem": "^2.21.53",
-    "wagmi": "^2.13.2"
+    "wagmi": "^2.15.5"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.8.0",
