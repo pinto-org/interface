@@ -228,6 +228,8 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
 
     if (deposits?.amount.lte(0)) {
       setSource("balances");
+    } else {
+      setSource("deposits");
     }
 
     setDidInitSource(true);
