@@ -8,7 +8,7 @@ import useBucketedFieldPlotSummary, {
   aggregateFieldPlotBucketSummary,
   FieldPlotBucketSummary,
 } from "@/state/useBucketedFieldPlotSummary";
-import { useHarvestableIndex } from "@/state/useFieldData";
+import { useHarvestableIndex, usePodIndex } from "@/state/useFieldData";
 import { formatter, numberAbbr } from "@/utils/format";
 import { useDebounceValue } from "@/utils/useDebounce";
 import { cn, exists } from "@/utils/utils";
@@ -27,6 +27,7 @@ const BUCKET_SIZE = 50_000;
 const FieldTemperatureBarChart = React.memo(({ className, variant = "default" }: FieldTemperatureBarChartProps) => {
   // global state
   const harvestableIndex = useHarvestableIndex();
+  const podIndex = usePodIndex();
 
   // local State
   const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
@@ -36,20 +37,20 @@ const FieldTemperatureBarChart = React.memo(({ className, variant = "default" }:
     (data: FieldPlotBucketSummary[] | undefined) => {
       let datas: FieldPlotBucketSummary[] = [];
 
-      if (data && harvestableIndex.gt(0)) {
+      if (data && podIndex.gt(0)) {
         const maxLookback = getTimestampLookback(tab);
         const filtered = data.filter((d) => d.startTimestamp > maxLookback);
 
         datas = filtered.map((d) => ({
           ...d,
-          startIndex: d.startIndex.sub(harvestableIndex),
-          endIndex: d.endIndex.sub(harvestableIndex),
+          startIndex: d.startIndex.sub(podIndex),
+          endIndex: d.endIndex.sub(podIndex),
         }));
       }
 
       return aggregateFieldPlotBucketSummary(datas);
     },
-    [harvestableIndex, tab],
+    [podIndex, tab],
   );
 
   // queries
@@ -62,7 +63,7 @@ const FieldTemperatureBarChart = React.memo(({ className, variant = "default" }:
   const chartData = useTransformBucketedFieldPlotSummary(summaryData?.data);
 
   // derived state
-  const isLoading = query.isLoading || harvestableIndex.lte(0);
+  const isLoading = query.isLoading || podIndex.lte(0);
 
   // Debounce the active index to prevent too many re-renders
   const debouncedActiveIndex = useDebounceValue(activeIndex, 10);
