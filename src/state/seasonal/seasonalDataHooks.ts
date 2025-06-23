@@ -291,6 +291,30 @@ export function useSeasonalPodsHarvested(fromSeason: number, toSeason: number): 
   }));
 }
 
+export function useSeasonalSoilSupply(fromSeason: number, toSeason: number): UseSeasonalResult {
+  return useSeasonalBeanstalkFieldSG(fromSeason, toSeason, (fieldHourly, timestamp) => ({
+    season: Number(fieldHourly.season),
+    value: TV.fromBlockchain(fieldHourly.issuedSoil || 0, PINTO.decimals).toNumber(),
+    timestamp,
+  }));
+}
+
+export function useSeasonalSoilDemand(fromSeason: number, toSeason: number): UseSeasonalResult {
+  return useSeasonalBeanstalkFieldSG(fromSeason, toSeason, (fieldHourly, timestamp) => ({
+    season: Number(fieldHourly.season),
+    value: TV.fromBlockchain(fieldHourly.sownBeans, PINTO.decimals).toNumber(),
+    timestamp,
+  }));
+}
+
+export function useSeasonalCultivationFactor(fromSeason: number, toSeason: number): UseSeasonalResult {
+  return useSeasonalBeanstalkFieldSG(fromSeason, toSeason, (fieldHourly, timestamp) => ({
+    season: Number(fieldHourly.season),
+    value: Number(fieldHourly.temperature) / 100,
+    timestamp,
+  }));
+}
+
 /** ==================== WrappedDepositERC20HourlySnapshot ==================== **/
 
 export function useSeasonalWrappedDepositExchangeRate(fromSeason: number, toSeason: number): UseSeasonalResult {
