@@ -2573,32 +2573,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@netlify/functions@npm:^2.8.1":
-  version: 2.8.1
-  resolution: "@netlify/functions@npm:2.8.1"
-  dependencies:
-    "@netlify/serverless-functions-api": "npm:1.19.1"
-  checksum: 10c0/4a6b6411aea25d6ab223814b46afb0c394ee3b20ff82717d788e5ce6ea3590c2c99e1af5cf9693c8871736751afe54053f6fd6a3916c9362d1f5a2e4195d2b3c
-  languageName: node
-  linkType: hard
-
-"@netlify/node-cookies@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "@netlify/node-cookies@npm:0.1.0"
-  checksum: 10c0/5d8034d1fd581930e8100af4e5710b79cb3bb0a0b743c716d0d8a1c347aad767fa75130323f1aaee78080a026a4cafd4eef7d11953de01098a661d765a497b16
-  languageName: node
-  linkType: hard
-
-"@netlify/serverless-functions-api@npm:1.19.1":
-  version: 1.19.1
-  resolution: "@netlify/serverless-functions-api@npm:1.19.1"
-  dependencies:
-    "@netlify/node-cookies": "npm:^0.1.0"
-    urlpattern-polyfill: "npm:8.0.2"
-  checksum: 10c0/461deb4857fc637526b590ea2d59bba9b5cdff082c10891033fbd99523d731afdd23a09493dbbcf6770beb26304b9e2e4e0ccf677f8bd11d4bff6bb631ecc19d
-  languageName: node
-  linkType: hard
-
 "@noble/ciphers@npm:^1.0.0":
   version: 1.1.2
   resolution: "@noble/ciphers@npm:1.1.2"
@@ -2837,7 +2811,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@parcel/watcher@npm:2.4.1, @parcel/watcher@npm:^2.4.1":
+"@parcel/watcher@npm:^2.4.1":
   version: 2.4.1
   resolution: "@parcel/watcher@npm:2.4.1"
   dependencies:
@@ -9341,8 +9315,6 @@ __metadata:
     "@graphql-codegen/cli": "npm:5.0.2"
     "@graphql-codegen/client-preset": "npm:4.3.2"
     "@hookform/resolvers": "npm:^3.9.0"
-    "@netlify/functions": "npm:^2.8.1"
-    "@parcel/watcher": "npm:2.4.1"
     "@radix-ui/react-accordion": "npm:^1.2.3"
     "@radix-ui/react-checkbox": "npm:^1.1.2"
     "@radix-ui/react-collapsible": "npm:^1.1.1"
@@ -13517,17 +13489,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"urlpattern-polyfill@npm:8.0.2, urlpattern-polyfill@npm:^8.0.0":
-  version: 8.0.2
-  resolution: "urlpattern-polyfill@npm:8.0.2"
-  checksum: 10c0/5388bbe8459dbd8861ee7cb97904be915dd863a9789c2191c528056f16adad7836ec22762ed002fed44e8995d0f98bdfb75a606466b77233e70d0f61b969aaf9
-  languageName: node
-  linkType: hard
-
 "urlpattern-polyfill@npm:^10.0.0":
   version: 10.0.0
   resolution: "urlpattern-polyfill@npm:10.0.0"
   checksum: 10c0/43593f2a89bd54f2d5b5105ef4896ac5c5db66aef723759fbd15cd5eb1ea6cdae9d112e257eda9bbc3fb0cd90be6ac6e9689abe4ca69caa33114f42a27363531
+  languageName: node
+  linkType: hard
+
+"urlpattern-polyfill@npm:^8.0.0":
+  version: 8.0.2
+  resolution: "urlpattern-polyfill@npm:8.0.2"
+  checksum: 10c0/5388bbe8459dbd8861ee7cb97904be915dd863a9789c2191c528056f16adad7836ec22762ed002fed44e8995d0f98bdfb75a606466b77233e70d0f61b969aaf9
   languageName: node
   linkType: hard
 
