@@ -48,8 +48,6 @@ jobs:
     steps:
       - name: Check out source repository
         uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -69,31 +67,5 @@ jobs:
         run: yarn install 
 
       - name: Check Linting errors
-        id: lint-check
-        run: |
-          if yarn lint:check-errors-only; then
-            echo "lint-passed=true" >> $GITHUB_OUTPUT
-          else
-            echo "lint-passed=false" >> $GITHUB_OUTPUT
-          fi
-        continue-on-error: true
-
-      - name: Auto-format code
-        if: steps.lint-check.outputs.lint-passed == 'false'
-        run: yarn format
-
-      - name: Commit formatted changes
-        if: steps.lint-check.outputs.lint-passed == 'false'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "Auto-format code with Biome"
-            git push
-          fi
-
-      - name: Final lint check
-        if: steps.lint-check.outputs.lint-passed == 'false'
         run: yarn lint:check-errors-only
 
