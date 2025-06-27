@@ -1,4 +1,5 @@
 import { isFunction } from "@/utils/utils";
+import { safeLocalStorage, safeWindow } from "@/utils/safeWindow";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export interface UseLocalStorageOptions<T> {
@@ -83,27 +84,36 @@ function safeDeserialize<T>(
 export default function useLocalStorage<T = unknown>(
   key: string,
   initialValue: T | (() => T),
-  { initializeIfEmpty = false, sync = false, serialize, deserialize }: UseLocalStorageOptions<T> = {},
+  {
+    initializeIfEmpty = false,
+    sync = false,
+    serialize,
+    deserialize,
+  }: UseLocalStorageOptions<T> = {},
 ): readonly [T, (v: T | ((p: T) => T)) => void, () => void] {
   /* ------------------------------------ init ----------------------------------- */
-  const initial = useMemo(() => (isFunction(initialValue) ? initialValue() : initialValue), []);
+  const initial = useMemo(
+    () => (isFunction(initialValue) ? initialValue() : initialValue),
+    [],
+  );
 
   const writeInitialIfNeeded = (value: T) => {
     if (typeof window === "undefined") return;
-    try {
-      window.localStorage.setItem(key, serialize ? serialize(value) : JSON.stringify(value));
-      if (sync) {
-        window.dispatchEvent(new CustomEvent("local-storage", { detail: { key, value } }));
-      }
-    } catch {
-      /* swallow quota / serialisation errors */
+    const success = safeLocalStorage.setItem(
+      key,
+      serialize ? serialize(value) : JSON.stringify(value),
+    );
+    if (success && sync) {
+      safeWindow.dispatchEvent(
+        new CustomEvent("local-storage", { detail: { key, value } }),
+      );
     }
   };
 
   const read = () => {
     if (typeof window === "undefined") return initial;
 
-    const raw = window.localStorage.getItem(key);
+    const raw = safeLocalStorage.getItem(key);
 
     // Populate storage if empty and user asked for it
     if (raw === null && initializeIfEmpty) {
@@ -132,19 +142,20 @@ export default function useLocalStorage<T = unknown>(
   const set = useCallback(
     (next: T | ((prev: T) => T)) => {
       setState((prev) => {
-        const value = typeof next === "function" ? (next as (p: T) => T)(prev) : next;
+        const value =
+          typeof next === "function" ? (next as (p: T) => T)(prev) : next;
 
         if (typeof window !== "undefined") {
-          try {
-            window.localStorage.setItem(
-              key,
-              serializeRef.current ? serializeRef.current(value) : JSON.stringify(value),
+          const success = safeLocalStorage.setItem(
+            key,
+            serializeRef.current
+              ? serializeRef.current(value)
+              : JSON.stringify(value),
+          );
+          if (success && sync) {
+            safeWindow.dispatchEvent(
+              new CustomEvent("local-storage", { detail: { key, value } }),
             );
-            if (sync) {
-              window.dispatchEvent(new CustomEvent("local-storage", { detail: { key, value } }));
-            }
-          } catch {
-            /* ignore */
           }
         }
         return value;
@@ -159,14 +170,13 @@ export default function useLocalStorage<T = unknown>(
 
   const remove = useCallback(() => {
     if (typeof window === "undefined") return;
-    try {
-      window.localStorage.removeItem(key);
-      if (sync) {
-        window.dispatchEvent(new CustomEvent("local-storage", { detail: { key, value: initial } }));
-      }
-    } finally {
-      setState(initial);
+    const success = safeLocalStorage.removeItem(key);
+    if (success && sync) {
+      safeWindow.dispatchEvent(
+        new CustomEvent("local-storage", { detail: { key, value: initial } }),
+      );
     }
+    setState(initial);
   }, [key, initial, sync]);
 
   /* -------------------------------------------------------------------------- */
@@ -187,12 +197,12 @@ export default function useLocalStorage<T = unknown>(
       if (changed === key) setState(value);
     };
 
-    window.addEventListener("storage", handleStorage);
-    window.addEventListener("local-storage", handleCustom);
+    safeWindow.addEventListener("storage", handleStorage);
+    safeWindow.addEventListener("local-storage", handleCustom);
 
     return () => {
-      window.removeEventListener("storage", handleStorage);
-      window.removeEventListener("local-storage", handleCustom);
+      safeWindow.removeEventListener("storage", handleStorage);
+      safeWindow.removeEventListener("local-storage", handleCustom);
     };
   }, [key, sync]);
 

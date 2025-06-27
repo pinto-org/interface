@@ -2,6 +2,7 @@ import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { Col, Row } from "@/components/Container";
 import EmptyTable from "@/components/EmptyTable";
+import ModifyTractorOrderDialog from "@/components/ModifyTractorOrderDialog";
 import ReviewTractorOrderDialog from "@/components/ReviewTractorOrderDialog";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -46,6 +47,10 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
   const [selectedOrder, setSelectedOrder] = useState<RequisitionEvent | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [rawSowBlueprintCall, setRawSowBlueprintCall] = useState<`0x${string}` | null>(null);
+  
+  // State for the modify dialog
+  const [selectedOrderToModify, setSelectedOrderToModify] = useState<RequisitionEvent | null>(null);
+  const [showModifyDialog, setShowModifyDialog] = useState(false);
 
   // Fetch executions for the farmer's orders
   const { data: executions, ...executionsQuery } = usePublisherTractorExecutions(address, !!address);
@@ -151,6 +156,12 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
     }
 
     setShowDialog(true);
+  };
+
+  const handleModifyOrder = (req: RequisitionEvent, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent opening the order dialog
+    setSelectedOrderToModify(req);
+    setShowModifyDialog(true);
   };
 
   if (!address) {
@@ -356,6 +367,14 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
               </Row>
               <Button
                 variant="ghost"
+                className="text-sm text-pinto-green-4 hover:bg-pinto-green-1"
+                onClick={(e) => handleModifyOrder(req, e)}
+                disabled={submitting || isConfirming || req.isCancelled || isComplete}
+              >
+                <span className="inline">Modify</span>
+              </Button>
+              <Button
+                variant="ghost"
                 className="text-sm text-pinto-red-2 hover:bg-pinto-red-1"
                 onClick={(e) => handleCancelBlueprint(req, e)}
                 disabled={submitting || isConfirming}
@@ -388,6 +407,20 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
           executionHistory={(executions ?? []).filter((exec) =>
             stringEq(exec.blueprintHash, selectedOrder.requisition.blueprintHash),
           )}
+        />
+      )}
+
+      {/* Dialog for modifying orders */}
+      {selectedOrderToModify && (
+        <ModifyTractorOrderDialog
+          open={showModifyDialog}
+          onOpenChange={setShowModifyDialog}
+          existingOrder={selectedOrderToModify}
+          onOrderModified={() => {
+            // Refresh the data when order is modified
+            ordersQuery.refetch();
+            executionsQuery.refetch();
+          }}
         />
       )}
     </div>

@@ -33,3 +33,4 @@ src/generated
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+.config/

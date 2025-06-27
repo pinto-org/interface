@@ -1,0 +1,6 @@
+{
+  "command": "yarn generate && yarn dev",
+  "serverUrl": "http://localhost:5173/overview",
+  "authenticateProxy": false,
+  "commitMode": "commits"
+}
