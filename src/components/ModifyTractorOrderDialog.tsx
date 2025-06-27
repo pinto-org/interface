@@ -865,9 +865,7 @@ export default function ModifyTractorOrderDialog({
           <DialogContent className="max-w-[98rem] w-[95vw] sm:max-w-[600px] p-6">
             <Col className="gap-6">
               <DialogHeader>
-                <DialogTitle className="font-normal text-[1.25rem] tracking-normal">
-                  Modify Tractor Order
-                </DialogTitle>
+                <DialogTitle className="font-normal text-[1.25rem] tracking-normal">Modify Tractor Order</DialogTitle>
                 <DialogDescription className="pinto-sm-light text-pinto-light">
                   <p>
                     Update your existing Tractor Order. The current order will be cancelled and a new one will be
@@ -1257,18 +1255,18 @@ export default function ModifyTractorOrderDialog({
                     side="top"
                     align="center"
                     // Only show tooltip when there are missing fields or errors
-                    disabled={!((!areRequiredFieldsFilled() || !!error))}
+                    disabled={!(!areRequiredFieldsFilled() || !!error)}
                   >
                     <div className="flex-1">
                       <Button
                         size="xlargest"
                         rounded="full"
                         className={`w-full ${
-                          (!areRequiredFieldsFilled() || !!error) || isLoading
+                          !areRequiredFieldsFilled() || !!error || isLoading
                             ? "bg-pinto-gray-2 text-[#9C9C9C]"
                             : "bg-[#387F5C] text-white"
                         }`}
-                        disabled={(!areRequiredFieldsFilled() || !!error) || isLoading}
+                        disabled={!areRequiredFieldsFilled() || !!error || isLoading}
                         onClick={handleNext}
                       >
                         {isLoading ? (
@@ -1617,7 +1615,9 @@ function ModifyTractorOrderReviewDialog({
                       <span className="text-gray-500">Current:</span>
                       <div>Total Amount: {existingOrder.decodedData?.sowAmounts.totalAmountToSowAsString} PINTO</div>
                       <div>Temperature: {existingOrder.decodedData?.minTempAsString}%</div>
-                      <div>Operator Tip: {existingOrder.decodedData?.operatorParams.operatorTipAmountAsString} PINTO</div>
+                      <div>
+                        Operator Tip: {existingOrder.decodedData?.operatorParams.operatorTipAmountAsString} PINTO
+                      </div>
                     </div>
                     <div>
                       <span className="text-gray-500">New:</span>
@@ -1631,30 +1631,16 @@ function ModifyTractorOrderReviewDialog({
 
               {/* Action buttons */}
               <Row className="justify-between items-center">
-                <Button
-                  variant="outline"
-                  onClick={() => onOpenChange(false)}
-                  className="flex-1 mr-2"
-                >
+                <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 mr-2">
                   Cancel
                 </Button>
-                
+
                 {!signedRequisitionData ? (
-                  <Button
-                    variant="gradient"
-                    onClick={handleSignBlueprint}
-                    disabled={isLoading}
-                    className="flex-1 ml-2"
-                  >
+                  <Button variant="gradient" onClick={handleSignBlueprint} disabled={isLoading} className="flex-1 ml-2">
                     {isLoading ? "Signing..." : "Sign New Order"}
                   </Button>
                 ) : (
-                  <Button
-                    variant="gradient"
-                    onClick={handleModifyOrder}
-                    disabled={submitting}
-                    className="flex-1 ml-2"
-                  >
+                  <Button variant="gradient" onClick={handleModifyOrder} disabled={submitting} className="flex-1 ml-2">
                     {submitting ? "Modifying..." : "Modify Order"}
                   </Button>
                 )}

@@ -47,7 +47,7 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
   const [selectedOrder, setSelectedOrder] = useState<RequisitionEvent | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [rawSowBlueprintCall, setRawSowBlueprintCall] = useState<`0x${string}` | null>(null);
-  
+
   // State for the modify dialog
   const [selectedOrderToModify, setSelectedOrderToModify] = useState<RequisitionEvent | null>(null);
   const [showModifyDialog, setShowModifyDialog] = useState(false);
