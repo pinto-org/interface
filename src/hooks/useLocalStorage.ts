@@ -189,8 +189,9 @@ export default function useLocalStorage<T = unknown>(
 
     if (typeof window === "undefined" || !sync) return;
 
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === key) setState(read());
+    const handleStorage = (e: Event) => {
+      const storageEvent = e as StorageEvent;
+      if (storageEvent.key === key) setState(read());
     };
     const handleCustom = (e: Event) => {
       const { key: changed, value } = (e as CustomEvent).detail ?? {};
