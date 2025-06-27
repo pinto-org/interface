@@ -3,7 +3,6 @@ import { TV, TokenValue } from "@/classes/TokenValue";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Separator } from "@/components/ui/Separator";
-import Text from "@/components/ui/Text";
 import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { AllPodOrdersQuery } from "@/generated/gql/pintostalk/graphql";

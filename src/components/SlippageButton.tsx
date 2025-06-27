@@ -5,7 +5,6 @@ import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { Label } from "./ui/Label";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/Popover";
-import Text from "./ui/Text";
 
 export default function SlippageButton({
   slippage,

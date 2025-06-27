@@ -6,7 +6,6 @@ import { useEffect, useMemo, useState } from "react";
 import { CloseIcon } from "./Icons";
 import { Button } from "./ui/Button";
 import IconImage from "./ui/IconImage";
-import Text from "./ui/Text";
 
 type GerminationNoticeProps =
   | { type: "single"; deposit: DepositData }

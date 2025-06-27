@@ -1,5 +1,6 @@
 import SeasonalChart, { tabToSeasonalLookback } from "@/components/charts/SeasonalChart";
 import { TimeTab } from "@/components/charts/TimeTabs";
+import { useSharedTimeTab } from "@/hooks/useSharedTimeTab";
 import {
   useSeasonalTractorCumulativeTips,
   useSeasonalTractorExecutionsCount,
@@ -12,17 +13,16 @@ import {
 } from "@/state/seasonal/seasonalDataHooks";
 import { useSunData } from "@/state/useSunData";
 import { chartFormatters as f } from "@/utils/format";
-import { useState } from "react";
 
 const TractorExplorer = () => {
-  const [sownTab, setSownTab] = useState(TimeTab.Week);
-  const [podsTab, setPodsTab] = useState(TimeTab.Week);
-  const [fundedTab, setFundedTab] = useState(TimeTab.Week);
-  const [maxSowTab, setMaxSowTab] = useState(TimeTab.Week);
-  const [tipsTab, setTipsTab] = useState(TimeTab.Week);
-  const [maxTipTab, setMaxTipTab] = useState(TimeTab.Week);
-  const [executionsTab, setExecutionsTab] = useState(TimeTab.Week);
-  const [publishersTab, setPublishersTab] = useState(TimeTab.Week);
+  const [sownTab, setSownTab] = useSharedTimeTab("tractorSown");
+  const [podsTab, setPodsTab] = useSharedTimeTab("tractorPods");
+  const [fundedTab, setFundedTab] = useSharedTimeTab("tractorFunded");
+  const [maxSowTab, setMaxSowTab] = useSharedTimeTab("tractorMaxSow");
+  const [tipsTab, setTipsTab] = useSharedTimeTab("tractorTips");
+  const [maxTipTab, setMaxTipTab] = useSharedTimeTab("tractorMaxTip");
+  const [executionsTab, setExecutionsTab] = useSharedTimeTab("tractorExecutions");
+  const [publishersTab, setPublishersTab] = useSharedTimeTab("tractorPublishers");
 
   const season = useSunData().current;
 

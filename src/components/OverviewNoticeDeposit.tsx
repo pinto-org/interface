@@ -1,7 +1,6 @@
 import useTokenData from "@/state/useTokenData";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/Button";
-import Text from "./ui/Text";
 
 export default function OverviewNoticeDeposit() {
   const mainToken = useTokenData().mainToken;

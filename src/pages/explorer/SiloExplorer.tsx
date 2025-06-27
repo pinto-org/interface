@@ -1,6 +1,7 @@
 import SeasonalAPYChart from "@/components/charts/SeasonalAPYChart";
 import SeasonalChart, { tabToSeasonalLookback } from "@/components/charts/SeasonalChart";
 import { TimeTab } from "@/components/charts/TimeTabs";
+import { useSharedTimeTab } from "@/hooks/useSharedTimeTab";
 import {
   useSeasonalAvgSeeds,
   useSeasonalBDV,
@@ -46,10 +47,10 @@ interface ISeason {
   season: number;
 }
 
-const useTimeTabs = () => useState(TimeTab.Week);
+const useTimeTabs = (chartId: string) => useSharedTimeTab(chartId);
 
 const TotalLiquidityChart = React.memo(({ season }: ISeason) => {
-  const [liquidityTab, setLiquidityTab] = useTimeTabs();
+  const [liquidityTab, setLiquidityTab] = useTimeTabs("totalLiquidity");
 
   const liquidityData = useSeasonalTotalLiquidity(Math.max(0, season - tabToSeasonalLookback(liquidityTab)), season);
 
@@ -69,7 +70,7 @@ const TotalLiquidityChart = React.memo(({ season }: ISeason) => {
 });
 
 const L2SRChart = React.memo(({ season }: ISeason) => {
-  const [l2srTab, setL2srTab] = useTimeTabs();
+  const [l2srTab, setL2srTab] = useTimeTabs("l2sr");
 
   const l2srData = useSeasonalL2SR(Math.max(0, season - tabToSeasonalLookback(l2srTab)), season);
 
@@ -88,7 +89,7 @@ const L2SRChart = React.memo(({ season }: ISeason) => {
 });
 
 const StalkSupplyChart = React.memo(({ season }: ISeason) => {
-  const [stalkTab, setStalkTab] = useTimeTabs();
+  const [stalkTab, setStalkTab] = useTimeTabs("stalkSupply");
 
   const stalkData = useSeasonalStalk(Math.max(0, season - tabToSeasonalLookback(stalkTab)), season);
 
@@ -108,7 +109,7 @@ const StalkSupplyChart = React.memo(({ season }: ISeason) => {
 });
 
 const TotalDepositedPDVChart = React.memo(({ season }: ISeason) => {
-  const [bdvTab, setBdvTab] = useTimeTabs();
+  const [bdvTab, setBdvTab] = useTimeTabs("totalDepositedPDV");
 
   const bdvData = useSeasonalBDV(Math.max(0, season - tabToSeasonalLookback(bdvTab)), season);
 
@@ -128,7 +129,7 @@ const TotalDepositedPDVChart = React.memo(({ season }: ISeason) => {
 });
 
 const AvgSeedsChart = React.memo(({ season }: ISeason) => {
-  const [avgSeedsTab, setAvgSeedsTab] = useTimeTabs();
+  const [avgSeedsTab, setAvgSeedsTab] = useTimeTabs("avgSeeds");
 
   const avgSeedsData = useSeasonalAvgSeeds(Math.max(0, season - tabToSeasonalLookback(avgSeedsTab)), season);
 

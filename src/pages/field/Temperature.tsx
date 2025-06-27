@@ -2,9 +2,10 @@ import SeasonalChart, { tabToSeasonalLookback } from "@/components/charts/Season
 import { TimeTab } from "@/components/charts/TimeTabs";
 import { useSeasonalTemperature } from "@/state/seasonal/seasonalDataHooks";
 import { useSeason } from "@/state/useSunData";
+import { calculateTemperatureYAxisRanges } from "@/utils/chartUtils";
 import { chartFormatters as f } from "@/utils/format";
 import { cn } from "@/utils/utils";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 interface ITemperatureChartProps {
   chartWrapperClassName?: string;
@@ -15,6 +16,11 @@ const TemperatureChart = ({ chartWrapperClassName, className }: ITemperatureChar
   const [tempTab, setTempTab] = useState(TimeTab.Week);
   const season = useSeason();
   const tempData = useSeasonalTemperature(Math.max(0, season - tabToSeasonalLookback(tempTab)), season);
+
+  // Calculate appropriate Y-axis ranges for temperature data
+  const yAxisRanges = useMemo(() => {
+    return calculateTemperatureYAxisRanges(tempData.data);
+  }, [tempData.data]);
 
   return (
     <SeasonalChart
@@ -29,6 +35,7 @@ const TemperatureChart = ({ chartWrapperClassName, className }: ITemperatureChar
       className={cn("bg-pinto-off-white border border-pinto-gray-2 h-[423px] lg:h-[435px]", className)}
       statVariant="non-colored"
       chartWrapperClassName={chartWrapperClassName}
+      yAxisRanges={yAxisRanges}
     />
   );
 };

@@ -11,7 +11,6 @@ import IconImage from "@/components/ui/IconImage";
 import { Separator } from "@/components/ui/Separator";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
-import Text from "@/components/ui/Text";
 import { PINTO } from "@/constants/tokens";
 import { useDenomination } from "@/hooks/useAppSettings";
 import useFarmerActions from "@/hooks/useFarmerActions";

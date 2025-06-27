@@ -5,7 +5,6 @@ import { Plot } from "@/utils/types";
 import { Dispatch, InputHTMLAttributes, SetStateAction, useEffect, useMemo } from "react";
 import PlotSelect from "./PlotSelect";
 import SimpleInputField from "./SimpleInputField";
-import Text from "./ui/Text";
 
 export interface ComboPlotInputProps extends InputHTMLAttributes<HTMLInputElement> {
   selectedPlots: Plot[];

@@ -22,7 +22,6 @@ import {
 } from "./ui/Dialog";
 import { ScrollArea } from "./ui/ScrollArea";
 import { Separator } from "./ui/Separator";
-import Text from "./ui/Text";
 import { ToggleGroup, ToggleGroupItem } from "./ui/ToggleGroup";
 
 function PlotSelectItem({

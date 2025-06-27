@@ -3,6 +3,7 @@ import TextSkeleton from "@/components/TextSkeleton";
 import BarChart from "@/components/charts/BarChart";
 import TimeTabsSelector, { TimeTab } from "@/components/charts/TimeTabs";
 import { Card } from "@/components/ui/Card";
+import { useSharedTimeTab } from "@/hooks/useSharedTimeTab";
 import useBucketedFieldPlotSummary, {
   AggregatedFieldPlotsSummary,
   aggregateFieldPlotBucketSummary,
@@ -30,7 +31,10 @@ const FieldTemperatureBarChart = React.memo(({ className, variant = "default" }:
 
   // local State
   const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
-  const [tab, setTab] = useState<TimeTab>(TimeTab.AllTime);
+  const [explorerTab, setExplorerTab] = useSharedTimeTab("fieldTemperature", TimeTab.AllTime);
+  const [localTab, setLocalTab] = useState<TimeTab>(TimeTab.AllTime);
+
+  const [tab, setTab] = variant === "explorer" ? [explorerTab, setExplorerTab] : [localTab, setLocalTab];
 
   const handleSelect = useCallback(
     (data: FieldPlotBucketSummary[] | undefined) => {

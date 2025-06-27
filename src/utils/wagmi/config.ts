@@ -47,6 +47,7 @@ const config = createConfig(
     appDescription: "A decentralized stablecoin protocol",
     appUrl: "https://pinto.money/", // your app's url
     appIcon: PintoIcon, // your app's icon, no bigger than 1024x1024px (max. 1MB)
+    enableFamily: false,
   }),
 );
 

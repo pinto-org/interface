@@ -5,7 +5,6 @@ import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import SimpleInputField from "@/components/SimpleInputField";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Separator } from "@/components/ui/Separator";
-import Text from "@/components/ui/Text";
 import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";

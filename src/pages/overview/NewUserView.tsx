@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/Card";
 import GradientCard from "@/components/ui/GradientCard";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
-import Text from "@/components/ui/Text";
 import { PODS, SEEDS, STALK } from "@/constants/internalTokens";
 import { PINTO } from "@/constants/tokens";
 import useIsTablet from "@/hooks/display/useIsTablet";

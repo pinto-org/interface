@@ -7,7 +7,6 @@ import SimpleInputField from "@/components/SimpleInputField";
 import SlippageButton from "@/components/SlippageButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Separator } from "@/components/ui/Separator";
-import Text from "@/components/ui/Text";
 import { PODS } from "@/constants/internalTokens";
 import createPodOrder from "@/encoders/createPodOrder";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
