@@ -8,7 +8,6 @@ import { ReactNode, useEffect, useMemo } from "react";
 import { createTestClient } from "viem";
 import { http, WagmiProvider, createConfig } from "wagmi";
 import { mock } from "wagmi/connectors";
-import { safeLocalStorage } from "./utils/safeWindow";
 import { isValidAddress } from "./utils/string";
 import { isLocalhost, isNetlifyPreview, isProd } from "./utils/utils";
 import {
@@ -34,19 +33,8 @@ const queryClient = new QueryClient({
   },
 });
 
-// Create a safe localStorage wrapper for the persister
-const safeStorageAPI = {
-  getItem: (key: string) => safeLocalStorage.getItem(key),
-  setItem: (key: string, value: string) => {
-    safeLocalStorage.setItem(key, value);
-  },
-  removeItem: (key: string) => {
-    safeLocalStorage.removeItem(key);
-  },
-};
-
 const localStoragePersister = createSyncStoragePersister({
-  storage: safeStorageAPI,
+  storage: window.localStorage,
 });
 
 export const Web3Provider = ({ children }: { children: ReactNode }) => {
@@ -62,10 +50,7 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
        */}
       <PersistQueryClientProvider
         client={queryClient}
-        persistOptions={{
-          persister: localStoragePersister,
-          buster: "20250501",
-        }}
+        persistOptions={{ persister: localStoragePersister, buster: "20250501" }}
       >
         <MockConnectorManager />
         <ConnectKitProvider
@@ -79,14 +64,12 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
             "--ck-overlay-backdrop-filter": "blur(2px)",
             "--ck-overlay-background": "rgb(255 255 255 / 0.5)",
             "--ck-primary-button-font-weight": "400",
-            "--ck-primary-button-box-shadow":
-              "0px 0px 0px 1px rgb(217, 217, 217)",
+            "--ck-primary-button-box-shadow": "0px 0px 0px 1px rgb(217, 217, 217)",
             "--ck-primary-button-background": "#FCFCFC",
             "--ck-primary-button-hover-background": "#EBEBEB",
             "--ck-secondary-button-background": "#FCFCFC",
             "--ck-secondary-button-hover-background": "#EBEBEB",
-            "--ck-secondary-button-box-shadow":
-              "0px 0px 0px 1px rgb(217, 217, 217)",
+            "--ck-secondary-button-box-shadow": "0px 0px 0px 1px rgb(217, 217, 217)",
             "--ck-spinner-color": "rgb(36 102 69)",
             "--ck-qr-border-color": "rgb(217, 217, 217)",
             "--ck-qr-dot-color": "rgb(36 102 69)",
@@ -126,7 +109,7 @@ function MockConnectorManager() {
 // Add atom for mock address with stored value or default
 export const mockAddressAtom = atom<`0x${string}`>(
   // default to local storage
-  (safeLocalStorage.getItem("mockAddress") as `0x${string}`) ||
+  (localStorage.getItem("mockAddress") as `0x${string}`) ||
     null ||
     // if none in local storage, use env variable
     "0x",
@@ -159,12 +142,7 @@ const useEnvConfig = () => {
     }
 
     return createConfig({
-      connectors: [
-        mock({
-          accounts: [mockAddress],
-          features: { defaultConnected: true, reconnect: true },
-        }),
-      ],
+      connectors: [mock({ accounts: [mockAddress], features: { defaultConnected: true, reconnect: true } })],
       chains: [localhost, base],
       client() {
         return anvilTestClient;
