@@ -1211,7 +1211,7 @@ export default function ModifyTractorOrderDialog({
                               minSoil,
                               maxPerSeason,
                               totalAmount,
-                              isPodLineLengthValid,
+                              isPodLineLengthValid
                             ).map((field) => (
                               <li key={field}>{field}</li>
                             ))}
@@ -1558,7 +1558,7 @@ function ModifyTractorOrderReviewDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
         <DialogOverlay className="fixed inset-0 backdrop-blur-[2px] bg-white/50" />
-        <DialogContent className="max-w-[98rem] w-[95vw] sm:max-w-[1400px] p-0 sm:p-0">
+        <DialogContent className="max-w-[98rem] w-[95vw] sm:max-w-[600px] p-0 sm:p-0">
           <Col className="gap-3 pb-3">
             <DialogHeader>
               <DialogTitle className="font-normal text-[1.25rem] tracking-normal px-6 pt-6">
@@ -1578,20 +1578,18 @@ function ModifyTractorOrderReviewDialog({
                 <h3 className="font-medium mb-2">Order Changes</h3>
                 <div className="space-y-2 text-sm">
                   {/* Show differences between old and new order */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2 text-sm">
                     <div>
-                      <span className="text-gray-500">Current:</span>
-                      <div>Total Amount: {existingOrder.decodedData?.sowAmounts.totalAmountToSowAsString} PINTO</div>
-                      <div>Temperature: {existingOrder.decodedData?.minTempAsString}%</div>
-                      <div>
-                        Operator Tip: {existingOrder.decodedData?.operatorParams.operatorTipAmountAsString} PINTO
-                      </div>
+                      Total Amount: {existingOrder.decodedData?.sowAmounts.totalAmountToSowAsString} {(existingOrder.decodedData?.sowAmounts.totalAmountToSowAsString?.replace(/,/g, "") || "") !== (orderData.totalAmount?.replace(/,/g, "") || "") && "→"} {(existingOrder.decodedData?.sowAmounts.totalAmountToSowAsString?.replace(/,/g, "") || "") !== (orderData.totalAmount?.replace(/,/g, "") || "") && `${orderData.totalAmount} Pinto`}
                     </div>
                     <div>
-                      <span className="text-gray-500">New:</span>
-                      <div>Total Amount: {orderData.totalAmount} PINTO</div>
-                      <div>Temperature: {orderData.temperature}%</div>
-                      <div>Operator Tip: {orderData.operatorTip} PINTO</div>
+                      Pod Line Length: {existingOrder.decodedData?.maxPodlineLengthAsString} {(existingOrder.decodedData?.maxPodlineLengthAsString?.replace(/,/g, "") || "") !== (orderData.podLineLength?.replace(/,/g, "") || "") && "→"} {(existingOrder.decodedData?.maxPodlineLengthAsString?.replace(/,/g, "") || "") !== (orderData.podLineLength?.replace(/,/g, "") || "") && `${orderData.podLineLength} Pods`}
+                    </div>
+                    <div>
+                      Temperature: {existingOrder.decodedData?.minTempAsString}% {(existingOrder.decodedData?.minTempAsString?.replace(/,/g, "") || "") !== (orderData.temperature?.replace(/,/g, "") || "") && "→"} {(existingOrder.decodedData?.minTempAsString?.replace(/,/g, "") || "") !== (orderData.temperature?.replace(/,/g, "") || "") && `${orderData.temperature}%`}
+                    </div>
+                    <div>
+                      Operator Tip: {existingOrder.decodedData?.operatorParams.operatorTipAmountAsString} {(existingOrder.decodedData?.operatorParams.operatorTipAmountAsString?.replace(/,/g, "") || "") !== (orderData.operatorTip?.replace(/,/g, "") || "") && "→"} {(existingOrder.decodedData?.operatorParams.operatorTipAmountAsString?.replace(/,/g, "") || "") !== (orderData.operatorTip?.replace(/,/g, "") || "") && `${orderData.operatorTip} Pinto`}
                     </div>
                   </div>
                 </div>
@@ -1644,7 +1642,7 @@ const nonAmounts = new Set<string>([".", ""]);
 
 const cleanAmount = (value: string) => value.replace(/[^0-9.]/g, "");
 
-export interface SanitizedNumericStrInput {
+interface SanitizedNumericStrInput {
   str: string;
   strValue: string;
   tv: TokenValue;
@@ -1658,12 +1656,12 @@ const sanitizedNonAmount: SanitizedNumericStrInput = {
   nonAmount: true,
 } as const;
 
-export const isValidNumericInputValue = (value: string) => !nonAmounts.has(value);
+const isValidNumericInputValue = (value: string) => !nonAmounts.has(value);
 
 /**
  * Sanitize the user input
  */
-export const sanitizeNumericInputValue = (value: string, valueDecimals: number): SanitizedNumericStrInput => {
+const sanitizeNumericInputValue = (value: string, valueDecimals: number): SanitizedNumericStrInput => {
   const obj = {
     ...sanitizedNonAmount,
     str: value,
