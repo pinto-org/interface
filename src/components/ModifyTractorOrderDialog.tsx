@@ -324,9 +324,7 @@ export default function ModifyTractorOrderDialog({
   const [operatorPasteInstructions, setOperatorPasteInstructions] = useState<`0x${string}`[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showTokenSelectionDialog, setShowTokenSelectionDialog] = useState(false);
-  const [activeTipButton, setActiveTipButton] = useState<"down5" | "down1" | "average" | "up1" | "up5" | null>(
-    "average",
-  );
+  const [activeTipButton, setActiveTipButton] = useState<"low" | "average" | "high" | null>("average");
   const temperatureInputRef = useRef<HTMLInputElement>(null);
 
   const publicClient = usePublicClient();
@@ -592,35 +590,29 @@ export default function ModifyTractorOrderDialog({
   };
 
   // Helper function to calculate tip values for different percentages
-  const getTipValue = (type: "down5" | "down1" | "average" | "up1" | "up5") => {
+  const getTipValue = (type: "low" | "average" | "high") => {
     const baseValue = averageTipValue;
     switch (type) {
-      case "down5":
-        return (baseValue * 0.95).toFixed(2);
-      case "down1":
-        return (baseValue * 0.99).toFixed(2);
+      case "low":
+        return (baseValue * 0.8).toFixed(2);
       case "average":
         return baseValue.toFixed(2);
-      case "up1":
-        return (baseValue * 1.01).toFixed(2);
-      case "up5":
-        return (baseValue * 1.05).toFixed(2);
+      case "high":
+        return (baseValue * 1.2).toFixed(2);
     }
   };
 
   // Helper function to check which button should be active based on current tip value
   const checkActiveTipButton = (tipValue: string) => {
     const normalizedTip = parseFloat(tipValue).toFixed(2);
-    if (normalizedTip === getTipValue("down5")) return "down5";
-    if (normalizedTip === getTipValue("down1")) return "down1";
+    if (normalizedTip === getTipValue("low")) return "low";
     if (normalizedTip === averageTipValue.toFixed(2)) return "average";
-    if (normalizedTip === getTipValue("up1")) return "up1";
-    if (normalizedTip === getTipValue("up5")) return "up5";
+    if (normalizedTip === getTipValue("high")) return "high";
     return null;
   };
 
   // Handler for tip button clicks
-  const handleTipButtonClick = (type: "down5" | "down1" | "average" | "up1" | "up5") => {
+  const handleTipButtonClick = (type: "low" | "average" | "high") => {
     setActiveTipButton(type);
     const newValue = getTipValue(type);
     setOperatorTip(newValue);
@@ -1131,25 +1123,13 @@ export default function ModifyTractorOrderDialog({
                         variant="outline"
                         size="sm"
                         className={`${styles.inputs} ${
-                          activeTipButton === "down5"
+                          activeTipButton === "low"
                             ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
                             : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
                         }`}
-                        onClick={() => handleTipButtonClick("down5")}
+                        onClick={() => handleTipButtonClick("low")}
                       >
-                        5% ↓
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`${styles.inputs} ${
-                          activeTipButton === "down1"
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        }`}
-                        onClick={() => handleTipButtonClick("down1")}
-                      >
-                        1% ↓
+                        Low
                       </Button>
                       <Button
                         variant="outline"
@@ -1167,25 +1147,13 @@ export default function ModifyTractorOrderDialog({
                         variant="outline"
                         size="sm"
                         className={`${styles.inputs} ${
-                          activeTipButton === "up1"
+                          activeTipButton === "high"
                             ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
                             : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
                         }`}
-                        onClick={() => handleTipButtonClick("up1")}
+                        onClick={() => handleTipButtonClick("high")}
                       >
-                        1% ↑
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`${styles.inputs} ${
-                          activeTipButton === "up5"
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        }`}
-                        onClick={() => handleTipButtonClick("up5")}
-                      >
-                        5% ↑
+                        High
                       </Button>
                     </div>
 
