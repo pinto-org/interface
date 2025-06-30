@@ -201,3 +201,36 @@ export function validateMinMaxAmounts(minSoil: string, maxPerSeason: string, dec
   
   return null;
 }
+
+/**
+ * Validates all form amounts including total amount constraints
+ */
+export function validateAllAmounts(
+  minSoil: string, 
+  maxPerSeason: string, 
+  totalAmount: string, 
+  decimals: number
+): string | null {
+  // First check min vs max
+  const minMaxError = validateMinMaxAmounts(minSoil, maxPerSeason, decimals);
+  if (minMaxError) return minMaxError;
+  
+  // Skip total amount validations if total amount is empty
+  if (!totalAmount) return null;
+  
+  const cleanedMin = sanitizeNumericInputValue(minSoil, decimals);
+  const cleanedMax = sanitizeNumericInputValue(maxPerSeason, decimals);
+  const cleanedTotal = sanitizeNumericInputValue(totalAmount, decimals);
+  
+  // Validate min per season vs total amount
+  if (minSoil && cleanedMin.tv.gt(cleanedTotal.tv)) {
+    return "Min per Season cannot exceed the total amount to Sow";
+  }
+  
+  // Validate max per season vs total amount
+  if (maxPerSeason && cleanedMax.tv.gt(cleanedTotal.tv)) {
+    return "Max per Season cannot exceed the total amount to Sow";
+  }
+  
+  return null;
+}

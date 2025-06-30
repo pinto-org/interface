@@ -14,6 +14,7 @@ import {
   sanitizeNumericInputValue,
   validateRequiredFields,
   validateMinMaxAmounts,
+  validateAllAmounts,
   getTipValue,
   calculatePodLineValue,
 } from "@/lib/Tractor/tractorOrderUtils";
@@ -50,11 +51,16 @@ export function useTractorOrderForm({ averageTipValue }: UseTractorOrderFormProp
     },
   };
 
-  // Validation effect for min/max amounts
+  // Validation effect for all amounts including total amount constraints
   useEffect(() => {
-    const error = validateMinMaxAmounts(formState.minSoil, formState.maxPerSeason, PINTO.decimals);
+    const error = validateAllAmounts(
+      formState.minSoil, 
+      formState.maxPerSeason, 
+      formState.totalAmount, 
+      PINTO.decimals
+    );
     setFormState(prev => ({ ...prev, error }));
-  }, [formState.minSoil, formState.maxPerSeason]);
+  }, [formState.minSoil, formState.maxPerSeason, formState.totalAmount]);
 
   // Form handlers
   const handlers: TractorOrderFormHandlers = {
