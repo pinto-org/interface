@@ -1,7 +1,6 @@
 import { TokenValue } from "@/classes/TokenValue";
-import { ZERO_ADDRESS, ZERO_ADDRESS_HEX } from "@/constants/address";
+import { ZERO_ADDRESS } from "@/constants/address";
 import { SEEDS, STALK } from "@/constants/internalTokens";
-import { PINTO } from "@/constants/tokens";
 import {
   beanstalkAbi,
   useReadFarmer_BalanceOfGrownStalkMultiple,
@@ -59,9 +58,45 @@ function getFloodCallArguments(whitelistedTokens: Token[], account: `0x${string}
   return [mow, balanceOfSop];
 }
 
-const querySettings = {
-  staleTime: 1000 * 60 * 20,
-  refetchInterval: 1000 * 60 * 20,
+// Stable query settings at module level
+const QUERY_SETTINGS = {
+  staleTime: 1000 * 60 * 20, // 20 minutes
+  refetchInterval: 1000 * 60 * 20, // 20 minutes
+} as const;
+
+const QUERY_SETTINGS_NO_SHARING = {
+  ...QUERY_SETTINGS,
+  structuralSharing: false,
+} as const;
+
+// Create stable selector functions outside the component
+const createSelectGrownStalkPerToken = (whitelist: Token[]) => (data: readonly bigint[]) => {
+  const map = new Map<Token, TokenValue>();
+  for (const [index, grownStalk] of data.entries()) {
+    map.set(whitelist[index], TokenValue.fromBigInt(grownStalk, STALK.decimals));
+  }
+  return map;
+};
+
+const createSelectMowStatusPerToken = (whitelist: Token[], mainToken: Token) => (data: FarmerMowStatuses) => {
+  const map = new Map<Token, { lastStem: TokenValue; bdv: TokenValue }>();
+
+  if (!mainToken) {
+    return map;
+  }
+
+  for (const [index, mowStatus] of data.entries()) {
+    map.set(whitelist[index], {
+      lastStem: TokenValue.fromBigInt(mowStatus.lastStem, mainToken.decimals),
+      bdv: TokenValue.fromBigInt(mowStatus.bdv, mainToken.decimals),
+    });
+  }
+  return map;
+};
+
+const selectFloodData = (data: { result: readonly `0x${string}`[] }) => {
+  const decoded = decodeAbiParameters(abiSnippet[0].outputs, data.result[1])[0];
+  return decoded;
 };
 
 const abiSnippet = [
@@ -130,10 +165,8 @@ const abiSnippet = [
 
 export function useFarmerSilo(address?: `0x${string}`) {
   const account = useAccount();
-  const BEAN = useTokenData().mainToken;
-  const tokenData = useTokenData();
+  const { whitelistedTokens: SILO_WHITELIST, mainToken: BEAN, preferredTokens } = useTokenData();
   const siloData = useSiloData();
-  const SILO_WHITELIST = tokenData.whitelistedTokens;
   const protocolAddress = useProtocolAddress();
   const priceData = usePriceData();
   const currPrice = priceData.price;
@@ -170,7 +203,7 @@ export function useFarmerSilo(address?: `0x${string}`) {
     functionName: "getDepositsForAccount",
     args: [farmerAddress as Address],
     query: {
-      ...querySettings,
+      ...QUERY_SETTINGS,
       enabled: Boolean(farmerAddress),
     },
   });
@@ -181,27 +214,26 @@ export function useFarmerSilo(address?: `0x${string}`) {
     functionName: "balanceOfRoots",
     args: [farmerAddress as Address],
     query: {
-      ...querySettings,
+      ...QUERY_SETTINGS,
       enabled: Boolean(farmerAddress),
     },
   });
 
   // Fetch grown stalk data
   const whitelistAddresses = useMemo(() => SILO_WHITELIST.map((token) => token.address), [SILO_WHITELIST]);
+  const selectMowStatusPerToken = useMemo(
+    () => createSelectMowStatusPerToken(SILO_WHITELIST, BEAN),
+    [SILO_WHITELIST, BEAN],
+  );
+
+  const selectGrownStalkPerToken = useMemo(() => createSelectGrownStalkPerToken(SILO_WHITELIST), [SILO_WHITELIST]);
 
   const grownStalkPerToken = useReadFarmer_BalanceOfGrownStalkMultiple({
     args: [farmerAddress ?? ZERO_ADDRESS, whitelistAddresses],
     query: {
-      enabled: Boolean(farmerAddress),
-      select: (data) => {
-        const map = new Map<Token, TokenValue>();
-        for (const [index, grownStalk] of data.entries()) {
-          map.set(SILO_WHITELIST[index], TokenValue.fromBigInt(grownStalk, STALK.decimals));
-        }
-        return map;
-      },
-      ...querySettings,
-      structuralSharing: false,
+      enabled: Boolean(farmerAddress) && whitelistAddresses.length > 0,
+      select: selectGrownStalkPerToken,
+      ...QUERY_SETTINGS_NO_SHARING,
     },
   });
 
@@ -209,32 +241,27 @@ export function useFarmerSilo(address?: `0x${string}`) {
   const mowStatusPerToken = useReadFarmer_GetMowStatus({
     args: [farmerAddress ?? ZERO_ADDRESS, whitelistAddresses],
     query: {
-      enabled: Boolean(farmerAddress) && whitelistAddresses.length > 0 && SILO_WHITELIST.length > 0,
-      select: (data) => {
-        const map = new Map<Token, { lastStem: TokenValue; bdv: TokenValue }>();
-        for (const [index, mowStatus] of data.entries()) {
-          map.set(SILO_WHITELIST[index], {
-            lastStem: TokenValue.fromBigInt(mowStatus.lastStem, BEAN.decimals),
-            bdv: TokenValue.fromBigInt(mowStatus.bdv, BEAN.decimals),
-          });
-        }
-        return map;
-      },
-      ...querySettings,
-      structuralSharing: false,
+      enabled: Boolean(farmerAddress) && whitelistAddresses.length > 0,
+      select: selectMowStatusPerToken,
+      ...QUERY_SETTINGS_NO_SHARING,
     },
   });
 
-  // Fetch flood data
+  // Fetch flood data with stable arguments
+  const floodArgs: readonly [readonly `0x${string}`[]] | undefined = useMemo(() => {
+    if (!farmerAddress || !SILO_WHITELIST.length) return undefined;
+    return [getFloodCallArguments(SILO_WHITELIST, farmerAddress)] as const;
+  }, [farmerAddress, SILO_WHITELIST]);
+
   const floodData = useSimulateContract({
     address: protocolAddress,
     abi: beanstalkAbi,
     functionName: "farm",
-    args: [getFloodCallArguments(SILO_WHITELIST, farmerAddress ?? ZERO_ADDRESS_HEX)],
+    args: floodArgs,
     query: {
-      enabled: Boolean(farmerAddress),
-      select: (data) => decodeAbiParameters(abiSnippet[0].outputs, data.result[1])[0],
-      ...querySettings,
+      enabled: Boolean(farmerAddress) && Boolean(floodArgs),
+      select: selectFloodData,
+      ...QUERY_SETTINGS,
     },
   });
 
@@ -283,7 +310,7 @@ export function useFarmerSilo(address?: `0x${string}`) {
       let amount = TokenValue.fromBlockchain(0n, token.decimals);
       let convertibleAmount = TokenValue.fromBlockchain(0n, token.decimals);
       let depositBDV = TokenValue.fromBlockchain(0n, BEAN.decimals);
-      let currentBDV = TokenValue.fromBlockchain(0n, PINTO.decimals);
+      let currentBDV = TokenValue.fromBlockchain(0n, BEAN.decimals);
       let totalBaseStalk = TokenValue.fromBlockchain(0n, STALK.decimals);
       const totalGrownStalk = grownStalkPerToken.data?.get(token) || TokenValue.ZERO;
       let totalGerminatingStalk = TokenValue.fromBlockchain(0n, STALK.decimals);
@@ -408,7 +435,7 @@ export function useFarmerSilo(address?: `0x${string}`) {
           );
           const backingAssetAddress = token.tokens.find((tokenAddress) => tokenAddress !== BEAN.address);
           if (backingAssetAddress) {
-            const backingAsset = tokenData.preferredTokens.find(
+            const backingAsset = preferredTokens.find(
               (preferredToken) => backingAssetAddress.toLowerCase() === preferredToken.address.toLowerCase(),
             );
             if (sopToken && backingAsset) {
@@ -432,7 +459,7 @@ export function useFarmerSilo(address?: `0x${string}`) {
       roots: floodData?.data?.roots ?? 0n,
       farmerSops: sops,
     };
-  }, [floodData.data, SILO_WHITELIST, BEAN.address, tokenData.preferredTokens]);
+  }, [floodData.data, SILO_WHITELIST, BEAN.address, preferredTokens]);
 
   // Combine query keys
   const queryKeys = useMemo(
@@ -481,40 +508,66 @@ export function useFarmerSilo(address?: `0x${string}`) {
     mowStatusPerToken.refetch,
   ]);
 
-  return {
-    // Balances
-    activeStalkBalance: activeStalkBalance.data ?? TokenValue.ZERO,
-    earnedBeansBalance: earnedBeansBalance.data ?? TokenValue.ZERO,
-    germinatingStalkBalance: depositsData.germinatingStalk,
-    activeSeedsBalance: depositsData.activeSeeds,
-    grownStalkReward: grownStalkReward,
+  const queriesLoading =
+    activeStalkBalance.isLoading ||
+    earnedBeansBalance.isLoading ||
+    depositsQuery.isLoading ||
+    floodData.isLoading ||
+    grownStalkPerToken.isLoading ||
+    mowStatusPerToken.isLoading;
 
-    // roots
-    rootsBalance: roots ?? 0n,
+  return useMemo(
+    () => ({
+      // Balances
+      activeStalkBalance: activeStalkBalance.data ?? TokenValue.ZERO,
+      earnedBeansBalance: earnedBeansBalance.data ?? TokenValue.ZERO,
+      germinatingStalkBalance: depositsData.germinatingStalk,
+      activeSeedsBalance: depositsData.activeSeeds,
+      grownStalkReward: grownStalkReward,
 
-    // Deposits
-    depositsBDV: depositsData.depositsBDV,
-    depositsUSD: depositsData.depositsUSD,
-    deposits: depositsData.deposits,
+      // roots
+      rootsBalance: roots ?? 0n,
 
-    // Token-specific data
-    grownStalkPerToken: grownStalkPerToken.data,
-    mowStatusPerToken: mowStatusPerToken.data,
+      // Deposits
+      depositsBDV: depositsData.depositsBDV,
+      depositsUSD: depositsData.depositsUSD,
+      deposits: depositsData.deposits,
 
-    // Flood
-    flood: floodInfo,
+      // Token-specific data
+      grownStalkPerToken: grownStalkPerToken.data,
+      mowStatusPerToken: mowStatusPerToken.data,
 
-    // Is Loading
-    isLoading:
-      activeStalkBalance.isLoading ||
-      earnedBeansBalance.isLoading ||
-      depositsQuery.isLoading ||
-      floodData.isLoading ||
-      grownStalkPerToken.isLoading ||
-      mowStatusPerToken.isLoading,
+      // Flood
+      flood: floodInfo,
 
-    // Query management
-    queryKeys,
-    refetch: refetch,
-  };
+      // Is Loading
+      isLoading: queriesLoading,
+
+      // Query management
+      queryKeys,
+      refetch: refetch,
+    }),
+    [
+      activeStalkBalance.data,
+      earnedBeansBalance.data,
+      depositsData.germinatingStalk,
+      depositsData.activeSeeds,
+      grownStalkReward,
+      roots,
+      depositsData.depositsBDV,
+      depositsData.depositsUSD,
+      depositsData.deposits,
+      grownStalkPerToken.data,
+      mowStatusPerToken.data,
+      floodInfo,
+      queriesLoading,
+      queryKeys,
+      refetch,
+    ],
+  );
 }
+
+type FarmerMowStatuses = readonly {
+  lastStem: bigint;
+  bdv: bigint;
+}[];

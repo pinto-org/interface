@@ -39,15 +39,18 @@ export function usePriceQuery() {
   return useReadBeanstalkPrice_Price(settings);
 }
 
+const selectTwaDeltaBQuery = (data: bigint) => TokenValue.fromBlockchain(data, 6);
+
 export function useTwaDeltaBQuery() {
   const diamond = useProtocolAddress();
+
   return useReadContract({
     address: diamond,
     abi: beanstalkAbi,
     functionName: "totalDeltaB",
     query: {
       ...defaultQuerySettings,
-      select: (data) => TokenValue.fromBlockchain(data, 6),
+      select: selectTwaDeltaBQuery,
     },
   });
 }
@@ -55,6 +58,23 @@ export function useTwaDeltaBQuery() {
 export function useTwaDeltaBLPQuery() {
   const diamond = useProtocolAddress();
   const tokenData = useTokenData();
+
+  const handleSelect = useCallback(
+    (data: FailableUseContractsResult<bigint>) => {
+      return tokenData.lpTokens.reduce<AddressLookup<TokenValue>>((prev, curr, i) => {
+        const tokenIndex = getTokenIndex(curr);
+
+        const result = data[i];
+        if (result.result || result.result === 0n) {
+          const deltaB = TokenValue.fromBigInt(result.result, 6);
+          prev[tokenIndex] = deltaB;
+        }
+
+        return prev;
+      }, {});
+    },
+    [tokenData.lpTokens],
+  );
 
   return useReadContracts({
     contracts: tokenData.lpTokens.map((token) => {
@@ -67,18 +87,7 @@ export function useTwaDeltaBLPQuery() {
     }),
     query: {
       ...defaultQuerySettingsFast,
-      select: (data) =>
-        tokenData.lpTokens.reduce<AddressLookup<TokenValue>>((prev, curr, i) => {
-          const tokenIndex = getTokenIndex(curr);
-
-          const result = data[i];
-          if (result.result || result.result === 0n) {
-            const deltaB = TokenValue.fromBigInt(result.result, 6);
-            prev[tokenIndex] = deltaB;
-          }
-
-          return prev;
-        }, {}),
+      select: handleSelect,
     },
   });
 }

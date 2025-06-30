@@ -6,18 +6,13 @@ import { Button } from "@/components/ui/Button";
 import IconImage from "@/components/ui/IconImage";
 import Panel from "@/components/ui/Panel";
 import useIsMobile from "@/hooks/display/useIsMobile";
-import {
-  useInstantTWATokenPricesQuery,
-  usePriceData,
-  useTwaDeltaBLPQuery,
-  useTwaDeltaBQuery,
-} from "@/state/usePriceData";
+import { usePriceData, useTwaDeltaBLPQuery, useTwaDeltaBQuery } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { getTokenIndex } from "@/utils/token";
 import { Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
-import { HTMLAttributes, useEffect, useState } from "react";
+import { HTMLAttributes, memo, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useChainId } from "wagmi";
 import { InlineCenterSpan } from "../Container";
@@ -29,39 +24,56 @@ import { Separator } from "../ui/Separator";
 import { Skeleton } from "../ui/Skeleton";
 import { Switch } from "../ui/Switch";
 
+const getPintoUseTWA = () => {
+  try {
+    const savedUseTwa = localStorage.getItem("pinto.priceButton.useTwa");
+    return savedUseTwa ? JSON.parse(savedUseTwa) : false;
+  } catch (e) {
+    return false;
+  }
+};
+
+const getPintoExpandAll = () => {
+  try {
+    // Initialize from localStorage, default to false if not found
+    const savedExpandAll = localStorage.getItem("pinto.priceButton.expandAll");
+    return savedExpandAll ? JSON.parse(savedExpandAll) : false;
+  } catch (e) {
+    return false;
+  }
+};
+
 function PriceButtonPanel() {
   const priceData = usePriceData();
   const tokenData = useTokenData();
   const twaDeltaB = useTwaDeltaBQuery();
   const chainId = useChainId();
 
-  const { data: twaDeltaBMap, ...twaDeltaBQuery } = useTwaDeltaBLPQuery();
+  const { data: twaDeltaBMap } = useTwaDeltaBLPQuery();
 
-  const mainTokenBalances = priceData.pools.flatMap((pool) =>
-    pool.balances.map(
-      (balance, index) => pool.tokens[index].isMain && tokenData.whitelistedTokens.includes(pool.pool) && balance,
-    ),
-  );
-  const totalMainTokens = mainTokenBalances.reduce(
-    (total: TokenValue, balance) => total.add(balance || TokenValue.ZERO),
-    TokenValue.ZERO,
-  );
+  const mainTokenBalances = useMemo(() => {
+    return priceData.pools.flatMap((pool) =>
+      pool.balances.map(
+        (balance, index) => pool.tokens[index].isMain && tokenData.whitelistedTokens.includes(pool.pool) && balance,
+      ),
+    );
+  }, [priceData.pools, tokenData.whitelistedTokens]);
+
+  const totalMainTokens = useMemo(() => {
+    return mainTokenBalances.reduce(
+      (total: TokenValue, balance) => total.add(balance || TokenValue.ZERO),
+      TokenValue.ZERO,
+    );
+  }, [mainTokenBalances]);
 
   const totalDeltaBar = priceData.deltaB.div(totalMainTokens.gt(0) ? totalMainTokens : 1).mul(-100);
 
   const [showSettings, setShowSettings] = useState(false);
   const [showPrices, setShowPrices] = useState(false);
 
-  const [useTwa, setUseTwa] = useState(() => {
-    // Initialize from localStorage, default to false if not found
-    const savedUseTwa = localStorage.getItem("pinto.priceButton.useTwa");
-    return savedUseTwa ? JSON.parse(savedUseTwa) : false;
-  });
-  const [expandAll, setExpandAll] = useState(() => {
-    // Initialize from localStorage, default to false if not found
-    const savedExpandAll = localStorage.getItem("pinto.priceButton.expandAll");
-    return savedExpandAll ? JSON.parse(savedExpandAll) : false;
-  });
+  const [useTwa, setUseTwa] = useState(getPintoUseTWA());
+
+  const [expandAll, setExpandAll] = useState(getPintoExpandAll());
 
   // Update localStorage when settings change
   useEffect(() => {
@@ -484,45 +496,55 @@ function PriceButtonPanel() {
   );
 }
 
+const MemoizedPanel = memo(PriceButtonPanel);
+
 export interface IPriceButton extends HTMLAttributes<HTMLButtonElement> {
   isOpen: boolean;
   togglePanel: () => void;
 }
 
-export default function PriceButton({ isOpen = false, togglePanel, ...props }: IPriceButton) {
+const PriceTrigger = ({ isOpen, togglePanel, ...props }: IPriceButton) => {
   const priceData = usePriceData();
   const isMobile = useIsMobile();
 
+  return (
+    <Button
+      variant="outline-primary"
+      size="default"
+      rounded="full"
+      onClick={togglePanel}
+      noShrink
+      {...props}
+      className={cn(`flex flex-row gap-0.5 sm:gap-2 ${isOpen && "border-pinto-green"}`, props.className)}
+    >
+      <IconImage src={pintoIcon} size={6} alt="pinto icon" />
+      {priceData.loading ? (
+        <Skeleton className="w-14 h-6" />
+      ) : (
+        <>${Number(priceData.price.toHuman()).toFixed(isMobile ? 3 : 4)}</>
+      )}
+      <IconImage src={chevronDown} size={4} mobileSize={2.5} alt="chevron down" />
+    </Button>
+  );
+};
+
+const PriceButton = memo(({ isOpen = false, togglePanel, ...props }: IPriceButton) => {
   return (
     <Panel
       isOpen={isOpen}
       toggle={togglePanel}
       side="left"
-      panelProps={{
-        className: "max-w-panel-price w-panel-price mt-4",
-      }}
+      panelProps={panelProps}
       screenReaderTitle="Price Panel"
-      trigger={
-        <Button
-          variant="outline-primary"
-          size="default"
-          rounded="full"
-          onClick={togglePanel}
-          noShrink
-          {...props}
-          className={cn(`flex flex-row gap-0.5 sm:gap-2 ${isOpen && "border-pinto-green"}`, props.className)}
-        >
-          <IconImage src={pintoIcon} size={6} alt="pinto icon" />
-          {priceData.loading ? (
-            <Skeleton className="w-14 h-6" />
-          ) : (
-            <>${Number(priceData.price.toHuman()).toFixed(isMobile ? 3 : 4)}</>
-          )}
-          <IconImage src={chevronDown} size={4} mobileSize={2.5} alt="chevron down" />
-        </Button>
-      }
+      trigger={<PriceTrigger isOpen={isOpen} togglePanel={togglePanel} {...props} />}
     >
-      <PriceButtonPanel />
+      <MemoizedPanel />
     </Panel>
   );
-}
+});
+
+const panelProps = {
+  className: "max-w-panel-price w-panel-price mt-4",
+} as const;
+
+export default PriceButton;

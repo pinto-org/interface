@@ -64,7 +64,7 @@ const Navbar = () => {
   const isNewUser = !address || (!hasDeposits && !hasPlots);
   const showWalletHelper = (isOverview || isSilo) && !isNewUser && !loading && didLoad;
 
-  const closePanel = () => {
+  const closePanel = useCallback(() => {
     setPanelState({
       ...panelState,
       backdropVisible: false,
@@ -76,36 +76,39 @@ const Navbar = () => {
       },
     });
     setHoveredId("");
-  };
+  }, [panelState, setPanelState, setHoveredId]);
 
-  const togglePanel = (panel: NavbarPanelType) => {
-    if (panelState.openPanel === panel) {
-      setPanelState({
-        ...panelState,
-        backdropVisible: false,
-        openPanel: undefined,
-        walletPanel: {
-          ...panelState.walletPanel,
-          showClaim: false,
-          showTransfer: false,
-        },
-      });
-    } else {
-      setPanelState({
-        ...panelState,
-        backdropMounted: true,
-        backdropVisible: true,
-        openPanel: panel,
-        walletPanel: {
-          ...panelState.walletPanel,
-          showClaim: false,
-          showTransfer: false,
-        },
-      });
-    }
-  };
+  const togglePanel = useCallback(
+    (panel: NavbarPanelType) => {
+      if (panelState.openPanel === panel) {
+        setPanelState({
+          ...panelState,
+          backdropVisible: false,
+          openPanel: undefined,
+          walletPanel: {
+            ...panelState.walletPanel,
+            showClaim: false,
+            showTransfer: false,
+          },
+        });
+      } else {
+        setPanelState({
+          ...panelState,
+          backdropMounted: true,
+          backdropVisible: true,
+          openPanel: panel,
+          walletPanel: {
+            ...panelState.walletPanel,
+            showClaim: false,
+            showTransfer: false,
+          },
+        });
+      }
+    },
+    [panelState, setPanelState, setHoveredId],
+  );
 
-  const handleHelperLinkClick = () => {
+  const handleHelperLinkClick = useCallback(() => {
     if (!account.address) {
       modal.setOpen(true);
       return;
@@ -125,9 +128,16 @@ const Navbar = () => {
       });
     }
     togglePanel("wallet");
-  };
+  }, [
+    account.address,
 
-  const handleMobileNavToggle = () => {
+    modal,
+    panelState,
+    setPanelState,
+    togglePanel,
+  ]);
+
+  const handleMobileNavToggle = useCallback(() => {
     // Update panel state directly instead of using immer
     setPanelState({
       ...panelState,
@@ -138,40 +148,61 @@ const Navbar = () => {
         showClaim: false,
       },
     });
-  };
+  }, [panelState, setPanelState]);
 
-  const invalidateData = (panel: PanelType) => {
-    if (panel === "wallet") {
-      const allQueryKeys = [...priceData.queryKeys, ...farmerSilo.queryKeys, ...farmerBalances.queryKeys];
-      allQueryKeys.forEach((query) =>
-        queryClient.invalidateQueries({
-          queryKey: query,
-          refetchType: "active",
-        }),
-      );
-    } else if (panel === "seasons") {
-      const allQueryKeys = [fieldSnapshots.queryKey, siloSnapshots.queryKey];
-      allQueryKeys.forEach((query) =>
-        queryClient.invalidateQueries({
-          queryKey: query,
-          refetchType: "active",
-        }),
-      );
-      invalidateSun("all", { refetchType: "active" });
-    } else if (panel === "price") {
-      const allQueryKeys = [...priceData.queryKeys, TwaDeltaBLPQuery];
-      allQueryKeys.forEach((query) =>
-        queryClient.invalidateQueries({
-          queryKey: query,
-          refetchType: "active",
-        }),
-      );
-    }
-  };
+  const invalidateData = useCallback(
+    (panel: PanelType) => {
+      if (panel === "wallet") {
+        const allQueryKeys = [...priceData.queryKeys, ...farmerSilo.queryKeys, ...farmerBalances.queryKeys];
+        allQueryKeys.forEach((query) =>
+          queryClient.invalidateQueries({
+            queryKey: query,
+            refetchType: "active",
+          }),
+        );
+      } else if (panel === "seasons") {
+        const allQueryKeys = [fieldSnapshots.queryKey, siloSnapshots.queryKey];
+        allQueryKeys.forEach((query) =>
+          queryClient.invalidateQueries({
+            queryKey: query,
+            refetchType: "active",
+          }),
+        );
+        invalidateSun("all", { refetchType: "active" });
+      } else if (panel === "price") {
+        const allQueryKeys = [...priceData.queryKeys, TwaDeltaBLPQuery];
+        allQueryKeys.forEach((query) =>
+          queryClient.invalidateQueries({
+            queryKey: query,
+            refetchType: "active",
+          }),
+        );
+      }
+    },
+    [
+      priceData.queryKeys,
+      farmerSilo.queryKeys,
+      farmerBalances.queryKeys,
+      fieldSnapshots.queryKey,
+      siloSnapshots.queryKey,
+      invalidateSun,
+      queryClient,
+    ],
+  );
 
   const refetchPriceData = useCallback(async () => {
     return Promise.all([priceData.refetch(), refetchTwaDeltaBLP(), refetchTwaDeltaB()]);
   }, [priceData.refetch, refetchTwaDeltaBLP, refetchTwaDeltaB]);
+
+  const togglePrice = useCallback(() => togglePanel("price"), [togglePanel]);
+  const toggleSeasons = useCallback(() => togglePanel("seasons"), [togglePanel]);
+  const toggleWallet = useCallback(() => togglePanel("wallet"), [togglePanel]);
+  const toggleMobileNavi = useCallback(() => togglePanel("mobile-navi"), [togglePanel]);
+
+  const handleTogglePanel = useCallback(() => togglePanel(panelState.openPanel), [panelState.openPanel, togglePanel]);
+
+  const handleInvalidateSeasons = useCallback(() => invalidateData("seasons"), [invalidateData]);
+  const handleInvalidateWallet = useCallback(() => invalidateData("wallet"), [invalidateData]);
 
   return (
     <div className="flex flex-col sticky top-0 z-[2]" id="pinto-navbar" style={{ transformOrigin: "top left" }}>
@@ -186,15 +217,15 @@ const Navbar = () => {
           <div className={`transition-all duration-100 ${panelState.openPanel === "price" && "z-[51]"} mr-4`}>
             <PriceButton
               isOpen={panelState.openPanel === "price"}
-              togglePanel={() => togglePanel("price")}
-              onMouseEnter={() => refetchPriceData()}
+              togglePanel={togglePrice}
+              onMouseEnter={refetchPriceData}
             />
           </div>
           <div className={`transition-all duration-100 ${panelState.openPanel === "seasons" && "z-[51]"}`}>
             <SeasonsButton
               isOpen={panelState.openPanel === "seasons"}
-              togglePanel={() => togglePanel("seasons")}
-              onMouseEnter={() => invalidateData("seasons")}
+              togglePanel={toggleSeasons}
+              onMouseEnter={handleInvalidateSeasons}
             />
           </div>
           <Panel
@@ -205,7 +236,7 @@ const Navbar = () => {
             }}
             screenReaderTitle="Chart Select Panel"
             trigger={<></>}
-            toggle={() => togglePanel(panelState.openPanel)}
+            toggle={handleTogglePanel}
           >
             <ChartSelectPanel />
           </Panel>
@@ -219,8 +250,8 @@ const Navbar = () => {
               <div data-action-target={"wallet-button"}>
                 <WalletButton
                   isOpen={panelState.openPanel === "wallet"}
-                  togglePanel={() => togglePanel("wallet")}
-                  onMouseEnter={() => invalidateData("wallet")}
+                  togglePanel={toggleWallet}
+                  onMouseEnter={handleInvalidateWallet}
                   ref={walletButton}
                 />
               </div>
@@ -253,7 +284,7 @@ const Navbar = () => {
             <div className={`lg:hidden ${panelState.openPanel === "mobile-navi" && "z-[51]"}`}>
               <MobileNavi
                 isOpen={panelState.openPanel === "mobile-navi"}
-                togglePanel={() => togglePanel("mobile-navi")}
+                togglePanel={toggleMobileNavi}
                 close={closePanel}
                 mounted={panelState.backdropMounted}
                 unmount={handleMobileNavToggle}
