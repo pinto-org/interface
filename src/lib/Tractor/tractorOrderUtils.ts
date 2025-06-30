@@ -140,12 +140,13 @@ export function calculatePodLineValue(podLine: TokenValue, increment: number): T
  */
 export function getTipValue(level: TipLevel, baseAmount: number): string {
   const multipliers = {
-    low: 0.5,
-    average: 1,
-    high: 1.5,
+    low: 0.8,     // 80% of average
+    average: 1,   // 100% of average  
+    high: 1.2,    // 120% of average
   };
   
-  return (baseAmount * multipliers[level]).toString();
+  const result = baseAmount * multipliers[level];
+  return result.toFixed(2); // Truncate to 2 decimal places
 }
 
 /**
