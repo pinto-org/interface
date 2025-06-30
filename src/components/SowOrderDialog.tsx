@@ -1,17 +1,16 @@
 import { mockAddressAtom } from "@/Web3Provider";
-import arrowDown from "@/assets/misc/ChevronDown.svg";
-import seedIcon from "@/assets/protocol/Seed.png";
-import stalkIcon from "@/assets/protocol/Stalk.png";
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
-import { InfoOutlinedIcon, WarningIcon } from "@/components/Icons";
+import { WarningIcon } from "@/components/Icons";
 import ReviewTractorOrderDialog from "@/components/ReviewTractorOrderDialog";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
-import IconImage from "@/components/ui/IconImage";
+import TractorOrderFormFields from "@/components/Tractor/TractorOrderFormFields";
+import TokenSelectionDialog from "@/components/Tractor/TokenSelectionDialog";
 import { diamondABI as beanstalkAbi } from "@/constants/abi/diamondABI";
 import { PINTO } from "@/constants/tokens";
+import { useTractorOrderForm } from "@/hooks/useTractorOrderForm";
+import { useTractorOrderCalculations } from "@/hooks/useTractorOrderCalculations";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { useSwapMany } from "@/hooks/swap/useSwap";
 import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useTransaction from "@/hooks/useTransaction";
 import { createBlueprint } from "@/lib/Tractor/blueprint";
@@ -21,8 +20,6 @@ import { generateBatchSortDepositsCallData, needsCombining } from "@/lib/claim/d
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePodLine, useTemperature } from "@/state/useFieldData";
-import { usePriceData } from "@/state/usePriceData";
-import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { isValidAddress } from "@/utils/string";
 import { DepositData } from "@/utils/types";
@@ -61,147 +58,23 @@ const minInput = TokenValue.fromHuman(0.000001, 6);
 export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }: SowOrderDialogProps) {
   const podLine = usePodLine();
   const currentTemperature = useTemperature();
-  const [podLineLength, setPodLineLength] = useState("");
-  const [rawPodLineLength, setRawPodLineLength] = useState(""); // Track raw input
-  const podLineLengthTimeoutRef = useRef<NodeJS.Timeout | null>(null); // For debounce
   const farmerSilo = useFarmerSilo();
   const farmerDeposits = farmerSilo.deposits;
-  const { whitelistedTokens, mainToken } = useTokenData();
-  const priceData = usePriceData();
-  const [minSoil, setMinSoil] = useState("");
-  const [maxPerSeason, setMaxPerSeason] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [totalAmount, setTotalAmount] = useState("");
-  const [temperature, setTemperature] = useState("");
-  const [displayTemperature, setDisplayTemperature] = useState("");
-  const [morningAuction, setMorningAuction] = useState(false);
-  const [operatorTip, setOperatorTip] = useState("1");
   const { address } = useAccount();
+  const { data: averageTipValue = 1 } = useTractorOperatorAverageTipPaid();
 
-  // Create a comprehensive validation function that handles all validation cases
-  const validateAllInputs = (
-    minSoilAmount: string,
-    maxSeasonAmount: string,
-    totalSowAmount: string,
-    podLineLengthValue: string,
-    temperatureValue: string,
-  ) => {
-    // Skip validation if required fields are empty
-    if (!minSoilAmount && !maxSeasonAmount && !totalSowAmount && !podLineLengthValue && !temperatureValue) {
-      setError(null);
-      return;
-    }
+  // Use shared form hook
+  const { formState, handlers, validation, temperatureInputRef } = useTractorOrderForm({
+    averageTipValue,
+  });
 
-    const minClean = sanitizeNumericInputValue(minSoilAmount, PINTO.decimals);
-    const maxClean = sanitizeNumericInputValue(maxSeasonAmount, PINTO.decimals);
-    const totalClean = sanitizeNumericInputValue(totalSowAmount, PINTO.decimals);
+  // Use shared calculations hook
+  const { calculations, cleanedValues, tokenWithHighestValue, whitelistedTokens, priceData, swapResults } = useTractorOrderCalculations({
+    formState,
+    podLine,
+  });
 
-    try {
-      // Validate min, max, and total amounts if available
-      if (minSoilAmount && maxSeasonAmount) {
-        if (minClean.tv.gt(maxClean.tv)) {
-          setError("Min per Season must be less than or equal to Max per Season");
-          return;
-        }
-      }
-
-      if (minSoilAmount && totalSowAmount) {
-        if (minClean.tv.gt(totalClean.tv)) {
-          setError("Min per Season cannot exceed the total amount to Sow");
-          return;
-        }
-      }
-
-      if (maxSeasonAmount && totalSowAmount) {
-        if (maxClean.tv.gt(totalClean.tv)) {
-          setError("Max per Season cannot exceed the total amount to Sow");
-          return;
-        }
-      }
-
-      // Validate pod line length if provided
-      if (podLineLengthValue) {
-        const podLineClean = sanitizeNumericInputValue(podLineLengthValue, PINTO.decimals);
-        try {
-          if (podLineClean.nonAmount) {
-            setError("Pod Line Length must be a valid number");
-            return;
-          }
-        } catch (e) {
-          setError("Invalid Pod Line Length");
-          return;
-        }
-      }
-
-      // Validate temperature if provided
-      if (temperatureValue) {
-        try {
-          const tempClean = sanitizeNumericInputValue(temperatureValue, PINTO.decimals);
-          const tempValue = parseFloat(tempClean.str);
-          if (Number.isNaN(tempValue)) {
-            setError("Temperature must be a valid number");
-            return;
-          }
-        } catch (e) {
-          setError("Invalid Temperature");
-          return;
-        }
-      }
-
-      // If we made it here, no errors were found
-      setError(null);
-    } catch (e) {
-      console.error("Validation error:", e);
-      setError("Invalid number format");
-    }
-  };
-
-  // Update the handleSetMinSoil function to use the new validation
-  const handleSetMinSoil = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const cleaned = sanitizeNumericInputValue(e.target.value, PINTO.decimals);
-    setMinSoil(cleaned.str);
-    validateAllInputs(cleaned.str, maxPerSeason, totalAmount, podLineLength, temperature);
-  };
-
-  // Update the handleSetMaxPerSeason function to use the new validation
-  const handleSetMaxPerSeason = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const cleaned = sanitizeNumericInputValue(e.target.value, PINTO.decimals);
-    setMaxPerSeason(cleaned.str);
-    validateAllInputs(minSoil, cleaned.str, totalAmount, podLineLength, temperature);
-  };
-
-  // Update the handleSetTotalAmount function to use the new validation
-  const handleSetTotalAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const cleaned = sanitizeNumericInputValue(e.target.value, PINTO.decimals);
-    setTotalAmount(cleaned.str);
-    validateAllInputs(minSoil, maxPerSeason, cleaned.str, podLineLength, temperature);
-  };
-
-  // Validate whenever any of the values changes
-  useEffect(() => {
-    validateAllInputs(minSoil, maxPerSeason, totalAmount, podLineLength, temperature);
-  }, [minSoil, maxPerSeason, totalAmount, podLineLength, temperature]);
-
-  // Set initial pod line length to current + 100% when component mounts
-  // useEffect(() => {
-  //   const increase = podLine.mul(100).div(100); // Calculate 100% increase
-  //   const newValue = podLine.add(increase);
-  //   const formattedValue = formatter.number(newValue);
-  //   setPodLineLength(formattedValue);
-  //   setRawPodLineLength(formattedValue.replace(/,/g, ""));
-  // }, [podLine]); // Only run when podLine changes
-
-  // Add a function to calculate what the value would be for a given percentage
-  const calculatePodLineValue = (increment: number) => {
-    const increase = podLine.mul(increment).div(100);
-    const newValue = podLine.add(increase);
-    return formatter.number(newValue);
-  };
-
-  // Add a function to check if a button should be highlighted
-  const isButtonActive = (increment: number) => {
-    return podLineLength === calculatePodLineValue(increment);
-  };
+  // Pod line calculations are now handled by the shared calculations hook
 
   // Function to check if deposits are sorted from low stem to high stem
   const areDepositsSorted = (deposits: DepositData[]): boolean => {
@@ -266,9 +139,8 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
   const [encodedData, setEncodedData] = useState<`0x${string}` | null>(null);
   const [operatorPasteInstructions, setOperatorPasteInstructions] = useState<`0x${string}`[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showTokenSelectionDialog, setShowTokenSelectionDialog] = useState(false);
-  const [activeTipButton, setActiveTipButton] = useState<"low" | "average" | "high" | null>("average");
-  const temperatureInputRef = useRef<HTMLInputElement>(null);
+  // Token selection dialog state is managed by the shared hook
+  // Active tip button state is managed by the shared hook
 
   // Add these new declarations for combine and sort functionality
   const [sortingAllTokens, setSortingAllTokens] = useState(false);
@@ -302,224 +174,14 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     }
   }, [needsOptimization, formStep]);
 
-  // Form
-  const cleanedValues = useMemo(() => {
-    return {
-      min: sanitizeNumericInputValue(minSoil, PINTO.decimals).tv,
-      max: sanitizeNumericInputValue(maxPerSeason, PINTO.decimals).tv,
-      total: sanitizeNumericInputValue(totalAmount, PINTO.decimals).tv,
-      podLine: sanitizeNumericInputValue(podLineLength, PINTO.decimals).tv,
-      temperature: sanitizeNumericInputValue(temperature, PINTO.decimals).tv,
-    };
-  }, [minSoil, maxPerSeason, totalAmount, podLineLength, temperature]);
-
-  // Get LP tokens
-  const lpTokens = useMemo(() => whitelistedTokens.filter((t) => t.isLP), [whitelistedTokens]);
-
-  const swapArgs = useMemo(() => {
-    return lpTokens.map((token) => {
-      const amount = farmerDeposits.get(token)?.amount || TokenValue.ZERO;
-      return {
-        tokenIn: token,
-        tokenOut: mainToken,
-        amountIn: amount,
-        slippage: 0.5,
-        disabled: amount.eq(0), // Only enable if there's an amount to swap
-      };
-    });
-  }, [mainToken, farmerDeposits, lpTokens]);
-
-  // Create swap hooks for each LP token
-  const swapQuotes = useSwapMany({
-    args: swapArgs,
-  });
-
-  // Combine the results into a map
-  const swapResults = useMemo(() => {
-    const results = new Map<string, TokenValue>();
-    lpTokens.forEach((token, i) => {
-      const buyAmount = swapQuotes[i]?.data?.buyAmount;
-      if (buyAmount) {
-        results.set(token.address, buyAmount);
-      }
-    });
-    return results;
-  }, [lpTokens, swapQuotes]);
-
-  // Calculate the token with the highest dollar value
-  const tokenWithHighestValue = useMemo(() => {
-    let highestValue = TokenValue.ZERO;
-    let tokenWithHighestValue: string | null = null;
-    let tokenType: "SPECIFIC_TOKEN" | "LOWEST_SEEDS" = "LOWEST_SEEDS";
-
-    // Check PINTO token first
-    const pintoToken = whitelistedTokens.find((t) => t.symbol === "PINTO");
-    if (pintoToken) {
-      const pintoDeposit = farmerDeposits.get(pintoToken);
-      if (pintoDeposit?.amount) {
-        const pintoDollarValue = pintoDeposit.amount.mul(priceData.price);
-        if (pintoDollarValue.gt(highestValue)) {
-          highestValue = pintoDollarValue;
-          tokenWithHighestValue = pintoToken.address;
-          tokenType = "SPECIFIC_TOKEN";
-        }
-      }
-    }
-
-    // Check all LP tokens
-    whitelistedTokens.forEach((token) => {
-      if (token.isLP) {
-        const lpDollarValue = swapResults.get(token.address);
-        if (lpDollarValue && lpDollarValue.gt(highestValue)) {
-          highestValue = lpDollarValue;
-          tokenWithHighestValue = token.address;
-          tokenType = "SPECIFIC_TOKEN";
-        }
-      }
-    });
-
-    // If no token has value, default to LOWEST_SEEDS
-    if (!tokenWithHighestValue) {
-      return { type: "LOWEST_SEEDS" } as SowOrderTokenStrategy;
-    }
-
-    // Return the token with highest value
-    return {
-      type: tokenType,
-      address: tokenWithHighestValue as `0x${string}`,
-    } as SowOrderTokenStrategy;
-  }, [farmerDeposits, whitelistedTokens, priceData.price, swapResults]);
-
-  // Update the default token strategy
-  const [selectedTokenStrategy, setSelectedTokenStrategy] = useState<SowOrderTokenStrategy>(tokenWithHighestValue);
+  // Calculations and token strategy are now handled by shared hooks
 
   // Add state for the review dialog
   const [showReview, setShowReview] = useState(false);
 
-  // Load average tip value on component mount
-  const [didInitOperatorTip, setDidInitOperatorTip] = useState(false);
-  const { data: averageTipValue = 1 } = useTractorOperatorAverageTipPaid();
+  // Operator tip management is now handled by the shared form hook
 
-  // Only set the initial operator tip to the average tip value
-  useEffect(() => {
-    if (!didInitOperatorTip) {
-      // Only set the initial operator tip to the average tip value
-      setOperatorTip(averageTipValue.toFixed(2));
-      setDidInitOperatorTip(true);
-    }
-  }, [averageTipValue, didInitOperatorTip]);
-
-  // Update operatorTip if averageTipValue changes and the active button is "average"
-  useEffect(() => {
-    if (activeTipButton === "average") {
-      setOperatorTip(averageTipValue.toFixed(2));
-    }
-  }, [averageTipValue, activeTipButton]);
-
-  // Function to format number with commas
-  const formatNumberWithCommas = (value: string) => {
-    // Remove any existing commas
-    const cleanValue = value.replace(/,/g, "");
-    // Format with commas but preserve decimal portion
-    const parts = cleanValue.split(".");
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    return parts.join(".");
-  };
-
-  // Handle debounced formatting for pod line length
-  useEffect(() => {
-    if (rawPodLineLength) {
-      // Clear existing timeout
-      if (podLineLengthTimeoutRef.current) {
-        clearTimeout(podLineLengthTimeoutRef.current);
-      }
-
-      // Set new timeout
-      podLineLengthTimeoutRef.current = setTimeout(() => {
-        setPodLineLength(formatNumberWithCommas(rawPodLineLength));
-      }, 500); // 500ms debounce
-    }
-
-    // Cleanup timeout on unmount
-    return () => {
-      if (podLineLengthTimeoutRef.current) {
-        clearTimeout(podLineLengthTimeoutRef.current);
-      }
-    };
-  }, [rawPodLineLength]);
-
-  const handlePodLineSelect = (increment: number) => {
-    // If the button is already active (same value), clear the input
-    if (isButtonActive(increment)) {
-      setPodLineLength("");
-      setRawPodLineLength("");
-      validateAllInputs(minSoil, maxPerSeason, totalAmount, "", temperature);
-      return;
-    }
-
-    // Otherwise, set to the calculated value
-    if (increment === 0) {
-      // Set to current pod line length in human readable format
-      const formattedValue = formatter.number(podLine);
-      setPodLineLength(formattedValue);
-      setRawPodLineLength(formattedValue.replace(/,/g, ""));
-      validateAllInputs(minSoil, maxPerSeason, totalAmount, formattedValue, temperature);
-    } else {
-      // Calculate new value with percentage increase
-      const increase = podLine.mul(increment).div(100);
-      const newValue = podLine.add(increase);
-      const formattedValue = formatter.number(newValue);
-      setPodLineLength(formattedValue);
-      setRawPodLineLength(formattedValue.replace(/,/g, ""));
-      validateAllInputs(minSoil, maxPerSeason, totalAmount, formattedValue, temperature);
-    }
-  };
-
-  // Add handling for pasting into the pod line length input
-  const handlePodLineLengthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const cleaned = sanitizeNumericInputValue(e.target.value, mainToken.decimals);
-
-    // Store raw input and update displayed value
-    // Set raw value immediately to enable pasting
-    setRawPodLineLength(cleaned.strValue);
-    setPodLineLength(cleaned.str);
-
-    // Run validation
-    validateAllInputs(minSoil, maxPerSeason, totalAmount, cleaned.str, temperature);
-  };
-
-  // Add a function to check if the pod line length is valid
-  const isPodLineLengthValid = () => {
-    try {
-      // Empty is not valid, we require a value
-      if (!podLineLength) return false;
-
-      // Remove commas and convert to a number
-      const inputLength = parseFloat(podLineLength.replace(/,/g, ""));
-      return !Number.isNaN(inputLength);
-    } catch (e) {
-      return false;
-    }
-  };
-
-  // Add this function to check if all required fields are filled
-  const areRequiredFieldsFilled = () => {
-    return (
-      temperature !== "" &&
-      temperature !== undefined &&
-      temperature !== null &&
-      minSoil !== "" &&
-      minSoil !== undefined &&
-      minSoil !== null &&
-      maxPerSeason !== "" &&
-      maxPerSeason !== undefined &&
-      maxPerSeason !== null &&
-      totalAmount !== "" &&
-      totalAmount !== undefined &&
-      totalAmount !== null &&
-      isPodLineLengthValid()
-    );
-  };
+  // Form validation and handlers are now managed by the shared hook
 
   // New function to handle combine and sort all deposits
   const handleCombineAndSortAll = async () => {
@@ -615,7 +277,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     }
   };
 
-  // Update handleNext to remove formSubmitAttempted
+  // Update handleNext to use shared form state
   const handleNext = async () => {
     // Step 0 does nothing on Next since we handle the claim button separately
     if (formStep === 0) {
@@ -623,7 +285,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     }
     // First step just moves to the next form view if validation passes
     if (formStep === 1) {
-      if (areRequiredFieldsFilled() && !error) {
+      if (validation.areRequiredFieldsFilled() && !formState.error) {
         setFormStep(2);
       }
       return;
@@ -641,16 +303,16 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
       }
 
       const { data, operatorPasteInstrs, rawCall } = await createSowTractorData({
-        totalAmountToSow: totalAmount || "0",
-        temperature: temperature || "0",
-        minAmountPerSeason: minSoil || "0",
-        maxAmountToSowPerSeason: maxPerSeason || "0",
-        maxPodlineLength: podLineLength || formatter.number(podLine).replace(/,/g, ""),
+        totalAmountToSow: formState.totalAmount || "0",
+        temperature: formState.temperature || "0",
+        minAmountPerSeason: formState.minSoil || "0",
+        maxAmountToSowPerSeason: formState.maxPerSeason || "0",
+        maxPodlineLength: formState.podLineLength || formatter.number(podLine).replace(/,/g, ""),
         maxGrownStalkPerBdv: "10000000000000000", // default of 100 grown stalk per bdv, which would take about 21 years at 4 seeds. TODO: add input for this in the future
-        runBlocksAfterSunrise: morningAuction ? "0" : "300",
-        operatorTip: operatorTip || "0",
+        runBlocksAfterSunrise: formState.morningAuction ? "0" : "300",
+        operatorTip: formState.operatorTip || "0",
         whitelistedOperators: [],
-        tokenStrategy: selectedTokenStrategy,
+        tokenStrategy: formState.selectedTokenStrategy,
         publicClient,
       });
 
@@ -715,312 +377,13 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     }
   };
 
-  // Add a function to get the selected token display text
-  const getSelectedTokenDisplay = () => {
-    if (selectedTokenStrategy.type === "LOWEST_SEEDS") {
-      return "Token with Least Seeds";
-    } else if (selectedTokenStrategy.type === "LOWEST_PRICE") {
-      return "Token with Best Price";
-    } else if (selectedTokenStrategy.type === "SPECIFIC_TOKEN") {
-      const token = whitelistedTokens.find((t) => t.address === selectedTokenStrategy.address);
-      return token?.symbol || "Select Token";
-    }
-    return "Select Deposited Silo Token";
-  };
+  // All token display and calculation functions are now handled by the shared hooks
 
-  // Add a function to get the dollar value for the selected strategy
-  const getSelectedTokenDollarValue = () => {
-    if (selectedTokenStrategy.type === "SPECIFIC_TOKEN" && selectedTokenStrategy.address) {
-      const token = whitelistedTokens.find((t) => t.address === selectedTokenStrategy.address);
+  // All calculation functions are now handled by the shared hooks
 
-      // If it's PINTO token, use its direct value multiplied by price
-      if (token?.symbol === "PINTO") {
-        const pintoDeposit = farmerDeposits.get(token);
-        return pintoDeposit?.amount ? pintoDeposit.amount.mul(priceData.price) : TokenValue.ZERO;
-      }
+  // All handlers and validation functions are now managed by the shared hook
 
-      return swapResults.get(selectedTokenStrategy.address) || TokenValue.ZERO;
-    } else if (selectedTokenStrategy.type === "LOWEST_PRICE" || selectedTokenStrategy.type === "LOWEST_SEEDS") {
-      // Sum all token dollar values
-      let totalValue = TokenValue.ZERO;
-
-      // Include PINTO tokens in the calculation
-      const pintoToken = whitelistedTokens.find((t) => t.symbol === "PINTO");
-      if (pintoToken) {
-        const pintoDeposit = farmerDeposits.get(pintoToken);
-        if (pintoDeposit?.amount) {
-          totalValue = totalValue.add(pintoDeposit.amount.mul(priceData.price));
-        }
-      }
-
-      // Add all LP token values
-      swapResults.forEach((value) => {
-        totalValue = totalValue.add(value);
-      });
-
-      return totalValue;
-    }
-    return TokenValue.ZERO;
-  };
-
-  // Helper function to calculate tip values for different percentages
-  const getTipValue = (type: "low" | "average" | "high") => {
-    const baseValue = averageTipValue;
-    switch (type) {
-      case "low":
-        return (baseValue * 0.8).toFixed(2);
-      case "average":
-        return baseValue.toFixed(2);
-      case "high":
-        return (baseValue * 1.2).toFixed(2);
-    }
-  };
-
-  // Helper function to check which button should be active based on current tip value
-  const checkActiveTipButton = (tipValue: string) => {
-    const normalizedTip = parseFloat(tipValue).toFixed(2);
-    if (normalizedTip === getTipValue("low")) return "low";
-    if (normalizedTip === averageTipValue.toFixed(2)) return "average";
-    if (normalizedTip === getTipValue("high")) return "high";
-    return null;
-  };
-
-  // Handler for tip button clicks
-  const handleTipButtonClick = (type: "low" | "average" | "high") => {
-    setActiveTipButton(type);
-    const newValue = getTipValue(type);
-    setOperatorTip(newValue);
-  };
-
-  // Calculate the estimated number of executions
-  const calculateEstimatedExecutions = () => {
-    const { total, min, max } = cleanedValues;
-
-    // If any of the required values are missing, return a default
-    if (!totalAmount || !maxPerSeason) {
-      return "~0";
-    }
-
-    try {
-      // Check for zero values to avoid division by zero
-      if (total.eq(0) || max.eq(0)) {
-        return "~0";
-      }
-
-      // If min is zero, upper bound is infinity
-      if (min.eq(0)) {
-        // Calculate only the lower bound
-        let lowerBound = Math.floor(total.div(max).toNumber());
-        lowerBound = Math.max(1, lowerBound);
-        return `~${lowerBound}-∞`;
-      }
-
-      // Calculate both bounds
-      let lowerBound = Math.floor(total.div(max).toNumber());
-      let upperBound = Math.ceil(total.div(min).toNumber());
-
-      // Handle edge cases and ensure sensible values
-      lowerBound = Math.max(1, lowerBound);
-      upperBound = Math.max(lowerBound, upperBound);
-
-      // Format the result
-      if (lowerBound === upperBound) {
-        return `~${lowerBound}`;
-      } else {
-        return `~${lowerBound}-${upperBound}`;
-      }
-    } catch (e) {
-      console.error("Error calculating executions:", e);
-      return "~0";
-    }
-  };
-
-  // Also add a function to calculate the estimated total tip
-  const calculateEstimatedTotalTip = () => {
-    if (!operatorTip || !totalAmount || !maxPerSeason) {
-      return "~0";
-    }
-
-    const { total, min, max } = cleanedValues;
-
-    try {
-      // // Remove commas and convert to numbers
-      // Parse the operator tip
-      const tipValue = parseFloat(operatorTip);
-
-      // Check for zero values
-      if (total.eq(0) || max.eq(0) || Number.isNaN(tipValue)) {
-        return "~0";
-      }
-
-      // Calculate lower bound (based on max per season)
-      let lowerBound = Math.floor(total.div(max).toNumber());
-      lowerBound = Math.max(1, lowerBound);
-      const lowerTip = lowerBound * tipValue;
-
-      // If min is zero, upper bound is infinity
-      if (min.eq(0)) {
-        return `~${lowerTip.toFixed(2)}-∞`;
-      }
-
-      // Calculate upper bound
-      let upperBound = Math.ceil(total.div(min).toNumber());
-      upperBound = Math.max(lowerBound, upperBound);
-      const upperTip = upperBound * tipValue;
-
-      // Format the result
-      if (lowerTip === upperTip) {
-        return `~${lowerTip.toFixed(2)}`;
-      } else {
-        return `~${lowerTip.toFixed(2)}-${upperTip.toFixed(2)}`;
-      }
-    } catch (e) {
-      console.error("Error calculating total tip:", e);
-      return "~0";
-    }
-  };
-
-  // Function to handle temperature input and ensure it displays with %
-  const handleTemperatureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Get the cursor position before making changes
-    const cursorPosition = e.target.selectionStart || 0;
-    const value = e.target.value;
-    const hadPercentSign = value.includes("%");
-
-    // Check if user is deleting the % sign
-    if (value.endsWith("%") && cursorPosition === value.length) {
-      // If cursor is at the end (after %), move it back one position
-      setTimeout(() => {
-        if (temperatureInputRef.current) {
-          temperatureInputRef.current.setSelectionRange(cursorPosition - 1, cursorPosition - 1);
-        }
-      }, 0);
-      return;
-    }
-
-    // Remove % and any non-numeric characters except decimal
-    const cleanValue = sanitizeNumericInputValue(value, 6);
-    cleanValue && setTemperature(cleanValue.strValue); // Store clean value without %
-    validateAllInputs(minSoil, maxPerSeason, totalAmount, podLineLength, cleanValue.strValue);
-
-    // Add % for display
-    setDisplayTemperature(`${cleanValue.str}%`);
-
-    // Calculate where the cursor should be
-    let newPosition = cursorPosition;
-
-    // If we're deleting a character (current value is shorter than previous + adjustment for % sign)
-    if (cleanValue.str.length < temperature.length) {
-      newPosition = cursorPosition;
-    } else if (!hadPercentSign && cleanValue.str.length > 0) {
-      // If we didn't have a % sign before but now we do, adjust accordingly
-      newPosition = cursorPosition;
-    }
-
-    // Ensure cursor position is clamped to a valid range and before %
-    newPosition = Math.min(newPosition, cleanValue.str.length);
-
-    // Set cursor position with a timeout to ensure it happens after React's rendering
-    setTimeout(() => {
-      if (temperatureInputRef.current) {
-        temperatureInputRef.current.setSelectionRange(newPosition, newPosition);
-      }
-    }, 0);
-  };
-
-  // Function to handle temperature input blur
-  const handleTemperatureBlur = () => {
-    const cleaned = sanitizeNumericInputValue(temperature, 6);
-
-    if (cleaned.nonAmount) {
-      setDisplayTemperature(`${cleaned.str}%`);
-    } else {
-      setDisplayTemperature(
-        `${formatter.number(cleaned.tv, {
-          minDecimals: 0,
-          maxDecimals: 6,
-        })}%`,
-      );
-    }
-  };
-
-  // Function to handle temperature input focus
-  const handleTemperatureFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    // If cursor is at the end, move it before the % sign
-    if (e.target.value.endsWith("%")) {
-      setTimeout(() => {
-        if (temperatureInputRef.current) {
-          const pos = e.target.value.length - 1;
-          temperatureInputRef.current.setSelectionRange(pos, pos);
-        }
-      }, 0);
-    }
-  };
-
-  // Function to handle temperature input keydown
-  const handleTemperatureKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    const cursorPosition = e.currentTarget.selectionStart || 0;
-    const value = e.currentTarget.value;
-
-    // If backspace is pressed and cursor is after the last number (right before or at %)
-    if (e.key === "Backspace" && cursorPosition >= value.length - 1) {
-      const newValue = temperature.slice(0, -1);
-      setTemperature(newValue);
-      setDisplayTemperature(newValue ? `${newValue}%` : "");
-
-      // Position cursor at the end of the number portion
-      setTimeout(() => {
-        if (temperatureInputRef.current) {
-          temperatureInputRef.current.setSelectionRange(newValue.length, newValue.length);
-        }
-      }, 0);
-
-      e.preventDefault();
-    }
-    // If delete key is pressed and cursor is right before %
-    else if (e.key === "Delete" && cursorPosition === value.length - 1) {
-      e.preventDefault();
-    }
-  };
-
-  // Add this function to check which fields are missing
-  const getMissingFields = (
-    temperature: string,
-    minSoil: string,
-    maxPerSeason: string,
-    totalAmount: string,
-    isPodLineLengthValidFn: () => boolean,
-  ) => {
-    const missingFields: string[] = [];
-
-    if (!temperature || temperature === "") {
-      missingFields.push("Temperature");
-    }
-    if (!minSoil || minSoil === "") {
-      missingFields.push("Min Soil per Season");
-    }
-    if (!maxPerSeason || maxPerSeason === "") {
-      missingFields.push("Max per Season");
-    }
-    if (!totalAmount || totalAmount === "") {
-      missingFields.push("Total Amount");
-    }
-    if (!isPodLineLengthValidFn()) {
-      missingFields.push("Pod Line Length");
-    }
-
-    return missingFields;
-  };
-
-  // Add handler for operator tip input changes
-  const handleOperatorTipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const cleaned = sanitizeNumericInputValue(e.target.value, 2);
-    setOperatorTip(cleaned.str);
-
-    // Check if the new value matches any of our buttons
-    const activeButton = checkActiveTipButton(cleaned.str);
-    setActiveTipButton(activeButton);
-  };
+  // Operator tip handlers are now managed by the shared hook
 
   if (!open) return null;
 
@@ -1080,7 +443,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                 </div>
               ) : formStep === 1 ? (
                 // Step 1 - Main Form
-                <Col className="gap-6 pinto-sm-light text-pinto-light">
+                <>
                   {/* Title and separator */}
                   <div className="flex flex-col gap-2">
                     <div className="pinto-body font-medium text-pinto-secondary mb-4">
@@ -1089,230 +452,17 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                     <div className="h-[1px] w-full bg-pinto-gray-2" />
                   </div>
 
-                  {/* I want to Sow up to */}
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor={inputIds.totalAmount}>I want to Sow up to</label>
-                    <div className="flex rounded-lg overflow-hidden border border-pinto-gray-2 group focus-within:border-[#2F8957]">
-                      <div className="flex-1">
-                        <Input
-                          id={inputIds.totalAmount}
-                          className="h-12 px-3 py-1.5 border-0 rounded-l-lg flex-1 focus-visible:ring-0 focus-visible:ring-offset-0"
-                          placeholder="0.00"
-                          value={totalAmount}
-                          onChange={handleSetTotalAmount}
-                          type="text"
-                        />
-                      </div>
-                      <div className="flex items-center gap-2 px-4 bg-white">
-                        <img src={pintoIcon} alt="PINTO" className="w-6 h-6" />
-                        <span className="text-black">PINTO</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Min and Max per Season - combined in a single row */}
-                  <div className="flex flex-col gap-2">
-                    <div className="flex gap-4">
-                      {/* Min per Season */}
-                      <div className="flex flex-col gap-2 flex-1">
-                        <label htmlFor={inputIds.minPerSeason}>Min per Season</label>
-                        <div
-                          className={`flex rounded-lg overflow-hidden border ${error ? "border-red-500" : "border-pinto-gray-2"} group focus-within:${error ? "border-red-500" : "border-[#2F8957]"}`}
-                        >
-                          <div className="flex-1">
-                            <Input
-                              id={inputIds.minPerSeason}
-                              className="h-12 px-3 py-1.5 border-0 rounded-l-lg flex-1 focus-visible:ring-0 focus-visible:ring-offset-0"
-                              placeholder="0.00"
-                              value={minSoil}
-                              onChange={handleSetMinSoil}
-                              type="text"
-                            />
-                          </div>
-                          <div className="flex items-center gap-2 px-4 bg-white">
-                            <img src={pintoIcon} alt="PINTO" className="w-6 h-6" />
-                            <span className="text-black">PINTO</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Max per Season */}
-                      <div className="flex flex-col gap-2 flex-1">
-                        <label htmlFor={inputIds.maxPerSeason}>Max per Season</label>
-                        <div
-                          className={`flex rounded-lg overflow-hidden border ${error ? "border-red-500" : "border-pinto-gray-2"} group focus-within:${error ? "border-red-500" : "border-[#2F8957]"}`}
-                        >
-                          <div className="flex-1">
-                            <Input
-                              id={inputIds.maxPerSeason}
-                              className="h-12 px-3 py-1.5 border-0 rounded-l-lg flex-1 focus-visible:ring-0 focus-visible:ring-offset-0"
-                              placeholder="0.00"
-                              value={maxPerSeason}
-                              onChange={handleSetMaxPerSeason}
-                              type="text"
-                            />
-                          </div>
-                          <div className="flex items-center gap-2 px-4 bg-white">
-                            <img src={pintoIcon} alt="PINTO" className="w-6 h-6" />
-                            <span className="text-black">PINTO</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Fund order using */}
-                  <div className="flex flex-col gap-2">
-                    <div className="flex justify-between items-center">
-                      <div>Fund order using</div>
-                      <Button
-                        variant="outline-gray-shadow"
-                        size="xl"
-                        rounded="full"
-                        onClick={() => setShowTokenSelectionDialog(true)}
-                      >
-                        <div className="flex items-center gap-2">
-                          {selectedTokenStrategy.type === "SPECIFIC_TOKEN" && (
-                            <IconImage
-                              src={
-                                whitelistedTokens.find((t) => t.address === selectedTokenStrategy.address)?.logoURI ||
-                                ""
-                              }
-                              alt="token"
-                              size={6}
-                              className="rounded-full"
-                            />
-                          )}
-                          <div className="pinto-body-light">{getSelectedTokenDisplay()}</div>
-                          <IconImage src={arrowDown} size={3} alt="open token select dialog" />
-                        </div>
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Execute when Temperature is at least */}
-                  <div className="flex flex-row items-center justify-between gap-4">
-                    <label htmlFor={inputIds.temperature}>Execute when Temperature is at least</label>
-                    <Input
-                      id={inputIds.temperature}
-                      className="h-12 px-3 py-1.5 border border-pinto-gray-2 rounded-lg w-[140px]"
-                      placeholder={`${Math.max(10, Math.floor(currentTemperature.scaled?.toNumber() || 0) + 1)}%`}
-                      value={displayTemperature}
-                      onChange={handleTemperatureChange}
-                      onBlur={handleTemperatureBlur}
-                      onFocus={handleTemperatureFocus}
-                      onKeyDown={handleTemperatureKeyDown}
-                      ref={temperatureInputRef}
-                      type="text"
-                    />
-                  </div>
-
-                  {/* Execute when the length of the Pod Line is at most */}
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor={inputIds.podLineLength}>Execute when the length of the Pod Line is at most</label>
-                    <Input
-                      id={inputIds.podLineLength}
-                      className="h-12 px-3 py-1.5 border border-pinto-gray-2 rounded-lg"
-                      placeholder={formatter.number(podLine)}
-                      value={podLineLength}
-                      onChange={handlePodLineLengthChange}
-                    />
-
-                    <div className="flex justify-between gap-2 mt-1 w-full">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] pinto-sm whitespace-nowrap ${
-                          isButtonActive(5)
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        } flex-1`}
-                        onClick={() => handlePodLineSelect(5)}
-                      >
-                        5% ↑
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] pinto-sm whitespace-nowrap ${
-                          isButtonActive(10)
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        } flex-1`}
-                        onClick={() => handlePodLineSelect(10)}
-                      >
-                        10% ↑
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] pinto-sm whitespace-nowrap ${
-                          isButtonActive(25)
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        } flex-1`}
-                        onClick={() => handlePodLineSelect(25)}
-                      >
-                        25% ↑
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] pinto-sm whitespace-nowrap ${
-                          isButtonActive(50)
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        } flex-1`}
-                        onClick={() => handlePodLineSelect(50)}
-                      >
-                        50% ↑
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] pinto-sm whitespace-nowrap ${
-                          isButtonActive(100)
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        } flex-1`}
-                        onClick={() => handlePodLineSelect(100)}
-                      >
-                        100% ↑
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Execute during the Morning Auction */}
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor={inputIds.morningAuction}>Execute during the Morning Auction</label>
-                    <div className="flex justify-between gap-2 w-full">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] pinto-sm whitespace-nowrap ${
-                          morningAuction
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        } flex-1`}
-                        onClick={() => setMorningAuction(true)}
-                      >
-                        Yes
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] text-[1rem] pinto-sm whitespace-nowrap ${
-                          !morningAuction
-                            ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
-                            : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
-                        } flex-1`}
-                        onClick={() => setMorningAuction(false)}
-                      >
-                        No
-                      </Button>
-                    </div>
-                  </div>
-                </Col>
+                  {/* Use shared form fields component */}
+                  <TractorOrderFormFields
+                    formState={formState}
+                    handlers={handlers}
+                    validation={validation}
+                    calculations={calculations}
+                    currentTemperature={currentTemperature.scaled || currentTemperature}
+                    podLine={podLine}
+                    temperatureInputRef={temperatureInputRef}
+                  />
+                </>
               ) : (
                 // Step 2 - Operator Tip
                 <Col className="gap-6">
@@ -1327,8 +477,8 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                       <input
                         className="h-12 px-3 py-1.5 flex-1 rounded-l-lg focus:outline-none text-base font-light"
                         placeholder="0.00"
-                        value={operatorTip}
-                        onChange={handleOperatorTipChange}
+                        value={formState.operatorTip}
+                        onChange={handlers.handleOperatorTipChange}
                         type="text"
                       />
                       <div className="flex items-center gap-2 px-4 rounded-r-lg font-semibold bg-white">
@@ -1342,11 +492,11 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                         variant="outline"
                         size="sm"
                         className={`${styles.inputs} ${
-                          activeTipButton === "low"
+                          formState.activeTipButton === "low"
                             ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
                             : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
                         }`}
-                        onClick={() => handleTipButtonClick("low")}
+                        onClick={() => handlers.handleTipButtonClick("low")}
                       >
                         Low
                       </Button>
@@ -1354,11 +504,11 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                         variant="outline"
                         size="sm"
                         className={`${styles.inputs} ${
-                          activeTipButton === "average"
+                          formState.activeTipButton === "average"
                             ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
                             : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
                         }`}
-                        onClick={() => handleTipButtonClick("average")}
+                        onClick={() => handlers.handleTipButtonClick("average")}
                       >
                         Average
                       </Button>
@@ -1366,11 +516,11 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                         variant="outline"
                         size="sm"
                         className={`${styles.inputs} ${
-                          activeTipButton === "high"
+                          formState.activeTipButton === "high"
                             ? "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C] hover:bg-[#D8F1E2] hover:text-[#387F5C] hover:border-[#387F5C]"
                             : "bg-white border-pinto-gray-2 text-pinto-gray-4 hover:bg-pinto-green-1/50 hover:border-pinto-green-2/50"
                         }`}
-                        onClick={() => handleTipButtonClick("high")}
+                        onClick={() => handlers.handleTipButtonClick("high")}
                       >
                         High
                       </Button>
@@ -1383,12 +533,12 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                     <div className="flex flex-col gap-2">
                       <div className="flex justify-between">
                         <div className="text-[#9C9C9C] text-base font-light">Estimated total number of executions</div>
-                        <div className="text-black text-base font-light">{calculateEstimatedExecutions()}</div>
+                        <div className="text-black text-base font-light">{calculations.calculateEstimatedExecutions()}</div>
                       </div>
                       <div className="flex justify-between items-center">
                         <div className="text-[#9C9C9C] text-base font-light">Estimated total tip</div>
                         <div className="flex items-center text-black text-base font-light">
-                          {calculateEstimatedTotalTip()}
+                          {calculations.calculateEstimatedTotalTip()}
                           <img src={pintoIcon} alt="PINTO" className="w-5 h-5 mx-1" />
                           PINTO
                         </div>
@@ -1399,13 +549,13 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
               )}
 
               {/* Error message box */}
-              {error && formStep === 1 && (
+              {formState.error && formStep === 1 && (
                 <div className="w-full p-3 bg-red-50 rounded-lg mb-1 flex items-center gap-3">
                   <WarningIcon color="#DC2626" width={24} height={24} />
                   <span className="text-red-600 font-medium">
-                    {error === "Min per Season must be less than or equal to Max per Season"
+                    {formState.error === "Min per Season must be less than or equal to Max per Season"
                       ? "Minimum per Season must be less than Maximum per Season"
-                      : error}
+                      : formState.error}
                   </span>
                 </div>
               )}
@@ -1433,20 +583,14 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                 ) : (
                   <TooltipSimple
                     content={
-                      formStep === 1 && (!areRequiredFieldsFilled() || !!error) ? (
+                      formStep === 1 && (!validation.areRequiredFieldsFilled() || !!formState.error) ? (
                         <div className="p-1">
                           <div className="font-medium mb-1">Please fill in the following fields:</div>
                           <ul className="list-disc pl-4 text-sm">
-                            {getMissingFields(
-                              temperature,
-                              minSoil,
-                              maxPerSeason,
-                              totalAmount,
-                              isPodLineLengthValid,
-                            ).map((field) => (
+                            {validation.getMissingFields().map((field) => (
                               <li key={field}>{field}</li>
                             ))}
-                            {error && <li className="text-red-500 mt-1">{error}</li>}
+                            {formState.error && <li className="text-red-500 mt-1">{formState.error}</li>}
                           </ul>
                         </div>
                       ) : null
@@ -1454,18 +598,18 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                     side="top"
                     align="center"
                     // Only show tooltip when there are missing fields or errors
-                    disabled={!(formStep === 1 && (!areRequiredFieldsFilled() || !!error))}
+                    disabled={!(formStep === 1 && (!validation.areRequiredFieldsFilled() || !!formState.error))}
                   >
                     <div className="flex-1">
                       <Button
                         size="xlargest"
                         rounded="full"
                         className={`w-full ${
-                          (formStep === 1 && (!areRequiredFieldsFilled() || !!error)) || isLoading
+                          (formStep === 1 && (!validation.areRequiredFieldsFilled() || !!formState.error)) || isLoading
                             ? "bg-pinto-gray-2 text-[#9C9C9C]"
                             : "bg-[#387F5C] text-white"
                         }`}
-                        disabled={(formStep === 1 && (!areRequiredFieldsFilled() || !!error)) || isLoading}
+                        disabled={(formStep === 1 && (!validation.areRequiredFieldsFilled() || !!formState.error)) || isLoading}
                         onClick={handleNext}
                       >
                         {isLoading ? (
@@ -1487,145 +631,14 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
         </div>
       </Col>
 
-      {/* Token Selection Dialog */}
-      <Dialog open={showTokenSelectionDialog} onOpenChange={setShowTokenSelectionDialog}>
-        <DialogPortal>
-          <DialogOverlay className="fixed inset-0 backdrop-blur-sm bg-black/30" />
-          <DialogContent
-            className="sm:max-w-[700px] mx-auto p-0 bg-white rounded-2xl border border-pinto-gray-2"
-            style={{ padding: 0, gap: 0 }}
-          >
-            <div className="p-3">
-              <DialogHeader className="mb-6 -mt-1">
-                <DialogTitle className="font-medium mb-1 text-[1.25rem] tracking-normal">
-                  Select Token from Silo Deposits
-                </DialogTitle>
-                <DialogDescription className="text-gray-500 pb-1">
-                  Tractor allows you to fund Orders for Soil using Deposits
-                </DialogDescription>
-                <Separator />
-              </DialogHeader>
-              {/* Dynamic funding source options */}
-              <div className="flex flex-col gap-4 mb-6">
-                <div className="text-gray-500">Dynamic funding source</div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div
-                    className={`flex items-center px-6 py-4 gap-2 rounded-[36px] cursor-pointer ${
-                      selectedTokenStrategy.type === "LOWEST_PRICE"
-                        ? "bg-[#F8F8F8] border border-pinto-gray-2"
-                        : "bg-[#F8F8F8] border border-pinto-gray-2"
-                    }`}
-                    onClick={() => {
-                      setSelectedTokenStrategy({ type: "LOWEST_PRICE" });
-                      setShowTokenSelectionDialog(false);
-                    }}
-                  >
-                    <div
-                      className={`w-10 h-10 rounded-full ${
-                        selectedTokenStrategy.type === "LOWEST_PRICE"
-                          ? "bg-[#D8F1E2] border border-dashed border-[#387F5C]"
-                          : "border border-pinto-gray-2"
-                      }`}
-                    />
-                    <div className="flex flex-col gap-1">
-                      <span className="text-base font-normal leading-[110%] text-black">Token with Best Price</span>
-                      <span className="text-base font-normal leading-[110%] text-[#9C9C9C]">at time of execution</span>
-                    </div>
-                  </div>
+      {/* Use shared token selection dialog */}
+      <TokenSelectionDialog
+        open={formState.showTokenSelectionDialog}
+        onOpenChange={handlers.setShowTokenSelectionDialog}
+        selectedTokenStrategy={formState.selectedTokenStrategy}
+        onTokenStrategyChange={handlers.setSelectedTokenStrategy}
+      />
 
-                  <div
-                    className={`flex items-center px-6 py-4 gap-2 rounded-[36px] cursor-pointer ${
-                      selectedTokenStrategy.type === "LOWEST_SEEDS"
-                        ? "bg-[#F8F8F8] border border-pinto-gray-2"
-                        : "bg-[#F8F8F8] border border-pinto-gray-2"
-                    }`}
-                    onClick={() => {
-                      setSelectedTokenStrategy({ type: "LOWEST_SEEDS" });
-                      setShowTokenSelectionDialog(false);
-                    }}
-                  >
-                    <div
-                      className={`w-10 h-10 rounded-full ${
-                        selectedTokenStrategy.type === "LOWEST_SEEDS"
-                          ? "bg-[#D8F1E2] border border-dashed border-[#387F5C]"
-                          : "border border-pinto-gray-2"
-                      }`}
-                    />
-                    <div className="flex flex-col gap-1">
-                      <span className="text-base font-normal leading-[110%] text-black">Token with Least Seeds</span>
-                      <span className="text-base font-normal leading-[110%] text-[#9C9C9C]">at time of execution</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Deposited Tokens */}
-              <div className="flex flex-col gap-2">
-                <div className="text-gray-500">Deposited Tokens</div>
-                <div className="flex flex-col space-y-1 bg-white rounded-xl">
-                  {whitelistedTokens.map((token) => {
-                    const deposit = farmerDeposits.get(token);
-                    const amount = deposit?.amount || TokenValue.ZERO;
-
-                    // Calculate dollar value - use price for PINTO, swap results for LP tokens
-                    const pintoAmount =
-                      token.symbol === "PINTO"
-                        ? amount.mul(priceData.price)
-                        : swapResults.get(token.address) || TokenValue.ZERO;
-
-                    const isSelected =
-                      selectedTokenStrategy.type === "SPECIFIC_TOKEN" &&
-                      selectedTokenStrategy.address === token.address;
-
-                    return (
-                      <div
-                        key={token.address}
-                        className={`flex items-center justify-between py-4 cursor-pointer rounded-lg ${
-                          isSelected ? "bg-green-50" : "bg-white"
-                        }`}
-                        onClick={() => {
-                          setSelectedTokenStrategy({
-                            type: "SPECIFIC_TOKEN",
-                            address: token.address as `0x${string}`,
-                          });
-                          setShowTokenSelectionDialog(false);
-                        }}
-                      >
-                        <div className="flex items-center gap-3">
-                          <IconImage src={token.logoURI} alt={token.symbol} size={12} className="rounded-full" />
-                          <div className="flex flex-col">
-                            <div className="font-medium text-lg mb-1">{token.symbol}</div>
-                            <div className="flex items-center text-xs text-gray-500 gap-1">
-                              <IconImage src={stalkIcon} size={3} alt="Stalk" />{" "}
-                              {formatter.number(deposit?.stalk?.total || 0)} Stalk
-                              <IconImage src={seedIcon} size={3} alt="Seeds" className="ml-1" />{" "}
-                              {formatter.number(deposit?.seeds || 0)} Seeds
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end">
-                          <div className="text-right text-xl font-medium">
-                            {amount.toNumber() > 0 && amount.toNumber() < 0.01
-                              ? formatter.number(amount, { minDecimals: 4, maxDecimals: 8 })
-                              : formatter.number(amount)}
-                          </div>
-                          <div className="text-right text-gray-500 text-sm">
-                            ${formatter.number(pintoAmount, { minDecimals: 2, maxDecimals: 2 })}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="text-xs text-gray-500 flex items-center gap-1 mt-2">
-                  <InfoOutlinedIcon width={14} height={14} />
-                  Deposits with the least Grown Stalk will always be used first
-                </div>
-              </div>
-            </div>
-          </DialogContent>
-        </DialogPortal>
-      </Dialog>
 
       {showReview && encodedData && operatorPasteInstructions && blueprint && (
         <ReviewTractorOrderDialog
@@ -1634,17 +647,17 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
           onSuccess={() => onOpenChange(false)}
           onOrderPublished={onOrderPublished}
           orderData={{
-            totalAmount,
-            temperature,
-            podLineLength,
-            minSoil,
-            operatorTip,
-            tokenStrategy: selectedTokenStrategy.type,
+            totalAmount: formState.totalAmount,
+            temperature: formState.temperature,
+            podLineLength: formState.podLineLength,
+            minSoil: formState.minSoil,
+            operatorTip: formState.operatorTip,
+            tokenStrategy: formState.selectedTokenStrategy.type,
             tokenSymbol:
-              selectedTokenStrategy.type === "SPECIFIC_TOKEN"
-                ? whitelistedTokens.find((t) => t.address === selectedTokenStrategy.address)?.symbol
+              formState.selectedTokenStrategy.type === "SPECIFIC_TOKEN"
+                ? whitelistedTokens.find((t) => t.address === (formState.selectedTokenStrategy as any).address)?.symbol
                 : undefined,
-            morningAuction,
+            morningAuction: formState.morningAuction,
           }}
           encodedData={encodedData}
           operatorPasteInstrs={operatorPasteInstructions}
