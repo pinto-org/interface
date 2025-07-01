@@ -225,7 +225,7 @@ function Silo() {
                 <MultiLPHelperLink
                   lpTokens={multiLPTokens}
                   totalSeedsGain={multiLPTotalSeeds}
-                  className="absolute -right-[120px] max-[1800px]:-right-[280px] top-20"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2"
                   onSuccess={() => {
                     // Refresh farmer data after successful conversion
                     window.location.reload();

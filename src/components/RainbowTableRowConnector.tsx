@@ -1,9 +1,7 @@
 import { generateID } from "@/utils/utils";
-import { motion } from "framer-motion";
 import { useAtom } from "jotai";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { hoveredIdAtom } from "./HelperLink";
-import { ChevronRightIcon } from "./Icons";
 import ResizeVisibilityWrapper from "./ResizeVisibilityWrapper";
 import { Token } from "@/utils/types";
 
@@ -319,42 +317,7 @@ const RainbowTableRowConnector = ({
           ))}
         </svg>
 
-        {/* Animated chevrons along each path */}
-        <div
-          style={{
-            position: "absolute",
-            top: dimensions.top,
-            left: dimensions.left,
-            width: dimensions.width,
-            height: dimensions.height,
-          }}
-        >
-          {rainbowPaths.map((pathData, index) => (
-            <motion.div
-              key={`chevron-${index}`}
-              initial={{ offsetDistance: "0%" }}
-              animate={{ offsetDistance: "95%" }}
-              transition={{
-                duration: 3 + index * 0.2, // Stagger the animation
-                ease: "easeInOut",
-                repeat: Infinity,
-                delay: index * 0.3, // Progressive delay for rainbow effect
-              }}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: 16,
-                height: 16,
-                offsetPath: `path('${pathData.path}')`,
-                scale: 1.2,
-                color: pathData.color,
-              }}
-            >
-              <ChevronRightIcon color="currentColor" className="drop-shadow-sm" />
-            </motion.div>
-          ))}
-        </div>
+        {/* Removed animated chevrons as requested */}
       </div>
     </ResizeVisibilityWrapper>
   );
