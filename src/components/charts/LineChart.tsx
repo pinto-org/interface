@@ -174,8 +174,14 @@ const LineChart = React.memo(
         
         // Historical data dataset
         if (historicalData.length > 0) {
+          // Create full data array with nulls for prediction points
+          const historicalLineData = new Array(labels.length).fill(null);
+          historicalData.forEach((dataItem, idx) => {
+            historicalLineData[idx] = dataItem.values[0];
+          });
+          
           datasets.push({
-            data: historicalData.map((dataItem) => dataItem.values[0]),
+            data: historicalLineData,
             borderColor: makeLineGradients[0](ctx, 1),
             borderWidth: 1.5,
             fill: !!makeAreaGradients,
@@ -185,7 +191,7 @@ const LineChart = React.memo(
           });
         }
         
-        // Prediction line dataset (dotted line from last historical point to prediction)
+        // Prediction line dataset (dotted line from last historical point to prediction only)
         if (predictionIndex >= 0 && historicalData.length > 0) {
           const lastHistorical = historicalData[historicalData.length - 1];
           const predictionPoint = data[predictionIndex];
@@ -202,14 +208,14 @@ const LineChart = React.memo(
           
           datasets.push({
             data: predictionLineData,
-            borderColor: makeLineGradients[1] ? makeLineGradients[1](ctx, 0.7) : makeLineGradients[0](ctx, 0.7),
+            borderColor: makeLineGradients[0](ctx, 0.6), // Use same color but more transparent
             borderWidth: 1.5,
             borderDash: [5, 5], // Dotted line
             fill: false,
             pointRadius: pointRadiusArray,
             pointHoverRadius: pointHoverRadiusArray,
-            pointBackgroundColor: makeLineGradients[1] ? makeLineGradients[1](ctx, 1) : makeLineGradients[0](ctx, 1),
-            spanGaps: true, // Connect null values
+            pointBackgroundColor: makeLineGradients[0](ctx, 1),
+            spanGaps: true, // Connect null values - this ensures only the gap between last historical and prediction is filled
           });
         }
 

@@ -72,8 +72,6 @@ interface SeasonalChartProps {
 
 const morningStrokeGradients = [metallicMorningStrokeGradientFn];
 const greenStrokeGradients = [gradientFunctions.metallicGreen];
-// Prediction line gradients - lighter, semi-transparent version
-const predictionStrokeGradients = [gradientFunctions.solidGreen, gradientFunctions.solidGreen]; // Main line + prediction line
 
 const areaGradients = [metallicMorningAreaGradientFn];
 
@@ -247,11 +245,7 @@ const SeasonalChart = ({
                   data={chartData}
                   xKey="timestamp"
                   size={size}
-                  makeLineGradients={
-                    temperaturePrediction 
-                      ? predictionStrokeGradients 
-                      : (fillArea ? morningStrokeGradients : greenStrokeGradients)
-                  }
+                  makeLineGradients={fillArea ? morningStrokeGradients : greenStrokeGradients}
                   makeAreaGradients={fillArea ? areaGradients : undefined}
                   valueFormatter={tickValueFormatter}
                   onMouseOver={handleMouseOver}
