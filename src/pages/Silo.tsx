@@ -5,6 +5,7 @@ import { Col, Row } from "@/components/Container";
 import DonutChart from "@/components/DonutChart";
 import GerminationNotice from "@/components/GerminationNotice";
 import HelperLink from "@/components/HelperLink";
+import MultiLPHelperLink from "@/components/MultiLPHelperLink";
 import ReadMoreAccordion from "@/components/ReadMoreAccordion";
 import StatPanel from "@/components/StatPanel";
 import TableRowConnector from "@/components/TableRowConnector";
@@ -73,6 +74,11 @@ function Silo() {
   const hasGerminatingDeposits = Array.from(farmerSilo.deposits.values()).some((depositData) =>
     depositData.deposits.some((deposit) => deposit.isGerminating && !deposit.isPlantDeposit),
   );
+
+  // Multi-LP conversion states
+  const multiLPConversionEnabled = farmerActions.convertAllLPToPinto.enabled;
+  const multiLPTokens = farmerActions.convertAllLPToPinto.lpTokens;
+  const multiLPTotalSeeds = farmerActions.convertAllLPToPinto.totalOutputs.seedGain.toNumber();
 
   const statPanelData: Record<"stalk" | "seeds" | "depositedValue", StatPanelData> = {
     depositedValue: {
@@ -213,6 +219,17 @@ function Silo() {
                   onClick={submitClaimRewards}
                   onMouseEnter={() => setHoveredButton("claim")}
                   onMouseLeave={() => setHoveredButton("")}
+                />
+              )}
+              {multiLPConversionEnabled && (
+                <MultiLPHelperLink
+                  lpTokens={multiLPTokens}
+                  totalSeedsGain={multiLPTotalSeeds}
+                  className="absolute -right-[120px] max-[1800px]:-right-[280px] top-20"
+                  onSuccess={() => {
+                    // Refresh farmer data after successful conversion
+                    window.location.reload();
+                  }}
                 />
               )}
               {/* {enablePintoToLPHelper && (
