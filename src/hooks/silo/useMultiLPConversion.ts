@@ -107,43 +107,70 @@ export function useMultiLPConversion({
       for (const token of lpTokens) {
         const conversionAmount = conversionAmounts.get(token);
         
-        if (!conversionAmount?.gt(0)) continue;
+        if (!conversionAmount?.gt(0)) {
+          console.log(`Skipping ${token.symbol}: no conversion amount`);
+          continue;
+        }
 
         try {
           // Get farmer deposits for this token
           const deposits = farmerSilo.deposits.get(token);
-          if (!deposits?.deposits.length) continue;
+          if (!deposits?.deposits.length) {
+            console.log(`Skipping ${token.symbol}: no deposits`);
+            continue;
+          }
 
           // Use the deposits directly for conversion quote
           const depositData = deposits.deposits.filter(d => d.amount.gt(0));
           
-          if (depositData.length === 0) continue;
+          if (depositData.length === 0) {
+            console.log(`Skipping ${token.symbol}: no valid deposit data`);
+            continue;
+          }
+
+          // Ensure conversion amount doesn't exceed convertible amount
+          const maxConvertible = deposits.convertibleAmount;
+          const actualConversionAmount = TokenValue.min(conversionAmount, maxConvertible);
+          
+          // Set a minimum conversion threshold (e.g., 0.001 tokens)
+          const minConversionAmount = TokenValue.fromHuman("0.001", token.decimals);
+          
+          if (!actualConversionAmount.gt(minConversionAmount)) {
+            console.log(`Skipping ${token.symbol}: conversion amount ${actualConversionAmount.toHuman()} below minimum ${minConversionAmount.toHuman()}`);
+            continue;
+          }
+
+          console.log(`Attempting conversion for ${token.symbol}: ${actualConversionAmount.toHuman()} (${percentage}% of ${maxConvertible.toHuman()})`);
 
           // Get quote from SiloConvert
           const quotes = await siloConvert.quote(
             token,
             pintoToken,
             depositData,
-            conversionAmount,
+            actualConversionAmount,
             slippage,
             new AbortController().signal
           );
 
           if (quotes.length > 0 && quotes[0].totalAmountOut.gt(0)) {
             const bestQuote = quotes[0]; // Use the first (best) quote
+            console.log(`Successfully quoted ${token.symbol}: ${actualConversionAmount.toHuman()} → ${bestQuote.totalAmountOut.toHuman()} Pinto`);
+            
             conversions.push({
               token,
-              fromAmount: conversionAmount,
+              fromAmount: actualConversionAmount,
               toAmount: bestQuote.totalAmountOut,
               route: bestQuote.route,
               quote: bestQuote,
             });
 
-            totalFromAmount = totalFromAmount.add(conversionAmount);
+            totalFromAmount = totalFromAmount.add(actualConversionAmount);
             totalToAmount = totalToAmount.add(bestQuote.totalAmountOut);
             
             // Estimate gas (rough approximation)
             totalGasEstimate = totalGasEstimate.add(TokenValue.fromHuman("0.01", 18)); // ~$0.01 per conversion
+          } else {
+            console.log(`No valid quotes for ${token.symbol}: ${quotes.length} quotes received`);
           }
         } catch (error) {
           console.warn(`Failed to quote conversion for ${token.symbol}:`, error);
@@ -169,7 +196,7 @@ export function useMultiLPConversion({
         }
       }
 
-      return {
+      const result = {
         enabled: conversions.length >= 2, // Require at least 2 successful conversions
         conversions,
         totalFromAmount,
@@ -177,6 +204,22 @@ export function useMultiLPConversion({
         totalGasEstimate,
         workflow,
       };
+
+      console.log("Final conversion summary:", {
+        percentage,
+        enabled: result.enabled,
+        conversions: result.conversions.length,
+        totalFromAmount: result.totalFromAmount.toHuman(),
+        totalToAmount: result.totalToAmount.toHuman(),
+        lpTokens: lpTokens.map(t => t.symbol),
+        conversionDetails: result.conversions.map(c => ({
+          token: c.token.symbol,
+          fromAmount: c.fromAmount.toHuman(),
+          toAmount: c.toAmount.toHuman()
+        }))
+      });
+
+      return result;
     },
     enabled: enabled && !!account.address && lpTokens.length >= 2 && !!siloConvert,
     staleTime: 30000, // 30 second cache

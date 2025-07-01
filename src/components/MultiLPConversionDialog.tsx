@@ -67,6 +67,25 @@ export default function MultiLPConversionDialog({
 
   const isValid = conversionQuote?.enabled && conversionQuote.conversions.length >= 2;
 
+  // Debug logging
+  React.useEffect(() => {
+    if (open) {
+      console.log("MultiLPConversionDialog state:", {
+        percentage,
+        lpTokens: lpTokens.map(t => t.symbol),
+        isQuoting,
+        quoteError,
+        conversionQuote: conversionQuote ? {
+          enabled: conversionQuote.enabled,
+          conversions: conversionQuote.conversions.length,
+          totalFromAmount: conversionQuote.totalFromAmount.toHuman(),
+          totalToAmount: conversionQuote.totalToAmount.toHuman(),
+        } : null,
+        isValid
+      });
+    }
+  }, [open, percentage, lpTokens, isQuoting, quoteError, conversionQuote, isValid]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
@@ -198,6 +217,24 @@ export default function MultiLPConversionDialog({
             <Card className="p-4 bg-red-50 border-red-200">
               <div className="pinto-sm text-red-600">
                 Failed to get conversion quote. Please try again.
+              </div>
+            </Card>
+          )}
+
+          {/* Debug Information (only in development) */}
+          {process.env.NODE_ENV === 'development' && (
+            <Card className="p-4 bg-gray-50 border-gray-200">
+              <div className="pinto-xs text-gray-600">
+                <div>Debug Info:</div>
+                <div>Percentage: {percentage}%</div>
+                <div>LP Tokens: {lpTokens.map(t => t.symbol).join(", ")}</div>
+                <div>Is Quoting: {isQuoting ? "Yes" : "No"}</div>
+                <div>Quote Enabled: {conversionQuote?.enabled ? "Yes" : "No"}</div>
+                <div>Successful Conversions: {conversionQuote?.conversions.length || 0}</div>
+                <div>Is Valid: {isValid ? "Yes" : "No"}</div>
+                {conversionQuote && (
+                  <div>Total Output: {conversionQuote.totalToAmount.toHuman()} Pinto</div>
+                )}
               </div>
             </Card>
           )}
