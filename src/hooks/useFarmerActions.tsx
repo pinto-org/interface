@@ -125,6 +125,19 @@ interface FarmerActions {
       outputs: ActionOutput;
     };
   };
+  
+  // Multi-LP to Pinto conversion
+  convertAllLPToPinto: {
+    enabled: boolean;
+    lpTokens: Token[];
+    totalOutputs: ActionOutput;
+    individualConversions: Array<{
+      token: Token;
+      convertibleAmount: TokenValue;
+      convertibleBDV: TokenValue;
+      outputs: ActionOutput;
+    }>;
+  };
 
   // Update deposits
   updateDeposits: {
@@ -383,6 +396,87 @@ function calculateConvertibleDeposits(
   };
 }
 
+// Helper function to calculate multi-LP to Pinto conversion opportunities
+function calculateMultiLPToPintoConversions(
+  tokenData: ReturnType<typeof useTokenData>,
+  siloData: ReturnType<typeof useSiloData>,
+  priceData: ReturnType<typeof usePriceData>,
+  depositedBalances: Map<Token, TokenDepositData>,
+) {
+  const { pools } = priceData;
+  const mainToken = tokenData.mainToken;
+  const lpTokens = tokenData.lpTokens;
+
+  const eligibleLPTokens: Array<{
+    token: Token;
+    convertibleAmount: TokenValue;
+    convertibleBDV: TokenValue;
+    outputs: ActionOutput;
+  }> = [];
+
+  let totalOutputs: ActionOutput = {
+    beanGain: TokenValue.ZERO,
+    bdvGain: TokenValue.ZERO,
+    stalkGain: TokenValue.ZERO,
+    seedGain: TokenValue.ZERO,
+    podGain: TokenValue.ZERO,
+  };
+
+  // Check each LP token for conversion to Pinto eligibility
+  lpTokens.forEach((lpToken) => {
+    const depositData = depositedBalances.get(lpToken);
+    if (!depositData?.convertibleAmount.gt(0)) return;
+
+    // Check if this LP token can convert to Pinto (deltaB < 0)
+    const lpPool = pools.find((p) => p.pool.address === lpToken.address);
+    if (!lpPool?.deltaB.lt(0)) return;
+
+    const possibleConversions = calculatePossibleConversions(
+      lpToken,
+      depositData,
+      mainToken,
+      [],
+      pools,
+      priceData.deltaB,
+      siloData.tokenData,
+    );
+
+    // Find conversion to main token
+    const toPintoConversion = possibleConversions.find(conv => conv.token === mainToken);
+    if (!toPintoConversion) return;
+
+    const conversionOutputs: ActionOutput = {
+      beanGain: toPintoConversion.gains.beanGain,
+      bdvGain: toPintoConversion.gains.maxConvertAmount,
+      stalkGain: toPintoConversion.gains.stalkGain,
+      seedGain: toPintoConversion.gains.seedGain,
+      podGain: TokenValue.ZERO,
+    };
+
+    eligibleLPTokens.push({
+      token: lpToken,
+      convertibleAmount: depositData.convertibleAmount,
+      convertibleBDV: depositData.depositBDV,
+      outputs: conversionOutputs,
+    });
+
+    // Add to total outputs
+    totalOutputs.beanGain = totalOutputs.beanGain.add(conversionOutputs.beanGain);
+    totalOutputs.bdvGain = totalOutputs.bdvGain.add(conversionOutputs.bdvGain);
+    totalOutputs.stalkGain = totalOutputs.stalkGain.add(conversionOutputs.stalkGain);
+    totalOutputs.seedGain = totalOutputs.seedGain.add(conversionOutputs.seedGain);
+  });
+
+  const enabled = eligibleLPTokens.length >= 2 && totalOutputs.seedGain.gt(50); // Require at least 2 LP tokens and 50+ seeds gain
+
+  return {
+    enabled,
+    lpTokens: eligibleLPTokens.map(item => item.token),
+    totalOutputs,
+    individualConversions: eligibleLPTokens,
+  };
+}
+
 // Helper function to calculate update gains for a token's deposits
 function calculateUpdateGains(depositData: TokenDepositData, siloTokenData: SiloTokenData): UpdateOutput {
   // Get deposit BDV
@@ -488,6 +582,14 @@ export default function useFarmerActions(): FarmerActions {
 
     // Calculate convertible deposits and best conversion
     const { bestConversion, convertibleDeposits } = calculateConvertibleDeposits(
+      tokenData,
+      siloData,
+      priceData,
+      farmerDeposits,
+    );
+
+    // Calculate multi-LP to Pinto conversion opportunities
+    const multiLPToPintoConversion = calculateMultiLPToPintoConversions(
       tokenData,
       siloData,
       priceData,
@@ -732,6 +834,8 @@ export default function useFarmerActions(): FarmerActions {
         },
       },
 
+      convertAllLPToPinto: multiLPToPintoConversion,
+
       updateDeposits: {
         enabled: hasUpdatableDeposits,
         totalGains: totalUpdateGains,
@@ -805,6 +909,18 @@ const defaultState: FarmerActions = {
         podGain: TokenValue.ZERO,
       },
     },
+  },
+  convertAllLPToPinto: {
+    enabled: false,
+    lpTokens: [],
+    totalOutputs: {
+      beanGain: TokenValue.ZERO,
+      bdvGain: TokenValue.ZERO,
+      stalkGain: TokenValue.ZERO,
+      seedGain: TokenValue.ZERO,
+      podGain: TokenValue.ZERO,
+    },
+    individualConversions: [],
   },
   // Add the updateDeposits empty state
   updateDeposits: {
