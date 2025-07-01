@@ -132,27 +132,26 @@ export class Strategizer {
     const sourceWell = source.isLP ? this.cache.getWell(source.address) : undefined;
 
     // if SourceWell exists, target must be main due to validation above.
-    // Remove conversion limits - always allow LP2MainPipeline if well exists
-    if (sourceWell) {
+    // Only add LP2MainPipeline if we have a valid well and it's not disabled
+    if (sourceWell && !this.maxConvertQuoter.isAggDisabledToken(source)) {
       try {
-        routes.push({
-          source,
-          target,
-          strategies: [
-            {
-              strategy: new LP2MainPipeline(sourceWell, target, this.context),
-              amount: amountIn,
-            },
-          ],
-          convertType: "LP2MainPipeline",
-        });
+        // Add validation to ensure we have proper initialization
+        if (amountIn && amountIn.gt(0)) {
+          routes.push({
+            source,
+            target,
+            strategies: [
+              {
+                strategy: new LP2MainPipeline(sourceWell, target, this.context),
+                amount: amountIn,
+              },
+            ],
+            convertType: "LP2MainPipeline",
+          });
+        }
       } catch (error) {
-        throw new StrategySelectionError(
-          source,
-          target,
-          `Failed to create LP2MainPipeline strategy: ${error instanceof Error ? error.message : "Unknown error"}`,
-          { sourceWell: sourceWell.pool.address },
-        );
+        console.warn(`Failed to create LP2MainPipeline strategy for ${source.symbol}:`, error);
+        // Don't throw, just continue with default strategy
       }
     }
 

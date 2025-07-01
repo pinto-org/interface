@@ -88,7 +88,26 @@ export function useMultiLPConversion({
   return useQuery({
     queryKey,
     queryFn: async (): Promise<MultiLPConversionQuote> => {
-      if (!account.address || !enabled || lpTokens.length === 0 || !siloConvert) {
+      try {
+        // Add defensive checks to prevent initialization errors
+        if (!account?.address || !enabled || !lpTokens?.length || !siloConvert || !pintoToken) {
+          console.log('Early return due to missing dependencies:', {
+            account: !!account?.address,
+            enabled,
+            lpTokens: lpTokens?.length || 0,
+            siloConvert: !!siloConvert,
+            pintoToken: !!pintoToken
+          });
+          return {
+            enabled: false,
+            conversions: [],
+            totalFromAmount: TokenValue.ZERO,
+            totalToAmount: TokenValue.ZERO,
+            totalGasEstimate: TokenValue.ZERO,
+          };
+        }
+      } catch (initError) {
+        console.error('Initialization error in multi-LP conversion:', initError);
         return {
           enabled: false,
           conversions: [],
@@ -98,10 +117,12 @@ export function useMultiLPConversion({
         };
       }
 
-      const conversions: MultiLPConversionQuote["conversions"] = [];
-      let totalFromAmount = TokenValue.ZERO;
-      let totalToAmount = TokenValue.ZERO;
-      let totalGasEstimate = TokenValue.ZERO;
+      // Wrap the main logic in try-catch to handle temporal dead zone errors
+      try {
+        const conversions: MultiLPConversionQuote["conversions"] = [];
+        let totalFromAmount = TokenValue.ZERO;
+        let totalToAmount = TokenValue.ZERO;
+        let totalGasEstimate = TokenValue.ZERO;
 
       // Process each LP token conversion
       for (const token of lpTokens) {
@@ -142,17 +163,50 @@ export function useMultiLPConversion({
 
           console.log(`Attempting conversion for ${token.symbol}: ${actualConversionAmount.toHuman()} (${percentage}% of ${maxConvertible.toHuman()})`);
 
-          // Get quote from SiloConvert
-          const quotes = await siloConvert.quote(
-            token,
-            pintoToken,
-            depositData,
-            actualConversionAmount,
-            slippage,
-            new AbortController().signal
-          );
+          // Validate inputs before calling quote
+          if (!token?.address || !pintoToken?.address) {
+            console.error(`Invalid token addresses - ${token?.symbol}: ${token?.address}, ${pintoToken?.symbol}: ${pintoToken?.address}`);
+            continue;
+          }
 
-          if (quotes.length > 0 && quotes[0].totalAmountOut.gt(0)) {
+          if (!siloConvert) {
+            console.error(`SiloConvert instance is undefined`);
+            continue;
+          }
+
+          let quotes;
+          try {
+            // Get quote from SiloConvert with enhanced error handling
+            console.log(`Calling siloConvert.quote for ${token.symbol} -> ${pintoToken.symbol}...`);
+            console.log(`Token details:`, {
+              symbol: token.symbol,
+              address: token.address,
+              isLP: token.isLP,
+              amount: actualConversionAmount.toHuman(),
+              deposits: depositData.length
+            });
+            
+            quotes = await siloConvert.quote(
+              token,
+              pintoToken,
+              depositData,
+              actualConversionAmount,
+              slippage,
+              new AbortController().signal
+            );
+            console.log(`Quote call completed for ${token.symbol}, received ${quotes.length} quotes`);
+          } catch (quoteError) {
+            console.error(`Quote failed for ${token.symbol}:`, quoteError);
+            console.error(`Error details:`, {
+              name: quoteError?.name,
+              message: quoteError?.message,
+              stack: quoteError?.stack?.split('\n').slice(0, 5)
+            });
+            // Skip this token and continue with others
+            continue;
+          }
+
+          if (quotes && quotes.length > 0 && quotes[0].totalAmountOut.gt(0)) {
             const bestQuote = quotes[0]; // Use the first (best) quote
             console.log(`Successfully quoted ${token.symbol}: ${actualConversionAmount.toHuman()} → ${bestQuote.totalAmountOut.toHuman()} Pinto`);
             
@@ -224,6 +278,17 @@ export function useMultiLPConversion({
       });
 
       return result;
+      
+      } catch (mainError) {
+        console.error('Main logic error in multi-LP conversion:', mainError);
+        return {
+          enabled: false,
+          conversions: [],
+          totalFromAmount: TokenValue.ZERO,
+          totalToAmount: TokenValue.ZERO,
+          totalGasEstimate: TokenValue.ZERO,
+        };
+      }
     },
     enabled: enabled && !!account.address && lpTokens.length >= 2 && !!siloConvert,
     staleTime: 30000, // 30 second cache
