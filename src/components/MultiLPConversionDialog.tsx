@@ -6,7 +6,9 @@ import IconImage from "@/components/ui/IconImage";
 import { Separator } from "@/components/ui/Separator";
 import { Slider } from "@/components/ui/Slider";
 import { MAIN_TOKEN } from "@/constants/tokens";
+import { beanstalkAbi } from "@/generated/contractHooks";
 import { useMultiLPConversion, useExecuteMultiLPConversion } from "@/hooks/silo/useMultiLPConversion";
+import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
@@ -14,6 +16,7 @@ import { cn } from "@/utils/utils";
 import { motion } from "framer-motion";
 import React, { useState } from "react";
 import { toast } from "sonner";
+import { useWriteContract } from "wagmi";
 
 interface MultiLPConversionDialogProps {
   open: boolean;
@@ -31,6 +34,9 @@ export default function MultiLPConversionDialog({
   const [percentage, setPercentage] = useState(100);
   const [isConverting, setIsConverting] = useState(false);
   const pintoToken = useChainConstant(MAIN_TOKEN);
+  const diamond = useProtocolAddress();
+  
+  const { writeContractAsync } = useWriteContract();
 
   const {
     data: conversionQuote,
@@ -53,7 +59,24 @@ export default function MultiLPConversionDialog({
 
     setIsConverting(true);
     try {
-      await executeMultiLPConversion(conversionQuote);
+      // Get the workflow steps
+      const workflowSteps = conversionQuote.workflow.getSteps();
+      
+      if (workflowSteps.length === 0) {
+        throw new Error("No workflow steps found");
+      }
+
+      console.log("Executing multi-LP conversion with steps:", workflowSteps.length);
+      
+      // Execute the transaction using Wagmi's writeContractAsync
+      const result = await writeContractAsync({
+        address: diamond,
+        abi: beanstalkAbi,
+        functionName: "advancedFarm",
+        args: [workflowSteps],
+      });
+
+      console.log("Multi-LP conversion transaction submitted:", result);
       toast.success(`Successfully converted ${conversionQuote.conversions.length} LP tokens to Pinto!`);
       onSuccess?.();
       onOpenChange(false);

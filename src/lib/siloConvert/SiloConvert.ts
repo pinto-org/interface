@@ -418,16 +418,51 @@ export class SiloConvert {
       fromToken: Token;
       toToken: Token;
       amount: TV;
+      deposits: DepositData[];
       route?: SiloConvertRoute<SiloConvertType>;
     }>
   ): Promise<AdvancedFarmWorkflow> {
-    // For now, return a simple workflow that can be executed
-    // In a real implementation, this would aggregate multiple conversion workflows
     const batchWorkflow = new AdvancedFarmWorkflow(this.context.chainId, this.context.wagmiConfig);
     
-    // TODO: Implement proper batch conversion workflow
-    // This is a placeholder that returns an empty workflow
-    // The actual implementation would require more complex orchestration
+    // Process each conversion and add to the workflow
+    for (const conversion of conversions) {
+      try {
+        if (!conversion.deposits.length) {
+          console.warn(`No deposits provided for token: ${conversion.fromToken.symbol}`);
+          continue;
+        }
+
+        // Use the deposits directly - the quote method will handle crate picking internally
+        const validDeposits = conversion.deposits.filter(d => d.amount.gt(0));
+        
+        if (validDeposits.length === 0) {
+          console.warn(`No valid deposits found for token: ${conversion.fromToken.symbol}`);
+          continue;
+        }
+
+        // Get a quote for this specific conversion
+        const quotes = await this.quote(
+          conversion.fromToken,
+          conversion.toToken,
+          validDeposits,
+          conversion.amount,
+          0.25, // 0.25% slippage
+          new AbortController().signal
+        );
+
+        if (quotes.length > 0 && quotes[0].workflow) {
+          // Add the workflow steps to our batch
+          const workflowSteps = quotes[0].workflow.getSteps();
+          batchWorkflow.add(workflowSteps);
+          console.log(`Added conversion workflow for ${conversion.fromToken.symbol} -> ${conversion.toToken.symbol} (${workflowSteps.length} steps)`);
+        } else {
+          console.warn(`No valid workflow found for ${conversion.fromToken.symbol} -> ${conversion.toToken.symbol}`);
+        }
+      } catch (error) {
+        console.error(`Failed to build workflow for ${conversion.fromToken.symbol}:`, error);
+        // Continue with other conversions even if one fails
+      }
+    }
     
     return batchWorkflow;
   }

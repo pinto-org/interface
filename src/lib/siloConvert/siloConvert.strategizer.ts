@@ -132,7 +132,8 @@ export class Strategizer {
     const sourceWell = source.isLP ? this.cache.getWell(source.address) : undefined;
 
     // if SourceWell exists, target must be main due to validation above.
-    if (sourceWell && !this.maxConvertQuoter.isAggDisabledToken(source)) {
+    // Remove conversion limits - always allow LP2MainPipeline if well exists
+    if (sourceWell) {
       try {
         routes.push({
           source,

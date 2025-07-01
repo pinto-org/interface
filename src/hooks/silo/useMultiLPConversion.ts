@@ -184,12 +184,16 @@ export function useMultiLPConversion({
         try {
           // Create a combined workflow using the SiloConvert instance
           workflow = await siloConvert.buildBatchWorkflow(
-            conversions.map((conv) => ({
-              fromToken: conv.token,
-              toToken: pintoToken,
-              amount: conv.fromAmount,
-              route: conv.route,
-            }))
+            conversions.map((conv) => {
+              const deposits = farmerSilo.deposits.get(conv.token);
+              return {
+                fromToken: conv.token,
+                toToken: pintoToken,
+                amount: conv.fromAmount,
+                deposits: deposits?.deposits.filter(d => d.amount.gt(0)) || [],
+                route: conv.route,
+              };
+            })
           );
         } catch (error) {
           console.warn("Failed to build batch workflow:", error);
@@ -238,9 +242,22 @@ export function useExecuteMultiLPConversion() {
     }
 
     try {
-      // Execute the batch workflow
-      const result = await quote.workflow.execute();
-      return result;
+      // Get the workflow steps for transaction execution
+      const workflowSteps = quote.workflow.getSteps();
+      
+      if (workflowSteps.length === 0) {
+        throw new Error("No workflow steps found");
+      }
+
+      console.log("Executing multi-LP conversion with steps:", workflowSteps.length);
+      
+      // Return the workflow steps for the calling component to execute
+      // The actual transaction execution should be handled by the calling component
+      // using writeWithEstimateGas pattern
+      return {
+        workflowSteps,
+        workflow: quote.workflow
+      };
     } catch (error) {
       console.error("Multi-LP conversion execution failed:", error);
       throw error;
