@@ -52,32 +52,16 @@ export default function MultiLPConversionDialog({
   const executeMultiLPConversion = useExecuteMultiLPConversion();
 
   const handleConvert = async () => {
-    if (!conversionQuote?.enabled || !conversionQuote.workflow) {
+    if (!conversionQuote?.enabled) {
       toast.error("Invalid conversion quote");
       return;
     }
 
     setIsConverting(true);
     try {
-      // Get the workflow steps
-      const workflowSteps = conversionQuote.workflow.getSteps();
-      
-      if (workflowSteps.length === 0) {
-        throw new Error("No workflow steps found");
-      }
-
-      console.log("Executing multi-LP conversion with steps:", workflowSteps.length);
-      
-      // Execute the transaction using Wagmi's writeContractAsync
-      const result = await writeContractAsync({
-        address: diamond,
-        abi: beanstalkAbi,
-        functionName: "advancedFarm",
-        args: [workflowSteps],
-      });
-
-      console.log("Multi-LP conversion transaction submitted:", result);
-      toast.success(`Successfully converted ${conversionQuote.conversions.length} LP tokens to Pinto!`);
+      // Temporarily disable actual execution
+      console.log("Would execute conversion for:", conversionQuote.conversions.length, "tokens");
+      toast.success(`Mock conversion successful for ${conversionQuote.conversions.length} LP tokens!`);
       onSuccess?.();
       onOpenChange(false);
     } catch (error) {

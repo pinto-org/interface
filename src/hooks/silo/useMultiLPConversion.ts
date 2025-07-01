@@ -174,85 +174,36 @@ export function useMultiLPConversion({
             continue;
           }
 
-          let quotes;
-          try {
-            // Get quote from SiloConvert with enhanced error handling
-            console.log(`Calling siloConvert.quote for ${token.symbol} -> ${pintoToken.symbol}...`);
-            console.log(`Token details:`, {
-              symbol: token.symbol,
-              address: token.address,
-              isLP: token.isLP,
-              amount: actualConversionAmount.toHuman(),
-              deposits: depositData.length
-            });
-            
-            quotes = await siloConvert.quote(
-              token,
-              pintoToken,
-              depositData,
-              actualConversionAmount,
-              slippage,
-              new AbortController().signal
-            );
-            console.log(`Quote call completed for ${token.symbol}, received ${quotes.length} quotes`);
-          } catch (quoteError) {
-            console.error(`Quote failed for ${token.symbol}:`, quoteError);
-            console.error(`Error details:`, {
-              name: quoteError?.name,
-              message: quoteError?.message,
-              stack: quoteError?.stack?.split('\n').slice(0, 5)
-            });
-            // Skip this token and continue with others
-            continue;
-          }
+          // Skip conversion quote temporarily to isolate the error
+          console.log(`Would attempt conversion for ${token.symbol}: ${actualConversionAmount.toHuman()}`);
+          
+          // Create a mock quote for now to test the rest of the flow
+          const mockQuote = {
+            totalAmountOut: actualConversionAmount.mul(0.98), // Simulate 2% slippage
+            route: { convertType: "mock" as any },
+            workflow: undefined, // This will prevent execution but allow testing
+          };
+          
+          conversions.push({
+            token,
+            fromAmount: actualConversionAmount,
+            toAmount: mockQuote.totalAmountOut,
+            route: mockQuote.route,
+            quote: mockQuote as any,
+          });
 
-          if (quotes && quotes.length > 0 && quotes[0].totalAmountOut.gt(0)) {
-            const bestQuote = quotes[0]; // Use the first (best) quote
-            console.log(`Successfully quoted ${token.symbol}: ${actualConversionAmount.toHuman()} → ${bestQuote.totalAmountOut.toHuman()} Pinto`);
-            
-            conversions.push({
-              token,
-              fromAmount: actualConversionAmount,
-              toAmount: bestQuote.totalAmountOut,
-              route: bestQuote.route,
-              quote: bestQuote,
-            });
-
-            totalFromAmount = totalFromAmount.add(actualConversionAmount);
-            totalToAmount = totalToAmount.add(bestQuote.totalAmountOut);
-            
-            // Estimate gas (rough approximation)
-            totalGasEstimate = totalGasEstimate.add(TokenValue.fromHuman("0.01", 18)); // ~$0.01 per conversion
-          } else {
-            console.log(`No valid quotes for ${token.symbol}: ${quotes.length} quotes received`);
-          }
+          totalFromAmount = totalFromAmount.add(actualConversionAmount);
+          totalToAmount = totalToAmount.add(mockQuote.totalAmountOut);
+          totalGasEstimate = totalGasEstimate.add(TokenValue.fromHuman("0.01", 18));
         } catch (error) {
           console.warn(`Failed to quote conversion for ${token.symbol}:`, error);
           // Continue with other tokens even if one fails
         }
       }
 
-      // Build combined workflow if we have successful conversions
+      // Temporarily disable workflow building to isolate the issue
       let workflow;
-      if (conversions.length > 0) {
-        try {
-          // Create a combined workflow using the SiloConvert instance
-          workflow = await siloConvert.buildBatchWorkflow(
-            conversions.map((conv) => {
-              const deposits = farmerSilo.deposits.get(conv.token);
-              return {
-                fromToken: conv.token,
-                toToken: pintoToken,
-                amount: conv.fromAmount,
-                deposits: deposits?.deposits.filter(d => d.amount.gt(0)) || [],
-                route: conv.route,
-              };
-            })
-          );
-        } catch (error) {
-          console.warn("Failed to build batch workflow:", error);
-        }
-      }
+      console.log(`Skipping workflow building for ${conversions.length} conversions`);
 
       const result = {
         enabled: conversions.length >= 2, // Require at least 2 successful conversions
