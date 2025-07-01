@@ -77,7 +77,7 @@ export default function MultiLPHelperLink({
       />
 
       {/* Add rainbow animation CSS */}
-      <style jsx>{`
+      <style>{`
         @keyframes rainbowShift {
           0% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }

@@ -5,7 +5,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import IconImage from "@/components/ui/IconImage";
 import { Separator } from "@/components/ui/Separator";
 import { Slider } from "@/components/ui/Slider";
+import { MAIN_TOKEN } from "@/constants/tokens";
 import { useMultiLPConversion, useExecuteMultiLPConversion } from "@/hooks/silo/useMultiLPConversion";
+import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
@@ -28,6 +30,7 @@ export default function MultiLPConversionDialog({
 }: MultiLPConversionDialogProps) {
   const [percentage, setPercentage] = useState(100);
   const [isConverting, setIsConverting] = useState(false);
+  const pintoToken = useChainConstant(MAIN_TOKEN);
 
   const {
     data: conversionQuote,
@@ -161,7 +164,7 @@ export default function MultiLPConversionDialog({
                   <div>
                     <div className="pinto-sm text-pinto-light">Total Pinto Received</div>
                     <div className="pinto-body font-medium">
-                      {formatter.token(conversionQuote.totalToAmount)} Pinto
+                      {formatter.token(conversionQuote.totalToAmount, pintoToken)} Pinto
                     </div>
                   </div>
                   

@@ -114,21 +114,16 @@ export function useMultiLPConversion({
           const deposits = farmerSilo.deposits.get(token);
           if (!deposits?.deposits.length) continue;
 
-          // Pick optimal crates for conversion
-          const { crates } = pickCratesMultiple(
-            deposits.deposits,
-            conversionAmount,
-            "convertibleAmount",
-            true // ascending for LP->Main conversions
-          );
-
-          if (crates.length === 0) continue;
+          // Use the deposits directly for conversion quote
+          const depositData = deposits.deposits.filter(d => d.amount.gt(0));
+          
+          if (depositData.length === 0) continue;
 
           // Get quote from SiloConvert
           const quotes = await siloConvert.quote(
             token,
             pintoToken,
-            crates,
+            depositData,
             conversionAmount,
             slippage,
             new AbortController().signal
