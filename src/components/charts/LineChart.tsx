@@ -200,21 +200,14 @@ const LineChart = React.memo(
           predictionLineData[historicalData.length - 1] = lastHistorical.values[0]; // Start from last historical point
           predictionLineData[predictionIndex] = predictionPoint.values[0]; // End at prediction point
           
-          // Create dynamic pointRadius arrays
-          const pointRadiusArray = new Array(labels.length).fill(0);
-          const pointHoverRadiusArray = new Array(labels.length).fill(0);
-          pointRadiusArray[predictionIndex] = 4; // Show point only at prediction
-          pointHoverRadiusArray[predictionIndex] = 6;
-          
           datasets.push({
             data: predictionLineData,
             borderColor: makeLineGradients[0](ctx, 0.6), // Use same color but more transparent
             borderWidth: 1.5,
             borderDash: [5, 5], // Dotted line
             fill: false,
-            pointRadius: pointRadiusArray,
-            pointHoverRadius: pointHoverRadiusArray,
-            pointBackgroundColor: makeLineGradients[0](ctx, 1),
+            pointRadius: 0, // Hide default points, we'll draw custom blinking point in plugin
+            pointHoverRadius: 0,
             spanGaps: true, // Connect null values - this ensures only the gap between last historical and prediction is filled
           });
         }

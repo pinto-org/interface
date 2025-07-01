@@ -452,7 +452,7 @@ const getHorizontalLinePlugin = (horizontalReferenceLines: LineChartHorizontalRe
   },
 });
 
-// Prediction label plugin
+// Prediction label and blinking point plugin
 const getPredictionLabelPlugin = (temperaturePrediction: any) => ({
   id: "predictionLabel",
   afterDraw: (chart: Chart) => {
@@ -471,14 +471,44 @@ const getPredictionLabelPlugin = (temperaturePrediction: any) => ({
     const meta = chart.getDatasetMeta(1);
     if (!meta || !meta.data || meta.data.length === 0) return;
     
-    // Find the prediction point (last non-null point)
-    const predictionPointIndex = meta.data.findIndex(point => point);
-    if (predictionPointIndex === -1) return;
+    // Find the prediction point (find the actual prediction point, not just first non-null)
+    let predictionPoint = null;
+    let predictionPointIndex = -1;
     
-    const predictionPoint = meta.data[predictionPointIndex];
-    if (!predictionPoint) return;
+    // Look for the last point in the prediction dataset (which should be our prediction)
+    for (let i = meta.data.length - 1; i >= 0; i--) {
+      if (meta.data[i] && meta.data[i].x !== undefined && meta.data[i].y !== undefined) {
+        predictionPoint = meta.data[i];
+        predictionPointIndex = i;
+        break;
+      }
+    }
+    
+    if (!predictionPoint || predictionPointIndex === -1) return;
     
     ctx.save();
+    
+    // Blinking animation for the prediction point
+    const time = Date.now();
+    const blinkSpeed = 800; // milliseconds for full blink cycle
+    const opacity = (Math.sin(time / blinkSpeed * Math.PI * 2) + 1) / 2; // Oscillates between 0 and 1
+    
+    // Draw blinking prediction point
+    ctx.globalAlpha = 0.3 + (opacity * 0.7); // Range from 0.3 to 1.0 opacity
+    ctx.fillStyle = "#246645";
+    ctx.beginPath();
+    ctx.arc(predictionPoint.x, predictionPoint.y, 6, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Draw inner ring with different opacity
+    ctx.globalAlpha = 0.6 + (opacity * 0.4);
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(predictionPoint.x, predictionPoint.y, 3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Reset opacity for label
+    ctx.globalAlpha = 1.0;
     
     // Label styling
     ctx.font = "12px Arial";
@@ -486,24 +516,25 @@ const getPredictionLabelPlugin = (temperaturePrediction: any) => ({
     ctx.textAlign = "center";
     ctx.textBaseline = "bottom";
     
-    // Create label text
+    // Create label text with more detailed information
     const percentage = (temperaturePrediction.predictedTemperature * 100).toFixed(1);
-    const labelText = `Predicted: ${percentage}%`;
+    const confidence = temperaturePrediction.confidence ? `${(temperaturePrediction.confidence * 100).toFixed(0)}%` : '';
+    const labelText = confidence ? `Predicted: ${percentage}% (${confidence})` : `Predicted: ${percentage}%`;
     
     // Position label above the prediction point
     const labelX = predictionPoint.x;
-    const labelY = predictionPoint.y - 8;
+    const labelY = predictionPoint.y - 15;
     
     // Add background for better readability
     const textWidth = ctx.measureText(labelText).width;
-    const padding = 4;
+    const padding = 6;
     
-    ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
     ctx.fillRect(
       labelX - textWidth / 2 - padding,
-      labelY - 12 - padding,
+      labelY - 14 - padding,
       textWidth + padding * 2,
-      12 + padding * 2
+      14 + padding * 2
     );
     
     // Add border
@@ -511,9 +542,9 @@ const getPredictionLabelPlugin = (temperaturePrediction: any) => ({
     ctx.lineWidth = 1;
     ctx.strokeRect(
       labelX - textWidth / 2 - padding,
-      labelY - 12 - padding,
+      labelY - 14 - padding,
       textWidth + padding * 2,
-      12 + padding * 2
+      14 + padding * 2
     );
     
     // Draw the label text
@@ -521,6 +552,11 @@ const getPredictionLabelPlugin = (temperaturePrediction: any) => ({
     ctx.fillText(labelText, labelX, labelY);
     
     ctx.restore();
+    
+    // Schedule next frame for animation
+    setTimeout(() => {
+      chart.update('none');
+    }, 50);
   },
 });
 
