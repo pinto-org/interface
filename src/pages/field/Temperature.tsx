@@ -6,6 +6,7 @@ import { calculateTemperatureYAxisRanges } from "@/utils/chartUtils";
 import { chartFormatters as f } from "@/utils/format";
 import { cn } from "@/utils/utils";
 import { useMemo, useState } from "react";
+import { useTemperaturePrediction } from "@/hooks/useTemperaturePrediction";
 
 interface ITemperatureChartProps {
   chartWrapperClassName?: string;
@@ -16,6 +17,9 @@ const TemperatureChart = ({ chartWrapperClassName, className }: ITemperatureChar
   const [tempTab, setTempTab] = useState(TimeTab.Week);
   const season = useSeason();
   const tempData = useSeasonalTemperature(Math.max(0, season - tabToSeasonalLookback(tempTab)), season);
+
+  // Get temperature prediction based on historical data
+  const temperaturePrediction = useTemperaturePrediction(tempData.data || []);
 
   // Calculate appropriate Y-axis ranges for temperature data
   const yAxisRanges = useMemo(() => {
@@ -36,6 +40,7 @@ const TemperatureChart = ({ chartWrapperClassName, className }: ITemperatureChar
       statVariant="non-colored"
       chartWrapperClassName={chartWrapperClassName}
       yAxisRanges={yAxisRanges}
+      temperaturePrediction={temperaturePrediction}
     />
   );
 };

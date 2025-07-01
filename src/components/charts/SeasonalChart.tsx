@@ -36,6 +36,13 @@ export interface YAxisRangeConfig {
   showReferenceLine?: boolean;
 }
 
+export interface TemperaturePrediction {
+  predictedTemperature: number;
+  nextSeason: number;
+  nextTimestamp: Date;
+  confidence?: number;
+}
+
 interface SeasonalChartProps {
   title: string;
   size: "small" | "large";
@@ -59,10 +66,14 @@ interface SeasonalChartProps {
   };
   chartWrapperClassName?: string;
   tooltip?: string;
+  // New prop for temperature prediction
+  temperaturePrediction?: TemperaturePrediction | null;
 }
 
 const morningStrokeGradients = [metallicMorningStrokeGradientFn];
 const greenStrokeGradients = [gradientFunctions.metallicGreen];
+// Prediction line gradients - lighter, semi-transparent version
+const predictionStrokeGradients = [gradientFunctions.solidGreen, gradientFunctions.solidGreen]; // Main line + prediction line
 
 const areaGradients = [metallicMorningAreaGradientFn];
 
@@ -96,6 +107,7 @@ const SeasonalChart = ({
   yAxisRanges,
   noDataMessage = "No data to display",
   chartWrapperClassName,
+  temperaturePrediction,
 }: SeasonalChartProps) => {
   const [allData, setAllData] = useState<SeasonalChartData[] | null>(null);
   const [displayData, setDisplayData] = useState<SeasonalChartData | null>(null);
@@ -126,13 +138,34 @@ const SeasonalChart = ({
 
   const chartData = useMemo<LineChartData[]>(() => {
     if (allData) {
-      return allData.map((d) => ({
+      const historicalData = allData.map((d) => ({
         values: [useLogarithmicScale ? Math.max(0.000001, d.value) : d.value],
         timestamp: d.timestamp,
       }));
+
+      // Add prediction data if available
+      if (temperaturePrediction && allData.length > 0) {
+        const lastHistoricalPoint = historicalData[historicalData.length - 1];
+        
+        // Create prediction point
+        const predictionValue = useLogarithmicScale 
+          ? Math.max(0.000001, temperaturePrediction.predictedTemperature) 
+          : temperaturePrediction.predictedTemperature;
+        
+        const predictionPoint: LineChartData = {
+          values: [predictionValue],
+          timestamp: temperaturePrediction.nextTimestamp,
+          isPrediction: true,
+        };
+
+        // Add the prediction point
+        return [...historicalData, predictionPoint];
+      }
+
+      return historicalData;
     }
     return DEFAULTS.chartData;
-  }, [allData, useLogarithmicScale]);
+  }, [allData, useLogarithmicScale, temperaturePrediction]);
 
   // Get the current y-axis range based on active tab
   const currentYAxisRange = useMemo(() => {
@@ -214,7 +247,11 @@ const SeasonalChart = ({
                   data={chartData}
                   xKey="timestamp"
                   size={size}
-                  makeLineGradients={fillArea ? morningStrokeGradients : greenStrokeGradients}
+                  makeLineGradients={
+                    temperaturePrediction 
+                      ? predictionStrokeGradients 
+                      : (fillArea ? morningStrokeGradients : greenStrokeGradients)
+                  }
                   makeAreaGradients={fillArea ? areaGradients : undefined}
                   valueFormatter={tickValueFormatter}
                   onMouseOver={handleMouseOver}
@@ -222,6 +259,7 @@ const SeasonalChart = ({
                   horizontalReferenceLines={showReferenceLineAtOne ? DEFAULTS.oneHorizontalReferenceLine : undefined}
                   yAxisMin={currentYAxisRange?.min}
                   yAxisMax={currentYAxisRange?.max}
+                  temperaturePrediction={temperaturePrediction}
                 />
               </div>
             )}

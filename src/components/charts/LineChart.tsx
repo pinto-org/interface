@@ -37,6 +37,13 @@ export type CustomChartValueTransform = {
   from: (value: number) => number;
 };
 
+export interface TemperaturePrediction {
+  predictedTemperature: number;
+  nextSeason: number;
+  nextTimestamp: Date;
+  confidence?: number;
+}
+
 export interface LineChartProps {
   data: LineChartData[];
   size: "small" | "large";
@@ -54,6 +61,8 @@ export interface LineChartProps {
   yAxisMin?: number;
   yAxisMax?: number;
   customValueTransform?: CustomChartValueTransform;
+  // New prop for temperature prediction
+  temperaturePrediction?: TemperaturePrediction | null;
 }
 
 // provide a stable reference to the horizontal reference lines to avoid re-rendering the chart when some other prop changes
@@ -74,6 +83,7 @@ const LineChart = React.memo(
     yAxisMin,
     yAxisMax,
     customValueTransform,
+    temperaturePrediction,
   }: LineChartProps) => {
     const chartRef = useRef<Chart | null>(null);
     const activeIndexRef = useRef<number | undefined>(activeIndex);
@@ -136,23 +146,76 @@ const LineChart = React.memo(
 
     const chartData = useCallback(
       (ctx: CanvasRenderingContext2D | null): ChartData => {
-        return {
-          labels: data.map((d) => d[xKey]),
-          datasets: data[0].values.map((_, idx: number) => {
-            return {
-              data: data.map((dataItem) => dataItem.values[idx]),
-              borderColor: makeLineGradients[idx](ctx, 1),
-              borderWidth: 1.5,
-              fill: !!makeAreaGradients,
-              backgroundColor: makeAreaGradients?.[idx](ctx, 1),
-              // Hide default points, custom are implemented in afterDraw plugin
-              pointRadius: 0,
-              pointHoverRadius: 0,
-            };
-          }),
-        };
+        const labels = data.map((d) => d[xKey]);
+        
+        // If there's no prediction, use original logic
+        if (!temperaturePrediction) {
+          return {
+            labels,
+            datasets: data[0].values.map((_, idx: number) => {
+              return {
+                data: data.map((dataItem) => dataItem.values[idx]),
+                borderColor: makeLineGradients[idx](ctx, 1),
+                borderWidth: 1.5,
+                fill: !!makeAreaGradients,
+                backgroundColor: makeAreaGradients?.[idx](ctx, 1),
+                pointRadius: 0,
+                pointHoverRadius: 0,
+              };
+            }),
+          };
+        }
+
+        // With prediction: create two datasets
+        const historicalData = data.filter((d) => !(d as any).isPrediction);
+        const predictionIndex = data.findIndex((d) => (d as any).isPrediction);
+        
+        const datasets: any[] = [];
+        
+        // Historical data dataset
+        if (historicalData.length > 0) {
+          datasets.push({
+            data: historicalData.map((dataItem) => dataItem.values[0]),
+            borderColor: makeLineGradients[0](ctx, 1),
+            borderWidth: 1.5,
+            fill: !!makeAreaGradients,
+            backgroundColor: makeAreaGradients?.[0](ctx, 1),
+            pointRadius: 0,
+            pointHoverRadius: 0,
+          });
+        }
+        
+        // Prediction line dataset (dotted line from last historical point to prediction)
+        if (predictionIndex >= 0 && historicalData.length > 0) {
+          const lastHistorical = historicalData[historicalData.length - 1];
+          const predictionPoint = data[predictionIndex];
+          
+          const predictionLineData = new Array(labels.length).fill(null);
+          predictionLineData[historicalData.length - 1] = lastHistorical.values[0]; // Start from last historical point
+          predictionLineData[predictionIndex] = predictionPoint.values[0]; // End at prediction point
+          
+          // Create dynamic pointRadius arrays
+          const pointRadiusArray = new Array(labels.length).fill(0);
+          const pointHoverRadiusArray = new Array(labels.length).fill(0);
+          pointRadiusArray[predictionIndex] = 4; // Show point only at prediction
+          pointHoverRadiusArray[predictionIndex] = 6;
+          
+          datasets.push({
+            data: predictionLineData,
+            borderColor: makeLineGradients[1] ? makeLineGradients[1](ctx, 0.7) : makeLineGradients[0](ctx, 0.7),
+            borderWidth: 1.5,
+            borderDash: [5, 5], // Dotted line
+            fill: false,
+            pointRadius: pointRadiusArray,
+            pointHoverRadius: pointHoverRadiusArray,
+            pointBackgroundColor: makeLineGradients[1] ? makeLineGradients[1](ctx, 1) : makeLineGradients[0](ctx, 1),
+            spanGaps: true, // Connect null values
+          });
+        }
+
+        return { labels, datasets };
       },
-      [data, makeLineGradients, makeAreaGradients, xKey],
+      [data, makeLineGradients, makeAreaGradients, xKey, temperaturePrediction],
     );
 
     // ---------- PLUGINS ----------
@@ -177,6 +240,10 @@ const LineChart = React.memo(
     const selectionCallbackPlugin: Plugin = useMemo(() => {
       return plugins.selectionCallback(onMouseOver);
     }, [onMouseOver]);
+
+    const predictionLabelPlugin: Plugin = useMemo(() => {
+      return plugins.predictionLabel(temperaturePrediction);
+    }, [temperaturePrediction]);
 
     const chartOptions: ChartOptions = useMemo(() => {
       return {
@@ -304,6 +371,7 @@ const LineChart = React.memo(
         horizontalReferenceLinePlugin,
         selectionPointPlugin,
         selectionCallbackPlugin,
+        ...(temperaturePrediction ? [predictionLabelPlugin] : []),
       ],
       [
         gradientPlugin,
@@ -312,6 +380,8 @@ const LineChart = React.memo(
         selectionPointPlugin,
         activeIndexVerticalLinePlugin,
         selectionCallbackPlugin,
+        predictionLabelPlugin,
+        temperaturePrediction,
       ],
     );
 

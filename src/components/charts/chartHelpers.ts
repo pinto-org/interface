@@ -452,6 +452,78 @@ const getHorizontalLinePlugin = (horizontalReferenceLines: LineChartHorizontalRe
   },
 });
 
+// Prediction label plugin
+const getPredictionLabelPlugin = (temperaturePrediction: any) => ({
+  id: "predictionLabel",
+  afterDraw: (chart: Chart) => {
+    if (!temperaturePrediction) return;
+    
+    const ctx = chart.ctx;
+    const chartArea = chart.chartArea;
+    
+    // Find the prediction point
+    const datasets = chart.data.datasets;
+    const predictionDataset = datasets.find((dataset, idx) => idx === 1); // Second dataset is prediction
+    
+    if (!predictionDataset) return;
+    
+    // Get the meta for the prediction dataset
+    const meta = chart.getDatasetMeta(1);
+    if (!meta || !meta.data || meta.data.length === 0) return;
+    
+    // Find the prediction point (last non-null point)
+    const predictionPointIndex = meta.data.findIndex(point => point);
+    if (predictionPointIndex === -1) return;
+    
+    const predictionPoint = meta.data[predictionPointIndex];
+    if (!predictionPoint) return;
+    
+    ctx.save();
+    
+    // Label styling
+    ctx.font = "12px Arial";
+    ctx.fillStyle = "#246645";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+    
+    // Create label text
+    const percentage = (temperaturePrediction.predictedTemperature * 100).toFixed(1);
+    const labelText = `Predicted: ${percentage}%`;
+    
+    // Position label above the prediction point
+    const labelX = predictionPoint.x;
+    const labelY = predictionPoint.y - 8;
+    
+    // Add background for better readability
+    const textWidth = ctx.measureText(labelText).width;
+    const padding = 4;
+    
+    ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+    ctx.fillRect(
+      labelX - textWidth / 2 - padding,
+      labelY - 12 - padding,
+      textWidth + padding * 2,
+      12 + padding * 2
+    );
+    
+    // Add border
+    ctx.strokeStyle = "#246645";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(
+      labelX - textWidth / 2 - padding,
+      labelY - 12 - padding,
+      textWidth + padding * 2,
+      12 + padding * 2
+    );
+    
+    // Draw the label text
+    ctx.fillStyle = "#246645";
+    ctx.fillText(labelText, labelX, labelY);
+    
+    ctx.restore();
+  },
+});
+
 export const plugins = {
   activeIndexVerticalLine: activeIndexVerticalLinePlugin,
   verticalLine: getVerticalLinePlugin,
@@ -459,6 +531,7 @@ export const plugins = {
   selectionPoint: getSelectionPointPlugin,
   gradientShift: getGradientShiftPlugin,
   horizontalReferenceLine: getHorizontalLinePlugin,
+  predictionLabel: getPredictionLabelPlugin,
 };
 
 // ---------------------------------------------------------------------------------------------------------------------
