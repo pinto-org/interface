@@ -410,6 +410,49 @@ export class SiloConvert {
   }
 
   /**
+   * Build a batch workflow for multiple LP to Pinto conversions
+   */
+  async buildBatchWorkflow(
+    conversions: Array<{
+      fromToken: Token;
+      toToken: Token;
+      amount: TV;
+      route?: SiloConvertRoute<SiloConvertType>;
+    }>
+  ): Promise<AdvancedFarmWorkflow> {
+    const batchWorkflow = new AdvancedFarmWorkflow(this.context.chainId, this.context.wagmiConfig);
+    
+    // Update price cache first
+    await this.priceCache.update();
+
+    for (const conversion of conversions) {
+      const { fromToken, toToken, amount, route } = conversion;
+      
+      // If route is provided, use it; otherwise strategize
+      let convertRoute = route;
+      if (!convertRoute) {
+        const routes = await this.strategizer.strategize(fromToken, toToken, amount);
+        if (routes.length === 0) {
+          throw new Error(`No conversion route found for ${fromToken.symbol} -> ${toToken.symbol}`);
+        }
+        // Use the first (usually best) route
+        convertRoute = routes[0];
+      }
+
+      // Add each strategy from the route to the batch workflow
+      for (const strategyStep of convertRoute.strategies) {
+        // Create a temporary workflow to get the encoded step
+        const tempWorkflow = new AdvancedFarmWorkflow(this.context.chainId, this.context.wagmiConfig);
+        const quote = await strategyStep.strategy.quote([], tempWorkflow, 0.25); // Default slippage
+        const encodedStep = strategyStep.strategy.encodeFromQuote(quote);
+        batchWorkflow.add(encodedStep);
+      }
+    }
+
+    return batchWorkflow;
+  }
+
+  /**
    * Returns an empty pipeline convert quote.
    */
   // getEmptyResult() {
