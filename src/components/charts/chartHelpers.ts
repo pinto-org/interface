@@ -453,112 +453,136 @@ const getHorizontalLinePlugin = (horizontalReferenceLines: LineChartHorizontalRe
 });
 
 // Prediction label and blinking point plugin
-const getPredictionLabelPlugin = (temperaturePrediction: any) => ({
-  id: "predictionLabel",
-  afterDraw: (chart: Chart) => {
-    if (!temperaturePrediction) return;
-    
-    const ctx = chart.ctx;
-    const chartArea = chart.chartArea;
-    
-    // Find the prediction point
-    const datasets = chart.data.datasets;
-    const predictionDataset = datasets.find((dataset, idx) => idx === 1); // Second dataset is prediction
-    
-    if (!predictionDataset) return;
-    
-    // Get the meta for the prediction dataset
-    const meta = chart.getDatasetMeta(1);
-    if (!meta || !meta.data || meta.data.length === 0) return;
-    
-    // Find the prediction point (find the actual prediction point, not just first non-null)
-    let predictionPoint = null;
-    let predictionPointIndex = -1;
-    
-    // Look for the last point in the prediction dataset (which should be our prediction)
-    for (let i = meta.data.length - 1; i >= 0; i--) {
-      if (meta.data[i] && meta.data[i].x !== undefined && meta.data[i].y !== undefined) {
-        predictionPoint = meta.data[i];
-        predictionPointIndex = i;
-        break;
-      }
-    }
-    
-    if (!predictionPoint || predictionPointIndex === -1) return;
-    
-    ctx.save();
-    
-    // Blinking animation for the prediction point
-    const time = Date.now();
-    const blinkSpeed = 800; // milliseconds for full blink cycle
-    const opacity = (Math.sin(time / blinkSpeed * Math.PI * 2) + 1) / 2; // Oscillates between 0 and 1
-    
-    // Draw blinking prediction point
-    ctx.globalAlpha = 0.3 + (opacity * 0.7); // Range from 0.3 to 1.0 opacity
-    ctx.fillStyle = "#246645";
-    ctx.beginPath();
-    ctx.arc(predictionPoint.x, predictionPoint.y, 6, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Draw inner ring with different opacity
-    ctx.globalAlpha = 0.6 + (opacity * 0.4);
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    ctx.arc(predictionPoint.x, predictionPoint.y, 3, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Reset opacity for label
-    ctx.globalAlpha = 1.0;
-    
-    // Label styling
-    ctx.font = "12px Arial";
-    ctx.fillStyle = "#246645";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "bottom";
-    
-    // Create label text with more detailed information
-    const percentage = (temperaturePrediction.predictedTemperature * 100).toFixed(1);
-    const confidence = temperaturePrediction.confidence ? `${(temperaturePrediction.confidence * 100).toFixed(0)}%` : '';
-    const labelText = confidence ? `Predicted: ${percentage}% (${confidence})` : `Predicted: ${percentage}%`;
-    
-    // Position label above the prediction point
-    const labelX = predictionPoint.x;
-    const labelY = predictionPoint.y - 15;
-    
-    // Add background for better readability
-    const textWidth = ctx.measureText(labelText).width;
-    const padding = 6;
-    
-    ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
-    ctx.fillRect(
-      labelX - textWidth / 2 - padding,
-      labelY - 14 - padding,
-      textWidth + padding * 2,
-      14 + padding * 2
-    );
-    
-    // Add border
-    ctx.strokeStyle = "#246645";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(
-      labelX - textWidth / 2 - padding,
-      labelY - 14 - padding,
-      textWidth + padding * 2,
-      14 + padding * 2
-    );
-    
-    // Draw the label text
-    ctx.fillStyle = "#246645";
-    ctx.fillText(labelText, labelX, labelY);
-    
-    ctx.restore();
-    
-    // Schedule next frame for animation
-    setTimeout(() => {
+const getPredictionLabelPlugin = (temperaturePrediction: any) => {
+  let animationId: number | null = null;
+  
+  const animate = (chart: Chart) => {
+    if (chart && !chart.isDestroyed && temperaturePrediction) {
       chart.update('none');
-    }, 50);
-  },
-});
+      animationId = requestAnimationFrame(() => animate(chart));
+    }
+  };
+  
+  return {
+    id: "predictionLabel",
+    beforeDestroy: () => {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+    },
+    afterDraw: (chart: Chart) => {
+      if (!temperaturePrediction) return;
+      
+      const ctx = chart.ctx;
+      
+      // Find the prediction point
+      const datasets = chart.data.datasets;
+      if (datasets.length < 2) return; // Need at least 2 datasets (historical + prediction)
+      
+      // Get the meta for the prediction dataset
+      const meta = chart.getDatasetMeta(1);
+      if (!meta || !meta.data || meta.data.length === 0) return;
+      
+      // Find the prediction point (find the actual prediction point, not just first non-null)
+      let predictionPoint = null;
+      
+      // Look through all points to find the prediction point
+      for (let i = meta.data.length - 1; i >= 0; i--) {
+        const point = meta.data[i];
+        if (point && typeof point.x === 'number' && typeof point.y === 'number' && !isNaN(point.x) && !isNaN(point.y)) {
+          predictionPoint = point;
+          break;
+        }
+      }
+      
+      if (!predictionPoint) return;
+      
+      ctx.save();
+      
+      // Blinking animation for the prediction point
+      const time = Date.now();
+      const blinkSpeed = 1000; // milliseconds for full blink cycle
+      const opacity = (Math.sin(time / blinkSpeed * Math.PI * 2) + 1) / 2; // Oscillates between 0 and 1
+      
+      // Draw blinking prediction point with pulsing effect
+      const baseRadius = 5;
+      const pulseRadius = baseRadius + (opacity * 3); // Pulse between 5 and 8 pixels
+      
+      // Outer glow effect
+      ctx.globalAlpha = 0.2 + (opacity * 0.3);
+      ctx.fillStyle = "#246645";
+      ctx.beginPath();
+      ctx.arc(predictionPoint.x, predictionPoint.y, pulseRadius + 2, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Main prediction point
+      ctx.globalAlpha = 0.6 + (opacity * 0.4);
+      ctx.fillStyle = "#246645";
+      ctx.beginPath();
+      ctx.arc(predictionPoint.x, predictionPoint.y, pulseRadius, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Inner white center
+      ctx.globalAlpha = 0.8 + (opacity * 0.2);
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(predictionPoint.x, predictionPoint.y, pulseRadius * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Reset opacity for label
+      ctx.globalAlpha = 1.0;
+      
+      // Label styling
+      ctx.font = "12px Arial";
+      ctx.fillStyle = "#246645";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      
+      // Create label text with more detailed information
+      const percentage = (temperaturePrediction.predictedTemperature * 100).toFixed(1);
+      const confidence = temperaturePrediction.confidence ? `${(temperaturePrediction.confidence * 100).toFixed(0)}%` : '';
+      const labelText = confidence ? `Predicted: ${percentage}% (${confidence})` : `Predicted: ${percentage}%`;
+      
+      // Position label above the prediction point
+      const labelX = predictionPoint.x;
+      const labelY = predictionPoint.y - 20;
+      
+      // Add background for better readability
+      const textWidth = ctx.measureText(labelText).width;
+      const padding = 6;
+      
+      ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+      ctx.fillRect(
+        labelX - textWidth / 2 - padding,
+        labelY - 14 - padding,
+        textWidth + padding * 2,
+        14 + padding * 2
+      );
+      
+      // Add border
+      ctx.strokeStyle = "#246645";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(
+        labelX - textWidth / 2 - padding,
+        labelY - 14 - padding,
+        textWidth + padding * 2,
+        14 + padding * 2
+      );
+      
+      // Draw the label text
+      ctx.fillStyle = "#246645";
+      ctx.fillText(labelText, labelX, labelY);
+      
+      ctx.restore();
+      
+      // Start animation if not already running
+      if (!animationId) {
+        animationId = requestAnimationFrame(() => animate(chart));
+      }
+    },
+  };
+};
 
 export const plugins = {
   activeIndexVerticalLine: activeIndexVerticalLinePlugin,
