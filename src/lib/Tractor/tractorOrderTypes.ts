@@ -1,4 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { Token } from "@/utils/types";
 import { SowOrderTokenStrategy } from "./types";
 
 // Re-export types from utils for isolated modules compatibility  
@@ -30,7 +31,7 @@ export interface TractorOrderFormHandlers {
   handleTemperatureFocus: (e: React.FocusEvent<HTMLInputElement>) => void;
   handleTemperatureKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   handlePodLineLengthChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handlePodLineSelect: (increment: number) => void;
+  handlePodLineSelect: (increment: number, podLine: TokenValue) => void;
   handleOperatorTipChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleTipButtonClick: (level: "low" | "average" | "high") => void;
   setMorningAuction: (value: boolean) => void;
@@ -72,6 +73,7 @@ export interface TractorOrderFormFieldsProps {
   currentTemperature: TokenValue;
   podLine: TokenValue;
   temperatureInputRef: React.RefObject<HTMLInputElement>;
+  whitelistedTokens: Token[];
   disabled?: boolean;
 }
 

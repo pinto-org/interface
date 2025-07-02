@@ -461,6 +461,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                     currentTemperature={currentTemperature.scaled || currentTemperature}
                     podLine={podLine}
                     temperatureInputRef={temperatureInputRef}
+                    whitelistedTokens={whitelistedTokens}
                   />
                 </>
               ) : (
@@ -655,7 +656,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
             tokenStrategy: formState.selectedTokenStrategy.type,
             tokenSymbol:
               formState.selectedTokenStrategy.type === "SPECIFIC_TOKEN"
-                ? whitelistedTokens.find((t) => t.address === (formState.selectedTokenStrategy as any).address)?.symbol
+                ? whitelistedTokens.find((t) => t.address === (formState.selectedTokenStrategy as { type: "SPECIFIC_TOKEN"; address: string }).address)?.symbol
                 : undefined,
             morningAuction: formState.morningAuction,
           }}

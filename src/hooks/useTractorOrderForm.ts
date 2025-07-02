@@ -141,10 +141,10 @@ export function useTractorOrderForm({ averageTipValue }: UseTractorOrderFormProp
       setFormState(prev => ({ ...prev, podLineLength: sanitized.str }));
     }, []),
 
-    handlePodLineSelect: useCallback((increment: number) => {
-      // This will be handled by the component with calculations
-      // For now, just update the state
-      setFormState(prev => ({ ...prev, podLineLength: `${increment}%` }));
+    handlePodLineSelect: useCallback((increment: number, podLine: TokenValue) => {
+      const calculatedValue = calculatePodLineValue(podLine, increment);
+      const formattedValue = formatter.number(calculatedValue);
+      setFormState(prev => ({ ...prev, podLineLength: formattedValue }));
     }, []),
 
     handleOperatorTipChange: useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

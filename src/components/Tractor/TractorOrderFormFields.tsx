@@ -1,5 +1,6 @@
 import arrowDown from "@/assets/misc/ChevronDown.svg";
 import pintoIcon from "@/assets/tokens/PINTO.png";
+import { TokenValue } from "@/classes/TokenValue";
 import IconImage from "@/components/ui/IconImage";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -16,6 +17,7 @@ export default function TractorOrderFormFields({
   currentTemperature,
   podLine,
   temperatureInputRef,
+  whitelistedTokens,
   disabled = false,
 }: TractorOrderFormFieldsProps) {
   return (
@@ -111,14 +113,19 @@ export default function TractorOrderFormFields({
             disabled={disabled}
           >
             <div className="flex items-center gap-2">
-              {formState.selectedTokenStrategy.type === "SPECIFIC_TOKEN" && (
-                <IconImage
-                  src={""} // This would need to be passed from parent component with token data
-                  alt="token"
-                  size={6}
-                  className="rounded-full"
-                />
-              )}
+              {formState.selectedTokenStrategy.type === "SPECIFIC_TOKEN" && (() => {
+                const selectedToken = whitelistedTokens.find((t) => 
+                  t.address === (formState.selectedTokenStrategy as { type: "SPECIFIC_TOKEN"; address: string }).address
+                );
+                return selectedToken ? (
+                  <IconImage
+                    src={selectedToken.logoURI}
+                    alt={selectedToken.symbol}
+                    size={6}
+                    className="rounded-full"
+                  />
+                ) : null;
+              })()}
               <div className="pinto-body-light">{calculations.getSelectedTokenDisplay()}</div>
               <IconImage src={arrowDown} size={3} alt="open token select dialog" />
             </div>
@@ -167,7 +174,7 @@ export default function TractorOrderFormFields({
                   ? tractorOrderStyles.activeButton
                   : tractorOrderStyles.inactiveButton
               }`}
-              onClick={() => handlers.handlePodLineSelect(increment)}
+              onClick={() => handlers.handlePodLineSelect(increment, podLine)}
               disabled={disabled}
             >
               {increment}% ↑
