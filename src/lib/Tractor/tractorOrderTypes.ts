@@ -73,7 +73,6 @@ export interface TractorOrderFormFieldsProps {
   currentTemperature: TokenValue;
   podLine: TokenValue;
   temperatureInputRef: React.RefObject<HTMLInputElement>;
-  whitelistedTokens: Token[];
   disabled?: boolean;
 }
 

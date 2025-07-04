@@ -1,23 +1,23 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { PINTO } from "@/constants/tokens";
-import { SowOrderTokenStrategy } from "@/lib/Tractor/types";
+import { useSwapMany } from "@/hooks/swap/useSwap";
 import {
+  CleanedFormValues,
+  FarmerDepositInfo,
+  TokenInfo,
   TractorOrderCalculations,
   TractorOrderFormState,
-  CleanedFormValues,
-  TokenInfo,
-  FarmerDepositInfo,
 } from "@/lib/Tractor/tractorOrderTypes";
 import {
-  sanitizeNumericInputValue,
   calculateEstimatedExecutions,
   calculateEstimatedTotalTip,
   calculatePodLineValue,
+  sanitizeNumericInputValue,
 } from "@/lib/Tractor/tractorOrderUtils";
-import { useSwapMany } from "@/hooks/swap/useSwap";
+import { SowOrderTokenStrategy } from "@/lib/Tractor/types";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
-import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { formatter } from "@/utils/format";
 import { useMemo } from "react";
 
@@ -158,9 +158,7 @@ export function useTractorOrderCalculations({ formState, podLine }: UseTractorOr
       } else if (formState.selectedTokenStrategy.type === "LOWEST_PRICE") {
         return "Token with Best Price";
       } else if (formState.selectedTokenStrategy.type === "SPECIFIC_TOKEN") {
-        const token = whitelistedTokens.find((t) => 
-          t.address === (formState.selectedTokenStrategy as any).address
-        );
+        const token = whitelistedTokens.find((t) => t.address === (formState.selectedTokenStrategy as any).address);
         return token?.symbol || "Select Token";
       }
       return "Select Deposited Silo Token";
@@ -168,9 +166,7 @@ export function useTractorOrderCalculations({ formState, podLine }: UseTractorOr
 
     getSelectedTokenDollarValue: () => {
       if (formState.selectedTokenStrategy.type === "SPECIFIC_TOKEN") {
-        const token = whitelistedTokens.find((t) => 
-          t.address === (formState.selectedTokenStrategy as any).address
-        );
+        const token = whitelistedTokens.find((t) => t.address === (formState.selectedTokenStrategy as any).address);
 
         // If it's PINTO token, use its direct value multiplied by price
         if (token?.symbol === "PINTO") {

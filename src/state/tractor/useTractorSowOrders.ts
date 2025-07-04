@@ -191,6 +191,8 @@ export function useTractorSowOrderbook<T = OrderbookEntry[]>({
         data,
       });
 
+      console.log("[TRACTOR/useTractorSowOrderbook/ordersChainQuery] DATA", data);
+
       return data;
     },
     enabled: client && orderChainQueryEnabled,

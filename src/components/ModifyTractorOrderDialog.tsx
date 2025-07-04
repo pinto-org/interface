@@ -2,16 +2,16 @@ import { mockAddressAtom } from "@/Web3Provider";
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { WarningIcon } from "@/components/Icons";
 import ReviewTractorOrderDialog from "@/components/ReviewTractorOrderDialog";
-import TractorOrderFormFields from "@/components/Tractor/TractorOrderFormFields";
 import TokenSelectionDialog from "@/components/Tractor/TokenSelectionDialog";
+import TractorOrderFormFields from "@/components/Tractor/TractorOrderFormFields";
 import { diamondABI } from "@/constants/abi/diamondABI";
-import { useTractorOrderForm } from "@/hooks/useTractorOrderForm";
-import { useTractorOrderCalculations } from "@/hooks/useTractorOrderCalculations";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { useTractorOrderCalculations } from "@/hooks/useTractorOrderCalculations";
+import { useTractorOrderForm } from "@/hooks/useTractorOrderForm";
 import useTransaction from "@/hooks/useTransaction";
 import { createBlueprint, createRequisition, useGetBlueprintHash, useSignRequisition } from "@/lib/Tractor/blueprint";
 import { Blueprint } from "@/lib/Tractor/types";
-import { createSowTractorData, getSowOrderTokenStrategy, RequisitionEvent } from "@/lib/Tractor/utils";
+import { RequisitionEvent, createSowTractorData, getSowOrderTokenStrategy } from "@/lib/Tractor/utils";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { usePodLine, useTemperature } from "@/state/useFieldData";
 import { formatter } from "@/utils/format";
@@ -43,7 +43,6 @@ interface ModifyTractorOrderDialogProps {
   existingOrder: RequisitionEvent;
 }
 
-
 export default function ModifyTractorOrderDialog({
   open,
   onOpenChange,
@@ -71,7 +70,7 @@ export default function ModifyTractorOrderDialog({
   useEffect(() => {
     if (open && existingOrder.decodedData) {
       const data = existingOrder.decodedData;
-      
+
       // Set token strategy
       const strategy = getSowOrderTokenStrategy(data.sourceTokenIndices);
       let tokenStrategy = { type: "LOWEST_SEEDS" } as any;
@@ -97,10 +96,6 @@ export default function ModifyTractorOrderDialog({
     }
   }, [open, existingOrder, prefillForm]);
 
-
-
-
-
   // State for dialog management
   const [blueprint, setBlueprint] = useState<Blueprint | null>(null);
   const [encodedData, setEncodedData] = useState<`0x${string}` | null>(null);
@@ -113,11 +108,6 @@ export default function ModifyTractorOrderDialog({
   const { data: walletClient } = useWalletClient();
   const [mockAddress] = useAtom(mockAddressAtom);
   const isLocal = isLocalhost();
-
-
-
-
-
 
   // Transaction handling for the cancel + create flow
   const { writeWithEstimateGas, submitting, setSubmitting } = useTransaction({
@@ -189,10 +179,6 @@ export default function ModifyTractorOrderDialog({
   const handleBack = () => {
     onOpenChange(false);
   };
-
-
-
-
 
   if (!open) return null;
 
@@ -295,7 +281,9 @@ export default function ModifyTractorOrderDialog({
                   <div className="flex flex-col gap-2">
                     <div className="flex justify-between">
                       <div className="text-[#9C9C9C] text-base font-light">Estimated total number of executions</div>
-                      <div className="text-black text-base font-light">{calculations.calculateEstimatedExecutions()}</div>
+                      <div className="text-black text-base font-light">
+                        {calculations.calculateEstimatedExecutions()}
+                      </div>
                     </div>
                     <div className="flex justify-between items-center">
                       <div className="text-[#9C9C9C] text-base font-light">Estimated total tip</div>
@@ -569,16 +557,32 @@ function ModifyTractorOrderReviewDialog({
                   {/* Show differences between old and new order */}
                   <div className="space-y-2 text-sm">
                     <div>
-                      Total Amount: {existingOrder.decodedData?.sowAmounts.totalAmountToSowAsString} {(existingOrder.decodedData?.sowAmounts.totalAmountToSowAsString?.replace(/,/g, "") || "") !== (orderData.totalAmount?.replace(/,/g, "") || "") && "→"} {(existingOrder.decodedData?.sowAmounts.totalAmountToSowAsString?.replace(/,/g, "") || "") !== (orderData.totalAmount?.replace(/,/g, "") || "") && `${orderData.totalAmount} Pinto`}
+                      Total Amount: {existingOrder.decodedData?.sowAmounts.totalAmountToSowAsString}{" "}
+                      {(existingOrder.decodedData?.sowAmounts.totalAmountToSowAsString?.replace(/,/g, "") || "") !==
+                        (orderData.totalAmount?.replace(/,/g, "") || "") && "→"}{" "}
+                      {(existingOrder.decodedData?.sowAmounts.totalAmountToSowAsString?.replace(/,/g, "") || "") !==
+                        (orderData.totalAmount?.replace(/,/g, "") || "") && `${orderData.totalAmount} Pinto`}
                     </div>
                     <div>
-                      Pod Line Length: {existingOrder.decodedData?.maxPodlineLengthAsString} {(existingOrder.decodedData?.maxPodlineLengthAsString?.replace(/,/g, "") || "") !== (orderData.podLineLength?.replace(/,/g, "") || "") && "→"} {(existingOrder.decodedData?.maxPodlineLengthAsString?.replace(/,/g, "") || "") !== (orderData.podLineLength?.replace(/,/g, "") || "") && `${orderData.podLineLength} Pods`}
+                      Pod Line Length: {existingOrder.decodedData?.maxPodlineLengthAsString}{" "}
+                      {(existingOrder.decodedData?.maxPodlineLengthAsString?.replace(/,/g, "") || "") !==
+                        (orderData.podLineLength?.replace(/,/g, "") || "") && "→"}{" "}
+                      {(existingOrder.decodedData?.maxPodlineLengthAsString?.replace(/,/g, "") || "") !==
+                        (orderData.podLineLength?.replace(/,/g, "") || "") && `${orderData.podLineLength} Pods`}
                     </div>
                     <div>
-                      Temperature: {existingOrder.decodedData?.minTempAsString}% {(existingOrder.decodedData?.minTempAsString?.replace(/,/g, "") || "") !== (orderData.temperature?.replace(/,/g, "") || "") && "→"} {(existingOrder.decodedData?.minTempAsString?.replace(/,/g, "") || "") !== (orderData.temperature?.replace(/,/g, "") || "") && `${orderData.temperature}%`}
+                      Temperature: {existingOrder.decodedData?.minTempAsString}%{" "}
+                      {(existingOrder.decodedData?.minTempAsString?.replace(/,/g, "") || "") !==
+                        (orderData.temperature?.replace(/,/g, "") || "") && "→"}{" "}
+                      {(existingOrder.decodedData?.minTempAsString?.replace(/,/g, "") || "") !==
+                        (orderData.temperature?.replace(/,/g, "") || "") && `${orderData.temperature}%`}
                     </div>
                     <div>
-                      Operator Tip: {existingOrder.decodedData?.operatorParams.operatorTipAmountAsString} {(existingOrder.decodedData?.operatorParams.operatorTipAmountAsString?.replace(/,/g, "") || "") !== (orderData.operatorTip?.replace(/,/g, "") || "") && "→"} {(existingOrder.decodedData?.operatorParams.operatorTipAmountAsString?.replace(/,/g, "") || "") !== (orderData.operatorTip?.replace(/,/g, "") || "") && `${orderData.operatorTip} Pinto`}
+                      Operator Tip: {existingOrder.decodedData?.operatorParams.operatorTipAmountAsString}{" "}
+                      {(existingOrder.decodedData?.operatorParams.operatorTipAmountAsString?.replace(/,/g, "") ||
+                        "") !== (orderData.operatorTip?.replace(/,/g, "") || "") && "→"}{" "}
+                      {(existingOrder.decodedData?.operatorParams.operatorTipAmountAsString?.replace(/,/g, "") ||
+                        "") !== (orderData.operatorTip?.replace(/,/g, "") || "") && `${orderData.operatorTip} Pinto`}
                     </div>
                   </div>
                 </div>
@@ -607,4 +611,3 @@ function ModifyTractorOrderReviewDialog({
     </Dialog>
   );
 }
-

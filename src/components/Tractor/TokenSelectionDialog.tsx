@@ -2,7 +2,6 @@ import seedIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { InfoOutlinedIcon } from "@/components/Icons";
-import IconImage from "@/components/ui/IconImage";
 import {
   Dialog,
   DialogContent,
@@ -12,14 +11,15 @@ import {
   DialogPortal,
   DialogTitle,
 } from "@/components/ui/Dialog";
+import IconImage from "@/components/ui/IconImage";
 import { Separator } from "@/components/ui/Separator";
-import { SowOrderTokenStrategy } from "@/lib/Tractor/types";
+import { useSwapMany } from "@/hooks/swap/useSwap";
 import { TokenSelectionDialogProps } from "@/lib/Tractor/tractorOrderTypes";
+import { SowOrderTokenStrategy } from "@/lib/Tractor/types";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
-import { useSwapMany } from "@/hooks/swap/useSwap";
 import { useMemo } from "react";
 
 export default function TokenSelectionDialog({
@@ -153,8 +153,7 @@ export default function TokenSelectionDialog({
                       : swapResults.get(token.address) || TokenValue.ZERO;
 
                   const isSelected =
-                    selectedTokenStrategy.type === "SPECIFIC_TOKEN" &&
-                    selectedTokenStrategy.address === token.address;
+                    selectedTokenStrategy.type === "SPECIFIC_TOKEN" && selectedTokenStrategy.address === token.address;
 
                   return (
                     <div

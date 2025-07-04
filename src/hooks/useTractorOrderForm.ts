@@ -1,24 +1,24 @@
-import { useCallback, useRef, useState, useEffect } from "react";
 import { TokenValue } from "@/classes/TokenValue";
 import { PINTO } from "@/constants/tokens";
-import { SowOrderTokenStrategy } from "@/lib/Tractor/types";
 import {
-  TractorOrderFormState,
-  TractorOrderFormHandlers,
-  TractorOrderFormValidation,
-  UseTractorOrderFormReturn,
-  UseTractorOrderFormProps,
   TipLevel,
+  TractorOrderFormHandlers,
+  TractorOrderFormState,
+  TractorOrderFormValidation,
+  UseTractorOrderFormProps,
+  UseTractorOrderFormReturn,
 } from "@/lib/Tractor/tractorOrderTypes";
 import {
-  sanitizeNumericInputValue,
-  validateRequiredFields,
-  validateMinMaxAmounts,
-  validateAllAmounts,
-  getTipValue,
   calculatePodLineValue,
+  getTipValue,
+  sanitizeNumericInputValue,
+  validateAllAmounts,
+  validateMinMaxAmounts,
+  validateRequiredFields,
 } from "@/lib/Tractor/tractorOrderUtils";
+import { SowOrderTokenStrategy } from "@/lib/Tractor/types";
 import { formatter } from "@/utils/format";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useTractorOrderForm({ averageTipValue }: UseTractorOrderFormProps): UseTractorOrderFormReturn {
   const temperatureInputRef = useRef<HTMLInputElement>(null);
@@ -53,13 +53,8 @@ export function useTractorOrderForm({ averageTipValue }: UseTractorOrderFormProp
 
   // Validation effect for all amounts including total amount constraints
   useEffect(() => {
-    const error = validateAllAmounts(
-      formState.minSoil, 
-      formState.maxPerSeason, 
-      formState.totalAmount, 
-      PINTO.decimals
-    );
-    setFormState(prev => ({ ...prev, error }));
+    const error = validateAllAmounts(formState.minSoil, formState.maxPerSeason, formState.totalAmount, PINTO.decimals);
+    setFormState((prev) => ({ ...prev, error }));
   }, [formState.minSoil, formState.maxPerSeason, formState.totalAmount]);
 
   // Form handlers
@@ -67,31 +62,31 @@ export function useTractorOrderForm({ averageTipValue }: UseTractorOrderFormProp
     handleSetTotalAmount: useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       const sanitized = sanitizeNumericInputValue(value, PINTO.decimals);
-      setFormState(prev => ({ ...prev, totalAmount: sanitized.str }));
+      setFormState((prev) => ({ ...prev, totalAmount: sanitized.str }));
     }, []),
 
     handleSetMinSoil: useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       const sanitized = sanitizeNumericInputValue(value, PINTO.decimals);
-      setFormState(prev => ({ ...prev, minSoil: sanitized.str }));
+      setFormState((prev) => ({ ...prev, minSoil: sanitized.str }));
     }, []),
 
     handleSetMaxPerSeason: useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       const sanitized = sanitizeNumericInputValue(value, PINTO.decimals);
-      setFormState(prev => ({ ...prev, maxPerSeason: sanitized.str }));
+      setFormState((prev) => ({ ...prev, maxPerSeason: sanitized.str }));
     }, []),
 
     handleTemperatureChange: useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
       let value = e.target.value;
-      
+
       // Remove any existing % signs
       value = value.replace(/%/g, "");
-      
+
       // Allow digits and decimal points
       if (!/^\d*\.?\d*$/.test(value) && value !== "") return;
-      
-      setFormState(prev => ({
+
+      setFormState((prev) => ({
         ...prev,
         displayTemperature: value,
         temperature: value,
@@ -101,36 +96,45 @@ export function useTractorOrderForm({ averageTipValue }: UseTractorOrderFormProp
     handleTemperatureBlur: useCallback(() => {
       if (formState.displayTemperature && !formState.displayTemperature.endsWith("%")) {
         const valueWithPercent = `${formState.displayTemperature}%`;
-        setFormState(prev => ({
+        setFormState((prev) => ({
           ...prev,
           displayTemperature: valueWithPercent,
         }));
       }
     }, [formState.displayTemperature]),
 
-    handleTemperatureFocus: useCallback((e: React.FocusEvent<HTMLInputElement>) => {
-      // Remove % sign when focusing for easier editing
-      const valueWithoutPercent = formState.displayTemperature.replace(/%/g, "");
-      setFormState(prev => ({
-        ...prev,
-        displayTemperature: valueWithoutPercent,
-      }));
-      // Select all text for easy replacement
-      e.target.select();
-    }, [formState.displayTemperature]),
+    handleTemperatureFocus: useCallback(
+      (e: React.FocusEvent<HTMLInputElement>) => {
+        // Remove % sign when focusing for easier editing
+        const valueWithoutPercent = formState.displayTemperature.replace(/%/g, "");
+        setFormState((prev) => ({
+          ...prev,
+          displayTemperature: valueWithoutPercent,
+        }));
+        // Select all text for easy replacement
+        e.target.select();
+      },
+      [formState.displayTemperature],
+    ),
 
     handleTemperatureKeyDown: useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
       // Allow backspace, delete, tab, escape, enter
-      if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
-          // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-          (e.keyCode === 65 && e.ctrlKey === true) ||
-          (e.keyCode === 67 && e.ctrlKey === true) ||
-          (e.keyCode === 86 && e.ctrlKey === true) ||
-          (e.keyCode === 88 && e.ctrlKey === true)) {
+      if (
+        [8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
+        // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+        (e.keyCode === 65 && e.ctrlKey === true) ||
+        (e.keyCode === 67 && e.ctrlKey === true) ||
+        (e.keyCode === 86 && e.ctrlKey === true) ||
+        (e.keyCode === 88 && e.ctrlKey === true)
+      ) {
         return;
       }
       // Ensure that it is a number and stop the keypress
-      if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105) && e.keyCode !== 190) {
+      if (
+        (e.shiftKey || e.keyCode < 48 || e.keyCode > 57) &&
+        (e.keyCode < 96 || e.keyCode > 105) &&
+        e.keyCode !== 190
+      ) {
         e.preventDefault();
       }
     }, []),
@@ -138,50 +142,53 @@ export function useTractorOrderForm({ averageTipValue }: UseTractorOrderFormProp
     handlePodLineLengthChange: useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       const sanitized = sanitizeNumericInputValue(value, PINTO.decimals);
-      setFormState(prev => ({ ...prev, podLineLength: sanitized.str }));
+      setFormState((prev) => ({ ...prev, podLineLength: sanitized.str }));
     }, []),
 
-    handlePodLineSelect: useCallback((increment: number, podLine: TokenValue) => {
-      const calculatedValue = calculatePodLineValue(podLine, increment);
-      const formattedValue = formatter.number(calculatedValue);
-      setFormState(prev => ({ ...prev, podLineLength: formattedValue }));
+    handlePodLineSelect: useCallback((increment: number) => {
+      // This will be handled by the component with calculations
+      // For now, just update the state
+      setFormState((prev) => ({ ...prev, podLineLength: `${increment}%` }));
     }, []),
 
     handleOperatorTipChange: useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       const sanitized = sanitizeNumericInputValue(value, PINTO.decimals);
-      setFormState(prev => ({ 
-        ...prev, 
+      setFormState((prev) => ({
+        ...prev,
         operatorTip: sanitized.str,
         activeTipButton: null, // Reset active button when typing manually
       }));
     }, []),
 
-    handleTipButtonClick: useCallback((level: TipLevel) => {
-      const tipValue = getTipValue(level, averageTipValue);
-      setFormState(prev => ({
-        ...prev,
-        operatorTip: tipValue,
-        activeTipButton: level,
-      }));
-    }, [averageTipValue]),
+    handleTipButtonClick: useCallback(
+      (level: TipLevel) => {
+        const tipValue = getTipValue(level, averageTipValue);
+        setFormState((prev) => ({
+          ...prev,
+          operatorTip: tipValue,
+          activeTipButton: level,
+        }));
+      },
+      [averageTipValue],
+    ),
 
     setMorningAuction: useCallback((value: boolean) => {
-      setFormState(prev => ({ ...prev, morningAuction: value }));
+      setFormState((prev) => ({ ...prev, morningAuction: value }));
     }, []),
 
     setSelectedTokenStrategy: useCallback((strategy: SowOrderTokenStrategy) => {
-      setFormState(prev => ({ ...prev, selectedTokenStrategy: strategy }));
+      setFormState((prev) => ({ ...prev, selectedTokenStrategy: strategy }));
     }, []),
 
     setShowTokenSelectionDialog: useCallback((open: boolean) => {
-      setFormState(prev => ({ ...prev, showTokenSelectionDialog: open }));
+      setFormState((prev) => ({ ...prev, showTokenSelectionDialog: open }));
     }, []),
   };
 
   // Prefill form function for editing existing orders
   const prefillForm = useCallback((data: Partial<TractorOrderFormState>) => {
-    setFormState(prev => ({ ...prev, ...data }));
+    setFormState((prev) => ({ ...prev, ...data }));
   }, []);
 
   return {

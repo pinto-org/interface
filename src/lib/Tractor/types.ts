@@ -26,14 +26,22 @@ export interface PublishedRequisition {
   blockNumber: number;
 }
 
+/**
+ *
+ */
+export type TractorOrderSpecificTokenStrategy = {
+  type: "SPECIFIC_TOKEN";
+  address: `0x${string}`;
+};
+
 // Add the TokenStrategy type
 export type SowOrderTokenStrategy =
   | { type: "LOWEST_SEEDS" }
   | { type: "LOWEST_PRICE" }
-  | { type: "SPECIFIC_TOKEN"; address: `0x${string}` };
+  | TractorOrderSpecificTokenStrategy;
 
 // Extended type that includes token information for SPECIFIC_TOKEN
 export type ExtendedTractorTokenStrategy =
   | { type: "LOWEST_SEEDS" }
   | { type: "LOWEST_PRICE" }
-  | { type: "SPECIFIC_TOKEN"; address: `0x${string}`; token: Token | undefined };
+  | (TractorOrderSpecificTokenStrategy & { token?: Token });

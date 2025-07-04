@@ -1,13 +1,13 @@
 import arrowDown from "@/assets/misc/ChevronDown.svg";
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
-import IconImage from "@/components/ui/IconImage";
+import { Col } from "@/components/Container";
 import { Button } from "@/components/ui/Button";
+import IconImage from "@/components/ui/IconImage";
 import { Input } from "@/components/ui/Input";
 import { TractorOrderFormFieldsProps } from "@/lib/Tractor/tractorOrderTypes";
 import { inputIds, tractorOrderStyles } from "@/lib/Tractor/tractorOrderUtils";
 import { formatter } from "@/utils/format";
-import { Col } from "@/components/Container";
 
 export default function TractorOrderFormFields({
   formState,
@@ -17,7 +17,6 @@ export default function TractorOrderFormFields({
   currentTemperature,
   podLine,
   temperatureInputRef,
-  whitelistedTokens,
   disabled = false,
 }: TractorOrderFormFieldsProps) {
   return (
@@ -113,19 +112,14 @@ export default function TractorOrderFormFields({
             disabled={disabled}
           >
             <div className="flex items-center gap-2">
-              {formState.selectedTokenStrategy.type === "SPECIFIC_TOKEN" && (() => {
-                const selectedToken = whitelistedTokens.find((t) => 
-                  t.address === (formState.selectedTokenStrategy as { type: "SPECIFIC_TOKEN"; address: string }).address
-                );
-                return selectedToken ? (
-                  <IconImage
-                    src={selectedToken.logoURI}
-                    alt={selectedToken.symbol}
-                    size={6}
-                    className="rounded-full"
-                  />
-                ) : null;
-              })()}
+              {formState.selectedTokenStrategy.type === "SPECIFIC_TOKEN" && (
+                <IconImage
+                  src={""} // This would need to be passed from parent component with token data
+                  alt="token"
+                  size={6}
+                  className="rounded-full"
+                />
+              )}
               <div className="pinto-body-light">{calculations.getSelectedTokenDisplay()}</div>
               <IconImage src={arrowDown} size={3} alt="open token select dialog" />
             </div>

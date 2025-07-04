@@ -12,7 +12,7 @@ export type TipLevel = "low" | "average" | "high";
 // Input field IDs for accessibility
 export const inputIds = {
   totalAmount: "total-amount-input",
-  minPerSeason: "min-per-season-input", 
+  minPerSeason: "min-per-season-input",
   maxPerSeason: "max-per-season-input",
   temperature: "temperature-input",
   podLineLength: "pod-line-length-input",
@@ -22,7 +22,8 @@ export const inputIds = {
 
 // Style constants for consistent UI
 export const tractorOrderStyles = {
-  inputs: "rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] pinto-sm whitespace-nowrap flex-1",
+  inputs:
+    "rounded-full px-4 py-2 flex items-center justify-center transition-colors h-[2rem] sm:h-[2.25rem] pinto-sm whitespace-nowrap flex-1",
   activeButton: "bg-[#D8F1E2] border border-[#387F5C] text-[#387F5C]",
   inactiveButton: "bg-white border-pinto-gray-2 text-pinto-gray-4",
 } as const;
@@ -40,7 +41,7 @@ export function sanitizeNumericInputValue(value: string, valueDecimals: number):
 
   // Remove commas and trim whitespace
   let cleanValue = value.replace(/,/g, "").trim();
-  
+
   // Handle percentage signs for temperature
   const hasPercentage = cleanValue.endsWith("%");
   if (hasPercentage) {
@@ -76,7 +77,7 @@ export function calculateEstimatedExecutions(
   totalAmount: string,
   minSoil: string,
   maxPerSeason: string,
-  decimals: number
+  decimals: number,
 ): string {
   const cleanedTotal = sanitizeNumericInputValue(totalAmount, decimals);
   const cleanedMin = sanitizeNumericInputValue(minSoil, decimals);
@@ -90,7 +91,7 @@ export function calculateEstimatedExecutions(
     // Use average of min and max for estimation
     const avgPerExecution = cleanedMin.tv.add(cleanedMax.tv).div(2);
     if (avgPerExecution.eq(0)) return "0";
-    
+
     const estimatedExecutions = cleanedTotal.tv.div(avgPerExecution);
     return Math.ceil(estimatedExecutions.toNumber()).toString();
   } catch {
@@ -106,11 +107,11 @@ export function calculateEstimatedTotalTip(
   totalAmount: string,
   minSoil: string,
   maxPerSeason: string,
-  decimals: number
+  decimals: number,
 ): string {
   const cleanedTip = sanitizeNumericInputValue(operatorTip, decimals);
   const executions = calculateEstimatedExecutions(totalAmount, minSoil, maxPerSeason, decimals);
-  
+
   if (cleanedTip.tv.eq(0) || executions === "0") {
     return "0";
   }
@@ -140,11 +141,11 @@ export function calculatePodLineValue(podLine: TokenValue, increment: number): T
  */
 export function getTipValue(level: TipLevel, baseAmount: number): string {
   const multipliers = {
-    low: 0.8,     // 80% of average
-    average: 1,   // 100% of average  
-    high: 1.2,    // 120% of average
+    low: 0.8, // 80% of average
+    average: 1, // 100% of average
+    high: 1.2, // 120% of average
   };
-  
+
   const result = baseAmount * multipliers[level];
   return result.toFixed(2); // Truncate to 2 decimal places
 }
@@ -161,7 +162,7 @@ export function validateRequiredFields(formState: {
   operatorTip: string;
 }): { isValid: boolean; missingFields: string[] } {
   const missingFields: string[] = [];
-  
+
   if (!formState.totalAmount || formState.totalAmount === "0") {
     missingFields.push("Total Amount");
   }
@@ -192,14 +193,14 @@ export function validateRequiredFields(formState: {
  */
 export function validateMinMaxAmounts(minSoil: string, maxPerSeason: string, decimals: number): string | null {
   if (!minSoil || !maxPerSeason) return null;
-  
+
   const cleanedMin = sanitizeNumericInputValue(minSoil, decimals);
   const cleanedMax = sanitizeNumericInputValue(maxPerSeason, decimals);
-  
+
   if (cleanedMin.tv.gt(cleanedMax.tv)) {
     return "Min per Season must be less than or equal to Max per Season";
   }
-  
+
   return null;
 }
 
@@ -207,31 +208,31 @@ export function validateMinMaxAmounts(minSoil: string, maxPerSeason: string, dec
  * Validates all form amounts including total amount constraints
  */
 export function validateAllAmounts(
-  minSoil: string, 
-  maxPerSeason: string, 
-  totalAmount: string, 
-  decimals: number
+  minSoil: string,
+  maxPerSeason: string,
+  totalAmount: string,
+  decimals: number,
 ): string | null {
   // First check min vs max
   const minMaxError = validateMinMaxAmounts(minSoil, maxPerSeason, decimals);
   if (minMaxError) return minMaxError;
-  
+
   // Skip total amount validations if total amount is empty
   if (!totalAmount) return null;
-  
+
   const cleanedMin = sanitizeNumericInputValue(minSoil, decimals);
   const cleanedMax = sanitizeNumericInputValue(maxPerSeason, decimals);
   const cleanedTotal = sanitizeNumericInputValue(totalAmount, decimals);
-  
+
   // Validate min per season vs total amount
   if (minSoil && cleanedMin.tv.gt(cleanedTotal.tv)) {
     return "Min per Season cannot exceed the total amount to Sow";
   }
-  
+
   // Validate max per season vs total amount
   if (maxPerSeason && cleanedMax.tv.gt(cleanedTotal.tv)) {
     return "Max per Season cannot exceed the total amount to Sow";
   }
-  
+
   return null;
 }

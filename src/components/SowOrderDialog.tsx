@@ -4,14 +4,14 @@ import { TokenValue } from "@/classes/TokenValue";
 import { WarningIcon } from "@/components/Icons";
 import ReviewTractorOrderDialog from "@/components/ReviewTractorOrderDialog";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
-import TractorOrderFormFields from "@/components/Tractor/TractorOrderFormFields";
 import TokenSelectionDialog from "@/components/Tractor/TokenSelectionDialog";
-import { diamondABI as beanstalkAbi } from "@/constants/abi/diamondABI";
+import TractorOrderFormFields from "@/components/Tractor/TractorOrderFormFields";
+import { diamondABI as beanstalkAbi, diamondABI } from "@/constants/abi/diamondABI";
 import { PINTO } from "@/constants/tokens";
-import { useTractorOrderForm } from "@/hooks/useTractorOrderForm";
-import { useTractorOrderCalculations } from "@/hooks/useTractorOrderCalculations";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useClaimRewards } from "@/hooks/useClaimRewards";
+import { useTractorOrderCalculations } from "@/hooks/useTractorOrderCalculations";
+import { useTractorOrderForm } from "@/hooks/useTractorOrderForm";
 import useTransaction from "@/hooks/useTransaction";
 import { createBlueprint } from "@/lib/Tractor/blueprint";
 import { Blueprint, SowOrderTokenStrategy } from "@/lib/Tractor/types";
@@ -30,7 +30,7 @@ import { useAtom } from "jotai";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
-import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { useAccount, usePublicClient, useReadContract, useWalletClient } from "wagmi";
 import { Col, Row } from "./Container";
 import TooltipSimple from "./TooltipSimple";
 import { Button } from "./ui/Button";
@@ -55,6 +55,11 @@ interface SowOrderDialogProps {
 // 0.000001 is the min for PINTO input & temperature
 const minInput = TokenValue.fromHuman(0.000001, 6);
 
+/*
+  100 -> pinto
+  200 -> weth
+ */
+
 export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }: SowOrderDialogProps) {
   const podLine = usePodLine();
   const currentTemperature = useTemperature();
@@ -69,10 +74,11 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
   });
 
   // Use shared calculations hook
-  const { calculations, cleanedValues, tokenWithHighestValue, whitelistedTokens, priceData, swapResults } = useTractorOrderCalculations({
-    formState,
-    podLine,
-  });
+  const { calculations, cleanedValues, tokenWithHighestValue, whitelistedTokens, priceData, swapResults } =
+    useTractorOrderCalculations({
+      formState,
+      podLine,
+    });
 
   // Pod line calculations are now handled by the shared calculations hook
 
@@ -461,7 +467,6 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                     currentTemperature={currentTemperature.scaled || currentTemperature}
                     podLine={podLine}
                     temperatureInputRef={temperatureInputRef}
-                    whitelistedTokens={whitelistedTokens}
                   />
                 </>
               ) : (
@@ -534,7 +539,9 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                     <div className="flex flex-col gap-2">
                       <div className="flex justify-between">
                         <div className="text-[#9C9C9C] text-base font-light">Estimated total number of executions</div>
-                        <div className="text-black text-base font-light">{calculations.calculateEstimatedExecutions()}</div>
+                        <div className="text-black text-base font-light">
+                          {calculations.calculateEstimatedExecutions()}
+                        </div>
                       </div>
                       <div className="flex justify-between items-center">
                         <div className="text-[#9C9C9C] text-base font-light">Estimated total tip</div>
@@ -610,7 +617,9 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                             ? "bg-pinto-gray-2 text-[#9C9C9C]"
                             : "bg-[#387F5C] text-white"
                         }`}
-                        disabled={(formStep === 1 && (!validation.areRequiredFieldsFilled() || !!formState.error)) || isLoading}
+                        disabled={
+                          (formStep === 1 && (!validation.areRequiredFieldsFilled() || !!formState.error)) || isLoading
+                        }
                         onClick={handleNext}
                       >
                         {isLoading ? (
@@ -640,7 +649,6 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
         onTokenStrategyChange={handlers.setSelectedTokenStrategy}
       />
 
-
       {showReview && encodedData && operatorPasteInstructions && blueprint && (
         <ReviewTractorOrderDialog
           open={showReview}
@@ -656,7 +664,11 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
             tokenStrategy: formState.selectedTokenStrategy.type,
             tokenSymbol:
               formState.selectedTokenStrategy.type === "SPECIFIC_TOKEN"
-                ? whitelistedTokens.find((t) => t.address === (formState.selectedTokenStrategy as { type: "SPECIFIC_TOKEN"; address: string }).address)?.symbol
+                ? whitelistedTokens.find(
+                    (t) =>
+                      t.address ===
+                      (formState.selectedTokenStrategy as { type: "SPECIFIC_TOKEN"; address: string }).address,
+                  )?.symbol
                 : undefined,
             morningAuction: formState.morningAuction,
           }}
