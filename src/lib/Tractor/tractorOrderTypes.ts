@@ -2,7 +2,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import { Token } from "@/utils/types";
 import { SowOrderTokenStrategy } from "./types";
 
-// Re-export types from utils for isolated modules compatibility  
+// Re-export types from utils for isolated modules compatibility
 export type { SanitizedNumericStrInput, TipLevel } from "./tractorOrderUtils";
 
 // Base interfaces for form state management
