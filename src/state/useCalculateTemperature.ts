@@ -11,7 +11,7 @@ export type MorningBlockTemperature = {
   maxTemperature: TV;
   /** */
   index: number;
-  /** index + 1  */
+  /** interval index (0-25) */
   interval: number;
 };
 
@@ -19,7 +19,7 @@ export type MorningTemperatureLookup = {
   [blockNumber: string]: MorningBlockTemperature;
 };
 
-const intervalBlocks = Array.from({ length: INTERVALS_PER_MORNING }, (_, i) => i);
+const intervalBlocks = Array.from({ length: INTERVALS_PER_MORNING + 1 }, (_, i) => i);
 
 export default function useCalculateTemperature(): {
   generate: () => MorningTemperatureLookup;
@@ -49,7 +49,7 @@ export default function useCalculateTemperature(): {
 
       prev[index] = {
         index: i,
-        interval: i + 1,
+        interval: i,
         temperature: calculate(i),
         maxTemperature: maxTemperature,
       };

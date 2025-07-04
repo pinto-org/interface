@@ -88,7 +88,7 @@ const FieldActivity = () => {
   const loadingActivity = isActivitiesLoading || !activities;
 
   const ordersWithSowableAmount = useMemo(
-    () => tractorOrders?.filter((order) => order.amountSowableNextSeason.gt(0)),
+    () => tractorOrders?.filter((order) => order.amountSowableNextSeasonConsideringAvailableSoil.gt(0)),
     [tractorOrders],
   );
 

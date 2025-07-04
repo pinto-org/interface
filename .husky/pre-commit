@@ -2,7 +2,7 @@
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
 
 # Run format and lint
-yarn run format && yarn run lint:fix-all
+yarn format-and-lint
 
 # Re-stage only the files that were originally staged and were modified
 if [ -n "$STAGED_FILES" ]; then

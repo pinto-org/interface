@@ -108,6 +108,15 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install
+
       - name: Run Claude Bug Fix
         uses: anthropics/claude-code-action@beta
         with:
@@ -135,11 +144,11 @@ jobs:
                - Test your changes if possible (check for existing tests)
 
             4. **Verify the Solution**:
-               - Run linting and type checking
                - Ensure the fix doesn't break existing functionality
                - Add comments if the fix requires explanation
 
             5. **Commit and Create Pull Request**:
+               - Before committing, run `yarn format-and-lint` to auto-format code and fix linting errors
                - Commit your changes with clear, descriptive commit messages
                - Create a pull request automatically with:
                  - Clear description of what was broken and how it's fixed
@@ -168,6 +177,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install
 
       - name: Run Claude Feature Implementation
         uses: anthropics/claude-code-action@beta
@@ -205,10 +223,10 @@ jobs:
             5. **Integration & Testing**:
                - Integrate with existing routing and navigation
                - Test the feature works with different wallet states
-               - Run linting and type checking
                - Verify it works across different screen sizes
 
             6. **Commit and Create Pull Request**:
+               - Before committing, run `yarn format-and-lint` to auto-format code and fix linting errors
                - Commit your changes with clear, descriptive commit messages
                - Create a pull request automatically with:
                  - Comprehensive description of the new feature

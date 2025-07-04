@@ -19,6 +19,7 @@ import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
 import { Col, Row } from "./Container";
 import { HighlightedCallData } from "./Tractor/HighlightedCallData";
@@ -69,6 +70,8 @@ interface ReviewTractorOrderProps {
   blueprint: Blueprint;
   isViewOnly?: boolean;
   executionHistory?: PublisherTractorExecution[];
+  includesDepositOptimization?: boolean;
+  depositOptimizationCalls?: `0x${string}`[];
 }
 
 export default function ReviewTractorOrderDialog({
@@ -82,6 +85,8 @@ export default function ReviewTractorOrderDialog({
   blueprint,
   isViewOnly = false,
   executionHistory = [], // Default to empty array
+  includesDepositOptimization = false,
+  depositOptimizationCalls,
 }: ReviewTractorOrderProps) {
   const { address } = useAccount();
   const signRequisition = useSignRequisition();
@@ -134,13 +139,38 @@ export default function ReviewTractorOrderDialog({
     }
 
     try {
-      // Call publish requisition
-      await writeWithEstimateGas({
-        address: protocolAddress,
-        abi: diamondABI,
-        functionName: "publishRequisition",
-        args: [signedRequisitionData],
-      });
+      // Check if we need to include deposit optimization calls
+      if (depositOptimizationCalls && depositOptimizationCalls.length > 0) {
+        console.debug(`Publishing requisition with ${depositOptimizationCalls.length} deposit optimization calls`);
+
+        // Create publish requisition call
+        const publishRequisitionCall = encodeFunctionData({
+          abi: diamondABI,
+          functionName: "publishRequisition",
+          args: [signedRequisitionData],
+        });
+
+        // Combine optimization calls with publish requisition call
+        const farmCalls = [...depositOptimizationCalls, publishRequisitionCall];
+
+        // Execute as farm call
+        await writeWithEstimateGas({
+          address: protocolAddress,
+          abi: diamondABI,
+          functionName: "farm",
+          args: [farmCalls],
+        });
+      } else {
+        console.debug("Publishing requisition without deposit optimization");
+
+        // Call publish requisition directly (like before)
+        await writeWithEstimateGas({
+          address: protocolAddress,
+          abi: diamondABI,
+          functionName: "publishRequisition",
+          args: [signedRequisitionData],
+        });
+      }
 
       // Success handling
       toast.success("Order published successfully");
@@ -635,11 +665,16 @@ export default function ReviewTractorOrderDialog({
             {/* Footer */}
             {!isViewOnly ? (
               <Row className="justify-between items-center border-t p-6">
-                <p className="pinto-sm-light text-pinto-light">
-                  Your Order will remain active until you've Sown {orderData.totalAmount} Pinto under the specified
-                  conditions or until Order cancellation
-                </p>
-                <Row className="flex flex-row gap-2 shrink-0 smaller-button-text">
+                <div className="flex flex-col gap-2">
+                  <p className="pinto-sm-light text-pinto-light">
+                    Your Order will remain active until you've Sown {orderData.totalAmount} Pinto under the specified
+                    conditions or until Order cancellation
+                  </p>
+                  {includesDepositOptimization && (
+                    <p className="text-xs text-gray-500">Your Deposits will be optimized to be usable with Tractor</p>
+                  )}
+                </div>
+                <div className="flex flex-row gap-2 shrink-0 smaller-button-text">
                   {signedRequisitionData ? (
                     <div className="flex items-center gap-2 text-pinto-green-4 font-medium px-6">
                       <CheckIcon width={24} height={24} />
@@ -663,7 +698,7 @@ export default function ReviewTractorOrderDialog({
                     className="w-min"
                     style={!signedRequisitionData ? { opacity: 0.15 } : undefined}
                   />
-                </Row>
+                </div>
               </Row>
             ) : null}
           </div>

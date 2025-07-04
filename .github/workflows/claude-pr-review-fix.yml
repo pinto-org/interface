@@ -117,6 +117,15 @@ jobs:
           git config --global user.name 'claude-code[bot]'
           git config --global user.email 'claude-code[bot]@users.noreply.github.com'
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install
+
       - name: Run Claude PR Review & Fix
         uses: anthropics/claude-code-action@beta
         with:
@@ -152,12 +161,12 @@ jobs:
                - Add or update tests if mentioned in the feedback
 
             4. **Verify the Changes**:
-               - Run linting and type checking to ensure code quality
                - Test that the changes work as expected
                - Ensure no existing functionality is broken
                - Verify the changes address all points in the user's feedback
 
             5. **Commit and Update**:
+               - Before committing, run `yarn format-and-lint` to auto-format code and fix linting errors
                - Make clear, descriptive commits explaining what was fixed
                - Push the changes to the current PR branch
                - The changes will automatically update the existing PR

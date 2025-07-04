@@ -13,6 +13,7 @@
     "lint:check-errors-only": "biome check --diagnostic-level=error",
     "lint:fix-all": "biome check --write --diagnostic-level=error",
     "format": "biome format --write",
+    "format-and-lint": "yarn format && yarn lint:fix-all",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",

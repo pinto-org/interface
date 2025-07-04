@@ -7,13 +7,15 @@ import { TIME_TO_BLOCKS } from "@/constants/blocks";
 import { PODS } from "@/constants/internalTokens";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
+import { generateBatchSortDepositsCallData } from "@/lib/claim/depositUtils";
 import { TEMPERATURE_DECIMALS } from "@/state/protocol/field";
 import { getChainConstant } from "@/utils/chain";
 import { resolveChainId } from "@/utils/chain";
 import { FarmFromMode, MinimumViableBlock } from "@/utils/types";
+import { Token, TokenDepositData } from "@/utils/types";
 import { MayArray } from "@/utils/types.generic";
 import { arrayify } from "@/utils/utils";
-import { BlockTag, SignableMessage, decodeEventLog, decodeFunctionData, encodeFunctionData } from "viem";
+import { SignableMessage, decodeEventLog, decodeFunctionData, encodeFunctionData } from "viem";
 import { PublicClient } from "viem";
 import { Requisition, SowOrderTokenStrategy } from "./types";
 
@@ -73,6 +75,9 @@ export async function createSowTractorData({
   whitelistedOperators,
   tokenStrategy,
   publicClient, // Add this parameter
+  farmerDeposits,
+  userAddress,
+  protocolAddress,
 }: {
   totalAmountToSow: string;
   temperature: string;
@@ -85,7 +90,15 @@ export async function createSowTractorData({
   whitelistedOperators: `0x${string}`[];
   tokenStrategy: SowOrderTokenStrategy;
   publicClient: PublicClient;
-}): Promise<{ data: `0x${string}`; operatorPasteInstrs: `0x${string}`[]; rawCall: `0x${string}` }> {
+  farmerDeposits?: Map<Token, TokenDepositData>;
+  userAddress?: `0x${string}`;
+  protocolAddress?: `0x${string}`;
+}): Promise<{
+  data: `0x${string}`;
+  operatorPasteInstrs: `0x${string}`[];
+  rawCall: `0x${string}`;
+  depositOptimizationCalls?: `0x${string}`[];
+}> {
   // Add more detailed debug logs
   console.debug("tokenStrategy received:", tokenStrategy);
   console.debug("tokenStrategy.type:", tokenStrategy.type);
@@ -195,28 +208,39 @@ export async function createSowTractorData({
     ],
   });
 
-  // Step 2: Wrap the advancedPipe call in an advancedFarm call
-  const data = encodeFunctionData({
-    abi: beanstalkAbi,
-    functionName: "advancedFarm",
-    args: [
-      [
-        {
-          callData: pipeCall,
-          clipboard: "0x" as `0x${string}`, // Empty clipboard
-        },
-      ],
-    ],
-  });
+  // Step 2: Generate deposit optimization calls separately (for the user transaction)
+  let depositOptimizationCalls: `0x${string}`[] | undefined;
+
+  if (farmerDeposits && userAddress && protocolAddress) {
+    console.debug("Generating deposit optimization calls for user transaction");
+
+    try {
+      depositOptimizationCalls = await generateBatchSortDepositsCallData(
+        userAddress,
+        farmerDeposits,
+        publicClient,
+        protocolAddress,
+      );
+
+      console.debug(`Generated ${depositOptimizationCalls.length} deposit optimization calls for user transaction`);
+    } catch (error) {
+      console.warn("Failed to generate deposit optimization calls:", error);
+      // Continue without optimization calls - don't fail the entire transaction
+    }
+  }
+
+  // Step 3: The blueprint data should ONLY contain the sow order (like before)
+  const data = pipeCall;
 
   console.debug("Raw sowBlueprintv0 call:", sowBlueprintCall);
   console.debug("advancedPipe call:", pipeCall);
-  console.debug("Final advancedFarm call:", data);
+  console.debug("Final blueprint data:", data);
 
   return {
     data,
     operatorPasteInstrs: [], // TODO: Update if needed
     rawCall: sowBlueprintCall, // Return the raw call data
+    depositOptimizationCalls, // Return optimization calls for user transaction
   };
 }
 
