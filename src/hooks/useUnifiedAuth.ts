@@ -1,6 +1,7 @@
-import { usePrivy } from "@privy-io/react-auth";
-import { useMemo } from "react";
-import { useAccount } from "wagmi";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { useMemo, useEffect } from "react";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { injected } from "wagmi/connectors";
 
 export interface UnifiedAuthState {
   // Authentication status
@@ -35,8 +36,24 @@ export const useUnifiedAuth = (): UnifiedAuthState => {
     logout: privyLogout,
   } = usePrivy();
 
+  // Privy wallets
+  const { wallets } = useWallets();
+
   // Wagmi state
   const { address: wagmiAddress, isConnected: wagmiConnected } = useAccount();
+  const { connect } = useConnect();
+  const { disconnect } = useDisconnect();
+
+  // Get embedded wallet from Privy
+  const embeddedWallet = wallets.find((wallet) => wallet.walletClientType === 'privy');
+
+  // Connect Privy embedded wallet to Wagmi when authenticated
+  useEffect(() => {
+    if (privyAuthenticated && embeddedWallet && !wagmiConnected) {
+      // Connect the embedded wallet to Wagmi using injected connector
+      connect({ connector: injected() });
+    }
+  }, [privyAuthenticated, embeddedWallet, wagmiConnected, connect]);
 
   // Determine authentication method and state
   const authState = useMemo(() => {
@@ -53,7 +70,8 @@ export const useUnifiedAuth = (): UnifiedAuthState => {
     // If user is authenticated with Privy (email + embedded wallet)
     if (privyAuthenticated && privyUser) {
       const email = privyUser.email?.address;
-      const embeddedWallet = privyUser.wallet;
+      // Use the embedded wallet from useWallets hook
+      const walletAddress = embeddedWallet?.address || privyUser.wallet?.address;
 
       return {
         isAuthenticated: true,
@@ -61,9 +79,9 @@ export const useUnifiedAuth = (): UnifiedAuthState => {
         authMethod: "email" as const,
         user: {
           email,
-          wallet: embeddedWallet
+          wallet: walletAddress
             ? {
-                address: embeddedWallet.address as `0x${string}`,
+                address: walletAddress as `0x${string}`,
               }
             : undefined,
           authMethod: "email" as const,
@@ -93,7 +111,7 @@ export const useUnifiedAuth = (): UnifiedAuthState => {
       authMethod: "none" as const,
       user: { authMethod: "none" as const },
     };
-  }, [privyReady, privyAuthenticated, privyUser, wagmiConnected, wagmiAddress]);
+  }, [privyReady, privyAuthenticated, privyUser, wagmiConnected, wagmiAddress, embeddedWallet]);
 
   // Display helpers
   const displayName = useMemo(() => {
@@ -120,6 +138,10 @@ export const useUnifiedAuth = (): UnifiedAuthState => {
 
   const logout = () => {
     if (authState.authMethod === "email") {
+      // Disconnect Wagmi first if connected
+      if (wagmiConnected) {
+        disconnect();
+      }
       privyLogout();
     }
     // For wallet connections, we'll handle this in the component
