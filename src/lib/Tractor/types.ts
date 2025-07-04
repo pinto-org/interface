@@ -1,3 +1,4 @@
+import { Token } from "@/utils/types";
 import { Address } from "viem";
 
 export interface Blueprint {
@@ -30,3 +31,9 @@ export type SowOrderTokenStrategy =
   | { type: "LOWEST_SEEDS" }
   | { type: "LOWEST_PRICE" }
   | { type: "SPECIFIC_TOKEN"; address: `0x${string}` };
+
+// Extended type that includes token information for SPECIFIC_TOKEN
+export type ExtendedTractorTokenStrategy =
+  | { type: "LOWEST_SEEDS" }
+  | { type: "LOWEST_PRICE" }
+  | { type: "SPECIFIC_TOKEN"; address: `0x${string}`; token: Token | undefined };

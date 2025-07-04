@@ -924,13 +924,21 @@ export interface OrderbookEntry extends Omit<RequisitionEvent, "decodedData"> {
 }
 
 // Add this type definition after the OrderbookEntryWithProcessingData interface
-export interface WithdrawalPlan {
+export type WithdrawalPlan = {
   sourceTokens: readonly `0x${string}`[];
   stems: readonly (readonly bigint[])[];
   amounts: readonly (readonly bigint[])[];
   availableBeans: readonly bigint[];
   totalAvailableBeans: bigint;
-}
+};
+
+const emptyWithdrawalPlan: WithdrawalPlan = {
+  sourceTokens: [],
+  stems: [],
+  amounts: [],
+  availableBeans: [],
+  totalAvailableBeans: 0n,
+} as const;
 
 // ────────────────────────────────────────────────────────────────────────────────
 // Load Orderbook Data
@@ -1087,18 +1095,18 @@ export async function loadOrderbookData(
           const existingPlans = publisherWithdrawalPlans[publisher] || [];
           console.debug("Existing plans for publisher:", existingPlans.length);
 
-          let combinedExistingPlan = null;
+          let combinedExistingPlan: WithdrawalPlan | null = null;
 
           // If we have existing plans, combine them
           if (existingPlans.length > 0) {
             try {
               // Combine all existing withdrawal plans for this publisher
-              const combinedPlan = (await publicClient.readContract({
+              const combinedPlan: WithdrawalPlan = await publicClient.readContract({
                 address: TRACTOR_HELPERS_ADDRESS,
                 abi: tractorHelpersABI,
                 functionName: "combineWithdrawalPlans",
                 args: [existingPlans],
-              })) as any;
+              });
 
               combinedExistingPlan = combinedPlan;
 
@@ -1115,14 +1123,6 @@ export async function loadOrderbookData(
 
           // Get a new withdrawal plan that excludes deposits already allocated to other orders
           try {
-            const emptyPlan = {
-              sourceTokens: [] as readonly `0x${string}`[],
-              stems: [] as readonly (readonly bigint[])[],
-              amounts: [] as readonly (readonly bigint[])[],
-              availableBeans: [] as readonly bigint[],
-              totalAvailableBeans: 0n,
-            };
-
             withdrawalPlan = await publicClient.readContract({
               address: TRACTOR_HELPERS_ADDRESS,
               abi: tractorHelpersABI,
@@ -1132,7 +1132,7 @@ export async function loadOrderbookData(
                 decodedData.sourceTokenIndices,
                 decodedData.sowAmounts.totalAmountToSow,
                 decodedData.maxGrownStalkPerBdv,
-                combinedExistingPlan || emptyPlan,
+                combinedExistingPlan || emptyWithdrawalPlan,
               ],
             });
 
