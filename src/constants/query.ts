@@ -23,6 +23,14 @@ export const defaultQuerySettingsFast = {
   refetchInterval: 1000 * 60 * 3, // 3 minutes, in milliseconds
 };
 
+export const defaultQuerySettingsNoRefetch = {
+  // We don't need to refetch this query
+  staleTime: Infinity,
+  refetchInterval: false,
+  refetchOnReconnect: false,
+  refetchOnWindowFocus: false,
+} as const;
+
 /**
  * Default query settings for quote queries.
  * This is used for queries that are used to fetch quote data & need to fetch data very frequently.
