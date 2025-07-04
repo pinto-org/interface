@@ -1,4 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { navbarPanelAtom } from "@/state/app/navBar.atoms";
 import { FarmerBalance, useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
@@ -30,35 +31,73 @@ interface WalletHeaderProps {
   disconnect: () => void;
   togglePanel: () => void;
   totalBalance: FarmerBalance;
+  unifiedAuth: ReturnType<typeof useUnifiedAuth>;
 }
-const WalletHeader = ({ address, ensName, ensAvatar, disconnect, togglePanel, totalBalance }: WalletHeaderProps) => (
-  <div className="flex flex-col gap-2 2xl:gap-4">
-    <div className="flex flex-row justify-between items-center h-4">
-      <div className="flex flex-row gap-1">
-        {ensAvatar && <Avatar address={address} size={24} />}
-        <span className="pinto-sm text-pinto-gray-5">
-          {ensName || (address ? `${address.substring(0, 7)}...${address.substring(38, 42)}` : "")}
-        </span>
+const WalletHeader = ({
+  address,
+  ensName,
+  ensAvatar,
+  disconnect,
+  togglePanel,
+  totalBalance,
+  unifiedAuth,
+}: WalletHeaderProps) => {
+  const displayName = unifiedAuth.user.email
+    ? unifiedAuth.user.email
+    : ensName || (address ? `${address.substring(0, 7)}...${address.substring(38, 42)}` : "");
+
+  // Use the embedded wallet address for email users, fallback to regular address
+  const walletAddress = unifiedAuth.user.wallet?.address || address;
+
+  const handleDisconnect = () => {
+    if (unifiedAuth.user.authMethod === "email") {
+      unifiedAuth.logout();
+    } else {
+      disconnect();
+    }
+    togglePanel();
+  };
+
+  return (
+    <div className="flex flex-col gap-2 2xl:gap-4">
+      <div className="flex flex-row justify-between items-center h-4">
+        <div className="flex flex-col gap-1">
+          <div className="flex flex-row gap-1 items-center">
+            {(ensAvatar || unifiedAuth.user.email) && (
+              <Avatar address={walletAddress} size={24} />
+            )}
+            <span className="pinto-sm text-pinto-gray-5">
+              {unifiedAuth.user.email ? (
+                <span className="text-pinto-green-4 font-medium">{displayName}</span>
+              ) : (
+                displayName
+              )}
+            </span>
+          </div>
+          {/* Show wallet address for email users */}
+          {unifiedAuth.user.email && walletAddress && (
+            <div className="text-xs text-pinto-gray-4 ml-8">
+              Wallet: {walletAddress.substring(0, 6)}...{walletAddress.substring(38, 42)}
+            </div>
+          )}
+        </div>
+        {unifiedAuth.isAuthenticated && (
+          <button
+            type="button"
+            onClick={handleDisconnect}
+            className="flex justify-center items-center gap-1 w-[11.25rem] h-[2.125rem] bg-[#F8F8F8] rounded-full pinto-sm hover:hover:bg-pinto-green hover:text-white"
+          >
+            <span>{unifiedAuth.user.authMethod === "email" ? "Sign Out" : "Disconnect Wallet"}</span>
+            <span className="w-4 h-4">×</span>
+          </button>
+        )}
       </div>
-      {address && (
-        <button
-          type="button"
-          onClick={() => {
-            disconnect();
-            togglePanel();
-          }}
-          className="flex justify-center items-center gap-1 w-[11.25rem] h-[2.125rem] bg-[#F8F8F8] rounded-full pinto-sm hover:hover:bg-pinto-green hover:text-white"
-        >
-          <span>Disconnect Wallet</span>
-          <span className="w-4 h-4">×</span>
-        </button>
-      )}
+      <span className="text-[3rem] leading-[1.1] 2xl:pinto-h1 text-pinto-gray-5">
+        {formatter.usd(totalBalance.total, { decimals: totalBalance.total.gt(9999999) ? 0 : 2 })}
+      </span>
     </div>
-    <span className="text-[3rem] leading-[1.1] 2xl:pinto-h1 text-pinto-gray-5">
-      {formatter.usd(totalBalance.total, { decimals: totalBalance.total.gt(9999999) ? 0 : 2 })}
-    </span>
-  </div>
-);
+  );
+};
 
 // Balance summary component
 interface BalanceSummaryProps {
@@ -202,6 +241,7 @@ export default function WalletButtonPanel({ togglePanel }) {
   const { data: ensAvatar } = useEnsAvatar({ name: ensName ?? undefined });
   const { disconnect } = useDisconnect();
   const navigate = useNavigate();
+  const unifiedAuth = useUnifiedAuth();
 
   const [panelState, setPanelState] = useAtom(navbarPanelAtom);
   const { showTransfer, showClaim, balanceTab: currentTab } = panelState.walletPanel;
@@ -299,6 +339,7 @@ export default function WalletButtonPanel({ togglePanel }) {
           disconnect={disconnect}
           togglePanel={togglePanel}
           totalBalance={totalBalance}
+          unifiedAuth={unifiedAuth}
         />
         <BalanceSummary totalBalance={totalBalance} />
         <ActionButtons navigate={navigate} togglePanel={togglePanel} />

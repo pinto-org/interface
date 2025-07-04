@@ -1,5 +1,6 @@
 import chevronDown from "@/assets/misc/ChevronDown.svg";
 import useIsTablet from "@/hooks/display/useIsTablet";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { truncateAddress } from "@/utils/string";
 import { useModal } from "connectkit";
 import { Avatar } from "connectkit";
@@ -9,6 +10,30 @@ import WalletButtonPanel from "./WalletButtonPanel";
 import { Button } from "./ui/Button";
 import IconImage from "./ui/IconImage";
 import Panel from "./ui/Panel";
+
+// Helper function to truncate email addresses
+const truncateEmail = (email: string, isTablet: boolean = false): string => {
+  if (!email) return email;
+
+  const maxLength = isTablet ? 15 : 20; // Shorter on tablet/mobile
+
+  if (email.length <= maxLength) return email;
+
+  const [localPart, domain] = email.split("@");
+  if (!domain) return email;
+
+  // If email is too long, truncate the local part
+  const truncatedLocal = localPart.length > 8 ? `${localPart.substring(0, 6)}...` : localPart;
+
+  const result = `${truncatedLocal}@${domain}`;
+
+  // If still too long, truncate domain as well
+  if (result.length > maxLength) {
+    return `${truncatedLocal}@${domain.substring(0, 6)}...`;
+  }
+
+  return result;
+};
 
 interface WalletButtonProps extends ComponentPropsWithoutRef<"div"> {
   isOpen: boolean;
@@ -21,6 +46,7 @@ const WalletButton = forwardRef<HTMLButtonElement, WalletButtonProps>(
     const account = useAccount();
     const modal = useModal();
     const isTablet = useIsTablet();
+    const unifiedAuth = useUnifiedAuth();
 
     const { address } = account;
 
@@ -29,10 +55,36 @@ const WalletButton = forwardRef<HTMLButtonElement, WalletButtonProps>(
 
     useSyncAccountConnecting(modal.open, account);
 
+    // Use unified auth state for display
+    const displayAddress = unifiedAuth.displayAddress || address;
+    const displayName = unifiedAuth.user.email
+      ? truncateEmail(unifiedAuth.user.email, isTablet)
+      : ensName
+        ? ensName
+        : displayAddress
+          ? `${truncateAddress(displayAddress, { suffix: !isTablet, letters: isTablet ? 3 : undefined })}`
+          : "Connect";
+
+    // If not authenticated, show Privy's native modal
+    if (!unifiedAuth.isAuthenticated) {
+      return (
+        <Button
+          onClick={() => unifiedAuth.login()}
+          variant="outline-secondary"
+          rounded="full"
+          className={`flex flex-row gap-0.5 sm:gap-2 items-center ${className}`}
+          ref={ref}
+        >
+          Connect
+          <IconImage src={chevronDown} size={4} mobileSize={2.5} alt="chevron down" />
+        </Button>
+      );
+    }
+
     return (
       <Panel
         isOpen={isOpen}
-        toggle={address ? togglePanel : () => {}}
+        toggle={unifiedAuth.isAuthenticated ? togglePanel : () => {}}
         side="right"
         panelProps={{
           className: `max-w-panel-price w-panel-price mt-4 ${isOpen ? `translate-x-12 mr-0 lg:translate-x-12 lg:mr-12` : `translate-x-full -mr-20 lg:-mr-12`}`,
@@ -40,21 +92,19 @@ const WalletButton = forwardRef<HTMLButtonElement, WalletButtonProps>(
         screenReaderTitle="Wallet Panel"
         trigger={
           <Button
-            onClick={() => (address ? togglePanel() : modal.setOpen(true))}
+            onClick={() => (unifiedAuth.isAuthenticated ? togglePanel() : unifiedAuth.login())}
             variant="outline-secondary"
             noShrink
             rounded="full"
             className={`flex flex-row gap-0.5 sm:gap-2 items-center ${isOpen && "border-pinto-green"} ${className}`}
             ref={ref}
           >
-            {ensAvatar && <Avatar address={address} size={28} />}
-            <>
-              {ensName
-                ? ensName
-                : address
-                  ? `${truncateAddress(address, { suffix: !isTablet, letters: isTablet ? 3 : undefined })}`
-                  : "Connect"}
-            </>
+            {(ensAvatar || unifiedAuth.user.email) && <Avatar address={displayAddress} size={28} />}
+            {unifiedAuth.user.email ? (
+              <span className="text-pinto-green-4 font-medium">{displayName}</span>
+            ) : (
+              <>{displayName}</>
+            )}
             <IconImage src={chevronDown} size={4} mobileSize={2.5} alt="chevron down" />
           </Button>
         }

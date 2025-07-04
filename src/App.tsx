@@ -19,6 +19,7 @@ import Transfer from "./pages/Transfer";
 import Whitepaper from "./pages/Whitepaper";
 import NewUserView from "./pages/overview/NewUserView";
 
+import PrivyOnboarding from "@/components/PrivyOnboarding";
 import TourOfTheFarm from "@/components/TourOfTheFarm";
 import { useMetaCRM } from "./utils/meta-crm";
 
@@ -27,6 +28,7 @@ function AppLayout({ children }) {
     <div className="min-h-screen">
       <Navbar />
       <TourOfTheFarm />
+      <PrivyOnboarding />
       <ScrollToTop />
       <div className={cn("relative z-[1] w-screen")}>{children}</div>
     </div>
