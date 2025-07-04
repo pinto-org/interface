@@ -628,8 +628,8 @@ export class SwapQuoter {
       throw new Error("[Swap Router] No route found");
     }
 
-    // If the zeroX quote is better than the best route, return the zeroX quote
-    if (dexAggNode.buyAmount.gt(route.amountOut)) {
+    // If the zeroX quote is better than the best route and available, return the zeroX quote
+    if (dexAggNode.buyAmount.gt(0) && dexAggNode.buyAmount.gt(route.amountOut)) {
       return [dexAggNode];
     }
 
@@ -738,8 +738,8 @@ export class SwapQuoter {
 
     // If the intermediary token is the target token, return the nodes
     if (directPathIsBestPath) {
-      // If the zeroX quote is better than the best route, return the zeroX quote
-      if (dexAggNode.usdOut.gt(highestOutputWellRoute.usdValueOut)) {
+      // If the zeroX quote is better than the best route and available, return the zeroX quote
+      if (dexAggNode.buyAmount.gt(0) && dexAggNode.usdOut.gt(highestOutputWellRoute.usdValueOut)) {
         return [dexAggNode];
       }
 
@@ -767,16 +767,16 @@ export class SwapQuoter {
         slippage,
       });
 
-      // If the zeroX quote is better than the best route, return the zeroX quote
-      if (dexAggNode.buyAmount.gt(directNode.buyAmount)) {
+      // If the zeroX quote is better than the best route and available, return the zeroX quote
+      if (dexAggNode.buyAmount.gt(0) && dexAggNode.buyAmount.gt(directNode.buyAmount)) {
         return [dexAggNode];
       }
 
       return [directNode];
     }
 
-    // If the zeroX quote is better than the best route, return the zeroX quote
-    if (lastStep?.buyAmount.lt(dexAggNode.buyAmount)) {
+    // If the zeroX quote is better than the best route and available, return the zeroX quote
+    if (dexAggNode.buyAmount.gt(0) && lastStep?.buyAmount.lt(dexAggNode.buyAmount)) {
       return [dexAggNode];
     }
 
@@ -834,9 +834,20 @@ export class SwapQuoter {
 
     const well2WellOutput = well2WellQuote?.length ? well2WellQuote[well2WellQuote.length - 1]?.minBuyAmount : TV.ZERO;
     const zeroXOutput = zeroXNode?.buyAmount ?? TV.ZERO;
-    const best = well2WellOutput.gt(zeroXOutput) ? well2WellQuote : zeroXNode;
+    
+    // If zeroX is unavailable (zero output), prefer well2well route
+    const zeroXAvailable = zeroXOutput.gt(0);
+    const well2WellAvailable = well2WellOutput.gt(0);
+    
+    let best: SwapNode[] | SwapNode | undefined;
+    
+    if (well2WellAvailable && (!zeroXAvailable || well2WellOutput.gt(zeroXOutput))) {
+      best = well2WellQuote;
+    } else if (zeroXAvailable) {
+      best = zeroXNode;
+    }
 
-    if (!best || (well2WellOutput.lte(0) && zeroXOutput.lte(0))) {
+    if (!best || (!well2WellAvailable && !zeroXAvailable)) {
       throw new Error(
         `[Swap Router] Failed to quote. No output from any route. ${sellToken.symbol} -> ${buyToken.symbol}`,
       );
@@ -874,9 +885,22 @@ export class SwapQuoter {
     slippage: number,
     excludePintoExchange: boolean = false,
   ) {
-    const node = new ZeroXSwapNode(this.context, sellToken, buyToken);
-    await node.quoteForward(sellAmount, slippage, excludePintoExchange);
-    return node;
+    try {
+      const node = new ZeroXSwapNode(this.context, sellToken, buyToken);
+      await node.quoteForward(sellAmount, slippage, excludePintoExchange);
+      return node;
+    } catch (error) {
+      console.warn("[Swap Router] ZeroX quote failed:", error);
+      // Return a node with zero buy amount to indicate unavailability
+      const node = new ZeroXSwapNode(this.context, sellToken, buyToken);
+      node.setFields({
+        sellAmount,
+        buyAmount: TV.ZERO,
+        minBuyAmount: TV.ZERO,
+        slippage,
+      });
+      return node;
+    }
   }
 
   // -------------------------- Remove Liquidity --------------------------

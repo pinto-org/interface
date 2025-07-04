@@ -29,7 +29,7 @@ export class ZeroX {
     requestInit?: RequestParams,
   ): Promise<ZeroXQuoteV2Response[]> {
     if (!routerEndpoint) {
-      throw new Error("ERROR: Router endpoint is not set");
+      throw new Error("Swap service unavailable: Please configure VITE_BASE_ENDPOINT environment variable");
     }
 
     const fetchArgs = Array.isArray(args) ? args : [args];
