@@ -55,11 +55,16 @@ const WalletHeader = ({
   const walletAddress = unifiedAuth.user.wallet?.address || address;
 
   const handleDisconnect = () => {
-    if (privyAuthenticated) {
-      // If there's any Privy session (email or wallet through Privy), logout from Privy
+    // Check if user is email authenticated (should only logout from Privy)
+    if (unifiedAuth.user.email) {
+      // Email user with embedded wallet - only logout from Privy
       privyLogout();
     } else {
-      // Pure wagmi connection, disconnect normally
+      // External wallet user - disconnect both Privy (if active) and wagmi
+      if (privyAuthenticated) {
+        privyLogout();
+      }
+      // Always disconnect wagmi for external wallet users
       disconnect();
     }
     togglePanel();
