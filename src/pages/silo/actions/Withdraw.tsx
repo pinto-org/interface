@@ -37,7 +37,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useConfig } from "wagmi";
-import { useAccount, useChainId } from "wagmi";
+import { useChainId } from "wagmi";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 
 const getInitialWithdrawToken = (siloToken: Token, tokenMap: AddressLookup<Token>) => {
   if (siloToken.isLP && siloToken.tokens?.length) {
@@ -56,7 +57,7 @@ const getInitialWithdrawToken = (siloToken: Token, tokenMap: AddressLookup<Token
 
 function Withdraw({ siloToken }: { siloToken: Token }) {
   const config = useConfig();
-  const account = useAccount();
+  const unifiedAuth = useUnifiedAuth();
   const chainId = useChainId();
   const farmerSilo = useFarmerSilo();
   const fieldSnapshots = useFieldSnapshots();
@@ -99,7 +100,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const shouldSwap = !tokensEqual(siloToken, tokenOut) && !siloToken.isMain;
 
-  const swapDisabled = stringToNumber(amount) <= 0 || !account.address || !shouldSwap || inputError;
+  const swapDisabled = stringToNumber(amount) <= 0 || !unifiedAuth.displayAddress || !shouldSwap || inputError;
 
   const { data: swapData, resetSwap } = useSwap({
     tokenIn: siloToken,
@@ -170,7 +171,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   });
 
   const onSubmit = async () => {
-    if (!amount || Number(amount) <= 0 || !destination || !account.address || !deposits || inputError) return;
+    if (!amount || Number(amount) <= 0 || !destination || !unifiedAuth.displayAddress || !deposits || inputError) return;
 
     try {
       setSubmitting(true);
@@ -259,7 +260,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   const swapReady = swapBuild && swapData?.buyAmount?.gt(0);
   const disabled =
     !stringToNumber(amount) ||
-    !account.address ||
+    !unifiedAuth.displayAddress ||
     submitting ||
     isConfirming ||
     (shouldSwap && !swapReady) ||

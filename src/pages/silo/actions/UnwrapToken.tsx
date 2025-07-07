@@ -35,7 +35,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Address } from "viem";
-import { useAccount, useReadContract } from "wagmi";
+import { useReadContract } from "wagmi";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 
 const balancesToShow = [FarmFromMode.INTERNAL, FarmFromMode.EXTERNAL];
 
@@ -46,7 +47,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   const farmerBalances = useFarmerBalances();
   const { queryKeys: farmerDepositsQueryKeys } = useFarmerSilo();
   const contractBalances = useFarmerSilo(siloToken.isSiloWrapped ? siloToken.address : undefined);
-  const { address: account, isConnecting } = useAccount();
+  const unifiedAuth = useUnifiedAuth();
   const { mainToken } = useTokenData();
   const diamond = useProtocolAddress();
   const qc = useQueryClient();
@@ -62,7 +63,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
 
   const [toSilo, setToSilo] = useState<boolean>(true);
   const [didInitBalanceSource, setDidInitBalanceSource] = useState(
-    account ? !!farmerBalances.isFetched : !isConnecting,
+    unifiedAuth.displayAddress ? !!farmerBalances.isFetched : !unifiedAuth.isLoading,
   );
   const [inputError, setInputError] = useState<boolean>(false);
   const [tokenOut, setTokenOut] = useState<Token | undefined>(undefined);
@@ -94,7 +95,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   });
 
   const swapSummary = useSwapSummary(swap.data);
-  const buildSwapQuote = useBuildSwapQuoteAsync(swap.data, balanceSource, toMode, account, account);
+  const buildSwapQuote = useBuildSwapQuoteAsync(swap.data, balanceSource, toMode, unifiedAuth.displayAddress, unifiedAuth.displayAddress);
 
   // Transaction
   const onSuccess = useCallback(() => {
@@ -156,7 +157,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   const onSubmit = useCallback(async () => {
     try {
       // validations
-      if (!account) throw new Error("Signer required");
+      if (!unifiedAuth.displayAddress) throw new Error("Signer required");
       if (amountTV.lte(0)) throw new Error("Invalid amount");
       if (balance.lt(amountTV)) throw new Error("Insufficient balance");
       if (!toSilo && !tokenOut) throw new Error("Token out required");
@@ -169,7 +170,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
       // transaction
       if (toSilo) {
         startSubmission();
-        return handleRedeemToSilo(amountTV, account, balanceSource);
+        return handleRedeemToSilo(amountTV, unifiedAuth.displayAddress, balanceSource);
       }
 
       if (!exists(toMode)) {
@@ -178,7 +179,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
 
       if (!toSilo && tokenOut?.isMain) {
         startSubmission();
-        return handleRedeemAdvanced(amountTV, account, balanceSource, toMode);
+        return handleRedeemAdvanced(amountTV, unifiedAuth.displayAddress, balanceSource, toMode);
       }
 
       if (!tokenOut || !buildSwapQuote) {
@@ -197,7 +198,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
       setSubmitting(false);
     }
   }, [
-    account,
+    unifiedAuth.displayAddress,
     amountTV,
     balanceSource,
     siloToken,
@@ -212,13 +213,13 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
 
   // Effects
   useEffect(() => {
-    if (didInitBalanceSource || !farmerBalance || farmerBalances.isLoading || isConnecting) {
+    if (didInitBalanceSource || !farmerBalance || farmerBalances.isLoading || unifiedAuth.isLoading) {
       return;
     }
 
     setBalanceSource(getPreferredBalanceSource(farmerBalance));
     setDidInitBalanceSource(true);
-  }, [didInitBalanceSource, farmerBalances.isLoading, farmerBalance, isConnecting]);
+  }, [didInitBalanceSource, farmerBalances.isLoading, farmerBalance, unifiedAuth.isLoading]);
 
   // Display State
   const buttonText = amountTV.gt(balance) ? "Insufficient Balance" : "Unwrap";
@@ -230,7 +231,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   const quoting = txnType === "swap" ? quotingSwap : quotingRedeem;
   const outputNotReady = txnType !== "swap" ? output?.amount.lte(0) : swap.data?.buyAmount.lte(0);
 
-  const baseDisabled = !account || !validAmountIn || !balance.gte(amountTV);
+  const baseDisabled = !unifiedAuth.displayAddress || !validAmountIn || !balance.gte(amountTV);
   const nonToSiloDisabled = txnType !== "redeemToSilo" && (!exists(toMode) || !tokenOut);
   const buttonDisabled =
     baseDisabled || isConfirming || submitting || outputNotReady || inputError || quoting || nonToSiloDisabled;

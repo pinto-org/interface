@@ -22,6 +22,7 @@
     "@hookform/resolvers": "^3.9.0",
     "@netlify/functions": "^2.8.1",
     "@privy-io/react-auth": "^1.83.8",
+    "@privy-io/wagmi": "^1.0.5",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-checkbox": "^1.1.2",
     "@radix-ui/react-collapsible": "^1.1.1",

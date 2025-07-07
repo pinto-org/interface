@@ -52,7 +52,7 @@ import { UseQueryResult, useQueryClient } from "@tanstack/react-query";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { useAccount } from "wagmi";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 
 interface BaseConvertProps {
   siloToken: Token;
@@ -82,7 +82,7 @@ function ConvertForm({
 
   const diamond = useProtocolAddress();
   const pintoToken = useChainConstant(MAIN_TOKEN);
-  const account = useAccount();
+  const unifiedAuth = useUnifiedAuth();
   const [amountIn, setAmountIn] = useState("0");
   const [slippage, setSlippage] = useState(0.25);
   const [maxConvert, setMaxConvert] = useState(TV.ZERO);
@@ -122,7 +122,7 @@ function ConvertForm({
     ? deltaPEnabled && maxConvert.gt(0) && isValidAmountIn
     : isValidAmountIn;
 
-  const quoteEnabled = account.address && isValidAmountIn && quoteConditionsEnabled;
+  const quoteEnabled = unifiedAuth.displayAddress && isValidAmountIn && quoteConditionsEnabled;
 
   // ------------------------------ QUOTE ------------------------------
 
@@ -206,7 +206,7 @@ function ConvertForm({
     setSubmitting(true);
     try {
       if (!targetToken) throw new Error("Target token not set");
-      if (!account.address) throw new Error("Signer required");
+      if (!unifiedAuth.displayAddress) throw new Error("Signer required");
       if (!exists(routeIndex)) throw new Error("No route index");
       const bestQuote = quote?.[routeIndex];
       if (!bestQuote || bestQuote.totalAmountOut.lte(0) || !expectedTotalStalk) throw new Error("No convert quote");
@@ -254,7 +254,7 @@ function ConvertForm({
     isDefaultConvert,
     diamond,
     routeIndex,
-    account.address,
+    unifiedAuth.displayAddress,
     targetToken,
     quote,
     expectedTotalStalk,
@@ -348,7 +348,7 @@ function ConvertForm({
     !isValidAmountIn ||
     !hasConvertible ||
     amountOut?.lte(0) ||
-    !account.address ||
+    !unifiedAuth.displayAddress ||
     isConfirming ||
     submitting ||
     loading;
@@ -373,7 +373,7 @@ function ConvertForm({
           <SlippageButton slippage={slippage} setSlippage={setSlippage} />
         </div>
         <ComboInputField
-          disableInput={!canConvert || !account.address || !farmerConvertibleAmount?.gt(0)}
+          disableInput={!canConvert || !unifiedAuth.displayAddress || !farmerConvertibleAmount?.gt(0)}
           disableInlineBalance={!targetToken}
           disableClampMinOn0={true}
           amount={amountIn}

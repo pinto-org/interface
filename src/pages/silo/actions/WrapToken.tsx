@@ -35,7 +35,8 @@ import { exists, getBalanceFromMode } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useAccount, useReadContract } from "wagmi";
+import { useReadContract } from "wagmi";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 
 type AssetOrigin = "deposits" | "balances";
 
@@ -43,7 +44,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
   const farmerDeposits = useFarmerSilo();
   const contractSilo = useFarmerSilo(siloToken.address);
   const farmerBalances = useFarmerBalances();
-  const { address: account, isConnecting } = useAccount();
+  const unifiedAuth = useUnifiedAuth();
   const qc = useQueryClient();
   const diamond = useProtocolAddress();
 
@@ -59,7 +60,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
   const [mode, setMode] = useState<FarmToMode | undefined>(FarmToMode.EXTERNAL);
   const [token, setToken] = useState<Token>(mainToken);
   const [source, setSource] = useState<AssetOrigin>(depositedAmount ? "deposits" : "balances");
-  const [didInitSource, setDidInitSource] = useState(account ? depositedAmount !== undefined : !isConnecting);
+  const [didInitSource, setDidInitSource] = useState(unifiedAuth.displayAddress ? depositedAmount !== undefined : !unifiedAuth.isLoading);
 
   const filterTokens = useFilterTokens();
 
@@ -99,7 +100,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     disabled: usingDeposits,
   });
   const swapSummary = useSwapSummary(swap.data);
-  const buildSwap = useBuildSwapQuoteAsync(swap.data, balanceFrom, mode, account, account);
+  const buildSwap = useBuildSwapQuoteAsync(swap.data, balanceFrom, mode, unifiedAuth.displayAddress, unifiedAuth.displayAddress);
   const quote = usePreviewDeposit(amountInTV, usingDeposits);
 
   const amountOut = usingDeposits ? quote.data : swap.data?.buyAmount;
@@ -139,7 +140,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     };
 
     try {
-      if (!isValidAddress(account)) {
+      if (!isValidAddress(unifiedAuth.displayAddress)) {
         throw new Error("Signer required");
       }
       if (exceedsBalance) {
@@ -161,7 +162,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
           address: siloToken.address,
           abi: siloedPintoABI,
           functionName: "depositFromSilo",
-          args: [extracted.stems, extracted.amounts, account, Number(mode)],
+          args: [extracted.stems, extracted.amounts, unifiedAuth.displayAddress, Number(mode)],
         });
       }
 
@@ -199,7 +200,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     siloToken.decimals,
     deposits,
     mode,
-    account,
+    unifiedAuth.displayAddress,
     swap.data,
     inputError,
     buildSwap,
@@ -218,11 +219,11 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
   // Effects
   useEffect(() => {
     if (didInitSource) return;
-    if (!isConnecting && !account) {
+    if (!unifiedAuth.isLoading && !unifiedAuth.displayAddress) {
       setDidInitSource(true);
     }
 
-    if (!farmerTokenBalance || !deposits || isConnecting) {
+    if (!farmerTokenBalance || !deposits || unifiedAuth.isLoading) {
       return;
     }
 
@@ -231,7 +232,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     }
 
     setDidInitSource(true);
-  }, [farmerTokenBalance, deposits, didInitSource, isConnecting, account]);
+  }, [farmerTokenBalance, deposits, didInitSource, unifiedAuth.isLoading, unifiedAuth.displayAddress]);
 
   // Tokens other than main token are not supported
   if (!tokenIsSiloWrappedToken) {
@@ -246,7 +247,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
   const disabledFromLoading = confirming || quoting || submitting || isConfirming;
   const toModeSelected = exists(mode);
   const buttonDisabled =
-    !account ||
+    !unifiedAuth.displayAddress ||
     inputDisabled ||
     !isValidAmount ||
     exceedsBalance ||
@@ -285,7 +286,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
           altText={usingDeposits ? "Deposited Balance:" : undefined}
           altTextMobile={usingDeposits ? "Deposited:" : undefined}
           disableClamping={true}
-          connectedAccount={!!account}
+          connectedAccount={!!unifiedAuth.displayAddress}
         />
         <div className="flex flex-row w-full justify-between items-center mt-4">
           <div className="pinto-sm sm:pinto-body-light sm:text-pinto-light text-pinto-light">

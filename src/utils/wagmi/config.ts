@@ -2,7 +2,8 @@ import PintoIcon from "@/assets/tokens/PINTO.png";
 import { getEnvEnabledChains, localhostNetwork as localhost } from "@/utils/wagmi/chains";
 import { getDefaultConfig } from "connectkit";
 import { Chain, Transport, createTestClient } from "viem";
-import { http, createConfig } from "wagmi";
+import { createConfig } from "@privy-io/wagmi";
+import { http } from "wagmi";
 
 export const anvilTestClient = createTestClient({ mode: "anvil", chain: localhost, transport: http() });
 

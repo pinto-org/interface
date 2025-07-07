@@ -10,12 +10,12 @@ import useTokenData from "@/state/useTokenData";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
-import { useAccount } from "wagmi";
 import { useChainId } from "wagmi";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 
 function RewardsClaim() {
   const chainId = useChainId();
-  const account = useAccount();
+  const unifiedAuth = useUnifiedAuth();
   const data = useFarmerSilo();
   const siloData = useSiloData();
   const { mainToken: BEAN, whitelistedTokens: SILO_WHITELIST } = useTokenData();
@@ -35,7 +35,7 @@ function RewardsClaim() {
 
   async function onSubmit() {
     try {
-      if (!account.address) {
+      if (!unifiedAuth.displayAddress) {
         throw new Error("Signer required");
       }
 
@@ -48,7 +48,7 @@ function RewardsClaim() {
       const mow = encodeFunctionData({
         abi: beanstalkAbi,
         functionName: "mowMultiple",
-        args: [account.address, tokensToMow],
+        args: [unifiedAuth.displayAddress, tokensToMow],
       });
 
       return writeWithEstimateGas({

@@ -6,7 +6,8 @@ import { ConnectKitProvider } from "connectkit";
 import { atom, useAtom } from "jotai";
 import { ReactNode, useEffect, useMemo } from "react";
 import { createTestClient } from "viem";
-import { http, WagmiProvider, createConfig } from "wagmi";
+import { WagmiProvider, createConfig } from "@privy-io/wagmi";
+import { http } from "wagmi";
 import { mock } from "wagmi/connectors";
 import { isValidAddress } from "./utils/string";
 import { isLocalhost, isNetlifyPreview, isProd } from "./utils/utils";
@@ -41,7 +42,7 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
   const config = useEnvConfig();
 
   return (
-    <WagmiProvider config={config}>
+    <>
       {/**
        * If the cache that is found has a different buster string than what is set here, it will be discarded.
        * Should be changed whenever there's a significant change in the subgraphs.
@@ -52,6 +53,7 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
         client={queryClient}
         persistOptions={{ persister: localStoragePersister, buster: "20250501" }}
       >
+        <WagmiProvider config={config}>
         <MockConnectorManager />
         <ConnectKitProvider
           mode="light"
@@ -86,8 +88,9 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
           {children}
         </ConnectKitProvider>
         <ReactQueryDevtools initialIsOpen={false} />
+        </WagmiProvider>
       </PersistQueryClientProvider>
-    </WagmiProvider>
+    </>
   );
 };
 

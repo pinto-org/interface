@@ -3694,6 +3694,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@privy-io/wagmi@npm:^1.0.5":
+  version: 1.0.5
+  resolution: "@privy-io/wagmi@npm:1.0.5"
+  peerDependencies:
+    "@privy-io/react-auth": ^2.0.0
+    react: ">=18"
+    viem: ^2.30.6
+    wagmi: ^2.15.5
+  checksum: 10c0/f3f9ae773fc94f24d337eab2b0b05d8f54d1d18ef7a4c52eaf9a5c25f658696b8fdab6b7a3106ee99fae00a8ed255dfea58ab3fe307cfd77a8d5b210bc49f570
+  languageName: node
+  linkType: hard
+
 "@radix-ui/number@npm:1.1.0":
   version: 1.1.0
   resolution: "@radix-ui/number@npm:1.1.0"
@@ -11042,6 +11054,7 @@ __metadata:
     "@netlify/functions": "npm:^2.8.1"
     "@parcel/watcher": "npm:2.4.1"
     "@privy-io/react-auth": "npm:^1.83.8"
+    "@privy-io/wagmi": "npm:^1.0.5"
     "@radix-ui/react-accordion": "npm:^1.2.3"
     "@radix-ui/react-checkbox": "npm:^1.1.2"
     "@radix-ui/react-collapsible": "npm:^1.1.1"

@@ -12,11 +12,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { type Address, BaseError, isAddress } from "viem";
-import { useAccount, useChainId } from "wagmi";
+import { useChainId } from "wagmi";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { useWriteContract } from "wagmi";
 
 function Transfer() {
-  const account = useAccount();
+  const unifiedAuth = useUnifiedAuth();
   const chainId = useChainId();
   const farmerSilo = useFarmerSilo();
   const farmerDeposits = farmerSilo.deposits;
@@ -36,7 +37,7 @@ function Transfer() {
   }, [isSuccess]);
 
   async function onSubmit() {
-    const userAddress = account.address;
+    const userAddress = unifiedAuth.displayAddress;
     if (!amount || Number(amount) <= 0 || !recipient || !isAddress(recipient) || !userAddress) return;
 
     const deposits = farmerDeposits.get(fromToken);

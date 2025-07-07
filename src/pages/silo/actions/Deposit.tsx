@@ -26,7 +26,7 @@ import { cn } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useAccount } from "wagmi";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 
 const useFilterTokens = (siloToken: Token, balances: ReturnType<typeof useFarmerBalances>["balances"]) => {
   return useMemo(() => {
@@ -52,7 +52,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const invalidateSun = useInvalidateSun();
   const { filterSet, filterPreferred } = useFilterTokens(siloToken, farmerBalances.balances);
   const { queryKeys: priceQueryKeys } = usePriceData();
-  const account = useAccount();
+  const unifiedAuth = useUnifiedAuth();
 
   const { preferredToken, loading: preferredLoading } = usePreferredInputToken({
     filterLP: true,
@@ -161,7 +161,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
 
   const onSubmit = useCallback(async () => {
     try {
-      if (!account.address) {
+      if (!unifiedAuth.displayAddress) {
         throw new Error("No account connected");
       }
 
@@ -185,7 +185,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
       const value = tokenIn.isNative ? TokenValue.fromHuman(amountIn, tokenIn.decimals) : undefined;
 
       const advFarm = [...swapBuild.advFarm.getSteps()];
-      const { clipboard } = await swapBuild.deriveClipboardWithOutputToken(siloToken, 1, account.address, {
+      const { clipboard } = await swapBuild.deriveClipboardWithOutputToken(siloToken, 1, unifiedAuth.displayAddress, {
         value: value ?? TokenValue.ZERO,
       });
 
@@ -213,7 +213,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   }, [
     writeWithEstimateGas,
     setSubmitting,
-    account.address,
+    unifiedAuth.displayAddress,
     diamondAddress,
     swapBuild,
     siloToken,
@@ -231,7 +231,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const depositingSiloToken = tokensEqual(siloToken, tokenIn);
   // need to define types for routers
 
-  const disabled = !stringToNumber(amountIn) || !account.address || submitting || isConfirming || swapDataNotReady;
+  const disabled = !stringToNumber(amountIn) || !unifiedAuth.displayAddress || submitting || isConfirming || swapDataNotReady;
 
   return (
     <div className="flex flex-col gap-4">

@@ -7,7 +7,7 @@ import { useChainAddress, useChainConstant } from "@/utils/chain";
 import { useSetAtom } from "jotai";
 import { useEffect } from "react";
 import { Address } from "viem";
-import { useAccount, useReadContract } from "wagmi";
+import { useReadContract } from "wagmi";
 import { farmerStatusAtom } from "./status.atoms";
 
 const querySettings = {
@@ -42,7 +42,6 @@ export default function useUpdateFarmerStatus() {
   const siloedProtocolToken = useChainConstant(S_MAIN_TOKEN);
 
   const balances = useFarmerBalances();
-  const account = useAccount();
   const unifiedAuth = useUnifiedAuth();
 
   const hasBalanceOnBase =

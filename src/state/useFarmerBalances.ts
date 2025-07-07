@@ -1,10 +1,11 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { ZERO_ADDRESS } from "@/constants/address";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { useChainAddress } from "@/utils/chain";
 import { Token } from "@/utils/types";
 import { useMemo } from "react";
-import { useAccount, useBalance, useReadContract } from "wagmi";
+import { useBalance, useReadContract } from "wagmi";
 import useTokenData from "./useTokenData";
 
 const settings = {
@@ -19,11 +20,11 @@ export interface FarmerBalance {
 }
 
 export function useFarmerBalances() {
-  const account = useAccount();
+  const unifiedAuth = useUnifiedAuth();
   const { preferredTokens: tokens, lpTokens, nativeToken: ETH, siloWrappedToken: sMainToken } = useTokenData();
 
   const nativeBalance = useBalance({
-    address: account.address,
+    address: unifiedAuth.displayAddress,
   });
 
   const balanceTokens = useMemo(() => [...tokens, ...lpTokens, sMainToken], [tokens, lpTokens, sMainToken]);
@@ -41,10 +42,10 @@ export function useFarmerBalances() {
     address: diamondAddress,
     abi: beanstalkAbi,
     functionName: "getAllBalances",
-    args: [account.address ?? ZERO_ADDRESS, addresses],
+    args: [unifiedAuth.displayAddress ?? ZERO_ADDRESS, addresses],
     query: {
       ...settings,
-      enabled: !!account.address && !!balanceTokens.length,
+      enabled: !!unifiedAuth.displayAddress && !!balanceTokens.length,
     },
   });
 
