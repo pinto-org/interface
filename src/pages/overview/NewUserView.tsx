@@ -10,6 +10,7 @@ import { PODS, SEEDS, STALK } from "@/constants/internalTokens";
 import { PINTO } from "@/constants/tokens";
 import useIsTablet from "@/hooks/display/useIsTablet";
 import useFarmerStatus from "@/hooks/useFarmerStatus";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { usePodLine, useTemperature, useTotalSoil } from "@/state/useFieldData";
 import { usePriceQuery } from "@/state/usePriceData";
 import { SiloTokenYield, useAverageBDVWeightedSiloAPYs } from "@/state/useSiloAPYs";
@@ -29,12 +30,12 @@ import { Link } from "react-router-dom";
 /// ------------ BANNERS ------------ ///
 
 const ConnectWalletBanner = () => {
-  const modal = useModal();
+  const unifiedAuth = useUnifiedAuth();
   return (
     <GradientCard variant="light" className="w-full">
       <div className="flex flex-row w-full items-center justify-between py-3 px-6 gap-4">
         <div className="pinto-h4 font-light">Connect your wallet to see your Deposits and Plots</div>
-        <Button variant="gradient" size="xl" rounded="full" onClick={() => modal.setOpen(true)}>
+        <Button variant="gradient" size="xl" rounded="full" onClick={() => unifiedAuth.login()}>
           Connect Wallet
         </Button>
       </div>

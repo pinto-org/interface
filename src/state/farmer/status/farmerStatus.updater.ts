@@ -1,5 +1,6 @@
 import { MAIN_TOKEN, S_MAIN_TOKEN } from "@/constants/tokens";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerPlotsQuery } from "@/state/useFarmerField";
 import { useChainAddress, useChainConstant } from "@/utils/chain";
@@ -16,9 +17,9 @@ const querySettings = {
 
 function useFarmerDepositsForAccountQuery(address?: Address) {
   const diamondAddress = useChainAddress(beanstalkAddress);
-  const account = useAccount();
+  const unifiedAuth = useUnifiedAuth();
 
-  const readAddress = address ?? account.address;
+  const readAddress = address ?? unifiedAuth.displayAddress;
 
   return useReadContract({
     address: diamondAddress,
@@ -42,6 +43,7 @@ export default function useUpdateFarmerStatus() {
 
   const balances = useFarmerBalances();
   const account = useAccount();
+  const unifiedAuth = useUnifiedAuth();
 
   const hasBalanceOnBase =
     Array.from(balances.balances.entries()).findIndex((data) => {
@@ -73,9 +75,9 @@ export default function useUpdateFarmerStatus() {
 
   useEffect(() => {
     setStatus((draft) => {
-      draft.address = account.address;
+      draft.address = unifiedAuth.displayAddress;
     });
-  }, [account.address, setStatus]);
+  }, [unifiedAuth.displayAddress, setStatus]);
 
   useEffect(() => {
     if (loading) return;
