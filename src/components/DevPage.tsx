@@ -4,6 +4,7 @@ import { tractorHelpersABI } from "@/constants/abi/TractorHelpersABI";
 import { diamondABI as beanstalkAbi, diamondABI } from "@/constants/abi/diamondABI";
 import { TRACTOR_HELPERS_ADDRESS } from "@/constants/address";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import useTransaction from "@/hooks/useTransaction";
 import { generateBatchSortDepositsCallData, simulateAndPrepareFarmCalls } from "@/lib/claim/depositUtils";
 import { morningFieldDevModeAtom } from "@/state/protocol/field/field.atoms";
@@ -115,17 +116,18 @@ type TransactionDetails = {
 
 export default function DevPage() {
   const { address } = useAccount();
+  const unifiedAuth = useUnifiedAuth();
   const [loading, setLoading] = useState<string | null>(null);
   // Separate state for Minting section
-  const [mintAddress, setMintAddress] = useState(address || "");
+  const [mintAddress, setMintAddress] = useState(unifiedAuth.displayAddress || "");
   const [mintAmount, setMintAmount] = useState("");
-  const [usdcAddress, setUsdcAddress] = useState(address || "");
+  const [usdcAddress, setUsdcAddress] = useState(unifiedAuth.displayAddress || "");
   // Separate state for Liquidity Management section
   const [wellAddress, setWellAddress] = useState("");
   const [wellAmounts, setWellAmounts] = useState("");
-  const [receiverAddress, setReceiverAddress] = useState(address || "");
+  const [receiverAddress, setReceiverAddress] = useState(unifiedAuth.displayAddress || "");
   const [tokenBalance, setTokenBalance] = useState({
-    receiver: address || "",
+    receiver: unifiedAuth.displayAddress || "",
     amount: "",
     token: "",
   });
@@ -135,9 +137,9 @@ export default function DevPage() {
 
   const [serverStatus, setServerStatus] = useState<ServerStatus>("checking");
 
-  const [approvalAddress, setApprovalAddress] = useState(address || "");
+  const [approvalAddress, setApprovalAddress] = useState(unifiedAuth.displayAddress || "");
 
-  const [singleSidedAddress, setSingleSidedAddress] = useState(address || "");
+  const [singleSidedAddress, setSingleSidedAddress] = useState(unifiedAuth.displayAddress || "");
   const [singleSidedAmounts, setSingleSidedAmounts] = useState("");
 
   const priceData = usePriceData();
@@ -213,11 +215,14 @@ export default function DevPage() {
 
   // Update addresses when account changes
   useEffect(() => {
-    setMintAddress(address || "");
-    setUsdcAddress(address || "");
-    setTokenBalance((prev) => ({ ...prev, receiver: address || "" }));
-    setReceiverAddress(address || "");
-  }, [address]);
+    const effectiveAddress = unifiedAuth.displayAddress || "";
+    setMintAddress(effectiveAddress);
+    setUsdcAddress(effectiveAddress);
+    setTokenBalance((prev) => ({ ...prev, receiver: effectiveAddress }));
+    setReceiverAddress(effectiveAddress);
+    setApprovalAddress(effectiveAddress);
+    setSingleSidedAddress(effectiveAddress);
+  }, [unifiedAuth.displayAddress]);
 
   const fetchRecentTransactions = async () => {
     if (!address || !publicClient) return;
@@ -359,7 +364,8 @@ export default function DevPage() {
   };
 
   const handleQuickMint = async () => {
-    if (!address) {
+    const effectiveAddress = unifiedAuth.displayAddress;
+    if (!effectiveAddress) {
       toast.error("No wallet connected");
       return;
     }
@@ -367,12 +373,12 @@ export default function DevPage() {
     setLoading("quickMint");
     try {
       // Mint ETH
-      await executeTask("mintEth", { account: address });
+      await executeTask("mintEth", { account: effectiveAddress });
       // Mint USDC
-      await executeTask("mintUsdc", { account: address, amount: "10000" });
+      await executeTask("mintUsdc", { account: effectiveAddress, amount: "10000" });
       // Get PINTO tokens
       await executeTask("getTokens", {
-        receiver: address,
+        receiver: effectiveAddress,
         amount: "10000",
         token: "PINTO",
       });
@@ -543,7 +549,7 @@ export default function DevPage() {
               </Button>
               <Button
                 onClick={handleQuickMint}
-                disabled={!address || loading === "quickMint"}
+                disabled={!unifiedAuth.displayAddress || loading === "quickMint"}
                 className="bg-pinto-green-4 hover:bg-pinto-green-5 text-white"
               >
                 Mint Me ETH/USDC/Pinto

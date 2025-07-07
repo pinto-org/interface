@@ -20,7 +20,6 @@ import { formatter, numberAbbr } from "@/utils/format";
 import { normalizeTV } from "@/utils/number";
 import { cn } from "@/utils/utils";
 import { Separator } from "@radix-ui/react-separator";
-import { useModal } from "connectkit";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { atomWithImmer } from "jotai-immer";
 import { throttle } from "lodash";

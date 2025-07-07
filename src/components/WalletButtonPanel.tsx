@@ -12,6 +12,7 @@ import { useAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAccount, useDisconnect, useEnsAvatar, useEnsName } from "wagmi";
+import { usePrivy } from "@privy-io/react-auth";
 import ChainButton from "./ChainButton";
 import { BackwardArrowDotsIcon, LeftArrowIcon, UpDownArrowsIcon } from "./Icons";
 import WalletButtonClaim from "./WalletButtonClaim";
@@ -32,6 +33,8 @@ interface WalletHeaderProps {
   togglePanel: () => void;
   totalBalance: FarmerBalance;
   unifiedAuth: ReturnType<typeof useUnifiedAuth>;
+  privyAuthenticated: boolean;
+  privyLogout: () => void;
 }
 const WalletHeader = ({
   address,
@@ -41,6 +44,8 @@ const WalletHeader = ({
   togglePanel,
   totalBalance,
   unifiedAuth,
+  privyAuthenticated,
+  privyLogout,
 }: WalletHeaderProps) => {
   const displayName = unifiedAuth.user.email
     ? unifiedAuth.user.email
@@ -50,9 +55,11 @@ const WalletHeader = ({
   const walletAddress = unifiedAuth.user.wallet?.address || address;
 
   const handleDisconnect = () => {
-    if (unifiedAuth.user.authMethod === "email") {
-      unifiedAuth.logout();
+    if (privyAuthenticated) {
+      // If there's any Privy session (email or wallet through Privy), logout from Privy
+      privyLogout();
     } else {
+      // Pure wagmi connection, disconnect normally
       disconnect();
     }
     togglePanel();
@@ -87,7 +94,7 @@ const WalletHeader = ({
             onClick={handleDisconnect}
             className="flex justify-center items-center gap-1 w-[11.25rem] h-[2.125rem] bg-[#F8F8F8] rounded-full pinto-sm hover:hover:bg-pinto-green hover:text-white"
           >
-            <span>{unifiedAuth.user.authMethod === "email" ? "Sign Out" : "Disconnect Wallet"}</span>
+            <span>{unifiedAuth.user.email ? "Sign Out" : "Disconnect Wallet"}</span>
             <span className="w-4 h-4">×</span>
           </button>
         )}
@@ -242,6 +249,7 @@ export default function WalletButtonPanel({ togglePanel }) {
   const { disconnect } = useDisconnect();
   const navigate = useNavigate();
   const unifiedAuth = useUnifiedAuth();
+  const { authenticated: privyAuthenticated, logout: privyLogout } = usePrivy();
 
   const [panelState, setPanelState] = useAtom(navbarPanelAtom);
   const { showTransfer, showClaim, balanceTab: currentTab } = panelState.walletPanel;
@@ -340,6 +348,8 @@ export default function WalletButtonPanel({ togglePanel }) {
           togglePanel={togglePanel}
           totalBalance={totalBalance}
           unifiedAuth={unifiedAuth}
+          privyAuthenticated={privyAuthenticated}
+          privyLogout={privyLogout}
         />
         <BalanceSummary totalBalance={totalBalance} />
         <ActionButtons navigate={navigate} togglePanel={togglePanel} />

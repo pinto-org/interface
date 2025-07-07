@@ -1,7 +1,7 @@
 import { PrivyProvider as BasePrivyProvider } from "@privy-io/react-auth";
 import { ReactNode } from "react";
 import { mainnet } from "viem/chains";
-import { arbitrumNetwork, baseNetwork } from "./utils/wagmi/chains";
+import { arbitrumNetwork, baseNetwork, localhostNetwork } from "./utils/wagmi/chains";
 
 interface PrivyProviderProps {
   children: ReactNode;
@@ -40,7 +40,7 @@ export const PrivyProvider = ({ children }: PrivyProviderProps) => {
 
         // Configure supported chains
         defaultChain: baseNetwork,
-        supportedChains: [baseNetwork, arbitrumNetwork, mainnet],
+        supportedChains: [baseNetwork, arbitrumNetwork, mainnet, localhostNetwork],
 
         // Configure legal and compliance
         legal: {
