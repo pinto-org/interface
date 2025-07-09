@@ -36,6 +36,7 @@ export const PrivyProvider = ({ children }: PrivyProviderProps) => {
         embeddedWallets: {
           createOnLogin: "users-without-wallets",
           requireUserPasswordOnCreate: false,
+          showWalletUIs: true, // Enable transaction signing UI
         },
 
         // Configure supported chains

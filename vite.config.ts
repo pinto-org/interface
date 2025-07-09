@@ -16,6 +16,7 @@ export default defineConfig(({ command }) => ({
     }
   }],
   // server: {
+  //   https: {}, // Enable HTTPS for Privy embedded wallets (WebCrypto API requirement)
   //   hmr: {
   //     overlay: true,
   //   }
