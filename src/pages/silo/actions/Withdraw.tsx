@@ -140,14 +140,10 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     txnType: "Withdraw",
   });
 
-  const onSuccess = useCallback(() => {
+  const onSuccess = useCallback(async () => {
     setAmount("0");
-    const allQueryKeys = [
-      ...farmerSilo.queryKeys,
-      fieldSnapshots.queryKey,
-      siloSnapshots.queryKey,
-      ...farmerBalances.queryKeys,
-    ];
+    await Promise.all([farmerSilo.refetch(), farmerBalances.refetch()]);
+    const allQueryKeys = [fieldSnapshots.queryKey, siloSnapshots.queryKey];
     allQueryKeys.forEach((query) => queryClient.refetchQueries({ queryKey: query }));
     invalidateSun("all", { refetchType: "active" });
     resetSwap();
