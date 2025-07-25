@@ -44,7 +44,7 @@ type TxnType = "redeemToSilo" | "redeemAdvanced" | "swap";
 export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   // State
   const farmerBalances = useFarmerBalances();
-  const { queryKeys: farmerDepositsQueryKeys } = useFarmerSilo();
+  const { refetch: refetchFarmerDeposits } = useFarmerSilo();
   const contractBalances = useFarmerSilo(siloToken.isSiloWrapped ? siloToken.address : undefined);
   const { address: account, isConnecting } = useAccount();
   const { mainToken } = useTokenData();
@@ -97,13 +97,13 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   const buildSwapQuote = useBuildSwapQuoteAsync(swap.data, balanceSource, toMode, account, account);
 
   // Transaction
-  const onSuccess = useCallback(() => {
+  const onSuccess = useCallback(async () => {
     setAmountIn("0");
     setToMode(undefined);
     setTokenOut(undefined);
-    const keys = [...contractBalances.queryKeys, ...farmerBalances.queryKeys, ...farmerDepositsQueryKeys];
-    keys.forEach((key) => qc.invalidateQueries({ queryKey: key }));
-  }, [contractBalances, farmerBalances, farmerDepositsQueryKeys]);
+
+    await Promise.all([contractBalances.refetch(), farmerBalances.refetch(), refetchFarmerDeposits()]);
+  }, [contractBalances.refetch, farmerBalances.refetch, refetchFarmerDeposits]);
 
   const { isConfirming, writeWithEstimateGas, submitting, setSubmitting } = useTransaction({
     successMessage: "Unwrap successful",

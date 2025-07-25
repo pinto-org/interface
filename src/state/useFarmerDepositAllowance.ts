@@ -84,5 +84,6 @@ export default function useFarmerDepositAllowance(spender: Address, token: Token
     queryKey: query.queryKey,
     loading: query.isLoading,
     confirming: isConfirming || submitting,
+    refetch: query.refetch,
   };
 }

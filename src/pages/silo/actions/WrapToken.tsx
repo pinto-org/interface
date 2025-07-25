@@ -81,6 +81,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     queryKey: allowanceQueryKey,
     loading: allowanceLoading,
     confirming: allowanceConfirming,
+    refetch: refetchAllowance,
   } = useFarmerDepositAllowance(
     sMainToken.address,
     // Only wrapping via PINTO is currently supported
@@ -106,24 +107,11 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
   const amountOutUSD = useSiloWrappedTokenToUSD(amountOut);
 
   // Transaction hooks
-  const onSuccess = useCallback(() => {
+  const onSuccess = useCallback(async () => {
     setAmountIn("0");
     swap.resetSwap();
-    const keys = [
-      allowanceQueryKey,
-      ...farmerDeposits.queryKeys,
-      ...farmerBalances.queryKeys,
-      ...contractSilo.queryKeys,
-    ];
-    keys.forEach((key) => qc.invalidateQueries({ queryKey: key }));
-  }, [
-    qc,
-    swap.resetSwap,
-    allowanceQueryKey,
-    farmerDeposits.queryKeys,
-    farmerBalances.queryKeys,
-    contractSilo.queryKeys,
-  ]);
+    await Promise.all([farmerDeposits.refetch(), farmerBalances.refetch(), contractSilo.refetch(), refetchAllowance()]);
+  }, [swap.resetSwap, farmerDeposits.refetch, farmerBalances.refetch, contractSilo.refetch, refetchAllowance]);
 
   const { isConfirming, writeWithEstimateGas, submitting, setSubmitting } = useTransaction({
     successMessage: "Wrap successful",
