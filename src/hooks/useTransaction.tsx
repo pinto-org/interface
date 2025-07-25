@@ -143,7 +143,8 @@ export default function useTransaction({
         console.log("txn receipt: ", receipt);
         setSubmitting(false);
         hashes.current && hashes.current.delete(hash);
-        await successCallback?.(receipt.data);
+        // wait for 1 second to ensure the txn is confirmed on chain
+        await new Promise((resolve) => setTimeout(resolve, 1000)).then((_) => successCallback?.(receipt.data));
         toast.dismiss();
         const explorerLink = getExplorerLink(hash, chainId);
         toast.success(
