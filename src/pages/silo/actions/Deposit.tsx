@@ -51,7 +51,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const farmerSilo = useFarmerSilo();
   const invalidateSun = useInvalidateSun();
   const { filterSet, filterPreferred } = useFilterTokens(siloToken, farmerBalances.balances);
-  const { queryKeys: priceQueryKeys } = usePriceData();
+  const { queryKeys: priceQueryKeys, refetch: refetchPriceData } = usePriceData();
   const account = useAccount();
 
   const { preferredToken, loading: preferredLoading } = usePreferredInputToken({
@@ -107,20 +107,16 @@ function Deposit({ siloToken }: { siloToken: Token }) {
 
   const onSuccess = useCallback(async () => {
     setAmountIn("0");
+    await Promise.all([farmerSilo.refetch(), farmerBalances.refetch(), refetchPriceData()]);
 
-    // Use hook refetch methods for better reliability
-    await Promise.all([farmerSilo.refetch(), farmerBalances.refetch()]);
-
-    // Invalidate price queries and sun data
-    priceQueryKeys.forEach((query) => qc.invalidateQueries({ queryKey: query }));
+    // Invalidate sun data
     invalidateSun("all", { refetchType: "active" });
-
     resetSwap();
     priceImpactQuery.clear();
   }, [
     farmerSilo.refetch,
     farmerBalances.refetch,
-    priceQueryKeys,
+    refetchPriceData,
     invalidateSun,
     qc,
     resetSwap,

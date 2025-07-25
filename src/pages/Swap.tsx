@@ -24,7 +24,6 @@ import useTokenData from "@/state/useTokenData";
 import { stringToNumber } from "@/utils/string";
 import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { FarmFromMode, Token } from "@/utils/types";
-import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
@@ -42,8 +41,7 @@ const handleOnError = (e: any) => {
 };
 
 export default function Swap() {
-  const queryClient = useQueryClient();
-  const { queryKeys } = useFarmerBalances();
+  const { refetch: refetchFarmerBalances } = useFarmerBalances();
   const { mainToken: BEAN, nativeToken: ETH, siloWrappedToken, siloWrappedToken3p } = useTokenData();
   const diamond = useProtocolAddress();
 
@@ -115,12 +113,12 @@ export default function Swap() {
     }
   }, [amountIn]);
 
-  const onSuccess = useCallback(() => {
+  const onSuccess = useCallback(async () => {
     setAmountIn("0");
     setAmountOut("0");
-    queryKeys.forEach((query) => queryClient.refetchQueries({ queryKey: query }));
+    await refetchFarmerBalances();
     resetSwap();
-  }, [queryClient, queryKeys, resetSwap]);
+  }, [refetchFarmerBalances, resetSwap]);
 
   const { writeWithEstimateGas, setSubmitting, submitting, isConfirming } = useTransaction({
     successCallback: onSuccess,

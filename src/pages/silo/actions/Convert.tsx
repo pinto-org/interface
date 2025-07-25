@@ -624,16 +624,14 @@ const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
   const siloConvert = useSiloConvert();
 
   const farmerSilo = useFarmerSilo();
-  const { pools, queryKeys: priceQueryKeys, deltaB } = usePriceData();
-  const { queryKeys: siloQueryKeys } = useSiloData();
+  const { pools, deltaB, refetch: refetchPriceData } = usePriceData();
+  const { refetch: refetchSiloData } = useSiloData();
 
   const convertExceptions = useConvertExceptions({ siloToken, pools });
 
   const onSuccess = useCallback(async () => {
-    for (const queryKey of [...priceQueryKeys, ...farmerSilo.queryKeys, ...siloQueryKeys]) {
-      await queryClient.refetchQueries({ queryKey });
-    }
-  }, [queryClient, priceQueryKeys, farmerSilo.queryKeys, siloQueryKeys]);
+    await Promise.all([farmerSilo.refetch(), refetchSiloData(), refetchPriceData()]);
+  }, [farmerSilo.queryKeys, refetchSiloData, refetchPriceData]);
 
   return (
     <ConvertForm

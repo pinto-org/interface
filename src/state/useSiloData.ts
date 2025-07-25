@@ -245,9 +245,14 @@ export function useSiloData() {
       });
     }
 
+    const refetch = async () => {
+      await Promise.all(wl.map((wlTokenData) => wlTokenData.refetch()));
+    };
+
     return {
       tokenData: data.size !== SILO_WHITELIST.length ? new Map<Token, SiloTokenData>() : data,
       queryKeys: keys,
+      refetch,
     };
   }, [wlTokenData0, wlTokenData1, wlTokenData2, wlTokenData3, wlTokenData4, wlTokenData5, SILO_WHITELIST, yields]);
 

@@ -5,7 +5,6 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
 import { useInvalidateSun, useSunData } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
-import { useQueryClient } from "@tanstack/react-query";
 import { estimateGas } from "@wagmi/core";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
@@ -16,7 +15,6 @@ import useTransaction from "./useTransaction";
 export function useClaimRewards() {
   const config = useConfig();
   const chainId = useChainId();
-  const queryClient = useQueryClient();
   const account = useAccount().address;
   const data = useFarmerSilo();
   const siloData = useSiloData();
@@ -28,10 +26,9 @@ export function useClaimRewards() {
   const invalidateSun = useInvalidateSun();
 
   const onSuccess = useCallback(async () => {
-    siloData.queryKeys.forEach((query) => queryClient.refetchQueries({ queryKey: query }));
-    await Promise.all([data.refetch(), farmerBalances.refetch()]);
+    await Promise.all([data.refetch(), farmerBalances.refetch(), siloData.refetch()]);
     invalidateSun("all", { refetchType: "active" });
-  }, [queryClient, data.queryKeys, siloData.queryKeys, invalidateSun]);
+  }, [data.refetch, farmerBalances.refetch, siloData.refetch, invalidateSun]);
 
   const { isConfirming, writeContractAsync } = useTransaction({
     successMessage: "Claim complete!",
