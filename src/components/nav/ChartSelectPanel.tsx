@@ -210,6 +210,7 @@ const ChartSelectPanel = memo(() => {
                     return (
                       (expandedTypes.has(type) || isSelected) && (
                         <div
+                          key={`${type}-chartSelectList-${data.id}`}
                           className={cn(
                             "hover:cursor-pointer hover:bg-pinto-gray-2/20 py-2 px-6",
                             isSelected && "bg-pinto-gray-2/70 hover:bg-pinto-gray-2/50",

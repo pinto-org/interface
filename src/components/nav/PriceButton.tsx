@@ -282,7 +282,7 @@ function PriceButtonPanel() {
 
                 return (
                   <Card
-                    key={`${pool.pool.address}_card_${i}`}
+                    key={`${pool.pool.address}_price_card_${i}`}
                     className="overflow-clip group hover:border-pinto-green-4"
                   >
                     <Link
@@ -302,13 +302,9 @@ function PriceButtonPanel() {
                               minDecimals: 4,
                               maxDecimals: 4,
                             })}
-                            <Link
-                              to={`https://pinto.exchange/#/wells/${chainId}/${pool.pool?.address}`}
-                              target={"_blank"}
-                              className="text-pinto-gray-5 ml-2 -mr-10 group-hover:ml-0 group-hover:mr-0 hover:text-pinto-green-4 hover:cursor-pointer transition-all"
-                            >
+                            <div className="text-pinto-gray-5 ml-2 -mr-10 group-hover:ml-0 group-hover:mr-0 hover:text-pinto-green-4 hover:cursor-pointer transition-all">
                               <ExternalLinkIcon color="currentColor" />
-                            </Link>
+                            </div>
                           </div>
                         </div>
                         <div className="flex flex-row relative">

@@ -25,7 +25,7 @@ import { stringEq } from "@/utils/string";
 import { getTokenIndex, sortTokensForDeposits } from "@/utils/token";
 import { AddressLookup } from "@/utils/types.generic";
 import { cn } from "@/utils/utils";
-import { useCallback, useMemo } from "react";
+import { forwardRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 function SiloTable({ hovering }: { hovering: boolean }) {
@@ -412,6 +412,43 @@ const formatAPY = (apy: number | undefined) => {
   });
 };
 
+const APYPill = forwardRef<HTMLDivElement, { apys: ExtendSiloTokenYield | undefined }>(({ apys }, ref) => {
+  return (
+    <div ref={ref} className="flex flex-row gap-1 items-center rounded-full bg-pinto-green-1 px-2 py-1">
+      <div className="pinto-xs text-pinto-green-4 flex flex-row gap-1">
+        {Number(apys?.ema24.apy) > 0 && (
+          <>
+            <div className={cn("leading-none", apys?.ema24.notApplicable && "opacity-50")}>
+              {apys?.ema24.notApplicable ? "N/A" : formatAPY(apys?.ema24.apy)}
+            </div>
+            <SeparatorVertical />
+          </>
+        )}
+        {Number(apys?.ema168.apy) > 0 && (
+          <>
+            <div className={cn("leading-none", apys?.ema168.notApplicable && "opacity-50")}>
+              {apys?.ema168.notApplicable ? "N/A" : formatAPY(apys?.ema168.apy)}
+            </div>
+            <SeparatorVertical />
+          </>
+        )}
+        {Number(apys?.ema720.apy) > 0 && (
+          <div className={cn("leading-none", apys?.ema720.notApplicable && "opacity-50")}>
+            {apys?.ema720.notApplicable ? "N/A" : formatAPY(apys?.ema720.apy)}
+          </div>
+        )}
+        {Number(apys?.ema720.apy) === 0 && (
+          <div className={cn("leading-none", apys?.ema2160.notApplicable && "opacity-50")}>
+            {apys?.ema2160.notApplicable ? "N/A" : formatAPY(apys?.ema2160.apy)}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
+APYPill.displayName = "APYPill";
+
 const APYCell = ({
   apys,
   noTooltip,
@@ -419,47 +456,12 @@ const APYCell = ({
   apys: ExtendSiloTokenYield | undefined;
   noTooltip?: boolean;
 }) => {
-  function APYPill() {
-    return (
-      <div className="flex flex-row gap-1 items-center rounded-full bg-pinto-green-1 px-2 py-1">
-        <div className="pinto-xs text-pinto-green-4 flex flex-row gap-1">
-          {Number(apys?.ema24.apy) > 0 && (
-            <>
-              <div className={cn("leading-none", apys?.ema24.notApplicable && "opacity-50")}>
-                {apys?.ema24.notApplicable ? "N/A" : formatAPY(apys?.ema24.apy)}
-              </div>
-              <SeparatorVertical />
-            </>
-          )}
-          {Number(apys?.ema168.apy) > 0 && (
-            <>
-              <div className={cn("leading-none", apys?.ema168.notApplicable && "opacity-50")}>
-                {apys?.ema168.notApplicable ? "N/A" : formatAPY(apys?.ema168.apy)}
-              </div>
-              <SeparatorVertical />
-            </>
-          )}
-          {Number(apys?.ema720.apy) > 0 && (
-            <div className={cn("leading-none", apys?.ema720.notApplicable && "opacity-50")}>
-              {apys?.ema720.notApplicable ? "N/A" : formatAPY(apys?.ema720.apy)}
-            </div>
-          )}
-          {Number(apys?.ema720.apy) === 0 && (
-            <div className={cn("leading-none", apys?.ema2160.notApplicable && "opacity-50")}>
-              {apys?.ema2160.notApplicable ? "N/A" : formatAPY(apys?.ema2160.apy)}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   if (noTooltip) {
-    return <APYPill />;
+    return <APYPill apys={apys} />;
   } else {
     return (
       <TooltipSimple content={<APYTooltip />}>
-        <APYPill />
+        <APYPill apys={apys} />
       </TooltipSimple>
     );
   }
