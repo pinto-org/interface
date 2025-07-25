@@ -49,6 +49,9 @@ export function useFarmerBalances() {
   });
 
   const handleRefetch = useCallback(async () => {
+    // Wait 2 seconds for block confirmation on Base
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     const results = await Promise.allSettled([refetch(), nativeBalance.refetch()]);
 
     results.forEach((result, index) => {
