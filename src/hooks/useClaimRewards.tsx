@@ -1,6 +1,6 @@
-import { TokenValue } from "@/classes/TokenValue";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { generateCombineAndL2LCallData } from "@/lib/claim/depositUtils";
+import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
 import { useInvalidateSun, useSunData } from "@/state/useSunData";
@@ -22,15 +22,16 @@ export function useClaimRewards() {
   const siloData = useSiloData();
   const isRaining = useSunData().raining;
   const whitelistedTokens = useTokenData().whitelistedTokens;
+  const { queryKeys: farmerBalanceQKs } = useFarmerBalances();
   const farmerDeposits = data.deposits;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const invalidateSun = useInvalidateSun();
 
   const onSuccess = useCallback(() => {
-    const allQueryKeys = [...data.queryKeys, ...siloData.queryKeys];
+    const allQueryKeys = [...siloData.queryKeys, ...data.queryKeys, ...farmerBalanceQKs];
     allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
     invalidateSun("all", { refetchType: "active" });
-  }, [queryClient, data.queryKeys, siloData.queryKeys, invalidateSun]);
+  }, [queryClient, data.queryKeys, siloData.queryKeys, invalidateSun, farmerBalanceQKs]);
 
   const { isConfirming, writeContractAsync } = useTransaction({
     successMessage: "Claim complete!",
