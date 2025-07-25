@@ -140,12 +140,11 @@ export default function useTransaction({
   useEffect(() => {
     if (receipt.isSuccess && exists(hash) && hashes.current?.has(hash)) {
       const handleSuccess = async () => {
-        await new Promise((resolve) => setTimeout(resolve, 1000)).then((_) => successCallback?.(receipt.data));
-        console.log("txn receipt: ", receipt);
         setSubmitting(false);
+        toast.dismiss();
+        await new Promise((resolve) => setTimeout(resolve, 1000)).then((_) => successCallback?.(receipt.data));
         hashes.current && hashes.current.delete(hash);
         // wait for 1 second to ensure the txn is confirmed on chain
-        toast.dismiss();
         const explorerLink = getExplorerLink(hash, chainId);
         toast.success(
           <div className="flex flex-row items-center gap-4">
