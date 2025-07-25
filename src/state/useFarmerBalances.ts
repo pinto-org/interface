@@ -48,8 +48,14 @@ export function useFarmerBalances() {
     },
   });
 
-  const handleRefetch = useCallback(() => {
-    return Promise.all([refetch(), nativeBalance.refetch()]);
+  const handleRefetch = useCallback(async () => {
+    const results = await Promise.allSettled([refetch(), nativeBalance.refetch()]);
+
+    results.forEach((result, index) => {
+      console.log(`Refetch result for ${index === 0 ? "beanstalk" : "native"} balance:`, result);
+    });
+
+    return results;
   }, [refetch, nativeBalance.refetch]);
 
   const balanceData = useMemo(() => {
