@@ -130,6 +130,7 @@ export default function DevPage() {
     token: "",
   });
   const chainId = useChainId();
+  const queryClient = useQueryClient();
 
   const { lpTokens } = useTokenData();
 
@@ -266,7 +267,11 @@ export default function DevPage() {
     return <Navigate to="/" replace />;
   }
 
-  const executeTask = async (taskName: string, params?: Record<string, any>): Promise<void> => {
+  const executeTask = async (
+    taskName: string,
+    params?: Record<string, any>,
+    refetchAllQueries?: boolean,
+  ): Promise<void> => {
     setLoading(taskName);
     try {
       // Merge the provided params with the default network param
@@ -301,6 +306,9 @@ export default function DevPage() {
       }
     } finally {
       setLoading(null);
+      if (refetchAllQueries) {
+        queryClient.refetchQueries();
+      }
     }
   };
 
@@ -514,13 +522,13 @@ export default function DevPage() {
           <h2 className="text-2xl mb-4">Basic Actions</h2>
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap gap-4">
-              <Button onClick={() => executeTask("callSunrise")} disabled={loading === "callSunrise"}>
+              <Button onClick={() => executeTask("callSunrise", undefined, true)} disabled={loading === "callSunrise"}>
                 Call Sunrise
               </Button>
               <Button
                 onClick={async () => {
                   await executeTask("callSunrise");
-                  await executeTask("callSunrise");
+                  await executeTask("callSunrise", undefined, true);
                 }}
                 disabled={loading === "callSunrise"}
               >
