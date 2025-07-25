@@ -58,7 +58,7 @@ interface BaseConvertProps {
   siloToken: Token;
 }
 
-interface ConvertProps extends BaseConvertProps {
+interface ConvertProps {
   siloConvert: SiloConvert;
   queryClient: ReturnType<typeof useQueryClient>;
   farmerDeposits: ReturnType<typeof useFarmerSilo>["deposits"];
@@ -70,7 +70,6 @@ interface ConvertProps extends BaseConvertProps {
 
 // INNER COMPONENT
 function ConvertForm({
-  siloToken,
   deltaP,
   farmerActiveStalk,
   convertExceptions,
@@ -78,7 +77,7 @@ function ConvertForm({
   siloConvert,
   onSuccess,
 }: ConvertProps) {
-  const { mode, targetToken, setTargetToken } = useSiloConvertContext();
+  const { mode, siloToken, targetToken, setTargetToken } = useSiloConvertContext();
 
   const diamond = useProtocolAddress();
   const pintoToken = useChainConstant(MAIN_TOKEN);
@@ -94,6 +93,9 @@ function ConvertForm({
   const clearSiloConvertQueries = useClearSiloConvertQueries();
   const invalidateSun = useInvalidateSun();
   const { tokenPrices } = usePriceData();
+
+  const { convertState } = useConvertState();
+  const tokenConvertState = convertState[getTokenIndex(siloToken)];
 
   const minAmountIn = convertExceptions.minAmountIn;
   const isDefaultConvert = siloToken.isMain || targetToken?.isMain;
@@ -333,10 +335,19 @@ function ConvertForm({
   }, [amountInNum, minAmountIn, showMinAmountWarning]);
 
   // Auto-default target token to PINTO when converting from LP tokens
+  const [didInitTargetToken, setDidInitTargetToken] = useState(siloToken.isMain);
   useEffect(() => {
-    if (!siloToken.isLP || targetToken || !pintoToken) return;
-    setTargetToken(pintoToken);
-  }, [siloToken.isLP, targetToken, pintoToken, setTargetToken]);
+    if (didInitTargetToken || siloToken.isMain || !tokenConvertState) {
+      return;
+    }
+
+    const canConvertToPinto = tokenConvertState.paths?.[getTokenIndex(pintoToken)]?.enabled;
+    setDidInitTargetToken(true);
+
+    if (canConvertToPinto) {
+      setTargetToken(pintoToken);
+    }
+  }, [siloToken.isLP, targetToken, pintoToken, tokenConvertState, setTargetToken, didInitTargetToken]);
 
   // ------------------------------ DERIVED ------------------------------
 
@@ -507,6 +518,7 @@ const actionButtonSharedProps = {
 
 interface ConvertContext {
   targetToken: Token | undefined;
+  siloToken: Token;
   mode?: string;
   setTargetToken: React.Dispatch<React.SetStateAction<Token | undefined>>;
 }
@@ -521,7 +533,13 @@ const useSiloConvertContext = () => {
   return context;
 };
 
-const SiloConvertProvider = ({ children }: { children: React.ReactNode }) => {
+const SiloConvertProvider = ({
+  children,
+  siloToken,
+}: {
+  children: React.ReactNode;
+  siloToken: Token;
+}) => {
   const [params] = useSearchParams();
   const tokenMap = useTokenMap();
 
@@ -547,6 +565,7 @@ const SiloConvertProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <ConvertContext.Provider
       value={{
+        siloToken,
         targetToken,
         mode,
         setTargetToken,
@@ -618,7 +637,6 @@ const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
 
   return (
     <ConvertForm
-      siloToken={siloToken}
       siloConvert={siloConvert}
       farmerDeposits={farmerSilo.deposits}
       queryClient={queryClient}
@@ -633,7 +651,7 @@ const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
 const Convert = ({ siloToken }: BaseConvertProps) => {
   return (
     <ConvertProvider>
-      <SiloConvertProvider>
+      <SiloConvertProvider siloToken={siloToken}>
         <ConvertSwitch siloToken={siloToken} />
       </SiloConvertProvider>
     </ConvertProvider>
