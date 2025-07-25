@@ -118,7 +118,7 @@ export default function Swap() {
   const onSuccess = useCallback(() => {
     setAmountIn("0");
     setAmountOut("0");
-    queryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
+    queryKeys.forEach((query) => queryClient.refetchQueries({ queryKey: query }));
     resetSwap();
   }, [queryClient, queryKeys, resetSwap]);
 

@@ -108,7 +108,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const onSuccess = useCallback(() => {
     setAmountIn("0");
     const allQueryKeys = [...farmerSilo.queryKeys, ...farmerBalances.queryKeys, ...priceQueryKeys];
-    allQueryKeys.forEach((query) => qc.invalidateQueries({ queryKey: query }));
+    allQueryKeys.forEach((query) => qc.refetchQueries({ queryKey: query }));
     invalidateSun("all", { refetchType: "active" });
     resetSwap();
     priceImpactQuery.clear();

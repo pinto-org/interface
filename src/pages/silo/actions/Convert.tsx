@@ -629,9 +629,9 @@ const ConvertSwitch = ({ siloToken }: BaseConvertProps) => {
 
   const convertExceptions = useConvertExceptions({ siloToken, pools });
 
-  const onSuccess = useCallback(() => {
+  const onSuccess = useCallback(async () => {
     for (const queryKey of [...priceQueryKeys, ...farmerSilo.queryKeys, ...siloQueryKeys]) {
-      queryClient.invalidateQueries({ queryKey });
+      await queryClient.refetchQueries({ queryKey });
     }
   }, [queryClient, priceQueryKeys, farmerSilo.queryKeys, siloQueryKeys]);
 

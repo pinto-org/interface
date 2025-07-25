@@ -29,7 +29,7 @@ export function useClaimRewards() {
 
   const onSuccess = useCallback(() => {
     const allQueryKeys = [...siloData.queryKeys, ...data.queryKeys, ...farmerBalanceQKs];
-    allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query }));
+    allQueryKeys.forEach((query) => queryClient.refetchQueries({ queryKey: query }));
     invalidateSun("all", { refetchType: "active" });
   }, [queryClient, data.queryKeys, siloData.queryKeys, invalidateSun, farmerBalanceQKs]);
 

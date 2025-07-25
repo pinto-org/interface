@@ -148,7 +148,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       siloSnapshots.queryKey,
       ...farmerBalances.queryKeys,
     ];
-    allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query, refetchType: "active" }));
+    allQueryKeys.forEach((query) => queryClient.refetchQueries({ queryKey: query }));
     invalidateSun("all", { refetchType: "active" });
     resetSwap();
     priceImpactQuery.clear();
