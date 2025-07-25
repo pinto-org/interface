@@ -3,7 +3,7 @@ import { ZERO_ADDRESS } from "@/constants/address";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { useChainAddress } from "@/utils/chain";
 import { Token } from "@/utils/types";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useAccount, useBalance, useReadContract } from "wagmi";
 import useTokenData from "./useTokenData";
 
@@ -48,6 +48,10 @@ export function useFarmerBalances() {
     },
   });
 
+  const handleRefetch = useCallback(() => {
+    return Promise.all([refetch(), nativeBalance.refetch()]);
+  }, [refetch, nativeBalance.refetch]);
+
   const balanceData = useMemo(() => {
     const balances: Map<Token, FarmerBalance> = new Map();
 
@@ -86,8 +90,8 @@ export function useFarmerBalances() {
       isFetched: queriesFetched,
       balances: balanceData,
       queryKeys: [queryKey, nativeBalance.queryKey],
-      refetch: refetch,
+      refetch: handleRefetch,
     }),
-    [queriesLoading, balanceData, queriesFetched, queryKey, nativeBalance.queryKey, refetch],
+    [queriesLoading, balanceData, queriesFetched, queryKey, nativeBalance.queryKey, handleRefetch],
   );
 }
