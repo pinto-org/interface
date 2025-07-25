@@ -22,16 +22,16 @@ export function useClaimRewards() {
   const siloData = useSiloData();
   const isRaining = useSunData().raining;
   const whitelistedTokens = useTokenData().whitelistedTokens;
-  const { queryKeys: farmerBalanceQKs } = useFarmerBalances();
+  const farmerBalances = useFarmerBalances();
   const farmerDeposits = data.deposits;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const invalidateSun = useInvalidateSun();
 
-  const onSuccess = useCallback(() => {
-    const allQueryKeys = [...siloData.queryKeys, ...data.queryKeys, ...farmerBalanceQKs];
-    allQueryKeys.forEach((query) => queryClient.refetchQueries({ queryKey: query }));
+  const onSuccess = useCallback(async () => {
+    siloData.queryKeys.forEach((query) => queryClient.refetchQueries({ queryKey: query }));
+    await Promise.all([data.refetch(), farmerBalances.refetch()]);
     invalidateSun("all", { refetchType: "active" });
-  }, [queryClient, data.queryKeys, siloData.queryKeys, invalidateSun, farmerBalanceQKs]);
+  }, [queryClient, data.queryKeys, siloData.queryKeys, invalidateSun]);
 
   const { isConfirming, writeContractAsync } = useTransaction({
     successMessage: "Claim complete!",

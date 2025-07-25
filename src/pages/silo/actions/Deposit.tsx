@@ -105,19 +105,24 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     txnType: "Deposit",
   });
 
-  const onSuccess = useCallback(() => {
+  const onSuccess = useCallback(async () => {
     setAmountIn("0");
-    const allQueryKeys = [...farmerSilo.queryKeys, ...farmerBalances.queryKeys, ...priceQueryKeys];
-    allQueryKeys.forEach((query) => qc.refetchQueries({ queryKey: query }));
+
+    // Use hook refetch methods for better reliability
+    await Promise.all([farmerSilo.refetch(), farmerBalances.refetch()]);
+
+    // Invalidate price queries and sun data
+    priceQueryKeys.forEach((query) => qc.invalidateQueries({ queryKey: query }));
     invalidateSun("all", { refetchType: "active" });
+
     resetSwap();
     priceImpactQuery.clear();
   }, [
-    farmerSilo.queryKeys,
-    farmerBalances.queryKeys,
+    farmerSilo.refetch,
+    farmerBalances.refetch,
     priceQueryKeys,
     invalidateSun,
-    qc.invalidateQueries,
+    qc,
     resetSwap,
     priceImpactQuery.clear,
   ]);
