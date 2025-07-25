@@ -49,14 +49,7 @@ export function useFarmerBalances() {
   });
 
   const handleRefetch = useCallback(async () => {
-    console.log("refetching balances...");
-    const results = await Promise.allSettled([refetch(), nativeBalance.refetch()]);
-
-    results.forEach((result, index) => {
-      console.log(`Refetch result for ${index === 0 ? "beanstalk" : "native"} balance:`, result);
-    });
-
-    return results;
+    return Promise.all([refetch(), nativeBalance.refetch()]);
   }, [refetch, nativeBalance.refetch]);
 
   const balanceData = useMemo(() => {
@@ -85,19 +78,20 @@ export function useFarmerBalances() {
       }
     }
 
-    console.log("balances recomputed...:", balances);
-
     return balances;
   }, [nativeBalance.data?.value, beanstalkBalances, balanceTokens, ETH]);
 
   const queriesLoading = nativeBalance.isLoading || isLoading;
   const queriesFetched = nativeBalance.isFetched && isFetched;
 
-  return {
-    isLoading: queriesLoading,
-    isFetched: queriesFetched,
-    balances: balanceData,
-    queryKeys: [queryKey, nativeBalance.queryKey],
-    refetch: handleRefetch,
-  };
+  return useMemo(
+    () => ({
+      isLoading: queriesLoading,
+      isFetched: queriesFetched,
+      balances: balanceData,
+      queryKeys: [queryKey, nativeBalance.queryKey],
+      refetch: handleRefetch,
+    }),
+    [queriesLoading, queriesFetched, balanceData, queryKey, nativeBalance.queryKey, handleRefetch],
+  );
 }
