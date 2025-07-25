@@ -24,18 +24,18 @@ import config from "./utils/wagmi/config";
 };
 
 const queryClient = new QueryClient({
-  // defaultOptions: {
-  //   dehydrate: {
-  //     shouldDehydrateQuery: (query) => {
-  //       return query.meta?.persist === true;
-  //     },
-  //   },
-  // },
+  defaultOptions: {
+    dehydrate: {
+      shouldDehydrateQuery: (query) => {
+        return query.meta?.persist === true;
+      },
+    },
+  },
 });
 
-// const localStoragePersister = createSyncStoragePersister({
-//   storage: window.localStorage,
-// });
+const localStoragePersister = createSyncStoragePersister({
+  storage: window.localStorage,
+});
 
 export const Web3Provider = ({ children }: { children: ReactNode }) => {
   const config = useEnvConfig();
@@ -48,9 +48,9 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
        * Currently it is based on the date that the string is being set, in the YYYYMMDD format.
        * But really it can be anything, as long as it's different than what's expected to be stored.
        */}
-      <QueryClientProvider
+      <PersistQueryClientProvider
         client={queryClient}
-        // persistOptions={{ persister: localStoragePersister, buster: "20250501" }}
+        persistOptions={{ persister: localStoragePersister, buster: "20250501" }}
       >
         <MockConnectorManager />
         <ConnectKitProvider
@@ -86,7 +86,7 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
           {children}
         </ConnectKitProvider>
         <ReactQueryDevtools initialIsOpen={false} />
-      </QueryClientProvider>
+      </PersistQueryClientProvider>
     </WagmiProvider>
   );
 };

@@ -154,7 +154,6 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     fieldSnapshots.queryKey,
     siloSnapshots.queryKey,
     invalidateSun,
-    queryClient.invalidateQueries,
     resetSwap,
     priceImpactQuery.clear,
   ]);
