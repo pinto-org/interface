@@ -49,9 +49,7 @@ export function useFarmerBalances() {
   });
 
   const handleRefetch = useCallback(async () => {
-    // Wait 2 seconds for block confirmation on Base
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
+    console.log("refetching balances...");
     const results = await Promise.allSettled([refetch(), nativeBalance.refetch()]);
 
     results.forEach((result, index) => {
@@ -86,6 +84,8 @@ export function useFarmerBalances() {
         });
       }
     }
+
+    console.log("balances recomputed...:", balances);
 
     return balances;
   }, [nativeBalance.data?.value, beanstalkBalances, balanceTokens, ETH]);
