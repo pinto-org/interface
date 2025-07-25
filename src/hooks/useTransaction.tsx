@@ -139,26 +139,30 @@ export default function useTransaction({
   // biome-ignore lint/correctness/useExhaustiveDependencies: Run only when hash changes or txn was successful.
   useEffect(() => {
     if (receipt.isSuccess && exists(hash) && hashes.current?.has(hash)) {
-      setSubmitting(false);
-      hashes.current.delete(hash);
-      successCallback?.(receipt.data);
-      toast.dismiss();
-      const explorerLink = getExplorerLink(hash, chainId);
-      toast.success(
-        <div className="flex flex-row items-center gap-4">
-          <span className="text-pinto-sm">{successMessage ?? "Transaction successful"}</span>
-          <Button asChild variant="link" className="h-auto text-s text-pinto-green-4">
-            <a href={explorerLink} target="_blank" rel="noopener noreferrer">
-              View on Basescan
-            </a>
-          </Button>
-        </div>,
-      );
-      if (token && !token.isNative) {
-        clearAllowances(token);
-      }
+      const handleSuccess = async () => {
+        console.log("txn receipt: ", receipt);
+        setSubmitting(false);
+        hashes.current && hashes.current.delete(hash);
+        await successCallback?.(receipt.data);
+        toast.dismiss();
+        const explorerLink = getExplorerLink(hash, chainId);
+        toast.success(
+          <div className="flex flex-row items-center gap-4">
+            <span className="text-pinto-sm">{successMessage ?? "Transaction successful"}</span>
+            <Button asChild variant="link" className="h-auto text-s text-pinto-green-4">
+              <a href={explorerLink} target="_blank" rel="noopener noreferrer">
+                View on Basescan
+              </a>
+            </Button>
+          </div>,
+        );
+        if (token && !token.isNative) {
+          clearAllowances(token);
+        }
+      };
+      handleSuccess();
     }
-  }, [chainId, receipt.isSuccess, hash, successCallback, token, clearAllowances]);
+  }, [chainId, receipt, hash, successCallback, token, clearAllowances]);
 
   // on Error
   useEffect(() => {
