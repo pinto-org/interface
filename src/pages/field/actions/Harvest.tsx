@@ -3,7 +3,6 @@ import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import MobileActionBar from "@/components/MobileActionBar";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import IconImage from "@/components/ui/IconImage";
-import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
@@ -14,9 +13,7 @@ import { useHarvestableIndex, useInvalidateField } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
-import { FarmToMode } from "@/utils/types";
-import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 
@@ -32,10 +29,9 @@ function Harvest({ isMorning }: HarvestProps) {
   const diamond = useProtocolAddress();
   const harvestableIndex = useHarvestableIndex();
   const priceData = usePriceData();
-  const queryClient = useQueryClient();
   const invalidateField = useInvalidateField();
   const { balanceTo, setBalanceTo } = useDestinationBalance();
-  const { plots: fieldPlots, queryKeys } = useFarmerField();
+  const { plots: fieldPlots, refetch: refetchFarmerField } = useFarmerField();
   const balances = useFarmerBalances();
 
   const { plots, harvestableAmount } = useMemo(() => {
@@ -51,9 +47,8 @@ function Harvest({ isMorning }: HarvestProps) {
   }, [fieldPlots]);
 
   const { writeWithEstimateGas, isConfirming, submitting, setSubmitting } = useTransaction({
-    successCallback: () => {
-      queryKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
-      balances.queryKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
+    successCallback: async () => {
+      await Promise.all([refetchFarmerField(), balances.refetch()]);
       invalidateField("podLine");
     },
   });

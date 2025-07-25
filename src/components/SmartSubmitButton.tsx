@@ -6,7 +6,6 @@ import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { FarmFromMode, Token } from "@/utils/types";
 import { exists } from "@/utils/utils";
-import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { Address, erc20Abi } from "viem";
@@ -38,7 +37,6 @@ export default function SmartSubmitButton({
   ...props
 }: SmartSubmitButton) {
   const account = useAccount();
-  const queryClient = useQueryClient();
   const farmerBalances = useFarmerBalances().balances;
   const diamond = useProtocolAddress();
   const baseAllowanceQueryEnabled = !!account.address && !!token && !token.isNative;
@@ -47,6 +45,7 @@ export default function SmartSubmitButton({
     data: tokenAllowance,
     isFetching: tokenAllowanceFetching,
     queryKey: tokenAllowanceQueryKey,
+    ...allowanceQuery
   } = useReadContract({
     abi: erc20Abi,
     address: token?.address,
@@ -62,6 +61,7 @@ export default function SmartSubmitButton({
     data: diamondAllowance,
     isFetching: diamondAllowanceFetching,
     queryKey: diamondAllowanceQueryKey,
+    ...tokenAllowanceQuery
   } = useReadContract({
     abi: diamondABI,
     address: diamond,
@@ -74,11 +74,14 @@ export default function SmartSubmitButton({
 
   const allowance = requiresDiamondAllowance ? diamondAllowance : tokenAllowance;
   const allowanceFetching = requiresDiamondAllowance ? diamondAllowanceFetching : tokenAllowanceFetching;
-  const allowanceQueryKey = requiresDiamondAllowance ? diamondAllowanceQueryKey : tokenAllowanceQueryKey;
 
-  const onSuccess = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: allowanceQueryKey });
-  }, [queryClient, allowanceQueryKey]);
+  const onSuccess = useCallback(async () => {
+    if (requiresDiamondAllowance) {
+      await tokenAllowanceQuery.refetch();
+    } else {
+      await allowanceQuery.refetch();
+    }
+  }, [allowanceQuery.refetch, tokenAllowanceQuery.refetch, requiresDiamondAllowance]);
 
   const {
     submitting: submittingApproval,

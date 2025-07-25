@@ -6,7 +6,6 @@ import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useTokenData from "@/state/useTokenData";
 import { stringToNumber } from "@/utils/string";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
-import { useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -38,7 +37,7 @@ export default function WalletButtonTransfer() {
   const account = useAccount();
   const [panelState, setPanelState] = useAtom(navbarPanelAtom);
 
-  const { balances: balances, queryKeys: queryKeys } = useFarmerBalances();
+  const { balances: balances, queryKeys: queryKeys, refetch: refetchBalances } = useFarmerBalances();
 
   const mainToken = useTokenData().mainToken;
   const filteredTokens = useFilterTokens(balances);
@@ -46,15 +45,10 @@ export default function WalletButtonTransfer() {
   const [tokenIn, setTokenIn] = useState(mainToken);
   const [balanceFrom, setBalanceFrom] = useState<FarmFromMode>(FarmFromMode.EXTERNAL);
 
-  const queryClient = useQueryClient();
   const { writeWithEstimateGas, setSubmitting, submitting, isConfirming } = useTransaction({
-    successCallback: () => {
-      queryKeys.forEach((query) =>
-        queryClient.invalidateQueries({
-          queryKey: query,
-        }),
-      );
+    successCallback: async () => {
       setAmountIn("0");
+      await refetchBalances();
     },
     successMessage: "Transfer success",
     errorMessage: "Transfer failed",
