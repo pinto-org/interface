@@ -93,14 +93,11 @@ export function useFarmerBalances() {
   const queriesLoading = nativeBalance.isLoading || isLoading;
   const queriesFetched = nativeBalance.isFetched && isFetched;
 
-  return useMemo(
-    () => ({
-      isLoading: queriesLoading,
-      isFetched: queriesFetched,
-      balances: balanceData,
-      queryKeys: [queryKey, nativeBalance.queryKey],
-      refetch: handleRefetch,
-    }),
-    [queriesLoading, balanceData, queriesFetched, queryKey, nativeBalance.queryKey, handleRefetch],
-  );
+  return {
+    isLoading: queriesLoading,
+    isFetched: queriesFetched,
+    balances: balanceData,
+    queryKeys: [queryKey, nativeBalance.queryKey],
+    refetch: handleRefetch,
+  };
 }
