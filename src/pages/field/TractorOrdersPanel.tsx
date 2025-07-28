@@ -112,6 +112,10 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
 
   const handleCancelBlueprint = async (req: RequisitionEvent, e: React.MouseEvent) => {
     console.debug("Cancelling blueprint...'", req.requisition.blueprintHash);
+    console.debug("Full requisition object:", req.requisition);
+    console.debug("Blueprint hash value:", req.requisition.blueprintHash);
+    console.debug("Blueprint hash length:", req.requisition.blueprintHash?.length);
+
     setSubmitting(true);
     e.stopPropagation(); // Prevent opening the order dialog
 
@@ -126,6 +130,16 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
     toast.loading("Cancelling order...");
 
     try {
+      // Check if blueprintHash is empty or invalid
+      if (
+        !req.requisition.blueprintHash ||
+        req.requisition.blueprintHash === "0x" ||
+        req.requisition.blueprintHash === "0x0"
+      ) {
+        console.error("Invalid blueprint hash:", req.requisition.blueprintHash);
+        throw new Error("Blueprint hash is empty or invalid");
+      }
+
       return writeWithEstimateGas({
         address: protocolAddress,
         abi: diamondABI,
