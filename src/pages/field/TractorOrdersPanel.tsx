@@ -111,10 +111,22 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
   });
 
   const handleCancelBlueprint = async (req: RequisitionEvent, e: React.MouseEvent) => {
-    console.debug("Cancelling blueprint...'", req.requisition.blueprintHash);
-    console.debug("Full requisition object:", req.requisition);
-    console.debug("Blueprint hash value:", req.requisition.blueprintHash);
-    console.debug("Blueprint hash length:", req.requisition.blueprintHash?.length);
+    console.log("=== TRACTOR CANCEL DEBUG START ===");
+    console.log("Cancelling blueprint...", req.requisition.blueprintHash);
+    console.log("Full requisition object:", JSON.stringify(req.requisition, null, 2));
+    console.log("Blueprint hash value:", req.requisition.blueprintHash);
+    console.log("Blueprint hash length:", req.requisition.blueprintHash?.length);
+
+    // Check operatorPasteInstrs array
+    console.log("operatorPasteInstrs:", req.requisition.blueprint.operatorPasteInstrs);
+    console.log("operatorPasteInstrs length:", req.requisition.blueprint.operatorPasteInstrs?.length);
+    if (req.requisition.blueprint.operatorPasteInstrs) {
+      req.requisition.blueprint.operatorPasteInstrs.forEach((instr, index) => {
+        console.log(`operatorPasteInstrs[${index}]:`, instr, "length:", instr?.length);
+      });
+    }
+
+    console.log("=== TRACTOR CANCEL DEBUG END ===");
 
     setSubmitting(true);
     e.stopPropagation(); // Prevent opening the order dialog
@@ -138,6 +150,16 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
       ) {
         console.error("Invalid blueprint hash:", req.requisition.blueprintHash);
         throw new Error("Blueprint hash is empty or invalid");
+      }
+
+      // Check for empty operatorPasteInstrs
+      const hasEmptyPasteInstrs = req.requisition.blueprint.operatorPasteInstrs?.some(
+        (instr) => !instr || instr === "" || instr === "0x" || instr.length < 66, // bytes32 should be 0x + 64 chars
+      );
+
+      if (hasEmptyPasteInstrs) {
+        console.error("Found empty or invalid operatorPasteInstrs:", req.requisition.blueprint.operatorPasteInstrs);
+        throw new Error("operatorPasteInstrs contains empty or invalid bytes32 values");
       }
 
       return writeWithEstimateGas({
