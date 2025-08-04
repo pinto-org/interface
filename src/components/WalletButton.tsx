@@ -35,7 +35,7 @@ const WalletButton = forwardRef<HTMLButtonElement, WalletButtonProps>(
         toggle={address ? togglePanel : () => {}}
         side="right"
         panelProps={{
-          className: `max-w-panel-price w-panel-price mt-4 ${isOpen ? `translate-x-12 mr-0 lg:translate-x-12 lg:mr-12` : `translate-x-full -mr-20 lg:-mr-12`}`,
+          className: `max-w-panel-price w-panel-price ${isOpen ? `translate-x-12 mr-0 lg:translate-x-12 lg:mr-12` : `translate-x-full -mr-20 lg:-mr-12`}`,
         }}
         screenReaderTitle="Wallet Panel"
         trigger={

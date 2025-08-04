@@ -397,6 +397,38 @@ const getSelectionCallbackPlugin = (onMouseOver?: (index: number) => void): Plug
   },
 });
 
+const getInteractiveChartPlugin = (
+  onChartClick?: (datasetIndex: number) => void,
+  tokenNames?: string[],
+  baseDataValues?: number[][],
+): Plugin => {
+  let clickHandler: ((event: any) => void) | null = null;
+
+  return {
+    id: "interactiveChart",
+    beforeInit: (chart: Chart) => {
+      // Set up click event handler
+      clickHandler = (event: any) => {
+        const points = chart.getElementsAtEventForMode(event, "nearest", { intersect: false }, false);
+        if (points.length > 0 && onChartClick) {
+          const clickedDatasetIndex = points[0].datasetIndex;
+          onChartClick(clickedDatasetIndex);
+        }
+      };
+
+      if (chart.canvas && clickHandler) {
+        chart.canvas.addEventListener("click", clickHandler);
+      }
+    },
+    beforeDestroy: (chart: Chart) => {
+      // Clean up event listener
+      if (chart.canvas && clickHandler) {
+        chart.canvas.removeEventListener("click", clickHandler);
+      }
+    },
+  };
+};
+
 const getGradientShiftPlugin = (
   activeIndexRef: MutableRefObject<number | undefined>,
   makeLineGradients: (MakeGradientFunction | string)[],
@@ -527,6 +559,7 @@ export const plugins = {
   selectionPoint: getSelectionPointPlugin,
   gradientShift: getGradientShiftPlugin,
   horizontalReferenceLine: getHorizontalLinePlugin,
+  interactiveChart: getInteractiveChartPlugin,
 };
 
 // ---------------------------------------------------------------------------------------------------------------------

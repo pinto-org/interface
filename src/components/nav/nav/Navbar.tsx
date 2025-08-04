@@ -256,6 +256,7 @@ const Navbar = () => {
                   ref={walletButton}
                 />
               </div>
+              {/* 
               {!panelState.openPanel && showWalletHelper && (
                 <ScrollHideComponent>
                   <HelperLink
@@ -263,14 +264,7 @@ const Navbar = () => {
                     text={
                       !account.address
                         ? "Connect your Wallet"
-                        : /* : floodValue.gt(0)
-                          ? `Claim ${formatter.usd(floodValue)} from Flood`
-                          : `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet ${hasInternal ? "+ Farm Balances" : "Balance"}`
-                          */
-                          /*
-                        `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet Balance`
-                        */
-                          `Manage Wallet Balance`
+                        : "Manage Wallet Balance"
                     }
                     className={`absolute top-[9.375rem] right-[22.5rem] flex flex-row-reverse`}
                     sourceAnchor="right"
@@ -281,6 +275,7 @@ const Navbar = () => {
                   />
                 </ScrollHideComponent>
               )}
+              */}
             </div>
             <div className={`lg:hidden ${panelState.openPanel === "mobile-navi" && "z-[51]"}`}>
               <MobileNavi

@@ -262,7 +262,7 @@ const Overview = () => {
             />
           </div>
         </div>
-        <div className="grid mt-8 gap-8 grid-rows-3 self-start sm:grid-cols-3 sm:grid-rows-none sm:mt-[4.5rem] sm:gap-[4.5rem] sm:self-center whitespace-nowrap w-screen max-w-6xl">
+        <div className="grid mt-6 gap-6 grid-rows-3 self-start sm:grid-cols-3 sm:grid-rows-none sm:mt-8 sm:gap-8 sm:self-center whitespace-nowrap w-screen max-w-6xl">
           <StatPanel {...(hasOnlyPods ? statPanelData.depositedValue : statPanelData.stalk)} />
           <StatPanel {...(hasOnlyPods ? statPanelData.stalk : statPanelData.seeds)} />
           <StatPanel {...(hasOnlyPods ? statPanelData.seeds : statPanelData.pods)} />
@@ -347,7 +347,7 @@ const Overview = () => {
       </AnimatePresence>
 
       {/* Test Chart */}
-      <SimpleValueChart className="mb-8" />
+      <SimpleValueChart className="mb-2" />
 
       <div className="flex flex-col items-center">
         <Tabs
@@ -516,10 +516,10 @@ const Overview = () => {
 
   return (
     <div
-      className={`flex flex-col ${hasDepositsOrPods ? "pt-12 sm:pt-[3.75rem]" : "justify-center text-center min-h-[calc(100vh-15rem)]"} gap-52 pb-20`}
+      className={`flex flex-col ${hasDepositsOrPods ? "pt-12 sm:pt-[3.75rem]" : "justify-center text-center min-h-[calc(100vh-15rem)]"} gap-16 pb-8`}
     >
       <PageContainer
-        className={`flex flex-col gap-16 sm:gap-28 3xl:gap-28 -mt-4 ${!hasDepositsOrPods ? "sm:max-w-[1150px] flex-grow sm:mt-[100px]" : ""}`}
+        className={`flex flex-col gap-8 sm:gap-12 3xl:gap-16 -mt-4 ${!hasDepositsOrPods ? "sm:max-w-[1150px] flex-grow sm:mt-[100px]" : ""}`}
         variant={"lgAlt"}
       >
         {renderContent()}

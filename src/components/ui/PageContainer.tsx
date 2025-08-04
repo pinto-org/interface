@@ -39,7 +39,7 @@ const PageContainer = ({
           "relative",
           "flex flex-col w-full items-center",
           `pt-2 px-4 ${removeBottomPadding ? "" : "pb-4"}`, // mobile
-          `sm:px-8 sm:pt-5 ${removeBottomPadding ? "" : "sm:pb-20"} sm:mt-10`, // above mobile
+          `sm:px-8 sm:pt-5 ${removeBottomPadding ? "" : "sm:pb-20"} sm:mt-6`, // above mobile
           bottomMarginOnMobile ? "mb-[75px] sm:mb-0" : "mb-0",
         )}
       >

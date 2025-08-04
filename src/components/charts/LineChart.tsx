@@ -56,6 +56,10 @@ export interface LineChartProps {
   customValueTransform?: CustomChartValueTransform;
   hideYAxis?: boolean;
   hoverPointImages?: (string | null | undefined)[];
+  // Interactive chart props
+  onChartClick?: (datasetIndex: number) => void;
+  tokenNames?: string[];
+  baseDataValues?: number[][];
 }
 
 // provide a stable reference to the horizontal reference lines to avoid re-rendering the chart when some other prop changes
@@ -78,6 +82,9 @@ const LineChart = React.memo(
     customValueTransform,
     hideYAxis = false,
     hoverPointImages,
+    onChartClick,
+    tokenNames,
+    baseDataValues,
   }: LineChartProps) => {
     const chartRef = useRef<Chart | null>(null);
     const activeIndexRef = useRef<number | undefined>(activeIndex);
@@ -184,6 +191,10 @@ const LineChart = React.memo(
     const selectionCallbackPlugin: Plugin = useMemo(() => {
       return plugins.selectionCallback(onMouseOver);
     }, [onMouseOver]);
+
+    const interactiveChartPlugin: Plugin = useMemo(() => {
+      return plugins.interactiveChart(onChartClick, tokenNames, baseDataValues);
+    }, [onChartClick, tokenNames, baseDataValues]);
 
     const chartOptions: ChartOptions = useMemo(() => {
       return {
@@ -312,6 +323,7 @@ const LineChart = React.memo(
         horizontalReferenceLinePlugin,
         selectionPointPlugin,
         selectionCallbackPlugin,
+        interactiveChartPlugin,
       ],
       [
         gradientPlugin,
@@ -320,6 +332,7 @@ const LineChart = React.memo(
         horizontalReferenceLinePlugin,
         selectionPointPlugin,
         selectionCallbackPlugin,
+        interactiveChartPlugin,
       ],
     );
 

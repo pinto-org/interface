@@ -6,8 +6,6 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/NavigationMenu";
 import { isDev } from "@/utils/utils";
-import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
 import { Link as ReactLink, useLocation } from "react-router-dom";
 import { navLinks } from "./Navbar";
 
@@ -52,147 +50,45 @@ const Link = ({
   );
 };
 
-const AppNavi = () => {
+export default function Navi() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.2 }}
-    >
+    <div className="flex items-center justify-center z-[2]">
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
-            <Link href={navLinks.overview}>Overview</Link>
+            <Link href={navLinks.overview} topMenu>
+              Overview
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.silo}>Silo</Link>
+            <Link href={navLinks.silo} topMenu>
+              Silo
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.field}>Field</Link>
+            <Link href={navLinks.field} topMenu>
+              Field
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.swap}>Swap</Link>
+            <Link href={navLinks.explorer} topMenu>
+              Weather Station
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.podmarket}>Pod Market</Link>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <Link href={navLinks.sPinto}>sPinto</Link>
+            <Link href={navLinks.docs} rel="noopener noreferrer" target="_blank" topMenu>
+              Library
+            </Link>
           </NavigationMenuItem>
           {isDev() && (
             <NavigationMenuItem>
-              <Link href="/dev">Dev</Link>
+              <Link href="/dev" topMenu>
+                Dev
+              </Link>
             </NavigationMenuItem>
           )}
         </NavigationMenuList>
       </NavigationMenu>
-    </motion.div>
-  );
-};
-
-const DataNavi = ({ setNaviTab }) => {
-  return (
-    <motion.div
-      onMouseLeave={() => setNaviTab("home")}
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.2 }}
-    >
-      <NavigationMenu>
-        <NavigationMenuList>
-          <NavigationMenuItem>
-            <Link href={navLinks.explorer_pinto}>Pinto</Link>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <Link href={navLinks.explorer_silo}>Silo</Link>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <Link href={navLinks.explorer_field}>Field</Link>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <Link href={navLinks.explorer_farmer}>Farmer</Link>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <Link href={navLinks.explorer_seasons}>Seasons</Link>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <Link href={navLinks.explorer_all}>All</Link>
-          </NavigationMenuItem>
-        </NavigationMenuList>
-      </NavigationMenu>
-    </motion.div>
-  );
-};
-
-const LearnNavi = ({ setNaviTab }) => {
-  return (
-    <motion.div
-      onMouseLeave={() => setNaviTab("home")}
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.2 }}
-    >
-      <NavigationMenu>
-        <NavigationMenuList>
-          <NavigationMenuItem>
-            <Link href={navLinks.docs} rel="noopener noreferrer" target="_blank">
-              Docs
-            </Link>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <Link href={navLinks.blog} rel="noopener noreferrer" target="_blank">
-              Blog
-            </Link>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <Link href={navLinks.communityBlog} rel="noopener noreferrer" target="_blank">
-              Community Blog
-            </Link>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <Link href={navLinks.whitepaper} rel="noopener noreferrer" target="_blank">
-              Whitepaper
-            </Link>
-          </NavigationMenuItem>
-        </NavigationMenuList>
-      </NavigationMenu>
-    </motion.div>
-  );
-};
-
-export default function Navi() {
-  const [naviTab, setNaviTab] = useState("home");
-
-  return (
-    <div className="flex flex-col items-center justify-center gap-5 z-[2]">
-      <NavigationMenu>
-        <NavigationMenuList>
-          <NavigationMenuItem onMouseEnter={() => setNaviTab("home")}>
-            <Link active={naviTab === "home"} href={navLinks.overview} topMenu>
-              Home
-            </Link>
-          </NavigationMenuItem>
-          <NavigationMenuItem onMouseEnter={() => setNaviTab("learn")}>
-            <Link active={naviTab === "learn"} topMenu>
-              Learn
-            </Link>
-          </NavigationMenuItem>
-          <NavigationMenuItem onMouseEnter={() => setNaviTab("data")}>
-            <Link active={naviTab === "data"} href={navLinks.explorer} topMenu>
-              Data
-            </Link>
-          </NavigationMenuItem>
-        </NavigationMenuList>
-      </NavigationMenu>
-
-      <AnimatePresence mode="wait">
-        {naviTab === "home" && <AppNavi />}
-        {naviTab === "data" && <DataNavi setNaviTab={setNaviTab} />}
-        {naviTab === "learn" && <LearnNavi setNaviTab={setNaviTab} />}
-      </AnimatePresence>
     </div>
   );
 }
