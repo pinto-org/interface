@@ -9,6 +9,7 @@ import PlotsTable from "@/components/PlotsTable";
 import StatPanel from "@/components/StatPanel";
 import StatPanelAltDisplay from "@/components/StatPanelAltDisplay";
 import TableRowConnector from "@/components/TableRowConnector";
+import SimpleValueChart from "@/components/charts/SimpleValueChart";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
@@ -344,6 +345,10 @@ const Overview = () => {
           </motion.div>
         ) : null}
       </AnimatePresence>
+
+      {/* Test Chart */}
+      <SimpleValueChart className="mb-8" />
+
       <div className="flex flex-col items-center">
         <Tabs
           defaultValue="deposits"

@@ -9,17 +9,22 @@ import { Card } from "./Card";
 interface IBaseSidebar {
   isOpen: boolean;
   side: "left" | "right";
+  fitHeight?: boolean;
 }
 
 export interface ISidebar extends React.ComponentProps<typeof Card>, IBaseSidebar {}
 
-export const Sidebar = ({ isOpen, side, className, ...props }: ISidebar) => {
+export const Sidebar = ({ isOpen, side, fitHeight = true, className, ...props }: ISidebar) => {
   const translateClass = useMemo(() => {
     if (side === "left") {
       return isOpen ? `translate-x-6` : `-translate-x-full`;
     }
     return isOpen ? `translate-x-6` : `translate-x-full`;
   }, [isOpen, side]);
+
+  const heightClasses = fitHeight
+    ? `top-4 max-h-[calc(100vh-${renderAnnouncement ? 8 : 6}rem)] h-fit`
+    : `top-0 max-h-screen h-screen`;
 
   return (
     <Card
@@ -48,6 +53,7 @@ const Panel = ({
   trigger,
   isOpen,
   side,
+  fitHeight = true,
   toggle,
   panelProps,
   drawerProps,
@@ -72,7 +78,7 @@ const Panel = ({
     <>
       {trigger}
       <>
-        <Sidebar isOpen={isOpen} side={side} {...panelProps}>
+        <Sidebar isOpen={isOpen} side={side} fitHeight={fitHeight} {...panelProps}>
           {props.children}
         </Sidebar>
       </>
@@ -82,7 +88,16 @@ const Panel = ({
 
 export default Panel;
 
-export const TabletPanel = ({ trigger, isOpen, side, toggle, panelProps, drawerProps, ...props }: IPanel) => {
+export const TabletPanel = ({
+  trigger,
+  isOpen,
+  side,
+  fitHeight = true,
+  toggle,
+  panelProps,
+  drawerProps,
+  ...props
+}: IPanel) => {
   const isTablet = useIsTablet();
 
   if (isTablet) {
@@ -98,7 +113,7 @@ export const TabletPanel = ({ trigger, isOpen, side, toggle, panelProps, drawerP
     <>
       {trigger}
       <>
-        <Sidebar isOpen={isOpen} side={side} {...panelProps}>
+        <Sidebar isOpen={isOpen} side={side} fitHeight={fitHeight} {...panelProps}>
           {props.children}
         </Sidebar>
       </>

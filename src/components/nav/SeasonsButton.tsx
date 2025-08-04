@@ -374,7 +374,7 @@ export default function SeasonsButton({ isOpen = false, togglePanel, ...props }:
       isOpen={isOpen}
       side="left"
       panelProps={{
-        className: `${hasFloodOrRain ? "max-w-panel-seasons w-panel-seasons" : "max-w-panel-seasons-sm w-panel-seasons-sm"} mt-4`,
+        className: `${hasFloodOrRain ? "max-w-panel-seasons w-panel-seasons" : "max-w-panel-seasons-sm w-panel-seasons-sm"}`,
       }}
       screenReaderTitle="Seasons Panel"
       trigger={

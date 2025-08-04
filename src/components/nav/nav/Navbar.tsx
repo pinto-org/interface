@@ -232,8 +232,9 @@ const Navbar = () => {
             isOpen={panelState.openPanel === "chart-select"}
             side="left"
             panelProps={{
-              className: cn("max-w-panel-price w-panel-price", "mt-14"),
+              className: cn("max-w-panel-price w-panel-price", "mt-10"),
             }}
+            fitHeight={false}
             screenReaderTitle="Chart Select Panel"
             trigger={<></>}
             toggle={handleTogglePanel}

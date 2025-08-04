@@ -515,7 +515,7 @@ const PriceButton = memo(({ isOpen = false, togglePanel, ...props }: IPriceButto
 });
 
 const panelProps = {
-  className: "max-w-panel-price w-panel-price mt-4",
+  className: "max-w-panel-price w-panel-price",
 } as const;
 
 export default PriceButton;
