@@ -192,7 +192,7 @@ const MarketPerformanceChart = ({ season, size, className }: MarketPerformanceCh
     return { chartData: [], tokens: [], chartStrokeGradients: [] };
   }, [dataType, allData, chainId, minValues, maxValues, priceTransformRanges]);
 
-  const handleChangeDataType = useCallback((type: DataType) => {
+  const _handleChangeDataType = useCallback((type: DataType) => {
     setDataType(type);
     setAllData(null);
     setDisplayIndex(null);

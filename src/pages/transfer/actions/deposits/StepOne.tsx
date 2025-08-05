@@ -23,7 +23,7 @@ export default function StepOne({ transferData, setTransferData, usingMax, setUs
         );
         if (!token) continue;
         const tokenDepositData = farmerDeposits.get(token);
-        if (tokenDepositData && tokenDepositData.amount.gt(0)) {
+        if (tokenDepositData?.amount.gt(0)) {
           const tokenData = {
             token: token,
             amount: tokenDepositData.amount.toHuman(),

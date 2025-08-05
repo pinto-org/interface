@@ -68,7 +68,7 @@ const parseDate = (dateStr: string, timeStr?: string): Date | undefined => {
       return set(parsedDate, { hours: Number.isNaN(hours) ? 0 : hours, minutes: Number.isNaN(minutes) ? 0 : minutes });
     }
     return parsedDate;
-  } catch (e) {
+  } catch (_e) {
     return undefined;
   }
 };
@@ -255,7 +255,7 @@ const CalendarContent = ({ datePresets, range, selectedPreset, onChange }: Calen
           });
           const newRange: DateRange = { ...range, [type]: newDate };
           onChange(newRange, "CUSTOM");
-        } catch (e) {
+        } catch (_e) {
           // Invalid time format
         }
       }

@@ -25,7 +25,6 @@ interface ImportMetaEnv {
 
 declare module "*.md";
 
-// biome-ignore lint/correctness/noUnusedVariables:
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }

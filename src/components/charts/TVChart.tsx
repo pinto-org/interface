@@ -153,9 +153,9 @@ const TVChart = ({ formattedData, height = 500, timePeriod, selected, seasonInpu
   const size = "full";
 
   // Price Scale Settings Menu
-  const [leftPriceScaleMode, setLeftPriceScaleMode] = useState<PriceScaleMode>(0);
-  const [rightPriceScaleMode, setRightPriceScaleMode] = useState<PriceScaleMode>(0);
-  const priceScaleModes = ["Normal", "Logarithmic", "Percentage", "Indexed to 100"];
+  const [leftPriceScaleMode, _setLeftPriceScaleMode] = useState<PriceScaleMode>(0);
+  const [rightPriceScaleMode, _setRightPriceScaleMode] = useState<PriceScaleMode>(0);
+  const _priceScaleModes = ["Normal", "Logarithmic", "Percentage", "Indexed to 100"];
 
   // Set second price scale type
   const chartAxisTypes = useMemo(

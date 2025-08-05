@@ -67,7 +67,7 @@ export default function MultiTokenSelectWithBalances({
   tokenAndBalanceMap: Map<Token, TokenValue>;
   customTitle?: string;
 }) {
-  const account = useAccount();
+  const _account = useAccount();
   const priceData = usePriceData();
 
   const availableTokens = [...tokenAndBalanceMap.keys()];

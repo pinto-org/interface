@@ -98,21 +98,17 @@ export function SoilOrderbookContent({
     const date = new Date(timestamp);
 
     // Format: MM/DD/YY hh:mmAM/PM
-    return (
-      date.toLocaleDateString("en-US", {
-        month: "2-digit",
-        day: "2-digit",
-        year: "2-digit",
-      }) +
-      " " +
-      date
-        .toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        })
-        .replace(" ", "")
-    );
+    return `${date.toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "2-digit",
+    })} ${date
+      .toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })
+      .replace(" ", "")}`;
   };
 
   const handleRowClick = (requisition: OrderbookEntry) => {
@@ -337,7 +333,7 @@ export function SoilOrderbookContent({
         <TableCell className="py-2 text-right">
           <div className="flex items-center gap-1 justify-end">
             <IconImage src={PINTO.logoURI} alt="PINTO" size={4} />
-            {decodedData && decodedData.sowAmounts.maxAmountToSowPerSeasonAsString
+            {decodedData?.sowAmounts.maxAmountToSowPerSeasonAsString
               ? (() => {
                   const maxPerSeason = TokenValue.fromHuman(decodedData.sowAmounts.maxAmountToSowPerSeasonAsString, 6);
                   const effectiveMaxPerSeason = req.currentlySowable.lt(maxPerSeason)
@@ -362,7 +358,7 @@ export function SoilOrderbookContent({
         <TableCell className="py-2 text-right">
           <div className="flex items-center gap-1 justify-end">
             <IconImage src={PINTO.logoURI} alt="PINTO" size={4} />
-            {decodedData && decodedData.operatorParams.operatorTipAmount
+            {decodedData?.operatorParams.operatorTipAmount
               ? formatter.number(TokenValue.fromBlockchain(decodedData.operatorParams.operatorTipAmount, 6), {
                   minDecimals: 2,
                   maxDecimals: 2,

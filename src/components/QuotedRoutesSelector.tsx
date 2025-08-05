@@ -160,7 +160,7 @@ export default function QuotedRoutesSelector({
       {isExpanded && (
         <CardContent className="pt-0">
           <Col className="gap-4 w-full">
-            {sortedIndexes.map((originalIndex, displayIndex) => {
+            {sortedIndexes.map((originalIndex, _displayIndex) => {
               const result = convertResults[originalIndex];
               const summary = quote[originalIndex];
               if (!result || !summary) return null;

@@ -10,6 +10,8 @@ import StatPanel from "@/components/StatPanel";
 import StatPanelAltDisplay from "@/components/StatPanelAltDisplay";
 import TableRowConnector from "@/components/TableRowConnector";
 import SimpleValueChart from "@/components/charts/SimpleValueChart";
+import TimeTabsSelector, { TimeTab } from "@/components/charts/TimeTabs";
+import { PodlineVisualization } from "@/components/podline";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
@@ -19,7 +21,7 @@ import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import { useHarvestAndDeposit } from "@/hooks/useHarvestAndDeposit";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerField } from "@/state/useFarmerField";
+import { useFarmerField, usePrefetchFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useHarvestableIndex, useTotalSoil } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
@@ -57,7 +59,8 @@ const Overview = () => {
     seedGain: harvestSeedGain,
   } = useHarvestAndDeposit();
 
-  const isSmallDesktop = useIsSmallDesktop();
+  const { prefetchFarmerField } = usePrefetchFarmerField();
+  const _isSmallDesktop = useIsSmallDesktop();
 
   const mainToken = tokenData.mainToken;
 
@@ -88,14 +91,15 @@ const Overview = () => {
     depositData.deposits.some((deposit) => deposit.isGerminating && !deposit.isPlantDeposit),
   );
 
-  const canWrap = farmerActions.canWrapPinto;
-  const enablePintoToLPHelper = farmerSilo.deposits.get(mainToken)?.convertibleAmount.gt(0) && priceData.deltaB.gt(100);
+  const _canWrap = farmerActions.canWrapPinto;
+  const _enablePintoToLPHelper =
+    farmerSilo.deposits.get(mainToken)?.convertibleAmount.gt(0) && priceData.deltaB.gt(100);
 
   // Get mobile status from hook
   const isMobile = useIsMobile();
 
   // State
-  const [currentTab, setCurrentTab] = useState<"deposits" | "pods" | "tractor">(() => {
+  const [_currentTab, setCurrentTab] = useState<"deposits" | "pods" | "tractor">(() => {
     // Default to "pods" on mobile, or if hasOnlyPods is true on desktop
     if (isMobile) {
       return "pods";
@@ -104,11 +108,19 @@ const Overview = () => {
     }
   });
   const [hoveredButton, setHoveredButton] = useState("");
+  const [chartTimeTab, setChartTimeTab] = useState<TimeTab>(TimeTab.Month);
 
-  const [hoveredId, setHoveredId] = useAtom(hoveredIdAtom);
+  const [_hoveredId, setHoveredId] = useAtom(hoveredIdAtom);
   useEffect(() => {
     setHoveredId("");
   }, []);
+
+  // Prefetch farmer field data when user has pods for instant "View your pods" dialog
+  useEffect(() => {
+    if (hasPods && !farmerField.isLoading) {
+      prefetchFarmerField().catch(console.error);
+    }
+  }, [hasPods, farmerField.isLoading, prefetchFarmerField]);
 
   // Memoized calculations
   const { siloPct, claimSiloPct, harvestSiloPct, stalkPerSeason, placesInLine } = useMemo(() => {
@@ -143,18 +155,18 @@ const Overview = () => {
   }, [farmerSilo, farmerField, farmerActions, siloData, harvestableIndex]);
 
   // Action states
-  const convertEnabled = farmerActions.convertDeposits.enabled;
-  const convertFrom = farmerActions.convertDeposits.bestConversion.from;
-  const convertTo = farmerActions.convertDeposits.bestConversion.to;
-  const claimEnabled =
+  const _convertEnabled = farmerActions.convertDeposits.enabled;
+  const _convertFrom = farmerActions.convertDeposits.bestConversion.from;
+  const _convertTo = farmerActions.convertDeposits.bestConversion.to;
+  const _claimEnabled =
     (farmerActions.claimRewards.enabled && farmerActions.claimRewards.outputs.stalkGain.gt(0.01)) ||
     farmerActions.updateDeposits.enabled;
-  const claimableText = getClaimText(
+  const _claimableText = getClaimText(
     farmerActions.claimRewards.outputs.beanGain,
     farmerActions.claimRewards.outputs.stalkGain.add(farmerActions.updateDeposits.totalGains.stalkGain),
     farmerActions.claimRewards.outputs.seedGain,
   );
-  const hasNoEarnedBeans = Boolean(
+  const _hasNoEarnedBeans = Boolean(
     farmerActions.tokenTotals.get(tokenData.mainToken)?.sources.plant?.beanGain.lt(0.01),
   );
 
@@ -239,7 +251,7 @@ const Overview = () => {
 
   const renderContent = () => (
     <>
-      <div className="flex flex-col justify-center relative action-container mt-6 sm:mt-0">
+      <div className="flex flex-col justify-center relative action-container mt-0 sm:mt-0">
         <div className="flex flex-col sm:items-center items-start">
           <div data-action-target="stats">
             <StatPanel
@@ -346,53 +358,28 @@ const Overview = () => {
         ) : null}
       </AnimatePresence>
 
-      {/* Test Chart */}
-      <SimpleValueChart className="mb-2" />
+      {/* Token Value Distribution Chart */}
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-4 px-2 sm:px-6">
+          <TimeTabsSelector tab={chartTimeTab} setTab={setChartTimeTab} />
+        </div>
+        <SimpleValueChart className="mb-2" timeTab={chartTimeTab} />
+      </div>
+
+      {/* Podline Visualization */}
+      <PodlineVisualization className="mb-6" farmerField={farmerField} />
 
       <div className="flex flex-col items-center">
         <Tabs
-          defaultValue="deposits"
+          defaultValue="tractor"
           className="w-full"
-          value={currentTab}
+          value="tractor"
           onValueChange={(value) => setCurrentTab(value as "deposits" | "pods" | "tractor")}
         >
           <TabsList className="h-0 bg-transparent p-0 border-0 -ml-3 flex flex-row justify-start">
-            {/* Conditionally render My Deposits and My Pods based on hasOnlyPods */}
-            {hasOnlyPods ? (
-              <>
-                <TabsTrigger
-                  className="font-[400] text-[1.5rem] sm:text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
-                  value="pods"
-                >
-                  My Pods
-                </TabsTrigger>
-                <TabsTrigger
-                  className="font-[400] text-[1.5rem] sm:text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
-                  value="deposits"
-                >
-                  My Deposits
-                </TabsTrigger>
-              </>
-            ) : (
-              <>
-                <TabsTrigger
-                  className="font-[400] text-[1.5rem] sm:text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
-                  value="deposits"
-                >
-                  My Deposits
-                </TabsTrigger>
-                <TabsTrigger
-                  className="font-[400] text-[1.5rem] sm:text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
-                  value="pods"
-                >
-                  My Pods
-                </TabsTrigger>
-              </>
-            )}
-
-            {/* Always render My Tractor Orders last */}
+            {/* Only show My Tractor Orders */}
             <TabsTrigger
-              className="hidden sm:flex font-[400] text-[1.5rem] sm:text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
+              className="sm:flex font-[400] text-[1.5rem] sm:text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
               value="tractor"
             >
               My Tractor Orders

@@ -154,7 +154,7 @@ const SoilDemandMultiLineChart = React.memo(
     }, [data, useLogarithmicScale, yAxisMin, yAxisMax, horizontalReferenceLines]);
 
     const chartData = useCallback(
-      (ctx: CanvasRenderingContext2D | null): ChartData => {
+      (_ctx: CanvasRenderingContext2D | null): ChartData => {
         const labels = data[0].map((datum) => {
           return datum[xKey];
         });
@@ -260,7 +260,7 @@ const SoilDemandMultiLineChart = React.memo(
         id: "customSelectPoint",
         afterDraw: (chart: Chart) => {
           const ctx = chart.ctx;
-          const activeIndex = activeIndexRef.current;
+          const _activeIndex = activeIndexRef.current;
           if (!ctx) return;
 
           // Define the function to draw the selection point
@@ -384,7 +384,7 @@ const SoilDemandMultiLineChart = React.memo(
             grid: {
               display: true,
               color: (context) => {
-                const tickLabel = context.tick && context.tick.label;
+                const tickLabel = context.tick?.label;
                 if (typeof activeIndex === "number") {
                   if (tickLabel && tickLabel !== "") {
                     return "rgba(0, 0, 0, 0.1)";
@@ -405,7 +405,7 @@ const SoilDemandMultiLineChart = React.memo(
               maxRotation: 0,
               autoSkip: false,
               maxTicksLimit: typeof activeIndex !== "number" ? 12 : undefined,
-              callback: (_value, index, values) => {
+              callback: (_value, index, _values) => {
                 const xValue = data[0][index][xKey];
                 if (!xValue) {
                   return "";

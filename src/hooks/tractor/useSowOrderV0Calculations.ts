@@ -68,7 +68,7 @@ export default function useSowOrderV0Calculations() {
     whitelistedTokens.forEach((token) => {
       if (token.isLP) {
         const lpDollarValue = swapResults.get(token.address);
-        if (lpDollarValue && lpDollarValue.gt(highestValue)) {
+        if (lpDollarValue?.gt(highestValue)) {
           highestValue = lpDollarValue;
           tokenWithHighestValueAddr = token.address;
           tokenType = "SPECIFIC_TOKEN";
@@ -100,7 +100,7 @@ export default function useSowOrderV0Calculations() {
 
   const allTokensSorted = useMemo(() => {
     if (!farmerDeposits || farmerDeposits.size === 0) return true;
-    return Array.from(farmerDeposits.entries()).every(([token, depositData]) => {
+    return Array.from(farmerDeposits.entries()).every(([_token, depositData]) => {
       return areDepositsSorted(depositData.deposits || []);
     });
   }, [farmerDeposits]);

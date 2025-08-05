@@ -48,7 +48,7 @@ export default function FarmerDepositsTable({
   const denomination = useDenomination();
   const { submitClaimRewards } = useClaimRewards();
 
-  const canClaim = farmerActions.claimRewards.enabled;
+  const _canClaim = farmerActions.claimRewards.enabled;
   const grownStalkPerToken = farmerSilo.grownStalkPerToken;
 
   const hoveringClaim = hoveredButton === "claim";

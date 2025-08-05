@@ -197,7 +197,7 @@ export abstract class BaseErrorHandler<TTokenContext = unknown, TContext extends
       amount,
       name,
       (operationName, originalError, ctx) => {
-        const displayValue = typeof amount === "number" ? amount.toString() : amount?.toHuman() ?? "undefined";
+        const displayValue = typeof amount === "number" ? amount.toString() : (amount?.toHuman() ?? "undefined");
         const errorMessage = originalError instanceof Error ? originalError.message : "Unknown error";
 
         return new SCE.InvalidAmountError(displayValue, errorMessage, {

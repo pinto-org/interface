@@ -165,7 +165,7 @@ describe("Token Configs", () => {
   describe("Underlying", () => {
     const underlyingKeyedBySymbol = underlying.map((token) => [token.symbol, token]) as [string, Token][];
 
-    it.each(underlyingKeyedBySymbol)("token %s should have correct configuration", (symbol, token) => {
+    it.each(underlyingKeyedBySymbol)("token %s should have correct configuration", (_symbol, token) => {
       // Underlying tokens are paired with PINTO in LP tokens
       expectRequiredFields(token);
       expectTokenFlags(token, {

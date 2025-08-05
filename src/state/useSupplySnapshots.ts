@@ -58,7 +58,7 @@ export default function useSupplySnapshots() {
 
   useEffect(() => {
     query.refetch();
-  }, [season]);
+  }, [query.refetch]);
 
   return useMemo(
     () => ({

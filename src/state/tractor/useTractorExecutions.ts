@@ -126,7 +126,7 @@ export default function usePublisherTractorExecutions(
 
   const refetch = useCallback(() => {
     return Promise.all([executionsChainQuery.refetch(), executionsQuery.refetch()]);
-  }, [executionsChainQuery, executionsQuery]);
+  }, [executionsChainQuery.refetch, executionsQuery.refetch]);
 
   const isLoading = executionsChainQuery.isLoading || executionsQuery.isLoading;
 

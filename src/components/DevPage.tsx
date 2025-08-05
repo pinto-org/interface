@@ -170,7 +170,7 @@ export default function DevPage() {
 
   const [recentTxs, setRecentTxs] = useState<`0x${string}`[]>([]);
 
-  const [simulationResults, setSimulationResults] = useState<{
+  const [_simulationResults, _setSimulationResults] = useState<{
     simulationData: any;
     tokenAddress: string;
     decodedData?: {
@@ -179,9 +179,9 @@ export default function DevPage() {
     };
   } | null>(null);
 
-  const [sortingToken, setSortingToken] = useState<string | null>(null);
-  const [farmingSortToken, setFarmingSortToken] = useState<string | null>(null);
-  const [sortingAllTokens, setSortingAllTokens] = useState(false);
+  const [_sortingToken, _setSortingToken] = useState<string | null>(null);
+  const [_farmingSortToken, _setFarmingSortToken] = useState<string | null>(null);
+  const [_sortingAllTokens, _setSortingAllTokens] = useState(false);
 
   // Use the new type in the state declaration
   const [transactionDetails, setTransactionDetails] = useState<TransactionDetails | null>(null);
@@ -195,7 +195,7 @@ export default function DevPage() {
   useEffect(() => {
     const checkServer = async () => {
       try {
-        const response = await fetch("http://localhost:3002/execute-task", {
+        const _response = await fetch("http://localhost:3002/execute-task", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -203,7 +203,7 @@ export default function DevPage() {
           body: JSON.stringify({ task: "ping" }),
         });
         setServerStatus("running");
-      } catch (error) {
+      } catch (_error) {
         setServerStatus("not-running");
       }
     };
@@ -440,7 +440,7 @@ export default function DevPage() {
       }
 
       // Process logs to decode events
-      const decodedEvents = receipt.logs.map((log, index) => {
+      const decodedEvents = receipt.logs.map((log, _index) => {
         try {
           const decoded = decodeEventLog({
             abi: combinedABI, // Use the combined ABI
@@ -454,7 +454,7 @@ export default function DevPage() {
             address: log.address,
             logIndex: log.logIndex,
           };
-        } catch (error) {
+        } catch (_error) {
           // If we can't decode with any ABI, return a raw event
           return {
             eventName: "Unknown Event (Note: This just means we probably don't have the ABI, add it in DevPage.tsx)",
@@ -930,7 +930,7 @@ export default function DevPage() {
                       <span className="font-medium">Gas Price: </span>
                       <span className="font-mono">
                         {transactionDetails.effectiveGasPrice
-                          ? (Number(transactionDetails.effectiveGasPrice) / 1e9).toFixed(2) + " gwei"
+                          ? `${(Number(transactionDetails.effectiveGasPrice) / 1e9).toFixed(2)} gwei`
                           : "N/A"}
                       </span>
                     </div>
@@ -1004,12 +1004,12 @@ const MorningAuctionDev = ({
   }, [blockQuery.data]);
 
   const [sun, setSun] = useAtom(seasonAtom);
-  const fieldQueryKeys = useFieldQueryKeys();
+  const _fieldQueryKeys = useFieldQueryKeys();
   const seasonQueryKeys = useSeasonQueryKeys();
-  const invalidateSun = useInvalidateSun();
+  const _invalidateSun = useInvalidateSun();
   const invalidateField = useInvalidateField();
   const [morning, setMorning] = useAtom(morningAtom);
-  const [freezeMorningTasks, setFreezeMorningTasks] = useAtom(morningFieldDevModeAtom);
+  const [_freezeMorningTasks, setFreezeMorningTasks] = useAtom(morningFieldDevModeAtom);
   const [isInitializing, setIsInitializing] = useState(false);
   const queryClient = useQueryClient();
 
@@ -1181,7 +1181,7 @@ function FarmerSiloDeposits() {
   const { deposits, refetch: refetchSilo } = useFarmerSilo();
   const [loading, setLoading] = useState(false);
   const [sortingToken, setSortingToken] = useState<string | null>(null);
-  const [farmingSortToken, setFarmingSortToken] = useState<string | null>(null);
+  const [farmingSortToken, _setFarmingSortToken] = useState<string | null>(null);
   const [sortingAllTokens, setSortingAllTokens] = useState(false);
   const [simulationResults, setSimulationResults] = useState<{
     simulationData: any;
@@ -1194,8 +1194,8 @@ function FarmerSiloDeposits() {
   const publicClient = usePublicClient();
   const protocolAddress = useProtocolAddress();
   const farmerSilo = useFarmerSilo();
-  const sunData = useSunData();
-  const tokenData = useTokenData();
+  const _sunData = useSunData();
+  const _tokenData = useTokenData();
   const queryClient = useQueryClient();
   const { data: walletClient } = useWalletClient();
   const [mockAddress] = useAtom(mockAddressAtom);
@@ -1362,7 +1362,7 @@ function FarmerSiloDeposits() {
 
       if ("error" in simulateFirst) {
         console.error("Transaction would fail in simulation, not submitting");
-        toast.error("Transaction would fail: " + (simulateFirst.error as any)?.shortMessage || "unknown error");
+        toast.error(`Transaction would fail: ${(simulateFirst.error as any)?.shortMessage}` || "unknown error");
         return;
       }
 
@@ -1470,7 +1470,7 @@ function FarmerSiloDeposits() {
 
       if ("error" in simulateFirst) {
         console.error("Transaction would fail in simulation, not submitting");
-        toast.error("Transaction would fail: " + (simulateFirst.error as any)?.shortMessage || "unknown error");
+        toast.error(`Transaction would fail: ${(simulateFirst.error as any)?.shortMessage}` || "unknown error");
         return;
       }
 
@@ -1528,7 +1528,7 @@ function FarmerSiloDeposits() {
         try {
           const errorSelector = errorObj.data.slice(0, 10);
           console.log("Error selector:", errorSelector);
-        } catch (e) {
+        } catch (_e) {
           console.log("Failed to parse error selector");
         }
       }
@@ -1670,7 +1670,7 @@ function FarmerSiloDeposits() {
                     </div>
 
                     {/* Display decoded data if available */}
-                    {simulationResults?.decodedData && simulationResults.decodedData.stems && (
+                    {simulationResults?.decodedData?.stems && (
                       <div className="mt-2 p-2 bg-gray-100 rounded border border-pinto-green-3">
                         <div className="text-xs font-medium text-pinto-green-4 mb-2">Decoded Sorted Deposits:</div>
                         <div className="overflow-auto max-h-[200px]">

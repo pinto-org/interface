@@ -86,7 +86,7 @@ export default function ReviewTractorOrderDialog({
   const { address } = useAccount();
   const { data: blueprintHash } = useGetBlueprintHash(blueprint);
   const [activeTab, setActiveTab] = useState<"order" | "blueprint" | "executions">("order");
-  const [decodeAbi, setDecodeAbi] = useState(false);
+  const [decodeAbi, _setDecodeAbi] = useState(false);
   const protocolAddress = useProtocolAddress();
   const navigate = useNavigate();
 
@@ -598,12 +598,11 @@ export default function ReviewTractorOrderDialog({
                             })
                             .map((execution, index) => {
                               // Calculate temperature for this execution
-                              const temperature =
-                                execution.sowEvent && execution.sowEvent.beans.gt(0)
-                                  ? execution.sowEvent.pods
-                                      .div(execution.sowEvent.beans)
-                                      .mul(100) // Convert to percentage
-                                  : TokenValue.ZERO;
+                              const temperature = execution.sowEvent?.beans.gt(0)
+                                ? execution.sowEvent.pods
+                                    .div(execution.sowEvent.beans)
+                                    .mul(100) // Convert to percentage
+                                : TokenValue.ZERO;
 
                               return (
                                 <tr key={index} className="hover:bg-gray-50 border-b">
@@ -615,9 +614,7 @@ export default function ReviewTractorOrderDialog({
                                     {execution.sowEvent ? formatter.number(execution.sowEvent.pods) : "-"}
                                   </td>
                                   <td className="px-4 py-3 text-right">
-                                    {execution.sowEvent && execution.sowEvent.beans.gt(0)
-                                      ? `${formatter.number(temperature)}%`
-                                      : "-"}
+                                    {execution.sowEvent?.beans.gt(0) ? `${formatter.number(temperature)}%` : "-"}
                                   </td>
                                   <td className="px-4 py-3 text-right text-gray-500">
                                     {shortenAddress(execution.operator)}

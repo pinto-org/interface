@@ -1190,7 +1190,7 @@ export async function loadOrderbookData(
 
         // Calculate amountSowableNextSeason as the greater of currentlySowable and minAmountToSowPerSeason
         let amountSowableNextSeason = currentlySowable;
-        if (decodedData && decodedData.sowAmounts.maxAmountToSowPerSeason) {
+        if (decodedData?.sowAmounts.maxAmountToSowPerSeason) {
           const maxAmountToSowPerSeason = TokenValue.fromBlockchain(decodedData.sowAmounts.maxAmountToSowPerSeason, 6);
           amountSowableNextSeason = TokenValue.min(currentlySowable, maxAmountToSowPerSeason);
           console.debug(`Min amount to sow per season: ${maxAmountToSowPerSeason.toHuman()}`);
@@ -1398,7 +1398,7 @@ export async function getAverageTipPaid(
             validEventCount++;
           }
         }
-      } catch (error) {
+      } catch (_error) {
         // Silently continue on error
       }
     }

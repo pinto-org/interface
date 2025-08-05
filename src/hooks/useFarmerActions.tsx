@@ -184,7 +184,7 @@ function calculatePossibleConversions(
   fromToken: Token,
   fromDepositData: TokenDepositData,
   mainToken: Token,
-  lpTokens: Token[],
+  _lpTokens: Token[],
   pools: PoolData[],
   globalDeltaB: TokenValue,
   siloData: Map<Token, SiloTokenData>,
@@ -451,7 +451,7 @@ export default function useFarmerActions(): FarmerActions {
     const hasPintoDeposited = pintoDeposit ? pintoDeposit.amount.gt(0) : false;
 
     // Calculate reward claims
-    const claimRewardsOutput: ActionOutput = {
+    const _claimRewardsOutput: ActionOutput = {
       beanGain: farmerSilo.earnedBeansBalance, // Track beans even though they'll be deposited
       bdvGain: farmerSilo.earnedBeansBalance, // BDV of beans is 1:1
       stalkGain: farmerSilo.grownStalkReward.add(

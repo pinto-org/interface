@@ -1,37 +1,18 @@
 import LineChart, { LineChartData } from "@/components/charts/LineChart";
+import { TimeTab } from "@/components/charts/TimeTabs";
 import { getAreaGradientFunctions, gradientFunctions } from "@/components/charts/chartHelpers";
+import { useFarmerHistoricalTokensBDV, useTimeRangeSeasons } from "@/state/seasonal/seasonalDataHooks";
+import useTokenData from "@/state/useTokenData";
 import { chartFormatters as f, formatDate } from "@/utils/format";
+import { Token, UseSeasonalResult } from "@/utils/types";
 import { cn } from "@/utils/utils";
 import React, { useMemo, useCallback, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface SimpleValueChartProps {
   className?: string;
+  timeTab?: TimeTab;
 }
-
-// Token colors and names from constants/tokens.ts
-const TOKEN_INFO = {
-  PINTO: { color: "#246645", name: "PINTO" },
-  PINTOUSDC: { color: "#2775CA", name: "PINTO-USDC" },
-  PINTOCBBTC: { color: "#F7931A", name: "PINTO-cbBTC" },
-  PINTOCBETH: { color: "#0052FF", name: "PINTO-cbETH" },
-  SPINTO: { color: "#246645", name: "sPINTO" },
-};
-
-const TOKEN_KEYS = Object.keys(TOKEN_INFO) as (keyof typeof TOKEN_INFO)[];
-const TOKEN_COLORS = Object.fromEntries(Object.entries(TOKEN_INFO).map(([key, value]) => [key, value.color])) as Record<
-  keyof typeof TOKEN_INFO,
-  string
->;
-
-// Token address mapping for navigation to silo token pages
-const TOKEN_ADDRESS_MAP = {
-  PINTO: "0xb170000aeeFa790fa61D6e837d1035906839a3c8",
-  PINTOUSDC: "0x3e1133aC082716DDC3114bbEFEeD8B1731eA9cb1",
-  PINTOCBBTC: "0x3e11226fe3d85142B734ABCe6e58918d5828d1b4",
-  PINTOCBETH: "0x3e111115A82dF6190e36ADf0d552880663A4dBF1",
-  SPINTO: "sPinto", // Special route
-} as Record<keyof typeof TOKEN_INFO, string>;
 
 // Convert hex to rgb values for rgba
 const hexToRgb = (hex: string) => {
@@ -66,19 +47,62 @@ const createTokenFadeGradient = (baseColor: string, opacity: number = 0.5, isHig
   };
 };
 
-// Simple mock data for testing - base values for 5 tokens before stacking
-const baseData: LineChartData[] = [
-  { timestamp: 1641024000000, values: [80, 40, 30, 25, 45] }, // Total: 220
-  { timestamp: 1641110400000, values: [90, 45, 35, 30, 50] }, // Total: 250
-  { timestamp: 1641196800000, values: [85, 42, 32, 28, 48] }, // Total: 235
-  { timestamp: 1641283200000, values: [95, 48, 38, 32, 52] }, // Total: 265
-  { timestamp: 1641369600000, values: [100, 50, 40, 35, 55] }, // Total: 280
-  { timestamp: 1641456000000, values: [98, 49, 39, 34, 53] }, // Total: 273
-  { timestamp: 1641542400000, values: [105, 52, 42, 36, 58] }, // Total: 293
-];
+/**
+ * Merge historical BDV data from multiple token queries into a unified timeline
+ * Creates LineChartData format with all tokens for each timestamp
+ */
+const mergeTokenHistoricalData = (
+  tokenQueries: { [address: string]: UseSeasonalResult },
+  tokens: Token[],
+): { chartData: LineChartData[]; baseData: LineChartData[] } => {
+  // Guard against undefined inputs
+  if (!tokenQueries || !tokens || !tokens.length) {
+    return { chartData: [], baseData: [] };
+  }
+
+  // Find all unique timestamps across all farmer's token positions
+  const allTimestamps = new Set<number>();
+  Object.values(tokenQueries).forEach((query) => {
+    query.data?.forEach((item) => allTimestamps.add(item.timestamp.getTime()));
+  });
+
+  // Sort timestamps chronologically
+  const sortedTimestamps = Array.from(allTimestamps).sort();
+
+  // Create complete dataset with all tokens for each timestamp
+  const chartData: LineChartData[] = sortedTimestamps.map((timestamp) => {
+    const values = tokens.map((token) => {
+      const tokenData = tokenQueries[token.address]?.data;
+      const dataPoint = tokenData?.find((item) => item.timestamp.getTime() === timestamp);
+      return dataPoint?.value || 0; // 0 BDV if no deposits for this token
+    });
+
+    return { timestamp, values };
+  });
+
+  // Also return base data (before stacking) for display purposes
+  const baseData = [...chartData];
+
+  return { chartData, baseData };
+};
 
 // Transform data to stacked format (cumulative, ordered from least to most value)
 const transformToStackedData = (data: LineChartData[]): { stackedData: LineChartData[]; seriesOrder: number[] } => {
+  console.log("transformToStackedData called with:", data);
+
+  // Guard against empty or invalid data
+  if (
+    !data ||
+    !data.length ||
+    !data[0] ||
+    !data[0].values ||
+    !Array.isArray(data[0].values) ||
+    data[0].values.length === 0
+  ) {
+    console.log("transformToStackedData: returning empty due to invalid data");
+    return { stackedData: [], seriesOrder: [] };
+  }
+
   // First, calculate the average value for each series to determine stacking order
   const seriesAverages = new Array(data[0].values.length).fill(0);
 
@@ -113,48 +137,90 @@ const transformToStackedData = (data: LineChartData[]): { stackedData: LineChart
   return { stackedData, seriesOrder };
 };
 
-const { stackedData: mockData, seriesOrder } = transformToStackedData(baseData);
-
-const SimpleValueChart = React.memo(({ className }: SimpleValueChartProps) => {
-  const [displayIndex, setDisplayIndex] = useState<number>(mockData.length - 1);
-  const displayIndexRef = useRef<number>(mockData.length - 1);
+const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: SimpleValueChartProps) => {
   const navigate = useNavigate();
+
+  // Hooks for data fetching
+  const { whitelistedTokens } = useTokenData();
+  const { from, to } = useTimeRangeSeasons(timeTab);
+  const tokenQueries = useFarmerHistoricalTokensBDV(from, to, whitelistedTokens || []);
+
+  // Loading and error states
+  console.log("CHART DEBUG - tokenQueries:", tokenQueries, "whitelistedTokens:", whitelistedTokens);
+
+  const tokenQueriesValues = Object.values(tokenQueries || {});
+  const isLoading = tokenQueriesValues.length > 0 && tokenQueriesValues.some((query) => query?.isLoading);
+  const hasError = tokenQueriesValues.length > 0 && tokenQueriesValues.some((query) => query?.isError);
+  const hasData =
+    tokenQueriesValues.length > 0 && tokenQueriesValues.some((query) => query?.data && query.data.length > 0);
+
+  // Merge token data into unified timeline
+  const { chartData: rawChartData, baseData } = useMemo(() => {
+    console.log("rawChartData:");
+    if (!hasData || !whitelistedTokens || !whitelistedTokens.length) {
+      // Return empty data structure if no data or tokens not loaded
+      console.log("No data or tokens not loaded");
+      return { chartData: [], baseData: [] };
+    }
+    return mergeTokenHistoricalData(tokenQueries, whitelistedTokens);
+  }, [tokenQueries, whitelistedTokens, hasData]);
+
+  // Transform to stacked format
+  const { stackedData, seriesOrder } = useMemo(() => {
+    if (!rawChartData || !rawChartData.length) {
+      return { stackedData: [], seriesOrder: [] };
+    }
+    return transformToStackedData(rawChartData);
+  }, [rawChartData]);
+
+  // Chart data state
+  const [displayIndex, setDisplayIndex] = useState<number>(0);
+  const displayIndexRef = useRef<number>(0);
+
+  // Update display index when data changes
+  React.useEffect(() => {
+    if (stackedData.length > 0) {
+      const newIndex = stackedData.length - 1;
+      setDisplayIndex(newIndex);
+      displayIndexRef.current = newIndex;
+    }
+  }, [stackedData.length]);
 
   // Update ref when state changes
   React.useEffect(() => {
     displayIndexRef.current = displayIndex;
   }, [displayIndex]);
 
-  // Static chart data - no complex dependencies
-  const chartData = useMemo(() => mockData, []);
-
   // Calculate max value with 10% padding for better visual spacing
   const maxDataValue = useMemo(() => {
-    const max = mockData.reduce((acc, item) => Math.max(acc, ...item.values), 0);
-    return max * 1.1; // Add 10% padding
-  }, []);
+    if (!stackedData || !stackedData.length) return 100; // Default value for empty state
+    const max = stackedData.reduce((acc, item) => Math.max(acc, ...item.values), 0);
+    return Math.max(max * 1.1, 1); // Add 10% padding, minimum of 1
+  }, [stackedData]);
 
   // Token-specific line gradients with solid colors (for borders)
-  // Static gradients - no dependencies to prevent re-renders
   const lineGradients = useMemo(() => {
+    if (!whitelistedTokens || !whitelistedTokens.length || !seriesOrder || !seriesOrder.length) return [];
+
     const gradients = seriesOrder.map((originalIndex) => {
-      const tokenKey = TOKEN_KEYS[originalIndex];
-      const color = TOKEN_COLORS[tokenKey];
+      const token = whitelistedTokens[originalIndex];
+      const color = token?.color || "#246645"; // Fallback to Pinto green
       return gradientFunctions.solid(color);
     });
     return gradients;
-  }, []);
+  }, [whitelistedTokens, seriesOrder]);
 
   // Area gradients with fade-over-time effect - strong colors that fade to light over time
-  // Static gradients - no dependencies to prevent re-renders
   const areaGradients = useMemo(() => {
+    if (!whitelistedTokens || !whitelistedTokens.length || !seriesOrder || !seriesOrder.length) return [];
+
     const gradients = seriesOrder.map((originalIndex) => {
-      const tokenKey = TOKEN_KEYS[originalIndex];
-      const color = TOKEN_COLORS[tokenKey];
+      const token = whitelistedTokens[originalIndex];
+      const color = token?.color || "#246645"; // Fallback to Pinto green
       return createTokenFadeGradient(color, 0.1, true);
     });
     return gradients;
-  }, []);
+  }, [whitelistedTokens, seriesOrder]);
 
   // Static props
   const lineChartProps = useMemo(
@@ -178,38 +244,95 @@ const SimpleValueChart = React.memo(({ className }: SimpleValueChartProps) => {
   // Handle chart section click for navigation
   const handleChartClick = useCallback(
     (datasetIndex: number) => {
-      if (typeof datasetIndex === "number" && datasetIndex >= 0 && datasetIndex < TOKEN_KEYS.length) {
+      if (
+        typeof datasetIndex === "number" &&
+        datasetIndex >= 0 &&
+        whitelistedTokens &&
+        datasetIndex < whitelistedTokens.length &&
+        seriesOrder &&
+        seriesOrder.length > 0
+      ) {
         // Map from chart dataset index to original token index using seriesOrder
         const originalTokenIndex = seriesOrder[datasetIndex];
-        const tokenKey = TOKEN_KEYS[originalTokenIndex];
-        const tokenAddress = TOKEN_ADDRESS_MAP[tokenKey];
+        const token = whitelistedTokens[originalTokenIndex];
 
-        if (tokenAddress) {
-          const navigationPath = tokenAddress === "sPinto" ? "/sPinto" : `/silo/${tokenAddress}`;
+        if (token) {
+          // Navigate to silo token page
+          const navigationPath = `/silo/${token.address}`;
           navigate(navigationPath);
         }
       }
     },
-    [navigate],
+    [navigate, whitelistedTokens, seriesOrder],
   );
 
   // Prepare token names and base data for tooltip
   const tokenNames = useMemo(() => {
+    if (!seriesOrder || !seriesOrder.length || !whitelistedTokens || !whitelistedTokens.length) return [];
+
     const names = seriesOrder.map((originalIndex) => {
-      const tokenKey = TOKEN_KEYS[originalIndex];
-      return TOKEN_INFO[tokenKey].name;
+      const token = whitelistedTokens[originalIndex];
+      return token?.symbol || token?.name || "Unknown Token";
     });
     return names;
-  }, []);
+  }, [seriesOrder, whitelistedTokens]);
 
   const baseDataValues = useMemo(() => {
+    if (!baseData || !baseData.length || !seriesOrder || !seriesOrder.length) return [];
+
     const values = baseData.map((item) => {
-      return seriesOrder.map((originalIndex) => item.values[originalIndex]);
+      return seriesOrder.map((originalIndex) => item.values[originalIndex] || 0);
     });
     return values;
-  }, []);
+  }, [baseData, seriesOrder]);
 
-  const currentDisplayData = chartData[displayIndex];
+  // Handle empty states
+  if (isLoading) {
+    return (
+      <div className={cn("rounded-[20px] bg-gray-1", className)}>
+        <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
+          <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
+            My Token Value Distribution
+          </div>
+        </div>
+        <div className="h-[300px] flex items-center justify-center">
+          <div className="text-pinto-light">Loading chart data...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <div className={cn("rounded-[20px] bg-gray-1", className)}>
+        <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
+          <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
+            My Token Value Distribution
+          </div>
+        </div>
+        <div className="h-[300px] flex items-center justify-center">
+          <div className="text-pinto-light">Error loading chart data</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasData || !stackedData.length) {
+    return (
+      <div className={cn("rounded-[20px] bg-gray-1", className)}>
+        <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
+          <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
+            My Token Value Distribution
+          </div>
+        </div>
+        <div className="h-[300px] flex items-center justify-center">
+          <div className="text-pinto-light">No deposit history found</div>
+        </div>
+      </div>
+    );
+  }
+
+  const currentDisplayData = stackedData[displayIndex];
   const currentBaseData = baseData[displayIndex];
 
   return (
@@ -217,7 +340,7 @@ const SimpleValueChart = React.memo(({ className }: SimpleValueChartProps) => {
       <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
         <div className="flex flex-row gap-1 items-center">
           <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
-            Token Value Distribution
+            My Token Value Distribution
           </div>
         </div>
       </div>
@@ -229,7 +352,7 @@ const SimpleValueChart = React.memo(({ className }: SimpleValueChartProps) => {
       <div className="aspect-3/1">
         <div className="px-1 pt-2 pb-4 h-[300px] sm:px-4 sm:pt-4">
           <LineChart
-            data={chartData}
+            data={stackedData}
             {...lineChartProps}
             makeLineGradients={lineGradients}
             makeAreaGradients={areaGradients}
@@ -260,11 +383,13 @@ const TokenDisplayData = ({
   const timestamp = new Date(displayData.timestamp as number);
 
   // Create token value breakdown for display - use seriesOrder to match stacking
+  const { whitelistedTokens } = useTokenData();
+
   const tokenBreakdown = seriesOrder.map((originalIndex) => {
-    const key = TOKEN_KEYS[originalIndex];
+    const token = whitelistedTokens[originalIndex];
     return {
-      name: TOKEN_INFO[key].name,
-      color: TOKEN_INFO[key].color,
+      name: token?.symbol || token?.name || "Unknown Token",
+      color: token?.color || "#246645", // Fallback to Pinto green
       baseValue: baseData.values[originalIndex],
       cumulativeValue: displayData.values[originalIndex],
     };

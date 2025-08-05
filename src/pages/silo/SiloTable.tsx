@@ -66,7 +66,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
     return filtered;
   }, [farmerDeposits, priceData.price, mayBeWhitelistedTokens, mainToken, siloData.tokenData]);
 
-  const claimEnabled = farmerActions.claimRewards.enabled;
+  const _claimEnabled = farmerActions.claimRewards.enabled;
   const earnedPinto = farmerActions.claimRewards.outputs.beanGain.gt(0.01);
   const gains = farmerActions.claimRewards.outputs;
   const navigate = useNavigate();
@@ -127,8 +127,8 @@ function SiloTable({ hovering }: { hovering: boolean }) {
               (userData?.currentBDV.gt(0) ? userData.currentBDV : userData?.depositBDV) ?? TokenValue.ZERO;
 
             const currentBDV = userData ? userData.currentBDV : TokenValue.ZERO;
-            const depositBDV = userData ? userData.depositBDV : TokenValue.ZERO;
-            const amount = userData ? userData.amount : TokenValue.ZERO;
+            const _depositBDV = userData ? userData.depositBDV : TokenValue.ZERO;
+            const _amount = userData ? userData.amount : TokenValue.ZERO;
 
             const _pool = priceData.pools.find((poolData) => stringEq(poolData.pool.address, token.address));
             const _poolPrice = _pool?.price ?? TokenValue.ZERO;

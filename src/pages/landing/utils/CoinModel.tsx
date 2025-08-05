@@ -25,7 +25,7 @@ const CoinModel: React.FC<CoinModelProps> = ({
   // Load the model using GLTFLoader
   const gltf = useLoader(GLTFLoader, "3DPinto.glb");
   const modelRef = useRef<any>();
-  const currentPosition = new Vector3(0, 0, 0);
+  const _currentPosition = new Vector3(0, 0, 0);
   const targetPosition = useRef(new Vector3(20, 0, 0));
   const scaleSetRef = useRef(false); // Tracks if scaling is complete
   const [rotateDirection, setRotateDirection] = useState(-0.005);
@@ -102,7 +102,7 @@ const CoinModel: React.FC<CoinModelProps> = ({
       // Scale up the model
       const targetScale = new Vector3(12, 12, 12); // Desired scale
       const currentScale = modelRef.current.scale;
-      const targetRotation = new Vector3(0, Math.PI * 10, 0); // 360 degrees in Y-axis
+      const _targetRotation = new Vector3(0, Math.PI * 10, 0); // 360 degrees in Y-axis
 
       if (currentScale.distanceTo(targetScale) > 0.06) {
         // Lerp the scale
@@ -128,7 +128,7 @@ const CoinModel: React.FC<CoinModelProps> = ({
           // const endColorOuterRing = new Color(0x45906a); // Outer ring and face
           // const endColorInnerRing = new Color(0x68ad8b); // Inner ring
 
-          const progress = Math.min(Math.max((currentScale.x - 10) / (12 - 10), 0), 1);
+          const _progress = Math.min(Math.max((currentScale.x - 10) / (12 - 10), 0), 1);
 
           if (child.material.name === "coinouterring") {
             // child.material.color.lerpColors(startColor, endColorOuterRing, progress);
@@ -163,7 +163,7 @@ const CoinModel: React.FC<CoinModelProps> = ({
         (currentRotation > preSideThreshold && currentRotation < postSideThreshold) ||
         (currentRotation < negPreSideThreshold && currentRotation > negPostSideThreshold)
       ) {
-        const distanceToThreshold = Math.min(
+        const _distanceToThreshold = Math.min(
           Math.abs(currentRotation - preSideThreshold),
           Math.abs(currentRotation - negPreSideThreshold),
         );

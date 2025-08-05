@@ -12,12 +12,12 @@ import { PublicClient, decodeAbiParameters, encodeFunctionData } from "viem";
 
 // Constants for deposit management
 const MIN_DEPOSITS_FOR_COMBINING = 25; // Minimum deposits to trigger combining logic
-const MIN_DEPOSITS_FOR_ELIGIBILITY = 20; // Combine down to this many deposits
-const PROCESS_SINGLE_TOKEN_ONLY_THRESHOLD = 200; // If a single token has more than this many deposits, process it alone
-const LARGE_DEPOSITS_THRESHOLD = 100; // If a single token has more than this many deposits, process it along with not more than the next variable's worth of tokens at time
-const MAX_TOKENS_WITH_LARGE_DEPOSITS = 3; // Maximum number of tokens to process when large deposits are present
-const MAX_TOP_DEPOSITS = 10; // Maximum number of deposits to L2L update in regular Claim
-const MIN_BDV_THRESHOLD = TokenValue.ONE; // Minimum BDV difference threshold for regular updates, this filters out "dust" updates that are not worth L2L'ing
+const _MIN_DEPOSITS_FOR_ELIGIBILITY = 20; // Combine down to this many deposits
+const _PROCESS_SINGLE_TOKEN_ONLY_THRESHOLD = 200; // If a single token has more than this many deposits, process it alone
+const _LARGE_DEPOSITS_THRESHOLD = 100; // If a single token has more than this many deposits, process it along with not more than the next variable's worth of tokens at time
+const _MAX_TOKENS_WITH_LARGE_DEPOSITS = 3; // Maximum number of tokens to process when large deposits are present
+const _MAX_TOP_DEPOSITS = 10; // Maximum number of deposits to L2L update in regular Claim
+const _MIN_BDV_THRESHOLD = TokenValue.ONE; // Minimum BDV difference threshold for regular updates, this filters out "dust" updates that are not worth L2L'ing
 
 const USE_SIMULATION_METHOD = false; // Turning this off for now because it fails due to a complex simulation issue, instead it gets sorted deposits within txn
 
@@ -167,7 +167,7 @@ function decodeSortedDepositsResult(
       // Extract stems
       for (let i = 0; i < stemCount; i++) {
         const stemHex = hexData.slice(stemStartPos + i * 64, stemStartPos + (i + 1) * 64);
-        const stemValue = BigInt("0x" + stemHex);
+        const stemValue = BigInt(`0x${stemHex}`);
         stems.push(stemValue);
       }
 
@@ -182,7 +182,7 @@ function decodeSortedDepositsResult(
         const amountStartPos = amountCountPosition + 64;
         for (let i = 0; i < amountCount; i++) {
           const amountHex = hexData.slice(amountStartPos + i * 64, amountStartPos + (i + 1) * 64);
-          const amountValue = BigInt("0x" + amountHex);
+          const amountValue = BigInt(`0x${amountHex}`);
           amounts.push(amountValue);
         }
 
@@ -527,7 +527,7 @@ export function createSmartGroups(deposits: DepositData[], targetGroups: number 
     const isLastDeposit = index === slicedDeposits.length - 1;
 
     const shouldBreak = isBreakpoint || isLastDeposit;
-    const wouldLeaveSmallDeposit = nextDeposit && nextDeposit.bdv.lte(MIN_BDV);
+    const wouldLeaveSmallDeposit = nextDeposit?.bdv.lte(MIN_BDV);
 
     if (shouldBreak && !wouldLeaveSmallDeposit) {
       if (currentGroup.length > 0) {

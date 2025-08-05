@@ -22,7 +22,7 @@ interface PlowDetailsProps {
 export function PlowDetails({ requisition, isOpen, onClose, onSuccess }: PlowDetailsProps) {
   const { address } = useAccount();
   const protocolAddress = useProtocolAddress();
-  const [isSimulating, setIsSimulating] = useState(false);
+  const [_isSimulating, setIsSimulating] = useState(false);
   const publicClient = usePublicClient();
   const queryClient = useQueryClient();
 
@@ -46,7 +46,7 @@ export function PlowDetails({ requisition, isOpen, onClose, onSuccess }: PlowDet
     successCallback: handleSuccess,
   });
 
-  const handlePlow = useCallback(async () => {
+  const _handlePlow = useCallback(async () => {
     if (!requisition || !protocolAddress) return;
     setSubmitting(true);
 
@@ -71,7 +71,7 @@ export function PlowDetails({ requisition, isOpen, onClose, onSuccess }: PlowDet
     }
   }, [requisition, protocolAddress, writeWithEstimateGas, setSubmitting]);
 
-  const handleSimulate = useCallback(async () => {
+  const _handleSimulate = useCallback(async () => {
     if (!requisition || !protocolAddress || !publicClient) return;
     setIsSimulating(true);
 

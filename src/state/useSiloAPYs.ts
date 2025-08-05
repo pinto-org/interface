@@ -210,7 +210,7 @@ export const useAverageBDVWeightedSiloAPYs = () => {
       const yield24 = apyResponse.yields[24]?.[tokenIndex]?.bean;
       const yield168 = apyResponse.yields[168]?.[tokenIndex]?.bean;
       const yield720 = apyResponse.yields[720]?.[tokenIndex]?.bean;
-      const yield2160 = 0; // apyResponse.yields[2160]?.[tokenIndex]?.bean;
+      const _yield2160 = 0; // apyResponse.yields[2160]?.[tokenIndex]?.bean;
 
       const weightedYield24 = yield24 ? yield24 * depositedBDV.toNumber() : 0;
       const weightedYield168 = yield168 ? yield168 * depositedBDV.toNumber() : 0;

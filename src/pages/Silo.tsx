@@ -50,8 +50,8 @@ function Silo() {
   const priceData = usePriceData();
   const mainToken = tokenData.mainToken;
   const { submitClaimRewards } = useClaimRewards();
-  const navigate = useNavigate();
-  const isSmallDesktop = useIsSmallDesktop();
+  const _navigate = useNavigate();
+  const _isSmallDesktop = useIsSmallDesktop();
 
   const pintoWETHLP = useChainConstant(PINTO_WETH_TOKEN);
   const pintoWSOLLP = useChainConstant(PINTO_WSOL_TOKEN);
@@ -64,11 +64,11 @@ function Silo() {
   const isBelowValueTarget = priceData.price.lt(VALUE_TARGET);
 
   // Action states
-  const convertEnabled = farmerActions.convertDeposits.enabled && isBelowValueTarget;
-  const convertFrom = farmerActions.convertDeposits.bestConversion.from;
-  const convertTo = farmerActions.convertDeposits.bestConversion.to;
+  const _convertEnabled = farmerActions.convertDeposits.enabled && isBelowValueTarget;
+  const _convertFrom = farmerActions.convertDeposits.bestConversion.from;
+  const _convertTo = farmerActions.convertDeposits.bestConversion.to;
   const bestDepositToken = farmerActions.optimalDepositToken?.token;
-  const bestDeposit =
+  const _bestDeposit =
     bestDepositToken && !tokensEqual(bestDepositToken, pintoWETHLP) && !tokensEqual(bestDepositToken, pintoWSOLLP)
       ? bestDepositToken
       : undefined;

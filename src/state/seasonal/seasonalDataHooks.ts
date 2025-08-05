@@ -1,8 +1,10 @@
 import { TV } from "@/classes/TokenValue";
+import { TimeTab } from "@/components/charts/TimeTabs";
 import { PODS, STALK } from "@/constants/internalTokens";
 import { MAIN_TOKEN, PINTO, S_MAIN_TOKEN } from "@/constants/tokens";
 import { SiloHourlySnapshot } from "@/generated/gql/pintostalk/graphql";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { useSeason } from "@/state/useSunData";
 import { useChainConstant } from "@/utils/chain";
 import { Token, UseSeasonalResult } from "@/utils/types";
 import { HashString } from "@/utils/types.generic";
@@ -414,4 +416,71 @@ export function useSeasonalTractorUniquePublishers(fromSeason: number, toSeason:
     value: data.uniquePublishers,
     timestamp: new Date(data.snapshotTimestamp),
   }));
+}
+
+/** ==================== Multi-Token Historical BDV ==================== **/
+
+/**
+ * Hook to fetch historical BDV data for multiple tokens for a specific farmer
+ * Returns a map of token addresses to their seasonal BDV data
+ */
+export function useFarmerHistoricalTokensBDV(
+  fromSeason: number,
+  toSeason: number,
+  tokens: Token[],
+): { [tokenAddress: string]: UseSeasonalResult } {
+  const { address } = useAccount();
+
+  // Create parallel queries for each whitelisted token
+  const tokenQueries = useMemo(() => {
+    console.log("HOOK DEBUG - useFarmerHistoricalTokensBDV:", { address, tokens, tokensLength: tokens?.length });
+
+    if (!address || !tokens || !tokens.length) {
+      return {};
+    }
+
+    return tokens.reduce(
+      (acc, token) => {
+        // @ts-ignore
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        acc[token.address] = useSeasonalFarmerSiloAssetTokenSG(
+          fromSeason,
+          toSeason,
+          token.address,
+          address,
+          (siloAssetHourly, timestamp) => ({
+            season: Number(siloAssetHourly.season),
+            value: TV.fromBlockchain(siloAssetHourly.depositedBDV, PINTO.decimals).toNumber(),
+            timestamp,
+          }),
+        );
+        return acc;
+      },
+      {} as { [tokenAddress: string]: UseSeasonalResult },
+    );
+  }, [fromSeason, toSeason, tokens, address]);
+
+  return tokenQueries;
+}
+
+/**
+ * Hook to calculate season range based on selected time tab
+ * Returns from/to season numbers for the selected time period
+ */
+export function useTimeRangeSeasons(timeTab: TimeTab): { from: number; to: number } {
+  const currentSeason = useSeason();
+
+  return useMemo(() => {
+    const now = currentSeason;
+    switch (timeTab) {
+      case TimeTab.Week:
+        return { from: Math.max(1, now - 168), to: now }; // 7 days * 24 hours
+      case TimeTab.Month:
+        return { from: Math.max(1, now - 720), to: now }; // 30 days * 24 hours
+      case TimeTab.AllTime:
+        return { from: 1, to: now }; // From protocol start
+      default:
+        return { from: Math.max(1, now - 720), to: now };
+    }
+  }, [timeTab, currentSeason]);
 }

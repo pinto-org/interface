@@ -194,10 +194,10 @@ export function Market() {
           // Basically all of this is custom logic for 3 different breakpoints to either display the tooltip to the top right or bottom right of the point.
           const topOfPoint = position.y + getPointTopOffset();
           const bottomOfPoint = position.y + getPointBottomOffset();
-          tooltipEl.style.top = dataPoint.y > 0.8 ? bottomOfPoint : topOfPoint + "px"; // Position relative to point y
+          tooltipEl.style.top = dataPoint.y > 0.8 ? bottomOfPoint : `${topOfPoint}px`; // Position relative to point y
           // end custom logic
-          tooltipEl.style.left = position.x + "px"; // Position relative to point x
-          tooltipEl.style.padding = context.tooltip.options.padding + "px " + context.tooltip.options.padding + "px";
+          tooltipEl.style.left = `${position.x}px`; // Position relative to point x
+          tooltipEl.style.padding = `${context.tooltip.options.padding}px ${context.tooltip.options.padding}px`;
           const listingHeader = `
            <div class="flex items-center">
             <img src="${PodIcon}" class="w-4 h-4 scale-110 mr-[6px]" alt="pod icon">
@@ -263,7 +263,7 @@ export function Market() {
     [mode],
   );
 
-  const onPointClick = (event: ChartEvent, activeElements: ActiveElement[], chart: Chart) => {
+  const onPointClick = (_event: ChartEvent, activeElements: ActiveElement[], _chart: Chart) => {
     const dataPoint = scatterChartData[activeElements[0].datasetIndex].data[activeElements[0].index] as any;
     if (dataPoint.eventType === "LISTING") {
       navigate(`/market/pods/buy/${dataPoint.eventIndex.toString().replace(".", "")}`);

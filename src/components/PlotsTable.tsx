@@ -257,6 +257,17 @@ export default function PlotsTable({
 }) {
   const farmerField = useFarmerField();
   const harvestableIndex = useHarvestableIndex();
+
+  // Performance logging
+  React.useEffect(() => {
+    console.log("📊 [PERFORMANCE] PlotsTable rendered at:", new Date().toISOString());
+    console.log("📊 [PERFORMANCE] PlotsTable data:", {
+      plotsCount: farmerField.plots.length,
+      isLoading: farmerField.isLoading,
+      hasHarvestableIndex: !!harvestableIndex,
+    });
+    console.timeEnd("📊 PlotsTable Render");
+  }, [farmerField.plots.length, farmerField.isLoading, harvestableIndex]);
   const isMobile = useIsMobile();
 
   const hasHarvestablePods = farmerField.plots.some((plot) => plot.harvestablePods.gt(0));

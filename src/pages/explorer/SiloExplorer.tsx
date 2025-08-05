@@ -128,7 +128,7 @@ const TotalDepositedPDVChart = React.memo(({ season }: ISeason) => {
   );
 });
 
-const AvgSeedsChart = React.memo(({ season }: ISeason) => {
+const _AvgSeedsChart = React.memo(({ season }: ISeason) => {
   const [avgSeedsTab, setAvgSeedsTab] = useTimeTabs("avgSeeds");
 
   const avgSeedsData = useSeasonalAvgSeeds(Math.max(0, season - tabToSeasonalLookback(avgSeedsTab)), season);

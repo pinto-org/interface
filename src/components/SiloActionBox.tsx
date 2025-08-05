@@ -18,12 +18,12 @@ interface SiloActionBoxProps {
 
 export default function SiloActionBox({ farmerDeposits, token }: SiloActionBoxProps) {
   const farmerActions = useFarmerActions();
-  const enableClaim =
+  const _enableClaim =
     farmerActions.claimRewards.outputs.beanGain.gte(0.01) ||
     farmerActions.claimRewards.outputs.stalkGain.gte(0.01) ||
     farmerActions.claimRewards.outputs.seedGain.gte(0.01);
   const navigate = useNavigate();
-  const [combineData, setCombineData] = useState<DepositTransferData[]>([]);
+  const [_combineData, setCombineData] = useState<DepositTransferData[]>([]);
 
   // Calculate number of non-germinating deposits
   const nonGerminatingDeposits = farmerDeposits?.deposits.filter((deposit) => !deposit.isGerminating).length ?? 0;

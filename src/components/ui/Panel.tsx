@@ -22,7 +22,7 @@ export const Sidebar = ({ isOpen, side, fitHeight = true, className, ...props }:
     return isOpen ? `translate-x-6` : `translate-x-full`;
   }, [isOpen, side]);
 
-  const heightClasses = fitHeight
+  const _heightClasses = fitHeight
     ? `top-4 max-h-[calc(100vh-${renderAnnouncement ? 8 : 6}rem)] h-fit`
     : `top-0 max-h-screen h-screen`;
 

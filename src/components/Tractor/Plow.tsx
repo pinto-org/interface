@@ -40,13 +40,13 @@ const extractErrorMessage = (error: unknown): string => {
       const reasonPattern = /following reason:\s*(.*?)(?:\s*\n\s*Contract Call:|$)/s;
       const reasonMatch = message.match(reasonPattern);
 
-      if (reasonMatch && reasonMatch[1]) {
+      if (reasonMatch?.[1]) {
         return reasonMatch[1].trim();
       }
 
       // Fallback to simpler pattern
       const simpleMatch = message.match(/execution reverted: (.+?)(?:\n|$)/);
-      if (simpleMatch && simpleMatch[1]) {
+      if (simpleMatch?.[1]) {
         return simpleMatch[1].trim();
       }
 
@@ -451,7 +451,7 @@ export function Plow() {
       });
 
       try {
-        const result = await publicClient.simulateContract({
+        const _result = await publicClient.simulateContract({
           address: protocolAddress,
           abi: diamondABI,
           functionName: "tractor",

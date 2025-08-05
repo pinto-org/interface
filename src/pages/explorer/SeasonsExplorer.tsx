@@ -131,7 +131,7 @@ const SeasonsExplorer = () => {
     setJumpToSeason(season);
   };
 
-  const handleJumpToSeason = (e: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLInputElement>) => {
+  const handleJumpToSeason = (_e: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLInputElement>) => {
     const seasonToJumpTo = calculateSeasonPageToJump(jumpToSeason);
     setPage(seasonToJumpTo);
     setDisplayPage(seasonToJumpTo);

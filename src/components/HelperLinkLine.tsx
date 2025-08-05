@@ -73,7 +73,7 @@ const HelperLinkLine = ({
   });
 
   const componentRef = useRef<HTMLDivElement | null>(null);
-  const observerRef = useRef<MutationObserver | null>(null);
+  const _observerRef = useRef<MutationObserver | null>(null);
   const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const applyOffset = (point: Point, anchor: AnchorPoint, offset: number): Point => {

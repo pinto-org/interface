@@ -399,8 +399,8 @@ const getSelectionCallbackPlugin = (onMouseOver?: (index: number) => void): Plug
 
 const getInteractiveChartPlugin = (
   onChartClick?: (datasetIndex: number) => void,
-  tokenNames?: string[],
-  baseDataValues?: number[][],
+  _tokenNames?: string[],
+  _baseDataValues?: number[][],
 ): Plugin => {
   let clickHandler: ((event: any) => void) | null = null;
 
@@ -567,7 +567,7 @@ export const plugins = {
 // ---------------------------------------------------------------------------------------------------------------------
 
 const getXScaleGridColor = (activeIndex: number | undefined) => (context: ScriptableScaleContext) => {
-  const tickLabel = context.tick && context.tick.label;
+  const tickLabel = context.tick?.label;
   if (typeof activeIndex === "number") {
     if (tickLabel && tickLabel !== "") {
       return "rgba(0, 0, 0, 0.1)";

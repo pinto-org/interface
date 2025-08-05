@@ -27,7 +27,7 @@ function DepositTimer({ token, date }: DepositTimerProps) {
 }
 
 export default function GerminationNotice(props: GerminationNoticeProps) {
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, _setCurrentTime] = useState(new Date());
   const [show, setShow] = useState(false);
 
   useEffect(() => {

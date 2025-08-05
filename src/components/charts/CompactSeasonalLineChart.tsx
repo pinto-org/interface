@@ -112,7 +112,7 @@ const CompactSeasonalLineChart = ({
         label: labels[i],
       })),
       labels: labels,
-      yAxisConfigs: (allData ?? []).map((data, i) => ({
+      yAxisConfigs: (allData ?? []).map((_data, i) => ({
         id: `y${i + 1}`,
         position: i === 0 ? "left" : ("right" as NonNullable<MultiAxisYAxisConfig["position"]>),
         min: minmax.min,

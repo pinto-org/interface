@@ -211,7 +211,7 @@ export const getTokenNameByIndex = (index: number): string => {
       // Try to get token from chain tokens
       const token = getChainToken(8453, address); // Base chain ID
       return token.symbol;
-    } catch (error) {
+    } catch (_error) {
       // If token lookup fails, return address with index
       return `Token ${index} (${address.slice(0, 6)}...${address.slice(-4)})`;
     }

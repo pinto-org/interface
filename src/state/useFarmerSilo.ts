@@ -485,7 +485,7 @@ export function useFarmerSilo(address?: `0x${string}`) {
     depositsByToken,
     maybeWLTokens,
     siloData.tokenData,
-    priceData.price,
+    priceData.pools,
     grownStalkPerToken.data,
     mowStatusPerToken.data,
     currPrice,

@@ -174,7 +174,7 @@ export class DefaultConvertStrategy extends SiloConvertStrategy<"LPAndMain"> {
 
   private decodeConvertAmountOut(data: HashString): TV {
     // Validation
-    this.errorHandler.assert(!!(data && data.length), "decodeConvertAmountOut.data is empty", {
+    this.errorHandler.assert(!!data?.length, "decodeConvertAmountOut.data is empty", {
       dataLength: data?.length || 0,
     });
 

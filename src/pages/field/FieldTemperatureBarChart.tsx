@@ -193,8 +193,8 @@ const getDiffDecimals = (startIndex: number | undefined, endIndex: number | unde
   }
 };
 
-const LOG_THRESHOLD = 5;
-const MIN_VALUES = 3;
+const _LOG_THRESHOLD = 5;
+const _MIN_VALUES = 3;
 
 interface MinMax {
   min: number;

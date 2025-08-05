@@ -111,7 +111,7 @@ const selectFieldSowEvents = (
 
     // From the ABI, Sow event has: account, fieldId, index, beans, pods
     const account = args.account || "0x0000000000000000000000000000000000000000";
-    const fieldId = args.fieldId || BigInt(0);
+    const _fieldId = args.fieldId || BigInt(0);
     const podIndex = args.index || BigInt(0);
     const beans = args.beans || BigInt(0); // PINTO amount in beans
     const pods = args.pods || BigInt(0);

@@ -32,7 +32,7 @@ export default function CombineSelect({ setTransferData, token, disabled }: Comb
   const depositedBalances = useFarmerSilo();
   const farmerDeposits = depositedBalances.deposits.get(token);
   const [groups, setGroups] = useState<DepositGroup[]>([{ id: 1, deposits: [] }]);
-  const [selected, setSelected] = useState<string[]>([]);
+  const [_selected, _setSelected] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
   const invalidateSun = useInvalidateSun();
   const qc = useQueryClient();

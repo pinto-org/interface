@@ -70,7 +70,7 @@ export const useSharedTimeTab = (
         setContextTab(TimeTab.Week);
       }
     };
-  }, [chartId, contextKey, setContextOverrides]);
+  }, [chartId, contextKey, setContextOverrides, setContextTab]);
 
   const setTab = useCallback(
     (tab: TimeTab) => {

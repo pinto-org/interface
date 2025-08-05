@@ -176,7 +176,7 @@ const ScatterChart = React.memo(
     }, [data, useLogarithmicScale, yOptions.min, yOptions.max, horizontalReferenceLines]);
 
     const chartData = useCallback(
-      (ctx: CanvasRenderingContext2D | null): ChartData => {
+      (_ctx: CanvasRenderingContext2D | null): ChartData => {
         return {
           datasets: data.map(({ label, data, color, pointStyle, pointRadius }) => ({
             label,
@@ -196,7 +196,7 @@ const ScatterChart = React.memo(
         id: "customVerticalLine",
         afterDraw: (chart: Chart) => {
           const ctx = chart.ctx;
-          const activeIndex = activeIndexRef.current;
+          const _activeIndex = activeIndexRef.current;
           if (ctx) {
             ctx.save();
             ctx.setLineDash([4, 4]);

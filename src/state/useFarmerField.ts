@@ -6,9 +6,9 @@ import { PINTO } from "@/constants/tokens";
 import { useReadFarmer_GetPlotsFromAccount } from "@/generated/contractHooks";
 import { FarmerPlotsDocument, FarmerPlotsQuery } from "@/generated/gql/pintostalk/graphql";
 import { Plot } from "@/utils/types";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import request from "graphql-request";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { toHex } from "viem";
 import { useAccount, useChainId } from "wagmi";
 import { useHarvestableIndex } from "./useFieldData";
@@ -101,8 +101,17 @@ export function useFarmerField() {
 
   const isLoading = plotsSGQuery.isLoading || plotsQuery.isLoading;
 
+  // Track query state changes (only when loading state changes)
+  useEffect(() => {
+    console.log("🔍 [PERFORMANCE] Query loading state changed:", {
+      sgLoading: plotsSGQuery.isLoading,
+      chainLoading: plotsQuery.isLoading,
+      timestamp: new Date().toISOString(),
+    });
+  }, [plotsSGQuery.isLoading, plotsQuery.isLoading]);
+
   return useMemo(() => {
-    return {
+    const result = {
       isLoading,
       plots: combinedPlotsData,
       totalPods: plotsQueryData?.totalPods ?? TokenValue.ZERO,
@@ -111,7 +120,73 @@ export function useFarmerField() {
       queryKeys: [queryKey, plotsQuery.queryKey],
       refetch,
     };
+
+    // Performance logging (only log when state actually changes)
+    if (
+      typeof window !== "undefined" &&
+      (window as any).lastFarmerFieldLog !== `${isLoading}-${combinedPlotsData.length}`
+    ) {
+      console.log("🔄 [PERFORMANCE] useFarmerField result at:", new Date().toISOString());
+      console.log("🔄 [PERFORMANCE] useFarmerField state:", {
+        isLoading,
+        plotsCount: combinedPlotsData.length,
+        sgQueryLoading: plotsSGQuery.isLoading,
+        chainQueryLoading: plotsQuery.isLoading,
+        sgQueryData: !!plotsSGQuery.data,
+        chainQueryData: !!plotsQuery.data,
+      });
+      (window as any).lastFarmerFieldLog = `${isLoading}-${combinedPlotsData.length}`;
+    }
+
+    return result;
   }, [combinedPlotsData, plotsQuery.queryKey, plotsQueryData, queryKey, refetch, isLoading]);
+}
+
+/**
+ * Hook to prefetch farmer field data for performance optimization
+ * Useful for pre-loading pod data when user is likely to view their pods
+ */
+export function usePrefetchFarmerField() {
+  const queryClient = useQueryClient();
+  const chainId = useChainId();
+  const account = useAccount();
+  const { farmerField: queryKey } = useQueryKeys({ account: account.address });
+
+  const prefetchFarmerField = useCallback(async () => {
+    if (!account.address) return;
+
+    // Prefetch subgraph data
+    await queryClient.prefetchQuery({
+      queryKey,
+      queryFn: async () =>
+        request(subgraphs[chainId].beanstalk, FarmerPlotsDocument, {
+          account: account.address?.toString().toLowerCase() ?? "",
+        }),
+      staleTime: 1000 * 60 * 20, // 20 minutes
+    });
+
+    // Prefetch on-chain data using the same query key pattern as useFarmerPlotsQuery
+    const plotsQueryKey = [
+      "readContract",
+      {
+        address: account.address,
+        args: [account.address, 0n],
+        chainId,
+      },
+    ];
+
+    await queryClient.prefetchQuery({
+      queryKey: plotsQueryKey,
+      queryFn: async () => {
+        // This will be handled by wagmi's internal fetch mechanism
+        // The actual prefetch will happen when the hook is used
+        return null;
+      },
+      staleTime: 1000 * 60 * 20, // 20 minutes
+    });
+  }, [queryClient, queryKey, chainId, account.address]);
+
+  return { prefetchFarmerField };
 }
 
 type PlotsResponse = {

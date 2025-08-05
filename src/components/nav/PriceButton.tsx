@@ -29,7 +29,7 @@ const getPintoUseTWA = () => {
   try {
     const savedUseTwa = localStorage.getItem("pinto.priceButton.useTwa");
     return savedUseTwa ? JSON.parse(savedUseTwa) : false;
-  } catch (e) {
+  } catch (_e) {
     return false;
   }
 };
@@ -39,7 +39,7 @@ const getPintoExpandAll = () => {
     // Initialize from localStorage, default to false if not found
     const savedExpandAll = localStorage.getItem("pinto.priceButton.expandAll");
     return savedExpandAll ? JSON.parse(savedExpandAll) : false;
-  } catch (e) {
+  } catch (_e) {
     return false;
   }
 };

@@ -63,7 +63,7 @@ export const getOverrideAllowanceStateOverride = (
 };
 
 // in the future a local blockchain explorer link can be added here if chainId is not Base
-export const getExplorerLink = (hash: string, chainId: number) => {
+export const getExplorerLink = (hash: string, _chainId: number) => {
   const baseUrl = "https://basescan.org";
   return `${baseUrl}/tx/${hash}`;
 };

@@ -52,9 +52,9 @@ const Navbar = () => {
   const { refetch: refetchTwaDeltaBLP, queryKey: TwaDeltaBLPQuery } = useTwaDeltaBLPQuery();
   const { refetch: refetchTwaDeltaB } = useTwaDeltaBQuery();
 
-  const hasInternal = farmerActions.totalValue.wallet.internal.gt(0);
+  const _hasInternal = farmerActions.totalValue.wallet.internal.gt(0);
   const floodValue = farmerActions.floodAssets.totalValue;
-  const usdValue = farmerActions.totalValue.wallet.total;
+  const _usdValue = farmerActions.totalValue.wallet.total;
 
   const isHome = useMatch("/");
   const isOverview = useMatch("/overview");
@@ -62,7 +62,7 @@ const Navbar = () => {
 
   const { address, hasDeposits, hasPlots, loading, didLoad } = useFarmerStatus();
   const isNewUser = !address || (!hasDeposits && !hasPlots);
-  const showWalletHelper = (isOverview || isSilo) && !isNewUser && !loading && didLoad;
+  const _showWalletHelper = (isOverview || isSilo) && !isNewUser && !loading && didLoad;
 
   const closePanel = useCallback(() => {
     setPanelState({
@@ -108,7 +108,7 @@ const Navbar = () => {
     [panelState, setPanelState, setHoveredId],
   );
 
-  const handleHelperLinkClick = useCallback(() => {
+  const _handleHelperLinkClick = useCallback(() => {
     if (!account.address) {
       modal.setOpen(true);
       return;

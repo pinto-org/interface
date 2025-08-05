@@ -50,7 +50,7 @@ const Slide = forwardRef<THREE.Mesh, SlideProps>(
       showPinto,
       onMaxAnimationTimeCalculated,
     },
-    ref,
+    _ref,
   ) => {
     const meshRef = useRef<THREE.Mesh>(null);
     const materialRef = useRef<any>(null);

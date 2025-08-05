@@ -30,7 +30,7 @@ interface FieldActivityItem {
  * Estimates the season number for a transaction based on its block number
  * Using the knowledge that a new season starts each hour and blocks are ~2 seconds each
  */
-const estimateSeasonFromBlock = (
+const _estimateSeasonFromBlock = (
   eventBlockNumber: number,
   latestBlockNumber: number,
   currentSeason: number | undefined,
@@ -450,9 +450,9 @@ const FieldActivityNoDataDisplay = () => (
 // Helper function to estimate temperature from an order
 const getOrderTemperature = (order: OrderbookEntry): number => {
   // Try to decode the data to get the temperature
-  if (order.requisition && order.requisition.blueprint && order.requisition.blueprint.data) {
+  if (order.requisition?.blueprint?.data) {
     const decodedData = decodeSowTractorData(order.requisition.blueprint.data);
-    if (decodedData && decodedData.minTempAsString) {
+    if (decodedData?.minTempAsString) {
       return parseFloat(decodedData.minTempAsString);
     }
   }
@@ -462,7 +462,7 @@ const getOrderTemperature = (order: OrderbookEntry): number => {
 
 // Helper function to get the decoded tractor data
 const getDecodedTractorData = (order: OrderbookEntry): SowBlueprintData | null => {
-  if (order.requisition && order.requisition.blueprint && order.requisition.blueprint.data) {
+  if (order.requisition?.blueprint?.data) {
     return decodeSowTractorData(order.requisition.blueprint.data);
   }
   return null;
@@ -472,7 +472,7 @@ const getDecodedTractorData = (order: OrderbookEntry): SowBlueprintData | null =
 const estimateExecutionTime = (order: OrderbookEntry): string => {
   const decodedData = getDecodedTractorData(order);
 
-  if (decodedData && decodedData.runBlocksAfterSunriseAsString) {
+  if (decodedData?.runBlocksAfterSunriseAsString) {
     const runBlocks = parseInt(decodedData.runBlocksAfterSunriseAsString);
 
     // Estimate execution time as next hour + 2 seconds × runBlocksAfterSunrise
@@ -498,7 +498,7 @@ const getPredictedSowTemperature = (order: OrderbookEntry, currentTemperature: {
   const minTemp = getOrderTemperature(order);
 
   const decodedData = getDecodedTractorData(order);
-  if (decodedData && decodedData.runBlocksAfterSunriseAsString) {
+  if (decodedData?.runBlocksAfterSunriseAsString) {
     const runBlocks = parseInt(decodedData.runBlocksAfterSunriseAsString);
     if (runBlocks >= 300 && currentTemperature.max) {
       // After morning auction - use max of current temperature and minimum temperature
@@ -521,7 +521,7 @@ const estimateOrderPods = (order: OrderbookEntry, currentTemperature: { max: Tok
 
 // -------------------- FORMATTING --------------------
 
-const formatType = (type: string) => {
+const _formatType = (type: string) => {
   switch (type) {
     case "sow":
       return "Sow";

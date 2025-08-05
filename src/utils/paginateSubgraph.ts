@@ -60,13 +60,13 @@ export const paginateMultiQuerySubgraph = async <R, T, V>(
 ): Promise<{ [key: string]: R[] }> => {
   let vars: V | undefined = initialVars;
   const prevPageIds: { [key: string]: string[] } = {};
-  const k = "id"; //settings.primaryPropertyName;
+  const _k = "id"; //settings.primaryPropertyName;
 
   const allResults: { [key: string]: R[] } = {};
   while (vars) {
-    const results = (await request<T>(url, document, vars)) as ResultObject<T, any, R>;
+    const results = (await request<T>(url, document, vars)) as ResultObject<T, unknown, R>;
 
-    Object.entries(results).forEach(([key, value]: [string, any]) => {
+    Object.entries(results).forEach(([key, value]: [string, unknown]) => {
       if (!allResults[key]) {
         allResults[key] = [];
       }

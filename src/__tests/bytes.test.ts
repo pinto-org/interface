@@ -111,7 +111,7 @@ describe("parseABIDynamicArrayReturnData", () => {
       });
 
       it("data indexes are > length index", () => {
-        for (const [i, returnData] of summary.entries()) {
+        for (const [_i, returnData] of summary.entries()) {
           for (const datum of returnData.data) {
             expect(datum.index).toBeGreaterThan(returnData.lengthIndex);
           }

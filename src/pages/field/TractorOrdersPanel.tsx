@@ -219,20 +219,20 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
         const isComplete = percentComplete.gte(100);
 
         // Find latest execution for this blueprint
-        const latestExecution =
+        const _latestExecution =
           blueprintExecutions.length > 0 ? blueprintExecutions.sort((a, b) => b.blockNumber - a.blockNumber)[0] : null;
 
         // Format the publish date
         const publishDate = req.timestamp ? format(new Date(req.timestamp), "dd MMM yyyy") : "Unknown";
 
         // Determine token strategy based on sourceTokenIndices
-        let strategyText = "Unknown strategy";
+        let _strategyText = "Unknown strategy";
         if (data.sourceTokenIndices.includes(255)) {
-          strategyText = "Lowest Seeds";
+          _strategyText = "Lowest Seeds";
         } else if (data.sourceTokenIndices.includes(254)) {
-          strategyText = "Lowest Price";
+          _strategyText = "Lowest Price";
         } else {
-          strategyText = "Specific Token";
+          _strategyText = "Specific Token";
         }
 
         return (

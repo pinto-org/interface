@@ -12,7 +12,7 @@ export interface ParticlesBackgroundHandle {
 const ParticlesBackground = React.memo(
   forwardRef<ParticlesBackgroundHandle>((_, ref) => {
     const containerRef = useRef<Container | null>(null);
-    const [init, setInit] = useState(false);
+    const [_init, setInit] = useState(false);
 
     // Expose `loadTheme` to the parent using `useImperativeHandle`
     useImperativeHandle(

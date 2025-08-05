@@ -437,7 +437,7 @@ const PriceImpactContent = ({ variant = "sm-light", showTokenName = false }: IPr
   );
 };
 
-const getDetailsWithExchange = (exchange: SwapSummaryExchange, noBase = false) => {
+const getDetailsWithExchange = (exchange: SwapSummaryExchange, _noBase = false) => {
   let logo = "";
   let text = "";
 
@@ -468,7 +468,7 @@ const RoutesFormContent = () => {
   const exchanges = swapSummary?.swap?.exchanges;
   const totalSlippage = swapSummary?.totalSlippage ?? 0;
 
-  const slippageColor = () => {
+  const _slippageColor = () => {
     if (totalSlippage >= 4) return "error";
     if (totalSlippage >= 3.5) return "warning-orange";
     return totalSlippage >= 3 ? "warning-yellow" : "default";
