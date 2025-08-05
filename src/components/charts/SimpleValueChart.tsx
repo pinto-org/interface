@@ -302,17 +302,80 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
     return transformToStackedData(rawChartData);
   }, [rawChartData]);
 
-  // Optimized hover state management - use ref to prevent re-renders, throttled updates
+  // Hybrid hover state management - React state as fallback, DOM for performance
   const [displayIndex, setDisplayIndex] = useState<number>(0);
-  const hoverIndexRef = useRef<number | null>(null);
-  const throttleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const displayIndexRef = useRef<number>(0);
+  const pendingUpdateRef = useRef<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isHoveringRef = useRef<boolean>(false);
 
-  // Initialize display index to latest when data changes
-  React.useEffect(() => {
+  // Optimized DOM update function - only updates during hover
+  const updateTokenDisplayDOM = useCallback(
+    (index: number) => {
+      if (!stackedData[index] || !baseData[index] || !containerRef.current) return;
+
+      displayIndexRef.current = index;
+
+      // Only update DOM during hover to prevent chart re-renders
+      if (isHoveringRef.current) {
+        try {
+          const container = containerRef.current;
+          const displayData = stackedData[index];
+          const currentBaseData = baseData[index];
+          const totalValue = Math.max(...displayData.values);
+          const timestamp = new Date(displayData.timestamp as number);
+
+          // Update total value display
+          const totalValueElement = container.querySelector("[data-total-value]");
+          if (totalValueElement) {
+            totalValueElement.textContent = f.price2dFormatter(totalValue);
+          }
+
+          // Update timestamp display
+          const timestampElement = container.querySelector("[data-timestamp]");
+          if (timestampElement) {
+            timestampElement.textContent = formatDate(timestamp);
+          }
+
+          // Update individual token values
+          seriesOrder.forEach((originalIndex, displayOrderIndex) => {
+            const valueElement = container.querySelector(`[data-token-value="${displayOrderIndex}"]`);
+            if (valueElement) {
+              const tokenValue = currentBaseData.values[originalIndex];
+              valueElement.textContent = f.price2dFormatter(tokenValue);
+            }
+          });
+        } catch (error) {
+          console.warn("DOM update failed during hover:", error);
+        }
+      }
+    },
+    [stackedData, baseData, seriesOrder],
+  );
+
+  // RequestAnimationFrame-based update scheduling - DOM only during hover
+  const scheduleDisplayUpdate = useCallback(
+    (index: number) => {
+      if (pendingUpdateRef.current) {
+        cancelAnimationFrame(pendingUpdateRef.current);
+      }
+
+      pendingUpdateRef.current = requestAnimationFrame(() => {
+        // Only update via DOM during hover to prevent re-renders
+        updateTokenDisplayDOM(index);
+        pendingUpdateRef.current = null;
+      });
+    },
+    [updateTokenDisplayDOM],
+  );
+
+  // Initialize display to latest when data changes - use layoutEffect for synchronization
+  React.useLayoutEffect(() => {
     if (stackedData.length > 0) {
       const newIndex = stackedData.length - 1;
+      // Always use React state for initial render, DOM updates only during hover
       setDisplayIndex(newIndex);
-      hoverIndexRef.current = null; // Reset hover state when data changes
+      displayIndexRef.current = newIndex;
     }
   }, [stackedData.length]);
 
@@ -359,45 +422,74 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
     [maxDataValue],
   );
 
-  // Optimized hover handler - uses ref and throttling to minimize re-renders
-  const handleMouseOver = useCallback(
+  // Stable hover handlers to prevent Chart.js plugin recreation
+  const stableHandleMouseOver = useCallback(
     (index: number) => {
-      if (typeof index !== "number" || Number.isNaN(index) || index < 0) return;
+      if (typeof index !== "number" || Number.isNaN(index) || index < 0 || index >= stackedData.length) return;
 
-      // Store hover index in ref (doesn't cause re-renders)
-      hoverIndexRef.current = index;
-
-      // Clear existing throttle timeout
-      if (throttleTimeoutRef.current) {
-        clearTimeout(throttleTimeoutRef.current);
-      }
-
-      // Throttle state updates to reduce re-renders (only update every 100ms)
-      throttleTimeoutRef.current = setTimeout(() => {
-        if (hoverIndexRef.current !== null && hoverIndexRef.current !== displayIndex) {
-          setDisplayIndex(hoverIndexRef.current);
-        }
-      }, 100);
+      isHoveringRef.current = true;
+      scheduleDisplayUpdate(index);
     },
-    [displayIndex],
+    [scheduleDisplayUpdate, stackedData.length],
   );
 
-  // Handle mouse leave - revert to latest data point after delay
-  const handleMouseLeave = useCallback(() => {
-    hoverIndexRef.current = null;
+  // Handle mouse leave - revert DOM to latest data without triggering re-renders
+  const stableHandleMouseLeave = useCallback(() => {
+    isHoveringRef.current = false;
 
-    if (throttleTimeoutRef.current) {
-      clearTimeout(throttleTimeoutRef.current);
+    // Cancel any pending updates
+    if (pendingUpdateRef.current) {
+      cancelAnimationFrame(pendingUpdateRef.current);
+      pendingUpdateRef.current = null;
     }
 
-    // Revert to latest data point after a short delay
-    throttleTimeoutRef.current = setTimeout(() => {
-      if (stackedData.length > 0) {
-        const latestIndex = stackedData.length - 1;
-        setDisplayIndex(latestIndex);
+    // Revert DOM to latest data without React state updates
+    if (stackedData.length > 0 && containerRef.current) {
+      const latestIndex = stackedData.length - 1;
+      displayIndexRef.current = latestIndex;
+
+      // Force DOM update to latest values without hovering state
+      try {
+        const container = containerRef.current;
+        const displayData = stackedData[latestIndex];
+        const currentBaseData = baseData[latestIndex];
+        const totalValue = Math.max(...displayData.values);
+        const timestamp = new Date(displayData.timestamp as number);
+
+        // Update total value display
+        const totalValueElement = container.querySelector("[data-total-value]");
+        if (totalValueElement) {
+          totalValueElement.textContent = f.price2dFormatter(totalValue);
+        }
+
+        // Update timestamp display
+        const timestampElement = container.querySelector("[data-timestamp]");
+        if (timestampElement) {
+          timestampElement.textContent = formatDate(timestamp);
+        }
+
+        // Update individual token values
+        seriesOrder.forEach((originalIndex, displayOrderIndex) => {
+          const valueElement = container.querySelector(`[data-token-value="${displayOrderIndex}"]`);
+          if (valueElement) {
+            const tokenValue = currentBaseData.values[originalIndex];
+            valueElement.textContent = f.price2dFormatter(tokenValue);
+          }
+        });
+      } catch (error) {
+        console.warn("DOM revert failed on mouse leave:", error);
       }
-    }, 200);
-  }, [stackedData.length]);
+    }
+  }, [stackedData, baseData, seriesOrder]);
+
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      if (pendingUpdateRef.current) {
+        cancelAnimationFrame(pendingUpdateRef.current);
+      }
+    };
+  }, []);
 
   // Handle chart section click for navigation
   const handleChartClick = useCallback(
@@ -525,7 +617,7 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
   }
 
   return (
-    <div className={cn("rounded-[20px] bg-gray-1", className)}>
+    <div ref={containerRef} className={cn("rounded-[20px] bg-gray-1", className)}>
       <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
         <div className="flex flex-row gap-1 items-center">
           <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
@@ -534,14 +626,13 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
         </div>
       </div>
 
-      {currentDisplayData && currentBaseData && (
-        <TokenDisplayData
-          displayData={currentDisplayData}
-          baseData={currentBaseData}
-          seriesOrder={seriesOrder}
-          tokensWithData={tokensWithData}
-        />
-      )}
+      <TokenDisplayDataHybrid
+        displayIndex={displayIndex}
+        stackedData={stackedData}
+        baseData={baseData}
+        seriesOrder={seriesOrder}
+        tokensWithData={tokensWithData}
+      />
 
       <div className="aspect-3/1">
         <div className="px-1 pt-2 pb-4 h-[300px] sm:px-4 sm:pt-4">
@@ -550,8 +641,8 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
             {...lineChartProps}
             makeLineGradients={lineGradients}
             makeAreaGradients={areaGradients}
-            onMouseOver={handleMouseOver}
-            onMouseLeave={handleMouseLeave}
+            onMouseOver={stableHandleMouseOver}
+            onMouseLeave={stableHandleMouseLeave}
             onChartClick={handleChartClick}
             tokenNames={tokenNames}
             baseDataValues={baseDataValues}
@@ -564,56 +655,81 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
 
 SimpleValueChart.displayName = "SimpleValueChart";
 
-const TokenDisplayData = ({
-  displayData,
-  baseData,
-  seriesOrder,
-  tokensWithData,
-}: {
-  displayData: LineChartData;
-  baseData: LineChartData;
-  seriesOrder: number[];
-  tokensWithData: Token[];
-}) => {
-  // Calculate individual token values from base data and show cumulative stacked display
-  const totalValue = Math.max(...displayData.values);
-  const timestamp = new Date(displayData.timestamp as number);
+// Hybrid TokenDisplayData that uses React state as primary mechanism with DOM optimization
+const TokenDisplayDataHybrid = React.memo(
+  ({
+    displayIndex,
+    stackedData,
+    baseData,
+    seriesOrder,
+    tokensWithData,
+  }: {
+    displayIndex: number;
+    stackedData: LineChartData[];
+    baseData: LineChartData[];
+    seriesOrder: number[];
+    tokensWithData: Token[];
+  }) => {
+    // Use React state as primary display mechanism (reliable)
+    const currentDisplayData = stackedData[displayIndex];
+    const currentBaseData = baseData[displayIndex];
 
-  // Create token value breakdown for display - use seriesOrder to match stacking
-  const tokenBreakdown = seriesOrder.map((originalIndex) => {
-    const token = tokensWithData[originalIndex];
-    return {
-      name: token?.symbol || token?.name || "Unknown Token",
-      color: token?.color || "#246645", // Fallback to Pinto green
-      baseValue: baseData.values[originalIndex],
-      cumulativeValue: displayData.values[originalIndex],
-    };
-  });
+    if (!currentDisplayData || !currentBaseData) {
+      return <div className="h-[80px] sm:h-[65px] px-1 sm:px-6" />;
+    }
 
-  return (
-    <div className="h-[80px] sm:h-[65px] px-1 sm:px-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div className="text-pinto-green-3 sm:text-pinto-green-3 pinto-body sm:pinto-h3 px-1">
-          {f.price2dFormatter(totalValue)}
+    const totalValue = Math.max(...currentDisplayData.values);
+    const timestamp = new Date(currentDisplayData.timestamp as number);
+
+    // Create token value breakdown for display - use seriesOrder to match stacking
+    const tokenBreakdown = seriesOrder.map((originalIndex) => {
+      const token = tokensWithData[originalIndex];
+      return {
+        name: token?.symbol || token?.name || "Unknown Token",
+        color: token?.color || "#246645", // Fallback to Pinto green
+        baseValue: currentBaseData.values[originalIndex],
+        cumulativeValue: currentDisplayData.values[originalIndex],
+      };
+    });
+
+    return (
+      <div className="h-[80px] sm:h-[65px] px-1 sm:px-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-pinto-green-3 sm:text-pinto-green-3 pinto-body sm:pinto-h3 px-1" data-total-value>
+            {f.price2dFormatter(totalValue)}
+          </div>
+          <div
+            className="pinto-xs sm:pinto-sm-light text-pinto-light sm:text-pinto-light px-1 mt-1 sm:mt-0"
+            data-timestamp
+          >
+            {formatDate(timestamp)}
+          </div>
         </div>
-        <div className="pinto-xs sm:pinto-sm-light text-pinto-light sm:text-pinto-light px-1 mt-1 sm:mt-0">
-          {formatDate(timestamp)}
+        <div className="flex flex-col gap-0 mt-2 sm:gap-2 sm:mt-3 px-1">
+          <div className="flex flex-wrap gap-1 mb-1 sm:gap-3">
+            {tokenBreakdown.map((token, displayOrderIndex) => (
+              <div key={token.name} className="flex items-center gap-0.5 text-xs">
+                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: token.color }} />
+                <span className="pinto-xs text-pinto-light whitespace-nowrap">
+                  {token.name}: <span data-token-value={displayOrderIndex}>{f.price2dFormatter(token.baseValue)}</span>
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-      <div className="flex flex-col gap-0 mt-2 sm:gap-2 sm:mt-3 px-1">
-        <div className="flex flex-wrap gap-1 mb-1 sm:gap-3">
-          {tokenBreakdown.map((token) => (
-            <div key={token.name} className="flex items-center gap-0.5 text-xs">
-              <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: token.color }} />
-              <span className="pinto-xs text-pinto-light whitespace-nowrap">
-                {token.name}: {f.price2dFormatter(token.baseValue)}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
+    );
+  },
+  (prevProps, nextProps) => {
+    // Re-render when displayIndex changes or data structure changes
+    return (
+      prevProps.displayIndex === nextProps.displayIndex &&
+      prevProps.stackedData.length === nextProps.stackedData.length &&
+      prevProps.baseData.length === nextProps.baseData.length &&
+      prevProps.seriesOrder.length === nextProps.seriesOrder.length &&
+      prevProps.tokensWithData.length === nextProps.tokensWithData.length
+    );
+  },
+);
 
 export default SimpleValueChart;
