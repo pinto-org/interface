@@ -61,6 +61,7 @@ export interface LineChartProps {
   onChartClick?: (datasetIndex: number) => void;
   tokenNames?: string[];
   baseDataValues?: number[][];
+  useSeasonAxis?: boolean;
 }
 
 // provide a stable reference to the horizontal reference lines to avoid re-rendering the chart when some other prop changes
@@ -87,6 +88,7 @@ const LineChart = React.memo(
     onChartClick,
     tokenNames,
     baseDataValues,
+    useSeasonAxis = false,
   }: LineChartProps) => {
     const chartRef = useRef<Chart | null>(null);
     const activeIndexRef = useRef<number | undefined>(activeIndex);
@@ -257,7 +259,17 @@ const LineChart = React.memo(
                   return "";
                 }
 
-                const tickLabel = xValue instanceof Date ? `${xValue.getMonth() + 1}/${xValue.getDate()}` : xValue;
+                // Convert timestamp to Date if it's a number
+                let tickLabel: string;
+                if (xValue instanceof Date) {
+                  tickLabel = `${xValue.getMonth() + 1}/${xValue.getDate()}`;
+                } else if (typeof xValue === "number") {
+                  // Handle timestamp numbers by converting to Date
+                  const date = new Date(xValue);
+                  tickLabel = `${date.getMonth() + 1}/${date.getDate()}`;
+                } else {
+                  tickLabel = String(xValue);
+                }
 
                 if (typeof activeIndexRef.current === "number") {
                   if (index === 0 || index === values.length - 1) {

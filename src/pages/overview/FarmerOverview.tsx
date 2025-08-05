@@ -358,12 +358,14 @@ const Overview = () => {
         ) : null}
       </AnimatePresence>
 
-      {/* Token Value Distribution Chart */}
+      {/* My Value Over Time Chart */}
       <div className="mb-6">
-        <div className="flex justify-between items-center mb-4 px-2 sm:px-6">
-          <TimeTabsSelector tab={chartTimeTab} setTab={setChartTimeTab} />
-        </div>
-        <SimpleValueChart className="mb-2" timeTab={chartTimeTab} />
+        <SimpleValueChart
+          className="mb-2"
+          timeTab={chartTimeTab}
+          chartTimeTab={chartTimeTab}
+          setChartTimeTab={setChartTimeTab}
+        />
       </div>
 
       {/* Podline Visualization */}

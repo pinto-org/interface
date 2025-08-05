@@ -1,5 +1,6 @@
 import LineChart, { LineChartData } from "@/components/charts/LineChart";
 import { TimeTab } from "@/components/charts/TimeTabs";
+import TimeTabsSelector from "@/components/charts/TimeTabs";
 import { getAreaGradientFunctions, gradientFunctions } from "@/components/charts/chartHelpers";
 import { useFarmerHistoricalTokensBDV, useTimeRangeSeasons } from "@/state/seasonal/seasonalDataHooks";
 import useTokenData from "@/state/useTokenData";
@@ -12,6 +13,8 @@ import { useNavigate } from "react-router-dom";
 interface SimpleValueChartProps {
   className?: string;
   timeTab?: TimeTab;
+  chartTimeTab?: TimeTab;
+  setChartTimeTab?: (tab: TimeTab) => void;
 }
 
 // Convert hex to rgb values for rgba
@@ -266,62 +269,194 @@ const transformToStackedData = (data: LineChartData[]): { stackedData: LineChart
   }
 };
 
-const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: SimpleValueChartProps) => {
-  const navigate = useNavigate();
+const SimpleValueChart = React.memo(
+  ({ className, timeTab = TimeTab.Month, chartTimeTab, setChartTimeTab }: SimpleValueChartProps) => {
+    const navigate = useNavigate();
 
-  // Hooks for data fetching
-  const { whitelistedTokens } = useTokenData();
-  const { from, to } = useTimeRangeSeasons(timeTab);
-  const tokenQueries = useFarmerHistoricalTokensBDV(from, to, whitelistedTokens || []);
+    // Hooks for data fetching
+    const { whitelistedTokens } = useTokenData();
+    const { from, to } = useTimeRangeSeasons(timeTab);
+    const tokenQueries = useFarmerHistoricalTokensBDV(from, to, whitelistedTokens || []);
 
-  // Loading and error states
-  const tokenQueriesValues = Object.values(tokenQueries || {});
-  const isLoading = tokenQueriesValues.length > 0 && tokenQueriesValues.some((query) => query?.isLoading);
-  const hasError = tokenQueriesValues.length > 0 && tokenQueriesValues.some((query) => query?.isError);
-  const hasData =
-    tokenQueriesValues.length > 0 && tokenQueriesValues.some((query) => query?.data && query.data.length > 0);
+    // Loading and error states
+    const tokenQueriesValues = Object.values(tokenQueries || {});
+    const isLoading = tokenQueriesValues.length > 0 && tokenQueriesValues.some((query) => query?.isLoading);
+    const hasError = tokenQueriesValues.length > 0 && tokenQueriesValues.some((query) => query?.isError);
+    const hasData =
+      tokenQueriesValues.length > 0 && tokenQueriesValues.some((query) => query?.data && query.data.length > 0);
 
-  // Merge token data into unified timeline
-  const {
-    chartData: rawChartData,
-    baseData,
-    tokensWithData,
-  } = useMemo(() => {
-    if (!hasData || !whitelistedTokens || !whitelistedTokens.length) {
-      // Return empty data structure if no data or tokens not loaded
-      return { chartData: [], baseData: [], tokensWithData: [] };
-    }
-    return mergeTokenHistoricalData(tokenQueries, whitelistedTokens);
-  }, [tokenQueries, whitelistedTokens, hasData]);
+    // Merge token data into unified timeline
+    const {
+      chartData: rawChartData,
+      baseData,
+      tokensWithData,
+    } = useMemo(() => {
+      if (!hasData || !whitelistedTokens || !whitelistedTokens.length) {
+        // Return empty data structure if no data or tokens not loaded
+        return { chartData: [], baseData: [], tokensWithData: [] };
+      }
+      return mergeTokenHistoricalData(tokenQueries, whitelistedTokens);
+    }, [tokenQueries, whitelistedTokens, hasData]);
 
-  // Transform to stacked format
-  const { stackedData, seriesOrder } = useMemo(() => {
-    if (!rawChartData || !rawChartData.length) {
-      return { stackedData: [], seriesOrder: [] };
-    }
-    return transformToStackedData(rawChartData);
-  }, [rawChartData]);
+    // Transform to stacked format
+    const { stackedData, seriesOrder } = useMemo(() => {
+      if (!rawChartData || !rawChartData.length) {
+        return { stackedData: [], seriesOrder: [] };
+      }
+      return transformToStackedData(rawChartData);
+    }, [rawChartData]);
 
-  // Hybrid hover state management - React state as fallback, DOM for performance
-  const [displayIndex, setDisplayIndex] = useState<number>(0);
-  const displayIndexRef = useRef<number>(0);
-  const pendingUpdateRef = useRef<number | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isHoveringRef = useRef<boolean>(false);
+    // Hybrid hover state management - React state as fallback, DOM for performance
+    const [displayIndex, setDisplayIndex] = useState<number>(0);
+    const displayIndexRef = useRef<number>(0);
+    const pendingUpdateRef = useRef<number | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const isHoveringRef = useRef<boolean>(false);
 
-  // Optimized DOM update function - only updates during hover
-  const updateTokenDisplayDOM = useCallback(
-    (index: number) => {
-      if (!stackedData[index] || !baseData[index] || !containerRef.current) return;
+    // Optimized DOM update function - only updates during hover
+    const updateTokenDisplayDOM = useCallback(
+      (index: number) => {
+        if (!stackedData[index] || !baseData[index] || !containerRef.current) return;
 
-      displayIndexRef.current = index;
+        displayIndexRef.current = index;
 
-      // Only update DOM during hover to prevent chart re-renders
-      if (isHoveringRef.current) {
+        // Only update DOM during hover to prevent chart re-renders
+        if (isHoveringRef.current) {
+          try {
+            const container = containerRef.current;
+            const displayData = stackedData[index];
+            const currentBaseData = baseData[index];
+            const totalValue = Math.max(...displayData.values);
+            const timestamp = new Date(displayData.timestamp as number);
+
+            // Update total value display
+            const totalValueElement = container.querySelector("[data-total-value]");
+            if (totalValueElement) {
+              totalValueElement.textContent = f.price2dFormatter(totalValue);
+            }
+
+            // Update timestamp display
+            const timestampElement = container.querySelector("[data-timestamp]");
+            if (timestampElement) {
+              timestampElement.textContent = formatDate(timestamp);
+            }
+
+            // Update individual token values
+            seriesOrder.forEach((originalIndex, displayOrderIndex) => {
+              const valueElement = container.querySelector(`[data-token-value="${displayOrderIndex}"]`);
+              if (valueElement) {
+                const tokenValue = currentBaseData.values[originalIndex];
+                valueElement.textContent = f.price2dFormatter(tokenValue);
+              }
+            });
+          } catch (error) {
+            console.warn("DOM update failed during hover:", error);
+          }
+        }
+      },
+      [stackedData, baseData, seriesOrder],
+    );
+
+    // RequestAnimationFrame-based update scheduling - DOM only during hover
+    const scheduleDisplayUpdate = useCallback(
+      (index: number) => {
+        if (pendingUpdateRef.current) {
+          cancelAnimationFrame(pendingUpdateRef.current);
+        }
+
+        pendingUpdateRef.current = requestAnimationFrame(() => {
+          // Only update via DOM during hover to prevent re-renders
+          updateTokenDisplayDOM(index);
+          pendingUpdateRef.current = null;
+        });
+      },
+      [updateTokenDisplayDOM],
+    );
+
+    // Initialize display to latest when data changes - use layoutEffect for synchronization
+    React.useLayoutEffect(() => {
+      if (stackedData.length > 0) {
+        const newIndex = stackedData.length - 1;
+        // Always use React state for initial render, DOM updates only during hover
+        setDisplayIndex(newIndex);
+        displayIndexRef.current = newIndex;
+      }
+    }, [stackedData.length]);
+
+    // Calculate max value with 15% padding for better visual spacing
+    const maxDataValue = useMemo(() => {
+      if (!stackedData || !stackedData.length) return 100; // Default value for empty state
+      const max = stackedData.reduce((acc, item) => Math.max(acc, ...item.values), 0);
+      return Math.max(max * 1.15, 1); // Add 15% padding, minimum of 1
+    }, [stackedData]);
+
+    // Token-specific line gradients with solid colors (for borders)
+    const lineGradients = useMemo(() => {
+      if (!tokensWithData || !tokensWithData.length || !seriesOrder || !seriesOrder.length) return [];
+
+      const gradients = seriesOrder.map((originalIndex) => {
+        const token = tokensWithData[originalIndex];
+        const color = token?.color || "#246645"; // Fallback to Pinto green
+        return gradientFunctions.solid(color);
+      });
+      return gradients;
+    }, [tokensWithData, seriesOrder]);
+
+    // Area gradients with fade-over-time effect - strong colors that fade to light over time
+    const areaGradients = useMemo(() => {
+      if (!tokensWithData || !tokensWithData.length || !seriesOrder || !seriesOrder.length) return [];
+
+      const gradients = seriesOrder.map((originalIndex) => {
+        const token = tokensWithData[originalIndex];
+        const color = token?.color || "#246645"; // Fallback to Pinto green
+        return createTokenFadeGradient(color, 0.1, true);
+      });
+      return gradients;
+    }, [tokensWithData, seriesOrder]);
+
+    // Static props
+    const lineChartProps = useMemo(
+      () => ({
+        xKey: "timestamp" as const,
+        size: "small" as const,
+        valueFormatter: f.price0dFormatter,
+        useLogarithmicScale: false,
+        yAxisMax: maxDataValue,
+      }),
+      [maxDataValue],
+    );
+
+    // Stable hover handlers to prevent Chart.js plugin recreation
+    const stableHandleMouseOver = useCallback(
+      (index: number) => {
+        if (typeof index !== "number" || Number.isNaN(index) || index < 0 || index >= stackedData.length) return;
+
+        isHoveringRef.current = true;
+        scheduleDisplayUpdate(index);
+      },
+      [scheduleDisplayUpdate, stackedData.length],
+    );
+
+    // Handle mouse leave - revert DOM to latest data without triggering re-renders
+    const stableHandleMouseLeave = useCallback(() => {
+      isHoveringRef.current = false;
+
+      // Cancel any pending updates
+      if (pendingUpdateRef.current) {
+        cancelAnimationFrame(pendingUpdateRef.current);
+        pendingUpdateRef.current = null;
+      }
+
+      // Revert DOM to latest data without React state updates
+      if (stackedData.length > 0 && containerRef.current) {
+        const latestIndex = stackedData.length - 1;
+        displayIndexRef.current = latestIndex;
+
+        // Force DOM update to latest values without hovering state
         try {
           const container = containerRef.current;
-          const displayData = stackedData[index];
-          const currentBaseData = baseData[index];
+          const displayData = stackedData[latestIndex];
+          const currentBaseData = baseData[latestIndex];
           const totalValue = Math.max(...displayData.values);
           const timestamp = new Date(displayData.timestamp as number);
 
@@ -346,312 +481,188 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
             }
           });
         } catch (error) {
-          console.warn("DOM update failed during hover:", error);
+          console.warn("DOM revert failed on mouse leave:", error);
         }
       }
-    },
-    [stackedData, baseData, seriesOrder],
-  );
+    }, [stackedData, baseData, seriesOrder]);
 
-  // RequestAnimationFrame-based update scheduling - DOM only during hover
-  const scheduleDisplayUpdate = useCallback(
-    (index: number) => {
-      if (pendingUpdateRef.current) {
-        cancelAnimationFrame(pendingUpdateRef.current);
-      }
-
-      pendingUpdateRef.current = requestAnimationFrame(() => {
-        // Only update via DOM during hover to prevent re-renders
-        updateTokenDisplayDOM(index);
-        pendingUpdateRef.current = null;
-      });
-    },
-    [updateTokenDisplayDOM],
-  );
-
-  // Initialize display to latest when data changes - use layoutEffect for synchronization
-  React.useLayoutEffect(() => {
-    if (stackedData.length > 0) {
-      const newIndex = stackedData.length - 1;
-      // Always use React state for initial render, DOM updates only during hover
-      setDisplayIndex(newIndex);
-      displayIndexRef.current = newIndex;
-    }
-  }, [stackedData.length]);
-
-  // Calculate max value with 10% padding for better visual spacing
-  const maxDataValue = useMemo(() => {
-    if (!stackedData || !stackedData.length) return 100; // Default value for empty state
-    const max = stackedData.reduce((acc, item) => Math.max(acc, ...item.values), 0);
-    return Math.max(max * 1.1, 1); // Add 10% padding, minimum of 1
-  }, [stackedData]);
-
-  // Token-specific line gradients with solid colors (for borders)
-  const lineGradients = useMemo(() => {
-    if (!tokensWithData || !tokensWithData.length || !seriesOrder || !seriesOrder.length) return [];
-
-    const gradients = seriesOrder.map((originalIndex) => {
-      const token = tokensWithData[originalIndex];
-      const color = token?.color || "#246645"; // Fallback to Pinto green
-      return gradientFunctions.solid(color);
-    });
-    return gradients;
-  }, [tokensWithData, seriesOrder]);
-
-  // Area gradients with fade-over-time effect - strong colors that fade to light over time
-  const areaGradients = useMemo(() => {
-    if (!tokensWithData || !tokensWithData.length || !seriesOrder || !seriesOrder.length) return [];
-
-    const gradients = seriesOrder.map((originalIndex) => {
-      const token = tokensWithData[originalIndex];
-      const color = token?.color || "#246645"; // Fallback to Pinto green
-      return createTokenFadeGradient(color, 0.1, true);
-    });
-    return gradients;
-  }, [tokensWithData, seriesOrder]);
-
-  // Static props
-  const lineChartProps = useMemo(
-    () => ({
-      xKey: "timestamp" as const,
-      size: "small" as const,
-      valueFormatter: f.price0dFormatter,
-      useLogarithmicScale: false,
-      yAxisMax: maxDataValue,
-    }),
-    [maxDataValue],
-  );
-
-  // Stable hover handlers to prevent Chart.js plugin recreation
-  const stableHandleMouseOver = useCallback(
-    (index: number) => {
-      if (typeof index !== "number" || Number.isNaN(index) || index < 0 || index >= stackedData.length) return;
-
-      isHoveringRef.current = true;
-      scheduleDisplayUpdate(index);
-    },
-    [scheduleDisplayUpdate, stackedData.length],
-  );
-
-  // Handle mouse leave - revert DOM to latest data without triggering re-renders
-  const stableHandleMouseLeave = useCallback(() => {
-    isHoveringRef.current = false;
-
-    // Cancel any pending updates
-    if (pendingUpdateRef.current) {
-      cancelAnimationFrame(pendingUpdateRef.current);
-      pendingUpdateRef.current = null;
-    }
-
-    // Revert DOM to latest data without React state updates
-    if (stackedData.length > 0 && containerRef.current) {
-      const latestIndex = stackedData.length - 1;
-      displayIndexRef.current = latestIndex;
-
-      // Force DOM update to latest values without hovering state
-      try {
-        const container = containerRef.current;
-        const displayData = stackedData[latestIndex];
-        const currentBaseData = baseData[latestIndex];
-        const totalValue = Math.max(...displayData.values);
-        const timestamp = new Date(displayData.timestamp as number);
-
-        // Update total value display
-        const totalValueElement = container.querySelector("[data-total-value]");
-        if (totalValueElement) {
-          totalValueElement.textContent = f.price2dFormatter(totalValue);
+    // Cleanup on unmount
+    React.useEffect(() => {
+      return () => {
+        if (pendingUpdateRef.current) {
+          cancelAnimationFrame(pendingUpdateRef.current);
         }
+      };
+    }, []);
 
-        // Update timestamp display
-        const timestampElement = container.querySelector("[data-timestamp]");
-        if (timestampElement) {
-          timestampElement.textContent = formatDate(timestamp);
-        }
+    // Handle chart section click for navigation
+    const handleChartClick = useCallback(
+      (datasetIndex: number) => {
+        if (
+          typeof datasetIndex === "number" &&
+          datasetIndex >= 0 &&
+          tokensWithData &&
+          datasetIndex < tokensWithData.length &&
+          seriesOrder &&
+          seriesOrder.length > 0
+        ) {
+          // Map from chart dataset index to original token index using seriesOrder
+          const originalTokenIndex = seriesOrder[datasetIndex];
+          const token = tokensWithData[originalTokenIndex];
 
-        // Update individual token values
-        seriesOrder.forEach((originalIndex, displayOrderIndex) => {
-          const valueElement = container.querySelector(`[data-token-value="${displayOrderIndex}"]`);
-          if (valueElement) {
-            const tokenValue = currentBaseData.values[originalIndex];
-            valueElement.textContent = f.price2dFormatter(tokenValue);
+          if (token) {
+            // Navigate to silo token page
+            const navigationPath = `/silo/${token.address}`;
+            navigate(navigationPath);
           }
-        });
-      } catch (error) {
-        console.warn("DOM revert failed on mouse leave:", error);
-      }
-    }
-  }, [stackedData, baseData, seriesOrder]);
-
-  // Cleanup on unmount
-  React.useEffect(() => {
-    return () => {
-      if (pendingUpdateRef.current) {
-        cancelAnimationFrame(pendingUpdateRef.current);
-      }
-    };
-  }, []);
-
-  // Handle chart section click for navigation
-  const handleChartClick = useCallback(
-    (datasetIndex: number) => {
-      if (
-        typeof datasetIndex === "number" &&
-        datasetIndex >= 0 &&
-        tokensWithData &&
-        datasetIndex < tokensWithData.length &&
-        seriesOrder &&
-        seriesOrder.length > 0
-      ) {
-        // Map from chart dataset index to original token index using seriesOrder
-        const originalTokenIndex = seriesOrder[datasetIndex];
-        const token = tokensWithData[originalTokenIndex];
-
-        if (token) {
-          // Navigate to silo token page
-          const navigationPath = `/silo/${token.address}`;
-          navigate(navigationPath);
         }
-      }
-    },
-    [navigate, tokensWithData, seriesOrder],
-  );
+      },
+      [navigate, tokensWithData, seriesOrder],
+    );
 
-  // Prepare token names and base data for tooltip
-  const tokenNames = useMemo(() => {
-    if (!seriesOrder || !seriesOrder.length || !tokensWithData || !tokensWithData.length) return [];
+    // Prepare token names and base data for tooltip
+    const tokenNames = useMemo(() => {
+      if (!seriesOrder || !seriesOrder.length || !tokensWithData || !tokensWithData.length) return [];
 
-    const names = seriesOrder.map((originalIndex) => {
-      const token = tokensWithData[originalIndex];
-      return token?.symbol || token?.name || "Unknown Token";
-    });
-    return names;
-  }, [seriesOrder, tokensWithData]);
+      const names = seriesOrder.map((originalIndex) => {
+        const token = tokensWithData[originalIndex];
+        return token?.symbol || token?.name || "Unknown Token";
+      });
+      return names;
+    }, [seriesOrder, tokensWithData]);
 
-  const baseDataValues = useMemo(() => {
-    if (!baseData || !baseData.length || !seriesOrder || !seriesOrder.length) return [];
+    const baseDataValues = useMemo(() => {
+      if (!baseData || !baseData.length || !seriesOrder || !seriesOrder.length) return [];
 
-    const values = baseData.map((item) => {
-      return seriesOrder.map((originalIndex) => item.values[originalIndex] || 0);
-    });
-    return values;
-  }, [baseData, seriesOrder]);
+      const values = baseData.map((item) => {
+        return seriesOrder.map((originalIndex) => item.values[originalIndex] || 0);
+      });
+      return values;
+    }, [baseData, seriesOrder]);
 
-  // Handle empty states
-  if (isLoading) {
-    return (
-      <div className={cn("rounded-[20px] bg-gray-1", className)}>
-        <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
-          <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
-            My Token Value Distribution
+    // Handle empty states
+    if (isLoading) {
+      return (
+        <div className={cn("rounded-[20px] bg-gray-1", className)}>
+          <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
+            <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
+              My Value Over Time
+            </div>
+          </div>
+          <div className="h-[300px] flex items-center justify-center">
+            <div className="text-pinto-light">Loading chart data...</div>
           </div>
         </div>
-        <div className="h-[300px] flex items-center justify-center">
-          <div className="text-pinto-light">Loading chart data...</div>
+      );
+    }
+
+    if (hasError) {
+      return (
+        <div className={cn("rounded-[20px] bg-gray-1", className)}>
+          <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
+            <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
+              My Value Over Time
+            </div>
+          </div>
+          <div className="h-[300px] flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-pinto-light mb-2">Unable to load chart data</div>
+              <div className="text-pinto-light/60 text-sm">Please try refreshing the page or check your connection</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (!hasData || !stackedData.length) {
+      return (
+        <div className={cn("rounded-[20px] bg-gray-1", className)}>
+          <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
+            <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
+              My Value Over Time
+            </div>
+          </div>
+          <div className="h-[300px] flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-pinto-light mb-2">No deposit history found</div>
+              <div className="text-pinto-light/60 text-sm">Make your first deposit to see your value over time</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Validate display data exists and is valid
+    const currentDisplayData = stackedData[displayIndex];
+    const currentBaseData = baseData[displayIndex];
+
+    // Additional validation for display data
+    if (
+      !currentDisplayData ||
+      !currentBaseData ||
+      !Array.isArray(currentDisplayData.values) ||
+      !Array.isArray(currentBaseData.values)
+    ) {
+      return (
+        <div className={cn("rounded-[20px] bg-gray-1", className)}>
+          <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
+            <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
+              My Value Over Time
+            </div>
+          </div>
+          <div className="h-[300px] flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-pinto-light mb-2">Chart data unavailable</div>
+              <div className="text-pinto-light/60 text-sm">There was an issue processing your deposit data</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div ref={containerRef} className={cn("rounded-[20px] bg-gray-1", className)}>
+        <div className="flex justify-between items-start pt-2 px-2 sm:pt-4 sm:px-6">
+          <div className="flex flex-row gap-1 items-center">
+            <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
+              My Value Over Time
+            </div>
+          </div>
+          {chartTimeTab !== undefined && setChartTimeTab && (
+            <div className="flex flex-col items-end gap-1">
+              <TimeTabsSelector tab={chartTimeTab} setTab={setChartTimeTab} />
+            </div>
+          )}
+        </div>
+
+        <TokenDisplayDataHybrid
+          displayIndex={displayIndex}
+          stackedData={stackedData}
+          baseData={baseData}
+          seriesOrder={seriesOrder}
+          tokensWithData={tokensWithData}
+        />
+
+        <div className="aspect-3/1">
+          <div className="px-1 pt-2 pb-4 h-[300px] sm:px-4 sm:pt-4">
+            <LineChart
+              data={stackedData}
+              {...lineChartProps}
+              makeLineGradients={lineGradients}
+              makeAreaGradients={areaGradients}
+              onMouseOver={stableHandleMouseOver}
+              onMouseLeave={stableHandleMouseLeave}
+              onChartClick={handleChartClick}
+              tokenNames={tokenNames}
+              baseDataValues={baseDataValues}
+              useSeasonAxis={false}
+            />
+          </div>
         </div>
       </div>
     );
-  }
-
-  if (hasError) {
-    return (
-      <div className={cn("rounded-[20px] bg-gray-1", className)}>
-        <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
-          <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
-            My Token Value Distribution
-          </div>
-        </div>
-        <div className="h-[300px] flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-pinto-light mb-2">Unable to load chart data</div>
-            <div className="text-pinto-light/60 text-sm">Please try refreshing the page or check your connection</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!hasData || !stackedData.length) {
-    return (
-      <div className={cn("rounded-[20px] bg-gray-1", className)}>
-        <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
-          <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
-            My Token Value Distribution
-          </div>
-        </div>
-        <div className="h-[300px] flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-pinto-light mb-2">No deposit history found</div>
-            <div className="text-pinto-light/60 text-sm">Make your first deposit to see your value over time</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Validate display data exists and is valid
-  const currentDisplayData = stackedData[displayIndex];
-  const currentBaseData = baseData[displayIndex];
-
-  // Additional validation for display data
-  if (
-    !currentDisplayData ||
-    !currentBaseData ||
-    !Array.isArray(currentDisplayData.values) ||
-    !Array.isArray(currentBaseData.values)
-  ) {
-    return (
-      <div className={cn("rounded-[20px] bg-gray-1", className)}>
-        <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
-          <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
-            My Token Value Distribution
-          </div>
-        </div>
-        <div className="h-[300px] flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-pinto-light mb-2">Chart data unavailable</div>
-            <div className="text-pinto-light/60 text-sm">There was an issue processing your deposit data</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div ref={containerRef} className={cn("rounded-[20px] bg-gray-1", className)}>
-      <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
-        <div className="flex flex-row gap-1 items-center">
-          <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
-            My Token Value Distribution
-          </div>
-        </div>
-      </div>
-
-      <TokenDisplayDataHybrid
-        displayIndex={displayIndex}
-        stackedData={stackedData}
-        baseData={baseData}
-        seriesOrder={seriesOrder}
-        tokensWithData={tokensWithData}
-      />
-
-      <div className="aspect-3/1">
-        <div className="px-1 pt-2 pb-4 h-[300px] sm:px-4 sm:pt-4">
-          <LineChart
-            data={stackedData}
-            {...lineChartProps}
-            makeLineGradients={lineGradients}
-            makeAreaGradients={areaGradients}
-            onMouseOver={stableHandleMouseOver}
-            onMouseLeave={stableHandleMouseLeave}
-            onChartClick={handleChartClick}
-            tokenNames={tokenNames}
-            baseDataValues={baseDataValues}
-          />
-        </div>
-      </div>
-    </div>
-  );
-});
+  },
+);
 
 SimpleValueChart.displayName = "SimpleValueChart";
 
