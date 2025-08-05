@@ -6,7 +6,7 @@ import useTokenData from "@/state/useTokenData";
 import { chartFormatters as f, formatDate } from "@/utils/format";
 import { Token, UseSeasonalResult } from "@/utils/types";
 import { cn } from "@/utils/utils";
-import React, { useMemo, useCallback, useState } from "react";
+import React, { useMemo, useCallback, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface SimpleValueChartProps {
@@ -302,14 +302,17 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
     return transformToStackedData(rawChartData);
   }, [rawChartData]);
 
-  // Chart data state - simplified without ref pattern
+  // Optimized hover state management - use ref to prevent re-renders, throttled updates
   const [displayIndex, setDisplayIndex] = useState<number>(0);
+  const hoverIndexRef = useRef<number | null>(null);
+  const throttleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Update display index when data changes
+  // Initialize display index to latest when data changes
   React.useEffect(() => {
     if (stackedData.length > 0) {
       const newIndex = stackedData.length - 1;
       setDisplayIndex(newIndex);
+      hoverIndexRef.current = null; // Reset hover state when data changes
     }
   }, [stackedData.length]);
 
@@ -356,12 +359,45 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
     [maxDataValue],
   );
 
-  // Mouseover handler for chart interaction
-  const handleMouseOver = useCallback((index: number) => {
-    if (typeof index === "number" && !Number.isNaN(index) && index >= 0) {
-      setDisplayIndex(index);
+  // Optimized hover handler - uses ref and throttling to minimize re-renders
+  const handleMouseOver = useCallback(
+    (index: number) => {
+      if (typeof index !== "number" || Number.isNaN(index) || index < 0) return;
+
+      // Store hover index in ref (doesn't cause re-renders)
+      hoverIndexRef.current = index;
+
+      // Clear existing throttle timeout
+      if (throttleTimeoutRef.current) {
+        clearTimeout(throttleTimeoutRef.current);
+      }
+
+      // Throttle state updates to reduce re-renders (only update every 100ms)
+      throttleTimeoutRef.current = setTimeout(() => {
+        if (hoverIndexRef.current !== null && hoverIndexRef.current !== displayIndex) {
+          setDisplayIndex(hoverIndexRef.current);
+        }
+      }, 100);
+    },
+    [displayIndex],
+  );
+
+  // Handle mouse leave - revert to latest data point after delay
+  const handleMouseLeave = useCallback(() => {
+    hoverIndexRef.current = null;
+
+    if (throttleTimeoutRef.current) {
+      clearTimeout(throttleTimeoutRef.current);
     }
-  }, []);
+
+    // Revert to latest data point after a short delay
+    throttleTimeoutRef.current = setTimeout(() => {
+      if (stackedData.length > 0) {
+        const latestIndex = stackedData.length - 1;
+        setDisplayIndex(latestIndex);
+      }
+    }, 200);
+  }, [stackedData.length]);
 
   // Handle chart section click for navigation
   const handleChartClick = useCallback(
@@ -515,6 +551,7 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
             makeLineGradients={lineGradients}
             makeAreaGradients={areaGradients}
             onMouseOver={handleMouseOver}
+            onMouseLeave={handleMouseLeave}
             onChartClick={handleChartClick}
             tokenNames={tokenNames}
             baseDataValues={baseDataValues}

@@ -47,6 +47,7 @@ export interface LineChartProps {
   referenceDot?: LineChartReferenceDotProps;
   valueFormatter?: (value: number) => string;
   onMouseOver?: (index: number) => void;
+  onMouseLeave?: () => void;
   activeIndex?: number;
   useLogarithmicScale?: boolean;
   horizontalReferenceLines?: LineChartHorizontalReferenceLine[];
@@ -74,6 +75,7 @@ const LineChart = React.memo(
     makeAreaGradients,
     valueFormatter,
     onMouseOver,
+    onMouseLeave,
     activeIndex,
     useLogarithmicScale = false,
     horizontalReferenceLines = stableHorizontalReferenceLines,
@@ -189,8 +191,8 @@ const LineChart = React.memo(
     }, [fillArea, hoverPointImages]);
 
     const selectionCallbackPlugin: Plugin = useMemo(() => {
-      return plugins.selectionCallback(onMouseOver);
-    }, [onMouseOver]);
+      return plugins.selectionCallback(onMouseOver, onMouseLeave);
+    }, [onMouseOver, onMouseLeave]);
 
     const interactiveChartPlugin: Plugin = useMemo(() => {
       return plugins.interactiveChart(onChartClick, tokenNames, baseDataValues);

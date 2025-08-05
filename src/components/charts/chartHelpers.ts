@@ -390,12 +390,29 @@ const getSelectionPointPlugin = (
   };
 };
 
-const getSelectionCallbackPlugin = (onMouseOver?: (index: number) => void): Plugin => ({
-  id: "selectionCallback",
-  afterDraw: (chart: Chart) => {
-    onMouseOver?.(chart.getActiveElements()?.[0]?.index);
-  },
-});
+const getSelectionCallbackPlugin = (onMouseOver?: (index: number) => void, onMouseLeave?: () => void): Plugin => {
+  let lastActiveIndex: number | undefined = undefined;
+
+  return {
+    id: "selectionCallback",
+    afterDraw: (chart: Chart) => {
+      const activeElements = chart.getActiveElements();
+      const currentIndex = activeElements?.[0]?.index;
+
+      // Call onMouseOver when hovering over a data point
+      if (currentIndex !== undefined) {
+        if (currentIndex !== lastActiveIndex) {
+          onMouseOver?.(currentIndex);
+          lastActiveIndex = currentIndex;
+        }
+      } else if (lastActiveIndex !== undefined) {
+        // Call onMouseLeave when no longer hovering over any data point
+        onMouseLeave?.();
+        lastActiveIndex = undefined;
+      }
+    },
+  };
+};
 
 const getInteractiveChartPlugin = (
   onChartClick?: (datasetIndex: number) => void,
@@ -428,6 +445,8 @@ const getInteractiveChartPlugin = (
     },
   };
 };
+
+// Removed getTokenHoverDisplayPlugin - now using optimized throttled approach in React components
 
 const getGradientShiftPlugin = (
   activeIndexRef: MutableRefObject<number | undefined>,
