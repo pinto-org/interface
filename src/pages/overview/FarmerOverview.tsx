@@ -11,6 +11,7 @@ import StatPanelAltDisplay from "@/components/StatPanelAltDisplay";
 import TableRowConnector from "@/components/TableRowConnector";
 import SimpleValueChart from "@/components/charts/SimpleValueChart";
 import TimeTabsSelector, { TimeTab } from "@/components/charts/TimeTabs";
+import { ValueMode } from "@/components/charts/ValueModeToggle";
 import { PodlineVisualization } from "@/components/podline";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
@@ -80,6 +81,12 @@ const Overview = () => {
     .add(floodValue)
     .add(claimableValue);
 
+  const valueInSystemBDV = farmerSilo.depositsBDV
+    .add(siloWrappedInternal.add(siloWrappedExternal))
+    .add(internalBalance)
+    .add(floodValue)
+    .add(claimableValue);
+
   const hasDeposits = farmerActions.totalValue.silo.gt(0);
   const hasPods = farmerActions.totalValue.field.gt(0);
   const hasValue = valueInSystem.gt(0);
@@ -109,6 +116,7 @@ const Overview = () => {
   });
   const [hoveredButton, setHoveredButton] = useState("");
   const [chartTimeTab, setChartTimeTab] = useState<TimeTab>(TimeTab.Month);
+  const [valueMode, setValueMode] = useState<ValueMode>("BDV");
 
   const [_hoveredId, setHoveredId] = useAtom(hoveredIdAtom);
   useEffect(() => {
@@ -175,10 +183,10 @@ const Overview = () => {
     depositedValue: {
       title: hasOnlyPods ? "My Deposited Value" : "My Total Value in Pinto",
       mode: "depositedValue",
-      mainValue: valueInSystem,
+      mainValue: valueMode === "BDV" ? valueInSystemBDV : valueInSystem,
       mainValueChange:
         hoveredButton === "claim" ? TokenValue.ZERO : farmerActions.harvestPods.outputs.bdvGain.mul(priceData.price),
-      secondaryValue: valueInSystem,
+      secondaryValue: valueMode === "BDV" ? valueInSystemBDV : valueInSystem,
       actionValue:
         hoveredButton === "claim"
           ? farmerActions.claimRewards.outputs.bdvGain
@@ -365,6 +373,9 @@ const Overview = () => {
           timeTab={chartTimeTab}
           chartTimeTab={chartTimeTab}
           setChartTimeTab={setChartTimeTab}
+          valueMode={valueMode}
+          onValueModeChange={setValueMode}
+          showValueModeToggle={true}
         />
       </div>
 

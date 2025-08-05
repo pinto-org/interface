@@ -1,8 +1,13 @@
 import LineChart, { LineChartData } from "@/components/charts/LineChart";
 import { TimeTab } from "@/components/charts/TimeTabs";
 import TimeTabsSelector from "@/components/charts/TimeTabs";
+import ValueModeToggle, { ValueMode } from "@/components/charts/ValueModeToggle";
 import { getAreaGradientFunctions, gradientFunctions } from "@/components/charts/chartHelpers";
-import { useFarmerHistoricalTokensBDV, useTimeRangeSeasons } from "@/state/seasonal/seasonalDataHooks";
+import {
+  useFarmerHistoricalTokensBDV,
+  useSeasonalPrice,
+  useTimeRangeSeasons,
+} from "@/state/seasonal/seasonalDataHooks";
 import useTokenData from "@/state/useTokenData";
 import { chartFormatters as f, formatDate } from "@/utils/format";
 import { Token, UseSeasonalResult } from "@/utils/types";
@@ -15,6 +20,9 @@ interface SimpleValueChartProps {
   timeTab?: TimeTab;
   chartTimeTab?: TimeTab;
   setChartTimeTab?: (tab: TimeTab) => void;
+  valueMode?: ValueMode;
+  onValueModeChange?: (mode: ValueMode) => void;
+  showValueModeToggle?: boolean;
 }
 
 // Convert hex to rgb values for rgba
@@ -187,6 +195,94 @@ const mergeTokenHistoricalData = (
   return { chartData, baseData, tokensWithData };
 };
 
+/**
+ * Find the nearest price for a given timestamp
+ */
+const findNearestPrice = (
+  targetTimestamp: number,
+  sortedPriceData: Array<{ timestamp: number; value: number }>,
+): number => {
+  if (!sortedPriceData.length) return 1;
+
+  // Binary search for closest timestamp
+  let left = 0;
+  let right = sortedPriceData.length - 1;
+  let closest = sortedPriceData[0];
+  let minDiff = Math.abs(targetTimestamp - sortedPriceData[0].timestamp);
+
+  while (left <= right) {
+    const mid = Math.floor((left + right) / 2);
+    const midItem = sortedPriceData[mid];
+    const diff = Math.abs(targetTimestamp - midItem.timestamp);
+
+    if (diff < minDiff) {
+      minDiff = diff;
+      closest = midItem;
+    }
+
+    if (midItem.timestamp < targetTimestamp) {
+      left = mid + 1;
+    } else {
+      right = mid - 1;
+    }
+  }
+
+  // Filter out unreasonable price values that could cause spikes
+  const price = closest.value;
+  if (price <= 0 || price > 100) {
+    // Reasonable bounds for Pinto price
+    return 1; // Fallback to 1 for unreasonable prices
+  }
+
+  return price;
+};
+
+/**
+ * Convert BDV chart data to USD by multiplying with price data
+ */
+const convertBDVToUSD = (
+  chartData: LineChartData[],
+  baseData: LineChartData[],
+  priceData: UseSeasonalResult,
+): { chartData: LineChartData[]; baseData: LineChartData[] } => {
+  if (!priceData.data || !priceData.data.length || !chartData.length) {
+    return { chartData, baseData };
+  }
+
+  // Sort price data by timestamp and normalize timestamps
+  const sortedPriceData = priceData.data
+    .map((item) => ({
+      timestamp: item.timestamp instanceof Date ? item.timestamp.getTime() : item.timestamp,
+      value: item.value,
+    }))
+    .filter((item) => typeof item.value === "number" && !Number.isNaN(item.value))
+    .sort((a, b) => a.timestamp - b.timestamp);
+
+  if (!sortedPriceData.length) {
+    return { chartData, baseData };
+  }
+
+  // Convert chartData using nearest price lookup
+  const convertedChartData = chartData.map((item) => {
+    const price = findNearestPrice(item.timestamp, sortedPriceData);
+    return {
+      ...item,
+      values: item.values.map((value) => value * price),
+    };
+  });
+
+  // Convert baseData using nearest price lookup
+  const convertedBaseData = baseData.map((item) => {
+    const price = findNearestPrice(item.timestamp, sortedPriceData);
+    return {
+      ...item,
+      values: item.values.map((value) => value * price),
+    };
+  });
+
+  return { chartData: convertedChartData, baseData: convertedBaseData };
+};
+
 // Transform data to stacked format (cumulative, ordered from least to most value)
 const transformToStackedData = (data: LineChartData[]): { stackedData: LineChartData[]; seriesOrder: number[] } => {
   // Guard against empty or invalid data
@@ -270,22 +366,41 @@ const transformToStackedData = (data: LineChartData[]): { stackedData: LineChart
 };
 
 const SimpleValueChart = React.memo(
-  ({ className, timeTab = TimeTab.Month, chartTimeTab, setChartTimeTab }: SimpleValueChartProps) => {
+  ({
+    className,
+    timeTab = TimeTab.Month,
+    chartTimeTab,
+    setChartTimeTab,
+    valueMode = "BDV",
+    onValueModeChange,
+    showValueModeToggle = false,
+  }: SimpleValueChartProps) => {
     const navigate = useNavigate();
+
+    console.log("SimpleValueChart: rendering with props", {
+      valueMode,
+      showValueModeToggle,
+      onValueModeChange: !!onValueModeChange,
+    });
 
     // Hooks for data fetching
     const { whitelistedTokens } = useTokenData();
     const { from, to } = useTimeRangeSeasons(timeTab);
     const tokenQueries = useFarmerHistoricalTokensBDV(from, to, whitelistedTokens || []);
+    const priceQuery = useSeasonalPrice(from, to, valueMode === "USD");
 
     // Loading and error states
     const tokenQueriesValues = Object.values(tokenQueries || {});
-    const isLoading = tokenQueriesValues.length > 0 && tokenQueriesValues.some((query) => query?.isLoading);
-    const hasError = tokenQueriesValues.length > 0 && tokenQueriesValues.some((query) => query?.isError);
+    const isLoading =
+      (tokenQueriesValues.length > 0 && tokenQueriesValues.some((query) => query?.isLoading)) ||
+      (valueMode === "USD" && priceQuery.isLoading);
+    const hasError =
+      (tokenQueriesValues.length > 0 && tokenQueriesValues.some((query) => query?.isError)) ||
+      (valueMode === "USD" && priceQuery.isError);
     const hasData =
       tokenQueriesValues.length > 0 && tokenQueriesValues.some((query) => query?.data && query.data.length > 0);
 
-    // Merge token data into unified timeline
+    // Merge token data into unified timeline and convert to USD if needed
     const {
       chartData: rawChartData,
       baseData,
@@ -295,8 +410,20 @@ const SimpleValueChart = React.memo(
         // Return empty data structure if no data or tokens not loaded
         return { chartData: [], baseData: [], tokensWithData: [] };
       }
-      return mergeTokenHistoricalData(tokenQueries, whitelistedTokens);
-    }, [tokenQueries, whitelistedTokens, hasData]);
+      const bdvData = mergeTokenHistoricalData(tokenQueries, whitelistedTokens);
+
+      // Convert to USD if in USD mode
+      if (valueMode === "USD" && priceQuery.data) {
+        const convertedData = convertBDVToUSD(bdvData.chartData, bdvData.baseData, priceQuery);
+        return {
+          chartData: convertedData.chartData,
+          baseData: convertedData.baseData,
+          tokensWithData: bdvData.tokensWithData,
+        };
+      }
+
+      return bdvData;
+    }, [tokenQueries, whitelistedTokens, hasData, valueMode, priceQuery]);
 
     // Transform to stacked format
     const { stackedData, seriesOrder } = useMemo(() => {
@@ -312,6 +439,29 @@ const SimpleValueChart = React.memo(
     const pendingUpdateRef = useRef<number | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const isHoveringRef = useRef<boolean>(false);
+
+    // Dynamic formatter based on value mode
+    const valueFormatter = useMemo(() => {
+      if (valueMode === "BDV") {
+        // Custom BDV formatter that shows "BDV" suffix instead of "$"
+        return (value: number) => {
+          const formatted = f.price0dFormatter(value).replace(/^\$/, ""); // Remove $ sign
+          return `${formatted} BDV`;
+        };
+      }
+      return f.price0dFormatter; // USD mode uses dollar formatter
+    }, [valueMode]);
+
+    // Formatter for display values (2 decimals)
+    const displayValueFormatter = useMemo(() => {
+      if (valueMode === "BDV") {
+        return (value: number) => {
+          const formatted = f.price2dFormatter(value).replace(/^\$/, ""); // Remove $ sign
+          return `${formatted} BDV`;
+        };
+      }
+      return f.price2dFormatter; // USD mode uses dollar formatter
+    }, [valueMode]);
 
     // Optimized DOM update function - only updates during hover
     const updateTokenDisplayDOM = useCallback(
@@ -332,7 +482,7 @@ const SimpleValueChart = React.memo(
             // Update total value display
             const totalValueElement = container.querySelector("[data-total-value]");
             if (totalValueElement) {
-              totalValueElement.textContent = f.price2dFormatter(totalValue);
+              totalValueElement.textContent = displayValueFormatter(totalValue);
             }
 
             // Update timestamp display
@@ -346,7 +496,7 @@ const SimpleValueChart = React.memo(
               const valueElement = container.querySelector(`[data-token-value="${displayOrderIndex}"]`);
               if (valueElement) {
                 const tokenValue = currentBaseData.values[originalIndex];
-                valueElement.textContent = f.price2dFormatter(tokenValue);
+                valueElement.textContent = displayValueFormatter(tokenValue);
               }
             });
           } catch (error) {
@@ -354,7 +504,7 @@ const SimpleValueChart = React.memo(
           }
         }
       },
-      [stackedData, baseData, seriesOrder],
+      [stackedData, baseData, seriesOrder, displayValueFormatter],
     );
 
     // RequestAnimationFrame-based update scheduling - DOM only during hover
@@ -419,11 +569,11 @@ const SimpleValueChart = React.memo(
       () => ({
         xKey: "timestamp" as const,
         size: "small" as const,
-        valueFormatter: f.price0dFormatter,
+        valueFormatter,
         useLogarithmicScale: false,
         yAxisMax: maxDataValue,
       }),
-      [maxDataValue],
+      [maxDataValue, valueFormatter],
     );
 
     // Stable hover handlers to prevent Chart.js plugin recreation
@@ -463,7 +613,7 @@ const SimpleValueChart = React.memo(
           // Update total value display
           const totalValueElement = container.querySelector("[data-total-value]");
           if (totalValueElement) {
-            totalValueElement.textContent = f.price2dFormatter(totalValue);
+            totalValueElement.textContent = displayValueFormatter(totalValue);
           }
 
           // Update timestamp display
@@ -477,14 +627,14 @@ const SimpleValueChart = React.memo(
             const valueElement = container.querySelector(`[data-token-value="${displayOrderIndex}"]`);
             if (valueElement) {
               const tokenValue = currentBaseData.values[originalIndex];
-              valueElement.textContent = f.price2dFormatter(tokenValue);
+              valueElement.textContent = displayValueFormatter(tokenValue);
             }
           });
         } catch (error) {
           console.warn("DOM revert failed on mouse leave:", error);
         }
       }
-    }, [stackedData, baseData, seriesOrder]);
+    }, [stackedData, baseData, seriesOrder, displayValueFormatter]);
 
     // Cleanup on unmount
     React.useEffect(() => {
@@ -623,16 +773,19 @@ const SimpleValueChart = React.memo(
     return (
       <div ref={containerRef} className={cn("rounded-[20px] bg-gray-1", className)}>
         <div className="flex justify-between items-start pt-2 px-2 sm:pt-4 sm:px-6">
-          <div className="flex flex-row gap-1 items-center">
+          <div className="flex flex-row gap-3 items-center">
             <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
-              My Value Over Time
+              My Value Over Time {valueMode === "USD" ? "(USD)" : "(BDV)"}
             </div>
           </div>
-          {chartTimeTab !== undefined && setChartTimeTab && (
-            <div className="flex flex-col items-end gap-1">
+          <div className="flex flex-col items-end gap-2">
+            {showValueModeToggle && onValueModeChange && (
+              <ValueModeToggle mode={valueMode} onModeChange={onValueModeChange} />
+            )}
+            {chartTimeTab !== undefined && setChartTimeTab && (
               <TimeTabsSelector tab={chartTimeTab} setTab={setChartTimeTab} />
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         <TokenDisplayDataHybrid
@@ -641,6 +794,7 @@ const SimpleValueChart = React.memo(
           baseData={baseData}
           seriesOrder={seriesOrder}
           tokensWithData={tokensWithData}
+          valueFormatter={displayValueFormatter}
         />
 
         <div className="aspect-3/1">
@@ -674,12 +828,14 @@ const TokenDisplayDataHybrid = React.memo(
     baseData,
     seriesOrder,
     tokensWithData,
+    valueFormatter,
   }: {
     displayIndex: number;
     stackedData: LineChartData[];
     baseData: LineChartData[];
     seriesOrder: number[];
     tokensWithData: Token[];
+    valueFormatter: (value: number) => string;
   }) => {
     // Use React state as primary display mechanism (reliable)
     const currentDisplayData = stackedData[displayIndex];
@@ -707,7 +863,7 @@ const TokenDisplayDataHybrid = React.memo(
       <div className="h-[80px] sm:h-[65px] px-1 sm:px-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div className="text-pinto-green-3 sm:text-pinto-green-3 pinto-body sm:pinto-h3 px-1" data-total-value>
-            {f.price2dFormatter(totalValue)}
+            {valueFormatter(totalValue)}
           </div>
           <div
             className="pinto-xs sm:pinto-sm-light text-pinto-light sm:text-pinto-light px-1 mt-1 sm:mt-0"
@@ -722,7 +878,7 @@ const TokenDisplayDataHybrid = React.memo(
               <div key={token.name} className="flex items-center gap-0.5 text-xs">
                 <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: token.color }} />
                 <span className="pinto-xs text-pinto-light whitespace-nowrap">
-                  {token.name}: <span data-token-value={displayOrderIndex}>{f.price2dFormatter(token.baseValue)}</span>
+                  {token.name}: <span data-token-value={displayOrderIndex}>{valueFormatter(token.baseValue)}</span>
                 </span>
               </div>
             ))}
