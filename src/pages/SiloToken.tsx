@@ -183,7 +183,7 @@ export default function SiloToken() {
   const location = window.location.pathname;
   const isSiloedPinto = location === "/sPinto";
 
-  const siloToken = tokens[getTokenIndex(isSiloedPinto ? wrappedMain : (tokenAddress ?? ""))];
+  const siloToken = tokens[getTokenIndex(isSiloedPinto ? wrappedMain : tokenAddress ?? "")];
 
   useEffect(() => {
     if (!siloToken || siloToken.is3PSiloWrapped) {

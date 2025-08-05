@@ -103,7 +103,7 @@ export default function CreateOrder() {
   const swapSummary = useSwapSummary(swapData);
   const beansInOrder = !shouldSwap
     ? amountInTV
-    : (swapSummary?.swap.routes[swapSummary?.swap.routes.length - 1].amountOut ?? TV.ZERO);
+    : swapSummary?.swap.routes[swapSummary?.swap.routes.length - 1].amountOut ?? TV.ZERO;
 
   const value = tokenIn.isNative ? amountInTV : undefined;
 

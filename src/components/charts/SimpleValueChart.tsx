@@ -6,7 +6,7 @@ import useTokenData from "@/state/useTokenData";
 import { chartFormatters as f, formatDate } from "@/utils/format";
 import { Token, UseSeasonalResult } from "@/utils/types";
 import { cn } from "@/utils/utils";
-import React, { useMemo, useCallback, useState, useRef } from "react";
+import React, { useMemo, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface SimpleValueChartProps {
@@ -54,87 +54,216 @@ const createTokenFadeGradient = (baseColor: string, opacity: number = 0.5, isHig
 const mergeTokenHistoricalData = (
   tokenQueries: { [address: string]: UseSeasonalResult },
   tokens: Token[],
-): { chartData: LineChartData[]; baseData: LineChartData[] } => {
+): { chartData: LineChartData[]; baseData: LineChartData[]; tokensWithData: Token[] } => {
   // Guard against undefined inputs
   if (!tokenQueries || !tokens || !tokens.length) {
-    return { chartData: [], baseData: [] };
+    return { chartData: [], baseData: [], tokensWithData: [] };
+  }
+
+  // Validate that tokenQueries is a proper object
+  if (typeof tokenQueries !== "object" || Array.isArray(tokenQueries)) {
+    return { chartData: [], baseData: [], tokensWithData: [] };
+  }
+
+  // Filter out tokens that have no non-zero values across all time periods
+  const tokensWithData = tokens.filter((token) => {
+    const query = tokenQueries[token.address];
+    if (!query || !Array.isArray(query.data) || query.data.length === 0) {
+      return false;
+    }
+
+    // Check if token has any non-zero values
+    return query.data.some((item) => {
+      if (!item || typeof item.value !== "number" || Number.isNaN(item.value)) {
+        return false;
+      }
+      return item.value > 0;
+    });
+  });
+
+  // If no tokens have data, return empty result
+  if (tokensWithData.length === 0) {
+    return { chartData: [], baseData: [], tokensWithData: [] };
   }
 
   // Find all unique timestamps across all farmer's token positions
   const allTimestamps = new Set<number>();
-  Object.values(tokenQueries).forEach((query) => {
-    query.data?.forEach((item) => allTimestamps.add(item.timestamp.getTime()));
-  });
+
+  try {
+    Object.values(tokenQueries).forEach((query) => {
+      // Validate query structure
+      if (!query || typeof query !== "object") return;
+
+      // Validate query has data array
+      if (!Array.isArray(query.data)) return;
+
+      query.data.forEach((item) => {
+        // Validate item has timestamp and it's a valid Date
+        if (!item || !item.timestamp) return;
+
+        let timestampMs: number;
+        if (item.timestamp instanceof Date) {
+          timestampMs = item.timestamp.getTime();
+        } else if (typeof item.timestamp === "number") {
+          timestampMs = item.timestamp;
+        } else if (typeof item.timestamp === "string") {
+          const parsed = new Date(item.timestamp);
+          if (Number.isNaN(parsed.getTime())) return;
+          timestampMs = parsed.getTime();
+        } else {
+          return;
+        }
+
+        // Only add valid timestamps
+        if (!Number.isNaN(timestampMs) && timestampMs > 0) {
+          allTimestamps.add(timestampMs);
+        }
+      });
+    });
+  } catch (error) {
+    console.error("Error processing token queries for timestamps:", error);
+    return { chartData: [], baseData: [], tokensWithData: [] };
+  }
+
+  // Return empty data if no valid timestamps found
+  if (allTimestamps.size === 0) {
+    return { chartData: [], baseData: [], tokensWithData: [] };
+  }
 
   // Sort timestamps chronologically
-  const sortedTimestamps = Array.from(allTimestamps).sort();
+  const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b);
 
   // Create complete dataset with all tokens for each timestamp
-  const chartData: LineChartData[] = sortedTimestamps.map((timestamp) => {
-    const values = tokens.map((token) => {
-      const tokenData = tokenQueries[token.address]?.data;
-      const dataPoint = tokenData?.find((item) => item.timestamp.getTime() === timestamp);
-      return dataPoint?.value || 0; // 0 BDV if no deposits for this token
-    });
+  const chartData: LineChartData[] = [];
 
-    return { timestamp, values };
-  });
+  try {
+    sortedTimestamps.forEach((timestamp) => {
+      const values = tokensWithData.map((token) => {
+        // Validate token has address
+        if (!token || !token.address) return 0;
+
+        const query = tokenQueries[token.address];
+        if (!query || !Array.isArray(query.data)) return 0;
+
+        const dataPoint = query.data.find((item) => {
+          if (!item || !item.timestamp) return false;
+
+          let itemTimestamp: number;
+          if (item.timestamp instanceof Date) {
+            itemTimestamp = item.timestamp.getTime();
+          } else if (typeof item.timestamp === "number") {
+            itemTimestamp = item.timestamp;
+          } else {
+            return false;
+          }
+
+          return itemTimestamp === timestamp;
+        });
+
+        // Validate and return the value
+        if (dataPoint && typeof dataPoint.value === "number" && !Number.isNaN(dataPoint.value)) {
+          return Math.max(0, dataPoint.value); // Ensure non-negative values
+        }
+
+        return 0; // 0 BDV if no deposits for this token at this time
+      });
+
+      // Only add data point if we have valid values
+      if (values.length > 0) {
+        chartData.push({ timestamp, values });
+      }
+    });
+  } catch (error) {
+    console.error("Error creating chart data:", error);
+    return { chartData: [], baseData: [], tokensWithData: [] };
+  }
 
   // Also return base data (before stacking) for display purposes
-  const baseData = [...chartData];
+  const baseData = chartData.map((item) => ({ ...item, values: [...item.values] }));
 
-  return { chartData, baseData };
+  return { chartData, baseData, tokensWithData };
 };
 
 // Transform data to stacked format (cumulative, ordered from least to most value)
 const transformToStackedData = (data: LineChartData[]): { stackedData: LineChartData[]; seriesOrder: number[] } => {
-  console.log("transformToStackedData called with:", data);
-
   // Guard against empty or invalid data
-  if (
-    !data ||
-    !data.length ||
-    !data[0] ||
-    !data[0].values ||
-    !Array.isArray(data[0].values) ||
-    data[0].values.length === 0
-  ) {
-    console.log("transformToStackedData: returning empty due to invalid data");
+  if (!Array.isArray(data) || data.length === 0) {
     return { stackedData: [], seriesOrder: [] };
   }
 
-  // First, calculate the average value for each series to determine stacking order
-  const seriesAverages = new Array(data[0].values.length).fill(0);
+  // Validate first item to determine series count
+  const firstItem = data[0];
+  if (!firstItem || !Array.isArray(firstItem.values) || firstItem.values.length === 0) {
+    return { stackedData: [], seriesOrder: [] };
+  }
 
-  data.forEach((item) => {
-    item.values.forEach((value, index) => {
-      seriesAverages[index] += value;
-    });
+  const seriesCount = firstItem.values.length;
+
+  // Validate all data items have consistent structure
+  const isValidData = data.every((item) => {
+    return (
+      item &&
+      Array.isArray(item.values) &&
+      item.values.length === seriesCount &&
+      item.values.every((value) => typeof value === "number" && !Number.isNaN(value) && Number.isFinite(value))
+    );
   });
 
-  // Get average values and sort by most to least for proper stacking
-  const seriesOrder = seriesAverages
-    .map((sum, index) => ({ index, average: sum / data.length }))
-    .sort((a, b) => b.average - a.average)
-    .map(({ index }) => index);
+  if (!isValidData) {
+    return { stackedData: [], seriesOrder: [] };
+  }
 
-  const stackedData = data.map((item) => {
-    const stackedValues = new Array(item.values.length);
-    let cumulative = 0;
+  // Calculate the average value for each series to determine stacking order
+  const seriesAverages = new Array(seriesCount).fill(0);
+  const validDataCount = data.length;
 
-    // Stack in order from most to least average value (largest at bottom)
-    seriesOrder.forEach((seriesIndex) => {
-      cumulative += item.values[seriesIndex];
-      stackedValues[seriesIndex] = cumulative;
+  try {
+    data.forEach((item) => {
+      item.values.forEach((value, index) => {
+        if (typeof value === "number" && !Number.isNaN(value) && Number.isFinite(value)) {
+          seriesAverages[index] += Math.max(0, value); // Only include non-negative values
+        }
+      });
     });
 
-    return {
-      ...item,
-      values: stackedValues,
-    };
-  });
+    // Calculate averages with division by zero protection
+    const seriesOrder = seriesAverages
+      .map((sum, index) => ({
+        index,
+        average: validDataCount > 0 ? sum / validDataCount : 0,
+      }))
+      .sort((a, b) => b.average - a.average)
+      .map(({ index }) => index);
 
-  return { stackedData, seriesOrder };
+    // Create stacked data
+    const stackedData = data.map((item) => {
+      const stackedValues = new Array(seriesCount).fill(0);
+      let cumulative = 0;
+
+      // Stack in order from most to least average value (largest at bottom)
+      seriesOrder.forEach((seriesIndex) => {
+        if (seriesIndex >= 0 && seriesIndex < item.values.length) {
+          const value = item.values[seriesIndex];
+          if (typeof value === "number" && !Number.isNaN(value) && Number.isFinite(value)) {
+            cumulative += Math.max(0, value); // Ensure non-negative cumulative values
+            stackedValues[seriesIndex] = cumulative;
+          } else {
+            stackedValues[seriesIndex] = cumulative; // Keep previous cumulative value
+          }
+        }
+      });
+
+      return {
+        timestamp: item.timestamp,
+        values: stackedValues,
+      };
+    });
+
+    return { stackedData, seriesOrder };
+  } catch (error) {
+    console.error("Error in transformToStackedData:", error);
+    return { stackedData: [], seriesOrder: [] };
+  }
 };
 
 const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: SimpleValueChartProps) => {
@@ -146,8 +275,6 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
   const tokenQueries = useFarmerHistoricalTokensBDV(from, to, whitelistedTokens || []);
 
   // Loading and error states
-  console.log("CHART DEBUG - tokenQueries:", tokenQueries, "whitelistedTokens:", whitelistedTokens);
-
   const tokenQueriesValues = Object.values(tokenQueries || {});
   const isLoading = tokenQueriesValues.length > 0 && tokenQueriesValues.some((query) => query?.isLoading);
   const hasError = tokenQueriesValues.length > 0 && tokenQueriesValues.some((query) => query?.isError);
@@ -155,12 +282,14 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
     tokenQueriesValues.length > 0 && tokenQueriesValues.some((query) => query?.data && query.data.length > 0);
 
   // Merge token data into unified timeline
-  const { chartData: rawChartData, baseData } = useMemo(() => {
-    console.log("rawChartData:");
+  const {
+    chartData: rawChartData,
+    baseData,
+    tokensWithData,
+  } = useMemo(() => {
     if (!hasData || !whitelistedTokens || !whitelistedTokens.length) {
       // Return empty data structure if no data or tokens not loaded
-      console.log("No data or tokens not loaded");
-      return { chartData: [], baseData: [] };
+      return { chartData: [], baseData: [], tokensWithData: [] };
     }
     return mergeTokenHistoricalData(tokenQueries, whitelistedTokens);
   }, [tokenQueries, whitelistedTokens, hasData]);
@@ -173,23 +302,16 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
     return transformToStackedData(rawChartData);
   }, [rawChartData]);
 
-  // Chart data state
+  // Chart data state - simplified without ref pattern
   const [displayIndex, setDisplayIndex] = useState<number>(0);
-  const displayIndexRef = useRef<number>(0);
 
   // Update display index when data changes
   React.useEffect(() => {
     if (stackedData.length > 0) {
       const newIndex = stackedData.length - 1;
       setDisplayIndex(newIndex);
-      displayIndexRef.current = newIndex;
     }
   }, [stackedData.length]);
-
-  // Update ref when state changes
-  React.useEffect(() => {
-    displayIndexRef.current = displayIndex;
-  }, [displayIndex]);
 
   // Calculate max value with 10% padding for better visual spacing
   const maxDataValue = useMemo(() => {
@@ -200,27 +322,27 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
 
   // Token-specific line gradients with solid colors (for borders)
   const lineGradients = useMemo(() => {
-    if (!whitelistedTokens || !whitelistedTokens.length || !seriesOrder || !seriesOrder.length) return [];
+    if (!tokensWithData || !tokensWithData.length || !seriesOrder || !seriesOrder.length) return [];
 
     const gradients = seriesOrder.map((originalIndex) => {
-      const token = whitelistedTokens[originalIndex];
+      const token = tokensWithData[originalIndex];
       const color = token?.color || "#246645"; // Fallback to Pinto green
       return gradientFunctions.solid(color);
     });
     return gradients;
-  }, [whitelistedTokens, seriesOrder]);
+  }, [tokensWithData, seriesOrder]);
 
   // Area gradients with fade-over-time effect - strong colors that fade to light over time
   const areaGradients = useMemo(() => {
-    if (!whitelistedTokens || !whitelistedTokens.length || !seriesOrder || !seriesOrder.length) return [];
+    if (!tokensWithData || !tokensWithData.length || !seriesOrder || !seriesOrder.length) return [];
 
     const gradients = seriesOrder.map((originalIndex) => {
-      const token = whitelistedTokens[originalIndex];
+      const token = tokensWithData[originalIndex];
       const color = token?.color || "#246645"; // Fallback to Pinto green
       return createTokenFadeGradient(color, 0.1, true);
     });
     return gradients;
-  }, [whitelistedTokens, seriesOrder]);
+  }, [tokensWithData, seriesOrder]);
 
   // Static props
   const lineChartProps = useMemo(
@@ -234,9 +356,9 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
     [maxDataValue],
   );
 
-  // Stable mouseover handler - no dependencies to avoid callback recreation
+  // Mouseover handler for chart interaction
   const handleMouseOver = useCallback((index: number) => {
-    if (typeof index === "number" && !Number.isNaN(index) && index !== displayIndexRef.current) {
+    if (typeof index === "number" && !Number.isNaN(index) && index >= 0) {
       setDisplayIndex(index);
     }
   }, []);
@@ -247,14 +369,14 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
       if (
         typeof datasetIndex === "number" &&
         datasetIndex >= 0 &&
-        whitelistedTokens &&
-        datasetIndex < whitelistedTokens.length &&
+        tokensWithData &&
+        datasetIndex < tokensWithData.length &&
         seriesOrder &&
         seriesOrder.length > 0
       ) {
         // Map from chart dataset index to original token index using seriesOrder
         const originalTokenIndex = seriesOrder[datasetIndex];
-        const token = whitelistedTokens[originalTokenIndex];
+        const token = tokensWithData[originalTokenIndex];
 
         if (token) {
           // Navigate to silo token page
@@ -263,19 +385,19 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
         }
       }
     },
-    [navigate, whitelistedTokens, seriesOrder],
+    [navigate, tokensWithData, seriesOrder],
   );
 
   // Prepare token names and base data for tooltip
   const tokenNames = useMemo(() => {
-    if (!seriesOrder || !seriesOrder.length || !whitelistedTokens || !whitelistedTokens.length) return [];
+    if (!seriesOrder || !seriesOrder.length || !tokensWithData || !tokensWithData.length) return [];
 
     const names = seriesOrder.map((originalIndex) => {
-      const token = whitelistedTokens[originalIndex];
+      const token = tokensWithData[originalIndex];
       return token?.symbol || token?.name || "Unknown Token";
     });
     return names;
-  }, [seriesOrder, whitelistedTokens]);
+  }, [seriesOrder, tokensWithData]);
 
   const baseDataValues = useMemo(() => {
     if (!baseData || !baseData.length || !seriesOrder || !seriesOrder.length) return [];
@@ -311,7 +433,10 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
           </div>
         </div>
         <div className="h-[300px] flex items-center justify-center">
-          <div className="text-pinto-light">Error loading chart data</div>
+          <div className="text-center">
+            <div className="text-pinto-light mb-2">Unable to load chart data</div>
+            <div className="text-pinto-light/60 text-sm">Please try refreshing the page or check your connection</div>
+          </div>
         </div>
       </div>
     );
@@ -326,14 +451,42 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
           </div>
         </div>
         <div className="h-[300px] flex items-center justify-center">
-          <div className="text-pinto-light">No deposit history found</div>
+          <div className="text-center">
+            <div className="text-pinto-light mb-2">No deposit history found</div>
+            <div className="text-pinto-light/60 text-sm">Make your first deposit to see your value over time</div>
+          </div>
         </div>
       </div>
     );
   }
 
+  // Validate display data exists and is valid
   const currentDisplayData = stackedData[displayIndex];
   const currentBaseData = baseData[displayIndex];
+
+  // Additional validation for display data
+  if (
+    !currentDisplayData ||
+    !currentBaseData ||
+    !Array.isArray(currentDisplayData.values) ||
+    !Array.isArray(currentBaseData.values)
+  ) {
+    return (
+      <div className={cn("rounded-[20px] bg-gray-1", className)}>
+        <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
+          <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
+            My Token Value Distribution
+          </div>
+        </div>
+        <div className="h-[300px] flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-pinto-light mb-2">Chart data unavailable</div>
+            <div className="text-pinto-light/60 text-sm">There was an issue processing your deposit data</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("rounded-[20px] bg-gray-1", className)}>
@@ -346,7 +499,12 @@ const SimpleValueChart = React.memo(({ className, timeTab = TimeTab.Month }: Sim
       </div>
 
       {currentDisplayData && currentBaseData && (
-        <TokenDisplayData displayData={currentDisplayData} baseData={currentBaseData} seriesOrder={seriesOrder} />
+        <TokenDisplayData
+          displayData={currentDisplayData}
+          baseData={currentBaseData}
+          seriesOrder={seriesOrder}
+          tokensWithData={tokensWithData}
+        />
       )}
 
       <div className="aspect-3/1">
@@ -373,20 +531,20 @@ const TokenDisplayData = ({
   displayData,
   baseData,
   seriesOrder,
+  tokensWithData,
 }: {
   displayData: LineChartData;
   baseData: LineChartData;
   seriesOrder: number[];
+  tokensWithData: Token[];
 }) => {
   // Calculate individual token values from base data and show cumulative stacked display
   const totalValue = Math.max(...displayData.values);
   const timestamp = new Date(displayData.timestamp as number);
 
   // Create token value breakdown for display - use seriesOrder to match stacking
-  const { whitelistedTokens } = useTokenData();
-
   const tokenBreakdown = seriesOrder.map((originalIndex) => {
-    const token = whitelistedTokens[originalIndex];
+    const token = tokensWithData[originalIndex];
     return {
       name: token?.symbol || token?.name || "Unknown Token",
       color: token?.color || "#246645", // Fallback to Pinto green

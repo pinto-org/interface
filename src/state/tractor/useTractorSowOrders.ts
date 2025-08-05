@@ -162,7 +162,7 @@ export function useTractorSowOrderbook<T = OrderbookEntry[]>({
    */
 
   const ordersChainQuery = useQuery<OrderbookEntry[] | undefined, DefaultError, T>({
-    queryKey: queryKeys.tractor.sowOrdersV0Chain((orders?.lastUpdated ?? chainOnly) ? 1 : 0, temperature.max, params),
+    queryKey: queryKeys.tractor.sowOrdersV0Chain(orders?.lastUpdated ?? chainOnly ? 1 : 0, temperature.max, params),
     queryFn: async () => {
       if (temperature.max.lte(0) || !client) {
         return [];

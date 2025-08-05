@@ -152,6 +152,7 @@ const PodlineVisualization = React.memo(
               <div className="text-pinto-gray-4 pinto-sm italic">
                 No pods in the line.
                 <button
+                  type="button"
                   onClick={() => navigate("/field?action=sow")}
                   className="ml-1 text-pinto-green-4 hover:underline"
                 >

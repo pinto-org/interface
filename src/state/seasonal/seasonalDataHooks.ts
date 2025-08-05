@@ -421,6 +421,28 @@ export function useSeasonalTractorUniquePublishers(fromSeason: number, toSeason:
 /** ==================== Multi-Token Historical BDV ==================== **/
 
 /**
+ * Individual token BDV hook - properly follows React rules of hooks
+ */
+function useSingleTokenHistoricalBDV(
+  fromSeason: number,
+  toSeason: number,
+  token: Token | null,
+  address: string | undefined,
+): UseSeasonalResult | null {
+  return useSeasonalFarmerSiloAssetTokenSG(
+    fromSeason,
+    toSeason,
+    token?.address || "",
+    address || "",
+    (siloAssetHourly, timestamp) => ({
+      season: Number(siloAssetHourly.season),
+      value: TV.fromBlockchain(siloAssetHourly.depositedBDV, PINTO.decimals).toNumber(),
+      timestamp,
+    }),
+  );
+}
+
+/**
  * Hook to fetch historical BDV data for multiple tokens for a specific farmer
  * Returns a map of token addresses to their seasonal BDV data
  */
@@ -431,36 +453,50 @@ export function useFarmerHistoricalTokensBDV(
 ): { [tokenAddress: string]: UseSeasonalResult } {
   const { address } = useAccount();
 
-  // Create parallel queries for each whitelisted token
-  const tokenQueries = useMemo(() => {
-    console.log("HOOK DEBUG - useFarmerHistoricalTokensBDV:", { address, tokens, tokensLength: tokens?.length });
+  // Call hooks for each token at the top level (React rules compliance)
+  // We need to call hooks unconditionally, so we'll handle up to a reasonable maximum
+  const token0 = tokens?.[0] || null;
+  const token1 = tokens?.[1] || null;
+  const token2 = tokens?.[2] || null;
+  const token3 = tokens?.[3] || null;
+  const token4 = tokens?.[4] || null;
+  const token5 = tokens?.[5] || null;
+  const token6 = tokens?.[6] || null;
+  const token7 = tokens?.[7] || null;
+  const token8 = tokens?.[8] || null;
+  const token9 = tokens?.[9] || null;
 
+  const query0 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token0, address);
+  const query1 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token1, address);
+  const query2 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token2, address);
+  const query3 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token3, address);
+  const query4 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token4, address);
+  const query5 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token5, address);
+  const query6 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token6, address);
+  const query7 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token7, address);
+  const query8 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token8, address);
+  const query9 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token9, address);
+
+  // Combine results into the expected format
+  return useMemo(() => {
     if (!address || !tokens || !tokens.length) {
       return {};
     }
 
-    return tokens.reduce(
-      (acc, token) => {
-        // @ts-ignore
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        acc[token.address] = useSeasonalFarmerSiloAssetTokenSG(
-          fromSeason,
-          toSeason,
-          token.address,
-          address,
-          (siloAssetHourly, timestamp) => ({
-            season: Number(siloAssetHourly.season),
-            value: TV.fromBlockchain(siloAssetHourly.depositedBDV, PINTO.decimals).toNumber(),
-            timestamp,
-          }),
-        );
-        return acc;
-      },
-      {} as { [tokenAddress: string]: UseSeasonalResult },
-    );
-  }, [fromSeason, toSeason, tokens, address]);
+    const queries = [query0, query1, query2, query3, query4, query5, query6, query7, query8, query9];
+    const result: { [tokenAddress: string]: UseSeasonalResult } = {};
 
-  return tokenQueries;
+    tokens.forEach((token, index) => {
+      if (index < queries.length && queries[index]) {
+        const query = queries[index];
+        if (query) {
+          result[token.address] = query;
+        }
+      }
+    });
+
+    return result;
+  }, [address, tokens, query0, query1, query2, query3, query4, query5, query6, query7, query8, query9]);
 }
 
 /**
