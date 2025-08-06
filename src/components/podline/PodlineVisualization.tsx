@@ -36,25 +36,12 @@ const PodlineVisualization = React.memo(
     // Handle segment interactions
     const handleSegmentClick = useCallback(
       (segment: PodSegment, _datasetIndex: number) => {
-        console.log(`🎯 [PODLINE CLICK] Segment clicked:`, {
-          isUserOwned: segment.isUserOwned,
-          hasPlot: !!segment.plot,
-          hasCluster: !!segment.cluster,
-          podCount: segment.podCount.toHuman(),
-          clusterType: segment.cluster?.clusterType,
-          plotsInCluster: segment.cluster?.plots.length,
-        });
-
         if (segment.isUserOwned && segment.cluster) {
           // Show cluster details dialog for all user-owned segments (both clustered and individual)
-          console.log(
-            `🎯 [PODLINE CLICK] Opening cluster dialog for ${segment.cluster.clusterType} cluster with ${segment.cluster.plots.length} plots`,
-          );
           setSelectedCluster(segment.cluster);
           setShowClusterDialog(true);
         } else if (segment.isUserOwned) {
           // Fallback to navigation if no plot or cluster data (shouldn't happen)
-          console.log(`⚠️ [PODLINE CLICK] User segment without plot or cluster data - falling back to navigation`);
           if (segment.isHarvestable) {
             navigate("/field?action=harvest");
           } else {
@@ -75,8 +62,6 @@ const PodlineVisualization = React.memo(
     }, [navigate]);
 
     const handleViewPodsClick = useCallback(() => {
-      console.log("🚀 [PERFORMANCE] View Pods clicked at:", new Date().toISOString());
-      console.time("⏱️  View Pods Dialog Open");
       setShowPodsDialog(true);
     }, []);
 

@@ -13,7 +13,6 @@ interface ClusterDetailsDialogProps {
 export const ClusterDetailsDialog = memo(({ open, onOpenChange, cluster }: ClusterDetailsDialogProps) => {
   const handlePlotClick = (plot: Plot) => {
     // Could navigate to field or show additional actions in the future
-    console.log("Plot clicked:", plot);
   };
 
   if (!cluster) return null;

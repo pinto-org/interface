@@ -28,15 +28,9 @@ export function usePlotClustering(
       return plots.map((plot, index) => createSinglePlotCluster(plot, index.toString(), harvestableIndex));
     }
 
-    console.log(`🔍 [CLUSTERING] Starting clustering for ${plots.length} plots`);
-
     // Calculate proximity threshold in absolute terms
     const proximityThresholdValue = totalPodsIssued.mul(clusteringConfig.proximityThreshold);
     const maxIndividualSizeValue = totalPodsIssued.mul(clusteringConfig.maxIndividualPlotSize);
-
-    console.log(
-      `📏 [CLUSTERING] Proximity threshold: ${proximityThresholdValue.toHuman()} pods (${(clusteringConfig.proximityThreshold * 100).toFixed(1)}%)`,
-    );
 
     const clusters: PlotCluster[] = [];
     const sortedPlots = [...plots].sort((a, b) => a.index.sub(b.index).toNumber());
@@ -48,9 +42,6 @@ export function usePlotClustering(
 
       // Check if this plot is large enough to remain individual
       if (currentPlotSize.gt(maxIndividualSizeValue)) {
-        console.log(
-          `🎯 [CLUSTERING] Large plot kept individual: ${currentPlotSize.toHuman()} pods at index ${currentPlot.index.toHuman()}`,
-        );
         clusters.push(createSinglePlotCluster(currentPlot, clusters.length.toString(), harvestableIndex));
         i++;
         continue;
@@ -73,14 +64,9 @@ export function usePlotClustering(
         const clusterEnd = getClusterEndIndex(clusterPlots);
         const gap = nextPlot.index.sub(clusterEnd);
 
-        console.log(
-          `📊 [CLUSTERING] Checking gap of ${gap.toHuman()} pods between cluster and plot at ${nextPlot.index.toHuman()}`,
-        );
-
         // If gap is within threshold, add to cluster
         if (gap.lte(proximityThresholdValue)) {
           clusterPlots.push(nextPlot);
-          console.log(`✅ [CLUSTERING] Added plot to cluster (now ${clusterPlots.length} plots)`);
           j++;
         } else {
           break;
@@ -90,9 +76,6 @@ export function usePlotClustering(
       // Create cluster if we have enough plots, otherwise create individual clusters
       if (clusterPlots.length >= clusteringConfig.minClusterSize) {
         const cluster = createMultiPlotCluster(clusterPlots, clusters.length.toString(), harvestableIndex);
-        console.log(
-          `🎯 [CLUSTERING] Created multi-plot cluster: ${cluster.plots.length} plots, ${cluster.totalPods.toHuman()} total pods`,
-        );
         clusters.push(cluster);
       } else {
         // Create individual clusters for plots that don't meet clustering requirements
@@ -103,11 +86,6 @@ export function usePlotClustering(
 
       i = j;
     }
-
-    const multiPlotClusters = clusters.filter((c) => c.clusterType === "multi");
-    console.log(
-      `🎯 [CLUSTERING] Final result: ${clusters.length} total clusters, ${multiPlotClusters.length} multi-plot clusters`,
-    );
 
     return clusters;
   }, [plots, totalPodsIssued, harvestableIndex, clusteringConfig]);

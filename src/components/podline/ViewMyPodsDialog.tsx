@@ -16,21 +16,6 @@ export const ViewMyPodsDialog = memo(({ open, onOpenChange, hasPods }: ViewMyPod
   const hasData = farmerField.plots.length > 0;
   const isDataStale = farmerField.isLoading;
 
-  // Performance logging
-  React.useEffect(() => {
-    if (open) {
-      console.log("📱 [PERFORMANCE] ViewMyPodsDialog opened at:", new Date().toISOString());
-      console.log("📊 [PERFORMANCE] Dialog state:", {
-        hasPods,
-        hasData,
-        isDataStale,
-        plotsCount: farmerField.plots.length,
-        isLoading: farmerField.isLoading,
-      });
-      console.timeEnd("⏱️  View Pods Dialog Open");
-      console.time("📊 PlotsTable Render");
-    }
-  }, [open, hasPods, hasData, isDataStale, farmerField.plots.length, farmerField.isLoading]);
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
       <ResponsiveDialog.Content className="max-w-4xl max-h-[80vh] flex flex-col will-change-transform">

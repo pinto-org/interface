@@ -75,13 +75,9 @@ export function usePodlineData(viewMode: PodlineViewMode = "current", farmerFiel
       let currentPosition = currentHarvestableIndex;
 
       // Process plot clusters and create segments
-      console.log(`🎯 [PODLINE DEBUG] Processing ${plotClusters.length} plot clusters for visualization`);
       for (const cluster of plotClusters) {
         const clusterStart = cluster.startIndex;
         const clusterEnd = cluster.endIndex;
-        console.log(
-          `📊 [PODLINE DEBUG] Processing cluster: type=${cluster.clusterType}, plots=${cluster.plots.length}, pods=${cluster.totalPods.toHuman()}, range=${clusterStart.toHuman()}-${clusterEnd.toHuman()}`,
-        );
 
         // Skip fully harvested clusters
         if (clusterEnd.lte(currentHarvestableIndex || TokenValue.ZERO)) {
@@ -134,9 +130,6 @@ export function usePodlineData(viewMode: PodlineViewMode = "current", farmerFiel
               source: sources.join(", "),
             },
           };
-          console.log(
-            `✅ [PODLINE DEBUG] Created cluster segment: ${cluster.clusterType} with ${cluster.plots.length} plots, ${effectivePods.toHuman()} pods from ${effectiveStart.toHuman()} to ${clusterEnd.toHuman()}`,
-          );
           segments.push(userSegment);
           currentPosition = clusterEnd;
         }
@@ -162,12 +155,6 @@ export function usePodlineData(viewMode: PodlineViewMode = "current", farmerFiel
 
     // Merge adjacent segments of the same type for cleaner visualization
     const mergedSegments = mergeAdjacentSegments(segments);
-
-    const userSegmentsCount = mergedSegments.filter((s) => s.isUserOwned).length;
-    const clusteredSegmentsCount = mergedSegments.filter((s) => s.cluster).length;
-    console.log(
-      `🎯 [PODLINE DEBUG] Final result: ${mergedSegments.length} total segments, ${userSegmentsCount} user-owned segments, ${clusteredSegmentsCount} cluster-based segments`,
-    );
 
     return {
       segments: mergedSegments,
