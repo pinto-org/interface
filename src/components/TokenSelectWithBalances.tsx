@@ -178,7 +178,7 @@ export default function TokenSelectWithBalances({
                   {tokenAndBalanceMap
                     ? [...tokenAndBalanceMap.keys()].map((token) => {
                         const balance = tokenAndBalanceMap.get(token);
-                        if (!balance || filterTokens?.has(token)) return null;
+                        if (!balance || (filterTokens && !filterTokens.has(token))) return null;
                         if (token.isNative && balanceFrom === FarmFromMode.INTERNAL) {
                           return null;
                         }
@@ -199,7 +199,7 @@ export default function TokenSelectWithBalances({
                       })
                     : [...balances.keys()].map((token) => {
                         const balance = balances.get(token);
-                        if (!balance || filterTokens?.has(token)) return null;
+                        if (!balance || (filterTokens && !filterTokens.has(token))) return null;
                         if (token.isNative && balanceFrom === FarmFromMode.INTERNAL) {
                           return null;
                         }

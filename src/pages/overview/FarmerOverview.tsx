@@ -6,6 +6,7 @@ import GerminationNotice from "@/components/GerminationNotice";
 import HelperLink, { hoveredIdAtom } from "@/components/HelperLink";
 import OverviewNoticeDeposit from "@/components/OverviewNoticeDeposit";
 import PlotsTable from "@/components/PlotsTable";
+import { SiloActionDialog } from "@/components/SiloActionDialog";
 import SowOrderDialog, { AnimateSowOrderDialog } from "@/components/SowOrderDialog";
 import StatPanel from "@/components/StatPanel";
 import StatPanelAltDisplay from "@/components/StatPanelAltDisplay";
@@ -460,41 +461,21 @@ const Overview = () => {
       {/* Navigation Action Buttons */}
       <div className="mb-6">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-          <Button
-            variant="outline-primary"
-            size="lg"
-            width="full"
-            onClick={() => navigate("/silo")}
-            className="font-medium"
-          >
-            Deposit
-          </Button>
-          <Button
-            variant="outline-primary"
-            size="lg"
-            width="full"
-            onClick={() => navigate("/silo")}
-            className="font-medium"
-          >
-            Withdraw
-          </Button>
-          <Button
-            variant="outline-primary"
-            size="lg"
-            width="full"
-            onClick={() => {
-              const convertFrom = farmerActions.convertDeposits.bestConversion.from;
-              const convertTo = farmerActions.convertDeposits.bestConversion.to;
-              if (farmerActions.convertDeposits.enabled && convertFrom && convertTo) {
-                navigate(getSiloConvertUrl(convertFrom, convertTo));
-              } else {
-                navigate("/silo");
-              }
-            }}
-            className="font-medium"
-          >
-            Convert
-          </Button>
+          <SiloActionDialog defaultAction="deposit">
+            <Button variant="outline-primary" size="lg" width="full" className="font-medium">
+              Deposit
+            </Button>
+          </SiloActionDialog>
+          <SiloActionDialog siloToken={mainToken} defaultAction="withdraw">
+            <Button variant="outline-primary" size="lg" width="full" className="font-medium">
+              Withdraw
+            </Button>
+          </SiloActionDialog>
+          <SiloActionDialog siloToken={mainToken} defaultAction="convert">
+            <Button variant="outline-primary" size="lg" width="full" className="font-medium">
+              Convert
+            </Button>
+          </SiloActionDialog>
           <Button
             variant="outline-primary"
             size="lg"
