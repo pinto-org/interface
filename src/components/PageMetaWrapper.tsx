@@ -1,4 +1,5 @@
 import META, { MetaSlug } from "@/constants/meta";
+import { useDynamicTabTitle } from "@/hooks/useDynamicTabTitle";
 import { Helmet } from "react-helmet-async";
 export interface PageMetaWrapperProps {
   children: React.ReactNode;
@@ -11,6 +12,11 @@ const PINTO_HERO_URL = "https://pinto.money/pinto-hero.png";
 
 export default function PageMetaWrapper({ metaKey, children }: PageMetaWrapperProps) {
   const { title, description, url, imgUrl } = META[metaKey] ?? META.index;
+
+  // Always call the hook, but conditionally use its result
+  const dynamicTitle = useDynamicTabTitle(title);
+  const shouldShowPriceInTitle = !["index", "404"].includes(metaKey);
+  const displayTitle = shouldShowPriceInTitle ? dynamicTitle : title;
 
   return (
     <>
@@ -42,7 +48,7 @@ export default function PageMetaWrapper({ metaKey, children }: PageMetaWrapperPr
         </script>
 
         {/* Primary Meta Tags */}
-        <title>{title}</title>
+        <title>{displayTitle}</title>
         <meta name="description" content={description} />
         <meta name="robots" content="index, follow" />
 
