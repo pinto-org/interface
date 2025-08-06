@@ -183,10 +183,10 @@ const Overview = () => {
     depositedValue: {
       title: hasOnlyPods ? "My Deposited Value" : "My Total Value in Pinto",
       mode: "depositedValue",
-      mainValue: valueMode === "BDV" ? valueInSystemBDV : valueInSystem,
+      mainValue: valueInSystem,
       mainValueChange:
         hoveredButton === "claim" ? TokenValue.ZERO : farmerActions.harvestPods.outputs.bdvGain.mul(priceData.price),
-      secondaryValue: valueMode === "BDV" ? valueInSystemBDV : valueInSystem,
+      secondaryValue: valueInSystem,
       actionValue:
         hoveredButton === "claim"
           ? farmerActions.claimRewards.outputs.bdvGain
@@ -376,6 +376,33 @@ const Overview = () => {
           valueMode={valueMode}
           onValueModeChange={setValueMode}
           showValueModeToggle={true}
+          currentTotalValueUSD={(() => {
+            if (valueMode !== "USD") return undefined;
+
+            try {
+              const valueString = valueInSystem.toHuman();
+              if (typeof valueString !== "string" || valueString.trim() === "") {
+                console.warn("FarmerOverview: valueInSystem.toHuman() returned invalid string:", valueString);
+                return undefined;
+              }
+
+              const numericValue = Number(valueString);
+              if (!Number.isFinite(numericValue) || numericValue < 0) {
+                console.warn("FarmerOverview: Invalid numeric conversion from valueInSystem:", {
+                  valueString,
+                  numericValue,
+                  isFinite: Number.isFinite(numericValue),
+                  isNegative: numericValue < 0,
+                });
+                return undefined;
+              }
+
+              return numericValue;
+            } catch (error) {
+              console.error("FarmerOverview: Error converting valueInSystem to USD:", error);
+              return undefined;
+            }
+          })()}
         />
       </div>
 

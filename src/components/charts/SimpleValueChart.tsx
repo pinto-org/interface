@@ -23,6 +23,7 @@ interface SimpleValueChartProps {
   valueMode?: ValueMode;
   onValueModeChange?: (mode: ValueMode) => void;
   showValueModeToggle?: boolean;
+  currentTotalValueUSD?: number;
 }
 
 // Convert hex to rgb values for rgba
@@ -283,6 +284,97 @@ const convertBDVToUSD = (
   return { chartData: convertedChartData, baseData: convertedBaseData };
 };
 
+/**
+ * Apply scalar correction to align chart's latest USD value with current accurate total value
+ */
+const applyCurrentValueScalar = (
+  chartData: LineChartData[],
+  baseData: LineChartData[],
+  currentTotalValueUSD: number,
+): { chartData: LineChartData[]; baseData: LineChartData[]; error?: string } => {
+  // Validate inputs with detailed error reporting
+  if (!Array.isArray(chartData) || chartData.length === 0) {
+    return { chartData, baseData, error: "Chart data is empty or invalid" };
+  }
+
+  if (!Array.isArray(baseData) || baseData.length === 0) {
+    return { chartData, baseData, error: "Base data is empty or invalid" };
+  }
+
+  // Validate currentTotalValueUSD with more detailed checks
+  if (typeof currentTotalValueUSD !== "number" || !Number.isFinite(currentTotalValueUSD)) {
+    return { chartData, baseData, error: `Invalid currentTotalValueUSD: ${currentTotalValueUSD}` };
+  }
+
+  if (currentTotalValueUSD <= 0) {
+    return { chartData, baseData, error: `currentTotalValueUSD must be positive: ${currentTotalValueUSD}` };
+  }
+
+  // Get the last (most recent) data point from the chart
+  const lastChartData = chartData[chartData.length - 1];
+  if (!lastChartData || !Array.isArray(lastChartData.values) || lastChartData.values.length === 0) {
+    return { chartData, baseData, error: "Last chart data point is invalid or empty" };
+  }
+
+  // Calculate the total value from the last chart data point (highest stacked value represents total)
+  const lastChartTotalValue = Math.max(...lastChartData.values.filter((v) => Number.isFinite(v)));
+
+  if (!Number.isFinite(lastChartTotalValue) || lastChartTotalValue <= 0) {
+    return { chartData, baseData, error: `Invalid last chart total value: ${lastChartTotalValue}` };
+  }
+
+  // Calculate the scalar needed to align last chart value with current accurate value
+  const scalar = currentTotalValueUSD / lastChartTotalValue;
+
+  // Remove bounds temporarily to debug scalar issues
+  // Log detailed information for debugging
+  const isScalarValid = Number.isFinite(scalar) && scalar > 0;
+
+  console.log(`SimpleValueChart scalar calculation:`, {
+    currentTotalValueUSD: currentTotalValueUSD.toFixed(4),
+    lastChartTotalValue: lastChartTotalValue.toFixed(4),
+    scalar: scalar.toFixed(6),
+    isValid: isScalarValid,
+    timestamp: new Date(lastChartData.timestamp).toISOString(),
+  });
+
+  if (!isScalarValid) {
+    const errorMsg = `Scalar ${scalar.toFixed(6)} is invalid (must be finite and positive), skipping correction`;
+    console.warn(`SimpleValueChart: ${errorMsg}`, {
+      currentTotalValueUSD,
+      lastChartTotalValue,
+      scalar,
+    });
+    return { chartData, baseData, error: errorMsg };
+  }
+
+  // Apply scalar to all chart data points with additional validation
+  try {
+    const scaledChartData = chartData.map((item) => ({
+      ...item,
+      values: item.values.map((value) => {
+        const scaledValue = value * scalar;
+        return Number.isFinite(scaledValue) ? scaledValue : 0;
+      }),
+    }));
+
+    const scaledBaseData = baseData.map((item) => ({
+      ...item,
+      values: item.values.map((value) => {
+        const scaledValue = value * scalar;
+        return Number.isFinite(scaledValue) ? scaledValue : 0;
+      }),
+    }));
+
+    console.log(`SimpleValueChart: Successfully applied scalar ${scalar.toFixed(4)}`);
+    return { chartData: scaledChartData, baseData: scaledBaseData };
+  } catch (error) {
+    const errorMsg = `Failed to apply scalar: ${error instanceof Error ? error.message : "Unknown error"}`;
+    console.error(`SimpleValueChart: ${errorMsg}`, error);
+    return { chartData, baseData, error: errorMsg };
+  }
+};
+
 // Transform data to stacked format (cumulative, ordered from least to most value)
 const transformToStackedData = (data: LineChartData[]): { stackedData: LineChartData[]; seriesOrder: number[] } => {
   // Guard against empty or invalid data
@@ -374,14 +466,13 @@ const SimpleValueChart = React.memo(
     valueMode = "BDV",
     onValueModeChange,
     showValueModeToggle = false,
+    currentTotalValueUSD,
   }: SimpleValueChartProps) => {
     const navigate = useNavigate();
 
-    console.log("SimpleValueChart: rendering with props", {
-      valueMode,
-      showValueModeToggle,
-      onValueModeChange: !!onValueModeChange,
-    });
+    // State for error handling and debugging
+    const [scalarError, setScalarError] = useState<string | null>(null);
+    const [showDebugInfo, setShowDebugInfo] = useState(false);
 
     // Hooks for data fetching
     const { whitelistedTokens } = useTokenData();
@@ -405,25 +496,99 @@ const SimpleValueChart = React.memo(
       chartData: rawChartData,
       baseData,
       tokensWithData,
+      hasFallbackToBase = false,
+      errorInfo = null,
     } = useMemo(() => {
       if (!hasData || !whitelistedTokens || !whitelistedTokens.length) {
         // Return empty data structure if no data or tokens not loaded
-        return { chartData: [], baseData: [], tokensWithData: [] };
+        return { chartData: [], baseData: [], tokensWithData: [], hasFallbackToBase: false, errorInfo: null };
       }
+
       const bdvData = mergeTokenHistoricalData(tokenQueries, whitelistedTokens);
+
+      // If BDV data is empty, there's nothing we can do
+      if (!bdvData.chartData.length) {
+        return { chartData: [], baseData: [], tokensWithData: [], hasFallbackToBase: false, errorInfo: null };
+      }
 
       // Convert to USD if in USD mode
       if (valueMode === "USD" && priceQuery.data) {
-        const convertedData = convertBDVToUSD(bdvData.chartData, bdvData.baseData, priceQuery);
-        return {
-          chartData: convertedData.chartData,
-          baseData: convertedData.baseData,
-          tokensWithData: bdvData.tokensWithData,
-        };
+        try {
+          let convertedData = convertBDVToUSD(bdvData.chartData, bdvData.baseData, priceQuery);
+
+          // If USD conversion resulted in empty data, fall back to BDV
+          if (!convertedData.chartData.length || !convertedData.baseData.length) {
+            console.warn("SimpleValueChart: USD conversion failed, falling back to BDV data");
+            return { ...bdvData, hasFallbackToBase: true, errorInfo: "USD conversion failed, showing BDV data" };
+          }
+
+          // Apply scalar correction to align with current accurate total value
+          if (currentTotalValueUSD && currentTotalValueUSD > 0) {
+            try {
+              const scaledResult = applyCurrentValueScalar(
+                convertedData.chartData,
+                convertedData.baseData,
+                currentTotalValueUSD,
+              );
+
+              if (scaledResult.error) {
+                console.warn("SimpleValueChart: Scalar correction failed:", scaledResult.error);
+                // Keep using convertedData as fallback
+                return {
+                  chartData: convertedData.chartData,
+                  baseData: convertedData.baseData,
+                  tokensWithData: bdvData.tokensWithData,
+                  hasFallbackToBase: false,
+                  errorInfo: scaledResult.error,
+                };
+              } else if (scaledResult.chartData.length > 0 && scaledResult.baseData.length > 0) {
+                // Only use scaled data if it's valid and no error occurred
+                convertedData = {
+                  chartData: scaledResult.chartData,
+                  baseData: scaledResult.baseData,
+                };
+                return {
+                  chartData: convertedData.chartData,
+                  baseData: convertedData.baseData,
+                  tokensWithData: bdvData.tokensWithData,
+                  hasFallbackToBase: false,
+                  errorInfo: null,
+                };
+              }
+            } catch (error) {
+              const errorMsg = `Scalar correction failed with exception: ${error instanceof Error ? error.message : "Unknown error"}`;
+              console.warn("SimpleValueChart:", errorMsg);
+              return {
+                chartData: convertedData.chartData,
+                baseData: convertedData.baseData,
+                tokensWithData: bdvData.tokensWithData,
+                hasFallbackToBase: false,
+                errorInfo: errorMsg,
+              };
+            }
+          }
+
+          return {
+            chartData: convertedData.chartData,
+            baseData: convertedData.baseData,
+            tokensWithData: bdvData.tokensWithData,
+            hasFallbackToBase: false,
+            errorInfo: null,
+          };
+        } catch (error) {
+          console.error("SimpleValueChart: USD mode failed completely, falling back to BDV:", error);
+          return { ...bdvData, hasFallbackToBase: true, errorInfo: "USD mode failed, showing BDV data" };
+        }
       }
 
-      return bdvData;
-    }, [tokenQueries, whitelistedTokens, hasData, valueMode, priceQuery]);
+      // Return BDV data (baseline mode - should always work)
+      return { ...bdvData, hasFallbackToBase: false, errorInfo: null };
+    }, [tokenQueries, whitelistedTokens, hasData, valueMode, priceQuery, currentTotalValueUSD]);
+
+    // Update scalar error state based on computation results
+    React.useEffect(() => {
+      setScalarError(errorInfo);
+    }, [errorInfo]);
 
     // Transform to stacked format
     const { stackedData, seriesOrder } = useMemo(() => {
@@ -773,10 +938,53 @@ const SimpleValueChart = React.memo(
     return (
       <div ref={containerRef} className={cn("rounded-[20px] bg-gray-1", className)}>
         <div className="flex justify-between items-start pt-2 px-2 sm:pt-4 sm:px-6">
-          <div className="flex flex-row gap-3 items-center">
-            <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
-              My Value Over Time {valueMode === "USD" ? "(USD)" : "(BDV)"}
+          <div className="flex flex-col gap-1">
+            <div className="flex flex-row gap-3 items-center">
+              <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
+                My Value Over Time {hasFallbackToBase ? "(BDV - Fallback)" : valueMode === "USD" ? "(USD)" : "(BDV)"}
+                {(valueMode === "USD" && scalarError) || hasFallbackToBase ? (
+                  <span
+                    className="ml-2 text-xs text-yellow-600 cursor-help"
+                    title={hasFallbackToBase ? "Fell back to BDV mode" : "Scalar correction failed"}
+                  >
+                    ⚠️
+                  </span>
+                ) : null}
+              </div>
+              {process.env.NODE_ENV === "development" && valueMode === "USD" && (
+                <button
+                  type="button"
+                  onClick={() => setShowDebugInfo(!showDebugInfo)}
+                  className="text-xs text-pinto-light/60 hover:text-pinto-light transition-colors"
+                  title="Toggle debug info"
+                >
+                  🔧
+                </button>
+              )}
             </div>
+            {scalarError && (
+              <div className="text-xs text-yellow-600 max-w-md">
+                <details className="cursor-pointer">
+                  <summary className="hover:text-yellow-700 transition-colors">
+                    Chart values may not reflect exact current amounts
+                  </summary>
+                  <div className="mt-1 text-yellow-600/80 text-xs font-mono bg-yellow-50 p-2 rounded">
+                    {scalarError}
+                  </div>
+                </details>
+              </div>
+            )}
+            {showDebugInfo && valueMode === "USD" && (
+              <div className="text-xs text-pinto-light/60 font-mono bg-gray-100 p-2 rounded max-w-md">
+                <div>Current Total USD: {currentTotalValueUSD?.toFixed(4) || "undefined"}</div>
+                <div>Scalar Error: {scalarError || "None"}</div>
+                <div>
+                  Mode: {valueMode} {hasFallbackToBase ? "(Fallback to BDV)" : ""}
+                </div>
+                <div>Has Data: {rawChartData.length > 0 ? "Yes" : "No"}</div>
+                <div>Data Points: {rawChartData.length}</div>
+              </div>
+            )}
           </div>
           <div className="flex flex-col items-end gap-2">
             {showValueModeToggle && onValueModeChange && (
