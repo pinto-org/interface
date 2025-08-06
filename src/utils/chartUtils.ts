@@ -38,3 +38,19 @@ export const calculateTemperatureYAxisRanges = (
     [TimeTab.AllTime]: rangeConfig,
   };
 };
+
+/**
+ * Utility function to calculate y-axis minimum for silo value charts
+ * Sets minimum to 40% below lowest point or 0 if that would be negative
+ */
+export const calculateSiloValueYAxisMin = (values: number[]): number => {
+  if (!values || values.length === 0) return 0;
+
+  const minValue = Math.min(...values);
+  const belowMin = minValue * 0.6; // 40% below means multiply by 0.6
+
+  if (belowMin < 1) {
+    return 0;
+  }
+  return belowMin;
+};
