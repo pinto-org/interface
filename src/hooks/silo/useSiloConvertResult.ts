@@ -243,3 +243,47 @@ export const useParseConvertRouteRoutes = () => {
     [findWellRoutes],
   );
 };
+
+/**
+ * Returns the withdrawal pair amount for a given summary.
+ *
+ * It will only return truthy value if the withdrawal is enabled and if the convert is LP2MainWithdrawPair.
+ *
+ * @param summary - The summary of the convert.
+ * @param source - The source token.
+ * @param target - The target token.
+ * @returns The withdrawal pair amount.
+ */
+export function useSiloConvertResultWithdrawalPairAmount(summary: SiloConvertSummary<SiloConvertType>[] | undefined) {
+  return useMemo(() => {
+    if (!summary) return;
+
+    const isLP2MainWithdrawPair = summary?.find((summary) => {
+      return summary.route.convertType === "LP2MainWithdrawPair";
+    });
+
+    if (!isLP2MainWithdrawPair) return;
+
+    return summary.map((result) => {
+      let withdrawalToken: Token | undefined;
+      const amount = result.quotes.reduce<TV>((memo, quote) => {
+        if ("withdrawalAmount" in quote.summary.target) {
+          const amt = quote.summary.target.withdrawalAmount;
+          const tk = quote.summary.target.withdrawalToken;
+          withdrawalToken = withdrawalToken ?? tk;
+
+          return memo.add(amt);
+        }
+
+        return memo;
+      }, TV.ZERO);
+
+      if (withdrawalToken) {
+        return {
+          token: withdrawalToken,
+          amount,
+        };
+      }
+    });
+  }, [summary]);
+}

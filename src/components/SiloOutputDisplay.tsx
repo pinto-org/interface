@@ -1,5 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
-import OutputDisplay from "@/components/OutputDisplay";
+import OutputDisplay, { DisplayValueProps } from "@/components/OutputDisplay";
 import { SEEDS, STALK } from "@/constants/internalTokens";
 import { formatSeasonsAsTime, formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
@@ -15,6 +15,10 @@ interface SiloOutputDisplayProps {
   showNegativeDeltas?: boolean;
   showGrownStalkSeasonsNotice?: boolean;
   grownStalkSeasons?: number;
+  before?: {
+    label: string;
+    valueProps: DisplayValueProps;
+  };
 }
 
 export default function SiloOutputDisplay({
@@ -26,11 +30,17 @@ export default function SiloOutputDisplay({
   showNegativeDeltas = false,
   showGrownStalkSeasonsNotice = false,
   grownStalkSeasons = 0,
+  before,
 }: SiloOutputDisplayProps) {
   const deltaMultiplier = showNegativeDeltas ? -1 : 1;
 
   return (
     <OutputDisplay title={title}>
+      {before ? (
+        <OutputDisplay.Item label={before.label}>
+          <OutputDisplay.Value {...before.valueProps} />
+        </OutputDisplay.Item>
+      ) : null}
       {amount && token && (
         <OutputDisplay.Item label="Deposited Amount">
           <OutputDisplay.Value
