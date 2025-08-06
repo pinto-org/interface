@@ -1,7 +1,6 @@
 import arrowDown from "@/assets/misc/ChevronDown.svg";
 import { TV } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
-import { Row } from "@/components/Container";
 import { RightArrowIcon } from "@/components/Icons";
 import FrameAnimator from "@/components/LoadingSpinner";
 import MobileActionBar from "@/components/MobileActionBar";
@@ -9,14 +8,12 @@ import QuotedRoutesSelector from "@/components/QuotedRoutesSelector";
 import RoutingAndSlippageInfo from "@/components/RoutingAndSlippageInfo";
 import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
-import TooltipSimple from "@/components/TooltipSimple";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
 import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
 import { Separator } from "@/components/ui/Separator";
-import { Switch } from "@/components/ui/Switch";
 import VerticalAccordion from "@/components/ui/VerticalAccordion";
 import Warning from "@/components/ui/Warning";
 import { diamondABI } from "@/constants/abi/diamondABI";
@@ -25,7 +22,7 @@ import { CONVERT_DOWN_PENALTY_RATE_WITH_BUFFER, NO_MAX_CONVERT_AMOUNT } from "@/
 import { MAIN_TOKEN, PINTO_USDC_TOKEN, PINTO_WSOL_TOKEN } from "@/constants/tokens";
 import useDelayedLoading from "@/hooks/display/useDelayedLoading";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { useLPTokenToNonPintoUnderlyingMap, useTokenMap } from "@/hooks/pinto/useTokenMap";
+import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import useSiloConvert, {
   useClearSiloConvertQueries,
   useSiloConvertQuote,
@@ -51,7 +48,7 @@ import { getChainConstant, useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
 import { stringEq, stringToNumber } from "@/utils/string";
 import { getTokenIndex, tokensEqual } from "@/utils/token";
-import { AddressMap, FarmToMode, Token } from "@/utils/types";
+import { AddressMap, Token } from "@/utils/types";
 import { useDebounceValue } from "@/utils/useDebounce";
 import { cn, exists, noop } from "@/utils/utils";
 import { UseQueryResult, useQueryClient } from "@tanstack/react-query";
@@ -100,7 +97,6 @@ function ConvertForm({
   const diamond = useProtocolAddress();
   const pintoToken = useChainConstant(MAIN_TOKEN);
   const account = useAccount();
-  const underlyingMap = useLPTokenToNonPintoUnderlyingMap();
 
   const [amountIn, setAmountIn] = useState("");
   const [slippage, setSlippage] = useState(0.25);
@@ -109,16 +105,10 @@ function ConvertForm({
   const [showMinAmountWarning, setShowMinAmountWarning] = useState(false);
   const [allowStalkPenalty, setAllowStalkPenalty] = useState(false);
 
-  // Withdraw Pair Liquidity state
-  const [withdrawPairLiquidity, setWithdrawPairLiquidity] = useState(false);
-  const [toMode, setToMode] = useState<FarmToMode>(FarmToMode.INTERNAL);
-
   const { loading, setLoadingTrue, setLoadingFalse } = useDelayedLoading();
   const clearSiloConvertQueries = useClearSiloConvertQueries();
   const invalidateSun = useInvalidateSun();
   const { tokenPrices, pools } = usePriceData();
-
-  const underlyingPairToken = siloToken.isLP ? underlyingMap[getTokenIndex(siloToken)] : undefined;
 
   const minAmountIn = convertExceptions.minAmountIn;
   const isDefaultConvert = siloToken.isMain || targetToken?.isMain;
@@ -172,11 +162,21 @@ function ConvertForm({
     data: quote,
     isLoading: quoteLoading,
     ...quoteQuery
-  } = useSiloConvertQuote(siloConvert, siloToken, targetToken, amountIn, convertibleDeposits, slippage, quoteEnabled);
+  } = useSiloConvertQuote(
+    siloConvert,
+    siloToken,
+    targetToken,
+    amountIn,
+    convertibleDeposits,
+    slippage,
+    undefined,
+    quoteEnabled,
+  );
 
   const [routeIndex, setRouteIndex] = useState<number | undefined>(undefined);
 
   const { results: convertResults, sortedIndexes, showRoutes } = useSiloConvertResult(siloToken, targetToken, quote);
+
   const grownStalkPenaltyQuery = useSiloConvertDownPenaltyQuery(siloToken, targetToken, convertResults, isDownConvert);
 
   const convertPriceResults = useExtractSiloConvertResultPriceResults(quote);
@@ -460,28 +460,6 @@ function ConvertForm({
           isLoading={targetToken && maxConvertLoading}
         />
       </div>
-      <Row className="justify-between gap-1">
-        <div>
-          <label className="pinto-sm sm:pinto-body-light sm:text-pinto-light text-pinto-light">
-            Withdraw Non {pintoToken.symbol} Liquidity
-          </label>
-          <TooltipSimple
-            variant="gray"
-            content={
-              <div>
-                Withdrawing your non {pintoToken.symbol} liquidity will remove from {siloToken.symbol} and into your
-                desired balance
-              </div>
-            }
-          />
-        </div>
-        <Switch
-          checked={withdrawPairLiquidity}
-          onCheckedChange={() => {
-            setWithdrawPairLiquidity((prev) => !prev);
-          }}
-        />
-      </Row>
       {warningRendered ? (
         <div className="flex flex-col gap-2">
           <MinAmountWarning enabled={!!renderMinAmountWarning} minAmountIn={minAmountIn} siloToken={siloToken} />
@@ -524,6 +502,9 @@ function ConvertForm({
               germinatingSeasons={convertResult.germinatingSeasons}
             />
             <SiloOutputDisplay
+              // before={{
+              //   label: ""
+              // }}
               amount={convertResult.totalAmountOut}
               token={targetToken}
               stalk={convertResult.deltaStalk}
