@@ -9,6 +9,7 @@ import {
   useTimeRangeSeasons,
 } from "@/state/seasonal/seasonalDataHooks";
 import useTokenData from "@/state/useTokenData";
+import { calculateSiloValueYAxisMin } from "@/utils/chartUtils";
 import { chartFormatters as f, formatDate } from "@/utils/format";
 import { Token, UseSeasonalResult } from "@/utils/types";
 import { cn } from "@/utils/utils";
@@ -655,6 +656,13 @@ const SimpleValueChart = React.memo(
       return Math.max(max * 1.15, 1); // Add 15% padding, minimum of 1
     }, [stackedData]);
 
+    // Calculate min value - 40% below lowest point or 0
+    const minDataValue = useMemo(() => {
+      if (!stackedData || !stackedData.length) return 0;
+      const allValues = stackedData.flatMap((item) => item.values);
+      return calculateSiloValueYAxisMin(allValues);
+    }, [stackedData]);
+
     // Token-specific line gradients with solid colors (for borders)
     const lineGradients = useMemo(() => {
       if (!tokensWithData || !tokensWithData.length || !seriesOrder || !seriesOrder.length) return [];
@@ -687,8 +695,9 @@ const SimpleValueChart = React.memo(
         valueFormatter,
         useLogarithmicScale: false,
         yAxisMax: maxDataValue,
+        yAxisMin: minDataValue,
       }),
-      [maxDataValue, valueFormatter],
+      [maxDataValue, minDataValue, valueFormatter],
     );
 
     // Stable hover handlers to prevent Chart.js plugin recreation

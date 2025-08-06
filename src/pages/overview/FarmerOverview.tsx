@@ -77,7 +77,7 @@ const Overview = () => {
   const siloWrappedExternal = farmerBalances.balances.get(siloWrappedToken)?.external || TokenValue.ZERO;
   const siloWrappedValueUSD = useSiloWrappedTokenToUSD(farmerBalances.balances.get(siloWrappedToken)?.total).totalUSD;
 
-  const depositValue = farmerSilo.depositsUSD;
+  const depositValue = farmerSilo.depositsBDV;
   const claimableValue = farmerActions.claimRewards.outputs.beanGain;
   const floodValue = farmerActions.floodAssets.totalValue;
   const internalBalance = farmerActions.totalValue.wallet.internal;
@@ -88,7 +88,7 @@ const Overview = () => {
     .add(floodValue)
     .add(claimableValue);
 
-  const valueInSystemBDV = farmerSilo.depositsBDV
+  const _valueInSystemBDV = farmerSilo.depositsBDV
     .add(siloWrappedInternal.add(siloWrappedExternal))
     .add(internalBalance)
     .add(floodValue)
@@ -129,7 +129,7 @@ const Overview = () => {
   const [_hoveredId, setHoveredId] = useAtom(hoveredIdAtom);
 
   // Track if this is the first time loading the page
-  const [isFirstLoad, setIsFirstLoad] = useState(() => {
+  const [isFirstLoad, _setIsFirstLoad] = useState(() => {
     const referrer = document.referrer;
     const isFromOutside = !referrer || !referrer.includes(window.location.origin);
     const hasVisitedInSession = sessionStorage.getItem("hasVisitedInSession");
@@ -346,7 +346,9 @@ const Overview = () => {
             ease: "easeOut",
           }}
         >
-          <h1 className="pinto-h2 sm:pinto-h1 text-pinto-gray-5">Welcome back to the Farm, {shortAddress}!</h1>
+          <h1 className="pinto-h2 sm:pinto-h1 text-pinto-gray-5 text-center">
+            Welcome back to the Farm, {shortAddress}!
+          </h1>
         </motion.div>
 
         <motion.div
@@ -363,6 +365,7 @@ const Overview = () => {
             <div data-action-target="stats">
               <StatPanel
                 {...(hasOnlyPods ? statPanelData.pods : statPanelData.depositedValue)}
+                claimableValue={claimableValue}
                 altDisplay={
                   !hasOnlyPods && (
                     <StatPanelAltDisplay

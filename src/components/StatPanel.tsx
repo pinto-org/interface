@@ -4,6 +4,7 @@ import seedIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { useClaimRewards } from "@/hooks/useClaimRewards";
 import { formatter } from "@/utils/format";
 import { ReactNode } from "react";
 import TooltipSimple from "./TooltipSimple";
@@ -26,6 +27,7 @@ interface StatPanelProps {
   className?: string;
   showActionValues?: boolean;
   isBalancesLoading?: boolean;
+  claimableValue?: TokenValue;
 }
 
 const StatPanel = ({
@@ -44,7 +46,10 @@ const StatPanel = ({
   className,
   showActionValues = false,
   isBalancesLoading = false,
+  claimableValue = TokenValue.ZERO,
 }: StatPanelProps) => {
+  const { submitClaimRewards } = useClaimRewards();
+
   const getIcon = (iconMode: typeof mode) =>
     ({
       stalk: stalkIcon,
@@ -54,75 +59,100 @@ const StatPanel = ({
     })[iconMode];
 
   const ValueDisplay = () => (
-    <div className="flex flex-row gap-1 items-center whitespace-nowrap">
-      {mode !== "depositedValue" && (
-        <img
-          src={getIcon(mode)}
-          className={`${size === "large" ? "h-8 w-8 sm:h-12 sm:w-12" : "h-6 w-6 sm:h-8 sm:w-8"}`}
-          alt={mode.toUpperCase()}
-        />
-      )}
-      {!(mainValue.eq(0) && auxValue?.gt(0)) && (
-        <span className={`${size === "large" ? "pinto-h2" : "pinto-body-light"} sm:pinto-inherit tracking-[0.01em]`}>
-          {isBalancesLoading ? (
-            <Skeleton
-              className={`flex ${size === "large" ? "w-24 h-8 sm:w-32 sm:h-12" : "w-20 h-6 sm:w-24 sm:h-8"} rounded-[0.75rem]`}
-            />
-          ) : mode === "depositedValue" ? (
-            `$${formatter.number(showActionValues && mainValueChange ? mainValue : mainValue, {
-              minDecimals: 2,
-              maxDecimals: 2,
-              allowZero: true,
-            })}`
-          ) : (
-            formatter.number(showActionValues && mainValueChange ? mainValue : mainValue)
-          )}{" "}
+    <div className="flex flex-col items-center">
+      {claimableValue.gt(0) && mode === "depositedValue" && (
+        <span className="pinto-sm-light text-pinto-gray-3 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          Click to Claim Pinto
         </span>
       )}
-      {auxValue?.gt(0) && !showActionValues && (
-        <TooltipSimple showOnMobile content={"This Stalk is germinating."}>
+      <div className="flex flex-row gap-1 items-center whitespace-nowrap group">
+        {mode !== "depositedValue" && (
+          <img
+            src={getIcon(mode)}
+            className={`${size === "large" ? "h-8 w-8 sm:h-12 sm:w-12" : "h-6 w-6 sm:h-8 sm:w-8"}`}
+            alt={mode.toUpperCase()}
+          />
+        )}
+        {!(mainValue.eq(0) && auxValue?.gt(0)) && (
+          <span className={`${size === "large" ? "pinto-h2" : "pinto-body-light"} sm:pinto-inherit tracking-[0.01em]`}>
+            {isBalancesLoading ? (
+              <Skeleton
+                className={`flex ${size === "large" ? "w-24 h-8 sm:w-32 sm:h-12" : "w-20 h-6 sm:w-24 sm:h-8"} rounded-[0.75rem]`}
+              />
+            ) : mode === "depositedValue" ? (
+              `$${formatter.number(showActionValues && mainValueChange ? mainValue : mainValue, {
+                minDecimals: 2,
+                maxDecimals: 2,
+                allowZero: true,
+              })}`
+            ) : (
+              formatter.number(showActionValues && mainValueChange ? mainValue : mainValue)
+            )}{" "}
+          </span>
+        )}
+        {claimableValue.gt(0) && mode === "depositedValue" && (
           <span
-            className={`${size === "large" ? "pinto-h2" : "pinto-body-light"} sm:pinto-inherit sm:text-pinto-off-green/60 text-pinto-off-green/60 ml-1`}
+            className={`${size === "large" ? "pinto-h2" : "pinto-body-light"} sm:pinto-inherit text-pinto-green-4 ml-1 sm:hover:cursor-pointer sm:hover:text-pinto-green-3 transition-colors`}
+            onClick={() => submitClaimRewards()}
           >
             {isBalancesLoading ? (
               <Skeleton
                 className={`flex ${size === "large" ? "w-16 h-8 sm:w-20 sm:h-12" : "w-14 h-6 sm:w-16 sm:h-8"} rounded-[0.75rem]`}
               />
             ) : (
-              formatter.number(auxValue, {
-                showPositiveSign: !(mainValue.eq(0) && auxValue && auxValue.gt(0)),
-              })
+              `+ ${formatter.number(claimableValue, {
+                minDecimals: 2,
+                maxDecimals: 2,
+                allowZero: true,
+              })}`
             )}
           </span>
-        </TooltipSimple>
-      )}
-      {showActionValues && mainValueChange && mainValueChange?.abs().gt(0.01) && (
-        <div
-          className={`pl-2 tracking-[0.01em] ${
-            mainValueChange.lt(0)
-              ? "text-pinto-gray-4 sm:text-pinto-gray-4"
-              : mode === "depositedValue"
-                ? "text-pinto-green-4 sm:text-pinto-green-4"
-                : mode === "stalk"
-                  ? "text-pinto-stalk-gold sm:text-pinto-stalk-gold"
-                  : mode === "seeds"
-                    ? "text-pinto-seed-silver sm:text-pinto-seed-silver"
-                    : "text-pinto-pod-bronze sm:text-pinto-pod-bronze"
-          }
+        )}
+        {auxValue?.gt(0) && !showActionValues && (
+          <TooltipSimple showOnMobile content={"This Stalk is germinating."}>
+            <span
+              className={`${size === "large" ? "pinto-h2" : "pinto-body-light"} sm:pinto-inherit sm:text-pinto-off-green/60 text-pinto-off-green/60 ml-1`}
+            >
+              {isBalancesLoading ? (
+                <Skeleton
+                  className={`flex ${size === "large" ? "w-16 h-8 sm:w-20 sm:h-12" : "w-14 h-6 sm:w-16 sm:h-8"} rounded-[0.75rem]`}
+                />
+              ) : (
+                formatter.number(auxValue, {
+                  showPositiveSign: !(mainValue.eq(0) && auxValue && auxValue.gt(0)),
+                })
+              )}
+            </span>
+          </TooltipSimple>
+        )}
+        {showActionValues && mainValueChange && mainValueChange?.abs().gt(0.01) && (
+          <div
+            className={`pl-2 tracking-[0.01em] ${
+              mainValueChange.lt(0)
+                ? "text-pinto-gray-4 sm:text-pinto-gray-4"
+                : mode === "depositedValue"
+                  ? "text-pinto-green-4 sm:text-pinto-green-4"
+                  : mode === "stalk"
+                    ? "text-pinto-stalk-gold sm:text-pinto-stalk-gold"
+                    : mode === "seeds"
+                      ? "text-pinto-seed-silver sm:text-pinto-seed-silver"
+                      : "text-pinto-pod-bronze sm:text-pinto-pod-bronze"
+            }
 
-        ${size === "large" ? "pinto-h2 sm:pinto-h1" : "pinto-body-light sm:pinto-h3"}`}
-        >
-          {isBalancesLoading ? (
-            <Skeleton
-              className={`flex ${size === "large" ? "w-20 h-8 sm:w-24 sm:h-12" : "w-16 h-6 sm:w-20 sm:h-8"} rounded-[0.75rem]`}
-            />
-          ) : (
-            formatter.number(mainValueChange, {
-              showPositiveSign: true,
-            })
-          )}
-        </div>
-      )}
+          ${size === "large" ? "pinto-h2 sm:pinto-h1" : "pinto-body-light sm:pinto-h3"}`}
+          >
+            {isBalancesLoading ? (
+              <Skeleton
+                className={`flex ${size === "large" ? "w-20 h-8 sm:w-24 sm:h-12" : "w-16 h-6 sm:w-20 sm:h-8"} rounded-[0.75rem]`}
+              />
+            ) : (
+              formatter.number(mainValueChange, {
+                showPositiveSign: true,
+              })
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 

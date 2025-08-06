@@ -2,6 +2,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import { useHarvestableIndex, usePodIndex } from "@/state/useFieldData";
 import { useMemo } from "react";
 import { PodSegment, PodSegmentType, PodlineData, PodlineViewMode } from "./types";
+import { usePlotClustering } from "./usePlotClustering";
 
 /**
  * Hook to process pod data for the podline visualization
@@ -10,12 +11,26 @@ export function usePodlineData(viewMode: PodlineViewMode = "current", farmerFiel
   const harvestableIndex = useHarvestableIndex();
   const podIndex = usePodIndex();
 
+  // Get metrics for clustering
+  const totalPodsIssued = podIndex || TokenValue.ZERO;
+  const currentHarvestableIndex = harvestableIndex || TokenValue.ZERO;
+  const allPlots = farmerField?.plots || [];
+
+  // Use clustering to group adjacent/nearby plots (only for current view)
+  const plotClusters = usePlotClustering(
+    viewMode === "current" ? allPlots : [],
+    totalPodsIssued,
+    currentHarvestableIndex,
+    {
+      enabled: viewMode === "current",
+      proximityThreshold: 0.03, // 3% of total pod line
+      minClusterSize: 2,
+      maxIndividualPlotSize: 0.01, // 1% of total pod line
+    },
+  );
+
   const podlineData = useMemo((): PodlineData => {
     const segments: PodSegment[] = [];
-
-    // Get total metrics
-    const totalPodsIssued = podIndex || TokenValue.ZERO;
-    const currentHarvestableIndex = harvestableIndex || TokenValue.ZERO;
 
     // Calculate user totals - use provided farmerField or fallback to zero values
     const userTotalPods = farmerField
@@ -54,59 +69,76 @@ export function usePodlineData(viewMode: PodlineViewMode = "current", farmerFiel
         segments.push(remainingSegment);
       }
     } else {
-      // Current view: Show current pod queue
-      const allPlots = farmerField?.plots || [];
-
-      // Sort plots by index for proper ordering
-      const sortedPlots = [...allPlots].sort((a, b) => a.index.sub(b.index).toNumber());
+      // Current view: Show current pod queue with clustering
 
       // Track current position for gap detection
       let currentPosition = currentHarvestableIndex;
 
-      // Process user plots and create segments
-      for (const plot of sortedPlots) {
-        const plotStart = plot.index;
-        const plotEnd = plot.index.add(plot.unharvestablePods || TokenValue.ZERO);
+      // Process plot clusters and create segments
+      console.log(`🎯 [PODLINE DEBUG] Processing ${plotClusters.length} plot clusters for visualization`);
+      for (const cluster of plotClusters) {
+        const clusterStart = cluster.startIndex;
+        const clusterEnd = cluster.endIndex;
+        console.log(
+          `📊 [PODLINE DEBUG] Processing cluster: type=${cluster.clusterType}, plots=${cluster.plots.length}, pods=${cluster.totalPods.toHuman()}, range=${clusterStart.toHuman()}-${clusterEnd.toHuman()}`,
+        );
 
-        // Skip fully harvested plots
-        if (plotEnd.lte(currentHarvestableIndex || TokenValue.ZERO)) {
+        // Skip fully harvested clusters
+        if (clusterEnd.lte(currentHarvestableIndex || TokenValue.ZERO)) {
           continue;
         }
 
-        // Add gap segment if there's a gap before this plot
-        if (plotStart.gt(currentPosition)) {
-          const gapSize = plotStart.sub(currentPosition);
+        // Add gap segment if there's a gap before this cluster
+        if (clusterStart.gt(currentPosition)) {
+          const gapSize = clusterStart.sub(currentPosition);
           const gapSegment: PodSegment = {
             type: "other-pods",
             podCount: gapSize,
             startIndex: currentPosition,
-            endIndex: plotStart,
+            endIndex: clusterStart,
             isUserOwned: false,
             isHarvestable: false,
           };
           segments.push(gapSegment);
         }
 
-        // Add user's plot segment
-        const effectiveStart = TokenValue.max(plotStart, currentHarvestableIndex || TokenValue.ZERO);
-        const effectivePods = plotEnd.sub(effectiveStart);
+        // Add user's cluster segment
+        const effectiveStart = TokenValue.max(clusterStart, currentHarvestableIndex || TokenValue.ZERO);
+        const effectivePods = clusterEnd.sub(effectiveStart);
 
         if (effectivePods.gt(0)) {
+          // Create aggregate metadata from all plots in cluster
+          const seasons = cluster.plots.map((p) => p.season).filter(Boolean) as number[];
+          const avgSeason =
+            seasons.length > 0 ? Math.round(seasons.reduce((sum, s) => sum + s, 0) / seasons.length) : undefined;
+
+          const temperatures = cluster.plots
+            .map((p) => (p.beansPerPod ? (1 / p.beansPerPod.toNumber()) * 100 - 100 : undefined))
+            .filter(Boolean) as number[];
+          const avgTemperature =
+            temperatures.length > 0 ? temperatures.reduce((sum, t) => sum + t, 0) / temperatures.length : undefined;
+
+          const sources = [...new Set(cluster.plots.map((p) => p.source).filter(Boolean))];
+
           const userSegment: PodSegment = {
             type: "user-pods",
             podCount: effectivePods,
             startIndex: effectiveStart,
-            endIndex: plotEnd,
+            endIndex: clusterEnd,
             isUserOwned: true,
-            isHarvestable: plotStart.lt(currentHarvestableIndex || TokenValue.ZERO),
+            isHarvestable: clusterStart.lt(currentHarvestableIndex || TokenValue.ZERO),
+            cluster, // Include reference to the cluster for click handling
             metadata: {
-              season: plot.season,
-              temperature: plot.beansPerPod ? (1 / plot.beansPerPod.toNumber()) * 100 - 100 : undefined,
-              source: plot.source,
+              season: avgSeason,
+              temperature: avgTemperature,
+              source: sources.join(", "),
             },
           };
+          console.log(
+            `✅ [PODLINE DEBUG] Created cluster segment: ${cluster.clusterType} with ${cluster.plots.length} plots, ${effectivePods.toHuman()} pods from ${effectiveStart.toHuman()} to ${clusterEnd.toHuman()}`,
+          );
           segments.push(userSegment);
-          currentPosition = plotEnd;
+          currentPosition = clusterEnd;
         }
       }
 
@@ -131,6 +163,12 @@ export function usePodlineData(viewMode: PodlineViewMode = "current", farmerFiel
     // Merge adjacent segments of the same type for cleaner visualization
     const mergedSegments = mergeAdjacentSegments(segments);
 
+    const userSegmentsCount = mergedSegments.filter((s) => s.isUserOwned).length;
+    const clusteredSegmentsCount = mergedSegments.filter((s) => s.cluster).length;
+    console.log(
+      `🎯 [PODLINE DEBUG] Final result: ${mergedSegments.length} total segments, ${userSegmentsCount} user-owned segments, ${clusteredSegmentsCount} cluster-based segments`,
+    );
+
     return {
       segments: mergedSegments,
       totalPodsIssued,
@@ -139,7 +177,7 @@ export function usePodlineData(viewMode: PodlineViewMode = "current", farmerFiel
       userTotalPods,
       userHarvestablePods,
     };
-  }, [farmerField, harvestableIndex, podIndex, viewMode]);
+  }, [farmerField, harvestableIndex, podIndex, viewMode, plotClusters]);
 
   const isLoading = farmerField?.isLoading || !harvestableIndex || !podIndex;
 
@@ -163,10 +201,12 @@ function mergeAdjacentSegments(segments: PodSegment[]): PodSegment[] {
     const next = segments[i];
 
     // Check if we can merge with the current segment
+    // Don't merge user-owned segments to preserve individual plot clickability
     if (
       current.type === next.type &&
       current.isUserOwned === next.isUserOwned &&
-      current.endIndex.eq(next.startIndex) // Adjacent segments
+      current.endIndex.eq(next.startIndex) && // Adjacent segments
+      !(current.isUserOwned && next.isUserOwned) // Don't merge when both segments are user-owned
     ) {
       // Merge the segments
       current = {

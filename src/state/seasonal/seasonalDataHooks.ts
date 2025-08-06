@@ -181,6 +181,33 @@ export function useFarmerSeasonalSiloAssetDepositedAmount(
   );
 }
 
+/**
+ * Get historical BDV data for a specific token in farmer's silo over time
+ * This uses depositedBDV from the subgraph which properly accounts for BDV conversion rates
+ */
+export function useFarmerSeasonalSiloAssetDepositedBDV(
+  fromSeason: number,
+  toSeason: number,
+  token: Token,
+  account?: string,
+) {
+  const { address } = useAccount();
+
+  const siloAccount = account ?? address ?? "";
+
+  return useSeasonalFarmerSiloAssetTokenSG(
+    fromSeason,
+    toSeason,
+    token.address,
+    siloAccount,
+    (siloAssetHourly, timestamp) => ({
+      season: Number(siloAssetHourly.season),
+      value: TV.fromBlockchain(siloAssetHourly.depositedBDV, 6).toNumber(), // BDV is in 6 decimals (Bean decimals)
+      timestamp,
+    }),
+  );
+}
+
 export function useFarmerSeasonalSiloAssetPercentageOfTotalDeposited(
   fromSeason: number,
   toSeason: number,
@@ -451,31 +478,31 @@ export function useFarmerHistoricalTokensBDV(
     logoURI: "",
   };
 
-  const query0 = useFarmerSeasonalSiloAssetDepositedAmount(
+  const query0 = useFarmerSeasonalSiloAssetDepositedBDV(
     fromSeason,
     toSeason,
     token0 || placeholderToken,
     address || "",
   );
-  const query1 = useFarmerSeasonalSiloAssetDepositedAmount(
+  const query1 = useFarmerSeasonalSiloAssetDepositedBDV(
     fromSeason,
     toSeason,
     token1 || placeholderToken,
     address || "",
   );
-  const query2 = useFarmerSeasonalSiloAssetDepositedAmount(
+  const query2 = useFarmerSeasonalSiloAssetDepositedBDV(
     fromSeason,
     toSeason,
     token2 || placeholderToken,
     address || "",
   );
-  const query3 = useFarmerSeasonalSiloAssetDepositedAmount(
+  const query3 = useFarmerSeasonalSiloAssetDepositedBDV(
     fromSeason,
     toSeason,
     token3 || placeholderToken,
     address || "",
   );
-  const query4 = useFarmerSeasonalSiloAssetDepositedAmount(
+  const query4 = useFarmerSeasonalSiloAssetDepositedBDV(
     fromSeason,
     toSeason,
     token4 || placeholderToken,

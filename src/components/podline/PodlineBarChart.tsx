@@ -15,6 +15,7 @@ import {
   createPodlineGradients,
   podlineTheme,
   podlineTooltipPlugin,
+  roundedCornersPlugin,
   segmentInteractionPlugin,
   timelineLabelsPlugin,
 } from "./podlineChartHelpers";
@@ -25,12 +26,12 @@ import { usePodlineData } from "./usePodlineData";
 Chart.register(BarController, BarElement, CategoryScale, LinearScale);
 
 const PodlineBarChart = React.memo(
-  ({ viewMode, height = 80, onSegmentClick, onSegmentHover }: Omit<PodlineBarChartProps, "data">) => {
+  ({ viewMode, height = 80, farmerField, onSegmentClick, onSegmentHover }: PodlineBarChartProps) => {
     const chartRef = useRef<Chart | null>(null);
     const [hoveredSegment, setHoveredSegment] = useState<PodSegment | null>(null);
 
-    // Fetch data based on current view mode
-    const { data } = usePodlineData(viewMode);
+    // Fetch data based on current view mode with farmer field data
+    const { data } = usePodlineData(viewMode, farmerField);
 
     // Create gradient functions
     const gradients = useMemo(() => createPodlineGradients(podlineTheme), []);
@@ -116,7 +117,7 @@ const PodlineBarChart = React.memo(
         animation: false,
         elements: {
           bar: {
-            borderRadius: 8, // Rounded corners
+            borderRadius: 12, // More rounded corners
             borderWidth: 2, // Border width
             borderSkipped: false, // Ensure all borders are drawn
           },
@@ -154,6 +155,9 @@ const PodlineBarChart = React.memo(
     // Chart.js plugins
     const plugins = useMemo((): Plugin[] => {
       const pluginList: Plugin[] = [];
+
+      // Rounded corners plugin
+      pluginList.push(roundedCornersPlugin);
 
       // Timeline labels plugin
       pluginList.push(timelineLabelsPlugin(data.totalPodsIssued, data.harvestableIndex, viewMode));

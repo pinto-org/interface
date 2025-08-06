@@ -7,16 +7,20 @@ import { PodSegment, PodlineTheme } from "./types";
  */
 export const podlineTheme: PodlineTheme = {
   harvested: {
-    background: "rgba(34, 197, 94, 0.2)", // Light green with transparency like morning
-    border: "#22c55e", // Dark green border
+    background: "rgba(217, 173, 15, 0.3)", // Golden with transparency for harvested
+    border: "#D9AD0F", // Golden border
   },
   userPods: {
-    background: "rgba(254, 225, 140, 0.3)", // Morning yellow background
-    border: "#D9AD0F", // Morning yellow border
+    background: "rgba(217, 173, 15, 0.4)", // More golden background
+    border: "#D9AD0F", // Morning golden border
+  },
+  userPodsCluster: {
+    background: "rgba(217, 173, 15, 0.6)", // More opaque golden for clusters
+    border: "#B8860B", // Darker golden border for clusters
   },
   otherPods: {
-    background: "rgba(233, 231, 224, 0.2)", // Morning light gray background
-    border: "#9C9C9C", // Gray border
+    background: "rgba(217, 173, 15, 0.15)", // Light golden background for others
+    border: "#D9AD0F", // Golden border for consistency
   },
 };
 
@@ -37,6 +41,13 @@ export const createPodlineGradients = (theme: PodlineTheme) => {
       const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
       gradient.addColorStop(0, theme.userPods.background);
       gradient.addColorStop(1, `${theme.userPods.background}dd`); // 87% opacity
+      return gradient;
+    },
+    userPodsCluster: (ctx: CanvasRenderingContext2D | null) => {
+      if (!ctx) return theme.userPodsCluster.background;
+      const gradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
+      gradient.addColorStop(0, theme.userPodsCluster.background);
+      gradient.addColorStop(1, `${theme.userPodsCluster.background}ee`); // 93% opacity for stronger cluster appearance
       return gradient;
     },
     otherPods: (ctx: CanvasRenderingContext2D | null) => {
@@ -178,12 +189,25 @@ export const podlineTooltipPlugin = (hoveredSegment: PodSegment | null, totalPod
     // Tooltip content
     const lines = [`${hoveredSegment.podCount.toHuman()} Pods`, `Position: ${hoveredSegment.startIndex.toHuman()}`];
 
+    // Add cluster information
+    if (hoveredSegment.cluster) {
+      lines.push(
+        `${hoveredSegment.cluster.clusterType === "multi" ? "🎯" : "📍"} ${hoveredSegment.cluster.plots.length} plot${hoveredSegment.cluster.plots.length > 1 ? "s" : ""}`,
+      );
+      if (hoveredSegment.cluster.hasHarvestablePods) {
+        lines.push(`🌱 ${hoveredSegment.cluster.allPlotsHarvestable ? "All" : "Some"} harvestable`);
+      }
+    }
+
     if (hoveredSegment.metadata?.temperature) {
-      lines.push(`Temperature: ${hoveredSegment.metadata.temperature.toFixed(1)}%`);
+      lines.push(`🌡️ ${hoveredSegment.metadata.temperature.toFixed(1)}% temp`);
     }
 
     if (hoveredSegment.isUserOwned) {
       lines.push(hoveredSegment.isHarvestable ? "✅ Harvestable" : "⏳ In Line");
+      if (hoveredSegment.cluster) {
+        lines.push("👆 Click to view details");
+      }
     }
 
     // Calculate tooltip dimensions
@@ -226,7 +250,7 @@ export const roundedCornersPlugin: Plugin = {
       const meta = chart.getDatasetMeta(datasetIndex);
       meta.data.forEach((element: any) => {
         if (element?.options) {
-          element.options.borderRadius = 8;
+          element.options.borderRadius = 12;
           element.options.borderSkipped = false;
         }
       });
@@ -268,8 +292,14 @@ export const createPodlineDatasets = (
         borderColor = podlineTheme.harvested.border;
         break;
       case "user-pods":
-        backgroundColor = gradients.userPods(null);
-        borderColor = podlineTheme.userPods.border;
+        if (segment.cluster && segment.cluster.clusterType === "multi") {
+          // Use cluster styling for multi-plot clusters
+          backgroundColor = gradients.userPodsCluster(null);
+          borderColor = podlineTheme.userPodsCluster.border;
+        } else {
+          backgroundColor = gradients.userPods(null);
+          borderColor = podlineTheme.userPods.border;
+        }
         break;
       default:
         backgroundColor = gradients.otherPods(null);
