@@ -127,6 +127,26 @@ const Overview = () => {
   const [showSowDialog, setShowSowDialog] = useState(false);
 
   const [_hoveredId, setHoveredId] = useAtom(hoveredIdAtom);
+
+  // Track if this is the first time loading the page
+  const [isFirstLoad, setIsFirstLoad] = useState(() => {
+    const referrer = document.referrer;
+    const isFromOutside = !referrer || !referrer.includes(window.location.origin);
+    const hasVisitedInSession = sessionStorage.getItem("hasVisitedInSession");
+
+    if (!hasVisitedInSession) {
+      // First time in this session
+      sessionStorage.setItem("hasVisitedInSession", "true");
+      return true;
+    } else if (isFromOutside) {
+      // Coming from outside the site
+      return true;
+    } else {
+      // Navigating within the site
+      return false;
+    }
+  });
+
   useEffect(() => {
     setHoveredId("");
   }, []);
@@ -317,13 +337,28 @@ const Overview = () => {
     return (
       <>
         {/* Welcome Message */}
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-pinto-gray-5">
-            Welcome back to the Farm, {shortAddress}!
-          </h1>
-        </div>
+        <motion.div
+          className="mb-6"
+          initial={{ opacity: isFirstLoad ? 0 : 1, y: isFirstLoad ? 20 : 0 }}
+          animate={{ opacity: isFirstLoad ? 1 : 1, y: isFirstLoad ? 0 : 0 }}
+          transition={{
+            duration: isFirstLoad ? 0.8 : 0,
+            ease: "easeOut",
+          }}
+        >
+          <h1 className="pinto-h2 sm:pinto-h1 text-pinto-gray-5">Welcome back to the Farm, {shortAddress}!</h1>
+        </motion.div>
 
-        <div className="flex flex-col justify-center relative action-container mt-0 sm:mt-0">
+        <motion.div
+          className="flex flex-col justify-center relative action-container mt-0 sm:mt-0"
+          initial={{ opacity: isFirstLoad ? 0 : 1, y: isFirstLoad ? 20 : 0 }}
+          animate={{ opacity: isFirstLoad ? 1 : 1, y: isFirstLoad ? 0 : 0 }}
+          transition={{
+            duration: isFirstLoad ? 0.8 : 0,
+            ease: "easeOut",
+            delay: isFirstLoad ? 0.3 : 0,
+          }}
+        >
           <div className="flex flex-col sm:items-center items-start">
             <div data-action-target="stats">
               <StatPanel
@@ -405,7 +440,7 @@ const Overview = () => {
             />
           )*/}
           </div>
-        </div>
+        </motion.div>
         <AnimatePresence>
           {hasGerminatingDeposits ? (
             <motion.div
@@ -431,86 +466,108 @@ const Overview = () => {
         </AnimatePresence>
 
         {/* My Value Over Time Chart */}
-        <Card className="p-6">
-          <SimpleValueChart
-            timeTab={chartTimeTab}
-            chartTimeTab={chartTimeTab}
-            setChartTimeTab={setChartTimeTab}
-            valueMode={valueMode}
-            onValueModeChange={setValueMode}
-            showValueModeToggle={true}
-            currentTotalValueUSD={(() => {
-              if (valueMode !== "USD") return undefined;
+        <motion.div
+          initial={{ opacity: isFirstLoad ? 0 : 1, y: isFirstLoad ? 20 : 0 }}
+          animate={{ opacity: isFirstLoad ? 1 : 1, y: isFirstLoad ? 0 : 0 }}
+          transition={{
+            duration: isFirstLoad ? 0.8 : 0,
+            ease: "easeOut",
+            delay: isFirstLoad ? 0.6 : 0,
+          }}
+        >
+          <Card className="p-6">
+            <SimpleValueChart
+              timeTab={chartTimeTab}
+              chartTimeTab={chartTimeTab}
+              setChartTimeTab={setChartTimeTab}
+              valueMode={valueMode}
+              onValueModeChange={setValueMode}
+              showValueModeToggle={true}
+              currentTotalValueUSD={(() => {
+                if (valueMode !== "USD") return undefined;
 
-              try {
-                // Add safety check for valueInSystem
-                if (!valueInSystem || typeof valueInSystem.toHuman !== "function") {
-                  console.warn("FarmerOverview: valueInSystem is invalid:", valueInSystem);
+                try {
+                  // Add safety check for valueInSystem
+                  if (!valueInSystem || typeof valueInSystem.toHuman !== "function") {
+                    console.warn("FarmerOverview: valueInSystem is invalid:", valueInSystem);
+                    return undefined;
+                  }
+
+                  const valueString = valueInSystem.toHuman();
+                  if (typeof valueString !== "string" || valueString.trim() === "") {
+                    console.warn("FarmerOverview: valueInSystem.toHuman() returned invalid string:", valueString);
+                    return undefined;
+                  }
+
+                  const numericValue = Number(valueString);
+                  if (!Number.isFinite(numericValue) || numericValue < 0) {
+                    console.warn("FarmerOverview: Invalid numeric conversion from valueInSystem:", {
+                      valueString,
+                      numericValue,
+                      isFinite: Number.isFinite(numericValue),
+                      isNegative: numericValue < 0,
+                    });
+                    return undefined;
+                  }
+
+                  return numericValue;
+                } catch (error) {
+                  console.error("FarmerOverview: Error converting valueInSystem to USD:", error);
                   return undefined;
                 }
+              })()}
+            />
 
-                const valueString = valueInSystem.toHuman();
-                if (typeof valueString !== "string" || valueString.trim() === "") {
-                  console.warn("FarmerOverview: valueInSystem.toHuman() returned invalid string:", valueString);
-                  return undefined;
-                }
-
-                const numericValue = Number(valueString);
-                if (!Number.isFinite(numericValue) || numericValue < 0) {
-                  console.warn("FarmerOverview: Invalid numeric conversion from valueInSystem:", {
-                    valueString,
-                    numericValue,
-                    isFinite: Number.isFinite(numericValue),
-                    isNegative: numericValue < 0,
-                  });
-                  return undefined;
-                }
-
-                return numericValue;
-              } catch (error) {
-                console.error("FarmerOverview: Error converting valueInSystem to USD:", error);
-                return undefined;
-              }
-            })()}
-          />
-
-          {/* Action Buttons */}
-          <div className="mt-6">
-            <div className="flex flex-wrap gap-3 sm:gap-4">
-              <SiloActionDialog defaultAction="deposit">
-                <Button rounded="full" variant="outline-secondary" className="pinto-sm-bold text-sm flex-1 flex h-full">
-                  Deposit
+            {/* Action Buttons */}
+            <div className="mt-6">
+              <div className="flex flex-wrap gap-3 sm:gap-4">
+                <SiloActionDialog defaultAction="deposit">
+                  <Button
+                    rounded="full"
+                    variant="outline-secondary"
+                    className="pinto-sm-bold text-sm flex-1 flex h-full"
+                  >
+                    Deposit
+                  </Button>
+                </SiloActionDialog>
+                <SiloActionDialog siloToken={mainToken} defaultAction="withdraw">
+                  <Button
+                    rounded="full"
+                    variant="outline-secondary"
+                    className="pinto-sm-bold text-sm flex-1 flex h-full"
+                  >
+                    Withdraw
+                  </Button>
+                </SiloActionDialog>
+                <SiloActionDialog defaultAction="convert">
+                  <Button
+                    rounded="full"
+                    variant="outline-secondary"
+                    className="pinto-sm-bold text-sm flex-1 flex h-full"
+                  >
+                    Convert
+                  </Button>
+                </SiloActionDialog>
+                <Button
+                  rounded="full"
+                  variant="outline-secondary"
+                  onClick={() => setShowSowDialog(true)}
+                  className="pinto-sm-bold text-sm flex-1 flex h-full"
+                >
+                  Sow
                 </Button>
-              </SiloActionDialog>
-              <SiloActionDialog siloToken={mainToken} defaultAction="withdraw">
-                <Button rounded="full" variant="outline-secondary" className="pinto-sm-bold text-sm flex-1 flex h-full">
-                  Withdraw
+                <Button
+                  rounded="full"
+                  variant="outline-secondary"
+                  onClick={() => navigate("/silo")}
+                  className="pinto-sm-bold text-sm flex-1 flex h-full"
+                >
+                  Optimize
                 </Button>
-              </SiloActionDialog>
-              <SiloActionDialog defaultAction="convert">
-                <Button rounded="full" variant="outline-secondary" className="pinto-sm-bold text-sm flex-1 flex h-full">
-                  Convert
-                </Button>
-              </SiloActionDialog>
-              <Button
-                rounded="full"
-                variant="outline-secondary"
-                onClick={() => setShowSowDialog(true)}
-                className="pinto-sm-bold text-sm flex-1 flex h-full"
-              >
-                Sow
-              </Button>
-              <Button
-                rounded="full"
-                variant="outline-secondary"
-                onClick={() => navigate("/silo")}
-                className="pinto-sm-bold text-sm flex-1 flex h-full"
-              >
-                Optimize
-              </Button>
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </motion.div>
 
         {/* Podline Visualization */}
         <PodlineVisualization className="mb-6" farmerField={farmerField} />
@@ -721,7 +778,7 @@ const Overview = () => {
       className={`flex flex-col ${hasDepositsOrPods ? "pt-12 sm:pt-[3.75rem]" : "justify-center text-center min-h-[calc(100vh-15rem)]"} gap-16 pb-8`}
     >
       <PageContainer
-        className={`flex flex-col gap-8 sm:gap-12 3xl:gap-16 -mt-4 ${!hasDepositsOrPods ? "sm:max-w-[1150px] flex-grow sm:mt-[100px]" : ""}`}
+        className={`flex flex-col gap-8 sm:gap-12 3xl:gap-16 -mt-4 ${!hasDepositsOrPods ? "sm:max-w-[1150px] flex-grow sm:mt-[5px]" : ""}`}
         variant={"lgAlt"}
       >
         {renderContent()}
