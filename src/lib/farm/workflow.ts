@@ -2,7 +2,7 @@ import { Clipboard } from "@/classes/Clipboard";
 import { TV } from "@/classes/TokenValue";
 import { abiSnippets } from "@/constants/abiSnippets";
 import encoders from "@/encoders";
-import { beanstalkAddress } from "@/generated/contractHooks";
+import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { AdvancedFarmCall, AdvancedPipeCall, TypedAdvancedFarmCalls } from "@/utils/types";
 import { HashString, MayArray } from "@/utils/types.generic";
 import { Address, StateOverride, decodeFunctionResult } from "viem";
@@ -197,8 +197,8 @@ export class AdvancedPipeWorkflow extends FarmWorkflow<AdvancedPipeCall> {
 
   static decodeResult(data: HashString) {
     return decodeFunctionResult({
-      abi: abiSnippets.advancedPipe,
-      functionName: "advancedPipe",
+      abi: beanstalkAbi,
+      functionName: "advancedPipe" as const,
       data: data,
     });
   }
