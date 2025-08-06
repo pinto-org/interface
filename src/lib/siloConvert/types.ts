@@ -10,3 +10,9 @@ export interface SiloConvertContext {
   wagmiConfig: Config;
   chainId: number;
 }
+
+export type SiloConvertTokenDirection =
+  | "default" // OmniDirectional LP<>Main
+  | "LP2LP" // LP<>LP
+  | "LP2Main" // LP -> Main
+  | "Main2LP"; // Main -> LP
