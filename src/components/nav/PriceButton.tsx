@@ -401,13 +401,13 @@ function PriceButtonPanel() {
             <div className="flex flex-col gap-6 p-2 pt-6 box-border">
               <div className="flex flex-row justify-between h-14 items-center">
                 <div className="pinto-sm sm:pinto-body inline-flex items-center gap-1.5">
-                  Show time-weighted average values
+                  Display time-weighted average values
                   <TooltipSimple content={"Show the time-weighted average ΔP and price in each pool."} />
                 </div>
                 <Switch checked={useTwa} onCheckedChange={() => setUseTwa(!useTwa)} variant="omegaLarge" />
               </div>
               <div className="flex flex-row justify-between h-14 items-center">
-                <div className="pinto-sm sm:pinto-body">Show ΔP and total liquidity on all Wells</div>
+                <div className="pinto-sm sm:pinto-body">Display ΔP and total liquidity on all Wells</div>
                 <Switch checked={expandAll} onCheckedChange={() => setExpandAll(!expandAll)} variant="omegaLarge" />
               </div>
             </div>
