@@ -432,6 +432,12 @@ const Overview = () => {
             if (valueMode !== "USD") return undefined;
 
             try {
+              // Add safety check for valueInSystem
+              if (!valueInSystem || typeof valueInSystem.toHuman !== "function") {
+                console.warn("FarmerOverview: valueInSystem is invalid:", valueInSystem);
+                return undefined;
+              }
+
               const valueString = valueInSystem.toHuman();
               if (typeof valueString !== "string" || valueString.trim() === "") {
                 console.warn("FarmerOverview: valueInSystem.toHuman() returned invalid string:", valueString);
@@ -460,37 +466,35 @@ const Overview = () => {
 
       {/* Navigation Action Buttons */}
       <div className="mb-6">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+        <div className="flex flex-wrap gap-3 sm:gap-4">
           <SiloActionDialog defaultAction="deposit">
-            <Button variant="outline-primary" size="lg" width="full" className="font-medium">
+            <Button rounded="full" variant="outline-secondary" className="pinto-sm-bold text-sm flex-1 flex h-full">
               Deposit
             </Button>
           </SiloActionDialog>
           <SiloActionDialog siloToken={mainToken} defaultAction="withdraw">
-            <Button variant="outline-primary" size="lg" width="full" className="font-medium">
+            <Button rounded="full" variant="outline-secondary" className="pinto-sm-bold text-sm flex-1 flex h-full">
               Withdraw
             </Button>
           </SiloActionDialog>
-          <SiloActionDialog siloToken={mainToken} defaultAction="convert">
-            <Button variant="outline-primary" size="lg" width="full" className="font-medium">
+          <SiloActionDialog defaultAction="convert">
+            <Button rounded="full" variant="outline-secondary" className="pinto-sm-bold text-sm flex-1 flex h-full">
               Convert
             </Button>
           </SiloActionDialog>
           <Button
-            variant="outline-primary"
-            size="lg"
-            width="full"
+            rounded="full"
+            variant="outline-secondary"
             onClick={() => setShowSowDialog(true)}
-            className="font-medium"
+            className="pinto-sm-bold text-sm flex-1 flex h-full"
           >
             Sow
           </Button>
           <Button
-            variant="outline-primary"
-            size="lg"
-            width="full"
+            rounded="full"
+            variant="outline-secondary"
             onClick={() => navigate("/silo")}
-            className="font-medium col-span-2 sm:col-span-1"
+            className="pinto-sm-bold text-sm flex-1 flex h-full"
           >
             Optimize
           </Button>

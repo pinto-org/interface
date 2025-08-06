@@ -21,6 +21,7 @@ import { DepositData, Token } from "@/utils/types";
 import { HashString } from "@/utils/types.generic";
 import { readContract } from "viem/actions";
 import { DefaultConvertStrategy } from "./strategies/implementations/DefaultConvertStrategy";
+import { SiloConvertLP2MainPipelineConvertStrategy } from "./strategies/implementations/LP2MainPipelineConvertStrategy";
 import { ErrorHandlerFactory } from "./strategies/validation/ErrorHandlerFactory";
 import { MaxConvertQuotationError } from "./strategies/validation/SiloConvertErrors";
 
@@ -421,7 +422,7 @@ export class SiloConvertMaxConvertQuoter {
   }
 
   /**
-   * Tests a default convert scalar w/ the Farmer's deposits.
+   * Tests a default convert scalar w/ the Farmer's deposits using both direct and pipeline convert strategies.
    *
    * @returns The scaled maxAmountIn if it doesn't revert, otherwise undefined.
    */
@@ -434,28 +435,67 @@ export class SiloConvertMaxConvertQuoter {
   ) {
     // Validation is handled by calling method
 
-    // clear the workflow before testing.
-    workflow.clear();
+    const scaledMaxAmountIn = maxAmountIn.mul(scalar);
+    const crates = pickCratesMultiple(farmerDeposits, "bdv", "asc", [scaledMaxAmountIn]);
 
+    // Test 1: Try DefaultConvertStrategy (direct silo convert)
+    workflow.clear();
     let amount: TV | undefined;
 
     try {
-      const scaledMaxAmountIn = maxAmountIn.mul(scalar);
-      const crates = pickCratesMultiple(farmerDeposits, "bdv", "asc", [scaledMaxAmountIn]);
-      const strategy = new DefaultConvertStrategy(source, target, this.context);
-
-      await strategy.quote(crates[0], workflow, 0.5);
+      const defaultStrategy = new DefaultConvertStrategy(source, target, this.context);
+      await defaultStrategy.quote(crates[0], workflow, 0.5);
       await workflow.simulate({ account: this.context.account });
       amount = scaledMaxAmountIn;
-    } catch (_e) {}
 
-    console.debug(`[MaxConvertQuoter/testDefaultConvertScalar]: scalar ${scalar} ${amount ? "succeeded" : "failed"}`, {
-      amount,
+      console.debug(
+        `[MaxConvertQuoter/testDefaultConvertScalar]: scalar ${scalar} succeeded with DefaultConvertStrategy`,
+        {
+          amount,
+          maxAmountIn,
+          scalar,
+          strategy: "DefaultConvert",
+        },
+      );
+
+      return amount;
+    } catch (_e) {
+      // Default strategy failed, try pipeline strategy
+    }
+
+    // Test 2: Try LP2MainPipeline strategy (pipeline convert via 0x routing)
+    // Only try pipeline if source is LP, target is main, and aggregator is not disabled
+    if (source.isLP && target.isMain && !this.isAggDisabledToken(source)) {
+      workflow.clear();
+
+      try {
+        const sourceWell = this.cache.getWell(source.address);
+        const pipelineStrategy = new SiloConvertLP2MainPipelineConvertStrategy(sourceWell, target, this.context);
+
+        await pipelineStrategy.quote(crates[0], workflow, 0.5);
+        await workflow.simulate({ account: this.context.account });
+        amount = scaledMaxAmountIn;
+
+        console.debug(`[MaxConvertQuoter/testDefaultConvertScalar]: scalar ${scalar} succeeded with LP2MainPipeline`, {
+          amount,
+          maxAmountIn,
+          scalar,
+          strategy: "LP2MainPipeline",
+        });
+
+        return amount;
+      } catch (_e) {
+        // Pipeline strategy also failed
+      }
+    }
+
+    console.debug(`[MaxConvertQuoter/testDefaultConvertScalar]: scalar ${scalar} failed with all strategies`, {
+      amount: undefined,
       maxAmountIn,
       scalar,
     });
 
-    return amount;
+    return undefined;
   }
 
   /**
@@ -521,14 +561,30 @@ export class SiloConvertMaxConvertQuoter {
 
     await this.cache.update();
 
-    // There is only a max convert if there is a restriction on whether we can use 0x or not, because
-    // We can always convert LP<>LP in equal proportions if liquidity external to wells exists.
+    // If aggregator is disabled for either token, use single-sided main token strategy
     if (this.isAggDisabledToken(source) || this.isAggDisabledToken(target)) {
       return this.getSingleSidedMainTokenMaxConvert({ source, target });
     }
 
-    // No additional restrictions apply as we can convert in equal proportions
-    return TV.fromHuman(NO_MAX_CONVERT_AMOUNT, source.decimals);
+    // For LP2LP conversions, we should test actual conversion strategies instead of
+    // returning the hardcoded NO_MAX_CONVERT_AMOUNT. The previous assumption that
+    // "we can always convert LP<>LP in equal proportions" is incorrect - we need to
+    // account for actual liquidity constraints and strategy limitations.
+
+    // Try to get a reasonable max based on available liquidity and strategy constraints
+    // For now, return zero to indicate no reliable max can be determined without testing
+    // This will force the system to use actual conversion quotes instead of relying on
+    // potentially incorrect maximum values
+    console.debug(
+      "[MaxConvertQuoter/getMaxConvertLPToLP]: LP2LP conversion - returning 0 to force quote-based validation",
+      {
+        source: source.symbol,
+        target: target.symbol,
+        reason: "LP2LP conversions require strategy-specific testing",
+      },
+    );
+
+    return TV.ZERO;
   }
 
   /**

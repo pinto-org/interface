@@ -1,5 +1,6 @@
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import useTokenData, { useWhitelistedTokens } from "@/state/useTokenData";
 import { tokensEqual } from "@/utils/token";
 import { Token } from "@/utils/types";
@@ -41,6 +42,19 @@ export function useSiloDepositableTokenFilters() {
     const filterSet = new Set<Token>();
     const filterPreferred: Token[] = [];
 
+    // Always include common tokens that users might want to deposit, regardless of balance
+    const commonTokens = [
+      tokenData.mainToken, // PINTO
+      ...tokenData.lpTokens.filter((lp) => lp.isWhitelisted), // Whitelisted LP tokens
+      tokenData.nativeToken, // ETH
+      tokenData.wrappedNativeToken, // WETH
+    ].filter(Boolean); // Remove any undefined tokens
+
+    commonTokens.forEach((token) => {
+      filterSet.add(token);
+      filterPreferred.push(token);
+    });
+
     // Include tokens that can be used as input for silo deposits:
     // 1. Any tokens the user has balances for (since they can be swapped to whitelisted tokens)
     // 2. Prioritize underlying tokens that can be directly swapped to LP tokens
@@ -73,7 +87,7 @@ export function useSiloDepositableTokenFilters() {
       filterSet,
       filterPreferred,
     };
-  }, [balances, tokenData]);
+  }, [balances, tokenData.mainToken, tokenData.lpTokens, tokenData.nativeToken, tokenData.wrappedNativeToken]);
 }
 
 export function useSiloTargetTokenFilters() {
@@ -103,11 +117,15 @@ export function useSiloTargetTokenFilters() {
 
 export function useSiloWithdrawTokenFilters(siloToken: Token) {
   const tokenMap = useTokenMap();
+  const tokenData = useTokenData();
 
   return useMemo(() => {
     const filterSet = new Set<Token>();
 
-    // For LP tokens, allow withdrawal to underlying tokens or the LP token itself
+    // Always allow withdrawal to the same token
+    filterSet.add(siloToken);
+
+    // For LP tokens, allow withdrawal to underlying tokens
     if (siloToken.isLP && siloToken.tokens?.length) {
       siloToken.tokens.forEach((tokenAddress) => {
         const underlyingToken = Object.values(tokenMap).find(
@@ -117,16 +135,50 @@ export function useSiloWithdrawTokenFilters(siloToken: Token) {
           filterSet.add(underlyingToken);
         }
       });
-      // Also allow withdrawal to the LP token itself
-      filterSet.add(siloToken);
-    } else {
-      // For non-LP tokens, primarily allow withdrawal to the same token
-      filterSet.add(siloToken);
+    }
+
+    // Add common withdrawal targets that users might want to swap to
+    const commonWithdrawTargets = [
+      tokenData.mainToken, // PINTO
+      tokenData.nativeToken, // ETH
+      tokenData.wrappedNativeToken, // WETH
+      ...Object.values(tokenMap).filter(
+        (token) =>
+          token.symbol === "USDC" ||
+          token.symbol === "cbETH" ||
+          token.symbol === "cbBTC" ||
+          token.symbol === "WSOL" ||
+          (token.isLP && token.isWhitelisted),
+      ),
+    ].filter(Boolean); // Remove any undefined tokens
+
+    commonWithdrawTargets.forEach((token) => {
+      if (token) filterSet.add(token);
+    });
+
+    return {
+      filterSet,
+      filterArray: Array.from(filterSet),
+    };
+  }, [siloToken, tokenMap, tokenData.mainToken, tokenData.nativeToken, tokenData.wrappedNativeToken]);
+}
+
+export function useSiloDepositedTokenFilters() {
+  const farmerSilo = useFarmerSilo();
+
+  return useMemo(() => {
+    const filterSet = new Set<Token>();
+
+    // Include all tokens that have active deposits in the silo
+    for (const [token, depositData] of farmerSilo.deposits.entries()) {
+      if (depositData.amount.gt(0)) {
+        filterSet.add(token);
+      }
     }
 
     return {
       filterSet,
       filterArray: Array.from(filterSet),
     };
-  }, [siloToken, tokenMap]);
+  }, [farmerSilo.deposits]);
 }
