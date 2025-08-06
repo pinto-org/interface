@@ -1,4 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { Plot } from "@/utils/types";
 
 /**
  * View mode for the podline visualization
@@ -26,6 +27,8 @@ export interface PodSegment {
   isUserOwned: boolean;
   /** Whether pods in this segment are harvestable */
   isHarvestable: boolean;
+  /** Reference to the original plot data (for user-owned segments) */
+  plot?: Plot;
   /** Optional metadata for display */
   metadata?: {
     /** Season when pods were created */
@@ -89,12 +92,12 @@ export interface PodlineVisualizationProps {
  * Props for the podline bar chart component
  */
 export interface PodlineBarChartProps {
-  /** Processed podline data */
-  data: PodlineData;
   /** Current view mode */
   viewMode: PodlineViewMode;
   /** Height of the chart in pixels */
   height?: number;
+  /** Farmer field data to avoid redundant hook calls */
+  farmerField?: any;
   /** Callback when a segment is clicked */
   onSegmentClick?: (segment: PodSegment, datasetIndex: number) => void;
   /** Callback when mouse hovers over a segment */

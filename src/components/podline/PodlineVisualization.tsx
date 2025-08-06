@@ -1,9 +1,11 @@
 import { formatter } from "@/utils/format";
+import { Plot } from "@/utils/types";
 import { cn } from "@/utils/utils";
 import React, { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/Button";
 import { Tabs, TabsList, TabsTrigger } from "../ui/Tabs";
+import { PlotDetailsDialog } from "./PlotDetailsDialog";
 import PodlineBarChart from "./PodlineBarChart";
 import { ViewMyPodsDialog } from "./ViewMyPodsDialog";
 import { PodSegment, PodlineViewMode, PodlineVisualizationProps } from "./types";
@@ -19,6 +21,8 @@ const PodlineVisualization = React.memo(
   }: PodlineVisualizationProps) => {
     const [viewMode, setViewMode] = useState<PodlineViewMode>(defaultViewMode);
     const [showPodsDialog, setShowPodsDialog] = useState(false);
+    const [showPlotDialog, setShowPlotDialog] = useState(false);
+    const [selectedPlot, setSelectedPlot] = useState<Plot | null>(null);
     const navigate = useNavigate();
 
     // Fetch podline data and summary with farmer field data
@@ -31,12 +35,23 @@ const PodlineVisualization = React.memo(
     // Handle segment interactions
     const handleSegmentClick = useCallback(
       (segment: PodSegment, _datasetIndex: number) => {
-        if (segment.isUserOwned) {
+        console.log(`🎯 [PODLINE CLICK] Segment clicked:`, {
+          isUserOwned: segment.isUserOwned,
+          hasPlot: !!segment.plot,
+          podCount: segment.podCount.toHuman(),
+          plotSeason: segment.plot?.season,
+        });
+
+        if (segment.isUserOwned && segment.plot) {
+          // Show plot details dialog for user-owned segments
+          setSelectedPlot(segment.plot);
+          setShowPlotDialog(true);
+        } else if (segment.isUserOwned) {
+          // Fallback to navigation if no plot data (shouldn't happen)
+          console.log(`⚠️ [PODLINE CLICK] User segment without plot data - falling back to navigation`);
           if (segment.isHarvestable) {
-            // Navigate to harvest action
             navigate("/field?action=harvest");
           } else {
-            // Navigate to field overview
             navigate("/field");
           }
         }
@@ -128,6 +143,7 @@ const PodlineVisualization = React.memo(
           <PodlineBarChart
             viewMode={viewMode}
             height={height * 2}
+            farmerField={farmerField}
             onSegmentClick={handleSegmentClick}
             onSegmentHover={handleSegmentHover}
           />
@@ -193,6 +209,9 @@ const PodlineVisualization = React.memo(
 
         {/* View My Pods Dialog */}
         <ViewMyPodsDialog open={showPodsDialog} onOpenChange={setShowPodsDialog} hasPods={hasPods} />
+
+        {/* Plot Details Dialog */}
+        <PlotDetailsDialog open={showPlotDialog} onOpenChange={setShowPlotDialog} plot={selectedPlot} />
       </div>
     );
   },

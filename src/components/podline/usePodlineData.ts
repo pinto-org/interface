@@ -64,9 +64,13 @@ export function usePodlineData(viewMode: PodlineViewMode = "current", farmerFiel
       let currentPosition = currentHarvestableIndex;
 
       // Process user plots and create segments
+      console.log(`🎯 [PODLINE DEBUG] Processing ${sortedPlots.length} user plots for visualization`);
       for (const plot of sortedPlots) {
         const plotStart = plot.index;
         const plotEnd = plot.index.add(plot.unharvestablePods || TokenValue.ZERO);
+        console.log(
+          `📊 [PODLINE DEBUG] Processing plot: index=${plot.index.toHuman()}, pods=${plot.pods?.toHuman()}, season=${plot.season}`,
+        );
 
         // Skip fully harvested plots
         if (plotEnd.lte(currentHarvestableIndex || TokenValue.ZERO)) {
@@ -99,12 +103,16 @@ export function usePodlineData(viewMode: PodlineViewMode = "current", farmerFiel
             endIndex: plotEnd,
             isUserOwned: true,
             isHarvestable: plotStart.lt(currentHarvestableIndex || TokenValue.ZERO),
+            plot, // Include reference to the original plot
             metadata: {
               season: plot.season,
               temperature: plot.beansPerPod ? (1 / plot.beansPerPod.toNumber()) * 100 - 100 : undefined,
               source: plot.source,
             },
           };
+          console.log(
+            `✅ [PODLINE DEBUG] Created user segment: ${effectivePods.toHuman()} pods from ${effectiveStart.toHuman()} to ${plotEnd.toHuman()}`,
+          );
           segments.push(userSegment);
           currentPosition = plotEnd;
         }
@@ -130,6 +138,11 @@ export function usePodlineData(viewMode: PodlineViewMode = "current", farmerFiel
 
     // Merge adjacent segments of the same type for cleaner visualization
     const mergedSegments = mergeAdjacentSegments(segments);
+
+    const userSegmentsCount = mergedSegments.filter((s) => s.isUserOwned).length;
+    console.log(
+      `🎯 [PODLINE DEBUG] Final result: ${mergedSegments.length} total segments, ${userSegmentsCount} user-owned segments`,
+    );
 
     return {
       segments: mergedSegments,
@@ -163,10 +176,12 @@ function mergeAdjacentSegments(segments: PodSegment[]): PodSegment[] {
     const next = segments[i];
 
     // Check if we can merge with the current segment
+    // Don't merge user-owned segments to preserve individual plot clickability
     if (
       current.type === next.type &&
       current.isUserOwned === next.isUserOwned &&
-      current.endIndex.eq(next.startIndex) // Adjacent segments
+      current.endIndex.eq(next.startIndex) && // Adjacent segments
+      !(current.isUserOwned && next.isUserOwned) // Don't merge when both segments are user-owned
     ) {
       // Merge the segments
       current = {

@@ -25,12 +25,12 @@ import { usePodlineData } from "./usePodlineData";
 Chart.register(BarController, BarElement, CategoryScale, LinearScale);
 
 const PodlineBarChart = React.memo(
-  ({ viewMode, height = 80, onSegmentClick, onSegmentHover }: Omit<PodlineBarChartProps, "data">) => {
+  ({ viewMode, height = 80, farmerField, onSegmentClick, onSegmentHover }: PodlineBarChartProps) => {
     const chartRef = useRef<Chart | null>(null);
     const [hoveredSegment, setHoveredSegment] = useState<PodSegment | null>(null);
 
-    // Fetch data based on current view mode
-    const { data } = usePodlineData(viewMode);
+    // Fetch data based on current view mode with farmer field data
+    const { data } = usePodlineData(viewMode, farmerField);
 
     // Create gradient functions
     const gradients = useMemo(() => createPodlineGradients(podlineTheme), []);
