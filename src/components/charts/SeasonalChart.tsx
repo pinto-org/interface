@@ -209,7 +209,7 @@ const SeasonalChart = ({
                 <div className="pinto-body-light">No data</div>
               </div>
             ) : (
-              <div className={cn("px-4 pt-4 pb-4 h-[300px]", chartWrapperClassName)}>
+              <div className={cn("px-4 pt-4 pb-4 min-h-[300px]", chartWrapperClassName)}>
                 <LineChart
                   data={chartData}
                   xKey="timestamp"

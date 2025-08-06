@@ -6,6 +6,7 @@ import GerminationNotice from "@/components/GerminationNotice";
 import HelperLink, { hoveredIdAtom } from "@/components/HelperLink";
 import OverviewNoticeDeposit from "@/components/OverviewNoticeDeposit";
 import PlotsTable from "@/components/PlotsTable";
+import SowOrderDialog, { AnimateSowOrderDialog } from "@/components/SowOrderDialog";
 import StatPanel from "@/components/StatPanel";
 import StatPanelAltDisplay from "@/components/StatPanelAltDisplay";
 import TableRowConnector from "@/components/TableRowConnector";
@@ -13,6 +14,8 @@ import SimpleValueChart from "@/components/charts/SimpleValueChart";
 import TimeTabsSelector, { TimeTab } from "@/components/charts/TimeTabs";
 import { ValueMode } from "@/components/charts/ValueModeToggle";
 import { PodlineVisualization } from "@/components/podline";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
@@ -36,6 +39,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import TemperatureChart from "../field/Temperature";
 import TractorOrdersPanel from "../field/TractorOrdersPanel";
 
 const Overview = () => {
@@ -117,11 +121,15 @@ const Overview = () => {
   const [hoveredButton, setHoveredButton] = useState("");
   const [chartTimeTab, setChartTimeTab] = useState<TimeTab>(TimeTab.Month);
   const [valueMode, setValueMode] = useState<ValueMode>("BDV");
+  const [showSowDialog, setShowSowDialog] = useState(false);
 
   const [_hoveredId, setHoveredId] = useAtom(hoveredIdAtom);
   useEffect(() => {
     setHoveredId("");
   }, []);
+
+  // State for animation
+  const [isClosing, setIsClosing] = useState(false);
 
   // Prefetch farmer field data when user has pods for instant "View your pods" dialog
   useEffect(() => {
@@ -129,6 +137,49 @@ const Overview = () => {
       prefetchFarmerField().catch(console.error);
     }
   }, [hasPods, farmerField.isLoading, prefetchFarmerField]);
+
+  // Handle escape key and click outside
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && showSowDialog && !isClosing) {
+        setIsClosing(true);
+        // Close after animation completes
+        setTimeout(() => {
+          setShowSowDialog(false);
+          setIsClosing(false);
+        }, 150); // Match the animation duration
+      }
+    };
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (
+        showSowDialog &&
+        !target.closest("#sow-order-dialog") &&
+        !target.closest(".dialog-content") &&
+        !target.closest(".temperature-chart-container") &&
+        !target.closest(".podline-chart-container") &&
+        !isClosing
+      ) {
+        setIsClosing(true);
+        // Close after animation completes
+        setTimeout(() => {
+          setShowSowDialog(false);
+          setIsClosing(false);
+        }, 150); // Match the animation duration
+      }
+    };
+
+    if (showSowDialog) {
+      document.addEventListener("keydown", handleEscape);
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showSowDialog, isClosing]);
 
   // Memoized calculations
   const { siloPct, claimSiloPct, harvestSiloPct, stalkPerSeason, placesInLine } = useMemo(() => {
@@ -406,6 +457,65 @@ const Overview = () => {
         />
       </div>
 
+      {/* Navigation Action Buttons */}
+      <div className="mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          <Button
+            variant="outline-primary"
+            size="lg"
+            width="full"
+            onClick={() => navigate("/silo")}
+            className="font-medium"
+          >
+            Deposit
+          </Button>
+          <Button
+            variant="outline-primary"
+            size="lg"
+            width="full"
+            onClick={() => navigate("/silo")}
+            className="font-medium"
+          >
+            Withdraw
+          </Button>
+          <Button
+            variant="outline-primary"
+            size="lg"
+            width="full"
+            onClick={() => {
+              const convertFrom = farmerActions.convertDeposits.bestConversion.from;
+              const convertTo = farmerActions.convertDeposits.bestConversion.to;
+              if (farmerActions.convertDeposits.enabled && convertFrom && convertTo) {
+                navigate(getSiloConvertUrl(convertFrom, convertTo));
+              } else {
+                navigate("/silo");
+              }
+            }}
+            className="font-medium"
+          >
+            Convert
+          </Button>
+          <Button
+            variant="outline-primary"
+            size="lg"
+            width="full"
+            onClick={() => setShowSowDialog(true)}
+            className="font-medium"
+          >
+            Sow
+          </Button>
+          <Button
+            variant="outline-primary"
+            size="lg"
+            width="full"
+            onClick={() => navigate("/silo")}
+            className="font-medium col-span-2 sm:col-span-1"
+          >
+            Optimize
+          </Button>
+        </div>
+      </div>
+
       {/* Podline Visualization */}
       <PodlineVisualization className="mb-6" farmerField={farmerField} />
 
@@ -544,6 +654,68 @@ const Overview = () => {
         </Tabs>
       </div>
       <ActionsMenu showOnTablet />
+
+      {/* Sow Order Dialog */}
+      {showSowDialog && (
+        <AnimateSowOrderDialog className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md p-2 sm:p-4 md:p-8">
+          <motion.div
+            className="flex flex-col w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-[95vw] gap-2 sm:gap-4 md:gap-6 items-stretch"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{
+              opacity: isClosing ? 0 : 1,
+              scale: isClosing ? 0.9 : 1,
+            }}
+            transition={{ duration: 0.15, ease: "easeInOut" }}
+          >
+            {/* Dynamic layout: Stack on very small screens, side-by-side on larger screens */}
+            <div className="flex flex-col sm:flex-row w-full gap-2 sm:gap-4 md:gap-6 items-stretch">
+              {/* Left Side - Temperature Chart and Podline Visualization */}
+              <div className="flex-none w-full sm:w-[60%] flex flex-col gap-2 sm:gap-4">
+                {/* Temperature Chart */}
+                <Card className="flex-1 rounded-xl temperature-chart-container">
+                  <div className="h-full w-full min-h-[500px]">
+                    <TemperatureChart className="h-full w-full" />
+                  </div>
+                </Card>
+
+                {/* Podline Visualization */}
+                <Card className="flex-1 rounded-xl overflow-hidden podline-chart-container">
+                  <div className="h-full w-full">
+                    <PodlineVisualization farmerField={farmerField} />
+                  </div>
+                </Card>
+              </div>
+
+              {/* Sow Order Form - Right Side */}
+              <Card className="flex-1 w-full sm:w-[40%] rounded-xl" id="sow-order-dialog">
+                <div className="flex flex-col w-full items-center p-2 sm:p-4">
+                  <SowOrderDialog
+                    open={showSowDialog}
+                    onOpenChange={(open) => {
+                      if (!open) {
+                        setIsClosing(true);
+                        setTimeout(() => {
+                          setShowSowDialog(false);
+                          setIsClosing(false);
+                        }, 150);
+                      } else {
+                        setShowSowDialog(true);
+                      }
+                    }}
+                    onOrderPublished={() => {
+                      setIsClosing(true);
+                      setTimeout(() => {
+                        setShowSowDialog(false);
+                        setIsClosing(false);
+                      }, 150);
+                    }}
+                  />
+                </div>
+              </Card>
+            </div>
+          </motion.div>
+        </AnimateSowOrderDialog>
+      )}
     </>
   );
 
