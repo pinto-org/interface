@@ -63,7 +63,7 @@ export default function WithdrawForm({ siloToken, onSuccess, onPreviewChange }: 
   const invalidateSun = useInvalidateSun();
   const { queryKeys: priceQueryKeys } = usePriceData();
   const queryClient = useQueryClient();
-  const tokenData = useTokenData();
+  const _tokenData = useTokenData();
   const tokenMap = useTokenMap();
   const priceData = usePriceData();
 
@@ -84,7 +84,7 @@ export default function WithdrawForm({ siloToken, onSuccess, onPreviewChange }: 
   const [slippage, setSlippage] = useState(0.1);
   const [inputError, setInputError] = useState(false);
 
-  const amountTV = useSafeTokenValue(amount, siloToken);
+  const amountTV = useSafeTokenValue(amount, siloToken?.decimals || 18);
 
   // Set default output token when siloToken changes
   useEffect(() => {
@@ -97,7 +97,7 @@ export default function WithdrawForm({ siloToken, onSuccess, onPreviewChange }: 
   const farmerDepositData = siloToken ? farmerSilo.deposits.get(siloToken) : undefined;
   const deposits = farmerDepositData?.deposits;
   const hasBalance = farmerDepositData?.amount.gt(0);
-  const exceedsBalance = farmerDepositData?.amount.lt(amountTV);
+  const exceedsBalance = farmerDepositData?.amount.lt(amountTV) || false;
 
   // Determine if we need to swap
   const shouldSwap = siloToken && tokenOut ? !tokensEqual(siloToken, tokenOut) : false;
@@ -223,7 +223,7 @@ export default function WithdrawForm({ siloToken, onSuccess, onPreviewChange }: 
     tokenOut,
     hasValidAmount,
     exceedsBalance,
-    inputError,
+    inputError: inputError,
     submitting: false,
     isConfirming: false,
     swapDataNotReady: shouldSwap && (!swapData || !swapBuild),
@@ -443,7 +443,7 @@ export default function WithdrawForm({ siloToken, onSuccess, onPreviewChange }: 
           amount={withdrawOutput?.amount.toHuman() || ""}
           setAmount={() => {}} // Read-only
           setToken={setTokenOut}
-          selectedToken={tokenOut}
+          selectedToken={tokenOut || undefined}
           isLoading={swapQuery.isLoading}
           disableInput
           hideMax

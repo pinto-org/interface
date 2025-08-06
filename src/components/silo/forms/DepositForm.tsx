@@ -26,7 +26,7 @@ import { useInvalidateSun } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
 import { stringEq } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
-import { FarmFromMode, FarmToMode } from "@/utils/types";
+import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -132,8 +132,8 @@ export default function DepositForm({ siloToken, onSuccess, onPreviewChange }: S
     resetSwap,
     ...swapQuery
   } = useSwap({
-    tokenIn: state.tokenIn,
-    tokenOut: state.tokenOut,
+    tokenIn: state.tokenIn as Token,
+    tokenOut: state.tokenOut as Token,
     slippage: state.slippage,
     amountIn: debouncedAmountInTV,
     disabled: !shouldSwap || !state.tokenIn || !state.tokenOut || debouncedAmountInTV.lte(0),
@@ -200,8 +200,8 @@ export default function DepositForm({ siloToken, onSuccess, onPreviewChange }: S
   const value = state.tokenIn?.isNative ? amountInTV : undefined;
   const swapBuild = useBuildSwapQuote(swapData, state.balanceFrom, FarmToMode.INTERNAL);
   const swapSummary = useSwapSummary(swapData);
-  const priceImpactQuery = usePriceImpactSummary(swapBuild?.advFarm, state.tokenIn, value);
-  const priceImpactSummary = state.tokenOut ? priceImpactQuery?.get(state.tokenOut) : undefined;
+  const priceImpactQuery = usePriceImpactSummary(swapBuild?.advFarm, state.tokenIn as Token, value);
+  const priceImpactSummary = state.tokenOut ? priceImpactQuery?.get(state.tokenOut as Token) : undefined;
 
   // Slippage and routing warnings
   const { slippageWarning, canProceed } = useRoutingAndSlippageWarning({
@@ -329,9 +329,9 @@ export default function DepositForm({ siloToken, onSuccess, onPreviewChange }: S
         <ComboInputField
           amount={state.amountIn}
           setAmount={actions.setAmountIn}
-          setToken={actions.setTokenIn}
+          setToken={(token) => actions.setTokenIn(token || undefined)}
           setBalanceFrom={actions.setBalanceFrom}
-          selectedToken={state.tokenIn}
+          selectedToken={state.tokenIn || undefined}
           balanceFrom={state.balanceFrom}
           tokenSelectLoading={!didSetPreferred || preferredLoading}
           filterTokens={inputTokenFilter}
@@ -352,7 +352,7 @@ export default function DepositForm({ siloToken, onSuccess, onPreviewChange }: S
                     key={percentage}
                     type="button"
                     onClick={() => {
-                      const balance = farmerBalances.balances.get(state.tokenIn as Token)?.total;
+                      const balance = state.tokenIn ? farmerBalances.balances.get(state.tokenIn)?.total : undefined;
                       if (balance) {
                         const amount = balance.mul(percentage / 100);
                         actions.setAmountIn(amount.toHuman());
@@ -372,12 +372,12 @@ export default function DepositForm({ siloToken, onSuccess, onPreviewChange }: S
                 max="100"
                 step="1"
                 value={(() => {
-                  const balance = farmerBalances.balances.get(state.tokenIn as Token)?.total;
+                  const balance = state.tokenIn ? farmerBalances.balances.get(state.tokenIn)?.total : undefined;
                   if (!balance || balance.lte(0) || amountInTV.lte(0)) return 0;
                   return Math.min(100, amountInTV.div(balance).toNumber() * 100);
                 })()}
                 onChange={(e) => {
-                  const balance = farmerBalances.balances.get(state.tokenIn as Token)?.total;
+                  const balance = state.tokenIn ? farmerBalances.balances.get(state.tokenIn)?.total : undefined;
                   if (balance) {
                     const percentage = Number(e.target.value) / 100;
                     const amount = balance.mul(percentage);
@@ -387,11 +387,11 @@ export default function DepositForm({ siloToken, onSuccess, onPreviewChange }: S
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                 style={{
                   background: `linear-gradient(to right, #387f5c 0%, #387f5c ${(() => {
-                    const balance = farmerBalances.balances.get(state.tokenIn as Token)?.total;
+                    const balance = state.tokenIn ? farmerBalances.balances.get(state.tokenIn)?.total : undefined;
                     if (!balance || balance.lte(0) || amountInTV.lte(0)) return 0;
                     return Math.min(100, amountInTV.div(balance).toNumber() * 100);
                   })()}%, #e5e5e5 ${(() => {
-                    const balance = farmerBalances.balances.get(state.tokenIn as Token)?.total;
+                    const balance = state.tokenIn ? farmerBalances.balances.get(state.tokenIn)?.total : undefined;
                     if (!balance || balance.lte(0) || amountInTV.lte(0)) return 0;
                     return Math.min(100, amountInTV.div(balance).toNumber() * 100);
                   })()}%, #e5e5e5 100%)`,
@@ -405,7 +405,7 @@ export default function DepositForm({ siloToken, onSuccess, onPreviewChange }: S
             <div className="flex justify-between text-xs text-pinto-gray-4 mt-1">
               <span>0</span>
               <span>
-                Max: {farmerBalances.balances.get(state.tokenIn as Token)?.total.toHuman() || "0"}{" "}
+                Max: {state.tokenIn ? farmerBalances.balances.get(state.tokenIn)?.total.toHuman() || "0" : "0"}{" "}
                 {state.tokenIn?.symbol}
               </span>
             </div>
@@ -419,8 +419,8 @@ export default function DepositForm({ siloToken, onSuccess, onPreviewChange }: S
         <ComboInputField
           amount={depositOutput?.amount.toHuman() || ""}
           setAmount={() => {}} // Read-only
-          setToken={actions.setTokenOut}
-          selectedToken={state.tokenOut}
+          setToken={(token) => actions.setTokenOut(token || undefined)}
+          selectedToken={state.tokenOut || undefined}
           isLoading={swapQuery.isLoading || isDebouncing}
           disableInput
           hideMax
@@ -443,7 +443,7 @@ export default function DepositForm({ siloToken, onSuccess, onPreviewChange }: S
         <div className="mt-6">
           <SiloOutputDisplay
             amount={depositOutput.amount}
-            token={state.tokenOut}
+            token={state.tokenOut || undefined}
             stalk={depositOutput.stalkGain}
             seeds={depositOutput.seedGain}
           />
@@ -470,7 +470,7 @@ export default function DepositForm({ siloToken, onSuccess, onPreviewChange }: S
         <SmartSubmitButton
           variant="gradient"
           size="xxl"
-          token={state.tokenIn}
+          token={state.tokenIn || undefined}
           disabled={disabled || !canProceed || submitting || isConfirming}
           amount={state.amountIn}
           balanceFrom={state.balanceFrom}
@@ -483,7 +483,7 @@ export default function DepositForm({ siloToken, onSuccess, onPreviewChange }: S
         <SmartSubmitButton
           variant="gradient"
           size="xxl"
-          token={state.tokenIn}
+          token={state.tokenIn || undefined}
           disabled={disabled || !canProceed || submitting || isConfirming}
           amount={state.amountIn}
           balanceFrom={state.balanceFrom}

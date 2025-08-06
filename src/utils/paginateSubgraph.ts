@@ -64,9 +64,9 @@ export const paginateMultiQuerySubgraph = async <R, T, V>(
 
   const allResults: { [key: string]: R[] } = {};
   while (vars) {
-    const results = (await request<T>(url, document, vars)) as ResultObject<T, unknown, R>;
+    const results = (await request<T>(url, document, vars)) as Record<string, R[]>;
 
-    Object.entries(results).forEach(([key, value]: [string, unknown]) => {
+    Object.entries(results).forEach(([key, value]: [string, R[]]) => {
       if (!allResults[key]) {
         allResults[key] = [];
       }
@@ -75,23 +75,26 @@ export const paginateMultiQuerySubgraph = async <R, T, V>(
         prevPageIds[key] = [];
       }
 
-      if (value.length > 0 && !value[0][settings.idField]) {
+      if (Array.isArray(value) && value.length > 0 && !value[0][settings.idField]) {
         throw new Error(`The result did not include the identity column ${settings.idField}`);
       }
 
       const pageIds: string[] = [];
 
-      for (const r of value) {
-        if (!prevPageIds[key].includes(r[settings.idField] as string)) {
-          pageIds.push(r[settings.idField] as string);
-          allResults[key].push(r);
+      if (Array.isArray(value)) {
+        for (const r of value) {
+          if (!prevPageIds[key].includes(r[settings.idField] as string)) {
+            pageIds.push(r[settings.idField] as string);
+            allResults[key].push(r);
+          }
         }
       }
       prevPageIds[key] = pageIds;
     });
 
     const firstQueryKey = Object.keys(results)[0];
-    vars = settings.nextVars(results[firstQueryKey][PAGE_SIZE - 1], vars);
+    const firstQueryResults = results[firstQueryKey] as R[];
+    vars = settings.nextVars(firstQueryResults[PAGE_SIZE - 1], vars);
   }
 
   return allResults;

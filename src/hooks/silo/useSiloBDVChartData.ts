@@ -21,7 +21,7 @@ export const useSiloBDVChartData = (): SiloBDVChartData => {
     // Process deposits from farmer silo data - include all whitelisted tokens
     for (const token of whitelistedTokens) {
       const depositData = farmerSilo.deposits.get(token);
-      if (depositData && depositData.currentBDV.gt(0)) {
+      if (depositData?.currentBDV.gt(0)) {
         bdvMap.set(token, depositData.currentBDV);
       } else {
         // Set zero for tokens with no deposits
@@ -39,7 +39,7 @@ export const useSiloBDVChartData = (): SiloBDVChartData => {
   return {
     tokenBDVData,
     whitelistedTokens,
-    isLoading: farmerSilo.loading,
+    isLoading: farmerSilo.isLoading,
     hasDeposits,
   };
 };

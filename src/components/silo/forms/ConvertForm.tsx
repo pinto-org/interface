@@ -20,6 +20,7 @@ import { useSiloData } from "@/state/useSiloData";
 import { useInvalidateSun } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
 import { tokensEqual } from "@/utils/token";
+import { FarmFromMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -96,7 +97,7 @@ export default function ConvertForm({ siloToken, onSuccess, onPreviewChange }: S
     return maxConvertAmount.lt(amountInTV);
   }, [state.tokenIn, farmerDepositData, maxConvertAmount, amountInTV]);
   const deposits = farmerDepositData?.deposits;
-  const hasBalance = farmerDepositData?.amount.gt(0);
+  const _hasBalance = farmerDepositData?.amount.gt(0);
 
   // Create token and balance map for input token selection using convertible amounts
   const tokenAndBalanceMap = useMemo(() => {
@@ -253,8 +254,8 @@ export default function ConvertForm({ siloToken, onSuccess, onPreviewChange }: S
         <ComboInputField
           amount={state.amountIn}
           setAmount={actions.setAmountIn}
-          setToken={actions.setTokenIn}
-          selectedToken={state.tokenIn}
+          setToken={(token) => actions.setTokenIn(token || undefined)}
+          selectedToken={state.tokenIn || undefined}
           tokenAndBalanceMap={tokenAndBalanceMap}
           disableClamping={true}
           setError={actions.setInputError}
@@ -339,8 +340,8 @@ export default function ConvertForm({ siloToken, onSuccess, onPreviewChange }: S
         <ComboInputField
           amount={convertOutput?.amount.toHuman() || ""}
           setAmount={() => {}} // Read-only
-          setToken={actions.setTokenOut}
-          selectedToken={state.tokenOut}
+          setToken={(token) => actions.setTokenOut(token || undefined)}
+          selectedToken={state.tokenOut || undefined}
           isLoading={quoteLoading}
           disableInput
           hideMax
@@ -365,7 +366,7 @@ export default function ConvertForm({ siloToken, onSuccess, onPreviewChange }: S
         <div className="mt-6">
           <SiloOutputDisplay
             amount={convertOutput.amount}
-            token={state.tokenOut}
+            token={state.tokenOut || undefined}
             stalk={convertOutput.stalkGain}
             seeds={convertOutput.seedGain}
           />
@@ -377,10 +378,10 @@ export default function ConvertForm({ siloToken, onSuccess, onPreviewChange }: S
         <SmartSubmitButton
           variant="gradient"
           size="xxl"
-          token={state.tokenIn}
+          token={state.tokenIn || undefined}
           disabled={disabled || sameToken || submitting || isConfirming}
           amount={state.amountIn}
-          balanceFrom="internal" // Always internal for silo conversions
+          balanceFrom={FarmFromMode.INTERNAL} // Always internal for silo conversions
           submitFunction={onSubmit}
           submitButtonText={sameToken ? "Select Different Tokens" : buttonText.replace("Submit", "Convert")}
         />
@@ -390,10 +391,10 @@ export default function ConvertForm({ siloToken, onSuccess, onPreviewChange }: S
         <SmartSubmitButton
           variant="gradient"
           size="xxl"
-          token={state.tokenIn}
+          token={state.tokenIn || undefined}
           disabled={disabled || sameToken || submitting || isConfirming}
           amount={state.amountIn}
-          balanceFrom="internal"
+          balanceFrom={FarmFromMode.INTERNAL}
           submitFunction={onSubmit}
           submitButtonText={sameToken ? "Select Different Tokens" : buttonText.replace("Submit", "Convert")}
           className="h-full"

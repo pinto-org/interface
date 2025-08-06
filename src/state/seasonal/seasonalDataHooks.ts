@@ -9,6 +9,7 @@ import { useChainConstant } from "@/utils/chain";
 import { Token, UseSeasonalResult } from "@/utils/types";
 import { HashString } from "@/utils/types.generic";
 import { useCallback, useMemo } from "react";
+import { base } from "viem/chains";
 import { useAccount } from "wagmi";
 import useSeasonalBasinSummarySG from "./queries/useSeasonalBasinSummarySG";
 import useSeasonalBeanBeanSG from "./queries/useSeasonalBeanBeanSG";
@@ -440,34 +441,44 @@ export function useFarmerHistoricalTokensBDV(
   const token3 = tokens?.[3];
   const token4 = tokens?.[4];
 
+  // Create a placeholder token with all required properties
+  const placeholderToken: Token = {
+    address: "0x0",
+    decimals: 18,
+    symbol: "",
+    name: "",
+    chainId: base.id,
+    logoURI: "",
+  };
+
   const query0 = useFarmerSeasonalSiloAssetDepositedAmount(
     fromSeason,
     toSeason,
-    token0 || ({ address: "0x0", decimals: 18, symbol: "", name: "" } as Token),
+    token0 || placeholderToken,
     address || "",
   );
   const query1 = useFarmerSeasonalSiloAssetDepositedAmount(
     fromSeason,
     toSeason,
-    token1 || ({ address: "0x0", decimals: 18, symbol: "", name: "" } as Token),
+    token1 || placeholderToken,
     address || "",
   );
   const query2 = useFarmerSeasonalSiloAssetDepositedAmount(
     fromSeason,
     toSeason,
-    token2 || ({ address: "0x0", decimals: 18, symbol: "", name: "" } as Token),
+    token2 || placeholderToken,
     address || "",
   );
   const query3 = useFarmerSeasonalSiloAssetDepositedAmount(
     fromSeason,
     toSeason,
-    token3 || ({ address: "0x0", decimals: 18, symbol: "", name: "" } as Token),
+    token3 || placeholderToken,
     address || "",
   );
   const query4 = useFarmerSeasonalSiloAssetDepositedAmount(
     fromSeason,
     toSeason,
-    token4 || ({ address: "0x0", decimals: 18, symbol: "", name: "" } as Token),
+    token4 || placeholderToken,
     address || "",
   );
 

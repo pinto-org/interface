@@ -10,7 +10,7 @@ function Whitepaper() {
   return (
     <div className="absolute z-50 left-1/2 top-1/2 -translate-x-1/2 translate-y-1/2 bg-gradient-light">
       <PageFullScreen>
-        <FrameAnimator size={300} duration={75} />
+        <FrameAnimator size={300} />
       </PageFullScreen>
     </div>
   );

@@ -106,7 +106,6 @@ const SiloTokenBDVChart = React.memo(
               hoverBackgroundColor: "rgba(239, 68, 68, 0.7)",
               hoverBorderColor: "transparent",
               borderWidth: 0,
-              borderDash: [5, 5],
               borderRadius: 6,
               hoverBorderWidth: 0,
               order: 2,
@@ -129,7 +128,6 @@ const SiloTokenBDVChart = React.memo(
             hoverBackgroundColor: "rgba(56, 127, 92, 0.5)",
             hoverBorderColor: "rgba(56, 127, 92, 0.9)",
             borderWidth: 2,
-            borderDash: [5, 5],
             borderRadius: 6,
             hoverBorderWidth: 2,
             order: 2,
@@ -290,7 +288,7 @@ const SiloTokenBDVChart = React.memo(
             stacked: true, // Enable stacking on x-axis too
             ticks: {
               display: true,
-              font: { size: 14, family: "Pinto", weight: "500" },
+              font: { size: 14, family: "Pinto", weight: 500 },
               color: "rgba(0, 0, 0, 0.8)",
               maxRotation: 0,
               minRotation: 0,
