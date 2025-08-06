@@ -1,6 +1,5 @@
 import { Clipboard } from "@/classes/Clipboard";
 import { TV } from "@/classes/TokenValue";
-import { abiSnippets } from "@/constants/abiSnippets";
 import { PIPELINE_ADDRESS } from "@/constants/address";
 import { AdvancedFarmWorkflow, AdvancedPipeWorkflow } from "@/lib/farm/workflow";
 import { ZeroX } from "@/lib/matcha/ZeroX";
@@ -13,11 +12,10 @@ import {
   PipelineConvertStrategy,
 } from "@/lib/siloConvert/strategies/core";
 import { SiloConvertContext } from "@/lib/siloConvert/types";
+import { quoteSiloConvertGetWellRemoveLiquidity } from "@/lib/siloConvert/utils";
 import { ExtendedPickedCratesDetails } from "@/utils/convert";
 import { Token } from "@/utils/types";
-import { HashString } from "@/utils/types.generic";
 import { throwIfAborted } from "@/utils/utils";
-import { decodeFunctionResult, encodeFunctionData } from "viem";
 
 /**
  * Strategy for converting from LP -> Main Token
@@ -184,91 +182,7 @@ class LP2MainStrategy extends PipelineConvertStrategy<"LP2MainPipeline"> impleme
     pickedCratesDetails: ExtendedPickedCratesDetails,
     advancedFarm: AdvancedFarmWorkflow,
   ): Promise<TV[]> {
-    // Validation
-    this.errorHandler.validateAmount(pickedCratesDetails.totalAmount, "remove liquidity amount");
-
-    const pipe = new AdvancedPipeWorkflow(this.context.chainId, this.context.wagmiConfig);
-    const [token0, token1] = this.sourceWell.tokens;
-
-    const callData = this.errorHandler.wrap(
-      () =>
-        encodeFunctionData({
-          abi: abiSnippets.wells.getRemoveLiquidityOut,
-          functionName: "getRemoveLiquidityOut",
-          args: [pickedCratesDetails.totalAmount.toBigInt()],
-        }),
-      "encode remove liquidity call data",
-      { amountIn: pickedCratesDetails.totalAmount.toHuman() },
-    );
-
-    pipe.add({
-      target: this.sourceWell.pool.address,
-      callData,
-      clipboard: Clipboard.encode([]),
-    });
-
-    const simulate = await this.errorHandler.wrapAsync(
-      () =>
-        advancedFarm.simulate({
-          after: pipe,
-          account: this.context.account,
-        }),
-      "remove liquidity simulation",
-      { amountIn: pickedCratesDetails.totalAmount.toHuman(), account: this.context.account },
-    );
-
-    // Validate simulation results
-    this.errorHandler.validateSimulation(simulate, "remove liquidity simulation");
-
-    const result = this.errorHandler.wrap(
-      () => this.decodeRemoveLiquidityResult(simulate.result),
-      "decode remove liquidity result",
-      { resultLength: simulate.result.length },
-    );
-
-    const amounts: TV[] = [TV.fromBigInt(result[0], token0.decimals), TV.fromBigInt(result[1], token1.decimals)];
-
-    console.debug("[LP2MainPipelineStrategy] getRemoveLiquidityOut: ", {
-      well: this.sourceWell.pool.name,
-      amountIn: pickedCratesDetails.totalAmount,
-      amountsOut: amounts,
-    });
-
-    return amounts;
-  }
-
-  private decodeRemoveLiquidityResult(data: readonly HashString[]) {
-    this.errorHandler.assert(data.length > 0, "Remove liquidity result data is empty", {
-      dataLength: data.length,
-    });
-
-    const decoded = this.errorHandler.wrap(
-      () =>
-        decodeFunctionResult({
-          abi: abiSnippets.advancedPipe,
-          functionName: "advancedPipe",
-          data: data[data.length - 1],
-        }),
-      "decode advanced pipe result",
-      { dataLength: data.length },
-    );
-
-    this.errorHandler.assert(decoded.length > 0, "Decoded advanced pipe result is empty", {
-      decodedLength: decoded.length,
-    });
-
-    const removeLiquidityResult = this.errorHandler.wrap(
-      () =>
-        decodeFunctionResult({
-          abi: abiSnippets.wells.getRemoveLiquidityOut,
-          functionName: "getRemoveLiquidityOut",
-          data: decoded[decoded.length - 1],
-        }),
-      "decode remove liquidity result",
-      { decodedLength: decoded.length },
-    );
-
-    return removeLiquidityResult;
+    return quoteSiloConvertGetWellRemoveLiquidity(pickedCratesDetails, advancedFarm, this);
   }
 }
 
