@@ -66,10 +66,12 @@ export default function StatPanelAltDisplay({
   };
 
   return (
-    <div
-      className={`pinto-sm sm:pinto-body-light font-thin sm:font-thin pointer-events-none sm:pointer-events-auto text-pinto-light sm:text-pinto-light flex flex-col ${claimableFlood.gt(0) ? "lg:flex-row" : "sm:flex-row"} items-start sm:items-center gap-1 sm:gap-8 lg:gap-6 whitespace-nowrap`}
-    >
-      <span className="flex flex-col sm:flex-row gap-1 sm:gap-6 items-start sm:items-center">
+    <div className="pinto-sm sm:pinto-body-light font-thin sm:font-thin pointer-events-none sm:pointer-events-auto text-pinto-light sm:text-pinto-light flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2 lg:gap-2 whitespace-nowrap">
+      <span className="inline-flex items-center gap-1">
+        <span>PDV Deposited: {formatter.twoDec(depositedValue)}</span>
+        <TooltipSimple variant="gray" content={"Total PDV (Pinto Denominated Value) deposited in the Silo system."} />
+      </span>
+      {claimableValue.gt(0) && (
         <span
           className={`flex flex-col relative group transition-colors ${claimableValue.gt(0) ? "sm:hover:cursor-pointer sm:hover:text-pinto-green-4" : ""}`}
           onClick={() => (claimableValue.gt(0) ? submitClaimRewards() : undefined)}
@@ -77,14 +79,15 @@ export default function StatPanelAltDisplay({
           onMouseLeave={() => claimableValue.gt(0) && setHoveredButton("")}
         >
           <span className="inline-flex items-center gap-1">
-            <span className="inline-flex items-center gap-1">
-              Deposited Value: {depositedValue.lte(0) ? "-" : formatter.usd(depositedValue)}
-              {claimableValue.gt(0) && <span className="text-pinto-green-4">+ {formatter.usd(claimableValue)}</span>}
+            <span className="text-pinto-green-4">
+              +{" "}
+              {formatter.number(claimableValue, {
+                minDecimals: 2,
+                maxDecimals: 2,
+                allowZero: true,
+              })}
             </span>
-            <TooltipSimple
-              variant={claimableValue.gt(0) ? "green" : "gray"}
-              content={"Deposited and Claimable value in the Silo"}
-            />
+            <TooltipSimple variant={claimableValue.gt(0) ? "green" : "gray"} content={"Claimable value in the Silo"} />
           </span>
           {claimableValue.gt(0) && (
             <span className="absolute top-4 opacity-0 transition-all sm:group-hover:top-6 sm:group-hover:opacity-100 pinto-sm-light text-pinto-gray-3 text-center w-full">
@@ -92,60 +95,23 @@ export default function StatPanelAltDisplay({
             </span>
           )}
         </span>
-        <Separator orientation="vertical" className="h-[0.875rem] hidden sm:block" />
+      )}
+      {claimableFlood.gt(0) && (
         <span
           className="flex flex-col relative group sm:hover:cursor-pointer sm:hover:text-pinto-green-4 transition-colors"
-          onClick={() => navigate(navLinks.sPinto)}
+          onClick={() => openWalletPanel(true, false)}
         >
           <span className="inline-flex items-center gap-1">
-            <span>sPINTO: {siloWrappedValue.lte(0) ? "-" : formatter.usd(siloWrappedValue)}</span>
-            <TooltipSimple variant="gray" content={getSiloWrappedTooltip()} />
-          </span>
-          <span className="absolute top-4 opacity-0 transition-all sm:group-hover:top-6 sm:group-hover:opacity-100 pinto-sm-light text-pinto-gray-3 text-center w-full">
-            Click to Wrap
-          </span>
-        </span>
-      </span>
-      <Separator
-        orientation="vertical"
-        className={`h-[0.875rem] hidden sm:block ${claimableFlood.gt(0) ? "sm:hidden lg:block" : ""}`}
-      />
-      <span className="flex flex-col sm:flex-row gap-1 sm:gap-6 items-start sm:items-center">
-        <span
-          className="flex flex-col relative group sm:hover:cursor-pointer sm:hover:text-pinto-green-4 transition-colors"
-          onClick={() => openWalletPanel(false, true)}
-        >
-          <span className="inline-flex items-center gap-1">
-            <span>Farm Balance: {farmBalance.lte(0) ? "-" : formatter.usd(farmBalance)}</span>
-            <TooltipSimple
-              variant="gray"
-              content={"Value of your Farm Balance, ERC-20 tokens stored by the protocol on your behalf."}
-            />
-          </span>
-          <span className="absolute top-4 opacity-0 transition-all sm:group-hover:top-6 sm:group-hover:opacity-100 pinto-sm-light text-pinto-gray-3 text-center w-full">
-            Click to View
-          </span>
-        </span>
-        {claimableFlood.gt(0) && (
-          <>
-            <Separator orientation="vertical" className="h-[0.875rem] hidden sm:block" />
-            <span
-              className="flex flex-col relative group sm:hover:cursor-pointer sm:hover:text-pinto-green-4 transition-colors"
-              onClick={() => openWalletPanel(true, false)}
-            >
-              <span className="inline-flex items-center gap-1">
-                <span>
-                  Claimable Flood: <span className="text-pinto-green-4">{formatter.usd(claimableFlood)}</span>
-                </span>
-                <TooltipSimple variant="gray" content={"Claimable value from Flood."} />
-              </span>
-              <span className="absolute top-4 opacity-0 transition-all sm:group-hover:top-6 sm:group-hover:opacity-100 pinto-sm-light text-pinto-gray-3 text-center w-full">
-                Click to Claim Flood
-              </span>
+            <span>
+              Claimable Flood: <span className="text-pinto-green-4">{formatter.usd(claimableFlood)}</span>
             </span>
-          </>
-        )}
-      </span>
+            <TooltipSimple variant="gray" content={"Claimable value from Flood."} />
+          </span>
+          <span className="absolute top-4 opacity-0 transition-all sm:group-hover:top-6 sm:group-hover:opacity-100 pinto-sm-light text-pinto-gray-3 text-center w-full">
+            Click to Claim Flood
+          </span>
+        </span>
+      )}
     </div>
   );
 }

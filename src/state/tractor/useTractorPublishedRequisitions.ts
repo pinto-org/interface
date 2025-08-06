@@ -19,7 +19,7 @@ export default function useTractorPublishedRequisitions(
   // Create a stable reference for the requisitionType to prevent unnecessary re-renders.
   // This is particularly important when requisitionType is passed as an inline array
   // (e.g. ["sowv0"]) which would create a new reference on every render
-  const stableRequisitionRef = safeJSONStringify(requisitionType, "");
+  const _stableRequisitionRef = safeJSONStringify(requisitionType, "");
 
   // Memoize the selection function to prevent unnecessary recalculations
   // The function will only be recreated when the requisition type or address changes
