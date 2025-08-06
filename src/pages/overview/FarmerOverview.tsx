@@ -11,6 +11,7 @@ import SowOrderDialog, { AnimateSowOrderDialog } from "@/components/SowOrderDial
 import StatPanel from "@/components/StatPanel";
 import StatPanelAltDisplay from "@/components/StatPanelAltDisplay";
 import TableRowConnector from "@/components/TableRowConnector";
+import SeasonalChart, { tabToSeasonalLookback } from "@/components/charts/SeasonalChart";
 import SimpleValueChart from "@/components/charts/SimpleValueChart";
 import TimeTabsSelector, { TimeTab } from "@/components/charts/TimeTabs";
 import { ValueMode } from "@/components/charts/ValueModeToggle";
@@ -25,6 +26,8 @@ import useIsSmallDesktop from "@/hooks/display/useIsSmallDesktop";
 import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import { useHarvestAndDeposit } from "@/hooks/useHarvestAndDeposit";
+import { useSharedTimeTab } from "@/hooks/useSharedTimeTab";
+import { useSeasonalPrice } from "@/state/seasonal/seasonalDataHooks";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField, usePrefetchFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
@@ -32,7 +35,9 @@ import { useHarvestableIndex, useTotalSoil } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import { useSiloWrappedTokenToUSD } from "@/state/useSiloWrappedTokenData";
+import { useSunData } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
+import { chartFormatters as f } from "@/utils/format";
 import { getClaimText } from "@/utils/string";
 import { StatPanelData } from "@/utils/types";
 import { getSiloConvertUrl } from "@/utils/url";
@@ -127,6 +132,60 @@ const Overview = () => {
   const [showSowDialog, setShowSowDialog] = useState(false);
 
   const [_hoveredId, setHoveredId] = useAtom(hoveredIdAtom);
+
+  // Price chart state and data
+  const season = useSunData().current;
+  const [priceTab, setPriceTab] = useSharedTimeTab("price");
+
+  // Chart constants for price display
+  const CHART_CONSTANTS = {
+    TARGET_PRICE: 1.0,
+    PADDING: {
+      MIN: 0.95,
+      MAX: 1.05,
+    },
+  };
+
+  // Price data and y-axis range calculation
+  const seasonalPriceData = useSeasonalPrice(Math.max(6, season - tabToSeasonalLookback(priceTab)), season);
+
+  const priceYAxisRanges = useMemo(() => {
+    const { TARGET_PRICE, PADDING } = CHART_CONSTANTS;
+
+    // Default range as fallback
+    const defaultPriceRange = {
+      min: 0,
+      max: TARGET_PRICE,
+      showReferenceLine: true,
+    };
+
+    if (!seasonalPriceData.data?.length) {
+      return {
+        [TimeTab.Week]: defaultPriceRange,
+        [TimeTab.Month]: defaultPriceRange,
+        [TimeTab.AllTime]: defaultPriceRange,
+      };
+    }
+
+    // Calculate min, max values from the actual data
+    const values = seasonalPriceData.data.map((item) => item.value);
+    const minValue = Math.min(...values) * PADDING.MIN;
+    const maxValue = Math.max(...values) * PADDING.MAX;
+
+    // Calculate range with buffer
+    const range = {
+      min: minValue,
+      max: maxValue,
+      showReferenceLine: TARGET_PRICE >= minValue && TARGET_PRICE <= maxValue,
+    };
+
+    // Return the same range for all tabs
+    return {
+      [TimeTab.Week]: range,
+      [TimeTab.Month]: range,
+      [TimeTab.AllTime]: range,
+    };
+  }, [seasonalPriceData.data, CHART_CONSTANTS]);
 
   // Track if this is the first time loading the page
   const [isFirstLoad, _setIsFirstLoad] = useState(() => {
@@ -574,6 +633,32 @@ const Overview = () => {
 
         {/* Podline Visualization */}
         <PodlineVisualization className="mb-6" farmerField={farmerField} />
+
+        {/* Price Chart */}
+        <motion.div
+          initial={{ opacity: isFirstLoad ? 0 : 1, y: isFirstLoad ? 20 : 0 }}
+          animate={{ opacity: isFirstLoad ? 1 : 1, y: isFirstLoad ? 0 : 0 }}
+          transition={{
+            duration: isFirstLoad ? 0.8 : 0,
+            ease: "easeOut",
+            delay: isFirstLoad ? 0.9 : 0,
+          }}
+          className="mb-6"
+        >
+          <SeasonalChart
+            title="Pinto Price"
+            tooltip="The Current Price of Pinto in USD."
+            size="small"
+            activeTab={priceTab}
+            onChangeTab={setPriceTab}
+            useSeasonalResult={seasonalPriceData}
+            valueFormatter={f.price6dFormatter}
+            tickValueFormatter={f.price2dFormatter}
+            useLogarithmicScale={true}
+            showReferenceLineAtOne={priceYAxisRanges[priceTab]?.showReferenceLine ?? false}
+            yAxisRanges={priceYAxisRanges}
+          />
+        </motion.div>
 
         <div className="flex flex-col items-center">
           <Tabs
