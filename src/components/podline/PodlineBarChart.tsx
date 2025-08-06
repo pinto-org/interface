@@ -15,6 +15,7 @@ import {
   createPodlineGradients,
   podlineTheme,
   podlineTooltipPlugin,
+  roundedCornersPlugin,
   segmentInteractionPlugin,
   timelineLabelsPlugin,
 } from "./podlineChartHelpers";
@@ -116,7 +117,7 @@ const PodlineBarChart = React.memo(
         animation: false,
         elements: {
           bar: {
-            borderRadius: 8, // Rounded corners
+            borderRadius: 12, // More rounded corners
             borderWidth: 2, // Border width
             borderSkipped: false, // Ensure all borders are drawn
           },
@@ -154,6 +155,9 @@ const PodlineBarChart = React.memo(
     // Chart.js plugins
     const plugins = useMemo((): Plugin[] => {
       const pluginList: Plugin[] = [];
+
+      // Rounded corners plugin
+      pluginList.push(roundedCornersPlugin);
 
       // Timeline labels plugin
       pluginList.push(timelineLabelsPlugin(data.totalPodsIssued, data.harvestableIndex, viewMode));

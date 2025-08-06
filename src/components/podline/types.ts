@@ -7,6 +7,46 @@ import { Plot } from "@/utils/types";
 export type PodlineViewMode = "historical" | "current";
 
 /**
+ * Configuration for plot clustering behavior
+ */
+export interface PlotClusteringConfig {
+  /** Percentage of total pod line length to use as clustering threshold (0.01 = 1%) */
+  proximityThreshold: number;
+  /** Minimum number of plots required to form a cluster */
+  minClusterSize: number;
+  /** Maximum size for individual plots as percentage of total pod line (larger plots won't be clustered) */
+  maxIndividualPlotSize: number;
+  /** Whether clustering is enabled */
+  enabled: boolean;
+}
+
+/**
+ * A cluster of adjacent or nearby plots
+ */
+export interface PlotCluster {
+  /** Array of plots in this cluster */
+  plots: Plot[];
+  /** Total pods across all plots in cluster */
+  totalPods: TokenValue;
+  /** Total harvestable pods in cluster */
+  totalHarvestablePods: TokenValue;
+  /** Total unharvestable pods in cluster */
+  totalUnharvestablePods: TokenValue;
+  /** Starting index of the cluster (earliest plot) */
+  startIndex: TokenValue;
+  /** Ending index of the cluster (latest plot) */
+  endIndex: TokenValue;
+  /** Whether any plots in cluster are harvestable */
+  hasHarvestablePods: boolean;
+  /** Whether all plots in cluster are harvestable */
+  allPlotsHarvestable: boolean;
+  /** Type of cluster */
+  clusterType: "single" | "multi";
+  /** Cluster ID for tracking */
+  clusterId: string;
+}
+
+/**
  * Type of pod segment based on ownership and harvestability
  */
 export type PodSegmentType = "harvested" | "user-pods" | "other-pods";
@@ -27,7 +67,9 @@ export interface PodSegment {
   isUserOwned: boolean;
   /** Whether pods in this segment are harvestable */
   isHarvestable: boolean;
-  /** Reference to the original plot data (for user-owned segments) */
+  /** Reference to the plot cluster (for user-owned segments) */
+  cluster?: PlotCluster;
+  /** Reference to the original plot data (for backwards compatibility) */
   plot?: Plot;
   /** Optional metadata for display */
   metadata?: {
@@ -113,6 +155,10 @@ export interface PodlineTheme {
     border: string;
   };
   userPods: {
+    background: string;
+    border: string;
+  };
+  userPodsCluster: {
     background: string;
     border: string;
   };
