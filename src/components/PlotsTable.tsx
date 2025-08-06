@@ -4,6 +4,7 @@ import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { PODS } from "@/constants/internalTokens";
 import useIsMobile from "@/hooks/display/useIsMobile";
+import { usePaginatedPlots } from "@/hooks/usePaginatedPlots";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useHarvestableIndex } from "@/state/useFieldData";
 import { formatter, truncateHex } from "@/utils/format";
@@ -14,6 +15,8 @@ import React, { forwardRef, HTMLAttributes, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import CheckmarkCircle from "./CheckmarkCircle";
 import { RightArrowIcon } from "./Icons";
+import PaginationControls from "./PaginationControls";
+import { PlotsTableSkeleton } from "./PlotRowSkeleton";
 import IconImage from "./ui/IconImage";
 import { Table, TableBody, TableCell, TableRow } from "./ui/Table";
 import { ToggleGroupItem } from "./ui/ToggleGroup";
@@ -249,11 +252,17 @@ export default function PlotsTable({
   useToggle,
   showClaimable,
   disableHover,
+  enablePagination = true,
+  initialPageSize = 25,
+  compact = false,
 }: {
   selected?: string[];
   useToggle?: boolean;
   showClaimable?: boolean;
   disableHover?: boolean;
+  enablePagination?: boolean;
+  initialPageSize?: number;
+  compact?: boolean;
 }) {
   const farmerField = useFarmerField();
   const harvestableIndex = useHarvestableIndex();
@@ -265,14 +274,25 @@ export default function PlotsTable({
       plotsCount: farmerField.plots.length,
       isLoading: farmerField.isLoading,
       hasHarvestableIndex: !!harvestableIndex,
+      enablePagination,
     });
     console.timeEnd("📊 PlotsTable Render");
-  }, [farmerField.plots.length, farmerField.isLoading, harvestableIndex]);
+  }, [farmerField.plots.length, farmerField.isLoading, harvestableIndex, enablePagination]);
   const isMobile = useIsMobile();
 
   const hasHarvestablePods = farmerField.plots.some((plot) => plot.harvestablePods.gt(0));
   // Show only plots that have non-harvestable pods
-  const plotsToShow = farmerField.plots.filter((plot) => plot.unharvestablePods?.gt(0));
+  const allPlotsToShow = farmerField.plots.filter((plot) => plot.unharvestablePods?.gt(0));
+
+  // Set up pagination
+  const pagination = usePaginatedPlots(allPlotsToShow, {
+    initialPageSize: compact ? 10 : initialPageSize,
+    showAllByDefault: !enablePagination,
+    isLoading: farmerField.isLoading,
+  });
+
+  // Use paginated plots or all plots based on pagination setting
+  const plotsToShow = enablePagination ? pagination.paginatedPlots : allPlotsToShow;
 
   // Update the harvestable plot logic to only use it for the claimable row
   const harvestablePlot = hasHarvestablePods
@@ -303,66 +323,75 @@ export default function PlotsTable({
     <>
       <Table>
         <TableBody className="[&_tr:first-child]:border-t [&_tr:last-child]:border-b">
-          {hasHarvestablePods &&
-            showClaimable &&
-            harvestablePlot &&
-            (useToggle ? (
-              <ToggleGroupItem
-                value={harvestablePlot.index.toHuman()}
-                aria-label={`Select Plot ${harvestablePlot.index.toHuman()}`}
-                key={`toggle_${harvestablePlot.index.toHuman()}`}
-                asChild
-              >
-                <PlotRow
-                  plot={harvestablePlot}
-                  harvestableIndex={harvestableIndex}
-                  useToggle
-                  isSelected={selected?.includes(harvestablePlot.index.toHuman())}
-                  showClaimable
-                  isMobile={isMobile}
-                />
-              </ToggleGroupItem>
-            ) : (
-              <PlotRow
-                plot={harvestablePlot}
-                harvestableIndex={harvestableIndex}
-                key={`plot_${harvestablePlot.index.toHuman()}`}
-                numHarvestable={numHarvestable}
-                showClaimable
-                isMobile={isMobile}
-              />
-            ))}
-          {plotsToShow.map((plot) => {
-            if (useToggle) {
-              return (
-                <ToggleGroupItem
-                  value={plot.index.toHuman()}
-                  aria-label={`Select Plot ${plot.index.toHuman()}`}
-                  key={`toggle_${plot.index.toHuman()}`}
-                  asChild
-                >
+          {/* Show loading skeleton while data is loading */}
+          {farmerField.isLoading ? (
+            <PlotsTableSkeleton rows={enablePagination ? Math.min(pagination.pageSize, 10) : 5} isMobile={isMobile} />
+          ) : (
+            <>
+              {hasHarvestablePods &&
+                showClaimable &&
+                harvestablePlot &&
+                (useToggle ? (
+                  <ToggleGroupItem
+                    value={harvestablePlot.index.toHuman()}
+                    aria-label={`Select Plot ${harvestablePlot.index.toHuman()}`}
+                    key={`toggle_${harvestablePlot.index.toHuman()}`}
+                    asChild
+                  >
+                    <PlotRow
+                      plot={harvestablePlot}
+                      harvestableIndex={harvestableIndex}
+                      useToggle
+                      isSelected={selected?.includes(harvestablePlot.index.toHuman())}
+                      showClaimable
+                      isMobile={isMobile}
+                    />
+                  </ToggleGroupItem>
+                ) : (
+                  <PlotRow
+                    plot={harvestablePlot}
+                    harvestableIndex={harvestableIndex}
+                    key={`plot_${harvestablePlot.index.toHuman()}`}
+                    numHarvestable={numHarvestable}
+                    showClaimable
+                    isMobile={isMobile}
+                  />
+                ))}
+              {plotsToShow.map((plot) => {
+                if (useToggle) {
+                  return (
+                    <ToggleGroupItem
+                      value={plot.index.toHuman()}
+                      aria-label={`Select Plot ${plot.index.toHuman()}`}
+                      key={`toggle_${plot.index.toHuman()}`}
+                      asChild
+                    >
+                      <PlotRow
+                        plot={plot}
+                        harvestableIndex={harvestableIndex}
+                        useToggle
+                        isSelected={selected?.includes(plot.index.toHuman())}
+                        isMobile={isMobile}
+                      />
+                    </ToggleGroupItem>
+                  );
+                }
+                return (
                   <PlotRow
                     plot={plot}
                     harvestableIndex={harvestableIndex}
-                    useToggle
-                    isSelected={selected?.includes(plot.index.toHuman())}
+                    key={`plot_${plot.index.toHuman()}`}
+                    disableHover={disableHover}
                     isMobile={isMobile}
                   />
-                </ToggleGroupItem>
-              );
-            }
-            return (
-              <PlotRow
-                plot={plot}
-                harvestableIndex={harvestableIndex}
-                key={`plot_${plot.index.toHuman()}`}
-                disableHover={disableHover}
-                isMobile={isMobile}
-              />
-            );
-          })}
+                );
+              })}
+            </>
+          )}
         </TableBody>
       </Table>
+
+      {/* Summary Information */}
       {totalBeansSown.gt(0) && (
         <div className="flex items-center gap-1.5 mt-2 pl-2">
           <IconImage size={4} src={pintoIcon} />
@@ -370,6 +399,33 @@ export default function PlotsTable({
             Total Pinto Sown:{" "}
             <span className="text-pinto-gray-4">{formatter.number(totalBeansSown, { minValue: 0.01 })}</span>
           </div>
+        </div>
+      )}
+
+      {/* Pagination Controls - Bottom */}
+      {enablePagination && allPlotsToShow.length > (compact ? 10 : initialPageSize) && (
+        <div className="mt-4 flex justify-center">
+          <PaginationControls
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            pageSize={pagination.pageSize}
+            totalItems={pagination.totalPlots}
+            showAll={pagination.showAll}
+            hasNextPage={pagination.hasNextPage}
+            hasPreviousPage={pagination.hasPreviousPage}
+            pageNumbers={pagination.pageNumbers}
+            startIndex={pagination.startIndex}
+            endIndex={pagination.endIndex}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+            onToggleShowAll={pagination.toggleShowAll}
+            onNextPage={pagination.nextPage}
+            onPreviousPage={pagination.previousPage}
+            onFirstPage={pagination.goToFirstPage}
+            onLastPage={pagination.goToLastPage}
+            compact={compact}
+            isLoading={farmerField.isLoading}
+          />
         </div>
       )}
     </>

@@ -349,7 +349,7 @@ const Overview = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="sm:-mt-20 sm:-mb-16 w-full"
+            className="mb-6 w-full"
           >
             <GerminationNotice type="multiple" deposits={farmerSilo.deposits} />
           </motion.div>
@@ -359,7 +359,7 @@ const Overview = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="sm:-mt-20 sm:-mb-16 w-full"
+            className="mb-6 w-full"
           >
             <OverviewNoticeDeposit />
           </motion.div>
@@ -524,7 +524,13 @@ const Overview = () => {
           <TabsContent className="mt-8" value="pods">
             {hasPods ? (
               <div className="overflow-clip">
-                <PlotsTable showClaimable disableHover />
+                <PlotsTable
+                  showClaimable
+                  disableHover
+                  enablePagination={true}
+                  initialPageSize={25}
+                  compact={isMobile}
+                />
               </div>
             ) : (
               <EmptyTable type="plots" />

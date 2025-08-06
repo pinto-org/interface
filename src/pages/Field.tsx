@@ -308,7 +308,19 @@ function Field() {
 
               {activeTab === "activity" && <FieldActivity />}
               {activeTab === "pods" && (
-                <div>{hasPods ? <PlotsTable showClaimable disableHover /> : <EmptyTable type="plots-field" />}</div>
+                <div>
+                  {hasPods ? (
+                    <PlotsTable
+                      showClaimable
+                      disableHover
+                      enablePagination={true}
+                      initialPageSize={25}
+                      compact={isMobile}
+                    />
+                  ) : (
+                    <EmptyTable type="plots-field" />
+                  )}
+                </div>
               )}
               {activeTab === "tractor" && (
                 <div className="w-full">
