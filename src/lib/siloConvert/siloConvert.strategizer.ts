@@ -349,7 +349,7 @@ export class Strategizer {
 
     return eh.wrapAsync(async () => {
       // no need to update cache for this operation
-      eh.validateConversionTokens("default-down", source, target);
+      eh.validateConversionTokens("Main2LP", source, target);
 
       const maxConvert = await this.maxConvertQuoter.quoteMaxConvert(source, target);
 

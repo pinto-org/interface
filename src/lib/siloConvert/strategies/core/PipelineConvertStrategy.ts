@@ -4,9 +4,11 @@ import encoders from "@/encoders";
 import erc20Approve from "@/encoders/erc20Approve";
 import erc20Transfer from "@/encoders/erc20Transfer";
 import sync from "@/encoders/sync";
+import { beanstalkAddress } from "@/generated/contractHooks";
 import { AdvancedPipeWorkflow } from "@/lib/farm/workflow";
 import { ExtendedPoolData } from "@/lib/siloConvert/SiloConvert.cache";
-import { AdvancedFarmCall, AdvancedPipeCall, Token } from "@/utils/types";
+import { getMatchingAddressFromLookup } from "@/utils/chain";
+import { AdvancedFarmCall, AdvancedPipeCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { HashString } from "@/utils/types.generic";
 import { isAddress } from "viem";
 import { SiloConvertStrategy } from "./ConvertStrategy";
@@ -118,6 +120,34 @@ export abstract class PipelineConvertStrategy<T extends SiloConvertType> extends
       return {
         ...encoders.token.erc20BalanceOf(account),
         target: token.address,
+      };
+    },
+    // use the diamond's transferToken function instead of the token's transfer function
+    diamondTransferToken: (
+      token: Token,
+      recipient: HashString,
+      amount: TV,
+      fromMode: FarmFromMode,
+      toMode: FarmToMode,
+      target: HashString,
+      clipboard: HashString = Clipboard.encode([]),
+    ) => {
+      if (!isAddress(recipient)) {
+        throw new Error(`Invalid recipient address: ${recipient}`);
+      }
+      if (!isAddress(token.address)) {
+        throw new Error(`Invalid token address: ${token.address}`);
+      }
+      const diamond = getMatchingAddressFromLookup(target, beanstalkAddress);
+      if (!diamond || !isAddress(diamond)) {
+        throw new Error(`Invalid diamond address: ${target}`);
+      }
+
+      const struct = encoders.token.transferToken(token.address, recipient, amount, fromMode, toMode, clipboard);
+
+      return {
+        ...struct,
+        target: diamond,
       };
     },
     // // Well Methods
