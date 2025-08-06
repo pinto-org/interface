@@ -21,14 +21,12 @@ import NewUserView from "./pages/overview/NewUserView";
 
 import Footer from "@/components/Footer";
 import { MobileActionBarProvider } from "@/components/MobileActionBarContext";
-import TourOfTheFarm from "@/components/TourOfTheFarm";
 import { useMetaCRM } from "./utils/meta-crm";
 
 function AppLayout({ children }) {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <TourOfTheFarm />
       <ScrollToTop />
       <div className={cn("relative z-[1] w-screen flex-1")}>{children}</div>
       <Footer />

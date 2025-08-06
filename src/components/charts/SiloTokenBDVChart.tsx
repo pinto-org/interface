@@ -311,7 +311,7 @@ const SiloTokenBDVChart = React.memo(
         <Card className="p-6">
           <div className="h-[500px] w-full">
             <div className="mb-4">
-              <h3 className="text-lg font-medium text-pinto-gray-5">Your BDV by Token</h3>
+              <h3 className="text-lg font-medium text-pinto-gray-5">Your Silo Position</h3>
             </div>
             <Col className="flex items-center justify-center h-[450px]">
               <LoadingSpinner size={50} />
@@ -329,7 +329,7 @@ const SiloTokenBDVChart = React.memo(
       <Card className="p-6">
         <div className="h-[500px] w-full">
           <div className="mb-4">
-            <h3 className="text-lg font-medium text-pinto-gray-5">Your BDV by Token</h3>
+            <h3 className="text-lg font-medium text-pinto-gray-5">Your Silo Position</h3>
           </div>
           <div className="h-[450px] w-full">
             <ReactChart type="bar" data={chartData} options={chartOptions} plugins={[tokenIconPlugin]} />

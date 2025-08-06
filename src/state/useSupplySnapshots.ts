@@ -65,6 +65,6 @@ export default function useSupplySnapshots() {
       data: query.data ?? [],
       queryKey: queryKey,
     }),
-    [query.data],
+    [query.data, queryKey],
   );
 }

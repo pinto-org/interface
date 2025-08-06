@@ -8,7 +8,7 @@ import { useSeason } from "@/state/useSunData";
 import { useChainConstant } from "@/utils/chain";
 import { Token, UseSeasonalResult } from "@/utils/types";
 import { HashString } from "@/utils/types.generic";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useAccount } from "wagmi";
 import useSeasonalBasinSummarySG from "./queries/useSeasonalBasinSummarySG";
 import useSeasonalBeanBeanSG from "./queries/useSeasonalBeanBeanSG";
@@ -421,30 +421,9 @@ export function useSeasonalTractorUniquePublishers(fromSeason: number, toSeason:
 /** ==================== Multi-Token Historical BDV ==================== **/
 
 /**
- * Individual token BDV hook - properly follows React rules of hooks
- */
-function useSingleTokenHistoricalBDV(
-  fromSeason: number,
-  toSeason: number,
-  token: Token | null,
-  address: string | undefined,
-): UseSeasonalResult | null {
-  return useSeasonalFarmerSiloAssetTokenSG(
-    fromSeason,
-    toSeason,
-    token?.address || "",
-    address || "",
-    (siloAssetHourly, timestamp) => ({
-      season: Number(siloAssetHourly.season),
-      value: TV.fromBlockchain(siloAssetHourly.depositedBDV, PINTO.decimals).toNumber(),
-      timestamp,
-    }),
-  );
-}
-
-/**
  * Hook to fetch historical BDV data for multiple tokens for a specific farmer
  * Returns a map of token addresses to their seasonal BDV data
+ * Uses individual single-token queries (proven working approach)
  */
 export function useFarmerHistoricalTokensBDV(
   fromSeason: number,
@@ -453,50 +432,60 @@ export function useFarmerHistoricalTokensBDV(
 ): { [tokenAddress: string]: UseSeasonalResult } {
   const { address } = useAccount();
 
-  // Call hooks for each token at the top level (React rules compliance)
-  // We need to call hooks unconditionally, so we'll handle up to a reasonable maximum
-  const token0 = tokens?.[0] || null;
-  const token1 = tokens?.[1] || null;
-  const token2 = tokens?.[2] || null;
-  const token3 = tokens?.[3] || null;
-  const token4 = tokens?.[4] || null;
-  const token5 = tokens?.[5] || null;
-  const token6 = tokens?.[6] || null;
-  const token7 = tokens?.[7] || null;
-  const token8 = tokens?.[8] || null;
-  const token9 = tokens?.[9] || null;
+  // Call hooks for each token at the top level (can't be conditional)
+  // We need to call hooks for a fixed number of tokens to avoid Rules of Hooks violations
+  const token0 = tokens?.[0];
+  const token1 = tokens?.[1];
+  const token2 = tokens?.[2];
+  const token3 = tokens?.[3];
+  const token4 = tokens?.[4];
 
-  const query0 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token0, address);
-  const query1 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token1, address);
-  const query2 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token2, address);
-  const query3 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token3, address);
-  const query4 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token4, address);
-  const query5 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token5, address);
-  const query6 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token6, address);
-  const query7 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token7, address);
-  const query8 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token8, address);
-  const query9 = useSingleTokenHistoricalBDV(fromSeason, toSeason, token9, address);
+  const query0 = useFarmerSeasonalSiloAssetDepositedAmount(
+    fromSeason,
+    toSeason,
+    token0 || ({ address: "0x0", decimals: 18, symbol: "", name: "" } as Token),
+    address || "",
+  );
+  const query1 = useFarmerSeasonalSiloAssetDepositedAmount(
+    fromSeason,
+    toSeason,
+    token1 || ({ address: "0x0", decimals: 18, symbol: "", name: "" } as Token),
+    address || "",
+  );
+  const query2 = useFarmerSeasonalSiloAssetDepositedAmount(
+    fromSeason,
+    toSeason,
+    token2 || ({ address: "0x0", decimals: 18, symbol: "", name: "" } as Token),
+    address || "",
+  );
+  const query3 = useFarmerSeasonalSiloAssetDepositedAmount(
+    fromSeason,
+    toSeason,
+    token3 || ({ address: "0x0", decimals: 18, symbol: "", name: "" } as Token),
+    address || "",
+  );
+  const query4 = useFarmerSeasonalSiloAssetDepositedAmount(
+    fromSeason,
+    toSeason,
+    token4 || ({ address: "0x0", decimals: 18, symbol: "", name: "" } as Token),
+    address || "",
+  );
 
-  // Combine results into the expected format
   return useMemo(() => {
     if (!address || !tokens || !tokens.length) {
       return {};
     }
 
-    const queries = [query0, query1, query2, query3, query4, query5, query6, query7, query8, query9];
-    const result: { [tokenAddress: string]: UseSeasonalResult } = {};
+    const queries: { [tokenAddress: string]: UseSeasonalResult } = {};
 
-    tokens.forEach((token, index) => {
-      if (index < queries.length && queries[index]) {
-        const query = queries[index];
-        if (query) {
-          result[token.address] = query;
-        }
-      }
-    });
+    if (token0) queries[token0.address] = query0;
+    if (token1) queries[token1.address] = query1;
+    if (token2) queries[token2.address] = query2;
+    if (token3) queries[token3.address] = query3;
+    if (token4) queries[token4.address] = query4;
 
-    return result;
-  }, [address, tokens, query0, query1, query2, query3, query4, query5, query6, query7, query8, query9]);
+    return queries;
+  }, [address, tokens, token0, token1, token2, token3, token4, query0, query1, query2, query3, query4]);
 }
 
 /**

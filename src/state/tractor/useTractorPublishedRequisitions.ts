@@ -25,7 +25,7 @@ export default function useTractorPublishedRequisitions(
   // The function will only be recreated when the requisition type or address changes
   const selectRequisitionType = useMemo(
     () => getSelectRequisitionType(requisitionType, address),
-    [stableRequisitionRef, address],
+    [requisitionType, address],
   );
 
   return useQuery({

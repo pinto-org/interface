@@ -40,11 +40,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAccount } from "wagmi";
 import TemperatureChart from "../field/Temperature";
 import TractorOrdersPanel from "../field/TractorOrdersPanel";
 
 const Overview = () => {
   // Hooks
+  const { address } = useAccount();
   const farmerSilo = useFarmerSilo();
   const farmerField = useFarmerField();
   const farmerActions = useFarmerActions();
@@ -309,64 +311,74 @@ const Overview = () => {
     },
   };
 
-  const renderContent = () => (
-    <>
-      <div className="flex flex-col justify-center relative action-container mt-0 sm:mt-0">
-        <div className="flex flex-col sm:items-center items-start">
-          <div data-action-target="stats">
-            <StatPanel
-              {...(hasOnlyPods ? statPanelData.pods : statPanelData.depositedValue)}
-              altDisplay={
-                !hasOnlyPods && (
-                  <StatPanelAltDisplay
-                    depositedValue={depositValue}
-                    claimableValue={claimableValue}
-                    siloWrappedValue={siloWrappedValueUSD}
-                    siloWrappedInternal={siloWrappedInternal}
-                    siloWrappedExternal={siloWrappedExternal}
-                    farmBalance={internalBalance}
-                    claimableFlood={floodValue}
-                    setHoveredButton={setHoveredButton}
-                  />
-                )
-              }
-              size="large"
-            />
-          </div>
+  const renderContent = () => {
+    const shortAddress = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "0x0000";
+
+    return (
+      <>
+        {/* Welcome Message */}
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-pinto-gray-5">
+            Welcome back to the Farm, {shortAddress}!
+          </h1>
         </div>
-        <div className="grid mt-6 gap-6 grid-rows-3 self-start sm:grid-cols-3 sm:grid-rows-none sm:mt-8 sm:gap-8 sm:self-center whitespace-nowrap w-screen max-w-6xl">
-          <StatPanel {...(hasOnlyPods ? statPanelData.depositedValue : statPanelData.stalk)} />
-          <StatPanel {...(hasOnlyPods ? statPanelData.stalk : statPanelData.seeds)} />
-          <StatPanel {...(hasOnlyPods ? statPanelData.seeds : statPanelData.pods)} />
-          {statPanelData.pods.mainValue.eq(0) && !hasOnlyPods && isSoilAvailable && (
-            <HelperLink
-              onClick={() => navigate("/field?action=sow")}
-              text={"Sow (Lend) in the Field for Pods"}
-              className={`absolute -mt-[13.75rem] w-[120px] min-[1100px]:-right-52 min-[1200px]:-right-40 min-[1300px]:-right-32 min-[1400px]:-right-40 min-[1500px]:-right-28 min-[1600px]:-right-56 min-[1700px]:-right-56 whitespace-break-spaces z-20 2xl:whitespace-normal 2xl:w-auto`}
-              dataTarget="pods-stats"
-              sourceAnchor="left"
-              targetAnchor="right"
-              source90Degree={true}
-              perpLength={10}
-            />
-          )}
-          {statPanelData.pods.mainValue.gt(0) && statPanelData.pods.mainValueChange?.lt(0) && !hasOnlyPods && (
-            <HelperLink
-              onClick={() => submitHarvestAndDeposit()}
-              text={"Harvest Pods"}
-              className={`absolute -mt-[13.75rem] min-[1100px]:-right-48 min-[1200px]:-right-36 min-[1300px]:-right-24 min-[1400px]:-right-0 min-[1500px]:right-8 min-[1600px]:-right-24 min-[1700px]:-right-20 whitespace-break-spaces z-20 2xl:whitespace-normal w-auto opacity-100 transition-opacity ${isHarvestSubmitting ? "opacity-50 pointer-events-none" : ""}`}
-              dataTarget="pods-stats"
-              sourceAnchor="left"
-              targetAnchor="right"
-              source90Degree={true}
-              perpLength={10}
-              onMouseEnter={() => {
-                setHoveredButton("harvest");
-              }}
-              onMouseLeave={() => setHoveredButton("")}
-            />
-          )}
-          {/*hasOnlyPods && (
+
+        <div className="flex flex-col justify-center relative action-container mt-0 sm:mt-0">
+          <div className="flex flex-col sm:items-center items-start">
+            <div data-action-target="stats">
+              <StatPanel
+                {...(hasOnlyPods ? statPanelData.pods : statPanelData.depositedValue)}
+                altDisplay={
+                  !hasOnlyPods && (
+                    <StatPanelAltDisplay
+                      depositedValue={depositValue}
+                      claimableValue={claimableValue}
+                      siloWrappedValue={siloWrappedValueUSD}
+                      siloWrappedInternal={siloWrappedInternal}
+                      siloWrappedExternal={siloWrappedExternal}
+                      farmBalance={internalBalance}
+                      claimableFlood={floodValue}
+                      setHoveredButton={setHoveredButton}
+                    />
+                  )
+                }
+                size="large"
+              />
+            </div>
+          </div>
+          <div className="grid mt-6 gap-6 grid-rows-3 self-start sm:grid-cols-3 sm:grid-rows-none sm:mt-8 sm:gap-8 sm:self-center whitespace-nowrap w-screen max-w-6xl">
+            <StatPanel {...(hasOnlyPods ? statPanelData.depositedValue : statPanelData.stalk)} />
+            <StatPanel {...(hasOnlyPods ? statPanelData.stalk : statPanelData.seeds)} />
+            <StatPanel {...(hasOnlyPods ? statPanelData.seeds : statPanelData.pods)} />
+            {statPanelData.pods.mainValue.eq(0) && !hasOnlyPods && isSoilAvailable && (
+              <HelperLink
+                onClick={() => navigate("/field?action=sow")}
+                text={"Sow (Lend) in the Field for Pods"}
+                className={`absolute -mt-[13.75rem] w-[120px] min-[1100px]:-right-52 min-[1200px]:-right-40 min-[1300px]:-right-32 min-[1400px]:-right-40 min-[1500px]:-right-28 min-[1600px]:-right-56 min-[1700px]:-right-56 whitespace-break-spaces z-20 2xl:whitespace-normal 2xl:w-auto`}
+                dataTarget="pods-stats"
+                sourceAnchor="left"
+                targetAnchor="right"
+                source90Degree={true}
+                perpLength={10}
+              />
+            )}
+            {statPanelData.pods.mainValue.gt(0) && statPanelData.pods.mainValueChange?.lt(0) && !hasOnlyPods && (
+              <HelperLink
+                onClick={() => submitHarvestAndDeposit()}
+                text={"Harvest Pods"}
+                className={`absolute -mt-[13.75rem] min-[1100px]:-right-48 min-[1200px]:-right-36 min-[1300px]:-right-24 min-[1400px]:-right-0 min-[1500px]:right-8 min-[1600px]:-right-24 min-[1700px]:-right-20 whitespace-break-spaces z-20 2xl:whitespace-normal w-auto opacity-100 transition-opacity ${isHarvestSubmitting ? "opacity-50 pointer-events-none" : ""}`}
+                dataTarget="pods-stats"
+                sourceAnchor="left"
+                targetAnchor="right"
+                source90Degree={true}
+                perpLength={10}
+                onMouseEnter={() => {
+                  setHoveredButton("harvest");
+                }}
+                onMouseLeave={() => setHoveredButton("")}
+              />
+            )}
+            {/*hasOnlyPods && (
             <HelperLink
               onClick={() => navigate("/silo")}
               text={"Deposit in the Silo for Stalk and Seeds"}
@@ -378,7 +390,7 @@ const Overview = () => {
               perpLength={5}
             />
           )*/}
-          {/*hasNoEarnedBeans && claimEnabled && (
+            {/*hasNoEarnedBeans && claimEnabled && (
             <HelperLink
               text={claimableText}
               dataTarget="stalk-stats"
@@ -392,135 +404,134 @@ const Overview = () => {
               onClick={submitClaimRewards}
             />
           )*/}
+          </div>
         </div>
-      </div>
-      <AnimatePresence>
-        {hasGerminatingDeposits ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="mb-6 w-full"
-          >
-            <GerminationNotice type="multiple" deposits={farmerSilo.deposits} />
-          </motion.div>
-        ) : hasUndepositedMainTokens ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="mb-6 w-full"
-          >
-            <OverviewNoticeDeposit />
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-
-      {/* My Value Over Time Chart */}
-      <div className="mb-6">
-        <SimpleValueChart
-          className="mb-2"
-          timeTab={chartTimeTab}
-          chartTimeTab={chartTimeTab}
-          setChartTimeTab={setChartTimeTab}
-          valueMode={valueMode}
-          onValueModeChange={setValueMode}
-          showValueModeToggle={true}
-          currentTotalValueUSD={(() => {
-            if (valueMode !== "USD") return undefined;
-
-            try {
-              // Add safety check for valueInSystem
-              if (!valueInSystem || typeof valueInSystem.toHuman !== "function") {
-                console.warn("FarmerOverview: valueInSystem is invalid:", valueInSystem);
-                return undefined;
-              }
-
-              const valueString = valueInSystem.toHuman();
-              if (typeof valueString !== "string" || valueString.trim() === "") {
-                console.warn("FarmerOverview: valueInSystem.toHuman() returned invalid string:", valueString);
-                return undefined;
-              }
-
-              const numericValue = Number(valueString);
-              if (!Number.isFinite(numericValue) || numericValue < 0) {
-                console.warn("FarmerOverview: Invalid numeric conversion from valueInSystem:", {
-                  valueString,
-                  numericValue,
-                  isFinite: Number.isFinite(numericValue),
-                  isNegative: numericValue < 0,
-                });
-                return undefined;
-              }
-
-              return numericValue;
-            } catch (error) {
-              console.error("FarmerOverview: Error converting valueInSystem to USD:", error);
-              return undefined;
-            }
-          })()}
-        />
-      </div>
-
-      {/* Navigation Action Buttons */}
-      <div className="mb-6">
-        <div className="flex flex-wrap gap-3 sm:gap-4">
-          <SiloActionDialog defaultAction="deposit">
-            <Button rounded="full" variant="outline-secondary" className="pinto-sm-bold text-sm flex-1 flex h-full">
-              Deposit
-            </Button>
-          </SiloActionDialog>
-          <SiloActionDialog siloToken={mainToken} defaultAction="withdraw">
-            <Button rounded="full" variant="outline-secondary" className="pinto-sm-bold text-sm flex-1 flex h-full">
-              Withdraw
-            </Button>
-          </SiloActionDialog>
-          <SiloActionDialog defaultAction="convert">
-            <Button rounded="full" variant="outline-secondary" className="pinto-sm-bold text-sm flex-1 flex h-full">
-              Convert
-            </Button>
-          </SiloActionDialog>
-          <Button
-            rounded="full"
-            variant="outline-secondary"
-            onClick={() => setShowSowDialog(true)}
-            className="pinto-sm-bold text-sm flex-1 flex h-full"
-          >
-            Sow
-          </Button>
-          <Button
-            rounded="full"
-            variant="outline-secondary"
-            onClick={() => navigate("/silo")}
-            className="pinto-sm-bold text-sm flex-1 flex h-full"
-          >
-            Optimize
-          </Button>
-        </div>
-      </div>
-
-      {/* Podline Visualization */}
-      <PodlineVisualization className="mb-6" farmerField={farmerField} />
-
-      <div className="flex flex-col items-center">
-        <Tabs
-          defaultValue="tractor"
-          className="w-full"
-          value="tractor"
-          onValueChange={(value) => setCurrentTab(value as "deposits" | "pods" | "tractor")}
-        >
-          <TabsList className="h-0 bg-transparent p-0 border-0 -ml-3 flex flex-row justify-start">
-            {/* Only show My Tractor Orders */}
-            <TabsTrigger
-              className="sm:flex font-[400] text-[1.5rem] sm:text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
-              value="tractor"
+        <AnimatePresence>
+          {hasGerminatingDeposits ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="mb-6 w-full"
             >
-              My Tractor Orders
-            </TabsTrigger>
-          </TabsList>
-          {/*convertEnabled && convertFrom && convertTo && currentTab === "deposits" && (
+              <GerminationNotice type="multiple" deposits={farmerSilo.deposits} />
+            </motion.div>
+          ) : hasUndepositedMainTokens ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="mb-6 w-full"
+            >
+              <OverviewNoticeDeposit />
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+
+        {/* My Value Over Time Chart */}
+        <Card className="p-6">
+          <SimpleValueChart
+            timeTab={chartTimeTab}
+            chartTimeTab={chartTimeTab}
+            setChartTimeTab={setChartTimeTab}
+            valueMode={valueMode}
+            onValueModeChange={setValueMode}
+            showValueModeToggle={true}
+            currentTotalValueUSD={(() => {
+              if (valueMode !== "USD") return undefined;
+
+              try {
+                // Add safety check for valueInSystem
+                if (!valueInSystem || typeof valueInSystem.toHuman !== "function") {
+                  console.warn("FarmerOverview: valueInSystem is invalid:", valueInSystem);
+                  return undefined;
+                }
+
+                const valueString = valueInSystem.toHuman();
+                if (typeof valueString !== "string" || valueString.trim() === "") {
+                  console.warn("FarmerOverview: valueInSystem.toHuman() returned invalid string:", valueString);
+                  return undefined;
+                }
+
+                const numericValue = Number(valueString);
+                if (!Number.isFinite(numericValue) || numericValue < 0) {
+                  console.warn("FarmerOverview: Invalid numeric conversion from valueInSystem:", {
+                    valueString,
+                    numericValue,
+                    isFinite: Number.isFinite(numericValue),
+                    isNegative: numericValue < 0,
+                  });
+                  return undefined;
+                }
+
+                return numericValue;
+              } catch (error) {
+                console.error("FarmerOverview: Error converting valueInSystem to USD:", error);
+                return undefined;
+              }
+            })()}
+          />
+
+          {/* Action Buttons */}
+          <div className="mt-6">
+            <div className="flex flex-wrap gap-3 sm:gap-4">
+              <SiloActionDialog defaultAction="deposit">
+                <Button rounded="full" variant="outline-secondary" className="pinto-sm-bold text-sm flex-1 flex h-full">
+                  Deposit
+                </Button>
+              </SiloActionDialog>
+              <SiloActionDialog siloToken={mainToken} defaultAction="withdraw">
+                <Button rounded="full" variant="outline-secondary" className="pinto-sm-bold text-sm flex-1 flex h-full">
+                  Withdraw
+                </Button>
+              </SiloActionDialog>
+              <SiloActionDialog defaultAction="convert">
+                <Button rounded="full" variant="outline-secondary" className="pinto-sm-bold text-sm flex-1 flex h-full">
+                  Convert
+                </Button>
+              </SiloActionDialog>
+              <Button
+                rounded="full"
+                variant="outline-secondary"
+                onClick={() => setShowSowDialog(true)}
+                className="pinto-sm-bold text-sm flex-1 flex h-full"
+              >
+                Sow
+              </Button>
+              <Button
+                rounded="full"
+                variant="outline-secondary"
+                onClick={() => navigate("/silo")}
+                className="pinto-sm-bold text-sm flex-1 flex h-full"
+              >
+                Optimize
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        {/* Podline Visualization */}
+        <PodlineVisualization className="mb-6" farmerField={farmerField} />
+
+        <div className="flex flex-col items-center">
+          <Tabs
+            defaultValue="tractor"
+            className="w-full"
+            value="tractor"
+            onValueChange={(value) => setCurrentTab(value as "deposits" | "pods" | "tractor")}
+          >
+            <TabsList className="h-0 bg-transparent p-0 border-0 -ml-3 flex flex-row justify-start">
+              {/* Only show My Tractor Orders */}
+              <TabsTrigger
+                className="sm:flex font-[400] text-[1.5rem] sm:text-[2rem] text-pinto-gray-4 hover:text-pinto-gray-5/80 data-[state=active]:shadow-none data-[state=active]:bg-transparent data-[state=active]:text-pinto-gray-5"
+                value="tractor"
+              >
+                My Tractor Orders
+              </TabsTrigger>
+            </TabsList>
+            {/*convertEnabled && convertFrom && convertTo && currentTab === "deposits" && (
             <HelperLink
               onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })}
               text="Convert Available"
@@ -532,11 +543,11 @@ const Overview = () => {
               onMouseLeave={() => setHoveredButton("")}
             />
           ) */}
-          <TabsContent className="mt-8" value="deposits">
-            {hasDeposits ? (
-              <div className="relative overflow-visible">
-                <FarmerDepositsTable hoveredButton={hoveredButton} setHoveredButton={setHoveredButton} />
-                {/*convertEnabled && convertFrom && convertTo && (
+            <TabsContent className="mt-8" value="deposits">
+              {hasDeposits ? (
+                <div className="relative overflow-visible">
+                  <FarmerDepositsTable hoveredButton={hoveredButton} setHoveredButton={setHoveredButton} />
+                  {/*convertEnabled && convertFrom && convertTo && (
                   <TableRowConnector
                     fromTarget={`token-row-${convertFrom.address}`}
                     toTarget={`token-row-${convertTo.address}`}
@@ -562,7 +573,7 @@ const Overview = () => {
                     }
                   />
                 )*/}
-                {/*enablePintoToLPHelper && (
+                  {/*enablePintoToLPHelper && (
                   <TableRowConnector
                     toTarget={`token-row-${mainToken.address}`}
                     color="#246645"
@@ -591,7 +602,7 @@ const Overview = () => {
                     }
                   />
                 )*/}
-                {/* <div className="absolute right-0 top-20 h-4" data-action-target="helper-target" />
+                  {/* <div className="absolute right-0 top-20 h-4" data-action-target="helper-target" />
                 {currentTab === "deposits" && canWrap && (
                   <HelperLink
                     text={"Wrap Deposited Pinto"}
@@ -611,98 +622,99 @@ const Overview = () => {
                     onClick={() => navigate(navLinks.sPinto)}
                   />
                 )} */}
+                </div>
+              ) : (
+                <EmptyTable type="deposits" />
+              )}
+            </TabsContent>
+            <TabsContent className="mt-8" value="pods">
+              {hasPods ? (
+                <div className="overflow-clip">
+                  <PlotsTable
+                    showClaimable
+                    disableHover
+                    enablePagination={true}
+                    initialPageSize={25}
+                    compact={isMobile}
+                  />
+                </div>
+              ) : (
+                <EmptyTable type="plots" />
+              )}
+            </TabsContent>
+            <TabsContent className="mt-8" value="tractor">
+              <div className="overflow-visible">
+                <TractorOrdersPanel />
               </div>
-            ) : (
-              <EmptyTable type="deposits" />
-            )}
-          </TabsContent>
-          <TabsContent className="mt-8" value="pods">
-            {hasPods ? (
-              <div className="overflow-clip">
-                <PlotsTable
-                  showClaimable
-                  disableHover
-                  enablePagination={true}
-                  initialPageSize={25}
-                  compact={isMobile}
-                />
-              </div>
-            ) : (
-              <EmptyTable type="plots" />
-            )}
-          </TabsContent>
-          <TabsContent className="mt-8" value="tractor">
-            <div className="overflow-visible">
-              <TractorOrdersPanel />
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-      <ActionsMenu showOnTablet />
+            </TabsContent>
+          </Tabs>
+        </div>
+        <ActionsMenu showOnTablet />
 
-      {/* Sow Order Dialog */}
-      {showSowDialog && (
-        <AnimateSowOrderDialog className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md p-2 sm:p-4 md:p-8">
-          <motion.div
-            className="flex flex-col w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-[95vw] gap-2 sm:gap-4 md:gap-6 items-stretch"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{
-              opacity: isClosing ? 0 : 1,
-              scale: isClosing ? 0.9 : 1,
-            }}
-            transition={{ duration: 0.15, ease: "easeInOut" }}
-          >
-            {/* Dynamic layout: Stack on very small screens, side-by-side on larger screens */}
-            <div className="flex flex-col sm:flex-row w-full gap-2 sm:gap-4 md:gap-6 items-stretch">
-              {/* Left Side - Temperature Chart and Podline Visualization */}
-              <div className="flex-none w-full sm:w-[60%] flex flex-col gap-2 sm:gap-4">
-                {/* Temperature Chart */}
-                <Card className="flex-1 rounded-xl temperature-chart-container">
-                  <div className="h-full w-full min-h-[500px]">
-                    <TemperatureChart className="h-full w-full" />
-                  </div>
-                </Card>
+        {/* Sow Order Dialog */}
+        {showSowDialog && (
+          <AnimateSowOrderDialog className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md p-2 sm:p-4 md:p-8">
+            <motion.div
+              className="flex flex-col w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-[95vw] gap-2 sm:gap-4 md:gap-6 items-stretch"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{
+                opacity: isClosing ? 0 : 1,
+                scale: isClosing ? 0.9 : 1,
+              }}
+              transition={{ duration: 0.15, ease: "easeInOut" }}
+            >
+              {/* Dynamic layout: Stack on very small screens, side-by-side on larger screens */}
+              <div className="flex flex-col sm:flex-row w-full gap-2 sm:gap-4 md:gap-6 items-stretch">
+                {/* Left Side - Temperature Chart and Podline Visualization */}
+                <div className="flex-none w-full sm:w-[60%] flex flex-col gap-2 sm:gap-4">
+                  {/* Temperature Chart */}
+                  <Card className="flex-1 rounded-xl temperature-chart-container">
+                    <div className="h-full w-full min-h-[500px]">
+                      <TemperatureChart className="h-full w-full" />
+                    </div>
+                  </Card>
 
-                {/* Podline Visualization */}
-                <Card className="flex-1 rounded-xl overflow-hidden podline-chart-container">
-                  <div className="h-full w-full">
-                    <PodlineVisualization farmerField={farmerField} />
-                  </div>
-                </Card>
-              </div>
+                  {/* Podline Visualization */}
+                  <Card className="flex-1 rounded-xl overflow-hidden podline-chart-container">
+                    <div className="h-full w-full">
+                      <PodlineVisualization farmerField={farmerField} />
+                    </div>
+                  </Card>
+                </div>
 
-              {/* Sow Order Form - Right Side */}
-              <Card className="flex-1 w-full sm:w-[40%] rounded-xl" id="sow-order-dialog">
-                <div className="flex flex-col w-full items-center p-2 sm:p-4">
-                  <SowOrderDialog
-                    open={showSowDialog}
-                    onOpenChange={(open) => {
-                      if (!open) {
+                {/* Sow Order Form - Right Side */}
+                <Card className="flex-1 w-full sm:w-[40%] rounded-xl" id="sow-order-dialog">
+                  <div className="flex flex-col w-full items-center p-2 sm:p-4">
+                    <SowOrderDialog
+                      open={showSowDialog}
+                      onOpenChange={(open) => {
+                        if (!open) {
+                          setIsClosing(true);
+                          setTimeout(() => {
+                            setShowSowDialog(false);
+                            setIsClosing(false);
+                          }, 150);
+                        } else {
+                          setShowSowDialog(true);
+                        }
+                      }}
+                      onOrderPublished={() => {
                         setIsClosing(true);
                         setTimeout(() => {
                           setShowSowDialog(false);
                           setIsClosing(false);
                         }, 150);
-                      } else {
-                        setShowSowDialog(true);
-                      }
-                    }}
-                    onOrderPublished={() => {
-                      setIsClosing(true);
-                      setTimeout(() => {
-                        setShowSowDialog(false);
-                        setIsClosing(false);
-                      }, 150);
-                    }}
-                  />
-                </div>
-              </Card>
-            </div>
-          </motion.div>
-        </AnimateSowOrderDialog>
-      )}
-    </>
-  );
+                      }}
+                    />
+                  </div>
+                </Card>
+              </div>
+            </motion.div>
+          </AnimateSowOrderDialog>
+        )}
+      </>
+    );
+  };
 
   return (
     <div

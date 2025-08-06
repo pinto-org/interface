@@ -327,16 +327,7 @@ const applyCurrentValueScalar = (
   const scalar = currentTotalValueUSD / lastChartTotalValue;
 
   // Remove bounds temporarily to debug scalar issues
-  // Log detailed information for debugging
   const isScalarValid = Number.isFinite(scalar) && scalar > 0;
-
-  console.log(`SimpleValueChart scalar calculation:`, {
-    currentTotalValueUSD: currentTotalValueUSD.toFixed(4),
-    lastChartTotalValue: lastChartTotalValue.toFixed(4),
-    scalar: scalar.toFixed(6),
-    isValid: isScalarValid,
-    timestamp: new Date(lastChartData.timestamp).toISOString(),
-  });
 
   if (!isScalarValid) {
     const errorMsg = `Scalar ${scalar.toFixed(6)} is invalid (must be finite and positive), skipping correction`;
@@ -366,7 +357,6 @@ const applyCurrentValueScalar = (
       }),
     }));
 
-    console.log(`SimpleValueChart: Successfully applied scalar ${scalar.toFixed(4)}`);
     return { chartData: scaledChartData, baseData: scaledBaseData };
   } catch (error) {
     const errorMsg = `Failed to apply scalar: ${error instanceof Error ? error.message : "Unknown error"}`;
@@ -470,9 +460,7 @@ const SimpleValueChart = React.memo(
   }: SimpleValueChartProps) => {
     const navigate = useNavigate();
 
-    // State for error handling and debugging
-    const [scalarError, setScalarError] = useState<string | null>(null);
-    const [showDebugInfo, setShowDebugInfo] = useState(false);
+    // State for error handling
 
     // Hooks for data fetching
     const { whitelistedTokens } = useTokenData();
@@ -496,19 +484,17 @@ const SimpleValueChart = React.memo(
       chartData: rawChartData,
       baseData,
       tokensWithData,
-      hasFallbackToBase = false,
-      errorInfo = null,
     } = useMemo(() => {
       if (!hasData || !whitelistedTokens || !whitelistedTokens.length) {
         // Return empty data structure if no data or tokens not loaded
-        return { chartData: [], baseData: [], tokensWithData: [], hasFallbackToBase: false, errorInfo: null };
+        return { chartData: [], baseData: [], tokensWithData: [] };
       }
 
       const bdvData = mergeTokenHistoricalData(tokenQueries, whitelistedTokens);
 
       // If BDV data is empty, there's nothing we can do
       if (!bdvData.chartData.length) {
-        return { chartData: [], baseData: [], tokensWithData: [], hasFallbackToBase: false, errorInfo: null };
+        return { chartData: [], baseData: [], tokensWithData: [] };
       }
 
       // Convert to USD if in USD mode
@@ -519,51 +505,22 @@ const SimpleValueChart = React.memo(
           // If USD conversion resulted in empty data, fall back to BDV
           if (!convertedData.chartData.length || !convertedData.baseData.length) {
             console.warn("SimpleValueChart: USD conversion failed, falling back to BDV data");
-            return { ...bdvData, hasFallbackToBase: true, errorInfo: "USD conversion failed, showing BDV data" };
+            return { ...bdvData };
           }
 
           // Apply scalar correction to align with current accurate total value
           if (currentTotalValueUSD && currentTotalValueUSD > 0) {
-            try {
-              const scaledResult = applyCurrentValueScalar(
-                convertedData.chartData,
-                convertedData.baseData,
-                currentTotalValueUSD,
-              );
+            const scaledResult = applyCurrentValueScalar(
+              convertedData.chartData,
+              convertedData.baseData,
+              currentTotalValueUSD,
+            );
 
-              if (scaledResult.error) {
-                console.warn("SimpleValueChart: Scalar correction failed:", scaledResult.error);
-                // Keep using convertedData as fallback
-                return {
-                  chartData: convertedData.chartData,
-                  baseData: convertedData.baseData,
-                  tokensWithData: bdvData.tokensWithData,
-                  hasFallbackToBase: false,
-                  errorInfo: scaledResult.error,
-                };
-              } else if (scaledResult.chartData.length > 0 && scaledResult.baseData.length > 0) {
-                // Only use scaled data if it's valid and no error occurred
-                convertedData = {
-                  chartData: scaledResult.chartData,
-                  baseData: scaledResult.baseData,
-                };
-                return {
-                  chartData: convertedData.chartData,
-                  baseData: convertedData.baseData,
-                  tokensWithData: bdvData.tokensWithData,
-                  hasFallbackToBase: false,
-                  errorInfo: null,
-                };
-              }
-            } catch (error) {
-              const errorMsg = `Scalar correction failed with exception: ${error instanceof Error ? error.message : "Unknown error"}`;
-              console.warn("SimpleValueChart:", errorMsg);
-              return {
-                chartData: convertedData.chartData,
-                baseData: convertedData.baseData,
-                tokensWithData: bdvData.tokensWithData,
-                hasFallbackToBase: false,
-                errorInfo: errorMsg,
+            if (scaledResult.chartData.length > 0 && scaledResult.baseData.length > 0) {
+              // Use scaled data if it's valid
+              convertedData = {
+                chartData: scaledResult.chartData,
+                baseData: scaledResult.baseData,
               };
             }
           }
@@ -572,23 +529,16 @@ const SimpleValueChart = React.memo(
             chartData: convertedData.chartData,
             baseData: convertedData.baseData,
             tokensWithData: bdvData.tokensWithData,
-            hasFallbackToBase: false,
-            errorInfo: null,
           };
         } catch (error) {
           console.error("SimpleValueChart: USD mode failed completely, falling back to BDV:", error);
-          return { ...bdvData, hasFallbackToBase: true, errorInfo: "USD mode failed, showing BDV data" };
+          return { ...bdvData };
         }
       }
 
       // Return BDV data (baseline mode - should always work)
-      return { ...bdvData, hasFallbackToBase: false, errorInfo: null };
+      return { ...bdvData };
     }, [tokenQueries, whitelistedTokens, hasData, valueMode, priceQuery, currentTotalValueUSD]);
-
-    // Update scalar error state based on computation results
-    React.useEffect(() => {
-      setScalarError(errorInfo);
-    }, [errorInfo]);
 
     // Transform to stacked format
     const { stackedData, seriesOrder } = useMemo(() => {
@@ -861,7 +811,7 @@ const SimpleValueChart = React.memo(
         <div className={cn("rounded-[20px] bg-gray-1", className)}>
           <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
             <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
-              My Value Over Time
+              My Silo Over Time
             </div>
           </div>
           <div className="h-[300px] flex items-center justify-center">
@@ -876,7 +826,7 @@ const SimpleValueChart = React.memo(
         <div className={cn("rounded-[20px] bg-gray-1", className)}>
           <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
             <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
-              My Value Over Time
+              My Silo Over Time
             </div>
           </div>
           <div className="h-[300px] flex items-center justify-center">
@@ -894,7 +844,7 @@ const SimpleValueChart = React.memo(
         <div className={cn("rounded-[20px] bg-gray-1", className)}>
           <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
             <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
-              My Value Over Time
+              My Silo Over Time
             </div>
           </div>
           <div className="h-[300px] flex items-center justify-center">
@@ -922,7 +872,7 @@ const SimpleValueChart = React.memo(
         <div className={cn("rounded-[20px] bg-gray-1", className)}>
           <div className="flex justify-between pt-2 px-2 sm:pt-4 sm:px-6">
             <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
-              My Value Over Time
+              My Silo Over Time
             </div>
           </div>
           <div className="h-[300px] flex items-center justify-center">
@@ -937,63 +887,18 @@ const SimpleValueChart = React.memo(
 
     return (
       <div ref={containerRef} className={cn("rounded-[20px] bg-gray-1", className)}>
-        <div className="flex justify-between items-start pt-2 px-2 sm:pt-4 sm:px-6">
-          <div className="flex flex-col gap-1">
-            <div className="flex flex-row gap-3 items-center">
-              <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin pb-0.5">
-                My Value Over Time {hasFallbackToBase ? "(BDV - Fallback)" : valueMode === "USD" ? "(USD)" : "(BDV)"}
-                {(valueMode === "USD" && scalarError) || hasFallbackToBase ? (
-                  <span
-                    className="ml-2 text-xs text-yellow-600 cursor-help"
-                    title={hasFallbackToBase ? "Fell back to BDV mode" : "Scalar correction failed"}
-                  >
-                    ⚠️
-                  </span>
-                ) : null}
-              </div>
-              {process.env.NODE_ENV === "development" && valueMode === "USD" && (
-                <button
-                  type="button"
-                  onClick={() => setShowDebugInfo(!showDebugInfo)}
-                  className="text-xs text-pinto-light/60 hover:text-pinto-light transition-colors"
-                  title="Toggle debug info"
-                >
-                  🔧
-                </button>
-              )}
-            </div>
-            {scalarError && (
-              <div className="text-xs text-yellow-600 max-w-md">
-                <details className="cursor-pointer">
-                  <summary className="hover:text-yellow-700 transition-colors">
-                    Chart values may not reflect exact current amounts
-                  </summary>
-                  <div className="mt-1 text-yellow-600/80 text-xs font-mono bg-yellow-50 p-2 rounded">
-                    {scalarError}
-                  </div>
-                </details>
-              </div>
-            )}
-            {showDebugInfo && valueMode === "USD" && (
-              <div className="text-xs text-pinto-light/60 font-mono bg-gray-100 p-2 rounded max-w-md">
-                <div>Current Total USD: {currentTotalValueUSD?.toFixed(4) || "undefined"}</div>
-                <div>Scalar Error: {scalarError || "None"}</div>
-                <div>
-                  Mode: {valueMode} {hasFallbackToBase ? "(Fallback to BDV)" : ""}
-                </div>
-                <div>Has Data: {rawChartData.length > 0 ? "Yes" : "No"}</div>
-                <div>Data Points: {rawChartData.length}</div>
-              </div>
-            )}
+        <div className="flex justify-end items-start pb-3 px-2 sm:pt-4 sm:px-6">
+          {showValueModeToggle && onValueModeChange && (
+            <ValueModeToggle mode={valueMode} onModeChange={onValueModeChange} />
+          )}
+        </div>
+        <div className="flex justify-between items-center px-2 sm:px-6">
+          <div className="sm:pinto-body text-pinto-light sm:text-pinto-light pinto-sm-light font-thin">
+            My Silo Over Time {valueMode === "USD" ? "(USD)" : "(BDV)"}
           </div>
-          <div className="flex flex-col items-end gap-2">
-            {showValueModeToggle && onValueModeChange && (
-              <ValueModeToggle mode={valueMode} onModeChange={onValueModeChange} />
-            )}
-            {chartTimeTab !== undefined && setChartTimeTab && (
-              <TimeTabsSelector tab={chartTimeTab} setTab={setChartTimeTab} />
-            )}
-          </div>
+          {chartTimeTab !== undefined && setChartTimeTab && (
+            <TimeTabsSelector tab={chartTimeTab} setTab={setChartTimeTab} />
+          )}
         </div>
 
         <TokenDisplayDataHybrid
@@ -1006,7 +911,7 @@ const SimpleValueChart = React.memo(
         />
 
         <div className="aspect-3/1">
-          <div className="px-1 pt-2 pb-4 h-[300px] sm:px-4 sm:pt-4">
+          <div className="px-1 h-[350px] sm:px-4 sm:pt-4">
             <LineChart
               data={stackedData}
               {...lineChartProps}
@@ -1068,7 +973,7 @@ const TokenDisplayDataHybrid = React.memo(
     });
 
     return (
-      <div className="h-[80px] sm:h-[65px] px-1 sm:px-6">
+      <div className="h-[60px] sm:h-[50px] px-1 sm:px-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div className="text-pinto-green-3 sm:text-pinto-green-3 pinto-body sm:pinto-h3 px-1" data-total-value>
             {valueFormatter(totalValue)}
@@ -1080,7 +985,7 @@ const TokenDisplayDataHybrid = React.memo(
             {formatDate(timestamp)}
           </div>
         </div>
-        <div className="flex flex-col gap-0 mt-2 sm:gap-2 sm:mt-3 px-1">
+        <div className="flex flex-col gap-0 mt-1 sm:gap-2 sm:mt-2 px-1">
           <div className="flex flex-wrap gap-1 mb-1 sm:gap-3">
             {tokenBreakdown.map((token, displayOrderIndex) => (
               <div key={token.name} className="flex items-center gap-0.5 text-xs">

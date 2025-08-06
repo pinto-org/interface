@@ -131,7 +131,7 @@ const useSyncAccountConnecting = (modalOpen: boolean, { address, status }: Retur
       disconnect();
       setMayNeedDisconnect(false);
     }
-  }, [mayNeedDisconnect]);
+  }, [mayNeedDisconnect, address, disconnect]);
 
   /**
    * Effect 4

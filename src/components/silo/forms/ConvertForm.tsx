@@ -247,7 +247,7 @@ export default function ConvertForm({ siloToken, onSuccess, onPreviewChange }: S
       {/* Input Token Selection - Convert From */}
       <div>
         <div className="flex flex-row justify-between items-center mb-2">
-          <div className="pinto-body text-pinto-dark">Amount to convert</div>
+          <div className="pinto-body text-pinto-dark">Convert From</div>
           <SlippageButton slippage={state.slippage} setSlippage={actions.setSlippage} />
         </div>
         <ComboInputField
@@ -267,7 +267,7 @@ export default function ConvertForm({ siloToken, onSuccess, onPreviewChange }: S
         {state.tokenIn && farmerDepositData && maxConvertAmount && (
           <div className="mt-3">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-pinto-gray-4">Quick Amount</span>
+              <span className="text-sm text-pinto-gray-4">Amount</span>
               <div className="flex gap-2">
                 {[25, 50, 75].map((percentage) => (
                   <button

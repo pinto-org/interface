@@ -166,10 +166,10 @@ const MoreActions = ({ actions, mainActionAvailable }: { actions: Action[]; main
         }`,
       }}
       trigger={
-        <Button variant="ghost" className="flex flex-1 pinto-sm gap-2">
+        <div className="flex flex-1 pinto-sm gap-2 items-center justify-center cursor-pointer hover:bg-gray-100 rounded-lg px-3 py-2">
           {mainActionAvailable ? "Show more actions" : "Show recommended actions"}
           <IconImage src={chevronDown} size={4} mobileSize={2.5} alt="chevron down" />
-        </Button>
+        </div>
       }
     >
       <div className="flex flex-col p-6 gap-6">

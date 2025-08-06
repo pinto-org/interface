@@ -164,7 +164,10 @@ const SiloActionDialog = ({ children, siloToken, defaultAction = "deposit", onOp
   return (
     <Dialog onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto border-none shadow-none bg-transparent p-0">
+      <DialogContent
+        className="max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto border-none shadow-none bg-transparent p-0"
+        hideCloseButton
+      >
         <DialogHeader className="sr-only">
           <DialogTitle>
             {defaultAction === "deposit" && "Deposit"}

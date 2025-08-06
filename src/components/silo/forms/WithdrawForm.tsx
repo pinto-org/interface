@@ -370,7 +370,7 @@ export default function WithdrawForm({ siloToken, onSuccess, onPreviewChange }: 
         {farmerDepositData && (
           <div className="mt-3">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-pinto-gray-4">Quick Amount</span>
+              <span className="text-sm text-pinto-gray-4">Amount</span>
               <div className="flex gap-2">
                 {[25, 50, 75].map((percentage) => (
                   <button
