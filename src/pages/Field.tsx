@@ -310,13 +310,7 @@ function Field() {
               {activeTab === "pods" && (
                 <div>
                   {hasPods ? (
-                    <PlotsTable
-                      showClaimable
-                      disableHover
-                      enablePagination={true}
-                      initialPageSize={25}
-                      compact={isMobile}
-                    />
+                    <PlotsTable showClaimable disableHover enablePagination={false} />
                   ) : (
                     <EmptyTable type="plots-field" />
                   )}
