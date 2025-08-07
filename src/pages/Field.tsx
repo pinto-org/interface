@@ -36,6 +36,7 @@ import { useAtomValue } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useNavigate, useSearchParams } from "react-router-dom";
 import { useAccount } from "wagmi";
+import CultivationFactorChart from "./field/CultivationFactorChart";
 import FieldActions from "./field/FieldActions";
 import FieldActivity from "./field/FieldActivity";
 import FieldStats from "./field/FieldStats";
@@ -418,13 +419,20 @@ const FieldCharts = ({ show }: { show: boolean }) => {
   return (
     <>
       {isMorning && <MorningTemperatureChart />}
-      <FieldTemperatureBarChart />
       {!isMorning && (
-        <TemperatureChart
-          chartWrapperClassName="h-[200px] sm:h-[200px] lg:h-[200px]"
-          className="h-[325px] sm:h-[325px] lg:h-[325px]"
-        />
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+          <div className="flex-shrink-0 self-center">
+            <CultivationFactorChart />
+          </div>
+          <div className="flex-1">
+            <TemperatureChart
+              chartWrapperClassName="h-[200px] sm:h-[200px] lg:h-[200px]"
+              className="h-[325px] sm:h-[325px] lg:h-[325px]"
+            />
+          </div>
+        </div>
       )}
+      <FieldTemperatureBarChart />
     </>
   );
 };
