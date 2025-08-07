@@ -43,6 +43,7 @@ import FieldStats from "./field/FieldStats";
 import FieldTemperatureBarChart from "./field/FieldTemperatureBarChart";
 import MorningPanel from "./field/MorningPanel";
 import TemperatureChart from "./field/Temperature";
+import TractorOrdersChart from "./field/TractorOrdersChart";
 import TractorOrdersPanel from "./field/TractorOrdersPanel";
 
 // Add a custom hook to track the current sow amount
@@ -433,6 +434,7 @@ const FieldCharts = ({ show }: { show: boolean }) => {
         </div>
       )}
       <FieldTemperatureBarChart />
+      <TractorOrdersChart />
     </>
   );
 };

@@ -228,7 +228,7 @@ const useTransformBucketedFieldPlotSummary = (data: FieldPlotBucketSummary[] | u
 
       setTransformedData({
         labels,
-        datasets: [{ data: datasetData }],
+        datasets: [{ data: datasetData, label: "" }],
       });
     }
   }, [data]);

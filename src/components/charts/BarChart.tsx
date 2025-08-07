@@ -27,6 +27,7 @@ type BarChartProps = {
   enableTooltips?: boolean;
   yMinScalar?: number;
   yMaxScalar?: number;
+  useLinearXAxis?: boolean;
 };
 interface IYScale {
   type: keyof CartesianScaleTypeRegistry;
@@ -49,6 +50,7 @@ const BarChart = React.memo(
     enableTooltips = false,
     yMinScalar = 0.99,
     yMaxScalar = 1.01,
+    useLinearXAxis = false,
   }: BarChartProps) => {
     const [iYScale, setIYScale] = useState<IYScale | undefined>(undefined);
 
@@ -76,6 +78,66 @@ const BarChart = React.memo(
       setIYScale(yScaleObj);
     }, [data, logThreshold, yMinScalar, yMaxScalar]);
 
+    // Calculate X-axis range when using linear scale
+    const xAxisConfig = useMemo(() => {
+      if (!useLinearXAxis || !data.datasets.length) {
+        return {
+          type: "category" as const,
+          stacked: false,
+          ticks: {
+            display: !!xLabelFormatter,
+            callback: xLabelFormatter,
+            autoSkip: true,
+            maxTicksLimit: 5,
+          },
+        };
+      }
+
+      // Extract x-values from coordinate data
+      const xValues = data.datasets.flatMap((dataset) =>
+        dataset.data
+          .filter(
+            (point): point is [number, number] =>
+              Array.isArray(point) &&
+              point.length === 2 &&
+              typeof point[0] === "number" &&
+              typeof point[1] === "number",
+          )
+          .map(([x, _]) => x),
+      );
+
+      if (xValues.length === 0) {
+        return {
+          type: "linear" as const,
+          stacked: false,
+          ticks: {
+            display: !!xLabelFormatter,
+            callback: xLabelFormatter,
+            autoSkip: true,
+            maxTicksLimit: 5,
+          },
+        };
+      }
+
+      const minX = Math.min(...xValues);
+      const maxX = Math.max(...xValues);
+      const range = maxX - minX;
+      const padding = range * 0.05; // 5% padding on each side
+
+      return {
+        type: "linear" as const,
+        min: minX - padding,
+        max: maxX + padding,
+        stacked: false,
+        ticks: {
+          display: !!xLabelFormatter,
+          callback: xLabelFormatter,
+          autoSkip: true,
+          maxTicksLimit: 5,
+        },
+      };
+    }, [useLinearXAxis, data, xLabelFormatter]);
+
     const options: ChartOptions<"bar"> = useMemo(
       () => ({
         ...baseOptions,
@@ -92,15 +154,7 @@ const BarChart = React.memo(
               maxTicksLimit: 5,
             },
           },
-          x: {
-            stacked: false, //
-            ticks: {
-              display: !!xLabelFormatter,
-              callback: xLabelFormatter,
-              autoSkip: true,
-              maxTicksLimit: 5,
-            },
-          },
+          x: xAxisConfig,
         },
         onHover: (_, elements) => {
           onMouseOver?.(elements[0]?.index ?? undefined);
@@ -136,9 +190,12 @@ const BarChart = React.memo(
           tooltip: {
             enabled: enableTooltips,
           },
+          legend: {
+            display: false,
+          },
         },
       }),
-      [onMouseOver, yLabelFormatter, xLabelFormatter, defaultHoverIndex, enableTooltips, iYScale],
+      [onMouseOver, yLabelFormatter, xLabelFormatter, defaultHoverIndex, enableTooltips, iYScale, xAxisConfig],
     );
 
     const hasMouseOver = exists(onMouseOver);
@@ -188,6 +245,9 @@ const baseOptions: ChartOptions<"bar"> = {
   plugins: {
     tooltip: {
       enabled: false,
+    },
+    legend: {
+      display: false,
     },
   },
   elements: {
