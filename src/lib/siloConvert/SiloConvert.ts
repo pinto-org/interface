@@ -3,7 +3,7 @@ import { ITTLCache, InMemoryTTLCache } from "@/classes/TTLCache";
 import { TV } from "@/classes/TokenValue";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import encoders from "@/encoders";
-import { PriceContractPriceResult, decodePriceResult } from "@/encoders/ecosystem/price";
+import { PriceContractPriceResult } from "@/encoders/ecosystem/price";
 import junctionGte from "@/encoders/junction/junctionGte";
 import { AdvancedFarmWorkflow, AdvancedPipeWorkflow } from "@/lib/farm/workflow";
 import { getChainConstant } from "@/utils/chain";
@@ -18,7 +18,7 @@ import { MaxConvertResult, SiloConvertMaxConvertQuoter } from "./SiloConvert.max
 import { SiloConvertRoute, SiloConvertStrategizer } from "./siloConvert.strategizer";
 import { ConvertStrategyQuote } from "./strategies/core";
 import { SiloConvertType } from "./strategies/core";
-import { DefaultConvertStrategy } from "./strategies/implementations";
+import { DefaultConvertStrategy, SiloConvertLP2MainWithdrawPairStrategy } from "./strategies/implementations";
 import { ConversionQuotationError, SimulationError } from "./strategies/validation/SiloConvertErrors";
 import { SiloConvertContext } from "./types";
 import { decodeConvertResults } from "./utils";
@@ -106,6 +106,10 @@ export interface ConvertResultStruct<T = TV> {
    */
   toBdv: T;
 }
+
+export type SiloConvertQuoteOptions = {
+  isPairWithdrawal?: boolean;
+};
 
 export interface SiloConvertSummary<T extends SiloConvertType> {
   route: SiloConvertRoute<T>;
@@ -195,11 +199,12 @@ export class SiloConvert {
     farmerDeposits: DepositData[],
     amountIn: TV,
     slippage: number,
+    options: SiloConvertQuoteOptions = {},
     signal?: AbortSignal,
     forceUpdateCache: boolean = false,
   ): Promise<SiloConvertSummary<SiloConvertType>[]> {
     try {
-      return this._quote(source, target, farmerDeposits, amountIn, slippage, signal, forceUpdateCache);
+      return this._quote(source, target, farmerDeposits, amountIn, slippage, options, signal, forceUpdateCache);
     } catch (_e) {
       // Don't retry if the request was aborted
       if (_e instanceof Error && _e.name === "AbortError") {
@@ -207,7 +212,7 @@ export class SiloConvert {
       }
       console.debug("[SiloConvert/quote] Failed to quote, retrying with forceUpdateCache: ", forceUpdateCache);
       // if we fail to quote, force update the caches and try again.
-      return this._quote(source, target, farmerDeposits, amountIn, slippage, signal, true);
+      return this._quote(source, target, farmerDeposits, amountIn, slippage, options, signal, true);
     }
   }
 
@@ -220,6 +225,7 @@ export class SiloConvert {
     farmerDeposits: DepositData[],
     amountIn: TV,
     slippage: number,
+    options: SiloConvertQuoteOptions = {},
     signal?: AbortSignal,
     forceUpdateCache: boolean = false,
   ): Promise<SiloConvertSummary<SiloConvertType>[]> {
@@ -243,7 +249,7 @@ export class SiloConvert {
       this.scalarCache.clear();
     }
 
-    const routes = await this.strategizer.strategize(source, target, amountIn).catch((e) => {
+    const routes = await this.strategizer.strategize(source, target, amountIn, options).catch((e) => {
       console.error("[SiloConvert/quote] FAILED to strategize: ", e);
       throw new ConversionQuotationError(e instanceof Error ? e.message : "Failed to strategize", {
         source,
@@ -371,8 +377,10 @@ export class SiloConvert {
         return s.strategy instanceof DefaultConvertStrategy && s.strategy.grownStalkPenaltyExpected;
       });
 
+    const isWithdrawal = route.strategies.some((s) => s.strategy instanceof SiloConvertLP2MainWithdrawPairStrategy);
+
     // If the route incurs a penalty, sort the crates by stem to minimize grown stalk loss. Otherwise, sort by bdv
-    const sortBy = incursGSPenalty ? "stem" : "bdv";
+    const sortBy = incursGSPenalty || isWithdrawal ? "stem" : "bdv";
 
     const crates = pickCratesMultiple(farmerDeposits, sortBy, "asc", amounts);
 
@@ -449,17 +457,4 @@ export class SiloConvert {
 
     return pipe;
   }
-
-  /**
-   * Returns an empty pipeline convert quote.
-   */
-  // getEmptyResult() {
-  //   return {
-  //     workflow: new AdvancedFarmWorkflow(8543, defaultWagmiConfig),
-  //     quotes: [] as ConvertStrategyQuote<SiloConvertType>[],
-  //     totalAmountOut: TV.ZERO,
-  //     results: [] as ConvertResultStruct<TV>[],
-  //     postPriceData: undefined,
-  //   };
-  // }
 }

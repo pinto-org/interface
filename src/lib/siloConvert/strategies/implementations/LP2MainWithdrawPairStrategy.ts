@@ -3,10 +3,16 @@ import { TV } from "@/classes/TokenValue";
 import { PIPELINE_ADDRESS } from "@/constants/address";
 import { AdvancedFarmWorkflow, AdvancedPipeWorkflow } from "@/lib/farm/workflow";
 import { ExtendedPoolData } from "@/lib/siloConvert/SiloConvert.cache";
-import { ConvertQuoteSummary, ConvertStrategyQuote, PipelineConvertStrategy } from "@/lib/siloConvert/strategies/core";
-import { SiloConvertContext } from "@/lib/siloConvert/types";
+import {
+  ConvertQuoteSummary,
+  ConvertStrategyQuote,
+  ConvertSummariesLookup,
+  PipelineConvertStrategy,
+  SiloConvertType,
+} from "@/lib/siloConvert/strategies/core";
+import { PipelineConvertStrategyAndArgs, SiloConvertContext } from "@/lib/siloConvert/types";
 import { ExtendedPickedCratesDetails } from "@/utils/convert";
-import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
+import { AdvancedFarmCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { exists, throwIfAborted } from "@/utils/utils";
 import { quoteSiloConvertGetWellRemoveLiquidity } from "../../utils";
 
@@ -25,7 +31,7 @@ class LP2MainWithdrawPairStrategy extends PipelineConvertStrategy<"LP2MainWithdr
   readonly name = "LP2MainWithdrawPair_Pipeline";
 
   readonly sourceWell: ExtendedPoolData;
-  private readonly farmToMode: FarmToMode;
+  farmToMode: FarmToMode;
 
   constructor(source: ExtendedPoolData, target: Token, context: SiloConvertContext, farmToMode: FarmToMode) {
     super(source.pool, target, context);
@@ -34,12 +40,7 @@ class LP2MainWithdrawPairStrategy extends PipelineConvertStrategy<"LP2MainWithdr
       throw new Error("[LP2MainWithdrawPairStrategy] Farm to mode is required");
     }
 
-    this.initErrorHandlerCtx({
-      sourceWell: source.pool.name,
-      farmToMode: farmToMode === FarmToMode.EXTERNAL ? "External" : "Internal",
-      pairToken: this.pairToken.symbol,
-      targetToken: target.symbol,
-    });
+    this.initErrorHandlerCtx();
 
     this.errorHandler.validateConversionTokens("LP2Main", source.pool, target);
     this.sourceWell = source;
@@ -117,6 +118,47 @@ class LP2MainWithdrawPairStrategy extends PipelineConvertStrategy<"LP2MainWithdr
       advPipeCalls,
       amountOut: mainTokenAmountOut,
       convertData: undefined,
+    };
+  }
+
+  /**
+   * Rebuilds a ConvertStrategyQuote<"LP2MainWithdrawPair"> with the proper FarmToMode
+   *
+   * Quote is expected to be a ConvertStrategyQuote<"LP2MainWithdrawPair">
+   *
+   * @param context - The SiloConvertContext
+   * @param quote - The ConvertStrategyQuote<"LP2MainWithdrawPair"> to rebuild
+   * @param mode - The FarmToMode to rebuild to
+   * @returns The rebuilt strategy, args, and encode function, or undefined if the quote is not valid
+   */
+  static rebuildCallStructFromQuoteAndMode(
+    context: SiloConvertContext,
+    quote: ConvertStrategyQuote<SiloConvertType>,
+    mode: FarmToMode,
+  ): PipelineConvertStrategyAndArgs<"LP2MainWithdrawPair"> | undefined {
+    if (!isValidConvertStrategyQuote(quote)) {
+      return undefined;
+    }
+
+    const reStrategy = new LP2MainWithdrawPairStrategy(
+      quote.summary.source.well,
+      quote.summary.target.token,
+      context,
+      mode,
+    );
+
+    const advPipeCalls = reStrategy.buildAdvancedPipeCalls(quote.summary);
+
+    const thisArgs = {
+      stems: quote.pickedCrates.crates.map((crate) => crate.stem.toBigInt()),
+      amounts: quote.pickedCrates.crates.map((crate) => crate.amount.toBigInt()),
+      advPipeCalls,
+    };
+
+    return {
+      strategy: reStrategy,
+      args: thisArgs,
+      farmStruct: reStrategy.encodeFromQuote(quote),
     };
   }
 
@@ -220,3 +262,25 @@ class LP2MainWithdrawPairStrategy extends PipelineConvertStrategy<"LP2MainWithdr
 }
 
 export { LP2MainWithdrawPairStrategy as SiloConvertLP2MainWithdrawPairStrategy };
+
+function isValidConvertStrategyQuote(
+  quote: ConvertStrategyQuote<SiloConvertType>,
+): quote is ConvertStrategyQuote<"LP2MainWithdrawPair"> {
+  if (isValidWithdrawConvertSourceSummary(quote.summary.source) && isValidWithdrawTargetSummary(quote.summary.target)) {
+    return true;
+  }
+
+  return false;
+}
+
+function isValidWithdrawConvertSourceSummary(
+  source: ConvertSummariesLookup[SiloConvertType]["source"],
+): source is ConvertSummariesLookup["LP2LP"]["source"] {
+  return "well" in source && "removeTokens" in source && "amountOut" in source && "minAmountOut" in source;
+}
+
+function isValidWithdrawTargetSummary(
+  target: ConvertSummariesLookup[SiloConvertType]["target"],
+): target is ConvertSummariesLookup["LP2MainWithdrawPair"]["target"] {
+  return "withdrawalToken" in target && "withdrawalAmount" in target;
+}
