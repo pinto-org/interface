@@ -87,6 +87,7 @@ const siloQueryKeys = {
       source: HashString | undefined,
       target: HashString | undefined,
       amountIn: string,
+      isPairWithdrawal: boolean,
       slippage: number,
     ) => {
       return [
@@ -96,6 +97,7 @@ const siloQueryKeys = {
         `source=${source ?? "no-source"}`,
         `target=${target ?? "no-target"}`,
         `amount=${amountIn}`,
+        `isPairWithdrawal=${isPairWithdrawal}`,
         `slippage=${slippage}`,
       ] as const;
     },
