@@ -50,6 +50,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { encodeFunctionData } from "viem";
 import { useConfig } from "wagmi";
 import { useAccount, useChainId } from "wagmi";
 
@@ -104,7 +105,11 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   const convertQuoteEnabled = shouldConvertWithdraw && convertibleAmount?.gt(0) && amountTV.gt(0) && !!account.address;
 
   const siloConvert = useSiloConvert();
-  const { data: convertQuote, rebuildConvertWithdrawal } = useSiloConvertQuote(
+  const {
+    data: convertQuote,
+    rebuildConvertWithdrawal,
+    ...convertQuery
+  } = useSiloConvertQuote(
     siloConvert,
     siloToken,
     mainToken,
@@ -120,14 +125,6 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const convertResult =
     exists(convertRouteIndex) && exists(convertResults) ? convertResults?.[convertRouteIndex] : undefined;
-
-  useEffect(() => {
-    console.log("convertQuote: ", convertQuote);
-  }, [convertQuote]);
-
-  useEffect(() => {
-    console.log("convertResults: ", convertResults);
-  }, [convertResults]);
 
   // initialize the route index to the first sorted index
   useEffect(() => {

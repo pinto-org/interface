@@ -156,12 +156,20 @@ class LP2MainWithdrawPairStrategy extends PipelineConvertStrategy<"LP2MainWithdr
       advPipeCalls,
     };
 
-    const farmCalls: AdvancedFarmCall[] = [];
-    farmCalls.push(reStrategy.encodeFromQuote(quote));
+    const newQuote = {
+      ...quote,
+      advPipeCalls,
+    };
 
-    const additionalCalls = reStrategy.getTransferToInternalPipeCalls(quote.summary);
-    if (!!additionalCalls.length) {
-      farmCalls.push(additionalCalls.encode());
+    const farmCalls: AdvancedFarmCall[] = [];
+    farmCalls.push(reStrategy.encodeFromQuote(newQuote));
+
+    // Only add additional transfer calls for INTERNAL mode
+    if (mode === FarmToMode.INTERNAL) {
+      const additionalCalls = reStrategy.getTransferToInternalPipeCalls(newQuote.summary);
+      if (!!additionalCalls.length) {
+        farmCalls.push(additionalCalls.encode());
+      }
     }
 
     return {
@@ -191,19 +199,21 @@ class LP2MainWithdrawPairStrategy extends PipelineConvertStrategy<"LP2MainWithdr
 
     const pipe = new AdvancedPipeWorkflow(this.context.chainId, this.context.wagmiConfig);
 
-    // pipe.add(LP2MainWithdrawPairStrategy.snippets.erc20BalanceOf(this.pairToken, PIPELINE_ADDRESS));
+    pipe.add(LP2MainWithdrawPairStrategy.snippets.erc20BalanceOf(this.pairToken, PIPELINE_ADDRESS));
 
-    // pipe.add(LP2MainWithdrawPairStrategy.snippets.erc20Approve(this.pairToken, this.context.diamond));
+    pipe.add(LP2MainWithdrawPairStrategy.snippets.erc20Approve(this.pairToken, this.context.diamond));
 
-    // pipe.add(LP2MainWithdrawPairStrategy.snippets.diamondTransferToken(
-    //   this.pairToken,
-    //   this.context.account,
-    //   TV.MAX_UINT256, // overridden with clipboard
-    //   FarmFromMode.EXTERNAL, // from pipeline (external)
-    //   FarmToMode.INTERNAL, // to user's internal balance
-    //   this.context.diamond,
-    //   Clipboard.encodeSlot(0, 0, 2),
-    // ));
+    pipe.add(
+      LP2MainWithdrawPairStrategy.snippets.diamondTransferToken(
+        this.pairToken,
+        this.context.account,
+        TV.MAX_UINT256, // overridden with clipboard
+        FarmFromMode.EXTERNAL, // from pipeline (external)
+        this.farmToMode, // to user's specified balance
+        this.context.diamond,
+        Clipboard.encodeSlot(0, 0, 2),
+      ),
+    );
 
     return pipe;
   }
@@ -224,7 +234,7 @@ class LP2MainWithdrawPairStrategy extends PipelineConvertStrategy<"LP2MainWithdr
    *
    * @param summary - The summary of the convert.
    */
-  override buildAdvancedPipeCalls({ source, target }: ConvertStrategyQuote<"LP2MainWithdrawPair">["summary"]) {
+  buildAdvancedPipeCalls({ source, target }: ConvertStrategyQuote<"LP2MainWithdrawPair">["summary"]) {
     // Validation
     this.errorHandler.assert(!!source.well, "Source well is required", { hasSourceWell: !!source.well });
     this.errorHandler.validateAmount(source.amountIn, "source amount in");
@@ -269,27 +279,12 @@ class LP2MainWithdrawPairStrategy extends PipelineConvertStrategy<"LP2MainWithdr
           Clipboard.encodeSlot(1, pairTokenOutCopySlot, 1),
         ),
       );
-    } else {
-      // 2(b). Approve protocol diamond address to spend pair token
-      pipe.add(LP2MainWithdrawPairStrategy.snippets.erc20Approve(this.pairToken, this.context.diamond));
-
-      // 3. Transfer pair token to user's internal balance via the diamond's transferToken function
-      pipe.add(
-        LP2MainWithdrawPairStrategy.snippets.diamondTransferToken(
-          this.pairToken,
-          this.context.account,
-          TV.MAX_UINT256, // overridden with clipboard
-          FarmFromMode.EXTERNAL, // from pipeline (external)
-          this.farmToMode, // to user's internal balance
-          this.context.diamond,
-          /**
-           * transferToken(token.address, recipient, amount, ...);
-           * ---> pasteSlot: index 2
-           */
-          Clipboard.encodeSlot(1, pairTokenOutCopySlot, 2),
-        ),
-      );
     }
+
+    /**
+     * If toMode is internal, the transfer to internal must be done in another transfer call after pipelineConvert
+     * this is to prevent failures due to re-entrancy
+     */
 
     return pipe;
   }

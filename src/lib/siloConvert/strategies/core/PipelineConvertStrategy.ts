@@ -143,7 +143,15 @@ export abstract class PipelineConvertStrategy<T extends SiloConvertType> extends
         throw new Error(`Invalid diamond address: ${target}`);
       }
 
-      const struct = encoders.token.transferToken(token.address, recipient, amount, fromMode, toMode, clipboard);
+      const struct = encoders.token.transferToken(
+        token.address,
+        recipient,
+        amount,
+        fromMode,
+        toMode,
+        diamond,
+        clipboard,
+      );
 
       return {
         ...struct,
