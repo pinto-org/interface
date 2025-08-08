@@ -204,7 +204,6 @@ export abstract class BaseErrorHandler<TTokenContext = unknown, TContext extends
         return new SCE.InvalidAmountError(displayValue, errorMessage, {
           amount: amount instanceof TV ? amount.toHuman() : amount,
           operation: operationName,
-          originalError: originalError instanceof Error ? originalError.message : "Unknown error",
           ...this.buildContext(ctx),
         });
       },
