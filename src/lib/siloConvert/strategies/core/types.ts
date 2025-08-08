@@ -67,6 +67,7 @@ export type ConvertStrategyQuote<T extends SiloConvertType> = Prettify<{
   amountOut: TV;
   summary: ConvertQuoteSummary<T>;
   convertData?: HashString;
+  needsRebuild?: boolean;
 }>;
 
 export interface ConvertStrategyWithSwap {

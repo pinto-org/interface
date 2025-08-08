@@ -25,6 +25,7 @@ const defaultData = {
   deltaBdv: TV.ZERO,
   fromBdv: TV.ZERO,
   toBdv: TV.ZERO,
+  withdrawalAmount: TV.ZERO,
 };
 
 export type SiloConvertResultResult = typeof defaultData & {
@@ -141,6 +142,11 @@ const reduceSummary = (summary: SiloConvertSummary<SiloConvertType>, targetToken
       const quote = summary.quotes[i];
       const { pickedCrates: picked } = quote;
 
+      let withdrawalAmount = TV.ZERO;
+      if ("withdrawalAmount" in quote.summary.target) {
+        withdrawalAmount = quote.summary.target.withdrawalAmount;
+      }
+
       const resultToStem = result.toStem;
       const willGerminate = resultToStem.gte(targetStemTip);
       const germinatingSeasons = willGerminate ? (resultToStem.eq(targetStemTip) ? 2 : 1) : 0;
@@ -173,6 +179,7 @@ const reduceSummary = (summary: SiloConvertSummary<SiloConvertType>, targetToken
         deltaBdv: prev.deltaBdv.add(deltaBdv),
         fromBdv: prev.fromBdv.add(fromBdv),
         toBdv: prev.toBdv.add(toBdv),
+        withdrawalAmount: prev.withdrawalAmount.add(withdrawalAmount),
       };
 
       return struct;

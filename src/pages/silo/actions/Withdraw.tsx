@@ -14,10 +14,10 @@ import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
 import { Separator } from "@/components/ui/Separator";
 import { Switch } from "@/components/ui/Switch";
-import Warning from "@/components/ui/Warning";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import encoders from "@/encoders";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
+import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useLPTokenToNonPintoUnderlyingMap, useTokenMap } from "@/hooks/pinto/useTokenMap";
 import useSiloConvert, { useSiloConvertQuote } from "@/hooks/silo/useSiloConvert";
 import { useSiloConvertResult } from "@/hooks/silo/useSiloConvertResult";
@@ -36,7 +36,7 @@ import { useSiloData } from "@/state/useSiloData";
 import useSiloSnapshots from "@/state/useSiloSnapshots";
 import { useInvalidateSun } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
-import { getChainConstant } from "@/utils/chain";
+import { getChainConstant, useChainConstant } from "@/utils/chain";
 import { sortAndPickCrates } from "@/utils/convert";
 import { formatter } from "@/utils/format";
 import { stringToNumber } from "@/utils/string";
@@ -79,23 +79,22 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   const tokenMap = useTokenMap();
   const prices = usePriceData();
   const underlyingMap = useLPTokenToNonPintoUnderlyingMap();
+  const mainToken = useChainConstant(MAIN_TOKEN);
+  const queryClient = useQueryClient();
 
-  const mainToken = getChainConstant(chainId, MAIN_TOKEN);
-
-  const underlyingPairToken = siloToken.isLP ? underlyingMap[getTokenIndex(siloToken)] : undefined;
+  const diamondAddress = useProtocolAddress();
 
   const [destination, setDestination] = useState(FarmToMode.EXTERNAL);
   const [amount, setAmount] = useState("");
 
   const [shouldConvertWithdraw, setShouldConvertWithdraw] = useState(false);
 
-  const amountTV = useSafeTokenValue(amount, siloToken);
-
   const [tokenOut, setTokenOut] = useState(getInitialWithdrawToken(siloToken, tokenMap));
   const [slippage, setSlippage] = useState(0.1);
   const [inputError, setInputError] = useState(false);
 
-  const queryClient = useQueryClient();
+  const underlyingPairToken = siloToken.isLP ? underlyingMap[getTokenIndex(siloToken)] : undefined;
+  const amountTV = useSafeTokenValue(amount, siloToken);
 
   const farmerDepositData = farmerDeposits.get(siloToken);
   const deposits = farmerDepositData?.deposits;
@@ -209,6 +208,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       ...farmerBalances.queryKeys,
     ];
     allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query, refetchType: "active" }));
+    siloConvert.clear();
     invalidateSun("all", { refetchType: "active" });
     resetSwap();
     priceImpactQuery.clear();
@@ -230,11 +230,32 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   });
 
   const handleWithdrawConvert = async (convQuote: ReturnType<typeof useSiloConvertQuote>["data"]) => {
-    if (!convQuote) return;
+    if (!convQuote) {
+      throw new Error("Quote required");
+    }
 
-    const argsAndStrategies = rebuildConvertWithdrawal(convQuote, destination);
+    try {
+      const argsAndStrategies = rebuildConvertWithdrawal(convQuote, destination);
 
-    console.log(argsAndStrategies);
+      if (!argsAndStrategies || !argsAndStrategies.length) {
+        throw new Error("No quote found");
+      }
+
+      const advFarmCalls = argsAndStrategies.flatMap(({ farmStructs }) => farmStructs);
+
+      return writeWithEstimateGas({
+        address: diamondAddress,
+        abi: beanstalkAbi,
+        functionName: "advancedFarm",
+        args: [advFarmCalls],
+      });
+    } catch (e) {
+      console.error("Error in handleWithdrawConvert: ", e);
+      setSubmitting(false);
+      toast.dismiss();
+      toast.error("Convert withdraw failed");
+      throw e;
+    }
   };
 
   const onSubmit = async () => {
@@ -244,6 +265,10 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       setSubmitting(true);
       toast.loading(`Withdrawing...`);
       const transferData = sortAndPickCrates("withdraw", amountTV, deposits);
+
+      if (shouldConvertWithdraw) {
+        return handleWithdrawConvert(convertQuote);
+      }
 
       const stems = transferData.crates.map((crate) => crate.stem);
       const amounts = transferData.crates.map((crate) => crate.amount);
@@ -352,20 +377,33 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     return seasonsOfGrownStalkWithdrawn;
   }, [withdrawOutput, siloData.averageGrownStalkPerBdvPerSeason]);
 
-  const outputAmount = shouldConvertWithdraw ? convertResult?.totalAmountOut : withdrawOutput?.amount;
+  const tokenOutAmount =
+    shouldConvertWithdraw && exists(convertRouteIndex)
+      ? convertQuote?.[convertRouteIndex]?.quotes?.reduce(
+          (prev, curr) => prev.add(curr.summary?.target?.amountOut),
+          TokenValue.ZERO,
+        )
+      : undefined;
+
+  const outputAmount = shouldConvertWithdraw ? convertResult?.withdrawalAmount : withdrawOutput?.amount;
   const outputStalk = shouldConvertWithdraw ? convertResult?.deltaStalk : withdrawOutput?.stalkLost;
   const outputSeeds = shouldConvertWithdraw ? convertResult?.deltaSeed : withdrawOutput?.seedsLost;
 
   const tokenOutUSD = prices.tokenPrices.get(tokenOut);
   const amountOutUSD = tokenOutUSD ? withdrawOutput?.amount.mul(tokenOutUSD.instant) : undefined;
-
   const swapReady = swapBuild && swapData?.buyAmount?.gt(0);
+
+  const convertWithdrawalReady = shouldConvertWithdraw ? convertResults && convertQuote && amountTV.gt(0) : true;
+  const defaultWithdrawReady = !shouldConvertWithdraw
+    ? withdrawOutput && amountTV.gt(0) && (shouldSwap ? swapReady : true)
+    : true;
+
   const disabled =
-    !stringToNumber(amount) ||
     !account.address ||
     submitting ||
     isConfirming ||
-    (shouldSwap && !swapReady) ||
+    !convertWithdrawalReady ||
+    !defaultWithdrawReady ||
     exceedsBalance;
 
   return (

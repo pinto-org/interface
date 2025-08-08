@@ -19,7 +19,7 @@ import { SiloConvertRoute, SiloConvertStrategizer } from "./siloConvert.strategi
 import { ConvertStrategyQuote } from "./strategies/core";
 import { SiloConvertType } from "./strategies/core";
 import { DefaultConvertStrategy, SiloConvertLP2MainWithdrawPairStrategy } from "./strategies/implementations";
-import { ConversionQuotationError, SimulationError } from "./strategies/validation/SiloConvertErrors";
+import { ConversionQuotationError, SiloConvertError, SimulationError } from "./strategies/validation/SiloConvertErrors";
 import { SiloConvertContext } from "./types";
 import { decodeConvertResults } from "./utils";
 
@@ -232,7 +232,7 @@ export class SiloConvert {
     // Check if already aborted
     throwIfAborted(signal);
     await this.priceCache.update(forceUpdateCache).catch((e) => {
-      console.error("[SiloConvert/quote] FAILED to update cache: ", e);
+      logError("[SiloConvert/quote] FAILED to update cache: ", e);
       throw new ConversionQuotationError(e instanceof Error ? e.message : "Failed to update cache", {
         source,
         target,
@@ -250,7 +250,7 @@ export class SiloConvert {
     }
 
     const routes = await this.strategizer.strategize(source, target, amountIn, options).catch((e) => {
-      console.error("[SiloConvert/quote] FAILED to strategize: ", e);
+      logError("[SiloConvert/quote] FAILED to strategize: ", e);
       throw new ConversionQuotationError(e instanceof Error ? e.message : "Failed to strategize", {
         source,
         target,
@@ -276,7 +276,7 @@ export class SiloConvert {
           try {
             quote = await strategy.strategy.quote(crates[i], advFarm, slippage, signal);
           } catch (e) {
-            console.error(`[SiloConvert/quote${i}] FAILED: `, strategy, e);
+            logError(`[SiloConvert/quote${i}] FAILED: `, e);
             throw e;
           }
           advFarm.add(strategy.strategy.encodeFromQuote(quote));
@@ -291,10 +291,8 @@ export class SiloConvert {
         };
       }),
     ).catch((e) => {
-      console.error("[SiloConvert/quote] FAILED to quote routes: ", e);
-      throw new ConversionQuotationError(e instanceof Error ? e.message : "Failed to quote routes", {
-        routes,
-      });
+      logError("[SiloConvert/quote] FAILED to quote routes: ", e);
+      throw e;
     });
 
     const simulationsRawResults = await Promise.all(
@@ -305,7 +303,7 @@ export class SiloConvert {
             after: this.priceCache.constructPriceAdvPipe({ noTokenPrices: true }),
           })
           .catch((e) => {
-            console.error("[SiloConvert/quote] FAILED to simulate routes : ", route, e);
+            logError("[SiloConvert/quote] FAILED to simulate routes : ", e);
             throw new SimulationError("quote", e instanceof Error ? e.message : "Unknown error", {
               routes,
               quotedRoutes,
@@ -337,7 +335,7 @@ export class SiloConvert {
       try {
         decoded = this.decodeRouteAndPriceResults(staticCallResult, route.route);
       } catch (e) {
-        console.error("[SiloConvert/quote] FAILED to decode route and price results: ", e);
+        logError("[SiloConvert/quote] FAILED to decode route and price results: ", e);
         throw new ConversionQuotationError("Failed to decode route and price results", {
           staticCallResult,
           route,
@@ -435,7 +433,7 @@ export class SiloConvert {
         ),
       };
     } catch (e) {
-      console.error("[SiloConvert/decodeRouteAndPriceResults] FAILED to decode convert and price results: ", e);
+      logError("[SiloConvert/decodeRouteAndPriceResults] FAILED to decode convert and price results: ", e);
       throw new Error("Failed to decode convert and price results");
     }
   }
@@ -456,5 +454,15 @@ export class SiloConvert {
     pipe.add(junctionGte(0n, safeMinStalk.toBigInt(), Clipboard.encodeSlot(0, 0, 0)));
 
     return pipe;
+  }
+}
+
+function logError(prefix: string, e: unknown) {
+  if (e instanceof SiloConvertError) {
+    console.error(prefix, e.toLogObject());
+  } else if (e instanceof Error) {
+    console.error(prefix, e.message);
+  } else {
+    console.error("[SiloConvert] Unknown error: ", e);
   }
 }

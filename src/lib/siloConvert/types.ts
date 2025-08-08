@@ -27,5 +27,5 @@ export type PipelineConvertStrategyAndArgs<T extends SiloConvertType> = {
     amounts: bigint[];
     advPipeCalls: AdvancedPipeWorkflow;
   };
-  farmStruct: AdvancedFarmCall;
+  farmStructs: AdvancedFarmCall[];
 };

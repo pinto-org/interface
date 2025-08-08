@@ -1,6 +1,5 @@
 import { Token } from "@/utils/types";
 import { AnyRecord } from "@/utils/types.generic";
-import { Address } from "viem";
 import { SiloConvertTokenDirection } from "../../types";
 
 /**

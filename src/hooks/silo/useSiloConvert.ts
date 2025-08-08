@@ -251,5 +251,31 @@ export function useSiloConvertQuote(
     [],
   );
 
-  return { ...query, rebuildConvertWithdrawal, queryKey };
+  const guardQuoteExecution = useCallback(
+    (summaries: SiloConvertSummary<SiloConvertType>[] | undefined, toMode?: FarmToMode) => {
+      try {
+        if (!summaries || !summaries.length) {
+          throw new Error("No convert quote provided");
+        }
+
+        const hasLP2MainWithdrawPair = summaries.some((summary) => summary.route.convertType === "LP2MainWithdrawPair");
+
+        if (hasLP2MainWithdrawPair) {
+          if (!toMode) {
+            throw new Error("toMode not provided");
+          }
+          // Rebuild the convert quote to match the desired mode
+          return rebuildConvertWithdrawal(summaries, toMode);
+        } else {
+          return;
+        }
+      } catch (e) {
+        console.error("Error in getExecutableFromQuote: ", e);
+        throw e;
+      }
+    },
+    [],
+  );
+
+  return { ...query, rebuildConvertWithdrawal, guardQuoteExecution, queryKey };
 }

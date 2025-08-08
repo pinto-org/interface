@@ -118,6 +118,7 @@ class LP2MainWithdrawPairStrategy extends PipelineConvertStrategy<"LP2MainWithdr
       advPipeCalls,
       amountOut: mainTokenAmountOut,
       convertData: undefined,
+      needsRebuild: this.farmToMode === FarmToMode.INTERNAL,
     };
   }
 
@@ -155,10 +156,18 @@ class LP2MainWithdrawPairStrategy extends PipelineConvertStrategy<"LP2MainWithdr
       advPipeCalls,
     };
 
+    const farmCalls: AdvancedFarmCall[] = [];
+    farmCalls.push(reStrategy.encodeFromQuote(quote));
+
+    const additionalCalls = reStrategy.getTransferToInternalPipeCalls(quote.summary);
+    if (!!additionalCalls.length) {
+      farmCalls.push(additionalCalls.encode());
+    }
+
     return {
       strategy: reStrategy,
       args: thisArgs,
-      farmStruct: reStrategy.encodeFromQuote(quote),
+      farmStructs: farmCalls,
     };
   }
 
@@ -172,6 +181,31 @@ class LP2MainWithdrawPairStrategy extends PipelineConvertStrategy<"LP2MainWithdr
     advancedFarm: AdvancedFarmWorkflow,
   ): Promise<TV[]> {
     return quoteSiloConvertGetWellRemoveLiquidity(pickedCratesDetails, advancedFarm, this);
+  }
+
+  private getTransferToInternalPipeCalls({ source, target }: ConvertStrategyQuote<"LP2MainWithdrawPair">["summary"]) {
+    // Validation
+    this.errorHandler.assert(!!source.well, "Source well is required", { hasSourceWell: !!source.well });
+    this.errorHandler.validateAmount(source.amountIn, "source amount in");
+    this.errorHandler.validateAmount(target.withdrawalAmount, "pair token withdrawn amount");
+
+    const pipe = new AdvancedPipeWorkflow(this.context.chainId, this.context.wagmiConfig);
+
+    // pipe.add(LP2MainWithdrawPairStrategy.snippets.erc20BalanceOf(this.pairToken, PIPELINE_ADDRESS));
+
+    // pipe.add(LP2MainWithdrawPairStrategy.snippets.erc20Approve(this.pairToken, this.context.diamond));
+
+    // pipe.add(LP2MainWithdrawPairStrategy.snippets.diamondTransferToken(
+    //   this.pairToken,
+    //   this.context.account,
+    //   TV.MAX_UINT256, // overridden with clipboard
+    //   FarmFromMode.EXTERNAL, // from pipeline (external)
+    //   FarmToMode.INTERNAL, // to user's internal balance
+    //   this.context.diamond,
+    //   Clipboard.encodeSlot(0, 0, 2),
+    // ));
+
+    return pipe;
   }
 
   /**
@@ -190,7 +224,7 @@ class LP2MainWithdrawPairStrategy extends PipelineConvertStrategy<"LP2MainWithdr
    *
    * @param summary - The summary of the convert.
    */
-  buildAdvancedPipeCalls({ source, target }: ConvertStrategyQuote<"LP2MainWithdrawPair">["summary"]) {
+  override buildAdvancedPipeCalls({ source, target }: ConvertStrategyQuote<"LP2MainWithdrawPair">["summary"]) {
     // Validation
     this.errorHandler.assert(!!source.well, "Source well is required", { hasSourceWell: !!source.well });
     this.errorHandler.validateAmount(source.amountIn, "source amount in");
@@ -217,7 +251,7 @@ class LP2MainWithdrawPairStrategy extends PipelineConvertStrategy<"LP2MainWithdr
     //    index 2 -> amount of tokens[0] removed
     //    index 3 -> amount of tokens[1] removed
     // If sourceIndexes.pair is 1, then the pair token is the second token in the array (index 3)
-    const pairTokenOutCopySlot = Number(this.sourceIndexes.pair) ? 3 : 2;
+    const pairTokenOutCopySlot = this.sourceIndexes.pair === 1 ? 3 : 2;
 
     if (this.farmToMode === FarmToMode.EXTERNAL) {
       // 2(a). If sending to External balance, no approval needed
