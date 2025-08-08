@@ -1,20 +1,26 @@
 import arrowDown from "@/assets/misc/ChevronDown.svg";
 import { TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
+import { Row } from "@/components/Container";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import MobileActionBar from "@/components/MobileActionBar";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
 import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
+import TooltipSimple from "@/components/TooltipSimple";
 import { Button } from "@/components/ui/Button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
 import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
 import { Separator } from "@/components/ui/Separator";
+import { Switch } from "@/components/ui/Switch";
 import Warning from "@/components/ui/Warning";
+import { MAIN_TOKEN } from "@/constants/tokens";
 import encoders from "@/encoders";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
-import { useTokenMap } from "@/hooks/pinto/useTokenMap";
+import { useLPTokenToNonPintoUnderlyingMap, useTokenMap } from "@/hooks/pinto/useTokenMap";
+import useSiloConvert, { useSiloConvertQuote } from "@/hooks/silo/useSiloConvert";
+import { useSiloConvertResult } from "@/hooks/silo/useSiloConvertResult";
 import useBuildSwapQuote from "@/hooks/swap/useBuildSwapQuote";
 import useSwap from "@/hooks/swap/useSwap";
 import useSwapSummary from "@/hooks/swap/useSwapSummary";
@@ -29,15 +35,17 @@ import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useSiloSnapshots from "@/state/useSiloSnapshots";
 import { useInvalidateSun } from "@/state/useSunData";
+import useTokenData from "@/state/useTokenData";
+import { getChainConstant } from "@/utils/chain";
 import { sortAndPickCrates } from "@/utils/convert";
 import { formatter } from "@/utils/format";
 import { stringToNumber } from "@/utils/string";
 import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { AddressLookup } from "@/utils/types.generic";
-import { noop } from "@/utils/utils";
+import { cn, exists, noop } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useConfig } from "wagmi";
 import { useAccount, useChainId } from "wagmi";
@@ -70,9 +78,16 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   const farmerDeposits = farmerSilo.deposits;
   const tokenMap = useTokenMap();
   const prices = usePriceData();
+  const underlyingMap = useLPTokenToNonPintoUnderlyingMap();
+
+  const mainToken = getChainConstant(chainId, MAIN_TOKEN);
+
+  const underlyingPairToken = siloToken.isLP ? underlyingMap[getTokenIndex(siloToken)] : undefined;
 
   const [destination, setDestination] = useState(FarmToMode.EXTERNAL);
   const [amount, setAmount] = useState("");
+
+  const [shouldConvertWithdraw, setShouldConvertWithdraw] = useState(false);
 
   const amountTV = useSafeTokenValue(amount, siloToken);
 
@@ -84,6 +99,46 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const farmerDepositData = farmerDeposits.get(siloToken);
   const deposits = farmerDepositData?.deposits;
+
+  const convertibleAmount = farmerDepositData?.convertibleAmount;
+  const convertibleDeposits = farmerDepositData?.convertibleDeposits;
+
+  const convertQuoteEnabled = shouldConvertWithdraw && convertibleAmount?.gt(0) && amountTV.gt(0) && !!account.address;
+
+  const siloConvert = useSiloConvert();
+  const { data: convertQuote, rebuildConvertWithdrawal } = useSiloConvertQuote(
+    siloConvert,
+    siloToken,
+    mainToken,
+    amount,
+    convertibleDeposits,
+    slippage,
+    { isPairWithdrawal: true },
+    convertQuoteEnabled,
+  );
+  const { results: convertResults, sortedIndexes } = useSiloConvertResult(siloToken, mainToken, convertQuote);
+
+  const [convertRouteIndex, setConvertRouteIndex] = useState<number | undefined>(undefined);
+
+  const convertResult =
+    exists(convertRouteIndex) && exists(convertResults) ? convertResults?.[convertRouteIndex] : undefined;
+
+  useEffect(() => {
+    console.log("convertQuote: ", convertQuote);
+  }, [convertQuote]);
+
+  useEffect(() => {
+    console.log("convertResults: ", convertResults);
+  }, [convertResults]);
+
+  // initialize the route index to the first sorted index
+  useEffect(() => {
+    if (!sortedIndexes?.length || convertRouteIndex !== undefined) {
+      return;
+    }
+
+    setConvertRouteIndex(sortedIndexes[0]);
+  }, [sortedIndexes, convertRouteIndex]);
 
   const tokenList = useMemo(() => {
     if (siloToken.isMain) return [siloToken];
@@ -112,7 +167,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     tokenOut,
     amountIn: amountTV,
     slippage,
-    disabled: swapDisabled,
+    disabled: swapDisabled || shouldConvertWithdraw,
   });
 
   const swapBuild = useBuildSwapQuote(swapData, FarmFromMode.INTERNAL, destination);
@@ -174,6 +229,14 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     successCallback: onSuccess,
   });
 
+  const handleWithdrawConvert = async (convQuote: ReturnType<typeof useSiloConvertQuote>["data"]) => {
+    if (!convQuote) return;
+
+    const argsAndStrategies = rebuildConvertWithdrawal(convQuote, destination);
+
+    console.log(argsAndStrategies);
+  };
+
   const onSubmit = async () => {
     if (amountTV.lte(0) || !destination || !account.address || !deposits || inputError) return;
 
@@ -229,6 +292,10 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   };
 
   const withdrawOutput = useMemo(() => {
+    if (shouldConvertWithdraw) {
+      return undefined;
+    }
+
     if (
       !amount ||
       stringToNumber(amount) <= 0 ||
@@ -252,7 +319,17 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       seedsLost: transferData.seeds,
       bdvLost: transferData.bdv,
     };
-  }, [amount, deposits, siloToken.decimals, shouldSwap, swapData, inputError, exceedsBalance]);
+  }, [
+    amount,
+    deposits,
+    siloToken.decimals,
+    shouldSwap,
+    swapData,
+    inputError,
+    exceedsBalance,
+    shouldConvertWithdraw,
+    amountTV,
+  ]);
 
   // Calculate seasons of grown stalk being withdrawn
   const seasonsOfGrownStalkWithdrawn = useMemo(() => {
@@ -274,6 +351,10 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
     return seasonsOfGrownStalkWithdrawn;
   }, [withdrawOutput, siloData.averageGrownStalkPerBdvPerSeason]);
+
+  const outputAmount = shouldConvertWithdraw ? convertResult?.totalAmountOut : withdrawOutput?.amount;
+  const outputStalk = shouldConvertWithdraw ? convertResult?.deltaStalk : withdrawOutput?.stalkLost;
+  const outputSeeds = shouldConvertWithdraw ? convertResult?.deltaSeed : withdrawOutput?.seedsLost;
 
   const tokenOutUSD = prices.tokenPrices.get(tokenOut);
   const amountOutUSD = tokenOutUSD ? withdrawOutput?.amount.mul(tokenOutUSD.instant) : undefined;
@@ -308,6 +389,30 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
           disableButton
         />
       </div>
+      {siloToken.isLP && underlyingPairToken ? (
+        <Row className="justify-between gap-2 items-center">
+          <Row className="items-center gap-1">
+            <label className="pinto-sm sm:pinto-body-light sm:text-pinto-light text-pinto-light">
+              Convert Withdrawal
+            </label>
+            <TooltipSimple
+              variant="outlined"
+              content={
+                <div>
+                  Withdraw half as {underlyingPairToken.symbol} to your desired balance and convert the other half to{" "}
+                  {mainToken.symbol}.
+                </div>
+              }
+            />
+          </Row>
+          <Switch
+            checked={shouldConvertWithdraw}
+            onCheckedChange={() => {
+              setShouldConvertWithdraw((prev) => !prev);
+            }}
+          />
+        </Row>
+      ) : null}
       <div className="flex flex-col">
         <Label className="flex h-10 items-center">Destination</Label>
         <DestinationBalanceSelect setBalanceTo={setDestination} balanceTo={destination} />
@@ -318,9 +423,15 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
           <div className="flex flex-col w-full gap-1">
             <div className="flex flex-row items-center justify-between w-full">
               <div className="flex flex-col gap-1">
-                <div className="pinto-h3">{formatter.token(withdrawOutput?.amount, tokenOut)}</div>
+                <div className="pinto-h3">{formatter.token(outputAmount, tokenOut)}</div>
               </div>
-              <WithdrawTokenSelect selected={tokenOut} tokens={tokenList} selectToken={setTokenOut} />
+              <WithdrawTokenSelect
+                shouldConvertWithdraw={shouldConvertWithdraw}
+                selected={tokenOut}
+                tokens={tokenList}
+                selectToken={setTokenOut}
+                disableOpen={shouldConvertWithdraw}
+              />
             </div>
             <div className="pinto-sm-light text-pinto-light">{formatter.usd(amountOutUSD)}</div>
           </div>
@@ -329,10 +440,30 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       <div className="flex flex-col">
         {withdrawOutput && (
           <SiloOutputDisplay
-            amount={withdrawOutput.amount}
+            amount={withdrawOutput?.amount}
             token={tokenOut}
-            stalk={withdrawOutput.stalkLost}
-            seeds={withdrawOutput.seedsLost}
+            stalk={withdrawOutput?.stalkLost}
+            seeds={withdrawOutput?.seedsLost}
+            showNegativeDeltas
+            showGrownStalkSeasonsNotice
+            grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
+          />
+        )}
+        {convertResult && shouldConvertWithdraw && (
+          <SiloOutputDisplay
+            before={{
+              label: "Withdraw amount",
+              valueProps: {
+                value: formatter.token(outputAmount, tokenOut),
+                token: tokenOut,
+                suffix: tokenOut.symbol,
+              },
+            }}
+            title="I receive"
+            amount={convertResult.totalAmountOut.abs()}
+            token={mainToken}
+            stalk={convertResult.deltaStalk.abs()}
+            seeds={convertResult.deltaSeed.abs()}
             showNegativeDeltas
             showGrownStalkSeasonsNotice
             grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
@@ -395,19 +526,50 @@ const WithdrawTokenSelect = ({
   selected,
   tokens,
   selectToken,
-}: { selected: Token; tokens: Token[]; selectToken: (t: Token) => void }) => {
+  shouldConvertWithdraw,
+  disableOpen = false,
+}: {
+  selected: Token;
+  tokens: Token[];
+  selectToken: (t: Token) => void;
+  shouldConvertWithdraw: boolean;
+  disableOpen?: boolean;
+}) => {
   const [open, setOpen] = useState(false);
 
+  const handleOpenChange = (open: boolean) => {
+    if (disableOpen) return;
+    setOpen(open);
+  };
+
+  const { mainToken } = useTokenData();
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline-gray-shadow" size="xl" rounded="full">
-          <div className="flex flex-row items-center gap-1">
+        {shouldConvertWithdraw ? (
+          <Row
+            className={cn(
+              "h-12 px-4 py-3 sm:px-5 sm:py-3 items-center rounded-full gap-1",
+              "border border-pinto-gray-2 bg-white shadow-sm",
+              "shadow-[0px_1px_8px_0px_#E9F0F6] border-pinto-gray-blue bg-white/100",
+            )}
+          >
             <IconImage src={selected.logoURI} size={6} />
             <div className="pinto-body-light">{selected.symbol}</div>
-            <IconImage src={arrowDown} size={3} alt={"open token select dialog"} />
-          </div>
-        </Button>
+            <div className="pinto-body-light">AND</div>
+            <IconImage src={mainToken.logoURI} size={6} />
+            <div className="pinto-body-light">DEP. {mainToken.symbol}</div>
+          </Row>
+        ) : (
+          <Button variant="outline-gray-shadow" size="xl" rounded="full">
+            <div className="flex flex-row items-center gap-1">
+              <IconImage src={selected.logoURI} size={6} />
+              <div className="pinto-body-light">{selected.symbol}</div>
+              <IconImage src={arrowDown} size={3} alt={"open token select dialog"} />
+            </div>
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="w-full max-w-md flex flex-col gap-3 overflow-x-clip">
         <div className="flex flex-col">

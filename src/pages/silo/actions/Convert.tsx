@@ -176,23 +176,19 @@ function ConvertForm({
   const [routeIndex, setRouteIndex] = useState<number | undefined>(undefined);
 
   const { results: convertResults, sortedIndexes, showRoutes } = useSiloConvertResult(siloToken, targetToken, quote);
-
   const grownStalkPenaltyQuery = useSiloConvertDownPenaltyQuery(siloToken, targetToken, convertResults, isDownConvert);
 
   const convertPriceResults = useExtractSiloConvertResultPriceResults(quote);
   const priceImpact = useDeterminePriceImpactWithResults(convertPriceResults);
 
   // initialize the route index to the first sorted index
-  // useEffect(() => {
-  //   console.log("sortedIndexes", sortedIndexes);
-  //   console.log("routeIndex", routeIndex);
-  //   console.log("quote", quote);
-  //   if (!sortedIndexes?.length || routeIndex !== undefined) {
-  //     return;
-  //   }
+  useEffect(() => {
+    if (!sortedIndexes?.length || routeIndex !== undefined) {
+      return;
+    }
 
-  //   setRouteIndex(sortedIndexes[0]);
-  // }, [sortedIndexes, routeIndex]);
+    setRouteIndex(sortedIndexes[0]);
+  }, [sortedIndexes, routeIndex]);
 
   const selectedRoute = exists(routeIndex) && quote?.[routeIndex] ? quote[routeIndex] : undefined;
 
@@ -502,9 +498,6 @@ function ConvertForm({
               germinatingSeasons={convertResult.germinatingSeasons}
             />
             <SiloOutputDisplay
-              // before={{
-              //   label: ""
-              // }}
               amount={convertResult.totalAmountOut}
               token={targetToken}
               stalk={convertResult.deltaStalk}
