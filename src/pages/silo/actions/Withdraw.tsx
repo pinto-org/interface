@@ -462,13 +462,13 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
           </div>
         </div>
       )}
-      {siloToken.isLP && shouldConvertWithdraw && pintoKeptInSilo && (
+      {siloToken.isLP && shouldConvertWithdraw && (
         <div className="flex flex-col w-full py-4 gap-2">
           <div className="pinto-body-light text-pinto-light">Amount Kept Deposited in the Silo</div>
           <div className="flex flex-col w-full gap-1">
             <div className="flex flex-row items-center justify-between w-full">
               <div className="flex flex-col gap-1">
-                <div className="pinto-h3">{formatter.token(pintoKeptInSilo, mainToken)}</div>
+                <div className="pinto-h3">{formatter.token(pintoKeptInSilo || TokenValue.ZERO, mainToken)}</div>
               </div>
               <div className="flex flex-row items-center gap-1 px-4 py-2 bg-pinto-gray-1 rounded-full">
                 <IconImage src={mainToken.logoURI} size={6} />
@@ -476,7 +476,9 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
               </div>
             </div>
             <div className="pinto-sm-light text-pinto-light">
-              {formatter.usd(pintoKeptInSilo.mul(prices.tokenPrices.get(mainToken)?.instant || TokenValue.ZERO))}
+              {formatter.usd(
+                (pintoKeptInSilo || TokenValue.ZERO).mul(prices.tokenPrices.get(mainToken)?.instant || TokenValue.ZERO),
+              )}
             </div>
           </div>
         </div>
