@@ -425,10 +425,6 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
           disableButton
         />
       </div>
-      <div className="flex flex-col">
-        <Label className="flex h-10 items-center">Destination</Label>
-        <DestinationBalanceSelect setBalanceTo={setDestination} balanceTo={destination} />
-      </div>
       {siloToken.isLP && (
         <div className="flex flex-col w-full py-4 gap-2">
           <div className="pinto-body-light text-pinto-light">Withdraw as</div>
@@ -452,12 +448,17 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
         </div>
       )}
       <div className="flex flex-col">
+        <Label className="flex h-10 items-center">Destination</Label>
+        <DestinationBalanceSelect setBalanceTo={setDestination} balanceTo={destination} />
+      </div>
+      <div className="flex flex-col">
         {withdrawOutput && (
           <SiloOutputDisplay
-            amount={withdrawOutput?.amount}
-            token={tokenOut}
+            title="Output"
             stalk={withdrawOutput?.stalkLost}
             seeds={withdrawOutput?.seedsLost}
+            stalkLabel="Stalk Burnt"
+            seedsLabel="Seeds Lost"
             showNegativeDeltas
             showGrownStalkSeasonsNotice
             grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
@@ -465,19 +466,11 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
         )}
         {convertResult && shouldConvertWithdraw && (
           <SiloOutputDisplay
-            before={{
-              label: "Withdraw amount",
-              valueProps: {
-                value: formatter.token(outputAmount, tokenOut),
-                token: tokenOut,
-                suffix: tokenOut.symbol,
-              },
-            }}
-            title="I receive"
-            amount={convertResult.totalAmountOut.abs()}
-            token={mainToken}
+            title="Output"
             stalk={convertResult.deltaStalk.abs()}
             seeds={convertResult.deltaSeed.abs()}
+            stalkLabel="Stalk Burnt"
+            seedsLabel="Seeds Lost"
             showNegativeDeltas
             showGrownStalkSeasonsNotice
             grownStalkSeasons={seasonsOfGrownStalkWithdrawn}

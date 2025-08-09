@@ -15,6 +15,9 @@ interface SiloOutputDisplayProps {
   showNegativeDeltas?: boolean;
   showGrownStalkSeasonsNotice?: boolean;
   grownStalkSeasons?: number;
+  amountLabel?: string;
+  stalkLabel?: string;
+  seedsLabel?: string;
   before?: {
     label: string;
     valueProps: DisplayValueProps;
@@ -30,6 +33,9 @@ export default function SiloOutputDisplay({
   showNegativeDeltas = false,
   showGrownStalkSeasonsNotice = false,
   grownStalkSeasons = 0,
+  amountLabel = "Deposited Amount",
+  stalkLabel = "Stalk",
+  seedsLabel = "Seed",
   before,
 }: SiloOutputDisplayProps) {
   const deltaMultiplier = showNegativeDeltas ? -1 : 1;
@@ -42,7 +48,7 @@ export default function SiloOutputDisplay({
         </OutputDisplay.Item>
       ) : null}
       {amount && token && (
-        <OutputDisplay.Item label="Deposited Amount">
+        <OutputDisplay.Item label={amountLabel}>
           <OutputDisplay.Value
             value={formatter.token(amount, token)}
             token={token}
@@ -51,13 +57,23 @@ export default function SiloOutputDisplay({
           />
         </OutputDisplay.Item>
       )}
-      <OutputDisplay.Item label="Stalk">
+      <OutputDisplay.Item label={stalkLabel}>
         <OutputDisplay.Value
           value={formatter.twoDec(stalk)}
           suffix="Stalk"
           delta={stalk.toNumber() * deltaMultiplier}
           token={STALK}
           showArrow={stalk.toNumber() !== 0}
+          className="whitespace-nowrap"
+        />
+      </OutputDisplay.Item>
+      <OutputDisplay.Item label={seedsLabel}>
+        <OutputDisplay.Value
+          value={formatter.twoDec(seeds)}
+          suffix="Seeds"
+          delta={seeds.toNumber() * deltaMultiplier}
+          token={SEEDS}
+          showArrow={seeds.toNumber() !== 0}
           className="whitespace-nowrap"
         />
       </OutputDisplay.Item>
@@ -81,16 +97,6 @@ export default function SiloOutputDisplay({
           </div>
         </Warning>
       )}
-      <OutputDisplay.Item label="Seed">
-        <OutputDisplay.Value
-          value={formatter.twoDec(seeds)}
-          suffix="Seeds"
-          delta={seeds.toNumber() * deltaMultiplier}
-          token={SEEDS}
-          showArrow={seeds.toNumber() !== 0}
-          className="whitespace-nowrap"
-        />
-      </OutputDisplay.Item>
     </OutputDisplay>
   );
 }
