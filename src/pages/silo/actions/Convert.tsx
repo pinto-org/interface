@@ -52,6 +52,7 @@ import { AddressMap, Token } from "@/utils/types";
 import { useDebounceValue } from "@/utils/useDebounce";
 import { cn, exists, noop } from "@/utils/utils";
 import { UseQueryResult, useQueryClient } from "@tanstack/react-query";
+import { AnimatePresence, motion } from "framer-motion";
 import React, {
   createContext,
   Dispatch,
@@ -486,25 +487,39 @@ function ConvertForm({
       ) : null}
       <ConvertTokenOutput route={selectedRoute} siloToken={siloToken} />
       <div className="flex flex-col">
-        {loading && !quoteQuery.isError ? (
-          <div className="flex flex-col w-full h-[181px] items-center justify-center">
-            <FrameAnimator size={64} />
-          </div>
-        ) : convertResult ? (
-          <>
-            <GerminatingStalkWarning
-              enabled={!!renderGerminatingStalkWarning}
-              germinatingStalk={convertResult.germinatingStalk}
-              germinatingSeasons={convertResult.germinatingSeasons}
-            />
-            <SiloOutputDisplay
-              amount={convertResult.totalAmountOut}
-              token={targetToken}
-              stalk={convertResult.deltaStalk}
-              seeds={convertResult.deltaSeed}
-            />
-          </>
-        ) : null}
+        <AnimatePresence mode="wait">
+          {((loading && !quoteQuery.isError) || convertResult) && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.1 }}
+              className="relative overflow-hidden"
+            >
+              {loading && !quoteQuery.isError ? (
+                <div className="flex flex-col w-full h-[181px] items-center justify-center">
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <FrameAnimator size={64} />
+                  </div>
+                </div>
+              ) : convertResult ? (
+                <>
+                  <GerminatingStalkWarning
+                    enabled={!!renderGerminatingStalkWarning}
+                    germinatingStalk={convertResult.germinatingStalk}
+                    germinatingSeasons={convertResult.germinatingSeasons}
+                  />
+                  <SiloOutputDisplay
+                    amount={convertResult.totalAmountOut}
+                    token={targetToken}
+                    stalk={convertResult.deltaStalk}
+                    seeds={convertResult.deltaSeed}
+                  />
+                </>
+              ) : null}
+            </motion.div>
+          )}
+        </AnimatePresence>
         {targetToken && isValidAmountIn && showRoutes && (
           <QuotedRoutesSelector
             quote={quote}

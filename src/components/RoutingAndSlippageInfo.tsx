@@ -800,7 +800,7 @@ export const useRoutingAndSlippageWarning = ({
         />
 
         <label htmlFor="slippage-warning-terms" className="pinto-sm text-pinto-error flex-1">
-          {`Your transaction will execute with ${formatter.pct(totalSlippage)} route slippage${priceImpact ? ` and a ${formatPriceImpact(priceImpact)}% price impact` : ""} during your ${txnType}. Click on the checkbox to continue.`}
+          {`This ${txnType} will experience ${formatter.pct(totalSlippage)} slippage${priceImpact ? ` and will impact the price of Pinto by ${formatPriceImpact(priceImpact)}` : ""}.  Please check the box to confirm you understand and agree to proceed.`}
         </label>
       </div>
     </form>

@@ -25,6 +25,7 @@ import { tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { cn, getBalanceFromMode } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
+import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
@@ -267,25 +268,30 @@ function Deposit({ siloToken }: { siloToken: Token }) {
           disableClamping={true}
         />
 
-        {(!depositOutput && amountInTV.gt(0)) || swapQuery.isLoading ? (
-          <div
-            className={cn(
-              `flex flex-col w-full items-center justify-center`,
-              depositingSiloToken ? "h-[181px]" : "h-[222.5px]",
-            )}
-          >
-            <FrameAnimator size={64} />
-          </div>
-        ) : depositOutput ? (
-          <div className="mt-6">
-            <SiloOutputDisplay
-              amount={depositOutput.amount}
-              token={siloToken}
-              stalk={depositOutput.stalkGain}
-              seeds={depositOutput.seedGain}
-            />
-          </div>
-        ) : null}
+        <AnimatePresence mode="wait">
+          {((!depositOutput && amountInTV.gt(0)) || swapQuery.isLoading || depositOutput) && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: depositingSiloToken ? "181px" : "222.5px" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.1 }}
+              className="relative overflow-hidden mt-6"
+            >
+              {(!depositOutput && amountInTV.gt(0)) || swapQuery.isLoading ? (
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                  <FrameAnimator size={64} />
+                </div>
+              ) : depositOutput ? (
+                <SiloOutputDisplay
+                  amount={depositOutput.amount}
+                  token={siloToken}
+                  stalk={depositOutput.stalkGain}
+                  seeds={depositOutput.seedGain}
+                />
+              ) : null}
+            </motion.div>
+          )}
+        </AnimatePresence>
         {!depositingSiloToken && amountInTV.gt(0) && (
           <RoutingAndSlippageInfo
             title="Total Deposit Slippage"

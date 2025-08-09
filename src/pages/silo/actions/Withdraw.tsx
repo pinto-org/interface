@@ -44,6 +44,7 @@ import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { AddressLookup } from "@/utils/types.generic";
 import { cn, exists, noop } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
+import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useConfig } from "wagmi";
@@ -483,6 +484,56 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
           </div>
         </div>
       )}
+      <div className="flex flex-col">
+        <AnimatePresence mode="wait">
+          {(withdrawOutput || (convertResult && shouldConvertWithdraw)) && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.1 }}
+              className="relative overflow-hidden"
+            >
+              {withdrawOutput && (
+                <SiloOutputDisplay
+                  title=""
+                  stalk={withdrawOutput?.stalkLost}
+                  seeds={withdrawOutput?.seedsLost}
+                  stalkLabel="Stalk Burnt"
+                  seedsLabel="Seeds Lost"
+                  showNegativeDeltas
+                  showGrownStalkSeasonsNotice
+                  grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
+                />
+              )}
+              {convertResult && shouldConvertWithdraw && (
+                <SiloOutputDisplay
+                  title=""
+                  stalk={convertResult.deltaStalk.abs()}
+                  seeds={convertResult.deltaSeed.abs()}
+                  stalkLabel="Stalk Burnt"
+                  seedsLabel="Seeds Lost"
+                  showNegativeDeltas
+                  showGrownStalkSeasonsNotice
+                  grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
+                />
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+        {shouldSwap && withdrawOutput && (
+          <RoutingAndSlippageInfo
+            title="Total Withdraw Slippage"
+            swapSummary={swapSummary}
+            priceImpactSummary={priceImpactSummary}
+            preferredSummary={"priceImpact"}
+            txnType="Withdraw"
+            tokenIn={siloToken}
+            tokenOut={tokenOut}
+            wellToken={siloToken}
+          />
+        )}
+      </div>
       {amount && stringToNumber(amount) > 0 && (
         <div className="flex flex-col">
           <div className="flex h-10 items-center gap-2">
@@ -500,44 +551,6 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
           <DestinationBalanceSelect setBalanceTo={setDestination} balanceTo={destination} />
         </div>
       )}
-      <div className="flex flex-col">
-        {withdrawOutput && (
-          <SiloOutputDisplay
-            title="Output"
-            stalk={withdrawOutput?.stalkLost}
-            seeds={withdrawOutput?.seedsLost}
-            stalkLabel="Stalk Burnt"
-            seedsLabel="Seeds Lost"
-            showNegativeDeltas
-            showGrownStalkSeasonsNotice
-            grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
-          />
-        )}
-        {convertResult && shouldConvertWithdraw && (
-          <SiloOutputDisplay
-            title="Output"
-            stalk={convertResult.deltaStalk.abs()}
-            seeds={convertResult.deltaSeed.abs()}
-            stalkLabel="Stalk Burnt"
-            seedsLabel="Seeds Lost"
-            showNegativeDeltas
-            showGrownStalkSeasonsNotice
-            grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
-          />
-        )}
-        {shouldSwap && withdrawOutput && (
-          <RoutingAndSlippageInfo
-            title="Total Withdraw Slippage"
-            swapSummary={swapSummary}
-            priceImpactSummary={priceImpactSummary}
-            preferredSummary={"priceImpact"}
-            txnType="Withdraw"
-            tokenIn={siloToken}
-            tokenOut={tokenOut}
-            wellToken={siloToken}
-          />
-        )}
-      </div>
       {slippageWarning}
       <div className="hidden sm:flex">
         <Button onClick={onSubmit} disabled={disabled || !canProceed} {...sharedButtonProps}>
