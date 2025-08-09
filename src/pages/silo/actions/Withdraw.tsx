@@ -6,6 +6,7 @@ import MobileActionBar from "@/components/MobileActionBar";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
 import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
+import TooltipSimple from "@/components/TooltipSimple";
 import { Button } from "@/components/ui/Button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
 import IconImage from "@/components/ui/IconImage";
@@ -375,10 +376,20 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     return seasonsOfGrownStalkWithdrawn;
   }, [withdrawOutput, siloData.averageGrownStalkPerBdvPerSeason]);
 
+  // Amount of non-Pinto token being withdrawn (e.g., WSOL)
   const tokenOutAmount =
     shouldConvertWithdraw && exists(convertRouteIndex)
       ? convertQuote?.[convertRouteIndex]?.quotes?.reduce(
-          (prev, curr) => prev.add(curr.summary?.target?.amountOut),
+          (prev, curr) => prev.add(curr.summary?.target?.withdrawalAmount || TokenValue.ZERO),
+          TokenValue.ZERO,
+        )
+      : undefined;
+
+  // Calculate the Pinto amount that remains in the Silo during convert withdraw
+  const pintoKeptInSilo =
+    shouldConvertWithdraw && exists(convertRouteIndex) && convertQuote?.[convertRouteIndex]
+      ? convertQuote[convertRouteIndex].quotes.reduce(
+          (prev, curr) => prev.add(curr.summary?.target?.amountOut || TokenValue.ZERO),
           TokenValue.ZERO,
         )
       : undefined;
@@ -431,7 +442,11 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
           <div className="flex flex-col w-full gap-1">
             <div className="flex flex-row items-center justify-between w-full">
               <div className="flex flex-col gap-1">
-                <div className="pinto-h3">{formatter.token(outputAmount, tokenOut)}</div>
+                <div className="pinto-h3">
+                  {shouldConvertWithdraw
+                    ? formatter.token(tokenOutAmount, tokenOut)
+                    : formatter.token(outputAmount, tokenOut)}
+                </div>
               </div>
               <WithdrawTokenSelect
                 shouldConvertWithdraw={shouldConvertWithdraw}
@@ -447,10 +462,42 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
           </div>
         </div>
       )}
-      <div className="flex flex-col">
-        <Label className="flex h-10 items-center">Destination</Label>
-        <DestinationBalanceSelect setBalanceTo={setDestination} balanceTo={destination} />
-      </div>
+      {siloToken.isLP && shouldConvertWithdraw && pintoKeptInSilo && (
+        <div className="flex flex-col w-full py-4 gap-2">
+          <div className="pinto-body-light text-pinto-light">Amount Kept Deposited in the Silo</div>
+          <div className="flex flex-col w-full gap-1">
+            <div className="flex flex-row items-center justify-between w-full">
+              <div className="flex flex-col gap-1">
+                <div className="pinto-h3">{formatter.token(pintoKeptInSilo, mainToken)}</div>
+              </div>
+              <div className="flex flex-row items-center gap-1 px-4 py-2 bg-pinto-gray-1 rounded-full">
+                <IconImage src={mainToken.logoURI} size={6} />
+                <div className="pinto-body-light">DEP.{mainToken.symbol}</div>
+              </div>
+            </div>
+            <div className="pinto-sm-light text-pinto-light">
+              {formatter.usd(pintoKeptInSilo.mul(prices.tokenPrices.get(mainToken)?.instant || TokenValue.ZERO))}
+            </div>
+          </div>
+        </div>
+      )}
+      {amount && stringToNumber(amount) > 0 && (
+        <div className="flex flex-col">
+          <div className="flex h-10 items-center gap-2">
+            <Label>Destination</Label>
+            <TooltipSimple
+              content={
+                <div>
+                  <div>Farmers have the option to Withdraw assets into their Wallet, or into the Farm Balance,</div>
+                  <div>where they are stored on the Pinto Farm on behalf of the Farmer.</div>
+                </div>
+              }
+              variant="gray"
+            />
+          </div>
+          <DestinationBalanceSelect setBalanceTo={setDestination} balanceTo={destination} />
+        </div>
+      )}
       <div className="flex flex-col">
         {withdrawOutput && (
           <SiloOutputDisplay
@@ -583,9 +630,6 @@ const WithdrawTokenSelect = ({
             <div className="flex flex-row items-center gap-1">
               <IconImage src={selected.logoURI} size={6} />
               <div className="pinto-body-light">{selected.symbol}</div>
-              <div className="pinto-body-light">+</div>
-              <IconImage src={mainToken.logoURI} size={6} />
-              <div className="pinto-body-light">DEP.{mainToken.symbol}</div>
               <IconImage src={arrowDown} size={3} alt={"open token select dialog"} />
             </div>
           </Button>
