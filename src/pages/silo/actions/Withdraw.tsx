@@ -464,7 +464,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       )}
       {siloToken.isLP && shouldConvertWithdraw && (
         <div className="flex flex-col w-full py-4 gap-2">
-          <div className="pinto-body-light text-pinto-light">Amount Kept Deposited in the Silo</div>
+          <div className="pinto-body-light text-pinto-light">Amount kept Deposited in the Silo</div>
           <div className="flex flex-col w-full gap-1">
             <div className="flex flex-row items-center justify-between w-full">
               <div className="flex flex-col gap-1">
