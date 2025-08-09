@@ -1,19 +1,17 @@
 import arrowDown from "@/assets/misc/ChevronDown.svg";
 import { TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
-import { Row } from "@/components/Container";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import MobileActionBar from "@/components/MobileActionBar";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
 import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
-import TooltipSimple from "@/components/TooltipSimple";
 import { Button } from "@/components/ui/Button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
 import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
 import { Separator } from "@/components/ui/Separator";
-import { Switch } from "@/components/ui/Switch";
+import VerticalAccordion from "@/components/ui/VerticalAccordion";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import encoders from "@/encoders";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
@@ -427,30 +425,6 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
           disableButton
         />
       </div>
-      {siloToken.isLP && underlyingPairToken ? (
-        <Row className="justify-between gap-2 items-center">
-          <Row className="items-center gap-1">
-            <label className="pinto-sm sm:pinto-body-light sm:text-pinto-light text-pinto-light">
-              Convert Withdrawal
-            </label>
-            <TooltipSimple
-              variant="outlined"
-              content={
-                <div>
-                  Withdraw half as {underlyingPairToken.symbol} to your desired balance and convert the other half to{" "}
-                  {mainToken.symbol}.
-                </div>
-              }
-            />
-          </Row>
-          <Switch
-            checked={shouldConvertWithdraw}
-            onCheckedChange={() => {
-              setShouldConvertWithdraw((prev) => !prev);
-            }}
-          />
-        </Row>
-      ) : null}
       <div className="flex flex-col">
         <Label className="flex h-10 items-center">Destination</Label>
         <DestinationBalanceSelect setBalanceTo={setDestination} balanceTo={destination} />
@@ -465,10 +439,12 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
               </div>
               <WithdrawTokenSelect
                 shouldConvertWithdraw={shouldConvertWithdraw}
+                setShouldConvertWithdraw={setShouldConvertWithdraw}
                 selected={tokenOut}
                 tokens={tokenList}
                 selectToken={setTokenOut}
-                disableOpen={shouldConvertWithdraw}
+                underlyingPairToken={underlyingPairToken}
+                disableOpen={false}
               />
             </div>
             <div className="pinto-sm-light text-pinto-light">{formatter.usd(amountOutUSD)}</div>
@@ -565,40 +541,61 @@ const WithdrawTokenSelect = ({
   tokens,
   selectToken,
   shouldConvertWithdraw,
+  setShouldConvertWithdraw,
+  underlyingPairToken,
   disableOpen = false,
 }: {
   selected: Token;
   tokens: Token[];
   selectToken: (t: Token) => void;
   shouldConvertWithdraw: boolean;
+  setShouldConvertWithdraw: (value: boolean) => void;
+  underlyingPairToken?: Token;
   disableOpen?: boolean;
 }) => {
   const [open, setOpen] = useState(false);
+  const [showOtherOptions, setShowOtherOptions] = useState(false);
 
   const handleOpenChange = (open: boolean) => {
     if (disableOpen) return;
     setOpen(open);
+    if (!open) {
+      setShowOtherOptions(false);
+    }
   };
 
   const { mainToken } = useTokenData();
+
+  const handleConvertWithdrawalSelect = () => {
+    if (underlyingPairToken) {
+      setShouldConvertWithdraw(true);
+      selectToken(underlyingPairToken);
+      setOpen(false);
+      setShowOtherOptions(false);
+    }
+  };
+
+  const handleStandardTokenSelect = (token: Token) => {
+    setShouldConvertWithdraw(false);
+    selectToken(token);
+    setOpen(false);
+    setShowOtherOptions(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {shouldConvertWithdraw ? (
-          <Row
-            className={cn(
-              "h-12 px-4 py-3 sm:px-5 sm:py-3 items-center rounded-full gap-1",
-              "border border-pinto-gray-2 bg-white shadow-sm",
-              "shadow-[0px_1px_8px_0px_#E9F0F6] border-pinto-gray-blue bg-white/100",
-            )}
-          >
-            <IconImage src={selected.logoURI} size={6} />
-            <div className="pinto-body-light">{selected.symbol}</div>
-            <div className="pinto-body-light">AND</div>
-            <IconImage src={mainToken.logoURI} size={6} />
-            <div className="pinto-body-light">DEP. {mainToken.symbol}</div>
-          </Row>
+          <Button variant="outline-gray-shadow" size="xl" rounded="full">
+            <div className="flex flex-row items-center gap-1">
+              <IconImage src={selected.logoURI} size={6} />
+              <div className="pinto-body-light">{selected.symbol}</div>
+              <div className="pinto-body-light">+</div>
+              <IconImage src={mainToken.logoURI} size={6} />
+              <div className="pinto-body-light">DEP.{mainToken.symbol}</div>
+              <IconImage src={arrowDown} size={3} alt={"open token select dialog"} />
+            </div>
+          </Button>
         ) : (
           <Button variant="outline-gray-shadow" size="xl" rounded="full">
             <div className="flex flex-row items-center gap-1">
@@ -609,12 +606,12 @@ const WithdrawTokenSelect = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="w-full max-w-md flex flex-col gap-3 overflow-x-clip">
+      <DialogContent className="w-full max-w-xl flex flex-col gap-3 overflow-x-clip">
         <div className="flex flex-col">
           <div className="flex flex-col gap-3">
             <DialogTitle>
               <DialogHeader>
-                <div className="pinto-body">Select a token</div>
+                <div className="pinto-body">Select withdrawal option</div>
               </DialogHeader>
             </DialogTitle>
           </div>
@@ -624,12 +621,42 @@ const WithdrawTokenSelect = ({
               <WithdrawTokenSelectRow
                 key={`withdraw-token-select${token.symbol}`}
                 token={token}
-                onClick={() => {
-                  selectToken(token);
-                  setOpen(false);
-                }}
+                onClick={() => handleStandardTokenSelect(token)}
               />
             ))}
+            {underlyingPairToken && (
+              <div className="mt-2 mx-2 sm:mx-4">
+                <VerticalAccordion
+                  title="Show other options"
+                  open={showOtherOptions}
+                  onOpenChange={setShowOtherOptions}
+                  marginOnOpen={true}
+                >
+                  <div className="flex flex-col w-full gap-2">
+                    <div className="pinto-sm text-pinto-light px-4 py-2">Other</div>
+                    <div
+                      className="flex flex-row w-full items-start gap-4 p-4 cursor-pointer hover:bg-pinto-gray-1 rounded-sm"
+                      onClick={handleConvertWithdrawalSelect}
+                    >
+                      <div className="flex flex-row items-center gap-2 flex-shrink-0">
+                        <IconImage src={underlyingPairToken.logoURI} size={12} />
+                        <div className="pinto-body-light">+</div>
+                        <IconImage src={mainToken.logoURI} size={12} />
+                      </div>
+                      <div className="flex flex-col gap-1 items-start flex-1 min-w-0">
+                        <div className="pinto-body text-pinto-secondary">
+                          {underlyingPairToken.symbol} + DEP.{mainToken.symbol}
+                        </div>
+                        <div className="pinto-sm-light text-pinto-light">
+                          Withdraw half your LP as {underlyingPairToken.symbol} and keep the remaining Pinto deposited
+                          in the Silo
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </VerticalAccordion>
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>
