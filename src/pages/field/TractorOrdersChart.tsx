@@ -87,22 +87,54 @@ const TractorOrdersChart = React.memo(({ className, variant = "default" }: Tract
 
   // Transform processed data to chart format
   const chartData = useMemo(() => {
-    console.log(
-      "[TractorOrdersChart] Transforming data:",
-      processedData,
-      "useLinearXAxis:",
-      viewMode === "temperature",
-    );
+    console.log("[TractorOrdersChart] Transforming data:", processedData, "viewMode:", viewMode);
 
     if (!processedData?.length) {
       console.log("[TractorOrdersChart] No data, setting empty chart");
       return { labels: [], datasets: [] };
+    } else if (viewMode === "temperature") {
+      // For temperature view, use coordinate data [x, y] for linear X-axis
+      const sortedData = [...processedData].sort((a, b) => a.value - b.value);
+
+      // Create coordinate pairs [temperature, amount] for linear scale
+      const coordinateData = sortedData.map((d) => [
+        d.value, // X: temperature value
+        parseFloat(d.totalAmount.toHuman()), // Y: amount
+      ]);
+
+      // Log all X-axis values for debugging
+      console.log(
+        "[TractorOrdersChart] Temperature view - X-axis values:",
+        sortedData.map((d) => d.value),
+      );
+      console.log("[TractorOrdersChart] Temperature view - Coordinate data:", coordinateData);
+
+      return {
+        labels: [], // Labels not needed for linear scale
+        datasets: [
+          {
+            data: coordinateData,
+            label: "",
+            backgroundColor: "rgba(56, 127, 92, 0.5)",
+            borderColor: "rgba(56, 127, 92, 0.6)",
+            hoverBackgroundColor: "rgba(56, 127, 92, 0.8)",
+            hoverBorderColor: "rgba(56, 127, 92, 1)",
+          },
+        ],
+      };
     } else {
-      // Always use traditional categorical format for bar charts
-      // Chart.js bar charts work better with simple data arrays and labels
+      // Use traditional categorical format for tip view
       const labels = processedData.map((d) => d.label);
       const datasetData = processedData.map((d) => parseFloat(d.totalAmount.toHuman()));
-      console.log("[TractorOrdersChart] Chart data - labels:", labels, "data:", datasetData);
+
+      // Log all X-axis values for debugging
+      console.log(
+        "[TractorOrdersChart] Tip view - X-axis values:",
+        processedData.map((d) => d.value),
+      );
+      console.log("[TractorOrdersChart] Tip view - X-axis labels:", labels);
+      console.log("[TractorOrdersChart] Tip view - Y-axis data:", datasetData);
+      console.log("[TractorOrdersChart] Tip view - categorical data:", labels, datasetData);
 
       return {
         labels,
@@ -118,7 +150,7 @@ const TractorOrdersChart = React.memo(({ className, variant = "default" }: Tract
         ],
       };
     }
-  }, [processedData]);
+  }, [processedData, viewMode]);
 
   // Loading state
   const isLoading = ordersQuery.isLoading || !orders;
@@ -307,6 +339,8 @@ const TractorOrdersChart = React.memo(({ className, variant = "default" }: Tract
               onClick={viewMode === "temperature" ? handleBarClick : undefined}
               yLabelFormatter={formatY}
               xLabelFormatter={viewMode === "temperature" ? formatTemperatureX : formatTipX}
+              useLinearXAxis={viewMode === "temperature"}
+              processedData={processedData}
             />
           </div>
         </Col>
@@ -408,10 +442,13 @@ const formatY = (value: number | string) => {
   return formatter.number(TokenValue.fromHuman(asNum.toString(), 6));
 };
 
-const formatTemperatureX = (value: number | string) => {
+const formatTemperatureX = (value: number | string, _index?: number, ticks?: any[]) => {
   // Temperature is already in percentage format (e.g., 613.75 for 613.75%)
   const asNum = typeof value === "number" ? value : Number(value);
-  return `${asNum.toFixed(1)}%`;
+
+  // For linear scale, Chart.js will automatically generate tick marks
+  // We just need to format them nicely
+  return `${asNum.toFixed(0)}%`;
 };
 
 const formatTipX = (value: number | string) => {
@@ -428,6 +465,8 @@ const InteractiveBarChart = React.memo(
     onClick,
     yLabelFormatter,
     xLabelFormatter,
+    useLinearXAxis,
+    processedData,
   }: {
     data: ChartData<"bar">;
     isLoading?: boolean;
@@ -435,6 +474,8 @@ const InteractiveBarChart = React.memo(
     onClick?: (index: number | undefined) => void;
     yLabelFormatter?: (value: number | string) => string;
     xLabelFormatter?: (value: number | string) => string;
+    useLinearXAxis?: boolean;
+    processedData?: ProcessedOrderData[];
   }) => {
     const chartRef = useRef<HTMLDivElement>(null);
     const [currentHoverIndex, setCurrentHoverIndex] = useState<number | undefined>(undefined);
@@ -476,6 +517,7 @@ const InteractiveBarChart = React.memo(
           onMouseOver={handleMouseOver}
           yLabelFormatter={yLabelFormatter}
           xLabelFormatter={xLabelFormatter}
+          useLinearXAxis={useLinearXAxis}
         />
       </div>
     );

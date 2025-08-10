@@ -58,7 +58,24 @@ const BarChart = React.memo(
       const yScaleObj: IYScale = { ...defaultIYScale };
 
       if (data.datasets.length) {
-        const flattened = data.datasets.flatMap((d) => d.data.filter((d) => exists(d)).flat());
+        // Handle coordinate data [x, y] pairs differently from regular data
+        const flattened = data.datasets.flatMap((d) =>
+          d.data
+            .filter((d) => exists(d))
+            .map((point) => {
+              // If it's a coordinate pair [x, y], extract only the y value
+              if (
+                Array.isArray(point) &&
+                point.length === 2 &&
+                typeof point[0] === "number" &&
+                typeof point[1] === "number"
+              ) {
+                return point[1]; // Return only the Y value
+              }
+              // Otherwise treat as a regular value
+              return typeof point === "number" ? point : 0;
+            }),
+        );
         const min = Math.min(...flattened);
         const max = Math.max(...flattened);
 
@@ -132,8 +149,10 @@ const BarChart = React.memo(
         ticks: {
           display: !!xLabelFormatter,
           callback: xLabelFormatter,
-          autoSkip: true,
-          maxTicksLimit: 5,
+          autoSkip: false,
+          maxTicksLimit: 8,
+          // Generate evenly spaced ticks
+          stepSize: Math.ceil(range / 7), // Aim for about 7-8 ticks
         },
       };
     }, [useLinearXAxis, data, xLabelFormatter]);
