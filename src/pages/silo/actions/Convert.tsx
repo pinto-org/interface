@@ -46,6 +46,7 @@ import { useSiloData } from "@/state/useSiloData";
 import { useInvalidateSun } from "@/state/useSunData";
 import { getChainConstant, useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
+import { getSiloLabels } from "@/utils/silo";
 import { stringEq, stringToNumber } from "@/utils/string";
 import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { AddressMap, Token } from "@/utils/types";
@@ -509,12 +510,19 @@ function ConvertForm({
                     germinatingStalk={convertResult.germinatingStalk}
                     germinatingSeasons={convertResult.germinatingSeasons}
                   />
-                  <SiloOutputDisplay
-                    amount={convertResult.totalAmountOut}
-                    token={targetToken}
-                    stalk={convertResult.deltaStalk}
-                    seeds={convertResult.deltaSeed}
-                  />
+                  {(() => {
+                    const { stalkLabel, seedsLabel } = getSiloLabels(convertResult.deltaStalk, convertResult.deltaSeed);
+                    return (
+                      <SiloOutputDisplay
+                        amount={convertResult.totalAmountOut}
+                        token={targetToken}
+                        stalk={convertResult.deltaStalk}
+                        seeds={convertResult.deltaSeed}
+                        stalkLabel={stalkLabel}
+                        seedsLabel={seedsLabel}
+                      />
+                    );
+                  })()}
                 </>
               ) : null}
             </motion.div>

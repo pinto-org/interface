@@ -20,6 +20,7 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import { useInvalidateSun } from "@/state/useSunData";
+import { getSiloLabels } from "@/utils/silo";
 import { stringEq, stringToNumber } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
@@ -282,12 +283,19 @@ function Deposit({ siloToken }: { siloToken: Token }) {
                   <FrameAnimator size={64} />
                 </div>
               ) : depositOutput ? (
-                <SiloOutputDisplay
-                  amount={depositOutput.amount}
-                  token={siloToken}
-                  stalk={depositOutput.stalkGain}
-                  seeds={depositOutput.seedGain}
-                />
+                (() => {
+                  const { stalkLabel, seedsLabel } = getSiloLabels(depositOutput.stalkGain, depositOutput.seedGain);
+                  return (
+                    <SiloOutputDisplay
+                      amount={depositOutput.amount}
+                      token={siloToken}
+                      stalk={depositOutput.stalkGain}
+                      seeds={depositOutput.seedGain}
+                      stalkLabel={stalkLabel}
+                      seedsLabel={seedsLabel}
+                    />
+                  );
+                })()
               ) : null}
             </motion.div>
           )}

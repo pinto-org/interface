@@ -38,6 +38,7 @@ import useTokenData from "@/state/useTokenData";
 import { getChainConstant, useChainConstant } from "@/utils/chain";
 import { sortAndPickCrates } from "@/utils/convert";
 import { formatter } from "@/utils/format";
+import { getSiloLabels } from "@/utils/silo";
 import { stringToNumber } from "@/utils/string";
 import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
@@ -496,30 +497,42 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
               transition={{ duration: 0.1 }}
               className="relative overflow-hidden"
             >
-              {withdrawOutput && (
-                <SiloOutputDisplay
-                  title=""
-                  stalk={withdrawOutput?.stalkLost}
-                  seeds={withdrawOutput?.seedsLost}
-                  stalkLabel="Stalk Burnt"
-                  seedsLabel="Seeds Lost"
-                  showNegativeDeltas
-                  showGrownStalkSeasonsNotice
-                  grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
-                />
-              )}
-              {convertResult && shouldConvertWithdraw && (
-                <SiloOutputDisplay
-                  title=""
-                  stalk={convertResult.deltaStalk.abs()}
-                  seeds={convertResult.deltaSeed.abs()}
-                  stalkLabel="Stalk Burnt"
-                  seedsLabel="Seeds Lost"
-                  showNegativeDeltas
-                  showGrownStalkSeasonsNotice
-                  grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
-                />
-              )}
+              {withdrawOutput &&
+                (() => {
+                  const { stalkLabel, seedsLabel } = getSiloLabels(
+                    withdrawOutput.stalkLost.mul(-1),
+                    withdrawOutput.seedsLost.mul(-1),
+                  );
+                  return (
+                    <SiloOutputDisplay
+                      title=""
+                      stalk={withdrawOutput?.stalkLost}
+                      seeds={withdrawOutput?.seedsLost}
+                      stalkLabel={stalkLabel}
+                      seedsLabel={seedsLabel}
+                      showNegativeDeltas
+                      showGrownStalkSeasonsNotice
+                      grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
+                    />
+                  );
+                })()}
+              {convertResult &&
+                shouldConvertWithdraw &&
+                (() => {
+                  const { stalkLabel, seedsLabel } = getSiloLabels(convertResult.deltaStalk, convertResult.deltaSeed);
+                  return (
+                    <SiloOutputDisplay
+                      title=""
+                      stalk={convertResult.deltaStalk.abs()}
+                      seeds={convertResult.deltaSeed.abs()}
+                      stalkLabel={stalkLabel}
+                      seedsLabel={seedsLabel}
+                      showNegativeDeltas
+                      showGrownStalkSeasonsNotice
+                      grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
+                    />
+                  );
+                })()}
             </motion.div>
           )}
         </AnimatePresence>
