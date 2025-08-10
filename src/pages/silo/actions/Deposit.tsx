@@ -113,10 +113,13 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const priceImpactQuery = usePriceImpactSummary(swapBuild?.advFarm, tokenIn, value);
   const priceImpactSummary = priceImpactQuery?.get(siloToken);
 
+  const depositingSiloToken = tokensEqual(siloToken, tokenIn);
+
   const { slippageWarning, canProceed } = useRoutingAndSlippageWarning({
     totalSlippage: swapSummary?.swap.totalSlippage,
     priceImpact: priceImpactSummary?.priceImpact,
     txnType: "Deposit",
+    noMarginTop: depositingSiloToken || !amountInTV.gt(0),
   });
 
   const onSuccess = useCallback(() => {
@@ -240,7 +243,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
 
   const swapDataNotReady = (shouldSwap && (!swapData || !swapBuild)) || !!swapQuery.error;
 
-  const depositingSiloToken = tokensEqual(siloToken, tokenIn);
   // need to define types for routers
 
   const disabled =
