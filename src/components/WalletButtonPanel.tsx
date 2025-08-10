@@ -69,12 +69,12 @@ const BalanceSummary = ({ totalBalance }: BalanceSummaryProps) => (
   <div className="flex flex-col gap-1">
     <div className="pinto-sm-light text-pinto-gray-4 inline-flex gap-1 items-center">
       <div className="rounded-full bg-pinto w-3 h-3" />
-      <div>Wallet Balance:</div>
+      <div>External Wallet:</div>
       <div className="text-pinto-gray-5">{formatter.usd(totalBalance.external)}</div>
     </div>
     <div className="pinto-sm-light text-pinto-gray-4 inline-flex gap-1 items-center">
       <div className="rounded-full bg-pinto-morning-yellow-1 w-3 h-3" />
-      <div>Farm Balance:</div>
+      <div>Farm Wallet:</div>
       <div className="text-pinto-gray-5">{formatter.usd(totalBalance.internal)}</div>
     </div>
   </div>
@@ -322,17 +322,17 @@ export default function WalletButtonPanel({ togglePanel }) {
                 Combined
               </TabsTrigger>
               <TabsTrigger className="h-9 text-[0.875rem] sm:text-[1rem] hover:bg-pinto-gray-1" value="external">
-                Wallet Balance
+                External Wallet
               </TabsTrigger>
               <TabsTrigger className="h-9 text-[0.875rem] sm:text-[1rem] hover:bg-pinto-gray-1" value="internal">
-                Farm Balance
+                Farm Wallet
               </TabsTrigger>
             </TabsList>
 
             <ScrollArea className="h-full -mx-3 px-3 flex-1 min-h-0">
               <TabsContent value="combined" className="overflow-y-auto overflow-x-clip">
                 {totalBalance.total.eq(0) ? (
-                  <EmptyState message="You don't have any value in your Wallet or Farm Balance, Bridge value to Base to get started." />
+                  <EmptyState message="You don't have any value in your Wallet or Farm Wallet, Bridge value to Base to get started." />
                 ) : (
                   <TokenList
                     tokens={tokens}
@@ -346,7 +346,7 @@ export default function WalletButtonPanel({ togglePanel }) {
 
               <TabsContent value="external" className="overflow-y-auto overflow-x-clip">
                 {totalBalance.external.eq(0) ? (
-                  <EmptyState message="You don't have any value in your Wallet Balance, Bridge value to Base to get started." />
+                  <EmptyState message="You don't have any value in your Wallet, Bridge value to Base to get started." />
                 ) : (
                   <TokenList
                     tokens={tokens}
@@ -360,7 +360,7 @@ export default function WalletButtonPanel({ togglePanel }) {
 
               <TabsContent value="internal" className="overflow-y-auto overflow-x-clip">
                 {totalBalance.internal.eq(0) ? (
-                  <EmptyState message="Your Farm Balance allows you store tokens in the protocol directly for usage in the Silo, Field and Market. You can still interact with Pinto without value in your Farm Balance." />
+                  <EmptyState message="Your Farm Wallet allows you store tokens in the protocol directly for usage in the Silo, Field and Market. You can still interact with Pinto without value in your Farm Wallet." />
                 ) : (
                   <TokenList
                     tokens={tokens}
@@ -386,7 +386,7 @@ export default function WalletButtonPanel({ togglePanel }) {
           <span className="self-center items-center">
             <BackwardArrowDotsIcon color={"white"} />
           </span>
-          Manage Farm Balance
+          Manage Farm and External Wallet Balances
         </Button>
         {totalFlood.gt(0) && <WalletButtonClaim />}
       </CardFooter>

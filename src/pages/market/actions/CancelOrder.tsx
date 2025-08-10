@@ -91,7 +91,7 @@ export default function CancelOrder({ order }: CancelOrderProps) {
 
   return (
     <>
-      <FarmBalanceToggle checked={toFarm} onCheckedChange={setToFarm} label="Return Pinto to Farm Balance" />
+      <FarmBalanceToggle checked={toFarm} onCheckedChange={setToFarm} label="Return Pinto to Farm Wallet" />
       <Separator />
       <ActionSummary beansOut={remainingBeans} toFarm={toFarm} />
       <SmartSubmitButton

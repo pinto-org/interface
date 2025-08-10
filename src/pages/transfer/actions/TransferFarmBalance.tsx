@@ -57,7 +57,7 @@ export default function TransferFarmBalance() {
 
       const farmData: `0x${string}`[] = [];
 
-      // Farm Balance Transfers
+      // Farm Wallet Transfers
       for (const data of transferData) {
         const amount = TokenValue.fromHuman(data.amount, data.token.decimals);
         if (amount.eq(0)) continue;
@@ -82,7 +82,7 @@ export default function TransferFarmBalance() {
         args: [farmData],
       });
     } catch (e) {
-      console.error("Transfer farm balance failed", e);
+      console.error("Transfer Farm Wallet failed", e);
       toast.dismiss();
       toast.error("Transfer failed");
     }

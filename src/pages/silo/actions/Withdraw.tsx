@@ -52,14 +52,10 @@ import { toast } from "sonner";
 import { useConfig } from "wagmi";
 import { useAccount, useChainId } from "wagmi";
 
-const getInitialWithdrawToken = (siloToken: Token, tokenMap: AddressLookup<Token>) => {
+const getInitialWithdrawToken = (siloToken: Token) => {
+  // Return undefined to show "Select Token" initially for LP tokens
   if (siloToken.isLP && siloToken.tokens?.length) {
-    const pairToken = siloToken.tokens.find((t) => !tokenMap[getTokenIndex(t)]?.isMain);
-    if (!pairToken) {
-      throw new Error("Silo token has LP pair tokens but non-main token not found.");
-    }
-
-    return tokenMap[getTokenIndex(pairToken)];
+    return undefined;
   } else if (siloToken.isMain) {
     return siloToken;
   }
@@ -91,7 +87,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const [shouldConvertWithdraw, setShouldConvertWithdraw] = useState(false);
 
-  const [tokenOut, setTokenOut] = useState(getInitialWithdrawToken(siloToken, tokenMap));
+  const [tokenOut, setTokenOut] = useState<Token | undefined>(getInitialWithdrawToken(siloToken));
   const [slippage, setSlippage] = useState(0.1);
   const [inputError, setInputError] = useState(false);
 
@@ -159,7 +155,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const exceedsBalance = farmerDepositData?.amount.lt(amountTV);
 
-  const shouldSwap = !tokensEqual(siloToken, tokenOut) && !siloToken.isMain;
+  const shouldSwap = tokenOut && !tokensEqual(siloToken, tokenOut) && !siloToken.isMain;
 
   const swapDisabled = amountTV.lte(0) || !account.address || !shouldSwap || inputError;
 
@@ -224,9 +220,10 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     fieldSnapshots.queryKey,
     siloSnapshots.queryKey,
     invalidateSun,
-    queryClient.invalidateQueries,
+    queryClient,
     resetSwap,
-    priceImpactQuery.clear,
+    priceImpactQuery,
+    siloConvert,
   ]);
 
   const { isConfirming, writeWithEstimateGas, submitting, setSubmitting } = useTransaction({
@@ -409,8 +406,6 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       : undefined;
 
   const outputAmount = shouldConvertWithdraw ? convertResult?.withdrawalAmount : withdrawOutput?.amount;
-  const outputStalk = shouldConvertWithdraw ? convertResult?.deltaStalk : withdrawOutput?.stalkLost;
-  const outputSeeds = shouldConvertWithdraw ? convertResult?.deltaSeed : withdrawOutput?.seedsLost;
 
   const tokenOutUSD = prices.tokenPrices.get(tokenOut);
   const amountOutUSD = tokenOutUSD ? withdrawOutput?.amount.mul(tokenOutUSD.instant) : undefined;
@@ -433,9 +428,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     <div className="flex flex-col gap-4">
       <div>
         <div className="h-10 flex flex-row justify-between items-center">
-          <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">
-            Amount and Deposited Token to Withdraw
-          </div>
+          <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">Amount to Withdraw</div>
           <SlippageButton slippage={slippage} setSlippage={setSlippage} />
         </div>
         <ComboInputField
@@ -452,14 +445,25 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       </div>
       {siloToken.isLP && (
         <div className="flex flex-col w-full py-4 gap-2">
-          <div className="pinto-body-light text-pinto-light">Withdraw as</div>
+          <div className="pinto-body-light text-pinto-light">{tokenOut ? "Withdraw" : "Withdraw as"}</div>
           <div className="flex flex-col w-full gap-1">
             <div className="flex flex-row items-center justify-between w-full">
               <div className="flex flex-col gap-1">
                 <div className="pinto-h3">
-                  {shouldConvertWithdraw
-                    ? formatter.token(tokenOutAmount, tokenOut)
-                    : formatter.token(outputAmount, tokenOut)}
+                  {tokenOut && amount && stringToNumber(amount) > 0 ? (
+                    // Show loading skeleton while calculating
+                    (shouldSwap && (!swapData?.buyAmount || swapData.buyAmount.eq(0))) ||
+                    (shouldConvertWithdraw && (!tokenOutAmount || tokenOutAmount.eq(0))) ||
+                    (!shouldSwap && !shouldConvertWithdraw && (!outputAmount || outputAmount.eq(0))) ? (
+                      <div className="h-6 w-24 bg-gray-200 animate-pulse rounded" />
+                    ) : shouldConvertWithdraw ? (
+                      formatter.token(tokenOutAmount, tokenOut)
+                    ) : (
+                      formatter.token(outputAmount, tokenOut)
+                    )
+                  ) : (
+                    ""
+                  )}
                 </div>
               </div>
               <WithdrawTokenSelect
@@ -472,7 +476,20 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
                 disableOpen={false}
               />
             </div>
-            <div className="pinto-sm-light text-pinto-light">{formatter.usd(amountOutUSD)}</div>
+            <div className="pinto-sm-light text-pinto-light">
+              {tokenOut && amount && stringToNumber(amount) > 0 ? (
+                // Show loading skeleton while calculating USD value
+                (shouldSwap && (!swapData?.buyAmount || swapData.buyAmount.eq(0))) ||
+                (shouldConvertWithdraw && (!tokenOutAmount || tokenOutAmount.eq(0))) ||
+                (!shouldSwap && !shouldConvertWithdraw && (!outputAmount || outputAmount.eq(0))) ? (
+                  <div className="h-4 w-16 bg-gray-200 animate-pulse rounded" />
+                ) : (
+                  formatter.usd(amountOutUSD)
+                )
+              ) : (
+                ""
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -562,7 +579,11 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
         )}
       </div>
       {amount && stringToNumber(amount) > 0 && (
-        <FarmBalanceToggle checked={toFarm} onCheckedChange={setToFarm} label="Withdraw Assets to Farm Balance" />
+        <FarmBalanceToggle
+          checked={toFarm}
+          onCheckedChange={setToFarm}
+          label={`Withdraw ${tokenOut?.symbol || "Assets"} to Farm Wallet`}
+        />
       )}
       {slippageWarning}
       <div className="hidden sm:flex">
@@ -608,12 +629,11 @@ const WithdrawTokenSelect = ({
   selected,
   tokens,
   selectToken,
-  shouldConvertWithdraw,
   setShouldConvertWithdraw,
   underlyingPairToken,
   disableOpen = false,
 }: {
-  selected: Token;
+  selected: Token | undefined;
   tokens: Token[];
   selectToken: (t: Token) => void;
   shouldConvertWithdraw: boolean;
@@ -653,23 +673,19 @@ const WithdrawTokenSelect = ({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        {shouldConvertWithdraw ? (
-          <Button variant="outline-gray-shadow" size="xl" rounded="full">
-            <div className="flex flex-row items-center gap-1">
-              <IconImage src={selected.logoURI} size={6} />
-              <div className="pinto-body-light">{selected.symbol}</div>
-              <IconImage src={arrowDown} size={3} alt={"open token select dialog"} />
-            </div>
-          </Button>
-        ) : (
-          <Button variant="outline-gray-shadow" size="xl" rounded="full">
-            <div className="flex flex-row items-center gap-1">
-              <IconImage src={selected.logoURI} size={6} />
-              <div className="pinto-body-light">{selected.symbol}</div>
-              <IconImage src={arrowDown} size={3} alt={"open token select dialog"} />
-            </div>
-          </Button>
-        )}
+        <Button variant="outline-gray-shadow" size="xl" rounded="full">
+          <div className="flex flex-row items-center gap-1">
+            {selected ? (
+              <>
+                <IconImage src={selected.logoURI} size={6} />
+                <div className="pinto-body-light">{selected.symbol}</div>
+              </>
+            ) : (
+              <div className="pinto-body-light">Select Token</div>
+            )}
+            <IconImage src={arrowDown} size={3} alt={"open token select dialog"} />
+          </div>
+        </Button>
       </DialogTrigger>
       <DialogContent className="w-full max-w-xl flex flex-col gap-3 overflow-x-clip">
         <div className="flex flex-col">

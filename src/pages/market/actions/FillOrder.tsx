@@ -178,7 +178,7 @@ export default function FillOrder() {
                   type="single"
                 />
               </div>
-              <FarmBalanceToggle checked={toFarm} onCheckedChange={setToFarm} label="Receive Pinto in Farm Balance" />
+              <FarmBalanceToggle checked={toFarm} onCheckedChange={setToFarm} label="Receive Pinto in Farm Wallet" />
               <div className="flex flex-col gap-4">
                 <Separator />
                 {!disabled && (

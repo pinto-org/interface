@@ -97,7 +97,6 @@ function ConvertForm({
   const { mode, targetToken, setTargetToken } = useSiloConvertContext();
 
   const diamond = useProtocolAddress();
-  const pintoToken = useChainConstant(MAIN_TOKEN);
   const account = useAccount();
 
   const [amountIn, setAmountIn] = useState("");
@@ -373,11 +372,7 @@ function ConvertForm({
     }
   }, [amountInNum, minAmountIn, showMinAmountWarning]);
 
-  // Auto-default target token to PINTO when converting from LP tokens
-  useEffect(() => {
-    if (!siloToken.isLP || targetToken || !pintoToken) return;
-    setTargetToken(pintoToken);
-  }, [siloToken.isLP, targetToken, pintoToken, setTargetToken]);
+  // Removed auto-default target token to allow users to explicitly select
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Reset stalk penalty toggle when amount in changes
   useEffect(() => {
@@ -486,7 +481,7 @@ function ConvertForm({
           />
         </div>
       ) : null}
-      <ConvertTokenOutput route={selectedRoute} siloToken={siloToken} />
+      <ConvertTokenOutput route={selectedRoute} siloToken={siloToken} isLoading={quoteLoading} />
       <div className="flex flex-col">
         <AnimatePresence mode="wait">
           {((loading && !quoteQuery.isError) || convertResult) && (
@@ -720,15 +715,18 @@ const ConvertTokenOutput = ({
   // amount,
   siloToken,
   route,
+  isLoading,
 }: {
   // amount: TV;
   siloToken: Token;
   route: SiloConvertSummary<SiloConvertType> | undefined;
+  isLoading?: boolean;
 }) => {
   const { targetToken } = useSiloConvertContext();
 
   const amount = route?.totalAmountOut ?? TV.ZERO;
-  const formattedAmount = targetToken ? formatter.token(amount, targetToken) : "0.00";
+  const isCalculating = isLoading && targetToken;
+  const formattedAmount = targetToken && amount.gt(0) ? formatter.token(amount, targetToken) : "";
   const displayAmount = useDebounceValue(formattedAmount, 50);
 
   const postPriceData = route?.postPriceData;
@@ -755,11 +753,21 @@ const ConvertTokenOutput = ({
       <div className="flex flex-col w-full gap-1">
         <div className="flex flex-row items-center justify-between w-full">
           <div className="flex flex-col gap-1">
-            <div className="pinto-h3">{displayAmount}</div>
+            <div className="pinto-h3">
+              {isCalculating ? <div className="h-6 w-24 bg-gray-200 animate-pulse rounded" /> : displayAmount}
+            </div>
           </div>
           <SiloConvertTokenSelect siloToken={siloToken} />
         </div>
-        <div className="pinto-sm-light text-pinto-light">{getDisplayUSD()}</div>
+        <div className="pinto-sm-light text-pinto-light">
+          {isCalculating ? (
+            <div className="h-4 w-16 bg-gray-200 animate-pulse rounded" />
+          ) : targetToken && amount.gt(0) ? (
+            getDisplayUSD()
+          ) : (
+            ""
+          )}
+        </div>
       </div>
     </div>
   );

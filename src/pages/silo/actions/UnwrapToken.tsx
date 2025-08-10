@@ -292,7 +292,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
       {txnType !== "redeemToSilo" ? (
         <div>
           <div className="flex flex-col gap-4">
-            <FarmBalanceToggle checked={toFarm} onCheckedChange={setToFarm} label="Receive Pinto in Farm Balance" />
+            <FarmBalanceToggle checked={toFarm} onCheckedChange={setToFarm} label="Receive Pinto in Farm Wallet" />
             <div className="flex flex-col w-full pt-4 pb-2 gap-2">
               <div className="pinto-body-light text-pinto-light">Unwrap as</div>
               <div className="flex flex-col w-full gap-1">
