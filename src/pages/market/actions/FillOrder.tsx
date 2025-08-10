@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/Separator";
 import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { useFarmTogglePreference } from "@/hooks/useFarmTogglePreference";
 import useTransaction from "@/hooks/useTransaction";
 import usePodOrders from "@/state/market/usePodOrders";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
@@ -45,7 +46,7 @@ export default function FillOrder() {
   // TODO: need to handle an edge case with amount where the first half of the plot is sellable, and the second half is not.
   // Currently this is handled my making such a plot not fillable via ComboPlotInputField.
   const [amount, setAmount] = useState(0);
-  const [toFarm, setToFarm] = useState(true);
+  const [toFarm, setToFarm] = useFarmTogglePreference();
 
   const { id } = useParams();
   const podOrders = usePodOrders();

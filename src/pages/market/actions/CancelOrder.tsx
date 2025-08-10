@@ -7,6 +7,7 @@ import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { AllPodOrdersQuery } from "@/generated/gql/pintostalk/graphql";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { useFarmTogglePreference } from "@/hooks/useFarmTogglePreference";
 import useTransaction from "@/hooks/useTransaction";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useQueryKeys } from "@/state/useQueryKeys";
@@ -30,7 +31,7 @@ export default function CancelOrder({ order }: CancelOrderProps) {
   const account = useAccount();
   const navigate = useNavigate();
 
-  const [toFarm, setToFarm] = useState(true);
+  const [toFarm, setToFarm] = useFarmTogglePreference();
 
   const queryClient = useQueryClient();
   const { allPodOrders, allMarket, farmerMarket } = useQueryKeys({

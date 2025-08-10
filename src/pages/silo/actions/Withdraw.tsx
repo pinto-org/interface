@@ -23,6 +23,7 @@ import { useSiloConvertResult } from "@/hooks/silo/useSiloConvertResult";
 import useBuildSwapQuote from "@/hooks/swap/useBuildSwapQuote";
 import useSwap from "@/hooks/swap/useSwap";
 import useSwapSummary from "@/hooks/swap/useSwapSummary";
+import { useFarmTogglePreference } from "@/hooks/useFarmTogglePreference";
 import useSafeTokenValue from "@/hooks/useSafeTokenValue";
 import useTransaction from "@/hooks/useTransaction";
 import usePriceImpactSummary from "@/hooks/wells/usePriceImpactSummary";
@@ -85,7 +86,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const diamondAddress = useProtocolAddress();
 
-  const [toFarm, setToFarm] = useState(false);
+  const [toFarm, setToFarm] = useFarmTogglePreference();
   const [amount, setAmount] = useState("");
 
   const [shouldConvertWithdraw, setShouldConvertWithdraw] = useState(false);

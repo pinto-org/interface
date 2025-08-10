@@ -19,6 +19,7 @@ import { useTokenMap, useWSOL } from "@/hooks/pinto/useTokenMap";
 import { useBuildSwapQuoteAsync } from "@/hooks/swap/useBuildSwapQuote";
 import useSwap from "@/hooks/swap/useSwap";
 import useSwapSummary from "@/hooks/swap/useSwapSummary";
+import { useFarmTogglePreference } from "@/hooks/useFarmTogglePreference";
 import useSafeTokenValue from "@/hooks/useSafeTokenValue";
 import useTransaction from "@/hooks/useTransaction";
 import { FarmerBalance, useFarmerBalances } from "@/state/useFarmerBalances";
@@ -68,7 +69,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   );
   const [inputError, setInputError] = useState<boolean>(false);
   const [tokenOut, setTokenOut] = useState<Token | undefined>(undefined);
-  const [toFarm, setToFarm] = useState(true);
+  const [toFarm, setToFarm] = useFarmTogglePreference();
 
   // Derived
   const balance = getBalanceFromMode(farmerBalance, balanceSource) ?? TV.ZERO;
