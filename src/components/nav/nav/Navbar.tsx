@@ -269,7 +269,7 @@ const Navbar = () => {
                           /*
                         `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet`
                         */
-                          `Manage ExternalWallet`
+                          `Manage External Wallet`
                     }
                     className={`absolute top-[9.375rem] right-[22.5rem] flex flex-row-reverse`}
                     sourceAnchor="right"
