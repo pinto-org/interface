@@ -146,8 +146,15 @@ const RoutingHeader = ({
   isAnimating,
   onHeaderClick,
 }: { isExpanded: boolean; isAnimating: boolean; onHeaderClick: (e: React.MouseEvent) => void }) => {
-  const { swapSummary, noMarginTopOnTrigger } = useRoutingAndSlippageInfoContext();
+  const { swapSummary, noMarginTopOnTrigger, txnType, convertSummary } = useRoutingAndSlippageInfoContext();
   const exchanges = swapSummary?.swap?.exchanges || [];
+  const parseRoutes = useParseConvertRouteRoutes();
+
+  // Get convert routes for display in header
+  const convertRoutes = useMemo(() => {
+    if (txnType !== "Convert" || !convertSummary) return [];
+    return parseRoutes(convertSummary);
+  }, [txnType, convertSummary, parseRoutes]);
 
   return (
     <div
@@ -158,16 +165,30 @@ const RoutingHeader = ({
         noMarginTopOnTrigger ? "mt-0" : "mt-4",
       )}
     >
-      <div className="pinto-sm text-pinto-primary">Routing</div>
       <div className="flex flex-row items-center gap-x-2">
-        {/* Show exchange icons */}
-        <div className="flex flex-row gap-x-1">
-          {exchanges?.map((exchange) => {
-            const { logo, text } = getDetailsWithExchange(exchange, true);
-            if (exchange === "base") return null;
-            return <IconImage key={`header-exchange-${exchange}`} src={logo} alt={text} size={4} />;
-          })}
-        </div>
+        <div className="pinto-sm text-pinto-primary">See Routing</div>
+        {/* Show convert route LP icons for Convert transactions */}
+        {txnType === "Convert" && convertRoutes.length > 0 && (
+          <div className="flex flex-row">
+            {convertRoutes.map((route, _, arr) => (
+              <div key={`header-convert-route-${route.address}`} className={cn(arr.length > 1 && "-ml-1")}>
+                <IconImage src={route.logoURI} alt={route.symbol} size={4} />
+              </div>
+            ))}
+          </div>
+        )}
+        {/* Show exchange icons for non-Convert transactions */}
+        {txnType !== "Convert" && (
+          <div className="flex flex-row gap-x-1">
+            {exchanges?.map((exchange) => {
+              const { logo, text } = getDetailsWithExchange(exchange, true);
+              if (exchange === "base") return null;
+              return <IconImage key={`header-exchange-${exchange}`} src={logo} alt={text} size={4} />;
+            })}
+          </div>
+        )}
+      </div>
+      <div className="flex flex-row items-center gap-x-2">
         <ChevronDownIcon
           className={cn("w-4 h-4 text-pinto-light transition-transform duration-200", isExpanded && "rotate-180")}
         />
@@ -367,7 +388,6 @@ const ConvertPriceImpactSummary = ({
        */}
       {isDefaultConvert ? (
         <>
-          <ConvertRoutesThroughRow variant={variant} />
           <InlineRow
             variant={variant}
             left={
