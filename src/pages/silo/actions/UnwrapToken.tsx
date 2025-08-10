@@ -1,6 +1,6 @@
 import { TV } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
-import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
+import FarmBalanceToggle from "@/components/FarmBalanceToggle";
 import FrameAnimator from "@/components/LoadingSpinner";
 import MobileActionBar from "@/components/MobileActionBar";
 import RoutingAndSlippageInfo from "@/components/RoutingAndSlippageInfo";
@@ -68,7 +68,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   );
   const [inputError, setInputError] = useState<boolean>(false);
   const [tokenOut, setTokenOut] = useState<Token | undefined>(undefined);
-  const [toMode, setToMode] = useState<FarmToMode | undefined>(undefined);
+  const [toFarm, setToFarm] = useState(true);
 
   // Derived
   const balance = getBalanceFromMode(farmerBalance, balanceSource) ?? TV.ZERO;
@@ -96,12 +96,12 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   });
 
   const swapSummary = useSwapSummary(swap.data);
+  const toMode = toFarm ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL;
   const buildSwapQuote = useBuildSwapQuoteAsync(swap.data, balanceSource, toMode, account, account);
 
   // Transaction
   const onSuccess = useCallback(() => {
     setAmountIn("");
-    setToMode(undefined);
     setTokenOut(undefined);
     const keys = [...contractBalances.queryKeys, ...farmerBalances.queryKeys, ...farmerDepositsQueryKeys];
     keys.forEach((key) => qc.invalidateQueries({ queryKey: key }));
@@ -174,10 +174,6 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
         return handleRedeemToSilo(amountTV, account, balanceSource);
       }
 
-      if (!exists(toMode)) {
-        throw new Error("Invalid destination mode");
-      }
-
       if (!toSilo && tokenOut?.isMain) {
         startSubmission();
         return handleRedeemAdvanced(amountTV, account, balanceSource, toMode);
@@ -233,7 +229,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   const outputNotReady = txnType !== "swap" ? output?.amount.lte(0) : swap.data?.buyAmount.lte(0);
 
   const baseDisabled = !account || !validAmountIn || !balance.gte(amountTV);
-  const nonToSiloDisabled = txnType !== "redeemToSilo" && (!exists(toMode) || !tokenOut);
+  const nonToSiloDisabled = txnType !== "redeemToSilo" && !tokenOut;
   const buttonDisabled =
     baseDisabled || isConfirming || submitting || outputNotReady || inputError || quoting || nonToSiloDisabled;
 
@@ -295,10 +291,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
       {txnType !== "redeemToSilo" ? (
         <div>
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col">
-              <Label className="flex h-10 items-center">Destination</Label>
-              <DestinationBalanceSelect setBalanceTo={setToMode} balanceTo={toMode} />
-            </div>
+            <FarmBalanceToggle checked={toFarm} onCheckedChange={setToFarm} label="Receive Pinto in Farm Balance" />
             <div className="flex flex-col w-full pt-4 pb-2 gap-2">
               <div className="pinto-body-light text-pinto-light">Unwrap as</div>
               <div className="flex flex-col w-full gap-1">

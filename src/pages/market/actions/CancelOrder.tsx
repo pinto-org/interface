@@ -1,6 +1,6 @@
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TV, TokenValue } from "@/classes/TokenValue";
-import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
+import FarmBalanceToggle from "@/components/FarmBalanceToggle";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Separator } from "@/components/ui/Separator";
 import { PODS } from "@/constants/internalTokens";
@@ -30,7 +30,7 @@ export default function CancelOrder({ order }: CancelOrderProps) {
   const account = useAccount();
   const navigate = useNavigate();
 
-  const [balanceTo, setBalanceTo] = useState(FarmToMode.INTERNAL);
+  const [toFarm, setToFarm] = useState(true);
 
   const queryClient = useQueryClient();
   const { allPodOrders, allMarket, farmerMarket } = useQueryKeys({
@@ -75,7 +75,7 @@ export default function CancelOrder({ order }: CancelOrderProps) {
             maxPlaceInLine, // maxPlaceInLine
             minFillAmount, // minFillAmount
           },
-          Number(balanceTo), // mode
+          Number(toFarm ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL), // mode
         ],
       });
     } catch (e) {
@@ -86,14 +86,13 @@ export default function CancelOrder({ order }: CancelOrderProps) {
     } finally {
       setSubmitting(false);
     }
-  }, [order, diamondAddress, account, balanceTo, mainToken, setSubmitting, writeWithEstimateGas]);
+  }, [order, diamondAddress, account, toFarm, mainToken, setSubmitting, writeWithEstimateGas]);
 
   return (
     <>
-      <p className="pinto-body text-pinto-light">Destination</p>
-      <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} />
+      <FarmBalanceToggle checked={toFarm} onCheckedChange={setToFarm} label="Return Pinto to Farm Balance" />
       <Separator />
-      <ActionSummary beansOut={remainingBeans} balanceTo={balanceTo} />
+      <ActionSummary beansOut={remainingBeans} toFarm={toFarm} />
       <SmartSubmitButton
         variant="gradient"
         size="xxl"
@@ -105,7 +104,7 @@ export default function CancelOrder({ order }: CancelOrderProps) {
   );
 }
 
-const ActionSummary = ({ beansOut, balanceTo }: { beansOut: TV; balanceTo: FarmToMode }) => {
+const ActionSummary = ({ beansOut, toFarm }: { beansOut: TV; toFarm: boolean }) => {
   return (
     <div className="flex flex-col gap-4">
       <p className="pinto-body text-pinto-light">I will receive</p>
@@ -114,9 +113,7 @@ const ActionSummary = ({ beansOut, balanceTo }: { beansOut: TV; balanceTo: FarmT
           <img src={pintoIcon} className="w-8 h-8" alt={"order summary pinto"} />
           {formatter.number(beansOut, { minDecimals: 0, maxDecimals: 2 })} Pinto
         </p>
-        <p className="pinto-body text-pinto-light">
-          to my {balanceTo === FarmToMode.EXTERNAL ? "Wallet" : "Farm"} balance
-        </p>
+        <p className="pinto-body text-pinto-light">to my {toFarm ? "Farm" : "Wallet"} balance</p>
       </div>
     </div>
   );

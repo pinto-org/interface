@@ -275,7 +275,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
           {((!depositOutput && amountInTV.gt(0)) || swapQuery.isLoading || depositOutput) && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: depositingSiloToken ? "181px" : "222.5px" }}
+              animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.1 }}
               className="relative overflow-hidden mt-6"

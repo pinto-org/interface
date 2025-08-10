@@ -2,7 +2,7 @@ import podIcon from "@/assets/protocol/Pod.png";
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TV, TokenValue } from "@/classes/TokenValue";
 import ComboPlotInputField from "@/components/ComboPlotInputField";
-import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
+import FarmBalanceToggle from "@/components/FarmBalanceToggle";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Separator } from "@/components/ui/Separator";
 import { PODS } from "@/constants/internalTokens";
@@ -45,7 +45,7 @@ export default function FillOrder() {
   // TODO: need to handle an edge case with amount where the first half of the plot is sellable, and the second half is not.
   // Currently this is handled my making such a plot not fillable via ComboPlotInputField.
   const [amount, setAmount] = useState(0);
-  const [balanceTo, setBalanceTo] = useState(FarmToMode.INTERNAL);
+  const [toFarm, setToFarm] = useState(true);
 
   const { id } = useParams();
   const podOrders = usePodOrders();
@@ -104,7 +104,7 @@ export default function FillOrder() {
           plot[0].index.toBigInt(), // index of plot to sell
           0n, // start index within plot
           amountToSell.toBigInt(), // amount of pods to sell
-          Number(balanceTo), //destination balance
+          Number(toFarm ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL), //destination balance
         ],
       });
     } catch (e) {
@@ -115,7 +115,7 @@ export default function FillOrder() {
     } finally {
       setSubmitting(false);
     }
-  }, [order, plot, amountToSell, balanceTo, writeWithEstimateGas, setSubmitting, diamondAddress]);
+  }, [order, plot, amountToSell, toFarm, writeWithEstimateGas, setSubmitting, diamondAddress]);
 
   const isOwnOrder = order && order?.farmer.id === account.address?.toLowerCase();
   const disabled = !order || !plot[0] || !amount;
@@ -177,10 +177,7 @@ export default function FillOrder() {
                   type="single"
                 />
               </div>
-              <div className="flex flex-col gap-2">
-                <p className="pinto-body text-pinto-light">Destination</p>
-                <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} />
-              </div>
+              <FarmBalanceToggle checked={toFarm} onCheckedChange={setToFarm} label="Receive Pinto in Farm Balance" />
               <div className="flex flex-col gap-4">
                 <Separator />
                 {!disabled && (

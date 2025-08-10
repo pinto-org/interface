@@ -1,7 +1,7 @@
 import arrowDown from "@/assets/misc/ChevronDown.svg";
 import { TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
-import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
+import FarmBalanceToggle from "@/components/FarmBalanceToggle";
 import MobileActionBar from "@/components/MobileActionBar";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
 import SiloOutputDisplay from "@/components/SiloOutputDisplay";
@@ -85,7 +85,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const diamondAddress = useProtocolAddress();
 
-  const [destination, setDestination] = useState(FarmToMode.EXTERNAL);
+  const [toFarm, setToFarm] = useState(false);
   const [amount, setAmount] = useState("");
 
   const [shouldConvertWithdraw, setShouldConvertWithdraw] = useState(false);
@@ -170,7 +170,11 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     disabled: swapDisabled || shouldConvertWithdraw,
   });
 
-  const swapBuild = useBuildSwapQuote(swapData, FarmFromMode.INTERNAL, destination);
+  const swapBuild = useBuildSwapQuote(
+    swapData,
+    FarmFromMode.INTERNAL,
+    toFarm ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL,
+  );
   const swapSummary = useSwapSummary(swapData);
 
   // have to do the withdraw step first
@@ -236,7 +240,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     }
 
     try {
-      const argsAndStrategies = rebuildConvertWithdrawal(convQuote, destination);
+      const argsAndStrategies = rebuildConvertWithdrawal(convQuote, toFarm ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL);
 
       if (!argsAndStrategies || !argsAndStrategies.length) {
         throw new Error("No quote found");
@@ -260,7 +264,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   };
 
   const onSubmit = async () => {
-    if (amountTV.lte(0) || !destination || !account.address || !deposits || inputError) return;
+    if (amountTV.lte(0) || !account.address || !deposits || inputError) return;
 
     try {
       setSubmitting(true);
@@ -282,7 +286,12 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
             address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
             abi: beanstalkAbi,
             functionName: "withdrawDeposit",
-            args: [siloToken.address, stems[0].toBigInt(), amounts[0].toBigInt(), Number(destination)],
+            args: [
+              siloToken.address,
+              stems[0].toBigInt(),
+              amounts[0].toBigInt(),
+              Number(toFarm ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL),
+            ],
           });
         }
         return writeWithEstimateGas({
@@ -293,7 +302,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
             siloToken.address,
             stems.map((s) => s.toBigInt()),
             amounts.map((a) => a.toBigInt()),
-            Number(destination),
+            Number(toFarm ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL),
           ],
         });
       }
@@ -550,21 +559,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
         )}
       </div>
       {amount && stringToNumber(amount) > 0 && (
-        <div className="flex flex-col">
-          <div className="flex h-10 items-center gap-2">
-            <Label>Destination</Label>
-            <TooltipSimple
-              content={
-                <div>
-                  <div>Farmers have the option to Withdraw assets into their Wallet, or into the Farm Balance,</div>
-                  <div>where they are stored on the Pinto Farm on behalf of the Farmer.</div>
-                </div>
-              }
-              variant="gray"
-            />
-          </div>
-          <DestinationBalanceSelect setBalanceTo={setDestination} balanceTo={destination} />
-        </div>
+        <FarmBalanceToggle checked={toFarm} onCheckedChange={setToFarm} label="Withdraw Assets to Farm Balance" />
       )}
       {slippageWarning}
       <div className="hidden sm:flex">
