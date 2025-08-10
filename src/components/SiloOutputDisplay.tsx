@@ -18,6 +18,8 @@ interface SiloOutputDisplayProps {
   amountLabel?: string;
   stalkLabel?: string;
   seedsLabel?: string;
+  stalkDelta?: number;
+  seedsDelta?: number;
   before?: {
     label: string;
     valueProps: DisplayValueProps;
@@ -36,6 +38,8 @@ export default function SiloOutputDisplay({
   amountLabel = "Deposited Amount",
   stalkLabel = "Stalk",
   seedsLabel = "Seed",
+  stalkDelta,
+  seedsDelta,
   before,
 }: SiloOutputDisplayProps) {
   const deltaMultiplier = showNegativeDeltas ? -1 : 1;
@@ -61,7 +65,7 @@ export default function SiloOutputDisplay({
         <OutputDisplay.Value
           value={formatter.twoDec(stalk)}
           suffix="Stalk"
-          delta={stalk.toNumber() * deltaMultiplier}
+          delta={stalkDelta !== undefined ? stalkDelta : stalk.toNumber() * deltaMultiplier}
           token={STALK}
           showArrow={stalk.toNumber() !== 0}
           className="whitespace-nowrap"
@@ -71,7 +75,7 @@ export default function SiloOutputDisplay({
         <OutputDisplay.Value
           value={formatter.twoDec(seeds)}
           suffix="Seeds"
-          delta={seeds.toNumber() * deltaMultiplier}
+          delta={seedsDelta !== undefined ? seedsDelta : seeds.toNumber() * deltaMultiplier}
           token={SEEDS}
           showArrow={seeds.toNumber() !== 0}
           className="whitespace-nowrap"

@@ -7,6 +7,8 @@ import { TokenValue } from "@/classes/TokenValue";
  * @returns Object with stalkLabel and seedsLabel
  */
 export function getSiloLabels(stalkValue: TokenValue, seedsValue: TokenValue) {
+  console.log("stalkValue", stalkValue);
+  console.log("seedsValue", seedsValue);
   const stalkLabel = stalkValue.gte(0) ? "Stalk Gained" : "Stalk Burnt";
   const seedsLabel = seedsValue.gte(0) ? "Seeds Gained" : "Seeds Lost";
 

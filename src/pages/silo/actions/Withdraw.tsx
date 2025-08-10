@@ -536,6 +536,8 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
                       seeds={convertResult.deltaSeed.abs()}
                       stalkLabel={stalkLabel}
                       seedsLabel={seedsLabel}
+                      stalkDelta={convertResult.deltaStalk.toNumber()}
+                      seedsDelta={convertResult.deltaSeed.toNumber()}
                       showNegativeDeltas
                       showGrownStalkSeasonsNotice
                       grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
