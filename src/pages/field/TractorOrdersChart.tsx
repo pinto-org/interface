@@ -39,19 +39,34 @@ const TractorOrdersChart = React.memo(({ className, variant = "default" }: Tract
   // Data fetching
   const { data: orders, ...ordersQuery } = useTractorSowOrderbook({
     select: useCallback((data: OrderbookEntry[] | undefined) => {
+      console.log("[TractorOrdersChart] Raw orders data:", data);
       if (!data?.length) return [];
 
-      // Filter to only pending (not completed and not cancelled) orders
-      return data.filter((order) => !order.isComplete && !order.isCancelled);
+      // Filter to only pending orders
+      // Show all orders for debugging - will filter based on actual data structure
+      const pendingOrders = data.filter((order) => {
+        console.log("[TractorOrdersChart] Order properties:", {
+          isComplete: order.isComplete,
+          isCancelled: order.isCancelled,
+          pintosLeftToSow: order.pintosLeftToSow?.toHuman(),
+        });
+        // For now, show all orders to debug the issue
+        return true; // !order.isComplete && !order.isCancelled;
+      });
+      console.log("[TractorOrdersChart] Filtered pending orders:", pendingOrders);
+      return pendingOrders;
     }, []),
   });
 
   // Process orders into chart data
   const processedData = useMemo(() => {
+    console.log("[TractorOrdersChart] Processing orders:", orders?.length || 0, "orders");
     if (!orders?.length) return [];
 
     if (viewMode === "temperature") {
-      return processOrdersByTemperature(orders);
+      const result = processOrdersByTemperature(orders);
+      console.log("[TractorOrdersChart] Processed temperature data:", result);
+      return result;
     } else {
       // Filter orders by selected temperature if in tip view
       const filteredOrders =
@@ -64,12 +79,46 @@ const TractorOrdersChart = React.memo(({ className, variant = "default" }: Tract
             })
           : orders;
 
-      return processOrdersByTip(filteredOrders);
+      const result = processOrdersByTip(filteredOrders);
+      console.log("[TractorOrdersChart] Processed tip data:", result);
+      return result;
     }
   }, [orders, viewMode, selectedTemperature]);
 
   // Transform processed data to chart format
-  const chartData = useTransformOrdersToChartData(processedData, viewMode === "temperature");
+  const chartData = useMemo(() => {
+    console.log(
+      "[TractorOrdersChart] Transforming data:",
+      processedData,
+      "useLinearXAxis:",
+      viewMode === "temperature",
+    );
+
+    if (!processedData?.length) {
+      console.log("[TractorOrdersChart] No data, setting empty chart");
+      return { labels: [], datasets: [] };
+    } else {
+      // Always use traditional categorical format for bar charts
+      // Chart.js bar charts work better with simple data arrays and labels
+      const labels = processedData.map((d) => d.label);
+      const datasetData = processedData.map((d) => parseFloat(d.totalAmount.toHuman()));
+      console.log("[TractorOrdersChart] Chart data - labels:", labels, "data:", datasetData);
+
+      return {
+        labels,
+        datasets: [
+          {
+            data: datasetData,
+            label: "",
+            backgroundColor: "rgba(56, 127, 92, 0.5)",
+            borderColor: "rgba(56, 127, 92, 0.6)",
+            hoverBackgroundColor: "rgba(56, 127, 92, 0.8)",
+            hoverBorderColor: "rgba(56, 127, 92, 1)",
+          },
+        ],
+      };
+    }
+  }, [processedData]);
 
   // Loading state
   const isLoading = ordersQuery.isLoading || !orders;
@@ -258,7 +307,6 @@ const TractorOrdersChart = React.memo(({ className, variant = "default" }: Tract
               onClick={viewMode === "temperature" ? handleBarClick : undefined}
               yLabelFormatter={formatY}
               xLabelFormatter={viewMode === "temperature" ? formatTemperatureX : formatTipX}
-              useLinearXAxis={viewMode === "temperature"}
             />
           </div>
         </Col>
@@ -274,16 +322,24 @@ export default TractorOrdersChart;
 // ================================================================================
 
 const processOrdersByTemperature = (orders: OrderbookEntry[]): ProcessedOrderData[] => {
+  console.log("[processOrdersByTemperature] Processing", orders.length, "orders");
   const groupedData = new Map<number, { totalAmount: TokenValue; orders: OrderbookEntry[] }>();
 
   for (const order of orders) {
     const decodedData = decodeSowTractorData(order.requisition.blueprint.data);
-    if (!decodedData?.minTempAsString) continue;
+    console.log("[processOrdersByTemperature] Decoded data for order:", decodedData);
 
+    if (!decodedData?.minTempAsString) {
+      console.log("[processOrdersByTemperature] No minTempAsString found, skipping order");
+      continue;
+    }
+
+    // minTempAsString is already in percentage format (e.g., "613.75" for 613.75%)
     const temperature = parseFloat(decodedData.minTempAsString);
-    const amount = decodedData.sowAmounts?.totalAmountToSowAsString
-      ? TokenValue.fromHuman(decodedData.sowAmounts.totalAmountToSowAsString, 6)
-      : TokenValue.ZERO;
+    // Use currentlySowable which represents the actual amount that can be sown right now
+    const amount = order.currentlySowable || TokenValue.ZERO;
+
+    console.log("[processOrdersByTemperature] Temperature:", temperature, "% Amount:", amount.toHuman());
 
     if (!groupedData.has(temperature)) {
       groupedData.set(temperature, { totalAmount: TokenValue.ZERO, orders: [] });
@@ -296,16 +352,19 @@ const processOrdersByTemperature = (orders: OrderbookEntry[]): ProcessedOrderDat
   }
 
   // Convert to sorted array
-  return Array.from(groupedData.entries())
+  const result = Array.from(groupedData.entries())
     .map(([temperature, data]) => ({
       key: temperature.toString(),
-      label: `${(temperature * 100).toFixed(2)}%`,
+      label: `${temperature.toFixed(2)}%`, // Temperature is already in percentage format
       value: temperature,
       totalAmount: data.totalAmount,
       orderCount: data.orders.length,
       orders: data.orders,
     }))
     .sort((a, b) => a.value - b.value);
+
+  console.log("[processOrdersByTemperature] Final processed data:", result);
+  return result;
 };
 
 const processOrdersByTip = (orders: OrderbookEntry[]): ProcessedOrderData[] => {
@@ -317,9 +376,8 @@ const processOrdersByTip = (orders: OrderbookEntry[]): ProcessedOrderData[] => {
 
     const tipAmount = TokenValue.fromHuman(decodedData.operatorParams.operatorTipAmountAsString, 6);
     const tipKey = tipAmount.toHuman();
-    const orderAmount = decodedData.sowAmounts?.totalAmountToSowAsString
-      ? TokenValue.fromHuman(decodedData.sowAmounts.totalAmountToSowAsString, 6)
-      : TokenValue.ZERO;
+    // Use currentlySowable which represents the actual amount that can be sown right now
+    const orderAmount = order.currentlySowable || TokenValue.ZERO;
 
     if (!groupedData.has(tipKey)) {
       groupedData.set(tipKey, { totalAmount: TokenValue.ZERO, orders: [], tipValue: tipAmount });
@@ -344,40 +402,6 @@ const processOrdersByTip = (orders: OrderbookEntry[]): ProcessedOrderData[] => {
     .sort((a, b) => a.value - b.value);
 };
 
-// Transform processed data to Chart.js format
-const useTransformOrdersToChartData = (data: ProcessedOrderData[], useLinearXAxis: boolean = false) => {
-  const [transformedData, setTransformedData] = useState<ChartData<"bar">>({
-    labels: [],
-    datasets: [],
-  });
-
-  useEffect(() => {
-    if (!data?.length) {
-      setTransformedData({ labels: [], datasets: [] });
-    } else if (useLinearXAxis) {
-      // Use temperature values as labels for linear x-axis
-      const labels = data.map((d) => d.label); // Use the temperature labels (e.g., "12.50%")
-      const datasetData = data.map((d) => parseFloat(d.totalAmount.toHuman()));
-
-      setTransformedData({
-        labels,
-        datasets: [{ data: datasetData, label: "" }],
-      });
-    } else {
-      // Use traditional categorical format
-      const labels = data.map((d) => d.label);
-      const datasetData = data.map((d) => parseFloat(d.totalAmount.toHuman()));
-
-      setTransformedData({
-        labels,
-        datasets: [{ data: datasetData, label: "" }],
-      });
-    }
-  }, [data, useLinearXAxis]);
-
-  return transformedData;
-};
-
 // Formatting functions
 const formatY = (value: number | string) => {
   const asNum = typeof value === "number" ? value : Number(value);
@@ -385,8 +409,9 @@ const formatY = (value: number | string) => {
 };
 
 const formatTemperatureX = (value: number | string) => {
+  // Temperature is already in percentage format (e.g., 613.75 for 613.75%)
   const asNum = typeof value === "number" ? value : Number(value);
-  return `${(asNum * 100).toFixed(1)}%`;
+  return `${asNum.toFixed(1)}%`;
 };
 
 const formatTipX = (value: number | string) => {
@@ -403,7 +428,6 @@ const InteractiveBarChart = React.memo(
     onClick,
     yLabelFormatter,
     xLabelFormatter,
-    useLinearXAxis,
   }: {
     data: ChartData<"bar">;
     isLoading?: boolean;
@@ -411,7 +435,6 @@ const InteractiveBarChart = React.memo(
     onClick?: (index: number | undefined) => void;
     yLabelFormatter?: (value: number | string) => string;
     xLabelFormatter?: (value: number | string) => string;
-    useLinearXAxis?: boolean;
   }) => {
     const chartRef = useRef<HTMLDivElement>(null);
     const [currentHoverIndex, setCurrentHoverIndex] = useState<number | undefined>(undefined);
@@ -453,7 +476,6 @@ const InteractiveBarChart = React.memo(
           onMouseOver={handleMouseOver}
           yLabelFormatter={yLabelFormatter}
           xLabelFormatter={xLabelFormatter}
-          useLinearXAxis={useLinearXAxis}
         />
       </div>
     );

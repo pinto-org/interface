@@ -3,6 +3,8 @@ import { noop } from "@/utils/utils";
 import { Chart } from "chart.js";
 import type { ChartData, ChartOptions, ChartType, Plugin, UpdateMode } from "chart.js";
 import {
+  BarController,
+  BarElement,
   CategoryScale,
   Filler,
   LineController,
@@ -21,7 +23,17 @@ interface ReactChartComponent extends ForwardRefExoticComponent<ChartProps<Chart
 type ChartInputFunction<T> = (ctx: CanvasRenderingContext2D | null) => T;
 type ReactChartInput<T> = T | ChartInputFunction<T>;
 
-Chart.register(LineController, ScatterController, LineElement, LinearScale, CategoryScale, PointElement, Filler);
+Chart.register(
+  BarController,
+  BarElement,
+  LineController,
+  ScatterController,
+  LineElement,
+  LinearScale,
+  CategoryScale,
+  PointElement,
+  Filler,
+);
 
 // biome-ignore lint/suspicious/noExplicitAny: needed for type check
 function isInputFunctionType<T>(value: any): value is ChartInputFunction<T> {
