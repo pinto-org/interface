@@ -380,10 +380,12 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   // Amount of non-Pinto token being withdrawn (e.g., WSOL)
   const tokenOutAmount =
     shouldConvertWithdraw && exists(convertRouteIndex)
-      ? convertQuote?.[convertRouteIndex]?.quotes?.reduce(
-          (prev, curr) => prev.add(curr.summary?.target?.withdrawalAmount || TokenValue.ZERO),
-          TokenValue.ZERO,
-        )
+      ? convertQuote?.[convertRouteIndex]?.quotes?.reduce((prev, curr) => {
+          const target = curr.summary?.target;
+          // Type guard to check if target has withdrawalAmount property
+          const withdrawalAmount = target && "withdrawalAmount" in target ? target.withdrawalAmount : TokenValue.ZERO;
+          return prev.add(withdrawalAmount);
+        }, TokenValue.ZERO)
       : undefined;
 
   // Calculate the Pinto amount that remains in the Silo during convert withdraw
