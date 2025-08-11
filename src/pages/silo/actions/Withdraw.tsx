@@ -407,7 +407,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const outputAmount = shouldConvertWithdraw ? convertResult?.withdrawalAmount : withdrawOutput?.amount;
 
-  const tokenOutUSD = prices.tokenPrices.get(tokenOut);
+  const tokenOutUSD = tokenOut ? prices.tokenPrices.get(tokenOut) : undefined;
   const amountOutUSD = tokenOutUSD ? withdrawOutput?.amount.mul(tokenOutUSD.instant) : undefined;
   const swapReady = swapBuild && swapData?.buyAmount?.gt(0);
 

@@ -27,6 +27,7 @@ type BarChartProps = {
   enableTooltips?: boolean;
   yMinScalar?: number;
   yMaxScalar?: number;
+  useLinearXAxis?: boolean;
 };
 interface IYScale {
   type: keyof CartesianScaleTypeRegistry;
@@ -49,6 +50,7 @@ const BarChart = React.memo(
     enableTooltips = false,
     yMinScalar = 0.99,
     yMaxScalar = 1.01,
+    useLinearXAxis = false,
   }: BarChartProps) => {
     const [iYScale, setIYScale] = useState<IYScale | undefined>(undefined);
 
@@ -93,6 +95,7 @@ const BarChart = React.memo(
             },
           },
           x: {
+            type: useLinearXAxis ? "linear" : "category",
             stacked: false, //
             ticks: {
               display: !!xLabelFormatter,
