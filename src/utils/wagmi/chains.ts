@@ -1,5 +1,5 @@
 import { Chain, defineChain } from "viem";
-import { basePreconf as viem__base } from "viem/chains";
+import { base as viem__base } from "viem/chains";
 import { arbitrum as viem__arbitrum } from "viem/chains";
 
 const API_KEY = import.meta.env.VITE_ALCHEMY_API_KEY;
