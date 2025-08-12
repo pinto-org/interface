@@ -3,8 +3,6 @@ import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { Blueprint, TractorTokenStrategy, createBlueprint, createSowTractorData } from "@/lib/Tractor";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
-import { validateFormLte } from "@/utils/number";
-import { isValidAddress, postSanitizedSanitizedValue } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { Token } from "@/utils/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,45 +11,18 @@ import { useForm } from "react-hook-form";
 import { useAccount, usePublicClient } from "wagmi";
 import { z } from "zod";
 
-// Helper function to validate positive numbers
-const positiveNumber = (fieldName: string) =>
-  z
-    .string()
-    .min(1, `${fieldName} is required`)
-    .refine((val) => {
-      const vals = postSanitizedSanitizedValue(val, 6);
-      if (vals.nonAmount) return true;
-      return vals.tv.gt(0);
-    }, `${fieldName} must be greater than 0`);
+import FormUtils from "@/utils/form";
 
-// Token strategy validation
-const tokenStrategyValidation = z
-  .object({
-    type: z.enum(["LOWEST_SEEDS", "LOWEST_PRICE", "SPECIFIC_TOKEN"]),
-    address: z.string().optional(),
-  })
-  .refine((data) => {
-    if (data.type === "SPECIFIC_TOKEN") {
-      return isValidAddress(data.address);
-    }
-    return true;
-  }, "Token address is required for specific token strategy");
+const {
+  schema: { singleTokenStrategy, positiveNumber, addCTXErrors },
+  validate: { lte },
+} = FormUtils;
 
 export const sowOrderSchemaErrors = {
   minLteMax: "Min per Season cannot exceed Max per Season",
   minLteTotal: "Min per Season cannot exceed the total amount to Sow",
   maxLteTotal: "Max per Season cannot exceed the total amount to Sow",
 } as const;
-
-const addCTXErrors = (ctx: z.RefinementCtx, message: string, paths: string[]) => {
-  for (const path of paths) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message,
-      path: [path],
-    });
-  }
-};
 
 // Main schema for sow order dialog
 export const sowOrderDialogSchema = z
@@ -63,23 +34,23 @@ export const sowOrderDialogSchema = z
     podLineLength: positiveNumber("Pod Line Length"),
     morningAuction: z.boolean().default(false),
     operatorTip: positiveNumber("Operator Tip"),
-    selectedTokenStrategy: tokenStrategyValidation,
+    selectedTokenStrategy: singleTokenStrategy,
   })
   .superRefine((data, ctx) => {
     // Cross-field validation: minSoil <= maxPerSeason
-    if (!validateFormLte(data.minSoil, data.maxPerSeason, 6, 6)) {
+    if (!lte(data.minSoil, data.maxPerSeason, 6, 6)) {
       addCTXErrors(ctx, sowOrderSchemaErrors.minLteMax, ["minSoil", "maxPerSeason"]);
     }
   })
   .superRefine((data, ctx) => {
     // Cross-field validation: minSoil <= totalAmount
-    if (!validateFormLte(data.minSoil, data.totalAmount, 6, 6)) {
+    if (!lte(data.minSoil, data.totalAmount, 6, 6)) {
       addCTXErrors(ctx, sowOrderSchemaErrors.minLteTotal, ["minSoil", "totalAmount"]);
     }
   })
   .superRefine((data, ctx) => {
     // Cross-field validation: maxPerSeason <= totalAmount
-    if (!validateFormLte(data.maxPerSeason, data.totalAmount, 6, 6)) {
+    if (!lte(data.maxPerSeason, data.totalAmount, 6, 6)) {
       addCTXErrors(ctx, sowOrderSchemaErrors.maxLteTotal, ["maxPerSeason", "totalAmount"]);
     }
   });
