@@ -34,6 +34,11 @@ export type TractorOrderSpecificTokenStrategy = {
   address: `0x${string}`;
 };
 
+export type TractorOrderMultiTokensStrategy = {
+  type: "MULTI_TOKENS";
+  addresses: `0x${string}`[];
+};
+
 // Add the TokenStrategy type
 export type SowOrderTokenStrategy =
   | { type: "LOWEST_SEEDS" }
