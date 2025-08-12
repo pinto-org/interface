@@ -47,7 +47,7 @@ export default function TractorCard({
         />
         <div className="flex flex-row items-center gap-1">
           <span
-            className={`pinto-h4 ${shouldAnimateZoom || hoveredTractor ? "text-pinto-green-4" : "text-pinto-light"}`}
+            className={`pinto-h4 ${shouldAnimateZoom || hoveredTractor ? "text-pinto-green-4" : "text-pinto-secondary"}`}
           >
             {label}
             {/* 🚜 Want to Sow with size? */}
