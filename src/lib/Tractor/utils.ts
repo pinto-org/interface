@@ -18,7 +18,7 @@ import { MayArray } from "@/utils/types.generic";
 import { arrayify } from "@/utils/utils";
 import { SignableMessage, decodeEventLog, decodeFunctionData, encodeFunctionData } from "viem";
 import { PublicClient } from "viem";
-import { Requisition, SowOrderTokenStrategy, TractorTokenStrategy } from "./types";
+import { Requisition, SowOrderTokenStrategy, TractorOrderDynamicFundingStrategy, TractorTokenStrategy } from "./types";
 
 // Block number at which Tractor was deployed - use this as starting point for event queries
 export const TRACTOR_DEPLOYMENT_BLOCK = 28930876n;
@@ -103,7 +103,10 @@ export async function createSowTractorData({
   // Add more detailed debug logs
   console.debug("tokenStrategy received:", tokenStrategy);
   console.debug("tokenStrategy.type:", tokenStrategy.type);
-  console.debug("tokenStrategy.address:", tokenStrategy.type === "SPECIFIC_TOKEN" ? tokenStrategy.address : "N/A");
+  console.debug(
+    "tokenStrategy.address:",
+    tokenStrategy.type === "SPECIFIC_TOKEN" ? tokenStrategy.addresses?.[0] : "N/A",
+  );
 
   // Convert inputs to appropriate types
   const totalAmount = sanitizeNumericInputValue(totalAmountToSow, 6).tv.toBigInt();
@@ -127,8 +130,8 @@ export async function createSowTractorData({
     console.debug("Using LOWEST_PRICE strategy");
     sourceTokenIndices = [254];
   } else if (tokenStrategy.type === "SPECIFIC_TOKEN") {
-    console.debug("Using SPECIFIC_TOKEN strategy with address:", tokenStrategy.address);
-    const index = await getTokenIndex(publicClient, tokenStrategy.address as `0x${string}`);
+    console.debug("Using SPECIFIC_TOKEN strategy with address:", tokenStrategy.addresses?.[0]);
+    const index = await getTokenIndex(publicClient, tokenStrategy.addresses?.[0] as `0x${string}`);
     console.debug("Got token index:", index);
     sourceTokenIndices = [index];
   } else {
@@ -1432,7 +1435,48 @@ export async function getAverageTipPaid(
 // Sow Order Utility Functions
 // ────────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Get the token strategy for a sow order.
+ * @param indicies - The indices of the tokens to use for the order.
+ * @returns The token strategy for the order.
+ */
 export const getSowOrderTokenStrategy = (indicies: readonly number[]) => {
+  if (indicies.includes(255)) {
+    return "LOWEST_SEEDS";
+  } else if (indicies.includes(254)) {
+    return "LOWEST_PRICE";
+  } else {
+    return "SPECIFIC_TOKEN";
+  }
+};
+
+export const extractAddressesFromTokenStrategy = (tokenStrategy: TractorTokenStrategy): `0x${string}`[] | undefined => {
+  if (tokenStrategy.type === "SPECIFIC_TOKEN" || tokenStrategy.type === "MULTI_TOKENS") {
+    return tokenStrategy.addresses;
+  }
+  return undefined;
+};
+
+export const isDynamicTractorTokenStrategy = (
+  tokenStrategy: TractorTokenStrategy,
+): tokenStrategy is TractorOrderDynamicFundingStrategy => {
+  return tokenStrategy.type === "LOWEST_SEEDS" || tokenStrategy.type === "LOWEST_PRICE";
+};
+
+/**
+ * Get the token strategy for a tractor order.
+ * @param indicies - The indices of the tokens to use for the order.
+ * @returns The token strategy for the order.
+ */
+export const getTractorOrderTokenStrategyFromIndicies = (indicies: readonly number[]) => {
+  if (indicies.length > 1) {
+    const hasInvalid = indicies.some((index) => index === 254 || index === 255);
+    if (hasInvalid) {
+      throw new Error("Invalid token indices. LOWEST SEEDS or LOWEST PRICE cannot be used with multiple tokens.");
+    }
+    return "MULTI_TOKENS";
+  }
+
   if (indicies.includes(255)) {
     return "LOWEST_SEEDS";
   } else if (indicies.includes(254)) {
@@ -1449,7 +1493,7 @@ export const getSowOrderTokenStrategy = (indicies: readonly number[]) => {
  * @returns True if the value is a valid TractorTokenStrategy, false otherwise
  */
 export const isTractorTokenStrategy = (value: unknown): value is TractorTokenStrategy => {
-  if (!value || typeof value !== "object") return false;
+  if (!value) return false;
 
   const strategy = value as Record<string, unknown>;
 
@@ -1460,10 +1504,18 @@ export const isTractorTokenStrategy = (value: unknown): value is TractorTokenStr
       return true;
     case "LOWEST_PRICE":
       return true;
-    case "SPECIFIC_TOKEN":
-      return typeof strategy.address === "string" && strategy.address.startsWith("0x");
-    default:
+    default: {
+      if (!("addresses" in strategy) || !Array.isArray(strategy.addresses)) {
+        return false;
+      }
+      if (strategy.type === "SPECIFIC_TOKEN") {
+        return strategy.addresses?.length && strategy.addresses.length === 1 && strategy.addresses[0].startsWith("0x");
+      }
+      if (strategy.type === "MULTI_TOKENS") {
+        return strategy.addresses.every((addr) => typeof addr === "string" && addr.startsWith("0x"));
+      }
       return false;
+    }
   }
 };
 

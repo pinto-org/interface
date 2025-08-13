@@ -31,19 +31,35 @@ export interface PublishedRequisition {
  */
 export type TractorOrderSpecificTokenStrategy = {
   type: "SPECIFIC_TOKEN";
-  address: `0x${string}`;
+  addresses: `0x${string}`[];
 };
+
+export type TractorOrderDynamicFundingStrategy =
+  | {
+      type: "LOWEST_SEEDS";
+    }
+  | {
+      type: "LOWEST_PRICE";
+    };
+
+export interface ExtendedTractorOrderSpecificTokenStrategy extends TractorOrderSpecificTokenStrategy {
+  token?: Token;
+}
 
 export type TractorOrderMultiTokensStrategy = {
   type: "MULTI_TOKENS";
   addresses: `0x${string}`[];
 };
 
+export interface ExtendedTractorOrderMultiTokensStrategy extends TractorOrderMultiTokensStrategy {
+  tokens?: Token[];
+}
+
 // Add the TokenStrategy type
 export type SowOrderTokenStrategy =
-  | { type: "LOWEST_SEEDS" }
-  | { type: "LOWEST_PRICE" }
-  | TractorOrderSpecificTokenStrategy;
+  | TractorOrderDynamicFundingStrategy
+  | TractorOrderSpecificTokenStrategy
+  | TractorOrderMultiTokensStrategy;
 
 export type TractorTokenStrategy = SowOrderTokenStrategy;
 
@@ -51,4 +67,5 @@ export type TractorTokenStrategy = SowOrderTokenStrategy;
 export type ExtendedTractorTokenStrategy =
   | { type: "LOWEST_SEEDS" }
   | { type: "LOWEST_PRICE" }
-  | (TractorOrderSpecificTokenStrategy & { token?: Token });
+  | ExtendedTractorOrderSpecificTokenStrategy
+  | ExtendedTractorOrderMultiTokensStrategy;

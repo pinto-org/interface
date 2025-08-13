@@ -36,7 +36,7 @@ const singleTokenStrategyValidation = z
     return true;
   }, "Token address is required for specific token strategy");
 
-const multiTokenStrategyValidation = z
+const tokenStrategyValidation = z
   .object({
     type: z.enum(["LOWEST_SEEDS", "LOWEST_PRICE", "SPECIFIC_TOKEN", "MULTI_TOKENS"]),
     addresses: z.array(z.string()).optional(),
@@ -79,7 +79,7 @@ const FormSchemaUtils = {
   schema: {
     positiveNumber,
     nonNegativeNumber,
-    multiTokenStrategy: multiTokenStrategyValidation,
+    tokenStrategy: tokenStrategyValidation,
     singleTokenStrategy: singleTokenStrategyValidation,
     addCTXErrors: addZodCTXErrors,
   },

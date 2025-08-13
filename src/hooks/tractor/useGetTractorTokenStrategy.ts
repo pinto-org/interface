@@ -55,7 +55,7 @@ const useGetTractorTokenStrategyWithBlueprint = () => {
 
       if (strat === "SPECIFIC_TOKEN") {
         return {
-          address: wlStatuses[index]?.token,
+          addresses: [wlStatuses[index]?.token],
           type: "SPECIFIC_TOKEN",
           token: tokenMap[getTokenIndex(wlStatuses[index]?.token)] ?? undefined,
         };
