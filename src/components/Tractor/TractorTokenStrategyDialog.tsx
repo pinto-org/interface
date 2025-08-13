@@ -14,15 +14,21 @@ import {
 import IconImage from "@/components/ui/IconImage";
 import { Separator } from "@/components/ui/Separator";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
+import { extractAddressesFromTokenStrategy, isDynamicTractorTokenStrategy } from "@/lib/Tractor";
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
+import { stringEq } from "@/utils/string";
+import { tokensEqual } from "@/utils/token";
+import { Token } from "@/utils/types";
+import { MayArray } from "@/utils/types.generic";
 
 export type ITractorTokenStrategyDialogProps = {
   open: boolean;
   selectedTokenStrategy: TractorTokenStrategy | undefined;
   farmerDeposits: ReturnType<typeof useFarmerSilo>["deposits"];
+  multiSelect?: boolean;
   onOpenChange: (open: boolean) => void;
   onTokenStrategySelected: (tokenStrategy: TractorTokenStrategy) => void;
 } & ReturnType<typeof useSowOrderV0Calculations>;
@@ -62,14 +68,54 @@ const DyamicFundingSource = ({
 
 export default function TractorTokenStrategyDialog({
   open,
-  selectedTokenStrategy,
+  selectedTokenStrategy: tokenStrategy,
   farmerDeposits,
   onOpenChange,
   onTokenStrategySelected,
   swapResults,
+  multiSelect = false,
   priceData,
 }: ITractorTokenStrategyDialogProps) {
   const { whitelistedTokens } = useTokenData();
+  const { mainToken } = useTokenData();
+
+  const selectedTokenAddresses = tokenStrategy && extractAddressesFromTokenStrategy(tokenStrategy);
+
+  // Callbacks
+  const handleSelectDynamicStrategy = (strategy: TractorTokenStrategy) => {
+    onTokenStrategySelected(strategy);
+    onOpenChange(false);
+    return;
+  };
+
+  const getIsTokenSelected = (token: Token) => {
+    if (!tokenStrategy || isDynamicTractorTokenStrategy(tokenStrategy)) {
+      return false;
+    }
+
+    return !!selectedTokenAddresses?.find((adr) => stringEq(adr, token.address));
+  };
+
+  const handleSelectSpecificToken = (token: Token) => {
+    if (!multiSelect) {
+      onTokenStrategySelected({
+        type: "SPECIFIC_TOKEN",
+        addresses: [token.address],
+      });
+      return;
+    }
+
+    const isIncluded = getIsTokenSelected(token);
+
+    const newAddresses = isIncluded
+      ? selectedTokenAddresses?.filter((adr) => !stringEq(token.address, adr)) ?? []
+      : [...(selectedTokenAddresses || []), token.address];
+
+    onTokenStrategySelected({
+      type: "MULTI_TOKENS",
+      addresses: newAddresses,
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -97,14 +143,14 @@ export default function TractorTokenStrategyDialog({
                 <DyamicFundingSource
                   label="Token with Best Price"
                   tokenStrategy={{ type: "LOWEST_PRICE" }}
-                  selectedTokenStrategy={selectedTokenStrategy}
-                  onTokenStrategySelected={onTokenStrategySelected}
+                  selectedTokenStrategy={tokenStrategy}
+                  onTokenStrategySelected={handleSelectDynamicStrategy}
                 />
                 <DyamicFundingSource
                   label="Token with Least Seeds"
                   tokenStrategy={{ type: "LOWEST_SEEDS" }}
-                  selectedTokenStrategy={selectedTokenStrategy}
-                  onTokenStrategySelected={onTokenStrategySelected}
+                  selectedTokenStrategy={tokenStrategy}
+                  onTokenStrategySelected={handleSelectDynamicStrategy}
                 />
               </div>
             </div>
@@ -118,14 +164,11 @@ export default function TractorTokenStrategyDialog({
                   const amount = deposit?.amount || TokenValue.ZERO;
 
                   // Calculate dollar value - use price for PINTO, swap results for LP tokens
-                  const pintoAmount =
-                    token.symbol === "PINTO"
-                      ? amount.mul(priceData.price)
-                      : swapResults.get(token.address) || TokenValue.ZERO;
+                  const pintoAmount = tokensEqual(token, mainToken)
+                    ? amount.mul(priceData.price)
+                    : swapResults.get(token.address) || TokenValue.ZERO;
 
-                  const isSelected =
-                    selectedTokenStrategy?.type === "SPECIFIC_TOKEN" &&
-                    selectedTokenStrategy?.address === token.address;
+                  const isSelected = getIsTokenSelected(token);
 
                   return (
                     <div
@@ -134,11 +177,8 @@ export default function TractorTokenStrategyDialog({
                         isSelected ? "bg-green-50" : "bg-white"
                       }`}
                       onClick={() => {
-                        onTokenStrategySelected({
-                          type: "SPECIFIC_TOKEN",
-                          address: token.address as `0x${string}`,
-                        });
-                        onOpenChange(false);
+                        handleSelectSpecificToken(token);
+                        !multiSelect && onOpenChange(false);
                       }}
                     >
                       <div className="flex items-center gap-3">

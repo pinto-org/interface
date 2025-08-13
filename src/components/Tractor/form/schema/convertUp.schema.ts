@@ -17,7 +17,7 @@ import { z } from "zod";
 import FormUtils from "@/utils/form";
 
 const {
-  schema: { positiveNumber, nonNegativeNumber, multiTokenStrategy, addCTXErrors },
+  schema: { tokenStrategy: tokenStrategyValidation, positiveNumber, nonNegativeNumber, addCTXErrors },
 } = FormUtils;
 
 // Helper function to validate percentage (0-100%)
@@ -63,7 +63,7 @@ export const convertUpSchemaErrors = {
 export const convertUpOrderDialogSchema = z
   .object({
     // Source tokens to withdraw from
-    tokenStrategy: multiTokenStrategy,
+    tokenStrategy: tokenStrategyValidation,
 
     // Conversion amounts
     totalConvertBdv: positiveNumber("Total Convert BDV"),
@@ -140,8 +140,8 @@ export const defaultConvertUpOrderDialogValues: Partial<ConvertUpV0FormSchema> =
   minConvertBonusCapacity: "0",
   maxGrownStalkPerBdv: "0",
   minGrownStalkPerBdvBonus: "0",
-  maxPriceToConvertUp: "0",
-  minPriceToConvertUp: "0",
+  maxPriceToConvertUp: "0.999",
+  minPriceToConvertUp: "0.001",
   maxGrownStalkPerBdvPenalty: "0",
   slippageRatio: "0.1", // 0.1%
   lowStalkDeposits: 0, // USE
@@ -270,6 +270,10 @@ export const useConvertUpV0State = () => {
       }
       if (!address) {
         throw new Error("Signer not found.");
+      }
+
+      if (!deposits) {
+        throw new Error("No deposits found.");
       }
 
       setIsLoading(true);
