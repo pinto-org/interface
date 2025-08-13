@@ -32,6 +32,7 @@ export default function TractorCard({
       <Col
         onClick={onClick}
         className={cn(
+          "cursor-pointer",
           "relative group box-border items-start p-4 gap-1 w-full rounded-[1rem]",
           "transition-colors duration-200 bg-white border border-pinto-gray-2",
         )}
@@ -60,7 +61,7 @@ export default function TractorCard({
           {/* Set up a Tractor Order to automate Sowing */}
         </span>
       </Col>
-      {corderBordersDisabled && (
+      {!corderBordersDisabled && (
         <CornerBorders rowNumber={0} active={hoveredTractor} standalone={true} cornerRadius="1rem" />
       )}
     </div>
