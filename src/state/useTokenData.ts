@@ -3,7 +3,6 @@ import { useChainConstant, useResolvedChainId } from "@/utils/chain";
 import { Token } from "@/utils/types";
 import { useMemo } from "react";
 import { base } from "viem/chains";
-import { useChainId } from "wagmi";
 
 export function useWhitelistedTokens() {
   const chainId = useResolvedChainId();
@@ -14,6 +13,10 @@ export function useWhitelistedTokens() {
 
     return [mainToken, ...t];
   }, [chainId]);
+}
+
+export function useMainToken() {
+  return useChainConstant(MAIN_TOKEN);
 }
 
 export default function useTokenData() {
