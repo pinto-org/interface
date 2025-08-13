@@ -14,7 +14,7 @@ import { z } from "zod";
 import FormUtils from "@/utils/form";
 
 const {
-  schema: { singleTokenStrategy, positiveNumber, addCTXErrors },
+  schema: { tokenStrategy, positiveNumber, addCTXErrors },
   validate: { lte },
 } = FormUtils;
 
@@ -34,7 +34,7 @@ export const sowOrderDialogSchema = z
     podLineLength: positiveNumber("Pod Line Length"),
     morningAuction: z.boolean().default(false),
     operatorTip: positiveNumber("Operator Tip"),
-    selectedTokenStrategy: singleTokenStrategy,
+    selectedTokenStrategy: tokenStrategy,
   })
   .superRefine((data, ctx) => {
     // Cross-field validation: minSoil <= maxPerSeason
@@ -207,7 +207,7 @@ export const useSowOrderV0State = () => {
 
         const tokenInstance =
           formData.selectedTokenStrategy?.type === "SPECIFIC_TOKEN"
-            ? tokenMap[getTokenIndex(formData.selectedTokenStrategy.address ?? "")]
+            ? tokenMap[getTokenIndex(formData.selectedTokenStrategy.addresses?.[0] ?? "")]
             : undefined;
 
         setOrderData({
