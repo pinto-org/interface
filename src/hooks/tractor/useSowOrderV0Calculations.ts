@@ -48,7 +48,7 @@ export default function useSowOrderV0Calculations() {
   const tokenWithHighestValue = useMemo(() => {
     let highestValue = TokenValue.ZERO;
     let tokenWithHighestValueAddr: string | null = null;
-    let tokenType: "SPECIFIC_TOKEN" | "LOWEST_SEEDS" = "LOWEST_SEEDS";
+    let tokenType: "SPECIFIC_TOKEN" | "LOWEST_SEEDS" | "MULTI_TOKENS" = "LOWEST_SEEDS";
 
     // Check PINTO token first
     const pintoToken = whitelistedTokens.find((t) => t.symbol === "PINTO");

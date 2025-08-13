@@ -56,7 +56,7 @@ interface ReviewTractorOrderProps {
     podLineLength: string;
     minSoil: string;
     operatorTip: string;
-    tokenStrategy?: "LOWEST_SEEDS" | "LOWEST_PRICE" | "SPECIFIC_TOKEN";
+    tokenStrategy?: "LOWEST_SEEDS" | "LOWEST_PRICE" | "SPECIFIC_TOKEN" | "MULTI_TOKENS";
     tokenSymbol?: string;
     morningAuction?: boolean;
   };
