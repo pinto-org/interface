@@ -1,7 +1,7 @@
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { Blueprint, tractorTokenStrategyUtil as StrategyUtil, TractorTokenStrategy } from "@/lib/Tractor";
-import { ConvertUpParams } from "@/lib/Tractor/convertUp";
+import { ConvertUpParams, LowStalkDepositsMode } from "@/lib/Tractor/convertUp";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import useTokenData from "@/state/useTokenData";
 import { validateFormLte } from "@/utils/number";
@@ -54,11 +54,10 @@ const timeScale = (fieldName: string) =>
 const lowStalkDepositsValidation = z.number().int().min(0).max(2).default(0); // 0: USE, 1: OMIT, 2: USE_LAST
 
 export const convertUpSchemaErrors = {
-  minBdvLteMaxBdv: "Min BDV per execution cannot exceed Max BDV per execution",
-  minBdvLteTotal: "Min BDV per execution cannot exceed total convert BDV",
-  maxBdvLteTotal: "Max BDV per execution cannot exceed total convert BDV",
-  minPriceLteMaxPrice: "Min price cannot exceed max price",
-  invalidPenalty: "Max grown stalk per BDV penalty must be negative or zero",
+  minBdvLteMaxBdv: "Min PDV per execution exceeds Max PDV per execution",
+  minBdvLteTotal: "Min PDV per execution exceeds Total Convert PDV",
+  maxBdvLteTotal: "Max PDV per execution exceeds Total Convert PDV",
+  minPriceLteMaxPrice: "Min Price exceeds Max Price",
 } as const;
 
 // Main schema for convert up order dialog
@@ -68,39 +67,40 @@ export const convertUpOrderDialogSchema = z
     tokenStrategy: tokenStrategyValidation,
 
     // Conversion amounts
-    totalConvertBdv: positiveNumber("Total Convert BDV"),
-    minConvertBdvPerExecution: positiveNumber("Min BDV per Execution"),
-    maxConvertBdvPerExecution: positiveNumber("Max BDV per Execution"),
+    totalConvertBdv: positiveNumber("Total Convert PDV"),
+    minConvertBdvPerExecution: positiveNumber("Min PDV per Execution"),
+    maxConvertBdvPerExecution: positiveNumber("Max PDV per Execution"),
 
     // Time constraints
-    minTimeBetweenConverts: timeInSeconds("Min Time Between Converts"),
+    minTimeBetweenConverts: timeInSeconds("Min Time Between Executions"),
     timeScale: timeScale("Time Scale"),
 
     // Bonus/capacity parameters
     minConvertBonusCapacity: nonNegativeNumber("Min Convert Bonus Capacity"),
-    maxGrownStalkPerBdv: positiveNumber("Max Grown Stalk per BDV"),
+    maxGrownStalkPerBdv: positiveNumber("Max Grown Stalk per PDV"),
     minGrownStalkPerBdvBonus: nonNegativeNumber("Min Grown Stalk per BDV Bonus"),
 
     // Price constraints
-    maxPriceToConvertUp: positiveNumber("Max Price to Convert Up"),
-    minPriceToConvertUp: positiveNumber("Min Price to Convert Up"),
+    maxPriceToConvertUp: positiveNumber("Max Price").refine((data) => {
+      const vals = postSanitizedSanitizedValue(data, 6);
+
+      return vals.tv.lt(1);
+    }, "Max Price must be less than 1"),
+
+    minPriceToConvertUp: positiveNumber("Min Price").refine((data) => {
+      const vals = postSanitizedSanitizedValue(data, 6);
+      return vals.tv.lt(1);
+    }, "Min Price must be less than 1"),
 
     // Penalty tolerance
-    maxGrownStalkPerBdvPenalty: z
-      .string()
-      .min(0, "Max Grown Stalk per BDV Penalty is required")
-      .refine((val) => {
-        const vals = postSanitizedSanitizedValue(val, 6);
-        if (vals.nonAmount) return true;
-        return vals.tv.gte(0); // Must be gte
-      }, "Max Grown Stalk per BDV Penalty must be negative or zero"),
+    maxGrownStalkPerBdvPenalty: z.string().min(0, "Max Grown Stalk per BDV Penalty is required"),
 
     // Execution parameters
     slippageRatio: percentageNumber("Slippage Ratio"),
     lowStalkDeposits: lowStalkDepositsValidation,
 
     // Operator tip
-    operatorTip: positiveNumber("Operator Tip"),
+    operatorTip: nonNegativeNumber("Operator Tip"),
   })
   .superRefine((data, ctx) => {
     // Cross-field validation: minConvertBdvPerExecution <= maxConvertBdvPerExecution
@@ -162,9 +162,9 @@ const defaultConvertOrderUpValues: ConvertUpV0FormSchema = {
 type IConvertUpV0Form = {
   form: ReturnType<typeof useForm<ConvertUpV0FormSchema>>;
   prefillValues: (prefillValues: Partial<ConvertUpV0FormSchema>) => void;
-  getAreAllFieldsFilled: () => boolean;
-  getAreAllFieldsValid: () => boolean;
-  getMissingFields: () => string[];
+  getAreAllFieldsFilled: (fields?: (keyof ConvertUpV0FormSchema)[]) => boolean;
+  getAreAllFieldsValid: (fields?: (keyof ConvertUpV0FormSchema)[]) => boolean;
+  getMissingFields: (fields?: (keyof ConvertUpV0FormSchema)[]) => string[];
 };
 
 export const useConvertUpV0Form = (): IConvertUpV0Form => {
@@ -181,46 +181,75 @@ export const useConvertUpV0Form = (): IConvertUpV0Form => {
     [form.reset],
   );
 
-  const getAreAllFieldsFilled = useCallback(() => {
-    const values = form.getValues();
-    return Object.entries(values).every(([key, value]) => {
-      if (key === "tokenStrategy") {
-        return StrategyUtil.isValidStrategy(value);
-      }
-      if (typeof value === "string") {
-        return Boolean(value.trim().length);
-      }
-      if (typeof value === "number") {
-        return value >= 0;
-      }
-      return true;
-    });
-  }, [form.getValues]);
+  const getAreAllFieldsFilled = useCallback(
+    (fields?: (keyof ConvertUpV0FormSchema)[]): boolean => {
+      const values = form.getValues();
 
-  const getAreAllFieldsValid = useCallback(() => {
-    return Object.values(form.formState.errors).every((value) => !value) && getAreAllFieldsFilled();
-  }, [form.formState.errors, getAreAllFieldsFilled]);
+      const fieldSet = fields ? new Set(fields) : new Set(Object.keys(values));
 
-  const getMissingFields = useCallback(() => {
-    const values = form.getValues();
+      return Array.from(fieldSet).every((key) => {
+        const value = values[key as keyof ConvertUpV0FormSchema];
 
-    const missingFields = Object.keys(values).filter((key) => {
-      const value = values[key as keyof ConvertUpV0FormSchema];
+        switch (true) {
+          case key === "tokenStrategy":
+            return StrategyUtil.isValidStrategy(value);
+          case typeof value === "string":
+            return Boolean(value.trim().length);
+          case typeof value === "number":
+            return value >= 0;
+          default:
+            return true;
+        }
+      });
+    },
+    [form.getValues],
+  );
 
-      if (key === "tokenStrategy") {
-        return !StrategyUtil.isValidStrategy(value);
+  const getAreAllFieldsValid = useCallback(
+    (fields?: (keyof ConvertUpV0FormSchema)[]): boolean => {
+      if (!!fields?.length) {
+        const hasFieldErrors = fields.every((key) => {
+          !form.formState.errors[key as keyof ConvertUpV0FormSchema];
+        });
+        return hasFieldErrors && getAreAllFieldsFilled(fields);
       }
-      if (typeof value === "string") {
-        return value.trim() === "";
-      }
-      if (typeof value === "number") {
-        return false; // Numbers always have a value
-      }
-      return false;
-    });
 
-    return missingFields;
-  }, [form.getValues]);
+      return Object.values(form.formState.errors).every((value) => !value) && getAreAllFieldsFilled();
+    },
+    [form.formState.errors, getAreAllFieldsFilled],
+  );
+
+  const getMissingFields = useCallback(
+    (fields?: (keyof ConvertUpV0FormSchema)[]): (keyof ConvertUpV0FormSchema)[] => {
+      const values = form.getValues();
+
+      const fieldSet = fields?.length ? new Set(fields) : new Set(Object.keys(values));
+
+      console.log({
+        values,
+      });
+
+      const missingFields = Array.from(fieldSet).filter((k) => {
+        const key = k as keyof ConvertUpV0FormSchema;
+        const value = values[key];
+
+        switch (true) {
+          case key === "tokenStrategy":
+            return !StrategyUtil.isValidStrategy(value);
+          case typeof value === "string": {
+            return value === "";
+          }
+          case key === "lowStalkDeposits":
+            return value !== 0 && value !== 1 && value !== 2;
+          default:
+            return false;
+        }
+      });
+
+      return missingFields as (keyof ConvertUpV0FormSchema)[];
+    },
+    [form],
+  );
 
   return {
     form,
@@ -260,15 +289,15 @@ export interface PreparedConvertUpArgs {
   totalConvertBdv: TV;
   minConvertBdvPerExecution: TV;
   maxConvertBdvPerExecution: TV;
-  minTimeBetweenConverts: number;
+  minTimeBetweenConverts: string;
   minConvertBonusCapacity: TV;
   maxGrownStalkPerBdv: TV;
   minGrownStalkPerBdvBonus: TV;
   maxPriceToConvertUp: TV;
   minPriceToConvertUp: TV;
   maxGrownStalkPerBdvPenalty: TV;
-  slippageRatio: number;
-  lowStalkDeposits: number;
+  slippageRatio: string;
+  lowStalkDeposits: LowStalkDepositsMode;
   operatorTip: TV;
 }
 
@@ -437,11 +466,11 @@ export const prepareConvertUpInitialFormData = (
     maxConvertBdvPerExecution: maxSizePerExecution.eq(0) ? defaultMaxSizePerExecution : maxSizePerExecution,
     minPriceToConvertUp,
     maxPriceToConvertUp,
-    minTimeBetweenConverts: Number(values.minTimeBetweenConverts),
+    minTimeBetweenConverts: values.minTimeBetweenConverts,
     maxGrownStalkPerBdv: postSanitizedSanitizedValue(values.maxGrownStalkPerBdv, STALK.decimals).tv,
     minGrownStalkPerBdvBonus,
     maxGrownStalkPerBdvPenalty: postSanitizedSanitizedValue(values.maxGrownStalkPerBdvPenalty, decimals).tv,
-    slippageRatio: postSanitizedSanitizedValue(values.slippageRatio, decimals).tv.toNumber(),
+    slippageRatio: values.slippageRatio,
     operatorTip: postSanitizedSanitizedValue(values.operatorTip, decimals).tv,
     lowStalkDeposits: values.lowStalkDeposits,
   };
