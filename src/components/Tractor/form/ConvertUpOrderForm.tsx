@@ -27,7 +27,7 @@ import { createContext, useCallback, useContext, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import TractorTokenStrategyDialog from "../TractorTokenStrategyDialog";
 import Fields, { CONVERT_UP_TOOLTIP_COPY } from "./fields/ConvertUpOrderV0Fields";
-import { TokenStrategyFormField } from "./fields/sharedFields";
+import { TimeScaleSelectFormField, TokenStrategyFormField } from "./fields/sharedFields";
 import {
   ConvertUpV0FormSchema,
   prepareConvertUpInitialFormData,
@@ -47,6 +47,7 @@ enum FormStep {
   ENTRY = 1,
   REVIEW = 2,
   ADVANCED = 3,
+  OPERATOR_TIP = 4,
 }
 
 // ------------------------------------------------------------
@@ -198,7 +199,13 @@ function ConvertUpOrderFormController({ onOpenChange }: IConvertUpOrderForm) {
       return;
     }
 
-    setFormStep(formStep - 1);
+    if (formStep === FormStep.REVIEW) {
+      setFormStep(FormStep.ENTRY);
+      return;
+    }
+
+    // ADVANCED & OPERATOR_TIP both stem from REVIEW
+    setFormStep(FormStep.REVIEW);
   };
 
   // Handle advancing to the next step
@@ -222,7 +229,7 @@ function ConvertUpOrderFormController({ onOpenChange }: IConvertUpOrderForm) {
     <>
       <Col className="w-full gap-6">
         <div className="">
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="sync">
             {formStep === FormStep.ENTRY && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -333,8 +340,10 @@ const FormEntry = ({
  */
 
 const FormReview = () => {
-  const { form, setFormStep } = useConvertUpOrderFormContext();
+  const { form } = useConvertUpOrderFormContext();
   const tokenMap = useTokenMap();
+  const [editAdvanced, setEditAdvanced] = useState(false);
+
   const { data: averageTipPaid = 1 } = useTractorOperatorAverageTipPaid();
 
   const values = form.watch();
@@ -342,8 +351,9 @@ const FormReview = () => {
   const totalValueToConvert = `${values.totalConvertBdv} PDV`;
   const priceRange = `$${values.minPriceToConvertUp} - $${values.maxPriceToConvertUp}`;
 
+  const summary = StrategyUtil.getSummary(values.tokenStrategy);
+
   const renderTokenStrategy = () => {
-    const summary = StrategyUtil.getSummary(values.tokenStrategy);
     if (summary.isLowestPrice) return "Token with Best Price";
     if (summary.isLowestSeeds) return "Token with Least Seeds";
 
@@ -364,9 +374,6 @@ const FormReview = () => {
         </Col>
       );
     }
-
-    // revert to previous formStep if the token strategy is invalid
-    setFormStep(FormStep.ENTRY);
 
     return <></>;
   };
@@ -397,61 +404,102 @@ const FormReview = () => {
               </Row>
             }
           />
-          <Accordion className="AccordionRoot" type="multiple">
-            <AccordionItem className="AccordionItem" value="advanced-settings">
-              <AccordionTrigger
-                className="pinto-sm-light text-pinto-secondary pb-3"
-                iconClassName="text-pinto-secondary"
-              >
-                <span>Advanced</span>
-              </AccordionTrigger>
-              <AccordionContent>
-                <Card className="flex flex-col p-3 gap-2 rounded-sm border-pinto-gray-2 bg-white">
-                  <ReviewRow
-                    label="Min Time Between Executions"
-                    tooltip={CONVERT_UP_TOOLTIP_COPY.minTimeBetweenConverts}
-                    value={`${values.minTimeBetweenConverts} s`}
-                  />
-                  <ReviewRow
-                    label="Min Convert Capacity"
-                    tooltip={CONVERT_UP_TOOLTIP_COPY.minConvertBonusCapacity}
-                    value={`${values.minConvertBonusCapacity} PDV`}
-                  />
-                  <ReviewRow
-                    label="Max Grown Stalk per PDV Penalty"
-                    tooltip={CONVERT_UP_TOOLTIP_COPY.maxGrownStalkPerBdvPenalty}
-                    value={`${values.maxGrownStalkPerBdvPenalty} PDV`}
-                  />
-                  <ReviewRow
-                    label="Max Grown Stalk per PDV"
-                    tooltip={CONVERT_UP_TOOLTIP_COPY.maxGrownStalkPerBdv}
-                    value={`${values.maxGrownStalkPerBdv} Grown Stalk`}
-                  />
-                  <ReviewRow
-                    label="Execution Size"
-                    tooltip="The minimum and maximum execution size of the Convert Up Order"
-                    value={`${values.minConvertBdvPerExecution} - ${values.maxConvertBdvPerExecution} PDV`}
-                  />
-                  <ReviewRow
-                    label="Slippage Tolerance"
-                    tooltip={CONVERT_UP_TOOLTIP_COPY.slippageRatio}
-                    value={`${values.slippageRatio}%`}
-                  />
-                  <ReviewRow
-                    label="Low Stalk Deposits"
-                    tooltip={CONVERT_UP_TOOLTIP_COPY.lowStalkDeposits}
-                    value={values.lowStalkDeposits === 0 ? "Use" : values.lowStalkDeposits === 1 ? "Omit" : "Use Last"}
-                  />
-                  <Separator className="h-[0.5px] bg-pinto-gray-2 my-1" />
-                  <Button variant="outline-primary-2" size="md" className="w-full rounded-sm">
-                    <span>Edit Advanced Parameters</span>
-                  </Button>
-                </Card>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+          {editAdvanced ? (
+            <div className="py-3">
+              <EditAdvancedParameters />
+            </div>
+          ) : (
+            <Accordion className="AccordionRoot" type="multiple">
+              <AccordionItem className="AccordionItem" value="advanced-settings">
+                <AccordionTrigger
+                  className="pinto-sm-light text-pinto-secondary pt-3"
+                  iconClassName="text-pinto-secondary"
+                >
+                  <span>Advanced</span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <AdvancedParametersSummary control={form.control} toggleEdit={() => setEditAdvanced(!editAdvanced)} />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          )}
         </Col>
       </Col>
+    </Col>
+  );
+};
+
+const AdvancedParametersSummary = ({
+  control,
+  toggleEdit,
+}: {
+  control: ReturnType<typeof useFormContext<ConvertUpV0FormSchema>>["control"];
+  toggleEdit: () => void;
+}) => {
+  const values = useWatch({ control });
+
+  return (
+    <Card className="flex flex-col p-3 gap-2 rounded-sm border-pinto-gray-2 bg-white">
+      <ReviewRow
+        label="Min Time Between Executions"
+        tooltip={CONVERT_UP_TOOLTIP_COPY.minTimeBetweenConverts}
+        value={`${values.minTimeBetweenConverts} s`}
+      />
+      <ReviewRow
+        label="Min Convert Capacity"
+        tooltip={CONVERT_UP_TOOLTIP_COPY.minConvertBonusCapacity}
+        value={`${values.minConvertBonusCapacity} PDV`}
+      />
+      <ReviewRow
+        label="Max Grown Stalk per PDV Penalty"
+        tooltip={CONVERT_UP_TOOLTIP_COPY.maxGrownStalkPerBdvPenalty}
+        value={`${values.maxGrownStalkPerBdvPenalty} PDV`}
+      />
+      <ReviewRow
+        label="Max Grown Stalk per PDV"
+        tooltip={CONVERT_UP_TOOLTIP_COPY.maxGrownStalkPerBdv}
+        value={`${values.maxGrownStalkPerBdv} Grown Stalk`}
+      />
+      <ReviewRow
+        label="Execution Size"
+        tooltip="The minimum and maximum execution size of the Convert Up Order"
+        value={`${values.minConvertBdvPerExecution} - ${values.maxConvertBdvPerExecution} PDV`}
+      />
+      <ReviewRow
+        label="Slippage Tolerance"
+        tooltip={CONVERT_UP_TOOLTIP_COPY.slippageRatio}
+        value={`${values.slippageRatio}%`}
+      />
+      <ReviewRow
+        label="Low Stalk Deposits"
+        tooltip={CONVERT_UP_TOOLTIP_COPY.lowStalkDeposits}
+        value={values.lowStalkDeposits === 0 ? "Use" : values.lowStalkDeposits === 1 ? "Omit" : "Use Last"}
+      />
+      <Separator className="h-[0.5px] bg-pinto-gray-2 my-1" />
+      <Button variant="outline-primary-2" size="md" className="w-full rounded-sm" onClick={toggleEdit}>
+        <span>Edit Advanced Parameters</span>
+      </Button>
+    </Card>
+  );
+};
+
+const EditAdvancedParameters = () => {
+  return (
+    <Col className="w-full gap-5">
+      <Fields>
+        <Row className="w-full justify-between gap-4 items-end">
+          <Fields.MinTimeBetweenConverts />
+          <TimeScaleSelectFormField />
+        </Row>
+        <Row className="w-full justify-between gap-4">
+          <Fields.MinConvertBdvPerExecution />
+          <Fields.MaxConvertBdvPerExecution />
+        </Row>
+        <Fields.MinConvertBonusCapacity />
+        <Fields.MaxGrownStalkPerBdvPenalty />
+        <Fields.MaxGrownStalkPerBdv />
+        <Fields.SlippageRatio />
+      </Fields>
     </Col>
   );
 };
@@ -482,9 +530,7 @@ const ReviewRow = ({
       <Row className="gap-1 items-center">
         {tooltip ? (
           <Row className="gap-1 items-center">
-            <Label variant="form" className="pinto-sm-light text-pinto-secondary">
-              {label}
-            </Label>
+            <div className="pinto-sm-light text-pinto-secondary">{label}</div>
             <TooltipSimple content={tooltip} variant="outlined" triggerClassName="text-pinto-secondary" />
           </Row>
         ) : (

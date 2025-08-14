@@ -15,6 +15,7 @@ import { z } from "zod";
 import { TV } from "@/classes/TokenValue";
 import { STALK } from "@/constants/internalTokens";
 import FormUtils from "@/utils/form";
+import { SELECT_TIME_SCALES, TimeScaleSelect } from "../fields/sharedFields";
 
 // ---------------------------------------------
 // SCHEMA
@@ -30,9 +31,8 @@ const percentageNumber = (fieldName: string) =>
     .string()
     .min(1, `${fieldName} is required`)
     .refine((val) => {
-      const vals = postSanitizedSanitizedValue(val, 6);
-      if (vals.nonAmount) return true;
-      return vals.tv.gte(0) && vals.tv.lte(100);
+      const num = Number(val);
+      return !Number.isNaN(num) && num >= 0 && num <= 100;
     }, `${fieldName} must be between 0 and 100%`);
 
 // Helper function to validate time in seconds
@@ -41,16 +41,14 @@ const timeInSeconds = (fieldName: string) =>
     .string()
     .min(1, `${fieldName} is required`)
     .refine((val) => {
-      const vals = postSanitizedSanitizedValue(val, 0); // Time doesn't need decimals
-      if (vals.nonAmount) return true;
-      return vals.tv.gte(60); // Minimum 1 minute between executions
-    }, `${fieldName} must be at least 60 seconds (1 minute)`);
+      const num = Number(val);
+      return !Number.isNaN(num) && num >= 0;
+    }, `${fieldName} must be at least 0 seconds`);
 
-// Source token indices validation
-const sourceTokenIndicesValidation = z
-  .array(z.number().int().min(0))
-  .min(1, "At least one source token must be selected")
-  .max(10, "Cannot select more than 10 source tokens"); // Reasonable limit
+const timeScale = (fieldName: string) =>
+  z.enum(SELECT_TIME_SCALES).refine((data) => {
+    return SELECT_TIME_SCALES.includes(data as TimeScaleSelect);
+  }, `Invalid ${fieldName}`);
 
 // Low stalk deposits mode validation
 const lowStalkDepositsValidation = z.number().int().min(0).max(2).default(0); // 0: USE, 1: OMIT, 2: USE_LAST
@@ -76,6 +74,7 @@ export const convertUpOrderDialogSchema = z
 
     // Time constraints
     minTimeBetweenConverts: timeInSeconds("Min Time Between Converts"),
+    timeScale: timeScale("Time Scale"),
 
     // Bonus/capacity parameters
     minConvertBonusCapacity: nonNegativeNumber("Min Convert Bonus Capacity"),
@@ -151,6 +150,7 @@ const defaultConvertOrderUpValues: ConvertUpV0FormSchema = {
   minConvertBdvPerExecution: "",
   maxConvertBdvPerExecution: "",
   minTimeBetweenConverts: "0", // 0 seconds
+  timeScale: "SECONDS",
   minConvertBonusCapacity: "",
   maxGrownStalkPerBdv: "100", // default of 100 max grown stalk per BDV
   maxGrownStalkPerBdvPenalty: "0", // default to 0 penalty
