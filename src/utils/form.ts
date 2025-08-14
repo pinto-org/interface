@@ -1,7 +1,12 @@
+import {
+  tractorTokenStrategyUtil as StrategyUtil,
+  TRACTOR_TOKEN_STRATEGY_TYPES,
+  getTractorTokenStrategySummary,
+} from "@/lib/Tractor";
 import { z } from "zod";
 import { isValidAddress, postSanitizedSanitizedValue } from "./string";
 
-// Helper function to validate positive numbers
+// Helper function to validate positive numbers (doesn't allow 0)
 const positiveNumber = (fieldName: string) =>
   z
     .string()
@@ -38,18 +43,23 @@ const singleTokenStrategyValidation = z
 
 const tokenStrategyValidation = z
   .object({
-    type: z.enum(["LOWEST_SEEDS", "LOWEST_PRICE", "SPECIFIC_TOKEN", "MULTI_TOKENS"]),
+    type: z.enum(TRACTOR_TOKEN_STRATEGY_TYPES),
     addresses: z.array(z.string()).optional(),
   })
   .refine((data) => {
-    if (data.type === "LOWEST_PRICE" || data.type === "LOWEST_SEEDS") {
-      return data.addresses?.length === 0;
-    }
-    if (data.type === "SPECIFIC_TOKEN") {
-      return data.addresses && isValidAddress(data.addresses[0]);
-    }
+    const s = getTractorTokenStrategySummary(data);
+    if (s.isDynamic) return true;
+    if (s.isSingle) return data.addresses && isValidAddress(data.addresses[0]);
     return data.addresses?.every((address) => isValidAddress(address));
-  }, "All token addresses must be valid");
+  }, "All token addresses must be valid")
+  .refine((data) => {
+    if (StrategyUtil.isDynamic(data)) {
+      if ("addresses" in data && Array.isArray(data.addresses)) {
+        return data.addresses.length !== 0;
+      }
+    }
+    return true;
+  }, "No tokens should be selected for dynamic token strategies");
 
 const addZodCTXErrors = (ctx: z.RefinementCtx, message: string, paths: string[]) => {
   for (const path of paths) {
