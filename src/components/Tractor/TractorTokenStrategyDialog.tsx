@@ -13,22 +13,26 @@ import {
 } from "@/components/ui/Dialog";
 import IconImage from "@/components/ui/IconImage";
 import { Separator } from "@/components/ui/Separator";
+import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
 import { extractAddressesFromTokenStrategy, isDynamicTractorTokenStrategy } from "@/lib/Tractor";
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { stringEq } from "@/utils/string";
-import { tokensEqual } from "@/utils/token";
+import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { Token } from "@/utils/types";
 import { MayArray } from "@/utils/types.generic";
+import { Row } from "../Container";
 
 export type ITractorTokenStrategyDialogProps = {
   open: boolean;
   selectedTokenStrategy: TractorTokenStrategy | undefined;
   farmerDeposits: ReturnType<typeof useFarmerSilo>["deposits"];
   multiSelect?: boolean;
+  onlyLP?: boolean;
   onOpenChange: (open: boolean) => void;
   onTokenStrategySelected: (tokenStrategy: TractorTokenStrategy) => void;
 } & ReturnType<typeof useSowOrderV0Calculations>;
@@ -74,10 +78,12 @@ export default function TractorTokenStrategyDialog({
   onTokenStrategySelected,
   swapResults,
   multiSelect = false,
+  onlyLP = false,
   priceData,
 }: ITractorTokenStrategyDialogProps) {
   const { whitelistedTokens } = useTokenData();
   const { mainToken } = useTokenData();
+  const tokenMap = useTokenMap();
 
   const selectedTokenAddresses = tokenStrategy && extractAddressesFromTokenStrategy(tokenStrategy);
 
@@ -128,7 +134,7 @@ export default function TractorTokenStrategyDialog({
           <div className="p-3">
             <DialogHeader className="mb-6 -mt-1">
               <DialogTitle className="font-medium mb-1 text-[1.25rem] tracking-normal">
-                Select Token from Silo Deposits
+                Select {multiSelect ? "Tokens" : "Token"} from Silo Deposits
               </DialogTitle>
               <DialogDescription className="text-gray-500 pb-1">
                 Tractor allows you to fund Orders for Soil using Deposits
@@ -154,12 +160,19 @@ export default function TractorTokenStrategyDialog({
                 />
               </div>
             </div>
+            <Row className="gap-4 items-center mb-3">
+              <div className="w-full h-[1px] bg-pinto-gray-2" />
+              <span className="pinto-sm text-pinto-gray-4">or</span>
+              <div className="w-full h-[1px] bg-pinto-gray-2" />
+            </Row>
 
             {/* Deposited Tokens */}
             <div className="flex flex-col gap-2">
               <div className="text-gray-500">Deposited Tokens</div>
               <div className="flex flex-col space-y-1 bg-white rounded-xl">
                 {whitelistedTokens.map((token) => {
+                  if (onlyLP && !token.isLP) return null;
+
                   const deposit = farmerDeposits.get(token);
                   const amount = deposit?.amount || TokenValue.ZERO;
 

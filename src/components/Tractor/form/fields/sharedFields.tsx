@@ -9,6 +9,8 @@ import { TractorTokenStrategy, extractAddressesFromTokenStrategy } from "@/lib/T
 import { getTokenIndex } from "@/utils/token";
 import { useFormContext, useWatch } from "react-hook-form";
 
+const empty = [];
+
 export const TokenStrategyFormField = ({
   openDialog,
   label = "Fund order using",
@@ -27,7 +29,7 @@ export const TokenStrategyFormField = ({
 
   const addresses = extractAddressesFromTokenStrategy(strategy);
 
-  const tokens = addresses?.map((tkAddress) => tokenMap[getTokenIndex(tkAddress)]);
+  const tokens = addresses?.map((tkAddress) => tokenMap[getTokenIndex(tkAddress)]) || empty;
 
   const dynamicSource = strategy.type === "LOWEST_SEEDS" || strategy.type === "LOWEST_PRICE";
 
@@ -36,8 +38,6 @@ export const TokenStrategyFormField = ({
       ? "Token with Least Seeds"
       : "Token with Best Price"
     : undefined;
-
-  const singleStrategyToken = strategy.type === "SPECIFIC_TOKEN" && tokens?.[0];
 
   return (
     <div className="flex flex-col gap-2">
@@ -55,12 +55,12 @@ export const TokenStrategyFormField = ({
         >
           {dynamicSourceText ? (
             dynamicSourceText
-          ) : singleStrategyToken ? (
+          ) : tokens.length === 1 ? (
             <div className="flex items-center gap-2">
-              <IconImage src={singleStrategyToken.logoURI} alt="token" size={6} className="rounded-full" />
-              <div className="pinto-body-light">{singleStrategyToken.symbol}</div>
+              <IconImage src={tokens?.[0]?.logoURI} alt="token" size={6} className="rounded-full" />
+              <div className="pinto-body-light">{tokens?.[0]?.symbol}</div>
             </div>
-          ) : tokens?.length ? (
+          ) : tokens.length > 1 ? (
             <Row className="items-center">
               {tokens?.map((token, i) => (
                 <div key={`token-strategy-select-${token.symbol}`} className={i !== 0 ? "-ml-2" : ""}>

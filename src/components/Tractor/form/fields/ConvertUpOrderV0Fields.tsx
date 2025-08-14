@@ -24,6 +24,7 @@ const sharedInputProps = {
 } as const;
 
 const TOOLTIP_COPY = {
+  tokenStrategy: "The source token(s) use for the Convert Up Order.",
   totalConvertBdv: "The total PDV of the Convert Up Order.",
   minConvertBdvPerExecution: "The minimum PDV per execution of the Convert Up Order.",
   maxConvertBdvPerExecution: "The maximum PDV per execution of the Convert Up Order.",
@@ -771,3 +772,5 @@ ConvertUpOrderV0Fields.ExecutionsAndTip = function ExecutionsAndTip({ className 
     </Col>
   );
 };
+
+export { TOOLTIP_COPY as CONVERT_UP_TOOLTIP_COPY };
