@@ -18,7 +18,16 @@ import { MayArray } from "@/utils/types.generic";
 import { arrayify } from "@/utils/utils";
 import { SignableMessage, decodeEventLog, decodeFunctionData, encodeFunctionData } from "viem";
 import { PublicClient } from "viem";
-import { Requisition, SowOrderTokenStrategy, TractorOrderDynamicFundingStrategy, TractorTokenStrategy } from "./types";
+import {
+  Requisition,
+  SowOrderTokenStrategy,
+  TractorOrderDynamicFundingStrategy,
+  TractorOrderMultiTokensStrategy,
+  TractorOrderSpecificTokenStrategy,
+  TractorTokenStrategy,
+  TractorTokenStrategyType,
+  TractorTokenStrategyUnion,
+} from "./types";
 
 // Block number at which Tractor was deployed - use this as starting point for event queries
 export const TRACTOR_DEPLOYMENT_BLOCK = 28930876n;
@@ -1450,17 +1459,68 @@ export const getSowOrderTokenStrategy = (indicies: readonly number[]) => {
   }
 };
 
-export const extractAddressesFromTokenStrategy = (tokenStrategy: TractorTokenStrategy): `0x${string}`[] | undefined => {
+export const extractAddressesFromTokenStrategy = (
+  tokenStrategy: TractorTokenStrategyUnion,
+): `0x${string}`[] | undefined => {
   if (tokenStrategy.type === "SPECIFIC_TOKEN" || tokenStrategy.type === "MULTI_TOKENS") {
-    return tokenStrategy.addresses;
+    return tokenStrategy.addresses as `0x${string}`[] | undefined;
   }
   return undefined;
 };
 
+export const getTractorTokenStrategySummary = (strategy: TractorTokenStrategyUnion) => {
+  const obj = {
+    isSingle: false,
+    isMulti: false,
+    isDynamic: false,
+    isLowestSeeds: false,
+    isLowestPrice: false,
+    type: strategy.type,
+    addresses: strategy.addresses || (undefined as `0x${string}`[] | undefined),
+  };
+
+  if (isDynamicTractorTokenStrategy(strategy)) {
+    obj.isDynamic = true;
+    if (strategy.type === "LOWEST_SEEDS") {
+      obj.isLowestSeeds = true;
+    } else {
+      obj.isLowestPrice = true;
+    }
+
+    return obj;
+  } else if (isSingleTractorTokenStrategy(strategy)) {
+    obj.isSingle = true;
+    return obj;
+  } else if (isMultiTractorTokenStrategy(strategy)) {
+    obj.isMulti = true;
+    return obj;
+  }
+
+  return obj;
+};
+
 export const isDynamicTractorTokenStrategy = (
-  tokenStrategy: TractorTokenStrategy,
+  tokenStrategy: TractorTokenStrategyUnion,
 ): tokenStrategy is TractorOrderDynamicFundingStrategy => {
   return tokenStrategy.type === "LOWEST_SEEDS" || tokenStrategy.type === "LOWEST_PRICE";
+};
+
+const isMultiTractorTokenStrategy = (
+  strategy: TractorTokenStrategyUnion,
+): strategy is TractorOrderMultiTokensStrategy => {
+  if (strategy.type === "MULTI_TOKENS") {
+    return !!strategy.addresses && strategy.addresses.every((adr) => typeof adr === "string" && adr.startsWith("0x"));
+  }
+  return false;
+};
+
+const isSingleTractorTokenStrategy = (
+  strategy: TractorTokenStrategyUnion,
+): strategy is TractorOrderSpecificTokenStrategy => {
+  if (strategy.type === "SPECIFIC_TOKEN") {
+    return !!strategy.addresses && strategy.addresses.length === 1 && strategy.addresses[0].startsWith("0x");
+  }
+  return false;
 };
 
 /**
@@ -1469,6 +1529,10 @@ export const isDynamicTractorTokenStrategy = (
  * @returns The token strategy for the order.
  */
 export const getTractorOrderTokenStrategyFromIndicies = (indicies: readonly number[]) => {
+  if (!indicies.length) {
+    throw new Error("No source token indices provided");
+  }
+
   if (indicies.length > 1) {
     const hasInvalid = indicies.some((index) => index === 254 || index === 255);
     if (hasInvalid) {
@@ -1477,9 +1541,11 @@ export const getTractorOrderTokenStrategyFromIndicies = (indicies: readonly numb
     return "MULTI_TOKENS";
   }
 
-  if (indicies.includes(255)) {
+  const index = indicies[0];
+
+  if (index === 255) {
     return "LOWEST_SEEDS";
-  } else if (indicies.includes(254)) {
+  } else if (index === 254) {
     return "LOWEST_PRICE";
   } else {
     return "SPECIFIC_TOKEN";
@@ -1517,6 +1583,21 @@ export const isTractorTokenStrategy = (value: unknown): value is TractorTokenStr
       return false;
     }
   }
+};
+
+export const tractorTokenStrategyUtil = {
+  // validation methods
+  isValidStrategy: isTractorTokenStrategy,
+  // type guards
+  getSummary: getTractorTokenStrategySummary,
+  isDynamic: isDynamicTractorTokenStrategy,
+  isMulti: isMultiTractorTokenStrategy,
+  isSingle: isSingleTractorTokenStrategy,
+  // getters
+  extractAddresses: extractAddressesFromTokenStrategy,
+  getStrategyFromIndicies: getTractorOrderTokenStrategyFromIndicies,
+  // misc utils
+  getSowOrderTokenStrategy,
 };
 
 /**
