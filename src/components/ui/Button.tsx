@@ -32,6 +32,8 @@ const buttonVariants = cva(
         outline: outlineBase,
         "outline-rounded": `${outlineBase} ${roundedBase}`,
         "outline-primary": `${outlineBase} ${primaryBase}`,
+        "outline-primary-2":
+          "shadow-none border  border-pinto-green-4 text-pinto-green-4 bg-white hover:bg-pinto-green-1/50 hover:text-pinto-green-4",
         "outline-secondary": `${outlineBase} ${secondaryBase}`,
         "outline-gray-shadow": `${outlineBase} ${outlineShadowBase}`,
         "outline-white": "border border-pinto-gray-2 bg-white hover:bg-pinto-gray-2/50 hover:text-accent-foreground",
