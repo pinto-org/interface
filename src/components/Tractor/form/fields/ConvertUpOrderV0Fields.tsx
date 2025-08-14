@@ -192,7 +192,7 @@ ConvertUpOrderV0Fields.MinTimeBetweenConverts = function MinTimeBetweenConverts(
       control={ctx.control}
       name="minTimeBetweenConverts"
       render={({ field, fieldState }) => (
-        <FormItem className="flex flex-row w-full items-center justify-between gap-2 space-y-0">
+        <FormItem className="flex-1">
           <FormLabel tooltipText={TOOLTIP_COPY.minTimeBetweenConverts}>Min time between converts</FormLabel>
           <div className="flex flex-col">
             <FormControl>
@@ -204,7 +204,6 @@ ConvertUpOrderV0Fields.MinTimeBetweenConverts = function MinTimeBetweenConverts(
                 outlined
                 {...handlers}
                 isError={!!fieldState.error}
-                endIcon={<div className="mr-2 text-pinto-primary pinto-body-bold">s</div>}
               />
             </FormControl>
           </div>
@@ -236,7 +235,7 @@ ConvertUpOrderV0Fields.MinConvertBonusCapacity = function MinConvertBonusCapacit
               outlined
               {...handlers}
               isError={!!fieldState.error}
-              endIcon={<TextAdornment text="PDV" />}
+              endIcon={<TextAdornment text="Grown Stalk / PDV" />}
             />
           </FormControl>
         </FormItem>
@@ -256,7 +255,7 @@ ConvertUpOrderV0Fields.MaxGrownStalkPerBdv = function MaxGrownStalkPerBdv() {
       name="maxGrownStalkPerBdv"
       render={({ field, fieldState }) => (
         <FormItem>
-          <FormLabel tooltipText={TOOLTIP_COPY.maxGrownStalkPerBdv}>Max Grown Stalk per BDV</FormLabel>
+          <FormLabel tooltipText={TOOLTIP_COPY.maxGrownStalkPerBdv}>Only Convert Deposits with Less than</FormLabel>
           <FormControl>
             <Input
               {...field}
@@ -265,6 +264,7 @@ ConvertUpOrderV0Fields.MaxGrownStalkPerBdv = function MaxGrownStalkPerBdv() {
               outlined
               {...handlers}
               isError={!!fieldState.error}
+              endIcon={<TextAdornment text="Grown Stalk / PDV" />}
             />
           </FormControl>
         </FormItem>
