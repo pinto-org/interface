@@ -26,6 +26,10 @@ export interface PublishedRequisition {
   blockNumber: number;
 }
 
+export const TRACTOR_TOKEN_STRATEGY_TYPES = ["LOWEST_SEEDS", "LOWEST_PRICE", "SPECIFIC_TOKEN", "MULTI_TOKENS"] as const;
+
+export type TractorTokenStrategyType = (typeof TRACTOR_TOKEN_STRATEGY_TYPES)[number];
+
 /**
  *
  */
@@ -34,13 +38,7 @@ export type TractorOrderSpecificTokenStrategy = {
   addresses: `0x${string}`[];
 };
 
-export type TractorOrderDynamicFundingStrategy =
-  | {
-      type: "LOWEST_SEEDS";
-    }
-  | {
-      type: "LOWEST_PRICE";
-    };
+export type TractorOrderDynamicFundingStrategy = { type: "LOWEST_SEEDS" } | { type: "LOWEST_PRICE" };
 
 export interface ExtendedTractorOrderSpecificTokenStrategy extends TractorOrderSpecificTokenStrategy {
   token?: Token;
@@ -65,7 +63,11 @@ export type TractorTokenStrategy = SowOrderTokenStrategy;
 
 // Extended type that includes token information for SPECIFIC_TOKEN
 export type ExtendedTractorTokenStrategy =
-  | { type: "LOWEST_SEEDS" }
-  | { type: "LOWEST_PRICE" }
+  | TractorOrderDynamicFundingStrategy
   | ExtendedTractorOrderSpecificTokenStrategy
   | ExtendedTractorOrderMultiTokensStrategy;
+
+export type TractorTokenStrategyUnion = {
+  type: TractorTokenStrategyType;
+  addresses?: (string | `0x${string}`)[];
+};
