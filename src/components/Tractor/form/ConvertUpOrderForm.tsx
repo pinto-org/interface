@@ -12,6 +12,7 @@ import { STALK } from "@/constants/internalTokens";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
 import {
+  LowStalkDepositsMode,
   tractorTokenStrategyUtil as StrategyUtil,
   isDynamicTractorTokenStrategy,
   isTractorTokenStrategy,
@@ -21,10 +22,12 @@ import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperator
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
 import { useMainToken } from "@/state/useTokenData";
+import { formatter } from "@/utils/format";
 import { getTokenIndex } from "@/utils/token";
+import { exists } from "@/utils/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { createContext, useCallback, useContext, useState } from "react";
-import { useFormContext, useWatch } from "react-hook-form";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useFormContext, useFormState, useWatch } from "react-hook-form";
 import TractorTokenStrategyDialog from "../TractorTokenStrategyDialog";
 import Fields, { CONVERT_UP_TOOLTIP_COPY } from "./fields/ConvertUpOrderV0Fields";
 import { TimeScaleSelectFormField, TokenStrategyFormField } from "./fields/sharedFields";
@@ -81,6 +84,16 @@ export default function ConvertUpOrderForm({ onOpenChange }: IConvertUpOrderForm
   const [formStep, setFormStep] = useState(FormStep.ENTRY);
   const form = useConvertUpV0Form();
   const state = useConvertUpV0State();
+  const { data: averageTipPaid } = useTractorOperatorAverageTipPaid();
+
+  // Initialize operator tip
+  const [didInitOperatorTip, setDidInitOperatorTip] = useState(false);
+  useEffect(() => {
+    if (!didInitOperatorTip && exists(averageTipPaid)) {
+      setDidInitOperatorTip(true);
+      form.form.setValue("operatorTip", averageTipPaid.toFixed(2));
+    }
+  }, [averageTipPaid, form.form.setValue, didInitOperatorTip]);
 
   return (
     <ConvertUpOrderFormContext.Provider
@@ -121,6 +134,8 @@ const initRequiredKeys: (keyof ConvertUpV0FormSchema)[] = [
   "maxPriceToConvertUp",
 ] as const;
 
+const allFormKeys: (keyof ConvertUpV0FormSchema)[] = [...initRequiredKeys, ...inferrableKeys];
+
 /**
  * The contents of the form.
  */
@@ -135,6 +150,7 @@ function ConvertUpOrderFormController({ onOpenChange }: IConvertUpOrderForm) {
 
   // Whether the
   const [didInitRestFields, setDidInitRestFields] = useState(false);
+  const [cachedValues, setCachedValues] = useState<ConvertUpV0FormSchema>(form.getValues());
 
   // ------------------------------------------------------------
   // Callbacks
@@ -144,12 +160,6 @@ function ConvertUpOrderFormController({ onOpenChange }: IConvertUpOrderForm) {
   const handlePrepareArgs = async () => {
     // Trigger the form to validate the fields that are required to prepare the args
     const isValid = await form.trigger(initRequiredKeys);
-    console.log({
-      valuesBefore: form.getValues(),
-      errors: form.formState.errors,
-      isValid: isValid,
-    });
-
     if (!isValid) {
       return false;
     }
@@ -189,39 +199,56 @@ function ConvertUpOrderFormController({ onOpenChange }: IConvertUpOrderForm) {
   };
 
   // Handle backwards navigation
-  const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
-    // prevent default to avoid form submission
-    e.preventDefault();
-    e.stopPropagation();
+  const handleBack = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      // prevent default to avoid form submission
+      e.preventDefault();
+      e.stopPropagation();
 
-    if (formStep === FormStep.ENTRY) {
-      onOpenChange(false);
-      return;
-    }
+      if (formStep === FormStep.ENTRY) {
+        onOpenChange(false);
+        return;
+      }
 
-    if (formStep === FormStep.REVIEW) {
-      setFormStep(FormStep.ENTRY);
-      return;
-    }
+      if (formStep === FormStep.REVIEW) {
+        setFormStep(FormStep.ENTRY);
+        return;
+      }
 
-    // ADVANCED & OPERATOR_TIP both stem from REVIEW
-    setFormStep(FormStep.REVIEW);
-  };
+      // ADVANCED & OPERATOR_TIP both stem from REVIEW
+      setFormStep(FormStep.REVIEW);
+    },
+    [formStep, onOpenChange, setFormStep],
+  );
 
   // Handle advancing to the next step
-  const handleNext = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    // prevent default to avoid form submission
-    e.preventDefault();
-    e.stopPropagation();
+  const handleNext = useCallback(
+    async (e: React.MouseEvent<HTMLButtonElement>) => {
+      // prevent default to avoid form submission
+      e.preventDefault();
+      e.stopPropagation();
 
-    if (formStep === FormStep.ENTRY) {
-      const prepared = await handlePrepareArgs();
-      // If prepared is false, it means the form is not valid
-      if (!prepared) return;
-      setFormStep(FormStep.REVIEW);
-      return;
+      if (formStep === FormStep.ENTRY) {
+        const prepared = await handlePrepareArgs();
+        // If prepared is false, it means the form is not valid
+        if (!prepared) return;
+        setFormStep(FormStep.REVIEW);
+        return;
+      }
+
+      if (formStep === FormStep.REVIEW) {
+      }
+    },
+    [formStep, handlePrepareArgs, setFormStep],
+  );
+
+  // Cache the values when the form step is advanced
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Only cache when the form step is advanced
+  useEffect(() => {
+    if (formStep === FormStep.ADVANCED) {
+      setCachedValues(form.getValues());
     }
-  };
+  }, [formStep]);
 
   const isLoading = false;
 
@@ -240,7 +267,7 @@ function ConvertUpOrderFormController({ onOpenChange }: IConvertUpOrderForm) {
                 <FormEntry farmerSilo={farmerSilo} siloData={siloData} calculations={calculations} />
               </motion.div>
             )}
-            {formStep === FormStep.REVIEW && (
+            {(formStep === FormStep.REVIEW || formStep === FormStep.ADVANCED) && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -252,28 +279,9 @@ function ConvertUpOrderFormController({ onOpenChange }: IConvertUpOrderForm) {
             )}
           </AnimatePresence>
         </div>
-        <Row className="gap-4 w-full flex-1">
-          <Button
-            variant="outline"
-            size="xlargest"
-            rounded="full"
-            className="w-full flex-1 text-pinto-light bg-pinto-gray-1"
-            onClick={handleBack}
-            type="button"
-          >
-            ← Back
-          </Button>
-          <Button
-            size="xlargest"
-            rounded="full"
-            className={`w-full flex-1 ${isLoading ? "bg-pinto-gray-2 text-pinto-light" : "bg-pinto-green-4 text-white"}`}
-            // disabled={nextDisabled}
-            onClick={handleNext}
-            type="button"
-          >
-            {formStep === FormStep.ENTRY ? "Review" : "Next"}
-          </Button>
-        </Row>
+        {formStep !== FormStep.ADVANCED ? (
+          <ButtonRow handleBack={handleBack} handleNext={handleNext} isLoading={isLoading} />
+        ) : null}
       </Col>
     </>
   );
@@ -284,6 +292,121 @@ function ConvertUpOrderFormController({ onOpenChange }: IConvertUpOrderForm) {
  * Form Components
  * ------------------------------------------------------------
  */
+
+const ButtonRow = ({
+  handleBack,
+  handleNext,
+  isLoading,
+}: {
+  handleBack: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  handleNext: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void>;
+  isLoading: boolean;
+}) => {
+  const { formStep, getMissingFields } = useConvertUpOrderFormContext();
+  const { errors } = useFormState<ConvertUpV0FormSchema>();
+
+  const keys = formStep === FormStep.ENTRY ? initRequiredKeys : allFormKeys;
+
+  const missingFields = getMissingFields(keys);
+
+  const hasErrors = Boolean(Object.keys(errors).length);
+
+  const hasMissingFields = Boolean(missingFields.length);
+
+  const isFormFormStep = formStep === FormStep.ADVANCED || formStep === FormStep.ENTRY;
+
+  return (
+    <Row className="gap-4 w-full flex-1">
+      <Button
+        variant="outline"
+        size="xlargest"
+        rounded="full"
+        className="w-full flex-1 text-pinto-light bg-pinto-gray-1"
+        onClick={handleBack}
+        type="button"
+      >
+        ← Back
+      </Button>
+      <TooltipSimple
+        content={
+          hasMissingFields ? (
+            <div className="p-1">
+              <div className="font-medium mb-1">Please fill in the following fields:</div>
+              <ul className="list-disc pl-4 text-sm">
+                {missingFields.map((field) => (
+                  <li key={`missing-field${field}`}>{field}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null
+        }
+        side="top"
+        align="center"
+        disabled={isFormFormStep ? !hasMissingFields : true}
+      >
+        <div className="flex-1">
+          <Button
+            size="xlargest"
+            rounded="full"
+            className={`w-full ${isLoading ? "bg-pinto-gray-2 text-pinto-light" : "bg-pinto-green-4 text-white"}`}
+            disabled={hasErrors || hasMissingFields}
+            onClick={handleNext}
+            type="button"
+          >
+            {formStep === FormStep.ENTRY ? "Review" : "Next"}
+          </Button>
+        </div>
+      </TooltipSimple>
+    </Row>
+  );
+};
+
+const SaveAdvancedParametersButton = () => {
+  const { formStep, setFormStep, getMissingFields } = useConvertUpOrderFormContext();
+  const { errors } = useFormState<ConvertUpV0FormSchema>();
+
+  if (formStep !== FormStep.ADVANCED) {
+    return null;
+  }
+
+  const missingFields = getMissingFields(allFormKeys);
+
+  const hasErrors = Boolean(Object.keys(errors).length);
+
+  const hasMissingFields = Boolean(missingFields.length);
+
+  return (
+    <TooltipSimple
+      content={
+        hasMissingFields ? (
+          <div className="p-1">
+            <div className="font-medium mb-1">Please fill in the following fields:</div>
+            <ul className="list-disc pl-4 text-sm">
+              {missingFields.map((field) => (
+                <li key={`missing-field${field}`}>{field}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null
+      }
+      side="top"
+      align="center"
+      disabled={!hasMissingFields}
+    >
+      <div className="flex-1">
+        <Button
+          variant="outline-primary-2"
+          size="xl"
+          className="w-full rounded-sm disabled:opacity-50"
+          onClick={() => setFormStep(FormStep.REVIEW)}
+          disabled={hasErrors || hasMissingFields}
+        >
+          <span>Save</span>
+        </Button>
+      </div>
+    </TooltipSimple>
+  );
+};
 
 /**
  * The entry form for the Convert Up Order
@@ -302,6 +425,16 @@ const FormEntry = ({
   const handleOpenDialog = () => {
     setShowTokenStrategyDialog(true);
   };
+
+  const {
+    errors: { minPriceToConvertUp, maxPriceToConvertUp },
+  } = useFormState<ConvertUpV0FormSchema>();
+
+  const errors = useMemo(() => {
+    const set = new Set([minPriceToConvertUp?.message, maxPriceToConvertUp?.message]);
+
+    return Array.from(set).filter((msg): msg is string => !!msg);
+  }, [minPriceToConvertUp, maxPriceToConvertUp]);
 
   return (
     <>
@@ -322,6 +455,17 @@ const FormEntry = ({
             </Col>
           </>
         </Col>
+        {errors.length ? (
+          <div className="flex flex-col gap-2">
+            {errors.map((error, i) => {
+              return (
+                <div key={`${error}-error-${i.toString()}`} className="pinto-sm-light text-pinto-red-2">
+                  {error}
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
       </Col>
       {showTokenStrategyDialog && (
         <TokenStrategyDialog
@@ -340,11 +484,10 @@ const FormEntry = ({
  */
 
 const FormReview = () => {
-  const { form } = useConvertUpOrderFormContext();
+  const { form, formStep, setFormStep, getAreAllFieldsFilled } = useConvertUpOrderFormContext();
   const tokenMap = useTokenMap();
-  const [editAdvanced, setEditAdvanced] = useState(false);
-
-  const { data: averageTipPaid = 1 } = useTractorOperatorAverageTipPaid();
+  const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
+  const [accordionOpen, setAccordionOpen] = useState(false);
 
   const values = form.watch();
 
@@ -352,6 +495,15 @@ const FormReview = () => {
   const priceRange = `$${values.minPriceToConvertUp} - $${values.maxPriceToConvertUp}`;
 
   const summary = StrategyUtil.getSummary(values.tokenStrategy);
+
+  const handleSetAccordionValue = (value: string) => {
+    if (accordionOpen && accordionValue === "advanced-settings" && formStep === FormStep.ADVANCED) {
+      return;
+    }
+
+    setAccordionOpen(!!value);
+    setAccordionValue(value);
+  };
 
   const renderTokenStrategy = () => {
     if (summary.isLowestPrice) return "Token with Best Price";
@@ -377,6 +529,8 @@ const FormReview = () => {
 
     return <></>;
   };
+
+  const formState = useFormState<ConvertUpV0FormSchema>();
 
   return (
     <Col className="gap-6 w-full">
@@ -404,30 +558,45 @@ const FormReview = () => {
               </Row>
             }
           />
-          {editAdvanced ? (
-            <div className="py-3">
-              <EditAdvancedParameters />
-            </div>
-          ) : (
-            <Accordion className="AccordionRoot" type="multiple">
-              <AccordionItem className="AccordionItem" value="advanced-settings">
-                <AccordionTrigger
-                  className="pinto-sm-light text-pinto-secondary pt-3"
-                  iconClassName="text-pinto-secondary"
-                >
-                  <span>Advanced</span>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <AdvancedParametersSummary control={form.control} toggleEdit={() => setEditAdvanced(!editAdvanced)} />
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          )}
+          <Accordion
+            className="AccordionRoot"
+            type="single"
+            collapsible
+            value={accordionValue}
+            onValueChange={handleSetAccordionValue}
+          >
+            <AccordionItem className="AccordionItem" value="advanced-settings">
+              <AccordionTrigger
+                className="pinto-sm-light text-pinto-secondary pt-3"
+                iconClassName="text-pinto-secondary"
+              >
+                <span>Advanced</span>
+              </AccordionTrigger>
+              <AccordionContent>
+                {formStep === FormStep.ADVANCED ? (
+                  <div className="py-3">
+                    <EditAdvancedParameters />
+                  </div>
+                ) : (
+                  <AdvancedParametersSummary control={form.control} toggleEdit={() => setFormStep(FormStep.ADVANCED)} />
+                )}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </Col>
       </Col>
+      {formStep === FormStep.ADVANCED && accordionOpen ? <SaveAdvancedParametersButton /> : null}
     </Col>
   );
 };
+
+const noDecimalsProps = { minDecimals: 0, maxDecimals: 0 } as const;
+
+const DEPOSIT_MODE_LABELS = {
+  [LowStalkDepositsMode.USE]: "Yes",
+  [LowStalkDepositsMode.OMIT]: "No",
+  [LowStalkDepositsMode.USE_LAST]: "Use Last",
+} as const;
 
 const AdvancedParametersSummary = ({
   control,
@@ -437,43 +606,67 @@ const AdvancedParametersSummary = ({
   toggleEdit: () => void;
 }) => {
   const values = useWatch({ control });
+  const { setFormStep } = useConvertUpOrderFormContext();
+
+  const getTimeScaleDisplay = () => {
+    const timeScale = values.timeScale;
+    switch (timeScale) {
+      case "SECONDS":
+        return "seconds";
+      case "MINUTES":
+        return "minutes";
+      case "HOURS":
+        return "hours";
+      default:
+        return "days";
+    }
+  };
+
+  const minTimeBetweenConverts = values.minTimeBetweenConverts;
+  const minConvertBonusCapacity = values.minConvertBonusCapacity;
+  const maxGrownStalkPerBdvPenalty = values.maxGrownStalkPerBdvPenalty;
+  const maxGrownStalkPerBdv = values.maxGrownStalkPerBdv;
+  const minConvertBdvPerExecution = values.minConvertBdvPerExecution;
+  const maxConvertBdvPerExecution = values.maxConvertBdvPerExecution;
+  const slippageRatio = values.slippageRatio;
+  const lowStalkDeposits = values.lowStalkDeposits;
 
   return (
     <Card className="flex flex-col p-3 gap-2 rounded-sm border-pinto-gray-2 bg-white">
       <ReviewRow
         label="Min Time Between Executions"
         tooltip={CONVERT_UP_TOOLTIP_COPY.minTimeBetweenConverts}
-        value={`${values.minTimeBetweenConverts} s`}
+        value={minTimeBetweenConverts ? `${formatter.noDec(minTimeBetweenConverts)} ${getTimeScaleDisplay()}` : "--"}
       />
       <ReviewRow
         label="Min Convert Capacity"
         tooltip={CONVERT_UP_TOOLTIP_COPY.minConvertBonusCapacity}
-        value={`${values.minConvertBonusCapacity} PDV`}
+        value={minConvertBonusCapacity ? `${formatter.twoDec(minConvertBonusCapacity)} PDV` : "--"}
       />
       <ReviewRow
         label="Max Grown Stalk per PDV Penalty"
         tooltip={CONVERT_UP_TOOLTIP_COPY.maxGrownStalkPerBdvPenalty}
-        value={`${values.maxGrownStalkPerBdvPenalty} PDV`}
+        value={`${formatter.twoDec(maxGrownStalkPerBdvPenalty)} PDV`}
       />
       <ReviewRow
         label="Max Grown Stalk per PDV"
         tooltip={CONVERT_UP_TOOLTIP_COPY.maxGrownStalkPerBdv}
-        value={`${values.maxGrownStalkPerBdv} Grown Stalk`}
+        value={`${formatter.twoDec(maxGrownStalkPerBdv)} Grown Stalk`}
       />
       <ReviewRow
         label="Execution Size"
         tooltip="The minimum and maximum execution size of the Convert Up Order"
-        value={`${values.minConvertBdvPerExecution} - ${values.maxConvertBdvPerExecution} PDV`}
+        value={`${formatter.twoDec(minConvertBdvPerExecution)} - ${formatter.twoDec(maxConvertBdvPerExecution)} PDV`}
       />
       <ReviewRow
         label="Slippage Tolerance"
         tooltip={CONVERT_UP_TOOLTIP_COPY.slippageRatio}
-        value={`${values.slippageRatio}%`}
+        value={`${formatter.pct(slippageRatio)}`}
       />
       <ReviewRow
-        label="Low Stalk Deposits"
+        label="Use Low Stalk Deposits"
         tooltip={CONVERT_UP_TOOLTIP_COPY.lowStalkDeposits}
-        value={values.lowStalkDeposits === 0 ? "Use" : values.lowStalkDeposits === 1 ? "Omit" : "Use Last"}
+        value={DEPOSIT_MODE_LABELS[lowStalkDeposits as LowStalkDepositsMode]}
       />
       <Separator className="h-[0.5px] bg-pinto-gray-2 my-1" />
       <Button variant="outline-primary-2" size="md" className="w-full rounded-sm" onClick={toggleEdit}>
@@ -484,6 +677,8 @@ const AdvancedParametersSummary = ({
 };
 
 const EditAdvancedParameters = () => {
+  const { form, formStep, setFormStep } = useConvertUpOrderFormContext();
+
   return (
     <Col className="w-full gap-5">
       <Fields>

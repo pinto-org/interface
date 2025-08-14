@@ -199,7 +199,7 @@ ConvertUpOrderV0Fields.MinTimeBetweenConverts = function MinTimeBetweenConverts(
               <Input
                 {...field}
                 {...sharedInputProps}
-                className="rounded-lg w-[140px]"
+                // className="rounded-lg"
                 placeholder="3600"
                 outlined
                 {...handlers}
