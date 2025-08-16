@@ -1,6 +1,8 @@
+import TooltipSimple from "@/components/TooltipSimple";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/AnimatedTabs";
 import { Separator } from "@/components/ui/Separator";
 import { useParamsTabs } from "@/hooks/useRouterTabs";
+import { usePriceData } from "@/state/usePriceData";
 import { Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
 import { useEffect } from "react";
@@ -27,6 +29,10 @@ export default function SiloActions({ token }: SiloToken) {
     true,
   );
 
+  const priceData = usePriceData();
+  const VALUE_TARGET = 1;
+  const isPintoConvertDisabled = token.isMain && priceData.price.lt(VALUE_TARGET);
+
   useEffect(() => {
     if (token.isWhitelisted) {
       return;
@@ -37,8 +43,23 @@ export default function SiloActions({ token }: SiloToken) {
     }
   }, [token, tab, handleChangeTab]);
 
+  useEffect(() => {
+    // Redirect away from convert tab if Pinto convert is disabled
+    if (isPintoConvertDisabled && tab === "convert") {
+      handleChangeTab(token.isWhitelisted ? "deposit" : "withdraw");
+    }
+  }, [isPintoConvertDisabled, tab, token.isWhitelisted, handleChangeTab]);
+
+  const handleTabChange = (newTab: string) => {
+    // Prevent switching to convert tab when it's disabled for Pinto
+    if (newTab === "convert" && isPintoConvertDisabled) {
+      return;
+    }
+    handleChangeTab(newTab);
+  };
+
   return (
-    <Tabs value={tab} onValueChange={handleChangeTab} className="w-full">
+    <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
       <TabsList
         className={cn("grid w-full", token.isSiloWrapped || !token.isWhitelisted ? "grid-cols-2" : "grid-cols-3")}
       >
@@ -51,7 +72,29 @@ export default function SiloActions({ token }: SiloToken) {
           <>
             {token.isWhitelisted && <TabsTrigger value="deposit">Deposit</TabsTrigger>}
             <TabsTrigger value="withdraw">Withdraw</TabsTrigger>
-            <TabsTrigger value="convert">Convert</TabsTrigger>
+            {token.isMain && isPintoConvertDisabled ? (
+              <TooltipSimple
+                content={
+                  <>
+                    Conversions from Pinto are not permitted
+                    <br />
+                    when Pinto is below the Value Target.
+                  </>
+                }
+                showOnMobile
+                className="text-center"
+              >
+                <TabsTrigger
+                  value="convert"
+                  disabled
+                  className="opacity-50 cursor-not-allowed disabled:pointer-events-auto"
+                >
+                  Convert
+                </TabsTrigger>
+              </TooltipSimple>
+            ) : (
+              <TabsTrigger value="convert">Convert</TabsTrigger>
+            )}
           </>
         )}
       </TabsList>
