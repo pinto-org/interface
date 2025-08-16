@@ -56,27 +56,23 @@ export default function SiloActions({ token }: SiloToken) {
         )}
       </TabsList>
       <Separator className="my-4" />
-      {tab === "deposit" && token.isWhitelisted && (
+      {token.isWhitelisted && (
         <TabsContent value="deposit">
           <Deposit siloToken={token} />
         </TabsContent>
       )}
-      {tab === "withdraw" && (
-        <TabsContent value="withdraw">
-          <Withdraw siloToken={token} />
-        </TabsContent>
-      )}
-      {tab === "convert" && (
-        <TabsContent value="convert">
-          <Convert siloToken={token} />
-        </TabsContent>
-      )}
-      {tab === "wrap" && (
+      <TabsContent value="withdraw">
+        <Withdraw siloToken={token} />
+      </TabsContent>
+      <TabsContent value="convert">
+        <Convert siloToken={token} />
+      </TabsContent>
+      {token.isSiloWrapped && (
         <TabsContent value="wrap">
           <WrapToken siloToken={token} />
         </TabsContent>
       )}
-      {tab === "unwrap" && (
+      {token.isSiloWrapped && (
         <TabsContent value="unwrap">
           <UnwrapToken siloToken={token} />
         </TabsContent>
