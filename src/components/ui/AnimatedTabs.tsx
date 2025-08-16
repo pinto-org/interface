@@ -68,7 +68,16 @@ const TabsTrigger = React.forwardRef<
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const tabsContext = React.useContext(TabsContext);
 
-  React.useEffect(() => {
+  // Debounce function for resize/zoom events
+  const debounce = React.useCallback((func: () => void, wait: number) => {
+    let timeout: NodeJS.Timeout;
+    return () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(func, wait);
+    };
+  }, []);
+
+  React.useLayoutEffect(() => {
     const button = buttonRef.current;
     if (!button || !tabsContext) return;
 
@@ -78,29 +87,53 @@ const TabsTrigger = React.forwardRef<
 
       if (isCurrentlyActive) {
         // Get button position relative to the tabs list container
-        const buttonRect = button.getBoundingClientRect();
-        const listElement = button.closest('[role="tablist"]');
+        const listElement = button.closest('[role="tablist"]') as HTMLElement;
         if (listElement) {
-          const listRect = listElement.getBoundingClientRect();
+          // Use offsetLeft/offsetTop for more reliable positioning relative to parent
+          const left = Math.round(button.offsetLeft);
+          const top = Math.round(button.offsetTop);
+          const width = Math.round(button.offsetWidth);
+          const height = Math.round(button.offsetHeight);
+
           tabsContext.setActiveButtonRect({
-            width: buttonRect.width,
-            height: buttonRect.height,
-            left: buttonRect.left - listRect.left,
-            top: buttonRect.top - listRect.top,
+            width,
+            height,
+            left,
+            top,
           });
         }
       }
     };
 
-    // Initial check
-    checkActiveAndUpdatePosition();
+    // Debounced version for resize events
+    const debouncedCheck = debounce(checkActiveAndUpdatePosition, 100);
 
-    // Use MutationObserver to watch for data-state changes
+    // Initial check with small delay to ensure DOM is ready
+    const initialCheck = () => {
+      setTimeout(checkActiveAndUpdatePosition, 10);
+    };
+    initialCheck();
+
+    // MutationObserver for data-state changes
     const observer = new MutationObserver(checkActiveAndUpdatePosition);
     observer.observe(button, { attributes: true, attributeFilter: ["data-state"] });
 
-    return () => observer.disconnect();
-  }, [tabsContext]);
+    // ResizeObserver for container size changes
+    const resizeObserver = new ResizeObserver(debouncedCheck);
+    const listElement = button.closest('[role="tablist"]');
+    if (listElement) {
+      resizeObserver.observe(listElement);
+    }
+
+    // Window resize listener for zoom level changes
+    window.addEventListener("resize", debouncedCheck);
+
+    return () => {
+      observer.disconnect();
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", debouncedCheck);
+    };
+  }, [tabsContext, debounce]);
 
   return (
     <TabsPrimitive.Trigger ref={ref} value={value} asChild {...props}>
