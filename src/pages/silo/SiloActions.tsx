@@ -2,6 +2,7 @@ import TooltipSimple from "@/components/TooltipSimple";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/AnimatedTabs";
 import { Separator } from "@/components/ui/Separator";
 import { useParamsTabs } from "@/hooks/useRouterTabs";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
@@ -30,8 +31,34 @@ export default function SiloActions({ token }: SiloToken) {
   );
 
   const priceData = usePriceData();
+  const farmerSilo = useFarmerSilo();
   const VALUE_TARGET = 1;
+
+  // Check if user has deposits for this token
+  const userDeposits = farmerSilo.deposits.get(token);
+  const hasDeposits = userDeposits?.amount?.gt(0) || false;
+
+  // Create disable conditions with proper priority
+  const isWithdrawDisabled = !hasDeposits;
   const isPintoConvertDisabled = token.isMain && priceData.price.lt(VALUE_TARGET);
+  const isConvertDisabled = !hasDeposits || isPintoConvertDisabled;
+
+  // Determine Convert tooltip message (no assets takes priority)
+  const getConvertTooltip = () => {
+    if (!hasDeposits) {
+      return "Conversion not enabled because you have no assets.";
+    }
+    if (isPintoConvertDisabled) {
+      return (
+        <>
+          Conversions from Pinto are not permitted
+          <br />
+          when Pinto is below the value target.
+        </>
+      );
+    }
+    return null;
+  };
 
   useEffect(() => {
     if (token.isWhitelisted) {
@@ -44,15 +71,30 @@ export default function SiloActions({ token }: SiloToken) {
   }, [token, tab, handleChangeTab]);
 
   useEffect(() => {
-    // Redirect away from convert tab if Pinto convert is disabled
-    if (isPintoConvertDisabled && tab === "convert") {
-      handleChangeTab(token.isWhitelisted ? "deposit" : "withdraw");
+    // Redirect away from disabled tabs
+    if (tab === "convert" && isConvertDisabled) {
+      // Redirect to deposit if available, otherwise withdraw if not disabled, otherwise no redirect needed
+      if (token.isWhitelisted) {
+        handleChangeTab("deposit");
+      } else if (!isWithdrawDisabled) {
+        handleChangeTab("withdraw");
+      }
+    } else if (tab === "withdraw" && isWithdrawDisabled) {
+      // Redirect to deposit if available, otherwise convert if not disabled
+      if (token.isWhitelisted) {
+        handleChangeTab("deposit");
+      } else if (!isConvertDisabled) {
+        handleChangeTab("convert");
+      }
     }
-  }, [isPintoConvertDisabled, tab, token.isWhitelisted, handleChangeTab]);
+  }, [isConvertDisabled, isWithdrawDisabled, tab, token.isWhitelisted, handleChangeTab]);
 
   const handleTabChange = (newTab: string) => {
-    // Prevent switching to convert tab when it's disabled for Pinto
-    if (newTab === "convert" && isPintoConvertDisabled) {
+    // Prevent switching to disabled tabs
+    if (newTab === "withdraw" && isWithdrawDisabled) {
+      return;
+    }
+    if (newTab === "convert" && isConvertDisabled) {
       return;
     }
     handleChangeTab(newTab);
@@ -71,19 +113,25 @@ export default function SiloActions({ token }: SiloToken) {
         ) : (
           <>
             {token.isWhitelisted && <TabsTrigger value="deposit">Deposit</TabsTrigger>}
-            <TabsTrigger value="withdraw">Withdraw</TabsTrigger>
-            {token.isMain && isPintoConvertDisabled ? (
+            {isWithdrawDisabled ? (
               <TooltipSimple
-                content={
-                  <>
-                    Conversions from Pinto are not permitted
-                    <br />
-                    when Pinto is below the Value Target.
-                  </>
-                }
+                content="You have no assets in the silo. Deposit to enable withdrawals."
                 showOnMobile
                 className="text-center"
               >
+                <TabsTrigger
+                  value="withdraw"
+                  disabled
+                  className="opacity-50 cursor-not-allowed disabled:pointer-events-auto"
+                >
+                  Withdraw
+                </TabsTrigger>
+              </TooltipSimple>
+            ) : (
+              <TabsTrigger value="withdraw">Withdraw</TabsTrigger>
+            )}
+            {isConvertDisabled ? (
+              <TooltipSimple content={getConvertTooltip()} showOnMobile className="text-center">
                 <TabsTrigger
                   value="convert"
                   disabled
