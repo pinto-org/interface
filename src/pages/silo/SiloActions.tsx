@@ -1,5 +1,5 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/AnimatedTabs";
 import { Separator } from "@/components/ui/Separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { useParamsTabs } from "@/hooks/useRouterTabs";
 import { Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
