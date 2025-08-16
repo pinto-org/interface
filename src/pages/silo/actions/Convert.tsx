@@ -872,7 +872,7 @@ const SiloConvertTokenSelectComponent = ({ siloToken }: BaseConvertProps) => {
             ) : (
               <div className="flex flex-col h-[140px] sm:h-[240px] justify-center items-center">
                 <div className="pinto-sm text-pinto-light">
-                  Converting to any other token from Pinto will result in a loss.
+                  Converting to another token will result in a loss in Seeds.
                 </div>
               </div>
             )}
@@ -921,7 +921,7 @@ const RecommendedConverts = ({
   if (!paths.length) {
     return (
       <div className="flex flex-col h-[140px] sm:h-[240px] justify-center items-center">
-        <div className="pinto-sm text-pinto-light">Converting to any other token from Pinto will result in a loss.</div>
+        <div className="pinto-sm text-pinto-light">Converting to another token will result in a loss in Seeds.</div>
       </div>
     );
   }
