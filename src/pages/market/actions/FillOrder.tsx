@@ -46,7 +46,7 @@ export default function FillOrder() {
   // TODO: need to handle an edge case with amount where the first half of the plot is sellable, and the second half is not.
   // Currently this is handled my making such a plot not fillable via ComboPlotInputField.
   const [amount, setAmount] = useState(0);
-  const [toFarm, setToFarm] = useFarmTogglePreference();
+  const [mode, toFarm, setMode] = useFarmTogglePreference();
 
   const { id } = useParams();
   const podOrders = usePodOrders();
@@ -105,7 +105,7 @@ export default function FillOrder() {
           plot[0].index.toBigInt(), // index of plot to sell
           0n, // start index within plot
           amountToSell.toBigInt(), // amount of pods to sell
-          Number(toFarm ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL), //destination balance
+          Number(mode), //destination balance
         ],
       });
     } catch (e) {
@@ -178,7 +178,11 @@ export default function FillOrder() {
                   type="single"
                 />
               </div>
-              <FarmBalanceToggle checked={toFarm} onCheckedChange={setToFarm} label="Receive Pinto in Farm Wallet" />
+              <FarmBalanceToggle
+                checked={toFarm}
+                onCheckedChange={(checked) => setMode(checked ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL)}
+                label="Receive Pinto in Farm Wallet"
+              />
               <div className="flex flex-col gap-4">
                 <Separator />
                 {!disabled && (

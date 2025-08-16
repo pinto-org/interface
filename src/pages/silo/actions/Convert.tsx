@@ -8,6 +8,7 @@ import QuotedRoutesSelector from "@/components/QuotedRoutesSelector";
 import RoutingAndSlippageInfo from "@/components/RoutingAndSlippageInfo";
 import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
+import TextSkeleton from "@/components/TextSkeleton";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
@@ -418,7 +419,9 @@ function ConvertForm({
     submitting ||
     loading;
 
-  const getAltTextProps = () => {
+  const siloLabels = convertResult ? getSiloLabels(convertResult.deltaStalk, convertResult.deltaSeed) : null;
+
+  const altTextProps = useMemo(() => {
     let alt: string = "Deposited";
 
     if (canExceedMax) alt = "Convertible";
@@ -428,7 +431,7 @@ function ConvertForm({
       altText: `${alt} Balance:`,
       altTextMobile: `${alt}:`,
     };
-  };
+  }, [canExceedMax, hasGerminating]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -447,7 +450,7 @@ function ConvertForm({
           customMaxAmount={maxConvert}
           setAmount={setAmountIn}
           selectedToken={siloToken}
-          {...getAltTextProps()}
+          {...altTextProps}
           mode="balance"
           disableButton
           isLoading={targetToken && maxConvertLoading}
@@ -505,19 +508,16 @@ function ConvertForm({
                     germinatingStalk={convertResult.germinatingStalk}
                     germinatingSeasons={convertResult.germinatingSeasons}
                   />
-                  {(() => {
-                    const { stalkLabel, seedsLabel } = getSiloLabels(convertResult.deltaStalk, convertResult.deltaSeed);
-                    return (
-                      <SiloOutputDisplay
-                        amount={convertResult.totalAmountOut}
-                        token={targetToken}
-                        stalk={convertResult.deltaStalk}
-                        seeds={convertResult.deltaSeed}
-                        stalkLabel={stalkLabel}
-                        seedsLabel={seedsLabel}
-                      />
-                    );
-                  })()}
+                  {siloLabels && (
+                    <SiloOutputDisplay
+                      amount={convertResult.totalAmountOut}
+                      token={targetToken}
+                      stalk={convertResult.deltaStalk}
+                      seeds={convertResult.deltaSeed}
+                      stalkLabel={siloLabels.stalkLabel}
+                      seedsLabel={siloLabels.seedsLabel}
+                    />
+                  )}
                 </>
               ) : null}
             </motion.div>
@@ -725,7 +725,7 @@ const ConvertTokenOutput = ({
   const { targetToken } = useSiloConvertContext();
 
   const amount = route?.totalAmountOut ?? TV.ZERO;
-  const isCalculating = isLoading && targetToken;
+  const isCalculating = Boolean(isLoading && targetToken);
   const formattedAmount = targetToken && amount.gt(0) ? formatter.token(amount, targetToken) : "";
   const displayAmount = useDebounceValue(formattedAmount, 50);
 
@@ -754,19 +754,17 @@ const ConvertTokenOutput = ({
         <div className="flex flex-row items-center justify-between w-full">
           <div className="flex flex-col gap-1">
             <div className="pinto-h3">
-              {isCalculating ? <div className="h-6 w-24 bg-gray-200 animate-pulse rounded" /> : displayAmount}
+              <TextSkeleton loading={isCalculating} height="h4" className="w-24">
+                {displayAmount}
+              </TextSkeleton>
             </div>
           </div>
           <SiloConvertTokenSelect siloToken={siloToken} />
         </div>
         <div className="pinto-sm-light text-pinto-light">
-          {isCalculating ? (
-            <div className="h-4 w-16 bg-gray-200 animate-pulse rounded" />
-          ) : targetToken && amount.gt(0) ? (
-            getDisplayUSD()
-          ) : (
-            ""
-          )}
+          <TextSkeleton loading={isCalculating} height="sm" className="w-16">
+            {targetToken && amount.gt(0) ? getDisplayUSD() : ""}
+          </TextSkeleton>
         </div>
       </div>
     </div>

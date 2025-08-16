@@ -69,7 +69,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   );
   const [inputError, setInputError] = useState<boolean>(false);
   const [tokenOut, setTokenOut] = useState<Token | undefined>(undefined);
-  const [toFarm, setToFarm] = useFarmTogglePreference();
+  const [mode, toFarm, setMode] = useFarmTogglePreference();
 
   // Derived
   const balance = getBalanceFromMode(farmerBalance, balanceSource) ?? TV.ZERO;
@@ -97,7 +97,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   });
 
   const swapSummary = useSwapSummary(swap.data);
-  const toMode = toFarm ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL;
+  const toMode = mode;
   const buildSwapQuote = useBuildSwapQuoteAsync(swap.data, balanceSource, toMode, account, account);
 
   // Transaction
@@ -292,7 +292,11 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
       {txnType !== "redeemToSilo" ? (
         <div>
           <div className="flex flex-col gap-4">
-            <FarmBalanceToggle checked={toFarm} onCheckedChange={setToFarm} label="Receive Pinto in Farm Wallet" />
+            <FarmBalanceToggle
+              checked={toFarm}
+              onCheckedChange={(checked) => setMode(checked ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL)}
+              label="Receive Pinto in Farm Wallet"
+            />
             <div className="flex flex-col w-full pt-4 pb-2 gap-2">
               <div className="pinto-body-light text-pinto-light">Unwrap as</div>
               <div className="flex flex-col w-full gap-1">

@@ -6,6 +6,7 @@ import MobileActionBar from "@/components/MobileActionBar";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
 import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
+import TextSkeleton from "@/components/TextSkeleton";
 import TooltipSimple from "@/components/TooltipSimple";
 import { Button } from "@/components/ui/Button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
@@ -82,7 +83,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const diamondAddress = useProtocolAddress();
 
-  const [toFarm, setToFarm] = useFarmTogglePreference();
+  const [mode, toFarm, setMode] = useFarmTogglePreference();
   const [amount, setAmount] = useState("");
 
   const [shouldConvertWithdraw, setShouldConvertWithdraw] = useState(false);
@@ -167,11 +168,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     disabled: swapDisabled || shouldConvertWithdraw,
   });
 
-  const swapBuild = useBuildSwapQuote(
-    swapData,
-    FarmFromMode.INTERNAL,
-    toFarm ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL,
-  );
+  const swapBuild = useBuildSwapQuote(swapData, FarmFromMode.INTERNAL, mode);
   const swapSummary = useSwapSummary(swapData);
 
   // have to do the withdraw step first
@@ -238,7 +235,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     }
 
     try {
-      const argsAndStrategies = rebuildConvertWithdrawal(convQuote, toFarm ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL);
+      const argsAndStrategies = rebuildConvertWithdrawal(convQuote, mode);
 
       if (!argsAndStrategies || !argsAndStrategies.length) {
         throw new Error("No quote found");
@@ -284,24 +281,14 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
             address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
             abi: beanstalkAbi,
             functionName: "withdrawDeposit",
-            args: [
-              siloToken.address,
-              stems[0].toBigInt(),
-              amounts[0].toBigInt(),
-              Number(toFarm ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL),
-            ],
+            args: [siloToken.address, stems[0].toBigInt(), amounts[0].toBigInt(), Number(mode)],
           });
         }
         return writeWithEstimateGas({
           address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
           abi: beanstalkAbi,
           functionName: "withdrawDeposits",
-          args: [
-            siloToken.address,
-            stems.map((s) => s.toBigInt()),
-            amounts.map((a) => a.toBigInt()),
-            Number(toFarm ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL),
-          ],
+          args: [siloToken.address, stems.map((s) => s.toBigInt()), amounts.map((a) => a.toBigInt()), Number(mode)],
         });
       }
 
@@ -331,7 +318,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
     if (
       !amount ||
-      stringToNumber(amount) <= 0 ||
+      !amountTV?.gt(0) ||
       !deposits ||
       inputError ||
       exceedsBalance ||
@@ -397,24 +384,31 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       : undefined;
 
   // Calculate the Pinto amount that remains in the Silo during convert withdraw
-  const pintoKeptInSilo =
-    shouldConvertWithdraw && exists(convertRouteIndex) && convertQuote?.[convertRouteIndex]
-      ? convertQuote[convertRouteIndex].quotes.reduce(
-          (prev, curr) => prev.add(curr.summary?.target?.amountOut || TokenValue.ZERO),
-          TokenValue.ZERO,
-        )
-      : undefined;
+  const pintoKeptInSilo = useMemo(() => {
+    if (!shouldConvertWithdraw || !exists(convertRouteIndex) || !convertQuote?.[convertRouteIndex]) {
+      return undefined;
+    }
+
+    return convertQuote[convertRouteIndex].quotes.reduce(
+      (prev, curr) => prev.add(curr.summary?.target?.amountOut || TokenValue.ZERO),
+      TokenValue.ZERO,
+    );
+  }, [shouldConvertWithdraw, convertRouteIndex, convertQuote]);
 
   const outputAmount = shouldConvertWithdraw ? convertResult?.withdrawalAmount : withdrawOutput?.amount;
 
   const tokenOutUSD = tokenOut ? prices.tokenPrices.get(tokenOut) : undefined;
-  const amountOutUSD = tokenOutUSD ? withdrawOutput?.amount.mul(tokenOutUSD.instant) : undefined;
-  const swapReady = swapBuild && swapData?.buyAmount?.gt(0);
+  const amountOutUSD =
+    tokenOutUSD && withdrawOutput?.amount ? withdrawOutput.amount.mul(tokenOutUSD.instant) : undefined;
+  const swapReady = Boolean(swapBuild && swapData?.buyAmount?.gt(0));
 
-  const convertWithdrawalReady = shouldConvertWithdraw ? convertResults && convertQuote && amountTV.gt(0) : true;
-  const defaultWithdrawReady = !shouldConvertWithdraw
-    ? withdrawOutput && amountTV.gt(0) && (shouldSwap ? swapReady : true)
+  const convertWithdrawalReady = shouldConvertWithdraw
+    ? Boolean(convertResults && convertQuote && amountTV?.gt(0))
     : true;
+
+  const defaultWithdrawReady = shouldConvertWithdraw
+    ? true
+    : Boolean(withdrawOutput && amountTV?.gt(0) && (shouldSwap ? swapReady : true));
 
   const disabled =
     !account.address ||
@@ -450,17 +444,20 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
             <div className="flex flex-row items-center justify-between w-full">
               <div className="flex flex-col gap-1">
                 <div className="pinto-h3">
-                  {tokenOut && amount && stringToNumber(amount) > 0 ? (
-                    // Show loading skeleton while calculating
-                    (shouldSwap && (!swapData?.buyAmount || swapData.buyAmount.eq(0))) ||
-                    (shouldConvertWithdraw && (!tokenOutAmount || tokenOutAmount.eq(0))) ||
-                    (!shouldSwap && !shouldConvertWithdraw && (!outputAmount || outputAmount.eq(0))) ? (
-                      <div className="h-6 w-24 bg-gray-200 animate-pulse rounded" />
-                    ) : shouldConvertWithdraw ? (
-                      formatter.token(tokenOutAmount, tokenOut)
-                    ) : (
-                      formatter.token(outputAmount, tokenOut)
-                    )
+                  {tokenOut && amount && amountTV?.gt(0) ? (
+                    <TextSkeleton
+                      loading={
+                        (shouldSwap && (!swapData?.buyAmount || swapData.buyAmount.eq(0))) ||
+                        (shouldConvertWithdraw && (!tokenOutAmount || tokenOutAmount.eq(0))) ||
+                        (!shouldSwap && !shouldConvertWithdraw && (!outputAmount || outputAmount.eq(0)))
+                      }
+                      height="h4"
+                      className="w-24"
+                    >
+                      {shouldConvertWithdraw
+                        ? formatter.token(tokenOutAmount, tokenOut)
+                        : formatter.token(outputAmount, tokenOut)}
+                    </TextSkeleton>
                   ) : (
                     ""
                   )}
@@ -477,15 +474,18 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
               />
             </div>
             <div className="pinto-sm-light text-pinto-light">
-              {tokenOut && amount && stringToNumber(amount) > 0 ? (
-                // Show loading skeleton while calculating USD value
-                (shouldSwap && (!swapData?.buyAmount || swapData.buyAmount.eq(0))) ||
-                (shouldConvertWithdraw && (!tokenOutAmount || tokenOutAmount.eq(0))) ||
-                (!shouldSwap && !shouldConvertWithdraw && (!outputAmount || outputAmount.eq(0))) ? (
-                  <div className="h-4 w-16 bg-gray-200 animate-pulse rounded" />
-                ) : (
-                  formatter.usd(amountOutUSD)
-                )
+              {tokenOut && amount && amountTV?.gt(0) ? (
+                <TextSkeleton
+                  loading={
+                    (shouldSwap && (!swapData?.buyAmount || swapData.buyAmount.eq(0))) ||
+                    (shouldConvertWithdraw && (!tokenOutAmount || tokenOutAmount.eq(0))) ||
+                    (!shouldSwap && !shouldConvertWithdraw && (!outputAmount || outputAmount.eq(0)))
+                  }
+                  height="sm"
+                  className="w-16"
+                >
+                  {formatter.usd(amountOutUSD)}
+                </TextSkeleton>
               ) : (
                 ""
               )}
@@ -578,10 +578,10 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
           />
         )}
       </div>
-      {amount && stringToNumber(amount) > 0 && (
+      {amount && amountTV?.gt(0) && (
         <FarmBalanceToggle
           checked={toFarm}
-          onCheckedChange={setToFarm}
+          onCheckedChange={(checked) => setMode(checked ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL)}
           label={`Withdraw ${tokenOut?.symbol || "Assets"} to Farm Wallet`}
         />
       )}
