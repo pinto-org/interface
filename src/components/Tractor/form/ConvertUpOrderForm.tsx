@@ -30,7 +30,13 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { useFormContext, useFormState, useWatch } from "react-hook-form";
 import TractorTokenStrategyDialog from "../TractorTokenStrategyDialog";
 import Fields, { CONVERT_UP_TOOLTIP_COPY } from "./fields/ConvertUpOrderV0Fields";
-import { TimeScaleSelectFormField, TokenStrategyFormField } from "./fields/sharedFields";
+import {
+  CustomOperatorTipFormField,
+  OperatorTipFormField,
+  TimeScaleSelectFormField,
+  TokenStrategyFormField,
+  TractorOperatorTipStrategy,
+} from "./fields/sharedFields";
 import {
   ConvertUpV0FormSchema,
   prepareConvertUpInitialFormData,
@@ -59,6 +65,8 @@ enum FormStep {
 
 interface IConvertUpOrderFormContext extends ReturnType<typeof useConvertUpV0Form> {
   formStep: FormStep;
+  operatorTipPreset: TractorOperatorTipStrategy;
+  setOperatorTipPreset: (preset: TractorOperatorTipStrategy) => void;
   setFormStep: (step: FormStep) => void;
 }
 
@@ -81,9 +89,15 @@ const useConvertUpOrderFormContext = () => {
  * The main form container for creating a Convert Up Tractor order.
  */
 export default function ConvertUpOrderForm({ onOpenChange }: IConvertUpOrderForm) {
+  // Keep these at the top level
   const [formStep, setFormStep] = useState(FormStep.ENTRY);
+  const [operatorTipPreset, setOperatorTipPreset] = useState<TractorOperatorTipStrategy>("Normal");
+
+  // Hooks
   const form = useConvertUpV0Form();
-  const state = useConvertUpV0State();
+  // const state = useConvertUpV0State();
+
+  // External hooks
   const { data: averageTipPaid } = useTractorOperatorAverageTipPaid();
 
   // Initialize operator tip
@@ -100,7 +114,9 @@ export default function ConvertUpOrderForm({ onOpenChange }: IConvertUpOrderForm
       value={{
         ...form,
         formStep,
+        operatorTipPreset,
         setFormStep,
+        setOperatorTipPreset,
       }}
     >
       <Form {...form.form}>
@@ -145,6 +161,7 @@ function ConvertUpOrderFormController({ onOpenChange }: IConvertUpOrderForm) {
   const farmerSilo = useFarmerSilo();
   const siloData = useSiloData();
   const mainToken = useMainToken();
+  const { data: averageTipPaid } = useTractorOperatorAverageTipPaid();
 
   const tokenMap = useTokenMap();
 
@@ -274,9 +291,19 @@ function ConvertUpOrderFormController({ onOpenChange }: IConvertUpOrderForm) {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                <FormReview />
+                <FormReview averageTipPaid={averageTipPaid ?? 1} />
               </motion.div>
             )}
+            {formStep === FormStep.OPERATOR_TIP ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <CustomOperatorTip averageTipPaid={averageTipPaid ?? 1} />
+              </motion.div>
+            ) : null}
           </AnimatePresence>
         </div>
         {formStep !== FormStep.ADVANCED ? (
@@ -483,18 +510,18 @@ const FormEntry = ({
  * The Review form for the Convert Up Order
  */
 
-const FormReview = () => {
-  const { form, formStep, setFormStep, getAreAllFieldsFilled } = useConvertUpOrderFormContext();
-  const tokenMap = useTokenMap();
+const FormReview = ({ averageTipPaid }: { averageTipPaid: number }) => {
+  const { form, formStep, operatorTipPreset, setFormStep, setOperatorTipPreset } = useConvertUpOrderFormContext();
   const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
   const [accordionOpen, setAccordionOpen] = useState(false);
 
-  const values = form.watch();
+  const values = useWatch({ control: form.control });
+  const tokenMap = useTokenMap();
 
   const totalValueToConvert = `${values.totalConvertBdv} PDV`;
   const priceRange = `$${values.minPriceToConvertUp} - $${values.maxPriceToConvertUp}`;
 
-  const summary = StrategyUtil.getSummary(values.tokenStrategy);
+  const summary = StrategyUtil.getSummary((values.tokenStrategy ?? { type: "LOWEST_SEEDS" }) as TractorTokenStrategy);
 
   const handleSetAccordionValue = (value: string) => {
     if (accordionOpen && accordionValue === "advanced-settings" && formStep === FormStep.ADVANCED) {
@@ -529,8 +556,6 @@ const FormReview = () => {
 
     return <></>;
   };
-
-  const formState = useFormState<ConvertUpV0FormSchema>();
 
   return (
     <Col className="gap-6 w-full">
@@ -583,6 +608,11 @@ const FormReview = () => {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
+          <OperatorTipFormField
+            averageTipPaid={averageTipPaid}
+            preset={operatorTipPreset}
+            setPreset={setOperatorTipPreset}
+          />
         </Col>
       </Col>
       {formStep === FormStep.ADVANCED && accordionOpen ? <SaveAdvancedParametersButton /> : null}
@@ -695,6 +725,17 @@ const EditAdvancedParameters = () => {
         <Fields.MaxGrownStalkPerBdv />
         <Fields.SlippageRatio />
       </Fields>
+    </Col>
+  );
+};
+
+const CustomOperatorTip = ({ averageTipPaid }: { averageTipPaid: number }) => {
+  return (
+    <Col className="w-full ">
+      <FormTitle title="🚜 Custom Operator Tip" />
+      <Col className="w-full justify-between min-h-[21rem] h-full">
+        <CustomOperatorTipFormField averageTipPaid={averageTipPaid} />
+      </Col>
     </Col>
   );
 };

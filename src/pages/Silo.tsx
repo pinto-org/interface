@@ -9,8 +9,8 @@ import StatPanel from "@/components/StatPanel";
 import TableRowConnector from "@/components/TableRowConnector";
 import TextSkeleton from "@/components/TextSkeleton";
 import TooltipSimple from "@/components/TooltipSimple";
-import ConvertUpOrderForm from "@/components/Tractor/ConvertUpOrderForm";
 import TractorCard from "@/components/Tractor/TractorCard";
+import ConvertUpOrderForm from "@/components/Tractor/form/ConvertUpOrderForm";
 import { tabToSeasonalLookback } from "@/components/charts/SeasonalChart";
 import { TimeTab } from "@/components/charts/TimeTabs";
 import { navLinks } from "@/components/nav/nav/Navbar";
@@ -172,7 +172,7 @@ function Silo() {
               These are Deposits which are currently incentivized by Pinto.
             </div>
             <div className="relative action-container">
-              <SiloTable hovering={hoveredButton === "claim"} />
+              {/* <SiloTable hovering={hoveredButton === "claim"} /> */}
 
               {/*convertEnabled && convertFrom && convertTo && (
                 <TableRowConnector
@@ -364,7 +364,6 @@ const ConvertUpTractorCard = () => {
               animate={{ opacity: 1, scaleY: 1 }}
               exit={{ opacity: 0, scaleY: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="overflow-hidden"
               style={{ transformOrigin: "50% 70%" }}
             >
               <Card className="rounded-xl z-10 mx-auto w-[95%]" id="convert-up-order-dialog">

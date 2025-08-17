@@ -11,6 +11,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ConvertUpV0FormSchema } from "../schema/convertUp.schema";
 
 import { Col, Row } from "@/components/Container";
+import { TooltipLabel } from "@/components/ui/Label";
 import { STALK } from "@/constants/internalTokens";
 import { useSharedNumericFormFieldHandlers as useFieldHandlers } from "@/hooks/form/useSharedNumericFormFieldHandlers";
 import { useMainToken } from "@/state/useTokenData";
@@ -66,120 +67,88 @@ ConvertUpOrderV0Fields.TotalConvertBdv = function TotalConvertBdv() {
   const { decimals } = useMainToken();
   const handlers = useFieldHandlers(ctx, "totalConvertBdv", decimals);
 
-  const handleOnChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const cleaned = handlers.onChange(e);
-      handleCrossValidate(ctx, cleaned, "minConvertBdvPerExecution", decimals, "gte");
-      handleCrossValidate(ctx, cleaned, "maxConvertBdvPerExecution", decimals, "gte");
-      return cleaned;
-    },
-    [handlers, ctx, decimals],
-  );
+  const isError = !!ctx.formState.errors?.totalConvertBdv;
+
+  // Don't utilize FormField to disable memoization when cross-dependent fields change such as
+  // minConvertBdvPerExecution and maxConvertBdvPerExecution.
+  // Reduces complexity of the component with having to re-trigger validations for certain components.
 
   return (
-    <FormField
-      control={ctx.control}
-      name="totalConvertBdv"
-      render={({ field, fieldState }) => (
-        <FormItem>
-          <FormLabel tooltipText={TOOLTIP_COPY.totalConvertBdv}>I want to convert up to</FormLabel>
-          <FormControl>
-            <Input
-              {...field}
-              {...sharedInputProps}
-              placeholder="0.00"
-              outlined
-              {...handlers}
-              onChange={handleOnChange}
-              isError={!!fieldState.error}
-              endIcon={<MainTokenAdornment />}
-            />
-          </FormControl>
-        </FormItem>
-      )}
-    />
+    <Col className="flex-1 gap-2">
+      <TooltipLabel tooltipText={TOOLTIP_COPY.totalConvertBdv}>I want to convert up to</TooltipLabel>
+      <Input
+        {...ctx.register("totalConvertBdv", {
+          ...handlers,
+        })}
+        {...sharedInputProps}
+        placeholder="0.00"
+        outlined
+        isError={isError}
+        endIcon={<MainTokenAdornment />}
+      />
+    </Col>
   );
 };
 
 ConvertUpOrderV0Fields.MinConvertBdvPerExecution = function MinConvertBdvPerExecution() {
   const ctx = useFormContext<ConvertUpV0FormSchema>();
   const { decimals } = useMainToken();
+
   const handlers = useFieldHandlers(ctx, "minConvertBdvPerExecution", decimals);
 
-  const handleOnChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const cleaned = handlers.onChange(e);
-      handleCrossValidate(ctx, cleaned, "maxConvertBdvPerExecution", decimals, "lte");
-      handleCrossValidate(ctx, cleaned, "totalConvertBdv", decimals, "lte");
-      return cleaned;
-    },
-    [handlers, ctx, decimals],
-  );
+  const isError = !!ctx.formState.errors?.minConvertBdvPerExecution;
+
+  // Don't utilize FormField to disable memoization when cross-dependent fields change such as
+  // maxConvertBdvPerExecution and totalConvertBdv.
+  // Reduces complexity of the component with having to re-trigger validations for certain components.
+  // This is a trade-off for the sake of performance.
 
   return (
-    <FormField
-      control={ctx.control}
-      name="minConvertBdvPerExecution"
-      render={({ field, fieldState }) => (
-        <FormItem className="flex-1">
-          <FormLabel tooltipText={TOOLTIP_COPY.minConvertBdvPerExecution}>Min BDV per Execution</FormLabel>
-          <div className="flex-1">
-            <FormControl>
-              <Input
-                {...field}
-                {...sharedInputProps}
-                placeholder="0.00"
-                outlined
-                {...handlers}
-                onChange={handleOnChange}
-                isError={!!fieldState.error}
-                endIcon={<TextAdornment text="PDV" />}
-              />
-            </FormControl>
-          </div>
-        </FormItem>
-      )}
-    />
+    <Col className="flex-1 gap-2">
+      <TooltipLabel tooltipText={TOOLTIP_COPY.minConvertBdvPerExecution}>Min PDV per Execution</TooltipLabel>
+      <Input
+        {...ctx.register("minConvertBdvPerExecution", {
+          required: true,
+          ...handlers,
+        })}
+        {...sharedInputProps}
+        placeholder="0.00"
+        outlined
+        isError={isError}
+        endIcon={<TextAdornment text="PDV" />}
+      />
+    </Col>
   );
 };
 
 ConvertUpOrderV0Fields.MaxConvertBdvPerExecution = function MaxConvertBdvPerExecution() {
   const ctx = useFormContext<ConvertUpV0FormSchema>();
   const { decimals } = useMainToken();
+
   const handlers = useFieldHandlers(ctx, "maxConvertBdvPerExecution", decimals);
 
-  const handleOnChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const cleaned = handlers.onChange(e);
-      handleCrossValidate(ctx, cleaned, "minConvertBdvPerExecution", decimals, "gte");
-      handleCrossValidate(ctx, cleaned, "totalConvertBdv", decimals, "lte");
-      return cleaned;
-    },
-    [handlers, ctx, decimals],
-  );
+  const isError = !!ctx.formState.errors?.maxConvertBdvPerExecution;
+
+  // Don't utilize FormField to disable memoization when cross-dependent fields change such as
+  // minConvertBdvPerExecution and totalConvertBdv.
+  // Reduces complexity of the component with having to re-trigger validations for certain components.
+  // This is a trade-off for the sake of performance.
 
   return (
-    <FormField
-      control={ctx.control}
-      name="maxConvertBdvPerExecution"
-      render={({ field, fieldState }) => (
-        <FormItem className="flex-1">
-          <FormLabel tooltipText={TOOLTIP_COPY.maxConvertBdvPerExecution}>Max BDV per Execution</FormLabel>
-          <FormControl className="flex-1">
-            <Input
-              {...field}
-              {...sharedInputProps}
-              placeholder="0.00"
-              outlined
-              {...handlers}
-              onChange={handleOnChange}
-              isError={!!fieldState.error}
-              endIcon={<TextAdornment text="PDV" />}
-            />
-          </FormControl>
-        </FormItem>
-      )}
-    />
+    <Col className="flex-1 gap-2">
+      <TooltipLabel tooltipText={TOOLTIP_COPY.maxConvertBdvPerExecution}>Max PDV per Execution</TooltipLabel>
+      <Input
+        {...ctx.register("maxConvertBdvPerExecution", {
+          required: true,
+          ...handlers,
+        })}
+        {...sharedInputProps}
+        placeholder="0.00"
+        outlined
+        isError={isError}
+        endIcon={<TextAdornment text="PDV" />}
+      />
+    </Col>
   );
 };
 
@@ -316,26 +285,6 @@ ConvertUpOrderV0Fields.PriceRange = function PriceRange() {
   const minPriceHandlers = useFieldHandlers(ctx, "minPriceToConvertUp", decimals);
   const maxPriceHandlers = useFieldHandlers(ctx, "maxPriceToConvertUp", decimals);
 
-  const handleMinPriceChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const cleaned = sanitizeNumericInputValue(e.target.value, tickDecimals);
-      ctx.setValue("minPriceToConvertUp", cleaned.str, { shouldValidate: true });
-      handleCrossValidate(ctx, cleaned, "maxPriceToConvertUp", tickDecimals, "lte");
-      return cleaned;
-    },
-    [minPriceHandlers, ctx, decimals],
-  );
-
-  const handleMaxPriceChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const cleaned = sanitizeNumericInputValue(e.target.value, tickDecimals);
-      ctx.setValue("maxPriceToConvertUp", cleaned.str, { shouldValidate: true });
-      handleCrossValidate(ctx, cleaned, "minPriceToConvertUp", tickDecimals, "gte");
-      return cleaned;
-    },
-    [maxPriceHandlers, ctx, decimals],
-  );
-
   // Watch both price fields
   const [minPrice, maxPrice] = useWatch({
     control: ctx.control,
@@ -371,7 +320,7 @@ ConvertUpOrderV0Fields.PriceRange = function PriceRange() {
 
   return (
     <div className="flex flex-col gap-6">
-      <FormLabel tooltipText={TOOLTIP_COPY.priceRange}>Execute when Price is Between</FormLabel>
+      <TooltipLabel tooltipText={TOOLTIP_COPY.priceRange}>Execute when Price is Between</TooltipLabel>
       <MultiSlider
         min={sliderMin}
         max={sliderMax}
@@ -380,52 +329,36 @@ ConvertUpOrderV0Fields.PriceRange = function PriceRange() {
         onValueChange={handleSliderChange}
         className={cn("w-full", hasError && "opacity-50")}
       />
-      <div className="flex flex-row items-start gap-4 w-full">
-        <FormField
-          control={ctx.control}
-          name="minPriceToConvertUp"
-          render={({ field, fieldState }) => (
-            <FormItem className="flex-1">
-              <FormLabel tooltipText={TOOLTIP_COPY.minPriceToConvertUp}>Min Price</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  {...sharedInputProps}
-                  {...minPriceHandlers}
-                  onChange={handleMinPriceChange}
-                  placeholder={sliderMin.toString()}
-                  outlined
-                  isError={!!fieldState.error}
-                  className="pl-6"
-                  startIcon={<TextAdornment text="$" isEnd={false} className="pinto-body-light mt-[1px]" />}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={ctx.control}
-          name="maxPriceToConvertUp"
-          render={({ field, fieldState }) => (
-            <FormItem className="flex-1">
-              <FormLabel tooltipText={TOOLTIP_COPY.maxPriceToConvertUp}>Max Price</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  {...sharedInputProps}
-                  {...maxPriceHandlers}
-                  onChange={handleMaxPriceChange}
-                  placeholder={sliderMax.toString()}
-                  outlined
-                  isError={!!fieldState.error}
-                  className="pl-6"
-                  startIcon={<TextAdornment text="$" isEnd={false} className="pinto-body-light mt-[1px]" />}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-      </div>
+      <Row className="items-start gap-4 w-full">
+        <Col className="flex-1 gap-2">
+          <TooltipLabel tooltipText={TOOLTIP_COPY.minPriceToConvertUp}>Min Price</TooltipLabel>
+          <Input
+            {...ctx.register("minPriceToConvertUp", {
+              ...minPriceHandlers,
+            })}
+            {...sharedInputProps}
+            placeholder={sliderMin.toString()}
+            outlined
+            isError={!!minError}
+            className="pl-6"
+            startIcon={<TextAdornment text="$" isEnd={false} className="pinto-body-light mt-[1px]" />}
+          />
+        </Col>
+        <Col className="flex-1 gap-2">
+          <TooltipLabel tooltipText={TOOLTIP_COPY.maxPriceToConvertUp}>Max Price</TooltipLabel>
+          <Input
+            {...ctx.register("maxPriceToConvertUp", {
+              ...maxPriceHandlers,
+            })}
+            {...sharedInputProps}
+            placeholder={sliderMax.toString()}
+            outlined
+            isError={!!maxError}
+            className="pl-6"
+            startIcon={<TextAdornment text="$" isEnd={false} className="pinto-body-light mt-[1px]" />}
+          />
+        </Col>
+      </Row>
     </div>
   );
 };

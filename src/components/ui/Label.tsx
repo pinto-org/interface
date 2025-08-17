@@ -2,7 +2,9 @@ import * as LabelPrimitive from "@radix-ui/react-label";
 import { type VariantProps, cva } from "class-variance-authority";
 import * as React from "react";
 
+import { Row } from "@/components/Container";
 import { cn } from "@/utils/utils";
+import TooltipSimple from "../TooltipSimple";
 
 const labelVariants = cva(
   "font-[340] text-[1rem] sm:text-[1.25rem] text-pinto-gray-4 -tracking-[0.02em] leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
@@ -29,3 +31,19 @@ const Label = React.forwardRef<
 Label.displayName = LabelPrimitive.Root.displayName;
 
 export { Label };
+
+type TooltipLabelProps = {
+  children: React.ReactNode;
+  tooltipText?: React.ReactNode;
+} & React.ComponentProps<typeof LabelPrimitive.Root>;
+
+export const TooltipLabel = ({ children, tooltipText, ...props }: TooltipLabelProps) => {
+  return (
+    <Row className="flex flex-row gap-1 items-center">
+      <Label variant="form" {...props}>
+        {children}
+      </Label>
+      <TooltipSimple content={tooltipText} variant="outlined" disabled={!tooltipText} />
+    </Row>
+  );
+};
