@@ -1472,6 +1472,7 @@ export const getTractorTokenStrategySummary = (strategy: TractorTokenStrategyUni
   const obj = {
     isSingle: false,
     isMulti: false,
+    isValid: false,
     isDynamic: false,
     isLowestSeeds: false,
     isLowestPrice: false,
@@ -1481,6 +1482,7 @@ export const getTractorTokenStrategySummary = (strategy: TractorTokenStrategyUni
 
   if (isDynamicTractorTokenStrategy(strategy)) {
     obj.isDynamic = true;
+    obj.isValid = true;
     if (strategy.type === "LOWEST_SEEDS") {
       obj.isLowestSeeds = true;
     } else {
@@ -1489,9 +1491,11 @@ export const getTractorTokenStrategySummary = (strategy: TractorTokenStrategyUni
 
     return obj;
   } else if (isSingleTractorTokenStrategy(strategy)) {
+    obj.isValid = true;
     obj.isSingle = true;
     return obj;
   } else if (isMultiTractorTokenStrategy(strategy)) {
+    obj.isValid = true;
     obj.isMulti = true;
     return obj;
   }

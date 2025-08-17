@@ -101,6 +101,7 @@ export const convertUpOrderDialogSchema = z
 
     // Operator tip
     operatorTip: nonNegativeNumber("Operator Tip"),
+    customOperatorAmount: nonNegativeNumber("Custom Operator Tip").optional(),
   })
   .superRefine((data, ctx) => {
     // Cross-field validation: minConvertBdvPerExecution <= maxConvertBdvPerExecution
@@ -224,10 +225,6 @@ export const useConvertUpV0Form = (): IConvertUpV0Form => {
       const values = form.getValues();
 
       const fieldSet = fields?.length ? new Set(fields) : new Set(Object.keys(values));
-
-      console.log({
-        values,
-      });
 
       const missingFields = Array.from(fieldSet).filter((k) => {
         const key = k as keyof ConvertUpV0FormSchema;
