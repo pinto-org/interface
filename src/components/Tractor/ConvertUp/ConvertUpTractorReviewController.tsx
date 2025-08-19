@@ -26,13 +26,18 @@ import { ConvertUpTractorOrderFormStep, useConvertUpOrderFormContext } from "./C
  * The Review form for the Convert Up Order
  */
 
-const ConvertUpTractorReviewController = ({ averageTipPaid }: { averageTipPaid: number }) => {
+const ConvertUpTractorReviewController = ({
+  averageTipPaid,
+  didInitAdv,
+}: { averageTipPaid: number; didInitAdv: boolean }) => {
   const { form, draftState, formStep, operatorTipPreset, setFormStep, setOperatorTipPreset, setDraftState } =
     useConvertUpOrderFormContext();
 
   // UI state management
-  const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
-  const [accordionOpen, setAccordionOpen] = useState(false);
+  const [accordionValue, setAccordionValue] = useState<string | undefined>(
+    didInitAdv ? "advanced-settings" : undefined,
+  );
+  const [accordionOpen, setAccordionOpen] = useState(didInitAdv);
 
   // Ultra-lean operator tip state management
   const previousPresetRef = useRef<TractorOperatorTipStrategy | null>(null);

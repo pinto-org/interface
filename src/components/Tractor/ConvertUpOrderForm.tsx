@@ -89,7 +89,9 @@ function ConvertUpOrderFormController({ onOpenChange }: IConvertUpOrderForm) {
           handleOpenChange={onOpenChange}
         />
       )}
-      {REVIEW_STEPS.has(formStep) && <ConvertUpTractorReviewController averageTipPaid={averageTipPaid ?? 1} />}
+      {REVIEW_STEPS.has(formStep) && (
+        <ConvertUpTractorReviewController didInitAdv={didInitRestFields} averageTipPaid={averageTipPaid ?? 1} />
+      )}
     </Col>
   );
 }

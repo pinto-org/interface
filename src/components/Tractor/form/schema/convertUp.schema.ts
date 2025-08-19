@@ -31,8 +31,9 @@ const percentageNumber = (fieldName: string) =>
     .string()
     .min(1, `${fieldName} is required`)
     .refine((val) => {
-      const num = Number(val);
-      return !Number.isNaN(num) && num >= 0 && num <= 100;
+      const vals = postSanitizedSanitizedValue(val, 18);
+      if (vals.nonAmount) return true;
+      return vals.tv.lte(100) && vals.tv.gte(0);
     }, `${fieldName} must be between 0 and 100%`);
 
 // Helper function to validate time in seconds
@@ -41,8 +42,9 @@ const timeInSeconds = (fieldName: string) =>
     .string()
     .min(1, `${fieldName} is required`)
     .refine((val) => {
-      const num = Number(val);
-      return !Number.isNaN(num) && num >= 0;
+      const vals = postSanitizedSanitizedValue(val, 18);
+      if (vals.nonAmount) return true;
+      return vals.tv.gte(0);
     }, `${fieldName} must be at least 0 seconds`);
 
 const timeScale = (fieldName: string) =>
@@ -201,14 +203,6 @@ type IConvertUpV0Form = {
   getMissingFields: (fields?: (keyof ConvertUpV0FormSchema)[]) => string[];
 };
 
-export const useConvertV0UpFormInstance = () => {
-  return useForm<ConvertUpV0FormSchema>({
-    resolver: zodResolver(convertUpOrderDialogSchema),
-    defaultValues: { ...defaultConvertOrderUpValues },
-    mode: "onChange",
-  });
-};
-
 export const useConvertUpV0Form = (): IConvertUpV0Form => {
   const form = useForm<ConvertUpV0FormSchema>({
     resolver: zodResolver(convertUpOrderDialogSchema),
@@ -296,6 +290,43 @@ export const useConvertUpV0Form = (): IConvertUpV0Form => {
     getAreAllFieldsValid,
     getMissingFields,
   } as const;
+};
+
+export const cleanConvertUpV0FormValues = (values: ConvertUpV0FormSchema) => {
+  const totalConvertBdv = postSanitizedSanitizedValue(values.totalConvertBdv, 6);
+  const minConvertBdvPerExecution = postSanitizedSanitizedValue(values.minConvertBdvPerExecution, 6);
+  const maxConvertBdvPerExecution = postSanitizedSanitizedValue(values.maxConvertBdvPerExecution, 6);
+  const minTimeBetweenConverts = postSanitizedSanitizedValue(values.minTimeBetweenConverts, 0);
+
+  const minConvertBonusCapacity = postSanitizedSanitizedValue(values.minConvertBonusCapacity, 6);
+  const maxGrownStalkPerBdv = postSanitizedSanitizedValue(values.maxGrownStalkPerBdv, STALK.decimals - 6);
+  const minGrownStalkPerBdvBonus = postSanitizedSanitizedValue(values.minGrownStalkPerBdvBonus, STALK.decimals - 6);
+
+  const maxPriceToConvertUp = postSanitizedSanitizedValue(values.maxPriceToConvertUp, 6);
+  const minPriceToConvertUp = postSanitizedSanitizedValue(values.minPriceToConvertUp, 6);
+
+  const maxGrownStalkPerBdvPenalty = postSanitizedSanitizedValue(values.maxGrownStalkPerBdvPenalty, STALK.decimals);
+
+  const operatorTip = postSanitizedSanitizedValue(values.operatorTip, 6);
+  const customOperatorTip = postSanitizedSanitizedValue(values.customOperatorTip ?? "", 6);
+  const slippageRatio = postSanitizedSanitizedValue(values.slippageRatio, 0);
+
+  return {
+    ...values,
+    totalConvertBdv: totalConvertBdv.tv.toHuman(),
+    minConvertBdvPerExecution: minConvertBdvPerExecution.tv.toHuman(),
+    maxConvertBdvPerExecution: maxConvertBdvPerExecution.tv.toHuman(),
+    minTimeBetweenConverts: minTimeBetweenConverts.tv.toHuman(),
+    minConvertBonusCapacity: minConvertBonusCapacity.tv.toHuman(),
+    maxGrownStalkPerBdv: maxGrownStalkPerBdv.tv.toHuman(),
+    minGrownStalkPerBdvBonus: minGrownStalkPerBdvBonus.tv.toHuman(),
+    maxPriceToConvertUp: maxPriceToConvertUp.tv.toHuman(),
+    minPriceToConvertUp: minPriceToConvertUp.tv.toHuman(),
+    maxGrownStalkPerBdvPenalty: maxGrownStalkPerBdvPenalty.tv.toHuman(),
+    slippageRatio: slippageRatio.tv.toHuman(),
+    operatorTip: operatorTip.tv.toHuman(),
+    customOperatorTip: customOperatorTip.nonAmount ? "" : customOperatorTip.tv.toHuman(),
+  };
 };
 
 export type ConvertUpV0FormOrderData = {
