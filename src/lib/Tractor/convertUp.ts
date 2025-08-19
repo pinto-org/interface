@@ -93,6 +93,18 @@ interface PreparedConvertUpArgs {
   operatorTip: TV;
 }
 
+export const TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS = {
+  minSizePerExecution: TV.fromHuman("100", 6),
+  maxSizePerExecution: TV.fromHuman("125", 6),
+  minSizePerExecutionPct: 0.05,
+  maxSizePerExecutionPct: 0.1,
+} as const;
+
+const CONVERT_UP_DEFAULT_MIN_SIZE_PER_EXECUTION = TV.fromHuman("100", 6);
+const DEFAULT_MAX_SIZE_PER_EXECUTION = TV.fromHuman("125", 6);
+const MIN_SIZE_PER_EXECUTION_PCT = 0.05;
+const MAX_SIZE_PER_EXECUTION_PCT = 0.1;
+
 // export interface OperatorParams {
 //   whitelistedOperators: Address[];
 //   tipAddress: Address;

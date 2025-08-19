@@ -60,6 +60,34 @@ export const convertUpSchemaErrors = {
   minPriceLteMaxPrice: "Min Price exceeds Max Price",
 } as const;
 
+const inferrableKeys: (keyof ConvertUpV0FormSchema)[] = [
+  "minConvertBdvPerExecution",
+  "maxConvertBdvPerExecution",
+  "minTimeBetweenConverts",
+  "minConvertBonusCapacity",
+  "maxGrownStalkPerBdv",
+  "maxGrownStalkPerBdvPenalty",
+  "lowStalkDeposits",
+  "operatorTip",
+  "slippageRatio",
+] as const;
+
+const initRequiredKeys: (keyof ConvertUpV0FormSchema)[] = [
+  "tokenStrategy",
+  "totalConvertBdv",
+  "minGrownStalkPerBdvBonus",
+  "minPriceToConvertUp",
+  "maxPriceToConvertUp",
+] as const;
+
+const allFormKeys: (keyof ConvertUpV0FormSchema)[] = [...initRequiredKeys, ...inferrableKeys];
+
+export const TractorConvertUpFormKeys = {
+  advanced: inferrableKeys,
+  initRequired: initRequiredKeys,
+  all: allFormKeys,
+} as const;
+
 // Main schema for convert up order dialog
 export const convertUpOrderDialogSchema = z
   .object({
@@ -158,6 +186,7 @@ const defaultConvertOrderUpValues: ConvertUpV0FormSchema = {
   slippageRatio: "0.1", // 0.1%
   lowStalkDeposits: 0, // USE (0) for default
   operatorTip: "0",
+  customOperatorAmount: "",
 };
 
 type IConvertUpV0Form = {
@@ -166,6 +195,14 @@ type IConvertUpV0Form = {
   getAreAllFieldsFilled: (fields?: (keyof ConvertUpV0FormSchema)[]) => boolean;
   getAreAllFieldsValid: (fields?: (keyof ConvertUpV0FormSchema)[]) => boolean;
   getMissingFields: (fields?: (keyof ConvertUpV0FormSchema)[]) => string[];
+};
+
+export const useConvertV0UpFormInstance = () => {
+  return useForm<ConvertUpV0FormSchema>({
+    resolver: zodResolver(convertUpOrderDialogSchema),
+    defaultValues: { ...defaultConvertOrderUpValues },
+    mode: "onChange",
+  });
 };
 
 export const useConvertUpV0Form = (): IConvertUpV0Form => {
@@ -298,11 +335,6 @@ export interface PreparedConvertUpArgs {
   operatorTip: TV;
 }
 
-const DEFAULT_MIN_SIZE_PER_EXECUTION = TV.fromHuman("100", 6);
-const DEFAULT_MAX_SIZE_PER_EXECUTION = TV.fromHuman("125", 6);
-const MIN_SIZE_PER_EXECUTION_PCT = 0.05;
-const MAX_SIZE_PER_EXECUTION_PCT = 0.1;
-
 export const useConvertUpV0State = () => {
   const client = usePublicClient();
   const { address } = useAccount();
@@ -422,55 +454,4 @@ export const useConvertUpV0State = () => {
     isLoading,
     handleCreateBlueprint,
   } as const;
-};
-
-export const prepareConvertUpInitialFormData = (
-  values: ConvertUpV0FormSchema,
-  mainTokenDecimals: number,
-): PreparedConvertUpArgs => {
-  const strategy = StrategyUtil.isValidStrategy(values.tokenStrategy) ? values.tokenStrategy : undefined;
-
-  if (!strategy) {
-    throw new Error("Invalid token strategy");
-  }
-
-  const decimals = mainTokenDecimals;
-
-  const totalConvertBdv = postSanitizedSanitizedValue(values.totalConvertBdv, decimals).tv;
-  const minPriceToConvertUp = postSanitizedSanitizedValue(values.minPriceToConvertUp, decimals).tv;
-  const maxPriceToConvertUp = postSanitizedSanitizedValue(values.maxPriceToConvertUp, decimals).tv;
-  const minGrownStalkPerBdvBonus = postSanitizedSanitizedValue(values.minGrownStalkPerBdvBonus, decimals).tv;
-  const minSizePerExecution = postSanitizedSanitizedValue(values.minConvertBdvPerExecution, decimals).tv;
-  const maxSizePerExecution = postSanitizedSanitizedValue(values.maxConvertBdvPerExecution, decimals).tv;
-
-  // Default to min of (5% of total convert bdv) or (100 PDV)
-  const defaultMinSizePerExecution = TV.min(
-    totalConvertBdv.mul(MIN_SIZE_PER_EXECUTION_PCT),
-    DEFAULT_MIN_SIZE_PER_EXECUTION,
-  );
-
-  // default to min of (10% of total convert bdv) or (125 PDV)
-  const defaultMaxSizePerExecution = TV.min(
-    totalConvertBdv.sub(MAX_SIZE_PER_EXECUTION_PCT),
-    DEFAULT_MAX_SIZE_PER_EXECUTION,
-  );
-
-  const thisPreparedArgs: PreparedConvertUpArgs = {
-    tokenStrategy: strategy,
-    totalConvertBdv,
-    minConvertBonusCapacity: defaultMinSizePerExecution,
-    minConvertBdvPerExecution: minSizePerExecution.eq(0) ? defaultMinSizePerExecution : minSizePerExecution,
-    maxConvertBdvPerExecution: maxSizePerExecution.eq(0) ? defaultMaxSizePerExecution : maxSizePerExecution,
-    minPriceToConvertUp,
-    maxPriceToConvertUp,
-    minTimeBetweenConverts: values.minTimeBetweenConverts,
-    maxGrownStalkPerBdv: postSanitizedSanitizedValue(values.maxGrownStalkPerBdv, STALK.decimals).tv,
-    minGrownStalkPerBdvBonus,
-    maxGrownStalkPerBdvPenalty: postSanitizedSanitizedValue(values.maxGrownStalkPerBdvPenalty, decimals).tv,
-    slippageRatio: values.slippageRatio,
-    operatorTip: postSanitizedSanitizedValue(values.operatorTip, decimals).tv,
-    lowStalkDeposits: values.lowStalkDeposits,
-  };
-
-  return thisPreparedArgs;
 };
