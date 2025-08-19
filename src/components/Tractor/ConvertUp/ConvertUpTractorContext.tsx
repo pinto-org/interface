@@ -2,7 +2,7 @@ import { Form } from "@/components/Form";
 import { useConvertUpV0Form } from "@/components/Tractor/form/schema/convertUp.schema";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { exists } from "@/utils/utils";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { TractorOperatorTipStrategy } from "../form/fields/sharedFields";
 
 export enum ConvertUpTractorOrderFormStep {
@@ -18,6 +18,7 @@ export enum ConvertUpTractorOrderFormStep {
 
 interface IConvertUpOrderFormContext extends ReturnType<typeof useConvertUpV0Form> {
   formStep: ConvertUpTractorOrderFormStep;
+  prevOperatorTipPreset: TractorOperatorTipStrategy | undefined;
   operatorTipPreset: TractorOperatorTipStrategy;
   setOperatorTipPreset: (preset: TractorOperatorTipStrategy) => void;
   setFormStep: (step: ConvertUpTractorOrderFormStep) => void;
@@ -40,7 +41,15 @@ interface Props {
 
 export default function ConvertUpOrderProvider({ children }: Props) {
   const [formStep, setFormStep] = useState(ConvertUpTractorOrderFormStep.ENTRY);
-  const [operatorTipPreset, setOperatorTipPreset] = useState<TractorOperatorTipStrategy>("Normal");
+
+  // Keep track of the
+  const [operatorTipPreset, setOperatorTipPreset] = useState<{
+    prev: TractorOperatorTipStrategy | undefined;
+    curr: TractorOperatorTipStrategy;
+  }>({
+    prev: "Normal",
+    curr: "Normal",
+  });
 
   const form = useConvertUpV0Form();
 
@@ -56,14 +65,22 @@ export default function ConvertUpOrderProvider({ children }: Props) {
     }
   }, [averageTipPaid, form.form.setValue, didInitOperatorTip]);
 
+  const handleSetOperatorTipPreset = useCallback((preset: TractorOperatorTipStrategy) => {
+    setOperatorTipPreset((prev) => ({
+      prev: prev.curr,
+      curr: preset,
+    }));
+  }, []);
+
   return (
     <ConvertUpOrderFormContext.Provider
       value={{
         ...form,
         formStep,
-        operatorTipPreset,
+        operatorTipPreset: operatorTipPreset.curr,
+        prevOperatorTipPreset: operatorTipPreset.prev,
         setFormStep,
-        setOperatorTipPreset,
+        setOperatorTipPreset: handleSetOperatorTipPreset,
       }}
     >
       <Form {...form.form}>{children}</Form>
