@@ -20,7 +20,7 @@ import { useFormContext, useFormState, useWatch } from "react-hook-form";
 import { CONVERT_UP_TOOLTIP_COPY } from "../form/fields/ConvertUpOrderV0Fields";
 import { OperatorTipFormField, TractorFormButtonsRow, TractorOperatorTipStrategy } from "../form/fields/sharedFields";
 import { ConvertUpV0FormSchema, TractorConvertUpFormKeys } from "../form/schema/convertUp.schema";
-import { ConvertUpEstimatedTipPaid } from "./ConvertUpOperatorTipForm";
+import ConvertUpCustomOperatorTipForm, { ConvertUpEstimatedTipPaid } from "./ConvertUpOperatorTipForm";
 import ConvertUpTractorAdvancedForm from "./ConvertUpTractorAdvancedForm";
 import { ConvertUpTractorOrderFormStep, useConvertUpOrderFormContext } from "./ConvertUpTractorContext";
 
@@ -32,6 +32,7 @@ const ConvertUpTractorReviewController = ({ averageTipPaid }: { averageTipPaid: 
   const { form, formStep, operatorTipPreset, setFormStep, setOperatorTipPreset } = useConvertUpOrderFormContext();
 
   const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
+  const [prevPreset, setPrevPreset] = useState<TractorOperatorTipStrategy | undefined>(undefined);
   const [accordionOpen, setAccordionOpen] = useState(false);
   const [advancedFormValues, setAdvancedFormValues] = useState<ConvertUpV0FormSchema | undefined>(undefined);
 
@@ -50,9 +51,7 @@ const ConvertUpTractorReviewController = ({ averageTipPaid }: { averageTipPaid: 
 
   const handleSetOperatorTipPreset = (preset: TractorOperatorTipStrategy) => {
     setOperatorTipPreset(preset);
-    if (preset === "Custom") {
-      setFormStep(ConvertUpTractorOrderFormStep.OPERATOR_TIP);
-    }
+    setFormStep(ConvertUpTractorOrderFormStep.OPERATOR_TIP);
   };
 
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -78,6 +77,10 @@ const ConvertUpTractorReviewController = ({ averageTipPaid }: { averageTipPaid: 
     setAdvancedFormValues(undefined);
     form.reset(values);
   };
+
+  if (formStep === ConvertUpTractorOrderFormStep.OPERATOR_TIP) {
+    return <ConvertUpCustomOperatorTipForm averageTipPaid={averageTipPaid ?? 1} />;
+  }
 
   return (
     <Col className="gap-6 w-full">

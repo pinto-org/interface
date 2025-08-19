@@ -66,9 +66,6 @@ function ConvertUpOrderFormController({ onOpenChange }: IConvertUpOrderForm) {
       {(formStep === FormStep.REVIEW || formStep === FormStep.ADVANCED) && (
         <ConvertUpTractorReviewController averageTipPaid={averageTipPaid ?? 1} />
       )}
-      {formStep === FormStep.OPERATOR_TIP ? (
-        <ConvertUpCustomOperatorTipForm averageTipPaid={averageTipPaid ?? 1} />
-      ) : null}
     </Col>
   );
 }
