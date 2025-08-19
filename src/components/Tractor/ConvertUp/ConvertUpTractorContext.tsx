@@ -1,5 +1,9 @@
 import { Form } from "@/components/Form";
-import { ConvertUpV0FormSchema, useConvertUpV0Form } from "@/components/Tractor/form/schema/convertUp.schema";
+import {
+  ConvertUpV0FormSchema,
+  cleanConvertUpV0FormValues,
+  useConvertUpV0Form,
+} from "@/components/Tractor/form/schema/convertUp.schema";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { exists } from "@/utils/utils";
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
@@ -61,8 +65,9 @@ export default function ConvertUpOrderProvider({ children }: Props) {
     (val: boolean) => {
       const args = {
         isActive: val,
-        originalValues: val ? form.form.getValues() : null,
+        originalValues: val ? cleanConvertUpV0FormValues(form.form.getValues()) : null,
       };
+
       setDraftState(args);
     },
     [form.form],
