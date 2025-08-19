@@ -15,7 +15,7 @@ import { TractorTokenStrategy, extractAddressesFromTokenStrategy } from "@/lib/T
 import { useMainToken } from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { getTokenIndex } from "@/utils/token";
-import { cn } from "@/utils/utils";
+import { cn, exists } from "@/utils/utils";
 import {
   ChevronDownIcon,
   CircleIcon,
@@ -25,7 +25,7 @@ import {
   Pencil1Icon,
   TargetIcon,
 } from "@radix-ui/react-icons";
-import { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { ClassNameValue } from "tailwind-merge";
 
@@ -150,7 +150,10 @@ const numericInputProps = {
   pattern: "[0-9]*.?[0-9]*",
 } as const;
 
-export const CustomOperatorTipFormField = ({ averageTipPaid }: { averageTipPaid: number }) => {
+export const CustomOperatorTipFormField = ({
+  averageTipPaid,
+  title = "Tip per Execution",
+}: { averageTipPaid: number; title?: string }) => {
   const ctx = useFormContext<{ customOperatorTip: number }>();
   const mainToken = useMainToken();
 
@@ -162,24 +165,23 @@ export const CustomOperatorTipFormField = ({ averageTipPaid }: { averageTipPaid:
       name="customOperatorTip"
       render={({ field, formState }) => (
         <FormItem>
-          <FormLabel tooltipText="The amount of Pinto you're willing to pay per execution">
-            <FormControl>
-              <Input
-                {...field}
-                {...numericInputProps}
-                {...handlers}
-                outlined
-                placeholder={averageTipPaid.toFixed(3)}
-                endIcon={
-                  <div className="flex items-center gap-2 px-4 bg-white">
-                    <IconImage src={mainToken.logoURI} alt="PINTO" size={6} className="rounded-full" />
-                    <span className="hidden sm:block text-black pinto-sm-light">{mainToken.symbol}</span>
-                  </div>
-                }
-                isError={!!formState.errors.customOperatorTip}
-              />
-            </FormControl>
-          </FormLabel>
+          <FormLabel tooltipText="The amount of Pinto you're willing to pay per execution">{title}</FormLabel>
+          <FormControl>
+            <Input
+              {...field}
+              {...numericInputProps}
+              {...handlers}
+              outlined
+              placeholder={averageTipPaid.toFixed(3)}
+              endIcon={
+                <div className="flex items-center gap-2 px-4 bg-white">
+                  <IconImage src={mainToken.logoURI} alt="PINTO" size={6} className="rounded-full" />
+                  <span className="hidden sm:block text-black pinto-sm-light">{mainToken.symbol}</span>
+                </div>
+              }
+              isError={!!formState.errors.customOperatorTip}
+            />
+          </FormControl>
         </FormItem>
       )}
     />
@@ -242,6 +244,8 @@ export const OperatorTipFormField = ({ averageTipPaid, preset, setPreset }: Oper
   );
 };
 
+function useClickAway(active: boolean, ref: React.RefObject<HTMLDivElement>, callback: () => void) {}
+
 export const OperatorTipPresetDropdown = ({
   averageTipPaid,
   selectedPreset,
@@ -255,13 +259,37 @@ export const OperatorTipPresetDropdown = ({
   const value = useWatch({ control: ctx.control, name: "operatorTip" });
   const customAmount = useWatch({ control: ctx.control, name: "customOperatorTip" });
   const mainToken = useMainToken();
+  const ref = useRef<HTMLDivElement>(null);
 
   const [isOpen, setIsOpen] = useState(false);
+  const [cachedPreset, setCachedPreset] = useState<TractorOperatorTipStrategy>(selectedPreset);
 
   const handleOptionClick = (preset: TractorOperatorTipStrategy) => {
     setIsOpen(false);
     setSelectedPreset(preset);
   };
+
+  const handleOpenClick = () => {
+    if (!isOpen) {
+      setCachedPreset(selectedPreset);
+    }
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleClick(event: MouseEvent) {
+      // prevent click away if clicking on navbar
+
+      // Only trigger if click is below navbar and not in the ref element
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClick);
+
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [ref, isOpen]);
 
   return (
     <div className="relative z-10">
@@ -285,7 +313,7 @@ export const OperatorTipPresetDropdown = ({
 
       {/* Operator Tip Card - Only visible when open */}
       {isOpen && (
-        <Card className="absolute bottom-full left-1/2 transform -translate-x-1/4 shadow-sm z-20 w-[12rem]">
+        <Card ref={ref} className="absolute bottom-full left-1/2 transform -translate-x-1/4 shadow-sm z-20 w-[12rem]">
           <CardContent className="p-0">
             <div className="p-3">
               <Row className="gap-1 justify-between">
@@ -296,14 +324,19 @@ export const OperatorTipPresetDropdown = ({
             <Separator className="h-[0.5px] bg-pinto-gray-2" />
             <Col className="p-1 gap-1">
               {OperatorTipPresets.map((preset) => {
-                const amount = preset.multiplier ? preset.multiplier * averageTipPaid : averageTipPaid;
+                let amount: string | undefined = averageTipPaid.toString();
+                if (preset.type === "Custom") {
+                  amount = customAmount?.toString() ?? undefined;
+                } else if (preset.multiplier) {
+                  amount = (preset.multiplier ? preset.multiplier * averageTipPaid : averageTipPaid).toString();
+                }
 
                 return (
                   <OperatorTipPreset
                     key={preset.type}
                     preset={preset}
                     selected={selectedPreset === preset.type}
-                    amount={formatter.number(amount)}
+                    amount={amount}
                     onClick={() => handleOptionClick(preset.type)}
                   />
                 );
@@ -323,7 +356,7 @@ const OperatorTipPreset = ({
   onClick,
 }: {
   preset: (typeof OperatorTipPresets)[number];
-  amount: string;
+  amount: string | undefined;
   selected: boolean;
   onClick: (preset: (typeof OperatorTipPresets)[number]) => void;
 }) => {
@@ -342,11 +375,64 @@ const OperatorTipPreset = ({
         <Col className="gap-1">
           <span className="pinto-sm">{preset.type}</span>
           <span className="pinto-sm-light text-pinto-gray-4 whitespace-nowrap">
-            {amount} {mainToken.symbol}
+            {exists(amount) ? `${formatter.number(amount)} ${mainToken.symbol}` : "--"}
           </span>
         </Col>
         {preset.endIcon ? preset.endIcon : <></>}
       </Row>
+    </Row>
+  );
+};
+
+interface TractorFormButtonsRowProps {
+  handleLeft: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  handleRight: ((e: React.MouseEvent<HTMLButtonElement>) => void) | ((e: React.MouseEvent<HTMLButtonElement>) => void);
+  left: {
+    content: React.ReactNode;
+    disabled?: boolean;
+  };
+  right: {
+    content?: React.ReactNode;
+    disabled?: boolean;
+    tooltip?: React.ReactNode;
+  };
+  isLoading?: boolean;
+}
+
+export const TractorFormButtonsRow = ({
+  handleLeft,
+  handleRight,
+  isLoading,
+  left: { content: leftContent, disabled: leftDisabled },
+  right: { content: rightContent, disabled: rightDisabled, tooltip: rightTooltip },
+}: TractorFormButtonsRowProps) => {
+  return (
+    <Row className="gap-4 w-full flex-1">
+      <Button
+        variant="outline"
+        size="xlargest"
+        rounded="full"
+        className="w-full flex-1 text-pinto-light bg-pinto-gray-1"
+        disabled={leftDisabled}
+        onClick={handleLeft}
+        type="button"
+      >
+        {leftContent}
+      </Button>
+      <TooltipSimple content={rightTooltip} side="top" align="center" disabled={!rightTooltip}>
+        <div className="flex-1">
+          <Button
+            size="xlargest"
+            rounded="full"
+            className={`w-full ${isLoading ? "bg-pinto-gray-2 text-pinto-light" : "bg-pinto-green-4 text-white"}`}
+            disabled={rightDisabled}
+            onClick={handleRight}
+            type="button"
+          >
+            {rightContent}
+          </Button>
+        </div>
+      </TooltipSimple>
     </Row>
   );
 };

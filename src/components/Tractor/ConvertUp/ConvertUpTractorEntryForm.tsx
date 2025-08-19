@@ -1,0 +1,378 @@
+import { TV } from "@/classes/TokenValue";
+import { Col, Row } from "@/components/Container";
+import TooltipSimple from "@/components/TooltipSimple";
+import Fields from "@/components/Tractor/form/fields/ConvertUpOrderV0Fields";
+import { TokenStrategyFormField, TractorFormButtonsRow } from "@/components/Tractor/form/fields/sharedFields";
+import { ConvertUpV0FormSchema, TractorConvertUpFormKeys } from "@/components/Tractor/form/schema/convertUp.schema";
+import { Label } from "@/components/ui/Label";
+import { Separator } from "@/components/ui/Separator";
+import { STALK } from "@/constants/internalTokens";
+import { useTokenMap } from "@/hooks/pinto/useTokenMap";
+import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
+import {
+  LowStalkDepositsMode,
+  TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS,
+  isDynamicTractorTokenStrategy,
+  isTractorTokenStrategy,
+} from "@/lib/Tractor";
+import { tractorTokenStrategyUtil as StrategyUtil, TractorTokenStrategy } from "@/lib/Tractor";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useSiloData } from "@/state/useSiloData";
+import { useMainToken } from "@/state/useTokenData";
+import { postSanitizedSanitizedValue } from "@/utils/string";
+import { getTokenIndex } from "@/utils/token";
+import { useCallback, useMemo, useState } from "react";
+import { useFormContext, useFormState, useWatch } from "react-hook-form";
+import TractorTokenStrategyDialog from "../TractorTokenStrategyDialog";
+import { ConvertUpTractorOrderFormStep, useConvertUpOrderFormContext } from "./ConvertUpTractorContext";
+
+/**
+ * The entry form for the Convert Up Order
+ */
+const ConvertUpTractorEntryForm = ({
+  farmerSilo,
+  siloData,
+  calculations,
+  isLoading = false,
+  didSetAdvancedFormFields,
+  setDidSetAdvancedFormFields,
+  handleOpenChange,
+}: {
+  isLoading?: boolean;
+  farmerSilo: ReturnType<typeof useFarmerSilo>;
+  siloData: ReturnType<typeof useSiloData>;
+  calculations: ReturnType<typeof useSowOrderV0Calculations>;
+  didSetAdvancedFormFields: boolean;
+  setDidSetAdvancedFormFields: (val: boolean) => void;
+  handleOpenChange: (val: boolean) => void;
+}) => {
+  const { form, setFormStep } = useConvertUpOrderFormContext();
+  const [showTokenStrategyDialog, setShowTokenStrategyDialog] = useState(false);
+  const mainToken = useMainToken();
+  const tokenMap = useTokenMap();
+
+  const {
+    errors: { minPriceToConvertUp, maxPriceToConvertUp },
+  } = useFormState<ConvertUpV0FormSchema>();
+
+  const errors = useMemo(() => {
+    const set = new Set([minPriceToConvertUp?.message, maxPriceToConvertUp?.message]);
+
+    return Array.from(set).filter((msg): msg is string => !!msg);
+  }, [minPriceToConvertUp, maxPriceToConvertUp]);
+
+  // ---------------------------------------------------
+  // -------------------- Callbacks --------------------
+  // ---------------------------------------------------
+
+  const handleOpenDialog = () => {
+    setShowTokenStrategyDialog(true);
+  };
+
+  const handleBack = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      // prevent default to avoid form submission
+      e.preventDefault();
+      e.stopPropagation();
+
+      handleOpenChange(false);
+    },
+    [handleOpenChange],
+  );
+
+  // Handle preparing the args
+  const handlePrepareArgs = async () => {
+    // Trigger the form to validate the fields that are required to prepare the args
+    const isValid = await form.trigger(TractorConvertUpFormKeys.initRequired);
+    if (!isValid) {
+      return false;
+    }
+
+    // if the args have already been prepared, return true
+    if (didSetAdvancedFormFields) {
+      return true;
+    }
+
+    // Only fill out the inferred data from the Entry Form Fields on the first pass
+    const prepared = prepareConvertUpInitialFormData(form.getValues(), mainToken.decimals);
+
+    TractorConvertUpFormKeys.advanced.forEach((key) => {
+      const value = prepared[key];
+      if (value instanceof TV) {
+        form.setValue(key, value.toHuman());
+      } else if (typeof value === "number") {
+        form.setValue(key, value);
+      } else if (typeof value === "object" && "type" in value && "addresses" in value) {
+        // Sort the addresses by the number of seeds they have in ascending order
+        value.addresses.sort((a, b) => {
+          const aSeeds = siloData.tokenData.get(tokenMap[getTokenIndex(a)])?.rewards.seeds;
+          const bSeeds = siloData.tokenData.get(tokenMap[getTokenIndex(b)])?.rewards.seeds;
+
+          return aSeeds && bSeeds ? aSeeds.sub(bSeeds).toNumber() : 0;
+        });
+
+        // Re-set the value with the sorted addresses
+        form.setValue(key, value);
+      }
+    });
+
+    setDidSetAdvancedFormFields(true);
+
+    // Validate the token strategy to prevent type casting
+    return true;
+  };
+
+  const handleNext = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!didSetAdvancedFormFields) {
+      const prepared = await handlePrepareArgs();
+      if (!prepared) {
+        return;
+      }
+    }
+
+    setFormStep(ConvertUpTractorOrderFormStep.REVIEW);
+  };
+
+  return (
+    <>
+      <Col className="gap-6">
+        <div className="flex flex-col gap-2">
+          <div className="pinto-body font-medium text-pinto-secondary mb-4">{"🚜 Automated Convert Parameters"}</div>
+          <Separator className="h-[1px] w-full bg-pinto-gray-2" />
+        </div>
+        <Col className="w-full gap-5">
+          <>
+            <Fields.TotalConvertBdv />
+            <TokenStrategyFormField
+              openDialog={handleOpenDialog}
+              label="Convert using"
+              tooltipText="Select the token(s) you want to convert from."
+            />
+            <Fields.PriceRange />
+            <Col className="gap-3">
+              <Fields.MinGrownStalkPerBdvBonus />
+              <EstimatedSeasonsOfGrownStalk siloData={siloData} />
+            </Col>
+          </>
+        </Col>
+        {errors.length ? (
+          <div className="flex flex-col gap-2">
+            {errors.map((error, i) => {
+              return (
+                <div key={`${error}-error-${i.toString()}`} className="pinto-sm-light text-pinto-red-2">
+                  {error}
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
+        <ButtonRow handleBack={handleBack} handleNext={handleNext} isLoading={isLoading} />
+      </Col>
+      {showTokenStrategyDialog && (
+        <TokenStrategyDialog
+          open={showTokenStrategyDialog}
+          onOpenChange={setShowTokenStrategyDialog}
+          farmerDeposits={farmerSilo.deposits}
+          calculations={calculations}
+        />
+      )}
+    </>
+  );
+};
+
+export default ConvertUpTractorEntryForm;
+
+const ButtonRow = ({
+  handleBack,
+  handleNext,
+  isLoading,
+}: {
+  handleBack: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  handleNext: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void>;
+  isLoading: boolean;
+}) => {
+  const { getMissingFields } = useConvertUpOrderFormContext();
+  const { errors } = useFormState<ConvertUpV0FormSchema>();
+
+  const missingFields = getMissingFields(TractorConvertUpFormKeys.initRequired);
+
+  const hasErrors = Boolean(Object.keys(errors).length);
+
+  const hasMissingFields = Boolean(missingFields.length);
+
+  return (
+    <TractorFormButtonsRow
+      handleLeft={handleBack}
+      handleRight={handleNext}
+      isLoading={isLoading}
+      right={{
+        content: "Review",
+        disabled: Boolean(hasErrors || hasMissingFields),
+        tooltip: hasMissingFields ? (
+          <div className="p-1">
+            <div className="font-medium mb-1">Please fill in the following fields:</div>
+            <ul className="list-disc pl-4 text-sm">
+              {missingFields.map((field) => (
+                <li key={`missing-field${field}`}>{field}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null,
+      }}
+      left={{
+        content: "← Back",
+      }}
+    />
+  );
+};
+/**
+ * Isolated component that displays the estimated number of seasons of grown stalk that will be gained
+ * given the current form values.
+ */
+const EstimatedSeasonsOfGrownStalk = ({ siloData }: { siloData: ReturnType<typeof useSiloData> }) => {
+  const { form } = useConvertUpOrderFormContext();
+
+  const value = useWatch({
+    control: form.control,
+    name: "minGrownStalkPerBdvBonus",
+  });
+
+  const tokenStrategies = useWatch({
+    control: form.control,
+    name: "tokenStrategy",
+  });
+
+  const approxGrownStalk = 0;
+
+  return (
+    <Row className="w-full justify-between">
+      <Row className="gap-1 items-center">
+        <Label variant="form">Approximate Seasons of Grown Stalk Gained</Label>
+        <TooltipSimple
+          content="The approximate number of seasons of Grown Stalk that will be gained."
+          variant="outlined"
+        />
+      </Row>
+      <div className="pinto-sm-light text-pinto-green-4">~ {approxGrownStalk} TODO</div>
+    </Row>
+  );
+};
+
+/**
+ * Form Context specific dialog that allows the user to select the token strategy for the Convert Up Order.
+ */
+const TokenStrategyDialog = ({
+  open,
+  onOpenChange,
+  farmerDeposits,
+  calculations,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  farmerDeposits: ReturnType<typeof useFarmerSilo>["deposits"];
+  calculations: ReturnType<typeof useSowOrderV0Calculations>;
+}) => {
+  const ctx = useFormContext<ConvertUpV0FormSchema>();
+
+  const selected = useWatch({
+    control: ctx.control,
+    name: "tokenStrategy",
+  });
+
+  // Memoize the callback to prevent recreating on every render
+  const handleTokenStrategySelected = useCallback(
+    (newStrategy: TractorTokenStrategy) => {
+      ctx.setValue("tokenStrategy", newStrategy);
+      isDynamicTractorTokenStrategy(newStrategy) && onOpenChange(false);
+    },
+    [ctx],
+  );
+
+  if (!isTractorTokenStrategy(selected)) {
+    return null;
+  }
+
+  return (
+    <TractorTokenStrategyDialog
+      open={open}
+      selectedTokenStrategy={selected}
+      onOpenChange={onOpenChange}
+      onTokenStrategySelected={handleTokenStrategySelected}
+      farmerDeposits={farmerDeposits}
+      multiSelect
+      onlyLP
+      {...calculations}
+    />
+  );
+};
+
+interface PreparedConvertUpArgs {
+  tokenStrategy: TractorTokenStrategy;
+  totalConvertBdv: TV;
+  minConvertBdvPerExecution: TV;
+  maxConvertBdvPerExecution: TV;
+  minTimeBetweenConverts: string;
+  minConvertBonusCapacity: TV;
+  maxGrownStalkPerBdv: TV;
+  minGrownStalkPerBdvBonus: TV;
+  maxPriceToConvertUp: TV;
+  minPriceToConvertUp: TV;
+  maxGrownStalkPerBdvPenalty: TV;
+  slippageRatio: string;
+  lowStalkDeposits: LowStalkDepositsMode;
+  operatorTip: TV;
+}
+
+export const prepareConvertUpInitialFormData = (
+  values: ConvertUpV0FormSchema,
+  mainTokenDecimals: number,
+): PreparedConvertUpArgs => {
+  const strategy = StrategyUtil.isValidStrategy(values.tokenStrategy) ? values.tokenStrategy : undefined;
+
+  if (!strategy) {
+    throw new Error("Invalid token strategy");
+  }
+
+  const decimals = mainTokenDecimals;
+
+  const totalConvertBdv = postSanitizedSanitizedValue(values.totalConvertBdv, decimals).tv;
+  const minPriceToConvertUp = postSanitizedSanitizedValue(values.minPriceToConvertUp, decimals).tv;
+  const maxPriceToConvertUp = postSanitizedSanitizedValue(values.maxPriceToConvertUp, decimals).tv;
+  const minGrownStalkPerBdvBonus = postSanitizedSanitizedValue(values.minGrownStalkPerBdvBonus, decimals).tv;
+  const minSizePerExecution = postSanitizedSanitizedValue(values.minConvertBdvPerExecution, decimals).tv;
+  const maxSizePerExecution = postSanitizedSanitizedValue(values.maxConvertBdvPerExecution, decimals).tv;
+
+  // Default to min of (5% of total convert bdv) or (100 PDV)
+  const defaultMinSizePerExecution = TV.min(
+    totalConvertBdv.mul(TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS.minSizePerExecutionPct),
+    TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS.minSizePerExecution,
+  );
+
+  // default to min of (10% of total convert bdv) or (125 PDV)
+  const defaultMaxSizePerExecution = TV.min(
+    totalConvertBdv.sub(TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS.maxSizePerExecutionPct),
+    TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS.maxSizePerExecution,
+  );
+
+  const thisPreparedArgs: PreparedConvertUpArgs = {
+    tokenStrategy: strategy,
+    totalConvertBdv,
+    minConvertBonusCapacity: defaultMinSizePerExecution,
+    minConvertBdvPerExecution: minSizePerExecution.eq(0) ? defaultMinSizePerExecution : minSizePerExecution,
+    maxConvertBdvPerExecution: maxSizePerExecution.eq(0) ? defaultMaxSizePerExecution : maxSizePerExecution,
+    minPriceToConvertUp,
+    maxPriceToConvertUp,
+    minTimeBetweenConverts: values.minTimeBetweenConverts,
+    maxGrownStalkPerBdv: postSanitizedSanitizedValue(values.maxGrownStalkPerBdv, STALK.decimals).tv,
+    minGrownStalkPerBdvBonus,
+    maxGrownStalkPerBdvPenalty: postSanitizedSanitizedValue(values.maxGrownStalkPerBdvPenalty, decimals).tv,
+    slippageRatio: values.slippageRatio,
+    operatorTip: postSanitizedSanitizedValue(values.operatorTip, decimals).tv,
+    lowStalkDeposits: values.lowStalkDeposits,
+  };
+
+  return thisPreparedArgs;
+};
