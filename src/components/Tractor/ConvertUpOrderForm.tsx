@@ -1,6 +1,5 @@
 import { Col } from "@/components/Container";
 import {
-  ConvertUpCustomOperatorTipForm,
   ConvertUpOrderProvider,
   ConvertUpTractorEntryForm,
   ConvertUpTractorReviewController,
@@ -13,9 +12,34 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
 import { useState } from "react";
 
-// ------------------------------------------------------------
-// Interface, Types, Enums
-// ------------------------------------------------------------
+/**
+ * Form Flow
+ *
+ * Entry Form
+ *   - Back: Close the form
+ *   - Review
+ *       1. Validate Entry Form fields. Do nothing if the fields are invalid.
+ *       2. Infer the advanced paramters fields & set 'didInitRestFields' to true.
+ *       3. Set the form step to Review.
+ *
+ * Review Controller
+ *   - Back: Set the form step to Entry.
+ *   - Submit:
+ *   - Advanced:
+ *      - Back:
+ *          - Revert all changes to the previous state from before the advanced field was open
+ *          - Go back to Review
+ *      - Save Changes
+ *          - Go back to Review
+ *   - Custom Operator Tip:
+ *      - Back:
+ *          - Revert to previous operator tip preset
+ *          - Go back to Review
+ *      - Save Changes:
+ *          - Go back to Review
+ *
+ *
+ */
 
 interface IConvertUpOrderForm {
   onOpenChange: (open: boolean) => void;
@@ -35,6 +59,8 @@ export default function ConvertUpOrderForm({ onOpenChange }: IConvertUpOrderForm
     </ConvertUpOrderProvider>
   );
 }
+
+const REVIEW_STEPS = new Set([FormStep.REVIEW, FormStep.ADVANCED, FormStep.OPERATOR_TIP]);
 
 /**
  * The contents of the form.
@@ -63,9 +89,7 @@ function ConvertUpOrderFormController({ onOpenChange }: IConvertUpOrderForm) {
           handleOpenChange={onOpenChange}
         />
       )}
-      {(formStep === FormStep.REVIEW || formStep === FormStep.ADVANCED) && (
-        <ConvertUpTractorReviewController averageTipPaid={averageTipPaid ?? 1} />
-      )}
+      {REVIEW_STEPS.has(formStep) && <ConvertUpTractorReviewController averageTipPaid={averageTipPaid ?? 1} />}
     </Col>
   );
 }

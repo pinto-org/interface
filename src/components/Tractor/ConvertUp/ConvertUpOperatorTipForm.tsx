@@ -10,9 +10,19 @@ import { postSanitizedSanitizedValue } from "@/utils/string";
 import { useMemo } from "react";
 import { useWatch } from "react-hook-form";
 import { CustomOperatorTipFormField, TractorFormButtonsRow } from "../form/fields/sharedFields";
-import { ConvertUpTractorOrderFormStep, useConvertUpOrderFormContext } from "./ConvertUpTractorContext";
+import { useConvertUpOrderFormContext } from "./ConvertUpTractorContext";
 
-const ConvertUpCustomOperatorTipForm = ({ averageTipPaid }: { averageTipPaid: number }) => {
+interface ConvertUpCustomOperatorTipFormProps {
+  averageTipPaid: number;
+  onSubmit: () => void;
+  onCancel: () => void;
+}
+
+const ConvertUpCustomOperatorTipForm = ({
+  averageTipPaid,
+  onSubmit,
+  onCancel,
+}: ConvertUpCustomOperatorTipFormProps) => {
   return (
     <Col className="w-full gap-6">
       <div className="flex flex-col gap-2">
@@ -23,30 +33,29 @@ const ConvertUpCustomOperatorTipForm = ({ averageTipPaid }: { averageTipPaid: nu
         <CustomOperatorTipFormField averageTipPaid={averageTipPaid} />
         <ConvertUpEstimatedTipPaid />
       </Col>
-      <ButtonRow />
+      <ButtonRow onSubmit={onSubmit} onCancel={onCancel} />
     </Col>
   );
 };
 
 export default ConvertUpCustomOperatorTipForm;
 
-const ButtonRow = () => {
-  const { form, formStep, setFormStep } = useConvertUpOrderFormContext();
+const ButtonRow = ({ onSubmit, onCancel }: { onSubmit: () => void; onCancel: () => void }) => {
+  const { form } = useConvertUpOrderFormContext();
+  const mainToken = useMainToken();
 
-  const customOperatorTipAmount = useWatch({ control: form.control, name: "customOperatorAmount" });
-  const tipAmountTV = useSafeTokenValue(customOperatorTipAmount ?? "", 6);
+  const customOperatorTipAmount = useWatch({ control: form.control, name: "customOperatorTip" });
+  const tipAmountTV = useSafeTokenValue(customOperatorTipAmount ?? "", mainToken);
 
   const handleBack = () => {
-    setFormStep(ConvertUpTractorOrderFormStep.REVIEW);
+    onCancel();
   };
 
   const handleNext = () => {
     if (!customOperatorTipAmount) {
       return;
     }
-
-    form.setValue("operatorTip", customOperatorTipAmount);
-    setFormStep(ConvertUpTractorOrderFormStep.REVIEW);
+    onSubmit();
   };
 
   return (
@@ -58,7 +67,7 @@ const ButtonRow = () => {
       }}
       right={{
         content: "Submit",
-        disabled: tipAmountTV.lte(0),
+        disabled: tipAmountTV.lt(0),
       }}
     />
   );
@@ -69,7 +78,7 @@ export const ConvertUpEstimatedTipPaid = () => {
   const mainToken = useMainToken();
 
   const values = useWatch({ control: form.control });
-  const customAmount = values.customOperatorAmount;
+  const customAmount = values.customOperatorTip;
   const operatorTip = values.operatorTip;
   const maxPerExecution = values.maxConvertBdvPerExecution;
   const minPerExecution = values.minConvertBdvPerExecution;

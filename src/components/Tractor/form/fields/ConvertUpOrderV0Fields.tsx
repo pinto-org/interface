@@ -13,12 +13,51 @@ import { STALK } from "@/constants/internalTokens";
 import { useSharedNumericFormFieldHandlers as useFieldHandlers } from "@/hooks/form/useSharedNumericFormFieldHandlers";
 import { useMainToken } from "@/state/useTokenData";
 import { cn } from "@/utils/utils";
-import { useFormContext, useWatch } from "react-hook-form";
+import { RegisterOptions, useFormContext, useWatch } from "react-hook-form";
+
+type StringInputFields = Pick<
+  ConvertUpV0FormSchema,
+  | "totalConvertBdv"
+  | "minConvertBdvPerExecution"
+  | "maxConvertBdvPerExecution"
+  | "minTimeBetweenConverts"
+  | "minConvertBonusCapacity"
+  | "maxGrownStalkPerBdv"
+  | "minGrownStalkPerBdvBonus"
+  | "maxPriceToConvertUp"
+  | "minPriceToConvertUp"
+  | "maxGrownStalkPerBdvPenalty"
+  | "maxGrownStalkPerBdvPenalty"
+  | "minConvertBdvPerExecution"
+  | "slippageRatio"
+>;
+
+// Shared utility hook for form field props
+const useFormFieldProps = (name: keyof StringInputFields, decimals: number) => {
+  const ctx = useFormContext<StringInputFields>();
+  const handlers = useFieldHandlers(ctx, name, decimals);
+  const isError = !!ctx.formState.errors?.[name];
+
+  const handleRegister = useCallback(
+    (options?: RegisterOptions<StringInputFields, keyof StringInputFields>) => {
+      return ctx.register(name, { ...handlers, ...options });
+    },
+    [ctx.register, handlers, name],
+  );
+
+  return {
+    ctx,
+    handlers,
+    isError,
+    register: handleRegister,
+  };
+};
 
 const sharedInputProps = {
   type: "text",
   inputMode: "decimal",
   pattern: "[0-9]*.?[0-9]*",
+  outlined: true,
 } as const;
 
 const TOOLTIP_COPY = {
@@ -60,26 +99,16 @@ const TextAdornment = ({ text, isEnd = true, className }: { text: string; isEnd?
 };
 
 ConvertUpOrderV0Fields.TotalConvertBdv = function TotalConvertBdv() {
-  const ctx = useFormContext<ConvertUpV0FormSchema>();
   const { decimals } = useMainToken();
-  const handlers = useFieldHandlers(ctx, "totalConvertBdv", decimals);
-
-  const isError = !!ctx.formState.errors?.totalConvertBdv;
-
-  // Don't utilize FormField to disable memoization when cross-dependent fields change such as
-  // minConvertBdvPerExecution and maxConvertBdvPerExecution.
-  // Reduces complexity of the component with having to re-trigger validations for certain components.
+  const { register, isError } = useFormFieldProps("totalConvertBdv", decimals);
 
   return (
     <Col className="flex-1 gap-2">
       <TooltipLabel tooltipText={TOOLTIP_COPY.totalConvertBdv}>I want to convert up to</TooltipLabel>
       <Input
-        {...ctx.register("totalConvertBdv", {
-          ...handlers,
-        })}
+        {...register()}
         {...sharedInputProps}
         placeholder="0.00"
-        outlined
         isError={isError}
         endIcon={<MainTokenAdornment />}
       />
@@ -88,29 +117,16 @@ ConvertUpOrderV0Fields.TotalConvertBdv = function TotalConvertBdv() {
 };
 
 ConvertUpOrderV0Fields.MinConvertBdvPerExecution = function MinConvertBdvPerExecution() {
-  const ctx = useFormContext<ConvertUpV0FormSchema>();
   const { decimals } = useMainToken();
-
-  const handlers = useFieldHandlers(ctx, "minConvertBdvPerExecution", decimals);
-
-  const isError = !!ctx.formState.errors?.minConvertBdvPerExecution;
-
-  // Don't utilize FormField to disable memoization when cross-dependent fields change such as
-  // maxConvertBdvPerExecution and totalConvertBdv.
-  // Reduces complexity of the component with having to re-trigger validations for certain components.
-  // This is a trade-off for the sake of performance.
+  const { register, isError } = useFormFieldProps("minConvertBdvPerExecution", decimals);
 
   return (
     <Col className="flex-1 gap-2">
       <TooltipLabel tooltipText={TOOLTIP_COPY.minConvertBdvPerExecution}>Min PDV per Execution</TooltipLabel>
       <Input
-        {...ctx.register("minConvertBdvPerExecution", {
-          required: true,
-          ...handlers,
-        })}
+        {...register()}
         {...sharedInputProps}
         placeholder="0.00"
-        outlined
         isError={isError}
         endIcon={<TextAdornment text="PDV" />}
       />
@@ -119,29 +135,16 @@ ConvertUpOrderV0Fields.MinConvertBdvPerExecution = function MinConvertBdvPerExec
 };
 
 ConvertUpOrderV0Fields.MaxConvertBdvPerExecution = function MaxConvertBdvPerExecution() {
-  const ctx = useFormContext<ConvertUpV0FormSchema>();
   const { decimals } = useMainToken();
-
-  const handlers = useFieldHandlers(ctx, "maxConvertBdvPerExecution", decimals);
-
-  const isError = !!ctx.formState.errors?.maxConvertBdvPerExecution;
-
-  // Don't utilize FormField to disable memoization when cross-dependent fields change such as
-  // minConvertBdvPerExecution and totalConvertBdv.
-  // Reduces complexity of the component with having to re-trigger validations for certain components.
-  // This is a trade-off for the sake of performance.
+  const { register, isError } = useFormFieldProps("maxConvertBdvPerExecution", decimals);
 
   return (
     <Col className="flex-1 gap-2">
       <TooltipLabel tooltipText={TOOLTIP_COPY.maxConvertBdvPerExecution}>Max PDV per Execution</TooltipLabel>
       <Input
-        {...ctx.register("maxConvertBdvPerExecution", {
-          required: true,
-          ...handlers,
-        })}
+        {...register()}
         {...sharedInputProps}
         placeholder="0.00"
-        outlined
         isError={isError}
         endIcon={<TextAdornment text="PDV" />}
       />
@@ -162,15 +165,7 @@ ConvertUpOrderV0Fields.MinTimeBetweenConverts = function MinTimeBetweenConverts(
           <FormLabel tooltipText={TOOLTIP_COPY.minTimeBetweenConverts}>Min time between converts</FormLabel>
           <div className="flex flex-col">
             <FormControl>
-              <Input
-                {...field}
-                {...sharedInputProps}
-                // className="rounded-lg"
-                placeholder="3600"
-                outlined
-                {...handlers}
-                isError={!!fieldState.error}
-              />
+              <Input {...field} {...sharedInputProps} {...handlers} placeholder="3600" isError={!!fieldState.error} />
             </FormControl>
           </div>
         </FormItem>
@@ -197,9 +192,8 @@ ConvertUpOrderV0Fields.MinConvertBonusCapacity = function MinConvertBonusCapacit
             <Input
               {...field}
               {...sharedInputProps}
-              placeholder="0.00"
-              outlined
               {...handlers}
+              placeholder="0.00"
               isError={!!fieldState.error}
               endIcon={<TextAdornment text="Grown Stalk / PDV" />}
             />
@@ -226,9 +220,8 @@ ConvertUpOrderV0Fields.MaxGrownStalkPerBdv = function MaxGrownStalkPerBdv() {
             <Input
               {...field}
               {...sharedInputProps}
-              placeholder="0.00"
-              outlined
               {...handlers}
+              placeholder="0.00"
               isError={!!fieldState.error}
               endIcon={<TextAdornment text="Grown Stalk / PDV" />}
             />
@@ -254,9 +247,8 @@ ConvertUpOrderV0Fields.MinGrownStalkPerBdvBonus = function MinGrownStalkPerBdvBo
             <Input
               {...field}
               {...sharedInputProps}
-              placeholder="0.00"
-              outlined
               {...handlers}
+              placeholder="0.00"
               isError={!!fieldState.error}
               endIcon={<TextAdornment text="Grown Stalk" />}
             />
@@ -372,14 +364,7 @@ ConvertUpOrderV0Fields.MaxGrownStalkPerBdvPenalty = function MaxGrownStalkPerBdv
         <FormItem>
           <FormLabel tooltipText={TOOLTIP_COPY.maxGrownStalkPerBdvPenalty}>Max Grown Stalk per BDV Penalty</FormLabel>
           <FormControl>
-            <Input
-              {...field}
-              {...sharedInputProps}
-              placeholder="-0.10"
-              outlined
-              {...handlers}
-              isError={!!fieldState.error}
-            />
+            <Input {...field} {...sharedInputProps} {...handlers} placeholder="0.00" isError={!!fieldState.error} />
           </FormControl>
         </FormItem>
       )}
@@ -388,33 +373,23 @@ ConvertUpOrderV0Fields.MaxGrownStalkPerBdvPenalty = function MaxGrownStalkPerBdv
 };
 
 ConvertUpOrderV0Fields.SlippageRatio = function SlippageRatio() {
-  const ctx = useFormContext<ConvertUpV0FormSchema>();
-  const handlers = useFieldHandlers(ctx, "slippageRatio", 0);
+  const { register, isError } = useFormFieldProps("slippageRatio", 0);
 
   return (
-    <FormField
-      control={ctx.control}
-      name="slippageRatio"
-      render={({ field, fieldState }) => (
-        <FormItem className="flex flex-row w-full items-center justify-between gap-2 space-y-0">
-          <FormLabel tooltipText={TOOLTIP_COPY.slippageRatio}>Slippage Tolerance</FormLabel>
-          <div className="flex flex-col">
-            <FormControl>
-              <Input
-                {...field}
-                {...sharedInputProps}
-                className="rounded-lg w-[140px]"
-                placeholder="0.1"
-                outlined
-                {...handlers}
-                isError={!!fieldState.error}
-                endIcon={<div className="mr-2 text-pinto-primary pinto-body-bold">%</div>}
-              />
-            </FormControl>
-          </div>
-        </FormItem>
-      )}
-    />
+    <div className="flex flex-row w-full items-center justify-between gap-2 space-y-0">
+      <TooltipLabel tooltipText={TOOLTIP_COPY.slippageRatio}>Slippage Tolerance</TooltipLabel>
+      <div className="flex flex-col">
+        <Input
+          {...register()}
+          {...sharedInputProps}
+          className="rounded-lg w-[140px]"
+          placeholder="0.1"
+          outlined
+          isError={isError}
+          endIcon={<div className="mr-2 text-pinto-primary pinto-body-bold">%</div>}
+        />
+      </div>
+    </div>
   );
 };
 

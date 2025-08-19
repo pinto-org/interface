@@ -6,20 +6,13 @@ import { TokenStrategyFormField, TractorFormButtonsRow } from "@/components/Trac
 import { ConvertUpV0FormSchema, TractorConvertUpFormKeys } from "@/components/Tractor/form/schema/convertUp.schema";
 import { Label } from "@/components/ui/Label";
 import { Separator } from "@/components/ui/Separator";
-import { STALK } from "@/constants/internalTokens";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
-import {
-  LowStalkDepositsMode,
-  TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS,
-  isDynamicTractorTokenStrategy,
-  isTractorTokenStrategy,
-} from "@/lib/Tractor";
-import { tractorTokenStrategyUtil as StrategyUtil, TractorTokenStrategy } from "@/lib/Tractor";
+import { isDynamicTractorTokenStrategy, isTractorTokenStrategy, transformFormToConvertUpArgs } from "@/lib/Tractor";
+import { TractorTokenStrategy } from "@/lib/Tractor";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
 import { useMainToken } from "@/state/useTokenData";
-import { postSanitizedSanitizedValue } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { useCallback, useMemo, useState } from "react";
 import { useFormContext, useFormState, useWatch } from "react-hook-form";
@@ -61,9 +54,7 @@ const ConvertUpTractorEntryForm = ({
     return Array.from(set).filter((msg): msg is string => !!msg);
   }, [minPriceToConvertUp, maxPriceToConvertUp]);
 
-  // ---------------------------------------------------
   // -------------------- Callbacks --------------------
-  // ---------------------------------------------------
 
   const handleOpenDialog = () => {
     setShowTokenStrategyDialog(true);
@@ -94,7 +85,7 @@ const ConvertUpTractorEntryForm = ({
     }
 
     // Only fill out the inferred data from the Entry Form Fields on the first pass
-    const prepared = prepareConvertUpInitialFormData(form.getValues(), mainToken.decimals);
+    const prepared = transformFormToConvertUpArgs(form.getValues(), mainToken.decimals);
 
     TractorConvertUpFormKeys.advanced.forEach((key) => {
       const value = prepared[key];
@@ -118,7 +109,6 @@ const ConvertUpTractorEntryForm = ({
 
     setDidSetAdvancedFormFields(true);
 
-    // Validate the token strategy to prevent type casting
     return true;
   };
 
@@ -307,72 +297,4 @@ const TokenStrategyDialog = ({
       {...calculations}
     />
   );
-};
-
-interface PreparedConvertUpArgs {
-  tokenStrategy: TractorTokenStrategy;
-  totalConvertBdv: TV;
-  minConvertBdvPerExecution: TV;
-  maxConvertBdvPerExecution: TV;
-  minTimeBetweenConverts: string;
-  minConvertBonusCapacity: TV;
-  maxGrownStalkPerBdv: TV;
-  minGrownStalkPerBdvBonus: TV;
-  maxPriceToConvertUp: TV;
-  minPriceToConvertUp: TV;
-  maxGrownStalkPerBdvPenalty: TV;
-  slippageRatio: string;
-  lowStalkDeposits: LowStalkDepositsMode;
-  operatorTip: TV;
-}
-
-export const prepareConvertUpInitialFormData = (
-  values: ConvertUpV0FormSchema,
-  mainTokenDecimals: number,
-): PreparedConvertUpArgs => {
-  const strategy = StrategyUtil.isValidStrategy(values.tokenStrategy) ? values.tokenStrategy : undefined;
-
-  if (!strategy) {
-    throw new Error("Invalid token strategy");
-  }
-
-  const decimals = mainTokenDecimals;
-
-  const totalConvertBdv = postSanitizedSanitizedValue(values.totalConvertBdv, decimals).tv;
-  const minPriceToConvertUp = postSanitizedSanitizedValue(values.minPriceToConvertUp, decimals).tv;
-  const maxPriceToConvertUp = postSanitizedSanitizedValue(values.maxPriceToConvertUp, decimals).tv;
-  const minGrownStalkPerBdvBonus = postSanitizedSanitizedValue(values.minGrownStalkPerBdvBonus, decimals).tv;
-  const minSizePerExecution = postSanitizedSanitizedValue(values.minConvertBdvPerExecution, decimals).tv;
-  const maxSizePerExecution = postSanitizedSanitizedValue(values.maxConvertBdvPerExecution, decimals).tv;
-
-  // Default to min of (5% of total convert bdv) or (100 PDV)
-  const defaultMinSizePerExecution = TV.min(
-    totalConvertBdv.mul(TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS.minSizePerExecutionPct),
-    TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS.minSizePerExecution,
-  );
-
-  // default to min of (10% of total convert bdv) or (125 PDV)
-  const defaultMaxSizePerExecution = TV.min(
-    totalConvertBdv.sub(TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS.maxSizePerExecutionPct),
-    TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS.maxSizePerExecution,
-  );
-
-  const thisPreparedArgs: PreparedConvertUpArgs = {
-    tokenStrategy: strategy,
-    totalConvertBdv,
-    minConvertBonusCapacity: defaultMinSizePerExecution,
-    minConvertBdvPerExecution: minSizePerExecution.eq(0) ? defaultMinSizePerExecution : minSizePerExecution,
-    maxConvertBdvPerExecution: maxSizePerExecution.eq(0) ? defaultMaxSizePerExecution : maxSizePerExecution,
-    minPriceToConvertUp,
-    maxPriceToConvertUp,
-    minTimeBetweenConverts: values.minTimeBetweenConverts,
-    maxGrownStalkPerBdv: postSanitizedSanitizedValue(values.maxGrownStalkPerBdv, STALK.decimals).tv,
-    minGrownStalkPerBdvBonus,
-    maxGrownStalkPerBdvPenalty: postSanitizedSanitizedValue(values.maxGrownStalkPerBdvPenalty, decimals).tv,
-    slippageRatio: values.slippageRatio,
-    operatorTip: postSanitizedSanitizedValue(values.operatorTip, decimals).tv,
-    lowStalkDeposits: values.lowStalkDeposits,
-  };
-
-  return thisPreparedArgs;
 };
