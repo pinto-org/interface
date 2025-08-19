@@ -1,8 +1,8 @@
 import { Form } from "@/components/Form";
-import { useConvertUpV0Form } from "@/components/Tractor/form/schema/convertUp.schema";
+import { ConvertUpV0FormSchema, useConvertUpV0Form } from "@/components/Tractor/form/schema/convertUp.schema";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { exists } from "@/utils/utils";
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { TractorOperatorTipStrategy } from "../form/fields/sharedFields";
 
 export enum ConvertUpTractorOrderFormStep {
@@ -12,16 +12,22 @@ export enum ConvertUpTractorOrderFormStep {
   OPERATOR_TIP = 4,
 }
 
+export interface ConvertUpV0FormDraftState {
+  isActive: boolean;
+  originalValues: ConvertUpV0FormSchema | null;
+}
+
 // ------------------------------------------------------------
 // Context
 // ------------------------------------------------------------
 
 interface IConvertUpOrderFormContext extends ReturnType<typeof useConvertUpV0Form> {
   formStep: ConvertUpTractorOrderFormStep;
-  prevOperatorTipPreset: TractorOperatorTipStrategy | undefined;
   operatorTipPreset: TractorOperatorTipStrategy;
   setOperatorTipPreset: (preset: TractorOperatorTipStrategy) => void;
   setFormStep: (step: ConvertUpTractorOrderFormStep) => void;
+  draftState: ConvertUpV0FormDraftState;
+  setDraftState: (val: boolean) => void;
 }
 
 const ConvertUpOrderFormContext = createContext<IConvertUpOrderFormContext | null>(null);
@@ -42,16 +48,25 @@ interface Props {
 export default function ConvertUpOrderProvider({ children }: Props) {
   const [formStep, setFormStep] = useState(ConvertUpTractorOrderFormStep.ENTRY);
 
-  // Keep track of the
-  const [operatorTipPreset, setOperatorTipPreset] = useState<{
-    prev: TractorOperatorTipStrategy | undefined;
-    curr: TractorOperatorTipStrategy;
-  }>({
-    prev: "Normal",
-    curr: "Normal",
+  // Simplified operator tip state management
+  const [operatorTipPreset, setOperatorTipPresetState] = useState<TractorOperatorTipStrategy>("Normal");
+  const [draftState, setDraftState] = useState<ConvertUpV0FormDraftState>({
+    isActive: false,
+    originalValues: null,
   });
 
   const form = useConvertUpV0Form();
+
+  const toggleDraftState = useCallback(
+    (val: boolean) => {
+      const args = {
+        isActive: val,
+        originalValues: val ? form.form.getValues() : null,
+      };
+      setDraftState(args);
+    },
+    [form.form],
+  );
 
   // External hooks
   const { data: averageTipPaid } = useTractorOperatorAverageTipPaid();
@@ -65,20 +80,21 @@ export default function ConvertUpOrderProvider({ children }: Props) {
     }
   }, [averageTipPaid, form.form.setValue, didInitOperatorTip]);
 
-  const handleSetOperatorTipPreset = useCallback((preset: TractorOperatorTipStrategy) => {
-    setOperatorTipPreset((prev) => ({
-      prev: prev.curr,
-      curr: preset,
-    }));
-  }, []);
+  const handleSetOperatorTipPreset = useCallback(
+    (preset: TractorOperatorTipStrategy) => {
+      setOperatorTipPresetState(preset);
+    },
+    [operatorTipPreset],
+  );
 
   return (
     <ConvertUpOrderFormContext.Provider
       value={{
         ...form,
         formStep,
-        operatorTipPreset: operatorTipPreset.curr,
-        prevOperatorTipPreset: operatorTipPreset.prev,
+        operatorTipPreset,
+        draftState,
+        setDraftState: toggleDraftState,
         setFormStep,
         setOperatorTipPreset: handleSetOperatorTipPreset,
       }}

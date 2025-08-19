@@ -1,7 +1,7 @@
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { Blueprint, tractorTokenStrategyUtil as StrategyUtil, TractorTokenStrategy } from "@/lib/Tractor";
-import { ConvertUpParams, LowStalkDepositsMode } from "@/lib/Tractor/convertUp";
+import { ConvertUpParams, LowStalkDepositsMode, PreparedConvertUpArgs } from "@/lib/Tractor/convertUp";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import useTokenData from "@/state/useTokenData";
 import { validateFormLte } from "@/utils/number";
@@ -51,7 +51,7 @@ const timeScale = (fieldName: string) =>
   }, `Invalid ${fieldName}`);
 
 // Low stalk deposits mode validation
-const lowStalkDepositsValidation = z.number().int().min(0).max(2).default(0); // 0: USE, 1: OMIT, 2: USE_LAST
+const lowStalkDepositsValidation = z.number().int().min(0).max(2).default(LowStalkDepositsMode.USE); // 0: USE, 1: OMIT, 2: USE_LAST
 
 export const convertUpSchemaErrors = {
   minBdvLteMaxBdv: "Min PDV per execution exceeds Max PDV per execution",
@@ -129,34 +129,38 @@ export const convertUpOrderDialogSchema = z
 
     // Operator tip
     operatorTip: nonNegativeNumber("Operator Tip"),
-    customOperatorAmount: nonNegativeNumber("Custom Operator Tip").optional(),
+    customOperatorTip: nonNegativeNumber("Custom Operator Tip").optional(),
   })
   .superRefine((data, ctx) => {
-    // Cross-field validation: minConvertBdvPerExecution <= maxConvertBdvPerExecution
-    if (!validateFormLte(data.minConvertBdvPerExecution, data.maxConvertBdvPerExecution, 6, 6)) {
-      addCTXErrors(ctx, convertUpSchemaErrors.minBdvLteMaxBdv, [
-        "minConvertBdvPerExecution",
-        "maxConvertBdvPerExecution",
-      ]);
-    }
-  })
-  .superRefine((data, ctx) => {
-    // Cross-field validation: minConvertBdvPerExecution <= totalConvertBdv
-    if (!validateFormLte(data.minConvertBdvPerExecution, data.totalConvertBdv, 6, 6)) {
-      addCTXErrors(ctx, convertUpSchemaErrors.minBdvLteTotal, ["minConvertBdvPerExecution", "totalConvertBdv"]);
-    }
-  })
-  .superRefine((data, ctx) => {
-    // Cross-field validation: maxConvertBdvPerExecution <= totalConvertBdv
-    if (!validateFormLte(data.maxConvertBdvPerExecution, data.totalConvertBdv, 6, 6)) {
-      addCTXErrors(ctx, convertUpSchemaErrors.maxBdvLteTotal, ["maxConvertBdvPerExecution", "totalConvertBdv"]);
-    }
-  })
-  .superRefine((data, ctx) => {
-    // Cross-field validation: minPriceToConvertUp <= maxPriceToConvertUp
-    if (!validateFormLte(data.minPriceToConvertUp, data.maxPriceToConvertUp, 6, 6)) {
-      addCTXErrors(ctx, convertUpSchemaErrors.minPriceLteMaxPrice, ["minPriceToConvertUp", "maxPriceToConvertUp"]);
-    }
+    // Consolidated cross-field validation
+    const validations = [
+      {
+        condition: !validateFormLte(data.minConvertBdvPerExecution, data.maxConvertBdvPerExecution, 6, 6),
+        error: convertUpSchemaErrors.minBdvLteMaxBdv,
+        paths: ["minConvertBdvPerExecution", "maxConvertBdvPerExecution"],
+      },
+      {
+        condition: !validateFormLte(data.minConvertBdvPerExecution, data.totalConvertBdv, 6, 6),
+        error: convertUpSchemaErrors.minBdvLteTotal,
+        paths: ["minConvertBdvPerExecution", "totalConvertBdv"],
+      },
+      {
+        condition: !validateFormLte(data.maxConvertBdvPerExecution, data.totalConvertBdv, 6, 6),
+        error: convertUpSchemaErrors.maxBdvLteTotal,
+        paths: ["maxConvertBdvPerExecution", "totalConvertBdv"],
+      },
+      {
+        condition: !validateFormLte(data.minPriceToConvertUp, data.maxPriceToConvertUp, 6, 6),
+        error: convertUpSchemaErrors.minPriceLteMaxPrice,
+        paths: ["minPriceToConvertUp", "maxPriceToConvertUp"],
+      },
+    ];
+
+    validations.forEach(({ condition, error, paths }) => {
+      if (condition) {
+        addCTXErrors(ctx, error, paths);
+      }
+    });
   });
 
 // Type inference from schema
@@ -186,7 +190,7 @@ const defaultConvertOrderUpValues: ConvertUpV0FormSchema = {
   slippageRatio: "0.1", // 0.1%
   lowStalkDeposits: 0, // USE (0) for default
   operatorTip: "0",
-  customOperatorAmount: "",
+  customOperatorTip: "",
 };
 
 type IConvertUpV0Form = {
@@ -317,23 +321,6 @@ export type ConvertUpV0State = {
   operatorPasteInstructions: `0x${string}`[];
   depositOptimizationCalls: `0x${string}`[];
 };
-
-export interface PreparedConvertUpArgs {
-  tokenStrategy: TractorTokenStrategy;
-  totalConvertBdv: TV;
-  minConvertBdvPerExecution: TV;
-  maxConvertBdvPerExecution: TV;
-  minTimeBetweenConverts: string;
-  minConvertBonusCapacity: TV;
-  maxGrownStalkPerBdv: TV;
-  minGrownStalkPerBdvBonus: TV;
-  maxPriceToConvertUp: TV;
-  minPriceToConvertUp: TV;
-  maxGrownStalkPerBdvPenalty: TV;
-  slippageRatio: string;
-  lowStalkDeposits: LowStalkDepositsMode;
-  operatorTip: TV;
-}
 
 export const useConvertUpV0State = () => {
   const client = usePublicClient();

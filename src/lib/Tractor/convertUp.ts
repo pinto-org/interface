@@ -1,4 +1,7 @@
 import { TV } from "@/classes/TokenValue";
+import { STALK } from "@/constants/internalTokens";
+import { tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
+import { postSanitizedSanitizedValue } from "@/utils/string";
 import { Address, Hex, WalletClient, encodeAbiParameters, encodeFunctionData, parseEther, parseUnits } from "viem";
 import { TractorTokenStrategy } from "./types";
 
@@ -16,6 +19,26 @@ export enum LowStalkDepositsMode {
   USE = 0,
   OMIT = 1,
   USE_LAST = 2,
+}
+
+/**
+ * Prepared ConvertUp arguments for form transformation
+ */
+export interface PreparedConvertUpArgs {
+  tokenStrategy: TractorTokenStrategy;
+  totalConvertBdv: TV;
+  minConvertBdvPerExecution: TV;
+  maxConvertBdvPerExecution: TV;
+  minTimeBetweenConverts: string;
+  minConvertBonusCapacity: TV;
+  maxGrownStalkPerBdv: TV;
+  minGrownStalkPerBdvBonus: TV;
+  maxPriceToConvertUp: TV;
+  minPriceToConvertUp: TV;
+  maxGrownStalkPerBdvPenalty: TV;
+  slippageRatio: string;
+  lowStalkDeposits: LowStalkDepositsMode;
+  operatorTip: TV;
 }
 
 /**
@@ -74,23 +97,6 @@ export interface ConvertUpParams {
    * How low stalk deposits are processed.
    */
   lowStalkDeposits: LowStalkDepositsMode;
-}
-
-interface PreparedConvertUpArgs {
-  tokenStrategy: TractorTokenStrategy;
-  totalConvertBdv: TV;
-  minConvertBdvPerExecution: TV;
-  maxConvertBdvPerExecution: TV;
-  minTimeBetweenConverts: number;
-  minConvertBonusCapacity: TV;
-  maxGrownStalkPerBdv: TV;
-  minGrownStalkPerBdvBonus: TV;
-  maxPriceToConvertUp: TV;
-  minPriceToConvertUp: TV;
-  maxGrownStalkPerBdvPenalty: TV;
-  slippageRatio: number;
-  lowStalkDeposits: number;
-  operatorTip: TV;
 }
 
 export const TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS = {
@@ -187,6 +193,62 @@ const MAX_SIZE_PER_EXECUTION_PCT = 0.1;
 //     ],
 //   },
 // ] as const;
+
+/**
+ * Transforms form data into prepared ConvertUp arguments
+ */
+export const transformFormToConvertUpArgs = (
+  values: any, // Will be typed properly when we import the form schema
+  mainTokenDecimals: number,
+): PreparedConvertUpArgs => {
+  // Import the strategy util locally to avoid circular imports
+
+  const strategy = StrategyUtil.isValidStrategy(values.tokenStrategy) ? values.tokenStrategy : undefined;
+
+  if (!strategy) {
+    throw new Error("Invalid token strategy");
+  }
+
+  const decimals = mainTokenDecimals;
+
+  const totalConvertBdv = postSanitizedSanitizedValue(values.totalConvertBdv, decimals).tv;
+  const minPriceToConvertUp = postSanitizedSanitizedValue(values.minPriceToConvertUp, decimals).tv;
+  const maxPriceToConvertUp = postSanitizedSanitizedValue(values.maxPriceToConvertUp, decimals).tv;
+  const minGrownStalkPerBdvBonus = postSanitizedSanitizedValue(values.minGrownStalkPerBdvBonus, decimals).tv;
+  const minSizePerExecution = postSanitizedSanitizedValue(values.minConvertBdvPerExecution, decimals).tv;
+  const maxSizePerExecution = postSanitizedSanitizedValue(values.maxConvertBdvPerExecution, decimals).tv;
+
+  // Default to min of (5% of total convert bdv) or (100 PDV)
+  const defaultMinSizePerExecution = TV.min(
+    totalConvertBdv.mul(TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS.minSizePerExecutionPct),
+    TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS.minSizePerExecution,
+  );
+
+  // default to min of (10% of total convert bdv) or (125 PDV)
+  const defaultMaxSizePerExecution = TV.min(
+    totalConvertBdv.sub(TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS.maxSizePerExecutionPct),
+    TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS.maxSizePerExecution,
+  );
+
+  const preparedArgs: PreparedConvertUpArgs = {
+    tokenStrategy: strategy,
+    totalConvertBdv,
+    minConvertBonusCapacity: defaultMinSizePerExecution,
+    minConvertBdvPerExecution: minSizePerExecution.eq(0) ? defaultMinSizePerExecution : minSizePerExecution,
+    maxConvertBdvPerExecution: maxSizePerExecution.eq(0) ? defaultMaxSizePerExecution : maxSizePerExecution,
+    minPriceToConvertUp,
+    maxPriceToConvertUp,
+    minTimeBetweenConverts: values.minTimeBetweenConverts,
+    maxGrownStalkPerBdv: postSanitizedSanitizedValue(values.maxGrownStalkPerBdv, STALK.decimals).tv,
+    minGrownStalkPerBdvBonus,
+    maxGrownStalkPerBdvPenalty: postSanitizedSanitizedValue(values.maxGrownStalkPerBdvPenalty, decimals).tv,
+    slippageRatio: values.slippageRatio,
+    operatorTip: postSanitizedSanitizedValue(values.operatorTip, decimals).tv,
+    lowStalkDeposits: values.lowStalkDeposits,
+  };
+
+  return preparedArgs;
+};
 
 /**
  * Creates default ConvertUp parameters

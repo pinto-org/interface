@@ -227,8 +227,6 @@ export interface OperatorTipFormFieldProps {
 }
 
 export const OperatorTipFormField = ({ averageTipPaid, preset, setPreset }: OperatorTipFormFieldProps) => {
-  const ctx = useFormContext<{ operatorTip: number }>();
-
   return (
     <Row className="w-full justify-between">
       <Row className="pinto-sm-light text-pinto-secondary gap-1">
@@ -243,8 +241,6 @@ export const OperatorTipFormField = ({ averageTipPaid, preset, setPreset }: Oper
     </Row>
   );
 };
-
-function useClickAway(active: boolean, ref: React.RefObject<HTMLDivElement>, callback: () => void) {}
 
 export const OperatorTipPresetDropdown = ({
   averageTipPaid,
@@ -262,25 +258,15 @@ export const OperatorTipPresetDropdown = ({
   const ref = useRef<HTMLDivElement>(null);
 
   const [isOpen, setIsOpen] = useState(false);
-  const [cachedPreset, setCachedPreset] = useState<TractorOperatorTipStrategy>(selectedPreset);
 
   const handleOptionClick = (preset: TractorOperatorTipStrategy) => {
     setIsOpen(false);
     setSelectedPreset(preset);
   };
 
-  const handleOpenClick = () => {
-    if (!isOpen) {
-      setCachedPreset(selectedPreset);
-    }
-  };
-
   useEffect(() => {
     if (!isOpen) return;
     function handleClick(event: MouseEvent) {
-      // prevent click away if clicking on navbar
-
-      // Only trigger if click is below navbar and not in the ref element
       if (ref.current && !ref.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
@@ -326,7 +312,7 @@ export const OperatorTipPresetDropdown = ({
               {OperatorTipPresets.map((preset) => {
                 let amount: string | undefined = averageTipPaid.toString();
                 if (preset.type === "Custom") {
-                  amount = customAmount?.toString() ?? undefined;
+                  amount = customAmount?.toString() || undefined;
                 } else if (preset.multiplier) {
                   amount = (preset.multiplier ? preset.multiplier * averageTipPaid : averageTipPaid).toString();
                 }

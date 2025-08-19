@@ -1,5 +1,5 @@
 import { sanitizeNumericInputValue } from "@/utils/string";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { FieldPath, FieldValues, PathValue, useFormContext } from "react-hook-form";
 
 interface BaseIFormContextHandlers {
@@ -47,9 +47,12 @@ export const useSharedNumericFormFieldHandlers = <
     [ctx.setValue, name],
   );
 
-  return {
-    onChange: handleNumericInputChange,
-    onBlur: handleNumericInputBlur,
-    onFocus: handleNumericInputFocus,
-  };
+  return useMemo(
+    () => ({
+      onChange: handleNumericInputChange,
+      onBlur: handleNumericInputBlur,
+      onFocus: handleNumericInputFocus,
+    }),
+    [handleNumericInputBlur, handleNumericInputChange, handleNumericInputFocus],
+  );
 };

@@ -1,60 +1,27 @@
 import { Col, Row } from "@/components/Container";
-import { Form } from "@/components/Form";
-import React, { useCallback, useEffect, useState } from "react";
-import { useFormContext, useFormState } from "react-hook-form";
+import React, { useCallback } from "react";
+import { useFormState } from "react-hook-form";
 import Fields from "../form/fields/ConvertUpOrderV0Fields";
 import { TimeScaleSelectFormField, TractorFormButtonsRow } from "../form/fields/sharedFields";
-import { ConvertUpV0FormSchema, TractorConvertUpFormKeys, useConvertUpV0Form } from "../form/schema/convertUp.schema";
-import { ConvertUpTractorOrderFormStep } from "./ConvertUpTractorContext";
+import { ConvertUpV0FormSchema, TractorConvertUpFormKeys } from "../form/schema/convertUp.schema";
+import { useConvertUpOrderFormContext } from "./ConvertUpTractorContext";
 
 interface Props {
-  outerFormValues: ConvertUpV0FormSchema;
-  setOuterFormValues: (values: ConvertUpV0FormSchema) => void;
-  setFormStep: (step: ConvertUpTractorOrderFormStep) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
 }
 
-const ConvertUpTractorAdvancedForm = (props: Props) => {
-  const { form, getMissingFields } = useConvertUpV0Form();
-
-  return (
-    // Nest the same provider to create a new instance of the form
-    // This way, we can retain the previously set values in the case where the
-    // user goes back to previous form step
-    <Form {...form}>
-      <FormInner {...props} getMissingFields={getMissingFields} />
-    </Form>
-  );
-};
-
-export default ConvertUpTractorAdvancedForm;
-
-interface IFormInner extends Props {
-  getMissingFields: (fields?: (keyof ConvertUpV0FormSchema)[]) => string[];
-}
-
-const FormInner = ({ outerFormValues, getMissingFields, setFormStep, setOuterFormValues }: IFormInner) => {
-  const ctx = useFormContext<ConvertUpV0FormSchema>();
-
-  const [didSyncForms, setDidSyncForms] = useState(false);
-
-  // Sync the outer form values to the inner form
-  useEffect(() => {
-    if (didSyncForms) {
-      return;
-    }
-
-    ctx.reset(outerFormValues);
-    setDidSyncForms(true);
-  }, [outerFormValues, ctx, didSyncForms]);
+const ConvertUpTractorAdvancedForm = ({ onSubmit, onCancel }: Props) => {
+  const { form, getMissingFields } = useConvertUpOrderFormContext();
 
   const handleBack = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
       e.stopPropagation();
       e.preventDefault();
 
-      setFormStep(ConvertUpTractorOrderFormStep.REVIEW);
+      onCancel();
     },
-    [setFormStep],
+    [onCancel],
   );
 
   const handleNext = useCallback(
@@ -62,15 +29,14 @@ const FormInner = ({ outerFormValues, getMissingFields, setFormStep, setOuterFor
       e.stopPropagation();
       e.preventDefault();
 
-      const isValid = await ctx.trigger(TractorConvertUpFormKeys.all);
+      const isValid = await form.trigger(TractorConvertUpFormKeys.all);
       if (!isValid) {
         return;
       }
 
-      setOuterFormValues(ctx.getValues());
-      setFormStep(ConvertUpTractorOrderFormStep.REVIEW);
+      onSubmit();
     },
-    [ctx, setOuterFormValues, setFormStep],
+    [form, onSubmit],
   );
 
   return (
@@ -89,24 +55,22 @@ const FormInner = ({ outerFormValues, getMissingFields, setFormStep, setOuterFor
         <Fields.MaxGrownStalkPerBdv />
         <Fields.SlippageRatio />
       </Fields>
-      <ButtonRow
-        handleBack={handleBack}
-        handleNext={handleNext}
-        isLoading={false}
-        getMissingFields={getMissingFields}
-      />
+      <ButtonRow handleBack={handleBack} handleNext={handleNext} getMissingFields={getMissingFields} />
     </Col>
   );
 };
 
-interface IButtonRow {
+const ButtonRow = ({
+  handleBack,
+  handleNext,
+  getMissingFields,
+  isLoading,
+}: {
   handleBack: (e: React.MouseEvent<HTMLButtonElement>) => void;
   handleNext: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void>;
   getMissingFields: (fields?: (keyof ConvertUpV0FormSchema)[]) => string[];
-  isLoading: boolean;
-}
-
-const ButtonRow = ({ handleBack, handleNext, getMissingFields, isLoading }: IButtonRow) => {
+  isLoading?: boolean;
+}) => {
   const { errors } = useFormState<ConvertUpV0FormSchema>();
 
   const missingFields = getMissingFields(TractorConvertUpFormKeys.advanced);
@@ -121,7 +85,7 @@ const ButtonRow = ({ handleBack, handleNext, getMissingFields, isLoading }: IBut
       handleRight={handleNext}
       isLoading={isLoading}
       right={{
-        content: "Submit",
+        content: "Save Changes",
         disabled: Boolean(hasErrors || hasMissingFields),
         tooltip: hasMissingFields ? (
           <div className="p-1">
@@ -135,8 +99,10 @@ const ButtonRow = ({ handleBack, handleNext, getMissingFields, isLoading }: IBut
         ) : null,
       }}
       left={{
-        content: "← Back",
+        content: "← Cancel",
       }}
     />
   );
 };
+
+export default ConvertUpTractorAdvancedForm;
