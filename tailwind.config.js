@@ -204,6 +204,10 @@ module.exports = {
           from: { transform: "translateX( 0% )" },
           to: { transform: "translateX( -50% )" },
         },
+        "pulse-scale": {
+          "0%, 100%": { transform: "scale(0.98)" },
+          "50%": { transform: "scale(1.02)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",

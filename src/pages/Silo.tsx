@@ -9,6 +9,8 @@ import StatPanel from "@/components/StatPanel";
 import TableRowConnector from "@/components/TableRowConnector";
 import TextSkeleton from "@/components/TextSkeleton";
 import TooltipSimple from "@/components/TooltipSimple";
+import ConvertUpOrderForm from "@/components/Tractor/ConvertUpOrderForm";
+import TractorCard from "@/components/Tractor/TractorCard";
 import { tabToSeasonalLookback } from "@/components/charts/SeasonalChart";
 import { TimeTab } from "@/components/charts/TimeTabs";
 import { navLinks } from "@/components/nav/nav/Navbar";
@@ -170,7 +172,7 @@ function Silo() {
               These are Deposits which are currently incentivized by Pinto.
             </div>
             <div className="relative action-container">
-              <SiloTable hovering={hoveredButton === "claim"} />
+              {/* <SiloTable hovering={hoveredButton === "claim"} /> */}
 
               {/*convertEnabled && convertFrom && convertTo && (
                 <TableRowConnector
@@ -303,6 +305,24 @@ function Silo() {
               */}
             </div>
           </div>
+          <Col className="gap-4 sm">
+            <div className="pinto-body-light sm:pinto-h3">Convert Tractor Orderbook</div>
+            <Row className="pinto-sm-light sm:pinto-body-light text-pinto-light sm:text-pinto-light gap-1 items-center">
+              Automated Convert Up Blueprint Orders executed by Tractor
+              <TooltipSimple
+                variant="outlined"
+                content={<>Automated Convert Up Blueprint Orders executed by Tractor.</>}
+              />
+            </Row>
+            <Col className="gap-4 w-full">
+              <Row className="w-full justify-between gap-8">
+                <div className="w-[50%] h-[5rem] bg-pinto-gray-2" />
+                <div className="flex flex-col w-[50%]">
+                  <ConvertUpTractorCard />
+                </div>
+              </Row>
+            </Col>
+          </Col>
           <div className="flex flex-col w-full gap-8">
             <div className="w-full">
               <SiloStats />
@@ -319,6 +339,45 @@ function Silo() {
 export default Silo;
 
 // ---------- Sub Components ----------
+
+const ConvertUpTractorCard = () => {
+  const [showConvertUpOrderDialog, setShowConvertUpOrderDialog] = useState(false);
+
+  const handleOpen = () => {
+    setShowConvertUpOrderDialog(true);
+  };
+
+  return (
+    <div className="relative w-full">
+      <TractorCard
+        label="🚜 Want to Convert Up?"
+        subLabel="Set up a Tractor Order to automate Convert Up"
+        onClick={handleOpen}
+        shouldAnimateZoom={false}
+        corderBordersDisabled
+      />
+      {showConvertUpOrderDialog && (
+        <div className="absolute inset-x-0 -top-[calc(-1rem)] z-10">
+          <AnimatePresence mode="wait">
+            <motion.div
+              initial={{ opacity: 0, scaleY: 0 }}
+              animate={{ opacity: 1, scaleY: 1 }}
+              exit={{ opacity: 0, scaleY: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              style={{ transformOrigin: "50% 70%" }}
+            >
+              <Card className="rounded-xl z-10 mx-auto w-[95%]" id="convert-up-order-dialog">
+                <div className="flex flex-col w-full items-center p-4">
+                  <ConvertUpOrderForm onOpenChange={setShowConvertUpOrderDialog} />
+                </div>
+              </Card>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const initialValue = { silo: false };
 

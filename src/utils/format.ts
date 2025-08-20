@@ -46,7 +46,7 @@ type FormatUSDOptions = IShowPositiveSign & IExactDecimals;
 export const formatNum = (val: NumberPrimitive, options?: FormatNumOptions) => {
   if (val === undefined || val === null) return options?.defaultValue || "0";
 
-  const normalised = val instanceof TokenValue ? val.toHuman() : val.toString();
+  const normalised = val instanceof TokenValue ? val.toHuman() : val.toString().replaceAll(",", "");
 
   const num = Number(normalised);
 
