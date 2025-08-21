@@ -15,9 +15,10 @@ import { sanitizeNumericInputValue, stringEq } from "@/utils/string";
 import { AdvancedPipeCall, FarmFromMode, MinimumViableBlock } from "@/utils/types";
 import { Token, TokenDepositData } from "@/utils/types";
 import { MayArray } from "@/utils/types.generic";
-import { arrayify } from "@/utils/utils";
+import { arrayify, exists } from "@/utils/utils";
 import { SignableMessage, decodeEventLog, decodeFunctionData, encodeFunctionData } from "viem";
 import { PublicClient } from "viem";
+import { multicall } from "viem/actions";
 import {
   Requisition,
   SowOrderTokenStrategy,
@@ -31,6 +32,11 @@ import {
 
 // Block number at which Tractor was deployed - use this as starting point for event queries
 export const TRACTOR_DEPLOYMENT_BLOCK = 28930876n;
+
+export const TRACTOR_TOKEN_STRATEGY_INDICIES = {
+  LOWEST_PRICE: 254,
+  LOWEST_SEEDS: 255,
+};
 
 /**
  * Encodes three uint80 values into a bytes32 value in the format:
@@ -66,9 +72,46 @@ async function getTokenIndex(publicClient: PublicClient, tokenAddress: `0x${stri
   return Number(index);
 }
 
+export async function getTokenIndexesFromTractorTokenStrategy(pc: PublicClient, strategy: TractorTokenStrategyUnion) {
+  const dynamicStrategyIndex = TRACTOR_TOKEN_STRATEGY_INDICIES[strategy.type];
+  if (exists(dynamicStrategyIndex)) {
+    return [dynamicStrategyIndex];
+  }
+
+  const tokens = strategy.addresses;
+
+  if (!tokens) {
+    throw new Error("Expected token address strategies to be > 0");
+  }
+
+  const result = await multicall(pc, {
+    contracts: tokens.map((address) => ({
+      address: TRACTOR_HELPERS_ADDRESS,
+      abi: tractorHelpersABI,
+      functionName: "getTokenIndex" as const,
+      args: [address] as const,
+    })),
+  });
+
+  return result.map((res, i) => {
+    if (res.error) {
+      throw new Error(`Failed to get strategy token index for token ${tokens[i]}}`);
+    }
+
+    return res.result;
+  });
+}
+
 // ────────────────────────────────────────────────────────────────────────────────
 // Create Sow V0 Tractor Order & Sign Requisition
 // ────────────────────────────────────────────────────────────────────────────────
+
+export interface CreateTractorDataReturnType {
+  data: `0x${string}`;
+  operatorPasteInstrs: `0x${string}`[];
+  rawCall: `0x${string}`;
+  depositOptimizationCalls?: `0x${string}`[];
+}
 
 /**
  * Creates blueprint data from Tractor inputs
@@ -103,12 +146,7 @@ export async function createSowTractorData({
   farmerDeposits?: Map<Token, TokenDepositData>;
   userAddress?: `0x${string}`;
   protocolAddress?: `0x${string}`;
-}): Promise<{
-  data: `0x${string}`;
-  operatorPasteInstrs: `0x${string}`[];
-  rawCall: `0x${string}`;
-  depositOptimizationCalls?: `0x${string}`[];
-}> {
+}): Promise<CreateTractorDataReturnType> {
   // Add more detailed debug logs
   console.debug("tokenStrategy received:", tokenStrategy);
   console.debug("tokenStrategy.type:", tokenStrategy.type);
@@ -1449,10 +1487,10 @@ export async function getAverageTipPaid(
  * @param indicies - The indices of the tokens to use for the order.
  * @returns The token strategy for the order.
  */
-export const getSowOrderTokenStrategy = (indicies: readonly number[]) => {
-  if (indicies.includes(255)) {
+export const getSowOrderTokenStrategy = (indicies: readonly number[]): TractorTokenStrategyType => {
+  if (indicies.includes(TRACTOR_TOKEN_STRATEGY_INDICIES.LOWEST_SEEDS)) {
     return "LOWEST_SEEDS";
-  } else if (indicies.includes(254)) {
+  } else if (indicies.includes(TRACTOR_TOKEN_STRATEGY_INDICIES.LOWEST_PRICE)) {
     return "LOWEST_PRICE";
   } else {
     return "SPECIFIC_TOKEN";
@@ -1538,7 +1576,11 @@ export const getTractorOrderTokenStrategyFromIndicies = (indicies: readonly numb
   }
 
   if (indicies.length > 1) {
-    const hasInvalid = indicies.some((index) => index === 254 || index === 255);
+    const hasInvalid = indicies.some(
+      (index) =>
+        index === TRACTOR_TOKEN_STRATEGY_INDICIES.LOWEST_PRICE ||
+        index === TRACTOR_TOKEN_STRATEGY_INDICIES.LOWEST_SEEDS,
+    );
     if (hasInvalid) {
       throw new Error("Invalid token indices. LOWEST SEEDS or LOWEST PRICE cannot be used with multiple tokens.");
     }
@@ -1547,9 +1589,9 @@ export const getTractorOrderTokenStrategyFromIndicies = (indicies: readonly numb
 
   const index = indicies[0];
 
-  if (index === 255) {
+  if (index === TRACTOR_TOKEN_STRATEGY_INDICIES.LOWEST_SEEDS) {
     return "LOWEST_SEEDS";
-  } else if (index === 254) {
+  } else if (index === TRACTOR_TOKEN_STRATEGY_INDICIES.LOWEST_PRICE) {
     return "LOWEST_PRICE";
   } else {
     return "SPECIFIC_TOKEN";

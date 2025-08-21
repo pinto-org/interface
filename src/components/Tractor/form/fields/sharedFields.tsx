@@ -1,4 +1,5 @@
 import arrowDown from "@/assets/misc/ChevronDown.svg";
+import { TV } from "@/classes/TokenValue";
 import { Col, Row } from "@/components/Container";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/Form";
 import TooltipSimple from "@/components/TooltipSimple";
@@ -197,33 +198,33 @@ export type TractorOperatorTipPreset = {
   endIcon?: React.ReactNode;
 };
 
-export const OperatorTipPresets: TractorOperatorTipPreset[] = [
-  {
+export const OperatorTipPresets: Record<TractorOperatorTipStrategy, TractorOperatorTipPreset> = {
+  Custom: {
     type: "Custom",
     endIcon: <Pencil1Icon className="w-6 h-6" />,
     icon: <GearIcon className="w-6 h-6" />,
   },
-  {
+  Low: {
     type: "Low",
     icon: <CircleIcon className="w-6 h-6" />,
     multiplier: 0.75,
   },
-  {
+  Normal: {
     type: "Normal",
     icon: <DiscIcon className="w-6 h-6" />,
     multiplier: 1,
   },
-  {
+  High: {
     type: "High",
     icon: <TargetIcon className="w-6 h-6" />,
     multiplier: 1.25,
   },
-] as const;
+} as const;
 
 export interface OperatorTipFormFieldProps {
   averageTipPaid: number;
-  preset: (typeof OperatorTipPresets)[number]["type"];
-  setPreset: (preset: (typeof OperatorTipPresets)[number]["type"]) => void;
+  preset: keyof typeof OperatorTipPresets;
+  setPreset: (preset: keyof typeof OperatorTipPresets) => void;
 }
 
 export const OperatorTipFormField = ({ averageTipPaid, preset, setPreset }: OperatorTipFormFieldProps) => {
@@ -242,6 +243,36 @@ export const OperatorTipFormField = ({ averageTipPaid, preset, setPreset }: Oper
   );
 };
 
+const formatOperatorTipAmount = (amount: string | TV | undefined) => {
+  if (!amount) return "--";
+  const str = typeof amount === "string" ? amount : amount.toHuman();
+  return `${formatter.number(str, { minDecimals: 2, maxDecimals: 3 })}`;
+};
+
+export const getTractorOperatorTipAmountFromPreset = (
+  preset: TractorOperatorTipStrategy,
+  averageTipPaid: number,
+  customAmount: string | undefined,
+  mainTokenDecimals: number,
+) => {
+  const data = OperatorTipPresets[preset];
+  if (data) {
+    if (data.type !== "Custom" && exists(data.multiplier)) {
+      return TV.fromHuman(averageTipPaid, mainTokenDecimals).mul(data.multiplier);
+    }
+
+    if (data.type === "Custom") {
+      if (!customAmount) {
+        return undefined;
+      }
+
+      return TV.fromHuman(customAmount, mainTokenDecimals);
+    }
+  }
+
+  throw new Error(`Invalid preset configuration: ${preset}`);
+};
+
 export const OperatorTipPresetDropdown = ({
   averageTipPaid,
   selectedPreset,
@@ -251,11 +282,17 @@ export const OperatorTipPresetDropdown = ({
   selectedPreset: TractorOperatorTipStrategy;
   setSelectedPreset: (preset: TractorOperatorTipStrategy) => void;
 }) => {
-  const ctx = useFormContext<{ operatorTip: number; customOperatorTip?: number }>();
-  const value = useWatch({ control: ctx.control, name: "operatorTip" });
+  const ctx = useFormContext<{ operatorTip: string; customOperatorTip?: string }>();
   const customAmount = useWatch({ control: ctx.control, name: "customOperatorTip" });
   const mainToken = useMainToken();
   const ref = useRef<HTMLDivElement>(null);
+  const value =
+    getTractorOperatorTipAmountFromPreset(
+      selectedPreset,
+      averageTipPaid,
+      customAmount,
+      mainToken.decimals,
+    )?.toHuman() ?? "";
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -266,11 +303,11 @@ export const OperatorTipPresetDropdown = ({
 
   useEffect(() => {
     if (!isOpen) return;
-    function handleClick(event: MouseEvent) {
+    const handleClick = (event: MouseEvent) => {
       if (ref.current && !ref.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
-    }
+    };
 
     document.addEventListener("mousedown", handleClick);
 
@@ -284,7 +321,7 @@ export const OperatorTipPresetDropdown = ({
         <Row className="gap-1">
           <IconImage src={mainToken.logoURI} size={4} />
           <span className="pinto-sm">
-            {value} {mainToken.symbol}
+            {formatOperatorTipAmount(value)} {mainToken.symbol}
           </span>
         </Row>
         <Button
@@ -309,20 +346,20 @@ export const OperatorTipPresetDropdown = ({
             </div>
             <Separator className="h-[0.5px] bg-pinto-gray-2" />
             <Col className="p-1 gap-1">
-              {OperatorTipPresets.map((preset) => {
-                let amount: string | undefined = averageTipPaid.toString();
-                if (preset.type === "Custom") {
-                  amount = customAmount?.toString() || undefined;
-                } else if (preset.multiplier) {
-                  amount = (preset.multiplier ? preset.multiplier * averageTipPaid : averageTipPaid).toString();
-                }
+              {Object.values(OperatorTipPresets).map((preset) => {
+                const amount = getTractorOperatorTipAmountFromPreset(
+                  preset.type,
+                  averageTipPaid,
+                  customAmount,
+                  mainToken.decimals,
+                );
 
                 return (
                   <OperatorTipPreset
                     key={preset.type}
                     preset={preset}
                     selected={selectedPreset === preset.type}
-                    amount={amount}
+                    amount={amount?.toHuman() ?? ""}
                     onClick={() => handleOptionClick(preset.type)}
                   />
                 );
@@ -341,10 +378,10 @@ const OperatorTipPreset = ({
   selected,
   onClick,
 }: {
-  preset: (typeof OperatorTipPresets)[number];
+  preset: TractorOperatorTipPreset;
   amount: string | undefined;
   selected: boolean;
-  onClick: (preset: (typeof OperatorTipPresets)[number]) => void;
+  onClick: (preset: TractorOperatorTipPreset) => void;
 }) => {
   const mainToken = useMainToken();
 
@@ -361,7 +398,7 @@ const OperatorTipPreset = ({
         <Col className="gap-1">
           <span className="pinto-sm">{preset.type}</span>
           <span className="pinto-sm-light text-pinto-gray-4 whitespace-nowrap">
-            {exists(amount) ? `${formatter.number(amount)} ${mainToken.symbol}` : "--"}
+            {formatOperatorTipAmount(amount)} {mainToken.symbol}
           </span>
         </Col>
         {preset.endIcon ? preset.endIcon : <></>}

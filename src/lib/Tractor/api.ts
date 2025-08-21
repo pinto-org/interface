@@ -119,6 +119,39 @@ export interface TractorAPISowOrderBlueprint {
   slippageRatio: string;
 }
 
+// export interface TractorAPIConvertUpBlueprint {
+//   /** ConvertUpBlueprint Params */
+//   sourceTokenIndicies: string[];
+//   totalConvertBdv: string;
+//   minConvertBdvPerExecution: string;
+//   maxConvertBdvPerExecution: string;
+//   minTimeBetweenConverts: string;
+//   minConvertBonusCapacity: string;
+//   maxGrownStalkPerBdv: string;
+//   minGrownStalkPerBdvBonus: string;
+//   maxPriceToConvertUp: string;
+//   minPriceToConvertUp: string;
+//   maxGrownStalkPerBdvPenalty: string;
+//   slippageRatio: string;
+//   operatorTip: string;
+//   lowStalkDeposits: number; // LowStalkDepositsMode
+
+//   /** Similar to Sow API schema */
+//   blueprintHash: HashString;
+//   lastExecutedSeason: number;
+//   orderComplete: boolean;
+//   bdvFunded: boolean; // BDV Funded across all orders
+//   // Total BDV converted from this order
+//   bdvConverted: string;
+
+//   // The amount of BDV executable on this order based on current constraints
+//   cascadeBdvFunded: string;
+
+//   /** Requests */
+//   deltaGrownStalk: string;
+
+// }
+
 export interface TractorAPIOrder {
   blueprintHash: HashString;
   orderType: TractorAPIOrderType;

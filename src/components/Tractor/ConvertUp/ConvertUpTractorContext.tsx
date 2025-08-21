@@ -1,12 +1,13 @@
 import { Form } from "@/components/Form";
 import {
   ConvertUpV0FormSchema,
-  cleanConvertUpV0FormValues,
+  transformConvertUpFormValues,
   useConvertUpV0Form,
 } from "@/components/Tractor/form/schema/convertUp.schema";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { exists } from "@/utils/utils";
-import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { useChainId } from "wagmi";
 import { TractorOperatorTipStrategy } from "../form/fields/sharedFields";
 
 export enum ConvertUpTractorOrderFormStep {
@@ -51,6 +52,7 @@ interface Props {
 
 export default function ConvertUpOrderProvider({ children }: Props) {
   const [formStep, setFormStep] = useState(ConvertUpTractorOrderFormStep.ENTRY);
+  const chainId = useChainId();
 
   // Simplified operator tip state management
   const [operatorTipPreset, setOperatorTipPresetState] = useState<TractorOperatorTipStrategy>("Normal");
@@ -63,12 +65,32 @@ export default function ConvertUpOrderProvider({ children }: Props) {
 
   const toggleDraftState = useCallback(
     (val: boolean) => {
-      const args = {
-        isActive: val,
-        originalValues: val ? cleanConvertUpV0FormValues(form.form.getValues()) : null,
-      };
+      const values = form.form.getValues();
 
-      setDraftState(args);
+      const transformed = transformConvertUpFormValues(values, chainId);
+
+      const newDraftState = val
+        ? {
+            ...transformed,
+            totalConvertBdv: transformed.totalConvertBdv.tv.toHuman(),
+            minConvertBdvPerExecution: transformed.minConvertBdvPerExecution.tv.toHuman(),
+            maxConvertBdvPerExecution: transformed.maxConvertBdvPerExecution.tv.toHuman(),
+            minTimeBetweenConverts: transformed.minTimeBetweenConverts.tv.toHuman(),
+            minConvertBonusCapacity: transformed.minConvertBonusCapacity.tv.toHuman(),
+            maxGrownStalkPerBdv: transformed.maxGrownStalkPerBdv.tv.toHuman(),
+            minGrownStalkPerBdvBonus: transformed.minGrownStalkPerBdvBonus.tv.toHuman(),
+            maxPriceToConvertUp: transformed.maxPriceToConvertUp.tv.toHuman(),
+            minPriceToConvertUp: transformed.minPriceToConvertUp.tv.toHuman(),
+            maxGrownStalkPerBdvPenalty: transformed.maxGrownStalkPerBdvPenalty.tv.toHuman(),
+            slippageRatio: transformed.slippageRatio.tv.toHuman(),
+            operatorTip: transformed.operatorTip.tv.toHuman(),
+            customOperatorTip: transformed.customOperatorTip?.nonAmount
+              ? ""
+              : transformed.customOperatorTip?.tv.toHuman() ?? "",
+          }
+        : null;
+
+      setDraftState({ isActive: val, originalValues: newDraftState });
     },
     [form.form],
   );

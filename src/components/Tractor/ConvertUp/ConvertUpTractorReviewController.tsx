@@ -10,14 +10,16 @@ import { STALK } from "@/constants/internalTokens";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { LowStalkDepositsMode, tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { formatter } from "@/utils/format";
 import { getTokenIndex } from "@/utils/token";
 import { MayPromise } from "@/utils/types.generic";
 import React, { useRef, useState } from "react";
 import { useFormContext, useFormState, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 import { CONVERT_UP_TOOLTIP_COPY } from "../form/fields/ConvertUpOrderV0Fields";
 import { OperatorTipFormField, TractorFormButtonsRow, TractorOperatorTipStrategy } from "../form/fields/sharedFields";
-import { ConvertUpV0FormSchema, TractorConvertUpFormKeys } from "../form/schema/convertUp.schema";
+import { ConvertUpV0FormSchema, TractorConvertUpFormKeys, useConvertUpV0State } from "../form/schema/convertUp.schema";
 import ConvertUpCustomOperatorTipForm, { ConvertUpEstimatedTipPaid } from "./ConvertUpOperatorTipForm";
 import ConvertUpTractorAdvancedForm from "./ConvertUpTractorAdvancedForm";
 import { ConvertUpTractorOrderFormStep, useConvertUpOrderFormContext } from "./ConvertUpTractorContext";
@@ -32,6 +34,14 @@ const ConvertUpTractorReviewController = ({
 }: { averageTipPaid: number; didInitAdv: boolean }) => {
   const { form, draftState, formStep, operatorTipPreset, setFormStep, setOperatorTipPreset, setDraftState } =
     useConvertUpOrderFormContext();
+
+  // Blueprint creation state
+  const farmerDeposits = useFarmerSilo();
+  const { state, orderData, isLoading, handleCreateBlueprint } = useConvertUpV0State({
+    averageTipPaid: averageTipPaid,
+    operatorTipPreset: operatorTipPreset,
+  });
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
 
   // UI state management
   const [accordionValue, setAccordionValue] = useState<string | undefined>(
@@ -89,9 +99,25 @@ const ConvertUpTractorReviewController = ({
     setFormStep(ConvertUpTractorOrderFormStep.ENTRY);
   };
 
-  const handleNext = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleNext = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     e.preventDefault();
+
+    try {
+      // Create the blueprint
+      await handleCreateBlueprint(form, farmerDeposits.deposits, {
+        onSuccess: () => {
+          // Open the review dialog
+          setShowReviewDialog(true);
+        },
+        onFailure: () => {
+          toast.error("Failed to create ConvertUp blueprint");
+        },
+      });
+    } catch (error) {
+      console.error("Error in handleNext:", error);
+      toast.error("Failed to create ConvertUp blueprint");
+    }
   };
 
   const handleSetAdvanced = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -198,7 +224,7 @@ const ConvertUpTractorReviewController = ({
             </Col>
           </Col>
           {formStep === ConvertUpTractorOrderFormStep.REVIEW ? (
-            <ButtonRow handleBack={handleBack} handleNext={handleNext} isLoading={false} />
+            <ButtonRow handleBack={handleBack} handleNext={handleNext} isLoading={isLoading} />
           ) : null}
         </Col>
       )}
