@@ -1,6 +1,7 @@
 import { mockAddressAtom } from "@/Web3Provider";
 import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
 import { tractorHelpersABI } from "@/constants/abi/TractorHelpersABI";
+import { convertUpBlueprintV0ABI } from "@/constants/abi/convertUpBlueprintV0ABI";
 import { diamondABI as beanstalkAbi, diamondABI } from "@/constants/abi/diamondABI";
 import { TRACTOR_HELPERS_ADDRESS } from "@/constants/address";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
@@ -56,7 +57,13 @@ const publicClient = createPublicClient({
 });
 
 // Merge the ABIs
-const combinedABI = [...beanstalkAbi, ...sowBlueprintv0ABI, ...tractorHelpersABI, ...erc20Abi] as const;
+const combinedABI = [
+  ...beanstalkAbi,
+  ...sowBlueprintv0ABI,
+  ...tractorHelpersABI,
+  ...erc20Abi,
+  ...convertUpBlueprintV0ABI,
+] as const;
 
 /**
  * Packs a token address and stem into a deposit ID
