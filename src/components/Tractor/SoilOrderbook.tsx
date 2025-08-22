@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover
 import { Switch } from "@/components/ui/Switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { PINTO } from "@/constants/tokens";
+import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetTractorTokenStrategy";
 import { Blueprint } from "@/lib/Tractor/types";
 import { OrderbookEntry, SowBlueprintData, decodeSowTractorData, loadOrderbookData } from "@/lib/Tractor/utils";
 import { useTractorSowOrderbook } from "@/state/tractor/useTractorSowOrders";
@@ -17,13 +18,14 @@ import { MinimumViableBlock } from "@/utils/types";
 import { cn } from "@/utils/utils";
 import { GearIcon } from "@radix-ui/react-icons";
 import { Separator } from "@radix-ui/react-separator";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import React from "react";
 import { GetBlockReturnType } from "viem";
 import { Col, Row } from "../Container";
 import LoadingSpinner from "../LoadingSpinner";
 import ReviewTractorOrderDialog from "../ReviewTractorOrderDialog";
 import { Plow } from "./Plow";
+import { SowOrderData } from "./types";
 
 const BASESCAN_URL = "https://basescan.org/address/";
 
@@ -49,8 +51,11 @@ export function SoilOrderbookContent({
   showAboveCurrentTemp = true,
 }: SoilOrderbookContentProps) {
   const [selectedOrder, setSelectedOrder] = useState<OrderbookEntry | null>(null);
+  const [decodedData, setDecodedData] = useState<SowOrderData | undefined>(undefined);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const temperature = useTemperature();
+
+  const { getTokenStrategy } = useGetTractorTokenStrategyWithBlueprint();
 
   const { data: latestBlockInfo } = useCachedLatestBlockQuery<MinimumViableBlock<number>>({
     key: "soil-orderbook-latest-block",
@@ -120,27 +125,24 @@ export function SoilOrderbookContent({
     setViewDialogOpen(true);
   };
 
-  // Generate order data for the review dialog from the requisition
-  const getOrderDataForReview = () => {
-    if (!selectedOrder) return null;
-
-    try {
-      const decodedData = decodeSowTractorData(selectedOrder.requisition.blueprint.data);
-      if (!decodedData) return null;
-
-      return {
-        totalAmount: TokenValue.fromBlockchain(decodedData.sowAmounts.totalAmountToSow, 6).toHuman(),
-        temperature: decodedData.minTempAsString,
-        podLineLength: decodedData.maxPodlineLengthAsString,
-        minSoil: decodedData.sowAmounts.minAmountToSowPerSeasonAsString,
-        operatorTip: TokenValue.fromBlockchain(decodedData.operatorParams.operatorTipAmount, 6).toHuman(),
-        tokenStrategy: "LOWEST_SEEDS" as const, // Default, adjust based on your data
-      };
-    } catch (error) {
-      console.error("Failed to decode data for requisition:", error);
-      return null;
+  useEffect(() => {
+    if (!selectedOrder) {
+      setDecodedData(undefined);
+      return;
     }
-  };
+
+    const d = decodeSowTractorData(selectedOrder.requisition.blueprint.data);
+    if (!d) return;
+    setDecodedData({
+      type: "sow",
+      totalAmount: TokenValue.fromBlockchain(d.sowAmounts.totalAmountToSow, 6).toHuman(),
+      temperature: d.minTempAsString,
+      podLineLength: d.maxPodlineLengthAsString,
+      minSoil: d.sowAmounts.minAmountToSowPerSeasonAsString,
+      operatorTip: TokenValue.fromBlockchain(d.operatorParams.operatorTipAmount, 6).toHuman(),
+      tokenStrategy: getTokenStrategy(d),
+    });
+  }, [selectedOrder]);
 
   // Apply sorting for display and insert temperature indicator
   const getSortedRequisitions = () => {
@@ -443,19 +445,11 @@ export function SoilOrderbookContent({
       </Table>
 
       {/* Review Tractor Order Dialog */}
-      {selectedOrder && (
+      {selectedOrder && decodedData && (
         <ReviewTractorOrderDialog
           open={viewDialogOpen}
           onOpenChange={setViewDialogOpen}
-          orderData={
-            getOrderDataForReview() || {
-              totalAmount: "0",
-              temperature: "0",
-              podLineLength: "0",
-              minSoil: "0",
-              operatorTip: "0",
-            }
-          }
+          orderData={decodedData}
           encodedData={selectedOrder.requisition.blueprint.data}
           operatorPasteInstrs={Array.from(selectedOrder.requisition.blueprint.operatorPasteInstrs) as `0x${string}`[]}
           blueprint={

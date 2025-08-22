@@ -1,3 +1,4 @@
+import { Clipboard } from "@/classes/Clipboard";
 import { TV, TokenValue } from "@/classes/TokenValue";
 import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
 import { tractorHelpersABI } from "@/constants/abi/TractorHelpersABI";
@@ -9,15 +10,18 @@ import { MAIN_TOKEN } from "@/constants/tokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { generateBatchSortDepositsCallData } from "@/lib/claim/depositUtils";
 import { TEMPERATURE_DECIMALS } from "@/state/protocol/field";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { getChainConstant } from "@/utils/chain";
 import { resolveChainId } from "@/utils/chain";
 import { sanitizeNumericInputValue, stringEq } from "@/utils/string";
 import { AdvancedPipeCall, FarmFromMode, MinimumViableBlock } from "@/utils/types";
 import { Token, TokenDepositData } from "@/utils/types";
 import { MayArray } from "@/utils/types.generic";
-import { arrayify } from "@/utils/utils";
+import { arrayify, exists } from "@/utils/utils";
 import { SignableMessage, decodeEventLog, decodeFunctionData, encodeFunctionData } from "viem";
 import { PublicClient } from "viem";
+import { multicall } from "viem/actions";
+import { Config as WagmiConfig } from "wagmi";
 import {
   Requisition,
   SowOrderTokenStrategy,
@@ -31,6 +35,11 @@ import {
 
 // Block number at which Tractor was deployed - use this as starting point for event queries
 export const TRACTOR_DEPLOYMENT_BLOCK = 28930876n;
+
+export const TRACTOR_TOKEN_STRATEGY_INDICIES = {
+  LOWEST_PRICE: 254,
+  LOWEST_SEEDS: 255,
+};
 
 /**
  * Encodes three uint80 values into a bytes32 value in the format:
@@ -66,9 +75,46 @@ async function getTokenIndex(publicClient: PublicClient, tokenAddress: `0x${stri
   return Number(index);
 }
 
+export async function getTokenIndexesFromTractorTokenStrategy(pc: PublicClient, strategy: TractorTokenStrategyUnion) {
+  const dynamicStrategyIndex = TRACTOR_TOKEN_STRATEGY_INDICIES[strategy.type];
+  if (exists(dynamicStrategyIndex)) {
+    return [dynamicStrategyIndex];
+  }
+
+  const tokens = strategy.addresses;
+
+  if (!tokens) {
+    throw new Error("Expected token address strategies to be > 0");
+  }
+
+  const result = await multicall(pc, {
+    contracts: tokens.map((address) => ({
+      address: TRACTOR_HELPERS_ADDRESS,
+      abi: tractorHelpersABI,
+      functionName: "getTokenIndex" as const,
+      args: [address] as const,
+    })),
+  });
+
+  return result.map((res, i) => {
+    if (res.error) {
+      throw new Error(`Failed to get strategy token index for token ${tokens[i]}}`);
+    }
+
+    return res.result;
+  });
+}
+
 // ────────────────────────────────────────────────────────────────────────────────
 // Create Sow V0 Tractor Order & Sign Requisition
 // ────────────────────────────────────────────────────────────────────────────────
+
+export interface CreateTractorDataReturnType {
+  data: `0x${string}`;
+  operatorPasteInstrs: `0x${string}`[];
+  rawCall: `0x${string}`;
+  depositOptimizationCalls?: `0x${string}`[];
+}
 
 /**
  * Creates blueprint data from Tractor inputs
@@ -103,12 +149,7 @@ export async function createSowTractorData({
   farmerDeposits?: Map<Token, TokenDepositData>;
   userAddress?: `0x${string}`;
   protocolAddress?: `0x${string}`;
-}): Promise<{
-  data: `0x${string}`;
-  operatorPasteInstrs: `0x${string}`[];
-  rawCall: `0x${string}`;
-  depositOptimizationCalls?: `0x${string}`[];
-}> {
+}): Promise<CreateTractorDataReturnType> {
   // Add more detailed debug logs
   console.debug("tokenStrategy received:", tokenStrategy);
   console.debug("tokenStrategy.type:", tokenStrategy.type);
@@ -757,6 +798,7 @@ export function getSowBlueprintDisplayData(data: SowBlueprintData): SowBlueprint
   };
 }
 export interface PublisherTractorExecution {
+  type: "sow" | "convertUp";
   blockNumber: number;
   operator: `0x${string}`;
   publisher: `0x${string}`;
@@ -1449,14 +1491,16 @@ export async function getAverageTipPaid(
  * @param indicies - The indices of the tokens to use for the order.
  * @returns The token strategy for the order.
  */
-export const getSowOrderTokenStrategy = (indicies: readonly number[]) => {
-  if (indicies.includes(255)) {
+export const getSowOrderTokenStrategy = (indicies: readonly number[]): TractorTokenStrategyType => {
+  if (indicies.includes(TRACTOR_TOKEN_STRATEGY_INDICIES.LOWEST_SEEDS)) {
     return "LOWEST_SEEDS";
-  } else if (indicies.includes(254)) {
+  } else if (indicies.includes(TRACTOR_TOKEN_STRATEGY_INDICIES.LOWEST_PRICE)) {
     return "LOWEST_PRICE";
-  } else {
-    return "SPECIFIC_TOKEN";
+  } else if (indicies.length > 1) {
+    return "MULTI_TOKENS";
   }
+
+  return "SPECIFIC_TOKEN";
 };
 
 export const extractAddressesFromTokenStrategy = (
@@ -1538,7 +1582,11 @@ export const getTractorOrderTokenStrategyFromIndicies = (indicies: readonly numb
   }
 
   if (indicies.length > 1) {
-    const hasInvalid = indicies.some((index) => index === 254 || index === 255);
+    const hasInvalid = indicies.some(
+      (index) =>
+        index === TRACTOR_TOKEN_STRATEGY_INDICIES.LOWEST_PRICE ||
+        index === TRACTOR_TOKEN_STRATEGY_INDICIES.LOWEST_SEEDS,
+    );
     if (hasInvalid) {
       throw new Error("Invalid token indices. LOWEST SEEDS or LOWEST PRICE cannot be used with multiple tokens.");
     }
@@ -1547,9 +1595,9 @@ export const getTractorOrderTokenStrategyFromIndicies = (indicies: readonly numb
 
   const index = indicies[0];
 
-  if (index === 255) {
+  if (index === TRACTOR_TOKEN_STRATEGY_INDICIES.LOWEST_SEEDS) {
     return "LOWEST_SEEDS";
-  } else if (index === 254) {
+  } else if (index === TRACTOR_TOKEN_STRATEGY_INDICIES.LOWEST_PRICE) {
     return "LOWEST_PRICE";
   } else {
     return "SPECIFIC_TOKEN";
@@ -1630,5 +1678,67 @@ export const prepareSowOrderV0RequisitionEventForTxn = (req: RequisitionEvent) =
         (instr) => instr !== "0x" && instr !== ("" as `0x${string}`),
       ),
     },
+  };
+};
+
+export const encodeTractorAndOptimizeDeposits = async (
+  config: {
+    client: PublicClient;
+    protocolAddress: `0x${string}`;
+    farmerAddress: `0x${string}`;
+  },
+  advPipeCall: AdvancedPipeCall,
+  farmerDeposits?: ReturnType<typeof useFarmerSilo>["deposits"],
+) => {
+  const advPipe = encodeFunctionData({
+    abi: diamondABI,
+    functionName: "advancedPipe",
+    args: [
+      [advPipeCall],
+      0n, // Output index parameter
+    ],
+  });
+
+  const farmCalls = [
+    {
+      callData: advPipe,
+      clipboard: Clipboard.encode([]), // Empty clipboard
+    },
+  ];
+
+  const advFarm = encodeFunctionData({
+    abi: diamondABI,
+    functionName: "advancedFarm" as const,
+    args: [farmCalls] as const,
+  });
+
+  // Step 3: Generate deposit optimization calls separately (for the user transaction)
+  let depositOptimizationCalls: `0x${string}`[] | undefined;
+
+  if (farmerDeposits && config.farmerAddress && config.protocolAddress) {
+    console.debug(
+      "[Tractor/encodeTractorAndOptimizeDeposits]: Generating deposit optimization calls for user transaction",
+    );
+
+    try {
+      depositOptimizationCalls = await generateBatchSortDepositsCallData(
+        config.farmerAddress,
+        farmerDeposits,
+        config.client,
+        config.protocolAddress,
+      );
+
+      console.debug(
+        `[Tractor/encodeTractorAndOptimizeDeposits]: Generated ${depositOptimizationCalls.length} deposit optimization calls for user transaction`,
+      );
+    } catch (error) {
+      console.warn("[Tractor/encodeTractorAndOptimizeDeposits]: Failed to generate deposit optimization calls:", error);
+      // Continue without optimization calls - don't fail the entire transaction
+    }
+  }
+
+  return {
+    data: advFarm,
+    depositOptimizationCalls,
   };
 };

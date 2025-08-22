@@ -17,8 +17,8 @@ export function decodeCallData(callData: string) {
   const selector = callData.slice(0, 10);
   const data = callData.slice(10);
 
-  console.log("Function selector:", selector);
-  console.log("sowBlueprintv0Selector:", SOW_BLUEPRINT_V0_SELECTOR);
+  console.debug("[HighlightedCallData]Function selector:", selector);
+  console.debug("[HighlightedCallData] selector:", SOW_BLUEPRINT_V0_SELECTOR);
 
   // For sowBlueprintv0, show decoded parameters
   if (selector === SOW_BLUEPRINT_V0_SELECTOR) {

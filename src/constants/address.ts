@@ -16,7 +16,11 @@ export const SILO_HELPERS_ADDRESS: HashString = "0xc345F3aA0A13a6f6a113004553976
 
 export const SOW_BLUEPRINT_V0_ADDRESS: HashString = "0xbb0a41927895F8ca2b4ECCc659ba158735fCF28B";
 
+export const CONVERT_UP_BLUEPRINT_V0_ADDRESS: HashString = "0x0B0dEe7EaF37c989B899C4C129A60a1dAA13d8fD";
+
 export const SOW_BLUEPRINT_V0_SELECTOR = "0x3ca8e1b2" as const;
+
+export const CONVERT_BLUEPRINT_V0_SELECTOR = "0x36bfafbd" as const;
 
 export const WELL_FUNCTION_ADDRESSES: ChainLookup<{
   stable2: HashString;

@@ -93,7 +93,10 @@ export default function usePublisherTractorExecutions(
       // Filter out any on-chain executions that already exist in the API data & add the SOW_V0 executions if sowEvent is present
       onChainExecutions?.forEach((exec) => {
         if (!existingTxHashes.has(exec.transactionHash.toLowerCase())) {
-          allExecutions.push(exec);
+          allExecutions.push({
+            type: "sow",
+            ...exec,
+          });
         }
       });
 
@@ -168,6 +171,7 @@ const getSelectTractorExecutions = (chainId: number) => {
       if (execution.orderInfo.orderType === "SOW_V0") {
         const e = execution as TractorAPIExecutionSowOrderItem<string>;
         executionsByType.sowBlueprintv0.push({
+          type: "sow",
           blockNumber: e.executedBlock,
           operator: e.operator,
           publisher: e.orderInfo.publisher,

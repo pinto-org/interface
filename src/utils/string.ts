@@ -111,7 +111,14 @@ export const sanitizeNumericInputValue = (val: string, valueDecimals: number) =>
   return obj;
 };
 
-export const postSanitizedSanitizedValue = (value: string, valueDecimals: number) => {
+export interface SanitizedTV {
+  str: string;
+  strValue: string;
+  tv: TokenValue;
+  nonAmount: boolean;
+}
+
+export const postSanitizedSanitizedValue = (value: string, valueDecimals: number): SanitizedTV => {
   const obj = {
     str: value,
     strValue: value,
