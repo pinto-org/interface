@@ -1,4 +1,5 @@
 import { Col, Row } from "@/components/Container";
+import ReviewTractorOrderDialog from "@/components/ReviewTractorOrderDialog";
 import TooltipSimple from "@/components/TooltipSimple";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/Accordion";
 import { Button } from "@/components/ui/Button";
@@ -37,10 +38,7 @@ const ConvertUpTractorReviewController = ({
 
   // Blueprint creation state
   const farmerDeposits = useFarmerSilo();
-  const { state, orderData, isLoading, handleCreateBlueprint } = useConvertUpV0State({
-    averageTipPaid: averageTipPaid,
-    operatorTipPreset: operatorTipPreset,
-  });
+  const { state, orderData, isLoading, handleCreateBlueprint } = useConvertUpV0State();
   const [showReviewDialog, setShowReviewDialog] = useState(false);
 
   // UI state management
@@ -105,7 +103,7 @@ const ConvertUpTractorReviewController = ({
 
     try {
       // Create the blueprint
-      await handleCreateBlueprint(form, farmerDeposits.deposits, {
+      await handleCreateBlueprint(form, averageTipPaid, operatorTipPreset, farmerDeposits.deposits, {
         onSuccess: () => {
           // Open the review dialog
           setShowReviewDialog(true);
@@ -227,6 +225,24 @@ const ConvertUpTractorReviewController = ({
             <ButtonRow handleBack={handleBack} handleNext={handleNext} isLoading={isLoading} />
           ) : null}
         </Col>
+      )}
+
+      {/* Review Dialog for ConvertUp Orders */}
+      {showReviewDialog && state && orderData && (
+        <ReviewTractorOrderDialog
+          open={showReviewDialog}
+          onOpenChange={setShowReviewDialog}
+          onSuccess={() => {}}
+          orderData={{
+            type: "convertUp" as const,
+            ...orderData,
+            tokenStrategy: form.getValues("tokenStrategy"),
+          }}
+          encodedData={state.encodedData}
+          operatorPasteInstrs={state.operatorPasteInstructions}
+          blueprint={state.blueprint}
+          depositOptimizationCalls={state.depositOptimizationCalls}
+        />
       )}
     </>
   );

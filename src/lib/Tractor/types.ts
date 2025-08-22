@@ -1,6 +1,7 @@
 import { Token } from "@/utils/types";
 import { Address } from "viem";
 
+export type TractorBlueprintType = "sow" | "convertUp";
 export interface Blueprint {
   publisher: Address;
   data: `0x${string}`;

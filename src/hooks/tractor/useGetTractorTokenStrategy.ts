@@ -1,7 +1,11 @@
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { defaultQuerySettingsNoRefetch } from "@/constants/query";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { ExtendedTractorTokenStrategy, getSowOrderTokenStrategy } from "@/lib/Tractor";
+import {
+  ExtendedTractorTokenStrategy,
+  TractorOrderDynamicFundingStrategy,
+  getSowOrderTokenStrategy,
+} from "@/lib/Tractor";
 import { getTokenIndex } from "@/utils/token";
 import { useCallback } from "react";
 import { useReadContract } from "wagmi";
@@ -51,9 +55,8 @@ const useGetTractorTokenStrategyWithBlueprint = () => {
 
       const strat = getSowOrderTokenStrategy(indicies);
 
-      const index = indicies[0];
-
-      if (strat === "SPECIFIC_TOKEN") {
+      if (strat === "SPECIFIC_TOKEN" && indicies.length === 1) {
+        const index = indicies[0];
         return {
           addresses: [wlStatuses[index]?.token],
           type: "SPECIFIC_TOKEN",
@@ -61,8 +64,18 @@ const useGetTractorTokenStrategyWithBlueprint = () => {
         };
       }
 
+      if (strat === "MULTI_TOKENS" && !!indicies.length) {
+        const addresses = indicies.map((i) => wlStatuses[i]?.token).filter(Boolean);
+        const tokens = addresses.map((address) => tokenMap[getTokenIndex(address)] ?? undefined).filter(Boolean);
+        return {
+          addresses,
+          type: "MULTI_TOKENS",
+          tokens,
+        };
+      }
+
       return {
-        type: strat,
+        type: strat as "LOWEST_SEEDS" | "LOWEST_PRICE",
       };
     },
     [wlStatuses, tokenMap],

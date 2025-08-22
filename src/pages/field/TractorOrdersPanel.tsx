@@ -394,12 +394,13 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
           open={showDialog === "review"}
           onOpenChange={(val) => setShowDialog(val ? "review" : undefined)}
           orderData={{
+            type: "sow",
             totalAmount: selectedOrder.decodedData.sowAmounts.totalAmountToSowAsString,
             temperature: selectedOrder.decodedData.minTempAsString,
             podLineLength: selectedOrder.decodedData.maxPodlineLengthAsString,
             minSoil: selectedOrder.decodedData.sowAmounts.minAmountToSowPerSeasonAsString,
             operatorTip: selectedOrder.decodedData.operatorParams.operatorTipAmountAsString,
-            tokenStrategy: getSowOrderTokenStrategy(selectedOrder.decodedData.sourceTokenIndices),
+            tokenStrategy: getStrategyProps.getTokenStrategy(selectedOrder.decodedData),
           }}
           encodedData={rawSowBlueprintCall || selectedOrder.requisition.blueprint.data}
           operatorPasteInstrs={[...selectedOrder.requisition.blueprint.operatorPasteInstrs]}

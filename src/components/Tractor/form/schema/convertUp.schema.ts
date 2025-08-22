@@ -1,12 +1,22 @@
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
-import { Blueprint, tractorTokenStrategyUtil as StrategyUtil, TractorTokenStrategy } from "@/lib/Tractor";
+import {
+  Blueprint,
+  tractorTokenStrategyUtil as StrategyUtil,
+  TractorTokenStrategy,
+  TractorTokenStrategyUnion,
+} from "@/lib/Tractor";
 import { createBlueprint } from "@/lib/Tractor/blueprint";
-import { LowStalkDepositsMode, PreparedConvertUpArgs, createConvertUpTractorData } from "@/lib/Tractor/convertUp";
+import {
+  LowStalkDepositsMode,
+  PreparedConvertUpArgs,
+  createConvertUpTractorData,
+  getTractorConvertUpParamsDecimalConfig,
+} from "@/lib/Tractor/convertUp";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import useTokenData from "@/state/useTokenData";
 import { validateFormLte } from "@/utils/number";
-import { postSanitizedSanitizedValue } from "@/utils/string";
+import { SanitizedTV, postSanitizedSanitizedValue } from "@/utils/string";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -31,6 +41,25 @@ import {
 // ---------------------------------------------
 // SCHEMA
 // ---------------------------------------------
+
+type FormSchema<T = string> = {
+  tokenStrategy: TractorTokenStrategyUnion;
+  totalConvertBdv: T;
+  minConvertBdvPerExecution: T;
+  maxConvertBdvPerExecution: T;
+  minTimeBetweenConverts: T;
+  timeScale: TimeScaleSelect;
+  minConvertBonusCapacity: T;
+  maxGrownStalkPerBdv: T;
+  minGrownStalkPerBdvBonus: T;
+  maxPriceToConvertUp: T;
+  minPriceToConvertUp: T;
+  maxGrownStalkPerBdvPenalty: T;
+  slippageRatio: T;
+  operatorTip: T;
+  customOperatorTip?: T | undefined;
+  lowStalkDeposits: LowStalkDepositsMode;
+};
 
 const {
   schema: { tokenStrategy: tokenStrategyValidation, positiveNumber, nonNegativeNumber, addCTXErrors },
@@ -73,7 +102,7 @@ export const convertUpSchemaErrors = {
   minPriceLteMaxPrice: "Min Price exceeds Max Price",
 } as const;
 
-const inferrableKeys: (keyof ConvertUpV0FormSchema)[] = [
+const inferrableKeys: (keyof FormSchema)[] = [
   "minConvertBdvPerExecution",
   "maxConvertBdvPerExecution",
   "minTimeBetweenConverts",
@@ -85,7 +114,7 @@ const inferrableKeys: (keyof ConvertUpV0FormSchema)[] = [
   "slippageRatio",
 ] as const;
 
-const initRequiredKeys: (keyof ConvertUpV0FormSchema)[] = [
+const initRequiredKeys: (keyof FormSchema)[] = [
   "tokenStrategy",
   "totalConvertBdv",
   "minGrownStalkPerBdvBonus",
@@ -93,7 +122,7 @@ const initRequiredKeys: (keyof ConvertUpV0FormSchema)[] = [
   "maxPriceToConvertUp",
 ] as const;
 
-const allFormKeys: (keyof ConvertUpV0FormSchema)[] = [...initRequiredKeys, ...inferrableKeys];
+const allFormKeys: (keyof FormSchema)[] = [...initRequiredKeys, ...inferrableKeys];
 
 export const TractorConvertUpFormKeys = {
   advanced: inferrableKeys,
@@ -176,15 +205,15 @@ export const convertUpOrderDialogSchema = z
     });
   });
 
-// Type inference from schema
-export type ConvertUpV0FormSchema = z.infer<typeof convertUpOrderDialogSchema>;
-
 // ---------------------------------------------
 // FORM
 // ---------------------------------------------
 
+// Type inference from schema
+export type ConvertUpV0FormSchema = FormSchema<string>;
+
 // Default values for the form
-const defaultConvertOrderUpValues: ConvertUpV0FormSchema = {
+const defaultConvertOrderUpValues: FormSchema = {
   // Initial required fields
   tokenStrategy: { type: "LOWEST_SEEDS" }, // Default to first silo token
   totalConvertBdv: "",
@@ -318,26 +347,41 @@ const getSecondsBetweenConverts = (minTimeBetweenConverts: TV, timeScale: TimeSc
   }
 };
 
-export const transformConvertUpFormValues = (values: ConvertUpV0FormSchema, chainId: number) => {
-  const { decimals } = getChainConstant(chainId, MAIN_TOKEN);
+export const transformConvertUpFormValues = (values: FormSchema, chainId: number): FormSchema<SanitizedTV> => {
+  const dc = getTractorConvertUpParamsDecimalConfig(chainId);
 
-  const totalConvertBdv = postSanitizedSanitizedValue(values.totalConvertBdv, decimals);
-  const minConvertBdvPerExecution = postSanitizedSanitizedValue(values.minConvertBdvPerExecution, decimals);
-  const maxConvertBdvPerExecution = postSanitizedSanitizedValue(values.maxConvertBdvPerExecution, decimals);
-  const minTimeBetweenConverts = postSanitizedSanitizedValue(values.minTimeBetweenConverts, 0);
+  const totalConvertBdv = postSanitizedSanitizedValue(values.totalConvertBdv, dc.totalConvertBdv);
+  const minConvertBdvPerExecution = postSanitizedSanitizedValue(
+    values.minConvertBdvPerExecution,
+    dc.minConvertBdvPerExecution,
+  );
+  const maxConvertBdvPerExecution = postSanitizedSanitizedValue(
+    values.maxConvertBdvPerExecution,
+    dc.maxConvertBdvPerExecution,
+  );
+  const minTimeBetweenConverts = postSanitizedSanitizedValue(values.minTimeBetweenConverts, dc.minTimeBetweenConverts);
 
-  const minConvertBonusCapacity = postSanitizedSanitizedValue(values.minConvertBonusCapacity, decimals);
-  const maxGrownStalkPerBdv = postSanitizedSanitizedValue(values.maxGrownStalkPerBdv, STALK.decimals);
-  const minGrownStalkPerBdvBonus = postSanitizedSanitizedValue(values.minGrownStalkPerBdvBonus, STALK.decimals);
+  const minConvertBonusCapacity = postSanitizedSanitizedValue(
+    values.minConvertBonusCapacity,
+    dc.minConvertBonusCapacity,
+  );
+  const maxGrownStalkPerBdv = postSanitizedSanitizedValue(values.maxGrownStalkPerBdv, dc.maxGrownStalkPerBdv);
+  const minGrownStalkPerBdvBonus = postSanitizedSanitizedValue(
+    values.minGrownStalkPerBdvBonus,
+    dc.minGrownStalkPerBdvBonus,
+  );
 
-  const maxPriceToConvertUp = postSanitizedSanitizedValue(values.maxPriceToConvertUp, decimals);
-  const minPriceToConvertUp = postSanitizedSanitizedValue(values.minPriceToConvertUp, decimals);
+  const maxPriceToConvertUp = postSanitizedSanitizedValue(values.maxPriceToConvertUp, dc.maxPriceToConvertUp);
+  const minPriceToConvertUp = postSanitizedSanitizedValue(values.minPriceToConvertUp, dc.minPriceToConvertUp);
 
-  const maxGrownStalkPerBdvPenalty = postSanitizedSanitizedValue(values.maxGrownStalkPerBdvPenalty, 18);
+  const maxGrownStalkPerBdvPenalty = postSanitizedSanitizedValue(
+    values.maxGrownStalkPerBdvPenalty,
+    dc.maxGrownStalkPerBdvPenalty,
+  );
 
-  const operatorTip = postSanitizedSanitizedValue(values.operatorTip, decimals);
-  const customOperatorTip = postSanitizedSanitizedValue(values.customOperatorTip ?? "", decimals);
-  const slippageRatio = postSanitizedSanitizedValue(values.slippageRatio, 18);
+  const operatorTip = postSanitizedSanitizedValue(values.operatorTip, dc.operatorTip);
+  const customOperatorTip = postSanitizedSanitizedValue(values.customOperatorTip ?? "", dc.operatorTip);
+  const slippageRatio = postSanitizedSanitizedValue(values.slippageRatio, dc.slippageRatio);
 
   return {
     ...values,
@@ -354,7 +398,7 @@ export const transformConvertUpFormValues = (values: ConvertUpV0FormSchema, chai
     slippageRatio: slippageRatio,
     operatorTip: operatorTip,
     customOperatorTip: customOperatorTip,
-  };
+  } satisfies FormSchema<SanitizedTV>;
 };
 
 const prepareConvertUpFormValuesForBlueprint = (
@@ -428,13 +472,7 @@ export type ConvertUpV0State = {
   depositOptimizationCalls: `0x${string}`[];
 };
 
-export const useConvertUpV0State = ({
-  averageTipPaid,
-  operatorTipPreset,
-}: {
-  averageTipPaid: number;
-  operatorTipPreset: TractorOperatorTipStrategy;
-}) => {
+export const useConvertUpV0State = () => {
   const client = usePublicClient();
   const chainId = useChainId();
   const { address } = useAccount();
@@ -448,6 +486,8 @@ export const useConvertUpV0State = ({
   const handleCreateBlueprint = useCallback(
     async (
       form: ReturnType<typeof useForm<ConvertUpV0FormSchema>>,
+      averageTipPaid: number,
+      operatorTipPreset: TractorOperatorTipStrategy,
       deposits?: ReturnType<typeof useFarmerSilo>["deposits"],
       options?: {
         onFailure?: () => void;
@@ -459,10 +499,6 @@ export const useConvertUpV0State = ({
       }
       if (!address) {
         throw new Error("Signer not found.");
-      }
-
-      if (!deposits) {
-        throw new Error("No deposits found.");
       }
 
       setIsLoading(true);
@@ -488,6 +524,9 @@ export const useConvertUpV0State = ({
           userAddress: address,
           protocolAddress,
           whitelistedOperators: [], // TODO: Add operator whitelist support if needed
+        }).catch((e) => {
+          console.error("[useConvertUpV0State] Error creating tractor data:", e);
+          throw e;
         });
 
         console.debug("[useConvertUpV0State] Tractor data created:", tractorData);
@@ -497,14 +536,14 @@ export const useConvertUpV0State = ({
           publisher: address,
           data: tractorData.data,
           operatorPasteInstrs: tractorData.operatorPasteInstrs,
-          maxNonce: 1n,
+          maxNonce: TV.MAX_UINT256.toBigInt(),
         });
 
         console.debug("[useConvertUpV0State] Blueprint created:", blueprint);
 
         // Set order data for display in ReviewTractorOrderDialog
         setOrderData({
-          sourceTokenIndices: [], // Will be populated from the token strategy
+          sourceTokenIndices: tractorData.struct.convertUpParams.sourceTokenIndices,
           totalConvertBdv: formData.totalConvertBdv,
           minConvertBdvPerExecution: formData.minConvertBdvPerExecution,
           maxConvertBdvPerExecution: formData.maxConvertBdvPerExecution,
@@ -517,7 +556,7 @@ export const useConvertUpV0State = ({
           maxGrownStalkPerBdvPenalty: formData.maxGrownStalkPerBdvPenalty,
           slippageRatio: formData.slippageRatio,
           lowStalkDeposits: formData.lowStalkDeposits,
-          operatorTip: formData.operatorTip,
+          operatorTip: TV.fromBigInt(tractorData.struct.opParams.operatorTipAmount, 6).toHuman(),
         });
 
         // Set state for the blueprint and encoded data
@@ -528,11 +567,8 @@ export const useConvertUpV0State = ({
           depositOptimizationCalls: tractorData.depositOptimizationCalls || [],
         });
 
-        toast.success("ConvertUp blueprint created successfully");
         options?.onSuccess?.();
-      } catch (error) {
-        console.error("Error creating convert up blueprint:", error);
-        toast.error("Failed to create ConvertUp blueprint");
+      } catch (_) {
         options?.onFailure?.();
       } finally {
         setIsLoading(false);

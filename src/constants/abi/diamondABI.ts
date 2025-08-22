@@ -6533,6 +6533,11 @@ export const diamondABI = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "T",
+    type: "error",
+  },
+  {
     anonymous: false,
     inputs: [
       {
@@ -6579,6 +6584,69 @@ export const diamondABI = [
       },
     ],
     name: "Convert",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "grownStalkLost",
+        type: "uint256",
+      },
+    ],
+    name: "ConvertDownPenalty",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "grownStalkGained",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "bdvCapacityUsed",
+        type: "uint256",
+      },
+    ],
+    name: "ConvertUpBonus",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "enum GaugeId",
+        name: "gaugeId",
+        type: "uint8",
+      },
+      {
+        indexed: false,
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "UpdatedGaugeData",
     type: "event",
   },
   {
@@ -6894,6 +6962,11 @@ export const diamondABI = [
         name: "grownStalkToConvert",
         type: "uint256",
       },
+      {
+        internalType: "uint256",
+        name: "amountConverted",
+        type: "uint256",
+      },
     ],
     name: "downPenalizedGrownStalk",
     outputs: [
@@ -7014,6 +7087,35 @@ export const diamondABI = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "tokenIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "tokenOut",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "rate",
+        type: "uint256",
+      },
+    ],
+    name: "getMaxAmountInAtRate",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "amountIn",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "getOverallConvertCapacity",
     outputs: [
@@ -7021,6 +7123,25 @@ export const diamondABI = [
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "getPegCrossStem",
+    outputs: [
+      {
+        internalType: "int96",
+        name: "",
+        type: "int96",
       },
     ],
     stateMutability: "view",
@@ -7976,7 +8097,7 @@ export const diamondABI = [
           {
             internalType: "enum ShipmentRecipient",
             name: "recipient",
-            type: "ShipmentRecipient",
+            type: "uint8",
           },
           {
             internalType: "bytes",
@@ -8354,6 +8475,68 @@ export const diamondABI = [
       },
     ],
     name: "TemperatureChange",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "grownStalkLost",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "grownStalkKept",
+        type: "uint256",
+      },
+    ],
+    name: "ConvertDownPenalty",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "grownStalkGained",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newGrownStalk",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "bdvCapacityUsed",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "bdvConverted",
+        type: "uint256",
+      },
+    ],
+    name: "ConvertUpBonus",
     type: "event",
   },
   {
@@ -10235,6 +10418,159 @@ export const diamondABI = [
     inputs: [
       {
         internalType: "uint256",
+        name: "x",
+        type: "uint256",
+      },
+    ],
+    name: "PRBMathUD60x18__LogInputTooSmall",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "enum GaugeId",
+        name: "gaugeId",
+        type: "uint8",
+      },
+      {
+        components: [
+          {
+            internalType: "bytes",
+            name: "value",
+            type: "bytes",
+          },
+          {
+            internalType: "address",
+            name: "target",
+            type: "address",
+          },
+          {
+            internalType: "bytes4",
+            name: "selector",
+            type: "bytes4",
+          },
+          {
+            internalType: "bytes",
+            name: "data",
+            type: "bytes",
+          },
+        ],
+        internalType: "struct Gauge",
+        name: "gauge",
+        type: "tuple",
+      },
+    ],
+    name: "addGauge",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "value",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes",
+        name: "systemData",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes",
+        name: "gaugeData",
+        type: "bytes",
+      },
+    ],
+    name: "convertDownPenaltyGauge",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "value",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes",
+        name: "systemData",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes",
+        name: "gaugeData",
+        type: "bytes",
+      },
+    ],
+    name: "convertUpBonusGauge",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "value",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes",
+        name: "systemData",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes",
+        name: "gaugeData",
+        type: "bytes",
+      },
+    ],
+    name: "cultivationFactor",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
         name: "currentGaugePoints",
         type: "uint256",
       },
@@ -10536,6 +10872,59 @@ export const diamondABI = [
       },
     ],
     stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "enum GaugeId",
+        name: "gaugeId",
+        type: "uint8",
+      },
+    ],
+    name: "removeGauge",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "enum GaugeId",
+        name: "gaugeId",
+        type: "uint8",
+      },
+      {
+        components: [
+          {
+            internalType: "bytes",
+            name: "value",
+            type: "bytes",
+          },
+          {
+            internalType: "address",
+            name: "target",
+            type: "address",
+          },
+          {
+            internalType: "bytes4",
+            name: "selector",
+            type: "bytes4",
+          },
+          {
+            internalType: "bytes",
+            name: "data",
+            type: "bytes",
+          },
+        ],
+        internalType: "struct Gauge",
+        name: "gauge",
+        type: "tuple",
+      },
+    ],
+    name: "updateGauge",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
