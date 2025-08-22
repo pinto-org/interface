@@ -4,6 +4,7 @@ import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useSignTractorBlueprint from "@/hooks/tractor/useSignTractorBlueprint";
 import useTransaction from "@/hooks/useTransaction";
 import { Blueprint, PublisherTractorExecution, Requisition, useGetBlueprintHash } from "@/lib/Tractor";
+import { cn } from "@/utils/utils";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -42,6 +43,8 @@ interface ReviewTractorOrderProps {
   depositOptimizationCalls?: `0x${string}`[];
 }
 
+type Tab = "order" | "blueprint" | "executions";
+
 export default function ReviewTractorOrderDialog({
   open,
   onOpenChange,
@@ -58,7 +61,7 @@ export default function ReviewTractorOrderDialog({
 }: ReviewTractorOrderProps) {
   const { address } = useAccount();
   const { data: blueprintHash } = useGetBlueprintHash(blueprint);
-  const [activeTab, setActiveTab] = useState<"order" | "blueprint" | "executions">("order");
+  const [activeTab, setActiveTab] = useState<Tab>("order");
   const [decodeAbi, setDecodeAbi] = useState(false);
   const protocolAddress = useProtocolAddress();
   const navigate = useNavigate();
@@ -142,7 +145,9 @@ export default function ReviewTractorOrderDialog({
       onOpenChange(false);
 
       // Navigate to the Field page with tractor tab active
-      navigate("/field?tab=tractor");
+      if (orderData.type === "sow") {
+        navigate("/field?tab=tractor");
+      }
 
       // Call the parent success callback to refresh data
       if (onSuccess) {
@@ -197,39 +202,12 @@ export default function ReviewTractorOrderDialog({
           </Col>
           <div className="flex flex-col">
             {/* Tabs */}
-            <div className="flex gap-4 border-b px-6 pinto-sm">
-              <button
-                type="button"
-                className={`pb-2 ${activeTab === "order" ? "border-b-2 border-pinto-green-4 font-medium" : "border-b-2 border-transparent text-pinto-gray-4"}`}
-                onClick={() => setActiveTab("order")}
-              >
-                View Order
-              </button>
-              <button
-                type="button"
-                className={`pb-2 ${
-                  activeTab === "blueprint"
-                    ? "border-b-2 border-pinto-green-4 font-medium"
-                    : "border-b-2 border-transparent text-pinto-gray-4"
-                }`}
-                onClick={() => setActiveTab("blueprint")}
-              >
-                View Blueprint and Requisition
-              </button>
-              {isViewOnly && executionHistory.length > 0 && (
-                <button
-                  type="button"
-                  className={`pb-2 ${
-                    activeTab === "executions"
-                      ? "border-b-2 border-pinto-green-4 font-medium"
-                      : "border-b-2 border-transparent text-pinto-gray-4"
-                  }`}
-                  onClick={() => setActiveTab("executions")}
-                >
-                  Execution History ({executionHistory.length})
-                </button>
-              )}
-            </div>
+            <DialogTabs
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              isViewOnly={isViewOnly}
+              executions={executionHistory.length || 0}
+            />
 
             {/* Content */}
             {activeTab === "order" ? (
@@ -247,6 +225,7 @@ export default function ReviewTractorOrderDialog({
                         blueprintData={encodedData}
                         targetData={encodedData}
                         showSowBlueprintParams={orderData.type === "sow"}
+                        decodeAbi
                       />
                     </div>
                   </div>
@@ -309,14 +288,12 @@ export default function ReviewTractorOrderDialog({
                       className="w-min"
                     />
                   )}
-
                   <SmartSubmitButton
                     variant="gradient"
                     disabled={submitting || isConfirming || !signedRequisition}
                     submitFunction={handlePublishRequisition}
                     submitButtonText={submitting || isConfirming ? "Publishing..." : "Publish Order"}
-                    className="w-min"
-                    style={!signedRequisition ? { opacity: 0.15 } : undefined}
+                    className={cn("w-min", !signedRequisition && "opacity-15")}
                   />
                 </div>
               </Row>
@@ -327,3 +304,51 @@ export default function ReviewTractorOrderDialog({
     </Dialog>
   );
 }
+
+const DialogTabs = ({
+  activeTab,
+  isViewOnly,
+  executions,
+  setActiveTab,
+}: {
+  activeTab: Tab;
+  isViewOnly: boolean;
+  executions: number;
+  setActiveTab: (tab: Tab) => void;
+}) => {
+  return (
+    <div className="flex gap-4 border-b px-6 pinto-sm">
+      <button
+        type="button"
+        className={`pb-2 ${activeTab === "order" ? "border-b-2 border-pinto-green-4 font-medium" : "border-b-2 border-transparent text-pinto-gray-4"}`}
+        onClick={() => setActiveTab("order")}
+      >
+        View Order
+      </button>
+      <button
+        type="button"
+        className={`pb-2 ${
+          activeTab === "blueprint"
+            ? "border-b-2 border-pinto-green-4 font-medium"
+            : "border-b-2 border-transparent text-pinto-gray-4"
+        }`}
+        onClick={() => setActiveTab("blueprint")}
+      >
+        View Blueprint and Requisition
+      </button>
+      {isViewOnly && executions && (
+        <button
+          type="button"
+          className={`pb-2 ${
+            activeTab === "executions"
+              ? "border-b-2 border-pinto-green-4 font-medium"
+              : "border-b-2 border-transparent text-pinto-gray-4"
+          }`}
+          onClick={() => setActiveTab("executions")}
+        >
+          Execution History ({executions})
+        </button>
+      )}
+    </div>
+  );
+};

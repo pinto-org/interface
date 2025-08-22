@@ -88,7 +88,7 @@ export interface ExecutionData {
 }
 
 // Component prop interfaces
-export interface OrderVisualizationProps {
+export interface TractorOrderVisualizationProps {
   orderData: TractorOrderData;
   className?: string;
 }
@@ -100,7 +100,7 @@ export interface ExecutionHistoryProps {
 
 // Order type configuration for registry
 export interface OrderTypeConfig {
-  visualization: React.ComponentType<OrderVisualizationProps>;
+  visualization: React.ComponentType<TractorOrderVisualizationProps>;
   executionHistory: React.ComponentType<ExecutionHistoryProps>;
   title: string;
   description: (isViewOnly: boolean) => React.ReactNode;

@@ -1,9 +1,9 @@
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { formatter } from "@/utils/format";
 import { CornerBottomLeftIcon } from "@radix-ui/react-icons";
-import { OrderVisualizationProps, SowOrderData } from "../types";
+import { SowOrderData, TractorOrderVisualizationProps } from "../types";
 
-export default function SowOrderVisualization({ orderData, className }: OrderVisualizationProps) {
+export default function SowOrderVisualization({ orderData, className }: TractorOrderVisualizationProps) {
   // Type guard to ensure we have sow order data
   if (orderData.type !== "sow") {
     throw new Error("SowOrderVisualization requires sow order data");
@@ -20,6 +20,7 @@ export default function SowOrderVisualization({ orderData, className }: OrderVis
 
       <div className="z-10 relative">
         {/* Withdraw Section */}
+
         <div className="flex items-center justify-center mb-4">
           <div className="bg-white rounded-xl px-2 py-2 shadow-sm flex flex-col gap-2 border border-gray-200">
             <div className="flex items-center gap-0">
@@ -127,3 +128,34 @@ export default function SowOrderVisualization({ orderData, className }: OrderVis
     </div>
   );
 }
+
+/* <div className="flex items-center justify-center mb-4">
+          <LinkedVisualization
+            // className="flex items-center justify-center mb-4"
+            nodes={[
+              { isStart: true, content: "Withdraw" },
+              { content: "Deposited Tokens" },
+              {
+                content: (
+                  <>
+                    <span>as</span>
+                    <img src={pintoIcon} alt="PINTO" className="w-5 h-5 mx-1" />
+                    <span className="font-medium">PINTO</span>
+                  </>
+                ),
+              },
+            ]}
+            conditions={[
+              <>
+                <span>
+                  Withdraw Deposited Tokens from the Silo with{" "}
+                  {sowData.tokenStrategy?.type === "LOWEST_SEEDS"
+                    ? "the Lowest Seeds"
+                    : sowData.tokenStrategy?.type === "LOWEST_PRICE"
+                      ? "the Best Price"
+                      : sowData.tokenSymbol || "Selected Tokens"}
+                </span>
+              </>
+            ]}
+          />
+        </div> */

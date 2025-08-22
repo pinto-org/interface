@@ -7,9 +7,9 @@ import { tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
 import { formatter } from "@/utils/format";
 import { getTokenIndex } from "@/utils/token";
 import { CornerBottomLeftIcon } from "@radix-ui/react-icons";
-import { ConvertUpOrderData, OrderVisualizationProps } from "../types";
+import { ConvertUpOrderData, TractorOrderVisualizationProps } from "../types";
 
-export default function ConvertUpOrderVisualization({ orderData, className }: OrderVisualizationProps) {
+export default function ConvertUpOrderVisualization({ orderData, className }: TractorOrderVisualizationProps) {
   // Type guard to ensure we have convert up order data
   if (orderData.type !== "convertUp") {
     throw new Error("ConvertUpOrderVisualization requires convertUp order data");
@@ -75,7 +75,7 @@ export default function ConvertUpOrderVisualization({ orderData, className }: Or
         <div className="flex items-center justify-center mb-4">
           <div className="bg-white rounded-xl px-2 py-2 shadow-sm flex flex-col gap-2 border border-gray-200">
             <div className="flex items-center gap-0">
-              <div className="bg-pinto-green-4 text-white px-3 py-0.5 rounded-full">Source</div>
+              <div className="bg-pinto-green-4 text-white px-3 py-0.5 rounded-full">Withdraw Tokens</div>
               <div className="border-t-2 border-gray-300 w-3 flex-shrink-0" />
               <span className="text-box rounded-full">{renderTokenStrategy()}</span>
             </div>
