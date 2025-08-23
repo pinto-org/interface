@@ -9,6 +9,7 @@ import StatPanel from "@/components/StatPanel";
 import TableRowConnector from "@/components/TableRowConnector";
 import TextSkeleton from "@/components/TextSkeleton";
 import TooltipSimple from "@/components/TooltipSimple";
+import ConvertUpOrderBook from "@/components/Tractor/ConvertUpOrderBook";
 import ConvertUpOrderForm from "@/components/Tractor/ConvertUpOrderForm";
 import TractorCard from "@/components/Tractor/TractorCard";
 import { tabToSeasonalLookback } from "@/components/charts/SeasonalChart";
@@ -319,6 +320,7 @@ function Silo() {
                 <div className="w-[50%] h-[5rem] bg-pinto-gray-2" />
                 <div className="flex flex-col w-[50%]">
                   <ConvertUpTractorCard />
+                  <ConvertUpOrderBook />
                 </div>
               </Row>
             </Col>
