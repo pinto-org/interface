@@ -5,14 +5,17 @@ import { diamondABI } from "@/constants/abi/diamondABI";
 import { SOW_BLUEPRINT_V0_ADDRESS, TRACTOR_HELPERS_ADDRESS } from "@/constants/address";
 import { TIME_TO_BLOCKS } from "@/constants/blocks";
 import { PODS } from "@/constants/internalTokens";
+import { MAIN_TOKEN } from "@/constants/tokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { TRACTOR_DEPLOYMENT_BLOCK } from "@/lib/Tractor/core/constants";
 import { getTokenIndexesFromTractorTokenStrategy } from "@/lib/Tractor/core/token-strategy";
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
 import { TEMPERATURE_DECIMALS } from "@/state/protocol/field";
+import { getChainConstant, resolveChainId } from "@/utils/chain";
 import { sanitizeNumericInputValue } from "@/utils/string";
-import { AdvancedPipeCall, FarmFromMode, Token, TokenDepositData } from "@/utils/types";
-import { PublicClient, decodeFunctionData, encodeFunctionData } from "viem";
+import { AdvancedPipeCall, FarmFromMode, MinimumViableBlock, Token, TokenDepositData } from "@/utils/types";
+import { PublicClient, decodeEventLog, decodeFunctionData, encodeFunctionData } from "viem";
+import { base } from "viem/chains";
 import { generateBatchSortDepositsCallData } from "../../claim/depositUtils";
 import { CreateTractorDataReturnType, WithdrawalPlan } from "../core";
 import { loadPublishedRequisitions } from "../utils";
@@ -226,10 +229,37 @@ export async function createSowTractorData({
   };
 }
 
+export function handleDecodeSowV0BlueprintFromAdvancedPipe(
+  calls: readonly AdvancedPipeCall[] | undefined,
+  chainId: number,
+): SowBlueprintData | null {
+  if (!calls?.length) {
+    console.debug("[Tractor/handleDecodeBlueprintFromAdvancedPipe] No calls provided. Returning null.");
+    return null;
+  }
+
+  const sowBlueprintData = calls[0].callData;
+
+  try {
+    const sowDecoded = decodeFunctionData({
+      abi: sowBlueprintv0ABI,
+      data: sowBlueprintData,
+    });
+
+    const params = sowDecoded.args?.[0];
+
+    return transformSowRequisitionEvent(params, chainId);
+  } catch (error) {
+    console.error("Failed to decode sowBlueprintv0 data:", error);
+  }
+
+  return null;
+}
+
 /**
  * Decodes sow data from encoded function call
  */
-export function decodeSowTractorData(encodedData: `0x${string}`): SowBlueprintData | null {
+export function decodeSowTractorData(encodedData: `0x${string}`, chainId: number = base.id): SowBlueprintData | null {
   try {
     // Step 1: Attempt to decode.
     const calls = decodeFunctionData({
@@ -255,7 +285,7 @@ export function decodeSowTractorData(encodedData: `0x${string}`): SowBlueprintDa
         });
 
         if (advancedPipeDecoded.functionName === "advancedPipe" && advancedPipeDecoded.args?.[0]) {
-          return handleDecodeSowV0BlueprintFromAdvancedPipe(advancedPipeDecoded.args[0]);
+          return handleDecodeSowV0BlueprintFromAdvancedPipe(advancedPipeDecoded.args[0], chainId);
         }
       } catch (error) {
         console.debug("Failed to decode as advancedPipe:", error);
@@ -265,6 +295,50 @@ export function decodeSowTractorData(encodedData: `0x${string}`): SowBlueprintDa
     console.error("Failed to decode SowV0 Tractor Data:", error);
   }
   // If we get here, we didn't find a valid sow blueprint.
+  return null;
+}
+
+export function transformSowRequisitionEvent(params: unknown | null, chainId: number) {
+  try {
+    if (!shallowCheckIsSowParams(params)) {
+      console.debug("[Tractor/transformSowRequisitionEvent] Invalid parameters");
+      return null;
+    }
+
+    const { sowParams: sp, opParams: op } = params;
+
+    return {
+      sourceTokenIndices: sp.sourceTokenIndices,
+      sowAmounts: {
+        totalAmountToSow: sp.sowAmounts.totalAmountToSow,
+        totalAmountToSowAsString: TokenValue.fromBlockchain(sp.sowAmounts.totalAmountToSow, 6).toHuman(),
+        minAmountToSowPerSeason: sp.sowAmounts.minAmountToSowPerSeason,
+        minAmountToSowPerSeasonAsString: TokenValue.fromBlockchain(sp.sowAmounts.minAmountToSowPerSeason, 6).toHuman(),
+        maxAmountToSowPerSeason: sp.sowAmounts.maxAmountToSowPerSeason,
+        maxAmountToSowPerSeasonAsString: TokenValue.fromBlockchain(sp.sowAmounts.maxAmountToSowPerSeason, 6).toHuman(),
+      },
+      minTemp: sp.minTemp,
+      minTempAsString: TokenValue.fromBlockchain(sp.minTemp, 6).toHuman(),
+      maxPodlineLength: sp.maxPodlineLength,
+      maxPodlineLengthAsString: TokenValue.fromBlockchain(sp.maxPodlineLength, 6).toHuman(),
+      maxGrownStalkPerBdv: sp.maxGrownStalkPerBdv,
+      maxGrownStalkPerBdvAsString: TokenValue.fromBlockchain(sp.maxGrownStalkPerBdv, 6).toHuman(),
+      runBlocksAfterSunrise: sp.runBlocksAfterSunrise,
+      runBlocksAfterSunriseAsString: sp.runBlocksAfterSunrise.toString(),
+      slippageRatio: sp.slippageRatio,
+      slippageRatioAsString: TokenValue.fromBlockchain(sp.slippageRatio, 18).toHuman(),
+      operatorParams: {
+        whitelistedOperators: op.whitelistedOperators,
+        tipAddress: op.tipAddress,
+        operatorTipAmount: op.operatorTipAmount,
+        operatorTipAmountAsString: TokenValue.fromBlockchain(op.operatorTipAmount, 6).toHuman(),
+      },
+      fromMode: FarmFromMode.INTERNAL,
+    };
+  } catch (e) {
+    console.debug("[Tractor/transformSowRequisitionEvent] Failed to transform sowParams:", e);
+  }
+
   return null;
 }
 
@@ -304,7 +378,7 @@ export async function loadOrderbookData(
     // Fetch SowOrderComplete events to identify completed orders
     console.debug("[TRACTOR/loadOrderbookData] Fetching...");
 
-    const [podIndexResult, harvestableIndexResult, sowOrderCompleteEvents, requisitions = []] = await Promise.all([
+    const [podIndexResult, harvestableIndexResult, sowOrderCompleteEvents, _requisitions] = await Promise.all([
       publicClient.readContract({ address: protocolAddress, abi: diamondABI, args: [0n], functionName: "podIndex" }),
       publicClient.readContract({
         address: protocolAddress,
@@ -321,6 +395,8 @@ export async function loadOrderbookData(
       }),
       loadPublishedRequisitions(address, protocolAddress, publicClient, latestBlock, "sowBlueprintv0", fromBlock),
     ]);
+
+    const requisitions = _requisitions?.sowBlueprintV0 ?? [];
 
     if (podIndexResult && harvestableIndexResult) {
       // Pod line is podIndex - harvestableIndex
@@ -370,7 +446,7 @@ export async function loadOrderbookData(
         requisitionsWithTemperature,
       },
       currentPodLine: currentPodLine.toHuman(),
-      activeRequisitions: activeRequisitions.length,
+      activeRequisitions: activeRequisitions?.length,
       completedOrders: completedOrders.size,
     });
 
@@ -659,66 +735,176 @@ export function shallowCheckIsSowParams(data: unknown): data is TractorSowOrderP
   return typeof data === "object" && data !== null && "sowParams" in data && "opParams" in data;
 }
 
-export function handleDecodeSowV0BlueprintFromAdvancedPipe(
-  calls: readonly AdvancedPipeCall[] | undefined,
-): SowBlueprintData | null {
-  if (!calls?.length) {
-    console.debug("[Tractor/handleDecodeBlueprintFromAdvancedPipe] No calls provided. Returning null.");
-    return null;
+interface SowEventArgs<T extends bigint | TokenValue = TokenValue> {
+  account: `0x${string}`;
+  fieldId: bigint;
+  index: T;
+  beans: T;
+  pods: T;
+}
+
+export async function fetchTractorExecutions(
+  publicClient: PublicClient,
+  protocolAddress: `0x${string}`,
+  publisher: `0x${string}`,
+  latestBlock: MinimumViableBlock<bigint>,
+  lookbackBlocks?: bigint,
+) {
+  const chainId = publicClient.chain?.id;
+  if (!chainId) throw new Error("[Tractor/fetchTractorExecutions] No chain ID found");
+
+  console.debug("[Tractor/fetchTractorExecutions] FETCHING(executions for publisher):", publisher);
+
+  let fromBlock = TRACTOR_DEPLOYMENT_BLOCK;
+
+  if (lookbackBlocks !== undefined) {
+    const newFromBlock = latestBlock.number - BigInt(lookbackBlocks);
+    fromBlock = newFromBlock > TRACTOR_DEPLOYMENT_BLOCK ? newFromBlock : TRACTOR_DEPLOYMENT_BLOCK;
   }
 
-  const sowBlueprintData = calls[0].callData;
+  // Get Tractor events
+  const tractorEvents = await publicClient.getContractEvents({
+    address: protocolAddress,
+    abi: diamondABI,
+    eventName: "Tractor",
+    args: {
+      publisher: publisher,
+    },
+    fromBlock: fromBlock ?? TRACTOR_DEPLOYMENT_BLOCK,
+    toBlock: "latest",
+  });
 
-  try {
-    const sowDecoded = decodeFunctionData({
-      abi: sowBlueprintv0ABI,
-      data: sowBlueprintData,
-    });
+  console.debug("[Tractor/fetchTractorExecutions] RESPONSE(Tractor events):", tractorEvents);
 
-    const params = sowDecoded.args?.[0];
+  // Process transaction receipts and collect block numbers
+  const blockNumbers = new Set<bigint>();
+  const processingResults = await Promise.all(
+    tractorEvents.map(async (event) => {
+      const receipt = await publicClient.getTransactionReceipt({
+        hash: event.transactionHash,
+      });
 
-    if (!params || !shallowCheckIsSowParams(params)) {
-      console.debug("[Tractor/handleDecodeBlueprintFromAdvancedPipe] Invalid sow params. Returning null.");
-      return null;
-    }
+      // Add block number to the set for batch fetching
+      blockNumbers.add(receipt.blockNumber);
 
+      // Get the blueprint hash from the Tractor event
+      const blueprintHash = event.args?.blueprintHash as `0x${string}`;
+
+      // First, find the TractorExecutionBegan event with matching blueprint hash
+      let tractorExecutionBeganIndex = -1;
+      let tractorExecutionBeganEvent: any = null;
+
+      const mainToken = getChainConstant(resolveChainId(chainId), MAIN_TOKEN);
+
+      for (let i = 0; i < receipt.logs.length; i++) {
+        const log = receipt.logs[i];
+        try {
+          const decoded = decodeEventLog({
+            abi: diamondABI,
+            data: log.data,
+            topics: log.topics,
+          });
+
+          if (decoded.eventName === "TractorExecutionBegan" && decoded.args?.blueprintHash === blueprintHash) {
+            tractorExecutionBeganIndex = i;
+            tractorExecutionBeganEvent = decoded;
+            break;
+          }
+        } catch {
+          // Skip logs that can't be decoded
+        }
+      }
+
+      // If we found the TractorExecutionBegan event, look for the first Sow event after it
+      let sowEvent: any = null;
+      if (tractorExecutionBeganIndex >= 0) {
+        for (let i = tractorExecutionBeganIndex + 1; i < receipt.logs.length; i++) {
+          const log = receipt.logs[i];
+          try {
+            const decoded = decodeEventLog({
+              abi: diamondABI,
+              data: log.data,
+              topics: log.topics,
+            });
+
+            if (decoded.eventName === "Sow") {
+              sowEvent = log;
+              break;
+            }
+          } catch {
+            // Skip logs that can't be decoded
+          }
+        }
+      }
+
+      // Decode the Sow event if found
+      let sowData: SowEventArgs | undefined;
+      if (sowEvent) {
+        try {
+          const decoded = decodeEventLog({
+            abi: diamondABI,
+            data: sowEvent.data,
+            topics: sowEvent.topics,
+          }) as { args: SowEventArgs<bigint> };
+
+          sowData = {
+            account: decoded.args.account,
+            fieldId: decoded.args.fieldId,
+            index: TokenValue.fromBigInt(decoded.args.index, PODS.decimals),
+            beans: TokenValue.fromBigInt(decoded.args.beans, mainToken.decimals),
+            pods: TokenValue.fromBigInt(decoded.args.pods, PODS.decimals),
+          };
+        } catch (error) {
+          console.error("Failed to decode Sow event:", error);
+        }
+      }
+
+      // Create the tractorExecutionBeganData object conditionally
+      const tractorExecutionBeganData = tractorExecutionBeganEvent
+        ? {
+            operator: tractorExecutionBeganEvent.args?.operator as `0x${string}`,
+            publisher: tractorExecutionBeganEvent.args?.publisher as `0x${string}`,
+            blueprintHash: tractorExecutionBeganEvent.args?.blueprintHash as `0x${string}`,
+            nonce: tractorExecutionBeganEvent.args?.nonce as bigint,
+            gasleft: tractorExecutionBeganEvent.args?.gasleft as bigint,
+          }
+        : undefined;
+
+      return {
+        blockNumber: receipt.blockNumber,
+        event,
+        receipt,
+        sowData,
+        tractorExecutionBeganEvent: tractorExecutionBeganData,
+      };
+    }),
+  );
+
+  // Fetch all required blocks in a batch
+  const blocks = await Promise.all(
+    Array.from(blockNumbers).map((blockNumber) => publicClient.getBlock({ blockNumber })),
+  );
+
+  // Build a map of block numbers to timestamps
+  const blockTimestamps = new Map<string, number>();
+  blocks.forEach((block) => {
+    blockTimestamps.set(block.number.toString(), Number(block.timestamp) * 1000);
+  });
+
+  // Assemble the final result
+  const processed = processingResults.map((result) => {
     return {
-      sourceTokenIndices: params.sowParams.sourceTokenIndices,
-      sowAmounts: {
-        totalAmountToSow: params.sowParams.sowAmounts.totalAmountToSow,
-        totalAmountToSowAsString: TokenValue.fromBlockchain(params.sowParams.sowAmounts.totalAmountToSow, 6).toHuman(),
-        minAmountToSowPerSeason: params.sowParams.sowAmounts.minAmountToSowPerSeason,
-        minAmountToSowPerSeasonAsString: TokenValue.fromBlockchain(
-          params.sowParams.sowAmounts.minAmountToSowPerSeason,
-          6,
-        ).toHuman(),
-        maxAmountToSowPerSeason: params.sowParams.sowAmounts.maxAmountToSowPerSeason,
-        maxAmountToSowPerSeasonAsString: TokenValue.fromBlockchain(
-          params.sowParams.sowAmounts.maxAmountToSowPerSeason,
-          6,
-        ).toHuman(),
-      },
-      minTemp: params.sowParams.minTemp,
-      minTempAsString: TokenValue.fromBlockchain(params.sowParams.minTemp, 6).toHuman(),
-      maxPodlineLength: params.sowParams.maxPodlineLength,
-      maxPodlineLengthAsString: TokenValue.fromBlockchain(params.sowParams.maxPodlineLength, 6).toHuman(),
-      maxGrownStalkPerBdv: params.sowParams.maxGrownStalkPerBdv,
-      maxGrownStalkPerBdvAsString: TokenValue.fromBlockchain(params.sowParams.maxGrownStalkPerBdv, 6).toHuman(),
-      runBlocksAfterSunrise: params.sowParams.runBlocksAfterSunrise,
-      runBlocksAfterSunriseAsString: params.sowParams.runBlocksAfterSunrise.toString(),
-      slippageRatio: params.sowParams.slippageRatio,
-      slippageRatioAsString: TokenValue.fromBlockchain(params.sowParams.slippageRatio, 18).toHuman(),
-      operatorParams: {
-        whitelistedOperators: params.opParams.whitelistedOperators,
-        tipAddress: params.opParams.tipAddress,
-        operatorTipAmount: params.opParams.operatorTipAmount,
-        operatorTipAmountAsString: TokenValue.fromBlockchain(params.opParams.operatorTipAmount, 6).toHuman(),
-      },
-      fromMode: FarmFromMode.INTERNAL,
+      blockNumber: Number(result.blockNumber),
+      operator: result.event.args?.operator as `0x${string}`,
+      publisher: result.event.args?.publisher as `0x${string}`,
+      blueprintHash: result.event.args?.blueprintHash as `0x${string}`,
+      transactionHash: result.event.transactionHash,
+      timestamp: blockTimestamps.get(result.blockNumber.toString()),
+      sowEvent: result.sowData,
+      tractorExecutionBeganEvent: result.tractorExecutionBeganEvent,
     };
-  } catch (error) {
-    console.error("Failed to decode sowBlueprintv0 data:", error);
-  }
+  });
 
-  return null;
+  console.debug("[Tractor/fetchTractorExecutions] RESPONSE", processed);
+  return processed;
 }

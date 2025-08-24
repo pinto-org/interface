@@ -1,11 +1,10 @@
-import { Button } from "@/components/ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
-import { RequisitionEvent } from "@/lib/Tractor/utils";
+import { RequisitionEvent, SowBlueprintData } from "@/lib/Tractor";
 import { useQueryClient } from "@tanstack/react-query";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { useAccount, usePublicClient } from "wagmi";
@@ -13,7 +12,7 @@ import { useAccount, usePublicClient } from "wagmi";
 const UINT256_MAX = BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935");
 
 interface PlowDetailsProps {
-  requisition: RequisitionEvent | null;
+  requisition: RequisitionEvent<SowBlueprintData> | null;
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;

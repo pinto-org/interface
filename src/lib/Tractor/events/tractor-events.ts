@@ -1,6 +1,6 @@
 import { diamondABI } from "@/constants/abi/diamondABI";
+import { TRACTOR_DEPLOYMENT_BLOCK } from "@/lib/Tractor/core";
 import { PublicClient } from "viem";
-import { TRACTOR_DEPLOYMENT_BLOCK } from "./core";
 
 export async function fetchTractorEvents(
   publicClient: PublicClient,

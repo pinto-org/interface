@@ -1,8 +1,9 @@
 import { TV } from "@/classes/TokenValue";
 import { Address } from "viem";
 
-// First, export the requisition type as a standalone type for reuse
 export type RequisitionType = "sowBlueprintv0" | "convertUpBlueprint" | "unknown";
+
+export type TractorBlueprintType = "sow" | "convertUp";
 
 export interface CreateTractorDataReturnType {
   data: `0x${string}`;
@@ -29,9 +30,12 @@ export interface TractorRequisitionEvent<T extends {} = {}> {
   blockNumber: number;
   timestamp?: number;
   isCancelled?: boolean;
-  requisitionType: "sowBlueprintv0" | "unknown";
+  requisitionType: RequisitionType;
   decodedData: T | null;
 }
+
+// Re-export for backwards compatability
+export type RequisitionEvent<T extends {} = {}> = TractorRequisitionEvent<T>;
 
 export interface TractorRequisitionData {
   blueprint: {
@@ -60,8 +64,6 @@ export interface WithdrawalPlan {
   availableBeans: readonly bigint[];
   totalAvailableBeans: bigint;
 }
-
-export type TractorBlueprintType = "sow" | "convertUp";
 
 export interface Blueprint {
   publisher: Address;

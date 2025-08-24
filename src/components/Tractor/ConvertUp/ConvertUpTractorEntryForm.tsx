@@ -11,12 +11,10 @@ import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
 import {
   PreparedConvertUpArgs,
+  tractorTokenStrategyUtil as StrategyUtil,
   TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS,
-  isDynamicTractorTokenStrategy,
-  isTractorTokenStrategy,
+  TractorTokenStrategy,
 } from "@/lib/Tractor";
-import { TractorTokenStrategy } from "@/lib/Tractor";
-import { tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
 import { useMainToken } from "@/state/useTokenData";
@@ -284,12 +282,12 @@ const TokenStrategyDialog = ({
   const handleTokenStrategySelected = useCallback(
     (newStrategy: TractorTokenStrategy) => {
       ctx.setValue("tokenStrategy", newStrategy);
-      isDynamicTractorTokenStrategy(newStrategy) && onOpenChange(false);
+      StrategyUtil.isDynamic(newStrategy) && onOpenChange(false);
     },
     [ctx],
   );
 
-  if (!isTractorTokenStrategy(selected)) {
+  if (!StrategyUtil.isValidStrategy(selected)) {
     return null;
   }
 

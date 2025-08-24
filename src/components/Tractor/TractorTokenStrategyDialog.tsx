@@ -15,7 +15,7 @@ import IconImage from "@/components/ui/IconImage";
 import { Separator } from "@/components/ui/Separator";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
-import { extractAddressesFromTokenStrategy, isDynamicTractorTokenStrategy } from "@/lib/Tractor";
+import { tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
@@ -85,7 +85,7 @@ export default function TractorTokenStrategyDialog({
   const { mainToken } = useTokenData();
   const tokenMap = useTokenMap();
 
-  const selectedTokenAddresses = tokenStrategy && extractAddressesFromTokenStrategy(tokenStrategy);
+  const selectedTokenAddresses = tokenStrategy && StrategyUtil.extractAddresses(tokenStrategy);
 
   // Callbacks
   const handleSelectDynamicStrategy = (strategy: TractorTokenStrategy) => {
@@ -95,7 +95,7 @@ export default function TractorTokenStrategyDialog({
   };
 
   const getIsTokenSelected = (token: Token) => {
-    if (!tokenStrategy || isDynamicTractorTokenStrategy(tokenStrategy)) {
+    if (!tokenStrategy || StrategyUtil.isDynamic(tokenStrategy)) {
       return false;
     }
 

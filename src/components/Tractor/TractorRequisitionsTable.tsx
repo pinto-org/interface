@@ -3,8 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
-import { RequisitionEvent } from "@/lib/Tractor/utils";
-import { decodeSowTractorData } from "@/lib/Tractor/utils";
+import { TractorRequisitionEvent as RequisitionEvent, SowBlueprintData, decodeSowTractorData } from "@/lib/Tractor";
 import useTractorPublishedRequisitions from "@/state/tractor/useTractorPublishedRequisitions";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -23,9 +22,9 @@ export function TractorRequisitionsTable({ refreshTrigger = 0 }: TractorRequisit
     errorMessage: "Failed to cancel blueprint",
   });
 
-  const { data: requisitions = [], ...requisitionsQuery } = useTractorPublishedRequisitions(address);
+  const { data: requisitions, ...requisitionsQuery } = useTractorPublishedRequisitions(address);
 
-  const handleCancelBlueprint = async (requisitionData: RequisitionEvent) => {
+  const handleCancelBlueprint = async (requisitionData: RequisitionEvent<SowBlueprintData>) => {
     if (!address) {
       throw new Error("Signer required");
     }
@@ -96,7 +95,7 @@ export function TractorRequisitionsTable({ refreshTrigger = 0 }: TractorRequisit
           </TableRow>
         </TableHeader>
         <TableBody className="[&_tr:first-child]:border-t [&_tr:last-child]:border-b">
-          {requisitions.map((req, index) => {
+          {requisitions?.sowBlueprintV0.map((req, index) => {
             let decodedData: {
               minTempAsString: string;
               sowAmounts: {
@@ -163,7 +162,7 @@ export function TractorRequisitionsTable({ refreshTrigger = 0 }: TractorRequisit
               </TableRow>
             );
           })}
-          {requisitions.length === 0 && (
+          {requisitions?.sowBlueprintV0.length === 0 && (
             <TableRow>
               <TableCell colSpan={8} className="p-4 text-center text-gray-500">
                 No requisitions published yet

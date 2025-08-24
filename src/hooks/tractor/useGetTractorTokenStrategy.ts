@@ -3,8 +3,8 @@ import { defaultQuerySettingsNoRefetch } from "@/constants/query";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import {
   ExtendedTractorTokenStrategy,
+  tractorTokenStrategyUtil as StrategyUtil,
   TractorOrderDynamicFundingStrategy,
-  getSowOrderTokenStrategy,
 } from "@/lib/Tractor";
 import { getTokenIndex } from "@/utils/token";
 import { useCallback } from "react";
@@ -53,7 +53,7 @@ const useGetTractorTokenStrategyWithBlueprint = () => {
         throw new Error("Multiple source token indices currently not supported");
       }
 
-      const strat = getSowOrderTokenStrategy(indicies);
+      const strat = StrategyUtil.getSowOrderTokenStrategy(indicies);
 
       if (strat === "SPECIFIC_TOKEN" && indicies.length === 1) {
         const index = indicies[0];

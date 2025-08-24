@@ -162,7 +162,7 @@ export function shallowCheckIsConvertUpParams(data: unknown): data is ConvertUpB
 export const transformConvertUpRequisitionEvent = (params: unknown | null, chainId: number) => {
   try {
     if (!shallowCheckIsConvertUpParams(params)) {
-      console.debug("[Tractor/decodeConvertUpRequisition] Invalid params structure.");
+      console.debug("[Tractor/transformConvertUpRequisitionEvent] Invalid params structure.");
       return null;
     }
 
@@ -197,13 +197,13 @@ export const transformConvertUpRequisitionEvent = (params: unknown | null, chain
       opParams,
     };
   } catch (error) {
-    console.debug("Failed to decode sowBlueprintv0 data:", error);
+    console.debug("Failed to transform convertUpParams:", error);
   }
 
   return null;
 };
 
-export const decodeConvertUpRequisitionEvent = (
+export const decodeConvertUpBlueprintFromAdvancedPipe = (
   calls: readonly AdvancedPipeCall[] | undefined,
   chainId: number,
 ): ConvertUpBlueprintStruct<TV> | null => {
