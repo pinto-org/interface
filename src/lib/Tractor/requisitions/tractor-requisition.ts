@@ -1,7 +1,10 @@
-import { TokenValue } from "@/classes/TokenValue";
+import { TV, TokenValue } from "@/classes/TokenValue";
 import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
 import { convertUpBlueprintV0ABI } from "@/constants/abi/convertUpBlueprintV0ABI";
+import { STALK } from "@/constants/internalTokens";
+import { MAIN_TOKEN } from "@/constants/tokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
+import { getChainConstant } from "@/utils/chain";
 import { stringEq } from "@/utils/string";
 import { MinimumViableBlock } from "@/utils/types";
 import { MayArray } from "@/utils/types.generic";
@@ -9,10 +12,84 @@ import { arrayify } from "@/utils/utils";
 import { SignableMessage, decodeFunctionData } from "viem";
 import { PublicClient } from "viem";
 import { base } from "viem/chains";
-import { ConvertUpBlueprintStruct, transformConvertUpRequisitionEvent } from "../convertUp";
+import { ConvertUpBlueprintStruct } from "../convertUp";
 import { Requisition, RequisitionType, TractorRequisitionData, TractorRequisitionEvent } from "../core";
 import { fetchTractorEvents } from "../events/tractor-events";
 import { SowBlueprintData, transformSowRequisitionEvent } from "../sowOrder";
+
+// ────────────────────────────────────────────────────────────────────────────────
+// CONVERT UP REQUISITION TRANSFORMATION
+// ────────────────────────────────────────────────────────────────────────────────
+
+const MAX_GROWN_STALK_PER_BDV_PENALTY_DECIMALS = 18;
+
+export const getTractorConvertUpParamsDecimalConfig = (chainId: number) => {
+  const { decimals } = getChainConstant(chainId, MAIN_TOKEN);
+
+  return {
+    totalConvertBdv: decimals,
+    minConvertBdvPerExecution: decimals,
+    maxConvertBdvPerExecution: decimals,
+    minTimeBetweenConverts: 0,
+    minConvertBonusCapacity: decimals,
+    maxGrownStalkPerBdv: STALK.decimals,
+    minGrownStalkPerBdvBonus: STALK.decimals,
+    maxPriceToConvertUp: decimals,
+    minPriceToConvertUp: decimals,
+    operatorTip: decimals,
+    maxGrownStalkPerBdvPenalty: MAX_GROWN_STALK_PER_BDV_PENALTY_DECIMALS,
+    slippageRatio: 18,
+  };
+};
+
+function shallowCheckIsConvertUpParams(data: unknown): data is ConvertUpBlueprintStruct {
+  return typeof data === "object" && data !== null && "convertUpParams" in data && "opParams" in data;
+}
+
+export const transformConvertUpRequisitionEvent = (params: unknown | null, chainId: number) => {
+  try {
+    console.log("params: ", params);
+    if (!shallowCheckIsConvertUpParams(params)) {
+      console.debug("[Tractor/transformConvertUpRequisitionEvent] Invalid params structure.");
+      return null;
+    }
+
+    const { convertUpParams: cup, opParams: op } = params;
+
+    const dc = getTractorConvertUpParamsDecimalConfig(chainId);
+
+    const convertUpParams: ConvertUpBlueprintStruct<TV>["convertUpParams"] = {
+      sourceTokenIndices: cup.sourceTokenIndices,
+      totalConvertBdv: TV.fromBigInt(cup.totalConvertBdv, dc.totalConvertBdv),
+      minConvertBdvPerExecution: TV.fromBigInt(cup.minConvertBdvPerExecution, dc.minConvertBdvPerExecution),
+      maxConvertBdvPerExecution: TV.fromBigInt(cup.maxConvertBdvPerExecution, dc.maxConvertBdvPerExecution),
+      minTimeBetweenConverts: TV.fromBigInt(cup.minTimeBetweenConverts, dc.minTimeBetweenConverts),
+      minConvertBonusCapacity: TV.fromBigInt(cup.minConvertBonusCapacity, dc.minConvertBonusCapacity),
+      maxGrownStalkPerBdv: TV.fromBigInt(cup.maxGrownStalkPerBdv, dc.maxGrownStalkPerBdv),
+      minGrownStalkPerBdvBonus: TV.fromBigInt(cup.minGrownStalkPerBdvBonus, dc.minGrownStalkPerBdvBonus),
+      maxPriceToConvertUp: TV.fromBigInt(cup.maxPriceToConvertUp, dc.maxPriceToConvertUp),
+      minPriceToConvertUp: TV.fromBigInt(cup.minPriceToConvertUp, dc.minPriceToConvertUp),
+      maxGrownStalkPerBdvPenalty: TV.fromBigInt(cup.maxGrownStalkPerBdvPenalty, dc.maxGrownStalkPerBdvPenalty),
+      slippageRatio: TV.fromBigInt(cup.slippageRatio, dc.slippageRatio),
+      lowStalkDeposits: cup.lowStalkDeposits,
+    };
+
+    const opParams: ConvertUpBlueprintStruct<TV>["opParams"] = {
+      whitelistedOperators: op.whitelistedOperators,
+      tipAddress: op.tipAddress,
+      operatorTipAmount: TV.fromBigInt(op.operatorTipAmount, dc.operatorTip),
+    };
+
+    return {
+      convertUpParams,
+      opParams,
+    };
+  } catch (error) {
+    console.debug("Failed to transform convertUpParams:", error);
+  }
+
+  return null;
+};
 
 // ────────────────────────────────────────────────────────────────────────────────
 // Create Sow V0 Tractor Order & Sign Requisition

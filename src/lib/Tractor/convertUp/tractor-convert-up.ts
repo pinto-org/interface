@@ -1,43 +1,25 @@
 import { TV } from "@/classes/TokenValue";
 import { convertUpBlueprintV0ABI } from "@/constants/abi/convertUpBlueprintV0ABI";
 import { CONVERT_UP_BLUEPRINT_V0_ADDRESS } from "@/constants/address";
-import { STALK } from "@/constants/internalTokens";
-import { MAIN_TOKEN } from "@/constants/tokens";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
-import { getChainConstant } from "@/utils/chain";
 import { AdvancedPipeCall } from "@/utils/types";
 import { PublicClient, decodeFunctionData, encodeFunctionData } from "viem";
 import {
   CreateTractorDataReturnType,
+  TRACTOR_DEPLOYMENT_BLOCK,
   encodeTractorAndOptimizeDeposits,
   getTokenIndexesFromTractorTokenStrategy,
 } from "../core";
+import {
+  getTractorConvertUpParamsDecimalConfig,
+  loadPublishedRequisitions,
+  transformConvertUpRequisitionEvent,
+} from "../requisitions/tractor-requisition";
 import { ConvertUpBlueprintStruct, PreparedConvertUpArgs } from "./tractor-convert-up-types";
 
 // ────────────────────────────────────────────────────────────────────────────────
 // CONFIGURATION
 // ────────────────────────────────────────────────────────────────────────────────
-
-const MAX_GROWN_STALK_PER_BDV_PENALTY_DECIMALS = 18;
-
-export const getTractorConvertUpParamsDecimalConfig = (chainId: number) => {
-  const { decimals } = getChainConstant(chainId, MAIN_TOKEN);
-
-  return {
-    totalConvertBdv: decimals,
-    minConvertBdvPerExecution: decimals,
-    maxConvertBdvPerExecution: decimals,
-    minTimeBetweenConverts: 0,
-    minConvertBonusCapacity: decimals,
-    maxGrownStalkPerBdv: STALK.decimals,
-    minGrownStalkPerBdvBonus: STALK.decimals,
-    maxPriceToConvertUp: decimals,
-    minPriceToConvertUp: decimals,
-    operatorTip: decimals,
-    maxGrownStalkPerBdvPenalty: MAX_GROWN_STALK_PER_BDV_PENALTY_DECIMALS,
-    slippageRatio: 18,
-  };
-};
 
 const guardDecimals = (args: PreparedConvertUpArgs<TV>, chainId: number) => {
   const decimalConfig = getTractorConvertUpParamsDecimalConfig(chainId);
@@ -155,56 +137,71 @@ export async function createConvertUpTractorData({
 // DECODE / LOAD ORDERS
 // ────────────────────────────────────────────────────────────────────────────────
 
-export async function loadConvertUpOrderbokData() {}
-
-export function shallowCheckIsConvertUpParams(data: unknown): data is ConvertUpBlueprintStruct {
-  return typeof data === "object" && data !== null && "convertUpParams" in data && "opParams" in data;
+interface LoadOrderbookDataOptions {
+  filterOutCompleted?: boolean;
 }
 
-export const transformConvertUpRequisitionEvent = (params: unknown | null, chainId: number) => {
-  try {
-    console.log("params: ", params);
-    if (!shallowCheckIsConvertUpParams(params)) {
-      console.debug("[Tractor/transformConvertUpRequisitionEvent] Invalid params structure.");
-      return null;
+export async function loadConvertUpOrderbokData(
+  address: string | undefined,
+  protocolAddress: `0x${string}` | undefined,
+  publicClient: PublicClient | null,
+  latestBlock?: { number: bigint; timestamp: bigint } | null,
+  _activeApiEntries: any[] = [], // Any for now since we don't know the schema
+  lookbackBlocks?: bigint,
+  options?: LoadOrderbookDataOptions,
+) {
+  if (!protocolAddress || !publicClient) return [];
+
+  const loadOptions: Required<LoadOrderbookDataOptions> = { filterOutCompleted: true, ...options };
+
+  const knownBlueprintHashes = new Set<string>(
+    // _activeApiEntries?.map((order) => order.requisition.blueprintHash.toLowerCase()) ?? [],
+  );
+
+  const fromBlock =
+    lookbackBlocks && latestBlock?.number ? latestBlock.number - lookbackBlocks : TRACTOR_DEPLOYMENT_BLOCK;
+
+  const [completedEvents, _requisitions, _priceResult] = await Promise.all([
+    publicClient.getContractEvents({
+      address: CONVERT_UP_BLUEPRINT_V0_ADDRESS,
+      abi: convertUpBlueprintV0ABI,
+      eventName: "ConvertUpOrderComplete" as const,
+      fromBlock: fromBlock,
+      toBlock: "latest",
+    }),
+    loadPublishedRequisitions(address, protocolAddress, publicClient, latestBlock, "convertUpBlueprint", fromBlock),
+    publicClient.readContract({
+      address: CONVERT_UP_BLUEPRINT_V0_ADDRESS,
+      abi: convertUpBlueprintV0ABI,
+      functionName: "beanstalkPrice",
+      args: [],
+    }),
+  ]);
+
+  const requisitions = _requisitions?.convertUpBlueprint ?? [];
+
+  // Create a set of completed blueprint hashes
+  const completedOrders = new Set<`0x${string}`>(
+    loadOptions.filterOutCompleted
+      ? completedEvents
+          .map((event) => event.args?.blueprintHash)
+          .filter((hash): hash is `0x${string}` => hash !== undefined)
+      : [],
+  );
+
+  // Filter out cancelled and completed orders
+  requisitions.filter((req) => {
+    const hash = req.requisition.blueprintHash;
+    if (knownBlueprintHashes.has(hash.toLowerCase())) {
+      return false;
     }
+    return !req.isCancelled && !completedOrders.has(req.requisition.blueprintHash);
+  });
 
-    const { convertUpParams: cup, opParams: op } = params;
+  const data = requisitions;
 
-    const dc = getTractorConvertUpParamsDecimalConfig(chainId);
-
-    const convertUpParams: ConvertUpBlueprintStruct<TV>["convertUpParams"] = {
-      sourceTokenIndices: cup.sourceTokenIndices,
-      totalConvertBdv: TV.fromBigInt(cup.totalConvertBdv, dc.totalConvertBdv),
-      minConvertBdvPerExecution: TV.fromBigInt(cup.minConvertBdvPerExecution, dc.minConvertBdvPerExecution),
-      maxConvertBdvPerExecution: TV.fromBigInt(cup.maxConvertBdvPerExecution, dc.maxConvertBdvPerExecution),
-      minTimeBetweenConverts: TV.fromBigInt(cup.minTimeBetweenConverts, dc.minTimeBetweenConverts),
-      minConvertBonusCapacity: TV.fromBigInt(cup.minConvertBonusCapacity, dc.minConvertBonusCapacity),
-      maxGrownStalkPerBdv: TV.fromBigInt(cup.maxGrownStalkPerBdv, dc.maxGrownStalkPerBdv),
-      minGrownStalkPerBdvBonus: TV.fromBigInt(cup.minGrownStalkPerBdvBonus, dc.minGrownStalkPerBdvBonus),
-      maxPriceToConvertUp: TV.fromBigInt(cup.maxPriceToConvertUp, dc.maxPriceToConvertUp),
-      minPriceToConvertUp: TV.fromBigInt(cup.minPriceToConvertUp, dc.minPriceToConvertUp),
-      maxGrownStalkPerBdvPenalty: TV.fromBigInt(cup.maxGrownStalkPerBdvPenalty, dc.maxGrownStalkPerBdvPenalty),
-      slippageRatio: TV.fromBigInt(cup.slippageRatio, dc.slippageRatio),
-      lowStalkDeposits: cup.lowStalkDeposits,
-    };
-
-    const opParams: ConvertUpBlueprintStruct<TV>["opParams"] = {
-      whitelistedOperators: op.whitelistedOperators,
-      tipAddress: op.tipAddress,
-      operatorTipAmount: TV.fromBigInt(op.operatorTipAmount, dc.operatorTip),
-    };
-
-    return {
-      convertUpParams,
-      opParams,
-    };
-  } catch (error) {
-    console.debug("Failed to transform convertUpParams:", error);
-  }
-
-  return null;
-};
+  return data;
+}
 
 export const decodeConvertUpBlueprintFromAdvancedPipe = (
   calls: readonly AdvancedPipeCall[] | undefined,

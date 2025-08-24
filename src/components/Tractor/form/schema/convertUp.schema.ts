@@ -2,17 +2,15 @@ import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import {
   Blueprint,
+  LowStalkDepositsMode,
+  PreparedConvertUpArgs,
   tractorTokenStrategyUtil as StrategyUtil,
   TractorTokenStrategy,
   TractorTokenStrategyUnion,
-} from "@/lib/Tractor";
-import { createBlueprint } from "@/lib/Tractor/blueprint";
-import {
-  LowStalkDepositsMode,
-  PreparedConvertUpArgs,
+  createBlueprint,
   createConvertUpTractorData,
   getTractorConvertUpParamsDecimalConfig,
-} from "@/lib/Tractor/convertUp";
+} from "@/lib/Tractor";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import useTokenData from "@/state/useTokenData";
 import { validateFormLte } from "@/utils/number";

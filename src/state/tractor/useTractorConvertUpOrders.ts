@@ -1,13 +1,13 @@
+import { TV } from "@/classes/TokenValue";
 import { TIME_TO_BLOCKS } from "@/constants/blocks";
+import { defaultQuerySettingsMedium } from "@/constants/query";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { fetchTractorEvents, loadPublishedRequisitions } from "@/lib/Tractor";
+import { ConvertUpBlueprintStruct, loadConvertUpOrderbokData } from "@/lib/Tractor";
+import { HashString } from "@/utils/types.generic";
 import { isDev } from "@/utils/utils";
-import { useQuery } from "@tanstack/react-query";
+import { DefaultError, QueryObserverOptions, useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { PublicClient } from "viem";
-import { useAccount, useChainId, usePublicClient } from "wagmi";
-import { queryKeys } from "../queryKeys";
-import useCachedLatestBlockQuery from "../useCachedLatestBlockQuery";
+import { useChainId, usePublicClient } from "wagmi";
 
 const getLookbackBlocks = (
   chainOnly: boolean,
@@ -23,46 +23,63 @@ const getLookbackBlocks = (
   return diff > 0n ? diff : undefined;
 };
 
-export function useTractorConvertUpOrderbook() {
+type ConvertUpOrderBookEntry = ConvertUpBlueprintStruct<TV>;
+
+type UseTractorConvertOrderbookOptions<T extends ConvertUpOrderBookEntry = ConvertUpOrderBookEntry> = {
+  /** The Blueprint Publisher Address If none provided, all orders will be returned */
+  address?: HashString;
+  /**
+   * If true, only cancelled orders will be returned
+   * If false, only uncompleted orders will be returned
+   * If undefined, all orders will be returned
+   */
+  cancelled?: boolean;
+  /**
+   * If false, only completed orders will be returned
+   * If true, only uncompleted orders will be returned
+   * If undefined, all orders will be returned
+   */
+  filterOutCompleted?: boolean;
+  /**
+   * If true, only fetch data from on-chain.
+   */
+  chainOnly?: boolean;
+  /**
+   * Whether queries are enabled.
+   */
+  enabled?: boolean;
+} & Pick<QueryObserverOptions<any[] | undefined, DefaultError, T>, "select">;
+
+export function useTractorConvertUpOrderbook<T extends ConvertUpOrderBookEntry = ConvertUpOrderBookEntry>({
+  select,
+  ...params
+}: UseTractorConvertOrderbookOptions<T>) {
   const chainId = useChainId();
   const client = usePublicClient({ chainId });
   const diamond = useProtocolAddress();
-  const { address } = useAccount();
 
-  // const latestBlockQ = useCachedLatestBlockQuery();
+  const { address, chainOnly = false, enabled = true } = params;
 
-  // console.log("latestblockQ: ", latestBlockQ.data);
-
-  const query = useQuery({
+  const ordersChainQuery = useQuery({
     queryKey: ["tractor", "convertup", address ?? "0x"],
     queryFn: async () => {
-      if (!client || !address) {
-        return [];
-      }
+      if (!client) return [];
+      const fromBlock = 34525087n - 10000n;
+      const latestBlock = await client.getBlock({ blockTag: "latest" });
+      const lookbackBlocks = getLookbackBlocks(true, false, latestBlock.number, undefined);
 
-      return fetch(client, diamond, address);
+      const events = await loadConvertUpOrderbokData(address, diamond, client, latestBlock, undefined, fromBlock);
+
+      return events;
     },
-    enabled: !!client && !!address && !!diamond,
+    enabled: enabled && !!client,
+    select,
+    ...defaultQuerySettingsMedium,
   });
 
   useEffect(() => {
-    console.log("query.data: ", query.data);
-  }, [query.data]);
+    console.log("ordersChainQuery.data: ", ordersChainQuery.data);
+  }, [ordersChainQuery.data]);
+
+  return ordersChainQuery;
 }
-
-const fetch = async (client: PublicClient, diamond: `0x${string}`, address: `0x${string}`) => {
-  const fromBlock = 34525087n - 10000n;
-  const latestBlock = await client.getBlock({ blockTag: "latest" });
-  const lookbackBlocks = getLookbackBlocks(true, false, latestBlock.number, undefined);
-
-  const events = await loadPublishedRequisitions(
-    address,
-    diamond,
-    client,
-    latestBlock,
-    "convertUpBlueprint",
-    fromBlock,
-  );
-
-  return events;
-};
