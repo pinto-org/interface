@@ -7,9 +7,11 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { getChainConstant } from "@/utils/chain";
 import { AdvancedPipeCall } from "@/utils/types";
 import { PublicClient, decodeFunctionData, encodeFunctionData } from "viem";
-import { encodeTractorAndOptimizeDeposits } from "../core/encoding";
-import { CreateTractorDataReturnType } from "../core/shared-tractor-types";
-import { getTokenIndexesFromTractorTokenStrategy } from "../core/token-strategy";
+import {
+  CreateTractorDataReturnType,
+  encodeTractorAndOptimizeDeposits,
+  getTokenIndexesFromTractorTokenStrategy,
+} from "../core";
 import { ConvertUpBlueprintStruct, PreparedConvertUpArgs } from "./tractor-convert-up-types";
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -161,6 +163,7 @@ export function shallowCheckIsConvertUpParams(data: unknown): data is ConvertUpB
 
 export const transformConvertUpRequisitionEvent = (params: unknown | null, chainId: number) => {
   try {
+    console.log("params: ", params);
     if (!shallowCheckIsConvertUpParams(params)) {
       console.debug("[Tractor/transformConvertUpRequisitionEvent] Invalid params structure.");
       return null;
@@ -228,3 +231,5 @@ export const decodeConvertUpBlueprintFromAdvancedPipe = (
     return null;
   }
 };
+
+export const loadConvertUpOrderbookData = () => {};

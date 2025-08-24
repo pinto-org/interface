@@ -18,7 +18,7 @@ import { PublicClient, decodeEventLog, decodeFunctionData, encodeFunctionData } 
 import { base } from "viem/chains";
 import { generateBatchSortDepositsCallData } from "../../claim/depositUtils";
 import { CreateTractorDataReturnType, WithdrawalPlan } from "../core";
-import { loadPublishedRequisitions } from "../utils";
+import { loadPublishedRequisitions } from "../requisitions/tractor-requisition";
 import { OrderbookEntry, SowBlueprintData, SowBlueprintDisplayData, TractorSowOrderParams } from "./tractor-sow-types";
 
 // ────────────────────────────────────────────────────────────────────────────────

@@ -34,7 +34,7 @@ export function useTractorConvertUpOrderbook() {
   // console.log("latestblockQ: ", latestBlockQ.data);
 
   const query = useQuery({
-    queryKey: ["tractor", "convertup"],
+    queryKey: ["tractor", "convertup", address ?? "0x"],
     queryFn: async () => {
       if (!client || !address) {
         return [];
@@ -42,6 +42,7 @@ export function useTractorConvertUpOrderbook() {
 
       return fetch(client, diamond, address);
     },
+    enabled: !!client && !!address && !!diamond,
   });
 
   useEffect(() => {
