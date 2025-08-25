@@ -2,7 +2,7 @@ import { TV } from "@/classes/TokenValue";
 import { TIME_TO_BLOCKS } from "@/constants/blocks";
 import { defaultQuerySettingsMedium } from "@/constants/query";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { ConvertUpBlueprintStruct, loadConvertUpOrderbookData } from "@/lib/Tractor";
+import { ConvertUpBlueprintStruct, TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE, loadConvertUpOrderbookData } from "@/lib/Tractor";
 import { HashString } from "@/utils/types.generic";
 import { isDev } from "@/utils/utils";
 import { DefaultError, QueryObserverOptions, useQuery } from "@tanstack/react-query";
@@ -64,7 +64,7 @@ export function useTractorConvertUpOrderbook<T extends ConvertUpOrderBookEntry =
     queryKey: ["tractor", "convertup", address ?? "0x"],
     queryFn: async () => {
       if (!client) return [];
-      const fromBlock = 34525087n - 10000n;
+      const fromBlock = TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE.convertUpBlueprint;
       const latestBlock = await client.getBlock({ blockTag: "latest" });
       const lookbackBlocks = getLookbackBlocks(true, false, latestBlock.number, undefined);
 
