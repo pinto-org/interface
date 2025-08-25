@@ -31,7 +31,7 @@ export const useNFTImage = (contractAddress: string, tokenId: number): UseNFTIma
   // Log tokenURI when it changes
   useEffect(() => {
     if (tokenURI) {
-      console.log(`🔗 TokenURI for NFT #${tokenId}:`, tokenURI);
+      // console.log(`🔗 TokenURI for NFT #${tokenId}:`, tokenURI);
     }
     if (contractError) {
       console.error(`❌ Contract error for NFT #${tokenId}:`, contractError);
@@ -40,10 +40,10 @@ export const useNFTImage = (contractAddress: string, tokenId: number): UseNFTIma
 
   useEffect(() => {
     const loadNFTImage = async () => {
-      console.log(`🔄 loadNFTImage called for NFT #${tokenId}, tokenURI:`, tokenURI, "contractError:", contractError);
+      // console.log(`🔄 loadNFTImage called for NFT #${tokenId}, tokenURI:`, tokenURI, "contractError:", contractError);
 
       if (!tokenURI || contractError) {
-        console.log(`⚠️  Skipping NFT #${tokenId} - no tokenURI or contract error`);
+        // console.log(`⚠️  Skipping NFT #${tokenId} - no tokenURI or contract error`);
         setLoading(false);
         setError(contractError?.message || "No token URI available");
         return;
@@ -58,7 +58,7 @@ export const useNFTImage = (contractAddress: string, tokenId: number): UseNFTIma
         // Check cached image first
         const cachedImageUrl = await imageCache.get(tokenId);
         if (cachedImageUrl) {
-          console.log(`Using cached image for token ${tokenId}`);
+          // console.log(`Using cached image for token ${tokenId}`);
           setImageUrl(cachedImageUrl);
 
           // Still load metadata if not cached
@@ -70,9 +70,9 @@ export const useNFTImage = (contractAddress: string, tokenId: number): UseNFTIma
         }
 
         // Fetch metadata from IPFS
-        console.log(`🔗 Fetching JSON metadata for token ${tokenId} from IPFS URL:`, tokenURI);
+        // console.log(`🔗 Fetching JSON metadata for token ${tokenId} from IPFS URL:`, tokenURI);
         const nftMetadata = await fetchNFTMetadata(tokenURI);
-        console.log(`🔗 Successfully fetched JSON metadata for token ${tokenId}:`, nftMetadata);
+        // console.log(`🔗 Successfully fetched JSON metadata for token ${tokenId}:`, nftMetadata);
 
         // Cache metadata
         metadataCache.set(cacheKey, nftMetadata);
@@ -80,11 +80,11 @@ export const useNFTImage = (contractAddress: string, tokenId: number): UseNFTIma
 
         if (nftMetadata.image) {
           const optimizedImageUrl = getOptimizedImageUrl(nftMetadata.image);
-          console.log(`Found image URL for token ${tokenId}:`, optimizedImageUrl);
+          // console.log(`Found image URL for token ${tokenId}:`, optimizedImageUrl);
 
           // Try to load original high-quality image first
           try {
-            console.log(`Attempting to load original high-quality image for token ${tokenId}...`);
+            // console.log(`Attempting to load original high-quality image for token ${tokenId}...`);
 
             // Test if we can load the original image directly
             const testImage = new Image();
@@ -97,14 +97,14 @@ export const useNFTImage = (contractAddress: string, tokenId: number): UseNFTIma
             });
 
             if (canLoadOriginal) {
-              console.log(`✅ Using original high-quality image for token ${tokenId}`);
+              // console.log(`✅ Using original high-quality image for token ${tokenId}`);
               setImageUrl(optimizedImageUrl);
 
               // Also cache it for future fallback
               try {
                 const dataUrl = await imageToDataUrl(optimizedImageUrl);
                 await imageCache.set(tokenId, optimizedImageUrl, dataUrl);
-                console.log(`Cached high-quality image for token ${tokenId}`);
+                // console.log(`Cached high-quality image for token ${tokenId}`);
               } catch (cacheError) {
                 console.warn(`Failed to cache image for token ${tokenId}:`, cacheError);
               }
@@ -116,10 +116,10 @@ export const useNFTImage = (contractAddress: string, tokenId: number): UseNFTIma
 
             // Fallback to cached version if available
             if (cachedImageUrl) {
-              console.log(`📦 Using cached fallback for token ${tokenId}`);
+              // console.log(`📦 Using cached fallback for token ${tokenId}`);
               setImageUrl(cachedImageUrl);
             } else {
-              console.log(`⚠️ No cached version available for token ${tokenId}`);
+              // console.log(`⚠️ No cached version available for token ${tokenId}`);
               setImageUrl(optimizedImageUrl); // Last resort - try direct URL anyway
             }
           }

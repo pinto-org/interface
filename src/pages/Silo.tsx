@@ -316,12 +316,13 @@ function Silo() {
               />
             </Row>
             <Col className="gap-4 w-full">
-              <Row className="w-full justify-between gap-8">
-                <div className="flex flex-col w-full">
+              <Col className="w-full justify-between gap-8 sm:flex-row sm:items-center sm:justify-start">
+                <div className="flex flex-col w-[50%] h-[100px] bg-slate-300" />
+                <div className="flex flex-col w-[50%]">
                   <ConvertUpTractorCard />
                   <TractorOrderBook />
                 </div>
-              </Row>
+              </Col>
             </Col>
           </Col>
           <div className="flex flex-col w-full gap-8">
