@@ -15,7 +15,7 @@ import { SowOrderV0FormSchema } from "./SowOrderV0Schema";
 
 import { Col, Row } from "@/components/Container";
 import { Label } from "@/components/ui/Label";
-import { extractAddressesFromTokenStrategy } from "@/lib/Tractor";
+import { tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
 import { cn } from "@/utils/utils";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -277,7 +277,7 @@ SowOrderV0Fields.TokenStrategy = function TokenStrategy({
 
   const strategy = useWatch({ control: ctx.control, name: "selectedTokenStrategy" });
 
-  const addresses = extractAddressesFromTokenStrategy(strategy);
+  const addresses = StrategyUtil.extractAddresses(strategy);
 
   const selectedToken =
     strategy.type === "SPECIFIC_TOKEN" && addresses?.length ? tokenMap[getTokenIndex(addresses[0] ?? "")] : undefined;

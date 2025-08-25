@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/Separator";
 import { useSharedNumericFormFieldHandlers } from "@/hooks/form/useSharedNumericFormFieldHandlers";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
-import { TractorTokenStrategy, extractAddressesFromTokenStrategy } from "@/lib/Tractor";
+import { tractorTokenStrategyUtil as StrategyUtil, TractorTokenStrategy } from "@/lib/Tractor";
 import { useMainToken } from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { getTokenIndex } from "@/utils/token";
@@ -48,7 +48,7 @@ export const TokenStrategyFormField = ({
 
   const strategy = useWatch({ control: ctx.control, name: "tokenStrategy" });
 
-  const addresses = extractAddressesFromTokenStrategy(strategy);
+  const addresses = StrategyUtil.extractAddresses(strategy);
 
   const tokens = addresses?.map((tkAddress) => tokenMap[getTokenIndex(tkAddress)]) || empty;
 

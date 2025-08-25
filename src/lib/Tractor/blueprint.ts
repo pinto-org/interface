@@ -1,6 +1,6 @@
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { Address, encodeAbiParameters, encodePacked, getAddress, keccak256 } from "viem";
+import { Address } from "viem";
 import { useChainId, useReadContract, useSignTypedData } from "wagmi";
 import { Blueprint, Requisition } from "./types";
 

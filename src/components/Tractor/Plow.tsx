@@ -7,7 +7,7 @@ import useDelayedLoading from "@/hooks/display/useDelayedLoading";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useGasPrice } from "@/hooks/useGasPrice";
 import useTransaction from "@/hooks/useTransaction";
-import { RequisitionEvent } from "@/lib/Tractor/utils";
+import { TractorRequisitionEvent as RequisitionEvent, SowBlueprintData } from "@/lib/Tractor";
 import useTractorPublishedRequisitions from "@/state/tractor/useTractorPublishedRequisitions";
 import { useTemperature } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
@@ -101,7 +101,7 @@ const formatOperatorTip = (
 
 // Helper function to calculate profit for a requisition
 const calculateProfit = (
-  req: RequisitionEvent,
+  req: RequisitionEvent<SowBlueprintData>,
   successfulSimulations: Set<string>,
   gasEstimates: Map<string, bigint>,
   gasPrice: bigint | undefined,
@@ -136,7 +136,7 @@ const calculateProfit = (
 };
 
 export function Plow() {
-  const [selectedRequisition, setSelectedRequisition] = useState<RequisitionEvent | null>(null);
+  const [selectedRequisition, setSelectedRequisition] = useState<RequisitionEvent<SowBlueprintData> | null>(null);
   const protocolAddress = useProtocolAddress();
   const publicClient = usePublicClient();
   const { address } = useAccount();
@@ -149,7 +149,7 @@ export function Plow() {
   const { data: gasPrice } = useGasPrice();
 
   // Add state for sorted requisitions
-  const [sortedRequisitions, setSortedRequisitions] = useState<RequisitionEvent[]>([]);
+  const [sortedRequisitions, setSortedRequisitions] = useState<RequisitionEvent<SowBlueprintData>[]>([]);
   const [sortingEnabled, setSortingEnabled] = useState(false);
 
   // Add state to track if any order has been executed, requiring resimulation
@@ -168,7 +168,7 @@ export function Plow() {
 
     // Filter out requisitions with zero or negative tip, cancelled requisitions,
     // and those with minTemp higher than current temperature
-    const filteredEvents = requisitionsQuery.data.filter((req) => {
+    const filteredEvents = requisitionsQuery.data.sowBlueprintV0.filter((req) => {
       // Skip cancelled requisitions
       if (req.isCancelled) return false;
 
@@ -194,7 +194,7 @@ export function Plow() {
     return filteredEvents;
   }, [requisitionsQuery.data, temperatures.scaled]);
 
-  const handlePlow = useCallback((requisition: RequisitionEvent) => {
+  const handlePlow = useCallback((requisition: RequisitionEvent<SowBlueprintData>) => {
     setSelectedRequisition(requisition);
   }, []);
 
@@ -236,7 +236,7 @@ export function Plow() {
 
   // Helper function reference for component use
   const calculateReqProfit = useCallback(
-    (req: RequisitionEvent): number => {
+    (req: RequisitionEvent<SowBlueprintData>): number => {
       return calculateProfit(req, successfulSimulations, gasEstimates, gasPrice, mainToken, nativeToken, tokenPrices);
     },
     [successfulSimulations, gasEstimates, gasPrice, mainToken, nativeToken, tokenPrices],

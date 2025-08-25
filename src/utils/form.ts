@@ -1,8 +1,4 @@
-import {
-  tractorTokenStrategyUtil as StrategyUtil,
-  TRACTOR_TOKEN_STRATEGY_TYPES,
-  getTractorTokenStrategySummary,
-} from "@/lib/Tractor";
+import { tractorTokenStrategyUtil as StrategyUtil, TRACTOR_TOKEN_STRATEGY_TYPES } from "@/lib/Tractor";
 import { z } from "zod";
 import { isValidAddress, postSanitizedSanitizedValue } from "./string";
 
@@ -47,7 +43,7 @@ const tokenStrategyValidation = z
     addresses: z.array(z.string()).optional(),
   })
   .refine((data) => {
-    const s = getTractorTokenStrategySummary(data);
+    const s = StrategyUtil.getSummary(data);
     if (s.isDynamic) return true;
     if (s.isSingle) return data.addresses && isValidAddress(data.addresses[0]);
     return data.addresses?.every((address) => isValidAddress(address));

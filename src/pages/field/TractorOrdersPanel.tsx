@@ -13,15 +13,15 @@ import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetTractorTokenStrategy";
 import useTransaction from "@/hooks/useTransaction";
-import { Blueprint } from "@/lib/Tractor/types";
 import {
   OrderbookEntry,
   PublisherTractorExecution,
-  RequisitionEvent,
+  TractorRequisitionEvent as RequisitionEvent,
+  SowBlueprintData,
   decodeSowTractorData,
-  getSowOrderTokenStrategy,
   prepareSowOrderV0RequisitionEventForTxn,
-} from "@/lib/Tractor/utils";
+} from "@/lib/Tractor";
+import { Blueprint } from "@/lib/Tractor/types";
 import usePublisherTractorExecutions from "@/state/tractor/useTractorExecutions";
 import { useTractorSowOrderbook } from "@/state/tractor/useTractorSowOrders";
 import { tryExtractErrorMessage } from "@/utils/error";
@@ -48,7 +48,7 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
   const getStrategyProps = useGetTractorTokenStrategyWithBlueprint();
 
   // State for the dialog
-  const [selectedOrder, setSelectedOrder] = useState<RequisitionEvent | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<RequisitionEvent<SowBlueprintData> | null>(null);
   const [showDialog, setShowDialog] = useState<"review" | "modify" | undefined>(undefined);
   const [rawSowBlueprintCall, setRawSowBlueprintCall] = useState<`0x${string}` | null>(null);
 
@@ -143,7 +143,7 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
     }
   };
 
-  const handleOrderClick = (req: RequisitionEvent) => {
+  const handleOrderClick = (req: RequisitionEvent<SowBlueprintData>) => {
     setSelectedOrder(req);
 
     // Extract the raw sowBlueprintv0 call data if available
