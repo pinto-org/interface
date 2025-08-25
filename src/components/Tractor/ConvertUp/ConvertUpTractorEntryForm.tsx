@@ -35,7 +35,6 @@ const ConvertUpTractorEntryForm = ({
   isLoading = false,
   didSetAdvancedFormFields,
   setDidSetAdvancedFormFields,
-  handleOpenChange,
 }: {
   isLoading?: boolean;
   farmerSilo: ReturnType<typeof useFarmerSilo>;
@@ -43,9 +42,8 @@ const ConvertUpTractorEntryForm = ({
   calculations: ReturnType<typeof useSowOrderV0Calculations>;
   didSetAdvancedFormFields: boolean;
   setDidSetAdvancedFormFields: (val: boolean) => void;
-  handleOpenChange: (val: boolean) => void;
 }) => {
-  const { form, setFormStep } = useConvertUpOrderFormContext();
+  const { form, setFormStep, onOpenChange } = useConvertUpOrderFormContext();
   const [showTokenStrategyDialog, setShowTokenStrategyDialog] = useState(false);
   const mainToken = useMainToken();
   const tokenMap = useTokenMap();
@@ -72,9 +70,9 @@ const ConvertUpTractorEntryForm = ({
       e.preventDefault();
       e.stopPropagation();
 
-      handleOpenChange(false);
+      onOpenChange(false);
     },
-    [handleOpenChange],
+    [onOpenChange],
   );
 
   // Handle preparing the args
