@@ -54,8 +54,8 @@ interface IConvertUpOrderForm {
  */
 export default function ConvertUpOrderForm({ onOpenChange }: IConvertUpOrderForm) {
   return (
-    <ConvertUpOrderProvider>
-      <ConvertUpOrderFormController onOpenChange={onOpenChange} />
+    <ConvertUpOrderProvider onOpenChange={onOpenChange}>
+      <ConvertUpOrderFormController />
     </ConvertUpOrderProvider>
   );
 }
@@ -65,7 +65,7 @@ const REVIEW_STEPS = new Set([FormStep.REVIEW, FormStep.ADVANCED, FormStep.OPERA
 /**
  * The contents of the form.
  */
-function ConvertUpOrderFormController({ onOpenChange }: IConvertUpOrderForm) {
+function ConvertUpOrderFormController() {
   // External hooks
   const { formStep } = useConvertUpOrderFormContext();
   const calculations = useSowOrderV0Calculations();
@@ -86,7 +86,6 @@ function ConvertUpOrderFormController({ onOpenChange }: IConvertUpOrderForm) {
           calculations={calculations}
           didSetAdvancedFormFields={didInitRestFields}
           setDidSetAdvancedFormFields={setDidInitRestFields}
-          handleOpenChange={onOpenChange}
         />
       )}
       {REVIEW_STEPS.has(formStep) && (

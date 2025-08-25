@@ -33,6 +33,7 @@ interface IConvertUpOrderFormContext extends ReturnType<typeof useConvertUpV0For
   setFormStep: (step: ConvertUpTractorOrderFormStep) => void;
   draftState: ConvertUpV0FormDraftState;
   setDraftState: (val: boolean) => void;
+  onOpenChange: (open: boolean) => void;
 }
 
 const ConvertUpOrderFormContext = createContext<IConvertUpOrderFormContext | null>(null);
@@ -47,10 +48,11 @@ export const useConvertUpOrderFormContext = () => {
 };
 
 interface Props {
+  onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
 }
 
-export default function ConvertUpOrderProvider({ children }: Props) {
+export default function ConvertUpOrderProvider({ children, onOpenChange }: Props) {
   const [formStep, setFormStep] = useState(ConvertUpTractorOrderFormStep.ENTRY);
   const chainId = useChainId();
 
@@ -123,6 +125,7 @@ export default function ConvertUpOrderProvider({ children }: Props) {
         draftState,
         setDraftState: toggleDraftState,
         setFormStep,
+        onOpenChange,
         setOperatorTipPreset: handleSetOperatorTipPreset,
       }}
     >

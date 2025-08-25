@@ -5,6 +5,7 @@ import { MAIN_TOKEN } from "@/constants/tokens";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { getChainConstant } from "@/utils/chain";
 import { AdvancedPipeCall } from "@/utils/types";
+import { exists } from "@/utils/utils";
 import { PublicClient, decodeFunctionData, encodeFunctionData } from "viem";
 import { multicall } from "viem/actions";
 import { base } from "viem/chains";
@@ -20,7 +21,7 @@ import {
   loadPublishedRequisitions,
   transformConvertUpRequisitionEvent,
 } from "../requisitions/tractor-requisition";
-import { ConvertUpBlueprintStruct, PreparedConvertUpArgs } from "./tractor-convert-up-types";
+import { ConvertUpBlueprintStruct, ConvertUpOrderbookEntry, PreparedConvertUpArgs } from "./tractor-convert-up-types";
 
 // ────────────────────────────────────────────────────────────────────────────────
 // CONFIGURATION
@@ -216,7 +217,7 @@ export async function loadConvertUpOrderbookData(
     })),
   });
 
-  const requisitionsWithOrderInfo = mcRrestults
+  const requisitionsWithOrderInfo: ConvertUpOrderbookEntry[] = mcRrestults
     .map((r, idx) => {
       if (r.status === "success") {
         const [lastExecutedTimestamp, bdvLeftToConvert] = r.result;
@@ -228,16 +229,21 @@ export async function loadConvertUpOrderbookData(
           bdvLeftToConvertTV = TV.fromBigInt(bdvLeftToConvert, mainToken.decimals);
         }
 
-        return {
+        const entry: ConvertUpOrderbookEntry = {
           ...activeRequisitions[idx],
+          decodedData: activeRequisitions[idx].decodedData ?? undefined,
           orderInfo: {
-            lastExecutedTimestamp: lastExecutedTimestamp.toString(),
+            lastExecutedTimestamp: lastExecutedTimestamp !== 0n ? lastExecutedTimestamp.toString() : undefined,
             bdvLeftToConvert: bdvLeftToConvertTV,
           },
         };
+
+        return entry;
       }
+
+      return undefined;
     })
-    .filter((r): r is NonNullable<typeof r> => r !== undefined);
+    .filter((r): r is NonNullable<ConvertUpOrderbookEntry> => exists(r));
 
   return requisitionsWithOrderInfo;
 }

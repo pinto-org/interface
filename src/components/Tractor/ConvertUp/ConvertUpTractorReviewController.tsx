@@ -33,8 +33,16 @@ const ConvertUpTractorReviewController = ({
   averageTipPaid,
   didInitAdv,
 }: { averageTipPaid: number; didInitAdv: boolean }) => {
-  const { form, draftState, formStep, operatorTipPreset, setFormStep, setOperatorTipPreset, setDraftState } =
-    useConvertUpOrderFormContext();
+  const {
+    form,
+    draftState,
+    formStep,
+    operatorTipPreset,
+    setFormStep,
+    setOperatorTipPreset,
+    setDraftState,
+    onOpenChange,
+  } = useConvertUpOrderFormContext();
 
   // Blueprint creation state
   const farmerDeposits = useFarmerSilo();
@@ -232,7 +240,9 @@ const ConvertUpTractorReviewController = ({
         <ReviewTractorOrderDialog
           open={showReviewDialog}
           onOpenChange={setShowReviewDialog}
-          onSuccess={() => {}}
+          onSuccess={() => {
+            onOpenChange(false);
+          }}
           orderData={{
             type: "convertUp" as const,
             ...orderData,

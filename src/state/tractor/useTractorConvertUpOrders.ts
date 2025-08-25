@@ -2,7 +2,12 @@ import { TV } from "@/classes/TokenValue";
 import { TIME_TO_BLOCKS } from "@/constants/blocks";
 import { defaultQuerySettingsMedium } from "@/constants/query";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { ConvertUpBlueprintStruct, TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE, loadConvertUpOrderbookData } from "@/lib/Tractor";
+import {
+  ConvertUpBlueprintStruct,
+  ConvertUpOrderbookEntry,
+  TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE,
+  loadConvertUpOrderbookData,
+} from "@/lib/Tractor";
 import { HashString } from "@/utils/types.generic";
 import { isDev } from "@/utils/utils";
 import { DefaultError, QueryObserverOptions, useQuery } from "@tanstack/react-query";
@@ -23,9 +28,7 @@ const getLookbackBlocks = (
   return diff > 0n ? diff : undefined;
 };
 
-type ConvertUpOrderBookEntry = ConvertUpBlueprintStruct<TV>;
-
-type UseTractorConvertOrderbookOptions<T extends ConvertUpOrderBookEntry = ConvertUpOrderBookEntry> = {
+type UseTractorConvertOrderbookOptions<T extends ConvertUpOrderbookEntry[] = ConvertUpOrderbookEntry[]> = {
   /** The Blueprint Publisher Address If none provided, all orders will be returned */
   address?: HashString;
   /**
@@ -50,7 +53,7 @@ type UseTractorConvertOrderbookOptions<T extends ConvertUpOrderBookEntry = Conve
   enabled?: boolean;
 } & Pick<QueryObserverOptions<any[] | undefined, DefaultError, T>, "select">;
 
-export function useTractorConvertUpOrderbook<T extends ConvertUpOrderBookEntry = ConvertUpOrderBookEntry>({
+export function useTractorConvertUpOrderbook<T extends ConvertUpOrderbookEntry[] = ConvertUpOrderbookEntry[]>({
   select,
   ...params
 }: UseTractorConvertOrderbookOptions<T>) {
