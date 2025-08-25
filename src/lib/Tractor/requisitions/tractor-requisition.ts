@@ -3,7 +3,6 @@ import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
 import { convertUpBlueprintV0ABI } from "@/constants/abi/convertUpBlueprintV0ABI";
 import { STALK } from "@/constants/internalTokens";
 import { MAIN_TOKEN } from "@/constants/tokens";
-import { beanstalkAbi } from "@/generated/contractHooks";
 import { getChainConstant } from "@/utils/chain";
 import { stringEq } from "@/utils/string";
 import { MinimumViableBlock } from "@/utils/types";
@@ -13,7 +12,13 @@ import { SignableMessage, decodeFunctionData } from "viem";
 import { PublicClient } from "viem";
 import { base } from "viem/chains";
 import { ConvertUpBlueprintStruct } from "../convertUp";
-import { Requisition, RequisitionType, TractorRequisitionData, TractorRequisitionEvent } from "../core";
+import {
+  Requisition,
+  RequisitionType,
+  TractorRequisitionData,
+  TractorRequisitionEvent,
+  decodeEncodedTractorDataToAdvancedPipeCalls,
+} from "../core";
 import { fetchTractorEvents } from "../events/tractor-events";
 import { SowBlueprintData, transformSowRequisitionEvent } from "../sowOrder";
 
@@ -48,7 +53,6 @@ function shallowCheckIsConvertUpParams(data: unknown): data is ConvertUpBlueprin
 
 export const transformConvertUpRequisitionEvent = (params: unknown | null, chainId: number) => {
   try {
-    console.log("params: ", params);
     if (!shallowCheckIsConvertUpParams(params)) {
       console.debug("[Tractor/transformConvertUpRequisitionEvent] Invalid params structure.");
       return null;
@@ -175,69 +179,45 @@ export const decodeTractorBlueprint = (
   chainId: number = base.id,
 ): DecodedTractorRequisition | null => {
   try {
-    // Step 1: Attempt to decode.
-    const calls = decodeFunctionData({
-      abi: beanstalkAbi,
-      data: encodedData,
+    const pipeCalls = decodeEncodedTractorDataToAdvancedPipeCalls(encodedData, "decodeTractorBlueprint");
+
+    if (!pipeCalls?.length) {
+      console.debug("[Tractor/decodeTractorBlueprint] No pipe calls provided. Returning null.");
+      return null;
+    }
+
+    const data = pipeCalls[0].callData;
+
+    const decoded = decodeFunctionData({
+      abi: combinedABI,
+      data,
     });
 
-    if (calls.functionName === "advancedFarm" && calls.args[0]) {
-      const farmCalls = calls.args[0];
+    const entry = blueprintTransformerLookup[decoded.functionName as keyof typeof blueprintTransformerLookup];
 
-      if (!farmCalls.length) {
-        console.debug("[Tractor/decodeTractorBlueprint] No farm calls provided. Returning null.");
-        return null;
-      }
-      // Step 3: Try to decode the inner call as advancedPipe
-      try {
-        const pipeCallData = farmCalls[0].callData;
-        const advancedPipeDecoded = decodeFunctionData({
-          abi: beanstalkAbi,
-          data: pipeCallData,
-        });
-
-        if (advancedPipeDecoded.functionName === "advancedPipe" && advancedPipeDecoded.args?.[0]?.length) {
-          const data = advancedPipeDecoded.args[0][0].callData;
-
-          const decoded = decodeFunctionData({
-            abi: combinedABI,
-            data,
-          });
-
-          const entry = blueprintTransformerLookup[decoded.functionName as keyof typeof blueprintTransformerLookup];
-
-          if (!entry) {
-            console.debug("[Tractor/decodeTractorBlueprint] No entry found for function name:", decoded.functionName);
-            return null;
-          }
-
-          if (!decoded.args.length) {
-            console.debug("[Tractor/decodeTractorBlueprint] No args found for function name:", decoded.functionName);
-            return null;
-          }
-
-          const transformed = entry.transformer(decoded.args[0], chainId);
-
-          if (!transformed) {
-            console.debug(
-              "[Tractor/decodeTractorBlueprint] Transformation failed for function name:",
-              decoded.functionName,
-            );
-            return null;
-          }
-
-          return {
-            type: entry.type,
-            data: transformed,
-          } as DecodedTractorRequisition;
-        }
-      } catch (error) {
-        console.debug("[Tractor/decodeTractorBlueprint] Failed to decode as advancedPipe:", error);
-      }
+    if (!entry) {
+      console.debug("[Tractor/decodeTractorBlueprint] No entry found for function name:", decoded.functionName);
+      return null;
     }
+
+    if (!decoded.args.length) {
+      console.debug("[Tractor/decodeTractorBlueprint] No args found for function name:", decoded.functionName);
+      return null;
+    }
+
+    const transformed = entry.transformer(decoded.args[0], chainId);
+
+    if (!transformed) {
+      console.debug("[Tractor/decodeTractorBlueprint] Transformation failed for function name:", decoded.functionName);
+      return null;
+    }
+
+    return {
+      type: entry.type,
+      data: transformed,
+    } as DecodedTractorRequisition;
   } catch (e) {
-    console.debug("[Tractor/decodeTractorBlueprint] Failed to decode as beanstalk advancedFarm:", e);
-    //
+    console.error("Failed to decode Tractor Blueprint:", e);
   }
 
   return null;
@@ -265,8 +245,6 @@ export const getSelectRequisitionType = (requisitionsType: MayArray<RequisitionT
       convertUpBlueprint: [],
     };
 
-    console.log("publishEvents: ", publishEvents);
-
     for (const event of publishEvents) {
       const requisition = event.args?.requisition as TractorRequisitionData;
       if (!requisition?.blueprint || !requisition?.blueprintHash || !requisition?.signature) {
@@ -275,17 +253,13 @@ export const getSelectRequisitionType = (requisitionsType: MayArray<RequisitionT
 
       // Only filter by address if one is provided
       if (address && !stringEq(requisition.blueprint.publisher, address)) {
-        console.log("no address match... ");
         continue;
       }
 
       const data = decodeTractorBlueprint(requisition.blueprint.data);
 
-      console.log("decoded data: ", data);
-
       // Filter by requisition type if provided
       if (!data || (requisitionsSet?.size && !requisitionsSet.has(data.type))) {
-        console.log("no requisition type match... ");
         continue;
       }
 
@@ -308,8 +282,6 @@ export const getSelectRequisitionType = (requisitionsType: MayArray<RequisitionT
         decodedData: data.data,
       });
     }
-
-    console.log("EVENTS: ", map);
 
     return map;
   };

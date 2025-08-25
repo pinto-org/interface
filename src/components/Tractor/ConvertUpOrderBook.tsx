@@ -1,7 +1,9 @@
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
 
+const empty = {};
+
 export default function ConvertUpOrderBook() {
-  useTractorConvertUpOrderbook();
+  const k = useTractorConvertUpOrderbook(empty);
 
   return <div>asdf</div>;
 }

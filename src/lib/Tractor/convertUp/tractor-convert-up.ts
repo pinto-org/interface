@@ -1,12 +1,17 @@
 import { TV } from "@/classes/TokenValue";
 import { convertUpBlueprintV0ABI } from "@/constants/abi/convertUpBlueprintV0ABI";
 import { CONVERT_UP_BLUEPRINT_V0_ADDRESS } from "@/constants/address";
+import { MAIN_TOKEN } from "@/constants/tokens";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { getChainConstant } from "@/utils/chain";
 import { AdvancedPipeCall } from "@/utils/types";
 import { PublicClient, decodeFunctionData, encodeFunctionData } from "viem";
+import { multicall } from "viem/actions";
+import { base } from "viem/chains";
 import {
   CreateTractorDataReturnType,
   TRACTOR_DEPLOYMENT_BLOCK,
+  decodeEncodedTractorDataToAdvancedPipeCalls,
   encodeTractorAndOptimizeDeposits,
   getTokenIndexesFromTractorTokenStrategy,
 } from "../core";
@@ -141,7 +146,7 @@ interface LoadOrderbookDataOptions {
   filterOutCompleted?: boolean;
 }
 
-export async function loadConvertUpOrderbokData(
+export async function loadConvertUpOrderbookData(
   address: string | undefined,
   protocolAddress: `0x${string}` | undefined,
   publicClient: PublicClient | null,
@@ -151,6 +156,10 @@ export async function loadConvertUpOrderbokData(
   options?: LoadOrderbookDataOptions,
 ) {
   if (!protocolAddress || !publicClient) return [];
+
+  const cid = await publicClient.getChainId();
+
+  const mainToken = getChainConstant(cid, MAIN_TOKEN);
 
   const loadOptions: Required<LoadOrderbookDataOptions> = { filterOutCompleted: true, ...options };
 
@@ -190,7 +199,7 @@ export async function loadConvertUpOrderbokData(
   );
 
   // Filter out cancelled and completed orders
-  requisitions.filter((req) => {
+  const activeRequisitions = requisitions.filter((req) => {
     const hash = req.requisition.blueprintHash;
     if (knownBlueprintHashes.has(hash.toLowerCase())) {
       return false;
@@ -198,9 +207,39 @@ export async function loadConvertUpOrderbokData(
     return !req.isCancelled && !completedOrders.has(req.requisition.blueprintHash);
   });
 
-  const data = requisitions;
+  const mcRrestults = await multicall(publicClient, {
+    contracts: activeRequisitions.map((req) => ({
+      address: CONVERT_UP_BLUEPRINT_V0_ADDRESS,
+      abi: convertUpBlueprintV0ABI,
+      functionName: "orderInfo" as const,
+      args: [req.requisition.blueprintHash],
+    })),
+  });
 
-  return data;
+  const requisitionsWithOrderInfo = mcRrestults
+    .map((r, idx) => {
+      if (r.status === "success") {
+        const [lastExecutedTimestamp, bdvLeftToConvert] = r.result;
+
+        let bdvLeftToConvertTV = activeRequisitions[idx]?.decodedData?.convertUpParams.totalConvertBdv ?? TV.ZERO;
+
+        // Order has not been executed yet
+        if (lastExecutedTimestamp !== 0n) {
+          bdvLeftToConvertTV = TV.fromBigInt(bdvLeftToConvert, mainToken.decimals);
+        }
+
+        return {
+          ...activeRequisitions[idx],
+          orderInfo: {
+            lastExecutedTimestamp: lastExecutedTimestamp.toString(),
+            bdvLeftToConvert: bdvLeftToConvertTV,
+          },
+        };
+      }
+    })
+    .filter((r): r is NonNullable<typeof r> => r !== undefined);
+
+  return requisitionsWithOrderInfo;
 }
 
 export const decodeConvertUpBlueprintFromAdvancedPipe = (
@@ -229,4 +268,19 @@ export const decodeConvertUpBlueprintFromAdvancedPipe = (
   }
 };
 
-export const loadConvertUpOrderbookData = () => {};
+export const decodeConvertUpTractorOrder = (
+  encodedData: `0x${string}`,
+  chainId: number = base.id,
+): ConvertUpBlueprintStruct<TV> | null => {
+  try {
+    const pipeCalls = decodeEncodedTractorDataToAdvancedPipeCalls(encodedData, "convertUp");
+
+    if (pipeCalls?.length) {
+      return decodeConvertUpBlueprintFromAdvancedPipe(pipeCalls, chainId);
+    }
+  } catch (e) {
+    console.error("Failed to decode convertUp Tractor Data:", e);
+  }
+
+  return null;
+};

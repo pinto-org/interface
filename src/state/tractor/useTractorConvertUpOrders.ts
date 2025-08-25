@@ -2,7 +2,7 @@ import { TV } from "@/classes/TokenValue";
 import { TIME_TO_BLOCKS } from "@/constants/blocks";
 import { defaultQuerySettingsMedium } from "@/constants/query";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { ConvertUpBlueprintStruct, loadConvertUpOrderbokData } from "@/lib/Tractor";
+import { ConvertUpBlueprintStruct, loadConvertUpOrderbookData } from "@/lib/Tractor";
 import { HashString } from "@/utils/types.generic";
 import { isDev } from "@/utils/utils";
 import { DefaultError, QueryObserverOptions, useQuery } from "@tanstack/react-query";
@@ -68,7 +68,7 @@ export function useTractorConvertUpOrderbook<T extends ConvertUpOrderBookEntry =
       const latestBlock = await client.getBlock({ blockTag: "latest" });
       const lookbackBlocks = getLookbackBlocks(true, false, latestBlock.number, undefined);
 
-      const events = await loadConvertUpOrderbokData(address, diamond, client, latestBlock, undefined, fromBlock);
+      const events = await loadConvertUpOrderbookData(address, diamond, client, latestBlock, undefined, fromBlock);
 
       return events;
     },

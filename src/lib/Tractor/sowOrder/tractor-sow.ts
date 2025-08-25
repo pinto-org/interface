@@ -17,7 +17,7 @@ import { AdvancedPipeCall, FarmFromMode, MinimumViableBlock, Token, TokenDeposit
 import { PublicClient, decodeEventLog, decodeFunctionData, encodeFunctionData } from "viem";
 import { base } from "viem/chains";
 import { generateBatchSortDepositsCallData } from "../../claim/depositUtils";
-import { CreateTractorDataReturnType, WithdrawalPlan } from "../core";
+import { CreateTractorDataReturnType, WithdrawalPlan, decodeEncodedTractorDataToAdvancedPipeCalls } from "../core";
 import { loadPublishedRequisitions } from "../requisitions/tractor-requisition";
 import { OrderbookEntry, SowBlueprintData, SowBlueprintDisplayData, TractorSowOrderParams } from "./tractor-sow-types";
 
@@ -229,6 +229,10 @@ export async function createSowTractorData({
   };
 }
 
+// ────────────────────────────────────────────────────────────────────────────────
+// DECODE / TRANSFORM BLUEPRINT DATA
+// ────────────────────────────────────────────────────────────────────────────────
+
 export function handleDecodeSowV0BlueprintFromAdvancedPipe(
   calls: readonly AdvancedPipeCall[] | undefined,
   chainId: number,
@@ -253,48 +257,6 @@ export function handleDecodeSowV0BlueprintFromAdvancedPipe(
     console.error("Failed to decode sowBlueprintv0 data:", error);
   }
 
-  return null;
-}
-
-/**
- * Decodes sow data from encoded function call
- */
-export function decodeSowTractorData(encodedData: `0x${string}`, chainId: number = base.id): SowBlueprintData | null {
-  try {
-    // Step 1: Attempt to decode.
-    const calls = decodeFunctionData({
-      abi: beanstalkAbi,
-      data: encodedData,
-    });
-
-    // Valid tractor orders are encoded as advancedFarm(advancedPipe(callData))
-    // Step 2: If the encoded data is an advancedFarm call, decode again.
-    if (calls.functionName === "advancedFarm" && calls.args[0]) {
-      const farmCalls = calls.args[0];
-
-      if (!farmCalls.length) {
-        console.debug("[Tractor/decodeSowTractorData] No farm calls provided. Returning null.");
-        return null;
-      }
-      // Step 3: Try to decode the inner call as advancedPipe
-      try {
-        const pipeCallData = farmCalls[0].callData;
-        const advancedPipeDecoded = decodeFunctionData({
-          abi: beanstalkAbi,
-          data: pipeCallData,
-        });
-
-        if (advancedPipeDecoded.functionName === "advancedPipe" && advancedPipeDecoded.args?.[0]) {
-          return handleDecodeSowV0BlueprintFromAdvancedPipe(advancedPipeDecoded.args[0], chainId);
-        }
-      } catch (error) {
-        console.debug("Failed to decode as advancedPipe:", error);
-      }
-    }
-  } catch (error) {
-    console.error("Failed to decode SowV0 Tractor Data:", error);
-  }
-  // If we get here, we didn't find a valid sow blueprint.
   return null;
 }
 
@@ -337,6 +299,23 @@ export function transformSowRequisitionEvent(params: unknown | null, chainId: nu
     };
   } catch (e) {
     console.debug("[Tractor/transformSowRequisitionEvent] Failed to transform sowParams:", e);
+  }
+
+  return null;
+}
+
+/**
+ * Decodes sow data from encoded function call
+ */
+export function decodeSowTractorData(encodedData: `0x${string}`, chainId: number = base.id): SowBlueprintData | null {
+  try {
+    const calls = decodeEncodedTractorDataToAdvancedPipeCalls(encodedData, "sowV0");
+
+    if (calls?.length) {
+      return handleDecodeSowV0BlueprintFromAdvancedPipe(calls, chainId);
+    }
+  } catch (e) {
+    console.error("Failed to decode SowV0 Tractor Data:", e);
   }
 
   return null;

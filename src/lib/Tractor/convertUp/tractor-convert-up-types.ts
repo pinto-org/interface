@@ -1,6 +1,5 @@
 import { TV } from "@/classes/TokenValue";
-import { OperatorParams } from "../core/shared-tractor-types";
-import { ExtendedTractorTokenStrategy, TractorTokenStrategy } from "../core/token-strategy";
+import { ExtendedTractorTokenStrategy, TractorRequisitionEvent, TractorTokenStrategy, WithdrawalPlan } from "../core";
 
 // ────────────────────────────────────────────────────────────────────────────────
 // INTERFACE
@@ -111,4 +110,15 @@ export interface ConvertUpBlueprintStruct<Numeric extends TV | bigint = bigint> 
     tipAddress: `0x${string}`;
     operatorTipAmount: Numeric;
   };
+}
+
+export interface ConvertUpOrderbookEntry extends Omit<TractorRequisitionEvent, "decodedData"> {
+  decodedData?: ConvertUpBlueprintStruct<TV>;
+  orderInfo: {
+    lastExecutedTimestamp: string | undefined;
+    bdvLeftToConvert: TV;
+  };
+  deco;
+  withdrawalPlan?: WithdrawalPlan;
+  isComplete?: boolean;
 }
