@@ -118,7 +118,6 @@ export interface ConvertUpOrderbookEntry extends Omit<TractorRequisitionEvent, "
     lastExecutedTimestamp: string | undefined;
     bdvLeftToConvert: TV;
   };
-  deco;
   withdrawalPlan?: WithdrawalPlan;
   isComplete?: boolean;
 }

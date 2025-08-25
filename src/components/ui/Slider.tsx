@@ -32,14 +32,21 @@ const Slider = React.forwardRef<React.ElementRef<typeof SliderPrimitive.Root>, I
 );
 Slider.displayName = SliderPrimitive.Root.displayName;
 
+interface MultiSliderProps extends React.ComponentProps<typeof SliderPrimitive.Root> {
+  showThumbValue?: boolean;
+  formatThumbValue?: (value: number) => string;
+}
+
 function MultiSlider({
   className,
   defaultValue,
   value,
   min = 0,
   max = 100,
+  showThumbValue = false,
+  formatThumbValue,
   ...props
-}: React.ComponentProps<typeof SliderPrimitive.Root>) {
+}: MultiSliderProps) {
   const _values = React.useMemo(
     () => (Array.isArray(value) ? value : Array.isArray(defaultValue) ? defaultValue : [min, max]),
     [value, defaultValue, min, max],
@@ -80,6 +87,30 @@ function MultiSlider({
           />
         ))}
       </SliderPrimitive.Root>
+      {showThumbValue && (
+        <div className="relative mt-2">
+          {_values.map((thumbValue, index) => {
+            const position = ((thumbValue - min) / (max - min)) * 100;
+            // Calculate dynamic padding to prevent overflow
+            const leftPadding = Math.max(0, (50 - position) * 0.5);
+            const rightPadding = Math.max(0, (position - 50) * 0.5);
+
+            return (
+              <div
+                key={`thumb-value-${index}`}
+                className="absolute text-xs text-pinto-gray-4 font-medium transform -translate-x-1/2"
+                style={{
+                  left: `${position}%`,
+                  paddingLeft: `${leftPadding}px`,
+                  paddingRight: `${rightPadding}px`,
+                }}
+              >
+                {formatThumbValue ? formatThumbValue(thumbValue) : thumbValue}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
