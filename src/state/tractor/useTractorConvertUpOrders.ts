@@ -28,7 +28,7 @@ const getLookbackBlocks = (
   return diff > 0n ? diff : undefined;
 };
 
-type UseTractorConvertOrderbookOptions<T extends ConvertUpOrderbookEntry[] = ConvertUpOrderbookEntry[]> = {
+type UseTractorConvertOrderbookOptions<T = ConvertUpOrderbookEntry[]> = {
   /** The Blueprint Publisher Address If none provided, all orders will be returned */
   address?: HashString;
   /**
@@ -53,7 +53,7 @@ type UseTractorConvertOrderbookOptions<T extends ConvertUpOrderbookEntry[] = Con
   enabled?: boolean;
 } & Pick<QueryObserverOptions<any[] | undefined, DefaultError, T>, "select">;
 
-export function useTractorConvertUpOrderbook<T extends ConvertUpOrderbookEntry[] = ConvertUpOrderbookEntry[]>({
+export function useTractorConvertUpOrderbook<T = ConvertUpOrderbookEntry[]>({
   select,
   ...params
 }: UseTractorConvertOrderbookOptions<T>) {
