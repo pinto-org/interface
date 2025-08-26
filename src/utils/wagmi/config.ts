@@ -38,7 +38,6 @@ const config = createConfig(
     connectors: [
       baseAccount({
         appName: "Pinto",
-        appLogoUrl: "https://pinto.money/logo.png",
       }),
     ],
     batch: {
