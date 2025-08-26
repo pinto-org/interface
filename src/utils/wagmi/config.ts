@@ -3,6 +3,7 @@ import { getEnvEnabledChains, localhostNetwork as localhost } from "@/utils/wagm
 import { getDefaultConfig } from "connectkit";
 import { Chain, Transport, createTestClient } from "viem";
 import { http, createConfig } from "wagmi";
+import { baseAccount } from "wagmi/connectors";
 
 export const anvilTestClient = createTestClient({ mode: "anvil", chain: localhost, transport: http() });
 
@@ -34,6 +35,12 @@ const config = createConfig(
   getDefaultConfig({
     chains: getChainConfig(),
     transports: getTransportsConfig(),
+    connectors: [
+      baseAccount({
+        appName: "Pinto",
+        appLogoUrl: "https://pinto.money/logo.png",
+      }),
+    ],
     batch: {
       multicall: {
         wait: 200,
