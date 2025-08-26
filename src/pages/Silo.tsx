@@ -10,8 +10,9 @@ import TableRowConnector from "@/components/TableRowConnector";
 import TextSkeleton from "@/components/TextSkeleton";
 import TooltipSimple from "@/components/TooltipSimple";
 import ConvertUpOrderForm from "@/components/Tractor/ConvertUpOrderForm";
+import ConvertUpTractorOrderBook from "@/components/Tractor/ConvertUpTractorOrderBook";
+import ConvertUpTractorOrders from "@/components/Tractor/ConvertUpTractorOrders";
 import TractorCard from "@/components/Tractor/TractorCard";
-import TractorOrderBook from "@/components/TractorOrderBook";
 import { tabToSeasonalLookback } from "@/components/charts/SeasonalChart";
 import { TimeTab } from "@/components/charts/TimeTabs";
 import { navLinks } from "@/components/nav/nav/Navbar";
@@ -19,12 +20,14 @@ import { Card } from "@/components/ui/Card";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
+import * as Tabs from "@/components/ui/Tabs";
 import { PINTO_WETH_TOKEN, PINTO_WSOL_TOKEN } from "@/constants/tokens";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import useIsSmallDesktop from "@/hooks/display/useIsSmallDesktop";
 import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import useLocalStorage from "@/hooks/useLocalStorage";
+import { useParamsTabs } from "@/hooks/useRouterTabs";
 import { useSeasonalSiloActiveFarmers } from "@/state/seasonal/seasonalDataHooks";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
@@ -34,14 +37,14 @@ import { useSeason } from "@/state/useSunData";
 import useTokenData, { useWhitelistedTokens } from "@/state/useTokenData";
 import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
-import { getClaimText } from "@/utils/string";
+import { getClaimText, stringEq } from "@/utils/string";
 import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { StatPanelData, Token } from "@/utils/types";
 import { getSiloConvertUrl } from "@/utils/url";
 import { cn } from "@/utils/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import SiloTable from "./silo/SiloTable";
 
 const VALUE_TARGET = 1;
@@ -316,15 +319,17 @@ function Silo() {
               />
             </Row>
             <Col className="gap-4 w-full">
-              <Col className="w-full justify-between gap-8 sm:flex-row sm:items-center sm:justify-start">
-                <div className="flex flex-col w-[50%] h-[100px] bg-slate-300" />
+              <Col className="w-full justify-between gap-8 sm:flex-row sm:items-start sm:justify-start">
+                <div className="flex flex-col w-[50%]">
+                  <ConvertUpTractorOrderBook />
+                </div>
                 <div className="flex flex-col w-[50%]">
                   <ConvertUpTractorCard />
-                  <TractorOrderBook />
                 </div>
               </Col>
             </Col>
           </Col>
+          <ConvertUpTractorContent />
           <div className="flex flex-col w-full gap-8">
             <div className="w-full">
               <SiloStats />
@@ -341,6 +346,52 @@ function Silo() {
 export default Silo;
 
 // ---------- Sub Components ----------
+
+const mobileOnlyActions = ["orders"] as const;
+const actions = [...mobileOnlyActions, "tractor"] as const;
+
+// Pull this out to minimize re-renders
+const useConvertUpTractorActiveTab = () => {
+  const isMobile = useIsMobile();
+
+  const [activeTab, setActiveTab] = useParamsTabs(isMobile ? mobileOnlyActions : actions, "tab", true);
+  const [searchParams] = useSearchParams();
+
+  const value = activeTab || actions[0];
+
+  useEffect(() => {
+    if (!isMobile) return;
+    const tabParam = searchParams.get("tab");
+    if (!stringEq(tabParam, "orders")) {
+      setActiveTab("orders");
+    }
+  }, [isMobile]);
+
+  return [value, setActiveTab] as const;
+};
+
+const ConvertUpTractorContent = () => {
+  const [value, setActiveTab] = useConvertUpTractorActiveTab();
+
+  return (
+    <Tabs.Tabs defaultValue="orders" value={value} onValueChange={setActiveTab}>
+      <Tabs.TabsList variant="text">
+        <Tabs.TabsTrigger value="orders" variant="text">
+          Convert Up
+        </Tabs.TabsTrigger>
+        <Tabs.TabsTrigger value="tractor" variant="text" className="hidden sm:block">
+          My Orders
+        </Tabs.TabsTrigger>
+      </Tabs.TabsList>
+      <Tabs.TabsContent value="orders">
+        <ConvertUpTractorOrders />
+      </Tabs.TabsContent>
+      <Tabs.TabsContent value="tractor">
+        <div>asdf</div>
+      </Tabs.TabsContent>
+    </Tabs.Tabs>
+  );
+};
 
 const ConvertUpTractorCard = () => {
   const [showConvertUpOrderDialog, setShowConvertUpOrderDialog] = useState(false);
