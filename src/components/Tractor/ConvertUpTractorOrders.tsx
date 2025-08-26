@@ -1,3 +1,6 @@
+import { Col } from "@/components/Container";
+import { Button } from "@/components/ui/Button";
+import IconImage from "@/components/ui/IconImage";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ConvertUpOrderbookEntry } from "@/lib/Tractor";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
@@ -6,11 +9,7 @@ import { usePriceData } from "@/state/usePriceData";
 import { useMainToken } from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { stringEq, truncateAddress } from "@/utils/string";
-import { useCallback, useState } from "react";
-import React from "react";
-import { Col } from "../Container";
-import { Button } from "../ui/Button";
-import IconImage from "../ui/IconImage";
+import { memo, useCallback, useState } from "react";
 
 export default function ConvertUpTractorOrders() {
   const { price } = usePriceData();
@@ -89,7 +88,7 @@ const TractorOrdersContent = ({ orders }: { orders: ConvertUpOrderbookEntry[] })
   );
 };
 
-const TractorOrderRow = React.memo(
+const TractorOrderRow = memo(
   ({
     order,
     hoveredAddress,
@@ -116,7 +115,11 @@ const TractorOrderRow = React.memo(
         <td className="px-2 py-1 text-xs font-light text-pinto-gray-4">
           {`0x${req.blueprintHash.slice(2, 7)}...${req.blueprintHash.slice(-4)}`}
         </td>
-        <td className="px-2 py-1 text-xs font-light text-pinto-gray-4">
+        <td
+          className="px-2 py-1 text-xs font-light text-pinto-gray-4"
+          onMouseEnter={() => setHoveredAddress(publisher)}
+          onMouseLeave={() => setHoveredAddress(null)}
+        >
           <a
             href={`https://basescan.org/address/${publisher}`}
             target="_blank"
