@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover
 import { Switch } from "@/components/ui/Switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { PINTO } from "@/constants/tokens";
-import { ConvertUpOrderbookEntry } from "@/lib/Tractor";
+import { Blueprint, ConvertUpOrderbookEntry } from "@/lib/Tractor";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
 import { formatter } from "@/utils/format";
 import { cn } from "@/utils/utils";
@@ -16,6 +16,8 @@ import { useCallback, useState } from "react";
 import React from "react";
 import { Col, Row } from "../Container";
 import LoadingSpinner from "../LoadingSpinner";
+import ReviewTractorOrderDialog from "../ReviewTractorOrderDialog";
+import { ConvertUpOrderData } from "./types";
 
 const BASESCAN_URL = "https://basescan.org/address/";
 
@@ -33,6 +35,8 @@ export function ConvertUpOrderbookContent({
   showAboveCurrentBonus = true,
 }: ConvertUpOrderbookContentProps) {
   const [selectedOrder, setSelectedOrder] = useState<ConvertUpOrderbookEntry | null>(null);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [reviewOrderData, setReviewOrderData] = useState<ConvertUpOrderData | null>(null);
 
   const { data: orders = [], isLoading } = useTractorConvertUpOrderbook({
     select: useCallback((data: ConvertUpOrderbookEntry[] | undefined) => {
@@ -63,9 +67,39 @@ export function ConvertUpOrderbookContent({
     );
   };
 
+  // Transform ConvertUpOrderbookEntry to ConvertUpOrderData format
+  const transformOrderData = (order: ConvertUpOrderbookEntry): ConvertUpOrderData | null => {
+    if (!order.decodedData) return null;
+
+    const decodedData = order.decodedData;
+    return {
+      type: "convertUp",
+      totalConvertBdv: decodedData.convertUpParams.totalConvertBdv.toHuman(),
+      minConvertBdvPerExecution: decodedData.convertUpParams.minConvertBdvPerExecution.toHuman(),
+      maxConvertBdvPerExecution: decodedData.convertUpParams.maxConvertBdvPerExecution.toHuman(),
+      minTimeBetweenConverts: decodedData.convertUpParams.minTimeBetweenConverts.toString(),
+      timeScale: "SECONDS", // Default time scale
+      minConvertBonusCapacity: decodedData.convertUpParams.minConvertBonusCapacity.toHuman(),
+      maxGrownStalkPerBdv: decodedData.convertUpParams.maxGrownStalkPerBdv.toHuman(),
+      minGrownStalkPerBdvBonus: decodedData.convertUpParams.minGrownStalkPerBdvBonus.toHuman(),
+      maxPriceToConvertUp: decodedData.convertUpParams.maxPriceToConvertUp.toHuman(),
+      minPriceToConvertUp: decodedData.convertUpParams.minPriceToConvertUp.toHuman(),
+      maxGrownStalkPerBdvPenalty: decodedData.convertUpParams.maxGrownStalkPerBdvPenalty.toHuman(),
+      slippageRatio: "0.01", // Default slippage ratio
+      lowStalkDeposits: decodedData.convertUpParams.lowStalkDeposits,
+      sourceTokenIndices: decodedData.convertUpParams.sourceTokenIndices,
+      operatorTip: decodedData.opParams.operatorTipAmount.toHuman(),
+      tokenStrategy: { type: "LOWEST_SEEDS" }, // Default strategy
+    };
+  };
+
   const handleRowClick = (order: ConvertUpOrderbookEntry) => {
     setSelectedOrder(order);
-    // TODO: Open ReviewTractorOrderDialog
+    const orderData = transformOrderData(order);
+    if (orderData) {
+      setReviewOrderData(orderData);
+      setReviewDialogOpen(true);
+    }
   };
 
   // Apply filtering and sorting
@@ -215,6 +249,27 @@ export function ConvertUpOrderbookContent({
           )}
         </TableBody>
       </Table>
+
+      {/* Review Tractor Order Dialog */}
+      {selectedOrder && reviewOrderData && (
+        <ReviewTractorOrderDialog
+          open={reviewDialogOpen}
+          onOpenChange={setReviewDialogOpen}
+          orderData={reviewOrderData}
+          encodedData={selectedOrder.requisition.blueprint.data}
+          operatorPasteInstrs={Array.from(selectedOrder.requisition.blueprint.operatorPasteInstrs) as `0x${string}`[]}
+          blueprint={
+            {
+              ...selectedOrder.requisition.blueprint,
+              operatorPasteInstrs: Array.from(
+                selectedOrder.requisition.blueprint.operatorPasteInstrs,
+              ) as `0x${string}`[],
+            } as Blueprint
+          }
+          isViewOnly={true}
+          executionHistory={[]} // No execution history in the current data model
+        />
+      )}
     </div>
   );
 }
