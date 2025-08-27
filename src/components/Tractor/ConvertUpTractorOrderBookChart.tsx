@@ -46,7 +46,7 @@ const formatThumbValue = (value: number) => {
   return `$${value}`;
 };
 
-export default function ConvertUpTractorOrderBook() {
+export default function ConvertUpTractorOrderBookChart() {
   const [priceToggleActive, setPriceToggleActive] = useState(false);
 
   const { data: orders, isLoading } = useTractorConvertUpOrderbook(empty);

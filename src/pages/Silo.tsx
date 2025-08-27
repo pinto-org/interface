@@ -10,7 +10,7 @@ import TableRowConnector from "@/components/TableRowConnector";
 import TextSkeleton from "@/components/TextSkeleton";
 import TooltipSimple from "@/components/TooltipSimple";
 import ConvertUpOrderForm from "@/components/Tractor/ConvertUpOrderForm";
-import ConvertUpTractorOrderBook from "@/components/Tractor/ConvertUpTractorOrderBook";
+import ConvertUpTractorOrderBookChart from "@/components/Tractor/ConvertUpTractorOrderBookChart";
 import ConvertUpTractorOrders from "@/components/Tractor/ConvertUpTractorOrders";
 import TractorCard from "@/components/Tractor/TractorCard";
 import { tabToSeasonalLookback } from "@/components/charts/SeasonalChart";
@@ -321,7 +321,7 @@ function Silo() {
             <Col className="gap-4 w-full">
               <Col className="w-full justify-between gap-8 sm:flex-row sm:items-start sm:justify-start">
                 <div className="flex flex-col w-[50%]">
-                  <ConvertUpTractorOrderBook />
+                  <ConvertUpTractorOrderBookChart />
                 </div>
                 <div className="flex flex-col w-[50%]">
                   <ConvertUpTractorCard />
