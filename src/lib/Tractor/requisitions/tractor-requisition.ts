@@ -238,10 +238,10 @@ export const getSelectRequisitionType = (requisitionsType: MayArray<RequisitionT
     const latestBlockNumber = Number(latestBlock.number);
 
     const map: {
-      sowBlueprintV0: TractorRequisitionEvent<SowBlueprintData>[];
+      sowBlueprintv0: TractorRequisitionEvent<SowBlueprintData>[];
       convertUpBlueprint: TractorRequisitionEvent<ConvertUpBlueprintStruct<TokenValue>>[];
     } = {
-      sowBlueprintV0: [],
+      sowBlueprintv0: [],
       convertUpBlueprint: [],
     };
 
@@ -279,6 +279,7 @@ export const getSelectRequisitionType = (requisitionsType: MayArray<RequisitionT
         timestamp,
         isCancelled: cancelledHashes.has(requisition.blueprintHash),
         requisitionType: data.type,
+        // @ts-expect-error - TODO: fix this
         decodedData: data.data,
       });
     }

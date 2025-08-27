@@ -4,12 +4,15 @@ import { DecimalBigNumber } from "./DecimalBigNumber";
 const blocker = {};
 const maxUint256 = 2n ** 256n - 1n;
 
+const maxInt96 = 2n ** 95n - 1n;
+
 export class TokenValue {
   static ZERO = TokenValue.fromHuman(0, 0);
   static NEGATIVE_ONE = TokenValue.fromHuman(-1, 0);
   static ONE = TokenValue.fromHuman(1, 0);
   static MAX_UINT32 = TokenValue.fromHuman(4294967295, 0);
   static MAX_UINT256 = TokenValue.fromBlockchain(maxUint256, 0);
+  static MAX_INT96 = TokenValue.fromBlockchain(maxInt96, 0);
 
   public humanString: string;
   public blockchainString: string;

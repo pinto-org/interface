@@ -95,7 +95,7 @@ export function TractorRequisitionsTable({ refreshTrigger = 0 }: TractorRequisit
           </TableRow>
         </TableHeader>
         <TableBody className="[&_tr:first-child]:border-t [&_tr:last-child]:border-b">
-          {requisitions?.sowBlueprintV0.map((req, index) => {
+          {requisitions?.sowBlueprintv0.map((req, index) => {
             let decodedData: {
               minTempAsString: string;
               sowAmounts: {
@@ -162,7 +162,7 @@ export function TractorRequisitionsTable({ refreshTrigger = 0 }: TractorRequisit
               </TableRow>
             );
           })}
-          {requisitions?.sowBlueprintV0.length === 0 && (
+          {requisitions?.sowBlueprintv0.length === 0 && (
             <TableRow>
               <TableCell colSpan={8} className="p-4 text-center text-gray-500">
                 No requisitions published yet

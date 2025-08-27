@@ -168,7 +168,7 @@ export function Plow() {
 
     // Filter out requisitions with zero or negative tip, cancelled requisitions,
     // and those with minTemp higher than current temperature
-    const filteredEvents = requisitionsQuery.data.sowBlueprintV0.filter((req) => {
+    const filteredEvents = requisitionsQuery.data.sowBlueprintv0.filter((req) => {
       // Skip cancelled requisitions
       if (req.isCancelled) return false;
 

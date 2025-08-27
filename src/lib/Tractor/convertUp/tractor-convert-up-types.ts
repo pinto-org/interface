@@ -1,25 +1,15 @@
 import { TV } from "@/classes/TokenValue";
-import { ExtendedTractorTokenStrategy, TractorRequisitionEvent, TractorTokenStrategy, WithdrawalPlan } from "../core";
+import {
+  ExtendedTractorTokenStrategy,
+  LowStalkDepositsMode,
+  TractorRequisitionEvent,
+  TractorTokenStrategy,
+  WithdrawalPlan,
+} from "../core";
 
 // ────────────────────────────────────────────────────────────────────────────────
 // INTERFACE
 // ────────────────────────────────────────────────────────────────────────────────
-
-// Types based on ConvertUpBlueprintv0.sol contract
-
-/**
- * How low stalk deposits are processed.
- * See LibSiloHelpers.Mode for more details (protocol)
- *
- * - USE (0): Use low stalk deposit.
- * - OMIT (1): Omit low stalk deposit.
- * - USE_LAST (2): Use low stalk deposit last.
- */
-export enum LowStalkDepositsMode {
-  USE = 0,
-  OMIT = 1,
-  USE_LAST = 2,
-}
 
 /**
  * Prepared ConvertUp arguments for form transformation
@@ -119,5 +109,13 @@ export interface ConvertUpOrderbookEntry extends Omit<TractorRequisitionEvent, "
     bdvLeftToConvert: TV;
   };
   withdrawalPlan?: WithdrawalPlan;
+  totalAvailableBdv: TV;
+  currentlyConvertible: TV;
+  amountConvertibleNextExecution: TV;
+  meetsConditions: {
+    price: boolean;
+    bonus: boolean;
+    capacity: boolean;
+  };
   isComplete?: boolean;
 }

@@ -1,8 +1,9 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { siloHelpersABI } from "@/constants/abi/SiloHelpersABI";
 import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
 import { tractorHelpersABI } from "@/constants/abi/TractorHelpersABI";
 import { diamondABI } from "@/constants/abi/diamondABI";
-import { SOW_BLUEPRINT_V0_ADDRESS, TRACTOR_HELPERS_ADDRESS } from "@/constants/address";
+import { SILO_HELPERS_ADDRESS, SOW_BLUEPRINT_V0_ADDRESS, TRACTOR_HELPERS_ADDRESS } from "@/constants/address";
 import { TIME_TO_BLOCKS } from "@/constants/blocks";
 import { PODS } from "@/constants/internalTokens";
 import { MAIN_TOKEN } from "@/constants/tokens";
@@ -19,6 +20,7 @@ import { base } from "viem/chains";
 import { generateBatchSortDepositsCallData } from "../../claim/depositUtils";
 import { CreateTractorDataReturnType, WithdrawalPlan, decodeEncodedTractorDataToAdvancedPipeCalls } from "../core";
 import { loadPublishedRequisitions } from "../requisitions/tractor-requisition";
+import { LowStalkDepositsMode, WithdrawalPlanFilterParams } from "./../core/shared-tractor-types";
 import { OrderbookEntry, SowBlueprintData, SowBlueprintDisplayData, TractorSowOrderParams } from "./tractor-sow-types";
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -375,7 +377,7 @@ export async function loadOrderbookData(
       loadPublishedRequisitions(address, protocolAddress, publicClient, latestBlock, "sowBlueprintv0", fromBlock),
     ]);
 
-    const requisitions = _requisitions?.sowBlueprintV0 ?? [];
+    const requisitions = _requisitions?.sowBlueprintv0 ?? [];
 
     if (podIndexResult && harvestableIndexResult) {
       // Pod line is podIndex - harvestableIndex
@@ -502,6 +504,16 @@ export async function loadOrderbookData(
             }
           }
 
+          const filterParams: WithdrawalPlanFilterParams = {
+            maxGrownStalkPerBdv: decodedData.maxGrownStalkPerBdv,
+            minStem: 0n,
+            excludeGerminatingDeposits: false,
+            excludeBean: false,
+            lowStalkDeposits: LowStalkDepositsMode.USE,
+            lowGrownStalkPerBdv: 0n,
+            maxStem: TokenValue.MAX_INT96.toBigInt(),
+          };
+
           // Get a new withdrawal plan that excludes deposits already allocated to other orders
           try {
             const emptyPlan = {
@@ -513,14 +525,15 @@ export async function loadOrderbookData(
             };
 
             withdrawalPlan = await publicClient.readContract({
-              address: TRACTOR_HELPERS_ADDRESS,
-              abi: tractorHelpersABI,
+              address: SILO_HELPERS_ADDRESS,
+              abi: siloHelpersABI,
               functionName: "getWithdrawalPlanExcludingPlan",
               args: [
                 publisher,
                 decodedData.sourceTokenIndices,
                 decodedData.sowAmounts.totalAmountToSow,
-                decodedData.maxGrownStalkPerBdv,
+                filterParams as never,
+                // decodedData.maxGrownStalkPerBdv,
                 combinedExistingPlan || emptyPlan,
               ],
             });
