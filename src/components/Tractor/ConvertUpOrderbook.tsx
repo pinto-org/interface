@@ -17,6 +17,7 @@ import React from "react";
 import { Col, Row } from "../Container";
 import LoadingSpinner from "../LoadingSpinner";
 import ReviewTractorOrderDialog from "../ReviewTractorOrderDialog";
+import { ConvertUpExecute } from "./ConvertUpExecute";
 import { ConvertUpOrderData } from "./types";
 
 const BASESCAN_URL = "https://basescan.org/address/";
@@ -410,12 +411,9 @@ export function ConvertUpOrderbookDialog({ open, onOpenChange }: ConvertUpOrderb
                   showAboveCurrentBonus={showAboveCurrentBonus}
                 />
               ) : (
-                <Col className="px-6">
-                  <div className="text-center text-gray-500 py-8">
-                    <div className="pinto-body font-medium mb-2">Execute Convert Up Orders</div>
-                    <div className="pinto-sm">This functionality will be implemented in a future update.</div>
-                  </div>
-                </Col>
+                <div className="px-6">
+                  <ConvertUpExecute />
+                </div>
               )}
             </Col>
           </Col>
