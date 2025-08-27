@@ -15,7 +15,7 @@ import { memo, useCallback, useState } from "react";
 
 const NUM_COLS = 8;
 
-export default function ConvertUpTractorOrders() {
+export default function ConvertUpTractorOrders({ onSeeAllClick }: { onSeeAllClick: () => void }) {
   const { price } = usePriceData();
 
   const [hoveredAddress, setHoveredAddress] = useState<string | null>(null);
@@ -95,7 +95,7 @@ export default function ConvertUpTractorOrders() {
                 </td>
               </tr>
             )}
-            {!isLoading && <SeeAllTractorOrdersRow onClick={() => {}} />}
+            {!isLoading && <SeeAllTractorOrdersRow onClick={onSeeAllClick} />}
           </tbody>
         </table>
       </div>

@@ -10,6 +10,7 @@ import TableRowConnector from "@/components/TableRowConnector";
 import TextSkeleton from "@/components/TextSkeleton";
 import TooltipSimple from "@/components/TooltipSimple";
 import ConvertUpOrderForm from "@/components/Tractor/ConvertUpOrderForm";
+import ConvertUpOrderbookDialog from "@/components/Tractor/ConvertUpOrderbook";
 import ConvertUpTractorOrderBookChart from "@/components/Tractor/ConvertUpTractorOrderBookChart";
 import ConvertUpTractorOrders from "@/components/Tractor/ConvertUpTractorOrders";
 import TractorCard from "@/components/Tractor/TractorCard";
@@ -372,24 +373,28 @@ const useConvertUpTractorActiveTab = () => {
 
 const ConvertUpTractorContent = () => {
   const [value, setActiveTab] = useConvertUpTractorActiveTab();
+  const [open, setOpen] = useState(false);
 
   return (
-    <Tabs.Tabs defaultValue="orders" value={value} onValueChange={setActiveTab}>
-      <Tabs.TabsList variant="text">
-        <Tabs.TabsTrigger value="orders" variant="text">
-          Convert Up
-        </Tabs.TabsTrigger>
-        <Tabs.TabsTrigger value="tractor" variant="text" className="hidden sm:block">
-          My Orders
-        </Tabs.TabsTrigger>
-      </Tabs.TabsList>
-      <Tabs.TabsContent value="orders">
-        <ConvertUpTractorOrders />
-      </Tabs.TabsContent>
-      <Tabs.TabsContent value="tractor">
-        <div>asdf</div>
-      </Tabs.TabsContent>
-    </Tabs.Tabs>
+    <>
+      <Tabs.Tabs defaultValue="orders" value={value} onValueChange={setActiveTab}>
+        <Tabs.TabsList variant="text">
+          <Tabs.TabsTrigger value="orders" variant="text">
+            Convert Up
+          </Tabs.TabsTrigger>
+          <Tabs.TabsTrigger value="tractor" variant="text" className="hidden sm:block">
+            My Orders
+          </Tabs.TabsTrigger>
+        </Tabs.TabsList>
+        <Tabs.TabsContent value="orders">
+          <ConvertUpTractorOrders onSeeAllClick={() => setOpen(true)} />
+        </Tabs.TabsContent>
+        <Tabs.TabsContent value="tractor">
+          <div>asdf</div>
+        </Tabs.TabsContent>
+      </Tabs.Tabs>
+      <ConvertUpOrderbookDialog open={open} onOpenChange={setOpen} />
+    </>
   );
 };
 
