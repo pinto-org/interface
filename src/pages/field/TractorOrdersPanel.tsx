@@ -1,12 +1,8 @@
-import pintoIcon from "@/assets/tokens/PINTO.png";
-import { TokenValue } from "@/classes/TokenValue";
-import { Col, Row } from "@/components/Container";
+import { Col } from "@/components/Container";
 import EmptyTable from "@/components/EmptyTable";
 import ReviewTractorOrderDialog from "@/components/ReviewTractorOrderDialog";
 import ModifyTractorOrderDialog from "@/components/Tractor/ModifySowOrderDialog";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import IconImage from "@/components/ui/IconImage";
+import FarmerTractorSowOrderCard from "@/components/Tractor/Sow/FarmerTractorSowOrderCard";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { beanstalkAbi } from "@/generated/contractHooks";
@@ -25,12 +21,8 @@ import { Blueprint } from "@/lib/Tractor/types";
 import usePublisherTractorExecutions from "@/state/tractor/useTractorExecutions";
 import { useTractorSowOrderbook } from "@/state/tractor/useTractorSowOrders";
 import { tryExtractErrorMessage } from "@/utils/error";
-import { formatter } from "@/utils/format";
 import { stringEq } from "@/utils/string";
-import { getTokenNameByIndex } from "@/utils/token";
 import { AdvancedFarmCall, AdvancedPipeCall } from "@/utils/types";
-import { CalendarIcon, ClockIcon, CornerBottomLeftIcon, Cross1Icon, Pencil1Icon } from "@radix-ui/react-icons";
-import { format } from "date-fns";
 import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { decodeFunctionData } from "viem";
@@ -143,7 +135,7 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
     }
   };
 
-  const handleOrderClick = (req: RequisitionEvent<SowBlueprintData>) => {
+  const handleOrderClick = useCallback((req: RequisitionEvent<SowBlueprintData>) => {
     setSelectedOrder(req);
 
     // Extract the raw sowBlueprintv0 call data if available
@@ -157,7 +149,12 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
     }
 
     setShowDialog("review");
-  };
+  }, []);
+
+  const handleModifyClick = useCallback((req: RequisitionEvent<SowBlueprintData>) => {
+    setSelectedOrder(req);
+    setShowDialog("modify");
+  }, []);
 
   if (!address) {
     return (
@@ -190,203 +187,18 @@ const TractorOrdersPanel = ({ refreshData, onCreateOrder }: TractorOrdersPanelPr
 
   return (
     <div className="flex flex-col gap-4 w-full">
-      {orders?.map((req, index) => {
-        if (req.requisitionType !== "sowBlueprintv0" || !req.decodedData) return null;
-
-        const data = req.decodedData;
-        const totalAmount = TokenValue.fromBlockchain(data.sowAmounts.totalAmountToSow, 6);
-
-        // Get executions for this blueprint
-        const blueprintExecutions = req.executions || [];
-
-        // Count how many times this blueprint has been executed
-        const executionCount = blueprintExecutions?.length;
-
-        // Calculate total PINTO sown so far for this blueprint
-        const totalSown = blueprintExecutions.reduce((acc, exec) => {
-          if (exec.sowEvent) {
-            return acc.add(exec.sowEvent.beans);
-          }
-          return acc;
-        }, TokenValue.ZERO);
-
-        // Calculate percentage completion
-        const percentComplete = totalAmount.gt(0) ? totalSown.div(totalAmount).mul(100) : TokenValue.ZERO;
-
-        // Get percentage as number for display
-        const percentCompleteNumber = Math.min(percentComplete.toHuman ? Number(percentComplete.toHuman()) : 0, 100);
-
-        const isComplete = percentComplete.gte(100);
-
-        // Find latest execution for this blueprint
-        const latestExecution =
-          blueprintExecutions.length > 0 ? blueprintExecutions.sort((a, b) => b.blockNumber - a.blockNumber)[0] : null;
-
-        // Format the publish date
-        const publishDate = req.timestamp ? format(new Date(req.timestamp), "dd MMM yyyy") : "Unknown";
-
-        // Determine token strategy based on sourceTokenIndices
-        let strategyText = "Unknown strategy";
-        if (data.sourceTokenIndices.includes(255)) {
-          strategyText = "Lowest Seeds";
-        } else if (data.sourceTokenIndices.includes(254)) {
-          strategyText = "Lowest Price";
-        } else {
-          strategyText = "Specific Token";
-        }
-
-        return (
-          <Col key={`requisition-${index}`} className="gap-2">
-            <Card
-              className="box-border flex flex-col p-4 gap-2 bg-white border border-pinto-gray-2 rounded-xl cursor-pointer hover:border-pinto-green-4 transition-colors"
-              onClick={() => handleOrderClick(req)}
-            >
-              <div className="flex flex-col gap-2 w-full">
-                {/* Header row with all the pills and labels */}
-                <div className="flex justify-between items-center w-full">
-                  <div className="flex items-center gap-0">
-                    {/* Withdraw pill */}
-                    <div className="flex items-center px-2 py-1 bg-pinto-green-4 rounded-xl">
-                      <span className="text-white text-sm font-normal whitespace-nowrap">Withdraw</span>
-                    </div>
-                    {/* Divider */}
-                    <div className="border-t-2 border-pinto-gray-2 w-6 flex-shrink-0" />
-                    {/* From label */}
-                    <div className="bg-[#F8F8F8] px-2 py-1 rounded-xl">
-                      <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap">from Silo</span>
-                    </div>
-                    {/* Divider */}
-                    <div className="border-t-2 border-pinto-gray-2 w-6 flex-shrink-0" />
-                    {/* Sow pill */}
-                    <div className="flex items-center px-2 py-1 bg-pinto-green-4 rounded-xl">
-                      <span className="text-white text-sm font-normal whitespace-nowrap">Sow</span>
-                    </div>
-                    {/* Divider */}
-                    <div className="border-t-2 border-pinto-gray-2 w-6 flex-shrink-0" />
-                    {/* Up to */}
-                    <div className="bg-[#F8F8F8] px-2 py-1 rounded-xl">
-                      <div className="flex items-center gap-1">
-                        <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap">up to</span>
-                        <IconImage src={pintoIcon} size={4} />
-                        <span className="text-pinto-green-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                          {formatter.number(totalAmount)} PINTO
-                          <span className="text-pinto-gray-4">
-                            {" "}
-                            (max{" "}
-                            {formatter.number(TokenValue.fromBlockchain(data.sowAmounts.maxAmountToSowPerSeason, 6))}{" "}
-                            per Season)
-                          </span>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-pinto-gray-4 text-sm whitespace-nowrap">Operator Tip:</span>
-                    <div className="bg-[#F8F8F8] px-2 py-1 rounded-xl flex items-center gap-1">
-                      <IconImage src={pintoIcon} size={4} />
-                      <span className="text-pinto-green-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                        {formatter.number(TokenValue.fromBlockchain(data.operatorParams.operatorTipAmount, 6))} PINTO
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Strategy description - new row */}
-                <div className="flex items-center pl-6 gap-2">
-                  <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
-                  <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                    Withdraw Deposited Tokens from the Silo with the{" "}
-                    {data.sourceTokenIndices.includes(255)
-                      ? "Lowest Seeds"
-                      : data.sourceTokenIndices.includes(254)
-                        ? "Best Price"
-                        : getTokenNameByIndex(data.sourceTokenIndices[0])}
-                  </span>
-                </div>
-
-                {/* Execution conditions */}
-                <div className="flex justify-between items-end w-full">
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center pl-6 gap-2">
-                      <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
-                      <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                        Execute when Temperature is at least {formatPercentage(data.minTemp)}
-                      </span>
-                    </div>
-                    <div className="flex items-center pl-6 gap-2">
-                      <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
-                      <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                        AND when Pod Line Length is at most{" "}
-                        {formatter.number(TokenValue.fromHuman(data.maxPodlineLengthAsString, 6))}
-                      </span>
-                    </div>
-                    <div className="flex items-center pl-6 gap-2">
-                      <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
-                      <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                        AND when Available Soil is at least {data.sowAmounts.minAmountToSowPerSeasonAsString}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <IconImage src={pintoIcon} size={4} />
-                    <span className="text-pinto-gray-4 text-sm whitespace-nowrap overflow-hidden text-ellipsis">
-                      PINTO Sown through this Order:
-                      <span className="text-black">
-                        {" "}
-                        {formatter.number(totalSown)}/{formatter.number(totalAmount)}
-                      </span>
-                      <span className="text-pinto-gray-4"> ({Math.round(percentCompleteNumber)}%)</span>
-                    </span>
-                  </div>
-                </div>
-
-                {isComplete && (
-                  <div className="mt-2 p-2 bg-pinto-green-1 rounded-lg border border-pinto-green-4 text-pinto-green-4 text-center font-medium">
-                    Order Completed!
-                  </div>
-                )}
-              </div>
-            </Card>
-
-            {/* External actions - positioned outside the cell */}
-            <Row className="self-end gap-2 pinto-sm text-pinto-light">
-              <div className="inline-flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4" />
-                <span className="inline-block whitespace-nowrap">Published {publishDate}</span>
-              </div>
-              <Row className="inline-flex items-center gap-2">
-                <ClockIcon className="h-4 w-4" />
-                <span className="inline-block whitespace-nowrap">
-                  Executed {executionCount} time{executionCount !== 1 ? "s" : ""}
-                </span>
-              </Row>
-              <Row className="items-center gap-0">
-                <Button
-                  variant="ghost"
-                  className="text-sm"
-                  onClick={() => {
-                    setSelectedOrder(req);
-                    setShowDialog("modify");
-                  }}
-                  disabled={submitting || isConfirming}
-                >
-                  <Pencil1Icon className="h-4 w-4" />
-                  <span className="inline ml-1">Modify</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="text-sm text-pinto-red-2 hover:bg-pinto-red-1"
-                  onClick={(e) => handleCancelBlueprint(req, e)}
-                  disabled={submitting || isConfirming}
-                >
-                  <Cross1Icon className="h-4 w-4" />
-                  <span className="inline ml-1">Cancel</span>
-                </Button>
-              </Row>
-            </Row>
-          </Col>
-        );
-      })}
+      {orders?.map((req, index) => (
+        <FarmerTractorSowOrderCard
+          key={`requisition-${index}`}
+          req={req}
+          executions={req.executions || []}
+          onOrderClick={handleOrderClick}
+          onModifyClick={handleModifyClick}
+          onCancelClick={handleCancelBlueprint}
+          isSubmitting={submitting}
+          isConfirming={isConfirming}
+        />
+      ))}
 
       {/* Dialog for order details */}
       {selectedOrder?.decodedData && (
@@ -433,11 +245,6 @@ const EmptyContainer = ({ children }: { children: React.ReactNode }) => (
 // ────────────────────────────────────────────────────────────────────────────────
 // Helper functions
 // ────────────────────────────────────────────────────────────────────────────────
-
-// Helper function for formatting percentage since formatter.percentage doesn't exist
-function formatPercentage(value: bigint): string {
-  return `${(Number(value) / 1e6).toFixed(2)}%`;
-}
 
 // Convert the blueprint to match the expected Blueprint type (fixing readonly issue)
 const adaptBlueprintForDialog = (blueprint: RequisitionEvent["requisition"]["blueprint"]): Blueprint => {
