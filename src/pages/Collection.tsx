@@ -13,7 +13,14 @@ import { externalLinks } from "@/constants/links";
 import { useCardFlipAnimation } from "@/hooks/useCardFlipAnimation";
 import { usePaginatedNFTImages } from "@/hooks/usePaginatedNFTImages";
 import { type NFTData, type ViewMode, useNFTData } from "@/state/useNFTData";
-import { ChevronLeftIcon, ChevronRightIcon, GridIcon, StackIcon } from "@radix-ui/react-icons";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DoubleArrowLeftIcon,
+  DoubleArrowRightIcon,
+  GridIcon,
+  StackIcon,
+} from "@radix-ui/react-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAccount } from "wagmi";
@@ -66,12 +73,23 @@ function PaginationControls({
         <Button
           variant="outline"
           size="sm"
+          onClick={() => onPageChange(1)}
+          disabled={currentPage === 1}
+          className="rounded-lg"
+          title="Go to first page"
+        >
+          <DoubleArrowLeftIcon className="w-4 h-4" />
+          <span className="hidden sm:inline">First</span>
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
           className="rounded-lg"
         >
           <ChevronLeftIcon className="w-4 h-4" />
-          Previous
+          <span className="hidden sm:inline">Previous</span>
         </Button>
         <div className="flex items-center gap-1">
           {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
@@ -106,8 +124,19 @@ function PaginationControls({
           disabled={currentPage === totalPages}
           className="rounded-lg"
         >
-          Next
+          <span className="hidden sm:inline">Next</span>
           <ChevronRightIcon className="w-4 h-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(totalPages)}
+          disabled={currentPage === totalPages}
+          className="rounded-lg"
+          title="Go to last page"
+        >
+          <span className="hidden sm:inline">Last</span>
+          <DoubleArrowRightIcon className="w-4 h-4" />
         </Button>
       </div>
     </div>
