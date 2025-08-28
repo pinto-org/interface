@@ -331,11 +331,16 @@ export default function Collection() {
   const endIndex = startIndex + itemsPerPage;
   const paginatedNFTs = displayNFTs.slice(startIndex, endIndex);
 
-  const handlePageChange = useCallback((page: number) => {
-    setCurrentPage(page);
-    // Scroll to top when page changes
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
+  const handlePageChange = useCallback(
+    (page: number) => {
+      if (page !== currentPage) {
+        setCurrentPage(page);
+        // Scroll to top when page actually changes
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    },
+    [currentPage],
+  );
 
   if (!address) {
     return (
