@@ -11,6 +11,7 @@ import { NFT_COLLECTION_1_CONTRACT } from "@/constants/address";
 import { getCollectionName } from "@/constants/collections";
 import { externalLinks } from "@/constants/links";
 import { useCardFlipAnimation } from "@/hooks/useCardFlipAnimation";
+import { usePaginatedNFTImages } from "@/hooks/usePaginatedNFTImages";
 import { type NFTData, type ViewMode, useNFTData } from "@/state/useNFTData";
 import { ChevronLeftIcon, ChevronRightIcon, GridIcon, StackIcon } from "@radix-ui/react-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -248,9 +249,14 @@ export default function Collection() {
     localStorage.setItem("nft-grid-mode", JSON.stringify(isGridMode));
   }, [isGridMode]);
 
+  // Your IPFS base hash (without ipfs:// prefix)
+  const IPFS_BASE_HASH = "bafybeid4dlkibha4ztyozwa56o2v3kp3iwpx45whiubqnqncxknhtpimza";
+
   const { userNFTs, displayNFTs, balance, loading } = useNFTData({
     contractAddress: NFT_COLLECTION_1_CONTRACT,
     viewMode,
+    enablePaginatedLoading: viewMode === "all",
+    baseIPFSHash: IPFS_BASE_HASH,
   });
 
   // Check if user has NFTs and setup reveal animation
@@ -301,6 +307,15 @@ export default function Collection() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedNFTs = displayNFTs.slice(startIndex, endIndex);
+
+  // Get current page token IDs for batch loading
+  const currentPageTokenIds = useMemo(() => {
+    if (viewMode === "owned" || paginatedNFTs.length === 0) return [];
+    return paginatedNFTs.map((nft) => nft.id);
+  }, [viewMode, paginatedNFTs]);
+
+  // Load images for current page
+  const { nftData: pageImageData, loading: imagesLoading } = usePaginatedNFTImages(IPFS_BASE_HASH, currentPageTokenIds);
 
   const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
@@ -383,7 +398,7 @@ export default function Collection() {
           <Separator />
 
           <div className="mt-2">
-            {loading ? (
+            {loading || (viewMode === "all" && imagesLoading) ? (
               // Show nothing while loading to prevent flash
               <div />
             ) : displayNFTs.length === 0 ? (

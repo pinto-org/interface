@@ -12,6 +12,8 @@ export type ViewMode = "owned" | "all";
 interface UseNFTDataParams {
   contractAddress: string;
   viewMode?: ViewMode;
+  enablePaginatedLoading?: boolean;
+  baseIPFSHash?: string;
 }
 
 interface UseNFTDataReturn {
@@ -40,7 +42,12 @@ interface UseNFTDataReturn {
   refetchAll: () => void;
 }
 
-export const useNFTData = ({ contractAddress, viewMode = "owned" }: UseNFTDataParams): UseNFTDataReturn => {
+export const useNFTData = ({
+  contractAddress,
+  viewMode = "owned",
+  enablePaginatedLoading = false,
+  baseIPFSHash,
+}: UseNFTDataParams): UseNFTDataReturn => {
   // Local state for processed NFT data
   const [userNFTs, setUserNFTs] = useState<NFTData[]>([]);
   const [allNFTs, setAllNFTs] = useState<NFTData[]>([]);
@@ -153,7 +160,14 @@ export const useNFTData = ({ contractAddress, viewMode = "owned" }: UseNFTDataPa
 
   // Process all token IDs into NFT data
   useEffect(() => {
-    if (allTokenIds && allTokenIds.length > 0) {
+    if (enablePaginatedLoading && baseIPFSHash && totalSupply) {
+      // For paginated loading with known IPFS structure, generate all NFTs directly
+      const processedAllNFTs = Array.from({ length: Number(totalSupply) }, (_, index) => ({
+        id: index,
+        contractAddress,
+      }));
+      setAllNFTs(processedAllNFTs);
+    } else if (allTokenIds && allTokenIds.length > 0) {
       const processedAllNFTs = allTokenIds
         .map((result) => {
           if (result.status === "success" && result.result) {
@@ -170,7 +184,7 @@ export const useNFTData = ({ contractAddress, viewMode = "owned" }: UseNFTDataPa
     } else if (totalSupply && Number(totalSupply) === 0) {
       setAllNFTs([]);
     }
-  }, [allTokenIds, totalSupply, contractAddress]);
+  }, [allTokenIds, totalSupply, contractAddress, enablePaginatedLoading, baseIPFSHash]);
 
   // Memoized computed values
   const displayNFTs = useMemo(() => (viewMode === "owned" ? userNFTs : allNFTs), [viewMode, userNFTs, allNFTs]);
@@ -179,8 +193,12 @@ export const useNFTData = ({ contractAddress, viewMode = "owned" }: UseNFTDataPa
     if (viewMode === "owned") {
       return balanceLoading || userTokensLoading;
     }
+    // For paginated loading, we only need totalSupply
+    if (enablePaginatedLoading) {
+      return totalSupplyLoading;
+    }
     return totalSupplyLoading || allTokensLoading;
-  }, [viewMode, balanceLoading, userTokensLoading, totalSupplyLoading, allTokensLoading]);
+  }, [viewMode, balanceLoading, userTokensLoading, totalSupplyLoading, allTokensLoading, enablePaginatedLoading]);
 
   const error = useMemo(() => {
     const errors = [

@@ -96,3 +96,34 @@ export const getOptimizedImageUrl = (imageUrl: string): string => {
 
   return convertIpfsUrl(imageUrl);
 };
+
+// Batch fetch multiple metadata files from IPFS directory
+export const fetchBatchMetadata = async (
+  baseHash: string,
+  tokenIds: number[],
+): Promise<Array<{ tokenId: number; metadata: NFTMetadata | null; error?: string }>> => {
+  const baseUrl = convertIpfsUrl(`ipfs://${baseHash}/`);
+
+  // Batch fetch all metadata files
+  const metadataPromises = tokenIds.map(async (tokenId) => {
+    try {
+      const response = await fetchWithFallback(`${baseUrl}${tokenId}.json`);
+      const metadata: NFTMetadata = await response.json();
+
+      // Validate required fields
+      if (!metadata.name || !metadata.image) {
+        throw new Error("Invalid metadata: missing required fields");
+      }
+
+      return { tokenId, metadata };
+    } catch (error) {
+      return {
+        tokenId,
+        metadata: null,
+        error: error instanceof Error ? error.message : "Failed to load metadata",
+      };
+    }
+  });
+
+  return Promise.all(metadataPromises);
+};

@@ -1,7 +1,7 @@
 // Image caching utilities using localStorage and IndexedDB
 
 const CACHE_PREFIX = "nft_image_";
-const CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_EXPIRY = 30 * 24 * 60 * 60 * 1000; // 30 days (monthly)
 const MAX_CACHE_SIZE = 50; // Maximum number of images to cache
 
 interface CachedImage {
