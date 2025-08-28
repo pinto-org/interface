@@ -7,7 +7,7 @@ import { Dialog, DialogContent } from "@/components/ui/Dialog";
 import { Separator } from "@/components/ui/Separator";
 import { abiSnippets } from "@/constants/abiSnippets";
 import { getCollectionName } from "@/constants/collections";
-import { externalLinks } from "@/constants/links";
+import { getOpenSeaTokenUrl } from "@/constants/links";
 import { useNFTImage } from "@/hooks/useNFTImage";
 import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import { useEffect } from "react";
@@ -221,7 +221,7 @@ export const NFTDetailModal = ({
               <div>
                 <Button asChild className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold">
                   <Link
-                    to={externalLinks.nftMarketplace}
+                    to={getOpenSeaTokenUrl(selectedNFT.contractAddress, selectedNFT.id)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center gap-2 text-white"
@@ -356,7 +356,7 @@ export const NFTDetailModal = ({
                   className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl"
                 >
                   <Link
-                    to={externalLinks.nftMarketplace}
+                    to={getOpenSeaTokenUrl(selectedNFT.contractAddress, selectedNFT.id)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center gap-2 text-white"
