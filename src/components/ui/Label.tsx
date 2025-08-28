@@ -18,6 +18,10 @@ const labelVariants = cva(
       expanded: {
         true: "flex h-10 items-center",
       },
+      size: {
+        default: "",
+        sm: "text-sm leading-same-sm",
+      },
     },
   },
 );
@@ -25,8 +29,8 @@ const labelVariants = cva(
 const Label = React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> & VariantProps<typeof labelVariants>
->(({ className, variant = "default", expanded, ...props }, ref) => (
-  <LabelPrimitive.Root ref={ref} className={cn(labelVariants({ variant, expanded }), className)} {...props} />
+>(({ className, variant = "default", size = "sm", expanded, ...props }, ref) => (
+  <LabelPrimitive.Root ref={ref} className={cn(labelVariants({ variant, expanded, size }), className)} {...props} />
 ));
 Label.displayName = LabelPrimitive.Root.displayName;
 

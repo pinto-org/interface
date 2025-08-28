@@ -22,7 +22,7 @@ export default function useConvertStalkPerBdvBonusData() {
           const [bonus, maxCapacity] = data;
 
           return {
-            bonus: TV.fromBigInt(bonus, STALK.decimals - mainToken.decimals),
+            bonus: TV.fromBigInt(bonus, STALK.decimals),
             maxCapacity: TV.fromBigInt(maxCapacity, mainToken.decimals),
           };
         },

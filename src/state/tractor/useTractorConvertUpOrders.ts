@@ -1,17 +1,10 @@
-import { TV } from "@/classes/TokenValue";
 import { TIME_TO_BLOCKS } from "@/constants/blocks";
 import { defaultQuerySettingsMedium } from "@/constants/query";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import {
-  ConvertUpBlueprintStruct,
-  ConvertUpOrderbookEntry,
-  TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE,
-  loadConvertUpOrderbookData,
-} from "@/lib/Tractor";
+import { ConvertUpOrderbookEntry, TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE, loadConvertUpOrderbookData } from "@/lib/Tractor";
 import { HashString } from "@/utils/types.generic";
 import { isDev } from "@/utils/utils";
 import { DefaultError, QueryObserverOptions, useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
 import { useChainId, usePublicClient } from "wagmi";
 
 const getLookbackBlocks = (
@@ -79,10 +72,6 @@ export function useTractorConvertUpOrderbook<T = ConvertUpOrderbookEntry[]>({
     select,
     ...defaultQuerySettingsMedium,
   });
-
-  useEffect(() => {
-    console.log("ordersChainQuery.data: ", ordersChainQuery.data);
-  }, [ordersChainQuery.data]);
 
   return ordersChainQuery;
 }

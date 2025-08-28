@@ -188,35 +188,33 @@ const SeeAllTractorOrdersRow = ({ onClick }: { onClick: () => void }) => {
 
 const LoadingTableBody = () => (
   <>
-    {Array(5)
-      .fill(0)
-      .map((_, index) => (
-        <tr key={index} className="[&_td]:px-2 [&_td]:py-1">
-          <td>
-            <Skeleton className="h-3 w-12" />
-          </td>
-          <td>
-            <Skeleton className="h-3 w-12" />
-          </td>
-          <td align="right">
-            <Skeleton className="h-3 w-24" />
-          </td>
-          <td align="right">
-            <Skeleton className="h-3 w-20" />
-          </td>
-          <td align="right">
-            <Skeleton className="h-3 w-28" />
-          </td>
-          <td align="right">
-            <Skeleton className="h-3 w-20" />
-          </td>
-          <td align="right">
-            <Skeleton className="h-3 w-14" />
-          </td>
-          <td align="right">
-            <Skeleton className="h-3 w-20" />
-          </td>
-        </tr>
-      ))}
+    {Array.from({ length: 5 }).map((_, index) => (
+      <tr key={index} className="[&_td]:px-2 [&_td]:py-1">
+        <td>
+          <Skeleton className="h-3 w-12" />
+        </td>
+        <td>
+          <Skeleton className="h-3 w-12" />
+        </td>
+        <td align="right">
+          <Skeleton className="h-3 w-24" />
+        </td>
+        <td align="right">
+          <Skeleton className="h-3 w-20" />
+        </td>
+        <td align="right">
+          <Skeleton className="h-3 w-28" />
+        </td>
+        <td align="right">
+          <Skeleton className="h-3 w-20" />
+        </td>
+        <td align="right">
+          <Skeleton className="h-3 w-14" />
+        </td>
+        <td align="right">
+          <Skeleton className="h-3 w-20" />
+        </td>
+      </tr>
+    ))}
   </>
 );
