@@ -336,7 +336,7 @@ const DialogTabs = ({
       >
         View Blueprint and Requisition
       </button>
-      {isViewOnly && executions && (
+      {isViewOnly && executions ? (
         <button
           type="button"
           className={`pb-2 ${
@@ -348,7 +348,7 @@ const DialogTabs = ({
         >
           Execution History ({executions})
         </button>
-      )}
+      ) : null}
     </div>
   );
 };

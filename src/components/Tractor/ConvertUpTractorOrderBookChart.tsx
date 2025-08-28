@@ -4,11 +4,12 @@ import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertU
 import { formatter } from "@/utils/format";
 import { exists } from "@/utils/utils";
 import React, { useState } from "react";
-import { Col, Row } from "./Container";
-import OrderBook, { OrderbookColumnConfig } from "./OrderBook";
-import { Card } from "./ui/Card";
-import { MultiSlider } from "./ui/Slider";
-import { Switch } from "./ui/Switch";
+import { Col, Row } from "../Container";
+import OrderBook, { OrderbookColumnConfig } from "../OrderBook";
+import { Card } from "../ui/Card";
+import { TooltipLabel } from "../ui/Label";
+import { MultiSlider } from "../ui/Slider";
+import { Switch } from "../ui/Switch";
 
 interface OrderBookEntry extends ConvertUpOrderbookEntry {
   decodedData: NonNullable<ConvertUpOrderbookEntry["decodedData"]>;
@@ -45,7 +46,7 @@ const formatThumbValue = (value: number) => {
   return `$${value}`;
 };
 
-export default function TractorOrderBook() {
+export default function ConvertUpTractorOrderBookChart() {
   const [priceToggleActive, setPriceToggleActive] = useState(false);
 
   const { data: orders, isLoading } = useTractorConvertUpOrderbook(empty);
@@ -70,7 +71,7 @@ export default function TractorOrderBook() {
 
   return (
     <Card className="p-0">
-      <Col className="p-4 gap-4 w-full">
+      <Col className="p-4 gap-5 w-full">
         <Row className="w-full gap-2 justify-between">
           <span className="pinto-sm sm:pinto-body">Convert Orderbook</span>
           <Row className="gap-2">
@@ -80,7 +81,10 @@ export default function TractorOrderBook() {
             <Switch checked={priceToggleActive} onCheckedChange={setPriceToggleActive} />
           </Row>
         </Row>
-        <Col>
+        <Col className="gap-4">
+          <TooltipLabel className="pinto-xs" tooltipText={"Price filter"}>
+            {"Price Filter"}
+          </TooltipLabel>
           <MultiSlider
             value={[minPrice, maxPrice]}
             onValueChange={([newMin, newMax]) => {

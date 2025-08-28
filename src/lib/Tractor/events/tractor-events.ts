@@ -48,7 +48,7 @@ export async function fetchPublisherTractorExecutioEvents(
   if (!chainId) throw new Error("[Tractor/fetchTractorExecutions] No chain ID found");
 
   const defaultFromBlock = reqTypes.has("sowBlueprintv0")
-    ? TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE.sowBlueprintV0
+    ? TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE.sowBlueprintv0
     : TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE.convertUpBlueprint;
 
   let fromBlock: bigint = defaultFromBlock;

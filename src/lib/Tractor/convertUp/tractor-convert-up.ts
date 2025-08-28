@@ -1,7 +1,13 @@
 import { TV } from "@/classes/TokenValue";
+import { siloHelpersABI } from "@/constants/abi/SiloHelpersABI";
+import { tractorHelpersABI } from "@/constants/abi/TractorHelpersABI";
 import { convertUpBlueprintV0ABI } from "@/constants/abi/convertUpBlueprintV0ABI";
-import { CONVERT_UP_BLUEPRINT_V0_ADDRESS } from "@/constants/address";
+import { diamondABI } from "@/constants/abi/diamondABI";
+import { diamondPriceABI } from "@/constants/abi/diamondPriceABI";
+import { CONVERT_UP_BLUEPRINT_V0_ADDRESS, SILO_HELPERS_ADDRESS, TRACTOR_HELPERS_ADDRESS } from "@/constants/address";
+import { STALK } from "@/constants/internalTokens";
 import { MAIN_TOKEN } from "@/constants/tokens";
+import { beanstalkPriceAddress } from "@/generated/contractHooks";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { getChainConstant } from "@/utils/chain";
 import { AdvancedPipeCall } from "@/utils/types";
@@ -12,6 +18,8 @@ import { base } from "viem/chains";
 import {
   CreateTractorDataReturnType,
   TRACTOR_DEPLOYMENT_BLOCK,
+  WithdrawalPlan,
+  WithdrawalPlanFilterParams,
   decodeEncodedTractorDataToAdvancedPipeCalls,
   encodeTractorAndOptimizeDeposits,
   getTokenIndexesFromTractorTokenStrategy,
@@ -171,7 +179,7 @@ export async function loadConvertUpOrderbookData(
   const fromBlock =
     lookbackBlocks && latestBlock?.number ? latestBlock.number - lookbackBlocks : TRACTOR_DEPLOYMENT_BLOCK;
 
-  const [completedEvents, _requisitions, _priceResult] = await Promise.all([
+  const [completedEvents, _requisitions, _priceResult, bonusAndCapacityResult] = await Promise.all([
     publicClient.getContractEvents({
       address: CONVERT_UP_BLUEPRINT_V0_ADDRESS,
       abi: convertUpBlueprintV0ABI,
@@ -181,14 +189,32 @@ export async function loadConvertUpOrderbookData(
     }),
     loadPublishedRequisitions(address, protocolAddress, publicClient, latestBlock, "convertUpBlueprint", fromBlock),
     publicClient.readContract({
-      address: CONVERT_UP_BLUEPRINT_V0_ADDRESS,
-      abi: convertUpBlueprintV0ABI,
-      functionName: "beanstalkPrice",
+      address: beanstalkPriceAddress[cid],
+      abi: diamondPriceABI,
+      functionName: "price",
+      args: [],
+    }),
+    publicClient.readContract({
+      address: protocolAddress,
+      abi: diamondABI,
+      functionName: "getConvertStalkPerBdvBonusAndMaximumCapacity",
       args: [],
     }),
   ]);
 
   const requisitions = _requisitions?.convertUpBlueprint ?? [];
+
+  // Process market data
+  const currentPrice = TV.fromBigInt(_priceResult.price, mainToken.decimals);
+  const [bonusRaw, capacityRaw] = bonusAndCapacityResult;
+  const currentBonus = TV.fromBigInt(bonusRaw, STALK.decimals - mainToken.decimals);
+  const currentCapacity = TV.fromBigInt(capacityRaw, mainToken.decimals);
+
+  console.debug("[TRACTOR/loadConvertUpOrderbookData] Market data:", {
+    currentPrice: currentPrice.toHuman(),
+    currentBonus: currentBonus.toHuman(),
+    currentCapacity: capacityRaw,
+  });
 
   // Create a set of completed blueprint hashes
   const completedOrders = new Set<`0x${string}`>(
@@ -208,7 +234,8 @@ export async function loadConvertUpOrderbookData(
     return !req.isCancelled && !completedOrders.has(req.requisition.blueprintHash);
   });
 
-  const mcRrestults = await multicall(publicClient, {
+  // Fetch order info for all active requisitions
+  const mcResults = await multicall(publicClient, {
     contracts: activeRequisitions.map((req) => ({
       address: CONVERT_UP_BLUEPRINT_V0_ADDRESS,
       abi: convertUpBlueprintV0ABI,
@@ -217,35 +244,278 @@ export async function loadConvertUpOrderbookData(
     })),
   });
 
-  const requisitionsWithOrderInfo: ConvertUpOrderbookEntry[] = mcRrestults
-    .map((r, idx) => {
-      if (r.status === "success") {
-        const [lastExecutedTimestamp, bdvLeftToConvert] = r.result;
+  // Process requisitions with decoded data and market condition checks
+  const requisitionsWithConditions = activeRequisitions.map((req, idx) => {
+    const decodedData = req.decodedData;
+    const orderInfoResult = mcResults[idx];
 
-        let bdvLeftToConvertTV = activeRequisitions[idx]?.decodedData?.convertUpParams.totalConvertBdv ?? TV.ZERO;
+    let orderInfo = {
+      lastExecutedTimestamp: undefined as string | undefined,
+      bdvLeftToConvert: TV.ZERO,
+    };
 
-        // Order has not been executed yet
-        if (lastExecutedTimestamp !== 0n) {
-          bdvLeftToConvertTV = TV.fromBigInt(bdvLeftToConvert, mainToken.decimals);
-        }
+    if (orderInfoResult?.status === "success") {
+      const [lastExecutedTimestamp, bdvLeftToConvert] = orderInfoResult.result;
+      let bdvLeftToConvertTV = decodedData?.convertUpParams.totalConvertBdv ?? TV.ZERO;
 
-        const entry: ConvertUpOrderbookEntry = {
-          ...activeRequisitions[idx],
-          decodedData: activeRequisitions[idx].decodedData ?? undefined,
-          orderInfo: {
-            lastExecutedTimestamp: lastExecutedTimestamp !== 0n ? lastExecutedTimestamp.toString() : undefined,
-            bdvLeftToConvert: bdvLeftToConvertTV,
-          },
-        };
-
-        return entry;
+      // Order has been executed at least once
+      if (lastExecutedTimestamp !== 0n) {
+        bdvLeftToConvertTV = TV.fromBigInt(bdvLeftToConvert, mainToken.decimals);
       }
 
-      return undefined;
-    })
-    .filter((r): r is NonNullable<ConvertUpOrderbookEntry> => exists(r));
+      orderInfo = {
+        lastExecutedTimestamp: lastExecutedTimestamp !== 0n ? lastExecutedTimestamp.toString() : undefined,
+        bdvLeftToConvert: bdvLeftToConvertTV,
+      };
+    }
 
-  return requisitionsWithOrderInfo;
+    // Check market conditions
+    const meetsConditions = {
+      price: false,
+      bonus: false,
+      capacity: false,
+    };
+
+    if (decodedData) {
+      const minPrice = decodedData.convertUpParams.minPriceToConvertUp;
+      const maxPrice = decodedData.convertUpParams.maxPriceToConvertUp;
+      const minBonus = decodedData.convertUpParams.minGrownStalkPerBdvBonus;
+      const minCapacity = decodedData.convertUpParams.minConvertBonusCapacity;
+
+      meetsConditions.price = currentPrice.gte(minPrice) && currentPrice.lte(maxPrice);
+      meetsConditions.bonus = currentBonus.gte(minBonus);
+      meetsConditions.capacity = currentCapacity.gte(minCapacity);
+    }
+
+    return {
+      ...req,
+      decodedData: decodedData || undefined,
+      orderInfo,
+      meetsConditions,
+      // Initialize fields that will be populated later
+      withdrawalPlan: undefined,
+      totalAvailableBdv: TV.ZERO,
+      currentlyConvertible: TV.ZERO,
+      amountConvertibleNextExecution: TV.ZERO,
+    } as ConvertUpOrderbookEntry;
+  });
+
+  // Implement three-tier sorting
+  const sortedRequisitions = requisitionsWithConditions.sort((a, b) => {
+    // Count how many conditions each order meets
+    const aScore =
+      (a.meetsConditions.price ? 1 : 0) + (a.meetsConditions.bonus ? 1 : 0) + (a.meetsConditions.capacity ? 1 : 0);
+    const bScore =
+      (b.meetsConditions.price ? 1 : 0) + (b.meetsConditions.bonus ? 1 : 0) + (b.meetsConditions.capacity ? 1 : 0);
+
+    // Higher score (more conditions met) comes first
+    if (aScore !== bScore) {
+      return bScore - aScore;
+    }
+
+    // If same score, prioritize by individual conditions in order: price > bonus > capacity
+    if (a.meetsConditions.price !== b.meetsConditions.price) {
+      return a.meetsConditions.price ? -1 : 1;
+    }
+    if (a.meetsConditions.bonus !== b.meetsConditions.bonus) {
+      return a.meetsConditions.bonus ? -1 : 1;
+    }
+    if (a.meetsConditions.capacity !== b.meetsConditions.capacity) {
+      return a.meetsConditions.capacity ? -1 : 1;
+    }
+
+    // If all conditions are the same, sort by operator tip (higher first)
+    const aTip = a.decodedData?.opParams.operatorTipAmount ?? TV.ZERO;
+    const bTip = b.decodedData?.opParams.operatorTipAmount ?? TV.ZERO;
+    return bTip.sub(aTip).toNumber();
+  });
+
+  console.debug(
+    "[TRACTOR/loadConvertUpOrderbookData] Sorted orders:",
+    sortedRequisitions.map((req, idx) => ({
+      index: idx,
+      publisher: req.requisition.blueprint.publisher,
+      meetsConditions: req.meetsConditions,
+      tip: req.decodedData?.opParams.operatorTipAmount ? req.decodedData.opParams.operatorTipAmount : "0",
+    })),
+  );
+
+  // Track used withdrawal plans per publisher
+  const publisherWithdrawalPlans: { [publisher: string]: WithdrawalPlan[] } = {};
+
+  // Process orders with withdrawal plan allocation
+  const orderbookData: ConvertUpOrderbookEntry[] = [];
+
+  for (let i = 0; i < sortedRequisitions.length; i++) {
+    const entry = sortedRequisitions[i];
+    const publisher = entry.requisition.blueprint.publisher;
+    const decodedData = entry.decodedData;
+
+    if (!decodedData) {
+      orderbookData.push(entry);
+      continue;
+    }
+
+    console.debug(`\n--- Processing ConvertUp Order #${i + 1} ---`);
+    console.debug(`Publisher: ${publisher}`);
+    console.debug(
+      `Meets conditions: Price=${entry.meetsConditions.price}, Bonus=${entry.meetsConditions.bonus}, Capacity=${entry.meetsConditions.capacity}`,
+    );
+
+    try {
+      // Get existing withdrawal plans for this publisher
+      const existingPlans: WithdrawalPlan[] = publisherWithdrawalPlans[publisher] || [];
+      console.debug("Existing plans for publisher:", existingPlans.length);
+
+      let combinedExistingPlan: WithdrawalPlan | null = null;
+
+      // If we have existing plans, combine them
+      if (existingPlans.length > 0) {
+        try {
+          const combinedPlan = await publicClient.readContract({
+            address: TRACTOR_HELPERS_ADDRESS,
+            abi: tractorHelpersABI,
+            functionName: "combineWithdrawalPlans",
+            args: [existingPlans as any],
+          });
+
+          combinedExistingPlan = combinedPlan as WithdrawalPlan;
+
+          console.debug("Combined existing plans for publisher:", publisher);
+          console.debug(
+            "Total available BDV in combined plan:",
+            TV.fromBlockchain(combinedPlan.totalAvailableBeans, mainToken.decimals).toHuman(),
+          );
+        } catch (error) {
+          console.error("Failed to combine withdrawal plans:", error);
+          combinedExistingPlan = null;
+        }
+      }
+
+      const filterParams: WithdrawalPlanFilterParams | never = {
+        maxGrownStalkPerBdv: decodedData.convertUpParams.maxGrownStalkPerBdv.toBigInt(),
+        minStem: 0n,
+        excludeGerminatingDeposits: true,
+        excludeBean: true,
+        lowStalkDeposits: decodedData.convertUpParams.lowStalkDeposits,
+        lowGrownStalkPerBdv: 0n,
+        maxStem: TV.MAX_INT96.toBigInt(),
+      } as const;
+
+      // Get a new withdrawal plan that excludes deposits already allocated
+      let withdrawalPlan: WithdrawalPlan | null = null;
+      let totalAvailableBdv = TV.ZERO;
+
+      const emptyPlan: WithdrawalPlan = {
+        sourceTokens: [] as readonly `0x${string}`[],
+        stems: [] as readonly (readonly bigint[])[],
+        amounts: [] as readonly (readonly bigint[])[],
+        availableBeans: [] as readonly bigint[],
+        totalAvailableBeans: 0n,
+      };
+
+      try {
+        // For subsequent orders, use getWithdrawalPlanExcludingPlan
+        withdrawalPlan = await publicClient.readContract({
+          address: SILO_HELPERS_ADDRESS,
+          abi: siloHelpersABI,
+          functionName: "getWithdrawalPlanExcludingPlan" as const,
+          args: [
+            publisher,
+            decodedData.convertUpParams.sourceTokenIndices,
+            decodedData.convertUpParams.totalConvertBdv.toBigInt(),
+            filterParams as never, // TODO: Fix this
+            (combinedExistingPlan || emptyPlan) as any,
+          ],
+        });
+
+        console.debug("Got updated withdrawal plan excluding existing orders");
+        totalAvailableBdv = TV.fromBlockchain(withdrawalPlan.totalAvailableBeans, mainToken.decimals);
+
+        // Add this plan to the list of existing plans for future orders
+        if (withdrawalPlan.sourceTokens.length > 0) {
+          if (!publisherWithdrawalPlans[publisher]) {
+            publisherWithdrawalPlans[publisher] = [];
+          }
+          publisherWithdrawalPlans[publisher].push(withdrawalPlan);
+        }
+      } catch (error: any) {
+        console.warn("Failed to get withdrawal plan:", error?.message || error);
+
+        // Handle specific error cases
+        if (
+          error?.message?.includes("No beans available") ||
+          error?.message?.includes("reverted") ||
+          error?.cause?.reason
+        ) {
+          console.debug("No BDV available for this order or contract reverted, setting available BDV to 0");
+          withdrawalPlan = {
+            sourceTokens: [] as readonly `0x${string}`[],
+            stems: [] as readonly (readonly bigint[])[],
+            amounts: [] as readonly (readonly bigint[])[],
+            availableBeans: [] as readonly bigint[],
+            totalAvailableBeans: 0n,
+          };
+          totalAvailableBdv = TV.ZERO;
+        } else {
+          // For unexpected errors, still set empty plan to continue processing
+          console.error("Unexpected error getting withdrawal plan, continuing with empty plan:", error);
+          withdrawalPlan = {
+            sourceTokens: [] as readonly `0x${string}`[],
+            stems: [] as readonly (readonly bigint[])[],
+            amounts: [] as readonly (readonly bigint[])[],
+            availableBeans: [] as readonly bigint[],
+            totalAvailableBeans: 0n,
+          };
+          totalAvailableBdv = TV.ZERO;
+        }
+      }
+
+      // Calculate how much BDV this order can convert
+      const currentlyConvertible = TV.min(entry.orderInfo.bdvLeftToConvert, totalAvailableBdv);
+      console.debug(`Total available BDV: ${totalAvailableBdv.toHuman()}`);
+      console.debug(`Currently convertible: ${currentlyConvertible.toHuman()}`);
+
+      // Calculate amount convertible next execution
+      let amountConvertibleNextExecution = currentlyConvertible;
+      const maxBdvPerExecution = decodedData.convertUpParams.maxConvertBdvPerExecution;
+      amountConvertibleNextExecution = TV.min(currentlyConvertible, maxBdvPerExecution);
+      console.debug(`Max BDV per execution: ${maxBdvPerExecution.toHuman()}`);
+      console.debug(`Amount convertible next execution: ${amountConvertibleNextExecution.toHuman()}`);
+
+      orderbookData.push({
+        ...entry,
+        withdrawalPlan: withdrawalPlan || undefined,
+        totalAvailableBdv,
+        currentlyConvertible,
+        amountConvertibleNextExecution,
+      });
+    } catch (error) {
+      console.error(`Failed to process order ${entry.requisition.blueprintHash}:`, error);
+      orderbookData.push({
+        ...entry,
+        withdrawalPlan: undefined,
+        totalAvailableBdv: TV.ZERO,
+        currentlyConvertible: TV.ZERO,
+        amountConvertibleNextExecution: TV.ZERO,
+      });
+    }
+  }
+
+  // Final sort by operator tips for display/execution priority
+  orderbookData.sort((a, b) => {
+    const aTip = a.decodedData?.opParams.operatorTipAmount ?? TV.ZERO;
+    const bTip = b.decodedData?.opParams.operatorTipAmount ?? TV.ZERO;
+    return bTip.sub(aTip).toNumber();
+  });
+
+  console.debug("[TRACTOR/loadConvertUpOrderbookData] Final results:", {
+    totalOrders: orderbookData.length,
+    ordersWithWithdrawalPlans: orderbookData.filter((o) => o.withdrawalPlan).length,
+    ordersReadyToConvert: orderbookData.filter((o) => o.amountConvertibleNextExecution.gt(0)).length,
+  });
+
+  return orderbookData;
 }
 
 export const decodeConvertUpBlueprintFromAdvancedPipe = (
