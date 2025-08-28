@@ -72,11 +72,7 @@ function PaginationControls({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => {
-            if (currentPage !== 1) {
-              onPageChange(1);
-            }
-          }}
+          onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
           className="rounded-lg"
           title="Go to first page"
@@ -87,11 +83,7 @@ function PaginationControls({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => {
-            if (currentPage > 1) {
-              onPageChange(currentPage - 1);
-            }
-          }}
+          onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
           className="rounded-lg"
         >
@@ -127,11 +119,7 @@ function PaginationControls({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => {
-            if (currentPage < totalPages) {
-              onPageChange(currentPage + 1);
-            }
-          }}
+          onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
           className="rounded-lg"
         >
@@ -141,11 +129,7 @@ function PaginationControls({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => {
-            if (currentPage !== totalPages) {
-              onPageChange(totalPages);
-            }
-          }}
+          onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages}
           className="rounded-lg"
           title="Go to last page"
@@ -348,14 +332,7 @@ export default function Collection() {
   const paginatedNFTs = displayNFTs.slice(startIndex, endIndex);
 
   const handlePageChange = useCallback((page: number) => {
-    setCurrentPage((prevPage) => {
-      if (page !== prevPage) {
-        // Scroll to top when page actually changes
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        return page;
-      }
-      return prevPage;
-    });
+    setCurrentPage(page);
   }, []);
 
   if (!address) {
