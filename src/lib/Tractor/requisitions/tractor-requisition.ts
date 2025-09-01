@@ -273,15 +273,26 @@ export const getSelectRequisitionType = (requisitionsType: MayArray<RequisitionT
         timestamp = latestTimestamp * 1000 - (latestBlockNumber - eventBlockNumber) * 2000;
       }
 
-      map[data.type].push({
-        requisition,
-        blockNumber: Number(event.blockNumber),
-        timestamp,
-        isCancelled: cancelledHashes.has(requisition.blueprintHash),
-        requisitionType: data.type,
-        // @ts-expect-error - TODO: fix this
-        decodedData: data.data,
-      });
+      // separate the convert up and sow blueprints for now to keep types simple
+      if (data.type === "convertUpBlueprint") {
+        map.convertUpBlueprint.push({
+          requisition,
+          blockNumber: Number(event.blockNumber),
+          timestamp,
+          isCancelled: cancelledHashes.has(requisition.blueprintHash),
+          requisitionType: data.type,
+          decodedData: data.data,
+        });
+      } else if (data.type === "sowBlueprintv0") {
+        map.sowBlueprintv0.push({
+          requisition,
+          blockNumber: Number(event.blockNumber),
+          timestamp,
+          isCancelled: cancelledHashes.has(requisition.blueprintHash),
+          requisitionType: data.type,
+          decodedData: data.data,
+        });
+      }
     }
 
     return map;

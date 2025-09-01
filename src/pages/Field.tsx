@@ -24,6 +24,7 @@ import SowOrderDialog, { AnimateSowOrderDialog } from "@/components/SowOrderDial
 import TextSkeleton from "@/components/TextSkeleton";
 import TooltipSimple from "@/components/TooltipSimple";
 import TractorCard from "@/components/Tractor/TractorCard";
+import { TractorSowOrdersPanel } from "@/components/Tractor/TractorOrdersPanel";
 import { navLinks } from "@/components/nav/nav/Navbar";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import useLocalStorage from "@/hooks/useLocalStorage";
@@ -43,7 +44,6 @@ import FieldStats from "./field/FieldStats";
 import FieldTemperatureBarChart from "./field/FieldTemperatureBarChart";
 import MorningPanel from "./field/MorningPanel";
 import TemperatureChart from "./field/Temperature";
-import TractorOrdersPanel from "./field/TractorOrdersPanel";
 
 // Add a custom hook to track the current sow amount
 function useTotalSowAmount() {
@@ -258,7 +258,10 @@ function Field() {
               )}
               {activeTab === "tractor" && (
                 <div className="w-full">
-                  <TractorOrdersPanel refreshData={tractorRefreshCounter} onCreateOrder={() => setShowSowOrder(true)} />
+                  <TractorSowOrdersPanel
+                    refreshData={tractorRefreshCounter}
+                    onCreateOrder={() => setShowSowOrder(true)}
+                  />
                 </div>
               )}
             </>

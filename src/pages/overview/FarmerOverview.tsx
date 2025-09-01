@@ -9,6 +9,7 @@ import PlotsTable from "@/components/PlotsTable";
 import StatPanel from "@/components/StatPanel";
 import StatPanelAltDisplay from "@/components/StatPanelAltDisplay";
 import TableRowConnector from "@/components/TableRowConnector";
+import { TractorSowOrdersPanel } from "@/components/Tractor/TractorOrdersPanel";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
@@ -32,7 +33,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import TractorOrdersPanel from "../field/TractorOrdersPanel";
 
 const Overview = () => {
   // Hooks
@@ -500,7 +500,7 @@ const Overview = () => {
           </TabsContent>
           <TabsContent className="mt-8" value="tractor">
             <div className="overflow-visible">
-              <TractorOrdersPanel />
+              <TractorSowOrdersPanel />
             </div>
           </TabsContent>
         </Tabs>

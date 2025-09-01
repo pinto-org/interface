@@ -17,7 +17,7 @@ import React from "react";
 
 interface FarmerTractorSowOrderCardProps {
   req: RequisitionEvent<SowBlueprintData>;
-  executions: PublisherTractorExecution[];
+  executions?: PublisherTractorExecution[];
   onOrderClick: (req: RequisitionEvent<SowBlueprintData>) => void;
   onModifyClick: (req: RequisitionEvent<SowBlueprintData>) => void;
   onCancelClick: (req: RequisitionEvent, e: React.MouseEvent) => void;
@@ -43,7 +43,7 @@ const FarmerTractorSowOrderCard = ({
   const blueprintExecutions = executions || [];
 
   // Count how many times this blueprint has been executed
-  const executionCount = blueprintExecutions?.length;
+  const executionCount = blueprintExecutions.length;
 
   // Calculate total PINTO sown so far for this blueprint
   const totalSown = blueprintExecutions.reduce((acc, exec) => {
