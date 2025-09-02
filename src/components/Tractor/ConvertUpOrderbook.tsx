@@ -1,4 +1,7 @@
 import { TV } from "@/classes/TokenValue";
+import { Col, Row } from "@/components/Container";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import ReviewTractorOrderDialog from "@/components/ReviewTractorOrderDialog";
 import { Button } from "@/components/ui/Button";
 import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/Dialog";
 import IconImage from "@/components/ui/IconImage";
@@ -9,14 +12,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PINTO } from "@/constants/tokens";
 import { Blueprint, ConvertUpOrderbookEntry } from "@/lib/Tractor";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
+import useConvertStalkPerBdvBonusData from "@/state/useConvertStalkPerBdvBonusData";
 import { formatter } from "@/utils/format";
 import { cn } from "@/utils/utils";
 import { GearIcon } from "@radix-ui/react-icons";
 import { useCallback, useState } from "react";
 import React from "react";
-import { Col, Row } from "../Container";
-import LoadingSpinner from "../LoadingSpinner";
-import ReviewTractorOrderDialog from "../ReviewTractorOrderDialog";
 import { ConvertUpExecute } from "./ConvertUpExecute";
 import { ConvertUpOrderData } from "./types";
 
@@ -28,7 +29,7 @@ interface ConvertUpOrderbookContentProps {
   showAboveCurrentBonus?: boolean;
 }
 
-const empty = {};
+const formatDate = formatter.dateFromTS;
 
 export function ConvertUpOrderbookContent({
   showZeroAvailable = false,
@@ -39,34 +40,14 @@ export function ConvertUpOrderbookContent({
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [reviewOrderData, setReviewOrderData] = useState<ConvertUpOrderData | null>(null);
 
+  const { data: convertUpData } = useConvertStalkPerBdvBonusData();
+
   const { data: orders = [], isLoading } = useTractorConvertUpOrderbook({
     select: useCallback((data: ConvertUpOrderbookEntry[] | undefined) => {
       if (!data || data?.length === 0) return [] satisfies ConvertUpOrderbookEntry[];
       return data;
     }, []),
-    ...empty,
   });
-
-  const formatDate = (timestamp: number | undefined) => {
-    if (!timestamp) return "Unknown";
-    const date = new Date(timestamp);
-
-    return (
-      date.toLocaleDateString("en-US", {
-        month: "2-digit",
-        day: "2-digit",
-        year: "2-digit",
-      }) +
-      " " +
-      date
-        .toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        })
-        .replace(" ", "")
-    );
-  };
 
   // Transform ConvertUpOrderbookEntry to ConvertUpOrderData format
   const transformOrderData = (order: ConvertUpOrderbookEntry): ConvertUpOrderData | null => {
@@ -286,21 +267,6 @@ export function ConvertUpOrderbookDialog({ open, onOpenChange }: ConvertUpOrderb
   const [sortBy, setSortBy] = useState<"bonus" | "tip">("bonus");
   const [showAboveCurrentBonus, setShowAboveCurrentBonus] = useState(true);
 
-  const SmallLabel = (props: React.ComponentProps<typeof Label>) => (
-    <Label {...props} style={{ fontSize: "1rem", lineHeight: "1rem" }} />
-  );
-
-  const sortOptions = [
-    {
-      id: "bonus",
-      text: "Bonus",
-    },
-    {
-      id: "tip",
-      text: "Tip",
-    },
-  ] as const;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
@@ -340,70 +306,19 @@ export function ConvertUpOrderbookDialog({ open, onOpenChange }: ConvertUpOrderb
 
                 <Col className="mr-4 items-center justify-center">
                   {activeTab === "view" && (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          rounded="full"
-                          className="h-8 p-2"
-                          aria-label="Table Settings"
-                        >
-                          <GearIcon className="h-5 w-5 text-pinto-gray-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-80 p-4" align="end">
-                        <div className="pinto-sm font-medium mb-3 leading-same-sm">Table Settings</div>
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <SmallLabel htmlFor="show-zero-available">Show Zero Available Pinto</SmallLabel>
-                            <Switch
-                              id="show-zero-available"
-                              checked={showZeroAvailable}
-                              onCheckedChange={setShowZeroAvailable}
-                            />
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <SmallLabel htmlFor="show-above-bonus">Show Orders Above Current Bonus</SmallLabel>
-                            <Switch
-                              id="show-above-bonus"
-                              checked={showAboveCurrentBonus}
-                              onCheckedChange={setShowAboveCurrentBonus}
-                            />
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <SmallLabel>Sort By</SmallLabel>
-                            <div className="flex flex-row w-fit items-center">
-                              {sortOptions.map((option, index) => (
-                                <React.Fragment key={`dialog-${option.id}-${index}`}>
-                                  <div
-                                    className={cn(
-                                      "flex flex-row items-center px-3 py-1.5 justify-center cursor-pointer",
-                                      sortBy === option.id ? "bg-pinto-green-1" : "bg-pinto-gray-1",
-                                      index === 0 ? "rounded-l-full" : "rounded-r-full",
-                                      sortBy === option.id
-                                        ? "border border-pinto-green-4"
-                                        : "border border-pinto-gray-2",
-                                      index === 0 ? "border-r-0" : "border-l-0",
-                                    )}
-                                    onClick={() => setSortBy(option.id)}
-                                  >
-                                    <div className="text-xs text-pinto-green-3">{option.text}</div>
-                                  </div>
-                                </React.Fragment>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                    <ConvertUpOrderbookSettingsPopover
+                      showZeroAvailable={showZeroAvailable}
+                      onShowZeroAvailableChange={setShowZeroAvailable}
+                      showAboveCurrentBonus={showAboveCurrentBonus}
+                      onShowAboveCurrentBonusChange={setShowAboveCurrentBonus}
+                      sortBy={sortBy}
+                      onSortByChange={setSortBy}
+                    />
                   )}
                 </Col>
               </Row>
             </Col>
-            <Col className={cn("pt-4 pb-6 w-full min-h-72")}>
+            <Col className={cn("pt-4 pb-6 w-full")}>
               {activeTab === "view" ? (
                 <ConvertUpOrderbookContent
                   showZeroAvailable={showZeroAvailable}
@@ -420,6 +335,83 @@ export function ConvertUpOrderbookDialog({ open, onOpenChange }: ConvertUpOrderb
         </DialogContent>
       </DialogPortal>
     </Dialog>
+  );
+}
+
+interface ConvertUpOrderbookSettingsPopoverProps {
+  showZeroAvailable: boolean;
+  onShowZeroAvailableChange: (value: boolean) => void;
+  showAboveCurrentBonus: boolean;
+  onShowAboveCurrentBonusChange: (value: boolean) => void;
+  sortBy: "bonus" | "tip";
+  onSortByChange: (value: "bonus" | "tip") => void;
+}
+
+const sortOptions = [
+  { id: "bonus" as const, text: "Bonus" },
+  { id: "tip" as const, text: "Tip" },
+] as const;
+
+function ConvertUpOrderbookSettingsPopover({
+  showZeroAvailable,
+  showAboveCurrentBonus,
+  sortBy,
+  onSortByChange,
+  onShowZeroAvailableChange,
+  onShowAboveCurrentBonusChange,
+}: ConvertUpOrderbookSettingsPopoverProps) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="sm" rounded="full" className="h-8 p-2" aria-label="Table Settings">
+          <GearIcon className="h-5 w-5 text-pinto-gray-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-4" align="end">
+        <div className="pinto-sm font-medium mb-3 leading-same-sm">Table Settings</div>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label size="sm" htmlFor="show-zero-available">
+              Show Zero Available Pinto
+            </Label>
+            <Switch id="show-zero-available" checked={showZeroAvailable} onCheckedChange={onShowZeroAvailableChange} />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label size="sm" htmlFor="show-above-bonus">
+              Show Orders Above Current Bonus
+            </Label>
+            <Switch
+              id="show-above-bonus"
+              checked={showAboveCurrentBonus}
+              onCheckedChange={onShowAboveCurrentBonusChange}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label size="sm">Sort By</Label>
+            <div className="flex flex-row w-fit items-center">
+              {sortOptions.map((option, index) => (
+                <React.Fragment key={`dialog-${option.id}-${index}`}>
+                  <div
+                    className={cn(
+                      "flex flex-row items-center px-3 py-1.5 justify-center cursor-pointer",
+                      sortBy === option.id ? "bg-pinto-green-1" : "bg-pinto-gray-1",
+                      index === 0 ? "rounded-l-full" : "rounded-r-full",
+                      sortBy === option.id ? "border border-pinto-green-4" : "border border-pinto-gray-2",
+                      index === 0 ? "border-r-0" : "border-l-0",
+                    )}
+                    onClick={() => onSortByChange(option.id)}
+                  >
+                    <div className="text-xs text-pinto-green-3">{option.text}</div>
+                  </div>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 

@@ -3,6 +3,7 @@ import IconImage from "@/components/ui/IconImage";
 import { PINTO } from "@/constants/tokens";
 import { ConvertUpOrderbookEntry } from "@/lib/Tractor";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
+import useConvertStalkPerBdvBonusData from "@/state/useConvertStalkPerBdvBonusData";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
@@ -77,30 +78,13 @@ const calculateProfit = (
 };
 
 // Helper function to format date
-const formatDate = (timestamp: number | undefined) => {
-  if (!timestamp) return "Unknown";
-  const date = new Date(timestamp);
-
-  return (
-    date.toLocaleDateString("en-US", {
-      month: "2-digit",
-      day: "2-digit",
-      year: "2-digit",
-    }) +
-    " " +
-    date
-      .toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      })
-      .replace(" ", "")
-  );
-};
+const formatDate = formatter.dateFromTS;
 
 export function ConvertUpExecute() {
   const { tokenPrices } = usePriceData();
   const { mainToken, nativeToken } = useTokenData();
+
+  const bonusQuery = useConvertStalkPerBdvBonusData();
 
   const {
     data: orders = [],
@@ -121,7 +105,7 @@ export function ConvertUpExecute() {
       const tipAmount = order.decodedData.opParams.operatorTipAmount;
 
       // Only show orders with positive tips
-      return tipAmount.gt(0);
+      return tipAmount.gt(0) && !!order.withdrawalPlan?.totalAvailableBeans.toString();
     });
   }, []);
 
@@ -172,8 +156,9 @@ export function ConvertUpExecute() {
       },
       {
         header: "Grown Stalk Bonus",
+        className: "text-right",
         accessor: (order) => (
-          <span className="text-sm">
+          <span className="text-sm place-self-end">
             {order.decodedData
               ? `≥ ${formatter.number(order.decodedData.convertUpParams.minGrownStalkPerBdvBonus)}`
               : "Unknown"}
@@ -182,8 +167,9 @@ export function ConvertUpExecute() {
       },
       {
         header: "Price Range",
+        className: "text-right",
         accessor: (order) => (
-          <span className="text-sm">
+          <span className="text-sm place-self-end">
             {order.decodedData
               ? `$${formatter.number(order.decodedData.convertUpParams.minPriceToConvertUp)} - $${formatter.number(order.decodedData.convertUpParams.maxPriceToConvertUp)}`
               : "Unknown"}
@@ -191,18 +177,10 @@ export function ConvertUpExecute() {
         ),
       },
       {
-        header: "Available Pinto",
-        accessor: (order) => (
-          <div className="flex items-center gap-1 text-sm">
-            <IconImage src={PINTO.logoURI} alt="PINTO" size={4} />
-            <span>{formatter.number(order.currentlyConvertible)}</span>
-          </div>
-        ),
-      },
-      {
         header: "BDV per Execution",
+        className: "text-right",
         accessor: (order) => (
-          <div className="flex items-center gap-1 text-sm">
+          <div className="flex items-center gap-1 text-sm place-self-end">
             <IconImage src={PINTO.logoURI} alt="PINTO" size={4} />
             <span>
               {order.decodedData
@@ -214,8 +192,9 @@ export function ConvertUpExecute() {
       },
       {
         header: "Operator Tip",
+        className: "text-right",
         accessor: (order) => (
-          <div className="flex items-center gap-1 text-sm">
+          <div className="flex items-center gap-1 text-sm place-self-end">
             <IconImage src={PINTO.logoURI} alt="PINTO" size={4} />
             <span>
               {order.decodedData

@@ -63,6 +63,7 @@ export interface SowEventArgs<T extends bigint | TokenValue = TokenValue> {
 
 // Update the interface to make decodedData optional
 export interface OrderbookEntry extends Omit<TractorRequisitionEvent, "decodedData"> {
+  decodedData?: SowBlueprintData;
   pintosLeftToSow: TokenValue;
   totalAvailablePinto: TokenValue;
   currentlySowable: TokenValue;

@@ -14,7 +14,6 @@ import { InfoCircledIcon } from "@radix-ui/react-icons";
 import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { encodeFunctionData } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
 import { Col } from "../Container";
 import LoadingSpinner from "../LoadingSpinner";
@@ -425,7 +424,7 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
   }
 
   return (
-    <div className="overflow-x-auto">
+    <Col className="overflow-x-auto justify-between">
       <Table>
         <TableHeader className="table w-full table-fixed">
           <TableRow className="border-b border-pinto-gray-3/20">
@@ -624,8 +623,8 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
       </div>
 
       {/* Custom bottom content */}
-      {bottomContent}
-    </div>
+      {bottomContent ? bottomContent : null}
+    </Col>
   );
 }
 

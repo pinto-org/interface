@@ -454,11 +454,7 @@ export default function ReviewTractorOrderDialog2({
                   <div>
                     <h3 className="pinto-sm font-medium mb-2">SowBlueprintv0 Call</h3>
                     <div className="bg-white p-4 rounded border border-gray-200 font-mono text-sm overflow-x-auto">
-                      <HighlightedCallData
-                        blueprintData={encodedData}
-                        targetData={encodedData}
-                        showSowBlueprintParams={true}
-                      />
+                      <HighlightedCallData blueprintData={encodedData} targetData={encodedData} blueprintType="sow" />
                     </div>
                   </div>
 

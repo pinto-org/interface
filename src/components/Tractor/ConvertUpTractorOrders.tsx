@@ -144,7 +144,7 @@ const TractorOrderRow = memo(
           </a>
         </td>
         <td align="right">{formatter.number(cop.minConvertBonusCapacity, { maxDecimals: 3 })} PDV</td>
-        <td align="right">{formatter.number(cop.minGrownStalkPerBdvBonus, { maxDecimals: 3 })}</td>
+        <td align="right">{formatter.number(cop.minGrownStalkPerBdvBonus, { maxDecimals: 6 })}</td>
         <td align="right">{formatter.number(order.orderInfo.bdvLeftToConvert, { maxDecimals: 3 })} PDV</td>
         <td align="right">{formatter.number(cop.minPriceToConvertUp, { maxDecimals: 3 })}</td>
         <td align="right">{formatter.number(cop.maxPriceToConvertUp, { maxDecimals: 3 })}</td>
@@ -188,35 +188,33 @@ const SeeAllTractorOrdersRow = ({ onClick }: { onClick: () => void }) => {
 
 const LoadingTableBody = () => (
   <>
-    {Array(5)
-      .fill(0)
-      .map((_, index) => (
-        <tr key={index} className="[&_td]:px-2 [&_td]:py-1">
-          <td>
-            <Skeleton className="h-3 w-12" />
-          </td>
-          <td>
-            <Skeleton className="h-3 w-12" />
-          </td>
-          <td align="right">
-            <Skeleton className="h-3 w-24" />
-          </td>
-          <td align="right">
-            <Skeleton className="h-3 w-20" />
-          </td>
-          <td align="right">
-            <Skeleton className="h-3 w-28" />
-          </td>
-          <td align="right">
-            <Skeleton className="h-3 w-20" />
-          </td>
-          <td align="right">
-            <Skeleton className="h-3 w-14" />
-          </td>
-          <td align="right">
-            <Skeleton className="h-3 w-20" />
-          </td>
-        </tr>
-      ))}
+    {Array.from({ length: 5 }).map((_, index) => (
+      <tr key={index} className="[&_td]:px-2 [&_td]:py-1">
+        <td>
+          <Skeleton className="h-3 w-12" />
+        </td>
+        <td>
+          <Skeleton className="h-3 w-12" />
+        </td>
+        <td align="right">
+          <Skeleton className="h-3 w-24" />
+        </td>
+        <td align="right">
+          <Skeleton className="h-3 w-20" />
+        </td>
+        <td align="right">
+          <Skeleton className="h-3 w-28" />
+        </td>
+        <td align="right">
+          <Skeleton className="h-3 w-20" />
+        </td>
+        <td align="right">
+          <Skeleton className="h-3 w-14" />
+        </td>
+        <td align="right">
+          <Skeleton className="h-3 w-20" />
+        </td>
+      </tr>
+    ))}
   </>
 );

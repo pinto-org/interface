@@ -28,7 +28,7 @@ interface SowEventArgs<T extends bigint | TokenValue = TokenValue> {
  * @param req - The requisition event to prepare
  * @returns The prepared requisition event
  */
-export const prepareSowOrderV0RequisitionEventForTxn = (req: TractorRequisitionEvent) => {
+export const prepareRequisitionEventForTxn = (req: TractorRequisitionEvent) => {
   const normalizeEndTime = (endTime: bigint) => {
     if (endTime === 8640000000000n) {
       // max uint256

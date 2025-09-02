@@ -202,6 +202,13 @@ export async function loadConvertUpOrderbookData(
     }),
   ]);
 
+  console.log("TRACTOR/loadConvertUpOrderbookData] result", {
+    requisitions: _requisitions,
+    completedEvents,
+    bonusAndCapacityResult,
+    priceResult: _priceResult,
+  });
+
   const requisitions = _requisitions?.convertUpBlueprint ?? [];
 
   // Process market data

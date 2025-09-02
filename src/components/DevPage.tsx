@@ -154,7 +154,7 @@ export default function DevPage() {
     if (priceData.pools.length === 0) {
       return true;
     }
-    const result = priceData.pools.some((pool) => pool.price?.eq(0));
+    const result = priceData.pools.some((pool) => pool.price?.eq(0) && !!pool.pool.isWhitelisted);
     return result;
   })();
 

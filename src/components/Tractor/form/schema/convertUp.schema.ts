@@ -82,8 +82,8 @@ const timeInSeconds = (fieldName: string) =>
     .refine((val) => {
       const vals = postSanitizedSanitizedValue(val, 18);
       if (vals.nonAmount) return true;
-      return vals.tv.gte(0);
-    }, `${fieldName} must be at least 0 seconds`);
+      return vals.tv.gte(1);
+    }, `${fieldName} must be at least 1 seconds`);
 
 const timeScale = (fieldName: string) =>
   z.enum(SELECT_TIME_SCALES).refine((data) => {
@@ -222,7 +222,7 @@ const defaultConvertOrderUpValues: FormSchema = {
   // inferrable fields
   minConvertBdvPerExecution: "",
   maxConvertBdvPerExecution: "",
-  minTimeBetweenConverts: "0", // 0 seconds
+  minTimeBetweenConverts: "1", // 0 seconds
   timeScale: "SECONDS",
   minConvertBonusCapacity: "",
   maxGrownStalkPerBdv: "100", // default of 100 max grown stalk per BDV

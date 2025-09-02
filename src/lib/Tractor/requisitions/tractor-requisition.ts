@@ -1,16 +1,18 @@
 import { TV, TokenValue } from "@/classes/TokenValue";
 import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
 import { convertUpBlueprintV0ABI } from "@/constants/abi/convertUpBlueprintV0ABI";
+import { diamondABI } from "@/constants/abi/diamondABI";
 import { STALK } from "@/constants/internalTokens";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { getChainConstant } from "@/utils/chain";
 import { stringEq } from "@/utils/string";
-import { MinimumViableBlock } from "@/utils/types";
+import { AdvancedFarmCall, AdvancedPipeCall, MinimumViableBlock } from "@/utils/types";
 import { MayArray } from "@/utils/types.generic";
 import { arrayify } from "@/utils/utils";
 import { SignableMessage, decodeFunctionData } from "viem";
 import { PublicClient } from "viem";
 import { base } from "viem/chains";
+import { decodeBlueprintCallData } from "../blueprint-decoders";
 import { ConvertUpBlueprintStruct } from "../convertUp";
 import {
   Requisition,
@@ -188,10 +190,31 @@ export const decodeTractorBlueprint = (
 
     const data = pipeCalls[0].callData;
 
-    const decoded = decodeFunctionData({
-      abi: combinedABI,
-      data,
-    });
+    // Try decoding with the combined ABI first
+    let decoded: ReturnType<typeof decodeFunctionData>;
+    try {
+      decoded = decodeFunctionData({
+        abi: combinedABI,
+        data,
+      });
+    } catch (abiError) {
+      console.debug(
+        "[Tractor/decodeTractorBlueprint] Failed to decode with combinedABI, trying newer decoder system:",
+        abiError,
+      );
+
+      // Fallback to newer blueprint decoder system
+      const newDecoderResult = decodeBlueprintCallData(encodedData);
+      if (newDecoderResult) {
+        console.debug("[Tractor/decodeTractorBlueprint] Successfully decoded with newer decoder system");
+        // For now, return null as we need to adapt the return type
+        // TODO: Integrate newer decoder system return type
+        return null;
+      }
+
+      console.debug("[Tractor/decodeTractorBlueprint] Both decoding methods failed");
+      return null;
+    }
 
     const entry = blueprintTransformerLookup[decoded.functionName as keyof typeof blueprintTransformerLookup];
 
@@ -273,17 +296,65 @@ export const getSelectRequisitionType = (requisitionsType: MayArray<RequisitionT
         timestamp = latestTimestamp * 1000 - (latestBlockNumber - eventBlockNumber) * 2000;
       }
 
-      map[data.type].push({
-        requisition,
-        blockNumber: Number(event.blockNumber),
-        timestamp,
-        isCancelled: cancelledHashes.has(requisition.blueprintHash),
-        requisitionType: data.type,
-        // @ts-expect-error - TODO: fix this
-        decodedData: data.data,
-      });
+      // separate the convert up and sow blueprints for now to keep types simple
+      if (data.type === "convertUpBlueprint") {
+        map.convertUpBlueprint.push({
+          requisition,
+          blockNumber: Number(event.blockNumber),
+          timestamp,
+          isCancelled: cancelledHashes.has(requisition.blueprintHash),
+          requisitionType: data.type,
+          decodedData: data.data,
+        });
+      } else if (data.type === "sowBlueprintv0") {
+        map.sowBlueprintv0.push({
+          requisition,
+          blockNumber: Number(event.blockNumber),
+          timestamp,
+          isCancelled: cancelledHashes.has(requisition.blueprintHash),
+          requisitionType: data.type,
+          decodedData: data.data,
+        });
+      }
     }
 
     return map;
   };
+};
+
+// Extract Tractor blueprint call function
+export const extractTractorBlueprintCall = (data: `0x${string}`): `0x${string}` | null => {
+  try {
+    // Step 1: Decode as advancedFarm
+    const advancedFarmDecoded = decodeFunctionData({
+      abi: diamondABI,
+      data: data,
+    });
+
+    if (advancedFarmDecoded.functionName === "advancedFarm" && advancedFarmDecoded.args[0]) {
+      const farmCalls = advancedFarmDecoded.args[0] as AdvancedFarmCall[];
+      if (farmCalls.length > 0) {
+        // Step 2: Decode the inner call as advancedPipe
+        const pipeCallData = farmCalls[0].callData;
+
+        const advancedPipeDecoded = decodeFunctionData({
+          abi: diamondABI,
+          data: pipeCallData,
+        });
+
+        if (advancedPipeDecoded.functionName === "advancedPipe" && advancedPipeDecoded.args[0]) {
+          const pipeCalls = advancedPipeDecoded.args[0] as AdvancedPipeCall[];
+
+          if (pipeCalls.length > 0) {
+            // Step 3: Get the tractor blueprint call data
+            return pipeCalls[0].callData;
+          }
+        }
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error("Failed to extract tractor blueprint call:", error);
+    return null;
+  }
 };

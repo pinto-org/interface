@@ -220,6 +220,89 @@ The main dialog wrapper that:
 4. **Values**: Displays BDV amounts instead of Bean amounts
 5. **Market Indicator**: Shows current bonus instead of current temperature
 
+## Implementation Status
+
+### ✅ **COMPLETED FEATURES**
+
+1. **Core Dialog Component** ✓
+   - ConvertUpOrderbookDialog with proper title and tab structure
+   - Tab navigation between "View Convert Up Orders" and "Execute Convert Up Orders"
+   - Settings popover with gear icon and filtering options
+
+2. **Table Implementation** ✓
+   - All 10 columns properly implemented and formatted:
+     - Grown Stalk Bonus Per BDV
+     - Min Capacity 
+     - **Price** (merged min-max format: `$0.95 - $1.05`)
+     - Total Convert BDV
+     - Available Pinto
+     - **PDV per Execution** (merged min-max format: `100 - 500`)
+     - Operator Tip
+     - Blueprint Hash (shortened format)
+     - Publisher (clickable Basescan links)
+     - Created At (MM/DD/YY hh:mmAM/PM format)
+
+3. **Data Integration** ✓
+   - Uses `useTractorConvertUpOrderbook` hook successfully
+   - Proper data transformation and formatting
+   - Loading and empty states implemented
+   - Responsive table with horizontal scroll
+
+4. **Filtering & Sorting** ✓
+   - "Show Zero Available Pinto" toggle
+   - "Show Orders Above Current Bonus" toggle  
+   - Sort by "Bonus" or "Tip" options
+   - Proper filter logic implementation
+
+5. **Row Click Functionality** ✓
+   - **ReviewTractorOrderDialog Integration**: Complete implementation
+   - **Data Transformation**: ConvertUpOrderbookEntry → ConvertUpOrderData conversion
+   - **View-Only Mode**: Properly configured for existing orders
+   - **Error Handling**: Graceful handling of missing decoded data
+
+### 🚧 **PENDING IMPLEMENTATION**
+
+1. **Execute Convert Up Orders Tab**
+   - Currently shows placeholder message
+   - Needs form/interface for executing existing orders
+   - Batch execution capabilities
+   - Gas estimation integration
+
+2. **Current Bonus Indicator Row**
+   - Market data integration needed
+   - Summary statistics display
+   - Dynamic positioning based on bonus values
+
+3. **Enhanced Market Data Integration**
+   - Current bonus comparison logic
+   - Real-time market condition checks
+   - Price/bonus/capacity condition validation
+
+## Technical Implementation Notes
+
+### **Data Transformation Logic**
+```typescript
+transformOrderData(order: ConvertUpOrderbookEntry): ConvertUpOrderData
+```
+- Converts blockchain data to UI-friendly format
+- Handles missing decoded data gracefully
+- Provides sensible defaults for optional fields
+- Maps all required ConvertUpOrderData properties
+
+### **ReviewTractorOrderDialog Integration**
+- **Props Configuration**:
+  - `orderData`: Transformed ConvertUp order data
+  - `encodedData`: Blueprint encoded data
+  - `operatorPasteInstrs`: Operator instructions array
+  - `blueprint`: Complete Blueprint object
+  - `isViewOnly={true}`: Read-only mode
+  - `executionHistory={}`: Empty array (expandable)
+
+### **Component Architecture**
+- **ConvertUpOrderbookContent**: Reusable table component with filtering
+- **ConvertUpOrderbookDialog**: Main dialog wrapper with tabs and settings
+- **Separation of Concerns**: Clear separation between data logic and UI
+
 ## Future Enhancements
 
 1. **Execute Orders Tab**
@@ -240,6 +323,11 @@ The main dialog wrapper that:
    - WebSocket integration for live updates
    - Notification system for order changes
 
+5. **Current Bonus Indicator**
+   - Market data hooks integration
+   - Dynamic row positioning
+   - Summary statistics calculation
+
 ## Testing Considerations
 
 1. **Unit Tests**
@@ -256,3 +344,24 @@ The main dialog wrapper that:
    - Responsive design
    - Dark mode compatibility
    - Loading/empty states
+
+## Usage
+
+The component is ready for use and can be imported as:
+
+```typescript
+import ConvertUpOrderbookDialog, { ConvertUpOrderbookContent } from '@/components/Tractor/ConvertUpOrderbook';
+
+// Main dialog component
+<ConvertUpOrderbookDialog 
+  open={isOpen} 
+  onOpenChange={setIsOpen} 
+/>
+
+// Or just the table content
+<ConvertUpOrderbookContent 
+  showZeroAvailable={false}
+  sortBy="bonus"
+  showAboveCurrentBonus={true}
+/>
+```
