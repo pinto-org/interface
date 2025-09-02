@@ -13,7 +13,7 @@ import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
 import { Col, Row } from "./Container";
 import { HighlightedCallData } from "./Tractor/HighlightedCallData";
-import { getOrderTypeConfig } from "./Tractor/TractorOrderRegistry";
+import { getOrderTypeConfig } from "./Tractor/farmer-orders/TractorFarmerOrderTypeRegistry";
 import { ExecutionData, TractorOrderData } from "./Tractor/types";
 import {
   Dialog,

@@ -45,12 +45,7 @@ const FarmerTractorConvertUpOrderCard = ({
 
   // Helper function for formatting percentage
   const formatPercentage = (value: TokenValue): string => {
-    return `${formatter.number(value.div(100))} %`;
-  };
-
-  // Helper function for formatting currency
-  const formatCurrency = (value: TokenValue): string => {
-    return `$${formatter.usd(value)}`;
+    return `${formatter.number(value)}`;
   };
 
   return (
@@ -127,20 +122,24 @@ const FarmerTractorConvertUpOrderCard = ({
               <div className="flex items-center pl-6 gap-2">
                 <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
                 <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                  Execute when price is between {formatCurrency(data.convertUpParams.minPriceToConvertUp)} -{" "}
-                  {formatCurrency(data.convertUpParams.maxPriceToConvertUp)}
+                  Execute when price is between{" "}
+                  {formatter.usd(data.convertUpParams.minPriceToConvertUp, { decimals: 3 })} -{" "}
+                  {formatter.usd(data.convertUpParams.maxPriceToConvertUp, { decimals: 3 })}
                 </span>
               </div>
               <div className="flex items-center pl-6 gap-2">
                 <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
                 <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                  AND when Grown Stalk Bonus ≥ {formatPercentage(data.convertUpParams.minGrownStalkPerBdvBonus)} per BDV
+                  <span className="font-roboto">AND</span> when Grown Stalk Bonus ≥{" "}
+                  {formatter.number(data.convertUpParams.minGrownStalkPerBdvBonus, { minDecimals: 2, maxDecimals: 6 })}{" "}
+                  per BDV
                 </span>
               </div>
               <div className="flex items-center pl-6 gap-2">
                 <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
                 <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                  AND when Convert Capacity ≥ {formatter.number(data.convertUpParams.minConvertBonusCapacity)} BDV
+                  <span className="font-roboto">AND</span> when Convert Capacity ≥{" "}
+                  {formatter.number(data.convertUpParams.minConvertBonusCapacity)} BDV
                 </span>
               </div>
             </div>

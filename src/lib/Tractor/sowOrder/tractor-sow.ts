@@ -593,6 +593,7 @@ export async function loadOrderbookData(
           estimatedPlaceInLine: TokenValue.ZERO, // Initialize to zero, will be set in second pass
           minTemp: TokenValue.fromBigInt(decodedData?.minTemp || 0n, TEMPERATURE_DECIMALS),
           withdrawalPlan,
+          decodedData: decodedData ?? undefined,
         });
       } catch (error) {
         console.error(`Failed to get data for requisition ${requisition.requisition.blueprintHash}:`, error);
@@ -606,6 +607,7 @@ export async function loadOrderbookData(
           estimatedPlaceInLine: TokenValue.fromBlockchain(0n, 6),
           minTemp: TokenValue.ZERO,
           withdrawalPlan: undefined,
+          decodedData: decodedData ?? undefined,
         });
       }
     }

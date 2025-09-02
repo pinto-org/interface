@@ -9,7 +9,7 @@ import {
   MixedOrderSortBy,
   SowOrderData,
   UnifiedTractorOrder,
-} from "./TractorMixedOrdersTypes";
+} from "./TractorFarmerMixedOrders.types";
 
 // Transform Sow order to unified format
 export function transformSowOrderToUnified(

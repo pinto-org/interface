@@ -24,7 +24,7 @@ import SowOrderDialog, { AnimateSowOrderDialog } from "@/components/SowOrderDial
 import TextSkeleton from "@/components/TextSkeleton";
 import TooltipSimple from "@/components/TooltipSimple";
 import TractorCard from "@/components/Tractor/TractorCard";
-import { TractorSowOrdersPanel } from "@/components/Tractor/TractorOrdersPanel";
+import { TractorSowOrdersPanel } from "@/components/Tractor/farmer-orders/TractorOrdersPanel";
 import { navLinks } from "@/components/nav/nav/Navbar";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import useLocalStorage from "@/hooks/useLocalStorage";

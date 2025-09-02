@@ -7,40 +7,41 @@ import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetTractorTokenStrategy";
 import useTransaction from "@/hooks/useTransaction";
 import { PublisherTractorExecution } from "@/lib/Tractor";
-import { Blueprint } from "@/lib/Tractor/types";
+import type { Blueprint } from "@/lib/Tractor";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
 import usePublisherTractorExecutions from "@/state/tractor/useTractorExecutions";
 import { useTractorSowOrderbook } from "@/state/tractor/useTractorSowOrders";
 import { tryExtractErrorMessage } from "@/utils/error";
 import { stringEq } from "@/utils/string";
+import { MayArray } from "@/utils/types.generic";
+import { arrayify } from "@/utils/utils";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
-import FarmerTractorConvertUpOrderCard from "./ConvertUp/FarmerTractorConvertUpOrderCard";
-import ModifyConvertUpOrderDialog from "./ModifyConvertUpOrderDialog";
-import ModifyTractorOrderDialog from "./ModifySowOrderDialog";
-import FarmerTractorSowOrderCard from "./Sow/FarmerTractorSowOrderCard";
+import ModifyConvertUpOrderDialog from "../ModifyConvertUpOrderDialog";
+import ModifyTractorOrderDialog from "../ModifySowOrderDialog";
+import FarmerTractorConvertUpOrderCard from "./FarmerTractorConvertUpOrderCard";
+import FarmerTractorSowOrderCard from "./FarmerTractorSowOrderCard";
 import {
   MixedOrderFilters,
   MixedOrderSortBy,
   UnifiedTractorOrder,
   isConvertUpOrder,
   isSowOrder,
-} from "./TractorMixedOrdersTypes";
+} from "./TractorFarmerMixedOrders.types";
 import {
   filterUnifiedOrders,
   getOrderTypeBadge,
   sortUnifiedOrders,
   transformConvertUpOrderToUnified,
   transformSowOrderToUnified,
-} from "./TractorMixedOrdersUtils";
-import { ORDER_TYPE_CONFIGS, OrderType, TractorOrdersPanelConfig } from "./orderTypeConfigs";
+} from "./TractorFarmerMixedOrders.utils";
+import { ORDER_TYPE_REGISTRY, OrderType } from "./TractorFarmerOrderTypeRegistry";
 
 interface TractorOrdersPanelProps {
-  orderTypes?: OrderType[];
+  orderTypes?: MayArray<OrderType>;
   refreshData?: number;
   onCreateOrder?: () => void;
-  showFilters?: boolean;
   sortBy?: MixedOrderSortBy;
   initialFilters?: Partial<MixedOrderFilters>;
 }
@@ -48,10 +49,9 @@ interface TractorOrdersPanelProps {
 const ORDER_TYPES: OrderType[] = ["sow", "convertUp"] as const;
 
 function TractorOrdersPanelGeneric({
-  orderTypes = ORDER_TYPES,
+  orderTypes: _orderTypes = ORDER_TYPES,
   refreshData,
   onCreateOrder,
-  showFilters = false,
   sortBy = "newest",
   initialFilters,
 }: TractorOrdersPanelProps) {
@@ -64,9 +64,11 @@ function TractorOrdersPanelGeneric({
   const [showDialog, setShowDialog] = useState<"review" | "modify" | undefined>(undefined);
   const [rawBlueprintCall, setRawBlueprintCall] = useState<`0x${string}` | null>(null);
 
+  const orderTypes = useMemo(() => arrayify(_orderTypes), [_orderTypes]);
+
   // Filtering and sorting state
   const [filters, setFilters] = useState<MixedOrderFilters>({
-    orderTypes,
+    orderTypes: orderTypes,
     showCompleted: true,
     showCancelled: false,
     ...initialFilters,
@@ -107,7 +109,10 @@ function TractorOrdersPanelGeneric({
       sowOrders
         .filter((req) => stringEq(req.requisition.blueprint.publisher, address))
         .forEach((req) => {
-          const decodedData = ORDER_TYPE_CONFIGS.sow.decodeData(req.requisition.blueprint.data);
+          const decodedData = ORDER_TYPE_REGISTRY.sow.decodeData(req.requisition.blueprint.data);
+          if (!decodedData) {
+            return;
+          }
           const reqWithDecodedData = { ...req, decodedData };
           const orderExecutions = executionsByHash?.[req.requisition.blueprintHash] || [];
 
@@ -121,7 +126,7 @@ function TractorOrdersPanelGeneric({
         .filter((req) => stringEq(req.requisition.blueprint.publisher, address))
         .forEach((req) => {
           const decodedData =
-            req.decodedData ?? ORDER_TYPE_CONFIGS.convertUp.decodeData(req.requisition.blueprint.data);
+            req.decodedData ?? ORDER_TYPE_REGISTRY.convertUp.decodeData(req.requisition.blueprint.data);
           if (!decodedData) {
             return;
           }
@@ -193,8 +198,11 @@ function TractorOrdersPanelGeneric({
     toast.loading("Cancelling order...");
 
     // Use the appropriate config's preparation function
-    const config = ORDER_TYPE_CONFIGS[order.type] as any;
-    const preparedRequisition = config.prepareForCancellation(order.rawData);
+    const config = ORDER_TYPE_REGISTRY[order.type];
+    if (!config.prepareForCancellation) {
+      throw new Error(`No cancellation handler for order type: ${order.type}`);
+    }
+    const preparedRequisition = config.prepareForCancellation(order.rawData as any);
 
     try {
       return writeWithEstimateGas({
@@ -257,47 +265,6 @@ function TractorOrdersPanelGeneric({
   return (
     <div className="flex flex-col gap-4 w-full">
       {/* Filter and Sort Controls (if enabled) */}
-      {showFilters && (
-        <div className="flex justify-between items-center">
-          <div className="flex gap-2">
-            <select
-              value={currentSortBy}
-              onChange={(e) => setCurrentSortBy(e.target.value as MixedOrderSortBy)}
-              className="px-3 py-1 border border-pinto-gray-2 rounded-md text-sm"
-            >
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-              <option value="type">By Type</option>
-              <option value="operatorTip">By Operator Tip</option>
-              <option value="percentComplete">By Progress</option>
-              <option value="publisher">By Publisher</option>
-            </select>
-
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={filters.showCompleted}
-                onChange={(e) => setFilters((prev) => ({ ...prev, showCompleted: e.target.checked }))}
-              />
-              Show Completed
-            </label>
-
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={filters.showCancelled}
-                onChange={(e) => setFilters((prev) => ({ ...prev, showCancelled: e.target.checked }))}
-              />
-              Show Cancelled
-            </label>
-          </div>
-
-          <div className="text-sm text-pinto-gray-4">
-            {unifiedOrders.length} order{unifiedOrders.length !== 1 ? "s" : ""}
-          </div>
-        </div>
-      )}
-
       {/* Orders List */}
       {unifiedOrders.map((order, index) => {
         const badge = getOrderTypeBadge(order.type);
@@ -347,7 +314,7 @@ function TractorOrdersPanelGeneric({
         <ReviewTractorOrderDialog
           open={showDialog === "review"}
           onOpenChange={(val) => setShowDialog(val ? "review" : undefined)}
-          orderData={(ORDER_TYPE_CONFIGS[selectedOrder.type] as any).transformOrderData(
+          orderData={(ORDER_TYPE_REGISTRY[selectedOrder.type] as any).transformOrderData(
             selectedOrder.rawData,
             getStrategyProps,
           )}
@@ -393,7 +360,14 @@ const EmptyContainer = ({ children }: { children: React.ReactNode }) => (
 );
 
 // Convert the blueprint to match the expected Blueprint type (fixing readonly issue)
-const adaptBlueprintForDialog = (blueprint: any): Blueprint => {
+const adaptBlueprintForDialog = (blueprint: {
+  publisher: `0x${string}`;
+  data: `0x${string}`;
+  operatorPasteInstrs: readonly `0x${string}`[];
+  maxNonce: bigint;
+  startTime: bigint;
+  endTime: bigint;
+}): Blueprint => {
   return {
     ...blueprint,
     operatorPasteInstrs: [...blueprint.operatorPasteInstrs], // Create a mutable copy
@@ -419,3 +393,44 @@ export const TractorMixedOrdersPanel: React.FC<TractorOrdersPanelProps> = (props
 );
 
 export default TractorOrdersPanelGeneric;
+
+/* {showFilters && (
+    <div className="flex justify-between items-center">
+      <div className="flex gap-2">
+        <select
+          value={currentSortBy}
+          onChange={(e) => setCurrentSortBy(e.target.value as MixedOrderSortBy)}
+          className="px-3 py-1 border border-pinto-gray-2 rounded-md text-sm"
+        >
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="type">By Type</option>
+          <option value="operatorTip">By Operator Tip</option>
+          <option value="percentComplete">By Progress</option>
+          <option value="publisher">By Publisher</option>
+        </select>
+
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={filters.showCompleted}
+            onChange={(e) => setFilters((prev) => ({ ...prev, showCompleted: e.target.checked }))}
+          />
+          Show Completed
+        </label>
+
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={filters.showCancelled}
+            onChange={(e) => setFilters((prev) => ({ ...prev, showCancelled: e.target.checked }))}
+          />
+          Show Cancelled
+        </label>
+      </div>
+
+      <div className="text-sm text-pinto-gray-4">
+        {unifiedOrders.length} order{unifiedOrders.length !== 1 ? "s" : ""}
+      </div>
+    </div>
+  )} */

@@ -1,11 +1,12 @@
 import { TV, TokenValue } from "@/classes/TokenValue";
 import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
 import { convertUpBlueprintV0ABI } from "@/constants/abi/convertUpBlueprintV0ABI";
+import { diamondABI } from "@/constants/abi/diamondABI";
 import { STALK } from "@/constants/internalTokens";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { getChainConstant } from "@/utils/chain";
 import { stringEq } from "@/utils/string";
-import { MinimumViableBlock } from "@/utils/types";
+import { AdvancedFarmCall, AdvancedPipeCall, MinimumViableBlock } from "@/utils/types";
 import { MayArray } from "@/utils/types.generic";
 import { arrayify } from "@/utils/utils";
 import { SignableMessage, decodeFunctionData } from "viem";
@@ -297,4 +298,41 @@ export const getSelectRequisitionType = (requisitionsType: MayArray<RequisitionT
 
     return map;
   };
+};
+
+// Extract Tractor blueprint call function
+export const extractTractorBlueprintCall = (data: `0x${string}`): `0x${string}` | null => {
+  try {
+    // Step 1: Decode as advancedFarm
+    const advancedFarmDecoded = decodeFunctionData({
+      abi: diamondABI,
+      data: data,
+    });
+
+    if (advancedFarmDecoded.functionName === "advancedFarm" && advancedFarmDecoded.args[0]) {
+      const farmCalls = advancedFarmDecoded.args[0] as AdvancedFarmCall[];
+      if (farmCalls.length > 0) {
+        // Step 2: Decode the inner call as advancedPipe
+        const pipeCallData = farmCalls[0].callData;
+
+        const advancedPipeDecoded = decodeFunctionData({
+          abi: diamondABI,
+          data: pipeCallData,
+        });
+
+        if (advancedPipeDecoded.functionName === "advancedPipe" && advancedPipeDecoded.args[0]) {
+          const pipeCalls = advancedPipeDecoded.args[0] as AdvancedPipeCall[];
+
+          if (pipeCalls.length > 0) {
+            // Step 3: Get the tractor blueprint call data
+            return pipeCalls[0].callData;
+          }
+        }
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error("Failed to extract tractor blueprint call:", error);
+    return null;
+  }
 };

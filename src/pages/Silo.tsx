@@ -14,7 +14,7 @@ import ConvertUpOrderbookDialog from "@/components/Tractor/ConvertUpOrderbook";
 import ConvertUpTractorOrderBookChart from "@/components/Tractor/ConvertUpTractorOrderBookChart";
 import ConvertUpTractorOrders from "@/components/Tractor/ConvertUpTractorOrders";
 import TractorCard from "@/components/Tractor/TractorCard";
-import { TractorConvertUpOrdersPanel } from "@/components/Tractor/TractorOrdersPanel";
+import { TractorConvertUpOrdersPanel } from "@/components/Tractor/farmer-orders/TractorOrdersPanel";
 import { tabToSeasonalLookback } from "@/components/charts/SeasonalChart";
 import { TimeTab } from "@/components/charts/TimeTabs";
 import { navLinks } from "@/components/nav/nav/Navbar";
@@ -391,7 +391,7 @@ const ConvertUpTractorContent = () => {
           <ConvertUpTractorOrders onSeeAllClick={() => setOpen(true)} />
         </Tabs.TabsContent>
         <Tabs.TabsContent value="tractor">
-          <TractorConvertUpOrdersPanel showFilters />
+          <TractorConvertUpOrdersPanel />
         </Tabs.TabsContent>
       </Tabs.Tabs>
       <ConvertUpOrderbookDialog open={open} onOpenChange={setOpen} />
