@@ -49,9 +49,6 @@ const useGetTractorTokenStrategyWithBlueprint = () => {
       if (!indicies.length) {
         throw new Error("No source token indices provided");
       }
-      if (indicies.length > 1) {
-        throw new Error("Multiple source token indices currently not supported");
-      }
 
       const strat = StrategyUtil.getSowOrderTokenStrategy(indicies);
 

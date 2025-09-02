@@ -224,8 +224,10 @@ export default function ReviewTractorOrderDialog({
                       <HighlightedCallData
                         blueprintData={encodedData}
                         targetData={encodedData}
-                        showSowBlueprintParams={orderData.type === "sow"}
-                        decodeAbi
+                        blueprintType={
+                          orderData.type === "sow" ? "sow" : orderData.type === "convertUp" ? "convertUp" : "auto"
+                        }
+                        decodeAbi={true}
                       />
                     </div>
                   </div>

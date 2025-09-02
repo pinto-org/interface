@@ -12,6 +12,7 @@ import { arrayify } from "@/utils/utils";
 import { SignableMessage, decodeFunctionData } from "viem";
 import { PublicClient } from "viem";
 import { base } from "viem/chains";
+import { decodeBlueprintCallData } from "../blueprint-decoders";
 import { ConvertUpBlueprintStruct } from "../convertUp";
 import {
   Requisition,
@@ -189,10 +190,31 @@ export const decodeTractorBlueprint = (
 
     const data = pipeCalls[0].callData;
 
-    const decoded = decodeFunctionData({
-      abi: combinedABI,
-      data,
-    });
+    // Try decoding with the combined ABI first
+    let decoded: ReturnType<typeof decodeFunctionData>;
+    try {
+      decoded = decodeFunctionData({
+        abi: combinedABI,
+        data,
+      });
+    } catch (abiError) {
+      console.debug(
+        "[Tractor/decodeTractorBlueprint] Failed to decode with combinedABI, trying newer decoder system:",
+        abiError,
+      );
+
+      // Fallback to newer blueprint decoder system
+      const newDecoderResult = decodeBlueprintCallData(encodedData);
+      if (newDecoderResult) {
+        console.debug("[Tractor/decodeTractorBlueprint] Successfully decoded with newer decoder system");
+        // For now, return null as we need to adapt the return type
+        // TODO: Integrate newer decoder system return type
+        return null;
+      }
+
+      console.debug("[Tractor/decodeTractorBlueprint] Both decoding methods failed");
+      return null;
+    }
 
     const entry = blueprintTransformerLookup[decoded.functionName as keyof typeof blueprintTransformerLookup];
 
