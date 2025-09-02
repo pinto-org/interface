@@ -67,7 +67,7 @@ export function transformSowOrderToUnified(
     isComplete,
     orderData: sowOrderData,
     executions,
-    rawData: req,
+    requisition: req,
   };
 }
 
@@ -125,7 +125,7 @@ export function transformConvertUpOrderToUnified(
     isComplete,
     orderData: convertUpOrderData,
     executions,
-    rawData: req,
+    requisition: req,
   };
 }
 
