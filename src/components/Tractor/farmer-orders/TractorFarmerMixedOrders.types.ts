@@ -21,7 +21,7 @@ export interface UnifiedTractorOrder {
   executions?: PublisherTractorExecution[];
 
   // Raw data for dialogs
-  rawData: ConvertUpOrderbookEntry | TractorRequisitionEvent<SowBlueprintData>;
+  requisition: ConvertUpOrderbookEntry | TractorRequisitionEvent<SowBlueprintData>;
 }
 
 // Sow-specific order data
@@ -52,14 +52,17 @@ export interface ConvertUpOrderData {
 }
 
 // Type guards
-export function isSowOrder(order: UnifiedTractorOrder): order is UnifiedTractorOrder & { orderData: SowOrderData } {
-  return order.orderData.type === "sow";
+export function isSowOrder(order: UnifiedTractorOrder): order is UnifiedTractorOrder & {
+  orderData: SowOrderData;
+  requisition: TractorRequisitionEvent<SowBlueprintData>;
+} {
+  return order.orderData.type === "sow" && order.requisition.requisitionType === "sowBlueprintv0";
 }
 
 export function isConvertUpOrder(
   order: UnifiedTractorOrder,
-): order is UnifiedTractorOrder & { orderData: ConvertUpOrderData } {
-  return order.orderData.type === "convertUp";
+): order is UnifiedTractorOrder & { orderData: ConvertUpOrderData; requisition: ConvertUpOrderbookEntry } {
+  return order.orderData.type === "convertUp" && order.requisition.requisitionType === "convertUpBlueprint";
 }
 
 // Sorting options for mixed orders

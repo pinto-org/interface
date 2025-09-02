@@ -202,7 +202,7 @@ function TractorOrdersPanelGeneric({
     if (!config.prepareForCancellation) {
       throw new Error(`No cancellation handler for order type: ${order.type}`);
     }
-    const preparedRequisition = config.prepareForCancellation(order.rawData as any);
+    const preparedRequisition = config.prepareForCancellation(order.requisition as any);
 
     try {
       return writeWithEstimateGas({
@@ -221,7 +221,7 @@ function TractorOrdersPanelGeneric({
 
   const handleOrderClick = useCallback((order: UnifiedTractorOrder) => {
     setSelectedOrder(order);
-    setRawBlueprintCall(order.rawData.requisition.blueprint.data);
+    setRawBlueprintCall(order.requisition.requisition.blueprint.data);
 
     // Extract the raw blueprint call data if available
 
@@ -284,8 +284,9 @@ function TractorOrdersPanelGeneric({
             <div className={orderTypes.length > 1 ? "pt-3" : ""}>
               {isSowOrder(order) && (
                 <FarmerTractorSowOrderCard
-                  req={order.rawData as any}
+                  req={order.requisition}
                   executions={order.executions}
+                  getStrategyProps={getStrategyProps}
                   onOrderClick={() => handleOrderClick(order)}
                   onModifyClick={() => handleModifyClick(order)}
                   onCancelClick={(_, e) => handleCancelOrder(order, e)}
@@ -296,7 +297,8 @@ function TractorOrdersPanelGeneric({
 
               {isConvertUpOrder(order) && (
                 <FarmerTractorConvertUpOrderCard
-                  req={order.rawData as any}
+                  req={order.requisition}
+                  getStrategyProps={getStrategyProps}
                   onOrderClick={() => handleOrderClick(order)}
                   onModifyClick={() => handleModifyClick(order)}
                   onCancelClick={(_, e) => handleCancelOrder(order, e)}
@@ -310,20 +312,20 @@ function TractorOrdersPanelGeneric({
       })}
 
       {/* Review Dialog */}
-      {selectedOrder && (selectedOrder.rawData as any).decodedData && (
+      {selectedOrder && (selectedOrder.requisition as any).decodedData && (
         <ReviewTractorOrderDialog
           open={showDialog === "review"}
           onOpenChange={(val) => setShowDialog(val ? "review" : undefined)}
           orderData={(ORDER_TYPE_REGISTRY[selectedOrder.type] as any).transformOrderData(
-            selectedOrder.rawData,
+            selectedOrder.requisition,
             getStrategyProps,
           )}
-          encodedData={rawBlueprintCall || (selectedOrder.rawData as any).requisition.blueprint.data}
-          operatorPasteInstrs={[...(selectedOrder.rawData as any).requisition.blueprint.operatorPasteInstrs]}
-          blueprint={adaptBlueprintForDialog((selectedOrder.rawData as any).requisition.blueprint)}
+          encodedData={rawBlueprintCall || (selectedOrder.requisition as any).requisition.blueprint.data}
+          operatorPasteInstrs={[...(selectedOrder.requisition as any).requisition.blueprint.operatorPasteInstrs]}
+          blueprint={adaptBlueprintForDialog((selectedOrder.requisition as any).requisition.blueprint)}
           isViewOnly={true}
           executionHistory={(executions ?? []).filter((exec) =>
-            stringEq(exec.blueprintHash, (selectedOrder.rawData as any).requisition.blueprintHash),
+            stringEq(exec.blueprintHash, (selectedOrder.requisition as any).requisition.blueprintHash),
           )}
         />
       )}
@@ -335,7 +337,7 @@ function TractorOrdersPanelGeneric({
             <ModifyTractorOrderDialog
               open={showDialog === "modify"}
               onOpenChange={(val) => setShowDialog(val ? "modify" : undefined)}
-              existingOrder={selectedOrder.rawData as any}
+              existingOrder={selectedOrder.requisition}
               getStrategyProps={getStrategyProps}
             />
           )}
@@ -343,7 +345,7 @@ function TractorOrdersPanelGeneric({
             <ModifyConvertUpOrderDialog
               open={showDialog === "modify"}
               onOpenChange={(val) => setShowDialog(val ? "modify" : undefined)}
-              existingOrder={selectedOrder.rawData as any}
+              existingOrder={selectedOrder.requisition}
               getStrategyProps={getStrategyProps}
             />
           )}

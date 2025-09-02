@@ -1,21 +1,23 @@
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { Col, Row } from "@/components/Container";
+import { OrderVisualization } from "@/components/OrderVisualization";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import IconImage from "@/components/ui/IconImage";
+import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetTractorTokenStrategy";
 import { ConvertUpOrderbookEntry } from "@/lib/Tractor/convertUp/tractor-convert-up-types";
 import { formatter } from "@/utils/format";
 import { getTokenNameByIndex } from "@/utils/token";
-import { CalendarIcon, ClockIcon, CornerBottomLeftIcon, Cross1Icon, Pencil1Icon } from "@radix-ui/react-icons";
+import { CalendarIcon, Cross1Icon, Pencil1Icon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
-import React from "react";
 
 interface FarmerTractorConvertUpOrderCardProps {
   req: ConvertUpOrderbookEntry;
   onOrderClick: (req: ConvertUpOrderbookEntry) => void;
   onModifyClick: (req: ConvertUpOrderbookEntry) => void;
   onCancelClick: (req: ConvertUpOrderbookEntry, e: React.MouseEvent) => void;
+  getStrategyProps: ReturnType<typeof useGetTractorTokenStrategyWithBlueprint>;
   isSubmitting?: boolean;
   isConfirming?: boolean;
 }
@@ -25,6 +27,7 @@ const FarmerTractorConvertUpOrderCard = ({
   onOrderClick,
   onModifyClick,
   onCancelClick,
+  getStrategyProps,
   isSubmitting = false,
   isConfirming = false,
 }: FarmerTractorConvertUpOrderCardProps) => {
@@ -43,11 +46,6 @@ const FarmerTractorConvertUpOrderCard = ({
   // Format the publish date
   const publishDate = req.timestamp ? format(new Date(req.timestamp), "dd MMM yyyy") : "Unknown";
 
-  // Helper function for formatting percentage
-  const formatPercentage = (value: TokenValue): string => {
-    return `${formatter.number(value)}`;
-  };
-
   return (
     <Col className="gap-2">
       <Card
@@ -57,103 +55,89 @@ const FarmerTractorConvertUpOrderCard = ({
         <div className="flex flex-col gap-2 w-full">
           {/* Header row with all the pills and labels */}
           <div className="flex justify-between items-center w-full">
-            <div className="flex items-center gap-0">
-              {/* Withdraw pill */}
-              <div className="flex items-center px-2 py-1 bg-pinto-green-4 rounded-xl">
-                <span className="text-white text-sm font-normal whitespace-nowrap">Withdraw</span>
-              </div>
-              {/* Divider */}
-              <div className="border-t-2 border-pinto-gray-2 w-6 flex-shrink-0" />
-              {/* From label */}
-              <div className="bg-pinto-gray-1 px-2 py-1 rounded-xl">
-                <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap">from Silo</span>
-              </div>
-              {/* Divider */}
-              <div className="border-t-2 border-pinto-gray-2 w-6 flex-shrink-0" />
-              {/* Convert Up pill */}
-              <div className="flex items-center px-2 py-1 bg-pinto-green-4 rounded-xl">
-                <span className="text-white text-sm font-normal whitespace-nowrap">Convert Up</span>
-              </div>
-              {/* Divider */}
-              <div className="border-t-2 border-pinto-gray-2 w-6 flex-shrink-0" />
-              {/* Up to */}
-              <div className="bg-pinto-gray-1 px-2 py-1 rounded-xl">
-                <div className="flex items-center gap-1">
-                  <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap">up to</span>
-                  <IconImage src={pintoIcon} size={4} />
-                  <span className="text-pinto-green-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                    {formatter.number(totalAmount)} BDV
-                    <span className="text-pinto-gray-4">
-                      {" "}
-                      ({formatter.number(data.convertUpParams.minConvertBdvPerExecution)} -{" "}
-                      {formatter.number(data.convertUpParams.maxConvertBdvPerExecution)} per execution)
-                    </span>
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-pinto-gray-4 text-sm whitespace-nowrap">Operator Tip:</span>
-              <div className="bg-pinto-gray-1 px-2 py-1 rounded-xl flex items-center gap-1">
-                <IconImage src={pintoIcon} size={4} />
-                <span className="text-pinto-green-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                  {formatter.number(data.opParams.operatorTipAmount)} PINTO
-                </span>
-              </div>
-            </div>
+            <OrderVisualization.FlowVisualization
+              steps={[
+                { type: "action", content: "Withdraw" },
+                { type: "context", content: "from Silo" },
+                { type: "action", content: "Convert Up" },
+                {
+                  type: "amount",
+                  content: (
+                    <>
+                      <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap">up to</span>
+                      <IconImage src={pintoIcon} size={4} />
+                      <span className="text-pinto-green-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
+                        {formatter.number(totalAmount)} BDV
+                        <span className="text-pinto-gray-4">
+                          {" "}
+                          ({formatter.number(data.convertUpParams.minConvertBdvPerExecution)} -{" "}
+                          {formatter.number(data.convertUpParams.maxConvertBdvPerExecution)} per execution)
+                        </span>
+                      </span>
+                    </>
+                  ),
+                },
+              ]}
+            />
+            <OrderVisualization.TipDisplay
+              amount={formatter.number(data.opParams.operatorTipAmount)}
+              token="PINTO"
+              icon={pintoIcon}
+            />
           </div>
-
-          {/* Strategy description - new row */}
-          <div className="flex items-center pl-6 gap-2">
-            <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
-            <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-              Withdraw Deposited Tokens from the Silo with the{" "}
-              {data.convertUpParams.sourceTokenIndices.includes(255)
-                ? "Lowest Seeds"
-                : data.convertUpParams.sourceTokenIndices.includes(254)
-                  ? "Best Price"
-                  : getTokenNameByIndex(data.convertUpParams.sourceTokenIndices[0])}
-            </span>
-          </div>
-
           {/* Execution conditions */}
           <div className="flex justify-between items-end w-full">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center pl-6 gap-2">
-                <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
-                <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                  Execute when price is between{" "}
-                  {formatter.usd(data.convertUpParams.minPriceToConvertUp, { decimals: 3 })} -{" "}
-                  {formatter.usd(data.convertUpParams.maxPriceToConvertUp, { decimals: 3 })}
-                </span>
-              </div>
-              <div className="flex items-center pl-6 gap-2">
-                <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
-                <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                  <span className="font-roboto">AND</span> when Grown Stalk Bonus ≥{" "}
-                  {formatter.number(data.convertUpParams.minGrownStalkPerBdvBonus, { minDecimals: 2, maxDecimals: 6 })}{" "}
-                  per BDV
-                </span>
-              </div>
-              <div className="flex items-center pl-6 gap-2">
-                <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
-                <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                  <span className="font-roboto">AND</span> when Convert Capacity ≥{" "}
-                  {formatter.number(data.convertUpParams.minConvertBonusCapacity)} BDV
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center gap-1">
-              <IconImage src={pintoIcon} size={4} />
-              <span className="text-pinto-gray-4 text-sm whitespace-nowrap overflow-hidden text-ellipsis">
-                BDV Converted through this Order:
-                <span className="text-black">
-                  {" "}
-                  {formatter.number(convertedAmount)}/{formatter.number(totalAmount)}
-                </span>
-                <span className="text-pinto-gray-4"> ({Math.round(percentCompleteNumber)}%)</span>
-              </span>
-            </div>
+            <OrderVisualization.ConditionsList
+              conditions={[
+                {
+                  text: (
+                    <>
+                      Withdraw Deposited Tokens from the Silo with the{" "}
+                      {data.convertUpParams.sourceTokenIndices.includes(255)
+                        ? "Lowest Seeds"
+                        : data.convertUpParams.sourceTokenIndices.includes(254)
+                          ? "Best Price"
+                          : getTokenNameByIndex(data.convertUpParams.sourceTokenIndices[0])}
+                    </>
+                  ),
+                },
+                {
+                  text: (
+                    <>
+                      Execute when price is between{" "}
+                      {formatter.usd(data.convertUpParams.minPriceToConvertUp, { decimals: 3 })} -{" "}
+                      {formatter.usd(data.convertUpParams.maxPriceToConvertUp, { decimals: 3 })}
+                    </>
+                  ),
+                },
+                {
+                  text: (
+                    <>
+                      when Grown Stalk Bonus ≥{" "}
+                      {formatter.number(data.convertUpParams.minGrownStalkPerBdvBonus, {
+                        minDecimals: 2,
+                        maxDecimals: 6,
+                      })}{" "}
+                      per BDV
+                    </>
+                  ),
+                  operator: "AND",
+                },
+                {
+                  text: (
+                    <>when Convert Capacity ≥ {formatter.number(data.convertUpParams.minConvertBonusCapacity)} BDV</>
+                  ),
+                  operator: "AND",
+                },
+              ]}
+            />
+            <OrderVisualization.ProgressIndicator
+              completed={convertedAmount}
+              total={totalAmount}
+              unit="BDV"
+              icon={pintoIcon}
+              label="BDV Converted through this Order"
+            />
           </div>
 
           {isComplete && (

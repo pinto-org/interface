@@ -1,9 +1,11 @@
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { Col, Row } from "@/components/Container";
+import { OrderVisualization } from "@/components/OrderVisualization";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import IconImage from "@/components/ui/IconImage";
+import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetTractorTokenStrategy";
 import {
   PublisherTractorExecution,
   TractorRequisitionEvent as RequisitionEvent,
@@ -11,9 +13,8 @@ import {
 } from "@/lib/Tractor";
 import { formatter } from "@/utils/format";
 import { getTokenNameByIndex } from "@/utils/token";
-import { CalendarIcon, ClockIcon, CornerBottomLeftIcon, Cross1Icon, Pencil1Icon } from "@radix-ui/react-icons";
+import { CalendarIcon, ClockIcon, Cross1Icon, Pencil1Icon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
-import React from "react";
 
 interface FarmerTractorSowOrderCardProps {
   req: RequisitionEvent<SowBlueprintData>;
@@ -21,6 +22,7 @@ interface FarmerTractorSowOrderCardProps {
   onOrderClick: (req: RequisitionEvent<SowBlueprintData>) => void;
   onModifyClick: (req: RequisitionEvent<SowBlueprintData>) => void;
   onCancelClick: (req: RequisitionEvent, e: React.MouseEvent) => void;
+  getStrategyProps: ReturnType<typeof useGetTractorTokenStrategyWithBlueprint>;
   isSubmitting?: boolean;
   isConfirming?: boolean;
 }
@@ -55,10 +57,6 @@ const FarmerTractorSowOrderCard = ({
 
   // Calculate percentage completion
   const percentComplete = totalAmount.gt(0) ? totalSown.div(totalAmount).mul(100) : TokenValue.ZERO;
-
-  // Get percentage as number for display
-  const percentCompleteNumber = Math.min(percentComplete.toHuman ? Number(percentComplete.toHuman()) : 0, 100);
-
   const isComplete = percentComplete.gte(100);
 
   // Format the publish date
@@ -78,99 +76,84 @@ const FarmerTractorSowOrderCard = ({
         <div className="flex flex-col gap-2 w-full">
           {/* Header row with all the pills and labels */}
           <div className="flex justify-between items-center w-full">
-            <div className="flex items-center gap-0">
-              {/* Withdraw pill */}
-              <div className="flex items-center px-2 py-1 bg-pinto-green-4 rounded-xl">
-                <span className="text-white text-sm font-normal whitespace-nowrap">Withdraw</span>
-              </div>
-              {/* Divider */}
-              <div className="border-t-2 border-pinto-gray-2 w-6 flex-shrink-0" />
-              {/* From label */}
-              <div className="bg-[#F8F8F8] px-2 py-1 rounded-xl">
-                <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap">from Silo</span>
-              </div>
-              {/* Divider */}
-              <div className="border-t-2 border-pinto-gray-2 w-6 flex-shrink-0" />
-              {/* Sow pill */}
-              <div className="flex items-center px-2 py-1 bg-pinto-green-4 rounded-xl">
-                <span className="text-white text-sm font-normal whitespace-nowrap">Sow</span>
-              </div>
-              {/* Divider */}
-              <div className="border-t-2 border-pinto-gray-2 w-6 flex-shrink-0" />
-              {/* Up to */}
-              <div className="bg-[#F8F8F8] px-2 py-1 rounded-xl">
-                <div className="flex items-center gap-1">
-                  <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap">up to</span>
-                  <IconImage src={pintoIcon} size={4} />
-                  <span className="text-pinto-green-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                    {formatter.number(totalAmount)} PINTO
-                    <span className="text-pinto-gray-4">
-                      {" "}
-                      (max {formatter.number(TokenValue.fromBlockchain(data.sowAmounts.maxAmountToSowPerSeason, 6))} per
-                      Season)
-                    </span>
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-pinto-gray-4 text-sm whitespace-nowrap">Operator Tip:</span>
-              <div className="bg-[#F8F8F8] px-2 py-1 rounded-xl flex items-center gap-1">
-                <IconImage src={pintoIcon} size={4} />
-                <span className="text-pinto-green-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                  {formatter.number(TokenValue.fromBlockchain(data.operatorParams.operatorTipAmount, 6))} PINTO
-                </span>
-              </div>
-            </div>
+            <OrderVisualization.FlowVisualization
+              steps={[
+                { type: "action", content: "Withdraw" },
+                { type: "context", content: "from Silo" },
+                { type: "action", content: "Sow" },
+                {
+                  type: "amount",
+                  content: (
+                    <>
+                      <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap">up to</span>
+                      <IconImage src={pintoIcon} size={4} />
+                      <span className="text-pinto-green-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
+                        {formatter.number(totalAmount)} PINTO
+                        <span className="text-pinto-gray-4">
+                          {" "}
+                          (max {formatter.number(TokenValue.fromBlockchain(data.sowAmounts.maxAmountToSowPerSeason, 6))}{" "}
+                          per Season)
+                        </span>
+                      </span>
+                    </>
+                  ),
+                },
+              ]}
+            />
+            <OrderVisualization.TipDisplay
+              amount={formatter.number(TokenValue.fromBlockchain(data.operatorParams.operatorTipAmount, 6))}
+              token="PINTO"
+              icon={pintoIcon}
+            />
           </div>
 
           {/* Strategy description - new row */}
-          <div className="flex items-center pl-6 gap-2">
-            <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
-            <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-              Withdraw Deposited Tokens from the Silo with the{" "}
-              {data.sourceTokenIndices.includes(255)
-                ? "Lowest Seeds"
-                : data.sourceTokenIndices.includes(254)
-                  ? "Best Price"
-                  : getTokenNameByIndex(data.sourceTokenIndices[0])}
-            </span>
-          </div>
+          <OrderVisualization.ConditionsList
+            conditions={[
+              {
+                text: (
+                  <>
+                    Withdraw Deposited Tokens from the Silo with the{" "}
+                    {data.sourceTokenIndices.includes(255)
+                      ? "Lowest Seeds"
+                      : data.sourceTokenIndices.includes(254)
+                        ? "Best Price"
+                        : getTokenNameByIndex(data.sourceTokenIndices[0])}
+                  </>
+                ),
+              },
+            ]}
+          />
 
           {/* Execution conditions */}
           <div className="flex justify-between items-end w-full">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center pl-6 gap-2">
-                <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
-                <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                  Execute when Temperature is at least {formatPercentage(data.minTemp)}
-                </span>
-              </div>
-              <div className="flex items-center pl-6 gap-2">
-                <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
-                <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                  AND when Pod Line Length is at most{" "}
-                  {formatter.number(TokenValue.fromHuman(data.maxPodlineLengthAsString, 6))}
-                </span>
-              </div>
-              <div className="flex items-center pl-6 gap-2">
-                <CornerBottomLeftIcon className="h-4 w-4 text-pinto-gray-4" />
-                <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                  AND when Available Soil is at least {data.sowAmounts.minAmountToSowPerSeasonAsString}
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center gap-1">
-              <IconImage src={pintoIcon} size={4} />
-              <span className="text-pinto-gray-4 text-sm whitespace-nowrap overflow-hidden text-ellipsis">
-                PINTO Sown through this Order:
-                <span className="text-black">
-                  {" "}
-                  {formatter.number(totalSown)}/{formatter.number(totalAmount)}
-                </span>
-                <span className="text-pinto-gray-4"> ({Math.round(percentCompleteNumber)}%)</span>
-              </span>
-            </div>
+            <OrderVisualization.ConditionsList
+              conditions={[
+                {
+                  text: `Execute when Temperature is at least ${formatPercentage(data.minTemp)}`,
+                },
+                {
+                  text: (
+                    <>
+                      when Pod Line Length is at most{" "}
+                      {formatter.number(TokenValue.fromHuman(data.maxPodlineLengthAsString, 6))}
+                    </>
+                  ),
+                  operator: "AND",
+                },
+                {
+                  text: `when Available Soil is at least ${data.sowAmounts.minAmountToSowPerSeasonAsString}`,
+                  operator: "AND",
+                },
+              ]}
+            />
+            <OrderVisualization.ProgressIndicator
+              completed={totalSown}
+              total={totalAmount}
+              unit="PINTO"
+              icon={pintoIcon}
+              label="PINTO Sown through this Order"
+            />
           </div>
 
           {isComplete && (
