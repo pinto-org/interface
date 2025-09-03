@@ -227,6 +227,8 @@ body {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE 10+ */
   overscroll-behavior-x: auto; /* allow navigation swiping */
+
+  @apply text-pinto-primary;
 }
 
 body::-webkit-scrollbar {

@@ -31,6 +31,7 @@ import useFarmerActions from "@/hooks/useFarmerActions";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { useParamsTabs } from "@/hooks/useRouterTabs";
 import { useSeasonalSiloActiveFarmers } from "@/state/seasonal/seasonalDataHooks";
+import useConvertStalkPerBdvBonusData from "@/state/useConvertStalkPerBdvBonusData";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { useSeedGauge } from "@/state/useSeedGauge";
@@ -47,12 +48,14 @@ import { cn } from "@/utils/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import SiloConvertUpStats from "./silo/SiloConvertUpStats";
+import FarmerSiloOverviewStats from "./silo/SiloOverviewStats";
 import SiloTable from "./silo/SiloTable";
 
 const VALUE_TARGET = 1;
 
 function Silo() {
-  const farmerSilo = useFarmerSilo();
+  const farmerSilo = useFarmerSilo(undefined, true);
   const farmerActions = useFarmerActions();
   const tokenData = useTokenData();
   const priceData = usePriceData();
@@ -142,6 +145,11 @@ function Silo() {
             <LearnSilo />
           </div>
           <Separator />
+          {/* <FarmerSiloOverviewStats
+            farmerSilo={farmerSilo}
+            hoveredButton={hoveredButton}
+            farmerActions={farmerActions}
+          /> */}
           {enableStatPanels && (
             <div className="hidden sm:flex flex-col gap-12">
               <div className="flex flex-col items-center">
@@ -177,160 +185,26 @@ function Silo() {
             <div className="pinto-sm-light sm:pinto-body-light text-pinto-light sm:text-pinto-light">
               These are Deposits which are currently incentivized by Pinto.
             </div>
-            <div className="relative action-container">
-              {/* <SiloTable hovering={hoveredButton === "claim"} /> */}
-
-              {/*convertEnabled && convertFrom && convertTo && (
-                <TableRowConnector
-                  fromTarget={`token-row-${convertFrom.address}`}
-                  toTarget={`token-row-${convertTo.address}`}
-                  color="#246645"
-                  capHeight={isSmallDesktop ? 52 : 68}
-                  extensionLength={isSmallDesktop ? 20 : 35}
-                  componentOffset={10}
-                  dotted={true}
-                  startCapColor={convertFrom.color}
-                  endCapColor={convertTo.color}
-                  component={
-                    <div className="group flex flex-col group max-w-[250px] cursor-pointer place-items-end gap-2">
-                      <div
-                        data-action-target="convert"
-                        className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
-                        // @ts-ignore
-                        style={{ "--convert-color": convertFrom.color }}
-                        onClick={() => navigate(getSiloConvertUrl(convertFrom, convertTo))}
-                      >
-                        {`Convert ${convertFrom.name}`}
-                      </div>
-                      {/* This should stay commented out
-                      <div className="flex flex-col gap-4">
-                        <Text
-                          data-action-target="convert"
-                          variant="sm-light"
-                          className="text-pinto-gray-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          {`Convert ${convertFrom.name} for ${convertTo.name} a gain in Seeds`}
-                        </Text>
-                        <Text
-                          data-action-target="convert"
-                          variant="sm-light"
-                          className="text-pinto-gray-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          {"Arbitrage the increased Seeds reward for a gain in Seeds."}
-                        </Text>
-                      </div>*/
-              /*}
-                    </div>
-                  }
-                />
-              )*/}
-              {claimEnabled && (
-                <HelperLink
-                  text={claimableText}
-                  className="absolute -right-[90px] max-[1800px]:-right-[215px] top-8 max-[1800px]:whitespace-break-spaces max-[1800px]:w-[160px]"
-                  dataTarget={`token-row-${mainToken.address}`}
-                  sourceAnchor="left"
-                  targetAnchor="right"
-                  source90Degree={true}
-                  perpLength={10}
-                  onClick={submitClaimRewards}
-                  onMouseEnter={() => setHoveredButton("claim")}
-                  onMouseLeave={() => setHoveredButton("")}
-                />
-              )}
-              {/* {enablePintoToLPHelper && (
-                <TableRowConnector
-                  toTarget={`token-row-${mainToken.address}`}
-                  color="#246645"
-                  mode="singleLine"
-                  extensionLength={40}
-                  dotted={true}
-                  endCapColor={mainToken.color}
-                  componentOffsetHeight={22}
-                  component={
-                    <div className="group flex flex-col group max-w-[250px] cursor-pointer place-items-end gap-2">
-                      <div
-                        data-action-target="convert"
-                        className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
-                        // @ts-ignore
-                        style={{ "--convert-color": mainToken.color }}
-                        onClick={() =>
-                          navigate(
-                            `/silo/${mainToken.address}?action=convert&mode=max`
-                          )
-                        }
-                      >
-                        {`Convert ${mainToken.name} to LP`}
-                      </div>
-                      <div className="flex flex-col gap-4">
-                        <div
-                          data-action-target="convert"
-                          className="pinto-sm-light text-pinto-gray-4 text-end"
-                        >
-                          {`Arbitrage the increased price of Pinto for an increase in Seeds`}
-                        </div>
-                      </div>
-                    </div>
-                  }
-                />
-              )} */}
-              {/*
-              {!convertEnabled && bestDeposit && (
-                <TableRowConnector
-                  toTarget={`token-row-${bestDeposit.address}`}
-                  color="#246645"
-                  mode="singleLine"
-                  capHeight={isSmallDesktop ? 52 : 68}
-                  extensionLength={40}
-                  dotted={true}
-                  endCapColor={bestDeposit.color}
-                  componentOffsetHeight={22}
-                  component={
-                    <div className="group flex flex-col group max-w-[250px] cursor-pointer place-items-end gap-2">
-                      <div
-                        data-action-target="convert"
-                        className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
-                        // @ts-ignore
-                        style={{ "--convert-color": bestDeposit.color }}
-                        onClick={() => navigate(`/silo/${bestDeposit.address}`)}
-                      >
-                        {`Deposit ${bestDeposit.name}`}
-                      </div>
-                      <div className="flex flex-col gap-4">
-                        <div
-                          data-action-target="convert"
-                          className="text-pinto-gray-4 pinto-sm-light text-end w-[12rem]"
-                        >
-                          {`${bestDeposit.name} currently has the highest incentive for Depositors.`}
-                        </div>
-                      </div>
-                    </div>
-                  }
-                />
-              )}
-              */}
+            <div className="flex flex-row w-full max-w-full">
+              <div className="relative action-container flex w-full">
+                <SiloTable hovering={hoveredButton === "claim"} />
+                {claimEnabled && (
+                  <HelperLink
+                    text={claimableText}
+                    className="absolute -right-[90px] max-[1800px]:-right-[215px] top-8 max-[1800px]:whitespace-break-spaces max-[1800px]:w-[160px]"
+                    dataTarget={`token-row-${mainToken.address}`}
+                    sourceAnchor="left"
+                    targetAnchor="right"
+                    source90Degree={true}
+                    perpLength={10}
+                    onClick={submitClaimRewards}
+                    onMouseEnter={() => setHoveredButton("claim")}
+                    onMouseLeave={() => setHoveredButton("")}
+                  />
+                )}
+              </div>
             </div>
           </div>
-          <Col className="gap-4 sm">
-            <div className="pinto-body-light sm:pinto-h3">Convert Tractor Orderbook</div>
-            <Row className="pinto-sm-light sm:pinto-body-light text-pinto-light sm:text-pinto-light gap-1 items-center">
-              Automated Convert Up Blueprint Orders executed by Tractor
-              <TooltipSimple
-                variant="outlined"
-                content={<>Automated Convert Up Blueprint Orders executed by Tractor.</>}
-              />
-            </Row>
-            <Col className="gap-4 w-full">
-              <Col className="w-full justify-between gap-8 sm:flex-row sm:items-start sm:justify-start">
-                <div className="flex flex-col w-[50%]">
-                  <ConvertUpTractorOrderBookChart />
-                </div>
-                <div className="flex flex-col w-[50%]">
-                  <ConvertUpTractorCard />
-                </div>
-              </Col>
-            </Col>
-          </Col>
           <ConvertUpTractorContent />
           {/* <div className="flex flex-col w-full gap-8">
             <div className="w-full">
@@ -378,6 +252,31 @@ const ConvertUpTractorContent = () => {
 
   return (
     <>
+      <Col className="gap-4 sm">
+        <div className="pinto-body-light sm:pinto-h3">Convert Tractor Orderbook</div>
+        <Row className="pinto-sm-light sm:pinto-body-light text-pinto-light sm:text-pinto-light gap-1 items-center">
+          Automated Convert Up Blueprint Orders executed by Tractor
+          <TooltipSimple variant="outlined" content={<>Automated Convert Up Blueprint Orders executed by Tractor.</>} />
+        </Row>
+      </Col>
+      <Col className="gap-4 w-full">
+        <div className="flex flex-row gap-2 items-center min-w-0">
+          <div
+            className={cn(
+              "gap-2 flex-col", // mobile styles
+              "flex sm:flex-row w-full min-w-0 gap-4 justify-between",
+            )}
+          >
+            <SiloConvertUpStats />
+            <ConvertUpTractorCard />
+          </div>
+        </div>
+        <Col className="w-full justify-between gap-8 sm:flex-row sm:items-start sm:justify-start">
+          <div className="flex flex-col w-full sm:w-[50%]">
+            <ConvertUpTractorOrderBookChart />
+          </div>
+        </Col>
+      </Col>
       <Tabs.Tabs defaultValue="orders" value={value} onValueChange={setActiveTab}>
         <Tabs.TabsList variant="text">
           <Tabs.TabsTrigger value="orders" variant="text">
@@ -407,7 +306,7 @@ const ConvertUpTractorCard = () => {
   };
 
   return (
-    <div className="relative w-full">
+    <div className="relative">
       <TractorCard
         label="🚜 Want to Convert Up?"
         subLabel="Set up a Tractor Order to automate Convert Up"
@@ -846,3 +745,118 @@ const useSiloStats = () => {
     };
   }, [totalDepositedBDV, uniqueDepositors.data, silo.totalStalk, byToken, isLoading]);
 };
+
+/*convertEnabled && convertFrom && convertTo && (
+  <TableRowConnector
+    fromTarget={`token-row-${convertFrom.address}`}
+    toTarget={`token-row-${convertTo.address}`}
+    color="#246645"
+    capHeight={isSmallDesktop ? 52 : 68}
+    extensionLength={isSmallDesktop ? 20 : 35}
+    componentOffset={10}
+    dotted={true}
+    startCapColor={convertFrom.color}
+    endCapColor={convertTo.color}
+    component={
+      <div className="group flex flex-col group max-w-[250px] cursor-pointer place-items-end gap-2">
+        <div
+          data-action-target="convert"
+          className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
+          // @ts-ignore
+          style={{ "--convert-color": convertFrom.color }}
+          onClick={() => navigate(getSiloConvertUrl(convertFrom, convertTo))}
+        >
+          {`Convert ${convertFrom.name}`}
+        </div>
+        {/* This should stay commented out
+        <div className="flex flex-col gap-4">
+          <Text
+            data-action-target="convert"
+            variant="sm-light"
+            className="text-pinto-gray-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            {`Convert ${convertFrom.name} for ${convertTo.name} a gain in Seeds`}
+          </Text>
+          <Text
+            data-action-target="convert"
+            variant="sm-light"
+            className="text-pinto-gray-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            {"Arbitrage the increased Seeds reward for a gain in Seeds."}
+          </Text>
+        </div>*/
+/*}
+      </div>
+    }
+  />
+)
+{enablePintoToLPHelper && (
+  <TableRowConnector
+    toTarget={`token-row-${mainToken.address}`}
+    color="#246645"
+    mode="singleLine"
+    extensionLength={40}
+    dotted={true}
+    endCapColor={mainToken.color}
+    componentOffsetHeight={22}
+    component={
+      <div className="group flex flex-col group max-w-[250px] cursor-pointer place-items-end gap-2">
+        <div
+          data-action-target="convert"
+          className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
+          // @ts-ignore
+          style={{ "--convert-color": mainToken.color }}
+          onClick={() =>
+            navigate(
+              `/silo/${mainToken.address}?action=convert&mode=max`
+            )
+          }
+        >
+          {`Convert ${mainToken.name} to LP`}
+        </div>
+        <div className="flex flex-col gap-4">
+          <div
+            data-action-target="convert"
+            className="pinto-sm-light text-pinto-gray-4 text-end"
+          >
+            {`Arbitrage the increased price of Pinto for an increase in Seeds`}
+          </div>
+        </div>
+      </div>
+    }
+  />
+)}
+{!convertEnabled && bestDeposit && (
+  <TableRowConnector
+    toTarget={`token-row-${bestDeposit.address}`}
+    color="#246645"
+    mode="singleLine"
+    capHeight={isSmallDesktop ? 52 : 68}
+    extensionLength={40}
+    dotted={true}
+    endCapColor={bestDeposit.color}
+    componentOffsetHeight={22}
+    component={
+      <div className="group flex flex-col group max-w-[250px] cursor-pointer place-items-end gap-2">
+        <div
+          data-action-target="convert"
+          className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
+          // @ts-ignore
+          style={{ "--convert-color": bestDeposit.color }}
+          onClick={() => navigate(`/silo/${bestDeposit.address}`)}
+        >
+          {`Deposit ${bestDeposit.name}`}
+        </div>
+        <div className="flex flex-col gap-4">
+          <div
+            data-action-target="convert"
+            className="text-pinto-gray-4 pinto-sm-light text-end w-[12rem]"
+          >
+            {`${bestDeposit.name} currently has the highest incentive for Depositors.`}
+          </div>
+        </div>
+      </div>
+    }
+  />
+)}
+*/

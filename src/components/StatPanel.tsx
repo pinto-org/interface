@@ -1,4 +1,4 @@
-import pdvIcon from "@/assets/protocol/PDV.png";
+import pdvIcon from "@/assets/protocol/PDV-HQ.png";
 import podIcon from "@/assets/protocol/Pod.png";
 import seedIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
