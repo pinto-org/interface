@@ -45,7 +45,7 @@ import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { StatPanelData, Token } from "@/utils/types";
 import { getSiloConvertUrl } from "@/utils/url";
 import { cn } from "@/utils/utils";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, usePresence } from "framer-motion";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import SiloConvertUpStats from "./silo/SiloConvertUpStats";
@@ -68,6 +68,8 @@ function Silo() {
   const pintoWSOLLP = useChainConstant(PINTO_WSOL_TOKEN);
 
   const [hoveredButton, setHoveredButton] = useState("");
+  const [showConvertUpOrderDialog, setShowConvertUpOrderDialog] = useState(false);
+  const [isFormPresent, setIsFormPresent] = useState(false);
   const enableStatPanels =
     farmerSilo.depositsUSD.gt(0) || farmerSilo.activeStalkBalance.gt(0) || farmerSilo.activeSeedsBalance.gt(0);
 
@@ -185,27 +187,46 @@ function Silo() {
             <div className="pinto-sm-light sm:pinto-body-light text-pinto-light sm:text-pinto-light">
               These are Deposits which are currently incentivized by Pinto.
             </div>
-            <div className="flex flex-row w-full max-w-full">
-              <div className="relative action-container flex w-full">
-                <SiloTable hovering={hoveredButton === "claim"} />
-                {claimEnabled && (
-                  <HelperLink
-                    text={claimableText}
-                    className="absolute -right-[90px] max-[1800px]:-right-[215px] top-8 max-[1800px]:whitespace-break-spaces max-[1800px]:w-[160px]"
-                    dataTarget={`token-row-${mainToken.address}`}
-                    sourceAnchor="left"
-                    targetAnchor="right"
-                    source90Degree={true}
-                    perpLength={10}
-                    onClick={submitClaimRewards}
-                    onMouseEnter={() => setHoveredButton("claim")}
-                    onMouseLeave={() => setHoveredButton("")}
-                  />
-                )}
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4 w-full max-w-full overflow-hidden">
+              <div className="flex flex-col gap-4 w-full">
+                <div className="relative action-container flex flex-1 min-w-0">
+                  <SiloTable hovering={hoveredButton === "claim"} hideValueColumn={isFormPresent} />
+                  {claimEnabled && !showConvertUpOrderDialog && false && (
+                    <HelperLink
+                      text={claimableText}
+                      className={cn(
+                        "absolute -right-[90px] max-[1800px]:-right-[215px] top-8 max-[1800px]:whitespace-break-spaces max-[1800px]:w-[160px]",
+                        showConvertUpOrderDialog && "hidden",
+                      )}
+                      dataTarget={`token-row-${mainToken.address}`}
+                      sourceAnchor="left"
+                      targetAnchor="right"
+                      source90Degree={true}
+                      perpLength={10}
+                      onClick={submitClaimRewards}
+                      onMouseEnter={() => setHoveredButton("claim")}
+                      onMouseLeave={() => setHoveredButton("")}
+                    />
+                  )}
+                </div>
+                <ConvertUpTractorContent
+                  showConvertUpOrderDialog={showConvertUpOrderDialog}
+                  setShowConvertUpOrderDialog={setShowConvertUpOrderDialog}
+                />
               </div>
+              <AnimatePresence mode="wait" onExitComplete={() => setIsFormPresent(false)}>
+                {showConvertUpOrderDialog && (
+                  <FormAnimationWrapper onPresenceChange={setIsFormPresent}>
+                    <Card className="rounded-xl" id="convert-up-order-dialog" style={{ contain: "layout style" }}>
+                      <div className="flex flex-col w-full items-center p-4">
+                        <ConvertUpOrderForm onOpenChange={setShowConvertUpOrderDialog} />
+                      </div>
+                    </Card>
+                  </FormAnimationWrapper>
+                )}
+              </AnimatePresence>
             </div>
           </div>
-          <ConvertUpTractorContent />
           {/* <div className="flex flex-col w-full gap-8">
             <div className="w-full">
               <SiloStats />
@@ -220,6 +241,44 @@ function Silo() {
 }
 
 export default Silo;
+
+// Animation wrapper component that tracks presence
+const FormAnimationWrapper = ({
+  children,
+  onPresenceChange,
+}: {
+  children: React.ReactNode;
+  onPresenceChange: (isPresent: boolean) => void;
+}) => {
+  const [isPresent, safeToRemove] = usePresence();
+
+  useEffect(() => {
+    onPresenceChange(isPresent);
+  }, [isPresent, onPresenceChange]);
+
+  return (
+    <motion.div
+      initial={{ x: "30rem", opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: "30rem", opacity: 0 }}
+      transition={{
+        duration: 0.3,
+        ease: [0.4, 0.0, 0.2, 1],
+        opacity: { duration: 0.15 },
+      }}
+      className="w-full sm:w-[30rem] flex-shrink-0 sm:self-start"
+      style={{
+        willChange: "transform, opacity",
+        transform: "translateZ(0)",
+      }}
+      onAnimationComplete={() => {
+        if (!isPresent) safeToRemove?.();
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 // ---------- Sub Components ----------
 
@@ -246,7 +305,10 @@ const useConvertUpTractorActiveTab = () => {
   return [value, setActiveTab] as const;
 };
 
-const ConvertUpTractorContent = () => {
+const ConvertUpTractorContent = ({
+  showConvertUpOrderDialog,
+  setShowConvertUpOrderDialog,
+}: { showConvertUpOrderDialog: boolean; setShowConvertUpOrderDialog: (value: boolean) => void }) => {
   const [value, setActiveTab] = useConvertUpTractorActiveTab();
   const [open, setOpen] = useState(false);
 
@@ -268,7 +330,12 @@ const ConvertUpTractorContent = () => {
             )}
           >
             <SiloConvertUpStats />
-            <ConvertUpTractorCard />
+            {!showConvertUpOrderDialog && (
+              <ConvertUpTractorCard
+                showConvertUpOrderDialog={showConvertUpOrderDialog}
+                setShowConvertUpOrderDialog={setShowConvertUpOrderDialog}
+              />
+            )}
           </div>
         </div>
         <Col className="w-full justify-between gap-8 sm:flex-row sm:items-start sm:justify-start">
@@ -298,9 +365,10 @@ const ConvertUpTractorContent = () => {
   );
 };
 
-const ConvertUpTractorCard = () => {
-  const [showConvertUpOrderDialog, setShowConvertUpOrderDialog] = useState(false);
-
+const ConvertUpTractorCard = ({
+  showConvertUpOrderDialog,
+  setShowConvertUpOrderDialog,
+}: { showConvertUpOrderDialog: boolean; setShowConvertUpOrderDialog: (value: boolean) => void }) => {
   const handleOpen = () => {
     setShowConvertUpOrderDialog(true);
   };
@@ -314,25 +382,6 @@ const ConvertUpTractorCard = () => {
         shouldAnimateZoom={false}
         corderBordersDisabled
       />
-      {showConvertUpOrderDialog && (
-        <div className="absolute inset-x-0 -top-[calc(-1rem)] z-10">
-          <AnimatePresence mode="wait">
-            <motion.div
-              initial={{ opacity: 0, scaleY: 0 }}
-              animate={{ opacity: 1, scaleY: 1 }}
-              exit={{ opacity: 0, scaleY: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              style={{ transformOrigin: "50% 70%" }}
-            >
-              <Card className="rounded-xl z-10 mx-auto w-[95%]" id="convert-up-order-dialog">
-                <div className="flex flex-col w-full items-center p-4">
-                  <ConvertUpOrderForm onOpenChange={setShowConvertUpOrderDialog} />
-                </div>
-              </Card>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      )}
     </div>
   );
 };
