@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/Tooltip";
 import { cn } from "@/utils/utils";
 import { TooltipContent, TooltipPortal } from "@radix-ui/react-tooltip";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { InfoOutlinedIcon, InfoSolidIcon } from "./Icons";
 
 interface TooltipSimpleProps {
@@ -49,6 +49,8 @@ export default function TooltipSimple({
   disabled = false,
   ...props
 }: TooltipSimpleProps) {
+  const [open, setOpen] = useState<boolean>(false);
+
   const ContentComponent = variant === "unstyled" ? TooltipContent : RadixStyledTooltipContent;
 
   if (disabled) {
@@ -56,9 +58,20 @@ export default function TooltipSimple({
   }
 
   return (
-    <TooltipProvider>
-      <Tooltip delayDuration={0}>
-        <TooltipTrigger asChild className={`${showOnMobile ? "" : "hidden sm:flex"}`}>
+    <TooltipProvider delayDuration={0}>
+      <Tooltip open={open}>
+        <TooltipTrigger
+          asChild
+          className={`cursor-pointer ${showOnMobile ? "" : "hidden sm:flex"}`}
+          onClick={() => setOpen(!open)}
+          onMouseEnter={() => setOpen(true)}
+          onMouseLeave={() => setOpen(false)}
+          onTouchStart={() => setOpen(!open)}
+          onKeyDown={(e) => {
+            e.preventDefault();
+            e.key === "Enter" && setOpen(!open);
+          }}
+        >
           {children || (
             <span
               className={cn(
@@ -75,7 +88,13 @@ export default function TooltipSimple({
           )}
         </TooltipTrigger>
         <TooltipPortal>
-          <ContentComponent side={side} align={align} sideOffset={sideOffset} className={className} {...props}>
+          <ContentComponent
+            side={side}
+            align={align}
+            sideOffset={sideOffset}
+            {...props}
+            className={cn(showOnMobile && "max-w-[calc(100vw-2rem)] sm:max-w-none", className)}
+          >
             {content}
           </ContentComponent>
         </TooltipPortal>

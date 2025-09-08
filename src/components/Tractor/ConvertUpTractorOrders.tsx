@@ -57,9 +57,9 @@ export default function ConvertUpTractorOrders({ onSeeAllClick }: { onSeeAllClic
   });
 
   return (
-    <div className="w-full">
-      <div className="relative overflow-auto" ref={containerRef}>
-        <table className="w-full border-collapse min-w-[55rem]">
+    <div className="relative w-full">
+      <div className="overflow-auto" ref={containerRef}>
+        <table className="w-full border-collapse min-w-[60rem]">
           <thead className="[&_th]:px-2 [&_th]:py-1 [&_th]:text-xs [&_th]:font-light [&_th]:text-pinto-gray-4">
             <tr className="border-b border-pinto-gray-3/20">
               <th className="text-left">Blueprint Hash</th>
@@ -98,8 +98,8 @@ export default function ConvertUpTractorOrders({ onSeeAllClick }: { onSeeAllClic
             {!isLoading && <SeeAllTractorOrdersRow onClick={onSeeAllClick} />}
           </tbody>
         </table>
+        {fadeElements}
       </div>
-      {fadeElements}
     </div>
   );
 }

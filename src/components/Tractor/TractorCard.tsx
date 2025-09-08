@@ -35,6 +35,7 @@ export default function TractorCard({
           "cursor-pointer",
           "relative group box-border items-start p-4 gap-1 w-full rounded-[1rem]",
           "transition-colors duration-200 bg-white border border-pinto-gray-2",
+          "pr-16",
         )}
         onMouseEnter={handleOnMouseEnter}
         onMouseLeave={handleOnMouseLeave}
