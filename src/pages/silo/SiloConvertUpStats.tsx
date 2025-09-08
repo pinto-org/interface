@@ -49,12 +49,12 @@ export default function SiloConvertUpStats() {
 
   return (
     <>
-      <StatCardWithCard
+      {/* <StatCardWithCard
         title="Active Orders"
         tooltip="The number of active Convert Up orders"
         value={activeOrdersValue}
         loading={orderbook.isLoading}
-      />
+      /> */}
       <StatCardWithCard
         title="Max Capacity"
         tooltip="The maximum capacity of the Convert Up Blueprint"

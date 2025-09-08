@@ -30,7 +30,7 @@ import { cn } from "@/utils/utils";
 import { forwardRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
-function SiloTable({ hovering, hideValueColumn = false }: { hovering: boolean; hideValueColumn?: boolean }) {
+function SiloTable({ hovering }: { hovering: boolean }) {
   const siloData = useSiloData();
   const mainToken = useTokenData().mainToken;
   const farmerSilo = useFarmerSilo();
@@ -100,12 +100,7 @@ function SiloTable({ hovering, hideValueColumn = false }: { hovering: boolean; h
             <TableHead className="text-black font-[400] text-[1rem] w-[35%] min-[1600px]:w-[40%] hidden sm:table-cell">
               <APYHeader hide24h={hideFlags.hide24hEma} hide7d={hideFlags.hide7dEma} hide30d={hideFlags.hide30dEma} />
             </TableHead>
-            <TableHead
-              className={cn(
-                "text-black font-[400] text-right text-[1rem] w-[10%] min-[1600px]:whitespace-nowrap hidden sm:table-cell",
-                hideValueColumn ? "silo-column-hide" : "silo-column-show",
-              )}
-            >
+            <TableHead className="text-black font-[400] text-right text-[1rem] w-[10%] min-[1600px]:whitespace-nowrap hidden sm:table-cell">
               Total Value Deposited
             </TableHead>
             {/* <TableHead className="text-black text-right font-[400] text-[1rem] w-[20%]">My Deposited Amount</TableHead> */}
@@ -199,12 +194,7 @@ function SiloTable({ hovering, hideValueColumn = false }: { hovering: boolean; h
                     ) : null}
                   </div>
                 </TableCell>
-                <TableCell
-                  className={cn(
-                    "pinto-sm text-right text-pinto-secondary pl-0 opacity-70 hidden sm:table-cell",
-                    hideValueColumn ? "silo-column-hide" : "silo-column-show",
-                  )}
-                >
+                <TableCell className="pinto-sm text-right text-pinto-secondary pl-0 opacity-70 hidden sm:table-cell">
                   {farmerSilo.isLoading ? (
                     <Skeleton className="w-20 h-6 rounded-[0.75rem] ml-auto" />
                   ) : _pool || token.isMain ? (

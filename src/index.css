@@ -7,27 +7,6 @@
   max-height: var(--radix-dropdown-menu-content-available-height);
 }
 
-/* Silo Table Column Animation */
-@layer utilities {
-  .silo-column-hide {
-    transform: scaleX(0);
-    opacity: 0;
-    transform-origin: left center;
-    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.15s ease-out;
-    max-width: 0;
-    overflow: hidden;
-    will-change: transform;
-  }
-  
-  .silo-column-show {
-    transform: scaleX(1);
-    opacity: 1;
-    transform-origin: left center;
-    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.15s ease-out;
-    max-width: none;
-    will-change: transform;
-  }
-}
 
 @layer base {
   @font-face {

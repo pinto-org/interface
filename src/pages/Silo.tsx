@@ -45,7 +45,7 @@ import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { StatPanelData, Token } from "@/utils/types";
 import { getSiloConvertUrl } from "@/utils/url";
 import { cn } from "@/utils/utils";
-import { AnimatePresence, motion, usePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import SiloConvertUpStats from "./silo/SiloConvertUpStats";
@@ -69,7 +69,6 @@ function Silo() {
 
   const [hoveredButton, setHoveredButton] = useState("");
   const [showConvertUpOrderDialog, setShowConvertUpOrderDialog] = useState(false);
-  const [isFormPresent, setIsFormPresent] = useState(false);
   const enableStatPanels =
     farmerSilo.depositsUSD.gt(0) || farmerSilo.activeStalkBalance.gt(0) || farmerSilo.activeSeedsBalance.gt(0);
 
@@ -147,11 +146,6 @@ function Silo() {
             <LearnSilo />
           </div>
           <Separator />
-          {/* <FarmerSiloOverviewStats
-            farmerSilo={farmerSilo}
-            hoveredButton={hoveredButton}
-            farmerActions={farmerActions}
-          /> */}
           {enableStatPanels && (
             <div className="hidden sm:flex flex-col gap-12">
               <div className="flex flex-col items-center">
@@ -188,9 +182,9 @@ function Silo() {
               These are Deposits which are currently incentivized by Pinto.
             </div>
             <div className="flex flex-col sm:flex-row sm:items-start gap-4 w-full max-w-full overflow-hidden">
-              <div className="flex flex-col gap-4 w-full">
+              <div className="flex flex-col gap-4 sm:gap-12 w-full">
                 <div className="relative action-container flex flex-1 min-w-0">
-                  <SiloTable hovering={hoveredButton === "claim"} hideValueColumn={isFormPresent} />
+                  <SiloTable hovering={hoveredButton === "claim"} />
                   {claimEnabled && !showConvertUpOrderDialog && false && (
                     <HelperLink
                       text={claimableText}
@@ -214,17 +208,15 @@ function Silo() {
                   setShowConvertUpOrderDialog={setShowConvertUpOrderDialog}
                 />
               </div>
-              <AnimatePresence mode="wait" onExitComplete={() => setIsFormPresent(false)}>
-                {showConvertUpOrderDialog && (
-                  <FormAnimationWrapper onPresenceChange={setIsFormPresent}>
-                    <Card className="rounded-xl" id="convert-up-order-dialog" style={{ contain: "layout style" }}>
-                      <div className="flex flex-col w-full items-center p-4">
-                        <ConvertUpOrderForm onOpenChange={setShowConvertUpOrderDialog} />
-                      </div>
-                    </Card>
-                  </FormAnimationWrapper>
-                )}
-              </AnimatePresence>
+              {showConvertUpOrderDialog && (
+                <div className="w-full sm:w-[30rem] flex-shrink-0 sm:self-start">
+                  <Card className="rounded-xl" id="convert-up-order-dialog">
+                    <div className="flex flex-col w-full items-center p-4">
+                      <ConvertUpOrderForm onOpenChange={setShowConvertUpOrderDialog} />
+                    </div>
+                  </Card>
+                </div>
+              )}
             </div>
           </div>
           {/* <div className="flex flex-col w-full gap-8">
@@ -241,44 +233,6 @@ function Silo() {
 }
 
 export default Silo;
-
-// Animation wrapper component that tracks presence
-const FormAnimationWrapper = ({
-  children,
-  onPresenceChange,
-}: {
-  children: React.ReactNode;
-  onPresenceChange: (isPresent: boolean) => void;
-}) => {
-  const [isPresent, safeToRemove] = usePresence();
-
-  useEffect(() => {
-    onPresenceChange(isPresent);
-  }, [isPresent, onPresenceChange]);
-
-  return (
-    <motion.div
-      initial={{ x: "30rem", opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: "30rem", opacity: 0 }}
-      transition={{
-        duration: 0.3,
-        ease: [0.4, 0.0, 0.2, 1],
-        opacity: { duration: 0.15 },
-      }}
-      className="w-full sm:w-[30rem] flex-shrink-0 sm:self-start"
-      style={{
-        willChange: "transform, opacity",
-        transform: "translateZ(0)",
-      }}
-      onAnimationComplete={() => {
-        if (!isPresent) safeToRemove?.();
-      }}
-    >
-      {children}
-    </motion.div>
-  );
-};
 
 // ---------- Sub Components ----------
 
@@ -313,7 +267,7 @@ const ConvertUpTractorContent = ({
   const [open, setOpen] = useState(false);
 
   return (
-    <>
+    <Col className="gap-4 w-full">
       <Col className="gap-4 sm">
         <div className="pinto-body-light sm:pinto-h3">Convert Tractor Orderbook</div>
         <Row className="pinto-sm-light sm:pinto-body-light text-pinto-light sm:text-pinto-light gap-1 items-center">
@@ -330,16 +284,10 @@ const ConvertUpTractorContent = ({
             )}
           >
             <SiloConvertUpStats />
-            {!showConvertUpOrderDialog && (
-              <ConvertUpTractorCard
-                showConvertUpOrderDialog={showConvertUpOrderDialog}
-                setShowConvertUpOrderDialog={setShowConvertUpOrderDialog}
-              />
-            )}
           </div>
         </div>
         <Col className="w-full justify-between gap-8 sm:flex-row sm:items-start sm:justify-start">
-          <div className="flex flex-col w-full sm:w-[50%]">
+          <div className="flex flex-col w-full">
             <ConvertUpTractorOrderBookChart />
           </div>
         </Col>
@@ -361,28 +309,7 @@ const ConvertUpTractorContent = ({
         </Tabs.TabsContent>
       </Tabs.Tabs>
       <ConvertUpOrderbookDialog open={open} onOpenChange={setOpen} />
-    </>
-  );
-};
-
-const ConvertUpTractorCard = ({
-  showConvertUpOrderDialog,
-  setShowConvertUpOrderDialog,
-}: { showConvertUpOrderDialog: boolean; setShowConvertUpOrderDialog: (value: boolean) => void }) => {
-  const handleOpen = () => {
-    setShowConvertUpOrderDialog(true);
-  };
-
-  return (
-    <div className="relative">
-      <TractorCard
-        label="🚜 Want to Convert Up?"
-        subLabel="Set up a Tractor Order to automate Convert Up"
-        onClick={handleOpen}
-        shouldAnimateZoom={false}
-        corderBordersDisabled
-      />
-    </div>
+    </Col>
   );
 };
 
