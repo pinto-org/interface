@@ -15,6 +15,8 @@ import { Col, Row } from "./Container";
 import { HighlightedCallData } from "./Tractor/HighlightedCallData";
 import { getOrderTypeConfig } from "./Tractor/farmer-orders/TractorFarmerOrderTypeRegistry";
 import { ExecutionData, TractorOrderData } from "./Tractor/types";
+import ConvertUpOrderVisualization from "./Tractor/visualizations/ConvertUpOrderVisualization";
+import SowOrderVisualization from "./Tractor/visualizations/SowOrderVisualization";
 import {
   Dialog,
   DialogContent,
@@ -190,16 +192,14 @@ export default function ReviewTractorOrderDialog({
       <DialogPortal>
         <DialogOverlay className="fixed inset-0 backdrop-blur-[2px] bg-white/50" />
         <DialogContent className="max-w-[98rem] w-[95vw] sm:max-w-[1400px] p-0 sm:p-0">
-          <Col className="gap-3 pb-3">
-            <DialogHeader>
-              <DialogTitle className="font-normal text-[1.25rem] tracking-normal px-6 pt-6">
-                {isViewOnly ? `View ${orderConfig.title.replace("Review and Publish ", "")}` : orderConfig.title}
-              </DialogTitle>
-              <DialogDescription className="px-6 pinto-sm-light text-pinto-light">
-                {orderConfig.description(isViewOnly)}
-              </DialogDescription>
-            </DialogHeader>
-          </Col>
+          <DialogHeader>
+            <DialogTitle className="font-normal text-[1.25rem] tracking-normal px-6 pt-6">
+              {isViewOnly ? `View ${orderConfig.title.replace("Review and Publish ", "")}` : orderConfig.title}
+            </DialogTitle>
+            <DialogDescription className="px-6 pinto-sm-light text-pinto-light">
+              {orderConfig.description(isViewOnly)}
+            </DialogDescription>
+          </DialogHeader>
           <div className="flex flex-col">
             {/* Tabs */}
             <DialogTabs
@@ -212,7 +212,11 @@ export default function ReviewTractorOrderDialog({
             {/* Content */}
             {activeTab === "order" ? (
               /* Order Visualization */
-              <OrderVisualization orderData={orderData} />
+              <>
+                {orderData.type === "sow" && <SowOrderVisualization orderData={orderData} />}
+                {orderData.type === "convertUp" && <ConvertUpOrderVisualization orderData={orderData} />}
+                {/* <OrderVisualization orderData={orderData} /> */}
+              </>
             ) : activeTab === "blueprint" ? (
               /* Blueprint View */
               <div className="bg-gray-50 p-6 rounded-lg">

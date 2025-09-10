@@ -3,7 +3,7 @@ import seedIcon from "@/assets/protocol/Seed.png";
 import stalkIcon from "@/assets/protocol/Stalk.png";
 import { TokenValue } from "@/classes/TokenValue";
 import DepositDialog from "@/components/DepositDialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
+import { TableBody, TableCell, TableFixed, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { ToggleGroupItem } from "@/components/ui/ToggleGroup";
 import { useDenomination } from "@/hooks/useAppSettings";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
@@ -250,9 +250,9 @@ export default function DepositsTable({
 
   return (
     <div className="w-full">
-      <div className="relative max-h-[min(600px,50vh)] overflow-auto">
-        <Table>
-          <TableHeader className="sticky top-0 bg-pinto-gray-1 z-2">
+      <div className="relative">
+        <TableFixed>
+          <TableHeader className="bg-pinto-gray-1">
             <TableRow className="hover:bg-pinto-gray-1 h-14">
               <TableHead className="text-black font-[400] text-[1rem] w-[15%] p-4 hidden md:table-cell">
                 Deposit ID
@@ -271,68 +271,73 @@ export default function DepositsTable({
               </TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {!tokenData || tokenData.deposits.length === 0 ? (
-              <TableRow className="bg-white hover:bg-white">
-                <TableCell colSpan={5}>
-                  <div className="flex flex-row h-48 w-full items-center justify-center text-pinto-gray-4 font-[400] text-[1rem]">
-                    {`Your Deposits will appear here`}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : (
-              tokenData.deposits
-                .sort((a, b) => {
-                  return a.stem.sub(b.stem).toNumber();
-                })
-                .map((deposit) => {
-                  const stem = deposit.stem.toHuman();
-                  const isDepositDisabled = isDepositInOtherGroup(stem);
-                  const isGerminating = mode === "combine" && deposit.isGerminating;
+        </TableFixed>
 
-                  if (useToggle) {
-                    return (
-                      <ToggleGroupItem
-                        value={stem}
-                        aria-label={`Select ${token.name}`}
-                        key={stem}
-                        asChild
-                        disabled={isDepositDisabled || isGerminating}
-                      >
-                        <DepositRow
-                          deposit={deposit}
-                          price={token.isMain ? priceData.price : poolPrice}
-                          token={token}
-                          useToggle
-                          isSelected={selected.includes(stem) ?? false}
+        <div className="max-h-[min(400px,35vh)] overflow-auto">
+          <TableFixed>
+            <TableBody>
+              {!tokenData || tokenData.deposits.length === 0 ? (
+                <TableRow className="bg-white hover:bg-white">
+                  <TableCell colSpan={5}>
+                    <div className="flex flex-row h-48 w-full items-center justify-center text-pinto-gray-4 font-[400] text-[1rem]">
+                      {`Your Deposits will appear here`}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                tokenData.deposits
+                  .sort((a, b) => {
+                    return a.stem.sub(b.stem).toNumber();
+                  })
+                  .map((deposit) => {
+                    const stem = deposit.stem.toHuman();
+                    const isDepositDisabled = isDepositInOtherGroup(stem);
+                    const isGerminating = mode === "combine" && deposit.isGerminating;
+
+                    if (useToggle) {
+                      return (
+                        <ToggleGroupItem
+                          value={stem}
+                          aria-label={`Select ${token.name}`}
+                          key={stem}
+                          asChild
                           disabled={isDepositDisabled || isGerminating}
-                          groupId={getGroupId(stem)}
-                          groups={groups}
-                          farmerDeposits={tokenData}
-                          isLoading={isLoading}
-                          onRowClick={handleRowClick}
-                        />
-                      </ToggleGroupItem>
-                    );
-                  }
+                        >
+                          <DepositRow
+                            deposit={deposit}
+                            price={token.isMain ? priceData.price : poolPrice}
+                            token={token}
+                            useToggle
+                            isSelected={selected.includes(stem) ?? false}
+                            disabled={isDepositDisabled || isGerminating}
+                            groupId={getGroupId(stem)}
+                            groups={groups}
+                            farmerDeposits={tokenData}
+                            isLoading={isLoading}
+                            onRowClick={handleRowClick}
+                          />
+                        </ToggleGroupItem>
+                      );
+                    }
 
-                  return (
-                    <DepositRow
-                      key={stem}
-                      deposit={deposit}
-                      price={token.isMain ? priceData.price : poolPrice}
-                      token={token}
-                      groups={groups}
-                      farmerDeposits={tokenData}
-                      isLoading={isLoading}
-                      onRowClick={handleRowClick}
-                      className="table w-full"
-                    />
-                  );
-                })
-            )}
-          </TableBody>
-        </Table>
+                    return (
+                      <DepositRow
+                        key={stem}
+                        deposit={deposit}
+                        price={token.isMain ? priceData.price : poolPrice}
+                        token={token}
+                        groups={groups}
+                        farmerDeposits={tokenData}
+                        isLoading={isLoading}
+                        onRowClick={handleRowClick}
+                        className="table w-full"
+                      />
+                    );
+                  })
+              )}
+            </TableBody>
+          </TableFixed>
+        </div>
       </div>
       {selectedDeposit && (
         <DepositDialog

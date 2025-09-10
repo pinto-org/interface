@@ -160,7 +160,10 @@ export function ConvertUpExecute() {
         accessor: (order) => (
           <span className="text-sm place-self-end">
             {order.decodedData
-              ? `≥ ${formatter.number(order.decodedData.convertUpParams.minGrownStalkPerBdvBonus)}`
+              ? `≥ ${formatter.number(order.decodedData.convertUpParams.minGrownStalkPerBdvBonus, {
+                  minDecimals: 6,
+                  maxDecimals: 6,
+                })}`
               : "Unknown"}
           </span>
         ),

@@ -4,9 +4,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/Tooltip";
+import useIsMobile from "@/hooks/display/useIsMobile";
 import { cn } from "@/utils/utils";
 import { TooltipContent, TooltipPortal } from "@radix-ui/react-tooltip";
-import { ReactNode, useState } from "react";
+import { ReactNode, useCallback, useState } from "react";
 import { InfoOutlinedIcon, InfoSolidIcon } from "./Icons";
 
 interface TooltipSimpleProps {
@@ -50,8 +51,23 @@ export default function TooltipSimple({
   ...props
 }: TooltipSimpleProps) {
   const [open, setOpen] = useState<boolean>(false);
+  const isMobile = useIsMobile();
 
   const ContentComponent = variant === "unstyled" ? TooltipContent : RadixStyledTooltipContent;
+
+  // manually handle open and close on mobile
+  const handleOpen = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      setOpen((prev) => !prev);
+    },
+    [open],
+  );
+
+  const handleClose = useCallback((e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setOpen(false);
+  }, []);
 
   if (disabled) {
     return <>{children}</>;
@@ -59,18 +75,15 @@ export default function TooltipSimple({
 
   return (
     <TooltipProvider delayDuration={0}>
-      <Tooltip open={open}>
+      {/* manually handle open and close on mobile */}
+      <Tooltip open={isMobile ? open : undefined}>
         <TooltipTrigger
           asChild
           className={`cursor-pointer ${showOnMobile ? "" : "hidden sm:flex"}`}
-          onClick={() => setOpen(!open)}
-          onMouseEnter={() => setOpen(true)}
-          onMouseLeave={() => setOpen(false)}
-          onTouchStart={() => setOpen(!open)}
-          onKeyDown={(e) => {
-            e.preventDefault();
-            e.key === "Enter" && setOpen(!open);
-          }}
+          onClick={isMobile ? handleOpen : undefined}
+          onMouseEnter={isMobile ? handleOpen : undefined}
+          onMouseLeave={isMobile ? handleClose : undefined}
+          onTouchStart={isMobile ? handleOpen : undefined}
         >
           {children || (
             <span

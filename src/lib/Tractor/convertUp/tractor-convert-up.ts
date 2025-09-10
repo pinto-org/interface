@@ -133,6 +133,7 @@ export async function createConvertUpTractorData({
 
   console.debug("[Tractor/convertUp/createConvertUpTractorData] RESULTS:", {
     data,
+    struct,
     operatorPasteInstrs: [], // TODO: Update if needed
     rawCall: convertUpCall,
     depositOptimizationCalls,

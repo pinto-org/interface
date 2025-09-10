@@ -1,5 +1,6 @@
 import { TV } from "@/classes/TokenValue";
 import { TractorTokenStrategyUnion } from "@/lib/Tractor/types";
+import { TimeScaleSelect } from "./form/fields/sharedFields";
 
 // Base interfaces for all tractor orders
 export interface BaseTractorOrderData {
@@ -26,7 +27,7 @@ export interface ConvertUpOrderData extends BaseTractorOrderData {
   minConvertBdvPerExecution: string;
   maxConvertBdvPerExecution: string;
   minTimeBetweenConverts: string;
-  timeScale?: string;
+  timeScale: TimeScaleSelect;
   minConvertBonusCapacity: string;
   maxGrownStalkPerBdv: string;
   minGrownStalkPerBdvBonus: string;

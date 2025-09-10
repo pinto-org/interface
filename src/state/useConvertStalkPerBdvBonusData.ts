@@ -15,11 +15,11 @@ export default function useConvertStalkPerBdvBonusData() {
     abi: diamondABI,
     address: diamond,
     functionName: "getConvertStalkPerBdvBonusAndMaximumCapacity" as const,
-    args: [],
     query: {
       select: useCallback(
         (data: readonly [bigint, bigint]) => {
           const [bonus, maxCapacity] = data;
+          console.debug("[useConvertStalkPerBdvBonusData/select]", { bonus, maxCapacity });
 
           return {
             bonus: TV.fromBigInt(bonus, STALK.decimals),

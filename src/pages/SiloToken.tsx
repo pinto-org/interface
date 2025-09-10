@@ -26,6 +26,7 @@ import { Separator } from "@/components/ui/Separator";
 import META, { MetaSlug } from "@/constants/meta";
 import { S_MAIN_TOKEN } from "@/constants/tokens";
 import useIsMobile from "@/hooks/display/useIsMobile";
+import useMediaQuery from "@/hooks/display/useMediaQuery";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useDenomination } from "@/hooks/useAppSettings";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
@@ -226,6 +227,8 @@ const ConvertUpTractorCard = ({
 }) => {
   const handleOpen = () => setOpen(true);
 
+  const isSmToLg = useMediaQuery("between", "sm", "lg");
+
   return (
     <div className="relative">
       <TractorCard
@@ -235,33 +238,32 @@ const ConvertUpTractorCard = ({
         shouldAnimateZoom={false}
         corderBordersDisabled
       />
-      {open && (
-        <div className="absolute inset-x-0 -top-[calc(-1rem)] z-10">
-          <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait">
+        {open && (
+          <div
+            className={
+              "absolute inset-0 flex w-full items-center justify-center sm:items-end sm:pb-0 lg:items-center lg:pb-0 z-20"
+            }
+          >
             <motion.div
               initial={{ opacity: 0, scaleY: 0 }}
               animate={{ opacity: 1, scaleY: 1 }}
               exit={{ opacity: 0, scaleY: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="overflow-hidden"
-              style={{ transformOrigin: "50% 70%" }}
+              className="flex flex-col w-full"
+              style={{ transformOrigin: isSmToLg ? "50% 100%" : "50% 70%" }}
             >
-              <div
-                className={cn(
-                  "w-full sm:w-[30rem] flex-shrink-0 sm:self-start",
-                  "lg:max-w-[384px] 3xl:max-w-[518px] 3xl:min-w-[425px]",
-                )}
-              >
-                <Card className="rounded-xl" id="convert-up-order-dialog">
+              <div className={cn("flex w-full sm:px-8 lg:px-4")}>
+                <Card className="flex w-full rounded-xl" id="convert-up-order-dialog">
                   <div className="flex flex-col w-full items-center p-4">
                     <ConvertUpOrderForm onOpenChange={setOpen} />
                   </div>
                 </Card>
               </div>
             </motion.div>
-          </AnimatePresence>
-        </div>
-      )}
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

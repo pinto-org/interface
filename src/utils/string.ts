@@ -136,3 +136,7 @@ export const postSanitizedSanitizedValue = (value: string, valueDecimals: number
 
   return obj;
 };
+
+export const capitalizeString = (str: string) => {
+  return str.length ? `${str[0].toUpperCase()}${str.slice(1)}` : str;
+};

@@ -18,7 +18,7 @@ interface StatCardWithCardProps {
   className?: string;
 }
 
-function StatCardWithCard({ title, tooltip, value, loading, className = "" }: StatCardWithCardProps) {
+function StatCard({ title, tooltip, value, loading, className = "" }: StatCardWithCardProps) {
   return (
     <Card className={`flex flex-1 p-4 min-w-0 ${className}`}>
       <Col className="gap-2 min-w-0">
@@ -45,7 +45,7 @@ export default function SiloConvertUpStats() {
   const maxCapacityValue = formatter.number(data?.maxCapacity, { minDecimals: 0, maxDecimals: 6 });
 
   // Stalk Bonus stat data
-  const stalkBonusValue = data?.bonus?.toHuman();
+  const stalkBonusValue = formatter.number(data?.bonus, { minDecimals: 6, maxDecimals: 6 });
 
   return (
     <>
@@ -55,13 +55,13 @@ export default function SiloConvertUpStats() {
         value={activeOrdersValue}
         loading={orderbook.isLoading}
       /> */}
-      <StatCardWithCard
+      <StatCard
         title="Max Capacity"
         tooltip="The maximum capacity of the Convert Up Blueprint"
         value={maxCapacityValue}
         loading={isLoading}
       />
-      <StatCardWithCard
+      <StatCard
         title="Stalk Bonus / PDV"
         tooltip="The bonus given for converting up, in terms of Grown Stalk per Pinto Denominated Value"
         value={stalkBonusValue}
