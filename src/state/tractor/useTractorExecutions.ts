@@ -9,7 +9,7 @@ import {
   TractorAPI,
   TractorAPIExecutionSowOrderItem,
   TractorAPIResponseExecution,
-  fetchTractorExecutions,
+  fetchPublisherTractorExecutionEvents,
 } from "@/lib/Tractor";
 import { queryKeys } from "@/state/queryKeys";
 import { getChainConstant } from "@/utils/chain";
@@ -78,7 +78,7 @@ export default function usePublisherTractorExecutions(
 
   // Merge the on-chain executions with the API data. Use useCallback to create a stable reference to the function
   const mergeExecutions = useCallback(
-    (onChainExecutions: Awaited<ReturnType<typeof fetchTractorExecutions>> | undefined) => {
+    (onChainExecutions: Awaited<ReturnType<typeof fetchPublisherTractorExecutionEvents>> | undefined) => {
       const sowBlueprintv0 = executionData?.executions.sowBlueprintv0 ?? [];
       const unknown = executionData?.executions.unknown ?? [];
 
@@ -120,7 +120,14 @@ export default function usePublisherTractorExecutions(
         executionData?.lastUpdated,
       );
 
-      return fetchTractorExecutions(client, diamond, publisher, latestBlock, lookbackBlocks);
+      return fetchPublisherTractorExecutionEvents(
+        client,
+        diamond,
+        publisher,
+        ["sowBlueprintv0", "convertUpBlueprint"],
+        latestBlock,
+        lookbackBlocks,
+      );
     },
     enabled: executionsChainQueryEnabled && enabled,
     select: mergeExecutions,

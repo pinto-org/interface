@@ -3,7 +3,9 @@ import TextSkeleton from "@/components/TextSkeleton";
 import TooltipSimple from "@/components/TooltipSimple";
 import { Card } from "@/components/ui/Card";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
-import useConvertStalkPerBdvBonusData from "@/state/useConvertStalkPerBdvBonusData";
+import useConvertStalkPerBdvBonusAndMaximumCapacity, {
+  useConvertGrownStalkBonusRemainingCapacity,
+} from "@/state/useConvertStalkPerBdvBonusData";
 import { formatter } from "@/utils/format";
 import { exists } from "@/utils/utils";
 import { ReactNode } from "react";
@@ -34,27 +36,36 @@ function StatCard({ title, tooltip, value, loading, className = "" }: StatCardWi
   );
 }
 
+const capacityFormat = {
+  minDecimals: 0,
+  maxDecimals: 6,
+  minValue: 0.01,
+} as const;
+
 export default function SiloConvertUpStats() {
-  const { data, isLoading } = useConvertStalkPerBdvBonusData();
+  const { data, isLoading } = useConvertStalkPerBdvBonusAndMaximumCapacity();
   const orderbook = useTractorConvertUpOrderbook(empty);
+  const remainingCapacity = useConvertGrownStalkBonusRemainingCapacity();
 
   // Active Orders stat data
   const activeOrdersValue = exists(orderbook.data?.length) ? orderbook.data?.length : "--";
 
   // Max Capacity stat data
-  const maxCapacityValue = formatter.number(data?.maxCapacity, { minDecimals: 0, maxDecimals: 6 });
+  const maxCapacityValue = formatter.number(data?.maxCapacity, capacityFormat);
+  // Remaining Capacity stat data
+  const remainingCapacityValue = formatter.number(remainingCapacity.data, capacityFormat);
 
   // Stalk Bonus stat data
   const stalkBonusValue = formatter.number(data?.bonus, { minDecimals: 6, maxDecimals: 6 });
 
   return (
     <>
-      {/* <StatCardWithCard
-        title="Active Orders"
-        tooltip="The number of active Convert Up orders"
-        value={activeOrdersValue}
-        loading={orderbook.isLoading}
-      /> */}
+      <StatCard
+        title="Current Capacity"
+        tooltip="The current capacity of the Convert Up Blueprint"
+        value={remainingCapacityValue}
+        loading={remainingCapacity.isLoading}
+      />
       <StatCard
         title="Max Capacity"
         tooltip="The maximum capacity of the Convert Up Blueprint"

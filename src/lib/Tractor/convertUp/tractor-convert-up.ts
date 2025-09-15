@@ -180,14 +180,14 @@ export async function loadConvertUpOrderbookData(
   const fromBlock =
     lookbackBlocks && latestBlock?.number ? latestBlock.number - lookbackBlocks : TRACTOR_DEPLOYMENT_BLOCK;
 
-  const [completedEvents, _requisitions, _priceResult, bonusAndCapacityResult] = await Promise.all([
-    publicClient.getContractEvents({
-      address: CONVERT_UP_BLUEPRINT_V0_ADDRESS,
-      abi: convertUpBlueprintV0ABI,
-      eventName: "ConvertUpOrderComplete" as const,
-      fromBlock: fromBlock,
-      toBlock: "latest",
-    }),
+  const [_requisitions, _priceResult, bonusAndCapacityResult] = await Promise.all([
+    // publicClient.getContractEvents({
+    //   address: CONVERT_UP_BLUEPRINT_V0_ADDRESS,
+    //   abi: convertUpBlueprintV0ABI,
+    //   eventName: "ConvertUpOrderComplete" as const,
+    //   fromBlock: fromBlock,
+    //   toBlock: "latest",
+    // }),
     loadPublishedRequisitions(address, protocolAddress, publicClient, latestBlock, "convertUpBlueprint", fromBlock),
     publicClient.readContract({
       address: beanstalkPriceAddress[cid],
@@ -205,7 +205,7 @@ export async function loadConvertUpOrderbookData(
 
   console.log("TRACTOR/loadConvertUpOrderbookData] result", {
     requisitions: _requisitions,
-    completedEvents,
+    // completedEvents,
     bonusAndCapacityResult,
     priceResult: _priceResult,
   });
@@ -225,13 +225,13 @@ export async function loadConvertUpOrderbookData(
   });
 
   // Create a set of completed blueprint hashes
-  const completedOrders = new Set<`0x${string}`>(
-    loadOptions.filterOutCompleted
-      ? completedEvents
-          .map((event) => event.args?.blueprintHash)
-          .filter((hash): hash is `0x${string}` => hash !== undefined)
-      : [],
-  );
+  // const completedOrders = new Set<`0x${string}`>(
+  //   loadOptions.filterOutCompleted
+  //     ? completedEvents
+  //         .map((event) => event.args?.blueprintHash)
+  //         .filter((hash): hash is `0x${string}` => hash !== undefined)
+  //     : [],
+  // );
 
   // Filter out cancelled and completed orders
   const activeRequisitions = requisitions.filter((req) => {
@@ -239,7 +239,7 @@ export async function loadConvertUpOrderbookData(
     if (knownBlueprintHashes.has(hash.toLowerCase())) {
       return false;
     }
-    return !req.isCancelled && !completedOrders.has(req.requisition.blueprintHash);
+    return !req.isCancelled;
   });
 
   // Fetch order info for all active requisitions

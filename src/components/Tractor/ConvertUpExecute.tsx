@@ -3,7 +3,7 @@ import IconImage from "@/components/ui/IconImage";
 import { PINTO } from "@/constants/tokens";
 import { ConvertUpOrderbookEntry } from "@/lib/Tractor";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
-import useConvertStalkPerBdvBonusData from "@/state/useConvertStalkPerBdvBonusData";
+import useConvertStalkPerBdvBonusAndMaximumCapacity from "@/state/useConvertStalkPerBdvBonusData";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
@@ -84,7 +84,7 @@ export function ConvertUpExecute() {
   const { tokenPrices } = usePriceData();
   const { mainToken, nativeToken } = useTokenData();
 
-  const bonusQuery = useConvertStalkPerBdvBonusData();
+  const bonusQuery = useConvertStalkPerBdvBonusAndMaximumCapacity();
 
   const {
     data: orders = [],

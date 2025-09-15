@@ -112,10 +112,10 @@ const config = defineConfig(() => {
         address: {
           [mainnet.id]: "0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2",
           [arbitrum.id]: "0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c",
-          [base.id]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933",
-          [localhost.id]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933", // base
-          [TESTNET_CHAIN_ID]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933", // base
-          [foundry.id]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933", // base
+          [base.id]: "0x02F7c20dabC251f35272492177E177035C21269B",
+          [localhost.id]: "0x02F7c20dabC251f35272492177E177035C21269B", // base
+          [TESTNET_CHAIN_ID]: "0x02F7c20dabC251f35272492177E177035C21269B", // base
+          [foundry.id]: "0x02F7c20dabC251f35272492177E177035C21269B", // base
         },
       },
       {
