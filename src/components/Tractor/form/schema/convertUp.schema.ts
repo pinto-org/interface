@@ -3,31 +3,25 @@ import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import {
   Blueprint,
   LowStalkDepositsMode,
-  PreparedConvertUpArgs,
   tractorTokenStrategyUtil as StrategyUtil,
-  TractorTokenStrategy,
   TractorTokenStrategyUnion,
-  createBlueprint,
+  createBlueprintFromBlock,
   createConvertUpTractorData,
   getTractorConvertUpParamsDecimalConfig,
 } from "@/lib/Tractor";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
-import useTokenData from "@/state/useTokenData";
 import { validateFormLte } from "@/utils/number";
 import { SanitizedTV, postSanitizedSanitizedValue } from "@/utils/string";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { useAccount, useChainId, usePublicClient } from "wagmi";
 import { z } from "zod";
 
 import { TV } from "@/classes/TokenValue";
-import { STALK } from "@/constants/internalTokens";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { getChainConstant } from "@/utils/chain";
 import FormUtils from "@/utils/form";
-import { getChainTokenMap } from "@/utils/token";
 import { exists } from "@/utils/utils";
 import {
   SELECT_TIME_SCALES,
@@ -458,6 +452,7 @@ export type ConvertUpV0FormOrderData = {
   maxPriceToConvertUp: string;
   minPriceToConvertUp: string;
   maxGrownStalkPerBdvPenalty: string;
+  timeScale: TimeScaleSelect;
   slippageRatio: string;
   lowStalkDeposits: number;
   operatorTip: string;
@@ -515,22 +510,26 @@ export const useConvertUpV0State = () => {
         console.debug("[useConvertUpV0State] Prepared args:", preparedArgs);
 
         // Create the tractor data using our implemented function
-        const tractorData = await createConvertUpTractorData({
-          ...preparedArgs,
-          farmerDeposits: deposits,
-          publicClient: client,
-          userAddress: address,
-          protocolAddress,
-          whitelistedOperators: [], // TODO: Add operator whitelist support if needed
-        }).catch((e) => {
-          console.error("[useConvertUpV0State] Error creating tractor data:", e);
-          throw e;
-        });
+        const [tractorData, block] = await Promise.all([
+          createConvertUpTractorData({
+            ...preparedArgs,
+            farmerDeposits: deposits,
+            publicClient: client,
+            userAddress: address,
+            protocolAddress,
+            whitelistedOperators: [], // TODO: Add operator whitelist support if needed
+          }).catch((e) => {
+            console.error("[useConvertUpV0State] Error creating tractor data:", e);
+            throw e;
+          }),
+          client.getBlock({ blockTag: "latest" }),
+        ]);
 
         console.debug("[useConvertUpV0State] Tractor data created:", tractorData);
 
         // Create the blueprint
-        const blueprint = createBlueprint({
+        const blueprint = createBlueprintFromBlock({
+          block,
           publisher: address,
           data: tractorData.data,
           operatorPasteInstrs: tractorData.operatorPasteInstrs,
@@ -551,6 +550,7 @@ export const useConvertUpV0State = () => {
           minGrownStalkPerBdvBonus: formData.minGrownStalkPerBdvBonus,
           maxPriceToConvertUp: formData.maxPriceToConvertUp,
           minPriceToConvertUp: formData.minPriceToConvertUp,
+          timeScale: formData.timeScale,
           maxGrownStalkPerBdvPenalty: formData.maxGrownStalkPerBdvPenalty,
           slippageRatio: formData.slippageRatio,
           lowStalkDeposits: formData.lowStalkDeposits,

@@ -5,7 +5,7 @@ import IconImage from "@/components/ui/IconImage";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ConvertUpOrderbookEntry } from "@/lib/Tractor";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
-import useConvertStalkPerBdvBonusData from "@/state/useConvertStalkPerBdvBonusData";
+import useConvertStalkPerBdvBonusAndMaximumCapacity from "@/state/useConvertStalkPerBdvBonusData";
 import { usePriceData } from "@/state/usePriceData";
 import { useMainToken } from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
@@ -20,7 +20,7 @@ export default function ConvertUpTractorOrders({ onSeeAllClick }: { onSeeAllClic
 
   const [hoveredAddress, setHoveredAddress] = useState<string | null>(null);
 
-  const bonusGrownStalkPerBDV = useConvertStalkPerBdvBonusData();
+  const bonusGrownStalkPerBDV = useConvertStalkPerBdvBonusAndMaximumCapacity();
 
   const { data, isLoading } = useTractorConvertUpOrderbook({
     select: useCallback(

@@ -1,5 +1,6 @@
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { MinimumViableBlock } from "@/utils/types";
 import { Address } from "viem";
 import { useChainId, useReadContract, useSignTypedData } from "wagmi";
 import { Blueprint, Requisition } from "./types";
@@ -48,6 +49,36 @@ export function createBlueprint({
     maxNonce,
     startTime: startTime ?? now - 24n * 3600n, // Default 24 hours before now, this makes testing easier
     endTime: endTime ?? now + tenYearsInSeconds, // Default 10 years from now
+  };
+}
+
+export function createBlueprintFromBlock({
+  block,
+  publisher,
+  data,
+  operatorPasteInstrs = [],
+  maxNonce = 1n,
+  startTime,
+  endTime,
+}: {
+  block: MinimumViableBlock<bigint>;
+  publisher: Address;
+  data: `0x${string}`;
+  operatorPasteInstrs?: `0x${string}`[];
+  maxNonce?: bigint;
+  startTime?: bigint;
+  endTime?: bigint;
+}) {
+  const blockTS = block.timestamp;
+  const tenYearsInSeconds = 10n * 365n * 24n * 3600n; // 10 years in seconds
+
+  return {
+    publisher: publisher.toLowerCase() as Address,
+    data,
+    operatorPasteInstrs,
+    maxNonce,
+    startTime: startTime ?? blockTS - 24n * 3600n, // Default 24 hours before now, this makes testing easier
+    endTime: endTime ?? blockTS + tenYearsInSeconds, // Default 10 years from now
   };
 }
 

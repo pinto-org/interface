@@ -42,3 +42,5 @@ export const defaultQuerySettingsQuote = {
   staleTime: FIFTEEN_SECONDS,
   refetchInterval: FIFTEEN_SECONDS,
 };
+
+export const SEASONAL_SCOPE_KEY = "SeasonalQuery" as const;

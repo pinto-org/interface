@@ -34,25 +34,25 @@ const BaseIcon = () => (
 const SowOrderDescription = ({ isViewOnly }: { isViewOnly: boolean }) => {
   if (isViewOnly) {
     return (
-      <p>
+      <div>
         This is your active Sow Order. It allows an Operator to execute a transaction for you on the{" "}
         <span className="whitespace-nowrap">
           <BaseIcon /> Base&nbsp;
         </span>
         network when the conditions are met.
-      </p>
+      </div>
     );
   }
 
   return (
     <Col className="gap-3">
-      <p>
+      <div>
         A Sow Order allows you to pay an Operator to execute a sowing transaction for you on the{" "}
         <span className="whitespace-nowrap">
           <BaseIcon /> Base&nbsp;
         </span>
         network.
-      </p>
+      </div>
       <p>This allows you to interact with the Pinto protocol autonomously when the conditions of your Order are met.</p>
     </Col>
   );
@@ -62,29 +62,29 @@ const SowOrderDescription = ({ isViewOnly }: { isViewOnly: boolean }) => {
 const ConvertUpOrderDescription = ({ isViewOnly }: { isViewOnly: boolean }) => {
   if (isViewOnly) {
     return (
-      <p>
+      <div>
         This is your active Convert Order. It allows an Operator to execute convert transactions for you on the{" "}
         <span className="whitespace-nowrap">
           <BaseIcon /> Base&nbsp;
         </span>
         network when the conditions are met.
-      </p>
+      </div>
     );
   }
 
   return (
     <Col className="gap-3">
-      <p>
+      <div>
         A Convert Order allows you to pay an Operator to execute convert transactions for you on the{" "}
         <span className="whitespace-nowrap">
           <BaseIcon /> Base&nbsp;
         </span>
         network.
-      </p>
-      <p>
+      </div>
+      <div>
         This allows you to automatically convert your LP assets for bonus Grown Stalk when market conditions are
         favorable.
-      </p>
+      </div>
     </Col>
   );
 };
@@ -118,9 +118,8 @@ const transformConvertUpOrderData = (
     totalConvertBdv: req.decodedData.convertUpParams.totalConvertBdv.toHuman(),
     minConvertBdvPerExecution: req.decodedData.convertUpParams.minConvertBdvPerExecution.toHuman(),
     maxConvertBdvPerExecution: req.decodedData.convertUpParams.maxConvertBdvPerExecution.toHuman(),
-    minTimeBetweenConverts:
-      req.decodedData.convertUpParams.minTimeBetweenConverts.toHuman() ||
-      req.decodedData.convertUpParams.minTimeBetweenConverts.toHuman(),
+    minTimeBetweenConverts: req.decodedData.convertUpParams.minTimeBetweenConverts.toHuman(),
+    timeScale: "SECONDS",
     minConvertBonusCapacity: req.decodedData.convertUpParams.minConvertBonusCapacity.toHuman(),
     maxGrownStalkPerBdv: req.decodedData.convertUpParams.maxGrownStalkPerBdv.toHuman(),
     minGrownStalkPerBdvBonus: req.decodedData.convertUpParams.minGrownStalkPerBdvBonus.toHuman(),

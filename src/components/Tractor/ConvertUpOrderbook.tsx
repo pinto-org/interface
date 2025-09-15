@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PINTO } from "@/constants/tokens";
 import { Blueprint, ConvertUpOrderbookEntry } from "@/lib/Tractor";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
-import useConvertStalkPerBdvBonusData from "@/state/useConvertStalkPerBdvBonusData";
+import useConvertStalkPerBdvBonusAndMaximumCapacity from "@/state/useConvertStalkPerBdvBonusData";
 import { formatter } from "@/utils/format";
 import { cn } from "@/utils/utils";
 import { GearIcon } from "@radix-ui/react-icons";
@@ -40,7 +40,7 @@ export function ConvertUpOrderbookContent({
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [reviewOrderData, setReviewOrderData] = useState<ConvertUpOrderData | null>(null);
 
-  const { data: convertUpData } = useConvertStalkPerBdvBonusData();
+  const { data: convertUpData } = useConvertStalkPerBdvBonusAndMaximumCapacity();
 
   const { data: orders = [], isLoading } = useTractorConvertUpOrderbook({
     select: useCallback((data: ConvertUpOrderbookEntry[] | undefined) => {

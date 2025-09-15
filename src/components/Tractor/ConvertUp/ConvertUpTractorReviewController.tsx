@@ -246,6 +246,7 @@ const ConvertUpTractorReviewController = ({
           orderData={{
             type: "convertUp" as const,
             ...orderData,
+            timeScale: form.getValues("timeScale"),
             tokenStrategy: form.getValues("tokenStrategy"),
           }}
           encodedData={state.encodedData}

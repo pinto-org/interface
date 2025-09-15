@@ -83,10 +83,10 @@ const config = defineConfig(() => {
         address: {
           [mainnet.id]: "0x4BEd6cb142b7d474242d87F4796387DEB9E1E1B4",
           [arbitrum.id]: "0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7",
-          [base.id]: "0x0c4bF0AEC8Df83cf0dD11403deDC01F5CE1Cdf3f", // temp address
-          [localhost.id]: "0x0c4bF0AEC8Df83cf0dD11403deDC01F5CE1Cdf3f", // base
-          [TESTNET_CHAIN_ID]: "0x0c4bF0AEC8Df83cf0dD11403deDC01F5CE1Cdf3f", // base
-          [foundry.id]: "0x0c4bF0AEC8Df83cf0dD11403deDC01F5CE1Cdf3f", // base
+          [base.id]: "0x02F7c20dabC251f35272492177E177035C21269B", // temp address
+          [localhost.id]: "0x02F7c20dabC251f35272492177E177035C21269B", // base
+          [TESTNET_CHAIN_ID]: "0x02F7c20dabC251f35272492177E177035C21269B", // base
+          [foundry.id]: "0x02F7c20dabC251f35272492177E177035C21269B", // base
         },
       },
       {
@@ -112,10 +112,10 @@ const config = defineConfig(() => {
         address: {
           [mainnet.id]: "0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2",
           [arbitrum.id]: "0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c",
-          [base.id]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933",
-          [localhost.id]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933", // base
-          [TESTNET_CHAIN_ID]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933", // base
-          [foundry.id]: "0xDEb0f04e5DC8875bf1Dc6087fF436Ef9873b8933", // base
+          [base.id]: "0x02F7c20dabC251f35272492177E177035C21269B",
+          [localhost.id]: "0x02F7c20dabC251f35272492177E177035C21269B", // base
+          [TESTNET_CHAIN_ID]: "0x02F7c20dabC251f35272492177E177035C21269B", // base
+          [foundry.id]: "0x02F7c20dabC251f35272492177E177035C21269B", // base
         },
       },
       {
