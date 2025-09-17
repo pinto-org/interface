@@ -16,7 +16,7 @@ export default function ConvertUpOrderVisualization({
   }
 
   return (
-    <div className={`bg-gray-50 p-6 rounded-lg relative ${className || ""}`}>
+    <div className={`bg-gray-50 p-6 relative ${className || ""}`}>
       {/* Add the dot grid as a background element */}
       <div className="absolute inset-0 opacity-50">
         <div className="w-full h-full bg-dot-grid bg-[size:24px_24px] bg-[position:center]" />

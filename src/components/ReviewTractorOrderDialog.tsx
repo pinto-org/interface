@@ -193,7 +193,7 @@ export default function ReviewTractorOrderDialog({
              * Tabs
              */}
             <Tabs value={activeTab} onValueChange={setActiveTab as (value: string) => void}>
-              <TabsList variant="textSecondary" className="px-6">
+              <TabsList variant="textSecondary" className="px-6" borderBottom>
                 <TabsTrigger value="order">View Order</TabsTrigger>
                 <TabsTrigger value="blueprint">View Blueprint and Requisition</TabsTrigger>
                 {isViewOnly && executionHistory?.length ? (
@@ -201,10 +201,10 @@ export default function ReviewTractorOrderDialog({
                 ) : null}
               </TabsList>
               <TabsContent value="order" className="mt-0">
-                <Visualization orderData={orderData} />
+                <Visualization orderData={orderData} className="rounded-b-xl" />
               </TabsContent>
               <TabsContent value="blueprint" className="mt-0">
-                <div className="bg-gray-50 p-6 rounded-lg">
+                <div className="bg-gray-50 p-6 rounded-b-xl">
                   <div className="space-y-6">
                     {/**
                      * Decoded Blueprint Call

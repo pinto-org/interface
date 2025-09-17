@@ -13,11 +13,16 @@ const tabsListVariants = cva("inline-flex items-center", {
       primary:
         "h-[3.25rem] justify-center rounded-[0.75rem] bg-white border border-pinto-gray-2 p-0.5 sm:p-1 text-muted-foreground",
       text: "flex-row justify-between overflow-x-auto",
-      textSecondary: "flex flex-row gap-4 border-b w-full overflow-x-auto",
+      textSecondary: "flex flex-row gap-4 w-full overflow-x-auto",
+    },
+    borderBottom: {
+      true: "border-b",
+      false: "",
     },
   },
   defaultVariants: {
     variant: "primary",
+    borderBottom: false,
   },
 });
 
@@ -30,7 +35,7 @@ const tabsTriggerVariants = cva(
           "rounded-[0.75rem] text-pinto-gray-4 px-3 text-[1rem] sm:text-[1.25rem] py-2.5 sm:py-1.5 font-medium ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=active]:bg-pinto-green-1 data-[state=active]:text-pinto-green data-[state=active]:shadow-sm",
         text: "pinto-h3 py-2 pr-4 pl-0 text-left data-[state=active]:text-pinto-secondary data-[state=inactive]:text-pinto-gray-4",
         textSecondary: clsx(
-          "pb-2 pinto-sm border-b-2 border-transparent",
+          "pb-2 border-b-2 pinto-sm",
           "data-[state=inactive]:text-pinto-gray-4 data-[state=inactive]:border-transparent",
           "data-[state=active]:border-pinto-green-4 data-[state=active]:font-medium",
         ),
@@ -51,9 +56,9 @@ export interface TabsListProps
     VariantProps<typeof tabsListVariants> {}
 
 const TabsList = React.forwardRef<React.ElementRef<typeof TabsPrimitive.List>, TabsListProps>(
-  ({ className, variant, ...props }, ref) => (
+  ({ className, variant, borderBottom, ...props }, ref) => (
     <TabsVariantContext.Provider value={variant}>
-      <TabsPrimitive.List ref={ref} className={cn(tabsListVariants({ variant }), className)} {...props} />
+      <TabsPrimitive.List ref={ref} className={cn(tabsListVariants({ variant, borderBottom }), className)} {...props} />
     </TabsVariantContext.Provider>
   ),
 );
