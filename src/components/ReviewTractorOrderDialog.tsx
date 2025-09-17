@@ -3,7 +3,7 @@ import { diamondABI } from "@/constants/abi/diamondABI";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useSignTractorBlueprint from "@/hooks/tractor/useSignTractorBlueprint";
 import useTransaction from "@/hooks/useTransaction";
-import { Blueprint, PublisherTractorExecution, Requisition, useGetBlueprintHash } from "@/lib/Tractor";
+import { Blueprint, Requisition, useGetBlueprintHash } from "@/lib/Tractor";
 import { cn } from "@/utils/utils";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
@@ -26,6 +26,7 @@ import {
   DialogPortal,
   DialogTitle,
 } from "./ui/Dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/Tabs";
 
 // Export ExecutionData from types for backward compatibility
 export type { ExecutionData } from "./Tractor/types";
@@ -71,7 +72,6 @@ export default function ReviewTractorOrderDialog({
   // Get order type configuration from registry
 
   const orderConfig = getOrderTypeConfig(orderData.type);
-  const OrderVisualization = orderConfig.visualization;
   const ExecutionHistory = orderConfig.executionHistory;
 
   const { signBlueprint, signedRequisition, isSigning: signing } = useSignTractorBlueprint();
@@ -202,72 +202,70 @@ export default function ReviewTractorOrderDialog({
           </DialogHeader>
           <div className="flex flex-col">
             {/* Tabs */}
-            <DialogTabs
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-              isViewOnly={isViewOnly}
-              executions={executionHistory.length || 0}
-            />
-
-            {/* Content */}
-            {activeTab === "order" ? (
-              /* Order Visualization */
-              <>
-                {orderData.type === "sow" && <SowOrderVisualization orderData={orderData} />}
-                {orderData.type === "convertUp" && <ConvertUpOrderVisualization orderData={orderData} />}
-                {/* <OrderVisualization orderData={orderData} /> */}
-              </>
-            ) : activeTab === "blueprint" ? (
-              /* Blueprint View */
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <div className="space-y-6">
-                  {/* Decoded Blueprint Call */}
-                  <div>
-                    <h3 className="pinto-sm font-medium mb-2">Blueprint Call</h3>
-                    <div className="bg-white p-4 rounded border border-gray-200 font-mono text-sm overflow-x-auto">
-                      <HighlightedCallData
-                        blueprintData={encodedData}
-                        targetData={encodedData}
-                        blueprintType={
-                          orderData.type === "sow" ? "sow" : orderData.type === "convertUp" ? "convertUp" : "auto"
-                        }
-                        decodeAbi={true}
-                      />
+            <Tabs value={activeTab} onValueChange={setActiveTab as (value: string) => void}>
+              <TabsList variant="textSecondary" className="px-6">
+                <TabsTrigger value="order">View Order</TabsTrigger>
+                <TabsTrigger value="blueprint">View Blueprint and Requisition</TabsTrigger>
+                {isViewOnly && executionHistory?.length ? (
+                  <TabsTrigger value="executions">Execution History ({executionHistory.length})</TabsTrigger>
+                ) : null}
+              </TabsList>
+              <TabsContent value="order">
+                <>
+                  {orderData.type === "sow" && <SowOrderVisualization orderData={orderData} />}
+                  {orderData.type === "convertUp" && <ConvertUpOrderVisualization orderData={orderData} />}
+                </>
+              </TabsContent>
+              <TabsContent value="blueprint">
+                <div className="bg-gray-50 p-6 rounded-lg">
+                  <div className="space-y-6">
+                    {/* Decoded Blueprint Call */}
+                    <div>
+                      <h3 className="pinto-sm font-medium mb-2">Blueprint Call</h3>
+                      <div className="bg-white p-4 rounded border border-gray-200 font-mono text-sm overflow-x-auto">
+                        <HighlightedCallData
+                          blueprintData={encodedData}
+                          targetData={encodedData}
+                          blueprintType={
+                            orderData.type === "sow" ? "sow" : orderData.type === "convertUp" ? "convertUp" : "auto"
+                          }
+                          decodeAbi={true}
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Encoded Farm Data */}
-                  <div>
-                    <h3 className="pinto-sm font-medium mb-2">Encoded Farm Data</h3>
-                    <div className="bg-white p-4 rounded border border-gray-200 font-mono text-sm overflow-x-auto">
-                      <HighlightedCallData
-                        blueprintData={encodedData}
-                        targetData={encodedData}
-                        decodeAbi={decodeAbi}
-                        encodedData={encodedData}
-                      />
+                    {/* Encoded Farm Data */}
+                    <div>
+                      <h3 className="pinto-sm font-medium mb-2">Encoded Farm Data</h3>
+                      <div className="bg-white p-4 rounded border border-gray-200 font-mono text-sm overflow-x-auto">
+                        <HighlightedCallData
+                          blueprintData={encodedData}
+                          targetData={encodedData}
+                          decodeAbi={decodeAbi}
+                          encodedData={encodedData}
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Requisition Data */}
-                  <div>
-                    <h3 className="pinto-sm font-medium mb-2">Requisition Data</h3>
-                    <div className="bg-white p-4 rounded border border-gray-200 font-mono text-sm overflow-x-auto">
-                      <HighlightedCallData
-                        blueprintData={encodedData}
-                        targetData={JSON.stringify(blueprint, null, 2)}
-                        decodeAbi={decodeAbi}
-                        isRequisitionData={true}
-                      />
+                    {/* Requisition Data */}
+                    <div>
+                      <h3 className="pinto-sm font-medium mb-2">Requisition Data</h3>
+                      <div className="bg-white p-4 rounded border border-gray-200 font-mono text-sm overflow-x-auto">
+                        <HighlightedCallData
+                          blueprintData={encodedData}
+                          targetData={JSON.stringify(blueprint, null, 2)}
+                          decodeAbi={decodeAbi}
+                          isRequisitionData={true}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              /* Execution History View */
-              <ExecutionHistory executionHistory={executionHistory} orderData={orderData} />
-            )}
-
+              </TabsContent>
+              <TabsContent value="executions">
+                <ExecutionHistory executionHistory={executionHistory} orderData={orderData} />
+              </TabsContent>
+            </Tabs>
             {/* Footer */}
             {!isViewOnly ? (
               <Row className="justify-between items-center border-t p-6">
@@ -310,51 +308,3 @@ export default function ReviewTractorOrderDialog({
     </Dialog>
   );
 }
-
-const DialogTabs = ({
-  activeTab,
-  isViewOnly,
-  executions,
-  setActiveTab,
-}: {
-  activeTab: Tab;
-  isViewOnly: boolean;
-  executions: number;
-  setActiveTab: (tab: Tab) => void;
-}) => {
-  return (
-    <div className="flex gap-4 border-b px-6 pinto-sm">
-      <button
-        type="button"
-        className={`pb-2 ${activeTab === "order" ? "border-b-2 border-pinto-green-4 font-medium" : "border-b-2 border-transparent text-pinto-gray-4"}`}
-        onClick={() => setActiveTab("order")}
-      >
-        View Order
-      </button>
-      <button
-        type="button"
-        className={`pb-2 ${
-          activeTab === "blueprint"
-            ? "border-b-2 border-pinto-green-4 font-medium"
-            : "border-b-2 border-transparent text-pinto-gray-4"
-        }`}
-        onClick={() => setActiveTab("blueprint")}
-      >
-        View Blueprint and Requisition
-      </button>
-      {isViewOnly && executions ? (
-        <button
-          type="button"
-          className={`pb-2 ${
-            activeTab === "executions"
-              ? "border-b-2 border-pinto-green-4 font-medium"
-              : "border-b-2 border-transparent text-pinto-gray-4"
-          }`}
-          onClick={() => setActiveTab("executions")}
-        >
-          Execution History ({executions})
-        </button>
-      ) : null}
-    </div>
-  );
-};
