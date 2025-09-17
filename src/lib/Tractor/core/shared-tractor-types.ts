@@ -68,7 +68,7 @@ export interface WithdrawalPlan {
 export interface Blueprint {
   publisher: Address;
   data: `0x${string}`;
-  operatorPasteInstrs: `0x${string}`[];
+  operatorPasteInstrs: `0x${string}`[] | readonly `0x${string}`[];
   maxNonce: bigint;
   startTime: bigint;
   endTime: bigint;

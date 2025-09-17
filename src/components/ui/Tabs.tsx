@@ -13,7 +13,7 @@ const tabsListVariants = cva("inline-flex items-center", {
       primary:
         "h-[3.25rem] justify-center rounded-[0.75rem] bg-white border border-pinto-gray-2 p-0.5 sm:p-1 text-muted-foreground",
       text: "flex-row justify-between overflow-x-auto",
-      textSecondary: "flex-row gap-4 border-b overflow-x-auto",
+      textSecondary: "flex flex-row gap-4 border-b w-full overflow-x-auto",
     },
   },
   defaultVariants: {

@@ -26,7 +26,7 @@ const BASESCAN_URL = "https://basescan.org/address/";
 interface ConvertUpOrderbookContentProps {
   showZeroAvailable?: boolean;
   sortBy?: "bonus" | "tip";
-  showAboveCurrentBonus?: boolean;
+  showBelowCurrentBonus?: boolean;
 }
 
 const formatDate = formatter.dateFromTS;
@@ -34,7 +34,7 @@ const formatDate = formatter.dateFromTS;
 export function ConvertUpOrderbookContent({
   showZeroAvailable = false,
   sortBy = "bonus",
-  showAboveCurrentBonus = true,
+  showBelowCurrentBonus = true,
 }: ConvertUpOrderbookContentProps) {
   const [selectedOrder, setSelectedOrder] = useState<ConvertUpOrderbookEntry | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
@@ -95,7 +95,7 @@ export function ConvertUpOrderbookContent({
 
       // Filter for above current bonus (placeholder logic - needs market data)
       let matchesBonusFilter = true;
-      if (!showAboveCurrentBonus) {
+      if (!showBelowCurrentBonus) {
         // TODO: Implement current bonus comparison
         matchesBonusFilter = true; // Placeholder
       }
@@ -239,17 +239,10 @@ export function ConvertUpOrderbookContent({
           onOpenChange={setReviewDialogOpen}
           orderData={reviewOrderData}
           encodedData={selectedOrder.requisition.blueprint.data}
-          operatorPasteInstrs={Array.from(selectedOrder.requisition.blueprint.operatorPasteInstrs) as `0x${string}`[]}
-          blueprint={
-            {
-              ...selectedOrder.requisition.blueprint,
-              operatorPasteInstrs: Array.from(
-                selectedOrder.requisition.blueprint.operatorPasteInstrs,
-              ) as `0x${string}`[],
-            } as Blueprint
-          }
+          operatorPasteInstrs={selectedOrder.requisition.blueprint.operatorPasteInstrs}
+          blueprint={selectedOrder.requisition.blueprint}
           isViewOnly={true}
-          executionHistory={[]} // No execution history in the current data model
+          // executionHistory={[]} // No execution history in the current data model
         />
       )}
     </div>
@@ -265,7 +258,7 @@ export function ConvertUpOrderbookDialog({ open, onOpenChange }: ConvertUpOrderb
   const [activeTab, setActiveTab] = useState<"view" | "execute">("view");
   const [showZeroAvailable, setShowZeroAvailable] = useState(false);
   const [sortBy, setSortBy] = useState<"bonus" | "tip">("bonus");
-  const [showAboveCurrentBonus, setShowAboveCurrentBonus] = useState(true);
+  const [showBelowCurrentBonus, setShowBelowCurrentBonus] = useState(true);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -309,8 +302,8 @@ export function ConvertUpOrderbookDialog({ open, onOpenChange }: ConvertUpOrderb
                     <ConvertUpOrderbookSettingsPopover
                       showZeroAvailable={showZeroAvailable}
                       onShowZeroAvailableChange={setShowZeroAvailable}
-                      showAboveCurrentBonus={showAboveCurrentBonus}
-                      onShowAboveCurrentBonusChange={setShowAboveCurrentBonus}
+                      showBelowCurrentBonus={showBelowCurrentBonus}
+                      onShowBelowCurrentBonusChange={setShowBelowCurrentBonus}
                       sortBy={sortBy}
                       onSortByChange={setSortBy}
                     />
@@ -323,7 +316,7 @@ export function ConvertUpOrderbookDialog({ open, onOpenChange }: ConvertUpOrderb
                 <ConvertUpOrderbookContent
                   showZeroAvailable={showZeroAvailable}
                   sortBy={sortBy}
-                  showAboveCurrentBonus={showAboveCurrentBonus}
+                  showBelowCurrentBonus={showBelowCurrentBonus}
                 />
               ) : (
                 <div className="px-6">
@@ -341,8 +334,8 @@ export function ConvertUpOrderbookDialog({ open, onOpenChange }: ConvertUpOrderb
 interface ConvertUpOrderbookSettingsPopoverProps {
   showZeroAvailable: boolean;
   onShowZeroAvailableChange: (value: boolean) => void;
-  showAboveCurrentBonus: boolean;
-  onShowAboveCurrentBonusChange: (value: boolean) => void;
+  showBelowCurrentBonus: boolean;
+  onShowBelowCurrentBonusChange: (value: boolean) => void;
   sortBy: "bonus" | "tip";
   onSortByChange: (value: "bonus" | "tip") => void;
 }
@@ -354,11 +347,11 @@ const sortOptions = [
 
 function ConvertUpOrderbookSettingsPopover({
   showZeroAvailable,
-  showAboveCurrentBonus,
+  showBelowCurrentBonus,
   sortBy,
   onSortByChange,
   onShowZeroAvailableChange,
-  onShowAboveCurrentBonusChange,
+  onShowBelowCurrentBonusChange,
 }: ConvertUpOrderbookSettingsPopoverProps) {
   return (
     <Popover>
@@ -378,13 +371,13 @@ function ConvertUpOrderbookSettingsPopover({
           </div>
 
           <div className="flex items-center justify-between">
-            <Label size="sm" htmlFor="show-above-bonus">
-              Show Orders Above Current Bonus
+            <Label size="sm" htmlFor="show-below-bonus">
+              Show Orders Below Current Bonus
             </Label>
             <Switch
-              id="show-above-bonus"
-              checked={showAboveCurrentBonus}
-              onCheckedChange={onShowAboveCurrentBonusChange}
+              id="show-below-bonus"
+              checked={showBelowCurrentBonus}
+              onCheckedChange={onShowBelowCurrentBonusChange}
             />
           </div>
 
