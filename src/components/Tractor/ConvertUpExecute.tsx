@@ -93,7 +93,18 @@ export function ConvertUpExecute() {
   } = useTractorConvertUpOrderbook({
     select: useCallback((data: ConvertUpOrderbookEntry[] | undefined) => {
       if (!data || data?.length === 0) return [] satisfies ConvertUpOrderbookEntry[];
-      return data;
+      return (
+        data
+          // Filter for orders that meet all conditions
+          .filter(
+            (order) => order.meetsConditions.bonus && order.meetsConditions.price && order.meetsConditions.capacity,
+          )
+          .sort((a, b) => {
+            // Sort by operator tip descending
+            if (!a.decodedData || !b.decodedData) return 0;
+            return b.decodedData?.opParams.operatorTipAmount.sub(a.decodedData?.opParams.operatorTipAmount).toNumber();
+          })
+      );
     }, []),
   });
 
