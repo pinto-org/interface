@@ -1,25 +1,22 @@
 import { OrderVisualization } from "@/components/OrderVisualization";
-import IconImage from "@/components/ui/IconImage";
-import { STALK } from "@/constants/internalTokens";
 import { useMainToken } from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { timeScaleToDisplay } from "@/utils/time";
 import { TractorOrderVisualizationProps } from "../types";
 
-export default function ConvertUpOrderVisualization({ orderData, className }: TractorOrderVisualizationProps) {
+export default function ConvertUpOrderVisualization({
+  orderData: convertData,
+  className,
+}: TractorOrderVisualizationProps) {
   const mainToken = useMainToken();
 
   // Type guard to ensure we have convert up order data
-  if (orderData.type !== "convertUp") {
+  if (convertData.type !== "convertUp") {
     throw new Error("ConvertUpOrderVisualization requires convertUp order data");
   }
 
-  console.log("orderData", orderData);
-
-  const convertData = orderData;
-
   return (
-    <div className={`bg-gray-50 p-6 rounded-lg relative ${className || ""}`}>
+    <div className={`bg-gray-50 p-6 relative ${className || ""}`}>
       {/* Add the dot grid as a background element */}
       <div className="absolute inset-0 opacity-50">
         <div className="w-full h-full bg-dot-grid bg-[size:24px_24px] bg-[position:center]" />
@@ -42,14 +39,6 @@ export default function ConvertUpOrderVisualization({ orderData, className }: Tr
             <OrderVisualization.ConditionsList
               conditions={[
                 { text: <>Convert up to {formatter.number(convertData.totalConvertBdv)} PDV of deposited tokens</> },
-                {
-                  text: (
-                    <>
-                      {formatter.number(convertData.minConvertBdvPerExecution)}-
-                      {formatter.number(convertData.maxConvertBdvPerExecution)} PDV per execution
-                    </>
-                  ),
-                },
               ]}
               size="sm"
             />
@@ -62,7 +51,16 @@ export default function ConvertUpOrderVisualization({ orderData, className }: Tr
             <OrderVisualization.FlowVisualization
               steps={[
                 { type: "action", content: "Convert" },
-                { type: "context", content: "When conditions are met" },
+                {
+                  type: "context",
+                  content: (
+                    <span className="text-pinto-green-4">
+                      {formatter.number(convertData.minConvertBdvPerExecution)}
+                      {" - "}
+                      {formatter.number(convertData.maxConvertBdvPerExecution)} PDV
+                    </span>
+                  ),
+                },
               ]}
               size="sm"
             />
@@ -71,7 +69,7 @@ export default function ConvertUpOrderVisualization({ orderData, className }: Tr
                 {
                   text: (
                     <>
-                      Price between{" "}
+                      Execute when Price is between{" "}
                       <span className="text-pinto-green-4">{formatter.usd(convertData.minPriceToConvertUp)}</span>
                       {" - "}
                       <span className="text-pinto-green-4">{formatter.usd(convertData.maxPriceToConvertUp)}</span>
@@ -81,12 +79,10 @@ export default function ConvertUpOrderVisualization({ orderData, className }: Tr
                 {
                   text: (
                     <>
-                      Min Grown Stalk bonus{" "}
+                      Min Grown Stalk Bonus Per PDV exceeds{" "}
                       <span className="inline-flex gap-1 items-baseline">
-                        <IconImage src={STALK.logoURI} size={3} alt={STALK.symbol} nudge={-1} />
                         <span className="text-pinto-green-4">{convertData.minGrownStalkPerBdvBonus}</span>
                       </span>
-                      {" per PDV"}
                     </>
                   ),
                   operator: "AND",
@@ -94,12 +90,8 @@ export default function ConvertUpOrderVisualization({ orderData, className }: Tr
                 {
                   text: (
                     <>
-                      Min Grown Stalk bonus{" "}
-                      <span className="inline-flex gap-1 items-baseline">
-                        <IconImage src={STALK.logoURI} size={3} alt={STALK.symbol} nudge={-1} />
-                        <span className="text-pinto-green-4">{convertData.minGrownStalkPerBdvBonus}</span>
-                      </span>
-                      {" per PDV"}
+                      Min Convert Bonus Capacity exceeds{" "}
+                      <span className="text-pinto-green-4">{convertData.minConvertBonusCapacity} PDV</span>
                     </>
                   ),
                   operator: "AND",
@@ -141,7 +133,6 @@ export default function ConvertUpOrderVisualization({ orderData, className }: Tr
               ]}
               size="sm"
             />
-            {/* <OrderVisualization.TipDisplay amount={convertData.operatorTip} token="PINTO" icon={pintoIcon} /> */}
           </OrderVisualization.Container>
         </div>
       </div>

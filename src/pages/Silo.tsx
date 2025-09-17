@@ -9,15 +9,12 @@ import StatPanel from "@/components/StatPanel";
 import TableRowConnector from "@/components/TableRowConnector";
 import TextSkeleton from "@/components/TextSkeleton";
 import TooltipSimple from "@/components/TooltipSimple";
-import ConvertUpOrderForm from "@/components/Tractor/ConvertUpOrderForm";
 import ConvertUpOrderbookDialog from "@/components/Tractor/ConvertUpOrderbook";
 import ConvertUpTractorOrderBookChart from "@/components/Tractor/ConvertUpTractorOrderBookChart";
 import ConvertUpTractorOrders from "@/components/Tractor/ConvertUpTractorOrders";
-import TractorCard from "@/components/Tractor/TractorCard";
 import { TractorConvertUpOrdersPanel } from "@/components/Tractor/farmer-orders/TractorOrdersPanel";
 import { tabToSeasonalLookback } from "@/components/charts/SeasonalChart";
 import { TimeTab } from "@/components/charts/TimeTabs";
-import { navLinks } from "@/components/nav/nav/Navbar";
 import { Card } from "@/components/ui/Card";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
@@ -31,7 +28,6 @@ import useFarmerActions from "@/hooks/useFarmerActions";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { useParamsTabs } from "@/hooks/useRouterTabs";
 import { useSeasonalSiloActiveFarmers } from "@/state/seasonal/seasonalDataHooks";
-import useConvertStalkPerBdvBonusData from "@/state/useConvertStalkPerBdvBonusData";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { useSeedGauge } from "@/state/useSeedGauge";
@@ -49,7 +45,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import SiloConvertUpStats from "./silo/SiloConvertUpStats";
-import FarmerSiloOverviewStats from "./silo/SiloOverviewStats";
 import SiloTable from "./silo/SiloTable";
 
 const VALUE_TARGET = 1;
@@ -203,20 +198,8 @@ function Silo() {
                     />
                   )}
                 </div>
-                <ConvertUpTractorContent
-                  showConvertUpOrderDialog={showConvertUpOrderDialog}
-                  setShowConvertUpOrderDialog={setShowConvertUpOrderDialog}
-                />
+                <ConvertUpTractorContent />
               </div>
-              {showConvertUpOrderDialog && (
-                <div className="w-full sm:w-[30rem] flex-shrink-0 sm:self-start">
-                  <Card className="rounded-xl" id="convert-up-order-dialog">
-                    <div className="flex flex-col w-full items-center p-4">
-                      <ConvertUpOrderForm onOpenChange={setShowConvertUpOrderDialog} />
-                    </div>
-                  </Card>
-                </div>
-              )}
             </div>
           </div>
           {/* <div className="flex flex-col w-full gap-8">
@@ -259,10 +242,7 @@ const useConvertUpTractorActiveTab = () => {
   return [value, setActiveTab] as const;
 };
 
-const ConvertUpTractorContent = ({
-  showConvertUpOrderDialog,
-  setShowConvertUpOrderDialog,
-}: { showConvertUpOrderDialog: boolean; setShowConvertUpOrderDialog: (value: boolean) => void }) => {
+const ConvertUpTractorContent = () => {
   const [value, setActiveTab] = useConvertUpTractorActiveTab();
   const [open, setOpen] = useState(false);
 

@@ -146,6 +146,8 @@ function RequisitionDataDisplay({
   }
 }
 
+const knownBlueprintTypes = new Set(["sow", "convertUp"]);
+
 export function HighlightedCallData({
   blueprintData,
   targetData,
@@ -153,8 +155,9 @@ export function HighlightedCallData({
   decodeAbi = false,
   isRequisitionData = false,
   encodedData,
-  blueprintType = "auto",
+  blueprintType: _blueprintType = "auto",
 }: HighlightedCallDataProps) {
+  const blueprintType = knownBlueprintTypes.has(_blueprintType) ? _blueprintType : "auto";
   // Handle requisition data display
   if (isRequisitionData) {
     return <RequisitionDataDisplay targetData={targetData} decodeAbi={decodeAbi} className={className} />;

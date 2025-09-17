@@ -18,6 +18,7 @@ import { cn } from "@/utils/utils";
 import { GearIcon } from "@radix-ui/react-icons";
 import { useCallback, useState } from "react";
 import React from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/Tabs";
 import { ConvertUpExecute } from "./ConvertUpExecute";
 import { ConvertUpOrderData } from "./types";
 
@@ -26,7 +27,7 @@ const BASESCAN_URL = "https://basescan.org/address/";
 interface ConvertUpOrderbookContentProps {
   showZeroAvailable?: boolean;
   sortBy?: "bonus" | "tip";
-  showAboveCurrentBonus?: boolean;
+  showBelowCurrentBonus?: boolean;
 }
 
 const formatDate = formatter.dateFromTS;
@@ -34,7 +35,7 @@ const formatDate = formatter.dateFromTS;
 export function ConvertUpOrderbookContent({
   showZeroAvailable = false,
   sortBy = "bonus",
-  showAboveCurrentBonus = true,
+  showBelowCurrentBonus = true,
 }: ConvertUpOrderbookContentProps) {
   const [selectedOrder, setSelectedOrder] = useState<ConvertUpOrderbookEntry | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
@@ -92,14 +93,7 @@ export function ConvertUpOrderbookContent({
     filtered = filtered.filter((order) => {
       // Filter for zero available
       const hasAvailableBdv = showZeroAvailable || order.currentlyConvertible.gt(TV.ZERO);
-
-      // Filter for above current bonus (placeholder logic - needs market data)
-      let matchesBonusFilter = true;
-      if (!showAboveCurrentBonus) {
-        // TODO: Implement current bonus comparison
-        matchesBonusFilter = true; // Placeholder
-      }
-
+      const matchesBonusFilter = showBelowCurrentBonus || order.meetsConditions.capacity;
       return hasAvailableBdv && matchesBonusFilter;
     });
 
@@ -201,10 +195,10 @@ export function ConvertUpOrderbookContent({
       <Table>
         <TableHeader className="[&_tr]:border-b-0 [&_th]:text-pinto-light">
           <TableRow className="border-b-0">
-            <TableHead className="py-2 px-0 pl-6">Grown Stalk Bonus Per BDV</TableHead>
+            <TableHead className="py-2 px-0 pl-6">Grown Stalk Bonus Per PDV</TableHead>
             <TableHead className="py-2">Min Capacity</TableHead>
             <TableHead className="py-2">Price</TableHead>
-            <TableHead className="py-2 text-right">Total Convert BDV</TableHead>
+            <TableHead className="py-2 text-right">Total Convert PDV</TableHead>
             <TableHead className="py-2 text-right">Available Pinto</TableHead>
             <TableHead className="py-2 text-right">PDV per Execution</TableHead>
             <TableHead className="py-2 text-right">Operator Tip</TableHead>
@@ -239,17 +233,10 @@ export function ConvertUpOrderbookContent({
           onOpenChange={setReviewDialogOpen}
           orderData={reviewOrderData}
           encodedData={selectedOrder.requisition.blueprint.data}
-          operatorPasteInstrs={Array.from(selectedOrder.requisition.blueprint.operatorPasteInstrs) as `0x${string}`[]}
-          blueprint={
-            {
-              ...selectedOrder.requisition.blueprint,
-              operatorPasteInstrs: Array.from(
-                selectedOrder.requisition.blueprint.operatorPasteInstrs,
-              ) as `0x${string}`[],
-            } as Blueprint
-          }
+          operatorPasteInstrs={selectedOrder.requisition.blueprint.operatorPasteInstrs}
+          blueprint={selectedOrder.requisition.blueprint}
           isViewOnly={true}
-          executionHistory={[]} // No execution history in the current data model
+          // executionHistory={[]} // No execution history in the current data model
         />
       )}
     </div>
@@ -265,7 +252,7 @@ export function ConvertUpOrderbookDialog({ open, onOpenChange }: ConvertUpOrderb
   const [activeTab, setActiveTab] = useState<"view" | "execute">("view");
   const [showZeroAvailable, setShowZeroAvailable] = useState(false);
   const [sortBy, setSortBy] = useState<"bonus" | "tip">("bonus");
-  const [showAboveCurrentBonus, setShowAboveCurrentBonus] = useState(true);
+  const [showBelowCurrentBonus, setShowBelowCurrentBonus] = useState(true);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -279,57 +266,43 @@ export function ConvertUpOrderbookDialog({ open, onOpenChange }: ConvertUpOrderb
             <DialogTitle className="text-xl font-bold">Convert Up Orders</DialogTitle>
           </DialogHeader>
           <Col className="w-full">
-            <Col className="border-b">
-              <Row className="flex items-center justify-between">
-                <Row className="gap-4 px-6">
-                  <button
-                    type="button"
-                    className={cn(
-                      "py-4 border-box border-b-2 border-transparent pinto-sm text-pinto-gray-4",
-                      activeTab === "view" && "text-pinto-primary border-pinto-green-4 font-medium",
-                    )}
-                    onClick={() => setActiveTab("view")}
-                  >
-                    View Convert Up Orders
-                  </button>
-                  <button
-                    type="button"
-                    className={cn(
-                      "py-4 border-box border-b-2 border-transparent pinto-sm text-pinto-gray-4",
-                      activeTab === "execute" && "text-pinto-primary border-pinto-green-4 font-medium",
-                    )}
-                    onClick={() => setActiveTab("execute")}
-                  >
-                    Execute Convert Up Orders
-                  </button>
+            <Col className="">
+              <Tabs value={activeTab} onValueChange={setActiveTab as (value: string) => void}>
+                <Row className="justify-between px-6 w-full">
+                  <TabsList variant="textSecondary" borderBottom className="justify-between relative">
+                    <Row className="gap-6">
+                      <TabsTrigger value="view" className="py-4">
+                        View Convert Up Orders
+                      </TabsTrigger>
+                      <TabsTrigger value="execute" className="py-4">
+                        Execute Convert Up Orders
+                      </TabsTrigger>
+                    </Row>
+                    <Col className="items-center justify-center">
+                      {activeTab === "view" && (
+                        <ConvertUpOrderbookSettingsPopover
+                          showZeroAvailable={showZeroAvailable}
+                          onShowZeroAvailableChange={setShowZeroAvailable}
+                          showBelowCurrentBonus={showBelowCurrentBonus}
+                          onShowBelowCurrentBonusChange={setShowBelowCurrentBonus}
+                          sortBy={sortBy}
+                          onSortByChange={setSortBy}
+                        />
+                      )}
+                    </Col>
+                  </TabsList>
                 </Row>
-
-                <Col className="mr-4 items-center justify-center">
-                  {activeTab === "view" && (
-                    <ConvertUpOrderbookSettingsPopover
-                      showZeroAvailable={showZeroAvailable}
-                      onShowZeroAvailableChange={setShowZeroAvailable}
-                      showAboveCurrentBonus={showAboveCurrentBonus}
-                      onShowAboveCurrentBonusChange={setShowAboveCurrentBonus}
-                      sortBy={sortBy}
-                      onSortByChange={setSortBy}
-                    />
-                  )}
-                </Col>
-              </Row>
-            </Col>
-            <Col className={cn("pt-4 pb-6 w-full")}>
-              {activeTab === "view" ? (
-                <ConvertUpOrderbookContent
-                  showZeroAvailable={showZeroAvailable}
-                  sortBy={sortBy}
-                  showAboveCurrentBonus={showAboveCurrentBonus}
-                />
-              ) : (
-                <div className="px-6">
+                <TabsContent value="view" className="pb-6 w-full">
+                  <ConvertUpOrderbookContent
+                    showZeroAvailable={showZeroAvailable}
+                    sortBy={sortBy}
+                    showBelowCurrentBonus={showBelowCurrentBonus}
+                  />
+                </TabsContent>
+                <TabsContent value="execute" className="pb-6 px-6 w-full">
                   <ConvertUpExecute />
-                </div>
-              )}
+                </TabsContent>
+              </Tabs>
             </Col>
           </Col>
         </DialogContent>
@@ -341,8 +314,8 @@ export function ConvertUpOrderbookDialog({ open, onOpenChange }: ConvertUpOrderb
 interface ConvertUpOrderbookSettingsPopoverProps {
   showZeroAvailable: boolean;
   onShowZeroAvailableChange: (value: boolean) => void;
-  showAboveCurrentBonus: boolean;
-  onShowAboveCurrentBonusChange: (value: boolean) => void;
+  showBelowCurrentBonus: boolean;
+  onShowBelowCurrentBonusChange: (value: boolean) => void;
   sortBy: "bonus" | "tip";
   onSortByChange: (value: "bonus" | "tip") => void;
 }
@@ -354,11 +327,11 @@ const sortOptions = [
 
 function ConvertUpOrderbookSettingsPopover({
   showZeroAvailable,
-  showAboveCurrentBonus,
+  showBelowCurrentBonus,
   sortBy,
   onSortByChange,
   onShowZeroAvailableChange,
-  onShowAboveCurrentBonusChange,
+  onShowBelowCurrentBonusChange,
 }: ConvertUpOrderbookSettingsPopoverProps) {
   return (
     <Popover>
@@ -378,13 +351,13 @@ function ConvertUpOrderbookSettingsPopover({
           </div>
 
           <div className="flex items-center justify-between">
-            <Label size="sm" htmlFor="show-above-bonus">
-              Show Orders Above Current Bonus
+            <Label size="sm" htmlFor="show-below-bonus">
+              Show Orders Below Current Bonus
             </Label>
             <Switch
-              id="show-above-bonus"
-              checked={showAboveCurrentBonus}
-              onCheckedChange={onShowAboveCurrentBonusChange}
+              id="show-below-bonus"
+              checked={showBelowCurrentBonus}
+              onCheckedChange={onShowBelowCurrentBonusChange}
             />
           </div>
 
