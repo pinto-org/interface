@@ -26,7 +26,7 @@ export interface ConvertUpV0FormDraftState {
 // Context
 // ------------------------------------------------------------
 
-interface IConvertUpOrderFormContext extends ReturnType<typeof useConvertUpV0Form> {
+export interface IConvertUpOrderFormContext extends ReturnType<typeof useConvertUpV0Form> {
   formStep: ConvertUpTractorOrderFormStep;
   operatorTipPreset: TractorOperatorTipStrategy;
   setOperatorTipPreset: (preset: TractorOperatorTipStrategy) => void;
@@ -36,7 +36,7 @@ interface IConvertUpOrderFormContext extends ReturnType<typeof useConvertUpV0For
   onOpenChange: (open: boolean) => void;
 }
 
-const ConvertUpOrderFormContext = createContext<IConvertUpOrderFormContext | null>(null);
+export const ConvertUpOrderFormContext = createContext<IConvertUpOrderFormContext | null>(null);
 
 export const useConvertUpOrderFormContext = () => {
   const context = useContext(ConvertUpOrderFormContext);

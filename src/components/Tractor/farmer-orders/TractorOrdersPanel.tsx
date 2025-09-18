@@ -346,7 +346,15 @@ function TractorOrdersPanelGeneric({
               open={showDialog === "modify"}
               onOpenChange={(val) => setShowDialog(val ? "modify" : undefined)}
               existingOrder={selectedOrder.requisition}
-              getStrategyProps={getStrategyProps}
+              onOrderModified={() => {
+                // Refresh data after successful modification
+                executionsQuery.refetch();
+                if (filters.orderTypes.includes("convertUp")) {
+                  convertUpOrdersQuery.refetch();
+                }
+                setShowDialog(undefined);
+                setSelectedOrder(null);
+              }}
             />
           )}
         </>
