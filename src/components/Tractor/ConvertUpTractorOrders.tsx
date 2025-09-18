@@ -1,6 +1,5 @@
 import { Col } from "@/components/Container";
 import { Button } from "@/components/ui/Button";
-import { useFadeOpacity } from "@/components/ui/FadeOpacity";
 import IconImage from "@/components/ui/IconImage";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ConvertUpOrderbookEntry } from "@/lib/Tractor";
@@ -40,8 +39,6 @@ export default function ConvertUpTractorOrders({ onSeeAllClick }: { onSeeAllClic
           return minPrice.lte(price) && maxPrice.gte(price) && bonusGrownStalkPerBDV.data?.bonus?.gte(bonus);
         });
 
-        console.log("filteredOrders", filteredOrders);
-
         return {
           // All orders
           all: data ?? [],
@@ -53,14 +50,9 @@ export default function ConvertUpTractorOrders({ onSeeAllClick }: { onSeeAllClic
     ),
   });
 
-  const { containerRef, fadeElements } = useFadeOpacity<HTMLTableElement>({
-    direction: "right",
-    isBGGradient: true,
-  });
-
   return (
     <div className="relative w-full">
-      <div className="overflow-auto" ref={containerRef}>
+      <div className="overflow-auto">
         <table className="w-full border-collapse min-w-[60rem]">
           <thead className="[&_th]:px-2 [&_th]:py-1 [&_th]:text-xs [&_th]:font-light [&_th]:text-pinto-gray-4">
             <tr className="border-b border-pinto-gray-3/20">
@@ -100,7 +92,6 @@ export default function ConvertUpTractorOrders({ onSeeAllClick }: { onSeeAllClic
             {!isLoading && <SeeAllTractorOrdersRow onClick={onSeeAllClick} />}
           </tbody>
         </table>
-        {fadeElements}
       </div>
     </div>
   );
