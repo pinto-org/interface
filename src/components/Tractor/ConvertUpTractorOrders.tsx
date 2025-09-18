@@ -37,8 +37,10 @@ export default function ConvertUpTractorOrders({ onSeeAllClick }: { onSeeAllClic
             minGrownStalkPerBdvBonus: bonus,
           } = dd.convertUpParams;
 
-          return minPrice.lte(price) && maxPrice.gte(price) && bonus.gte(bonusGrownStalkPerBDV.data?.bonus ?? 0);
+          return minPrice.lte(price) && maxPrice.gte(price) && bonusGrownStalkPerBDV.data?.bonus?.gte(bonus);
         });
+
+        console.log("filteredOrders", filteredOrders);
 
         return {
           // All orders
