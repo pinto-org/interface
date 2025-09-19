@@ -56,8 +56,6 @@ const FarmerTractorConvertUpOrderCard = ({
     return mapped;
   };
 
-  console.log(req.withdrawalPlan);
-
   const data = req.decodedData;
   const totalAmount = data.convertUpParams.totalConvertBdv;
   const bdvLeftToConvert = req.orderInfo.bdvLeftToConvert;

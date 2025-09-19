@@ -159,7 +159,7 @@ export interface TipDisplayProps {
 export const TipDisplay = ({ amount, token, icon, className }: TipDisplayProps) => {
   return (
     <Row className={cn("items-center gap-2", className)}>
-      <span className="text-pinto-gray-4 text-sm whitespace-nowrap">Operator Tip:</span>
+      <span className="text-pinto-gray-4 text-sm whitespace-nowrap">Tip Per Execution:</span>
       <div className="bg-pinto-gray-1 px-2 py-1 rounded-xl flex items-center gap-1">
         <IconImage src={icon} size={4} />
         <span className="text-pinto-green-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
