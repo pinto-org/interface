@@ -5,10 +5,13 @@ import { OrderVisualization } from "@/components/OrderVisualization";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import IconImage from "@/components/ui/IconImage";
+import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetTractorTokenStrategy";
+import { tractorTokenStrategyUtil } from "@/lib/Tractor";
 import { ConvertUpOrderbookEntry } from "@/lib/Tractor/convertUp/tractor-convert-up-types";
+import { useMainToken } from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
-import { getTokenNameByIndex } from "@/utils/token";
+import { getTokenIndex, getTokenNameByIndex } from "@/utils/token";
 import { CalendarIcon, Cross1Icon, Pencil1Icon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
 
@@ -31,7 +34,29 @@ const FarmerTractorConvertUpOrderCard = ({
   isSubmitting = false,
   isConfirming = false,
 }: FarmerTractorConvertUpOrderCardProps) => {
-  if (!req.decodedData) return null;
+  const tokenMap = useTokenMap();
+  const mainToken = useMainToken();
+
+  if (!req.decodedData) {
+    return null;
+  }
+
+  const getTokenStrategyText = () => {
+    if (!req.decodedData?.convertUpParams) return "Tokens";
+    const ts = getStrategyProps.getTokenStrategy(req.decodedData?.convertUpParams);
+
+    if (ts?.type === "LOWEST_PRICE") {
+      return "Token with Best Price";
+    }
+    if (ts?.type === "LOWEST_SEEDS") {
+      return "Token with Least Seeds";
+    }
+
+    const mapped = ts?.addresses?.map((adr) => tokenMap[getTokenIndex(adr)].symbol).join(", ");
+    return mapped;
+  };
+
+  console.log(req.withdrawalPlan);
 
   const data = req.decodedData;
   const totalAmount = data.convertUpParams.totalConvertBdv;
@@ -57,25 +82,28 @@ const FarmerTractorConvertUpOrderCard = ({
           <div className="flex justify-between items-center w-full">
             <OrderVisualization.FlowVisualization
               steps={[
-                { type: "action", content: "Withdraw" },
-                { type: "context", content: "from Silo" },
-                { type: "action", content: "Convert Up" },
+                { type: "action", content: "Convert" },
                 {
                   type: "amount",
                   content: (
                     <>
-                      <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap">up to</span>
+                      {/* <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap"></span> */}
                       <IconImage src={pintoIcon} size={4} />
-                      <span className="text-pinto-green-4 text-sm font-thin whitespace-nowrap overflow-hidden text-ellipsis">
-                        {formatter.number(totalAmount)} BDV
-                        <span className="text-pinto-gray-4">
+                      <span className="whitespace-nowrap overflow-hidden text-ellipsis">
+                        <span className="text-pinto-green-4">{formatter.number(totalAmount)} PDV</span>
+                        <span className="text-box bg-transparent">
                           {" "}
-                          ({formatter.number(data.convertUpParams.minConvertBdvPerExecution)} -{" "}
-                          {formatter.number(data.convertUpParams.maxConvertBdvPerExecution)} per execution)
+                          ({formatter.number(data.convertUpParams.minConvertBdvPerExecution)}
+                          {" - "}
+                          {formatter.number(data.convertUpParams.maxConvertBdvPerExecution)} PDV per execution)
                         </span>
                       </span>
                     </>
                   ),
+                },
+                {
+                  type: "context",
+                  content: <>into {mainToken.symbol}</>,
                 },
               ]}
             />
@@ -90,16 +118,7 @@ const FarmerTractorConvertUpOrderCard = ({
             <OrderVisualization.ConditionsList
               conditions={[
                 {
-                  text: (
-                    <>
-                      Withdraw Deposited Tokens from the Silo with the{" "}
-                      {data.convertUpParams.sourceTokenIndices.includes(255)
-                        ? "Lowest Seeds"
-                        : data.convertUpParams.sourceTokenIndices.includes(254)
-                          ? "Best Price"
-                          : getTokenNameByIndex(data.convertUpParams.sourceTokenIndices[0])}
-                    </>
-                  ),
+                  text: <>Using Deposited {getTokenStrategyText()}</>,
                 },
                 {
                   text: (
@@ -109,23 +128,18 @@ const FarmerTractorConvertUpOrderCard = ({
                       {formatter.usd(data.convertUpParams.maxPriceToConvertUp, { decimals: 3 })}
                     </>
                   ),
-                },
-                {
-                  text: (
-                    <>
-                      when Grown Stalk Bonus ≥{" "}
-                      {formatter.number(data.convertUpParams.minGrownStalkPerBdvBonus, {
-                        minDecimals: 2,
-                        maxDecimals: 6,
-                      })}{" "}
-                      per BDV
-                    </>
-                  ),
                   operator: "AND",
                 },
                 {
                   text: (
-                    <>when Convert Capacity ≥ {formatter.number(data.convertUpParams.minConvertBonusCapacity)} BDV</>
+                    <>
+                      when the Bonus exceeds{" "}
+                      {formatter.number(data.convertUpParams.minGrownStalkPerBdvBonus, {
+                        minDecimals: 2,
+                        maxDecimals: 6,
+                      })}{" "}
+                      Grown stalk per PDV
+                    </>
                   ),
                   operator: "AND",
                 },
@@ -134,9 +148,9 @@ const FarmerTractorConvertUpOrderCard = ({
             <OrderVisualization.ProgressIndicator
               completed={convertedAmount}
               total={totalAmount}
-              unit="BDV"
+              unit="PDV"
               icon={pintoIcon}
-              label="BDV Converted through this Order"
+              label="PDV Converted through this Order"
             />
           </div>
 

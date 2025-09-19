@@ -89,15 +89,6 @@ export default function ConvertUpOrderVisualization({
                 },
                 {
                   text: (
-                    <>
-                      Min Convert Bonus Capacity exceeds{" "}
-                      <span className="text-pinto-green-4">{convertData.minConvertBonusCapacity} PDV</span>
-                    </>
-                  ),
-                  operator: "AND",
-                },
-                {
-                  text: (
                     <span className="font-light text-pinto-light">
                       Wait at least{" "}
                       <span className="text-pinto-green-4">
