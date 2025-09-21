@@ -348,14 +348,7 @@ export default function Collection() {
   const paginatedNFTs = displayNFTs.slice(startIndex, endIndex);
 
   const handlePageChange = useCallback((page: number) => {
-    setCurrentPage((prevPage) => {
-      if (page !== prevPage) {
-        // Scroll to top when page actually changes
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        return page;
-      }
-      return prevPage;
-    });
+    setCurrentPage(page);
   }, []);
 
   if (!address) {
