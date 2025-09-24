@@ -41,6 +41,19 @@ export function decodeBlueprintCallData(callData: string): DecodedBlueprintResul
   }
 
   const selector = extractSelector(blueprintCall);
+
+  let data: DecodedBlueprintResult | undefined | null = undefined;
+
+  try {
+    data = convertUpBlueprintDecoder.decode(blueprintCall);
+  } catch (e) {
+    try {
+      data = sowBlueprintDecoder.decode(blueprintCall);
+    } catch (err) {
+      // throw err;
+    }
+  }
+
   const decoder = getBlueprintDecoder(selector);
 
   if (decoder) {

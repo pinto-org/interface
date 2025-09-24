@@ -397,6 +397,7 @@ const AdvancedParametersSummary = ({
   const maxConvertBdvPerExecution = values.maxBeansConvertPerExecution;
   const slippageRatio = values.slippageRatio;
   const lowStalkDeposits = values.lowStalkDeposits;
+  const seedDifference = values.seedDifference;
 
   return (
     <Card className="flex flex-col p-3 gap-2 rounded-sm border-pinto-gray-2 bg-white">
@@ -424,6 +425,11 @@ const AdvancedParametersSummary = ({
         label="Execution Size"
         tooltip="The minimum and maximum execution size of the Convert Up Order"
         value={`${formatter.twoDec(minConvertBdvPerExecution)} - ${formatter.twoDec(maxConvertBdvPerExecution)} PDV`}
+      />
+      <ReviewRow
+        label="Min Seed Difference"
+        tooltip={CONVERT_UP_TOOLTIP_COPY.seedDifference}
+        value={`${formatter.twoDec(seedDifference)} SEEDS`}
       />
       <ReviewRow
         label="Slippage Tolerance"

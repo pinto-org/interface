@@ -88,6 +88,7 @@ export async function createConvertUpTractorData({
   const sourceTokenIndices = await getTokenIndexesFromTractorTokenStrategy(publicClient, args.tokenStrategy);
 
   console.debug("ConvertUp sourceTokenIndices:", sourceTokenIndices);
+  console.debug("ConvertUp args:", args);
 
   const struct = {
     convertUpParams: {
@@ -98,7 +99,6 @@ export async function createConvertUpTractorData({
       minTimeBetweenConverts: args.minTimeBetweenConverts.toBigInt(),
       minConvertBonusCapacity: args.minConvertBonusCapacity.toBigInt(),
       maxGrownStalkPerBdv: args.maxGrownStalkPerBdv.toBigInt(),
-      GrownStalkPerBdvBonusBid: args.grownStalkPerBdvBonusBid.toBigInt(), // TODO: fix once contract is upgraded
       grownStalkPerBdvBonusBid: args.grownStalkPerBdvBonusBid.toBigInt(),
       maxPriceToConvertUp: args.maxPriceToConvertUp.toBigInt(),
       minPriceToConvertUp: args.minPriceToConvertUp.toBigInt(),
@@ -114,11 +114,35 @@ export async function createConvertUpTractorData({
     },
   } as const;
 
+  const struct2 = {
+    convertUpParams: {
+      sourceTokenIndices,
+      totalBeanAmountToConvert: args.totalBeanAmountToConvert.toBigInt(),
+      minBeansConvertPerExecution: args.minBeansConvertPerExecution.toBigInt(),
+      maxBeansConvertPerExecution: args.maxBeansConvertPerExecution.toBigInt(),
+      minTimeBetweenConverts: args.minTimeBetweenConverts.toBigInt(),
+      minConvertBonusCapacity: args.minConvertBonusCapacity.toBigInt(),
+      maxGrownStalkPerBdv: args.maxGrownStalkPerBdv.toBigInt(),
+      GrownStalkPerBdvBonusBid: args.grownStalkPerBdvBonusBid.toBigInt(),
+      maxPriceToConvertUp: args.maxPriceToConvertUp.toBigInt(),
+      minPriceToConvertUp: args.minPriceToConvertUp.toBigInt(),
+      maxGrownStalkPerBdvPenalty: args.maxGrownStalkPerBdvPenalty.toBigInt(),
+      slippageRatio: args.slippageRatio.toBigInt(),
+      seedDifference: args.seedDifference.toBigInt(),
+      lowStalkDeposits: Number(args.lowStalkDeposits),
+    },
+    opParams: {
+      whitelistedOperators: whitelistedOperators || [],
+      tipAddress: "0x0000000000000000000000000000000000000000" as `0x${string}`,
+      operatorTipAmount: args.operatorTip.toBigInt(),
+    },
+  };
+
   // Encode the convertUpBlueprintv0 function call
   const convertUpCall = encodeFunctionData({
     abi: convertUpBlueprintV0ABI,
     functionName: "convertUpBlueprint" as const,
-    args: [struct],
+    args: [struct2],
   });
 
   const advPipeStruct = {
@@ -142,7 +166,7 @@ export async function createConvertUpTractorData({
   });
 
   return {
-    struct,
+    struct: struct as unknown as ConvertUpBlueprintStruct<bigint>,
     data,
     operatorPasteInstrs: [], // TODO: Update if needed
     rawCall: convertUpCall, // Return the raw call data
@@ -181,6 +205,10 @@ export async function loadConvertUpOrderbookData(
 
   const fromBlock =
     lookbackBlocks && latestBlock?.number ? latestBlock.number - lookbackBlocks : TRACTOR_DEPLOYMENT_BLOCK;
+
+  console.log("lookbackBlocks", lookbackBlocks);
+  console.log("latestBlock", latestBlock);
+  console.log("fromBlock", fromBlock);
 
   const [_requisitions, _priceResult, bonusAndCapacityResult] = await Promise.all([
     // publicClient.getContractEvents({

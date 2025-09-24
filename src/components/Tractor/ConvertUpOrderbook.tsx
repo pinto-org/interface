@@ -57,14 +57,15 @@ export function ConvertUpOrderbookContent({
     const decodedData = order.decodedData;
     return {
       type: "convertUp",
-      totalConvertBdv: decodedData.convertUpParams.totalConvertBdv.toHuman(),
-      minConvertBdvPerExecution: decodedData.convertUpParams.minConvertBdvPerExecution.toHuman(),
-      maxConvertBdvPerExecution: decodedData.convertUpParams.maxConvertBdvPerExecution.toHuman(),
-      minTimeBetweenConverts: decodedData.convertUpParams.minTimeBetweenConverts.toString(),
+      totalBeanAmountToConvert: decodedData.convertUpParams.totalBeanAmountToConvert.toHuman(),
+      minBeansConvertPerExecution: decodedData.convertUpParams.minBeansConvertPerExecution.toHuman(),
+      maxBeansConvertPerExecution: decodedData.convertUpParams.maxBeansConvertPerExecution.toHuman(),
+      minTimeBetweenConverts: decodedData.convertUpParams.minTimeBetweenConverts.toHuman(),
+      seedDifference: decodedData.convertUpParams.seedDifference.toHuman(),
       timeScale: "SECONDS", // Default time scale
       minConvertBonusCapacity: decodedData.convertUpParams.minConvertBonusCapacity.toHuman(),
       maxGrownStalkPerBdv: decodedData.convertUpParams.maxGrownStalkPerBdv.toHuman(),
-      minGrownStalkPerBdvBonus: decodedData.convertUpParams.minGrownStalkPerBdvBonus.toHuman(),
+      grownStalkPerBdvBonusBid: decodedData.convertUpParams.grownStalkPerBdvBonusBid.toHuman(),
       maxPriceToConvertUp: decodedData.convertUpParams.maxPriceToConvertUp.toHuman(),
       minPriceToConvertUp: decodedData.convertUpParams.minPriceToConvertUp.toHuman(),
       maxGrownStalkPerBdvPenalty: decodedData.convertUpParams.maxGrownStalkPerBdvPenalty.toHuman(),
@@ -101,8 +102,8 @@ export function ConvertUpOrderbookContent({
     if (sortBy === "bonus") {
       filtered.sort((a, b) => {
         if (!a.decodedData || !b.decodedData) return 0;
-        const aBonus = a.decodedData.convertUpParams.minGrownStalkPerBdvBonus;
-        const bBonus = b.decodedData.convertUpParams.minGrownStalkPerBdvBonus;
+        const aBonus = a.decodedData.convertUpParams.grownStalkPerBdvBonusBid;
+        const bBonus = b.decodedData.convertUpParams.grownStalkPerBdvBonusBid;
         return bBonus.sub(aBonus).toNumber(); // Descending
       });
     } else if (sortBy === "tip") {
@@ -124,15 +125,15 @@ export function ConvertUpOrderbookContent({
     if (!order.decodedData) return null;
 
     const decodedData = order.decodedData;
-    const bonus = formatter.number(decodedData.convertUpParams.minGrownStalkPerBdvBonus, {
+    const bonus = formatter.number(decodedData.convertUpParams.grownStalkPerBdvBonusBid, {
       minDecimals: 4,
       maxDecimals: 4,
     });
     const minCapacity = formatter.number(decodedData.convertUpParams.minConvertBonusCapacity);
     const priceRange = `$${decodedData.convertUpParams.minPriceToConvertUp.toHuman()} - $${decodedData.convertUpParams.maxPriceToConvertUp.toHuman()}`;
-    const totalBdv = formatter.number(decodedData.convertUpParams.totalConvertBdv);
+    const totalBdv = formatter.number(decodedData.convertUpParams.totalBeanAmountToConvert);
     const availableBdv = formatter.number(order.currentlyConvertible);
-    const executionRange = `${formatter.number(decodedData.convertUpParams.minConvertBdvPerExecution)} - ${formatter.number(decodedData.convertUpParams.maxConvertBdvPerExecution)}`;
+    const executionRange = `${formatter.number(decodedData.convertUpParams.minBeansConvertPerExecution)} - ${formatter.number(decodedData.convertUpParams.maxBeansConvertPerExecution)}`;
     const operatorTip = formatter.number(decodedData.opParams.operatorTipAmount, {
       minDecimals: 2,
       maxDecimals: 2,
@@ -145,7 +146,7 @@ export function ConvertUpOrderbookContent({
         onClick={() => handleRowClick(order)}
       >
         <TableCell className="py-2 px-0 pl-6 whitespace-nowrap">≥ {bonus}</TableCell>
-        <TableCell className="py-2 whitespace-nowrap">≥ {minCapacity} BDV</TableCell>
+        <TableCell className="py-2 whitespace-nowrap">≥ {minCapacity} PDV</TableCell>
         <TableCell className="py-2 whitespace-nowrap">{priceRange}</TableCell>
         <TableCell className="py-2 text-right">
           <div className="flex items-center gap-1 justify-end">

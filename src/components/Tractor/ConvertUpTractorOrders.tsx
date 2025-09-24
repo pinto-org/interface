@@ -33,7 +33,7 @@ export default function ConvertUpTractorOrders({ onSeeAllClick }: { onSeeAllClic
           const {
             minPriceToConvertUp: minPrice,
             maxPriceToConvertUp: maxPrice,
-            minGrownStalkPerBdvBonus: bonus,
+            grownStalkPerBdvBonusBid: bonus,
           } = dd.convertUpParams;
 
           return minPrice.lte(price) && maxPrice.gte(price) && bonusGrownStalkPerBDV.data?.bonus?.gte(bonus);
@@ -137,7 +137,7 @@ const TractorOrderRow = memo(
           </a>
         </td>
         <td align="right">{formatter.number(cop.minConvertBonusCapacity, { maxDecimals: 3 })} PDV</td>
-        <td align="right">{formatter.number(cop.minGrownStalkPerBdvBonus, { maxDecimals: 6 })}</td>
+        <td align="right">{formatter.number(cop.grownStalkPerBdvBonusBid, { maxDecimals: 6 })}</td>
         <td align="right">{formatter.number(order.orderInfo.bdvLeftToConvert, { maxDecimals: 3 })} PDV</td>
         <td align="right">{formatter.number(cop.minPriceToConvertUp, { maxDecimals: 3 })}</td>
         <td align="right">{formatter.number(cop.maxPriceToConvertUp, { maxDecimals: 3 })}</td>

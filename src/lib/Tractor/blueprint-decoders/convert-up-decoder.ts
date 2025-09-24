@@ -9,6 +9,7 @@ export const convertUpBlueprintDecoder: BlueprintDecoder = {
   functionName: "convertUpBlueprint",
   decode: (callData: string): DecodedBlueprintResult | null => {
     try {
+      console.log("[Tractor/convertUpBlueprintDecoder] callData", callData);
       const decoded = decodeFunctionData({
         abi: convertUpBlueprintV0ABI,
         data: callData as `0x${string}`,

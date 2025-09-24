@@ -335,7 +335,7 @@ const inferAdvancedFormFields = (
 
   const preparedArgs = {
     tokenStrategy: strategy,
-    totalConvertBdv,
+    totalBeanAmountToConvert: totalConvertBdv,
     minConvertBonusCapacity: defaultMinSizePerExecution,
     minBeansConvertPerExecution: minSizePerExecution.eq(0) ? defaultMinSizePerExecution : minSizePerExecution,
     maxBeansConvertPerExecution: maxSizePerExecution.eq(0) ? defaultMaxSizePerExecution : maxSizePerExecution,

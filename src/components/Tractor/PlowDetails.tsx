@@ -127,7 +127,7 @@ export function PlowDetails({ requisition, isOpen, onClose, onSuccess }: PlowDet
               <div className="text-sm text-gray-500">Max Pod Line Length</div>
               <div>{requisition.decodedData.maxPodlineLengthAsString}</div>
 
-              <div className="text-sm text-gray-500">Max Grown Stalk per BDV</div>
+              <div className="text-sm text-gray-500">Max Grown Stalk per PDV</div>
               <div>{requisition.decodedData.maxGrownStalkPerBdvAsString}</div>
 
               <div className="text-sm text-gray-500">Run Blocks After Sunrise</div>

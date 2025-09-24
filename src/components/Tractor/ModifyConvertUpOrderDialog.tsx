@@ -686,7 +686,7 @@ function EntryFormParametersSummary() {
       <ReviewRow label="Token Sources" tooltip={CONVERT_UP_TOOLTIP_COPY.tokenStrategy} value={renderTokenStrategy()} />
       <ReviewRow
         label="Min Grown Stalk Bonus Per PDV"
-        tooltip={CONVERT_UP_TOOLTIP_COPY.minGrownStalkPerBdvBonus}
+        tooltip={CONVERT_UP_TOOLTIP_COPY.grownStalkPerBdvBonusBid}
         value={
           <Row className="gap-1 items-center">
             <IconImage src={STALK.logoURI} size={4} alt={STALK.symbol} />

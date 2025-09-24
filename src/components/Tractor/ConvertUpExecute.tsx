@@ -171,7 +171,7 @@ export function ConvertUpExecute() {
         accessor: (order) => (
           <span className="text-sm place-self-end">
             {order.decodedData
-              ? `≥ ${formatter.number(order.decodedData.convertUpParams.minGrownStalkPerBdvBonus, {
+              ? `≥ ${formatter.number(order.decodedData.convertUpParams.grownStalkPerBdvBonusBid, {
                   minDecimals: 6,
                   maxDecimals: 6,
                 })}`
@@ -191,14 +191,14 @@ export function ConvertUpExecute() {
         ),
       },
       {
-        header: "BDV per Execution",
+        header: "PDV per Execution",
         className: "text-right",
         accessor: (order) => (
           <div className="flex items-center gap-1 text-sm place-self-end">
             <IconImage src={PINTO.logoURI} alt="PINTO" size={4} />
             <span>
               {order.decodedData
-                ? `${formatter.number(order.decodedData.convertUpParams.minConvertBdvPerExecution)} - ${formatter.number(order.decodedData.convertUpParams.maxConvertBdvPerExecution)}`
+                ? `${formatter.number(order.decodedData.convertUpParams.minBeansConvertPerExecution)} - ${formatter.number(order.decodedData.convertUpParams.maxBeansConvertPerExecution)}`
                 : "Unknown"}
             </span>
           </div>

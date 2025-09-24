@@ -401,7 +401,7 @@ const getValidOrders = (orders?: ConvertUpOrderbookEntry[], priceMode: boolean =
       continue;
     }
 
-    const bonus = order.decodedData.convertUpParams.minGrownStalkPerBdvBonus;
+    const bonus = order.decodedData.convertUpParams.grownStalkPerBdvBonusBid;
     const penalty = order.decodedData.convertUpParams.maxGrownStalkPerBdvPenalty;
     const bdvLeftToConvert = order.orderInfo.bdvLeftToConvert;
     const orderMinPrice = order.decodedData.convertUpParams.minPriceToConvertUp;

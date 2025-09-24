@@ -523,7 +523,7 @@ export const useConvertUpV0State = () => {
         // Create the tractor data using our implemented function
         const [tractorData, block] = await Promise.all([
           createConvertUpTractorData({
-            ...preparedArgs,
+            ...(preparedArgs as any),
             farmerDeposits: deposits,
             publicClient: client,
             userAddress: address,
