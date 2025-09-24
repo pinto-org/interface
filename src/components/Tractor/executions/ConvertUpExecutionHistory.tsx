@@ -75,7 +75,7 @@ export default function ConvertUpExecutionHistory({ executionHistory, orderData 
       {/* Progress indicator */}
       <div className="px-6 mb-4">
         {(() => {
-          const totalBdv = TokenValue.fromHuman(convertData.totalConvertBdv, 6);
+          const totalBdv = TokenValue.fromHuman(convertData.totalBeanAmountToConvert, 6);
           const percentComplete = totalBdv.gt(0) ? totalBdvConverted.div(totalBdv).mul(100) : TokenValue.ZERO;
 
           const percentCompleteNumber = Math.min(
@@ -94,7 +94,7 @@ export default function ConvertUpExecutionHistory({ executionHistory, orderData 
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-gray-500">Progress</span>
                 <span className="text-sm text-gray-500">
-                  {formatter.number(totalBdvConverted)} / {convertData.totalConvertBdv} PDV converted (
+                  {formatter.number(totalBdvConverted)} / {convertData.totalBeanAmountToConvert} PDV converted (
                   {Math.round(percentCompleteNumber)}%)
                 </span>
               </div>

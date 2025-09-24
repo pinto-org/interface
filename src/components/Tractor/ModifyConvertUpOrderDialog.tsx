@@ -29,12 +29,18 @@ import useTransaction from "@/hooks/useTransaction";
 import { LowStalkDepositsMode, tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
 import { useGetBlueprintHash } from "@/lib/Tractor/blueprint";
 import { ConvertUpOrderbookEntry } from "@/lib/Tractor/convertUp/tractor-convert-up-types";
-import { Blueprint, ExtendedTractorTokenStrategy, Requisition, TractorTokenStrategy } from "@/lib/Tractor/types";
+import {
+  Blueprint,
+  ExtendedTractorTokenStrategy,
+  Requisition,
+  TractorTokenStrategy,
+  TractorTokenStrategyUnion,
+} from "@/lib/Tractor/types";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
 import { formatter } from "@/utils/format";
-import { postSanitizedSanitizedValue } from "@/utils/string";
+import { postSanitizedSanitizedValue, stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { tokensEqual } from "@/utils/token";
 import { MayPromise } from "@/utils/types.generic";
@@ -343,7 +349,7 @@ function ModifyConvertUpOrderFormController() {
 
   // Local State
   // Whether the advanced fields have been initialized
-  const [didInitRestFields, setDidInitRestFields] = useState(false);
+  const [didInitRestFields, setDidInitRestFields] = useState(true);
 
   return (
     <Col className="w-full h-full">
@@ -828,6 +834,9 @@ function ModifyConvertUpOrderReviewDialog({
   const protocolAddress = useProtocolAddress();
   const queryClient = useQueryClient();
 
+  // Accordion state for advanced fields
+  const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
+
   const valueDiffs = useMemo(
     () => getDiffs(getMapping(existingOrder, orderData, getStrategyProps)),
     [existingOrder, orderData, getStrategyProps],
@@ -928,20 +937,54 @@ function ModifyConvertUpOrderReviewDialog({
               {/* Show a comparison of old vs new */}
               <div className="bg-gray-50 p-4 rounded-lg mb-4">
                 <div className="space-y-4 text-sm">
-                  {/* Show all order parameters in single New Order table */}
-                  {valueDiffs.modifications.length || valueDiffs.constants.length ? (
+                  {/* Check if there are any changes */}
+                  {valueDiffs.nonAdvanced.modifications.length || valueDiffs.advanced.modifications.length ? (
                     <div>
-                      <h4 className="pinto-body font-medium text-pinto-secondary mb-2">New Order</h4>
-                      <Col className="gap-2 pinto-sm-light">
-                        {/* Show modifications first */}
-                        {valueDiffs.modifications.map(([key, value]) => {
+                      <h4 className="pinto-body font-medium text-pinto-secondary mb-3">New Order</h4>
+
+                      {/* Non-advanced parameters */}
+                      <Col className="gap-2 pinto-sm-light mb-3">
+                        {/* Show non-advanced modifications first */}
+                        {valueDiffs.nonAdvanced.modifications.map(([key, value]) => {
                           return <RenderValueDiff key={`convertup-v0-diff-${key}`} {...value} />;
                         })}
-                        {/* Show constants after modifications */}
-                        {valueDiffs.constants.map(([key, value]) => {
+                        {/* Show non-advanced constants after modifications */}
+                        {valueDiffs.nonAdvanced.constants.map(([key, value]) => {
                           return <RenderConstantParam key={`convertup-v0-constant-${key}`} {...value} />;
                         })}
                       </Col>
+
+                      {/* Advanced parameters accordion - only show if there are advanced changes */}
+                      {valueDiffs.advanced.modifications.length > 0 && (
+                        <Accordion
+                          className="AccordionRoot"
+                          type="single"
+                          collapsible
+                          value={accordionValue}
+                          onValueChange={setAccordionValue}
+                        >
+                          <AccordionItem className="AccordionItem" value="advanced-changes">
+                            <AccordionTrigger
+                              className="pinto-sm-light text-pinto-secondary pt-3"
+                              iconClassName="text-pinto-secondary"
+                            >
+                              <span className="font-medium">Advanced Parameters</span>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <Col className="gap-2 pinto-sm-light pt-2">
+                                {/* Show advanced modifications first */}
+                                {valueDiffs.advanced.modifications.map(([key, value]) => {
+                                  return <RenderValueDiff key={`convertup-v0-adv-diff-${key}`} {...value} />;
+                                })}
+                                {/* Show advanced constants after modifications */}
+                                {valueDiffs.advanced.constants.map(([key, value]) => {
+                                  return <RenderConstantParam key={`convertup-v0-adv-constant-${key}`} {...value} />;
+                                })}
+                              </Col>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      )}
                     </div>
                   ) : (
                     <div className="pinto-body text-pinto-light text-center h-[2rem] flex items-center justify-center">
@@ -968,7 +1011,10 @@ function ModifyConvertUpOrderReviewDialog({
                     size="xl"
                     rounded="full"
                     onClick={handleSignBlueprint}
-                    disabled={isSigning || !valueDiffs.modifications.length}
+                    disabled={
+                      isSigning ||
+                      (!valueDiffs.nonAdvanced.modifications.length && !valueDiffs.advanced.modifications.length)
+                    }
                     className="flex-1 ml-2"
                   >
                     {isSigning ? "Signing..." : "Sign New Order"}
@@ -979,7 +1025,10 @@ function ModifyConvertUpOrderReviewDialog({
                     size="xl"
                     rounded="full"
                     onClick={handleModifyOrder}
-                    disabled={submitting || !valueDiffs.modifications.length}
+                    disabled={
+                      submitting ||
+                      (!valueDiffs.nonAdvanced.modifications.length && !valueDiffs.advanced.modifications.length)
+                    }
                     className="flex-1 ml-2"
                   >
                     {submitting ? "Modifying..." : "Modify Order"}
@@ -1036,6 +1085,9 @@ function RenderConstantParam(props: ValueDiff<unknown>) {
       } else if (prev && typeof prev === "object" && "type" in prev) {
         const strategy = prev as ExtendedTractorTokenStrategy;
         switch (true) {
+          // case strategy.type === "MULTI_TOKENS": {
+          // const di = props.curr.
+          // }
           case strategy.type === "SPECIFIC_TOKEN":
             return strategy.token?.symbol ?? "Unknown Token";
           case strategy.type === "LOWEST_PRICE":
@@ -1090,10 +1142,14 @@ function RenderBooleanDiff({ prev, curr }: RenderDiffProps<boolean>) {
 }
 
 function RenderTokenStrategyDiff({ prev, curr }: RenderDiffProps<ExtendedTractorTokenStrategy>) {
+  const tokenMap = useTokenMap();
+
   const getName = (strategy: ExtendedTractorTokenStrategy) => {
     switch (true) {
       case strategy.type === "SPECIFIC_TOKEN":
         return strategy.token?.symbol ?? "Unknown Token";
+      case strategy.type === "MULTI_TOKENS":
+        return strategy.addresses.map((adr) => tokenMap[getTokenIndex(adr)].symbol).join(", ");
       case strategy.type === "LOWEST_PRICE":
         return "Token with lowest price";
       default:
@@ -1114,6 +1170,23 @@ function RenderTokenStrategyDiff({ prev, curr }: RenderDiffProps<ExtendedTractor
 // Utility Functions
 // ============================================================================
 
+// Define which fields are considered advanced
+const ADVANCED_FIELDS = new Set([
+  "minBeansConvertPerExecution",
+  "maxBeansConvertPerExecution",
+  "minTimeBetweenConverts",
+  "minConvertBonusCapacity",
+  "maxGrownStalkPerBdv",
+  "maxGrownStalkPerBdvPenalty",
+  "seedDifference",
+  "slippageRatio",
+  "lowStalkDeposits",
+]);
+
+function isAdvancedField(key: string): boolean {
+  return ADVANCED_FIELDS.has(key);
+}
+
 function getMapping(
   existingOrder: ConvertUpOrderbookEntry,
   orderData: NonNullable<ReturnType<typeof useConvertUpV0State>["orderData"]>,
@@ -1124,17 +1197,17 @@ function getMapping(
 
   return {
     totalBeanAmountToConvert: {
-      label: "Total Convert BDV",
+      label: "Total Convert PDV",
       prev: postSanitizedSanitizedValue(existing.convertUpParams.totalBeanAmountToConvert.toHuman(), 6).tv,
       curr: postSanitizedSanitizedValue(orderData.totalBeanAmountToConvert, 6).tv,
     },
     minBeansConvertPerExecution: {
-      label: "Min BDV per Execution",
+      label: "Min PDV per Execution",
       prev: postSanitizedSanitizedValue(existing.convertUpParams.minBeansConvertPerExecution.toHuman(), 6).tv,
       curr: postSanitizedSanitizedValue(orderData.minBeansConvertPerExecution, 6).tv,
     },
     maxBeansConvertPerExecution: {
-      label: "Max BDV per Execution",
+      label: "Max PDV per Execution",
       prev: postSanitizedSanitizedValue(existing.convertUpParams.maxBeansConvertPerExecution.toHuman(), 6).tv,
       curr: postSanitizedSanitizedValue(orderData.maxBeansConvertPerExecution, 6).tv,
     },
@@ -1154,7 +1227,7 @@ function getMapping(
       curr: postSanitizedSanitizedValue(orderData.maxGrownStalkPerBdv, 6).tv,
     },
     grownStalkPerBdvBonusBid: {
-      label: "Min Grown Stalk Bonus",
+      label: "Min Grown Stalk Bonus per PDV",
       prev: postSanitizedSanitizedValue(existing.convertUpParams.grownStalkPerBdvBonusBid.toHuman(), 6).tv,
       curr: postSanitizedSanitizedValue(orderData.grownStalkPerBdvBonusBid, 6).tv,
     },
@@ -1186,14 +1259,7 @@ function getMapping(
     strategy: {
       label: "Funding Source",
       prev: getStrategyProps.getTokenStrategy(existing.convertUpParams),
-      curr: {
-        type: orderData.sourceTokenIndices.includes(255)
-          ? "LOWEST_SEEDS"
-          : orderData.sourceTokenIndices.includes(254)
-            ? "LOWEST_PRICE"
-            : "SPECIFIC_TOKEN",
-        // Add more strategy details if needed
-      } as TractorTokenStrategy,
+      curr: getStrategyProps.getTokenStrategy({ sourceTokenIndices: orderData.sourceTokenIndices }),
     },
     operatorTip: {
       label: "Operator Tip",
@@ -1204,8 +1270,10 @@ function getMapping(
 }
 
 function getDiffs(mapping: ReturnType<typeof getMapping>) {
-  const modifications: Record<string, ValueDiff> = {};
-  const constants: Record<string, ValueDiff> = {};
+  const nonAdvancedModifications: Record<string, ValueDiff> = {};
+  const nonAdvancedConstants: Record<string, ValueDiff> = {};
+  const advancedModifications: Record<string, ValueDiff> = {};
+  const advancedConstants: Record<string, ValueDiff> = {};
 
   for (const [key, { label, prev, curr }] of Object.entries(mapping ?? {})) {
     let hasChanged = false;
@@ -1238,35 +1306,56 @@ function getDiffs(mapping: ReturnType<typeof getMapping>) {
           curr: curr,
         };
       }
-    } else if (typeof prev === "object" && "type" in prev) {
-      const current = curr as ExtendedTractorTokenStrategy;
-      if (
-        prev.type !== current.type ||
-        (prev.type === "SPECIFIC_TOKEN" && current.type === "SPECIFIC_TOKEN" && !tokensEqual(prev.token, current.token))
-      ) {
+    } else if (typeof prev === "object" && "type" in prev && typeof curr === "object" && "type" in curr) {
+      if (prev.type !== curr.type) {
         hasChanged = true;
-        valueDiff = {
-          label,
-          prev: prev,
-          curr: current,
-        };
+        valueDiff = { label, prev, curr };
+      }
+
+      if ("addresses" in prev && "addresses" in curr) {
+        if (
+          prev.addresses.length !== curr.addresses.length ||
+          prev.addresses.some((adr, index) => stringEq(adr, curr.addresses[index]))
+        ) {
+          hasChanged = true;
+          valueDiff = { label, prev, curr };
+        }
       }
     }
 
+    // Categorize into advanced/non-advanced
+    const isAdvanced = isAdvancedField(key);
+
     if (hasChanged && valueDiff) {
-      modifications[key] = valueDiff;
+      if (isAdvanced) {
+        advancedModifications[key] = valueDiff;
+      } else {
+        nonAdvancedModifications[key] = valueDiff;
+      }
     } else {
       // Add to constants section to show unchanged values
-      constants[key] = {
+      const constantDiff = {
         label,
         prev: prev,
         curr: curr,
       };
+
+      if (isAdvanced) {
+        advancedConstants[key] = constantDiff;
+      } else {
+        nonAdvancedConstants[key] = constantDiff;
+      }
     }
   }
 
   return {
-    modifications: Object.entries(modifications),
-    constants: Object.entries(constants),
+    nonAdvanced: {
+      modifications: Object.entries(nonAdvancedModifications),
+      constants: Object.entries(nonAdvancedConstants),
+    },
+    advanced: {
+      modifications: Object.entries(advancedModifications),
+      constants: Object.entries(advancedConstants),
+    },
   };
 }
