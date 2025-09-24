@@ -73,7 +73,7 @@ export const transformConvertUpRequisitionEvent = (params: unknown | null, chain
       minTimeBetweenConverts: TV.fromBigInt(cup.minTimeBetweenConverts, dc.minTimeBetweenConverts),
       minConvertBonusCapacity: TV.fromBigInt(cup.minConvertBonusCapacity, dc.minConvertBonusCapacity),
       maxGrownStalkPerBdv: TV.fromBigInt(cup.maxGrownStalkPerBdv, dc.maxGrownStalkPerBdv),
-      grownStalkPerBdvBonusBid: TV.fromBigInt(cup.grownStalkPerBdvBonusBid ?? 1, dc.grownStalkPerBdvBonusBid),
+      grownStalkPerBdvBonusBid: TV.fromBigInt(cup.grownStalkPerBdvBonusBid, dc.grownStalkPerBdvBonusBid),
       seedDifference: TV.fromBigInt(cup.seedDifference, dc.seedDifference),
       maxPriceToConvertUp: TV.fromBigInt(cup.maxPriceToConvertUp, dc.maxPriceToConvertUp),
       minPriceToConvertUp: TV.fromBigInt(cup.minPriceToConvertUp, dc.minPriceToConvertUp),
@@ -81,14 +81,6 @@ export const transformConvertUpRequisitionEvent = (params: unknown | null, chain
       slippageRatio: TV.fromBigInt(cup.slippageRatio, dc.slippageRatio),
       lowStalkDeposits: cup.lowStalkDeposits,
     };
-
-    // TODO: remove this once contract is upgraded
-    if ("GrownStalkPerBdvBonusBid" in cup) {
-      convertUpParams.grownStalkPerBdvBonusBid = TV.fromBigInt(
-        (cup as any).GrownStalkPerBdvBonusBid,
-        dc.grownStalkPerBdvBonusBid,
-      );
-    }
 
     const opParams: ConvertUpBlueprintStruct<TV>["opParams"] = {
       whitelistedOperators: op.whitelistedOperators,

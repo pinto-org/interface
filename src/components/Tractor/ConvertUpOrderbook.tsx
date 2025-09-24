@@ -344,15 +344,15 @@ function ConvertUpOrderbookSettingsPopover({
       <PopoverContent className="w-80 p-4" align="end">
         <div className="pinto-sm font-medium mb-3 leading-same-sm">Table Settings</div>
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <Row className="items-center justify-between gap-4">
             <Label size="sm" htmlFor="show-zero-available">
               Show Zero Available Pinto
             </Label>
             <Switch id="show-zero-available" checked={showZeroAvailable} onCheckedChange={onShowZeroAvailableChange} />
-          </div>
+          </Row>
 
-          <div className="flex items-center justify-between">
-            <Label size="sm" htmlFor="show-below-bonus">
+          <Row className="items-center justify-between gap-4">
+            <Label size="sm" htmlFor="show-below-bonus" className="leading-same-body">
               Show Orders Below Current Bonus
             </Label>
             <Switch
@@ -360,7 +360,7 @@ function ConvertUpOrderbookSettingsPopover({
               checked={showBelowCurrentBonus}
               onCheckedChange={onShowBelowCurrentBonusChange}
             />
-          </div>
+          </Row>
 
           <div className="flex items-center justify-between">
             <Label size="sm">Sort By</Label>

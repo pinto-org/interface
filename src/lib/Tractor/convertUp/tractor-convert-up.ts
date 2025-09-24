@@ -114,35 +114,11 @@ export async function createConvertUpTractorData({
     },
   } as const;
 
-  const struct2 = {
-    convertUpParams: {
-      sourceTokenIndices,
-      totalBeanAmountToConvert: args.totalBeanAmountToConvert.toBigInt(),
-      minBeansConvertPerExecution: args.minBeansConvertPerExecution.toBigInt(),
-      maxBeansConvertPerExecution: args.maxBeansConvertPerExecution.toBigInt(),
-      minTimeBetweenConverts: args.minTimeBetweenConverts.toBigInt(),
-      minConvertBonusCapacity: args.minConvertBonusCapacity.toBigInt(),
-      maxGrownStalkPerBdv: args.maxGrownStalkPerBdv.toBigInt(),
-      GrownStalkPerBdvBonusBid: args.grownStalkPerBdvBonusBid.toBigInt(),
-      maxPriceToConvertUp: args.maxPriceToConvertUp.toBigInt(),
-      minPriceToConvertUp: args.minPriceToConvertUp.toBigInt(),
-      maxGrownStalkPerBdvPenalty: args.maxGrownStalkPerBdvPenalty.toBigInt(),
-      slippageRatio: args.slippageRatio.toBigInt(),
-      seedDifference: args.seedDifference.toBigInt(),
-      lowStalkDeposits: Number(args.lowStalkDeposits),
-    },
-    opParams: {
-      whitelistedOperators: whitelistedOperators || [],
-      tipAddress: "0x0000000000000000000000000000000000000000" as `0x${string}`,
-      operatorTipAmount: args.operatorTip.toBigInt(),
-    },
-  };
-
   // Encode the convertUpBlueprintv0 function call
   const convertUpCall = encodeFunctionData({
     abi: convertUpBlueprintV0ABI,
     functionName: "convertUpBlueprint" as const,
-    args: [struct2],
+    args: [struct],
   });
 
   const advPipeStruct = {

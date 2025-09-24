@@ -309,7 +309,7 @@ ConvertUpOrderV0Fields.PriceRange = function PriceRange() {
   const hasError = !!(minError || maxError);
 
   return (
-    <div className="flex flex-row gap-6">
+    <>
       <Col className="gap-2 w-full">
         <TooltipLabel tooltipText={TOOLTIP_COPY.priceRange}>Execute when Price is Between</TooltipLabel>
         <MultiSlider
@@ -318,11 +318,11 @@ ConvertUpOrderV0Fields.PriceRange = function PriceRange() {
           step={sliderStep}
           value={sliderValues}
           onValueChange={handleSliderChange}
-          className={cn("w-full", hasError && "opacity-50")}
+          className={cn("my-2 w-full", hasError && "opacity-50")}
         />
       </Col>
-      <Row className="items-start gap-4 w-full">
-        <Col className="gap-2 max-w-[150px]">
+      <Row className="gap-4 w-full">
+        <Col className="gap-2 w-full">
           <TooltipLabel tooltipText={TOOLTIP_COPY.minPriceToConvertUp}>Min Price</TooltipLabel>
           <Input
             {...ctx.register("minPriceToConvertUp", {
@@ -336,7 +336,7 @@ ConvertUpOrderV0Fields.PriceRange = function PriceRange() {
             startIcon={<TextAdornment text="$" isEnd={false} className="pinto-body-light mt-[1px]" />}
           />
         </Col>
-        <Col className="gap-2 max-w-[150px]">
+        <Col className="gap-2 w-full">
           <TooltipLabel tooltipText={TOOLTIP_COPY.maxPriceToConvertUp}>Max Price</TooltipLabel>
           <Input
             {...ctx.register("maxPriceToConvertUp", {
@@ -351,7 +351,7 @@ ConvertUpOrderV0Fields.PriceRange = function PriceRange() {
           />
         </Col>
       </Row>
-    </div>
+    </>
   );
 };
 

@@ -25,7 +25,7 @@ import { stringEq } from "@/utils/string";
 import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { Token } from "@/utils/types";
 import { MayArray } from "@/utils/types.generic";
-import { Row } from "../Container";
+import { Col, Row } from "../Container";
 
 export type ITractorTokenStrategyDialogProps = {
   open: boolean;
@@ -128,7 +128,7 @@ export default function TractorTokenStrategyDialog({
       <DialogPortal>
         <DialogOverlay className="fixed inset-0 backdrop-blur-sm bg-black/30" />
         <DialogContent
-          className="sm:max-w-[40rem] w-full mx-auto p-0 bg-white rounded-2xl border border-pinto-gray-2"
+          className="sm:max-w-[40rem] w-full mx-auto bg-white rounded-2xl border border-pinto-gray-2"
           style={{ padding: 0, gap: 0 }}
         >
           <div className="p-3">
@@ -139,7 +139,7 @@ export default function TractorTokenStrategyDialog({
               <DialogDescription className="text-gray-500 pb-1">
                 Tractor allows you to fund Orders for Soil using Deposits
               </DialogDescription>
-              <Separator />
+              <Separator className="h-[1px] border-pinto-gray-2 bg-pinto-gray-2" />
             </DialogHeader>
 
             {/* Dynamic funding source options */}
@@ -161,7 +161,7 @@ export default function TractorTokenStrategyDialog({
               </div>
             </div>
             <Row className="gap-4 items-center mb-3">
-              <div className="w-full h-[1px] bg-pinto-gray-2" />
+              <div className="w-full h-[1px] border-pinto-gray-2 bg-pinto-gray-2" />
               <span className="pinto-sm text-pinto-gray-4">or</span>
               <div className="w-full h-[1px] bg-pinto-gray-2" />
             </Row>
@@ -214,10 +214,19 @@ export default function TractorTokenStrategyDialog({
                   );
                 })}
               </div>
-              <div className="text-xs text-gray-500 flex items-center gap-1 mt-2">
-                <InfoOutlinedIcon width={14} height={14} />
-                Deposits with the least Grown Stalk will always be used first
-              </div>
+              <Separator className="h-[1px] bg-pinto-gray-2" />
+              <Col className="gap-2 mt-2">
+                <div className="text-xs text-gray-500 flex items-center gap-1">
+                  <InfoOutlinedIcon width={14} height={14} />
+                  Deposits with the least Grown Stalk will always be used first
+                </div>
+                {multiSelect ? (
+                  <div className="text-xs text-gray-500 flex items-center gap-1">
+                    <InfoOutlinedIcon width={14} height={14} />
+                    If multiple tokens are selected, execution will occur in the order selected
+                  </div>
+                ) : null}
+              </Col>
             </div>
           </div>
         </DialogContent>
