@@ -5189,6 +5189,59 @@ export const diamondABI = [
     inputs: [
       {
         internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        internalType: "address[]",
+        name: "tokens",
+        type: "address[]",
+      },
+    ],
+    name: "getDepositsForAccount",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "token",
+            type: "address",
+          },
+          {
+            internalType: "uint256[]",
+            name: "depositIds",
+            type: "uint256[]",
+          },
+          {
+            components: [
+              {
+                internalType: "uint128",
+                name: "amount",
+                type: "uint128",
+              },
+              {
+                internalType: "uint128",
+                name: "bdv",
+                type: "uint128",
+              },
+            ],
+            internalType: "struct Deposit[]",
+            name: "tokenDeposits",
+            type: "tuple[]",
+          },
+        ],
+        internalType: "struct SiloGettersFacet.TokenDepositId[]",
+        name: "deposits",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "token",
         type: "address",
       },
@@ -5478,6 +5531,42 @@ export const diamondABI = [
     inputs: [
       {
         internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "getMowStatus",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "int96",
+            name: "lastStem",
+            type: "int96",
+          },
+          {
+            internalType: "uint128",
+            name: "bdv",
+            type: "uint128",
+          },
+        ],
+        internalType: "struct MowStatus",
+        name: "mowStatus",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "well",
         type: "address",
       },
@@ -5513,6 +5602,25 @@ export const diamondABI = [
         name: "",
         type: "uint256",
       },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "getSeedsForToken",
+    outputs: [
       {
         internalType: "uint256",
         name: "",
@@ -6533,11 +6641,6 @@ export const diamondABI = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "T",
-    type: "error",
-  },
-  {
     anonymous: false,
     inputs: [
       {
@@ -6584,69 +6687,6 @@ export const diamondABI = [
       },
     ],
     name: "Convert",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "grownStalkLost",
-        type: "uint256",
-      },
-    ],
-    name: "ConvertDownPenalty",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "grownStalkGained",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "bdvCapacityUsed",
-        type: "uint256",
-      },
-    ],
-    name: "ConvertUpBonus",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "enum GaugeId",
-        name: "gaugeId",
-        type: "uint8",
-      },
-      {
-        indexed: false,
-        internalType: "bytes",
-        name: "data",
-        type: "bytes",
-      },
-    ],
-    name: "UpdatedGaugeData",
     type: "event",
   },
   {
@@ -7123,25 +7163,6 @@ export const diamondABI = [
         internalType: "uint256",
         name: "",
         type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
-    name: "getPegCrossStem",
-    outputs: [
-      {
-        internalType: "int96",
-        name: "",
-        type: "int96",
       },
     ],
     stateMutability: "view",
@@ -8279,177 +8300,6 @@ export const diamondABI = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
-        internalType: "enum GaugeId",
-        name: "gaugeId",
-        type: "uint8",
-      },
-      {
-        components: [
-          {
-            internalType: "bytes",
-            name: "value",
-            type: "bytes",
-          },
-          {
-            internalType: "address",
-            name: "target",
-            type: "address",
-          },
-          {
-            internalType: "bytes4",
-            name: "selector",
-            type: "bytes4",
-          },
-          {
-            internalType: "bytes",
-            name: "data",
-            type: "bytes",
-          },
-        ],
-        indexed: false,
-        internalType: "struct Gauge",
-        name: "gauge",
-        type: "tuple",
-      },
-    ],
-    name: "AddedGauge",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "enum GaugeId",
-        name: "gaugeId",
-        type: "uint8",
-      },
-      {
-        indexed: false,
-        internalType: "bytes",
-        name: "value",
-        type: "bytes",
-      },
-    ],
-    name: "Engaged",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "enum GaugeId",
-        name: "gaugeId",
-        type: "uint8",
-      },
-      {
-        indexed: false,
-        internalType: "bytes",
-        name: "data",
-        type: "bytes",
-      },
-    ],
-    name: "EngagedData",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "enum GaugeId",
-        name: "gaugeId",
-        type: "uint8",
-      },
-    ],
-    name: "RemovedGauge",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "enum GaugeId",
-        name: "gaugeId",
-        type: "uint8",
-      },
-      {
-        components: [
-          {
-            internalType: "bytes",
-            name: "value",
-            type: "bytes",
-          },
-          {
-            internalType: "address",
-            name: "target",
-            type: "address",
-          },
-          {
-            internalType: "bytes4",
-            name: "selector",
-            type: "bytes4",
-          },
-          {
-            internalType: "bytes",
-            name: "data",
-            type: "bytes",
-          },
-        ],
-        indexed: false,
-        internalType: "struct Gauge",
-        name: "gauge",
-        type: "tuple",
-      },
-    ],
-    name: "UpdatedGauge",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "enum GaugeId",
-        name: "gaugeId",
-        type: "uint8",
-      },
-      {
-        indexed: false,
-        internalType: "bytes",
-        name: "data",
-        type: "bytes",
-      },
-    ],
-    name: "UpdatedGaugeData",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "enum GaugeId",
-        name: "gaugeId",
-        type: "uint8",
-      },
-      {
-        indexed: false,
-        internalType: "bytes",
-        name: "value",
-        type: "bytes",
-      },
-    ],
-    name: "UpdatedGaugeValue",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: true,
         internalType: "uint256",
         name: "season",
@@ -8482,61 +8332,18 @@ export const diamondABI = [
     inputs: [
       {
         indexed: false,
-        internalType: "address",
-        name: "account",
-        type: "address",
+        internalType: "enum GaugeId",
+        name: "gaugeId",
+        type: "uint8",
       },
       {
         indexed: false,
-        internalType: "uint256",
-        name: "grownStalkLost",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "grownStalkKept",
-        type: "uint256",
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
       },
     ],
-    name: "ConvertDownPenalty",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "grownStalkGained",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "newGrownStalk",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "bdvCapacityUsed",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "bdvConverted",
-        type: "uint256",
-      },
-    ],
-    name: "ConvertUpBonus",
+    name: "UpdatedGaugeData",
     type: "event",
   },
   {
@@ -9584,6 +9391,44 @@ export const diamondABI = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "enum GaugeId",
+        name: "gaugeId",
+        type: "uint8",
+      },
+      {
+        indexed: false,
+        internalType: "bytes",
+        name: "value",
+        type: "bytes",
+      },
+    ],
+    name: "Engaged",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "enum GaugeId",
+        name: "gaugeId",
+        type: "uint8",
+      },
+      {
+        indexed: false,
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "EngagedData",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         components: [
           {
             internalType: "address",
@@ -10418,159 +10263,6 @@ export const diamondABI = [
     inputs: [
       {
         internalType: "uint256",
-        name: "x",
-        type: "uint256",
-      },
-    ],
-    name: "PRBMathUD60x18__LogInputTooSmall",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "enum GaugeId",
-        name: "gaugeId",
-        type: "uint8",
-      },
-      {
-        components: [
-          {
-            internalType: "bytes",
-            name: "value",
-            type: "bytes",
-          },
-          {
-            internalType: "address",
-            name: "target",
-            type: "address",
-          },
-          {
-            internalType: "bytes4",
-            name: "selector",
-            type: "bytes4",
-          },
-          {
-            internalType: "bytes",
-            name: "data",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct Gauge",
-        name: "gauge",
-        type: "tuple",
-      },
-    ],
-    name: "addGauge",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "value",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "systemData",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "gaugeData",
-        type: "bytes",
-      },
-    ],
-    name: "convertDownPenaltyGauge",
-    outputs: [
-      {
-        internalType: "bytes",
-        name: "",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "",
-        type: "bytes",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "value",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "systemData",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "gaugeData",
-        type: "bytes",
-      },
-    ],
-    name: "convertUpBonusGauge",
-    outputs: [
-      {
-        internalType: "bytes",
-        name: "",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "",
-        type: "bytes",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "value",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "systemData",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "gaugeData",
-        type: "bytes",
-      },
-    ],
-    name: "cultivationFactor",
-    outputs: [
-      {
-        internalType: "bytes",
-        name: "",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "",
-        type: "bytes",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
         name: "currentGaugePoints",
         type: "uint256",
       },
@@ -10872,59 +10564,6 @@ export const diamondABI = [
       },
     ],
     stateMutability: "pure",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "enum GaugeId",
-        name: "gaugeId",
-        type: "uint8",
-      },
-    ],
-    name: "removeGauge",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "enum GaugeId",
-        name: "gaugeId",
-        type: "uint8",
-      },
-      {
-        components: [
-          {
-            internalType: "bytes",
-            name: "value",
-            type: "bytes",
-          },
-          {
-            internalType: "address",
-            name: "target",
-            type: "address",
-          },
-          {
-            internalType: "bytes4",
-            name: "selector",
-            type: "bytes4",
-          },
-          {
-            internalType: "bytes",
-            name: "data",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct Gauge",
-        name: "gauge",
-        type: "tuple",
-      },
-    ],
-    name: "updateGauge",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
   {
