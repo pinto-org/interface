@@ -6,11 +6,10 @@ import { TokenStrategyFormField, TractorFormButtonsRow } from "@/components/Trac
 import { ConvertUpV0FormSchema, TractorConvertUpFormKeys } from "@/components/Tractor/form/schema/convertUp.schema";
 import { Label } from "@/components/ui/Label";
 import { Separator } from "@/components/ui/Separator";
-import { STALK } from "@/constants/internalTokens";
+import { SEEDS, STALK } from "@/constants/internalTokens";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
 import {
-  PreparedConvertUpArgs,
   tractorTokenStrategyUtil as StrategyUtil,
   TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS,
   TractorTokenStrategy,
@@ -147,7 +146,7 @@ const ConvertUpTractorEntryForm = ({
             />
             <Fields.PriceRange />
             <Col className="gap-3">
-              <Fields.MinGrownStalkPerBdvBonus />
+              <Fields.GrownStalkPerBdvBonusBid />
               <EstimatedSeasonsOfGrownStalk siloData={siloData} />
             </Col>
           </>
@@ -318,7 +317,7 @@ const inferAdvancedFormFields = (
   const totalConvertBdv = postSanitizedSanitizedValue(values.totalBeanAmountToConvert, mainTokenDecimals).tv;
   const minPriceToConvertUp = postSanitizedSanitizedValue(values.minPriceToConvertUp, mainTokenDecimals).tv;
   const maxPriceToConvertUp = postSanitizedSanitizedValue(values.maxPriceToConvertUp, mainTokenDecimals).tv;
-  const minGrownStalkPerBdvBonus = postSanitizedSanitizedValue(values.grownStalkPerBdvBonusBid, STALK.decimals).tv;
+  const grownStalkPerBdvBonusBid = postSanitizedSanitizedValue(values.grownStalkPerBdvBonusBid, STALK.decimals).tv;
   const minSizePerExecution = postSanitizedSanitizedValue(values.minBeansConvertPerExecution, mainTokenDecimals).tv;
   const maxSizePerExecution = postSanitizedSanitizedValue(values.maxBeansConvertPerExecution, mainTokenDecimals).tv;
 
@@ -338,13 +337,14 @@ const inferAdvancedFormFields = (
     tokenStrategy: strategy,
     totalConvertBdv,
     minConvertBonusCapacity: defaultMinSizePerExecution,
-    minConvertBdvPerExecution: minSizePerExecution.eq(0) ? defaultMinSizePerExecution : minSizePerExecution,
-    maxConvertBdvPerExecution: maxSizePerExecution.eq(0) ? defaultMaxSizePerExecution : maxSizePerExecution,
+    minBeansConvertPerExecution: minSizePerExecution.eq(0) ? defaultMinSizePerExecution : minSizePerExecution,
+    maxBeansConvertPerExecution: maxSizePerExecution.eq(0) ? defaultMaxSizePerExecution : maxSizePerExecution,
     minPriceToConvertUp,
     maxPriceToConvertUp,
     minTimeBetweenConverts: values.minTimeBetweenConverts,
     maxGrownStalkPerBdv: postSanitizedSanitizedValue(values.maxGrownStalkPerBdv, STALK.decimals).tv,
-    minGrownStalkPerBdvBonus,
+    grownStalkPerBdvBonusBid,
+    seedDifference: postSanitizedSanitizedValue(values.seedDifference, SEEDS.decimals).tv,
     maxGrownStalkPerBdvPenalty: postSanitizedSanitizedValue(values.maxGrownStalkPerBdvPenalty, 18).tv,
     slippageRatio: values.slippageRatio,
     operatorTip: postSanitizedSanitizedValue(values.operatorTip, mainTokenDecimals).tv,

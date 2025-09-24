@@ -84,6 +84,8 @@ export const ConvertUpEstimatedTipPaid = () => {
   const minPerExecution = values.minBeansConvertPerExecution;
   const totalAmount = values.totalBeanAmountToConvert;
 
+  console.log("values", values);
+
   const tipPerExecution = preset === "Custom" && customAmount ? customAmount : operatorTip;
 
   const tipEstimations = useMemo(() => {
@@ -93,8 +95,8 @@ export const ConvertUpEstimatedTipPaid = () => {
 
     const tip = postSanitizedSanitizedValue(tipPerExecution ?? "", mainToken.decimals).tv;
 
-    const minTimes = total.div(max);
-    const maxTimes = total.div(min);
+    const minTimes = total.div(max ?? 1);
+    const maxTimes = total.div(min ?? 1);
 
     return {
       min: minTimes.mul(tip),

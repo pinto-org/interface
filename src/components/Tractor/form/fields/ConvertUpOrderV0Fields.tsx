@@ -9,7 +9,7 @@ import { ConvertUpV0FormSchema } from "../schema/convertUp.schema";
 
 import { Col, Row } from "@/components/Container";
 import { TooltipLabel } from "@/components/ui/Label";
-import { STALK } from "@/constants/internalTokens";
+import { SEEDS, STALK } from "@/constants/internalTokens";
 import { useSharedNumericFormFieldHandlers as useFieldHandlers } from "@/hooks/form/useSharedNumericFormFieldHandlers";
 import { useMainToken } from "@/state/useTokenData";
 import { cn } from "@/utils/utils";
@@ -62,12 +62,12 @@ const sharedInputProps = {
 const TOOLTIP_COPY = {
   tokenStrategy: "The source token(s) use for the Convert Up Order.",
   totalConvertBdv: "The total PDV of the Convert Up Order.",
-  minConvertBdvPerExecution: "The minimum PDV per execution of the Convert Up Order.",
-  maxConvertBdvPerExecution: "The maximum PDV per execution of the Convert Up Order.",
+  minBeansConvertPerExecution: "The minimum PDV per execution of the Convert Up Order.",
+  maxBeansConvertPerExecution: "The maximum PDV per execution of the Convert Up Order.",
   minTimeBetweenConverts: "The minimum time between converts of the Convert Up Order.",
   minConvertBonusCapacity: "The minimum convert bonus capacity of the Convert Up Order.",
   maxGrownStalkPerBdv: "The maximum grown stalk per PDV of the Convert Up Order.",
-  minGrownStalkPerBdvBonus: "The minimum Grown Stalk Bonus in which this order can be executed.",
+  grownStalkPerBdvBonusBid: "The minimum Grown Stalk Bonus in which this order can be executed.",
   maxPriceToConvertUp: "The maximum price to convert up to.",
   minPriceToConvertUp: "The minimum price to convert up to.",
   maxGrownStalkPerBdvPenalty: "The maximum grown stalk per PDV penalty of the Convert Up Order.",
@@ -76,6 +76,8 @@ const TOOLTIP_COPY = {
   operatorTip: "The operator tip of the Convert Up Order.",
   priceRange:
     "The price range to execute the Convert Up Order. The order will be executed when the price is between the minimum and maximum price.",
+  seedDifference:
+    "The minimum seed difference required between your selected tokens and PINTO at the time of execution.",
 } as const;
 
 export default function ConvertUpOrderV0Fields({ children }: { children: React.ReactNode }) {
@@ -121,7 +123,7 @@ ConvertUpOrderV0Fields.MinConvertBdvPerExecution = function MinConvertBdvPerExec
 
   return (
     <Col className="flex-1 gap-2">
-      <TooltipLabel tooltipText={TOOLTIP_COPY.minConvertBdvPerExecution}>Min PDV per Execution</TooltipLabel>
+      <TooltipLabel tooltipText={TOOLTIP_COPY.minBeansConvertPerExecution}>Min PDV per Execution</TooltipLabel>
       <Input
         {...register()}
         {...sharedInputProps}
@@ -139,7 +141,7 @@ ConvertUpOrderV0Fields.MaxConvertBdvPerExecution = function MaxConvertBdvPerExec
 
   return (
     <Col className="flex-1 gap-2">
-      <TooltipLabel tooltipText={TOOLTIP_COPY.maxConvertBdvPerExecution}>Max PDV per Execution</TooltipLabel>
+      <TooltipLabel tooltipText={TOOLTIP_COPY.maxBeansConvertPerExecution}>Max PDV per Execution</TooltipLabel>
       <Input
         {...register()}
         {...sharedInputProps}
@@ -231,7 +233,7 @@ ConvertUpOrderV0Fields.MaxGrownStalkPerBdv = function MaxGrownStalkPerBdv() {
   );
 };
 
-ConvertUpOrderV0Fields.MinGrownStalkPerBdvBonus = function MinGrownStalkPerBdvBonus() {
+ConvertUpOrderV0Fields.GrownStalkPerBdvBonusBid = function GrownStalkPerBdvBonusBid() {
   const ctx = useFormContext<ConvertUpV0FormSchema>();
   const handlers = useFieldHandlers(ctx, "grownStalkPerBdvBonusBid", STALK.decimals);
 
@@ -241,7 +243,7 @@ ConvertUpOrderV0Fields.MinGrownStalkPerBdvBonus = function MinGrownStalkPerBdvBo
       name="grownStalkPerBdvBonusBid"
       render={({ field, fieldState }) => (
         <FormItem>
-          <FormLabel tooltipText={TOOLTIP_COPY.minGrownStalkPerBdvBonus}>Min Grown Stalk Bonus Per PDV</FormLabel>
+          <FormLabel tooltipText={TOOLTIP_COPY.grownStalkPerBdvBonusBid}>Min Grown Stalk Bonus Per PDV</FormLabel>
           <FormControl>
             <Input
               {...field}
@@ -364,6 +366,26 @@ ConvertUpOrderV0Fields.MaxGrownStalkPerBdvPenalty = function MaxGrownStalkPerBdv
       render={({ field, fieldState }) => (
         <FormItem>
           <FormLabel tooltipText={TOOLTIP_COPY.maxGrownStalkPerBdvPenalty}>Max Grown Stalk per BDV Penalty</FormLabel>
+          <FormControl>
+            <Input {...field} {...sharedInputProps} {...handlers} placeholder="0.00" isError={!!fieldState.error} />
+          </FormControl>
+        </FormItem>
+      )}
+    />
+  );
+};
+
+ConvertUpOrderV0Fields.SeedDifference = function SeedDifference() {
+  const ctx = useFormContext<ConvertUpV0FormSchema>();
+  const handlers = useFieldHandlers(ctx, "seedDifference", SEEDS.decimals);
+
+  return (
+    <FormField
+      control={ctx.control}
+      name="seedDifference"
+      render={({ field, fieldState }) => (
+        <FormItem>
+          <FormLabel tooltipText={TOOLTIP_COPY.seedDifference}>Min Seed Difference</FormLabel>
           <FormControl>
             <Input {...field} {...sharedInputProps} {...handlers} placeholder="0.00" isError={!!fieldState.error} />
           </FormControl>

@@ -462,6 +462,7 @@ export type ConvertUpV0FormOrderData = {
   maxPriceToConvertUp: string;
   minPriceToConvertUp: string;
   maxGrownStalkPerBdvPenalty: string;
+  seedDifference: string;
   timeScale: TimeScaleSelect;
   slippageRatio: string;
   lowStalkDeposits: number;
@@ -560,6 +561,7 @@ export const useConvertUpV0State = () => {
           grownStalkPerBdvBonusBid: formData.grownStalkPerBdvBonusBid,
           maxPriceToConvertUp: formData.maxPriceToConvertUp,
           minPriceToConvertUp: formData.minPriceToConvertUp,
+          seedDifference: formData.seedDifference,
           timeScale: formData.timeScale,
           maxGrownStalkPerBdvPenalty: formData.maxGrownStalkPerBdvPenalty,
           slippageRatio: formData.slippageRatio,
