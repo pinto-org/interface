@@ -50,9 +50,7 @@ const ConvertUpTractorReviewController = ({
   const [showReviewDialog, setShowReviewDialog] = useState(false);
 
   // UI state management
-  const [accordionValue, setAccordionValue] = useState<string | undefined>(
-    didInitAdv ? "advanced-settings" : undefined,
-  );
+  const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
   const [accordionOpen, setAccordionOpen] = useState(didInitAdv);
 
   // Ultra-lean operator tip state management
@@ -429,7 +427,7 @@ const AdvancedParametersSummary = ({
       <ReviewRow
         label="Min Seed Difference"
         tooltip={CONVERT_UP_TOOLTIP_COPY.seedDifference}
-        value={`${formatter.twoDec(seedDifference)} SEEDS`}
+        value={`${formatter.twoDec(seedDifference)} Seeds`}
       />
       <ReviewRow
         label="Slippage Tolerance"

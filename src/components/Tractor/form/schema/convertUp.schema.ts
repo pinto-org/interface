@@ -144,6 +144,8 @@ export const convertUpOrderDialogSchema = z
     maxGrownStalkPerBdv: positiveNumber("Max Grown Stalk per PDV"),
     grownStalkPerBdvBonusBid: nonNegativeNumber("Min Grown Stalk per BDV Bonus"),
 
+    seedDifference: z.string().min(1, "Seed Difference is required"),
+
     // Price constraints
     maxPriceToConvertUp: positiveNumber("Max Price").refine((data) => {
       const vals = postSanitizedSanitizedValue(data, 6);
@@ -307,7 +309,11 @@ export const useConvertUpV0Form = (): IConvertUpV0Form => {
             return value === "";
           }
           case key === "lowStalkDeposits":
-            return value !== 0 && value !== 1 && value !== 2;
+            return (
+              value !== LowStalkDepositsMode.OMIT &&
+              value !== LowStalkDepositsMode.USE_LAST &&
+              value !== LowStalkDepositsMode.USE
+            );
           default:
             return false;
         }

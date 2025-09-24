@@ -182,10 +182,6 @@ export async function loadConvertUpOrderbookData(
   const fromBlock =
     lookbackBlocks && latestBlock?.number ? latestBlock.number - lookbackBlocks : TRACTOR_DEPLOYMENT_BLOCK;
 
-  console.log("lookbackBlocks", lookbackBlocks);
-  console.log("latestBlock", latestBlock);
-  console.log("fromBlock", fromBlock);
-
   const [_requisitions, _priceResult, bonusAndCapacityResult] = await Promise.all([
     // publicClient.getContractEvents({
     //   address: CONVERT_UP_BLUEPRINT_V0_ADDRESS,
@@ -209,7 +205,7 @@ export async function loadConvertUpOrderbookData(
     }),
   ]);
 
-  console.log("TRACTOR/loadConvertUpOrderbookData] result", {
+  console.debug("TRACTOR/loadConvertUpOrderbookData] result", {
     requisitions: _requisitions,
     // completedEvents,
     bonusAndCapacityResult,

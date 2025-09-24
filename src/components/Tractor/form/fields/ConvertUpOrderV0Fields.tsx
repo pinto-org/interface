@@ -1,3 +1,4 @@
+import PDVIcon from "@/assets/protocol/PDV.png";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/Form";
 import IconImage from "@/components/ui/IconImage";
 import { Input } from "@/components/ui/Input";
@@ -9,8 +10,10 @@ import { ConvertUpV0FormSchema } from "../schema/convertUp.schema";
 
 import { Col, Row } from "@/components/Container";
 import { TooltipLabel } from "@/components/ui/Label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
 import { SEEDS, STALK } from "@/constants/internalTokens";
 import { useSharedNumericFormFieldHandlers as useFieldHandlers } from "@/hooks/form/useSharedNumericFormFieldHandlers";
+import { LowStalkDepositsMode } from "@/lib/Tractor";
 import { useMainToken } from "@/state/useTokenData";
 import { cn } from "@/utils/utils";
 import { RegisterOptions, useFormContext, useWatch } from "react-hook-form";
@@ -72,7 +75,7 @@ const TOOLTIP_COPY = {
   minPriceToConvertUp: "The minimum price to convert up to.",
   maxGrownStalkPerBdvPenalty: "The maximum grown stalk per PDV penalty of the Convert Up Order.",
   slippageRatio: "The slippage ratio of the Convert Up Order.",
-  lowStalkDeposits: "The low stalk deposits of the Convert Up Order.",
+  lowStalkDeposits: "The condition or eligibility in which Silo deposits with low Grown Stalk are used.",
   operatorTip: "The operator tip of the Convert Up Order.",
   priceRange:
     "The price range to execute the Convert Up Order. The order will be executed when the price is between the minimum and maximum price.",
@@ -84,13 +87,11 @@ export default function ConvertUpOrderV0Fields({ children }: { children: React.R
   return children;
 }
 
-const MainTokenAdornment = () => {
-  const mainToken = useChainConstant(MAIN_TOKEN);
-
+const PDVIconAdornment = () => {
   return (
     <div className="flex items-center gap-2 px-4 bg-white">
-      <IconImage src={mainToken.logoURI} alt="PINTO" size={6} className="rounded-full" />
-      <span className="hidden sm:block text-black pinto-sm-light">{mainToken.symbol}</span>
+      <img src={PDVIcon} alt="PDV" className="w-5 h-4" />
+      <span className="hidden sm:block text-black pinto-sm-light">PDV</span>
     </div>
   );
 };
@@ -111,7 +112,7 @@ ConvertUpOrderV0Fields.TotalConvertBdv = function TotalConvertBdv() {
         {...sharedInputProps}
         placeholder="0.00"
         isError={isError}
-        endIcon={<MainTokenAdornment />}
+        endIcon={<PDVIconAdornment />}
       />
     </Col>
   );
@@ -396,7 +397,7 @@ ConvertUpOrderV0Fields.SeedDifference = function SeedDifference() {
 };
 
 ConvertUpOrderV0Fields.SlippageRatio = function SlippageRatio() {
-  const { register, isError } = useFormFieldProps("slippageRatio", 0);
+  const { register, isError } = useFormFieldProps("slippageRatio", 18);
 
   return (
     <div className="flex flex-row w-full items-center justify-between gap-2 space-y-0">
@@ -413,6 +414,78 @@ ConvertUpOrderV0Fields.SlippageRatio = function SlippageRatio() {
         />
       </div>
     </div>
+  );
+};
+
+const LowStalkDepositModes = [
+  {
+    label: "No",
+    value: LowStalkDepositsMode.OMIT,
+  },
+  {
+    label: "Yes",
+    value: LowStalkDepositsMode.USE,
+  },
+  {
+    label: "Use Last",
+    value: LowStalkDepositsMode.USE_LAST,
+  },
+];
+
+ConvertUpOrderV0Fields.LowStalkDepositsSelect = function LowStalkDeposits({ className }: { className?: string }) {
+  const ctx = useFormContext<ConvertUpV0FormSchema>();
+
+  return (
+    <Row className="gap-2 w-full justify-between">
+      <FormLabel tooltipText={TOOLTIP_COPY.lowStalkDeposits} htmlFor="lowStalkDeposits">
+        Allow Low Stalk Deposits
+      </FormLabel>
+      <FormField
+        control={ctx.control}
+        name="lowStalkDeposits"
+        render={({ field }) => (
+          <FormItem>
+            <Select
+              value={field.value.toString()}
+              onValueChange={(value) => {
+                field.onChange(Number(value));
+              }}
+            >
+              <SelectTrigger
+                className={cn(
+                  "cursor-pointer rounded-[0.75rem] w-fit h-12 bg-white",
+                  "px-3 py-1 text-[1.25rem] text-black",
+                  "border border-pinto-gray-2 shadow-none",
+                  "ring-0 focus:ring-0 focus-visible:ring-0",
+                  "focus:ring-offset-0 focus-visible:ring-offset-0",
+                  "outline-none focus:outline-none focus-visible:outline-none",
+                  className,
+                )}
+              >
+                <div className="mr-4">
+                  <SelectValue placeholder="Select">
+                    {LowStalkDepositModes.find((value) => value.value === field.value)?.label}
+                  </SelectValue>
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {LowStalkDepositModes.map((value) => {
+                  return (
+                    <SelectItem
+                      key={`${value.label}-low-stalk-deposit-select`}
+                      value={value.value.toString()}
+                      className="pinto-sm focus:bg-pinto-green-1"
+                    >
+                      {value.label}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </FormItem>
+        )}
+      />
+    </Row>
   );
 };
 

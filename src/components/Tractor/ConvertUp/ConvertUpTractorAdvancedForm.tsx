@@ -55,6 +55,7 @@ const ConvertUpTractorAdvancedForm = ({ onSubmit, onCancel }: Props) => {
         <Fields.MaxGrownStalkPerBdv />
         <Fields.SeedDifference />
         <Fields.SlippageRatio />
+        <Fields.LowStalkDepositsSelect />
       </Fields>
       <ButtonRow handleBack={handleBack} handleNext={handleNext} getMissingFields={getMissingFields} />
     </Col>

@@ -67,7 +67,7 @@ const ButtonRow = ({ onSubmit, onCancel }: { onSubmit: () => void; onCancel: () 
       }}
       right={{
         content: "Submit",
-        disabled: tipAmountTV.lt(0),
+        disabled: tipAmountTV.lt(0) || !customOperatorTipAmount,
       }}
     />
   );
@@ -83,8 +83,6 @@ export const ConvertUpEstimatedTipPaid = () => {
   const maxPerExecution = values.maxBeansConvertPerExecution;
   const minPerExecution = values.minBeansConvertPerExecution;
   const totalAmount = values.totalBeanAmountToConvert;
-
-  console.log("values", values);
 
   const tipPerExecution = preset === "Custom" && customAmount ? customAmount : operatorTip;
 
