@@ -177,7 +177,7 @@ export const convertUpBlueprintV0ABI = [
               },
               {
                 internalType: "uint256",
-                name: "GrownStalkPerBdvBonusBid",
+                name: "grownStalkPerBdvBonusBid",
                 type: "uint256",
               },
               {

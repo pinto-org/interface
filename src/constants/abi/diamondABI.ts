@@ -6690,43 +6690,6 @@ export const diamondABI = [
     type: "event",
   },
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "grownStalkGained",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "bdvCapacityUsed",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "bdvConverted",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "newGrownStalk",
-        type: "uint256",
-      },
-    ],
-    name: "ConvertUpBonus",
-    type: "event",
-  },
-  {
     inputs: [
       {
         internalType: "address",
@@ -8381,6 +8344,68 @@ export const diamondABI = [
       },
     ],
     name: "UpdatedGaugeData",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "grownStalkLost",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "grownStalkKept",
+        type: "uint256",
+      },
+    ],
+    name: "ConvertDownPenalty",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "grownStalkGained",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newGrownStalk",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "bdvCapacityUsed",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "bdvConverted",
+        type: "uint256",
+      },
+    ],
+    name: "ConvertUpBonus",
     type: "event",
   },
   {
