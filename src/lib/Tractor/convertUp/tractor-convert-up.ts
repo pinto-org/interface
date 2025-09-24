@@ -92,17 +92,19 @@ export async function createConvertUpTractorData({
   const struct = {
     convertUpParams: {
       sourceTokenIndices,
-      totalConvertBdv: args.totalConvertBdv.toBigInt(),
-      minConvertBdvPerExecution: args.minConvertBdvPerExecution.toBigInt(),
-      maxConvertBdvPerExecution: args.maxConvertBdvPerExecution.toBigInt(),
+      totalBeanAmountToConvert: args.totalBeanAmountToConvert.toBigInt(),
+      minBeansConvertPerExecution: args.minBeansConvertPerExecution.toBigInt(),
+      maxBeansConvertPerExecution: args.maxBeansConvertPerExecution.toBigInt(),
       minTimeBetweenConverts: args.minTimeBetweenConverts.toBigInt(),
       minConvertBonusCapacity: args.minConvertBonusCapacity.toBigInt(),
       maxGrownStalkPerBdv: args.maxGrownStalkPerBdv.toBigInt(),
-      minGrownStalkPerBdvBonus: args.minGrownStalkPerBdvBonus.toBigInt(),
+      GrownStalkPerBdvBonusBid: args.grownStalkPerBdvBonusBid.toBigInt(), // TODO: fix once contract is upgraded
+      grownStalkPerBdvBonusBid: args.grownStalkPerBdvBonusBid.toBigInt(),
       maxPriceToConvertUp: args.maxPriceToConvertUp.toBigInt(),
       minPriceToConvertUp: args.minPriceToConvertUp.toBigInt(),
       maxGrownStalkPerBdvPenalty: args.maxGrownStalkPerBdvPenalty.toBigInt(),
       slippageRatio: args.slippageRatio.toBigInt(),
+      seedDifference: args.seedDifference.toBigInt(),
       lowStalkDeposits: Number(args.lowStalkDeposits),
     },
     opParams: {
@@ -264,7 +266,7 @@ export async function loadConvertUpOrderbookData(
 
     if (orderInfoResult?.status === "success") {
       const [lastExecutedTimestamp, bdvLeftToConvert] = orderInfoResult.result;
-      let bdvLeftToConvertTV = decodedData?.convertUpParams.totalConvertBdv ?? TV.ZERO;
+      let bdvLeftToConvertTV = decodedData?.convertUpParams.totalBeanAmountToConvert ?? TV.ZERO;
 
       // Order has been executed at least once
       if (lastExecutedTimestamp !== 0n) {
@@ -287,7 +289,7 @@ export async function loadConvertUpOrderbookData(
     if (decodedData) {
       const minPrice = decodedData.convertUpParams.minPriceToConvertUp;
       const maxPrice = decodedData.convertUpParams.maxPriceToConvertUp;
-      const minBonus = decodedData.convertUpParams.minGrownStalkPerBdvBonus;
+      const minBonus = decodedData.convertUpParams.grownStalkPerBdvBonusBid;
       const minCapacity = decodedData.convertUpParams.minConvertBonusCapacity;
 
       meetsConditions.price = currentPrice.gte(minPrice) && currentPrice.lte(maxPrice);
@@ -431,7 +433,7 @@ export async function loadConvertUpOrderbookData(
           args: [
             publisher,
             decodedData.convertUpParams.sourceTokenIndices,
-            decodedData.convertUpParams.totalConvertBdv.toBigInt(),
+            decodedData.convertUpParams.totalBeanAmountToConvert.toBigInt(),
             filterParams as never, // TODO: Fix this
             (combinedExistingPlan || emptyPlan) as any,
           ],
@@ -486,7 +488,7 @@ export async function loadConvertUpOrderbookData(
 
       // Calculate amount convertible next execution
       let amountConvertibleNextExecution = currentlyConvertible;
-      const maxBdvPerExecution = decodedData.convertUpParams.maxConvertBdvPerExecution;
+      const maxBdvPerExecution = decodedData.convertUpParams.maxBeansConvertPerExecution;
       amountConvertibleNextExecution = TV.min(currentlyConvertible, maxBdvPerExecution);
       console.debug(`Max BDV per execution: ${maxBdvPerExecution.toHuman()}`);
       console.debug(`Amount convertible next execution: ${amountConvertibleNextExecution.toHuman()}`);

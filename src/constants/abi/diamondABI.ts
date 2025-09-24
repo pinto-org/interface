@@ -6690,6 +6690,43 @@ export const diamondABI = [
     type: "event",
   },
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "grownStalkGained",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "bdvCapacityUsed",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "bdvConverted",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newGrownStalk",
+        type: "uint256",
+      },
+    ],
+    name: "ConvertUpBonus",
+    type: "event",
+  },
+  {
     inputs: [
       {
         internalType: "address",

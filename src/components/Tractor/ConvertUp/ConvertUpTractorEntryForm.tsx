@@ -231,7 +231,7 @@ const EstimatedSeasonsOfGrownStalk = ({ siloData }: { siloData: ReturnType<typeo
 
   const value = useWatch({
     control: form.control,
-    name: "minGrownStalkPerBdvBonus",
+    name: "grownStalkPerBdvBonusBid",
   });
 
   const tokenStrategies = useWatch({
@@ -315,12 +315,12 @@ const inferAdvancedFormFields = (
     throw new Error("Invalid token strategy");
   }
 
-  const totalConvertBdv = postSanitizedSanitizedValue(values.totalConvertBdv, mainTokenDecimals).tv;
+  const totalConvertBdv = postSanitizedSanitizedValue(values.totalBeanAmountToConvert, mainTokenDecimals).tv;
   const minPriceToConvertUp = postSanitizedSanitizedValue(values.minPriceToConvertUp, mainTokenDecimals).tv;
   const maxPriceToConvertUp = postSanitizedSanitizedValue(values.maxPriceToConvertUp, mainTokenDecimals).tv;
-  const minGrownStalkPerBdvBonus = postSanitizedSanitizedValue(values.minGrownStalkPerBdvBonus, STALK.decimals).tv;
-  const minSizePerExecution = postSanitizedSanitizedValue(values.minConvertBdvPerExecution, mainTokenDecimals).tv;
-  const maxSizePerExecution = postSanitizedSanitizedValue(values.maxConvertBdvPerExecution, mainTokenDecimals).tv;
+  const minGrownStalkPerBdvBonus = postSanitizedSanitizedValue(values.grownStalkPerBdvBonusBid, STALK.decimals).tv;
+  const minSizePerExecution = postSanitizedSanitizedValue(values.minBeansConvertPerExecution, mainTokenDecimals).tv;
+  const maxSizePerExecution = postSanitizedSanitizedValue(values.maxBeansConvertPerExecution, mainTokenDecimals).tv;
 
   // Default to min of (5% of total convert bdv) or (100 PDV)
   const defaultMinSizePerExecution = TV.min(

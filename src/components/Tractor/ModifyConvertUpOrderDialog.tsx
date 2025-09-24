@@ -147,13 +147,14 @@ function ModifyConvertUpOrderProvider({
       const newDraftState = val
         ? {
             ...transformed,
-            totalConvertBdv: transformed.totalConvertBdv.tv.toHuman(),
-            minConvertBdvPerExecution: transformed.minConvertBdvPerExecution.tv.toHuman(),
-            maxConvertBdvPerExecution: transformed.maxConvertBdvPerExecution.tv.toHuman(),
+            totalBeanAmountToConvert: transformed.totalBeanAmountToConvert.tv.toHuman(),
+            minBeansConvertPerExecution: transformed.minBeansConvertPerExecution.tv.toHuman(),
+            maxBeansConvertPerExecution: transformed.maxBeansConvertPerExecution.tv.toHuman(),
             minTimeBetweenConverts: transformed.minTimeBetweenConverts.tv.toHuman(),
             minConvertBonusCapacity: transformed.minConvertBonusCapacity.tv.toHuman(),
             maxGrownStalkPerBdv: transformed.maxGrownStalkPerBdv.tv.toHuman(),
-            minGrownStalkPerBdvBonus: transformed.minGrownStalkPerBdvBonus.tv.toHuman(),
+            grownStalkPerBdvBonusBid: transformed.grownStalkPerBdvBonusBid.tv.toHuman(),
+            seedDifference: transformed.seedDifference.tv.toHuman(),
             maxPriceToConvertUp: transformed.maxPriceToConvertUp.tv.toHuman(),
             minPriceToConvertUp: transformed.minPriceToConvertUp.tv.toHuman(),
             maxGrownStalkPerBdvPenalty: transformed.maxGrownStalkPerBdvPenalty.tv.toHuman(),
@@ -217,17 +218,18 @@ function ModifyConvertUpOrderProvider({
       // Prepare the prefill values - handle TokenValue objects properly
       const prefillValues = {
         tokenStrategy: tokenStrategy ?? { type: "LOWEST_SEEDS" as const },
-        totalConvertBdv: data.convertUpParams.totalConvertBdv.toHuman(),
-        minConvertBdvPerExecution: data.convertUpParams.minConvertBdvPerExecution.toHuman(),
-        maxConvertBdvPerExecution: data.convertUpParams.maxConvertBdvPerExecution.toHuman(),
+        totalBeanAmountToConvert: data.convertUpParams.totalBeanAmountToConvert.toHuman(),
+        minBeansConvertPerExecution: data.convertUpParams.minBeansConvertPerExecution.toHuman(),
+        maxBeansConvertPerExecution: data.convertUpParams.maxBeansConvertPerExecution.toHuman(),
         minTimeBetweenConverts: data.convertUpParams.minTimeBetweenConverts.toHuman(),
         timeScale: "SECONDS" as const, // Default to seconds, might need to derive this
         minConvertBonusCapacity: data.convertUpParams.minConvertBonusCapacity.toHuman(),
         maxGrownStalkPerBdv: data.convertUpParams.maxGrownStalkPerBdv.toHuman(),
-        minGrownStalkPerBdvBonus: data.convertUpParams.minGrownStalkPerBdvBonus.toHuman(),
+        grownStalkPerBdvBonusBid: data.convertUpParams.grownStalkPerBdvBonusBid.toHuman(),
         maxPriceToConvertUp: data.convertUpParams.maxPriceToConvertUp.toHuman(),
         minPriceToConvertUp: data.convertUpParams.minPriceToConvertUp.toHuman(),
         maxGrownStalkPerBdvPenalty: data.convertUpParams.maxGrownStalkPerBdvPenalty.toHuman(),
+        seedDifference: data.convertUpParams.seedDifference.toHuman(),
         slippageRatio: data.convertUpParams.slippageRatio.toHuman(),
         operatorTip: data.opParams.operatorTipAmount.toHuman(),
         lowStalkDeposits: data.convertUpParams.lowStalkDeposits,
@@ -643,7 +645,7 @@ function EntryFormParametersSummary() {
   const values = useWatch({ control: ctx.control });
   const tokenMap = useTokenMap();
 
-  const totalValueToConvert = `${values.totalConvertBdv} PDV`;
+  const totalValueToConvert = `${values.totalBeanAmountToConvert} PDV`;
   const priceRange = `$${values.minPriceToConvertUp} - $${values.maxPriceToConvertUp}`;
 
   const summary = StrategyUtil.getSummary((values.tokenStrategy ?? { type: "LOWEST_SEEDS" }) as TractorTokenStrategy);
@@ -688,7 +690,7 @@ function EntryFormParametersSummary() {
         value={
           <Row className="gap-1 items-center">
             <IconImage src={STALK.logoURI} size={4} alt={STALK.symbol} />
-            <div className="pinto-sm font-normal">{values.minGrownStalkPerBdvBonus}</div>
+            <div className="pinto-sm font-normal">{values.grownStalkPerBdvBonusBid}</div>
           </Row>
         }
       />
@@ -728,8 +730,8 @@ function AdvancedParametersSummary({
   const minConvertBonusCapacity = values.minConvertBonusCapacity;
   const maxGrownStalkPerBdvPenalty = values.maxGrownStalkPerBdvPenalty;
   const maxGrownStalkPerBdv = values.maxGrownStalkPerBdv;
-  const minConvertBdvPerExecution = values.minConvertBdvPerExecution;
-  const maxConvertBdvPerExecution = values.maxConvertBdvPerExecution;
+  const minConvertBdvPerExecution = values.minBeansConvertPerExecution;
+  const maxConvertBdvPerExecution = values.maxBeansConvertPerExecution;
   const slippageRatio = values.slippageRatio;
   const lowStalkDeposits = values.lowStalkDeposits;
 
@@ -1116,20 +1118,20 @@ function getMapping(
   if (!existing) return undefined;
 
   return {
-    totalConvertBdv: {
+    totalBeanAmountToConvert: {
       label: "Total Convert BDV",
-      prev: postSanitizedSanitizedValue(existing.convertUpParams.totalConvertBdv.toHuman(), 6).tv,
-      curr: postSanitizedSanitizedValue(orderData.totalConvertBdv, 6).tv,
+      prev: postSanitizedSanitizedValue(existing.convertUpParams.totalBeanAmountToConvert.toHuman(), 6).tv,
+      curr: postSanitizedSanitizedValue(orderData.totalBeanAmountToConvert, 6).tv,
     },
-    minConvertBdvPerExecution: {
+    minBeansConvertPerExecution: {
       label: "Min BDV per Execution",
-      prev: postSanitizedSanitizedValue(existing.convertUpParams.minConvertBdvPerExecution.toHuman(), 6).tv,
-      curr: postSanitizedSanitizedValue(orderData.minConvertBdvPerExecution, 6).tv,
+      prev: postSanitizedSanitizedValue(existing.convertUpParams.minBeansConvertPerExecution.toHuman(), 6).tv,
+      curr: postSanitizedSanitizedValue(orderData.minBeansConvertPerExecution, 6).tv,
     },
-    maxConvertBdvPerExecution: {
+    maxBeansConvertPerExecution: {
       label: "Max BDV per Execution",
-      prev: postSanitizedSanitizedValue(existing.convertUpParams.maxConvertBdvPerExecution.toHuman(), 6).tv,
-      curr: postSanitizedSanitizedValue(orderData.maxConvertBdvPerExecution, 6).tv,
+      prev: postSanitizedSanitizedValue(existing.convertUpParams.maxBeansConvertPerExecution.toHuman(), 6).tv,
+      curr: postSanitizedSanitizedValue(orderData.maxBeansConvertPerExecution, 6).tv,
     },
     minTimeBetweenConverts: {
       label: "Min Time Between Executions",
@@ -1146,10 +1148,10 @@ function getMapping(
       prev: postSanitizedSanitizedValue(existing.convertUpParams.maxGrownStalkPerBdv.toHuman(), 6).tv,
       curr: postSanitizedSanitizedValue(orderData.maxGrownStalkPerBdv, 6).tv,
     },
-    minGrownStalkPerBdvBonus: {
+    grownStalkPerBdvBonusBid: {
       label: "Min Grown Stalk Bonus",
-      prev: postSanitizedSanitizedValue(existing.convertUpParams.minGrownStalkPerBdvBonus.toHuman(), 6).tv,
-      curr: postSanitizedSanitizedValue(orderData.minGrownStalkPerBdvBonus, 6).tv,
+      prev: postSanitizedSanitizedValue(existing.convertUpParams.grownStalkPerBdvBonusBid.toHuman(), 6).tv,
+      curr: postSanitizedSanitizedValue(orderData.grownStalkPerBdvBonusBid, 6).tv,
     },
     maxPriceToConvertUp: {
       label: "Max Price",

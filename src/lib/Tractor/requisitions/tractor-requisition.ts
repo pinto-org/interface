@@ -2,7 +2,7 @@ import { TV, TokenValue } from "@/classes/TokenValue";
 import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
 import { convertUpBlueprintV0ABI } from "@/constants/abi/convertUpBlueprintV0ABI";
 import { diamondABI } from "@/constants/abi/diamondABI";
-import { STALK } from "@/constants/internalTokens";
+import { SEEDS, STALK } from "@/constants/internalTokens";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { getChainConstant } from "@/utils/chain";
 import { stringEq } from "@/utils/string";
@@ -34,16 +34,17 @@ export const getTractorConvertUpParamsDecimalConfig = (chainId: number) => {
   const { decimals } = getChainConstant(chainId, MAIN_TOKEN);
 
   return {
-    totalConvertBdv: decimals,
-    minConvertBdvPerExecution: decimals,
-    maxConvertBdvPerExecution: decimals,
+    totalBeanAmountToConvert: decimals,
+    minBeansConvertPerExecution: decimals,
+    maxBeansConvertPerExecution: decimals,
     minTimeBetweenConverts: 0,
     minConvertBonusCapacity: decimals,
     maxGrownStalkPerBdv: STALK.decimals,
-    minGrownStalkPerBdvBonus: STALK.decimals,
+    grownStalkPerBdvBonusBid: STALK.decimals,
     maxPriceToConvertUp: decimals,
     minPriceToConvertUp: decimals,
     operatorTip: decimals,
+    seedDifference: SEEDS.decimals,
     maxGrownStalkPerBdvPenalty: MAX_GROWN_STALK_PER_BDV_PENALTY_DECIMALS,
     slippageRatio: 18,
   };
@@ -66,13 +67,14 @@ export const transformConvertUpRequisitionEvent = (params: unknown | null, chain
 
     const convertUpParams: ConvertUpBlueprintStruct<TV>["convertUpParams"] = {
       sourceTokenIndices: cup.sourceTokenIndices,
-      totalConvertBdv: TV.fromBigInt(cup.totalConvertBdv, dc.totalConvertBdv),
-      minConvertBdvPerExecution: TV.fromBigInt(cup.minConvertBdvPerExecution, dc.minConvertBdvPerExecution),
-      maxConvertBdvPerExecution: TV.fromBigInt(cup.maxConvertBdvPerExecution, dc.maxConvertBdvPerExecution),
+      totalBeanAmountToConvert: TV.fromBigInt(cup.totalBeanAmountToConvert, dc.totalBeanAmountToConvert),
+      minBeansConvertPerExecution: TV.fromBigInt(cup.minBeansConvertPerExecution, dc.minBeansConvertPerExecution),
+      maxBeansConvertPerExecution: TV.fromBigInt(cup.maxBeansConvertPerExecution, dc.maxBeansConvertPerExecution),
       minTimeBetweenConverts: TV.fromBigInt(cup.minTimeBetweenConverts, dc.minTimeBetweenConverts),
       minConvertBonusCapacity: TV.fromBigInt(cup.minConvertBonusCapacity, dc.minConvertBonusCapacity),
       maxGrownStalkPerBdv: TV.fromBigInt(cup.maxGrownStalkPerBdv, dc.maxGrownStalkPerBdv),
-      minGrownStalkPerBdvBonus: TV.fromBigInt(cup.minGrownStalkPerBdvBonus, dc.minGrownStalkPerBdvBonus),
+      grownStalkPerBdvBonusBid: TV.fromBigInt(cup.grownStalkPerBdvBonusBid, dc.grownStalkPerBdvBonusBid),
+      seedDifference: TV.fromBigInt(cup.seedDifference, dc.seedDifference),
       maxPriceToConvertUp: TV.fromBigInt(cup.maxPriceToConvertUp, dc.maxPriceToConvertUp),
       minPriceToConvertUp: TV.fromBigInt(cup.minPriceToConvertUp, dc.minPriceToConvertUp),
       maxGrownStalkPerBdvPenalty: TV.fromBigInt(cup.maxGrownStalkPerBdvPenalty, dc.maxGrownStalkPerBdvPenalty),

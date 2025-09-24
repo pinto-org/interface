@@ -17,18 +17,17 @@ import { RegisterOptions, useFormContext, useWatch } from "react-hook-form";
 
 type StringInputFields = Pick<
   ConvertUpV0FormSchema,
-  | "totalConvertBdv"
-  | "minConvertBdvPerExecution"
-  | "maxConvertBdvPerExecution"
+  | "totalBeanAmountToConvert"
+  | "minBeansConvertPerExecution"
+  | "maxBeansConvertPerExecution"
   | "minTimeBetweenConverts"
   | "minConvertBonusCapacity"
   | "maxGrownStalkPerBdv"
-  | "minGrownStalkPerBdvBonus"
+  | "grownStalkPerBdvBonusBid"
   | "maxPriceToConvertUp"
   | "minPriceToConvertUp"
   | "maxGrownStalkPerBdvPenalty"
-  | "maxGrownStalkPerBdvPenalty"
-  | "minConvertBdvPerExecution"
+  | "seedDifference"
   | "slippageRatio"
 >;
 
@@ -100,7 +99,7 @@ const TextAdornment = ({ text, isEnd = true, className }: { text: string; isEnd?
 
 ConvertUpOrderV0Fields.TotalConvertBdv = function TotalConvertBdv() {
   const { decimals } = useMainToken();
-  const { register, isError } = useFormFieldProps("totalConvertBdv", decimals);
+  const { register, isError } = useFormFieldProps("totalBeanAmountToConvert", decimals);
 
   return (
     <Col className="flex-1 gap-2">
@@ -118,7 +117,7 @@ ConvertUpOrderV0Fields.TotalConvertBdv = function TotalConvertBdv() {
 
 ConvertUpOrderV0Fields.MinConvertBdvPerExecution = function MinConvertBdvPerExecution() {
   const { decimals } = useMainToken();
-  const { register, isError } = useFormFieldProps("minConvertBdvPerExecution", decimals);
+  const { register, isError } = useFormFieldProps("minBeansConvertPerExecution", decimals);
 
   return (
     <Col className="flex-1 gap-2">
@@ -136,7 +135,7 @@ ConvertUpOrderV0Fields.MinConvertBdvPerExecution = function MinConvertBdvPerExec
 
 ConvertUpOrderV0Fields.MaxConvertBdvPerExecution = function MaxConvertBdvPerExecution() {
   const { decimals } = useMainToken();
-  const { register, isError } = useFormFieldProps("maxConvertBdvPerExecution", decimals);
+  const { register, isError } = useFormFieldProps("maxBeansConvertPerExecution", decimals);
 
   return (
     <Col className="flex-1 gap-2">
@@ -234,12 +233,12 @@ ConvertUpOrderV0Fields.MaxGrownStalkPerBdv = function MaxGrownStalkPerBdv() {
 
 ConvertUpOrderV0Fields.MinGrownStalkPerBdvBonus = function MinGrownStalkPerBdvBonus() {
   const ctx = useFormContext<ConvertUpV0FormSchema>();
-  const handlers = useFieldHandlers(ctx, "minGrownStalkPerBdvBonus", STALK.decimals);
+  const handlers = useFieldHandlers(ctx, "grownStalkPerBdvBonusBid", STALK.decimals);
 
   return (
     <FormField
       control={ctx.control}
-      name="minGrownStalkPerBdvBonus"
+      name="grownStalkPerBdvBonusBid"
       render={({ field, fieldState }) => (
         <FormItem>
           <FormLabel tooltipText={TOOLTIP_COPY.minGrownStalkPerBdvBonus}>Min Grown Stalk Bonus Per PDV</FormLabel>
@@ -308,18 +307,20 @@ ConvertUpOrderV0Fields.PriceRange = function PriceRange() {
   const hasError = !!(minError || maxError);
 
   return (
-    <div className="flex flex-col gap-6">
-      <TooltipLabel tooltipText={TOOLTIP_COPY.priceRange}>Execute when Price is Between</TooltipLabel>
-      <MultiSlider
-        min={sliderMin}
-        max={sliderMax}
-        step={sliderStep}
-        value={sliderValues}
-        onValueChange={handleSliderChange}
-        className={cn("w-full", hasError && "opacity-50")}
-      />
+    <div className="flex flex-row gap-6">
+      <Col className="gap-2 w-full">
+        <TooltipLabel tooltipText={TOOLTIP_COPY.priceRange}>Execute when Price is Between</TooltipLabel>
+        <MultiSlider
+          min={sliderMin}
+          max={sliderMax}
+          step={sliderStep}
+          value={sliderValues}
+          onValueChange={handleSliderChange}
+          className={cn("w-full", hasError && "opacity-50")}
+        />
+      </Col>
       <Row className="items-start gap-4 w-full">
-        <Col className="flex-1 gap-2">
+        <Col className="gap-2 max-w-[150px]">
           <TooltipLabel tooltipText={TOOLTIP_COPY.minPriceToConvertUp}>Min Price</TooltipLabel>
           <Input
             {...ctx.register("minPriceToConvertUp", {
@@ -333,7 +334,7 @@ ConvertUpOrderV0Fields.PriceRange = function PriceRange() {
             startIcon={<TextAdornment text="$" isEnd={false} className="pinto-body-light mt-[1px]" />}
           />
         </Col>
-        <Col className="flex-1 gap-2">
+        <Col className="gap-2 max-w-[150px]">
           <TooltipLabel tooltipText={TOOLTIP_COPY.maxPriceToConvertUp}>Max Price</TooltipLabel>
           <Input
             {...ctx.register("maxPriceToConvertUp", {

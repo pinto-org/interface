@@ -16,19 +16,20 @@ import {
  */
 export interface PreparedConvertUpArgs<Numeric extends TV | string = TV> {
   tokenStrategy: TractorTokenStrategy;
-  totalConvertBdv: Numeric;
-  minConvertBdvPerExecution: Numeric;
-  maxConvertBdvPerExecution: Numeric;
+  totalBeanAmountToConvert: Numeric;
+  minBeansConvertPerExecution: Numeric;
+  maxBeansConvertPerExecution: Numeric;
   minTimeBetweenConverts: Numeric;
   minConvertBonusCapacity: Numeric;
   maxGrownStalkPerBdv: Numeric;
-  minGrownStalkPerBdvBonus: Numeric;
+  grownStalkPerBdvBonusBid: Numeric;
   maxPriceToConvertUp: Numeric;
   minPriceToConvertUp: Numeric;
   maxGrownStalkPerBdvPenalty: Numeric;
   slippageRatio: Numeric;
   operatorTip: Numeric;
   lowStalkDeposits: LowStalkDepositsMode;
+  seedDifference: Numeric;
 }
 
 export interface ExtendedPreparedConvertUpArgs extends PreparedConvertUpArgs<TV> {
@@ -46,15 +47,15 @@ export interface ConvertUpParams<Numeric extends bigint | TV = bigint> {
   /**
    * Total amount to convert in BDV terms
    */
-  totalConvertBdv: Numeric;
+  totalBeanAmountToConvert: Numeric;
   /**
    * Minimum BDV to convert per execution
    */
-  minConvertBdvPerExecution: Numeric;
+  minBeansConvertPerExecution: Numeric;
   /**
    * Maximum BDV to convert per execution
    */
-  maxConvertBdvPerExecution: Numeric;
+  maxBeansConvertPerExecution: Numeric;
   /**
    * Minimum time (in seconds) between convert executions
    */
@@ -70,7 +71,7 @@ export interface ConvertUpParams<Numeric extends bigint | TV = bigint> {
   /**
    * Threshold for considering a deposit to have a good stalk-to-BDV ratio
    */
-  minGrownStalkPerBdvBonus: Numeric;
+  grownStalkPerBdvBonusBid: Numeric;
   /**
    * Maximum price at which to convert up (for MEV resistance)
    */
@@ -91,6 +92,10 @@ export interface ConvertUpParams<Numeric extends bigint | TV = bigint> {
    * How low stalk deposits are processed.
    */
   lowStalkDeposits: LowStalkDepositsMode;
+  /**
+   * Difference between the seed of the source and the target token
+   */
+  seedDifference: Numeric;
 }
 
 export interface ConvertUpBlueprintStruct<Numeric extends TV | bigint = bigint> {
