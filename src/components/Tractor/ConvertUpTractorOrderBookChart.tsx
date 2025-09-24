@@ -93,11 +93,10 @@ export default function ConvertUpTractorOrderBookChart() {
       <Col className="p-4 gap-5 w-full">
         <Row className="w-full gap-2 justify-between">
           <span className="pinto-sm sm:pinto-body">Convert Orderbook</span>
-          <Row className="gap-2">
-            <span className="pinto-xs sm:pinto-sm-light text-pinto-lighter sm:text-pinto-lighter text-right">
-              Toggle Price Axis
-            </span>
+          <Row className="gap-2 [&>span]:pinto-xs sm:pinto-sm-light text-pinto-light text-right">
+            <span>Bonus Axis</span>
             <Switch checked={priceToggleActive} onCheckedChange={setPriceToggleActive} />
+            <span>Price Axis</span>
           </Row>
         </Row>
         <Col className="gap-4">

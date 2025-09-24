@@ -11,7 +11,6 @@ import { beanstalkPriceAddress } from "@/generated/contractHooks";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { getChainConstant } from "@/utils/chain";
 import { AdvancedPipeCall } from "@/utils/types";
-import { exists } from "@/utils/utils";
 import { PublicClient, decodeFunctionData, encodeFunctionData } from "viem";
 import { multicall } from "viem/actions";
 import { base } from "viem/chains";
@@ -334,10 +333,8 @@ export async function loadConvertUpOrderbookData(
       return a.meetsConditions.capacity ? -1 : 1;
     }
 
-    // If all conditions are the same, sort by operator tip (higher first)
-    const aTip = a.decodedData?.opParams.operatorTipAmount ?? TV.ZERO;
-    const bTip = b.decodedData?.opParams.operatorTipAmount ?? TV.ZERO;
-    return bTip.sub(aTip).toNumber();
+    // If all conditions are the same, sort by blueprint hash (higher first). This way it is deterministic.
+    return a.requisition.blueprintHash > b.requisition.blueprintHash ? 1 : -1;
   });
 
   console.debug(
