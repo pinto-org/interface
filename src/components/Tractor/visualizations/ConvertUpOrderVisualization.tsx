@@ -74,9 +74,13 @@ export default function ConvertUpOrderVisualization({
                   text: (
                     <>
                       Execute when Price is between{" "}
-                      <span className="text-pinto-green-4">{formatter.usd(convertData.minPriceToConvertUp)}</span>
+                      <span className="text-pinto-green-4">
+                        ${formatter.number(convertData.minPriceToConvertUp, { maxDecimals: 3 })}
+                      </span>
                       {" - "}
-                      <span className="text-pinto-green-4">{formatter.usd(convertData.maxPriceToConvertUp)}</span>
+                      <span className="text-pinto-green-4">
+                        ${formatter.number(convertData.maxPriceToConvertUp, { maxDecimals: 3 })}
+                      </span>
                     </>
                   ),
                 },
@@ -88,18 +92,6 @@ export default function ConvertUpOrderVisualization({
                         <span className="text-pinto-green-4">{convertData.grownStalkPerBdvBonusBid}</span>
                       </span>
                     </>
-                  ),
-                  operator: "AND",
-                },
-                {
-                  text: (
-                    <span className="font-light text-pinto-light">
-                      Wait at least{" "}
-                      <span className="text-pinto-green-4">
-                        {timeScaleToDisplay(convertData.timeScale, convertData.minTimeBetweenConverts, { exact: true })}
-                      </span>
-                      {" between executions"}
-                    </span>
                   ),
                   operator: "AND",
                 },

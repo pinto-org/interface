@@ -133,7 +133,6 @@ export async function loadPublishedRequisitions(
 
   try {
     const data = await fetchTractorEvents(publicClient, protocolAddress, fromBlock);
-    console.log("[Tractor/loadPublishedRequisitions] data", data);
     const selectRequisitionType = getSelectRequisitionType(requisitionType, address);
     return selectRequisitionType({
       latestBlock: { number: latestBlock?.number ?? 0n, timestamp: latestBlock?.timestamp ?? 0n },

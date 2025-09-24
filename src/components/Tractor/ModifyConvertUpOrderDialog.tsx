@@ -302,7 +302,14 @@ export default function ModifyConvertUpOrderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
         <DialogOverlay className="fixed inset-0 backdrop-blur-[2px] bg-white/50" />
-        <DialogContent className="max-w-[35rem] p-6 max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-[35rem] p-6 max-h-[80vh] flex flex-col">
+          <DialogHeader className="hidden">
+            <DialogTitle>Convert Up Order Modification</DialogTitle>
+            <DialogDescription className="pinto-sm-light text-pinto-light pt-2">
+              Update your existing Convert Up Order. The current order will be cancelled and a new one will be created
+              with your updated conditions.
+            </DialogDescription>
+          </DialogHeader>
           <ModifyConvertUpOrderProvider
             existingOrder={existingOrder}
             onOpenChange={onOpenChange}
@@ -339,7 +346,7 @@ function ModifyConvertUpOrderFormController() {
   const [didInitRestFields, setDidInitRestFields] = useState(false);
 
   return (
-    <Col className="w-full">
+    <Col className="w-full h-full">
       {formStep === ConvertUpTractorOrderFormStep.ENTRY && (
         <ConvertUpTractorEntryForm
           farmerSilo={farmerSilo}
@@ -386,9 +393,7 @@ function ModifyConvertUpTractorReviewController({
   const [showReviewDialog, setShowReviewDialog] = useState(false);
 
   // UI state management
-  const [accordionValue, setAccordionValue] = useState<string | undefined>(
-    didInitAdv ? "advanced-settings" : undefined,
-  );
+  const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
   const [accordionOpen, setAccordionOpen] = useState(didInitAdv);
 
   // Ultra-lean operator tip state management

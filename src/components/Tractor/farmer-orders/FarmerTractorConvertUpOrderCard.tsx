@@ -121,9 +121,9 @@ const FarmerTractorConvertUpOrderCard = ({
                 {
                   text: (
                     <>
-                      Execute when price is between{" "}
-                      {formatter.usd(data.convertUpParams.minPriceToConvertUp, { decimals: 3 })} -{" "}
-                      {formatter.usd(data.convertUpParams.maxPriceToConvertUp, { decimals: 3 })}
+                      Execute when price is between $
+                      {formatter.number(data.convertUpParams.minPriceToConvertUp, { maxDecimals: 3 })} - $
+                      {formatter.number(data.convertUpParams.maxPriceToConvertUp, { maxDecimals: 3 })}
                     </>
                   ),
                   operator: "AND",
