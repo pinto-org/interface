@@ -25,11 +25,9 @@ export default function ConvertUpTractorOrders({ onSeeAllClick }: { onSeeAllClic
     select: useCallback(
       (data: ConvertUpOrderbookEntry[] | undefined) => {
         if (!data) return undefined;
-        console.log("data", data);
-
         const filteredOrders = data.filter((order) => {
           const { decodedData: dd } = order;
-          if (!dd) return false;
+          if (!dd || !order.totalAvailableBdv.gt(0)) return false;
 
           const {
             minPriceToConvertUp: minPrice,
@@ -39,8 +37,9 @@ export default function ConvertUpTractorOrders({ onSeeAllClick }: { onSeeAllClic
 
           const meetsPrice = minPrice.lte(price) && maxPrice.gte(price);
           const meetsBonus = bonusGrownStalkPerBDV.data?.bonus?.gte(bonus);
+          const meetsCapacity = order.meetsConditions.capacity;
 
-          return !!(meetsPrice && meetsBonus);
+          return !!(meetsPrice && meetsBonus && meetsCapacity);
         });
 
         return {

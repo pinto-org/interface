@@ -97,7 +97,11 @@ export function ConvertUpExecute() {
         data
           // Filter for orders that meet all conditions
           .filter(
-            (order) => order.meetsConditions.bonus && order.meetsConditions.price && order.meetsConditions.capacity,
+            (order) =>
+              order.meetsConditions.bonus &&
+              order.meetsConditions.price &&
+              order.meetsConditions.capacity &&
+              order.totalAvailableBdv.gt(0),
           )
           .sort((a, b) => {
             // Sort by operator tip descending
