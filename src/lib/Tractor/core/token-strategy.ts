@@ -70,7 +70,10 @@ export async function getTractorTokenStrategyTokenIndex(
   return Number(index);
 }
 
-export async function getTokenIndexesFromTractorTokenStrategy(pc: PublicClient, strategy: TractorTokenStrategyUnion) {
+export async function getTokenIndexesFromTractorTokenStrategy(
+  pc: PublicClient,
+  strategy: TractorTokenStrategyUnion,
+): Promise<number[]> {
   const dynamicStrategyIndex = TRACTOR_TOKEN_STRATEGY_INDICIES[strategy.type];
   if (exists(dynamicStrategyIndex)) {
     return [dynamicStrategyIndex];

@@ -310,7 +310,7 @@ export async function loadConvertUpOrderbookData(
   });
 
   // Implement three-tier sorting
-  const sortedRequisitions = requisitionsWithConditions.sort((a, b) => {
+  const sortedRequisitions = [...requisitionsWithConditions].sort((a, b) => {
     // Count how many conditions each order meets
     const aScore =
       (a.meetsConditions.price ? 1 : 0) + (a.meetsConditions.bonus ? 1 : 0) + (a.meetsConditions.capacity ? 1 : 0);
@@ -334,7 +334,7 @@ export async function loadConvertUpOrderbookData(
     }
 
     // If all conditions are the same, sort by blueprint hash (higher first). This way it is deterministic.
-    return a.requisition.blueprintHash > b.requisition.blueprintHash ? 1 : -1;
+    return BigInt(a.requisition.blueprintHash) > BigInt(b.requisition.blueprintHash) ? 1 : -1;
   });
 
   console.debug(
@@ -351,6 +351,9 @@ export async function loadConvertUpOrderbookData(
   // Track used withdrawal plans per publisher
   const publisherWithdrawalPlans: { [publisher: string]: WithdrawalPlan[] } = {};
 
+  // create a copy
+  const remainingCapacity = TV.from(currentCapacity.value);
+
   // Process orders with withdrawal plan allocation
   const orderbookData: ConvertUpOrderbookEntry[] = [];
 
@@ -364,11 +367,10 @@ export async function loadConvertUpOrderbookData(
       continue;
     }
 
-    console.debug(`\n--- Processing ConvertUp Order #${i + 1} ---`);
-    console.debug(`Publisher: ${publisher}`);
-    console.debug(
-      `Meets conditions: Price=${entry.meetsConditions.price}, Bonus=${entry.meetsConditions.bonus}, Capacity=${entry.meetsConditions.capacity}`,
-    );
+    console.debug(`\n--- Processing ConvertUp Order #${i + 1} ---`, {
+      publisher,
+      meetsConditions: entry.meetsConditions,
+    });
 
     try {
       // Get existing withdrawal plans for this publisher
@@ -400,14 +402,15 @@ export async function loadConvertUpOrderbookData(
         }
       }
 
-      const filterParams: WithdrawalPlanFilterParams | never = {
+      const filterParams: WithdrawalPlanFilterParams = {
         maxGrownStalkPerBdv: decodedData.convertUpParams.maxGrownStalkPerBdv.toBigInt(),
         minStem: 0n,
         excludeGerminatingDeposits: true,
         excludeBean: true,
-        lowStalkDeposits: decodedData.convertUpParams.lowStalkDeposits,
+        lowStalkDeposits: Number(decodedData.convertUpParams.lowStalkDeposits),
         lowGrownStalkPerBdv: 0n,
         maxStem: TV.MAX_INT96.toBigInt(),
+        seedDifference: decodedData.convertUpParams.seedDifference.toBigInt(),
       } as const;
 
       // Get a new withdrawal plan that excludes deposits already allocated
@@ -433,7 +436,7 @@ export async function loadConvertUpOrderbookData(
             decodedData.convertUpParams.sourceTokenIndices,
             decodedData.convertUpParams.totalBeanAmountToConvert.toBigInt(),
             filterParams as never, // TODO: Fix this
-            (combinedExistingPlan || emptyPlan) as any,
+            (combinedExistingPlan || emptyPlan) as never,
           ],
         });
 

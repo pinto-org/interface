@@ -153,7 +153,7 @@ export function ConvertUpExecute() {
             className="text-pinto-green-4 hover:text-pinto-green-5 hover:underline text-sm"
             onClick={(event) => event.stopPropagation()}
           >
-            {`${order.requisition.blueprint.publisher.slice(0, 6)}...${order.requisition.blueprint.publisher.slice(-4)}`}
+            {`${order.requisition.blueprint.publisher.slice(0, 4)}...${order.requisition.blueprint.publisher.slice(-4)}`}
           </a>
         ),
       },
@@ -161,7 +161,7 @@ export function ConvertUpExecute() {
         header: "Blueprint Hash",
         accessor: (order) => (
           <span className="text-pinto-green-4 text-sm">
-            {`${order.requisition.blueprintHash.slice(0, 6)}...${order.requisition.blueprintHash.slice(-4)}`}
+            {`${order.requisition.blueprintHash.slice(0, 4)}...${order.requisition.blueprintHash.slice(-3)}`}
           </span>
         ),
       },

@@ -20,7 +20,7 @@ export const CONVERT_UP_BLUEPRINT_V0_ADDRESS: HashString = "0x53B7cF2a4A18062aFF
 
 export const SOW_BLUEPRINT_V0_SELECTOR = "0x3ca8e1b2" as const;
 
-export const CONVERT_UP_BLUEPRINT_V0_SELECTOR = "0xb388930b" as const;
+export const CONVERT_UP_BLUEPRINT_V0_SELECTOR = "0xaeebd84a" as const;
 
 export const WELL_FUNCTION_ADDRESSES: ChainLookup<{
   stable2: HashString;

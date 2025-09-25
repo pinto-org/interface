@@ -274,7 +274,7 @@ export default function ReviewTractorOrderDialog({
                    */}
                   {isBlueprintHashLoading ? (
                     <Col className="justify-center place-self-center">
-                      <LoadingSpinner size={48} />
+                      <LoadingSpinner size={36} />
                     </Col>
                   ) : null}
                   {/**

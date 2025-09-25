@@ -14,6 +14,7 @@ import { InfoCircledIcon } from "@radix-ui/react-icons";
 import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { encodeFunctionData } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
 import { Col } from "../Container";
 import LoadingSpinner from "../LoadingSpinner";
@@ -239,6 +240,21 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
         });
 
         try {
+          const encoded = encodeFunctionData({
+            abi: diamondABI,
+            functionName: "tractor",
+            args: [
+              {
+                blueprint: order.requisition.blueprint,
+                signature: order.requisition.signature,
+                blueprintHash: order.requisition.blueprintHash,
+              },
+              "0x",
+            ] as const,
+          });
+
+          console.log("[TRACTOR/handleSimulateAll] encoded: ", encoded);
+
           await publicClient.simulateContract({
             address: protocolAddress,
             abi: diamondABI,

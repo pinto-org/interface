@@ -33,19 +33,20 @@ const MAX_GROWN_STALK_PER_BDV_PENALTY_DECIMALS = 18;
 export const getTractorConvertUpParamsDecimalConfig = (chainId: number) => {
   const { decimals } = getChainConstant(chainId, MAIN_TOKEN);
 
+  // biome-ignore format: keep unformatted for readability for decimals
   return {
-    totalBeanAmountToConvert: decimals,
-    minBeansConvertPerExecution: decimals,
-    maxBeansConvertPerExecution: decimals,
-    minTimeBetweenConverts: 0,
-    minConvertBonusCapacity: decimals,
-    maxGrownStalkPerBdv: STALK.decimals,
-    grownStalkPerBdvBonusBid: STALK.decimals - decimals,
-    maxPriceToConvertUp: decimals,
-    minPriceToConvertUp: decimals,
-    operatorTip: decimals,
-    seedDifference: SEEDS.decimals,
-    maxGrownStalkPerBdvPenalty: MAX_GROWN_STALK_PER_BDV_PENALTY_DECIMALS,
+    totalBeanAmountToConvert: decimals,         // 6
+    minBeansConvertPerExecution: decimals,      // 6
+    maxBeansConvertPerExecution: decimals,      // 6
+    minTimeBetweenConverts: 0,                  // 0
+    minConvertBonusCapacity: decimals,          // 6
+    maxGrownStalkPerBdv: STALK.decimals,        // 16
+    grownStalkPerBdvBonusBid: STALK.decimals - decimals,  // 10
+    maxPriceToConvertUp: decimals,              // 6
+    minPriceToConvertUp: decimals,              // 6
+    operatorTip: decimals,                      // 6
+    seedDifference: SEEDS.decimals,             // 6  
+    maxGrownStalkPerBdvPenalty: MAX_GROWN_STALK_PER_BDV_PENALTY_DECIMALS, // 18
     slippageRatio: 18,
   };
 };

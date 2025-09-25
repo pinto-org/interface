@@ -105,6 +105,7 @@ export enum LowStalkDepositsMode {
  * @param lowStalkDeposits how low stalk deposits are processed. USE (0), OMIT (1), USE_LAST (2).
  * @param lowGrownStalkPerBdv amount of grown stalk per bdv such that the deposit considered a "low stalk" deposit.
  * @param maxStem The maximum stem value to consider for withdrawal. Stems larger than this are considered "low stalk" deposits.
+ * @param seedDifference The difference between the seed of the source and the target token.
  * @dev lowStalkDeposits needed a way to handle low stalk deposits last for the convert bonus.
  */
 export interface WithdrawalPlanFilterParams {
@@ -115,4 +116,5 @@ export interface WithdrawalPlanFilterParams {
   lowStalkDeposits: LowStalkDepositsMode;
   lowGrownStalkPerBdv: bigint;
   maxStem: bigint;
+  seedDifference: bigint;
 }

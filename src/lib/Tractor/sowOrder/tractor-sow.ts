@@ -510,6 +510,7 @@ export async function loadOrderbookData(
             lowStalkDeposits: LowStalkDepositsMode.USE,
             lowGrownStalkPerBdv: 0n,
             maxStem: TokenValue.MAX_INT96.toBigInt(),
+            seedDifference: 0n,
           };
 
           // Get a new withdrawal plan that excludes deposits already allocated to other orders
