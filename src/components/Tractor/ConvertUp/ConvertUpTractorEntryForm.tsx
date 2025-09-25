@@ -6,11 +6,10 @@ import { TokenStrategyFormField, TractorFormButtonsRow } from "@/components/Trac
 import { ConvertUpV0FormSchema, TractorConvertUpFormKeys } from "@/components/Tractor/form/schema/convertUp.schema";
 import { Label } from "@/components/ui/Label";
 import { Separator } from "@/components/ui/Separator";
-import { STALK } from "@/constants/internalTokens";
+import { SEEDS, STALK } from "@/constants/internalTokens";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
 import {
-  PreparedConvertUpArgs,
   tractorTokenStrategyUtil as StrategyUtil,
   TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS,
   TractorTokenStrategy,
@@ -132,7 +131,7 @@ const ConvertUpTractorEntryForm = ({
 
   return (
     <>
-      <Col className="gap-6">
+      <Col className="gap-6 overflow-y-auto">
         <div className="flex flex-col gap-2">
           <div className="pinto-body font-medium text-pinto-secondary mb-4">{"🚜 Automated Convert Parameters"}</div>
           <Separator className="h-[1px] w-full bg-pinto-gray-2" />
@@ -147,7 +146,7 @@ const ConvertUpTractorEntryForm = ({
             />
             <Fields.PriceRange />
             <Col className="gap-3">
-              <Fields.MinGrownStalkPerBdvBonus />
+              <Fields.GrownStalkPerBdvBonusBid />
               <EstimatedSeasonsOfGrownStalk siloData={siloData} />
             </Col>
           </>
@@ -231,7 +230,7 @@ const EstimatedSeasonsOfGrownStalk = ({ siloData }: { siloData: ReturnType<typeo
 
   const value = useWatch({
     control: form.control,
-    name: "minGrownStalkPerBdvBonus",
+    name: "grownStalkPerBdvBonusBid",
   });
 
   const tokenStrategies = useWatch({
@@ -315,12 +314,12 @@ const inferAdvancedFormFields = (
     throw new Error("Invalid token strategy");
   }
 
-  const totalConvertBdv = postSanitizedSanitizedValue(values.totalConvertBdv, mainTokenDecimals).tv;
+  const totalConvertBdv = postSanitizedSanitizedValue(values.totalBeanAmountToConvert, mainTokenDecimals).tv;
   const minPriceToConvertUp = postSanitizedSanitizedValue(values.minPriceToConvertUp, mainTokenDecimals).tv;
   const maxPriceToConvertUp = postSanitizedSanitizedValue(values.maxPriceToConvertUp, mainTokenDecimals).tv;
-  const minGrownStalkPerBdvBonus = postSanitizedSanitizedValue(values.minGrownStalkPerBdvBonus, STALK.decimals).tv;
-  const minSizePerExecution = postSanitizedSanitizedValue(values.minConvertBdvPerExecution, mainTokenDecimals).tv;
-  const maxSizePerExecution = postSanitizedSanitizedValue(values.maxConvertBdvPerExecution, mainTokenDecimals).tv;
+  const grownStalkPerBdvBonusBid = postSanitizedSanitizedValue(values.grownStalkPerBdvBonusBid, STALK.decimals).tv;
+  const minSizePerExecution = postSanitizedSanitizedValue(values.minBeansConvertPerExecution, mainTokenDecimals).tv;
+  const maxSizePerExecution = postSanitizedSanitizedValue(values.maxBeansConvertPerExecution, mainTokenDecimals).tv;
 
   // Default to min of (5% of total convert bdv) or (100 PDV)
   const defaultMinSizePerExecution = TV.min(
@@ -336,15 +335,16 @@ const inferAdvancedFormFields = (
 
   const preparedArgs = {
     tokenStrategy: strategy,
-    totalConvertBdv,
+    totalBeanAmountToConvert: totalConvertBdv,
     minConvertBonusCapacity: defaultMinSizePerExecution,
-    minConvertBdvPerExecution: minSizePerExecution.eq(0) ? defaultMinSizePerExecution : minSizePerExecution,
-    maxConvertBdvPerExecution: maxSizePerExecution.eq(0) ? defaultMaxSizePerExecution : maxSizePerExecution,
+    minBeansConvertPerExecution: minSizePerExecution.eq(0) ? defaultMinSizePerExecution : minSizePerExecution,
+    maxBeansConvertPerExecution: maxSizePerExecution.eq(0) ? defaultMaxSizePerExecution : maxSizePerExecution,
     minPriceToConvertUp,
     maxPriceToConvertUp,
     minTimeBetweenConverts: values.minTimeBetweenConverts,
     maxGrownStalkPerBdv: postSanitizedSanitizedValue(values.maxGrownStalkPerBdv, STALK.decimals).tv,
-    minGrownStalkPerBdvBonus,
+    grownStalkPerBdvBonusBid,
+    seedDifference: postSanitizedSanitizedValue(values.seedDifference, SEEDS.decimals).tv,
     maxGrownStalkPerBdvPenalty: postSanitizedSanitizedValue(values.maxGrownStalkPerBdvPenalty, 18).tv,
     slippageRatio: values.slippageRatio,
     operatorTip: postSanitizedSanitizedValue(values.operatorTip, mainTokenDecimals).tv,

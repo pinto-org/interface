@@ -74,13 +74,14 @@ export default function ConvertUpOrderProvider({ children, onOpenChange }: Props
       const newDraftState = val
         ? {
             ...transformed,
-            totalConvertBdv: transformed.totalConvertBdv.tv.toHuman(),
-            minConvertBdvPerExecution: transformed.minConvertBdvPerExecution.tv.toHuman(),
-            maxConvertBdvPerExecution: transformed.maxConvertBdvPerExecution.tv.toHuman(),
+            totalBeanAmountToConvert: transformed.totalBeanAmountToConvert.tv.toHuman(),
+            minBeansConvertPerExecution: transformed.minBeansConvertPerExecution.tv.toHuman(),
+            maxBeansConvertPerExecution: transformed.maxBeansConvertPerExecution.tv.toHuman(),
             minTimeBetweenConverts: transformed.minTimeBetweenConverts.tv.toHuman(),
             minConvertBonusCapacity: transformed.minConvertBonusCapacity.tv.toHuman(),
             maxGrownStalkPerBdv: transformed.maxGrownStalkPerBdv.tv.toHuman(),
-            minGrownStalkPerBdvBonus: transformed.minGrownStalkPerBdvBonus.tv.toHuman(),
+            grownStalkPerBdvBonusBid: transformed.grownStalkPerBdvBonusBid.tv.toHuman(),
+            seedDifference: transformed.seedDifference.tv.toHuman(),
             maxPriceToConvertUp: transformed.maxPriceToConvertUp.tv.toHuman(),
             minPriceToConvertUp: transformed.minPriceToConvertUp.tv.toHuman(),
             maxGrownStalkPerBdvPenalty: transformed.maxGrownStalkPerBdvPenalty.tv.toHuman(),

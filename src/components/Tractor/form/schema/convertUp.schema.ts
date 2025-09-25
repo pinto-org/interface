@@ -36,16 +36,17 @@ import {
 
 type FormSchema<T = string> = {
   tokenStrategy: TractorTokenStrategyUnion;
-  totalConvertBdv: T;
-  minConvertBdvPerExecution: T;
-  maxConvertBdvPerExecution: T;
+  totalBeanAmountToConvert: T;
+  minBeansConvertPerExecution: T;
+  maxBeansConvertPerExecution: T;
   minTimeBetweenConverts: T;
   timeScale: TimeScaleSelect;
   minConvertBonusCapacity: T;
   maxGrownStalkPerBdv: T;
-  minGrownStalkPerBdvBonus: T;
+  grownStalkPerBdvBonusBid: T;
   maxPriceToConvertUp: T;
   minPriceToConvertUp: T;
+  seedDifference: T;
   maxGrownStalkPerBdvPenalty: T;
   slippageRatio: T;
   operatorTip: T;
@@ -95,21 +96,22 @@ export const convertUpSchemaErrors = {
 } as const;
 
 const inferrableKeys: (keyof FormSchema)[] = [
-  "minConvertBdvPerExecution",
-  "maxConvertBdvPerExecution",
+  "minBeansConvertPerExecution",
+  "maxBeansConvertPerExecution",
   "minTimeBetweenConverts",
   "minConvertBonusCapacity",
   "maxGrownStalkPerBdv",
   "maxGrownStalkPerBdvPenalty",
   "lowStalkDeposits",
   "operatorTip",
+  "seedDifference",
   "slippageRatio",
 ] as const;
 
 const initRequiredKeys: (keyof FormSchema)[] = [
   "tokenStrategy",
-  "totalConvertBdv",
-  "minGrownStalkPerBdvBonus",
+  "totalBeanAmountToConvert",
+  "grownStalkPerBdvBonusBid",
   "minPriceToConvertUp",
   "maxPriceToConvertUp",
 ] as const;
@@ -129,9 +131,9 @@ export const convertUpOrderDialogSchema = z
     tokenStrategy: tokenStrategyValidation,
 
     // Conversion amounts
-    totalConvertBdv: positiveNumber("Total Convert PDV"),
-    minConvertBdvPerExecution: positiveNumber("Min PDV per Execution"),
-    maxConvertBdvPerExecution: positiveNumber("Max PDV per Execution"),
+    totalBeanAmountToConvert: positiveNumber("Total Convert PDV"),
+    minBeansConvertPerExecution: positiveNumber("Min PDV per Execution"),
+    maxBeansConvertPerExecution: positiveNumber("Max PDV per Execution"),
 
     // Time constraints
     minTimeBetweenConverts: timeInSeconds("Min Time Between Executions"),
@@ -140,7 +142,9 @@ export const convertUpOrderDialogSchema = z
     // Bonus/capacity parameters
     minConvertBonusCapacity: nonNegativeNumber("Min Convert Bonus Capacity"),
     maxGrownStalkPerBdv: positiveNumber("Max Grown Stalk per PDV"),
-    minGrownStalkPerBdvBonus: nonNegativeNumber("Min Grown Stalk per BDV Bonus"),
+    grownStalkPerBdvBonusBid: nonNegativeNumber("Min Grown Stalk per BDV Bonus"),
+
+    seedDifference: z.string().min(1, "Seed Difference is required"),
 
     // Price constraints
     maxPriceToConvertUp: positiveNumber("Max Price").refine((data) => {
@@ -169,19 +173,19 @@ export const convertUpOrderDialogSchema = z
     // Consolidated cross-field validation
     const validations = [
       {
-        condition: !validateFormLte(data.minConvertBdvPerExecution, data.maxConvertBdvPerExecution, 6, 6),
+        condition: !validateFormLte(data.minBeansConvertPerExecution, data.maxBeansConvertPerExecution, 6, 6),
         error: convertUpSchemaErrors.minBdvLteMaxBdv,
-        paths: ["minConvertBdvPerExecution", "maxConvertBdvPerExecution"],
+        paths: ["minBeansConvertPerExecution", "maxBeansConvertPerExecution"],
       },
       {
-        condition: !validateFormLte(data.minConvertBdvPerExecution, data.totalConvertBdv, 6, 6),
+        condition: !validateFormLte(data.minBeansConvertPerExecution, data.totalBeanAmountToConvert, 6, 6),
         error: convertUpSchemaErrors.minBdvLteTotal,
-        paths: ["minConvertBdvPerExecution", "totalConvertBdv"],
+        paths: ["minBeansConvertPerExecution", "totalBeanAmountToConvert"],
       },
       {
-        condition: !validateFormLte(data.maxConvertBdvPerExecution, data.totalConvertBdv, 6, 6),
+        condition: !validateFormLte(data.maxBeansConvertPerExecution, data.totalBeanAmountToConvert, 6, 6),
         error: convertUpSchemaErrors.maxBdvLteTotal,
-        paths: ["maxConvertBdvPerExecution", "totalConvertBdv"],
+        paths: ["maxBeansConvertPerExecution", "totalBeanAmountToConvert"],
       },
       {
         condition: !validateFormLte(data.minPriceToConvertUp, data.maxPriceToConvertUp, 6, 6),
@@ -208,14 +212,15 @@ export type ConvertUpV0FormSchema = FormSchema<string>;
 const defaultConvertOrderUpValues: FormSchema = {
   // Initial required fields
   tokenStrategy: { type: "LOWEST_SEEDS" }, // Default to first silo token
-  totalConvertBdv: "",
+  totalBeanAmountToConvert: "",
   minPriceToConvertUp: "0.001", // $0.001
   maxPriceToConvertUp: "0.999", // $0.999
-  minGrownStalkPerBdvBonus: "",
+  grownStalkPerBdvBonusBid: "",
 
   // inferrable fields
-  minConvertBdvPerExecution: "",
-  maxConvertBdvPerExecution: "",
+  seedDifference: "",
+  minBeansConvertPerExecution: "",
+  maxBeansConvertPerExecution: "",
   minTimeBetweenConverts: "1", // 0 seconds
   timeScale: "SECONDS",
   minConvertBonusCapacity: "",
@@ -304,7 +309,11 @@ export const useConvertUpV0Form = (): IConvertUpV0Form => {
             return value === "";
           }
           case key === "lowStalkDeposits":
-            return value !== 0 && value !== 1 && value !== 2;
+            return (
+              value !== LowStalkDepositsMode.OMIT &&
+              value !== LowStalkDepositsMode.USE_LAST &&
+              value !== LowStalkDepositsMode.USE
+            );
           default:
             return false;
         }
@@ -342,14 +351,17 @@ const getSecondsBetweenConverts = (minTimeBetweenConverts: TV, timeScale: TimeSc
 export const transformConvertUpFormValues = (values: FormSchema, chainId: number): FormSchema<SanitizedTV> => {
   const dc = getTractorConvertUpParamsDecimalConfig(chainId);
 
-  const totalConvertBdv = postSanitizedSanitizedValue(values.totalConvertBdv, dc.totalConvertBdv);
-  const minConvertBdvPerExecution = postSanitizedSanitizedValue(
-    values.minConvertBdvPerExecution,
-    dc.minConvertBdvPerExecution,
+  const totalBeanAmountToConvert = postSanitizedSanitizedValue(
+    values.totalBeanAmountToConvert,
+    dc.totalBeanAmountToConvert,
   );
-  const maxConvertBdvPerExecution = postSanitizedSanitizedValue(
-    values.maxConvertBdvPerExecution,
-    dc.maxConvertBdvPerExecution,
+  const minBeansConvertPerExecution = postSanitizedSanitizedValue(
+    values.minBeansConvertPerExecution,
+    dc.minBeansConvertPerExecution,
+  );
+  const maxBeansConvertPerExecution = postSanitizedSanitizedValue(
+    values.maxBeansConvertPerExecution,
+    dc.maxBeansConvertPerExecution,
   );
   const minTimeBetweenConverts = postSanitizedSanitizedValue(values.minTimeBetweenConverts, dc.minTimeBetweenConverts);
 
@@ -358,9 +370,9 @@ export const transformConvertUpFormValues = (values: FormSchema, chainId: number
     dc.minConvertBonusCapacity,
   );
   const maxGrownStalkPerBdv = postSanitizedSanitizedValue(values.maxGrownStalkPerBdv, dc.maxGrownStalkPerBdv);
-  const minGrownStalkPerBdvBonus = postSanitizedSanitizedValue(
-    values.minGrownStalkPerBdvBonus,
-    dc.minGrownStalkPerBdvBonus,
+  const grownStalkPerBdvBonusBid = postSanitizedSanitizedValue(
+    values.grownStalkPerBdvBonusBid,
+    dc.grownStalkPerBdvBonusBid,
   );
 
   const maxPriceToConvertUp = postSanitizedSanitizedValue(values.maxPriceToConvertUp, dc.maxPriceToConvertUp);
@@ -371,20 +383,23 @@ export const transformConvertUpFormValues = (values: FormSchema, chainId: number
     dc.maxGrownStalkPerBdvPenalty,
   );
 
+  const seedDifference = postSanitizedSanitizedValue(values.seedDifference, dc.seedDifference);
+
   const operatorTip = postSanitizedSanitizedValue(values.operatorTip, dc.operatorTip);
   const customOperatorTip = postSanitizedSanitizedValue(values.customOperatorTip ?? "", dc.operatorTip);
   const slippageRatio = postSanitizedSanitizedValue(values.slippageRatio, dc.slippageRatio);
 
   return {
     ...values,
-    totalConvertBdv: totalConvertBdv,
-    minConvertBdvPerExecution: minConvertBdvPerExecution,
-    maxConvertBdvPerExecution: maxConvertBdvPerExecution,
+    totalBeanAmountToConvert: totalBeanAmountToConvert,
+    minBeansConvertPerExecution: minBeansConvertPerExecution,
+    maxBeansConvertPerExecution: maxBeansConvertPerExecution,
     minTimeBetweenConverts: minTimeBetweenConverts,
     minConvertBonusCapacity: minConvertBonusCapacity,
     maxGrownStalkPerBdv: maxGrownStalkPerBdv,
-    minGrownStalkPerBdvBonus: minGrownStalkPerBdvBonus,
+    grownStalkPerBdvBonusBid: grownStalkPerBdvBonusBid,
     maxPriceToConvertUp: maxPriceToConvertUp,
+    seedDifference: seedDifference,
     minPriceToConvertUp: minPriceToConvertUp,
     maxGrownStalkPerBdvPenalty: maxGrownStalkPerBdvPenalty,
     slippageRatio: slippageRatio,
@@ -424,16 +439,17 @@ const prepareConvertUpFormValuesForBlueprint = (
   return {
     ...cleaned,
     tokenStrategy,
-    totalConvertBdv: cleaned.totalConvertBdv.tv,
-    minConvertBdvPerExecution: cleaned.minConvertBdvPerExecution.tv,
-    maxConvertBdvPerExecution: cleaned.maxConvertBdvPerExecution.tv,
+    totalBeanAmountToConvert: cleaned.totalBeanAmountToConvert.tv,
+    minBeansConvertPerExecution: cleaned.minBeansConvertPerExecution.tv,
+    maxBeansConvertPerExecution: cleaned.maxBeansConvertPerExecution.tv,
     minConvertBonusCapacity: cleaned.minConvertBonusCapacity.tv,
     maxGrownStalkPerBdv: cleaned.maxGrownStalkPerBdv.tv,
-    minGrownStalkPerBdvBonus: cleaned.minGrownStalkPerBdvBonus.tv,
+    grownStalkPerBdvBonusBid: cleaned.grownStalkPerBdvBonusBid.tv,
     maxPriceToConvertUp: cleaned.maxPriceToConvertUp.tv,
     minPriceToConvertUp: cleaned.minPriceToConvertUp.tv,
     maxGrownStalkPerBdvPenalty: cleaned.maxGrownStalkPerBdvPenalty.tv,
     slippageRatio: cleaned.slippageRatio.tv,
+    seedDifference: cleaned.seedDifference.tv,
     operatorTip: operatorTip,
     minTimeBetweenConverts: minTimeBetweenConverts,
     lowStalkDeposits: Number(values.lowStalkDeposits),
@@ -442,16 +458,17 @@ const prepareConvertUpFormValuesForBlueprint = (
 
 export type ConvertUpV0FormOrderData = {
   sourceTokenIndices: number[];
-  totalConvertBdv: string;
-  minConvertBdvPerExecution: string;
-  maxConvertBdvPerExecution: string;
+  totalBeanAmountToConvert: string;
+  minBeansConvertPerExecution: string;
+  maxBeansConvertPerExecution: string;
   minTimeBetweenConverts: string;
   minConvertBonusCapacity: string;
   maxGrownStalkPerBdv: string;
-  minGrownStalkPerBdvBonus: string;
+  grownStalkPerBdvBonusBid: string;
   maxPriceToConvertUp: string;
   minPriceToConvertUp: string;
   maxGrownStalkPerBdvPenalty: string;
+  seedDifference: string;
   timeScale: TimeScaleSelect;
   slippageRatio: string;
   lowStalkDeposits: number;
@@ -541,15 +558,16 @@ export const useConvertUpV0State = () => {
         // Set order data for display in ReviewTractorOrderDialog
         setOrderData({
           sourceTokenIndices: tractorData.struct.convertUpParams.sourceTokenIndices,
-          totalConvertBdv: formData.totalConvertBdv,
-          minConvertBdvPerExecution: formData.minConvertBdvPerExecution,
-          maxConvertBdvPerExecution: formData.maxConvertBdvPerExecution,
+          totalBeanAmountToConvert: formData.totalBeanAmountToConvert,
+          minBeansConvertPerExecution: formData.minBeansConvertPerExecution,
+          maxBeansConvertPerExecution: formData.maxBeansConvertPerExecution,
           minTimeBetweenConverts: formData.minTimeBetweenConverts,
           minConvertBonusCapacity: formData.minConvertBonusCapacity,
           maxGrownStalkPerBdv: formData.maxGrownStalkPerBdv,
-          minGrownStalkPerBdvBonus: formData.minGrownStalkPerBdvBonus,
+          grownStalkPerBdvBonusBid: formData.grownStalkPerBdvBonusBid,
           maxPriceToConvertUp: formData.maxPriceToConvertUp,
           minPriceToConvertUp: formData.minPriceToConvertUp,
+          seedDifference: formData.seedDifference,
           timeScale: formData.timeScale,
           maxGrownStalkPerBdvPenalty: formData.maxGrownStalkPerBdvPenalty,
           slippageRatio: formData.slippageRatio,

@@ -50,9 +50,7 @@ const ConvertUpTractorReviewController = ({
   const [showReviewDialog, setShowReviewDialog] = useState(false);
 
   // UI state management
-  const [accordionValue, setAccordionValue] = useState<string | undefined>(
-    didInitAdv ? "advanced-settings" : undefined,
-  );
+  const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
   const [accordionOpen, setAccordionOpen] = useState(didInitAdv);
 
   // Ultra-lean operator tip state management
@@ -310,7 +308,7 @@ const EntryFormParametersSummary = () => {
   const values = useWatch({ control: ctx.control });
   const tokenMap = useTokenMap();
 
-  const totalValueToConvert = `${values.totalConvertBdv} PDV`;
+  const totalValueToConvert = `${values.totalBeanAmountToConvert} PDV`;
   const priceRange = `$${values.minPriceToConvertUp} - $${values.maxPriceToConvertUp}`;
 
   const summary = StrategyUtil.getSummary((values.tokenStrategy ?? { type: "LOWEST_SEEDS" }) as TractorTokenStrategy);
@@ -351,11 +349,11 @@ const EntryFormParametersSummary = () => {
       <ReviewRow label="Token Sources" tooltip={CONVERT_UP_TOOLTIP_COPY.tokenStrategy} value={renderTokenStrategy()} />
       <ReviewRow
         label="Min Grown Stalk Bonus Per PDV"
-        tooltip={CONVERT_UP_TOOLTIP_COPY.minGrownStalkPerBdvBonus}
+        tooltip={CONVERT_UP_TOOLTIP_COPY.grownStalkPerBdvBonusBid}
         value={
           <Row className="gap-1 items-center">
             <IconImage src={STALK.logoURI} size={4} alt={STALK.symbol} />
-            <div className="pinto-sm font-normal">{values.minGrownStalkPerBdvBonus}</div>
+            <div className="pinto-sm font-normal">{values.grownStalkPerBdvBonusBid}</div>
           </Row>
         }
       />
@@ -393,10 +391,11 @@ const AdvancedParametersSummary = ({
   const minConvertBonusCapacity = values.minConvertBonusCapacity;
   const maxGrownStalkPerBdvPenalty = values.maxGrownStalkPerBdvPenalty;
   const maxGrownStalkPerBdv = values.maxGrownStalkPerBdv;
-  const minConvertBdvPerExecution = values.minConvertBdvPerExecution;
-  const maxConvertBdvPerExecution = values.maxConvertBdvPerExecution;
+  const minConvertBdvPerExecution = values.minBeansConvertPerExecution;
+  const maxConvertBdvPerExecution = values.maxBeansConvertPerExecution;
   const slippageRatio = values.slippageRatio;
   const lowStalkDeposits = values.lowStalkDeposits;
+  const seedDifference = values.seedDifference;
 
   return (
     <Card className="flex flex-col p-3 gap-2 rounded-sm border-pinto-gray-2 bg-white">
@@ -424,6 +423,11 @@ const AdvancedParametersSummary = ({
         label="Execution Size"
         tooltip="The minimum and maximum execution size of the Convert Up Order"
         value={`${formatter.twoDec(minConvertBdvPerExecution)} - ${formatter.twoDec(maxConvertBdvPerExecution)} PDV`}
+      />
+      <ReviewRow
+        label="Min Seed Difference"
+        tooltip={CONVERT_UP_TOOLTIP_COPY.seedDifference}
+        value={`${formatter.twoDec(seedDifference)} Seeds`}
       />
       <ReviewRow
         label="Slippage Tolerance"

@@ -11,7 +11,6 @@ import { beanstalkPriceAddress } from "@/generated/contractHooks";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { getChainConstant } from "@/utils/chain";
 import { AdvancedPipeCall } from "@/utils/types";
-import { exists } from "@/utils/utils";
 import { PublicClient, decodeFunctionData, encodeFunctionData } from "viem";
 import { multicall } from "viem/actions";
 import { base } from "viem/chains";
@@ -88,21 +87,23 @@ export async function createConvertUpTractorData({
   const sourceTokenIndices = await getTokenIndexesFromTractorTokenStrategy(publicClient, args.tokenStrategy);
 
   console.debug("ConvertUp sourceTokenIndices:", sourceTokenIndices);
+  console.debug("ConvertUp args:", args);
 
   const struct = {
     convertUpParams: {
       sourceTokenIndices,
-      totalConvertBdv: args.totalConvertBdv.toBigInt(),
-      minConvertBdvPerExecution: args.minConvertBdvPerExecution.toBigInt(),
-      maxConvertBdvPerExecution: args.maxConvertBdvPerExecution.toBigInt(),
+      totalBeanAmountToConvert: args.totalBeanAmountToConvert.toBigInt(),
+      minBeansConvertPerExecution: args.minBeansConvertPerExecution.toBigInt(),
+      maxBeansConvertPerExecution: args.maxBeansConvertPerExecution.toBigInt(),
       minTimeBetweenConverts: args.minTimeBetweenConverts.toBigInt(),
       minConvertBonusCapacity: args.minConvertBonusCapacity.toBigInt(),
       maxGrownStalkPerBdv: args.maxGrownStalkPerBdv.toBigInt(),
-      minGrownStalkPerBdvBonus: args.minGrownStalkPerBdvBonus.toBigInt(),
+      grownStalkPerBdvBonusBid: args.grownStalkPerBdvBonusBid.toBigInt(),
       maxPriceToConvertUp: args.maxPriceToConvertUp.toBigInt(),
       minPriceToConvertUp: args.minPriceToConvertUp.toBigInt(),
       maxGrownStalkPerBdvPenalty: args.maxGrownStalkPerBdvPenalty.toBigInt(),
       slippageRatio: args.slippageRatio.toBigInt(),
+      seedDifference: args.seedDifference.toBigInt(),
       lowStalkDeposits: Number(args.lowStalkDeposits),
     },
     opParams: {
@@ -140,7 +141,7 @@ export async function createConvertUpTractorData({
   });
 
   return {
-    struct,
+    struct: struct as unknown as ConvertUpBlueprintStruct<bigint>,
     data,
     operatorPasteInstrs: [], // TODO: Update if needed
     rawCall: convertUpCall, // Return the raw call data
@@ -203,7 +204,7 @@ export async function loadConvertUpOrderbookData(
     }),
   ]);
 
-  console.log("TRACTOR/loadConvertUpOrderbookData] result", {
+  console.debug("TRACTOR/loadConvertUpOrderbookData] result", {
     requisitions: _requisitions,
     // completedEvents,
     bonusAndCapacityResult,
@@ -264,7 +265,7 @@ export async function loadConvertUpOrderbookData(
 
     if (orderInfoResult?.status === "success") {
       const [lastExecutedTimestamp, bdvLeftToConvert] = orderInfoResult.result;
-      let bdvLeftToConvertTV = decodedData?.convertUpParams.totalConvertBdv ?? TV.ZERO;
+      let bdvLeftToConvertTV = decodedData?.convertUpParams.totalBeanAmountToConvert ?? TV.ZERO;
 
       // Order has been executed at least once
       if (lastExecutedTimestamp !== 0n) {
@@ -287,7 +288,7 @@ export async function loadConvertUpOrderbookData(
     if (decodedData) {
       const minPrice = decodedData.convertUpParams.minPriceToConvertUp;
       const maxPrice = decodedData.convertUpParams.maxPriceToConvertUp;
-      const minBonus = decodedData.convertUpParams.minGrownStalkPerBdvBonus;
+      const minBonus = decodedData.convertUpParams.grownStalkPerBdvBonusBid;
       const minCapacity = decodedData.convertUpParams.minConvertBonusCapacity;
 
       meetsConditions.price = currentPrice.gte(minPrice) && currentPrice.lte(maxPrice);
@@ -332,16 +333,15 @@ export async function loadConvertUpOrderbookData(
       return a.meetsConditions.capacity ? -1 : 1;
     }
 
-    // If all conditions are the same, sort by operator tip (higher first)
-    const aTip = a.decodedData?.opParams.operatorTipAmount ?? TV.ZERO;
-    const bTip = b.decodedData?.opParams.operatorTipAmount ?? TV.ZERO;
-    return bTip.sub(aTip).toNumber();
+    // If all conditions are the same, sort by blueprint hash (higher first). This way it is deterministic.
+    return a.requisition.blueprintHash > b.requisition.blueprintHash ? 1 : -1;
   });
 
   console.debug(
     "[TRACTOR/loadConvertUpOrderbookData] Sorted orders:",
     sortedRequisitions.map((req, idx) => ({
       index: idx,
+      req: req,
       publisher: req.requisition.blueprint.publisher,
       meetsConditions: req.meetsConditions,
       tip: req.decodedData?.opParams.operatorTipAmount ? req.decodedData.opParams.operatorTipAmount : "0",
@@ -431,7 +431,7 @@ export async function loadConvertUpOrderbookData(
           args: [
             publisher,
             decodedData.convertUpParams.sourceTokenIndices,
-            decodedData.convertUpParams.totalConvertBdv.toBigInt(),
+            decodedData.convertUpParams.totalBeanAmountToConvert.toBigInt(),
             filterParams as never, // TODO: Fix this
             (combinedExistingPlan || emptyPlan) as any,
           ],
@@ -486,7 +486,7 @@ export async function loadConvertUpOrderbookData(
 
       // Calculate amount convertible next execution
       let amountConvertibleNextExecution = currentlyConvertible;
-      const maxBdvPerExecution = decodedData.convertUpParams.maxConvertBdvPerExecution;
+      const maxBdvPerExecution = decodedData.convertUpParams.maxBeansConvertPerExecution;
       amountConvertibleNextExecution = TV.min(currentlyConvertible, maxBdvPerExecution);
       console.debug(`Max BDV per execution: ${maxBdvPerExecution.toHuman()}`);
       console.debug(`Amount convertible next execution: ${amountConvertibleNextExecution.toHuman()}`);

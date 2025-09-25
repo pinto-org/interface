@@ -48,17 +48,18 @@ function ConvertUpBlueprintDisplay({ params }: { params: any }) {
       <div className="text-gray-500">Function: convertUpBlueprint</div>
       <div className="pl-4 space-y-1 text-gray-600">
         <div>sourceTokenIndices: [{params.convertUpParams.sourceTokenIndices.join(", ")}]</div>
-        <div>totalConvertBdv: {params.convertUpParams.totalConvertBdv.toString()}</div>
-        <div>minConvertBdvPerExecution: {params.convertUpParams.minConvertBdvPerExecution.toString()}</div>
-        <div>maxConvertBdvPerExecution: {params.convertUpParams.maxConvertBdvPerExecution.toString()}</div>
+        <div>totalBeanAmountToConvert: {params.convertUpParams.totalBeanAmountToConvert.toString()}</div>
+        <div>minBeansConvertPerExecution: {params.convertUpParams.minBeansConvertPerExecution.toString()}</div>
+        <div>maxBeansConvertPerExecution: {params.convertUpParams.maxBeansConvertPerExecution.toString()}</div>
         <div>minTimeBetweenConverts: {params.convertUpParams.minTimeBetweenConverts.toString()}</div>
         <div>minConvertBonusCapacity: {params.convertUpParams.minConvertBonusCapacity.toString()}</div>
         <div>maxGrownStalkPerBdv: {params.convertUpParams.maxGrownStalkPerBdv.toString()}</div>
-        <div>minGrownStalkPerBdvBonus: {params.convertUpParams.minGrownStalkPerBdvBonus.toString()}</div>
+        <div>grownStalkPerBdvBonusBid: {params.convertUpParams.grownStalkPerBdvBonusBid.toString()}</div>
         <div>maxPriceToConvertUp: {params.convertUpParams.maxPriceToConvertUp.toString()}</div>
         <div>minPriceToConvertUp: {params.convertUpParams.minPriceToConvertUp.toString()}</div>
         <div>maxGrownStalkPerBdvPenalty: {params.convertUpParams.maxGrownStalkPerBdvPenalty.toString()}</div>
         <div>slippageRatio: {params.convertUpParams.slippageRatio.toString()}</div>
+        <div>seedDifference: {params.convertUpParams.seedDifference.toString()}</div>
         <div>lowStalkDeposits: {params.convertUpParams.lowStalkDeposits.toString()}</div>
         <div>
           operatorParams:

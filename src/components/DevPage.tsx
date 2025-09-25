@@ -39,10 +39,13 @@ import {
 } from "viem";
 import { base, hardhat } from "viem/chains";
 import { useAccount, useBlockNumber, useChainId, usePublicClient, useWalletClient } from "wagmi";
+import { Col, Row } from "./Container";
 import MorningCard from "./MorningCard";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { Input } from "./ui/Input";
+import { Label } from "./ui/Label";
+import { Separator } from "./ui/Separator";
 
 type ServerStatus = "running" | "not-running" | "checking";
 
@@ -186,6 +189,7 @@ export default function DevPage() {
     };
   } | null>(null);
 
+  const [hardhatTaskName, setHardhatTaskName] = useState("");
   const [sortingToken, setSortingToken] = useState<string | null>(null);
   const [farmingSortToken, setFarmingSortToken] = useState<string | null>(null);
   const [sortingAllTokens, setSortingAllTokens] = useState(false);
@@ -273,8 +277,8 @@ export default function DevPage() {
     return <Navigate to="/" replace />;
   }
 
-  const executeTask = async (taskName: string, params?: Record<string, any>): Promise<void> => {
-    setLoading(taskName);
+  const executeTask = async (taskName: string, params?: Record<string, any>, loadingKey?: string): Promise<void> => {
+    setLoading(loadingKey || taskName);
     try {
       // Merge the provided params with the default network param
       const taskParams = {
@@ -308,6 +312,16 @@ export default function DevPage() {
       }
     } finally {
       setLoading(null);
+    }
+  };
+
+  const executeDeploy = async (taskName: string, params?: Record<string, any>) => {
+    try {
+      await executeTask(taskName, params, "deploying");
+      setHardhatTaskName("");
+      location.reload();
+    } catch (e) {
+      // don't do anything
     }
   };
 
@@ -536,17 +550,11 @@ export default function DevPage() {
               <Button onClick={() => executeTask("skipMorningAuction")} disabled={loading === "skipMorningAuction"}>
                 Skip Morning Auction
               </Button>
-              <Button onClick={() => executeTask("megaDeploy")} disabled={loading === "megaDeploy"}>
-                Mega Deploy
-              </Button>
               <Button onClick={() => executeTask("forceFlood")} disabled={loading === "forceFlood"}>
                 Force Flood
               </Button>
               <Button onClick={() => executeTask("updateOracleTimeouts")} disabled={loading === "updateOracleTimeouts"}>
                 Update Oracle Timeouts
-              </Button>
-              <Button onClick={() => executeTask("PI-8")} disabled={loading === "TractorHelpers"}>
-                Deploy PI-8
               </Button>
               <Button
                 onClick={handleQuickMint}
@@ -559,12 +567,44 @@ export default function DevPage() {
             <div className="flex gap-2 items-center">
               <Input
                 placeholder="# Blocks to skip"
+                outlined
                 value={blockSkipAmount}
                 onChange={(e) => setBlockSkipAmount(e.target.value)}
-                className="w-32"
+                className="h-10 w-48"
               />
-              <Button onClick={() => skipBlocks()}>Skip Blocks</Button>
+              <Button disabled={!blockSkipAmount} onClick={() => skipBlocks()}>
+                Skip Blocks
+              </Button>
             </div>
+            <Separator className="w-full" orientation="horizontal" />
+            <Col className="flex-wrap w-full gap-4">
+              <div className="text-2xl">Deployments</div>
+              <Col className="gap-4">
+                <Row className="gap-2">
+                  <Button disabled={loading === "deploying"} onClick={() => executeDeploy("deployLatestUpgrade")}>
+                    Deploy Latest Upgrade
+                  </Button>
+                  <Button onClick={() => executeTask("megaDeploy")} disabled={loading === "megaDeploy"}>
+                    Mega Deploy
+                  </Button>
+                </Row>
+                <Row className="gap-2">
+                  <Input
+                    outlined
+                    placeholder="Hardhat Task Name"
+                    value={hardhatTaskName}
+                    onChange={(e) => setHardhatTaskName(e.target.value)}
+                    className="max-h-10 h-10 max-w-[300px]"
+                  />
+                  <Button
+                    disabled={loading === "deploying" || !hardhatTaskName}
+                    onClick={() => executeDeploy(hardhatTaskName)}
+                  >
+                    Execute Hardhat Task
+                  </Button>
+                </Row>
+              </Col>
+            </Col>
           </div>
         </Card>
 

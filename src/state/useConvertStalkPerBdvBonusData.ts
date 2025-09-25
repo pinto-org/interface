@@ -39,9 +39,9 @@ const useConvertStalkPerBdvBonusAndMaximumCapacity = (enabled?: boolean) => {
     },
   });
 
-  useEffect(() => {
-    console.log("convertStalkPerBdvBonusAndMaximumCapacity", query.data);
-  }, [query.data]);
+  // useEffect(() => {
+  //   console.log("convertStalkPerBdvBonusAndMaximumCapacity", query.data);
+  // }, [query.data]);
 
   return query;
 };

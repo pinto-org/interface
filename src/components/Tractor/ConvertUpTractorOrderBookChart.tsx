@@ -1,9 +1,10 @@
 import { TV } from "@/classes/TokenValue";
 import { ConvertUpOrderbookEntry } from "@/lib/Tractor";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
+import useConvertStalkPerBdvBonusAndMaximumCapacity from "@/state/useConvertStalkPerBdvBonusData";
 import { formatter } from "@/utils/format";
 import { exists } from "@/utils/utils";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Col, Row } from "../Container";
 import OrderBook, { OrderbookColumnConfig } from "../OrderBook";
 import { Card } from "../ui/Card";
@@ -65,17 +66,37 @@ const formatThumbValue = (value: number) => {
 export default function ConvertUpTractorOrderBookChart() {
   const [priceToggleActive, setPriceToggleActive] = useState(false);
 
-  const { data: orders, isLoading } = useTractorConvertUpOrderbook(empty);
+  const { data: bonusData, isLoading: isBonusLoading } = useConvertStalkPerBdvBonusAndMaximumCapacity();
+
+  const { data: orders, isLoading: isOrdersLoading } = useTractorConvertUpOrderbook({
+    select: useCallback((data: ConvertUpOrderbookEntry[] | undefined) => {
+      if (!data) return [];
+      return data.filter((order) => {
+        return (order.withdrawalPlan?.totalAvailableBeans || 0n) > 0n;
+      });
+    }, []),
+  });
   const [minPrice, setMinPrice] = useState(0.001);
   const [maxPrice, setMaxPrice] = useState(0.999);
 
+  const isLoading = isBonusLoading || isOrdersLoading;
+
   const filteredOrders = React.useMemo(() => {
-    if (!orders) return [];
+    if (!orders || !bonusData?.bonus) return [];
+
+    if (priceToggleActive) {
+      return orders.filter((order) => {
+        return (
+          order.decodedData?.convertUpParams.minPriceToConvertUp.lte(maxPrice) &&
+          order.decodedData?.convertUpParams.maxPriceToConvertUp.gte(minPrice)
+        );
+      });
+    }
+
     return orders.filter((order) => {
-      return (
-        order.decodedData?.convertUpParams.minPriceToConvertUp.lte(maxPrice) &&
-        order.decodedData?.convertUpParams.maxPriceToConvertUp.gte(minPrice)
-      );
+      if (!order.decodedData) return false;
+      const orderMinBonus = order.decodedData.convertUpParams.grownStalkPerBdvBonusBid;
+      return bonusData.bonus.lte(orderMinBonus);
     });
   }, [orders, minPrice, maxPrice]);
 
@@ -93,11 +114,10 @@ export default function ConvertUpTractorOrderBookChart() {
       <Col className="p-4 gap-5 w-full">
         <Row className="w-full gap-2 justify-between">
           <span className="pinto-sm sm:pinto-body">Convert Orderbook</span>
-          <Row className="gap-2">
-            <span className="pinto-xs sm:pinto-sm-light text-pinto-lighter sm:text-pinto-lighter text-right">
-              Toggle Price Axis
-            </span>
+          <Row className="gap-2 [&>span]:pinto-xs sm:pinto-sm-light text-pinto-light text-right">
+            <span>Bonus Axis</span>
             <Switch checked={priceToggleActive} onCheckedChange={setPriceToggleActive} />
+            <span>Price Axis</span>
           </Row>
         </Row>
         <Col className="gap-4">
@@ -401,7 +421,7 @@ const getValidOrders = (orders?: ConvertUpOrderbookEntry[], priceMode: boolean =
       continue;
     }
 
-    const bonus = order.decodedData.convertUpParams.minGrownStalkPerBdvBonus;
+    const bonus = order.decodedData.convertUpParams.grownStalkPerBdvBonusBid;
     const penalty = order.decodedData.convertUpParams.maxGrownStalkPerBdvPenalty;
     const bdvLeftToConvert = order.orderInfo.bdvLeftToConvert;
     const orderMinPrice = order.decodedData.convertUpParams.minPriceToConvertUp;

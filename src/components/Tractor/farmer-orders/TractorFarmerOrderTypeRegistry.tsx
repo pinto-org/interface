@@ -115,14 +115,14 @@ const transformConvertUpOrderData = (
 
   return {
     type: "convertUp",
-    totalConvertBdv: req.decodedData.convertUpParams.totalConvertBdv.toHuman(),
-    minConvertBdvPerExecution: req.decodedData.convertUpParams.minConvertBdvPerExecution.toHuman(),
-    maxConvertBdvPerExecution: req.decodedData.convertUpParams.maxConvertBdvPerExecution.toHuman(),
+    totalBeanAmountToConvert: req.decodedData.convertUpParams.totalBeanAmountToConvert.toHuman(),
+    minBeansConvertPerExecution: req.decodedData.convertUpParams.minBeansConvertPerExecution.toHuman(),
+    maxBeansConvertPerExecution: req.decodedData.convertUpParams.maxBeansConvertPerExecution.toHuman(),
     minTimeBetweenConverts: req.decodedData.convertUpParams.minTimeBetweenConverts.toHuman(),
     timeScale: "SECONDS",
     minConvertBonusCapacity: req.decodedData.convertUpParams.minConvertBonusCapacity.toHuman(),
     maxGrownStalkPerBdv: req.decodedData.convertUpParams.maxGrownStalkPerBdv.toHuman(),
-    minGrownStalkPerBdvBonus: req.decodedData.convertUpParams.minGrownStalkPerBdvBonus.toHuman(),
+    grownStalkPerBdvBonusBid: req.decodedData.convertUpParams.grownStalkPerBdvBonusBid.toHuman(),
     maxPriceToConvertUp: req.decodedData.convertUpParams.maxPriceToConvertUp.toHuman(),
     minPriceToConvertUp: req.decodedData.convertUpParams.minPriceToConvertUp.toHuman(),
     maxGrownStalkPerBdvPenalty: req.decodedData.convertUpParams.maxGrownStalkPerBdvPenalty.toHuman(),
@@ -130,6 +130,7 @@ const transformConvertUpOrderData = (
     lowStalkDeposits: req.decodedData.convertUpParams.lowStalkDeposits,
     sourceTokenIndices: req.decodedData.convertUpParams.sourceTokenIndices,
     operatorTip: req.decodedData.opParams.operatorTipAmount.toHuman(),
+    seedDifference: req.decodedData.convertUpParams.seedDifference.toHuman(),
     tokenStrategy: getStrategyProps.getTokenStrategy(req.decodedData.convertUpParams) || {
       type: "LOWEST_SEEDS",
     },

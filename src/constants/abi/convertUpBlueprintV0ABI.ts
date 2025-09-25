@@ -70,13 +70,13 @@ export const convertUpBlueprintV0ABI = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "amountConverted",
+        name: "totalAmountConverted",
         type: "uint256",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "bdvConverted",
+        name: "beansUnfulfilled",
         type: "uint256",
       },
     ],
@@ -147,17 +147,17 @@ export const convertUpBlueprintV0ABI = [
               },
               {
                 internalType: "uint256",
-                name: "totalConvertBdv",
+                name: "totalBeanAmountToConvert",
                 type: "uint256",
               },
               {
                 internalType: "uint256",
-                name: "minConvertBdvPerExecution",
+                name: "minBeansConvertPerExecution",
                 type: "uint256",
               },
               {
                 internalType: "uint256",
-                name: "maxConvertBdvPerExecution",
+                name: "maxBeansConvertPerExecution",
                 type: "uint256",
               },
               {
@@ -177,7 +177,7 @@ export const convertUpBlueprintV0ABI = [
               },
               {
                 internalType: "uint256",
-                name: "minGrownStalkPerBdvBonus",
+                name: "grownStalkPerBdvBonusBid",
                 type: "uint256",
               },
               {
@@ -189,6 +189,11 @@ export const convertUpBlueprintV0ABI = [
                 internalType: "uint256",
                 name: "minPriceToConvertUp",
                 type: "uint256",
+              },
+              {
+                internalType: "int256",
+                name: "seedDifference",
+                type: "int256",
               },
               {
                 internalType: "int256",
@@ -270,7 +275,7 @@ export const convertUpBlueprintV0ABI = [
         type: "bytes32",
       },
     ],
-    name: "getBdvLeftToConvert",
+    name: "getBeansLeftToConvert",
     outputs: [
       {
         internalType: "uint256",
@@ -317,7 +322,7 @@ export const convertUpBlueprintV0ABI = [
       },
       {
         internalType: "uint256",
-        name: "bdvLeftToConvert",
+        name: "beansLeftToConvert",
         type: "uint256",
       },
     ],

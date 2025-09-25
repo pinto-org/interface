@@ -81,7 +81,7 @@ export function transformConvertUpOrderToUnified(
   }
 
   const data = req.decodedData;
-  const totalAmount = data.convertUpParams.totalConvertBdv;
+  const totalAmount = data.convertUpParams.totalBeanAmountToConvert;
   const bdvLeftToConvert = req.orderInfo.bdvLeftToConvert;
 
   // Calculate progress
@@ -109,7 +109,7 @@ export function transformConvertUpOrderToUnified(
     percentComplete,
     minPriceRange: `$${data.convertUpParams.minPriceToConvertUp.toHuman()}`,
     maxPriceRange: `$${data.convertUpParams.maxPriceToConvertUp.toHuman()}`,
-    bonusThreshold: data.convertUpParams.minGrownStalkPerBdvBonus.toHuman(),
+    bonusThreshold: data.convertUpParams.grownStalkPerBdvBonusBid.toHuman(),
     capacityRequirement: data.convertUpParams.minConvertBonusCapacity.toHuman(),
     operatorTip: data.opParams.operatorTipAmount.toHuman(),
     strategy: strategyText,
@@ -202,7 +202,7 @@ export function getOrderSummary(order: UnifiedTractorOrder): string {
   const amount =
     order.type === "sow"
       ? `${(order.orderData as SowOrderData).totalAmount} PINTO`
-      : `${(order.orderData as ConvertUpOrderData).totalConvertBdv} BDV`;
+      : `${(order.orderData as ConvertUpOrderData).totalConvertBdv} PDV`;
 
   return `${typeLabel} • ${amount} • ${order.orderData.percentComplete.toFixed(0)}% complete`;
 }

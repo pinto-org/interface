@@ -23,18 +23,19 @@ export interface SowOrderData extends BaseTractorOrderData {
 // ConvertUp-specific order data
 export interface ConvertUpOrderData extends BaseTractorOrderData {
   type: "convertUp";
-  totalConvertBdv: string;
-  minConvertBdvPerExecution: string;
-  maxConvertBdvPerExecution: string;
+  totalBeanAmountToConvert: string;
+  minBeansConvertPerExecution: string;
+  maxBeansConvertPerExecution: string;
   minTimeBetweenConverts: string;
   timeScale: TimeScaleSelect;
   minConvertBonusCapacity: string;
   maxGrownStalkPerBdv: string;
-  minGrownStalkPerBdvBonus: string;
+  grownStalkPerBdvBonusBid: string;
   maxPriceToConvertUp: string;
   minPriceToConvertUp: string;
   maxGrownStalkPerBdvPenalty: string;
   slippageRatio: string;
+  seedDifference: string;
   lowStalkDeposits: number;
   sourceTokenIndices?: number[];
   tokenStrategy: TractorTokenStrategyUnion;

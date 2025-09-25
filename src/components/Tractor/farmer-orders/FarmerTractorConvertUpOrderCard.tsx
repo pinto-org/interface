@@ -57,7 +57,7 @@ const FarmerTractorConvertUpOrderCard = ({
   };
 
   const data = req.decodedData;
-  const totalAmount = data.convertUpParams.totalConvertBdv;
+  const totalAmount = data.convertUpParams.totalBeanAmountToConvert;
   const bdvLeftToConvert = req.orderInfo.bdvLeftToConvert;
 
   // Calculate converted amount and completion percentage
@@ -91,9 +91,9 @@ const FarmerTractorConvertUpOrderCard = ({
                         <span className="text-pinto-green-4">{formatter.number(totalAmount)} PDV</span>
                         <span className="text-box bg-transparent">
                           {" "}
-                          ({formatter.number(data.convertUpParams.minConvertBdvPerExecution)}
+                          ({formatter.number(data.convertUpParams.minBeansConvertPerExecution)}
                           {" - "}
-                          {formatter.number(data.convertUpParams.maxConvertBdvPerExecution)} PDV per execution)
+                          {formatter.number(data.convertUpParams.maxBeansConvertPerExecution)} PDV per execution)
                         </span>
                       </span>
                     </>
@@ -121,9 +121,9 @@ const FarmerTractorConvertUpOrderCard = ({
                 {
                   text: (
                     <>
-                      Execute when price is between{" "}
-                      {formatter.usd(data.convertUpParams.minPriceToConvertUp, { decimals: 3 })} -{" "}
-                      {formatter.usd(data.convertUpParams.maxPriceToConvertUp, { decimals: 3 })}
+                      Execute when price is between $
+                      {formatter.number(data.convertUpParams.minPriceToConvertUp, { maxDecimals: 3 })} - $
+                      {formatter.number(data.convertUpParams.maxPriceToConvertUp, { maxDecimals: 3 })}
                     </>
                   ),
                   operator: "AND",
@@ -132,7 +132,7 @@ const FarmerTractorConvertUpOrderCard = ({
                   text: (
                     <>
                       when the Bonus exceeds{" "}
-                      {formatter.number(data.convertUpParams.minGrownStalkPerBdvBonus, {
+                      {formatter.number(data.convertUpParams.grownStalkPerBdvBonusBid, {
                         minDecimals: 2,
                         maxDecimals: 6,
                       })}{" "}

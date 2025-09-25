@@ -67,7 +67,7 @@ const ButtonRow = ({ onSubmit, onCancel }: { onSubmit: () => void; onCancel: () 
       }}
       right={{
         content: "Submit",
-        disabled: tipAmountTV.lt(0),
+        disabled: tipAmountTV.lt(0) || !customOperatorTipAmount,
       }}
     />
   );
@@ -80,9 +80,9 @@ export const ConvertUpEstimatedTipPaid = () => {
   const values = useWatch({ control: form.control });
   const customAmount = values.customOperatorTip;
   const operatorTip = values.operatorTip;
-  const maxPerExecution = values.maxConvertBdvPerExecution;
-  const minPerExecution = values.minConvertBdvPerExecution;
-  const totalAmount = values.totalConvertBdv;
+  const maxPerExecution = values.maxBeansConvertPerExecution;
+  const minPerExecution = values.minBeansConvertPerExecution;
+  const totalAmount = values.totalBeanAmountToConvert;
 
   const tipPerExecution = preset === "Custom" && customAmount ? customAmount : operatorTip;
 
@@ -93,8 +93,8 @@ export const ConvertUpEstimatedTipPaid = () => {
 
     const tip = postSanitizedSanitizedValue(tipPerExecution ?? "", mainToken.decimals).tv;
 
-    const minTimes = total.div(max);
-    const maxTimes = total.div(min);
+    const minTimes = total.div(max ?? 1);
+    const maxTimes = total.div(min ?? 1);
 
     return {
       min: minTimes.mul(tip),

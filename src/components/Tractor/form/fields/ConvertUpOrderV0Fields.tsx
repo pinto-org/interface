@@ -1,3 +1,4 @@
+import PDVIcon from "@/assets/protocol/PDV.png";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/Form";
 import IconImage from "@/components/ui/IconImage";
 import { Input } from "@/components/ui/Input";
@@ -9,26 +10,27 @@ import { ConvertUpV0FormSchema } from "../schema/convertUp.schema";
 
 import { Col, Row } from "@/components/Container";
 import { TooltipLabel } from "@/components/ui/Label";
-import { STALK } from "@/constants/internalTokens";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
+import { SEEDS, STALK } from "@/constants/internalTokens";
 import { useSharedNumericFormFieldHandlers as useFieldHandlers } from "@/hooks/form/useSharedNumericFormFieldHandlers";
+import { LowStalkDepositsMode } from "@/lib/Tractor";
 import { useMainToken } from "@/state/useTokenData";
 import { cn } from "@/utils/utils";
 import { RegisterOptions, useFormContext, useWatch } from "react-hook-form";
 
 type StringInputFields = Pick<
   ConvertUpV0FormSchema,
-  | "totalConvertBdv"
-  | "minConvertBdvPerExecution"
-  | "maxConvertBdvPerExecution"
+  | "totalBeanAmountToConvert"
+  | "minBeansConvertPerExecution"
+  | "maxBeansConvertPerExecution"
   | "minTimeBetweenConverts"
   | "minConvertBonusCapacity"
   | "maxGrownStalkPerBdv"
-  | "minGrownStalkPerBdvBonus"
+  | "grownStalkPerBdvBonusBid"
   | "maxPriceToConvertUp"
   | "minPriceToConvertUp"
   | "maxGrownStalkPerBdvPenalty"
-  | "maxGrownStalkPerBdvPenalty"
-  | "minConvertBdvPerExecution"
+  | "seedDifference"
   | "slippageRatio"
 >;
 
@@ -63,33 +65,33 @@ const sharedInputProps = {
 const TOOLTIP_COPY = {
   tokenStrategy: "The source token(s) use for the Convert Up Order.",
   totalConvertBdv: "The total PDV of the Convert Up Order.",
-  minConvertBdvPerExecution: "The minimum PDV per execution of the Convert Up Order.",
-  maxConvertBdvPerExecution: "The maximum PDV per execution of the Convert Up Order.",
+  minBeansConvertPerExecution: "The minimum PDV per execution of the Convert Up Order.",
+  maxBeansConvertPerExecution: "The maximum PDV per execution of the Convert Up Order.",
   minTimeBetweenConverts: "The minimum time between converts of the Convert Up Order.",
   minConvertBonusCapacity: "The minimum convert bonus capacity of the Convert Up Order.",
   maxGrownStalkPerBdv: "The maximum grown stalk per PDV of the Convert Up Order.",
-  minGrownStalkPerBdvBonus: "The minimum Grown Stalk Bonus in which this order can be executed.",
+  grownStalkPerBdvBonusBid: "The minimum Grown Stalk Bonus in which this order can be executed.",
   maxPriceToConvertUp: "The maximum price to convert up to.",
   minPriceToConvertUp: "The minimum price to convert up to.",
   maxGrownStalkPerBdvPenalty: "The maximum grown stalk per PDV penalty of the Convert Up Order.",
   slippageRatio: "The slippage ratio of the Convert Up Order.",
-  lowStalkDeposits: "The low stalk deposits of the Convert Up Order.",
+  lowStalkDeposits: "The condition or eligibility in which Silo deposits with low Grown Stalk are used.",
   operatorTip: "The operator tip of the Convert Up Order.",
   priceRange:
     "The price range to execute the Convert Up Order. The order will be executed when the price is between the minimum and maximum price.",
+  seedDifference:
+    "The minimum seed difference required between your selected tokens and PINTO at the time of execution.",
 } as const;
 
 export default function ConvertUpOrderV0Fields({ children }: { children: React.ReactNode }) {
   return children;
 }
 
-const MainTokenAdornment = () => {
-  const mainToken = useChainConstant(MAIN_TOKEN);
-
+const PDVIconAdornment = () => {
   return (
     <div className="flex items-center gap-2 px-4 bg-white">
-      <IconImage src={mainToken.logoURI} alt="PINTO" size={6} className="rounded-full" />
-      <span className="hidden sm:block text-black pinto-sm-light">{mainToken.symbol}</span>
+      <img src={PDVIcon} alt="PDV" className="w-5 h-4" />
+      <span className="hidden sm:block text-black pinto-sm-light">PDV</span>
     </div>
   );
 };
@@ -100,7 +102,7 @@ const TextAdornment = ({ text, isEnd = true, className }: { text: string; isEnd?
 
 ConvertUpOrderV0Fields.TotalConvertBdv = function TotalConvertBdv() {
   const { decimals } = useMainToken();
-  const { register, isError } = useFormFieldProps("totalConvertBdv", decimals);
+  const { register, isError } = useFormFieldProps("totalBeanAmountToConvert", decimals);
 
   return (
     <Col className="flex-1 gap-2">
@@ -110,7 +112,7 @@ ConvertUpOrderV0Fields.TotalConvertBdv = function TotalConvertBdv() {
         {...sharedInputProps}
         placeholder="0.00"
         isError={isError}
-        endIcon={<MainTokenAdornment />}
+        endIcon={<PDVIconAdornment />}
       />
     </Col>
   );
@@ -118,11 +120,11 @@ ConvertUpOrderV0Fields.TotalConvertBdv = function TotalConvertBdv() {
 
 ConvertUpOrderV0Fields.MinConvertBdvPerExecution = function MinConvertBdvPerExecution() {
   const { decimals } = useMainToken();
-  const { register, isError } = useFormFieldProps("minConvertBdvPerExecution", decimals);
+  const { register, isError } = useFormFieldProps("minBeansConvertPerExecution", decimals);
 
   return (
     <Col className="flex-1 gap-2">
-      <TooltipLabel tooltipText={TOOLTIP_COPY.minConvertBdvPerExecution}>Min PDV per Execution</TooltipLabel>
+      <TooltipLabel tooltipText={TOOLTIP_COPY.minBeansConvertPerExecution}>Min PDV per Execution</TooltipLabel>
       <Input
         {...register()}
         {...sharedInputProps}
@@ -136,11 +138,11 @@ ConvertUpOrderV0Fields.MinConvertBdvPerExecution = function MinConvertBdvPerExec
 
 ConvertUpOrderV0Fields.MaxConvertBdvPerExecution = function MaxConvertBdvPerExecution() {
   const { decimals } = useMainToken();
-  const { register, isError } = useFormFieldProps("maxConvertBdvPerExecution", decimals);
+  const { register, isError } = useFormFieldProps("maxBeansConvertPerExecution", decimals);
 
   return (
     <Col className="flex-1 gap-2">
-      <TooltipLabel tooltipText={TOOLTIP_COPY.maxConvertBdvPerExecution}>Max PDV per Execution</TooltipLabel>
+      <TooltipLabel tooltipText={TOOLTIP_COPY.maxBeansConvertPerExecution}>Max PDV per Execution</TooltipLabel>
       <Input
         {...register()}
         {...sharedInputProps}
@@ -232,17 +234,17 @@ ConvertUpOrderV0Fields.MaxGrownStalkPerBdv = function MaxGrownStalkPerBdv() {
   );
 };
 
-ConvertUpOrderV0Fields.MinGrownStalkPerBdvBonus = function MinGrownStalkPerBdvBonus() {
+ConvertUpOrderV0Fields.GrownStalkPerBdvBonusBid = function GrownStalkPerBdvBonusBid() {
   const ctx = useFormContext<ConvertUpV0FormSchema>();
-  const handlers = useFieldHandlers(ctx, "minGrownStalkPerBdvBonus", STALK.decimals);
+  const handlers = useFieldHandlers(ctx, "grownStalkPerBdvBonusBid", STALK.decimals);
 
   return (
     <FormField
       control={ctx.control}
-      name="minGrownStalkPerBdvBonus"
+      name="grownStalkPerBdvBonusBid"
       render={({ field, fieldState }) => (
         <FormItem>
-          <FormLabel tooltipText={TOOLTIP_COPY.minGrownStalkPerBdvBonus}>Min Grown Stalk Bonus Per PDV</FormLabel>
+          <FormLabel tooltipText={TOOLTIP_COPY.grownStalkPerBdvBonusBid}>Min Grown Stalk Bonus Per PDV</FormLabel>
           <FormControl>
             <Input
               {...field}
@@ -308,18 +310,20 @@ ConvertUpOrderV0Fields.PriceRange = function PriceRange() {
   const hasError = !!(minError || maxError);
 
   return (
-    <div className="flex flex-col gap-6">
-      <TooltipLabel tooltipText={TOOLTIP_COPY.priceRange}>Execute when Price is Between</TooltipLabel>
-      <MultiSlider
-        min={sliderMin}
-        max={sliderMax}
-        step={sliderStep}
-        value={sliderValues}
-        onValueChange={handleSliderChange}
-        className={cn("w-full", hasError && "opacity-50")}
-      />
-      <Row className="items-start gap-4 w-full">
-        <Col className="flex-1 gap-2">
+    <>
+      <Col className="gap-2 w-full">
+        <TooltipLabel tooltipText={TOOLTIP_COPY.priceRange}>Execute when Price is Between</TooltipLabel>
+        <MultiSlider
+          min={sliderMin}
+          max={sliderMax}
+          step={sliderStep}
+          value={sliderValues}
+          onValueChange={handleSliderChange}
+          className={cn("my-2 w-full", hasError && "opacity-50")}
+        />
+      </Col>
+      <Row className="gap-4 w-full">
+        <Col className="gap-2 w-full">
           <TooltipLabel tooltipText={TOOLTIP_COPY.minPriceToConvertUp}>Min Price</TooltipLabel>
           <Input
             {...ctx.register("minPriceToConvertUp", {
@@ -333,7 +337,7 @@ ConvertUpOrderV0Fields.PriceRange = function PriceRange() {
             startIcon={<TextAdornment text="$" isEnd={false} className="pinto-body-light mt-[1px]" />}
           />
         </Col>
-        <Col className="flex-1 gap-2">
+        <Col className="gap-2 w-full">
           <TooltipLabel tooltipText={TOOLTIP_COPY.maxPriceToConvertUp}>Max Price</TooltipLabel>
           <Input
             {...ctx.register("maxPriceToConvertUp", {
@@ -348,7 +352,7 @@ ConvertUpOrderV0Fields.PriceRange = function PriceRange() {
           />
         </Col>
       </Row>
-    </div>
+    </>
   );
 };
 
@@ -372,8 +376,28 @@ ConvertUpOrderV0Fields.MaxGrownStalkPerBdvPenalty = function MaxGrownStalkPerBdv
   );
 };
 
+ConvertUpOrderV0Fields.SeedDifference = function SeedDifference() {
+  const ctx = useFormContext<ConvertUpV0FormSchema>();
+  const handlers = useFieldHandlers(ctx, "seedDifference", SEEDS.decimals);
+
+  return (
+    <FormField
+      control={ctx.control}
+      name="seedDifference"
+      render={({ field, fieldState }) => (
+        <FormItem>
+          <FormLabel tooltipText={TOOLTIP_COPY.seedDifference}>Min Seed Difference</FormLabel>
+          <FormControl>
+            <Input {...field} {...sharedInputProps} {...handlers} placeholder="0.00" isError={!!fieldState.error} />
+          </FormControl>
+        </FormItem>
+      )}
+    />
+  );
+};
+
 ConvertUpOrderV0Fields.SlippageRatio = function SlippageRatio() {
-  const { register, isError } = useFormFieldProps("slippageRatio", 0);
+  const { register, isError } = useFormFieldProps("slippageRatio", 18);
 
   return (
     <div className="flex flex-row w-full items-center justify-between gap-2 space-y-0">
@@ -390,6 +414,78 @@ ConvertUpOrderV0Fields.SlippageRatio = function SlippageRatio() {
         />
       </div>
     </div>
+  );
+};
+
+const LowStalkDepositModes = [
+  {
+    label: "No",
+    value: LowStalkDepositsMode.OMIT,
+  },
+  {
+    label: "Yes",
+    value: LowStalkDepositsMode.USE,
+  },
+  {
+    label: "Use Last",
+    value: LowStalkDepositsMode.USE_LAST,
+  },
+];
+
+ConvertUpOrderV0Fields.LowStalkDepositsSelect = function LowStalkDeposits({ className }: { className?: string }) {
+  const ctx = useFormContext<ConvertUpV0FormSchema>();
+
+  return (
+    <Row className="gap-2 w-full justify-between">
+      <FormLabel tooltipText={TOOLTIP_COPY.lowStalkDeposits} htmlFor="lowStalkDeposits">
+        Allow Low Stalk Deposits
+      </FormLabel>
+      <FormField
+        control={ctx.control}
+        name="lowStalkDeposits"
+        render={({ field }) => (
+          <FormItem>
+            <Select
+              value={field.value.toString()}
+              onValueChange={(value) => {
+                field.onChange(Number(value));
+              }}
+            >
+              <SelectTrigger
+                className={cn(
+                  "cursor-pointer rounded-[0.75rem] w-fit h-12 bg-white",
+                  "px-3 py-1 text-[1.25rem] text-black",
+                  "border border-pinto-gray-2 shadow-none",
+                  "ring-0 focus:ring-0 focus-visible:ring-0",
+                  "focus:ring-offset-0 focus-visible:ring-offset-0",
+                  "outline-none focus:outline-none focus-visible:outline-none",
+                  className,
+                )}
+              >
+                <div className="mr-4">
+                  <SelectValue placeholder="Select">
+                    {LowStalkDepositModes.find((value) => value.value === field.value)?.label}
+                  </SelectValue>
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {LowStalkDepositModes.map((value) => {
+                  return (
+                    <SelectItem
+                      key={`${value.label}-low-stalk-deposit-select`}
+                      value={value.value.toString()}
+                      className="pinto-sm focus:bg-pinto-green-1"
+                    >
+                      {value.label}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </FormItem>
+        )}
+      />
+    </Row>
   );
 };
 

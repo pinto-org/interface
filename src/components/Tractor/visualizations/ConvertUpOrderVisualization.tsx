@@ -38,7 +38,11 @@ export default function ConvertUpOrderVisualization({
             />
             <OrderVisualization.ConditionsList
               conditions={[
-                { text: <>Convert up to {formatter.number(convertData.totalConvertBdv)} PDV of deposited tokens</> },
+                {
+                  text: (
+                    <>Convert up to {formatter.number(convertData.totalBeanAmountToConvert)} PDV of deposited tokens</>
+                  ),
+                },
               ]}
               size="sm"
             />
@@ -55,9 +59,9 @@ export default function ConvertUpOrderVisualization({
                   type: "context",
                   content: (
                     <span className="text-pinto-green-4">
-                      {formatter.number(convertData.minConvertBdvPerExecution)}
+                      {formatter.number(convertData.minBeansConvertPerExecution)}
                       {" - "}
-                      {formatter.number(convertData.maxConvertBdvPerExecution)} PDV
+                      {formatter.number(convertData.maxBeansConvertPerExecution)} PDV
                     </span>
                   ),
                 },
@@ -70,9 +74,13 @@ export default function ConvertUpOrderVisualization({
                   text: (
                     <>
                       Execute when Price is between{" "}
-                      <span className="text-pinto-green-4">{formatter.usd(convertData.minPriceToConvertUp)}</span>
+                      <span className="text-pinto-green-4">
+                        ${formatter.number(convertData.minPriceToConvertUp, { maxDecimals: 3 })}
+                      </span>
                       {" - "}
-                      <span className="text-pinto-green-4">{formatter.usd(convertData.maxPriceToConvertUp)}</span>
+                      <span className="text-pinto-green-4">
+                        ${formatter.number(convertData.maxPriceToConvertUp, { maxDecimals: 3 })}
+                      </span>
                     </>
                   ),
                 },
@@ -81,21 +89,9 @@ export default function ConvertUpOrderVisualization({
                     <>
                       Min Grown Stalk Bonus Per PDV exceeds{" "}
                       <span className="inline-flex gap-1 items-baseline">
-                        <span className="text-pinto-green-4">{convertData.minGrownStalkPerBdvBonus}</span>
+                        <span className="text-pinto-green-4">{convertData.grownStalkPerBdvBonusBid}</span>
                       </span>
                     </>
-                  ),
-                  operator: "AND",
-                },
-                {
-                  text: (
-                    <span className="font-light text-pinto-light">
-                      Wait at least{" "}
-                      <span className="text-pinto-green-4">
-                        {timeScaleToDisplay(convertData.timeScale, convertData.minTimeBetweenConverts, { exact: true })}
-                      </span>
-                      {" between executions"}
-                    </span>
                   ),
                   operator: "AND",
                 },

@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover
 import { Switch } from "@/components/ui/Switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { PINTO } from "@/constants/tokens";
+import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetTractorTokenStrategy";
 import { Blueprint, ConvertUpOrderbookEntry } from "@/lib/Tractor";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
 import useConvertStalkPerBdvBonusAndMaximumCapacity from "@/state/useConvertStalkPerBdvBonusData";
@@ -43,6 +44,8 @@ export function ConvertUpOrderbookContent({
 
   const { data: convertUpData } = useConvertStalkPerBdvBonusAndMaximumCapacity();
 
+  const getStrategyProps = useGetTractorTokenStrategyWithBlueprint();
+
   const { data: orders = [], isLoading } = useTractorConvertUpOrderbook({
     select: useCallback((data: ConvertUpOrderbookEntry[] | undefined) => {
       if (!data || data?.length === 0) return [] satisfies ConvertUpOrderbookEntry[];
@@ -57,14 +60,15 @@ export function ConvertUpOrderbookContent({
     const decodedData = order.decodedData;
     return {
       type: "convertUp",
-      totalConvertBdv: decodedData.convertUpParams.totalConvertBdv.toHuman(),
-      minConvertBdvPerExecution: decodedData.convertUpParams.minConvertBdvPerExecution.toHuman(),
-      maxConvertBdvPerExecution: decodedData.convertUpParams.maxConvertBdvPerExecution.toHuman(),
-      minTimeBetweenConverts: decodedData.convertUpParams.minTimeBetweenConverts.toString(),
+      totalBeanAmountToConvert: decodedData.convertUpParams.totalBeanAmountToConvert.toHuman(),
+      minBeansConvertPerExecution: decodedData.convertUpParams.minBeansConvertPerExecution.toHuman(),
+      maxBeansConvertPerExecution: decodedData.convertUpParams.maxBeansConvertPerExecution.toHuman(),
+      minTimeBetweenConverts: decodedData.convertUpParams.minTimeBetweenConverts.toHuman(),
+      seedDifference: decodedData.convertUpParams.seedDifference.toHuman(),
       timeScale: "SECONDS", // Default time scale
       minConvertBonusCapacity: decodedData.convertUpParams.minConvertBonusCapacity.toHuman(),
       maxGrownStalkPerBdv: decodedData.convertUpParams.maxGrownStalkPerBdv.toHuman(),
-      minGrownStalkPerBdvBonus: decodedData.convertUpParams.minGrownStalkPerBdvBonus.toHuman(),
+      grownStalkPerBdvBonusBid: decodedData.convertUpParams.grownStalkPerBdvBonusBid.toHuman(),
       maxPriceToConvertUp: decodedData.convertUpParams.maxPriceToConvertUp.toHuman(),
       minPriceToConvertUp: decodedData.convertUpParams.minPriceToConvertUp.toHuman(),
       maxGrownStalkPerBdvPenalty: decodedData.convertUpParams.maxGrownStalkPerBdvPenalty.toHuman(),
@@ -72,7 +76,7 @@ export function ConvertUpOrderbookContent({
       lowStalkDeposits: decodedData.convertUpParams.lowStalkDeposits,
       sourceTokenIndices: decodedData.convertUpParams.sourceTokenIndices,
       operatorTip: decodedData.opParams.operatorTipAmount.toHuman(),
-      tokenStrategy: { type: "LOWEST_SEEDS" }, // Default strategy
+      tokenStrategy: getStrategyProps.getTokenStrategy(decodedData.convertUpParams) || { type: "LOWEST_SEEDS" }, // Default strategy
     };
   };
 
@@ -101,8 +105,8 @@ export function ConvertUpOrderbookContent({
     if (sortBy === "bonus") {
       filtered.sort((a, b) => {
         if (!a.decodedData || !b.decodedData) return 0;
-        const aBonus = a.decodedData.convertUpParams.minGrownStalkPerBdvBonus;
-        const bBonus = b.decodedData.convertUpParams.minGrownStalkPerBdvBonus;
+        const aBonus = a.decodedData.convertUpParams.grownStalkPerBdvBonusBid;
+        const bBonus = b.decodedData.convertUpParams.grownStalkPerBdvBonusBid;
         return bBonus.sub(aBonus).toNumber(); // Descending
       });
     } else if (sortBy === "tip") {
@@ -124,15 +128,15 @@ export function ConvertUpOrderbookContent({
     if (!order.decodedData) return null;
 
     const decodedData = order.decodedData;
-    const bonus = formatter.number(decodedData.convertUpParams.minGrownStalkPerBdvBonus, {
+    const bonus = formatter.number(decodedData.convertUpParams.grownStalkPerBdvBonusBid, {
       minDecimals: 4,
       maxDecimals: 4,
     });
     const minCapacity = formatter.number(decodedData.convertUpParams.minConvertBonusCapacity);
     const priceRange = `$${decodedData.convertUpParams.minPriceToConvertUp.toHuman()} - $${decodedData.convertUpParams.maxPriceToConvertUp.toHuman()}`;
-    const totalBdv = formatter.number(decodedData.convertUpParams.totalConvertBdv);
+    const totalBdv = formatter.number(decodedData.convertUpParams.totalBeanAmountToConvert);
     const availableBdv = formatter.number(order.currentlyConvertible);
-    const executionRange = `${formatter.number(decodedData.convertUpParams.minConvertBdvPerExecution)} - ${formatter.number(decodedData.convertUpParams.maxConvertBdvPerExecution)}`;
+    const executionRange = `${formatter.number(decodedData.convertUpParams.minBeansConvertPerExecution)} - ${formatter.number(decodedData.convertUpParams.maxBeansConvertPerExecution)}`;
     const operatorTip = formatter.number(decodedData.opParams.operatorTipAmount, {
       minDecimals: 2,
       maxDecimals: 2,
@@ -145,7 +149,7 @@ export function ConvertUpOrderbookContent({
         onClick={() => handleRowClick(order)}
       >
         <TableCell className="py-2 px-0 pl-6 whitespace-nowrap">≥ {bonus}</TableCell>
-        <TableCell className="py-2 whitespace-nowrap">≥ {minCapacity} BDV</TableCell>
+        <TableCell className="py-2 whitespace-nowrap">≥ {minCapacity} PDV</TableCell>
         <TableCell className="py-2 whitespace-nowrap">{priceRange}</TableCell>
         <TableCell className="py-2 text-right">
           <div className="flex items-center gap-1 justify-end">
@@ -182,7 +186,7 @@ export function ConvertUpOrderbookContent({
             className="text-pinto-dark underline hover:opacity-80"
             onClick={(e) => e.stopPropagation()}
           >
-            {`0x${order.requisition.blueprint.publisher.slice(2, 7)}...${order.requisition.blueprint.publisher.slice(-4)}`}
+            {`0x${order.requisition.blueprint.publisher.slice(2, 6)}...${order.requisition.blueprint.publisher.slice(-3)}`}
           </a>
         </TableCell>
         <TableCell className="py-2 pr-6 text-right">{formatDate(order.timestamp)}</TableCell>
@@ -343,15 +347,15 @@ function ConvertUpOrderbookSettingsPopover({
       <PopoverContent className="w-80 p-4" align="end">
         <div className="pinto-sm font-medium mb-3 leading-same-sm">Table Settings</div>
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <Row className="items-center justify-between gap-4">
             <Label size="sm" htmlFor="show-zero-available">
               Show Zero Available Pinto
             </Label>
             <Switch id="show-zero-available" checked={showZeroAvailable} onCheckedChange={onShowZeroAvailableChange} />
-          </div>
+          </Row>
 
-          <div className="flex items-center justify-between">
-            <Label size="sm" htmlFor="show-below-bonus">
+          <Row className="items-center justify-between gap-4">
+            <Label size="sm" htmlFor="show-below-bonus" className="leading-same-body">
               Show Orders Below Current Bonus
             </Label>
             <Switch
@@ -359,7 +363,7 @@ function ConvertUpOrderbookSettingsPopover({
               checked={showBelowCurrentBonus}
               onCheckedChange={onShowBelowCurrentBonusChange}
             />
-          </div>
+          </Row>
 
           <div className="flex items-center justify-between">
             <Label size="sm">Sort By</Label>

@@ -286,6 +286,7 @@ export const OperatorTipPresetDropdown = ({
   const customAmount = useWatch({ control: ctx.control, name: "customOperatorTip" });
   const mainToken = useMainToken();
   const ref = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const value =
     getTractorOperatorTipAmountFromPreset(
       selectedPreset,
@@ -304,7 +305,12 @@ export const OperatorTipPresetDropdown = ({
   useEffect(() => {
     if (!isOpen) return;
     const handleClick = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
+      if (
+        ref.current &&
+        !ref.current.contains(event.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -315,7 +321,7 @@ export const OperatorTipPresetDropdown = ({
   }, [ref, isOpen]);
 
   return (
-    <div className="relative z-10">
+    <div className="relative z-30">
       {/* Custom Dropdown Button */}
       <Row className="space-x-2">
         <Row className="gap-1">
@@ -325,9 +331,10 @@ export const OperatorTipPresetDropdown = ({
           </span>
         </Row>
         <Button
+          ref={buttonRef}
           variant="outline"
           className="rounded-full px-2 py-2 sm:px-2 sm:py-2 flex items-center space-x-2 pinto-sm sm:pinto-sm h-fit border-pinto-gray-2"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => setIsOpen((prev) => !prev)}
         >
           <span>{selectedPreset}</span>
           <ChevronDownIcon className={cn("w-4 h-4", isOpen && "rotate-180 transition-transform duration-200")} />
@@ -336,7 +343,7 @@ export const OperatorTipPresetDropdown = ({
 
       {/* Operator Tip Card - Only visible when open */}
       {isOpen && (
-        <Card ref={ref} className="absolute bottom-full left-1/2 transform -translate-x-1/4 shadow-sm z-20 w-[12rem]">
+        <Card ref={ref} className="absolute bottom-full left-1/2 transform -translate-x-1/4 shadow-sm z-40 w-[12rem]">
           <CardContent className="p-0">
             <div className="p-3">
               <Row className="gap-1 justify-between">
@@ -388,7 +395,7 @@ const OperatorTipPreset = ({
   return (
     <Row
       className={cn(
-        "gap-1 hover:bg-pinto-green-1/50 rounded-lg p-2 cursor-pointer w-full",
+        "gap-2 hover:bg-pinto-green-1/50 rounded-lg p-2 cursor-pointer w-full",
         selected && "bg-pinto-green-1/50",
       )}
       onClick={() => onClick(preset)}
