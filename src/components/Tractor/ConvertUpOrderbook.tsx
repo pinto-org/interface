@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover
 import { Switch } from "@/components/ui/Switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { PINTO } from "@/constants/tokens";
+import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetTractorTokenStrategy";
 import { Blueprint, ConvertUpOrderbookEntry } from "@/lib/Tractor";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
 import useConvertStalkPerBdvBonusAndMaximumCapacity from "@/state/useConvertStalkPerBdvBonusData";
@@ -43,6 +44,8 @@ export function ConvertUpOrderbookContent({
 
   const { data: convertUpData } = useConvertStalkPerBdvBonusAndMaximumCapacity();
 
+  const getStrategyProps = useGetTractorTokenStrategyWithBlueprint();
+
   const { data: orders = [], isLoading } = useTractorConvertUpOrderbook({
     select: useCallback((data: ConvertUpOrderbookEntry[] | undefined) => {
       if (!data || data?.length === 0) return [] satisfies ConvertUpOrderbookEntry[];
@@ -73,7 +76,7 @@ export function ConvertUpOrderbookContent({
       lowStalkDeposits: decodedData.convertUpParams.lowStalkDeposits,
       sourceTokenIndices: decodedData.convertUpParams.sourceTokenIndices,
       operatorTip: decodedData.opParams.operatorTipAmount.toHuman(),
-      tokenStrategy: { type: "LOWEST_SEEDS" }, // Default strategy
+      tokenStrategy: getStrategyProps.getTokenStrategy(decodedData.convertUpParams) || { type: "LOWEST_SEEDS" }, // Default strategy
     };
   };
 
@@ -183,7 +186,7 @@ export function ConvertUpOrderbookContent({
             className="text-pinto-dark underline hover:opacity-80"
             onClick={(e) => e.stopPropagation()}
           >
-            {`0x${order.requisition.blueprint.publisher.slice(2, 7)}...${order.requisition.blueprint.publisher.slice(-4)}`}
+            {`0x${order.requisition.blueprint.publisher.slice(2, 6)}...${order.requisition.blueprint.publisher.slice(-3)}`}
           </a>
         </TableCell>
         <TableCell className="py-2 pr-6 text-right">{formatDate(order.timestamp)}</TableCell>

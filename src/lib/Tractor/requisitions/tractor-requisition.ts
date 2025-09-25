@@ -40,7 +40,7 @@ export const getTractorConvertUpParamsDecimalConfig = (chainId: number) => {
     minTimeBetweenConverts: 0,
     minConvertBonusCapacity: decimals,
     maxGrownStalkPerBdv: STALK.decimals,
-    grownStalkPerBdvBonusBid: STALK.decimals,
+    grownStalkPerBdvBonusBid: STALK.decimals - decimals,
     maxPriceToConvertUp: decimals,
     minPriceToConvertUp: decimals,
     operatorTip: decimals,

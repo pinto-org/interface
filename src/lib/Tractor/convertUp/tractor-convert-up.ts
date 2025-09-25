@@ -341,6 +341,7 @@ export async function loadConvertUpOrderbookData(
     "[TRACTOR/loadConvertUpOrderbookData] Sorted orders:",
     sortedRequisitions.map((req, idx) => ({
       index: idx,
+      req: req,
       publisher: req.requisition.blueprint.publisher,
       meetsConditions: req.meetsConditions,
       tip: req.decodedData?.opParams.operatorTipAmount ? req.decodedData.opParams.operatorTipAmount : "0",
