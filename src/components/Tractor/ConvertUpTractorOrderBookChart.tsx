@@ -72,10 +72,12 @@ export default function ConvertUpTractorOrderBookChart() {
     select: useCallback((data: ConvertUpOrderbookEntry[] | undefined) => {
       if (!data) return [];
       return data.filter((order) => {
-        return (order.withdrawalPlan?.totalAvailableBeans || 0n) > 0n;
+        // return true;
+        return order.totalAvailableBdv.gt(0);
       });
     }, []),
   });
+
   const [minPrice, setMinPrice] = useState(0.001);
   const [maxPrice, setMaxPrice] = useState(0.999);
 
@@ -84,19 +86,19 @@ export default function ConvertUpTractorOrderBookChart() {
   const filteredOrders = React.useMemo(() => {
     if (!orders || !bonusData?.bonus) return [];
 
-    if (priceToggleActive) {
+    if (!priceToggleActive) {
       return orders.filter((order) => {
-        return (
-          order.decodedData?.convertUpParams.minPriceToConvertUp.lte(maxPrice) &&
-          order.decodedData?.convertUpParams.maxPriceToConvertUp.gte(minPrice)
-        );
+        const orderMin = order.decodedData?.convertUpParams.minPriceToConvertUp;
+        const orderMax = order.decodedData?.convertUpParams.maxPriceToConvertUp;
+        if (!orderMin || !orderMax) return false;
+        return orderMin.gt(minPrice) && orderMax.lt(maxPrice);
       });
     }
 
     return orders.filter((order) => {
       if (!order.decodedData) return false;
       const orderMinBonus = order.decodedData.convertUpParams.grownStalkPerBdvBonusBid;
-      return bonusData.bonus.lte(orderMinBonus);
+      return bonusData.bonus.gte(orderMinBonus);
     });
   }, [orders, minPrice, maxPrice]);
 
@@ -120,23 +122,25 @@ export default function ConvertUpTractorOrderBookChart() {
             <span>Price Axis</span>
           </Row>
         </Row>
-        <Col className="gap-4">
-          <TooltipLabel className="pinto-xs" tooltipText={"Price filter"}>
-            {"Price Filter"}
-          </TooltipLabel>
-          <MultiSlider
-            value={[minPrice, maxPrice]}
-            onValueChange={([newMin, newMax]) => {
-              setMinPrice(newMin);
-              setMaxPrice(newMax);
-            }}
-            showThumbValue
-            formatThumbValue={formatThumbValue}
-            step={0.001}
-            min={0.001}
-            max={0.999}
-          />
-        </Col>
+        {!priceToggleActive ? (
+          <Col className="gap-4">
+            <TooltipLabel className="pinto-xs" tooltipText={"Price filter"}>
+              {"Price Filter"}
+            </TooltipLabel>
+            <MultiSlider
+              value={[minPrice, maxPrice]}
+              onValueChange={([newMin, newMax]) => {
+                setMinPrice(newMin);
+                setMaxPrice(newMax);
+              }}
+              showThumbValue
+              formatThumbValue={formatThumbValue}
+              step={0.001}
+              min={0.001}
+              max={0.999}
+            />
+          </Col>
+        ) : null}
       </Col>
       <OrderBook
         bids={bids}

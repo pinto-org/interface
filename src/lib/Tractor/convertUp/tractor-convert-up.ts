@@ -323,15 +323,9 @@ export async function loadConvertUpOrderbookData(
     }
 
     // If same score, prioritize by individual conditions in order: price > bonus > capacity
-    if (a.meetsConditions.price !== b.meetsConditions.price) {
-      return a.meetsConditions.price ? -1 : 1;
-    }
-    if (a.meetsConditions.bonus !== b.meetsConditions.bonus) {
-      return a.meetsConditions.bonus ? -1 : 1;
-    }
-    if (a.meetsConditions.capacity !== b.meetsConditions.capacity) {
-      return a.meetsConditions.capacity ? -1 : 1;
-    }
+    if (a.meetsConditions.price !== b.meetsConditions.price) return a.meetsConditions.price ? -1 : 1;
+    if (a.meetsConditions.bonus !== b.meetsConditions.bonus) return a.meetsConditions.bonus ? -1 : 1;
+    if (a.meetsConditions.capacity !== b.meetsConditions.capacity) return a.meetsConditions.capacity ? -1 : 1;
 
     // If all conditions are the same, sort by blueprint hash (higher first). This way it is deterministic.
     return BigInt(a.requisition.blueprintHash) > BigInt(b.requisition.blueprintHash) ? 1 : -1;
@@ -404,11 +398,11 @@ export async function loadConvertUpOrderbookData(
 
       const filterParams: WithdrawalPlanFilterParams = {
         maxGrownStalkPerBdv: decodedData.convertUpParams.maxGrownStalkPerBdv.toBigInt(),
-        minStem: 0n,
+        minStem: 0n - TV.MAX_INT96.toBigInt(), // negative max stem
         excludeGerminatingDeposits: true,
         excludeBean: true,
         lowStalkDeposits: Number(decodedData.convertUpParams.lowStalkDeposits),
-        lowGrownStalkPerBdv: 0n,
+        lowGrownStalkPerBdv: decodedData.convertUpParams.grownStalkPerBdvBonusBid.toBigInt(),
         maxStem: TV.MAX_INT96.toBigInt(),
         seedDifference: decodedData.convertUpParams.seedDifference.toBigInt(),
       } as const;
@@ -453,6 +447,15 @@ export async function loadConvertUpOrderbookData(
       } catch (error: any) {
         console.warn("Failed to get withdrawal plan:", error?.message || error);
 
+        withdrawalPlan = {
+          sourceTokens: [] as readonly `0x${string}`[],
+          stems: [] as readonly (readonly bigint[])[],
+          amounts: [] as readonly (readonly bigint[])[],
+          availableBeans: [] as readonly bigint[],
+          totalAvailableBeans: 0n,
+        };
+        totalAvailableBdv = TV.ZERO;
+
         // Handle specific error cases
         if (
           error?.message?.includes("No beans available") ||
@@ -460,25 +463,9 @@ export async function loadConvertUpOrderbookData(
           error?.cause?.reason
         ) {
           console.debug("No BDV available for this order or contract reverted, setting available BDV to 0");
-          withdrawalPlan = {
-            sourceTokens: [] as readonly `0x${string}`[],
-            stems: [] as readonly (readonly bigint[])[],
-            amounts: [] as readonly (readonly bigint[])[],
-            availableBeans: [] as readonly bigint[],
-            totalAvailableBeans: 0n,
-          };
-          totalAvailableBdv = TV.ZERO;
         } else {
           // For unexpected errors, still set empty plan to continue processing
           console.error("Unexpected error getting withdrawal plan, continuing with empty plan:", error);
-          withdrawalPlan = {
-            sourceTokens: [] as readonly `0x${string}`[],
-            stems: [] as readonly (readonly bigint[])[],
-            amounts: [] as readonly (readonly bigint[])[],
-            availableBeans: [] as readonly bigint[],
-            totalAvailableBeans: 0n,
-          };
-          totalAvailableBdv = TV.ZERO;
         }
       }
 
