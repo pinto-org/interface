@@ -11,6 +11,7 @@ import { STALK } from "@/constants/internalTokens";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { LowStalkDepositsMode, tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
+import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { formatter } from "@/utils/format";
 import { getTokenIndex } from "@/utils/token";
@@ -18,6 +19,7 @@ import { MayPromise } from "@/utils/types.generic";
 import React, { useRef, useState } from "react";
 import { useFormContext, useFormState, useWatch } from "react-hook-form";
 import { toast } from "sonner";
+import { useAccount } from "wagmi";
 import { CONVERT_UP_TOOLTIP_COPY } from "../form/fields/ConvertUpOrderV0Fields";
 import { OperatorTipFormField, TractorFormButtonsRow, TractorOperatorTipStrategy } from "../form/fields/sharedFields";
 import { ConvertUpV0FormSchema, TractorConvertUpFormKeys, useConvertUpV0State } from "../form/schema/convertUp.schema";
@@ -29,6 +31,7 @@ import { ConvertUpTractorOrderFormStep, useConvertUpOrderFormContext } from "./C
  * The Review form for the Convert Up Order
  */
 
+const empty = {};
 const ConvertUpTractorReviewController = ({
   averageTipPaid,
   didInitAdv,
@@ -43,6 +46,9 @@ const ConvertUpTractorReviewController = ({
     setDraftState,
     onOpenChange,
   } = useConvertUpOrderFormContext();
+  const { address } = useAccount();
+  const { refetch: refetchOrders } = useTractorConvertUpOrderbook(empty);
+  const { refetch: refetchFarmerOrders } = useTractorConvertUpOrderbook({ address });
 
   // Blueprint creation state
   const farmerDeposits = useFarmerSilo();
@@ -240,6 +246,8 @@ const ConvertUpTractorReviewController = ({
           onOpenChange={setShowReviewDialog}
           onSuccess={() => {
             onOpenChange(false);
+            refetchOrders();
+            refetchFarmerOrders();
           }}
           orderData={{
             type: "convertUp" as const,
