@@ -136,7 +136,7 @@ export function parsePasteInstructions(requisition: TractorRequisitionEvent): Pa
 export async function getAverageTipPaid(
   publicClient: PublicClient,
   currentBlock: MinimumViableBlock<bigint>,
-  lookbackBlocks: bigint = TIME_TO_BLOCKS.fortnight,
+  lookbackBlocks: bigint = TIME_TO_BLOCKS.month * 2n,
 ): Promise<number> {
   console.debug("[Tractor/getAverageTipPaid] FETCHING", { currentBlock, lookbackBlocks });
 
@@ -153,6 +153,8 @@ export async function getAverageTipPaid(
       fromBlock,
       toBlock: "latest",
     });
+
+    console.log("[Tractor/getAverageTipPaid]", events);
 
     // If no events found, return default value of 1
     if (events.length === 0) {

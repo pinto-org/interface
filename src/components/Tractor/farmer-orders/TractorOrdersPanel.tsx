@@ -10,6 +10,7 @@ import { PublisherTractorExecution } from "@/lib/Tractor";
 import type { Blueprint } from "@/lib/Tractor";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
 import usePublisherTractorExecutions from "@/state/tractor/useTractorExecutions";
+import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useTractorSowOrderbook } from "@/state/tractor/useTractorSowOrders";
 import { tryExtractErrorMessage } from "@/utils/error";
 import { stringEq } from "@/utils/string";
@@ -58,6 +59,8 @@ function TractorOrdersPanelGeneric({
   const { address } = useAccount();
   const protocolAddress = useProtocolAddress();
   const getStrategyProps = useGetTractorTokenStrategyWithBlueprint();
+
+  const averageTipPaid = useTractorOperatorAverageTipPaid();
 
   // State for dialogs and filters
   const [selectedOrder, setSelectedOrder] = useState<UnifiedTractorOrder | null>(null);
@@ -119,9 +122,9 @@ function TractorOrdersPanelGeneric({
           unified.push(transformSowOrderToUnified(reqWithDecodedData, orderExecutions));
         });
     }
-
     // Process ConvertUp orders
     if (filters.orderTypes.includes("convertUp") && convertUpOrders) {
+      console.log("convertUpOrders", convertUpOrders);
       convertUpOrders
         .filter((req) => stringEq(req.requisition.blueprint.publisher, address))
         .forEach((req) => {
@@ -135,10 +138,15 @@ function TractorOrdersPanelGeneric({
 
           unified.push(transformConvertUpOrderToUnified(reqWithDecodedData, orderExecutions));
         });
+
+      console.log("unified", unified);
+      console.log("executionsByHash", executionsByHash);
     }
 
     // Apply filters and sorting
     const filtered = filterUnifiedOrders(unified, filters);
+
+    console.log("filtered", filtered);
     return sortUnifiedOrders(filtered, currentSortBy);
   }, [sowOrders, convertUpOrders, executions, address, filters, currentSortBy, executionsByHash]);
 

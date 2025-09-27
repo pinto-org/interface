@@ -9,7 +9,6 @@ import { Separator } from "@/components/ui/Separator";
 import { SEEDS, STALK } from "@/constants/internalTokens";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
-import { useWells } from "@/hooks/wells/wells";
 import {
   tractorTokenStrategyUtil as StrategyUtil,
   TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS,
@@ -17,12 +16,10 @@ import {
   calculateConvertUpBonusGrownStalk,
 } from "@/lib/Tractor";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
-import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import { useMainToken } from "@/state/useTokenData";
 import { postSanitizedSanitizedValue } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
-import { Token } from "@/utils/types";
 import { useCallback, useMemo, useState } from "react";
 import { useFormContext, useFormState, useWatch } from "react-hook-form";
 import TractorTokenStrategyDialog from "../TractorTokenStrategyDialog";
@@ -50,7 +47,6 @@ const ConvertUpTractorEntryForm = ({
   const [showTokenStrategyDialog, setShowTokenStrategyDialog] = useState(false);
   const mainToken = useMainToken();
   const tokenMap = useTokenMap();
-  const wells = useWells();
 
   const {
     errors: { minPriceToConvertUp, maxPriceToConvertUp },
@@ -152,7 +148,7 @@ const ConvertUpTractorEntryForm = ({
             <Fields.PriceRange />
             <Col className="gap-3">
               <Fields.GrownStalkPerBdvBonusBid />
-              <EstimatedSeasonsOfGrownStalk siloData={siloData} wells={wells} />
+              <EstimatedSeasonsOfGrownStalk siloData={siloData} />
             </Col>
           </>
         </Col>
@@ -232,10 +228,8 @@ const ButtonRow = ({
  */
 const EstimatedSeasonsOfGrownStalk = ({
   siloData,
-  wells,
 }: {
   siloData: ReturnType<typeof useSiloData>;
-  wells: ReturnType<typeof useWells>;
 }) => {
   const { form } = useConvertUpOrderFormContext();
   const mainToken = useMainToken();
