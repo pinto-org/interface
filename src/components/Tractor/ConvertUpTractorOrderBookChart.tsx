@@ -63,6 +63,10 @@ const formatThumbValue = (value: number) => {
   return `$${value}`;
 };
 
+const formatBonusThumbValue = (value: number) => {
+  return value.toFixed(4);
+};
+
 export default function ConvertUpTractorOrderBookChart() {
   const [priceToggleActive, setPriceToggleActive] = useState(false);
 
@@ -80,13 +84,40 @@ export default function ConvertUpTractorOrderBookChart() {
 
   const [minPrice, setMinPrice] = useState(0.001);
   const [maxPrice, setMaxPrice] = useState(0.999);
+  const [minBonus, setMinBonus] = useState(0);
+  const [maxBonus, setMaxBonus] = useState(1);
 
   const isLoading = isBonusLoading || isOrdersLoading;
+
+  // Calculate max bonus from all orders
+  const maxBonusFromOrders = React.useMemo(() => {
+    if (!orders || orders.length === 0) return 1;
+
+    let max = 0;
+    for (const order of orders) {
+      if (order.decodedData?.convertUpParams?.grownStalkPerBdvBonusBid) {
+        const bonusValue = Number(order.decodedData.convertUpParams.grownStalkPerBdvBonusBid.toHuman());
+        max = Math.max(max, bonusValue);
+      }
+    }
+
+    // If current bonus is larger than max from orders, use current bonus as max
+    const currentBonusValue = bonusData?.bonus ? Number(bonusData.bonus.toHuman()) : 0;
+    max = Math.max(max, currentBonusValue);
+
+    return max > 0 ? max : 1;
+  }, [orders, bonusData?.bonus]);
+
+  // Update maxBonus when orders change
+  React.useEffect(() => {
+    setMaxBonus(maxBonusFromOrders);
+  }, [maxBonusFromOrders]);
 
   const filteredOrders = React.useMemo(() => {
     if (!orders || !bonusData?.bonus) return [];
 
     if (!priceToggleActive) {
+      // Bonus mode - filter by price
       return orders.filter((order) => {
         const orderMin = order.decodedData?.convertUpParams.minPriceToConvertUp;
         const orderMax = order.decodedData?.convertUpParams.maxPriceToConvertUp;
@@ -95,12 +126,19 @@ export default function ConvertUpTractorOrderBookChart() {
       });
     }
 
+    // Price mode - filter by bonus
     return orders.filter((order) => {
       if (!order.decodedData) return false;
       const orderMinBonus = order.decodedData.convertUpParams.grownStalkPerBdvBonusBid;
-      return bonusData.bonus.gte(orderMinBonus);
+      const orderBonusValue = Number(orderMinBonus.toHuman());
+
+      // Filter by current bonus and by bonus slider range
+      const passesCurrentBonus = bonusData.bonus.gte(orderMinBonus);
+      const passesBonusFilter = orderBonusValue >= minBonus && orderBonusValue <= maxBonus;
+
+      return passesCurrentBonus && passesBonusFilter;
     });
-  }, [orders, minPrice, maxPrice]);
+  }, [orders, minPrice, maxPrice, minBonus, maxBonus, bonusData?.bonus, priceToggleActive]);
 
   // Transform the tractor data into the format needed for OrderBook
   const { bids, asks } = React.useMemo(
@@ -140,7 +178,25 @@ export default function ConvertUpTractorOrderBookChart() {
               max={0.999}
             />
           </Col>
-        ) : null}
+        ) : (
+          <Col className="gap-4">
+            <TooltipLabel className="pinto-xs" tooltipText={"Bonus filter"}>
+              {"Bonus Filter"}
+            </TooltipLabel>
+            <MultiSlider
+              value={[minBonus, maxBonus]}
+              onValueChange={([newMin, newMax]) => {
+                setMinBonus(newMin);
+                setMaxBonus(newMax);
+              }}
+              showThumbValue
+              formatThumbValue={formatBonusThumbValue}
+              step={0.0001}
+              min={0}
+              max={maxBonusFromOrders}
+            />
+          </Col>
+        )}
       </Col>
       <OrderBook
         bids={bids}

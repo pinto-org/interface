@@ -19,8 +19,6 @@ export default function ConvertUpExecutionHistory({ executionHistory, orderData 
     throw new Error("ConvertUpExecutionHistory requires convertUp order data");
   }
 
-  console.log("executionHistory", executionHistory);
-
   const executionEvents = useMemo(() => {
     const k = (executionHistory as any[]).map((exec) => {
       return {
@@ -36,7 +34,6 @@ export default function ConvertUpExecutionHistory({ executionHistory, orderData 
         },
       };
     });
-    console.log("executionEvents", k);
     return k as (ExecutionData & ConvertUpExecutionEvent)[];
   }, []);
 
