@@ -8,6 +8,7 @@ import React, { useCallback, useState } from "react";
 import { Col, Row } from "../Container";
 import OrderBook, { OrderbookColumnConfig } from "../OrderBook";
 import { Card } from "../ui/Card";
+import { Input } from "../ui/Input";
 import { TooltipLabel } from "../ui/Label";
 import { MultiSlider } from "../ui/Slider";
 import { Switch } from "../ui/Switch";
@@ -26,8 +27,6 @@ interface TractorOrder {
   price: TV; // For price mode display
   order: OrderBookEntry;
 }
-
-const empty = {};
 
 const bonusColumns: OrderbookColumnConfig<TractorOrder>[] = [
   {
@@ -63,6 +62,10 @@ const formatThumbValue = (value: number) => {
   return `$${value}`;
 };
 
+const formatBonusThumbValue = (value: number) => {
+  return value.toFixed(4);
+};
+
 export default function ConvertUpTractorOrderBookChart() {
   const [priceToggleActive, setPriceToggleActive] = useState(false);
 
@@ -80,13 +83,67 @@ export default function ConvertUpTractorOrderBookChart() {
 
   const [minPrice, setMinPrice] = useState(0.001);
   const [maxPrice, setMaxPrice] = useState(0.999);
+  const [minBonus, setMinBonus] = useState(0);
+  const [maxBonus, setMaxBonus] = useState(1);
 
   const isLoading = isBonusLoading || isOrdersLoading;
+
+  // Calculate max bonus from all orders
+  const maxBonusFromOrders = React.useMemo(() => {
+    if (!orders || orders.length === 0) return 1;
+
+    let max = 0;
+    for (const order of orders) {
+      if (order.decodedData?.convertUpParams?.grownStalkPerBdvBonusBid) {
+        const bonusValue = Number(order.decodedData.convertUpParams.grownStalkPerBdvBonusBid.toHuman());
+        max = Math.max(max, bonusValue);
+      }
+    }
+
+    // If current bonus is larger than max from orders, use current bonus as max
+    const currentBonusValue = bonusData?.bonus ? Number(bonusData.bonus.toHuman()) : 0;
+    max = Math.max(max, currentBonusValue);
+
+    return max > 0 ? max : 1;
+  }, [orders, bonusData?.bonus]);
+
+  // Update maxBonus when orders change
+  React.useEffect(() => {
+    setMaxBonus(maxBonusFromOrders);
+  }, [maxBonusFromOrders]);
+
+  // Input change handlers with validation
+  const handlePriceInputChange = (value: string, isMin: boolean) => {
+    const numValue = parseFloat(value);
+    if (Number.isNaN(numValue)) return;
+
+    const clampedValue = Math.max(0.001, Math.min(0.999, numValue));
+
+    if (isMin) {
+      setMinPrice(Math.min(clampedValue, maxPrice));
+    } else {
+      setMaxPrice(Math.max(clampedValue, minPrice));
+    }
+  };
+
+  const handleBonusInputChange = (value: string, isMin: boolean) => {
+    const numValue = parseFloat(value);
+    if (Number.isNaN(numValue)) return;
+
+    const clampedValue = Math.max(0, Math.min(maxBonusFromOrders, numValue));
+
+    if (isMin) {
+      setMinBonus(Math.min(clampedValue, maxBonus));
+    } else {
+      setMaxBonus(Math.max(clampedValue, minBonus));
+    }
+  };
 
   const filteredOrders = React.useMemo(() => {
     if (!orders || !bonusData?.bonus) return [];
 
     if (!priceToggleActive) {
+      // Bonus mode - filter by price
       return orders.filter((order) => {
         const orderMin = order.decodedData?.convertUpParams.minPriceToConvertUp;
         const orderMax = order.decodedData?.convertUpParams.maxPriceToConvertUp;
@@ -95,12 +152,19 @@ export default function ConvertUpTractorOrderBookChart() {
       });
     }
 
+    // Price mode - filter by bonus
     return orders.filter((order) => {
       if (!order.decodedData) return false;
       const orderMinBonus = order.decodedData.convertUpParams.grownStalkPerBdvBonusBid;
-      return bonusData.bonus.gte(orderMinBonus);
+      const orderBonusValue = Number(orderMinBonus.toHuman());
+
+      // Filter by current bonus and by bonus slider range
+      const passesCurrentBonus = bonusData.bonus.gte(orderMinBonus);
+      const passesBonusFilter = orderBonusValue >= minBonus && orderBonusValue <= maxBonus;
+
+      return passesCurrentBonus && passesBonusFilter;
     });
-  }, [orders, minPrice, maxPrice]);
+  }, [orders, minPrice, maxPrice, minBonus, maxBonus, bonusData?.bonus, priceToggleActive]);
 
   // Transform the tractor data into the format needed for OrderBook
   const { bids, asks } = React.useMemo(
@@ -123,24 +187,104 @@ export default function ConvertUpTractorOrderBookChart() {
           </Row>
         </Row>
         {!priceToggleActive ? (
-          <Col className="gap-4">
+          <Col className="gap-2">
             <TooltipLabel className="pinto-xs" tooltipText={"Price filter"}>
               {"Price Filter"}
             </TooltipLabel>
-            <MultiSlider
-              value={[minPrice, maxPrice]}
-              onValueChange={([newMin, newMax]) => {
-                setMinPrice(newMin);
-                setMaxPrice(newMax);
-              }}
-              showThumbValue
-              formatThumbValue={formatThumbValue}
-              step={0.001}
-              min={0.001}
-              max={0.999}
-            />
+            <Row className="gap-8 items-center">
+              <MultiSlider
+                value={[minPrice, maxPrice]}
+                onValueChange={([newMin, newMax]) => {
+                  setMinPrice(newMin);
+                  setMaxPrice(newMax);
+                }}
+                showThumbValue
+                formatThumbValue={formatThumbValue}
+                step={0.001}
+                min={0.001}
+                max={0.999}
+                className="flex-1"
+              />
+              <Row className="gap-3 shrink-0">
+                <Col className="gap-1 w-24">
+                  <span className="pinto-xs text-pinto-light">Min</span>
+                  <Input
+                    type="number"
+                    step={0.001}
+                    min={0.001}
+                    max={0.999}
+                    value={minPrice.toFixed(3)}
+                    onChange={(e) => handlePriceInputChange(e.target.value, true)}
+                    className="h-8 text-sm"
+                    outlined={true}
+                  />
+                </Col>
+                <Col className="gap-1 w-24">
+                  <span className="pinto-xs text-pinto-light">Max</span>
+                  <Input
+                    type="number"
+                    step={0.001}
+                    min={0.001}
+                    max={0.999}
+                    value={maxPrice.toFixed(3)}
+                    onChange={(e) => handlePriceInputChange(e.target.value, false)}
+                    className="h-8 text-sm"
+                    outlined={true}
+                  />
+                </Col>
+              </Row>
+            </Row>
           </Col>
-        ) : null}
+        ) : (
+          <Col className="gap-2">
+            <TooltipLabel className="pinto-xs" tooltipText={"Bonus filter"}>
+              {"Bonus Filter"}
+            </TooltipLabel>
+            <Row className="gap-8 items-center">
+              <MultiSlider
+                value={[minBonus, maxBonus]}
+                onValueChange={([newMin, newMax]) => {
+                  setMinBonus(newMin);
+                  setMaxBonus(newMax);
+                }}
+                showThumbValue
+                formatThumbValue={formatBonusThumbValue}
+                step={0.0001}
+                min={0}
+                max={maxBonusFromOrders}
+                className="flex-1"
+              />
+              <Row className="gap-3 shrink-0">
+                <Col className="gap-1 w-24">
+                  <span className="pinto-xs text-pinto-light">Min</span>
+                  <Input
+                    type="number"
+                    step={0.0001}
+                    min={0}
+                    max={maxBonusFromOrders}
+                    value={minBonus.toFixed(4)}
+                    onChange={(e) => handleBonusInputChange(e.target.value, true)}
+                    className="h-8 text-sm"
+                    outlined={true}
+                  />
+                </Col>
+                <Col className="gap-1 w-24">
+                  <span className="pinto-xs text-pinto-light">Max</span>
+                  <Input
+                    type="number"
+                    step={0.0001}
+                    min={0}
+                    max={maxBonusFromOrders}
+                    value={maxBonus.toFixed(4)}
+                    onChange={(e) => handleBonusInputChange(e.target.value, false)}
+                    className="h-8 text-sm"
+                    outlined={true}
+                  />
+                </Col>
+              </Row>
+            </Row>
+          </Col>
+        )}
       </Col>
       <OrderBook
         bids={bids}

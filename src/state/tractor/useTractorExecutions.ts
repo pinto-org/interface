@@ -120,7 +120,7 @@ export default function usePublisherTractorExecutions(
         executionData?.lastUpdated,
       );
 
-      return fetchPublisherTractorExecutionEvents(
+      const executions = await fetchPublisherTractorExecutionEvents(
         client,
         diamond,
         publisher,
@@ -128,6 +128,8 @@ export default function usePublisherTractorExecutions(
         latestBlock,
         lookbackBlocks,
       );
+
+      return executions;
     },
     enabled: executionsChainQueryEnabled && enabled,
     select: mergeExecutions,

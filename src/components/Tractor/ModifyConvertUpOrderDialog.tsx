@@ -215,7 +215,6 @@ function ModifyConvertUpOrderProvider({
         tokenStrategy = getStrategyProps.getTokenStrategy({
           sourceTokenIndices: existingOrder.decodedData.convertUpParams.sourceTokenIndices,
         });
-        console.log("Token strategy:", tokenStrategy);
       } catch (strategyError) {
         console.error("Error getting token strategy:", strategyError);
         tokenStrategy = { type: "LOWEST_SEEDS" as const };
@@ -243,7 +242,7 @@ function ModifyConvertUpOrderProvider({
 
       // Map the decoded data to form schema
       form.prefillValues(prefillValues);
-      console.log("Form prefilled successfully");
+      console.debug("Form prefilled successfully");
       setDidPrefill(true);
     } catch (error) {
       console.error("Failed to pre-fill form with existing order data:", error);

@@ -34,27 +34,29 @@ const BaseIcon = () => (
 const SowOrderDescription = ({ isViewOnly }: { isViewOnly: boolean }) => {
   if (isViewOnly) {
     return (
-      <div>
+      <span>
         This is your active Sow Order. It allows an Operator to execute a transaction for you on the{" "}
         <span className="whitespace-nowrap">
           <BaseIcon /> Base&nbsp;
         </span>
         network when the conditions are met.
-      </div>
+      </span>
     );
   }
 
   return (
-    <Col className="gap-3">
-      <div>
+    <span className="flex flex-col gap-3">
+      <span>
         A Sow Order allows you to pay an Operator to execute a sowing transaction for you on the{" "}
         <span className="whitespace-nowrap">
           <BaseIcon /> Base&nbsp;
         </span>
         network.
-      </div>
-      <p>This allows you to interact with the Pinto protocol autonomously when the conditions of your Order are met.</p>
-    </Col>
+      </span>
+      <span>
+        This allows you to interact with the Pinto protocol autonomously when the conditions of your Order are met.
+      </span>
+    </span>
   );
 };
 
@@ -62,30 +64,30 @@ const SowOrderDescription = ({ isViewOnly }: { isViewOnly: boolean }) => {
 const ConvertUpOrderDescription = ({ isViewOnly }: { isViewOnly: boolean }) => {
   if (isViewOnly) {
     return (
-      <div>
+      <span>
         This is your active Convert Order. It allows an Operator to execute convert transactions for you on the{" "}
         <span className="whitespace-nowrap">
           <BaseIcon /> Base&nbsp;
         </span>
         network when the conditions are met.
-      </div>
+      </span>
     );
   }
 
   return (
-    <Col className="gap-3">
-      <div>
+    <span className="flex flex-col gap-3">
+      <span>
         A Convert Order allows you to pay an Operator to execute convert transactions for you on the{" "}
         <span className="whitespace-nowrap">
           <BaseIcon /> Base&nbsp;
         </span>
         network.
-      </div>
-      <div>
+      </span>
+      <span>
         This allows you to automatically convert your LP assets for bonus Grown Stalk when market conditions are
         favorable.
-      </div>
-    </Col>
+      </span>
+    </span>
   );
 };
 
