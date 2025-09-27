@@ -144,11 +144,9 @@ export async function fetchPublisherTractorExecutionEvents(
               break;
             } else if (decoded.eventName === "Convert") {
               console.debug("[Tractor/fetchTractorExecutions] Skipping log:", {
-                eventNAme: decoded.eventName,
+                eventName: decoded.eventName,
                 log,
               });
-
-              console.log("convert decoded.args", decoded.args);
 
               const fromToken = tokenMap[getTokenIndex(decoded.args.fromToken)];
               const toToken = tokenMap[getTokenIndex(decoded.args.toToken)];
@@ -163,8 +161,6 @@ export async function fetchPublisherTractorExecutionEvents(
                 toBdv: TV.fromBigInt(decoded.args.toBdv, mainToken.decimals),
               };
             } else if (decoded.eventName === "ConvertUpBonus") {
-              console.log("convertUpBonus decoded.args", decoded.args);
-
               bonusData = {
                 account: decoded.args.account,
                 grownStalkGained: TV.fromBigInt(decoded.args.grownStalkGained, STALK.decimals),

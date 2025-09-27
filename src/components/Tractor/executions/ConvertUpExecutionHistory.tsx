@@ -1,7 +1,10 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { formatter } from "@/utils/format";
+import { getTokenIndex } from "@/utils/token";
 import { format } from "date-fns";
-import { ConvertUpOrderData, ExecutionHistoryProps } from "../types";
+import { useMemo } from "react";
+import { ConvertUpExecutionEvent, ConvertUpOrderData, ExecutionData, ExecutionHistoryProps } from "../types";
 
 // Helper function to shorten addresses
 function shortenAddress(address: string): string {
@@ -9,10 +12,30 @@ function shortenAddress(address: string): string {
 }
 
 export default function ConvertUpExecutionHistory({ executionHistory, orderData }: ExecutionHistoryProps) {
+  const tokenMap = useTokenMap();
+
   // Type guard to ensure we have convert up order data
   if (orderData.type !== "convertUp") {
     throw new Error("ConvertUpExecutionHistory requires convertUp order data");
   }
+
+  const executionEvents = useMemo(() => {
+    const k = (executionHistory as any[]).map((exec) => {
+      return {
+        ...exec,
+        type: "convertUp",
+        event: {
+          account: exec.publisher,
+          fromToken: exec.convertUpEvent.fromToken,
+          toToken: exec.convertUpEvent.toToken,
+          fromAmount: exec.convertUpEvent.fromAmount,
+          toAmount: exec.convertUpEvent.toAmount,
+          bdv: exec.bonusEvent?.bdvConverted || 0n,
+        },
+      };
+    });
+    return k as (ExecutionData & ConvertUpExecutionEvent)[];
+  }, []);
 
   const convertData = orderData as ConvertUpOrderData;
 
@@ -23,13 +46,12 @@ export default function ConvertUpExecutionHistory({ executionHistory, orderData 
   };
 
   // Calculate total results from execution history for convert up
-  const totalBdvConverted = executionHistory.reduce((acc, exec) => {
+  const totalBdvConverted = executionEvents.reduce((acc, exec) => {
+    console.log("exec", exec);
     // For ConvertUp, we'd need to look at the convert event data
     // This is a placeholder - in reality we'd extract the BDV amount from the convert event
-    if (exec.event?.type === "convertUp") {
-      return acc.add(exec.event.data.bdv || 0);
-    }
-    return acc;
+
+    return acc.add((exec as any)?.bonusEvent?.bdvConverted || 0n);
   }, TokenValue.ZERO);
 
   const totalExecutions = executionHistory.length;
@@ -130,7 +152,7 @@ export default function ConvertUpExecutionHistory({ executionHistory, orderData 
             </tr>
           </thead>
           <tbody>
-            {[...executionHistory]
+            {executionEvents
               .sort((a, b) => {
                 // If timestamps are available, use those for sorting
                 if (a.timestamp && b.timestamp) {
@@ -139,29 +161,31 @@ export default function ConvertUpExecutionHistory({ executionHistory, orderData 
                 // Otherwise fall back to block numbers
                 return b.blockNumber - a.blockNumber;
               })
-              .map((execution, index) => {
+              .map((_convertEvent, index) => {
+                const convertEvent = _convertEvent as any;
                 // For ConvertUp executions, we'd extract convert-specific data
-                const convertEvent = execution.event?.type === "convertUp" ? execution.event.data : null;
 
                 return (
                   <tr key={index} className="hover:bg-gray-50 border-b">
                     <td className="px-4 py-3 font-medium">#{executionHistory.length - index}</td>
                     <td className="px-4 py-3 text-right">
-                      {convertEvent ? formatter.number(convertEvent.bdv) : "0 PDV"}
+                      {convertEvent ? formatter.number(convertEvent.event?.bdv) : "0 PDV"}
                     </td>
                     <td className="px-4 py-3 text-right text-gray-500">
-                      {convertEvent ? shortenAddress(convertEvent.fromToken) : "N/A"}
+                      {convertEvent ? tokenMap[getTokenIndex(convertEvent.event.fromToken)]?.symbol : "N/A"}
                     </td>
                     <td className="px-4 py-3 text-right text-gray-500">
-                      {convertEvent ? shortenAddress(convertEvent.toToken) : "N/A"}
+                      {convertEvent ? tokenMap[getTokenIndex(convertEvent.event.toToken)]?.symbol : "N/A"}
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-500">{shortenAddress(execution.operator)}</td>
+                    <td className="px-4 py-3 text-right text-gray-500">{shortenAddress(convertEvent.operator)}</td>
                     <td className="px-4 py-3 text-right text-gray-500">
-                      {execution.timestamp ? formatDate(execution.timestamp) : `Block ${execution.blockNumber}`}
+                      {convertEvent.timestamp
+                        ? formatDate(convertEvent.timestamp)
+                        : `Block ${convertEvent.blockNumber}`}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <a
-                        href={`https://basescan.org/tx/${execution.transactionHash}`}
+                        href={`https://basescan.org/tx/${convertEvent.transactionHash}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-pinto-green-4 hover:underline text-sm"

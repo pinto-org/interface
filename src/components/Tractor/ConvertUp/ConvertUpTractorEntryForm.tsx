@@ -13,6 +13,7 @@ import {
   tractorTokenStrategyUtil as StrategyUtil,
   TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS,
   TractorTokenStrategy,
+  calculateConvertUpBonusGrownStalk,
 } from "@/lib/Tractor";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
@@ -225,20 +226,33 @@ const ButtonRow = ({
  * Isolated component that displays the estimated number of seasons of grown stalk that will be gained
  * given the current form values.
  */
-const EstimatedSeasonsOfGrownStalk = ({ siloData }: { siloData: ReturnType<typeof useSiloData> }) => {
+const EstimatedSeasonsOfGrownStalk = ({
+  siloData,
+}: {
+  siloData: ReturnType<typeof useSiloData>;
+}) => {
   const { form } = useConvertUpOrderFormContext();
+  const mainToken = useMainToken();
 
-  const value = useWatch({
-    control: form.control,
-    name: "grownStalkPerBdvBonusBid",
-  });
+  const totalConvertBdv = useWatch({ control: form.control, name: "totalBeanAmountToConvert" });
 
-  const tokenStrategies = useWatch({
-    control: form.control,
-    name: "tokenStrategy",
-  });
+  const value = useWatch({ control: form.control, name: "grownStalkPerBdvBonusBid" });
 
-  const approxGrownStalk = 0;
+  // IN TERMS OF PINTO GROWN STALK / SEASON
+  const seasonsOfGrownStalk = useMemo(() => {
+    const tokenData = siloData.tokenData.get(mainToken);
+    const seeds = tokenData?.rewards.seeds;
+    if (!seeds) {
+      return "0";
+    }
+
+    const totalConverted = postSanitizedSanitizedValue(totalConvertBdv, mainToken.decimals).tv;
+    const bonusGrownStalkPerBdv = postSanitizedSanitizedValue(value, STALK.decimals - mainToken.decimals).tv;
+    const totalGrownStalk = calculateConvertUpBonusGrownStalk(totalConverted, bonusGrownStalkPerBdv);
+    const seasons = totalGrownStalk.div(seeds);
+
+    return seasons.lt(1) ? "< 1" : seasons.toNumber().toFixed(0);
+  }, [totalConvertBdv, value, mainToken.decimals]);
 
   return (
     <Row className="w-full justify-between">
@@ -249,7 +263,7 @@ const EstimatedSeasonsOfGrownStalk = ({ siloData }: { siloData: ReturnType<typeo
           variant="outlined"
         />
       </Row>
-      <div className="pinto-sm-light text-pinto-green-4">~ {approxGrownStalk} TODO</div>
+      <div className="pinto-sm-light text-pinto-green-4">~ {seasonsOfGrownStalk}</div>
     </Row>
   );
 };
