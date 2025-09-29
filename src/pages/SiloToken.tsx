@@ -241,16 +241,17 @@ const ConvertUpTractorCard = ({
       <AnimatePresence mode="wait">
         {open && (
           <div
-            className={
-              "absolute inset-0 flex w-full items-center justify-center sm:items-end sm:pb-0 lg:items-center lg:pb-0 z-20"
-            }
+            className={cn(
+              "absolute inset-0 flex w-full items-center justify-center sm:items-end sm:pb-0 lg:items-center lg:pb-0 z-20",
+              !isSmToLg && "-top-[23.5rem]",
+            )}
           >
             <motion.div
               initial={{ opacity: 0, scaleY: 0 }}
               animate={{ opacity: 1, scaleY: 1 }}
               exit={{ opacity: 0, scaleY: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="flex flex-col w-full -mt-32"
+              className="flex flex-col w-full"
               style={{ transformOrigin: isSmToLg ? "50% 100%" : "50% 70%" }}
             >
               <div className={cn("flex w-full sm:px-8 lg:px-4")}>
