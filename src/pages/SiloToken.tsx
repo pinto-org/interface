@@ -250,7 +250,7 @@ const ConvertUpTractorCard = ({
               animate={{ opacity: 1, scaleY: 1 }}
               exit={{ opacity: 0, scaleY: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="flex flex-col w-full"
+              className="flex flex-col w-full -mt-32"
               style={{ transformOrigin: isSmToLg ? "50% 100%" : "50% 70%" }}
             >
               <div className={cn("flex w-full sm:px-8 lg:px-4")}>
