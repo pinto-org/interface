@@ -22,6 +22,7 @@ import NewUserView from "./pages/overview/NewUserView";
 
 import Footer from "@/components/Footer";
 import { MobileActionBarProvider } from "@/components/MobileActionBarContext";
+import DevToolsInstall from "./pages/DevToolsInstall";
 import { useMetaCRM } from "./utils/meta-crm";
 
 function AppLayout({ children }) {
@@ -154,6 +155,7 @@ function ProtectedLayout() {
         }
       />
       {isDev() && <Route path="/dev" element={<DevPage />} />}
+      {isDev() && <Route path="/dev-tools-install" element={<DevToolsInstall />} />}
       <Route
         path="*"
         element={

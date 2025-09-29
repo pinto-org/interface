@@ -23,7 +23,7 @@ import { isDev, isLocalhost } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { useEffect, useMemo, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   http,
@@ -41,6 +41,7 @@ import { base, hardhat } from "viem/chains";
 import { useAccount, useBlockNumber, useChainId, usePublicClient, useWalletClient } from "wagmi";
 import { Col, Row } from "./Container";
 import MorningCard from "./MorningCard";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/Accordion";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { Input } from "./ui/Input";
@@ -529,6 +530,18 @@ export default function DevPage() {
             Price is zero, likely due to oracle timeout. Try clicking the Update Oracle Timeouts button.
           </div>
         )}
+
+        <Card className="p-6 flex flex-row gap-4 items-center justify-between">
+          <Col className="gap-2">
+            <h2 className="text-2xl">Need to set up your dev environment?</h2>
+            <p className="pinto-sm text-gray-500">
+              Set up your dev environment by installing the necessary tools and cloning the protocol repository.
+            </p>
+          </Col>
+          <Button asChild variant="default">
+            <Link to="/dev-tools-install">View Instructions</Link>
+          </Button>
+        </Card>
 
         {/* Basic Actions */}
         <Card className="p-6">

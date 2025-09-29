@@ -46,15 +46,18 @@ type UseTractorConvertOrderbookOptions<T = ConvertUpOrderbookEntry[]> = {
   enabled?: boolean;
 } & Pick<QueryObserverOptions<any[] | undefined, DefaultError, T>, "select">;
 
-export function useTractorConvertUpOrderbook<T = ConvertUpOrderbookEntry[]>({
-  select,
-  ...params
-}: UseTractorConvertOrderbookOptions<T>) {
+const empty: UseTractorConvertOrderbookOptions<ConvertUpOrderbookEntry[]> = {
+  enabled: true,
+};
+
+export function useTractorConvertUpOrderbook<T = ConvertUpOrderbookEntry[]>(
+  params?: UseTractorConvertOrderbookOptions<T>,
+) {
   const chainId = useChainId();
   const client = usePublicClient({ chainId });
   const diamond = useProtocolAddress();
 
-  const { address, chainOnly = false, enabled = true } = params;
+  const { address, chainOnly = false, enabled } = params ?? empty;
 
   const ordersChainQuery = useQuery({
     queryKey: ["tractor", "convertup", address ?? "0x"],
@@ -69,7 +72,7 @@ export function useTractorConvertUpOrderbook<T = ConvertUpOrderbookEntry[]>({
       return events;
     },
     enabled: enabled && !!client,
-    select,
+    select: params?.select,
     ...defaultQuerySettingsMedium,
   });
 

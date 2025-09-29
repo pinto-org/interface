@@ -31,7 +31,6 @@ import { ConvertUpTractorOrderFormStep, useConvertUpOrderFormContext } from "./C
  * The Review form for the Convert Up Order
  */
 
-const empty = {};
 const ConvertUpTractorReviewController = ({
   averageTipPaid,
   didInitAdv,
@@ -47,7 +46,7 @@ const ConvertUpTractorReviewController = ({
     onOpenChange,
   } = useConvertUpOrderFormContext();
   const { address } = useAccount();
-  const { refetch: refetchOrders } = useTractorConvertUpOrderbook(empty);
+  const { refetch: refetchOrders } = useTractorConvertUpOrderbook();
   const { refetch: refetchFarmerOrders } = useTractorConvertUpOrderbook({ address });
 
   // Blueprint creation state
