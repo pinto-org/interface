@@ -15,7 +15,7 @@ const getLookbackBlocks = (
 ) => {
   if (chainOnly || error || !lastUpdatedBlock) return undefined;
   if (isDev()) {
-    return TIME_TO_BLOCKS.day;
+    return TIME_TO_BLOCKS.month;
   }
   const diff = currentBlock - BigInt(lastUpdatedBlock);
   return diff > 0n ? diff : undefined;

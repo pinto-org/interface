@@ -55,7 +55,7 @@ export async function fetchPublisherTractorExecutionEvents(
 
   const defaultFromBlock = reqTypes.has("sowBlueprintv0")
     ? TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE.sowBlueprintv0
-    : TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE.convertUpBlueprint;
+    : TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE.sowBlueprintv0;
 
   let fromBlock: bigint = defaultFromBlock;
 

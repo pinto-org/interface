@@ -4,7 +4,7 @@ import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertU
 import useConvertStalkPerBdvBonusAndMaximumCapacity from "@/state/useConvertStalkPerBdvBonusData";
 import { formatter } from "@/utils/format";
 import { exists } from "@/utils/utils";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect, useMemo } from "react";
 import { Col, Row } from "../Container";
 import OrderBook, { OrderbookColumnConfig } from "../OrderBook";
 import { Card } from "../ui/Card";
@@ -81,6 +81,7 @@ export default function ConvertUpTractorOrderBookChart() {
     }, []),
   });
 
+  const [didSetMaxBonus, setDidSetMaxBonus] = useState(false);
   const [minPrice, setMinPrice] = useState(0.001);
   const [maxPrice, setMaxPrice] = useState(0.999);
   const [minBonus, setMinBonus] = useState(0);
@@ -89,7 +90,7 @@ export default function ConvertUpTractorOrderBookChart() {
   const isLoading = isBonusLoading || isOrdersLoading;
 
   // Calculate max bonus from all orders
-  const maxBonusFromOrders = React.useMemo(() => {
+  const maxBonusFromOrders = useMemo(() => {
     if (!orders || orders.length === 0) return 1;
 
     let max = 0;
@@ -108,8 +109,12 @@ export default function ConvertUpTractorOrderBookChart() {
   }, [orders, bonusData?.bonus]);
 
   // Update maxBonus when orders change
-  React.useEffect(() => {
-    setMaxBonus(maxBonusFromOrders);
+  useEffect(() => {
+    if (!didSetMaxBonus) {
+      setDidSetMaxBonus(true);
+      setMaxBonus(maxBonusFromOrders);
+      return;
+    }
   }, [maxBonusFromOrders]);
 
   // Input change handlers with validation
@@ -139,7 +144,7 @@ export default function ConvertUpTractorOrderBookChart() {
     }
   };
 
-  const filteredOrders = React.useMemo(() => {
+  const filteredOrders = useMemo(() => {
     if (!orders || !bonusData?.bonus) return [];
 
     if (!priceToggleActive) {
@@ -167,7 +172,7 @@ export default function ConvertUpTractorOrderBookChart() {
   }, [orders, minPrice, maxPrice, minBonus, maxBonus, bonusData?.bonus, priceToggleActive]);
 
   // Transform the tractor data into the format needed for OrderBook
-  const { bids, asks } = React.useMemo(
+  const { bids, asks } = useMemo(
     () => transformOrderBookData(orders, filteredOrders, 10, priceToggleActive),
     [orders, filteredOrders, priceToggleActive],
   );
@@ -321,22 +326,22 @@ const transformOrderBookData = (
   }
 
   // Use all orders to determine the full range
-  const {
-    orders: allValidOrders,
-    minBonus,
-    maxBonus,
-    minPenalty,
-    maxPenalty,
-    minPrice,
-    maxPrice,
-  } = getValidOrders(allOrders, priceMode);
+  const { orders: allValidOrders } = getValidOrders(allOrders, priceMode);
 
   if (allValidOrders.length === 0) {
     return { bids: [], asks: [] };
   }
 
   // Use filtered orders for actual volume calculations
-  const { orders: filteredValidOrders } = getValidOrders(filteredOrders, priceMode);
+  const {
+    orders: filteredValidOrders,
+    minBonus,
+    maxBonus,
+    minPenalty,
+    maxPenalty,
+    minPrice,
+    maxPrice,
+  } = getValidOrders(filteredOrders, priceMode);
 
   if (priceMode) {
     // In price mode, only show green (bid) orders
@@ -353,7 +358,7 @@ const transformOrderBookData = (
   } else {
     // Original bonus/penalty mode logic
     const filteredBidOrders = filteredValidOrders.filter((order) => order.bonus.gt(TV.ZERO));
-    const filteredAskOrders = filteredValidOrders.filter((order) => order.penalty.gt(TV.ZERO));
+    const filteredAskOrders = filteredValidOrders.filter((order) => order.penalty.gt(TV.ZERO) && order.bonus.lte(0));
 
     // Check if we have any bids or asks in the full dataset to determine layout
     const allBidOrders = allValidOrders.filter((order) => order.bonus.gt(TV.ZERO));
