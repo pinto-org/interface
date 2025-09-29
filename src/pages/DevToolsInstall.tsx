@@ -145,7 +145,7 @@ const StartDevEnvironment = () => {
   return (
     <Col className="w-full gap-4">
       <div className="pinto-body">Start the dev environment:</div>
-      <CommandBlock command={`cd ~/.protocol && yarn && ./scripts/misc/initialize-dev-mode-upgrade.sh ${getURL()}`} />
+      <CommandBlock command={`cd ~/.protocol && yarn && ./scripts/misc/initialize-dev-mode-upgrade.sh`} />
     </Col>
   );
 };
