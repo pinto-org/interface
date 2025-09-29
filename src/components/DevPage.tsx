@@ -594,7 +594,7 @@ export default function DevPage() {
               <div className="text-2xl">Deployments</div>
               <Col className="gap-4">
                 <Row className="gap-2">
-                  <Button disabled={loading === "deploying"} onClick={() => executeDeploy("deployLatestUpgrade")}>
+                  <Button disabled={loading === "deploying"} onClick={() => executeDeploy("runLatestUpgrade")}>
                     Deploy Latest Upgrade
                   </Button>
                   <Button onClick={() => executeTask("megaDeploy")} disabled={loading === "megaDeploy"}>
