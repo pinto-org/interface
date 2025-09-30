@@ -219,53 +219,20 @@ export default function SiloToken() {
 // ────────────────────────────────────────────────────────────────────────────────
 
 const ConvertUpTractorCard = ({
-  open,
   setOpen,
 }: {
-  open: boolean;
   setOpen: (value: boolean) => void;
 }) => {
   const handleOpen = () => setOpen(true);
 
-  const isSmToLg = useMediaQuery("between", "sm", "lg");
-
   return (
-    <div className="relative">
-      <TractorCard
-        label="🚜 Want to Convert Up?"
-        subLabel="Set up a Tractor Order to automate Convert Up"
-        onClick={handleOpen}
-        shouldAnimateZoom={false}
-        corderBordersDisabled
-      />
-      <AnimatePresence mode="wait">
-        {open && (
-          <div
-            className={cn(
-              "absolute inset-0 flex w-full items-center justify-center sm:items-end sm:pb-0 lg:items-center lg:pb-0 z-20",
-              !isSmToLg && "-top-[23.5rem]",
-            )}
-          >
-            <motion.div
-              initial={{ opacity: 0, scaleY: 0 }}
-              animate={{ opacity: 1, scaleY: 1 }}
-              exit={{ opacity: 0, scaleY: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="flex flex-col w-full"
-              style={{ transformOrigin: isSmToLg ? "50% 100%" : "50% 70%" }}
-            >
-              <div className={cn("flex w-full sm:px-8 lg:px-4")}>
-                <Card className="flex w-full rounded-xl" id="convert-up-order-dialog">
-                  <div className="flex flex-col w-full items-center p-4">
-                    <ConvertUpOrderForm onOpenChange={setOpen} />
-                  </div>
-                </Card>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-    </div>
+    <TractorCard
+      label="🚜 Want to Convert Up?"
+      subLabel="Set up a Tractor Order to automate Convert Up"
+      onClick={handleOpen}
+      shouldAnimateZoom={false}
+      corderBordersDisabled
+    />
   );
 };
 
@@ -281,12 +248,14 @@ interface ISiloTokenActions extends IBaseSiloToken {
 }
 
 const SiloTokenActions = ({ siloToken, farmerDeposits, tractorFormOpen, setTractorFormOpen }: ISiloTokenActions) => {
+  const isSmToLg = useMediaQuery("between", "sm", "lg");
+
   return (
-    <div className="flex flex-col w-full gap-6">
+    <div className="relative flex flex-col w-full gap-6">
       <div className="p-4 rounded-[1rem] bg-pinto-off-white border-pinto-gray-2 border">
         <SiloActions token={siloToken} />
       </div>
-      <ConvertUpTractorCard open={tractorFormOpen} setOpen={setTractorFormOpen} />
+      <ConvertUpTractorCard setOpen={setTractorFormOpen} />
       {farmerDeposits?.deposits.map((farmerDeposit) => {
         if (farmerDeposit.isGerminating || farmerDeposit.isPlantDeposit) {
           return <GerminationNotice type="single" deposit={farmerDeposit} key={`germinating-${farmerDeposit.id}`} />;
@@ -294,6 +263,30 @@ const SiloTokenActions = ({ siloToken, farmerDeposits, tractorFormOpen, setTract
         return null;
       })}
       <SiloActionBox farmerDeposits={farmerDeposits} token={siloToken} />
+
+      {/* Convert Up Modal */}
+      <AnimatePresence mode="wait">
+        {tractorFormOpen && (
+          <div className={cn("absolute top-0 left-0 right-0 flex w-full items-start justify-center pt-4 z-20")}>
+            <motion.div
+              initial={{ opacity: 0, scaleY: 0 }}
+              animate={{ opacity: 1, scaleY: 1 }}
+              exit={{ opacity: 0, scaleY: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="flex flex-col w-full"
+              style={{ transformOrigin: isSmToLg ? "50% 100%" : "50% 70%" }}
+            >
+              <div className={cn("flex w-full sm:px-8 lg:px-4")}>
+                <Card className="flex w-full rounded-xl" id="convert-up-order-dialog">
+                  <div className="flex flex-col w-full items-center p-4">
+                    <ConvertUpOrderForm onOpenChange={setTractorFormOpen} />
+                  </div>
+                </Card>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
