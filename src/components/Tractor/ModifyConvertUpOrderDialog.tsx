@@ -274,6 +274,7 @@ function ModifyConvertUpOrderProvider({
     ...form,
     formStep,
     operatorTipPreset,
+    disallowCloseForm: false,
     draftState,
     setDraftState: toggleDraftState,
     setFormStep,
