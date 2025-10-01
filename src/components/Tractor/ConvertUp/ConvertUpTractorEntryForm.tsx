@@ -249,6 +249,7 @@ const EstimatedSeasonsOfGrownStalk = ({
 
     const bonusGrownStalkPerBdv = postSanitizedSanitizedValue(value, STALK.decimals - mainToken.decimals).tv;
 
+    // 10,000 seeds = 1 grown stalk
     const seasons = bonusGrownStalkPerBdv.mul(10_000).div(averageGrownStalkPerBdvPerSeason);
     return seasons.lt(1) ? "< 1" : seasons.toNumber().toFixed(0);
   }, [value, mainToken.decimals]);
