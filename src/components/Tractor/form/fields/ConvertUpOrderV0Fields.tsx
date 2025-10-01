@@ -14,7 +14,7 @@ import { useSharedNumericFormFieldHandlers as useFieldHandlers } from "@/hooks/f
 import { LOW_STALK_DEPOSIT_MODES_TO_LABELS, LowStalkDepositsMode, tractorTokenStrategyUtil } from "@/lib/Tractor";
 import useConvertStalkPerBdvBonusAndMaximumCapacity from "@/state/useConvertStalkPerBdvBonusData";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
-import { useAverageGrownStalkPerBdvPerSeason } from "@/state/useSiloData";
+import { useSiloData } from "@/state/useSiloData";
 import { useMainToken } from "@/state/useTokenData";
 import { getTokenIndex } from "@/utils/token";
 import { cn } from "@/utils/utils";
@@ -366,7 +366,7 @@ ConvertUpOrderV0Fields.GrownStalkPerBdvBonusBid = function GrownStalkPerBdvBonus
 
   // Fetch data for max calculation
   const { data: bonusData } = useConvertStalkPerBdvBonusAndMaximumCapacity();
-  const { data: averageGrownStalkPerBdvPerSeason, isLoading } = useAverageGrownStalkPerBdvPerSeason();
+  const { averageGrownStalkPerBdvPerSeason, isLoading } = useSiloData();
 
   // Calculate max value using the formula: current bonus + 1000 * seeds per PDV per season
   const maxGrownStalk = useMemo(() => {
