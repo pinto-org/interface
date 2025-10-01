@@ -3,6 +3,7 @@ import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
 import { tractorHelpersABI } from "@/constants/abi/TractorHelpersABI";
 import { convertUpBlueprintV0ABI } from "@/constants/abi/convertUpBlueprintV0ABI";
 import { diamondABI as beanstalkAbi, diamondABI } from "@/constants/abi/diamondABI";
+import ABI_CONFIG from "@/constants/abiConfig";
 import { TRACTOR_HELPERS_ADDRESS } from "@/constants/address";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
@@ -27,6 +28,7 @@ import { Link, Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   http,
+  AbiFunction,
   PublicClient,
   createPublicClient,
   decodeEventLog,
@@ -1073,9 +1075,14 @@ const ViewFunctionCaller = () => {
 
   // Extract view and pure functions from diamondABI
   const viewFunctions = useMemo(() => {
-    return diamondABI.filter(
-      (item) => item.type === "function" && (item.stateMutability === "view" || item.stateMutability === "pure"),
-    );
+    const filtered = ABI_CONFIG.beanstalk.abi.filter((item) => {
+      if (item.type === "function") {
+        return item.stateMutability === "view" || item.stateMutability === "pure";
+      }
+      return false;
+    });
+
+    return filtered as AbiFunction[];
   }, []);
 
   // Get the currently selected function object
