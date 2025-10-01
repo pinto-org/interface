@@ -14,8 +14,10 @@ import { TractorTokenStrategy } from "@/lib/Tractor/types";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { formatter } from "@/utils/format";
+import { TimeScale, timeScaleToDisplay } from "@/utils/time";
 import { getTokenIndex } from "@/utils/token";
 import { MayPromise } from "@/utils/types.generic";
+import { cn } from "@/utils/utils";
 import React, { useRef, useState } from "react";
 import { useFormContext, useFormState, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -202,9 +204,12 @@ const ConvertUpTractorReviewController = ({
                   value={accordionValue}
                   onValueChange={handleSetAccordionValue}
                 >
-                  <AccordionItem className="AccordionItem" value="advanced-settings">
+                  <AccordionItem
+                    className={cn("AccordionItem", "border-[1px] px-2 border-pinto-gray-2 rounded-md bg-white")}
+                    value="advanced-settings"
+                  >
                     <AccordionTrigger
-                      className="pinto-sm-light text-pinto-secondary pt-3"
+                      className="pinto-sm-light text-pinto-secondary"
                       iconClassName="text-pinto-secondary"
                     >
                       <span>Advanced</span>
@@ -381,17 +386,10 @@ const AdvancedParametersSummary = ({
   const values = useWatch({ control: ctx.control });
 
   const getTimeScaleDisplay = () => {
-    const timeScale = values.timeScale;
-    switch (timeScale) {
-      case "SECONDS":
-        return "seconds";
-      case "MINUTES":
-        return "minutes";
-      case "HOURS":
-        return "hours";
-      default:
-        return "days";
-    }
+    return timeScaleToDisplay(values.timeScale as TimeScale, values.minTimeBetweenConverts ?? 0, {
+      exact: true,
+      inputUnit: values.timeScale as TimeScale,
+    });
   };
 
   const minTimeBetweenConverts = values.minTimeBetweenConverts;
@@ -405,36 +403,36 @@ const AdvancedParametersSummary = ({
   const seedDifference = values.seedDifference;
 
   return (
-    <Card className="flex flex-col p-3 gap-2 rounded-sm border-pinto-gray-2 bg-white">
+    <Card className="flex flex-col gap-2 border-none">
       <ReviewRow
         label="Min Time Between Executions"
         tooltip={CONVERT_UP_TOOLTIP_COPY.minTimeBetweenConverts}
-        value={minTimeBetweenConverts ? `${formatter.noDec(minTimeBetweenConverts)} ${getTimeScaleDisplay()}` : "--"}
+        value={minTimeBetweenConverts ? `${getTimeScaleDisplay()}` : "--"}
       />
       <ReviewRow
         label="Min Convert Capacity"
         tooltip={CONVERT_UP_TOOLTIP_COPY.minConvertBonusCapacity}
-        value={minConvertBonusCapacity ? `${formatter.twoDec(minConvertBonusCapacity)} PDV` : "--"}
+        value={minConvertBonusCapacity ? `${formatter.number(minConvertBonusCapacity)} PDV` : "--"}
       />
       <ReviewRow
         label="Max Grown Stalk per PDV Penalty"
         tooltip={CONVERT_UP_TOOLTIP_COPY.maxGrownStalkPerBdvPenalty}
-        value={`${formatter.twoDec(maxGrownStalkPerBdvPenalty)} PDV`}
+        value={`${formatter.number(maxGrownStalkPerBdvPenalty)} PDV`}
       />
       <ReviewRow
         label="Max Grown Stalk per PDV"
         tooltip={CONVERT_UP_TOOLTIP_COPY.maxGrownStalkPerBdv}
-        value={`${formatter.twoDec(maxGrownStalkPerBdv)} Grown Stalk`}
+        value={`${formatter.number(maxGrownStalkPerBdv)} Grown Stalk`}
       />
       <ReviewRow
         label="Execution Size"
         tooltip="The minimum and maximum execution size of the Convert Up Order"
-        value={`${formatter.twoDec(minConvertBdvPerExecution)} - ${formatter.twoDec(maxConvertBdvPerExecution)} PDV`}
+        value={`${formatter.number(minConvertBdvPerExecution)} - ${formatter.number(maxConvertBdvPerExecution)} PDV`}
       />
       <ReviewRow
         label="Min Seed Difference"
         tooltip={CONVERT_UP_TOOLTIP_COPY.seedDifference}
-        value={`${formatter.twoDec(seedDifference)} Seeds`}
+        value={`${formatter.number(seedDifference)} Seeds`}
       />
       <ReviewRow
         label="Slippage Tolerance"

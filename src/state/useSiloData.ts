@@ -17,7 +17,7 @@ import { useMemo } from "react";
 import { useCallback } from "react";
 import { MulticallResponse, Omit } from "viem";
 import { useChainId, useReadContract, useReadContracts } from "wagmi";
-import useTokenData, { useWhitelistedTokens } from "./useTokenData";
+import useTokenData, { useMainToken, useWhitelistedTokens } from "./useTokenData";
 
 const settings = {
   query: {
@@ -318,19 +318,25 @@ type SiloTokenDataResponse = [
 // Helper Hooks
 // ────────────────────────────────────────────────────────────────────────────────
 
-const selectAverageGrownStalkPerBdv = (data: bigint) => {
-  return TokenValue.fromBlockchain(data, STALK.decimals - 6);
-};
-
 export const useAverageGrownStalkPerBdv = () => {
   const protocolAddress = useProtocolAddress();
+  const mainToken = useMainToken();
+
+  const select = useCallback(
+    (value: bigint) => {
+      const decimals = mainToken.decimals;
+      return TokenValue.fromBigInt(value, STALK.decimals - decimals);
+    },
+    [mainToken.decimals],
+  );
+
   return useReadContract({
     address: protocolAddress,
     abi: beanstalkAbi,
     functionName: "getAverageGrownStalkPerBdv" as const,
     scopeKey: SEASONAL_SCOPE_KEY,
     query: {
-      select: selectAverageGrownStalkPerBdv,
+      select,
       ...QUERY_SETTINGS.slow,
     },
   });
