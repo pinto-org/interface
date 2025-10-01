@@ -13,10 +13,9 @@ import {
   tractorTokenStrategyUtil as StrategyUtil,
   TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS,
   TractorTokenStrategy,
-  calculateConvertUpBonusGrownStalk,
 } from "@/lib/Tractor";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
-import { useSiloData } from "@/state/useSiloData";
+import { useAverageGrownStalkPerBdvPerSeason, useSiloData } from "@/state/useSiloData";
 import { useMainToken } from "@/state/useTokenData";
 import { postSanitizedSanitizedValue } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
@@ -238,25 +237,21 @@ const EstimatedSeasonsOfGrownStalk = ({
   const { form } = useConvertUpOrderFormContext();
   const mainToken = useMainToken();
 
-  const totalConvertBdv = useWatch({ control: form.control, name: "totalBeanAmountToConvert" });
-
   const value = useWatch({ control: form.control, name: "grownStalkPerBdvBonusBid" });
+
+  const { data: averageGrownStalkPerBdvPerSeason } = useAverageGrownStalkPerBdvPerSeason();
 
   // IN TERMS OF PINTO GROWN STALK / SEASON
   const seasonsOfGrownStalk = useMemo(() => {
-    const tokenData = siloData.tokenData.get(mainToken);
-    const seeds = tokenData?.rewards.seeds;
-    if (!seeds) {
+    if (!averageGrownStalkPerBdvPerSeason) {
       return "0";
     }
 
-    const totalConverted = postSanitizedSanitizedValue(totalConvertBdv, mainToken.decimals).tv;
     const bonusGrownStalkPerBdv = postSanitizedSanitizedValue(value, STALK.decimals - mainToken.decimals).tv;
-    const totalGrownStalk = calculateConvertUpBonusGrownStalk(totalConverted, bonusGrownStalkPerBdv);
-    const seasons = totalGrownStalk.div(seeds);
 
+    const seasons = bonusGrownStalkPerBdv.mul(10_000).div(averageGrownStalkPerBdvPerSeason);
     return seasons.lt(1) ? "< 1" : seasons.toNumber().toFixed(0);
-  }, [totalConvertBdv, value, mainToken.decimals]);
+  }, [value, mainToken.decimals]);
 
   return (
     <Row className="w-full justify-between">
