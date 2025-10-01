@@ -419,7 +419,7 @@ const AdvancedParametersSummary = ({
       <ReviewRow
         label="Max Grown Stalk per PDV Penalty"
         tooltip={CONVERT_UP_TOOLTIP_COPY.maxGrownStalkPerBdvPenalty}
-        value={`${formatter.number(maxGrownStalkPerBdvPenalty)} Stalk/PDV`}
+        value={`${formatter.number(maxGrownStalkPerBdvPenalty)} %`}
       />
       <ReviewRow
         label="Max Grown Stalk per PDV"

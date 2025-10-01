@@ -81,7 +81,39 @@ export default function ConvertUpTractorOrderBookChart() {
     }, []),
   });
 
-  const [didSetMaxBonus, setDidSetMaxBonus] = useState(false);
+  const minMax = useMemo(() => {
+    if (!orders) {
+      return undefined;
+    }
+    let ordersMinPrice = TV.MAX_UINT256;
+    let ordersMaxPrice = TV.fromHuman("-1", 6);
+    let ordersMinBonus = TV.MAX_UINT256;
+    let ordersMaxBonus = TV.fromHuman("-1", 10);
+
+    for (const order of orders ?? []) {
+      if (!order.decodedData) continue;
+      ordersMinPrice = TV.min(order.decodedData.convertUpParams.minPriceToConvertUp, ordersMinPrice);
+      ordersMaxPrice = TV.max(order.decodedData.convertUpParams.maxPriceToConvertUp, ordersMaxPrice);
+      ordersMinBonus = TV.min(order.decodedData.convertUpParams.grownStalkPerBdvBonusBid, ordersMinBonus);
+      ordersMaxBonus = TV.max(order.decodedData.convertUpParams.grownStalkPerBdvBonusBid, ordersMinBonus);
+    }
+
+    ordersMinPrice = TV.max(ordersMinPrice, TV.fromHuman("0.001", 6));
+    ordersMaxPrice = TV.min(ordersMaxPrice, TV.fromHuman("0.999", 6));
+    ordersMinBonus = TV.max(ordersMinBonus, TV.fromHuman("0", 10));
+    if (ordersMaxBonus.eq(-1)) {
+      ordersMaxBonus = TV.fromHuman("1", 10);
+    }
+
+    return {
+      minPrice: Number(ordersMinPrice.toNumber().toFixed(3)),
+      maxPrice: Number(ordersMaxPrice.toNumber().toFixed(3)),
+      minBonus: Number(ordersMinBonus.toNumber().toFixed(4)),
+      maxBonus: Number(ordersMaxBonus.toNumber().toFixed(4)),
+    };
+  }, [orders]);
+
+  const [didSetMinMaxes, setDidSetMinMaxes] = useState(false);
   const [minPrice, setMinPrice] = useState(0.001);
   const [maxPrice, setMaxPrice] = useState(0.999);
   const [minBonus, setMinBonus] = useState(0);
@@ -89,40 +121,22 @@ export default function ConvertUpTractorOrderBookChart() {
 
   const isLoading = isBonusLoading || isOrdersLoading;
 
-  // Calculate max bonus from all orders
-  const maxBonusFromOrders = useMemo(() => {
-    if (!orders || orders.length === 0) return 1;
-
-    let max = 0;
-    for (const order of orders) {
-      if (order.decodedData?.convertUpParams?.grownStalkPerBdvBonusBid) {
-        const bonusValue = Number(order.decodedData.convertUpParams.grownStalkPerBdvBonusBid.toHuman());
-        max = Math.max(max, bonusValue);
-      }
-    }
-
-    // If current bonus is larger than max from orders, use current bonus as max
-    const currentBonusValue = bonusData?.bonus ? Number(bonusData.bonus.toHuman()) : 0;
-    max = Math.max(max, currentBonusValue);
-
-    return max > 0 ? max : 1;
-  }, [orders, bonusData?.bonus]);
-
-  // Update maxBonus when orders change
   useEffect(() => {
-    if (!didSetMaxBonus) {
-      setDidSetMaxBonus(true);
-      setMaxBonus(maxBonusFromOrders);
-      return;
+    if (!didSetMinMaxes && minMax) {
+      setDidSetMinMaxes(true);
+      setMinPrice(minMax.minPrice);
+      setMaxPrice(minMax.maxPrice);
+      setMinBonus(minMax.minBonus);
+      setMaxBonus(minMax.maxBonus);
     }
-  }, [maxBonusFromOrders]);
+  }, [minMax?.minPrice, minMax?.maxPrice]);
 
   // Input change handlers with validation
   const handlePriceInputChange = (value: string, isMin: boolean) => {
     const numValue = parseFloat(value);
-    if (Number.isNaN(numValue)) return;
+    if (Number.isNaN(numValue) || !minMax) return;
 
-    const clampedValue = Math.max(0.001, Math.min(0.999, numValue));
+    const clampedValue = Math.max(minMax.minPrice, Math.min(minMax.maxPrice, numValue));
 
     if (isMin) {
       setMinPrice(Math.min(clampedValue, maxPrice));
@@ -133,9 +147,9 @@ export default function ConvertUpTractorOrderBookChart() {
 
   const handleBonusInputChange = (value: string, isMin: boolean) => {
     const numValue = parseFloat(value);
-    if (Number.isNaN(numValue)) return;
+    if (Number.isNaN(numValue) || !minMax) return;
 
-    const clampedValue = Math.max(0, Math.min(maxBonusFromOrders, numValue));
+    const clampedValue = Math.max(minMax.minBonus, Math.min(minMax.maxBonus, numValue));
 
     if (isMin) {
       setMinBonus(Math.min(clampedValue, maxBonus));
@@ -206,8 +220,8 @@ export default function ConvertUpTractorOrderBookChart() {
                 showThumbValue
                 formatThumbValue={formatThumbValue}
                 step={0.001}
-                min={0.001}
-                max={0.999}
+                min={minMax?.minPrice ?? 0.001}
+                max={minMax?.maxPrice ?? 0.999}
                 className="flex-1"
               />
               <Row className="gap-3 shrink-0">
@@ -216,8 +230,8 @@ export default function ConvertUpTractorOrderBookChart() {
                   <Input
                     type="number"
                     step={0.001}
-                    min={0.001}
-                    max={0.999}
+                    min={minMax?.minPrice ?? 0.001}
+                    max={minMax?.maxPrice}
                     value={minPrice.toFixed(3)}
                     onChange={(e) => handlePriceInputChange(e.target.value, true)}
                     className="h-8 text-sm"
@@ -229,8 +243,8 @@ export default function ConvertUpTractorOrderBookChart() {
                   <Input
                     type="number"
                     step={0.001}
-                    min={0.001}
-                    max={0.999}
+                    min={minMax?.minPrice ?? 0.001}
+                    max={minMax?.maxPrice ?? 0.999}
                     value={maxPrice.toFixed(3)}
                     onChange={(e) => handlePriceInputChange(e.target.value, false)}
                     className="h-8 text-sm"
@@ -255,8 +269,8 @@ export default function ConvertUpTractorOrderBookChart() {
                 showThumbValue
                 formatThumbValue={formatBonusThumbValue}
                 step={0.0001}
-                min={0}
-                max={maxBonusFromOrders}
+                min={minMax?.minBonus ?? 0}
+                max={minMax?.maxBonus ?? 1}
                 className="flex-1"
               />
               <Row className="gap-3 shrink-0">
@@ -265,8 +279,8 @@ export default function ConvertUpTractorOrderBookChart() {
                   <Input
                     type="number"
                     step={0.0001}
-                    min={0}
-                    max={maxBonusFromOrders}
+                    min={minMax?.minBonus ?? 0}
+                    max={minMax?.maxBonus ?? 1}
                     value={minBonus.toFixed(4)}
                     onChange={(e) => handleBonusInputChange(e.target.value, true)}
                     className="h-8 text-sm"
@@ -278,8 +292,8 @@ export default function ConvertUpTractorOrderBookChart() {
                   <Input
                     type="number"
                     step={0.0001}
-                    min={0}
-                    max={maxBonusFromOrders}
+                    min={minMax?.minBonus ?? 0}
+                    max={minMax?.maxBonus ?? 1}
                     value={maxBonus.toFixed(4)}
                     onChange={(e) => handleBonusInputChange(e.target.value, false)}
                     className="h-8 text-sm"
