@@ -407,8 +407,8 @@ ConvertUpOrderV0Fields.GrownStalkPerBdvBonusBid = function GrownStalkPerBdvBonus
                 disabled={isLoading}
                 isError={!!fieldState.error}
                 containerClassName="w-full"
-                className={cn(showSlider ? "min-w-[25rem]" : "")}
-                endIcon={<TextAdornment text="Grown Stalk" />}
+                className={cn(showSlider ? "min-w-[30rem]" : "")}
+                endIcon={<TextAdornment text="Grown Stalk / PDV" className="bg-white" />}
               />
             </FormControl>
           )}
