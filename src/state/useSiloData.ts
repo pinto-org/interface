@@ -1,6 +1,6 @@
 import { TokenValue } from "@/classes/TokenValue";
 import { SEEDS, STALK } from "@/constants/internalTokens";
-import { defaultQuerySettings } from "@/constants/query";
+import { QUERY_SETTINGS, SEASONAL_SCOPE_KEY, defaultQuerySettings } from "@/constants/query";
 import { subgraphs } from "@/constants/subgraph";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { SiloYieldsDocument } from "@/generated/gql/pintostalk/graphql";
@@ -16,7 +16,7 @@ import { chunk } from "lodash";
 import { useMemo } from "react";
 import { useCallback } from "react";
 import { MulticallResponse, Omit } from "viem";
-import { useChainId, useReadContracts } from "wagmi";
+import { useChainId, useReadContract, useReadContracts } from "wagmi";
 import useTokenData, { useWhitelistedTokens } from "./useTokenData";
 
 const settings = {
@@ -313,3 +313,25 @@ type SiloTokenDataResponse = [
   germinatingAmount: FailableChainResponse<bigint>,
   germinatingBdv: FailableChainResponse<bigint>,
 ];
+
+// ────────────────────────────────────────────────────────────────────────────────
+// Helper Hooks
+// ────────────────────────────────────────────────────────────────────────────────
+
+const selectAverageGrownStalkPerBdv = (data: bigint) => {
+  return TokenValue.fromBlockchain(data, STALK.decimals - 6);
+};
+
+export const useAverageGrownStalkPerBdv = () => {
+  const protocolAddress = useProtocolAddress();
+  return useReadContract({
+    address: protocolAddress,
+    abi: beanstalkAbi,
+    functionName: "getAverageGrownStalkPerBdv" as const,
+    scopeKey: SEASONAL_SCOPE_KEY,
+    query: {
+      select: selectAverageGrownStalkPerBdv,
+      ...QUERY_SETTINGS.slow,
+    },
+  });
+};

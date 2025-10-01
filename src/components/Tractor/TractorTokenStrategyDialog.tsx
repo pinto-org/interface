@@ -18,13 +18,11 @@ import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations
 import { tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
-import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { stringEq } from "@/utils/string";
-import { getTokenIndex, tokensEqual } from "@/utils/token";
+import { tokensEqual } from "@/utils/token";
 import { Token } from "@/utils/types";
-import { MayArray } from "@/utils/types.generic";
 import { Col, Row } from "../Container";
 
 export type ITractorTokenStrategyDialogProps = {
@@ -33,6 +31,7 @@ export type ITractorTokenStrategyDialogProps = {
   farmerDeposits: ReturnType<typeof useFarmerSilo>["deposits"];
   multiSelect?: boolean;
   onlyLP?: boolean;
+  mode?: "bdv" | "amount";
   onOpenChange: (open: boolean) => void;
   onTokenStrategySelected: (tokenStrategy: TractorTokenStrategy) => void;
 } & ReturnType<typeof useSowOrderV0Calculations>;
@@ -80,6 +79,7 @@ export default function TractorTokenStrategyDialog({
   multiSelect = false,
   onlyLP = false,
   priceData,
+  mode = "amount",
 }: ITractorTokenStrategyDialogProps) {
   const { whitelistedTokens } = useTokenData();
   const { mainToken } = useTokenData();
@@ -207,8 +207,14 @@ export default function TractorTokenStrategyDialog({
                         </div>
                       </div>
                       <div className="flex flex-col items-end">
-                        <div className="text-right text-xl font-medium">{formatter.token(amount, token)}</div>
-                        <div className="text-right text-gray-500 text-sm">${formatter.twoDec(pintoAmount)}</div>
+                        {mode === "amount" ? (
+                          <>
+                            <div className="text-right text-xl font-medium">{formatter.token(amount, token)}</div>
+                            <div className="text-right text-gray-500 text-sm">${formatter.twoDec(pintoAmount)}</div>
+                          </>
+                        ) : (
+                          <div className="text-right text-xl font-medium">{formatter.pdv(deposit?.depositBDV)}</div>
+                        )}
                       </div>
                     </div>
                   );

@@ -86,7 +86,7 @@ const timeScale = (fieldName: string) =>
   }, `Invalid ${fieldName}`);
 
 // Low stalk deposits mode validation
-const lowStalkDepositsValidation = z.number().int().min(0).max(2).default(LowStalkDepositsMode.USE); // 0: USE, 1: OMIT, 2: USE_LAST
+const lowStalkDepositsValidation = z.number().int().min(0).max(2).default(LowStalkDepositsMode.USE_LAST); // 0: USE, 1: OMIT, 2: USE_LAST
 
 export const convertUpSchemaErrors = {
   minBdvLteMaxBdv: "Min PDV per execution exceeds Max PDV per execution",

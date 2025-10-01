@@ -28,7 +28,6 @@ import {
 } from "@radix-ui/react-icons";
 import React, { useEffect, useRef, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { ClassNameValue } from "tailwind-merge";
 
 const empty = [];
 
@@ -103,7 +102,7 @@ export const SELECT_TIME_SCALES = ["SECONDS", "MINUTES", "HOURS", "DAYS"] as con
 
 export type TimeScaleSelect = (typeof SELECT_TIME_SCALES)[number];
 
-export const TimeScaleSelectFormField = ({ className }: { className?: ClassNameValue }) => {
+export const TimeScaleSelectFormField = ({ className }: { className?: string | undefined }) => {
   const ctx = useFormContext<{ timeScale: TimeScaleSelect }>();
 
   return (
@@ -113,17 +112,7 @@ export const TimeScaleSelectFormField = ({ className }: { className?: ClassNameV
       render={({ field }) => (
         <FormItem>
           <Select value={field.value} onValueChange={field.onChange}>
-            <SelectTrigger
-              className={cn(
-                "cursor-pointer rounded-[0.75rem] w-fit h-12 bg-white",
-                "px-3 py-1 text-[1.25rem] text-black",
-                "border border-pinto-gray-2 shadow-none",
-                "ring-0 focus:ring-0 focus-visible:ring-0",
-                "focus:ring-offset-0 focus-visible:ring-offset-0",
-                "outline-none focus:outline-none focus-visible:outline-none",
-                className,
-              )}
-            >
+            <SelectTrigger variant="form" className={className}>
               <div className="mr-4">
                 <SelectValue placeholder="Select" />
               </div>

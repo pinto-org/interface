@@ -4,6 +4,13 @@ const FIVE_MINS = 1000 * 60 * 5;
 
 const FIFTEEN_SECONDS = 1000 * 60;
 
+export const defaultQuerySettingsSlow = {
+  staleTime: TWENTY_MINS * 3, // 1 hour
+  refetchInterval: TWENTY_MINS * 3, // 1 hour
+  refetchIntervalInBackground: false,
+  refetchOnWindowFocus: true,
+} as const;
+
 export const defaultQuerySettings = {
   staleTime: TWENTY_MINS,
   refetchInterval: TWENTY_MINS,
@@ -21,6 +28,8 @@ export const defaultQuerySettingsMedium = {
 export const defaultQuerySettingsFast = {
   staleTime: 1000 * 60 * 2,
   refetchInterval: 1000 * 60 * 3, // 3 minutes, in milliseconds
+  refetchIntervalInBackground: false,
+  refetchOnWindowFocus: true,
 };
 
 export const defaultQuerySettingsNoRefetch = {
@@ -42,5 +51,13 @@ export const defaultQuerySettingsQuote = {
   staleTime: FIFTEEN_SECONDS,
   refetchInterval: FIFTEEN_SECONDS,
 };
+
+export const QUERY_SETTINGS = {
+  quote: defaultQuerySettingsQuote,
+  fast: defaultQuerySettingsFast,
+  medium: defaultQuerySettingsMedium,
+  slow: defaultQuerySettingsSlow,
+  noRefetch: defaultQuerySettingsNoRefetch,
+} as const;
 
 export const SEASONAL_SCOPE_KEY = "SeasonalQuery" as const;
