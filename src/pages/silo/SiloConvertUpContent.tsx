@@ -1,5 +1,6 @@
 import { Col, Row } from "@/components/Container";
 import TooltipSimple from "@/components/TooltipSimple";
+import ConvertUpOrderForm from "@/components/Tractor/ConvertUpOrderForm";
 import ConvertUpOrderbookDialog from "@/components/Tractor/ConvertUpOrderbook";
 import ConvertUpTractorOrderBookChart from "@/components/Tractor/ConvertUpTractorOrderBookChart";
 import ConvertUpTractorOrders from "@/components/Tractor/ConvertUpTractorOrders";
@@ -21,6 +22,7 @@ import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
 import { stringEq } from "@/utils/string";
 import { cn, isDev } from "@/utils/utils";
+import { noop } from "lodash";
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import SiloConvertUpStats from "./SiloConvertUpStats";
@@ -68,24 +70,31 @@ export const SiloConvertUpContent = () => {
           </Row>
         </Col>
         <Col className="gap-4 w-full">
-          {isDev() && (
-            <Col className="gap-4">
-              <span className="pinto-body">These are DEV ONLY stats.</span>
-              <div className="flex flex-row gap-2 items-center min-w-0">
-                <div
-                  className={cn(
-                    "gap-2 flex-col", // mobile styles
-                    "flex sm:flex-row w-full min-w-0 gap-4 justify-between",
-                  )}
-                >
-                  <SiloConvertUpStats />
-                </div>
-              </div>
-            </Col>
-          )}
           <Col className="w-full justify-between gap-4 sm:flex-row sm:items-start sm:justify-start">
             <div className="flex flex-col w-full gap-4">
-              <ConvertUpTractorOrderBookChart />
+              <div className="flex flex-col lg:flex-row w-full gap-4 justify-between">
+                <div className="flex flex-1 w-full">
+                  <ConvertUpTractorOrderBookChart />
+                </div>
+                <Card className="flex rounded-xl p-4 w-full lg:max-w-[425px]">
+                  <ConvertUpOrderForm onOpenChange={noop} />
+                </Card>
+              </div>
+              {isDev() && (
+                <Col className="gap-4">
+                  <span className="pinto-body">These are DEV ENV ONLY stats.</span>
+                  <div className="flex flex-row gap-2 items-center min-w-0">
+                    <div
+                      className={cn(
+                        "gap-2 flex-col", // mobile styles
+                        "flex sm:flex-row w-full min-w-0 gap-4 justify-between",
+                      )}
+                    >
+                      <SiloConvertUpStats />
+                    </div>
+                  </div>
+                </Col>
+              )}
               <div className={cn("flex gap-4 flex-col sm:flex-row")}>
                 <SiloConvertUpCharts />
               </div>

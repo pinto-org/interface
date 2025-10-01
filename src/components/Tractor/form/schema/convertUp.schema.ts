@@ -381,7 +381,7 @@ export const transformConvertUpFormValues = (values: FormSchema, chainId: number
     dc.maxGrownStalkPerBdvPenalty,
   );
 
-  const seedDifference = postSanitizedSanitizedValue(values.seedDifference, dc.seedDifference);
+  const seedDifference = postSanitizedSanitizedValue(values.seedDifference, dc.seedDifference, true);
 
   const operatorTip = postSanitizedSanitizedValue(values.operatorTip, dc.operatorTip);
   const customOperatorTip = postSanitizedSanitizedValue(values.customOperatorTip ?? "", dc.operatorTip);

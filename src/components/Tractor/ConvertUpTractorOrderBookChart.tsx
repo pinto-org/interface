@@ -181,7 +181,7 @@ export default function ConvertUpTractorOrderBookChart() {
   const columns = priceToggleActive ? priceColumns : bonusColumns;
 
   return (
-    <Card className="p-0">
+    <Card className="flex flex-col w-full p-0">
       <Col className="p-4 gap-5 w-full">
         <Row className="w-full gap-2 justify-between">
           <span className="pinto-sm sm:pinto-body">Convert Orderbook</span>

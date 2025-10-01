@@ -9,7 +9,11 @@ import { Label } from "@/components/ui/Label";
 import { Separator } from "@/components/ui/Separator";
 import { STALK } from "@/constants/internalTokens";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
-import { LowStalkDepositsMode, tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
+import {
+  LOW_STALK_DEPOSIT_MODES_TO_LABELS,
+  LowStalkDepositsMode,
+  tractorTokenStrategyUtil as StrategyUtil,
+} from "@/lib/Tractor";
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
@@ -373,12 +377,6 @@ const EntryFormParametersSummary = () => {
   );
 };
 
-const DEPOSIT_MODE_LABELS = {
-  [LowStalkDepositsMode.USE]: "Yes",
-  [LowStalkDepositsMode.OMIT]: "No",
-  [LowStalkDepositsMode.USE_LAST]: "Use Last",
-} as const;
-
 const AdvancedParametersSummary = ({
   toggleEdit,
 }: { toggleEdit: (e: React.MouseEvent<HTMLButtonElement>) => void }) => {
@@ -401,6 +399,10 @@ const AdvancedParametersSummary = ({
   const slippageRatio = values.slippageRatio;
   const lowStalkDeposits = values.lowStalkDeposits;
   const seedDifference = values.seedDifference;
+
+  const seedDiffNum = Number(seedDifference);
+  const seedDiffAbs = seedDiffNum >= 0 ? seedDiffNum : seedDiffNum * -1;
+  const seedDiffLabel = seedDiffNum >= 0 ? "Minimum Seed Gain Per PDV" : "Maximum Seed Loss Per PDV";
 
   return (
     <Card className="flex flex-col gap-2 border-none">
@@ -430,9 +432,9 @@ const AdvancedParametersSummary = ({
         value={`${formatter.number(minConvertBdvPerExecution)} - ${formatter.number(maxConvertBdvPerExecution)} PDV`}
       />
       <ReviewRow
-        label="Min Seed Difference"
+        label={seedDiffLabel}
         tooltip={CONVERT_UP_TOOLTIP_COPY.seedDifference}
-        value={`${formatter.number(seedDifference)} Seeds`}
+        value={`${formatter.number(seedDiffAbs)} Seeds`}
       />
       <ReviewRow
         label="Slippage Tolerance"
@@ -442,7 +444,7 @@ const AdvancedParametersSummary = ({
       <ReviewRow
         label="Use Low Stalk Deposits"
         tooltip={CONVERT_UP_TOOLTIP_COPY.lowStalkDeposits}
-        value={DEPOSIT_MODE_LABELS[lowStalkDeposits as LowStalkDepositsMode]}
+        value={LOW_STALK_DEPOSIT_MODES_TO_LABELS[lowStalkDeposits as LowStalkDepositsMode]}
       />
       <Separator className="h-[0.5px] bg-pinto-gray-2 my-1" />
       <Button variant="outline-primary-2" size="md" className="w-full rounded-sm" onClick={toggleEdit}>

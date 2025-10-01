@@ -23,6 +23,7 @@ import * as Tabs from "@/components/ui/Tabs";
 import { PINTO_WETH_TOKEN, PINTO_WSOL_TOKEN } from "@/constants/tokens";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import useIsSmallDesktop from "@/hooks/display/useIsSmallDesktop";
+import useMediaQuery from "@/hooks/display/useMediaQuery";
 import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import useLocalStorage from "@/hooks/useLocalStorage";
@@ -130,8 +131,10 @@ function Silo() {
     },
   };
 
+  const isLg = useMediaQuery("between", "lg", "2xl");
+
   return (
-    <PageContainer variant={"lgAlt"} bottomMarginOnMobile>
+    <PageContainer variant={isLg ? "lg" : "lgAlt"} bottomMarginOnMobile>
       <div className="flex flex-col w-full items-center">
         <div className="flex flex-col w-full gap-4 sm:gap-12">
           <div className="flex flex-col gap-2">

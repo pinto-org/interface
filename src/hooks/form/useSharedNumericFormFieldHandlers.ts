@@ -15,10 +15,11 @@ export const useSharedNumericFormFieldHandlers = <
   ctx: ReturnType<typeof useFormContext<TFieldValues>>,
   name: TName,
   decimals: number,
+  allowNegative?: boolean,
 ): BaseIFormContextHandlers => {
   const handleNumericInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement> | { target: { value: string } }) => {
-      const cleaned = sanitizeNumericInputValue(e.target.value, decimals);
+      const cleaned = sanitizeNumericInputValue(e.target.value, decimals, allowNegative);
 
       ctx.setValue(name, cleaned.str as PathValue<TFieldValues, TName>, { shouldValidate: true });
       return cleaned;

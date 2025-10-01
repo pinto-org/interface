@@ -11,7 +11,7 @@ import { TooltipLabel } from "@/components/ui/Label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
 import { SEEDS, STALK } from "@/constants/internalTokens";
 import { useSharedNumericFormFieldHandlers as useFieldHandlers } from "@/hooks/form/useSharedNumericFormFieldHandlers";
-import { LowStalkDepositsMode, tractorTokenStrategyUtil } from "@/lib/Tractor";
+import { LOW_STALK_DEPOSIT_MODES_TO_LABELS, LowStalkDepositsMode, tractorTokenStrategyUtil } from "@/lib/Tractor";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useMainToken } from "@/state/useTokenData";
 import { getTokenIndex } from "@/utils/token";
@@ -453,7 +453,14 @@ ConvertUpOrderV0Fields.MaxGrownStalkPerBdvPenalty = function MaxGrownStalkPerBdv
         <FormItem>
           <FormLabel tooltipText={TOOLTIP_COPY.maxGrownStalkPerBdvPenalty}>Max Grown Stalk per BDV Penalty</FormLabel>
           <FormControl>
-            <Input {...field} {...sharedInputProps} {...handlers} placeholder="0.00" isError={!!fieldState.error} />
+            <Input
+              {...field}
+              {...sharedInputProps}
+              {...handlers}
+              placeholder="0"
+              isError={!!fieldState.error}
+              endIcon={<TextAdornment text="%" />}
+            />
           </FormControl>
         </FormItem>
       )}
@@ -463,7 +470,7 @@ ConvertUpOrderV0Fields.MaxGrownStalkPerBdvPenalty = function MaxGrownStalkPerBdv
 
 ConvertUpOrderV0Fields.SeedDifference = function SeedDifference() {
   const ctx = useFormContext<ConvertUpV0FormSchema>();
-  const handlers = useFieldHandlers(ctx, "seedDifference", SEEDS.decimals);
+  const handlers = useFieldHandlers(ctx, "seedDifference", SEEDS.decimals, true);
 
   return (
     <FormField
@@ -502,20 +509,27 @@ ConvertUpOrderV0Fields.SlippageRatio = function SlippageRatio() {
   );
 };
 
-const LowStalkDepositModes = [
-  {
-    label: "No",
-    value: LowStalkDepositsMode.OMIT,
-  },
-  {
-    label: "Yes",
-    value: LowStalkDepositsMode.USE,
-  },
-  {
-    label: "Use Last",
-    value: LowStalkDepositsMode.USE_LAST,
-  },
-];
+// export const LowStalkDepositModes = [
+//   {
+//     label: "Do Not Use",
+//     value: LowStalkDepositsMode.OMIT,
+//   },
+//   {
+//     label: "Use First",
+//     value: LowStalkDepositsMode.USE,
+//   },
+//   {
+//     label: "Use Last",
+//     value: LowStalkDepositsMode.USE_LAST,
+//   },
+// ];
+
+const LowStalkDepositModes = Object.entries(LOW_STALK_DEPOSIT_MODES_TO_LABELS).map(([key, value]) => {
+  return {
+    label: value,
+    value: Number(key) as LowStalkDepositsMode,
+  };
+});
 
 ConvertUpOrderV0Fields.LowStalkDepositsSelect = function LowStalkDeposits({ className }: { className?: string }) {
   const ctx = useFormContext<ConvertUpV0FormSchema>();
@@ -523,7 +537,7 @@ ConvertUpOrderV0Fields.LowStalkDepositsSelect = function LowStalkDeposits({ clas
   return (
     <Row className="gap-2 w-full justify-between">
       <FormLabel tooltipText={TOOLTIP_COPY.lowStalkDeposits} htmlFor="lowStalkDeposits">
-        Allow Low Stalk Deposits
+        Low Stalk Deposit Utilization Priority
       </FormLabel>
       <FormField
         control={ctx.control}
