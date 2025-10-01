@@ -23,7 +23,7 @@ import { DepositData } from "@/utils/types";
 import { isDev, isLocalhost } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -1055,7 +1055,11 @@ export default function DevPage() {
           </Card>
         </div>
 
-        <ViewFunctionCallers />
+        {/* View Function Caller */}
+        <ViewFunctionCaller />
+
+        {/* External View Function Caller */}
+        <ExternalViewFunctionCaller />
 
         {/* Farmer Silo Deposits section - render component directly */}
         <FarmerSiloDeposits />
@@ -1064,210 +1068,178 @@ export default function DevPage() {
   );
 }
 
-const configKeys: (keyof typeof ABI_CONFIG)[] = [
-  "beanstalk",
-  "beanstalkPrice",
-  "tractorHelpers",
-  "sowBlueprintv0",
-  "convertUpBlueprint",
-] as const;
+const ViewFunctionCaller = () => {
+  const publicClient = usePublicClient();
+  const protocolAddress = useProtocolAddress();
+  const [selectedFunction, setSelectedFunction] = useState<string>("");
+  const [functionInputs, setFunctionInputs] = useState<Record<string, string>>({});
+  const [callResult, setCallResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-const ViewFunctionCallers = React.memo(() => {
-  return (
-    <div className="grid grid-cols-2 gap-6">
-      {/* View Function Caller */}
-      {configKeys.map((key) => {
-        return <ViewFunctionCaller key={`view-function-caller-${key}`} configKey={key} config={ABI_CONFIG[key]} />;
-      })}
-    </div>
-  );
-});
+  // Extract view and pure functions from diamondABI
+  const viewFunctions = useMemo(() => {
+    const filtered = ABI_CONFIG.beanstalk.abi.filter((item) => {
+      if (item.type === "function") {
+        return item.stateMutability === "view" || item.stateMutability === "pure";
+      }
+      return false;
+    });
 
-const ViewFunctionCaller = React.memo(
-  <K extends keyof typeof ABI_CONFIG>({
-    configKey,
-    config,
-  }: {
-    configKey: K;
-    config: (typeof ABI_CONFIG)[K];
-  }) => {
-    const publicClient = usePublicClient();
-    const protocolAddress = useProtocolAddress();
-    const [selectedFunction, setSelectedFunction] = useState<string>("");
-    const [functionInputs, setFunctionInputs] = useState<Record<string, string>>({});
-    const [callResult, setCallResult] = useState<any>(null);
-    const [loading, setLoading] = useState(false);
+    return filtered as AbiFunction[];
+  }, []);
 
-    // Extract view and pure functions from diamondABI
-    const viewFunctions = useMemo(() => {
-      const filtered = config.abi.filter((item) => {
-        if (item.type === "function") {
-          return item.stateMutability === "view" || item.stateMutability === "pure";
-        }
-        return false;
+  // Get the currently selected function object
+  const selectedFunctionObj = useMemo(() => {
+    return viewFunctions.find((fn) => fn.name === selectedFunction);
+  }, [selectedFunction, viewFunctions]);
+
+  // Reset inputs when function changes
+  useEffect(() => {
+    setFunctionInputs({});
+    setCallResult(null);
+  }, [selectedFunction]);
+
+  const handleInputChange = (paramName: string, value: string) => {
+    setFunctionInputs((prev) => ({ ...prev, [paramName]: value }));
+  };
+
+  const handleCallFunction = async () => {
+    if (!publicClient || !protocolAddress || !selectedFunctionObj) {
+      toast.error("Missing required data");
+      return;
+    }
+
+    setLoading(true);
+    setCallResult(null);
+
+    try {
+      // Parse inputs based on their types
+      const args =
+        selectedFunctionObj.inputs?.map((input) => {
+          const value = functionInputs[input.name || ""];
+
+          if (!value) {
+            throw new Error(`Missing input: ${input.name}`);
+          }
+
+          // Handle different input types
+          if (input.type.includes("uint") || input.type.includes("int")) {
+            return BigInt(value);
+          } else if (input.type === "address") {
+            if (!isAddress(value)) {
+              throw new Error(`Invalid address: ${input.name}`);
+            }
+            return value;
+          } else if (input.type === "bool") {
+            return value.toLowerCase() === "true";
+          } else if (input.type.includes("[]")) {
+            // Handle arrays - expect comma-separated values
+            return value.split(",").map((v) => v.trim());
+          }
+
+          return value;
+        }) || [];
+
+      // @ts-ignore
+      const result = await publicClient.readContract({
+        address: protocolAddress,
+        abi: diamondABI,
+        // @ts-ignore
+        functionName: selectedFunctionObj.name as any,
+        // @ts-ignore
+        args: args as any,
       });
 
-      return filtered as AbiFunction[];
-    }, []);
+      setCallResult(result);
+      toast.success("Function called successfully");
+    } catch (error) {
+      console.error("Error calling function:", error);
+      toast.error(`Failed to call function: ${(error as Error).message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // Get the currently selected function object
-    const selectedFunctionObj = useMemo(() => {
-      return viewFunctions.find((fn) => fn.name === selectedFunction);
-    }, [selectedFunction, viewFunctions]);
-
-    // Reset inputs when function changes
-    useEffect(() => {
-      setFunctionInputs({});
-      setCallResult(null);
-    }, [selectedFunction]);
-
-    const handleInputChange = (paramName: string, value: string) => {
-      setFunctionInputs((prev) => ({ ...prev, [paramName]: value }));
-    };
-
-    const handleCallFunction = async () => {
-      if (!publicClient || !protocolAddress || !selectedFunctionObj) {
-        toast.error("Missing required data");
-        return;
-      }
-
-      setLoading(true);
-      setCallResult(null);
-
-      try {
-        // Parse inputs based on their types
-        const args =
-          selectedFunctionObj.inputs?.map((input) => {
-            const value = functionInputs[input.name || ""];
-
-            if (!value) {
-              throw new Error(`Missing input: ${input.name}`);
-            }
-
-            // Handle different input types
-            if (input.type.includes("uint") || input.type.includes("int")) {
-              return BigInt(value);
-            } else if (input.type === "address") {
-              if (!isAddress(value)) {
-                throw new Error(`Invalid address: ${input.name}`);
-              }
-              return value;
-            } else if (input.type === "bool") {
-              return value.toLowerCase() === "true";
-            } else if (input.type.includes("[]")) {
-              // Handle arrays - expect comma-separated values
-              return value.split(",").map((v) => v.trim());
-            }
-
-            return value;
-          }) || [];
-
-        // @ts-ignore
-        const result = await publicClient.readContract({
-          address: protocolAddress,
-          abi: diamondABI,
-          // @ts-ignore
-          functionName: selectedFunctionObj.name as any,
-          // @ts-ignore
-          args: args as any,
-        });
-
-        setCallResult(result);
-        toast.success("Function called successfully");
-      } catch (error) {
-        console.error("Error calling function:", error);
-        toast.error(`Failed to call function: ${(error as Error).message}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    return (
-      <Card className="p-6">
-        <h2 className="text-2xl mb-4">View Function Caller - {configKey}</h2>
-        <div className="flex flex-col gap-4">
-          <div className="text-sm text-gray-500">
-            Call any view or pure function from the Diamond contract. Select a function and provide inputs to test.
-          </div>
-
-          <div className="grid grid-cols-2 gap-6">
-            {/* Left Column: Function Selector and Call Button */}
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <Label>Select Function</Label>
-                <select
-                  value={selectedFunction}
-                  onChange={(e) => setSelectedFunction(e.target.value)}
-                  className="h-10 px-3 py-2 text-sm border rounded-md bg-white"
-                >
-                  <option value="">-- Select a function --</option>
-                  {viewFunctions.map((fn) => (
-                    <option key={fn.name} value={fn.name}>
-                      {fn.name}
-                      {fn.inputs && fn.inputs.length > 0 && ` (${fn.inputs.length} params)`}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Call Button */}
-              {selectedFunctionObj && (
-                <Button onClick={handleCallFunction} disabled={loading || !protocolAddress} className="w-full">
-                  {loading ? "Calling..." : "Call Function"}
-                </Button>
-              )}
-            </div>
-
-            {/* Right Column: Function Parameters */}
-            <div className="flex flex-col gap-2">
-              {selectedFunctionObj && selectedFunctionObj.inputs && selectedFunctionObj.inputs.length > 0 ? (
-                <>
-                  <div className="text-sm font-medium">Function Parameters:</div>
-                  <div className="flex flex-col gap-3 p-4 border rounded-lg bg-gray-50">
-                    {selectedFunctionObj.inputs.map((input, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <Label className="text-xs text-gray-600 whitespace-nowrap min-w-[120px]">
-                          {input.name || `param${idx}`} ({input.type}):
-                        </Label>
-                        <Input
-                          placeholder={`Enter ${input.type}`}
-                          value={functionInputs[input.name || ""] || ""}
-                          onChange={(e) => handleInputChange(input.name || "", e.target.value)}
-                          className="h-9 flex-1"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <div className="text-sm text-gray-400 italic">
-                  {selectedFunction ? "No parameters required" : "Select a function to view parameters"}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Results Display */}
-          {callResult !== null && (
-            <div className="flex flex-col gap-2 p-4 border rounded-lg bg-green-50">
-              <div className="text-sm font-medium text-green-800">Result:</div>
-              <pre className="text-xs font-mono overflow-auto max-h-[300px] p-3 bg-white rounded border">
-                {typeof callResult === "bigint"
-                  ? callResult.toString()
-                  : JSON.stringify(
-                      callResult,
-                      (key, value) => (typeof value === "bigint" ? value.toString() : value),
-                      2,
-                    )}
-              </pre>
-            </div>
-          )}
+  return (
+    <Card className="p-6">
+      <h2 className="text-2xl mb-4">View Function Caller</h2>
+      <div className="flex flex-col gap-4">
+        <div className="text-sm text-gray-500">
+          Call any view or pure function from the Diamond contract. Select a function and provide inputs to test.
         </div>
-      </Card>
-    );
-  },
-  (prev, curr) => prev.configKey === curr.configKey,
-);
+
+        <div className="grid grid-cols-2 gap-6">
+          {/* Left Column: Function Selector and Call Button */}
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <Label>Select Function</Label>
+              <select
+                value={selectedFunction}
+                onChange={(e) => setSelectedFunction(e.target.value)}
+                className="h-10 px-3 py-2 text-sm border rounded-md bg-white"
+              >
+                <option value="">-- Select a function --</option>
+                {viewFunctions.map((fn) => (
+                  <option key={fn.name} value={fn.name}>
+                    {fn.name}
+                    {fn.inputs && fn.inputs.length > 0 && ` (${fn.inputs.length} params)`}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Call Button */}
+            {selectedFunctionObj && (
+              <Button onClick={handleCallFunction} disabled={loading || !protocolAddress} className="w-full">
+                {loading ? "Calling..." : "Call Function"}
+              </Button>
+            )}
+          </div>
+
+          {/* Right Column: Function Parameters */}
+          <div className="flex flex-col gap-2">
+            {selectedFunctionObj && selectedFunctionObj.inputs && selectedFunctionObj.inputs.length > 0 ? (
+              <>
+                <div className="text-sm font-medium">Function Parameters:</div>
+                <div className="flex flex-col gap-3 p-4 border rounded-lg bg-gray-50">
+                  {selectedFunctionObj.inputs.map((input, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <Label className="text-xs text-gray-600 whitespace-nowrap min-w-[120px]">
+                        {input.name || `param${idx}`} ({input.type}):
+                      </Label>
+                      <Input
+                        placeholder={`Enter ${input.type}`}
+                        value={functionInputs[input.name || ""] || ""}
+                        onChange={(e) => handleInputChange(input.name || "", e.target.value)}
+                        className="h-9 flex-1"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-sm text-gray-400 italic">
+                {selectedFunction ? "No parameters required" : "Select a function to view parameters"}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Results Display */}
+        {callResult !== null && (
+          <div className="flex flex-col gap-2 p-4 border rounded-lg bg-green-50">
+            <div className="text-sm font-medium text-green-800">Result:</div>
+            <pre className="text-xs font-mono overflow-auto max-h-[300px] p-3 bg-white rounded border">
+              {typeof callResult === "bigint"
+                ? callResult.toString()
+                : JSON.stringify(callResult, (key, value) => (typeof value === "bigint" ? value.toString() : value), 2)}
+            </pre>
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+};
 
 const ExternalViewFunctionCaller = () => {
   const publicClient = usePublicClient();
