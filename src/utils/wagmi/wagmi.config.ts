@@ -29,6 +29,7 @@ import { tractorHelpersABI } from "@/constants/abi/TractorHelpersABI";
  */
 import { viewSeasonABI } from "@/constants/abi/viewSeasonABI";
 import { viewSiloABI } from "@/constants/abi/viewSiloABI";
+import ABI_CONFIG from "@/constants/abiConfig";
 import { TRACTOR_HELPERS_ADDRESS } from "@/constants/address";
 import { SOW_BLUEPRINT_V0_ADDRESS } from "@/constants/address";
 
@@ -59,47 +60,33 @@ const config = defineConfig(() => {
     contracts: [
       {
         name: "beanstalk",
-        abi: diamondABI as Abi,
-        address: beanstalkAddresses,
+        abi: ABI_CONFIG.beanstalk.abi,
+        address: ABI_CONFIG.beanstalk.addresses,
       },
       {
         name: "seasonFacetView",
         abi: viewSeasonABI as Abi,
-        address: beanstalkAddresses,
+        address: ABI_CONFIG.beanstalk.addresses,
       },
       {
         name: "farmer",
         abi: diamondFarmerABI as Abi,
-        address: beanstalkAddresses,
+        address: ABI_CONFIG.beanstalk.addresses,
       },
       {
         name: "silo",
         abi: viewSiloABI as Abi,
-        address: beanstalkAddresses,
+        address: ABI_CONFIG.beanstalk.addresses,
       },
       {
         name: "beanstalkPrice",
-        abi: diamondPriceABI as Abi,
-        address: {
-          [mainnet.id]: "0x4BEd6cb142b7d474242d87F4796387DEB9E1E1B4",
-          [arbitrum.id]: "0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7",
-          [base.id]: "0xFB8bE3119104D8D94087B50f812eE0Aa1614a91a", // temp address
-          [localhost.id]: "0xFB8bE3119104D8D94087B50f812eE0Aa1614a91a", // base
-          [TESTNET_CHAIN_ID]: "0xFB8bE3119104D8D94087B50f812eE0Aa1614a91a", // base
-          [foundry.id]: "0xFB8bE3119104D8D94087B50f812eE0Aa1614a91a", // base
-        },
+        abi: ABI_CONFIG.beanstalkPrice.abi,
+        address: ABI_CONFIG.beanstalkPrice.address,
       },
       {
         name: "pipeline",
-        abi: pipelineABI as Abi,
-        address: {
-          [mainnet.id]: "0xb1bE0000C6B3C62749b5F0c92480146452D15423",
-          [arbitrum.id]: "0xb1bE000644bD25996b0d9C2F7a6D6BA3954c91B0",
-          [base.id]: "0xb1bE0001f5a373b69b1E132b420e6D9687155e80",
-          [localhost.id]: "0xb1bE0001f5a373b69b1E132b420e6D9687155e80", // base
-          [TESTNET_CHAIN_ID]: "0xb1bE0001f5a373b69b1E132b420e6D9687155e80", // base
-          [foundry.id]: "0xb1bE0001f5a373b69b1E132b420e6D9687155e80", // base
-        },
+        abi: ABI_CONFIG.pipeline.abi,
+        address: ABI_CONFIG.pipeline.address,
       },
       {
         name: "junction",
@@ -108,39 +95,23 @@ const config = defineConfig(() => {
       },
       {
         name: "depot",
-        abi: depotABI as Abi,
-        address: {
-          [mainnet.id]: "0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2",
-          [arbitrum.id]: "0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c",
-          [base.id]: "0x02F7c20dabC251f35272492177E177035C21269B",
-          [localhost.id]: "0x02F7c20dabC251f35272492177E177035C21269B", // base
-          [TESTNET_CHAIN_ID]: "0x02F7c20dabC251f35272492177E177035C21269B", // base
-          [foundry.id]: "0x02F7c20dabC251f35272492177E177035C21269B", // base
-        },
+        abi: ABI_CONFIG.depot.abi,
+        address: ABI_CONFIG.depot.address,
       },
       {
         name: "tractorHelpers",
-        abi: tractorHelpersABI as Abi,
-        address: {
-          [mainnet.id]: TRACTOR_HELPERS_ADDRESS,
-          [arbitrum.id]: TRACTOR_HELPERS_ADDRESS,
-          [base.id]: TRACTOR_HELPERS_ADDRESS,
-          [localhost.id]: TRACTOR_HELPERS_ADDRESS,
-          [TESTNET_CHAIN_ID]: TRACTOR_HELPERS_ADDRESS,
-          [foundry.id]: TRACTOR_HELPERS_ADDRESS,
-        },
+        abi: ABI_CONFIG.tractorHelpers.abi,
+        address: ABI_CONFIG.tractorHelpers.address,
       },
       {
         name: "sowBlueprintv0",
-        abi: sowBlueprintv0ABI as Abi,
-        address: {
-          [mainnet.id]: SOW_BLUEPRINT_V0_ADDRESS,
-          [arbitrum.id]: SOW_BLUEPRINT_V0_ADDRESS,
-          [base.id]: SOW_BLUEPRINT_V0_ADDRESS,
-          [localhost.id]: SOW_BLUEPRINT_V0_ADDRESS,
-          [TESTNET_CHAIN_ID]: SOW_BLUEPRINT_V0_ADDRESS,
-          [foundry.id]: SOW_BLUEPRINT_V0_ADDRESS,
-        },
+        abi: ABI_CONFIG.sowBlueprintv0.abi,
+        address: ABI_CONFIG.sowBlueprintv0.address,
+      },
+      {
+        name: "convertUpBlueprint",
+        abi: ABI_CONFIG.convertUpBlueprint.abi,
+        address: ABI_CONFIG.convertUpBlueprint.address,
       },
     ],
     plugins: [

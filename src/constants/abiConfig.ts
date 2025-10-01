@@ -5,6 +5,7 @@ import { pipelineABI } from "./abi/PipelineABI";
 import { sowBlueprintv0ABI } from "./abi/SowBlueprintv0ABI";
 import { tractorHelpersABI } from "./abi/TractorHelpersABI";
 import { convertUpBlueprintV0ABI } from "./abi/convertUpBlueprintV0ABI";
+import { depotABI } from "./abi/depotABI";
 import { diamondABI } from "./abi/diamondABI";
 import { diamondPriceABI } from "./abi/diamondPriceABI";
 import { CONVERT_UP_BLUEPRINT_V0_ADDRESS, SOW_BLUEPRINT_V0_ADDRESS, TRACTOR_HELPERS_ADDRESS } from "./address";
@@ -43,6 +44,17 @@ const ABI_CONFIG = {
       [localhost.id]: "0xb1bE0001f5a373b69b1E132b420e6D9687155e80", // base
       [TESTNET_CHAIN_ID]: "0xb1bE0001f5a373b69b1E132b420e6D9687155e80", // base
       [foundry.id]: "0xb1bE0001f5a373b69b1E132b420e6D9687155e80", // base
+    },
+  },
+  depot: {
+    abi: depotABI as Abi,
+    address: {
+      [mainnet.id]: "0xDEb0f00071497a5cc9b4A6B96068277e57A82Ae2",
+      [arbitrum.id]: "0xDEb0f0dEEc1A29ab97ABf65E537452D1B00A619c",
+      [base.id]: "0x02F7c20dabC251f35272492177E177035C21269B",
+      [localhost.id]: "0x02F7c20dabC251f35272492177E177035C21269B", // base
+      [TESTNET_CHAIN_ID]: "0x02F7c20dabC251f35272492177E177035C21269B", // base
+      [foundry.id]: "0x02F7c20dabC251f35272492177E177035C21269B", // base
     },
   },
   tractorHelpers: {
