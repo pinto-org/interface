@@ -1130,10 +1130,13 @@ const ViewFunctionCaller = () => {
           return value;
         }) || [];
 
+      // @ts-ignore
       const result = await publicClient.readContract({
         address: protocolAddress,
         abi: diamondABI,
+        // @ts-ignore
         functionName: selectedFunctionObj.name as any,
+        // @ts-ignore
         args: args as any,
       });
 

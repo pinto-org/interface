@@ -214,7 +214,7 @@ const SetEnvironmentVariables = () => {
   }, []);
 
   const exportCommand = React.useMemo(() => {
-    const commands = [];
+    const commands: string[] = [];
     if (rpcUrl) {
       commands.push(`export BASE_RPC="${rpcUrl}"`);
     }
