@@ -35,6 +35,7 @@ const ConvertUpTractorEntryForm = ({
   isLoading = false,
   didSetAdvancedFormFields,
   setDidSetAdvancedFormFields,
+  disallowCloseForm,
 }: {
   isLoading?: boolean;
   farmerSilo: ReturnType<typeof useFarmerSilo>;
@@ -42,6 +43,7 @@ const ConvertUpTractorEntryForm = ({
   calculations: ReturnType<typeof useSowOrderV0Calculations>;
   didSetAdvancedFormFields: boolean;
   setDidSetAdvancedFormFields: (val: boolean) => void;
+  disallowCloseForm?: boolean;
 }) => {
   const { form, setFormStep, onOpenChange } = useConvertUpOrderFormContext();
   const [showTokenStrategyDialog, setShowTokenStrategyDialog] = useState(false);
@@ -189,7 +191,7 @@ const ButtonRow = ({
   handleNext: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void>;
   isLoading: boolean;
 }) => {
-  const { getMissingFields } = useConvertUpOrderFormContext();
+  const { getMissingFields, disallowCloseForm } = useConvertUpOrderFormContext();
   const { errors } = useFormState<ConvertUpV0FormSchema>();
 
   const missingFields = getMissingFields(TractorConvertUpFormKeys.initRequired);
@@ -200,6 +202,7 @@ const ButtonRow = ({
 
   return (
     <TractorFormButtonsRow
+      hideLeft={disallowCloseForm}
       handleLeft={handleBack}
       handleRight={handleNext}
       isLoading={isLoading}

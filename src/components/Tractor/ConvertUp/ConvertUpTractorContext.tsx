@@ -34,6 +34,7 @@ export interface IConvertUpOrderFormContext extends ReturnType<typeof useConvert
   draftState: ConvertUpV0FormDraftState;
   setDraftState: (val: boolean) => void;
   onOpenChange: (open: boolean) => void;
+  disallowCloseForm: boolean;
 }
 
 export const ConvertUpOrderFormContext = createContext<IConvertUpOrderFormContext | null>(null);
@@ -49,10 +50,11 @@ export const useConvertUpOrderFormContext = () => {
 
 interface Props {
   onOpenChange: (open: boolean) => void;
+  disallowCloseForm?: boolean;
   children: React.ReactNode;
 }
 
-export default function ConvertUpOrderProvider({ children, onOpenChange }: Props) {
+export default function ConvertUpOrderProvider({ children, onOpenChange, disallowCloseForm = false }: Props) {
   const [formStep, setFormStep] = useState(ConvertUpTractorOrderFormStep.ENTRY);
   const chainId = useChainId();
 
@@ -124,6 +126,7 @@ export default function ConvertUpOrderProvider({ children, onOpenChange }: Props
         formStep,
         operatorTipPreset,
         draftState,
+        disallowCloseForm: !!disallowCloseForm,
         setDraftState: toggleDraftState,
         setFormStep,
         onOpenChange,

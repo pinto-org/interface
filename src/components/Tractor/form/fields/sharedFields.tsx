@@ -416,6 +416,7 @@ interface TractorFormButtonsRowProps {
     tooltip?: React.ReactNode;
   };
   isLoading?: boolean;
+  hideLeft?: boolean;
 }
 
 export const TractorFormButtonsRow = ({
@@ -424,20 +425,23 @@ export const TractorFormButtonsRow = ({
   isLoading,
   left: { content: leftContent, disabled: leftDisabled },
   right: { content: rightContent, disabled: rightDisabled, tooltip: rightTooltip },
+  hideLeft = false,
 }: TractorFormButtonsRowProps) => {
   return (
     <Row className="gap-4 w-full flex-1">
-      <Button
-        variant="outline"
-        size="xlargest"
-        rounded="full"
-        className="w-full flex-1 text-pinto-light bg-pinto-gray-1"
-        disabled={leftDisabled}
-        onClick={handleLeft}
-        type="button"
-      >
-        {leftContent}
-      </Button>
+      {!hideLeft && (
+        <Button
+          variant="outline"
+          size="xlargest"
+          rounded="full"
+          className="w-full flex-1 text-pinto-light bg-pinto-gray-1"
+          disabled={leftDisabled}
+          onClick={handleLeft}
+          type="button"
+        >
+          {leftContent}
+        </Button>
+      )}
       <TooltipSimple content={rightTooltip} side="top" align="center" disabled={!rightTooltip}>
         <div className="flex-1">
           <Button

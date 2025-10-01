@@ -43,6 +43,7 @@ import { useState } from "react";
 
 interface IConvertUpOrderForm {
   onOpenChange: (open: boolean) => void;
+  disallowCloseForm?: boolean;
 }
 
 // ------------------------------------------------------------
@@ -52,9 +53,9 @@ interface IConvertUpOrderForm {
 /**
  * The main form container for creating a Convert Up Tractor order.
  */
-export default function ConvertUpOrderForm({ onOpenChange }: IConvertUpOrderForm) {
+export default function ConvertUpOrderForm({ onOpenChange, disallowCloseForm }: IConvertUpOrderForm) {
   return (
-    <ConvertUpOrderProvider onOpenChange={onOpenChange}>
+    <ConvertUpOrderProvider onOpenChange={onOpenChange} disallowCloseForm={disallowCloseForm}>
       <ConvertUpOrderFormController />
     </ConvertUpOrderProvider>
   );

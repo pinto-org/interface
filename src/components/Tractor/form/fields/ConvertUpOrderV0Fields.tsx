@@ -12,7 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SEEDS, STALK } from "@/constants/internalTokens";
 import { useSharedNumericFormFieldHandlers as useFieldHandlers } from "@/hooks/form/useSharedNumericFormFieldHandlers";
 import { LOW_STALK_DEPOSIT_MODES_TO_LABELS, LowStalkDepositsMode, tractorTokenStrategyUtil } from "@/lib/Tractor";
+import useConvertStalkPerBdvBonusAndMaximumCapacity from "@/state/useConvertStalkPerBdvBonusData";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useAverageGrownStalkPerBdvPerSeason } from "@/state/useSiloData";
 import { useMainToken } from "@/state/useTokenData";
 import { getTokenIndex } from "@/utils/token";
 import { cn } from "@/utils/utils";
@@ -117,8 +119,10 @@ const TotalConvertBdvSlider = ({
 
   const handleOnChange = useCallback(
     (value: number[]) => {
+      // Truncate to max 6 decimals
+      const truncatedValue = Math.floor(value[0] * 1000000) / 1000000;
       // use the blur handler to set the value with commas
-      handlers.onBlur({ target: { value: value[0].toString() } });
+      handlers.onBlur({ target: { value: truncatedValue.toString() } });
     },
     [handlers],
   );
@@ -319,30 +323,98 @@ ConvertUpOrderV0Fields.MaxGrownStalkPerBdv = function MaxGrownStalkPerBdv() {
   );
 };
 
+const GrownStalkPerBdvBonusBidSlider = ({
+  disabled,
+  ctx,
+  maxGrownStalk,
+  handlers,
+}: {
+  disabled?: boolean;
+  ctx: ReturnType<typeof useFormContext<ConvertUpV0FormSchema>>;
+  maxGrownStalk?: number;
+  handlers: ReturnType<typeof useFieldHandlers>;
+}) => {
+  const [grownStalkPerBdvBonusBid] = useWatch({ control: ctx.control, name: ["grownStalkPerBdvBonusBid"] });
+  const sliderValue = useMemo(() => [Number(grownStalkPerBdvBonusBid.replace(/,/g, ""))], [grownStalkPerBdvBonusBid]);
+
+  const handleOnChange = useCallback(
+    (value: number[]) => {
+      // Truncate to max 6 decimals
+      const truncatedValue = Math.floor(value[0] * 1000000) / 1000000;
+      // use the blur handler to set the value with commas
+      handlers.onBlur({ target: { value: truncatedValue.toString() } });
+    },
+    [handlers],
+  );
+
+  return (
+    <MultiSlider
+      min={0}
+      max={maxGrownStalk ?? 1}
+      disabled={disabled}
+      step={0.0001}
+      value={sliderValue}
+      onValueChange={handleOnChange}
+    />
+  );
+};
+
 ConvertUpOrderV0Fields.GrownStalkPerBdvBonusBid = function GrownStalkPerBdvBonusBid() {
   const ctx = useFormContext<ConvertUpV0FormSchema>();
   const handlers = useFieldHandlers(ctx, "grownStalkPerBdvBonusBid", STALK.decimals);
+  const { address: accountAddress } = useAccount();
+
+  // Fetch data for max calculation
+  const { data: bonusData } = useConvertStalkPerBdvBonusAndMaximumCapacity();
+  const { data: averageGrownStalkPerBdvPerSeason, isLoading } = useAverageGrownStalkPerBdvPerSeason();
+
+  // Calculate max value using the formula: current bonus + 1000 * seeds per PDV per season
+  const maxGrownStalk = useMemo(() => {
+    if (!bonusData?.bonus || !averageGrownStalkPerBdvPerSeason) {
+      return undefined;
+    }
+
+    // Formula: current bonus + (1000 * average grown stalk per season)
+    const currentBonus = bonusData.bonus.toNumber();
+    const seedsPerBdvPerSeason = averageGrownStalkPerBdvPerSeason.toNumber();
+    return Number((currentBonus + 1000 * seedsPerBdvPerSeason).toFixed(6));
+  }, [bonusData?.bonus, averageGrownStalkPerBdvPerSeason]);
+
+  const showSlider = maxGrownStalk && maxGrownStalk > 0 && accountAddress;
 
   return (
-    <FormField
-      control={ctx.control}
-      name="grownStalkPerBdvBonusBid"
-      render={({ field, fieldState }) => (
-        <FormItem>
-          <FormLabel tooltipText={TOOLTIP_COPY.grownStalkPerBdvBonusBid}>Min Grown Stalk Bonus Per PDV</FormLabel>
-          <FormControl>
-            <Input
-              {...field}
-              {...sharedInputProps}
-              {...handlers}
-              placeholder="0.00"
-              isError={!!fieldState.error}
-              endIcon={<TextAdornment text="Grown Stalk" />}
-            />
-          </FormControl>
-        </FormItem>
-      )}
-    />
+    <Col className={cn("flex-1", showSlider ? "gap-0" : "gap-2")}>
+      <TooltipLabel tooltipText={TOOLTIP_COPY.grownStalkPerBdvBonusBid}>Min Grown Stalk Bonus Per PDV</TooltipLabel>
+      <Row className="flex-1 gap-4 w-full">
+        {showSlider ? (
+          <GrownStalkPerBdvBonusBidSlider
+            maxGrownStalk={maxGrownStalk}
+            disabled={isLoading}
+            ctx={ctx}
+            handlers={handlers}
+          />
+        ) : null}
+        <FormField
+          control={ctx.control}
+          name="grownStalkPerBdvBonusBid"
+          render={({ field, fieldState }) => (
+            <FormControl>
+              <Input
+                {...field}
+                {...sharedInputProps}
+                {...handlers}
+                placeholder="0.00"
+                disabled={isLoading}
+                isError={!!fieldState.error}
+                containerClassName="w-full"
+                className={cn(showSlider ? "min-w-[25rem]" : "")}
+                endIcon={<TextAdornment text="Grown Stalk" />}
+              />
+            </FormControl>
+          )}
+        />
+      </Row>
+    </Col>
   );
 };
 
@@ -508,21 +580,6 @@ ConvertUpOrderV0Fields.SlippageRatio = function SlippageRatio() {
     </div>
   );
 };
-
-// export const LowStalkDepositModes = [
-//   {
-//     label: "Do Not Use",
-//     value: LowStalkDepositsMode.OMIT,
-//   },
-//   {
-//     label: "Use First",
-//     value: LowStalkDepositsMode.USE,
-//   },
-//   {
-//     label: "Use Last",
-//     value: LowStalkDepositsMode.USE_LAST,
-//   },
-// ];
 
 const LowStalkDepositModes = Object.entries(LOW_STALK_DEPOSIT_MODES_TO_LABELS).map(([key, value]) => {
   return {

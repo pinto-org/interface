@@ -17,7 +17,7 @@ import { useMemo } from "react";
 import { useCallback } from "react";
 import { MulticallResponse, Omit } from "viem";
 import { useChainId, useReadContract, useReadContracts } from "wagmi";
-import useTokenData, { useMainToken, useWhitelistedTokens } from "./useTokenData";
+import useTokenData, { useWhitelistedTokens } from "./useTokenData";
 
 const settings = {
   query: {
@@ -318,25 +318,18 @@ type SiloTokenDataResponse = [
 // Helper Hooks
 // ────────────────────────────────────────────────────────────────────────────────
 
-export const useAverageGrownStalkPerBdv = () => {
-  const protocolAddress = useProtocolAddress();
-  const mainToken = useMainToken();
+const selectGetAverageGrownStalkPerBdvPerSeason = (value: bigint) => TokenValue.fromBigInt(value, 12);
 
-  const select = useCallback(
-    (value: bigint) => {
-      const decimals = mainToken.decimals;
-      return TokenValue.fromBigInt(value, STALK.decimals - decimals);
-    },
-    [mainToken.decimals],
-  );
+export const useAverageGrownStalkPerBdvPerSeason = () => {
+  const protocolAddress = useProtocolAddress();
 
   return useReadContract({
     address: protocolAddress,
     abi: beanstalkAbi,
-    functionName: "getAverageGrownStalkPerBdv" as const,
+    functionName: "getAverageGrownStalkPerBdvPerSeason" as const,
     scopeKey: SEASONAL_SCOPE_KEY,
     query: {
-      select,
+      select: selectGetAverageGrownStalkPerBdvPerSeason,
       ...QUERY_SETTINGS.slow,
     },
   });

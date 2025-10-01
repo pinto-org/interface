@@ -73,11 +73,11 @@ export const SiloConvertUpContent = () => {
           <Col className="w-full justify-between gap-4 sm:flex-row sm:items-start sm:justify-start">
             <div className="flex flex-col w-full gap-4">
               <div className="flex flex-col lg:flex-row w-full gap-4 justify-between">
-                <div className="flex flex-1 w-full">
+                <div className="flex w-full">
                   <ConvertUpTractorOrderBookChart />
                 </div>
-                <Card className="flex rounded-xl p-4 w-full lg:max-w-[425px]">
-                  <ConvertUpOrderForm onOpenChange={noop} />
+                <Card className="flex rounded-xl p-4 w-full lg:max-w-[31rem]">
+                  <ConvertUpOrderForm onOpenChange={noop} disallowCloseForm={true} />
                 </Card>
               </div>
               {isDev() && (
