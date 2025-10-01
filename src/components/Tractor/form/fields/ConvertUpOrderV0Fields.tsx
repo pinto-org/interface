@@ -1,22 +1,23 @@
 import PDVIcon from "@/assets/protocol/PDV.png";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/Form";
-import IconImage from "@/components/ui/IconImage";
 import { Input } from "@/components/ui/Input";
 import { MultiSlider } from "@/components/ui/Slider";
-import { MAIN_TOKEN } from "@/constants/tokens";
-import { useChainConstant } from "@/utils/chain";
 import { useCallback, useMemo } from "react";
 import { ConvertUpV0FormSchema } from "../schema/convertUp.schema";
 
+import { TV } from "@/classes/TokenValue";
 import { Col, Row } from "@/components/Container";
 import { TooltipLabel } from "@/components/ui/Label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
 import { SEEDS, STALK } from "@/constants/internalTokens";
 import { useSharedNumericFormFieldHandlers as useFieldHandlers } from "@/hooks/form/useSharedNumericFormFieldHandlers";
-import { LowStalkDepositsMode } from "@/lib/Tractor";
+import { LowStalkDepositsMode, tractorTokenStrategyUtil } from "@/lib/Tractor";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useMainToken } from "@/state/useTokenData";
+import { getTokenIndex } from "@/utils/token";
 import { cn } from "@/utils/utils";
 import { RegisterOptions, useFormContext, useWatch } from "react-hook-form";
+import { useAccount } from "wagmi";
 
 type StringInputFields = Pick<
   ConvertUpV0FormSchema,
@@ -89,7 +90,7 @@ export default function ConvertUpOrderV0Fields({ children }: { children: React.R
 
 const PDVIconAdornment = () => {
   return (
-    <div className="flex items-center gap-2 px-4 bg-white">
+    <div className="flex items-center gap-2 pr-4 pl-2 bg-white">
       <img src={PDVIcon} alt="PDV" className="w-5 h-4" />
       <span className="hidden sm:block text-black pinto-sm-light">PDV</span>
     </div>
@@ -100,20 +101,104 @@ const TextAdornment = ({ text, isEnd = true, className }: { text: string; isEnd?
   return <div className={cn("text-black pinto-sm-light", isEnd ? "mr-2" : "ml-2", className)}>{text}</div>;
 };
 
-ConvertUpOrderV0Fields.TotalConvertBdv = function TotalConvertBdv() {
-  const { decimals } = useMainToken();
-  const { register, isError } = useFormFieldProps("totalBeanAmountToConvert", decimals);
+const TotalConvertBdvSlider = ({
+  disabled,
+  ctx,
+  maxPDV,
+  handlers,
+}: {
+  disabled?: boolean;
+  ctx: ReturnType<typeof useFormContext<ConvertUpV0FormSchema>>;
+  maxPDV?: TV;
+  handlers: ReturnType<typeof useFieldHandlers>;
+}) => {
+  const [totalBeanAmountToConvert] = useWatch({ control: ctx.control, name: ["totalBeanAmountToConvert"] });
+  const sliderValue = useMemo(() => [Number(totalBeanAmountToConvert.replace(/,/g, ""))], [totalBeanAmountToConvert]);
+
+  const handleOnChange = useCallback(
+    (value: number[]) => {
+      // use the blur handler to set the value with commas
+      handlers.onBlur({ target: { value: value[0].toString() } });
+    },
+    [handlers],
+  );
 
   return (
-    <Col className="flex-1 gap-2">
+    <MultiSlider
+      min={0}
+      max={maxPDV?.toNumber() ?? 1000}
+      disabled={disabled}
+      step={0.1}
+      value={sliderValue}
+      onValueChange={handleOnChange}
+    />
+  );
+};
+
+ConvertUpOrderV0Fields.TotalConvertBdv = function TotalConvertBdv({
+  farmerDeposits,
+}: {
+  farmerDeposits: ReturnType<typeof useFarmerSilo>["deposits"];
+}) {
+  const { address: accountAddress } = useAccount();
+  const { decimals } = useMainToken();
+  const ctx = useFormContext<ConvertUpV0FormSchema>();
+  const { register, isError, handlers } = useFormFieldProps("totalBeanAmountToConvert", decimals);
+  const [tokenStrategy] = useWatch({ control: ctx.control, name: ["tokenStrategy"] });
+
+  const totalBdvsMap = useMemo(() => {
+    const bdvsByStrategy: Record<string, TV> = {
+      LOWEST_PRICE: TV.ZERO,
+      LOWEST_SEEDS: TV.ZERO,
+    };
+
+    let totalConvertibleBdv = TV.ZERO;
+
+    farmerDeposits.forEach((deposit, token) => {
+      if (!token.isLP) {
+        return;
+      }
+      const convertibleBdv = deposit.convertibleDeposits.reduce((acc, deposit) => acc.add(deposit.depositBdv), TV.ZERO);
+      totalConvertibleBdv = totalConvertibleBdv.add(convertibleBdv);
+      bdvsByStrategy[getTokenIndex(token)] = convertibleBdv;
+    });
+
+    bdvsByStrategy.LOWEST_PRICE = totalConvertibleBdv;
+    bdvsByStrategy.LOWEST_SEEDS = totalConvertibleBdv;
+
+    return bdvsByStrategy;
+  }, [farmerDeposits, tokenStrategy]);
+
+  const maxPDV = useMemo(() => {
+    const summary = tractorTokenStrategyUtil.getSummary(tokenStrategy);
+    if (summary.type in totalBdvsMap) {
+      return totalBdvsMap[summary.type];
+    }
+
+    return summary.addresses?.reduce((acc, curr) => {
+      return acc.add(totalBdvsMap[getTokenIndex(curr)] ?? TV.ZERO);
+    }, TV.ZERO);
+  }, [totalBdvsMap, tokenStrategy]);
+
+  const showSlider = maxPDV?.gt(0) && accountAddress;
+
+  return (
+    <Col className={cn("flex-1", showSlider ? "gap-0" : "gap-2")}>
       <TooltipLabel tooltipText={TOOLTIP_COPY.totalConvertBdv}>I want to convert up to</TooltipLabel>
-      <Input
-        {...register()}
-        {...sharedInputProps}
-        placeholder="0.00"
-        isError={isError}
-        endIcon={<PDVIconAdornment />}
-      />
+      <Row className="flex-1 gap-4 w-full">
+        {showSlider ? (
+          <TotalConvertBdvSlider maxPDV={maxPDV} disabled={!tokenStrategy} ctx={ctx} handlers={handlers} />
+        ) : null}
+        <Input
+          {...register()}
+          {...sharedInputProps}
+          placeholder="0.00"
+          isError={isError}
+          containerClassName="w-full"
+          className={cn(showSlider ? "min-w-[25rem]" : "")}
+          endIcon={<PDVIconAdornment />}
+        />
+      </Row>
     </Col>
   );
 };
@@ -451,17 +536,7 @@ ConvertUpOrderV0Fields.LowStalkDepositsSelect = function LowStalkDeposits({ clas
                 field.onChange(Number(value));
               }}
             >
-              <SelectTrigger
-                className={cn(
-                  "cursor-pointer rounded-[0.75rem] w-fit h-12 bg-white",
-                  "px-3 py-1 text-[1.25rem] text-black",
-                  "border border-pinto-gray-2 shadow-none",
-                  "ring-0 focus:ring-0 focus-visible:ring-0",
-                  "focus:ring-offset-0 focus-visible:ring-offset-0",
-                  "outline-none focus:outline-none focus-visible:outline-none",
-                  className,
-                )}
-              >
+              <SelectTrigger variant="form" className={className}>
                 <div className="mr-4">
                   <SelectValue placeholder="Select">
                     {LowStalkDepositModes.find((value) => value.value === field.value)?.label}

@@ -139,12 +139,12 @@ const ConvertUpTractorEntryForm = ({
         </div>
         <Col className="w-full gap-5">
           <>
-            <Fields.TotalConvertBdv />
             <TokenStrategyFormField
               openDialog={handleOpenDialog}
               label="Convert using"
               tooltipText="Select the token(s) you want to convert from."
             />
+            <Fields.TotalConvertBdv farmerDeposits={farmerSilo.deposits} />
             <Fields.PriceRange />
             <Col className="gap-3">
               <Fields.GrownStalkPerBdvBonusBid />
@@ -167,6 +167,7 @@ const ConvertUpTractorEntryForm = ({
       </Col>
       {showTokenStrategyDialog && (
         <TokenStrategyDialog
+          mode="bdv"
           open={showTokenStrategyDialog}
           onOpenChange={setShowTokenStrategyDialog}
           farmerDeposits={farmerSilo.deposits}
@@ -276,11 +277,13 @@ const TokenStrategyDialog = ({
   onOpenChange,
   farmerDeposits,
   calculations,
+  mode = "amount",
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   farmerDeposits: ReturnType<typeof useFarmerSilo>["deposits"];
   calculations: ReturnType<typeof useSowOrderV0Calculations>;
+  mode?: "bdv" | "amount";
 }) => {
   const ctx = useFormContext<ConvertUpV0FormSchema>();
 
@@ -311,6 +314,7 @@ const TokenStrategyDialog = ({
       farmerDeposits={farmerDeposits}
       multiSelect
       onlyLP
+      mode={mode}
       {...calculations}
     />
   );

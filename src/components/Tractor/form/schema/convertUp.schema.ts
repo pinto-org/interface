@@ -86,7 +86,7 @@ const timeScale = (fieldName: string) =>
   }, `Invalid ${fieldName}`);
 
 // Low stalk deposits mode validation
-const lowStalkDepositsValidation = z.number().int().min(0).max(2).default(LowStalkDepositsMode.USE); // 0: USE, 1: OMIT, 2: USE_LAST
+const lowStalkDepositsValidation = z.number().int().min(0).max(2).default(LowStalkDepositsMode.USE_LAST); // 0: USE, 1: OMIT, 2: USE_LAST
 
 export const convertUpSchemaErrors = {
   minBdvLteMaxBdv: "Min PDV per execution exceeds Max PDV per execution",
@@ -227,7 +227,7 @@ const defaultConvertOrderUpValues: FormSchema = {
   maxGrownStalkPerBdv: "100", // default of 100 max grown stalk per BDV
   maxGrownStalkPerBdvPenalty: "0", // default to 0 penalty
   slippageRatio: "0.1", // 0.1%
-  lowStalkDeposits: 0, // USE (0) for default
+  lowStalkDeposits: LowStalkDepositsMode.USE_LAST, // USE (2) for default
   operatorTip: "0",
   customOperatorTip: "",
 };
@@ -309,10 +309,8 @@ export const useConvertUpV0Form = (): IConvertUpV0Form => {
             return value === "";
           }
           case key === "lowStalkDeposits":
-            return (
-              value !== LowStalkDepositsMode.OMIT &&
-              value !== LowStalkDepositsMode.USE_LAST &&
-              value !== LowStalkDepositsMode.USE
+            return ![LowStalkDepositsMode.OMIT, LowStalkDepositsMode.USE_LAST, LowStalkDepositsMode.USE].includes(
+              value as LowStalkDepositsMode,
             );
           default:
             return false;

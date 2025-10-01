@@ -4,7 +4,7 @@ import { FieldPath, FieldValues, PathValue, useFormContext } from "react-hook-fo
 
 interface BaseIFormContextHandlers {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => ReturnType<typeof sanitizeNumericInputValue>;
-  onBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
+  onBlur: (e: { target: { value: string } }) => void;
   onFocus: (e: React.FocusEvent<HTMLInputElement>) => void;
 }
 
@@ -17,7 +17,7 @@ export const useSharedNumericFormFieldHandlers = <
   decimals: number,
 ): BaseIFormContextHandlers => {
   const handleNumericInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: React.ChangeEvent<HTMLInputElement> | { target: { value: string } }) => {
       const cleaned = sanitizeNumericInputValue(e.target.value, decimals);
 
       ctx.setValue(name, cleaned.str as PathValue<TFieldValues, TName>, { shouldValidate: true });
@@ -27,7 +27,7 @@ export const useSharedNumericFormFieldHandlers = <
   );
 
   const handleNumericInputBlur = useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
+    (e: React.ChangeEvent<HTMLInputElement> | { target: { value: string } }) => {
       const cleanValue = e.target.value.replace(/,/g, "");
       const parts = cleanValue.split(".");
       parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -40,7 +40,7 @@ export const useSharedNumericFormFieldHandlers = <
   );
 
   const handleNumericInputFocus = useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
+    (e: React.FocusEvent<HTMLInputElement> | { target: { value: string } }) => {
       const cleanValue = e.target.value.replace(/,/g, "");
       ctx.setValue(name, cleanValue as PathValue<TFieldValues, TName>, { shouldValidate: false });
     },
