@@ -29,10 +29,10 @@ const ABI_CONFIG = {
     address: {
       [mainnet.id]: "0x4BEd6cb142b7d474242d87F4796387DEB9E1E1B4",
       [arbitrum.id]: "0xC218F5a782b0913931DCF502FA2aA959b36Ac9E7",
-      [base.id]: "0xDA5839b485cBbDE5361D05FDE71e45504E7085E1", // temp address
-      [localhost.id]: "0xDA5839b485cBbDE5361D05FDE71e45504E7085E1", // base
-      [TESTNET_CHAIN_ID]: "0xDA5839b485cBbDE5361D05FDE71e45504E7085E1", // base
-      [foundry.id]: "0xDA5839b485cBbDE5361D05FDE71e45504E7085E1", // base
+      [base.id]: "0xb8440B11A66d1B2E2992dd478d3322bE94DB4530", // temp address
+      [localhost.id]: "0xb8440B11A66d1B2E2992dd478d3322bE94DB4530", // base
+      [TESTNET_CHAIN_ID]: "0xb8440B11A66d1B2E2992dd478d3322bE94DB4530", // base
+      [foundry.id]: "0xb8440B11A66d1B2E2992dd478d3322bE94DB4530", // base
     },
   },
   pipeline: {
