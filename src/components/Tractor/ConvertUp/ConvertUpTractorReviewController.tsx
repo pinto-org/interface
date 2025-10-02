@@ -403,6 +403,10 @@ const AdvancedParametersSummary = ({
   const seedDiffNum = Number(seedDifference);
   const seedDiffAbs = seedDiffNum >= 0 ? seedDiffNum : seedDiffNum * -1;
   const seedDiffLabel = seedDiffNum >= 0 ? "Minimum Seed Gain Per PDV" : "Maximum Seed Loss Per PDV";
+  const seedDiffTooltip =
+    seedDiffNum >= 0
+      ? "The minimum seed difference required between your selected tokens and PINTO at the time of execution."
+      : "The maximum seed loss per PDV allowed between your selected tokens and PINTO at the time of execution.";
 
   return (
     <Card className="flex flex-col gap-2 border-none">
@@ -412,7 +416,7 @@ const AdvancedParametersSummary = ({
         value={minTimeBetweenConverts ? `${getTimeScaleDisplay()}` : "--"}
       />
       <ReviewRow
-        label="Min Convert Capacity"
+        label="Min Convert Bonus Capacity"
         tooltip={CONVERT_UP_TOOLTIP_COPY.minConvertBonusCapacity}
         value={minConvertBonusCapacity ? `${formatter.number(minConvertBonusCapacity)} PDV` : "--"}
       />
@@ -431,18 +435,14 @@ const AdvancedParametersSummary = ({
         tooltip="The minimum and maximum execution size of the Convert Up Order"
         value={`${formatter.number(minConvertBdvPerExecution)} - ${formatter.number(maxConvertBdvPerExecution)} PDV`}
       />
-      <ReviewRow
-        label={seedDiffLabel}
-        tooltip={CONVERT_UP_TOOLTIP_COPY.seedDifference}
-        value={`${formatter.number(seedDiffAbs)} Seeds`}
-      />
+      <ReviewRow label={seedDiffLabel} tooltip={seedDiffTooltip} value={`${formatter.number(seedDiffAbs)} Seeds`} />
       <ReviewRow
         label="Slippage Tolerance"
         tooltip={CONVERT_UP_TOOLTIP_COPY.slippageRatio}
         value={`${formatter.pct(slippageRatio)}`}
       />
       <ReviewRow
-        label="Use Low Stalk Deposits"
+        label="Low Stalk Deposit Utilization Priority"
         tooltip={CONVERT_UP_TOOLTIP_COPY.lowStalkDeposits}
         value={LOW_STALK_DEPOSIT_MODES_TO_LABELS[lowStalkDeposits as LowStalkDepositsMode]}
       />

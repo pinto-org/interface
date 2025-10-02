@@ -74,8 +74,8 @@ const TOOLTIP_COPY = {
   minConvertBonusCapacity: "The minimum convert bonus capacity of the Convert Up Order.",
   maxGrownStalkPerBdv: "The maximum grown stalk per PDV of the Convert Up Order.",
   grownStalkPerBdvBonusBid: "The minimum Grown Stalk Bonus in which this order can be executed.",
-  maxPriceToConvertUp: "The maximum price to convert up to.",
-  minPriceToConvertUp: "The minimum price to convert up to.",
+  maxPriceToConvertUp: "The maximum price in which this order can be executed.",
+  minPriceToConvertUp: "The minimum price in which this order can be executed.",
   maxGrownStalkPerBdvPenalty: "The maximum grown stalk per PDV penalty of the Convert Up Order.",
   slippageRatio: "The slippage ratio of the Convert Up Order.",
   lowStalkDeposits: "The condition or eligibility in which Silo deposits with low Grown Stalk are used.",
@@ -253,7 +253,7 @@ ConvertUpOrderV0Fields.MinTimeBetweenConverts = function MinTimeBetweenConverts(
       name="minTimeBetweenConverts"
       render={({ field, fieldState }) => (
         <FormItem className="flex-1">
-          <FormLabel tooltipText={TOOLTIP_COPY.minTimeBetweenConverts}>Min time between converts</FormLabel>
+          <FormLabel tooltipText={TOOLTIP_COPY.minTimeBetweenConverts}>Min Time Between Executions</FormLabel>
           <div className="flex flex-col">
             <FormControl>
               <Input {...field} {...sharedInputProps} {...handlers} placeholder="3600" isError={!!fieldState.error} />
