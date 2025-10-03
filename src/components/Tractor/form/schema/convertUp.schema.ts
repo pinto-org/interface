@@ -39,6 +39,7 @@ type FormSchema<T = string> = {
   totalBeanAmountToConvert: T;
   minBeansConvertPerExecution: T;
   maxBeansConvertPerExecution: T;
+  capAmountToBonusCapacity: boolean;
   minTimeBetweenConverts: T;
   timeScale: TimeScaleSelect;
   minConvertBonusCapacity: T;
@@ -98,6 +99,7 @@ export const convertUpSchemaErrors = {
 const inferrableKeys: (keyof FormSchema)[] = [
   "minBeansConvertPerExecution",
   "maxBeansConvertPerExecution",
+  "capAmountToBonusCapacity",
   "minTimeBetweenConverts",
   "minConvertBonusCapacity",
   "maxGrownStalkPerBdv",
@@ -134,6 +136,7 @@ export const convertUpOrderDialogSchema = z
     totalBeanAmountToConvert: positiveNumber("Total Convert PDV"),
     minBeansConvertPerExecution: positiveNumber("Min PDV per Execution"),
     maxBeansConvertPerExecution: positiveNumber("Max PDV per Execution"),
+    capAmountToBonusCapacity: z.boolean().default(true),
 
     // Time constraints
     minTimeBetweenConverts: timeInSeconds("Min Time Between Executions"),
@@ -221,6 +224,7 @@ const defaultConvertOrderUpValues: FormSchema = {
   seedDifference: "",
   minBeansConvertPerExecution: "",
   maxBeansConvertPerExecution: "",
+  capAmountToBonusCapacity: true, // default to capping enabled
   minTimeBetweenConverts: "1", // 0 seconds
   timeScale: "SECONDS",
   minConvertBonusCapacity: "",
@@ -440,6 +444,7 @@ const prepareConvertUpFormValuesForBlueprint = (
     totalBeanAmountToConvert: cleaned.totalBeanAmountToConvert.tv,
     minBeansConvertPerExecution: cleaned.minBeansConvertPerExecution.tv,
     maxBeansConvertPerExecution: cleaned.maxBeansConvertPerExecution.tv,
+    capAmountToBonusCapacity: values.capAmountToBonusCapacity,
     minConvertBonusCapacity: cleaned.minConvertBonusCapacity.tv,
     maxGrownStalkPerBdv: cleaned.maxGrownStalkPerBdv.tv,
     grownStalkPerBdvBonusBid: cleaned.grownStalkPerBdvBonusBid.tv,
@@ -459,6 +464,7 @@ export type ConvertUpV0FormOrderData = {
   totalBeanAmountToConvert: string;
   minBeansConvertPerExecution: string;
   maxBeansConvertPerExecution: string;
+  capAmountToBonusCapacity: boolean;
   minTimeBetweenConverts: string;
   minConvertBonusCapacity: string;
   maxGrownStalkPerBdv: string;
@@ -559,6 +565,7 @@ export const useConvertUpV0State = () => {
           totalBeanAmountToConvert: formData.totalBeanAmountToConvert,
           minBeansConvertPerExecution: formData.minBeansConvertPerExecution,
           maxBeansConvertPerExecution: formData.maxBeansConvertPerExecution,
+          capAmountToBonusCapacity: formData.capAmountToBonusCapacity,
           minTimeBetweenConverts: formData.minTimeBetweenConverts,
           minConvertBonusCapacity: formData.minConvertBonusCapacity,
           maxGrownStalkPerBdv: formData.maxGrownStalkPerBdv,

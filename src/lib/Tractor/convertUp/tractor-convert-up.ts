@@ -95,6 +95,7 @@ export async function createConvertUpTractorData({
       totalBeanAmountToConvert: args.totalBeanAmountToConvert.toBigInt(),
       minBeansConvertPerExecution: args.minBeansConvertPerExecution.toBigInt(),
       maxBeansConvertPerExecution: args.maxBeansConvertPerExecution.toBigInt(),
+      capAmountToBonusCapacity: args.capAmountToBonusCapacity,
       minTimeBetweenConverts: args.minTimeBetweenConverts.toBigInt(),
       minConvertBonusCapacity: args.minConvertBonusCapacity.toBigInt(),
       maxGrownStalkPerBdv: args.maxGrownStalkPerBdv.toBigInt(),

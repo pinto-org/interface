@@ -435,6 +435,11 @@ const AdvancedParametersSummary = ({
         tooltip="The minimum and maximum execution size of the Convert Up Order"
         value={`${formatter.number(minConvertBdvPerExecution)} - ${formatter.number(maxConvertBdvPerExecution)} PDV`}
       />
+      <ReviewRow
+        label="Cap Amount per Execution to Bonus Capacity"
+        tooltip={CONVERT_UP_TOOLTIP_COPY.capAmountToBonusCapacity}
+        value={values.capAmountToBonusCapacity ? "Yes" : "No"}
+      />
       <ReviewRow label={seedDiffLabel} tooltip={seedDiffTooltip} value={`${formatter.number(seedDiffAbs)} Seeds`} />
       <ReviewRow
         label="Slippage Tolerance"

@@ -2,6 +2,7 @@ import PDVIcon from "@/assets/protocol/PDV.png";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/Form";
 import { Input } from "@/components/ui/Input";
 import { MultiSlider } from "@/components/ui/Slider";
+import { Switch } from "@/components/ui/Switch";
 import { useCallback, useMemo } from "react";
 import { ConvertUpV0FormSchema } from "../schema/convertUp.schema";
 
@@ -70,6 +71,8 @@ const TOOLTIP_COPY = {
   totalConvertBdv: "The total PDV of the Convert Up Order.",
   minBeansConvertPerExecution: "The minimum PDV per execution of the Convert Up Order.",
   maxBeansConvertPerExecution: "The maximum PDV per execution of the Convert Up Order.",
+  capAmountToBonusCapacity:
+    "Cap the conversion amount to the available bonus capacity. When enabled, conversions will be limited to the current bonus capacity regardless of your max PDV per execution setting.",
   minTimeBetweenConverts: "The minimum time between converts of the Convert Up Order.",
   minConvertBonusCapacity: "The minimum convert bonus capacity of the Convert Up Order.",
   maxGrownStalkPerBdv: "The maximum grown stalk per PDV of the Convert Up Order.",
@@ -243,6 +246,27 @@ ConvertUpOrderV0Fields.MaxConvertBdvPerExecution = function MaxConvertBdvPerExec
   );
 };
 
+ConvertUpOrderV0Fields.CapAmountToBonusCapacity = function CapAmountToBonusCapacity() {
+  const ctx = useFormContext<ConvertUpV0FormSchema>();
+
+  return (
+    <FormField
+      control={ctx.control}
+      name="capAmountToBonusCapacity"
+      render={({ field }) => (
+        <FormItem className="flex flex-row w-full items-center justify-between gap-2 space-y-0">
+          <FormLabel tooltipText={TOOLTIP_COPY.capAmountToBonusCapacity}>
+            Cap Amount per Execution to Bonus Capacity
+          </FormLabel>
+          <FormControl>
+            <Switch checked={field.value} onCheckedChange={field.onChange} />
+          </FormControl>
+        </FormItem>
+      )}
+    />
+  );
+};
+
 ConvertUpOrderV0Fields.MinTimeBetweenConverts = function MinTimeBetweenConverts() {
   const ctx = useFormContext<ConvertUpV0FormSchema>();
   const handlers = useFieldHandlers(ctx, "minTimeBetweenConverts", 0);
@@ -286,7 +310,7 @@ ConvertUpOrderV0Fields.MinConvertBonusCapacity = function MinConvertBonusCapacit
               {...handlers}
               placeholder="0.00"
               isError={!!fieldState.error}
-              endIcon={<TextAdornment text="Grown Stalk / PDV" />}
+              endIcon={<TextAdornment text="PDV" />}
             />
           </FormControl>
         </FormItem>
