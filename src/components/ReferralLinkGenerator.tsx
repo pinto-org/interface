@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import Warning from "@/components/ui/Warning";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { useFarmerField } from "@/state/useFarmerField";
 import { trackSimpleEvent } from "@/utils/analytics";
@@ -71,21 +70,35 @@ export function ReferralLinkGenerator() {
     });
   };
 
+  const progressPercentage = Math.min((totalSownBeans / MIN_SOWN_BEANS) * 100, 100);
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <div className="pinto-h3">Your Referral Link</div>
-        <div className="pinto-body-light text-pinto-gray-4">
+        <div className="pinto-body-light text-pinto-light">
           Share your link to earn 1% bonus Pods when others sow using it
         </div>
       </div>
 
       {!isEligible && (
-        <Warning>
-          You need to sow at least {formatter.number(MIN_SOWN_BEANS)} Beans before your referral link will work.
-          <br />
-          Current: {formatter.number(totalSownBeans)} Beans sown.
-        </Warning>
+        <div className="flex flex-col gap-3 p-4 bg-pinto-off-white rounded-lg">
+          <div className="flex justify-between items-center">
+            <div className="pinto-sm-bold text-pinto-dark">Qualification Progress</div>
+            <div className="pinto-sm text-pinto-light">
+              {formatter.number(totalSownBeans)} / {formatter.number(MIN_SOWN_BEANS)} Beans
+            </div>
+          </div>
+          <div className="w-full h-3 bg-pinto-light/10 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-pinto-green to-pinto-green-dark transition-all duration-500 ease-out rounded-full"
+              style={{ width: `${progressPercentage}%` }}
+            />
+          </div>
+          <div className="pinto-sm text-pinto-light">
+            Sow {formatter.number(MIN_SOWN_BEANS - totalSownBeans)} more Beans to unlock your referral link
+          </div>
+        </div>
       )}
 
       <div className="flex flex-col gap-3">
@@ -99,13 +112,13 @@ export function ReferralLinkGenerator() {
 
         {isEligible && (
           <>
-            <div className="pinto-sm text-pinto-green-4 bg-pinto-green-0 p-3 rounded-lg">
+            <div className="pinto-sm text-pinto-green bg-pinto-green/10 p-3 rounded-lg">
               ✓ Your referral link is active! You'll earn 1% bonus Pods when someone sows using your link.
             </div>
 
             {/* Twitter Share Button */}
             <div className="flex flex-col gap-2">
-              <div className="pinto-sm-bold text-pinto-gray-4">Share on Social</div>
+              <div className="pinto-sm-bold text-pinto-light">Share on Social</div>
               <Button onClick={handleTwitterShare} variant="outline" className="gap-2 w-full justify-center">
                 <Share1Icon className="w-4 h-4" />
                 Share on Twitter
@@ -116,8 +129,8 @@ export function ReferralLinkGenerator() {
       </div>
 
       <div className="flex flex-col gap-2 p-4 bg-pinto-off-white rounded-lg">
-        <div className="pinto-sm-bold">How it works:</div>
-        <ul className="pinto-sm text-pinto-gray-4 list-disc list-inside space-y-1">
+        <div className="pinto-sm-bold text-pinto-dark">How it works:</div>
+        <ul className="pinto-sm text-pinto-light list-disc list-inside space-y-1">
           <li>Share your referral link with others</li>
           <li>When they sow Beans using your link, you both earn bonus Pods</li>
           <li>You receive 1% of the Pods they earn as a referral bonus</li>
