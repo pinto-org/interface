@@ -7,7 +7,7 @@ import { useFarmerField } from "@/state/useFarmerField";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
 import { encodeReferralAddress } from "@/utils/referral";
-import { CopyIcon } from "@radix-ui/react-icons";
+import { CopyIcon, Share1Icon } from "@radix-ui/react-icons";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 
@@ -58,6 +58,19 @@ export function ReferralLinkGenerator() {
     });
   };
 
+  const handleTwitterShare = () => {
+    const tweetText =
+      "🌱 I'm farming on @PintoProtocol and earning passive rewards!\n\nJoin me and we both earn bonus Pods when you sow Beans 🫘\n\nStart farming today:";
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(referralUrl)}`;
+    window.open(twitterUrl, "_blank", "noopener,noreferrer");
+
+    trackSimpleEvent(ANALYTICS_EVENTS.REFERRAL.TWITTER_SHARE, {
+      address,
+      is_eligible: isEligible,
+      total_sown_beans: totalSownBeans,
+    });
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
@@ -85,9 +98,20 @@ export function ReferralLinkGenerator() {
         </div>
 
         {isEligible && (
-          <div className="pinto-sm text-pinto-green-4 bg-pinto-green-0 p-3 rounded-lg">
-            ✓ Your referral link is active! You'll earn 1% bonus Pods when someone sows using your link.
-          </div>
+          <>
+            <div className="pinto-sm text-pinto-green-4 bg-pinto-green-0 p-3 rounded-lg">
+              ✓ Your referral link is active! You'll earn 1% bonus Pods when someone sows using your link.
+            </div>
+
+            {/* Twitter Share Button */}
+            <div className="flex flex-col gap-2">
+              <div className="pinto-sm-bold text-pinto-gray-4">Share on Social</div>
+              <Button onClick={handleTwitterShare} variant="outline" className="gap-2 w-full justify-center">
+                <Share1Icon className="w-4 h-4" />
+                Share on Twitter
+              </Button>
+            </div>
+          </>
         )}
       </div>
 

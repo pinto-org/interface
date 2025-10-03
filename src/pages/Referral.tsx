@@ -22,21 +22,24 @@ export default function Referral() {
           </p>
         </div>
 
-        {/* Main Referral Card */}
-        <Card className="p-6">
-          <ReferralLinkGenerator />
-        </Card>
+        {/* Main Referral Cards - Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Your Referral Link */}
+          <Card className="p-6">
+            <ReferralLinkGenerator />
+          </Card>
 
-        {/* Stats Section - Coming Soon */}
-        <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-semibold text-pinto-green-4">Your Referral Stats</h2>
-          <div className="bg-pinto-gray-1 p-4 rounded-lg text-center">
-            <p className="text-pinto-gray-4">Referral stats and leaderboard coming soon!</p>
-            <p className="text-sm text-pinto-gray-3 mt-2">
-              Track your earned Pods and see how you rank among top referrers.
-            </p>
-          </div>
-        </Card>
+          {/* Your Referral Stats */}
+          <Card className="p-6 space-y-4">
+            <h2 className="text-2xl font-semibold text-pinto-green-4">Your Referral Stats</h2>
+            <div className="bg-pinto-gray-1 p-4 rounded-lg text-center">
+              <p className="text-pinto-gray-4">Referral stats and leaderboard coming soon!</p>
+              <p className="text-sm text-pinto-gray-3 mt-2">
+                Track your earned Pods and see how you rank among top referrers.
+              </p>
+            </div>
+          </Card>
+        </div>
 
         {/* How It Works */}
         <Card className="p-6 space-y-4">
@@ -85,37 +88,6 @@ export default function Referral() {
                   sow transaction.
                 </p>
               </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Example Section */}
-        <Card className="p-6 space-y-4">
-          <h2 className="text-2xl font-semibold text-pinto-green-4">Example</h2>
-          <div className="bg-pinto-gray-1 p-4 rounded-lg space-y-3 text-sm">
-            <div className="space-y-2">
-              <p className="font-semibold text-pinto-green-4">Scenario:</p>
-              <p className="text-pinto-gray-4">
-                Alice has sown 5,000 Beans in the Field. She shares her referral link with Bob.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <p className="font-semibold text-pinto-green-4">What Happens:</p>
-              <ul className="list-disc list-inside space-y-1 text-pinto-gray-4 ml-2">
-                <li>Bob clicks Alice's referral link and visits Pinto</li>
-                <li>Bob connects his wallet and sows 1,000 Beans</li>
-                <li>Bob receives 1,000 Pods (assuming 1:1 weather)</li>
-                <li>Alice automatically receives 10 Pods (1% of 1,000 Pods) as a referral bonus</li>
-              </ul>
-            </div>
-
-            <div className="space-y-2">
-              <p className="font-semibold text-pinto-green-4">Result:</p>
-              <p className="text-pinto-gray-4">
-                Alice earns passive Pods every time someone uses her referral link to sow Beans. The more people she
-                refers, the more she earns!
-              </p>
             </div>
           </div>
         </Card>

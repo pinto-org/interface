@@ -158,6 +158,7 @@ const REFERRAL_EVENTS = {
   LINK_GENERATED: "referral_link_generated",
   LINK_COPIED: "referral_link_copied",
   LINK_SHARED: "referral_link_shared",
+  TWITTER_SHARE: "referral_twitter_share",
 
   // Validation
   ELIGIBILITY_CHECKED: "referral_eligibility_checked",
