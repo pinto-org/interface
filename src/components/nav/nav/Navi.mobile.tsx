@@ -169,6 +169,13 @@ function MobileNavContent({ learnOpen, setLearnOpen, unmount, close }: IMobileNa
             Swap
           </MobileNavLink>
           <MobileNavLink
+            href={navLinks.referral}
+            onClick={unmountAndClose}
+            eventName={ANALYTICS_EVENTS.NAVIGATION.MAIN_REFERRAL_CLICK}
+          >
+            Referral
+          </MobileNavLink>
+          <MobileNavLink
             href={navLinks.explorer}
             onClick={unmountAndClose}
             eventName={ANALYTICS_EVENTS.NAVIGATION.HEADER_DATA_CLICK}
