@@ -103,8 +103,8 @@ export function ReferralLinkGenerator() {
 
       <div className="flex flex-col gap-3">
         <div className="flex flex-row gap-2">
-          <Input value={referralUrl} readOnly className="flex-1" onClick={handleGenerateClick} />
-          <Button onClick={handleCopy} variant="outline" className="gap-2">
+          <Input value={referralUrl} readOnly className="flex-1 min-w-0 text-sm" onClick={handleGenerateClick} />
+          <Button onClick={handleCopy} variant="outline" className="gap-2 whitespace-nowrap">
             <CopyIcon className="w-4 h-4" />
             Copy
           </Button>
