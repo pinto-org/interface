@@ -1,7 +1,7 @@
-import PageContainer from "@/components/ui/PageContainer";
-import { Card } from "@/components/ui/Card";
-import { Separator } from "@/components/ui/Separator";
 import { ReferralLinkGenerator } from "@/components/ReferralLinkGenerator";
+import { Card } from "@/components/ui/Card";
+import PageContainer from "@/components/ui/PageContainer";
+import { Separator } from "@/components/ui/Separator";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { useEffect } from "react";

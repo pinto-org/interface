@@ -90,12 +90,7 @@ export function ReferralLinkGenerator() {
             className="flex-1 min-w-0 text-sm"
             onClick={isEligible ? handleGenerateClick : undefined}
           />
-          <Button
-            onClick={handleCopy}
-            disabled={!isEligible}
-            variant="outline"
-            className="gap-2 whitespace-nowrap"
-          >
+          <Button onClick={handleCopy} disabled={!isEligible} variant="outline" className="gap-2 whitespace-nowrap">
             <CopyIcon className="w-4 h-4" />
             Copy
           </Button>
