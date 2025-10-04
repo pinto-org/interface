@@ -35,14 +35,29 @@ export default function Referral() {
             {/* Your Referral Stats */}
             <Card className="p-4 sm:p-6 space-y-4">
               <div className="pinto-h3 sm:pinto-h2">Your Referral Stats</div>
-              <div className="bg-pinto-off-white p-4 rounded-lg text-center">
-                <div className="pinto-body text-pinto-light">Referral stats and leaderboard coming soon!</div>
-                <div className="pinto-sm text-pinto-light/60 mt-2">
-                  Track your earned Pods and see how you rank among top referrers.
+              <div className="flex flex-col gap-4">
+                <div className="bg-pinto-off-white p-4 rounded-lg">
+                  <div className="pinto-sm text-pinto-light mb-1">Total Pods Earned</div>
+                  <div className="pinto-h3 text-pinto-dark">0</div>
+                </div>
+                <div className="bg-pinto-off-white p-4 rounded-lg">
+                  <div className="pinto-sm text-pinto-light mb-1">Successful Referrals</div>
+                  <div className="pinto-h3 text-pinto-dark">0</div>
                 </div>
               </div>
             </Card>
           </div>
+
+          {/* Leaderboard */}
+          <Card className="p-4 sm:p-6 space-y-4">
+            <div className="pinto-h3 sm:pinto-h2">Referral Leaderboard</div>
+            <div className="bg-pinto-off-white p-6 rounded-lg text-center">
+              <div className="pinto-body text-pinto-light">Leaderboard coming soon!</div>
+              <div className="pinto-sm text-pinto-light/60 mt-2">
+                See how you rank among top referrers in the Pinto community.
+              </div>
+            </div>
+          </Card>
 
           {/* How It Works */}
           <Card className="p-4 sm:p-6 space-y-4">
