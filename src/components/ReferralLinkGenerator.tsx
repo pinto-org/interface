@@ -59,7 +59,7 @@ export function ReferralLinkGenerator() {
 
   const handleTwitterShare = () => {
     const tweetText =
-      "🌱 I'm farming on @PintoProtocol and earning passive rewards!\n\nJoin me and I'll earn bonus Pods when you sow Pinto 🫘\n\nStart farming today:";
+      "🌱 I'm farming on @PintoProtocol and earning passive rewards!\n\nJoin me and I'll earn bonus Pods when you Sow Pinto 🫘\n\nStart farming today:";
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(referralUrl)}`;
     window.open(twitterUrl, "_blank", "noopener,noreferrer");
 
@@ -77,7 +77,7 @@ export function ReferralLinkGenerator() {
       <div className="flex flex-col gap-2">
         <div className="pinto-h3">Your Referral Link</div>
         <div className="pinto-body-light text-pinto-light">
-          Share your link to earn 10% bonus Pods when others sow using it
+          Share your link to earn 10% bonus Pods when others Sow using it
         </div>
       </div>
 
@@ -113,7 +113,7 @@ export function ReferralLinkGenerator() {
         {isEligible && (
           <>
             <div className="pinto-sm text-pinto-green bg-pinto-green/10 p-3 rounded-lg">
-              ✓ Your referral link is active! You'll earn 10% bonus Pods when someone sows using your link.
+              ✓ Your referral link is active! You'll earn 10% bonus Pods when someone Sows using your link.
             </div>
 
             {/* Twitter Share Button */}

@@ -20,7 +20,7 @@ export default function Referral() {
             <div className="pinto-h2 sm:pinto-h1">Referral Program</div>
             <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">
               Earn rewards by referring new farmers to Pinto. Share your referral link and earn 10% of the Pods your
-              referrals sow.
+              referrals Sow.
             </div>
           </div>
           <Separator />
@@ -35,7 +35,7 @@ export default function Referral() {
             {/* Your Referral Stats */}
             <Card className="p-4 sm:p-6 space-y-4">
               <div className="pinto-h3 sm:pinto-h2">Your Referral Stats</div>
-              <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="bg-pinto-off-white p-4 rounded-lg">
                   <div className="pinto-sm text-pinto-light mb-1">Total Pods Earned</div>
                   <div className="pinto-h3 text-pinto-dark">0</div>
@@ -94,7 +94,7 @@ export default function Referral() {
                 <div>
                   <div className="pinto-body-bold text-pinto-dark mb-1">Earn Rewards</div>
                   <div className="pinto-sm text-pinto-light">
-                    When someone uses your link and sows Pinto, you earn 10% of the Pods they receive as a referral
+                    When someone uses your link and Sows Pinto, you earn 10% of the Pods they receive as a referral
                     bonus.
                   </div>
                 </div>
@@ -108,7 +108,7 @@ export default function Referral() {
                   <div className="pinto-body-bold text-pinto-dark mb-1">Get Credited</div>
                   <div className="pinto-sm text-pinto-light">
                     Referral rewards are automatically credited to your wallet address when your referral completes
-                    their sow transaction.
+                    their Sow transaction.
                   </div>
                 </div>
               </div>
@@ -120,7 +120,7 @@ export default function Referral() {
             <div className="pinto-h3 sm:pinto-h2">Requirements & FAQs</div>
             <div className="space-y-4">
               <div>
-                <div className="pinto-body-bold text-pinto-dark mb-2">Why do I need to sow 1,000 Pinto first?</div>
+                <div className="pinto-body-bold text-pinto-dark mb-2">Why do I need to Sow 1,000 Pinto first?</div>
                 <div className="pinto-sm text-pinto-light">
                   This requirement ensures that referrers are genuine participants in the Pinto ecosystem and helps
                   prevent spam or gaming of the referral system.
@@ -139,7 +139,7 @@ export default function Referral() {
               <div>
                 <div className="pinto-body-bold text-pinto-dark mb-2">When do I receive my referral rewards?</div>
                 <div className="pinto-sm text-pinto-light">
-                  Referral rewards are credited immediately when your referral completes their sow transaction. The Pods
+                  Referral rewards are credited immediately when your referral completes their Sow transaction. The Pods
                   are sent directly to your wallet address.
                 </div>
               </div>
@@ -158,17 +158,6 @@ export default function Referral() {
                   Don't worry! You can always come back to this page while connected with your wallet to retrieve your
                   referral link. It's permanently associated with your wallet address.
                 </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Call to Action */}
-          <Card className="p-4 sm:p-6 bg-gradient-to-r from-pinto-green/10 to-pinto-green/5 border-pinto-green/20">
-            <div className="text-center space-y-3 sm:space-y-4">
-              <div className="pinto-h3 sm:pinto-h2 text-pinto-green">Ready to Start Earning?</div>
-              <div className="pinto-sm sm:pinto-body text-pinto-light">
-                Connect your wallet and start sharing your referral link today. Help grow the Pinto community and earn
-                passive rewards!
               </div>
             </div>
           </Card>
