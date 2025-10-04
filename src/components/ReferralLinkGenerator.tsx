@@ -82,20 +82,6 @@ export function ReferralLinkGenerator() {
       </div>
 
       <div className="flex flex-col gap-3">
-        <div className="flex flex-row gap-2">
-          <Input
-            value={referralUrl}
-            readOnly
-            disabled={!isEligible}
-            className="flex-1 min-w-0 text-sm"
-            onClick={isEligible ? handleGenerateClick : undefined}
-          />
-          <Button onClick={handleCopy} disabled={!isEligible} variant="outline" className="gap-2 whitespace-nowrap">
-            <CopyIcon className="w-4 h-4" />
-            Copy
-          </Button>
-        </div>
-
         {!isEligible && (
           <div className="flex flex-col gap-3 p-4 bg-pinto-off-white rounded-lg">
             <div className="flex justify-between items-center">
@@ -115,6 +101,20 @@ export function ReferralLinkGenerator() {
             </div>
           </div>
         )}
+
+        <div className="flex flex-row gap-2">
+          <Input
+            value={referralUrl}
+            readOnly
+            disabled={!isEligible}
+            className="flex-1 min-w-0 text-sm"
+            onClick={isEligible ? handleGenerateClick : undefined}
+          />
+          <Button onClick={handleCopy} disabled={!isEligible} variant="outline" className="gap-2 whitespace-nowrap">
+            <CopyIcon className="w-4 h-4" />
+            Copy
+          </Button>
+        </div>
 
         {isEligible && (
           <>
