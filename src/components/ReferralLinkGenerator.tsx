@@ -59,7 +59,7 @@ export function ReferralLinkGenerator() {
 
   const handleTwitterShare = () => {
     const tweetText =
-      "🌱 I'm farming on @PintoProtocol and earning passive rewards!\n\nJoin me and we both earn bonus Pods when you sow Beans 🫘\n\nStart farming today:";
+      "🌱 I'm farming on @PintoProtocol and earning passive rewards!\n\nJoin me and we both earn bonus Pods when you sow Pinto 🫘\n\nStart farming today:";
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(referralUrl)}`;
     window.open(twitterUrl, "_blank", "noopener,noreferrer");
 
@@ -86,7 +86,7 @@ export function ReferralLinkGenerator() {
           <div className="flex justify-between items-center">
             <div className="pinto-sm-bold text-pinto-dark">Qualification Progress</div>
             <div className="pinto-sm text-pinto-light">
-              {formatter.number(totalSownBeans)} / {formatter.number(MIN_SOWN_BEANS)} Beans
+              {formatter.number(totalSownBeans)} / {formatter.number(MIN_SOWN_BEANS)} Pinto
             </div>
           </div>
           <div className="w-full h-3 bg-pinto-light/10 rounded-full overflow-hidden">
@@ -96,7 +96,7 @@ export function ReferralLinkGenerator() {
             />
           </div>
           <div className="pinto-sm text-pinto-light">
-            Sow {formatter.number(MIN_SOWN_BEANS - totalSownBeans)} more Beans to unlock your referral link
+            Sow {formatter.number(MIN_SOWN_BEANS - totalSownBeans)} more Pinto to unlock your referral link
           </div>
         </div>
       )}
@@ -126,16 +126,6 @@ export function ReferralLinkGenerator() {
             </div>
           </>
         )}
-      </div>
-
-      <div className="flex flex-col gap-2 p-4 bg-pinto-off-white rounded-lg">
-        <div className="pinto-sm-bold text-pinto-dark">How it works:</div>
-        <ul className="pinto-sm text-pinto-light list-disc list-inside space-y-1">
-          <li>Share your referral link with others</li>
-          <li>When they sow Beans using your link, you both earn bonus Pods</li>
-          <li>You receive 1% of the Pods they earn as a referral bonus</li>
-          <li>They get their full Pod allocation plus the referral bonus</li>
-        </ul>
       </div>
     </div>
   );

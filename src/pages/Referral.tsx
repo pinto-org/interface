@@ -55,7 +55,7 @@ export default function Referral() {
                 <div>
                   <div className="pinto-body-bold text-pinto-dark mb-1">Qualify as a Referrer</div>
                   <div className="pinto-sm text-pinto-light">
-                    Sow at least 1,000 Beans in the Field to unlock your referral link.
+                    Sow at least 1,000 Pinto in the Field to unlock your referral link.
                   </div>
                 </div>
               </div>
@@ -79,7 +79,7 @@ export default function Referral() {
                 <div>
                   <div className="pinto-body-bold text-pinto-dark mb-1">Earn Rewards</div>
                   <div className="pinto-sm text-pinto-light">
-                    When someone uses your link and sows Beans, you earn 1% of the Pods they receive as a referral
+                    When someone uses your link and sows Pinto, you earn 1% of the Pods they receive as a referral
                     bonus.
                   </div>
                 </div>
@@ -105,7 +105,7 @@ export default function Referral() {
             <div className="pinto-h3 sm:pinto-h2">Requirements & FAQs</div>
             <div className="space-y-4">
               <div>
-                <div className="pinto-body-bold text-pinto-dark mb-2">Why do I need to sow 1,000 Beans first?</div>
+                <div className="pinto-body-bold text-pinto-dark mb-2">Why do I need to sow 1,000 Pinto first?</div>
                 <div className="pinto-sm text-pinto-light">
                   This requirement ensures that referrers are genuine participants in the Pinto ecosystem and helps
                   prevent spam or gaming of the referral system.
