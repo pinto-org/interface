@@ -81,34 +81,45 @@ export function ReferralLinkGenerator() {
         </div>
       </div>
 
-      {!isEligible && (
-        <div className="flex flex-col gap-3 p-4 bg-pinto-off-white rounded-lg">
-          <div className="flex justify-between items-center">
-            <div className="pinto-sm-bold text-pinto-dark">Qualification Progress</div>
-            <div className="pinto-sm text-pinto-light">
-              {formatter.number(totalSownBeans)} / {formatter.number(MIN_SOWN_BEANS)} Pinto
-            </div>
-          </div>
-          <div className="w-full h-3 bg-pinto-light/10 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-pinto-green to-pinto-green-dark transition-all duration-500 ease-out rounded-full"
-              style={{ width: `${progressPercentage}%` }}
-            />
-          </div>
-          <div className="pinto-sm text-pinto-light">
-            Sow {formatter.number(MIN_SOWN_BEANS - totalSownBeans)} more Pinto to unlock your referral link
-          </div>
-        </div>
-      )}
-
       <div className="flex flex-col gap-3">
         <div className="flex flex-row gap-2">
-          <Input value={referralUrl} readOnly className="flex-1 min-w-0 text-sm" onClick={handleGenerateClick} />
-          <Button onClick={handleCopy} variant="outline" className="gap-2 whitespace-nowrap">
+          <Input
+            value={referralUrl}
+            readOnly
+            disabled={!isEligible}
+            className="flex-1 min-w-0 text-sm"
+            onClick={isEligible ? handleGenerateClick : undefined}
+          />
+          <Button
+            onClick={handleCopy}
+            disabled={!isEligible}
+            variant="outline"
+            className="gap-2 whitespace-nowrap"
+          >
             <CopyIcon className="w-4 h-4" />
             Copy
           </Button>
         </div>
+
+        {!isEligible && (
+          <div className="flex flex-col gap-3 p-4 bg-pinto-off-white rounded-lg">
+            <div className="flex justify-between items-center">
+              <div className="pinto-sm-bold text-pinto-dark">Qualification Progress</div>
+              <div className="pinto-sm text-pinto-light">
+                {formatter.number(totalSownBeans)} / {formatter.number(MIN_SOWN_BEANS)} Pinto
+              </div>
+            </div>
+            <div className="w-full h-3 bg-pinto-light/10 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-pinto-green to-pinto-green-dark transition-all duration-500 ease-out rounded-full"
+                style={{ width: `${progressPercentage}%` }}
+              />
+            </div>
+            <div className="pinto-sm text-pinto-light">
+              Sow {formatter.number(MIN_SOWN_BEANS - totalSownBeans)} more Pinto to unlock your referral link
+            </div>
+          </div>
+        )}
 
         {isEligible && (
           <>
