@@ -101,13 +101,13 @@ const AppNavi = () => {
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.referral} onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.MAIN_REFERRAL_CLICK)}>
-              Referral
+            <Link href={navLinks.podmarket} onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.MAIN_PODMARKET_CLICK)}>
+              Pod Market
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.podmarket} onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.MAIN_PODMARKET_CLICK)}>
-              Pod Market
+            <Link href={navLinks.referral} onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.MAIN_REFERRAL_CLICK)}>
+              Referral
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
