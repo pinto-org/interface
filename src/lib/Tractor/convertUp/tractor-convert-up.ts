@@ -233,13 +233,17 @@ export async function loadConvertUpOrderbookData(
     currentCapacity: capacityRaw,
   });
 
-  // Update meetsConditions for API entries based on current market data
+  // Update meetsConditions and conversion amounts for API entries based on current market data
   const updatedApiEntries = _activeApiEntries.map((entry) => {
     const meetsConditions = {
       price: false,
       bonus: false,
       capacity: false,
     };
+
+    // Calculate conversion amounts for API entries
+    let currentlyConvertible = TV.ZERO;
+    let amountConvertibleNextExecution = TV.ZERO;
 
     if (entry.decodedData) {
       const minPrice = entry.decodedData.convertUpParams.minPriceToConvertUp;
@@ -250,11 +254,20 @@ export async function loadConvertUpOrderbookData(
       meetsConditions.price = currentPrice.gte(minPrice) && currentPrice.lte(maxPrice);
       meetsConditions.bonus = currentBonus.gte(minBonus);
       meetsConditions.capacity = currentCapacity.gte(minCapacity);
+
+      // Calculate how much BDV this order can convert
+      currentlyConvertible = TV.min(entry.orderInfo.bdvLeftToConvert, entry.totalAvailableBdv);
+
+      // Calculate amount convertible next execution
+      const maxBdvPerExecution = entry.decodedData.convertUpParams.maxBeansConvertPerExecution;
+      amountConvertibleNextExecution = TV.min(currentlyConvertible, maxBdvPerExecution);
     }
 
     return {
       ...entry,
       meetsConditions,
+      currentlyConvertible,
+      amountConvertibleNextExecution,
     };
   });
 
