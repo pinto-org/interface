@@ -51,13 +51,11 @@ const useTractorAPIConvertUpOrders = ({
 
   const args = {
     publisher: address,
-    // orderType: "CONVERT_UP",
+    orderType: "CONVERT_UP_V0",
     cancelled,
   } as const;
 
   const select = useMemo(() => transformAPIOrderbookData(chainId), [chainId]);
-
-  console.log("enabled:", !!chainId && !chainOnly && !!enabled);
 
   const query = useQuery({
     queryKey: queryKeys.tractor.convertUpOrders({ ...args }),
