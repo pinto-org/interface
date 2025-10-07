@@ -19,6 +19,7 @@ export interface PreparedConvertUpArgs<Numeric extends TV | string = TV> {
   totalBeanAmountToConvert: Numeric;
   minBeansConvertPerExecution: Numeric;
   maxBeansConvertPerExecution: Numeric;
+  capAmountToBonusCapacity: boolean;
   minTimeBetweenConverts: Numeric;
   minConvertBonusCapacity: Numeric;
   maxGrownStalkPerBdv: Numeric;
@@ -56,6 +57,10 @@ export interface ConvertUpParams<Numeric extends bigint | TV = bigint> {
    * Maximum BDV to convert per execution
    */
   maxBeansConvertPerExecution: Numeric;
+  /**
+   * Whether to cap conversion amount to available bonus capacity
+   */
+  capAmountToBonusCapacity: boolean;
   /**
    * Minimum time (in seconds) between convert executions
    */
