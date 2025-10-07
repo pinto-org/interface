@@ -7,6 +7,7 @@ import { exists } from "@/utils/utils";
 import React, { useCallback, useState, useEffect, useMemo } from "react";
 import { Col, Row } from "../Container";
 import OrderBook, { OrderbookColumnConfig } from "../OrderBook";
+import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { Input } from "../ui/Input";
 import { TooltipLabel } from "../ui/Label";
@@ -71,7 +72,11 @@ export default function ConvertUpTractorOrderBookChart() {
 
   const { data: bonusData, isLoading: isBonusLoading } = useConvertStalkPerBdvBonusAndMaximumCapacity();
 
-  const { data: orders, isLoading: isOrdersLoading } = useTractorConvertUpOrderbook({
+  const {
+    data: orders,
+    isLoading: isOrdersLoading,
+    ...ordersQuery
+  } = useTractorConvertUpOrderbook({
     select: useCallback((data: ConvertUpOrderbookEntry[] | undefined) => {
       if (!data) return [];
       return data.filter((order) => {
@@ -207,6 +212,9 @@ export default function ConvertUpTractorOrderBookChart() {
             <span>Price Axis</span>
           </Row>
         </Row>
+        {/* <Button onClick={() => ordersQuery.refetch()}>
+          refetch
+        </Button> */}
         {!priceToggleActive ? (
           <Col className="gap-2">
             <TooltipLabel className="pinto-xs" tooltipText={"Price filter"}>

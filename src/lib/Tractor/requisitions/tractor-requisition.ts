@@ -68,6 +68,7 @@ export const transformConvertUpRequisitionEvent = (params: unknown | null, chain
 
     const convertUpParams: ConvertUpBlueprintStruct<TV>["convertUpParams"] = {
       sourceTokenIndices: cup.sourceTokenIndices,
+      capAmountToBonusCapacity: cup.capAmountToBonusCapacity,
       totalBeanAmountToConvert: TV.fromBigInt(cup.totalBeanAmountToConvert, dc.totalBeanAmountToConvert),
       minBeansConvertPerExecution: TV.fromBigInt(cup.minBeansConvertPerExecution, dc.minBeansConvertPerExecution),
       maxBeansConvertPerExecution: TV.fromBigInt(cup.maxBeansConvertPerExecution, dc.maxBeansConvertPerExecution),
@@ -134,6 +135,7 @@ export async function loadPublishedRequisitions(
 
   try {
     const data = await fetchTractorEvents(publicClient, protocolAddress, fromBlock);
+    console.debug("[Tractor/loadPublishedRequisitions] Fetched events:", data);
     const selectRequisitionType = getSelectRequisitionType(requisitionType, address);
     return selectRequisitionType({
       latestBlock: { number: latestBlock?.number ?? 0n, timestamp: latestBlock?.timestamp ?? 0n },

@@ -17,6 +17,7 @@ import { base } from "viem/chains";
 import {
   CreateTractorDataReturnType,
   TRACTOR_DEPLOYMENT_BLOCK,
+  TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE,
   WithdrawalPlan,
   WithdrawalPlanFilterParams,
   decodeEncodedTractorDataToAdvancedPipeCalls,
@@ -179,8 +180,14 @@ export async function loadConvertUpOrderbookData(
     // _activeApiEntries?.map((order) => order.requisition.blueprintHash.toLowerCase()) ?? [],
   );
 
-  const fromBlock =
-    lookbackBlocks && latestBlock?.number ? latestBlock.number - lookbackBlocks : TRACTOR_DEPLOYMENT_BLOCK;
+  let fromBlock: bigint = TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE.convertUpBlueprint;
+
+  if (lookbackBlocks && latestBlock?.number) {
+    const newFromBlock = latestBlock.number - lookbackBlocks;
+    if (newFromBlock > 0n) {
+      fromBlock = newFromBlock;
+    }
+  }
 
   const [_requisitions, _priceResult, bonusAndCapacityResult] = await Promise.all([
     // publicClient.getContractEvents({

@@ -13,9 +13,13 @@ const getLookbackBlocks = (
   currentBlock: bigint,
   lastUpdatedBlock: number | undefined,
 ) => {
-  if (chainOnly || error || !lastUpdatedBlock) return undefined;
-  if (isDev()) {
-    return TIME_TO_BLOCKS.month;
+  if (chainOnly || error) return undefined;
+  if (!lastUpdatedBlock) {
+    if (isDev()) {
+      return TIME_TO_BLOCKS.day;
+    }
+
+    return undefined;
   }
   const diff = currentBlock - BigInt(lastUpdatedBlock);
   return diff > 0n ? diff : undefined;
@@ -59,15 +63,19 @@ export function useTractorConvertUpOrderbook<T = ConvertUpOrderbookEntry[]>(
 
   const { address, chainOnly = false, enabled } = params ?? empty;
 
+  const orderQueriesError = false;
+  const lastUpdated = undefined;
+
   const ordersChainQuery = useQuery({
     queryKey: ["tractor", "convertup", address ?? "0x"],
     queryFn: async () => {
       if (!client) return [];
-      const fromBlock = TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE.convertUpBlueprint;
       const latestBlock = await client.getBlock({ blockTag: "latest" });
-      const lookbackBlocks = getLookbackBlocks(true, false, latestBlock.number, undefined);
+      const lookbackBlocks = getLookbackBlocks(chainOnly, orderQueriesError, latestBlock.number, lastUpdated);
 
-      const events = await loadConvertUpOrderbookData(address, diamond, client, latestBlock, undefined, fromBlock);
+      const events = await loadConvertUpOrderbookData(address, diamond, client, latestBlock, [], lookbackBlocks, {
+        filterOutCompleted: params?.filterOutCompleted ?? true,
+      });
 
       return events;
     },

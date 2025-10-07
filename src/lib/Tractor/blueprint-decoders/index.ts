@@ -47,8 +47,24 @@ export function decodeBlueprintCallData(callData: string): DecodedBlueprintResul
     return decoder.decode(blueprintCall);
   }
 
+  // fail safe for decoding tractor orders
+  try {
+    const convertDecoded = convertUpBlueprintDecoder.decode(blueprintCall);
+    return convertDecoded;
+  } catch (error) {
+    // do nothing
+  }
+
+  try {
+    const sowDecoded = sowBlueprintDecoder.decode(blueprintCall);
+    return sowDecoded;
+  } catch (error) {
+    // do nothing
+  }
+
   // Fallback to generic decoder
-  return genericBlueprintDecoder.decode(blueprintCall);
+  const genericResult = genericBlueprintDecoder.decode(blueprintCall);
+  return genericResult;
 }
 
 export type BlueprintType = "sow" | "convertUp" | "auto";
