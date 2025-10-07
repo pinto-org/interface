@@ -1,11 +1,19 @@
 import { TIME_TO_BLOCKS } from "@/constants/blocks";
-import { defaultQuerySettingsMedium } from "@/constants/query";
+import { QUERY_SETTINGS, defaultQuerySettingsMedium } from "@/constants/query";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { ConvertUpOrderbookEntry, TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE, loadConvertUpOrderbookData } from "@/lib/Tractor";
+import {
+  ConvertUpOrderbookEntry,
+  TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE,
+  TractorAPI,
+  TractorAPIOrdersResponse,
+  loadConvertUpOrderbookData,
+} from "@/lib/Tractor";
 import { HashString } from "@/utils/types.generic";
 import { isDev } from "@/utils/utils";
 import { DefaultError, QueryObserverOptions, useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useChainId, usePublicClient } from "wagmi";
+import { queryKeys } from "../queryKeys";
 
 const getLookbackBlocks = (
   chainOnly: boolean,
@@ -23,6 +31,41 @@ const getLookbackBlocks = (
   }
   const diff = currentBlock - BigInt(lastUpdatedBlock);
   return diff > 0n ? diff : undefined;
+};
+
+type UseTractorAPISowOrdersParams = Omit<UseTractorConvertOrderbookOptions<TractorAPIOrdersResponse>, "select">;
+
+const useTractorAPIConvertUpOrders = ({
+  address,
+  cancelled = false,
+  chainOnly,
+  enabled,
+}: UseTractorAPISowOrdersParams = {}) => {
+  const chainId = useChainId();
+
+  const args = {
+    publisher: address,
+    // orderType: "CONVERT_UP",
+    cancelled,
+  } as const;
+
+  const query = useQuery({
+    queryKey: queryKeys.tractor.convertUpOrders({ ...args }),
+    queryFn: async () => {
+      if (!chainId) return;
+      return TractorAPI.getOrders<"CONVERT_UP_V0">({ ...args, orderType: "CONVERT_UP_V0", isConvert: true });
+    },
+    // enabled: !!chainId && !chainOnly && !!enabled,
+    ...QUERY_SETTINGS.slow,
+  });
+
+  useEffect(() => {
+    if (query.data) {
+      console.log("query.data", query.data);
+    }
+  }, [query.data]);
+
+  return query;
 };
 
 type UseTractorConvertOrderbookOptions<T = ConvertUpOrderbookEntry[]> = {
@@ -62,6 +105,13 @@ export function useTractorConvertUpOrderbook<T = ConvertUpOrderbookEntry[]>(
   const diamond = useProtocolAddress();
 
   const { address, chainOnly = false, enabled } = params ?? empty;
+
+  const apiOrdersQuery = useTractorAPIConvertUpOrders({
+    address,
+    cancelled: params?.cancelled,
+    chainOnly,
+    enabled,
+  });
 
   const orderQueriesError = false;
   const lastUpdated = undefined;
