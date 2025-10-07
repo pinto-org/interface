@@ -164,7 +164,7 @@ export async function loadConvertUpOrderbookData(
   protocolAddress: `0x${string}` | undefined,
   publicClient: PublicClient | null,
   latestBlock?: { number: bigint; timestamp: bigint } | null,
-  _activeApiEntries: any[] = [], // Any for now since we don't know the schema
+  _activeApiEntries: ConvertUpOrderbookEntry[] = [], // Any for now since we don't know the schema
   lookbackBlocks?: bigint,
   options?: LoadOrderbookDataOptions,
 ) {
@@ -177,7 +177,7 @@ export async function loadConvertUpOrderbookData(
   const loadOptions: Required<LoadOrderbookDataOptions> = { filterOutCompleted: true, ...options };
 
   const knownBlueprintHashes = new Set<string>(
-    // _activeApiEntries?.map((order) => order.requisition.blueprintHash.toLowerCase()) ?? [],
+    _activeApiEntries?.map((order) => order.requisition.blueprintHash.toLowerCase()) ?? [],
   );
 
   let fromBlock: bigint = TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE.convertUpBlueprint;
@@ -233,6 +233,31 @@ export async function loadConvertUpOrderbookData(
     currentCapacity: capacityRaw,
   });
 
+  // Update meetsConditions for API entries based on current market data
+  const updatedApiEntries = _activeApiEntries.map((entry) => {
+    const meetsConditions = {
+      price: false,
+      bonus: false,
+      capacity: false,
+    };
+
+    if (entry.decodedData) {
+      const minPrice = entry.decodedData.convertUpParams.minPriceToConvertUp;
+      const maxPrice = entry.decodedData.convertUpParams.maxPriceToConvertUp;
+      const minBonus = entry.decodedData.convertUpParams.grownStalkPerBdvBonusBid;
+      const minCapacity = entry.decodedData.convertUpParams.minConvertBonusCapacity;
+
+      meetsConditions.price = currentPrice.gte(minPrice) && currentPrice.lte(maxPrice);
+      meetsConditions.bonus = currentBonus.gte(minBonus);
+      meetsConditions.capacity = currentCapacity.gte(minCapacity);
+    }
+
+    return {
+      ...entry,
+      meetsConditions,
+    };
+  });
+
   // Create a set of completed blueprint hashes
   // const completedOrders = new Set<`0x${string}`>(
   //   loadOptions.filterOutCompleted
@@ -250,6 +275,8 @@ export async function loadConvertUpOrderbookData(
     }
     return !req.isCancelled;
   });
+
+  console.log("activeRequisitions", activeRequisitions);
 
   // Fetch order info for all active requisitions
   const mcResults = await multicall(publicClient, {
@@ -317,7 +344,7 @@ export async function loadConvertUpOrderbookData(
     } as ConvertUpOrderbookEntry;
   });
 
-  // Implement three-tier sorting
+  // Implement three-tier sorting for chain requisitions only
   const sortedRequisitions = [...requisitionsWithConditions].sort((a, b) => {
     // Count how many conditions each order meets
     const aScore =
@@ -356,8 +383,8 @@ export async function loadConvertUpOrderbookData(
   // create a copy
   const remainingCapacity = TV.from(currentCapacity.value);
 
-  // Process orders with withdrawal plan allocation
-  const orderbookData: ConvertUpOrderbookEntry[] = [];
+  // Initialize orderbook data with updated API entries (they don't need withdrawal plan processing)
+  const orderbookData: ConvertUpOrderbookEntry[] = [...updatedApiEntries];
 
   for (let i = 0; i < sortedRequisitions.length; i++) {
     const entry = sortedRequisitions[i];
@@ -520,6 +547,8 @@ export async function loadConvertUpOrderbookData(
     ordersWithWithdrawalPlans: orderbookData.filter((o) => o.withdrawalPlan).length,
     ordersReadyToConvert: orderbookData.filter((o) => o.amountConvertibleNextExecution.gt(0)).length,
   });
+
+  console.log("orderbookData", orderbookData);
 
   return orderbookData;
 }

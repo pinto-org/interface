@@ -65,16 +65,16 @@ const useTractorAPIConvertUpOrders = ({
       if (!chainId) return;
       return TractorAPI.getOrders<"CONVERT_UP_V0">({ ...args, orderType: "CONVERT_UP_V0", isConvert: true });
     },
-    enabled: !!chainId && !chainOnly && !!enabled && !envExists,
+    enabled: !!chainId && !chainOnly && enabled && envExists,
     select,
     ...QUERY_SETTINGS.slow,
   });
 
-  useEffect(() => {
-    if (query.data) {
-      console.log("query.data", query.data);
-    }
-  }, [query.data]);
+  // useEffect(() => {
+  //   if (query.data) {
+  //     console.log("query.data", query.data);
+  //   }
+  // }, [query.data]);
 
   return query;
 };
@@ -172,7 +172,7 @@ export function useTractorConvertUpOrderbook<T = ConvertUpOrderbookEntry[]>(
   const client = usePublicClient({ chainId });
   const diamond = useProtocolAddress();
 
-  const { address, chainOnly = false, enabled } = params ?? empty;
+  const { address, chainOnly = false, enabled = true } = params ?? empty;
 
   const { data: orders, ...ordersQuery } = useTractorAPIConvertUpOrders({
     address,
@@ -189,6 +189,8 @@ export function useTractorConvertUpOrderbook<T = ConvertUpOrderbookEntry[]>(
 
   // only run the chain query if we have a client, a max temperature, the API data exists, and we have a latest block reference.
   const orderChainQueryEnabled = (chainOnly || ordersAPIDataExists || !envExists) && enabled;
+
+  console.log("orderChainQueryEnabled", orderChainQueryEnabled);
 
   /**
    * If the orders API request failed, fetch since the TRACTOR_DEPLOYMENT_BLOCK
