@@ -57,13 +57,15 @@ const useTractorAPIConvertUpOrders = ({
 
   const select = useMemo(() => transformAPIOrderbookData(chainId), [chainId]);
 
+  const envExists = Boolean(import.meta.env.VITE_TRACTOR_CONVERT_URL);
+
   const query = useQuery({
     queryKey: queryKeys.tractor.convertUpOrders({ ...args }),
     queryFn: async () => {
       if (!chainId) return;
       return TractorAPI.getOrders<"CONVERT_UP_V0">({ ...args, orderType: "CONVERT_UP_V0", isConvert: true });
     },
-    enabled: !!chainId && !chainOnly && !!enabled,
+    enabled: !!chainId && !chainOnly && !!enabled && !envExists,
     select,
     ...QUERY_SETTINGS.slow,
   });
