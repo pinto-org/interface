@@ -14,9 +14,20 @@ export type BaseTractorAPIResponse<T = unknown> = {
 
 export type TractorSowOrderType = "SOW_V0";
 
-export type TractorAPIOrderType = TractorSowOrderType;
+export type TractorConvertOrderType = "CONVERT_UP_V0";
+
+export type TractorAPIOrderType = TractorSowOrderType | TractorConvertOrderType;
 
 const MAX_LIMIT = 5_000;
+
+const getTractorBaseURL = (isConvert?: boolean) => {
+  const tractorUrl = import.meta.env.VITE_TRACTOR_CONVERT_URL;
+  if (isConvert && tractorUrl) {
+    return `http://api.${tractorUrl}`;
+  }
+
+  return API_SERVICES.pinto;
+};
 
 async function paginateTractorApiRequest<T extends BaseTractorAPIResponse>(
   asyncCallback: (body?: Record<string, unknown>) => Promise<T>,
@@ -49,27 +60,32 @@ async function paginateTractorApiRequest<T extends BaseTractorAPIResponse>(
 // TRACTOR API ORDER ENDPOINT
 // ================================================================================
 
-export interface TractorAPIOrderOptions {
-  orderType?: TractorAPIOrderType;
+export interface TractorAPIOrderOptions<OrderType extends TractorAPIOrderType = TractorAPIOrderType> {
+  orderType?: OrderType;
   cancelled?: boolean;
   publisher?: `0x${string}`;
+  isConvert?: boolean;
 }
-const getOrders = async (options?: TractorAPIOrderOptions) => {
+const getOrders = async <OrderType extends TractorAPIOrderType>(_options?: TractorAPIOrderOptions<OrderType>) => {
   console.debug("[Tractor/tractorAPIFetchOrders] Fetching orders...");
+
+  const { isConvert, ...options } = { ..._options };
+
+  const baseURL = getTractorBaseURL(isConvert);
 
   try {
     const result = await paginateTractorApiRequest(
       (reqBody) =>
-        fetch(`${API_SERVICES.pinto}/tractor/orders`, {
+        fetch(`${baseURL}/tractor/orders`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: safeJSONStringify(reqBody, undefined),
-        }).then((res) => res.json() as Promise<TractorAPIOrdersResponse>),
+        }).then((res) => res.json() as Promise<TractorAPIOrdersResponse<OrderType>>),
       (res) => res.orders.length,
       { ...options, limit: MAX_LIMIT, skip: 0 },
     );
 
-    const data = result.reduce<TractorAPIOrdersResponse>(
+    const data = result.reduce<Prettify<TractorAPIOrdersResponse<OrderType>>>(
       (prev, curr) => {
         if (!prev.lastUpdated) prev.lastUpdated = curr.lastUpdated;
         if (!prev.totalRecords) prev.totalRecords = curr.totalRecords;
@@ -78,6 +94,17 @@ const getOrders = async (options?: TractorAPIOrderOptions) => {
       },
       { lastUpdated: 0, totalRecords: 0, orders: [] },
     );
+
+    if (options.orderType === "CONVERT_UP_V0") {
+      const set = new Set<string>();
+
+      data.orders.forEach((order) => {
+        const o = order as TractorAPIOrder<"CONVERT_UP_V0">;
+        set.add(o.blueprintData.lowStalkDeposits);
+      });
+
+      console.log("set", set);
+    }
 
     console.debug("[Tractor/tractorAPIFetchOrders] RESPONSE", data);
 
@@ -92,9 +119,10 @@ const getOrders = async (options?: TractorAPIOrderOptions) => {
   }
 };
 
-export type TractorAPIOrdersResponse = BaseTractorAPIResponse<{
-  orders: TractorAPIOrder[];
-}>;
+export type TractorAPIOrdersResponse<OrderType extends TractorAPIOrderType = TractorAPIOrderType> =
+  BaseTractorAPIResponse<{
+    orders: Prettify<TractorAPIOrder<OrderType>>[];
+  }>;
 
 export interface TractorAPIOrdersExecutionInfo {
   executionCount: number;
@@ -119,42 +147,38 @@ export interface TractorAPISowOrderBlueprint {
   slippageRatio: string;
 }
 
-// export interface TractorAPIConvertUpBlueprint {
-//   /** ConvertUpBlueprint Params */
-//   sourceTokenIndicies: string[];
-//   totalConvertBdv: string;
-//   minConvertBdvPerExecution: string;
-//   maxConvertBdvPerExecution: string;
-//   minTimeBetweenConverts: string;
-//   minConvertBonusCapacity: string;
-//   maxGrownStalkPerBdv: string;
-//   minGrownStalkPerBdvBonus: string;
-//   maxPriceToConvertUp: string;
-//   minPriceToConvertUp: string;
-//   maxGrownStalkPerBdvPenalty: string;
-//   slippageRatio: string;
-//   operatorTip: string;
-//   lowStalkDeposits: number; // LowStalkDepositsMode
-
-//   /** Similar to Sow API schema */
-//   blueprintHash: HashString;
-//   lastExecutedSeason: number;
-//   orderComplete: boolean;
-//   bdvFunded: boolean; // BDV Funded across all orders
-//   // Total BDV converted from this order
-//   bdvConverted: string;
-
-//   // The amount of BDV executable on this order based on current constraints
-//   cascadeBdvFunded: string;
-
-//   /** Requests */
-//   deltaGrownStalk: string;
-
-// }
-
-export interface TractorAPIOrder {
+export interface TractorAPIConvertUpBlueprint {
   blueprintHash: HashString;
-  orderType: TractorAPIOrderType;
+  amountFunded: string;
+  cascadeAmountFunded: string;
+  beansLeftToConvert: string;
+  capAmountToBonusCapacity: boolean;
+  grownStalkPerBdvBonusBid: string;
+  lastExecutedTimestamp: string;
+  lowStalkDeposits: "USE_LAST" | "USE" | "OMIT";
+  maxBeansConvertPerExecution: string;
+  maxGrownStalkPerBdv: string;
+  maxGrownStalkPerBdvPenalty: string;
+  minPriceToConvertUp: string;
+  maxPriceToConvertUp: string;
+  minBeansConvertPerExecution: string;
+  minConvertBonusCapacity: string;
+  minTimeBetweenConverts: string;
+  orderComplete: boolean;
+  seedDifference: string;
+  slippageRatio: string;
+  sourceTokenIndicies: number[];
+  totalBeanAmountToConvert: string;
+}
+
+type OrderBlueprintTypeLookup = {
+  SOW_V0: TractorAPISowOrderBlueprint;
+  CONVERT_UP_V0: TractorAPIConvertUpBlueprint;
+};
+
+export interface TractorAPIOrder<OrderType extends TractorAPIOrderType = TractorAPIOrderType> {
+  blueprintHash: HashString;
+  orderType: OrderType;
   publisher: HashString;
   data: HashString;
   operatorPasteInstrs: HashString[];
@@ -166,7 +190,7 @@ export interface TractorAPIOrder {
   publishedBlock: number;
   beanTip: string;
   cancelled: boolean;
-  blueprintData: TractorAPISowOrderBlueprint;
+  blueprintData: OrderBlueprintTypeLookup[OrderType];
   executionStats: TractorAPIOrdersExecutionInfo;
 }
 
@@ -176,14 +200,19 @@ export interface TractorAPIOrder {
 
 export interface TractorAPIExecutionsOptions {
   publisher?: `0x${string}`;
+  isConvert?: boolean;
 }
-const tractorAPIFetchExecutions = async (options?: TractorAPIExecutionsOptions) => {
+const tractorAPIFetchExecutions = async (_options?: TractorAPIExecutionsOptions) => {
   console.debug("[Tractor/tractorAPIFetchExecutions] Fetching executions...");
+
+  const { isConvert, ...options } = { ..._options };
+
+  const baseURL = getTractorBaseURL(isConvert);
 
   try {
     const results = await paginateTractorApiRequest(
       (requestBody: any) => {
-        return fetch(`${API_SERVICES.pinto}/tractor/executions`, {
+        return fetch(`${baseURL}/tractor/executions`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

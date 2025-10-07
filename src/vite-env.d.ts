@@ -21,6 +21,10 @@ interface ImportMetaEnv {
    * RPC URL for the testnet
    */
   readonly VITE_TENDERLY_RPC_URL?: string;
+  /**
+   *
+   */
+  readonly VITE_TRACTOR_CONVERT_URL?: string;
 }
 
 declare module "*.md";
