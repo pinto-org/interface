@@ -3,7 +3,6 @@ import { QUERY_SETTINGS, defaultQuerySettingsMedium } from "@/constants/query";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import {
   ConvertUpOrderbookEntry,
-  TRACTOR_DEPLOYMENT_BLOCKS_BY_TYPE,
   TractorAPI,
   TractorAPIOrdersResponse,
   loadConvertUpOrderbookData,
@@ -55,7 +54,7 @@ const useTractorAPIConvertUpOrders = ({
       if (!chainId) return;
       return TractorAPI.getOrders<"CONVERT_UP_V0">({ ...args, orderType: "CONVERT_UP_V0", isConvert: true });
     },
-    // enabled: !!chainId && !chainOnly && !!enabled,
+    enabled: !!chainId && !chainOnly && !!enabled,
     ...QUERY_SETTINGS.slow,
   });
 
@@ -114,10 +113,10 @@ export function useTractorConvertUpOrderbook<T = ConvertUpOrderbookEntry[]>(
   });
 
   const orderQueriesError = false;
-  const lastUpdated = undefined;
+  const lastUpdated = apiOrdersQuery.data?.lastUpdated;
 
   const ordersChainQuery = useQuery({
-    queryKey: ["tractor", "convertup", address ?? "0x"],
+    queryKey: queryKeys.tractor.convertUpOrdersV0Chain(lastUpdated ?? chainOnly ? 1 : 0, params),
     queryFn: async () => {
       if (!client) return [];
       const latestBlock = await client.getBlock({ blockTag: "latest" });
