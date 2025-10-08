@@ -7,6 +7,7 @@ import SimpleInputField from "@/components/SimpleInputField";
 import SlippageButton from "@/components/SlippageButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Separator } from "@/components/ui/Separator";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { PODS } from "@/constants/internalTokens";
 import createPodOrder from "@/encoders/createPodOrder";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
@@ -22,6 +23,7 @@ import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useHarvestableIndex, usePodIndex } from "@/state/useFieldData";
 import { useQueryKeys } from "@/state/useQueryKeys";
 import useTokenData from "@/state/useTokenData";
+import { trackSimpleEvent } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
 import { tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
@@ -133,6 +135,18 @@ export default function CreateOrder() {
     }
   }, [preferredToken, preferredLoading, didSetPreferred]);
 
+  // Token selection handler with tracking
+  const handleTokenSelection = useCallback(
+    (newToken: Token) => {
+      trackSimpleEvent(ANALYTICS_EVENTS.MARKET.ORDER_TOKEN_SELECTED, {
+        previous_token: tokenIn.symbol,
+        new_token: newToken.symbol,
+      });
+      setTokenIn(newToken);
+    },
+    [tokenIn, mainToken],
+  );
+
   // invalidate pod orders query
   const onSuccess = useCallback(() => {
     setAmountIn("");
@@ -150,6 +164,14 @@ export default function CreateOrder() {
 
   // submit txn
   const onSubmit = useCallback(async () => {
+    // Track pod order creation
+    trackSimpleEvent(ANALYTICS_EVENTS.MARKET.POD_ORDER_CREATE, {
+      payment_token: tokenIn.symbol,
+      balance_source: balanceFrom,
+      has_price_per_pod: !!pricePerPod,
+      has_max_place: !!maxPlaceInLine,
+    });
+
     if (!account) {
       throw new Error("No account connected");
     }
@@ -259,7 +281,7 @@ export default function CreateOrder() {
           connectedAccount={!!account}
           disableInput={isConfirming || submitting}
           setAmount={setAmountIn}
-          setToken={setTokenIn}
+          setToken={handleTokenSelection}
           setBalanceFrom={setBalanceFrom}
           setError={setInputError}
           error={inputError}

@@ -20,6 +20,7 @@ import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import * as Tabs from "@/components/ui/Tabs";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { PINTO_WETH_TOKEN, PINTO_WSOL_TOKEN } from "@/constants/tokens";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import useIsSmallDesktop from "@/hooks/display/useIsSmallDesktop";
@@ -35,6 +36,7 @@ import { useSeedGauge } from "@/state/useSeedGauge";
 import { useSiloData } from "@/state/useSiloData";
 import { useSeason } from "@/state/useSunData";
 import useTokenData, { useWhitelistedTokens } from "@/state/useTokenData";
+import { trackClick } from "@/utils/analytics";
 import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
 import { getClaimText, stringEq } from "@/utils/string";
@@ -64,8 +66,8 @@ function Silo() {
   const pintoWETHLP = useChainConstant(PINTO_WETH_TOKEN);
   const pintoWSOLLP = useChainConstant(PINTO_WSOL_TOKEN);
 
-  const [hoveredButton, setHoveredButton] = useState("");
   const [showConvertUpOrderDialog, setShowConvertUpOrderDialog] = useState(false);
+  const [hoveredButton, setHoveredButton] = useState("claim");
   const enableStatPanels =
     farmerSilo.depositsUSD.gt(0) || farmerSilo.activeStalkBalance.gt(0) || farmerSilo.activeSeedsBalance.gt(0);
 
@@ -184,21 +186,16 @@ function Silo() {
               <div className="flex flex-col gap-4 sm:gap-12 w-full">
                 <div className="relative action-container flex flex-1 min-w-0">
                   <SiloTable hovering={hoveredButton === "claim"} />
-                  {claimEnabled && !showConvertUpOrderDialog && false && (
+                  {claimEnabled && (
                     <HelperLink
                       text={claimableText}
-                      className={cn(
-                        "absolute -right-[90px] max-[1800px]:-right-[215px] top-8 max-[1800px]:whitespace-break-spaces max-[1800px]:w-[160px]",
-                        showConvertUpOrderDialog && "hidden",
-                      )}
+                      className="absolute -right-[90px] max-[1800px]:-right-[215px] top-8 max-[1800px]:whitespace-break-spaces max-[1800px]:w-[160px]"
                       dataTarget={`token-row-${mainToken.address}`}
                       sourceAnchor="left"
                       targetAnchor="right"
                       source90Degree={true}
                       perpLength={10}
                       onClick={submitClaimRewards}
-                      onMouseEnter={() => setHoveredButton("claim")}
-                      onMouseLeave={() => setHoveredButton("")}
                     />
                   )}
                 </div>
@@ -240,12 +237,15 @@ const LearnSilo = () => {
     <>
       <ReadMoreAccordion defaultOpen={!learnDidVisit.silo}>
         <>
-          Pinto or Pinto-LP can be deposited into the Silo and can be withdrawn at any time. Deposits are eligible to
-          earn Pinto after at least 1 full season has passed. When Pinto is priced over $1, new Pinto is minted with
-          48.5% being distributed to Silo depositors. Depositors earn a share of the Pinto mints to the silo based on
-          their Stalk balance proportional to total Stalk supply. A Deposit is issued an initial amount of Stalk and
-          Seeds, which is determined by token type and value. Seeds grow Stalk every season. All stalk is forfeit upon a
-          withdrawal.
+          Pinto and Pinto-LP can be Deposited into and Withdrawn from the Silo at any time. When the time-weighted
+          average Pinto price over the previous Season is over $1, new Pinto are minted, 48.5% of which are distributed
+          to Deposits.
+          <br />
+          <br />
+          Deposits are eligible to earn a portion of Pinto mints after being Deposited for at least 1 full Season,
+          earning directly based on their proportion of the total Stalk supply. Deposits receive Stalk and Seeds based
+          on token type and Pinto-denominated value at the time of Deposit. Seeds grow Stalk every season. All Stalk and
+          Seeds are forfeited upon Withdrawal.
         </>
       </ReadMoreAccordion>
     </>

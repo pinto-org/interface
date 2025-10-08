@@ -26,8 +26,8 @@ const config: CodegenConfig = {
       presetConfig: {
         fragmentMasking: false,
       },
-    },
+    }, 
   },
-};
+}; 
 
 export default config;

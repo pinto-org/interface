@@ -2,10 +2,12 @@ import { BurgerIcon } from "@/components/Icons";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import IconImage from "@/components/ui/IconImage";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import useIsTablet from "@/hooks/display/useIsTablet";
+import { trackClick, withTracking } from "@/utils/analytics";
 import { FontVariant } from "@/utils/theme";
-import { cn, isDev } from "@/utils/utils";
+import { cn } from "@/utils/utils";
 import { ChevronDownIcon, ChevronUpIcon, Cross2Icon } from "@radix-ui/react-icons";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -24,7 +26,9 @@ const MobileNavTrigger = ({ isOpen, togglePanel }: IMobileNavTrigger) => {
       noShrink
       rounded="full"
       className={`p-0 sm:p-0 w-10 h-10 hover:border-pinto-green ${isOpen && "transition-border duration-100 sm:border-pinto-green"}`}
-      onClick={togglePanel}
+      onClick={withTracking(ANALYTICS_EVENTS.NAVIGATION.MOBILE_MENU_TOGGLE, togglePanel, {
+        panel_state: isOpen ? "open" : "closed",
+      })}
     >
       <BurgerIcon size={6} />
     </Button>
@@ -136,36 +140,66 @@ function MobileNavContent({ learnOpen, setLearnOpen, unmount, close }: IMobileNa
       </div>
       <div className={`flex flex-col gap-8 py-8 ${isMobile ? "justify-center" : "justify-start"}`}>
         <div className="flex flex-col gap-6 pl-4">
-          <MobileNavLink href={navLinks.overview} onClick={unmountAndClose}>
+          <MobileNavLink
+            href={navLinks.overview}
+            onClick={unmountAndClose}
+            eventName={ANALYTICS_EVENTS.NAVIGATION.MAIN_OVERVIEW_CLICK}
+          >
             Overview
           </MobileNavLink>
-          <MobileNavLink href={navLinks.silo} onClick={unmountAndClose}>
+          <MobileNavLink
+            href={navLinks.silo}
+            onClick={unmountAndClose}
+            eventName={ANALYTICS_EVENTS.NAVIGATION.MAIN_SILO_CLICK}
+          >
             Silo
           </MobileNavLink>
-          <MobileNavLink href={navLinks.field} onClick={unmountAndClose}>
+          <MobileNavLink
+            href={navLinks.field}
+            onClick={unmountAndClose}
+            eventName={ANALYTICS_EVENTS.NAVIGATION.MAIN_FIELD_CLICK}
+          >
             Field
           </MobileNavLink>
-          <MobileNavLink href={navLinks.swap} onClick={unmountAndClose}>
+          <MobileNavLink
+            href={navLinks.swap}
+            onClick={unmountAndClose}
+            eventName={ANALYTICS_EVENTS.NAVIGATION.MAIN_SWAP_CLICK}
+          >
             Swap
           </MobileNavLink>
-          <MobileNavLink href={navLinks.explorer} onClick={unmountAndClose}>
+          <MobileNavLink
+            href={navLinks.explorer}
+            onClick={unmountAndClose}
+            eventName={ANALYTICS_EVENTS.NAVIGATION.HEADER_DATA_CLICK}
+          >
             Data
           </MobileNavLink>
           {/* Mobile not ready yet */}
           {/* <MobileNavLink href={navLinks.podmarket} onClick={unmountAndClose}>
             Pod Market
           </MobileNavLink> */}
-          <MobileNavLink href={navLinks.sPinto} onClick={unmountAndClose}>
+          <MobileNavLink
+            href={navLinks.sPinto}
+            onClick={unmountAndClose}
+            eventName={ANALYTICS_EVENTS.NAVIGATION.MAIN_SPINTO_CLICK}
+          >
             sPinto
           </MobileNavLink>
-          <MobileNavLink href={navLinks.collection} onClick={unmountAndClose}>
-            ?
+          <MobileNavLink
+            href={navLinks.collection}
+            onClick={unmountAndClose}
+            eventName={ANALYTICS_EVENTS.NAVIGATION.MAIN_COLLECTION_CLICK}
+          >
+            Collection
           </MobileNavLink>
         </div>
         <hr className=" border-pinto-gray-2" />
         <div className="flex flex-col gap-6 pl-4">
           <div
-            onClick={() => setLearnOpen((prev) => !prev)}
+            onClick={withTracking(ANALYTICS_EVENTS.NAVIGATION.HEADER_LEARN_CLICK, () => setLearnOpen((prev) => !prev), {
+              learn_section_state: learnOpen ? "open" : "closed",
+            })}
             className="pinto-h3 flex flex-row gap-2 items-center w-full cursor-pointer"
           >
             Learn
@@ -182,16 +216,44 @@ function MobileNavContent({ learnOpen, setLearnOpen, unmount, close }: IMobileNa
                 transition={{ duration: 0.2 }}
                 className="flex flex-col gap-6 pl-4 overflow-hidden"
               >
-                <MobileNavLink variant="h4" nested external href={navLinks.docs} onClick={unmountAndClose}>
+                <MobileNavLink
+                  variant="h4"
+                  nested
+                  external
+                  href={navLinks.docs}
+                  onClick={unmountAndClose}
+                  eventName={ANALYTICS_EVENTS.NAVIGATION.LEARN_DOCS_CLICK}
+                >
                   Docs
                 </MobileNavLink>
-                <MobileNavLink variant="h4" nested external href={navLinks.blog} onClick={unmountAndClose}>
+                <MobileNavLink
+                  variant="h4"
+                  nested
+                  external
+                  href={navLinks.blog}
+                  onClick={unmountAndClose}
+                  eventName={ANALYTICS_EVENTS.NAVIGATION.LEARN_BLOG_CLICK}
+                >
                   Blog
                 </MobileNavLink>
-                <MobileNavLink variant="h4" nested external href={navLinks.communityBlog} onClick={unmountAndClose}>
+                <MobileNavLink
+                  variant="h4"
+                  nested
+                  external
+                  href={navLinks.communityBlog}
+                  onClick={unmountAndClose}
+                  eventName={ANALYTICS_EVENTS.NAVIGATION.LEARN_COMMUNITY_BLOG_CLICK}
+                >
                   Community Blog
                 </MobileNavLink>
-                <MobileNavLink variant="h4" nested external href={navLinks.whitepaper} onClick={unmountAndClose}>
+                <MobileNavLink
+                  variant="h4"
+                  nested
+                  external
+                  href={navLinks.whitepaper}
+                  onClick={unmountAndClose}
+                  eventName={ANALYTICS_EVENTS.NAVIGATION.LEARN_WHITEPAPER_CLICK}
+                >
                   Whitepaper
                 </MobileNavLink>
               </motion.div>
@@ -212,6 +274,7 @@ const MobileNavLink = ({
   children,
   className,
   onClick,
+  eventName,
 }: {
   href?: string;
   external?: boolean;
@@ -220,12 +283,24 @@ const MobileNavLink = ({
   noHover?: boolean;
   className?: string;
   onClick?: () => void;
+  eventName?: string;
   children: React.ReactNode;
 }) => {
+  const handleClick = () => {
+    if (eventName) {
+      trackClick(eventName, {
+        link_type: external ? "external" : "internal",
+        link_url: href,
+        is_mobile: true,
+      })();
+    }
+    onClick?.();
+  };
+
   return (
     <ReactLink
       to={href ?? ""}
-      onClick={onClick}
+      onClick={handleClick}
       className={cn(
         `cursor-pointer ${nested ? "text-pinto-gray-5" : "text-black"} ${noHover ? "" : "hover:text-pinto-green-4"}`,
         variant === "h4" ? "pinto-h4" : "pinto-h3",

@@ -1,4 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
@@ -8,6 +9,7 @@ import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
+import { trackClick, withTracking } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
 import { FarmToMode, Token } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
@@ -30,11 +32,18 @@ export default function WalletButtonClaim() {
   const [panelState, setPanelState] = useAtom(navbarPanelAtom);
 
   const toggleClaimView = () => {
+    const isOpening = !panelState.walletPanel.showClaim;
+
+    // Track claim view toggle
+    trackClick(ANALYTICS_EVENTS.WALLET.CLAIM_FLOOD_TOGGLE, {
+      action: isOpening ? "open" : "close",
+    })();
+
     setPanelState({
       ...panelState,
       walletPanel: {
         ...panelState.walletPanel,
-        showClaim: !panelState.walletPanel.showClaim,
+        showClaim: isOpening,
       },
     });
   };
@@ -165,10 +174,18 @@ export default function WalletButtonClaim() {
         <Separator className="w-full" />
         <div className="flex flex-col sm:flex-row justify-between items-center w-full ">
           <div className="font-[340] text-[1rem] sm:text-[1.25rem] text-pinto-gray-4">Receive proceeds to:</div>
-          <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} variant="small" />
+          <DestinationBalanceSelect
+            setBalanceTo={(newBalance) => {
+              // Track destination balance change
+              trackClick(ANALYTICS_EVENTS.WALLET.CLAIM_DESTINATION_SELECT)();
+              setBalanceTo(newBalance);
+            }}
+            balanceTo={balanceTo}
+            variant="small"
+          />
         </div>
         <Button
-          onClick={() => onSubmit()}
+          onClick={withTracking(ANALYTICS_EVENTS.WALLET.CLAIM_FLOOD_SUBMIT, () => onSubmit())}
           disabled={totalFlood.eq(0)}
           variant={"gradient"}
           className={"w-full h-[3.125rem] sm:h-[3.625rem] grow-0 rounded-full text-[1.25rem] sm:text-[1.5rem]"}

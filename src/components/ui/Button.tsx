@@ -22,7 +22,7 @@ const outlineShadowBase = clsx(
 const roundedBase = clsx("rounded-full");
 
 const buttonVariants = cva(
-  "box-border inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:bg-pinto-gray-2 disabled:text-pinto-gray-4",
+  "box-border relative overflow-hidden inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:bg-pinto-gray-2 disabled:text-pinto-gray-4",
   {
     variants: {
       variant: {
@@ -89,6 +89,12 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  glow?: boolean;
+  glowColor?: string;
+  glowOnHover?: boolean;
+  shimmer?: boolean;
+  shimmerColor?: string;
+  shimmerOnHover?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -102,11 +108,18 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       noPadding = false,
       rounded,
       width = "default",
+      glow = false,
+      glowColor = "rgba(36, 102, 69, 0.6)",
+      glowOnHover = false,
+      shimmer = false,
+      shimmerColor = "rgba(0, 199, 103, 0.5)",
+      shimmerOnHover = false,
       ...props
     },
     ref,
   ) => {
     const Comp = asChild ? Slot : "button";
+
     return (
       <Comp
         className={cn(
@@ -118,11 +131,57 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             rounded,
             width,
           }),
+          glow &&
+            (glowOnHover
+              ? `hover:[animation:pulse-glow_3s_ease-in-out_infinite] transition-shadow`
+              : `[animation:pulse-glow_3s_ease-in-out_infinite]`),
           className,
         )}
+        style={{
+          ...(glow && { "--glow-color": glowColor }),
+          ...props.style,
+        }}
         ref={ref}
         {...props}
-      />
+      >
+        {!asChild ? (
+          <>
+            {shimmer && (
+              <div
+                className={cn(
+                  "absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent to-transparent",
+                  shimmerOnHover
+                    ? "opacity-0 hover:opacity-100 hover:animate-[shimmer_2s_infinite] transition-opacity duration-300"
+                    : "animate-[shimmer_2s_infinite]",
+                )}
+                style={{
+                  background: `linear-gradient(to right, transparent, ${shimmerColor}, transparent)`,
+                }}
+              />
+            )}
+            {props.children}
+          </>
+        ) : shimmer ? (
+          // When using asChild with shimmer, wrap everything in a single element
+          <span className="relative inline-flex items-center justify-center w-full h-full">
+            <div
+              className={cn(
+                "absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent to-transparent",
+                shimmerOnHover
+                  ? "opacity-0 hover:opacity-100 hover:animate-[shimmer_2s_infinite] transition-opacity duration-300"
+                  : "animate-[shimmer_2s_infinite]",
+              )}
+              style={{
+                background: `linear-gradient(to right, transparent, ${shimmerColor}, transparent)`,
+              }}
+            />
+            {props.children}
+          </span>
+        ) : (
+          // When using asChild withput shimmer, pass props.children directly
+          props.children
+        )}
+      </Comp>
     );
   },
 );

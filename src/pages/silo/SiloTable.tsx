@@ -11,6 +11,7 @@ import IconImage from "@/components/ui/IconImage";
 import { Separator } from "@/components/ui/Separator";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { PINTO } from "@/constants/tokens";
 import { useDenomination } from "@/hooks/useAppSettings";
 import useFarmerActions from "@/hooks/useFarmerActions";
@@ -21,6 +22,7 @@ import { EMAWindows, SiloYieldsByToken, useSiloYieldsByToken } from "@/state/use
 import { useSiloData } from "@/state/useSiloData";
 import { useSeason } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
+import { trackSimpleEvent } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
 import { stringEq } from "@/utils/string";
 import { getTokenIndex, sortTokensForDeposits } from "@/utils/token";
@@ -71,6 +73,19 @@ function SiloTable({ hovering }: { hovering: boolean }) {
   const gains = farmerActions.claimRewards.outputs;
   const navigate = useNavigate();
   const denomination = useDenomination();
+
+  // Track token row clicks
+  const handleTokenRowClick = useCallback(
+    (token: Token) => {
+      trackSimpleEvent(ANALYTICS_EVENTS.SILO.TOKEN_ROW_CLICK, {
+        token_symbol: token.symbol,
+        token_address: token.address,
+      });
+
+      navigate(`/silo/${token.address}`);
+    },
+    [navigate],
+  );
 
   const hideFlags = useMemo(() => {
     if (!apys) {
@@ -153,7 +168,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
                       : "bg-white hover:bg-pinto-green-1/50",
                 )}
                 key={`silo_table_${token.address}`}
-                onClick={() => navigate(`/silo/${token.address}`)}
+                onClick={() => handleTokenRowClick(token)}
                 data-action-target={`token-row-${token.address}`}
               >
                 <TokenCell

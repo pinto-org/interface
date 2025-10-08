@@ -18,6 +18,11 @@ interface SeasonalAPYChartProps {
   season: number;
   size: "small" | "large";
   className?: string;
+  analyticsContext?: {
+    chart_id?: string;
+    chart_title?: string;
+    explorer_tab?: string;
+  };
 }
 
 const strokeGradients = [gradientFunctions.solidRed, gradientFunctions.solidBlue, gradientFunctions.solidGreen];
@@ -57,7 +62,7 @@ const valueTransform = {
   from: inverseTransformValue,
 };
 
-const SeasonalAPYChart = ({ season, size, className }: SeasonalAPYChartProps) => {
+const SeasonalAPYChart = ({ season, size, className, analyticsContext }: SeasonalAPYChartProps) => {
   const [allData, setAllData] = useState<SeasonalAPYChartData | null>(null);
   const [displayIndex, setDisplayIndex] = useState<number | null>(null);
   const [selectedToken, setSelectedToken] = useState<string>("");
@@ -177,7 +182,7 @@ const SeasonalAPYChart = ({ season, size, className }: SeasonalAPYChartProps) =>
             <span>vAPY</span>
           </div>
         </div>
-        <TimeTabsSelector tab={timeTab} setTab={handleChangeTimeTab} />
+        <TimeTabsSelector tab={timeTab} setTab={handleChangeTimeTab} context={analyticsContext} />
       </div>
 
       {(!allData || displayIndex === null) && (

@@ -2,10 +2,12 @@ import SowOrderDialog from "@/components/SowOrderDialog";
 import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { useParamsTabs } from "@/hooks/useRouterTabs";
 import { useMorning } from "@/state/useSunData";
+import { trackSimpleEvent } from "@/utils/analytics";
 import clsx from "clsx";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Harvest from "./actions/Harvest";
 import Sow from "./actions/Sow";
 
@@ -19,8 +21,20 @@ interface FieldActionsProps {
 
 export default function FieldActions({ onTractorOrderPublished }: FieldActionsProps) {
   const isMorning = useMorning().isMorning;
-  const [tab, handleChangeTab] = useParamsTabs(slugs, "action", true);
+  const [tab, setTab] = useParamsTabs(slugs, "action", true);
   const [showSowOrder, setShowSowOrder] = useState(false);
+
+  const handleChangeTab = useCallback(
+    (newTab: string) => {
+      trackSimpleEvent(ANALYTICS_EVENTS.FIELD.ACTION_TAB_CLICK, {
+        previous_tab: tab || "sow",
+        new_tab: newTab,
+        is_morning: isMorning,
+      });
+      setTab(newTab);
+    },
+    [tab, isMorning, setTab],
+  );
 
   return (
     <div className="relative h-full w-full">

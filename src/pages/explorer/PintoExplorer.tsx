@@ -130,6 +130,11 @@ const PriceChart = React.memo(({ season }: ISeason) => {
       useLogarithmicScale={true}
       showReferenceLineAtOne={priceYAxisRanges[priceTab]?.showReferenceLine ?? false}
       yAxisRanges={priceYAxisRanges}
+      analyticsContext={{
+        chart_id: "price",
+        chart_title: "Pinto Price",
+        explorer_tab: "pinto",
+      }}
     />
   );
 });
@@ -154,6 +159,11 @@ const TotalLiquidityChart = React.memo(({ season }: ISeason) => {
       useSeasonalResult={liquidityData}
       valueFormatter={f.price0dFormatter}
       tickValueFormatter={f.largePrice1dFormatter}
+      analyticsContext={{
+        chart_id: "liquidity",
+        chart_title: "Total Liquidity",
+        explorer_tab: "pinto",
+      }}
     />
   );
 });
@@ -178,6 +188,11 @@ const TotalSupplyChart = React.memo(({ season }: ISeason) => {
       useSeasonalResult={supplyData}
       valueFormatter={f.number0dFormatter}
       tickValueFormatter={f.largeNumber1dFormatter}
+      analyticsContext={{
+        chart_id: "supply",
+        chart_title: "Pinto Supply",
+        explorer_tab: "pinto",
+      }}
     />
   );
 });
@@ -202,6 +217,11 @@ const MarketCapChart = React.memo(({ season }: ISeason) => {
       useSeasonalResult={mcapData}
       valueFormatter={f.price0dFormatter}
       tickValueFormatter={f.largePrice1dFormatter}
+      analyticsContext={{
+        chart_id: "marketCap",
+        chart_title: "Market Capitalization",
+        explorer_tab: "pinto",
+      }}
     />
   );
 });

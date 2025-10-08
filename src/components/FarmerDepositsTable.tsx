@@ -4,6 +4,7 @@ import { TokenValue } from "@/classes/TokenValue";
 import { RightArrowIcon, UpArrowIcon } from "@/components/Icons";
 import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { useDenomination } from "@/hooks/useAppSettings";
 import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
@@ -11,6 +12,7 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useTokenData from "@/state/useTokenData";
+import { trackSimpleEvent, withTracking } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
 import { stringEq } from "@/utils/string";
 import { sortTokensForDeposits } from "@/utils/token";
@@ -110,7 +112,9 @@ export default function FarmerDepositsTable({
         data-action-target="claimable-rewards"
         ref={rewardsRef}
         initial={initialState}
-        onClick={submitClaimRewards}
+        onClick={withTracking(ANALYTICS_EVENTS.OVERVIEW.DEPOSITS_CLAIM_REWARDS_CLICK, submitClaimRewards, {
+          source_component: "deposits_table",
+        })}
         animate={{
           height: showRow ? "4.5rem" : 0,
           opacity: showRow ? 1 : 0,
@@ -269,7 +273,15 @@ export default function FarmerDepositsTable({
                         ? "bg-pinto-off-green/15 hover:bg-pinto-green-1/50"
                         : "bg-white hover:bg-pinto-green-1/50"
                   } ${(amountOfDeposits === 0 && !addClaimable) || (addClaimable && amountOfDeposits === 0 && !hoveringClaim && beanGain.gt(0)) ? "opacity-70" : "opacity-100"}`}
-                  onClick={() => navigate(`/silo/${token.address}`)}
+                  onClick={withTracking(
+                    ANALYTICS_EVENTS.OVERVIEW.DEPOSITS_TOKEN_ROW_CLICK,
+                    () => navigate(`/silo/${token.address}`),
+                    {
+                      token_symbol: token.symbol,
+                      token_name: token.name,
+                      source_page: "farmer_overview",
+                    },
+                  )}
                   data-action-target={`token-row-${token.address}`}
                 >
                   <TableCell className="text-black/70 font-[400] text-[1rem]">

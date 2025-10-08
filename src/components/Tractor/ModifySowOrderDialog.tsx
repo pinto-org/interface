@@ -19,7 +19,7 @@ import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetT
 import useSignTractorBlueprint from "@/hooks/tractor/useSignTractorBlueprint";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
 import useTransaction from "@/hooks/useTransaction";
-import { RequisitionEvent, SowBlueprintData } from "@/lib/Tractor";
+import { RequisitionEvent, SowBlueprintData, prepareRequisitionForTxn } from "@/lib/Tractor";
 import { useGetBlueprintHash } from "@/lib/Tractor/blueprint";
 import { Blueprint, ExtendedTractorTokenStrategy, Requisition, TractorTokenStrategy } from "@/lib/Tractor/types";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
@@ -222,7 +222,6 @@ export default function ModifyTractorOrderDialog({
                     </TooltipSimple>
                   </Row>
                 </div>
-
                 {/* Token Selection Dialog */}
                 <SowOrderV0TokenStrategyDialog
                   open={showTokenSelectionDialog}
@@ -330,22 +329,22 @@ function ModifyTractorOrderReviewDialog({
       setSubmitting(true);
       toast.loading("Modifying order...");
 
+      const prevRequisition = prepareRequisitionForTxn(existingOrder.requisition);
+      const preparedRequisition = prepareRequisitionForTxn(signedRequisition);
+
       // Create the farm call data that cancels the old order and creates the new one
       const farmCalls = [
         // Cancel the existing order
         encodeFunctionData({
           abi: diamondABI,
           functionName: "cancelBlueprint",
-          args: [existingOrder.requisition],
+          args: [prevRequisition],
         }),
         // Create the new order (publish requisition)
         encodeFunctionData({
           abi: diamondABI,
           functionName: "publishRequisition",
-          args: [
-            // Type cast is okay here since we check signature above
-            signedRequisition as Required<Requisition>,
-          ],
+          args: [preparedRequisition],
         }),
       ];
 

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { NATIVE_TOKEN, WSOL_TOKEN } from "@/constants/tokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
@@ -23,6 +24,7 @@ import useTransaction from "@/hooks/useTransaction";
 import { useDestinationBalance } from "@/state/useDestinationBalance";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useTokenData from "@/state/useTokenData";
+import { trackSimpleEvent } from "@/utils/analytics";
 import { getChainConstant } from "@/utils/chain";
 import { stringToNumber } from "@/utils/string";
 import { getTokenIndex, tokensEqual } from "@/utils/token";
@@ -158,6 +160,14 @@ export default function Swap() {
   });
 
   const invertTokens = useCallback(() => {
+    // Track token pair flip event
+    trackSimpleEvent(ANALYTICS_EVENTS.SWAP.TOKEN_PAIR_FLIP, {
+      sell_token_before: tokenIn.symbol,
+      buy_token_before: tokenOut.symbol,
+      sell_token_after: tokenOut.symbol,
+      buy_token_after: tokenIn.symbol,
+    });
+
     const newTokenIn = tokenMap[getTokenIndex(tokenOut)];
     const newAmountIn = amountIn.toString();
     setAmountOut("");
@@ -173,9 +183,14 @@ export default function Swap() {
         invertTokens();
         return;
       }
+      // Track token selection event
+      trackSimpleEvent(ANALYTICS_EVENTS.SWAP.TOKEN_FROM_SELECTED, {
+        previous_token: tokenIn.symbol,
+        new_token: newTokenIn.symbol,
+      });
       setTokenIn(newTokenIn);
     },
-    [tokenOut, invertTokens],
+    [tokenOut, invertTokens, tokenIn.symbol],
   );
 
   const handleSelectTokenOut = useCallback(
@@ -185,12 +200,23 @@ export default function Swap() {
         invertTokens();
         return;
       }
+      // Track token selection event
+      trackSimpleEvent(ANALYTICS_EVENTS.SWAP.TOKEN_TO_SELECTED, {
+        previous_token: tokenOut.symbol,
+        new_token: newTokenOut.symbol,
+      });
       setTokenOut(newTokenOut);
     },
-    [tokenIn, invertTokens],
+    [tokenIn, invertTokens, tokenOut.symbol],
   );
 
   const onSubmit = useCallback(async () => {
+    // Track swap submission event
+    trackSimpleEvent(ANALYTICS_EVENTS.SWAP.SWAP_SUBMIT, {
+      sell_token: tokenIn.symbol,
+      buy_token: tokenOut.symbol,
+    });
+
     setSubmitting(true);
     toast.loading("Swapping...");
     try {
@@ -216,7 +242,17 @@ export default function Swap() {
     } finally {
       setSubmitting(false);
     }
-  }, [swapData, amountInTV, tokenIn, account.address, diamond, writeWithEstimateGas, setSubmitting, buildSwap]);
+  }, [
+    swapData,
+    amountInTV,
+    tokenIn,
+    tokenOut,
+    account.address,
+    diamond,
+    writeWithEstimateGas,
+    setSubmitting,
+    buildSwap,
+  ]);
 
   const swapNotReady = !swapData || !!swapQuery.error;
 

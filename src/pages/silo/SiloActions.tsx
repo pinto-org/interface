@@ -1,9 +1,11 @@
 import { Separator } from "@/components/ui/Separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { useParamsTabs } from "@/hooks/useRouterTabs";
+import { trackSimpleEvent } from "@/utils/analytics";
 import { Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import Convert from "./actions/Convert";
 import Deposit from "./actions/Deposit";
 import UnwrapToken from "./actions/UnwrapToken";
@@ -27,6 +29,32 @@ export default function SiloActions({ token }: SiloToken) {
     true,
   );
 
+  const handleTabChange = useCallback(
+    (newTab: string) => {
+      // Track tab changes
+      const eventMap = {
+        deposit: ANALYTICS_EVENTS.SILO.DEPOSIT_TAB_CLICK,
+        withdraw: ANALYTICS_EVENTS.SILO.WITHDRAW_TAB_CLICK,
+        convert: ANALYTICS_EVENTS.SILO.CONVERT_TAB_CLICK,
+        wrap: ANALYTICS_EVENTS.SILO.WRAP_TAB_CLICK,
+        unwrap: ANALYTICS_EVENTS.SILO.UNWRAP_TAB_CLICK,
+      };
+
+      const eventName = eventMap[newTab as keyof typeof eventMap];
+      if (eventName) {
+        trackSimpleEvent(eventName, {
+          previous_tab: tab,
+          new_tab: newTab,
+          token_symbol: token.symbol,
+          token_address: token.address,
+        });
+      }
+
+      handleChangeTab(newTab);
+    },
+    [tab, token, handleChangeTab],
+  );
+
   useEffect(() => {
     if (token.isWhitelisted) {
       return;
@@ -38,7 +66,7 @@ export default function SiloActions({ token }: SiloToken) {
   }, [token, tab, handleChangeTab]);
 
   return (
-    <Tabs value={tab} onValueChange={handleChangeTab} className="w-full">
+    <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
       <TabsList
         className={cn("grid w-full", token.isSiloWrapped || !token.isWhitelisted ? "grid-cols-2" : "grid-cols-3")}
       >

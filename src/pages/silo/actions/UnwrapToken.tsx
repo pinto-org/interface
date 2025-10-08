@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/Label";
 import { Switch } from "@/components/ui/Switch";
 import { siloedPintoABI } from "@/constants/abi/siloedPintoABI";
 import { abiSnippets } from "@/constants/abiSnippets";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { defaultQuerySettingsQuote } from "@/constants/query";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap, useWSOL } from "@/hooks/pinto/useTokenMap";
@@ -25,6 +26,7 @@ import { FarmerBalance, useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
+import { trackSimpleEvent } from "@/utils/analytics";
 import { pickCratesAsCrates, sortCratesByStem } from "@/utils/convert";
 import { tryExtractErrorMessage } from "@/utils/error";
 import { formatter } from "@/utils/format";
@@ -113,6 +115,48 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
     successCallback: onSuccess,
   });
 
+  // Track destination changes
+  const handleDestinationChange = useCallback(
+    (newMode: FarmToMode | undefined) => {
+      if (newMode !== toMode) {
+        trackSimpleEvent(ANALYTICS_EVENTS.SILO.UNWRAP_DESTINATION_SELECT, {
+          previous_destination: toMode === FarmToMode.EXTERNAL ? "external" : "internal",
+          new_destination: newMode === FarmToMode.EXTERNAL ? "external" : "internal",
+          token_symbol: siloToken.symbol,
+        });
+        setToMode(newMode);
+      }
+    },
+    [toMode, siloToken.symbol],
+  );
+
+  // Track token selection
+  const handleTokenOutChange = useCallback(
+    (newToken: Token | undefined) => {
+      if (newToken !== tokenOut) {
+        trackSimpleEvent(ANALYTICS_EVENTS.SILO.UNWRAP_TOKEN_SELECTED, {
+          previous_token: tokenOut?.symbol || "none",
+          new_token: newToken?.symbol || "none",
+          source_token: siloToken.symbol,
+        });
+        setTokenOut(newToken);
+      }
+    },
+    [tokenOut, siloToken],
+  );
+
+  // Track to-silo mode toggle
+  const handleModeToggle = useCallback(() => {
+    const newMode = !toSilo;
+    trackSimpleEvent(ANALYTICS_EVENTS.SILO.UNWRAP_MODE_TOGGLE, {
+      previous_mode: toSilo ? "to_silo" : "to_balance",
+      new_mode: newMode ? "to_silo" : "to_balance",
+      token_symbol: siloToken.symbol,
+    });
+    setTokenOut(undefined);
+    setToSilo(newMode);
+  }, [toSilo, siloToken.symbol]);
+
   // Submit handlers
   const handleRedeemAdvanced = useCallback(
     async (shares: TV, address: Address, from: FarmFromMode, to: FarmToMode) => {
@@ -162,6 +206,13 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
       if (amountTV.lte(0)) throw new Error("Invalid amount");
       if (balance.lt(amountTV)) throw new Error("Insufficient balance");
       if (!toSilo && !tokenOut) throw new Error("Token out required");
+
+      // Track unwrap submission
+      trackSimpleEvent(ANALYTICS_EVENTS.SILO.UNWRAP_SUBMIT, {
+        source_token: siloToken.symbol,
+        target_token: tokenOut?.symbol || "none",
+        to_silo: toSilo,
+      });
 
       const startSubmission = () => {
         setSubmitting(true);
@@ -275,13 +326,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
           <div className="pinto-sm sm:pinto-body-light sm:text-pinto-light text-pinto-light">
             Unwrap as {mainToken.symbol} deposit
           </div>
-          <Switch
-            checked={toSilo}
-            onCheckedChange={() => {
-              setTokenOut(undefined);
-              setToSilo((prev) => !prev);
-            }}
-          />
+          <Switch checked={toSilo} onCheckedChange={handleModeToggle} />
         </div>
       </div>
       {txnType === "redeemToSilo" && validAmountIn ? (
@@ -297,7 +342,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
           <div className="flex flex-col gap-4">
             <div className="flex flex-col">
               <Label className="flex h-10 items-center">Destination</Label>
-              <DestinationBalanceSelect setBalanceTo={setToMode} balanceTo={toMode} />
+              <DestinationBalanceSelect setBalanceTo={handleDestinationChange} balanceTo={toMode} />
             </div>
             <div className="flex flex-col w-full pt-4 pb-2 gap-2">
               <div className="pinto-body-light text-pinto-light">Unwrap as</div>
@@ -315,7 +360,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
                   </div>
                   <TokenSelectWithBalances
                     selectedToken={tokenOut}
-                    setToken={setTokenOut}
+                    setToken={handleTokenOutChange}
                     noBalances={true}
                     filterTokens={destinationTokenFilter}
                   />

@@ -1,5 +1,6 @@
 import { TokenValue } from "@/classes/TokenValue";
-import { TractorRequisitionEvent } from "./types";
+import { Requisition, RequisitionEvent } from "./core";
+import { RequisitionData, TractorRequisitionEvent } from "./types";
 
 export interface PublisherTractorExecution {
   type: "sow" | "convertUp";
@@ -20,6 +21,40 @@ interface SowEventArgs<T extends bigint | TokenValue = TokenValue> {
   beans: T;
   pods: T;
 }
+
+const normalizeBPEndTime = (endTime: bigint) => {
+  if (endTime === 8640000000000n) {
+    // max uint256
+    return BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935");
+  }
+  return endTime;
+};
+
+export const prepareRequisitionForTxn = (req: RequisitionData | RequisitionEvent | Requisition): RequisitionData => {
+  let signature: `0x${string}`;
+
+  const requisition = "requisition" in req ? req.requisition : req;
+  if (!requisition.signature) {
+    throw new Error("Cannot prepare blueprint for transaction, blueprint is not signed");
+  }
+
+  signature = requisition.signature;
+
+  const struct: RequisitionData = {
+    signature,
+    blueprintHash: requisition.blueprintHash,
+    blueprint: {
+      ...requisition.blueprint,
+      startTime: requisition.blueprint.startTime,
+      endTime: normalizeBPEndTime(requisition.blueprint.endTime),
+      operatorPasteInstrs: requisition.blueprint.operatorPasteInstrs.filter(
+        (instr) => instr !== "0x" && instr !== ("" as `0x${string}`),
+      ),
+    },
+  };
+
+  return struct;
+};
 
 /**
  * Prepare a requisition event for a transaction by normalizing the blueprint data.
@@ -48,6 +83,9 @@ export const prepareRequisitionEventForTxn = (req: TractorRequisitionEvent) => {
       ),
     },
   };
+};
+export const prepareSowOrderV0RequisitionEventForTxn = (req: RequisitionEvent | RequisitionData) => {
+  return prepareRequisitionForTxn(req);
 };
 
 // export async function fetchTractorExecutions(

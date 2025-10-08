@@ -51,6 +51,12 @@ interface SeasonalChartProps {
   showReferenceLineAtOne?: boolean;
   dataNotFetching?: boolean;
   noDataMessage?: string;
+  // Analytics context for chart time filter tracking
+  analyticsContext?: {
+    chart_id?: string;
+    chart_title?: string;
+    explorer_tab?: string;
+  };
   // New props for custom y-axis ranges
   yAxisRanges?: {
     [TimeTab.Week]?: YAxisRangeConfig;
@@ -93,6 +99,7 @@ const SeasonalChart = ({
   dataNotFetching = false,
   useLogarithmicScale = false,
   showReferenceLineAtOne = false,
+  analyticsContext,
   yAxisRanges,
   noDataMessage = "No data to display",
   chartWrapperClassName,
@@ -162,7 +169,7 @@ const SeasonalChart = ({
           </div>
           {tooltip && <TooltipSimple content={tooltip} variant="gray" />}
         </div>
-        <TimeTabsSelector tab={activeTab} setTab={handleChangeTab} />
+        <TimeTabsSelector tab={activeTab} setTab={handleChangeTab} context={analyticsContext} />
       </div>
 
       {((!allData && !displayData) || isLoading || isError) && !dataNotFetching && (

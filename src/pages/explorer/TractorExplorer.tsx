@@ -64,6 +64,11 @@ const TractorExplorer = () => {
             useSeasonalResult={pintoSownData}
             valueFormatter={f.number0dFormatter}
             tickValueFormatter={f.largeNumber1dFormatter}
+            analyticsContext={{
+              chart_id: "tractorSown",
+              chart_title: "Sown Pinto",
+              explorer_tab: "tractor",
+            }}
           />
         </div>
         <div className="w-full sm:w-1/2">
@@ -77,6 +82,11 @@ const TractorExplorer = () => {
             useSeasonalResult={podsIssuedData}
             valueFormatter={f.number0dFormatter}
             tickValueFormatter={f.largeNumber1dFormatter}
+            analyticsContext={{
+              chart_id: "tractorPods",
+              chart_title: "Pods Minted",
+              explorer_tab: "tractor",
+            }}
           />
         </div>
       </div>
@@ -91,6 +101,11 @@ const TractorExplorer = () => {
             useSeasonalResult={fundedAmountData}
             valueFormatter={f.number0dFormatter}
             tickValueFormatter={f.largeNumber1dFormatter}
+            analyticsContext={{
+              chart_id: "tractorFunded",
+              chart_title: "Tractor Sowing Queue",
+              explorer_tab: "tractor",
+            }}
           />
         </div>
         <div className="w-full sm:w-1/2">
@@ -103,6 +118,11 @@ const TractorExplorer = () => {
             useSeasonalResult={maxSowData}
             valueFormatter={f.number0dFormatter}
             tickValueFormatter={f.largeNumber1dFormatter}
+            analyticsContext={{
+              chart_id: "tractorMaxSow",
+              chart_title: "Queued Maximum Sow",
+              explorer_tab: "tractor",
+            }}
           />
         </div>
       </div>
@@ -117,6 +137,11 @@ const TractorExplorer = () => {
             useSeasonalResult={maxActiveTipData}
             valueFormatter={f.number2dFormatter}
             tickValueFormatter={f.number2dFormatter}
+            analyticsContext={{
+              chart_id: "tractorMaxTip",
+              chart_title: "Maximum Offered Tip",
+              explorer_tab: "tractor",
+            }}
           />
         </div>
         <div className="w-full sm:w-1/2">
@@ -130,6 +155,11 @@ const TractorExplorer = () => {
             useSeasonalResult={cumulativeTipsData}
             valueFormatter={f.number2dFormatter}
             tickValueFormatter={f.number2dFormatter}
+            analyticsContext={{
+              chart_id: "tractorTips",
+              chart_title: "Cumulative Operator Tipped Pinto",
+              explorer_tab: "tractor",
+            }}
           />
         </div>
       </div>
@@ -145,6 +175,11 @@ const TractorExplorer = () => {
             useSeasonalResult={executionsCountData}
             valueFormatter={f.number0dFormatter}
             tickValueFormatter={f.largeNumber1dFormatter}
+            analyticsContext={{
+              chart_id: "tractorExecutions",
+              chart_title: "Tractor Executions",
+              explorer_tab: "tractor",
+            }}
           />
         </div>
         <div className="w-full sm:w-1/2">
@@ -158,6 +193,11 @@ const TractorExplorer = () => {
             useSeasonalResult={uniquePublishersData}
             valueFormatter={f.number0dFormatter}
             tickValueFormatter={f.largeNumber1dFormatter}
+            analyticsContext={{
+              chart_id: "tractorPublishers",
+              chart_title: "Unique Publishers",
+              explorer_tab: "tractor",
+            }}
           />
         </div>
       </div>

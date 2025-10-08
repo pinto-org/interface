@@ -6,6 +6,7 @@ import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/componen
 import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import deposit from "@/encoders/deposit";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useBuildSwapQuote from "@/hooks/swap/useBuildSwapQuote";
@@ -20,6 +21,7 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import { useInvalidateSun } from "@/state/useSunData";
+import { trackSimpleEvent } from "@/utils/analytics";
 import { stringEq, stringToNumber } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
@@ -143,10 +145,18 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const handleSetTokenIn = useCallback(
     (newToken: Token) => {
       if (tokensEqual(newToken, tokenIn)) return;
+
+      // Track token selection
+      trackSimpleEvent(ANALYTICS_EVENTS.SILO.DEPOSIT_TOKEN_SELECTED, {
+        previous_token: tokenIn.symbol,
+        new_token: newToken.symbol,
+        target_token: siloToken.symbol,
+      });
+
       setAmountIn("");
       setTokenIn(newToken);
     },
-    [tokenIn],
+    [tokenIn, siloToken],
   );
 
   const depositOutput = useMemo(() => {
@@ -176,6 +186,12 @@ function Deposit({ siloToken }: { siloToken: Token }) {
       }
 
       const buyAmount = shouldSwap ? swapData?.buyAmount : amountInTV;
+
+      // Track deposit submission
+      trackSimpleEvent(ANALYTICS_EVENTS.SILO.DEPOSIT_SUBMIT, {
+        input_token: tokenIn.symbol,
+        output_token: siloToken.symbol,
+      });
 
       if (!shouldSwap && buyAmount) {
         setSubmitting(true);

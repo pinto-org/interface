@@ -1,3 +1,5 @@
+import PintoLogo from "@/assets/protocol/PintoLogo.svg";
+import PintoLogoText from "@/assets/protocol/PintoLogoText.svg";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 import HelperLink, { hoveredIdAtom } from "@/components/HelperLink";
 import NoBaseValueAlert from "@/components/NoBaseValueAlert";
@@ -205,43 +207,54 @@ const Navbar = () => {
   const handleInvalidateWallet = useCallback(() => invalidateData("wallet"), [invalidateData]);
 
   return (
-    <div className="flex flex-col sticky top-0 z-[2]" id="pinto-navbar" style={{ transformOrigin: "top left" }}>
-      <AnnouncementBanner />
+    <div
+      className={`flex flex-col sticky top-0 z-[2] ${isHome ? "opacity-0 pointer-events-none" : "opacity-100 pointer-events-auto"}`}
+      id="pinto-navbar"
+      style={{ transformOrigin: "top left" }}
+    >
+      {!isHome && <AnnouncementBanner />}
       <div
         className={cn(
-          `grid px-4 pt-4 pb-2 sm:px-6 sm:pt-6 w-full z-[2] ${isHome ? "bg-transparent" : "bg-gradient-light"} action-container transition-colors`,
+          `grid px-4 pt-4 pb-2 sm:px-6 sm:pt-6 w-full z-[2] bg-gradient-light action-container transition-colors`,
           styles.navGrid,
         )}
       >
-        <div className="flex flex-row">
-          <div className={`transition-all duration-100 ${panelState.openPanel === "price" && "z-[51]"} mr-4`}>
-            <PriceButton
-              isOpen={panelState.openPanel === "price"}
-              togglePanel={togglePrice}
-              onMouseEnter={refetchPriceData}
-            />
+        {!isHome ? (
+          <div className="flex flex-row">
+            <div className={`transition-all duration-100 ${panelState.openPanel === "price" && "z-[51]"} mr-4`}>
+              <PriceButton
+                isOpen={panelState.openPanel === "price"}
+                togglePanel={togglePrice}
+                onMouseEnter={refetchPriceData}
+              />
+            </div>
+            <div className={`transition-all duration-100 ${panelState.openPanel === "seasons" && "z-[51]"}`}>
+              <SeasonsButton
+                isOpen={panelState.openPanel === "seasons"}
+                togglePanel={toggleSeasons}
+                onMouseEnter={handleInvalidateSeasons}
+              />
+            </div>
+            <Panel
+              isOpen={panelState.openPanel === "chart-select"}
+              side="left"
+              panelProps={{
+                className: cn("max-w-panel-price w-panel-price", "mt-14"),
+              }}
+              screenReaderTitle="Chart Select Panel"
+              trigger={<></>}
+              toggle={handleTogglePanel}
+            >
+              <ChartSelectPanel />
+            </Panel>
           </div>
-          <div className={`transition-all duration-100 ${panelState.openPanel === "seasons" && "z-[51]"}`}>
-            <SeasonsButton
-              isOpen={panelState.openPanel === "seasons"}
-              togglePanel={toggleSeasons}
-              onMouseEnter={handleInvalidateSeasons}
-            />
+        ) : (
+          <div className="flex flex-row gap-2 items-center">
+            <img src={PintoLogo} alt="Pinto Logo" className="h-6" />
+            <img src={PintoLogoText} alt="Pinto Logo" className="h-6" />
           </div>
-          <Panel
-            isOpen={panelState.openPanel === "chart-select"}
-            side="left"
-            panelProps={{
-              className: cn("max-w-panel-price w-panel-price", "mt-14"),
-            }}
-            screenReaderTitle="Chart Select Panel"
-            trigger={<></>}
-            toggle={handleTogglePanel}
-          >
-            <ChartSelectPanel />
-          </Panel>
-        </div>
-        <div className="hidden lg:flex lg:justify-center pr-[208px]">
+        )}
+        <div className="hidden lg:flex lg:justify-center pr-[150px]">
           <Navi />
         </div>
         <div className="flex flex-row justify-end">
@@ -319,7 +332,7 @@ export const navLinks = {
   field: "/field",
   swap: "/swap",
   sPinto: "/sPinto",
-  collection: "/soon",
+  collection: "/collection",
   podmarket: "/market/pods",
   explorer: "/explorer",
   explorer_pinto: "/explorer/pinto",
@@ -327,9 +340,10 @@ export const navLinks = {
   explorer_field: "/explorer/field",
   explorer_farmer: "/explorer/farmer",
   explorer_seasons: "/explorer/seasons",
+  explorer_tractor: "/explorer/tractor",
   explorer_all: "/explorer/all",
   whitepaper: "/whitepaper",
-  twitter: "https://x.com/pintocommunity",
+  twitter: "https://x.com/pintodotmoney",
   docs: "https://docs.pinto.money/",
   discord: "https://pinto.money/discord",
   github: "https://github.com/pinto-org",
@@ -337,6 +351,8 @@ export const navLinks = {
   exchange: "https://pinto.exchange/",
   blog: "https://mirror.xyz/0x8F02813a0AC20affC2C7568e0CB9a7cE5288Ab27",
   communityBlog: "https://mirror.xyz/0xe7731147bBe1BEBe5CF1Ab101C6EceD384dAbD07",
+  printsToThePeople:
+    "https://mirror.xyz/0x8F02813a0AC20affC2C7568e0CB9a7cE5288Ab27/VC2bqtuWvmo2EssZhWGCVgGRC1_SR2Bg82voJJxI7MU",
 } as const;
 
 export const navPathNameToTopMenu = {

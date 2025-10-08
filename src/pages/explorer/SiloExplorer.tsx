@@ -37,7 +37,15 @@ const SiloExplorer = () => {
           <TotalDepositedPDVChart season={season} />
         </div>
       </div>
-      <SeasonalAPYChart season={season} size="large" />
+      <SeasonalAPYChart
+        season={season}
+        size="large"
+        analyticsContext={{
+          chart_id: "apy",
+          chart_title: "APY Chart",
+          explorer_tab: "silo",
+        }}
+      />
     </>
   );
 };
@@ -65,6 +73,11 @@ const TotalLiquidityChart = React.memo(({ season }: ISeason) => {
       useSeasonalResult={liquidityData}
       valueFormatter={f.price0dFormatter}
       tickValueFormatter={f.largePrice1dFormatter}
+      analyticsContext={{
+        chart_id: "totalLiquidity",
+        chart_title: "Total Liquidity",
+        explorer_tab: "silo",
+      }}
     />
   );
 });
@@ -84,6 +97,11 @@ const L2SRChart = React.memo(({ season }: ISeason) => {
       useSeasonalResult={l2srData}
       valueFormatter={f.percent2dFormatter}
       tickValueFormatter={f.percent0dFormatter}
+      analyticsContext={{
+        chart_id: "l2sr",
+        chart_title: "Liquidity to Supply ratio",
+        explorer_tab: "silo",
+      }}
     />
   );
 });
@@ -104,6 +122,11 @@ const StalkSupplyChart = React.memo(({ season }: ISeason) => {
       useSeasonalResult={stalkData}
       valueFormatter={f.number0dFormatter}
       tickValueFormatter={f.largeNumber1dFormatter}
+      analyticsContext={{
+        chart_id: "stalkSupply",
+        chart_title: "Stalk Supply",
+        explorer_tab: "silo",
+      }}
     />
   );
 });
@@ -124,6 +147,11 @@ const TotalDepositedPDVChart = React.memo(({ season }: ISeason) => {
       useSeasonalResult={bdvData}
       valueFormatter={f.number0dFormatter}
       tickValueFormatter={f.largeNumber1dFormatter}
+      analyticsContext={{
+        chart_id: "totalDepositedPDV",
+        chart_title: "Total Deposited PDV",
+        explorer_tab: "silo",
+      }}
     />
   );
 });

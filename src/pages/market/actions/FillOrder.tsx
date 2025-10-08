@@ -5,6 +5,7 @@ import ComboPlotInputField from "@/components/ComboPlotInputField";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Separator } from "@/components/ui/Separator";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
@@ -15,6 +16,7 @@ import { useFarmerPlotsQuery } from "@/state/useFarmerField";
 import { useHarvestableIndex } from "@/state/useFieldData";
 import { useQueryKeys } from "@/state/useQueryKeys";
 import useTokenData from "@/state/useTokenData";
+import { trackSimpleEvent } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
 import { FarmToMode, Plot } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
@@ -69,6 +71,19 @@ export default function FillOrder() {
   const amountToSell = TokenValue.fromHuman(amount || 0, PODS.decimals);
   const plotPosition = plot.length > 0 ? plot[0].index.sub(harvestableIndex) : TV.ZERO;
 
+  // Plot selection handler with tracking
+  const handlePlotSelection = useCallback(
+    (plots: Plot[]) => {
+      trackSimpleEvent(ANALYTICS_EVENTS.MARKET.LISTING_PLOT_SELECTED, {
+        plot_count: plots.length,
+        previous_count: plot.length,
+        fill_action: "order",
+      });
+      setPlot(plots);
+    },
+    [plot.length],
+  );
+
   // reset form and invalidate pod orders/farmer plot queries
   const onSuccess = useCallback(() => {
     setPlot([]);
@@ -86,6 +101,13 @@ export default function FillOrder() {
     if (!order || !plot[0]) {
       return;
     }
+
+    // Track pod order fill
+    trackSimpleEvent(ANALYTICS_EVENTS.MARKET.POD_ORDER_FILL, {
+      order_price_per_pod: Number(order.pricePerPod),
+      order_max_place: Number(order.maxPlaceInLine),
+    });
+
     try {
       setSubmitting(true);
       toast.loading("Filling Order...");
@@ -173,7 +195,7 @@ export default function FillOrder() {
                   maxPlaceInLine={maxPlaceInLine}
                   selectedPlots={plot}
                   setAmount={setAmount}
-                  setPlots={setPlot}
+                  setPlots={handlePlotSelection}
                   type="single"
                 />
               </div>

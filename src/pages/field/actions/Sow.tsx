@@ -33,6 +33,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover";
 import { Switch } from "@/components/ui/Switch";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import siloWithdraw from "@/encoders/silo/withdraw";
 import useDelayedLoading from "@/hooks/display/useDelayedLoading";
 import { useIsWSOL, useTokenMap } from "@/hooks/pinto/useTokenMap";
@@ -43,6 +44,7 @@ import useSwapSummary from "@/hooks/swap/useSwapSummary";
 import { usePreferredInputSiloDepositToken, usePreferredInputToken } from "@/hooks/usePreferredInputToken";
 import useSafeTokenValue from "@/hooks/useSafeTokenValue";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { trackSimpleEvent } from "@/utils/analytics";
 import { sortAndPickCrates } from "@/utils/convert";
 import { toSafeTVFromHuman } from "@/utils/number";
 import { HashString } from "@/utils/types.generic";
@@ -190,6 +192,14 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
       if (inputError) {
         throw new Error("Invalid input");
       }
+
+      // Track sow submission
+      trackSimpleEvent(ANALYTICS_EVENTS.FIELD.SOW_SUBMIT, {
+        input_token: tokenIn.symbol,
+        token_source: tokenSource,
+        is_morning: isMorning,
+      });
+
       setSubmitting(true);
 
       const mainTokenAmount = isUsingMain
@@ -289,6 +299,8 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
     fromSilo,
     amountIn,
     tokenIn,
+    tokenSource,
+    isMorning,
     mainToken,
     balanceFrom,
     isUsingMain,
@@ -299,8 +311,12 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
 
   // Callbacks
   const handleOnCheckedChange = (checked: boolean) => {
-    setAmountIn("");
     const newTokenSource = checked ? "deposits" : "balances";
+    trackSimpleEvent(ANALYTICS_EVENTS.FIELD.SOW_DEPOSITS_TOGGLE, {
+      previous_source: tokenSource,
+      new_source: newTokenSource,
+    });
+    setAmountIn("");
     if (newTokenSource === "deposits") {
       setTokenIn(preferredSiloDepositToken.preferredToken);
     } else {
@@ -308,6 +324,21 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
     }
     setTokenSource(newTokenSource);
   };
+
+  // Track token selection
+  const handleTokenChange = useCallback(
+    (newToken: Token) => {
+      if (tokenIn.symbol !== newToken.symbol) {
+        trackSimpleEvent(ANALYTICS_EVENTS.FIELD.SOW_TOKEN_SELECTED, {
+          previous_token: tokenIn.symbol,
+          new_token: newToken.symbol,
+          token_source: tokenSource,
+        });
+      }
+      setTokenIn(newToken);
+    },
+    [tokenIn.symbol, tokenSource],
+  );
 
   // Effects
   // Initialize the token source
@@ -390,7 +421,7 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
           disableInput={isConfirming}
           customMaxAmount={maxBuy?.gt(0) && tokenBalance?.gt(0) ? TV.min(tokenBalance, maxBuy) : TV.ZERO}
           setAmount={setAmountIn}
-          setToken={setTokenIn}
+          setToken={handleTokenChange}
           setBalanceFrom={setBalanceFrom}
           setError={setInputError}
           selectedToken={tokenIn}
@@ -538,12 +569,19 @@ const SettingsPoppover = ({
   const [internalAmount, setInternalAmount] = useState(slippage);
   const [internalMinTemperature, setInternalMinTemperature] = useState(minTemperature);
 
+  const handlePopoverOpen = () => {
+    trackSimpleEvent(ANALYTICS_EVENTS.FIELD.SOW_SETTINGS_OPEN, {
+      current_slippage: slippage,
+      current_min_temperature: minTemperature,
+    });
+  };
+
   // Effects
   useDebouncedEffect(() => setSlippage(internalAmount), [internalAmount], 100);
   useDebouncedEffect(() => setMinTemperature(internalMinTemperature), [internalMinTemperature], 100);
 
   return (
-    <Popover>
+    <Popover onOpenChange={(open) => open && handlePopoverOpen()}>
       <PopoverTrigger asChild>
         <Button variant={"ghost"} noPadding className="rounded-full w-10 h-10 ">
           <img src={settingsIcon} className="w-4 h-4 transition-all" alt="slippage" />

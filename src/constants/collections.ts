@@ -1,7 +1,7 @@
 import { NFT_COLLECTION_1_CONTRACT } from "./address";
 
 export const COLLECTION_NAMES = {
-  [NFT_COLLECTION_1_CONTRACT]: "Pinto NFT",
+  [NFT_COLLECTION_1_CONTRACT]: "Pinto Beaver Genesis",
 } as const;
 
 export const getCollectionName = (contractAddress: string): string => {

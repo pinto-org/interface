@@ -15,6 +15,9 @@ import { DefaultError, QueryObserverOptions, useQuery } from "@tanstack/react-qu
 import { useCallback, useMemo } from "react";
 import { useChainId, usePublicClient } from "wagmi";
 
+// Add 2 mins (60 blocks) of buffer b/c it takes some time for the API to update
+const PROPOGATION_BLOCK_DIFF = 60n;
+
 const getLookbackBlocks = (
   chainOnly: boolean,
   error: boolean,
@@ -25,7 +28,7 @@ const getLookbackBlocks = (
   if (isDev()) {
     return TIME_TO_BLOCKS.day;
   }
-  const diff = currentBlock - BigInt(lastUpdatedBlock);
+  const diff = currentBlock - BigInt(lastUpdatedBlock) + PROPOGATION_BLOCK_DIFF;
   return diff > 0n ? diff : undefined;
 };
 
@@ -39,12 +42,15 @@ const useTractorAPISowOrders = ({
 }: UseTractorAPISowOrdersParams = {}) => {
   const chainId = useChainId();
 
-  const selectAndTransformOrders = useMemo(() => transformAPIOrderbookData(chainId), [chainId]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only re-run when the address / chainId changes
+  const selectAndTransformOrders = useMemo(() => transformAPIOrderbookData(chainId), [chainId, address]);
 
   const args = { publisher: address, orderType: "SOW_V0", cancelled } as const;
 
+  const queryKey = queryKeys.tractor.sowOrdersV0({ ...args });
+
   return useQuery({
-    queryKey: queryKeys.tractor.sowOrdersV0({ ...args }),
+    queryKey,
     queryFn: async () => {
       if (!chainId)
         return {
@@ -167,6 +173,13 @@ export function useTractorSowOrderbook<T = OrderbookEntry[]>({
    * - DEV, use a 24 hour lookback to allow for forwarding seasons locally
    * - PROD, use a 1 hour lookback
    */
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Select may not change when address / order data changes so we re-select here.
+  const selectOrders: NonNullable<typeof select> = useCallback(
+    (data) => {
+      return select?.(data) ?? (data as T);
+    },
+    [select, address, orders],
+  );
 
   const ordersChainQuery = useQuery<OrderbookEntry[] | undefined, DefaultError, T>({
     queryKey: queryKeys.tractor.sowOrdersV0Chain(orders?.lastUpdated ?? chainOnly ? 1 : 0, temperature.max, params),
@@ -201,7 +214,7 @@ export function useTractorSowOrderbook<T = OrderbookEntry[]>({
       return data;
     },
     enabled: client && orderChainQueryEnabled,
-    select: select,
+    select: selectOrders,
     ...defaultQuerySettingsMedium,
   });
 

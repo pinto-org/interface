@@ -12,6 +12,11 @@
   status = 301
 
 [[redirects]]
+  from = "/join"
+  to = "https://discord.gg/2QBKHwhpkT"
+  status = 301
+
+[[redirects]]
   from = "/*"
   to = "index.html"
   status = 200

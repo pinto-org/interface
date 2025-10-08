@@ -31,6 +31,7 @@ interface HelperLinkLineProps {
   perpLength?: number;
   lineAngle?: number; // Angle in degrees for the entire line
   componentRotateWithLine?: boolean; // Whether the component should rotate with the line
+  shimmer?: boolean;
 }
 
 interface Dimensions {
@@ -63,6 +64,7 @@ const HelperLinkLine = ({
   source90Degree = false,
   target90Degree = false,
   perpLength = 20,
+  shimmer = false,
 }: HelperLinkLineProps) => {
   const [path, setPath] = useState<string>("");
   const [dimensions, setDimensions] = useState<Dimensions>({
@@ -343,11 +345,30 @@ const HelperLinkLine = ({
           height: dimensions.height,
           overflow: "visible",
         }}
-        className={`transition-colors ${isHovered ? "text-pinto-green-4" : "text-pinto-gray-3"}`}
+        className={`transition-colors ${isHovered ? "text-pinto-green-5" : "text-pinto-green-4"}`}
       >
+        <defs>
+          <linearGradient
+            id={`shimmer-${fromTarget}-${toTarget}`}
+            x1="0%"
+            y1="0%"
+            x2="200%"
+            y2="0%"
+            gradientUnits="objectBoundingBox"
+          >
+            <stop offset="0%" stopColor="#246645" />
+            <stop offset="16.66%" stopColor="#00c767" stopOpacity="0.8" />
+            <stop offset="33.33%" stopColor="#246645" />
+            <stop offset="50%" stopColor="#00c767" stopOpacity="0.8" />
+            <stop offset="66.66%" stopColor="#246645" />
+            <stop offset="83.33%" stopColor="#00c767" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#246645" />
+            <animate attributeName="x1" values="-300%;100%;" dur="5s" repeatCount="indefinite" />
+          </linearGradient>
+        </defs>
         <path
           d={path}
-          stroke="currentColor"
+          stroke={shimmer ? `url(#shimmer-${fromTarget}-${toTarget})` : "currentColor"}
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={dotted ? dashArray : undefined}

@@ -5,11 +5,13 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@/components/ui/NavigationMenu";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
+import { trackClick } from "@/utils/analytics";
 import { stringEq } from "@/utils/string";
 import { isDev } from "@/utils/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useRef, useState } from "react";
-import { Link as ReactLink, useLocation } from "react-router-dom";
+import { Link as ReactLink, useLocation, useMatch } from "react-router-dom";
 import { navLinks, navPathNameToTopMenu } from "./Navbar";
 
 const Link = ({
@@ -79,25 +81,39 @@ const AppNavi = () => {
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
-            <Link href={navLinks.overview}>Overview</Link>
+            <Link href={navLinks.overview} onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.MAIN_OVERVIEW_CLICK)}>
+              Overview
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.silo}>Silo</Link>
+            <Link href={navLinks.silo} onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.MAIN_SILO_CLICK)}>
+              Silo
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.field}>Field</Link>
+            <Link href={navLinks.field} onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.MAIN_FIELD_CLICK)}>
+              Field
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.swap}>Swap</Link>
+            <Link href={navLinks.swap} onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.MAIN_SWAP_CLICK)}>
+              Swap
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.podmarket}>Pod Market</Link>
+            <Link href={navLinks.podmarket} onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.MAIN_PODMARKET_CLICK)}>
+              Pod Market
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.sPinto}>sPinto</Link>
+            <Link href={navLinks.sPinto} onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.MAIN_SPINTO_CLICK)}>
+              sPinto
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.collection}>?</Link>
+            <Link href={navLinks.collection} onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.MAIN_COLLECTION_CLICK)}>
+              Collection
+            </Link>
           </NavigationMenuItem>
           {isDev() && (
             <NavigationMenuItem>
@@ -122,22 +138,48 @@ const DataNavi = ({ setNaviTab }) => {
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
-            <Link href={navLinks.explorer_pinto}>Pinto</Link>
+            <Link href={navLinks.explorer_pinto} onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.EXPLORER_PINTO_CLICK)}>
+              Pinto
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.explorer_silo}>Silo</Link>
+            <Link href={navLinks.explorer_silo} onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.EXPLORER_SILO_CLICK)}>
+              Silo
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.explorer_field}>Field</Link>
+            <Link href={navLinks.explorer_field} onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.EXPLORER_FIELD_CLICK)}>
+              Field
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.explorer_farmer}>Farmer</Link>
+            <Link
+              href={navLinks.explorer_seasons}
+              onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.EXPLORER_SEASONS_CLICK)}
+            >
+              Seasons
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.explorer_seasons}>Seasons</Link>
+            <Link
+              href={navLinks.explorer_tractor}
+              onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.EXPLORER_TRACTOR_CLICK)}
+            >
+              Tractor
+            </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.explorer_all}>All</Link>
+            <Link
+              href={navLinks.explorer_farmer}
+              onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.EXPLORER_FARMER_CLICK)}
+            >
+              My Silo
+            </Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Link href={navLinks.explorer_all} onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.EXPLORER_ALL_CLICK)}>
+              All
+            </Link>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
@@ -157,22 +199,54 @@ const LearnNavi = ({ setNaviTab }) => {
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
-            <Link href={navLinks.docs} rel="noopener noreferrer" target="_blank">
+            <Link
+              href={navLinks.docs}
+              rel="noopener noreferrer"
+              target="_blank"
+              onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.LEARN_DOCS_CLICK, {
+                link_type: "external",
+                link_url: navLinks.docs,
+              })}
+            >
               Docs
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.blog} rel="noopener noreferrer" target="_blank">
+            <Link
+              href={navLinks.blog}
+              rel="noopener noreferrer"
+              target="_blank"
+              onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.LEARN_BLOG_CLICK, {
+                link_type: "external",
+                link_url: navLinks.blog,
+              })}
+            >
               Blog
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.communityBlog} rel="noopener noreferrer" target="_blank">
+            <Link
+              href={navLinks.communityBlog}
+              rel="noopener noreferrer"
+              target="_blank"
+              onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.LEARN_COMMUNITY_BLOG_CLICK, {
+                link_type: "external",
+                link_url: navLinks.communityBlog,
+              })}
+            >
               Community Blog
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={navLinks.whitepaper} rel="noopener noreferrer" target="_blank">
+            <Link
+              href={navLinks.whitepaper}
+              rel="noopener noreferrer"
+              target="_blank"
+              onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.LEARN_WHITEPAPER_CLICK, {
+                link_type: "external",
+                link_url: navLinks.whitepaper,
+              })}
+            >
               Whitepaper
             </Link>
           </NavigationMenuItem>
@@ -211,23 +285,38 @@ export default function Navi() {
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem onMouseEnter={() => handleMouseEnter("home")} onMouseLeave={handleMouseLeave}>
-            <Link href={navLinks.overview} topMenu topMenuSlug="home">
+            <Link
+              href={navLinks.overview}
+              topMenu
+              topMenuSlug="home"
+              onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.HEADER_HOME_CLICK)}
+            >
               Home
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem onMouseEnter={() => handleMouseEnter("learn")} onMouseLeave={handleMouseLeave}>
-            <Link active={naviTab === "learn"} topMenu topMenuSlug="learn">
+            <Link
+              active={naviTab === "learn"}
+              topMenu
+              topMenuSlug="learn"
+              onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.HEADER_LEARN_CLICK)}
+            >
               Learn
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem onMouseEnter={() => handleMouseEnter("data")} onMouseLeave={handleMouseLeave}>
-            <Link active={naviTab === "data"} href={navLinks.explorer} topMenu topMenuSlug="data">
+            <Link
+              active={naviTab === "data"}
+              href={navLinks.explorer}
+              topMenu
+              topMenuSlug="data"
+              onClick={trackClick(ANALYTICS_EVENTS.NAVIGATION.HEADER_DATA_CLICK)}
+            >
               Data
             </Link>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
-
       <div className="h-[3.75rem]">
         <AnimatePresence mode="wait">
           {naviTab === "home" && <AppNavi />}

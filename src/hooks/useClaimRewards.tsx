@@ -1,10 +1,11 @@
-import { TokenValue } from "@/classes/TokenValue";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { generateCombineAndL2LCallData } from "@/lib/claim/depositUtils";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
 import { useInvalidateSun, useSunData } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
+import { trackClick } from "@/utils/analytics";
 import { useQueryClient } from "@tanstack/react-query";
 import { estimateGas } from "@wagmi/core";
 import { useCallback, useState } from "react";
@@ -45,6 +46,8 @@ export function useClaimRewards() {
 
       setIsSubmitting(true);
       toast.loading("Claiming rewards...");
+
+      trackClick(ANALYTICS_EVENTS.SILO.CLAIM_REWARDS_SUBMIT)();
 
       const plant = encodeFunctionData({
         abi: beanstalkAbi,

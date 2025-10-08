@@ -83,6 +83,11 @@ const PodRateChart = React.memo(({ season }: ISeason) => {
       useSeasonalResult={podRateData}
       valueFormatter={f.percent2dFormatter}
       tickValueFormatter={f.percent0dFormatter}
+      analyticsContext={{
+        chart_id: "podRate",
+        chart_title: "Pod Rate",
+        explorer_tab: "field",
+      }}
     />
   );
 });
@@ -108,6 +113,11 @@ const MaxTempChart = React.memo(({ season }: ISeason) => {
       valueFormatter={f.percent2dFormatter}
       tickValueFormatter={f.percent0dFormatter}
       yAxisRanges={yAxisRanges}
+      analyticsContext={{
+        chart_id: "maxTemp",
+        chart_title: "Max Temperature",
+        explorer_tab: "field",
+      }}
     />
   );
 });
@@ -128,6 +138,11 @@ const PodLineChart = React.memo(({ season }: ISeason) => {
       useSeasonalResult={podIndexData}
       valueFormatter={f.number0dFormatter}
       tickValueFormatter={f.largeNumber1dFormatter}
+      analyticsContext={{
+        chart_id: "podLine",
+        chart_title: "Pod Line",
+        explorer_tab: "field",
+      }}
     />
   );
 });
@@ -148,6 +163,11 @@ const SownPintoChart = React.memo(({ season }: ISeason) => {
       useSeasonalResult={sownData}
       valueFormatter={f.number0dFormatter}
       tickValueFormatter={f.largeNumber1dFormatter}
+      analyticsContext={{
+        chart_id: "sownPinto",
+        chart_title: "Sown Pinto",
+        explorer_tab: "field",
+      }}
     />
   );
 });
@@ -168,6 +188,11 @@ const PodsHarvestedChart = React.memo(({ season }: ISeason) => {
       useSeasonalResult={harvestData}
       valueFormatter={f.number0dFormatter}
       tickValueFormatter={f.largeNumber1dFormatter}
+      analyticsContext={{
+        chart_id: "podsHarvested",
+        chart_title: "Pods Harvested",
+        explorer_tab: "field",
+      }}
     />
   );
 });
@@ -190,6 +215,11 @@ const CultivationFactorChart = React.memo(({ season }: ISeason) => {
       useSeasonalResult={cultivationData}
       valueFormatter={f.percent2dFormatter}
       tickValueFormatter={f.percent0dFormatter}
+      analyticsContext={{
+        chart_id: "cultivationFactor",
+        chart_title: "Cultivation Factor",
+        explorer_tab: "field",
+      }}
     />
   );
 });
@@ -210,6 +240,11 @@ const SoilSupplyChart = React.memo(({ season }: ISeason) => {
       useSeasonalResult={soilSupplyData}
       valueFormatter={f.number0dFormatter}
       tickValueFormatter={f.largeNumber1dFormatter}
+      analyticsContext={{
+        chart_id: "soilSupply",
+        chart_title: "Soil Supply per Season",
+        explorer_tab: "field",
+      }}
     />
   );
 });
@@ -232,6 +267,11 @@ const CultivationTempChart = React.memo(({ season }: ISeason) => {
       useSeasonalResult={cultivationTempData}
       valueFormatter={f.percent2dFormatter}
       tickValueFormatter={f.percent0dFormatter}
+      analyticsContext={{
+        chart_id: "cultivationTemp",
+        chart_title: "Cultivation Temperature",
+        explorer_tab: "field",
+      }}
     />
   );
 });

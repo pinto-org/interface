@@ -12,6 +12,7 @@ import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
 import { Separator } from "@/components/ui/Separator";
 import Warning from "@/components/ui/Warning";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import encoders from "@/encoders";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
@@ -29,6 +30,7 @@ import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useSiloSnapshots from "@/state/useSiloSnapshots";
 import { useInvalidateSun } from "@/state/useSunData";
+import { trackSimpleEvent } from "@/utils/analytics";
 import { sortAndPickCrates } from "@/utils/convert";
 import { formatter } from "@/utils/format";
 import { stringToNumber } from "@/utils/string";
@@ -79,6 +81,35 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   const [tokenOut, setTokenOut] = useState(getInitialWithdrawToken(siloToken, tokenMap));
   const [slippage, setSlippage] = useState(0.1);
   const [inputError, setInputError] = useState(false);
+
+  // Track destination changes
+  const handleDestinationChange = useCallback(
+    (newDestination: FarmToMode) => {
+      trackSimpleEvent(ANALYTICS_EVENTS.SILO.WITHDRAW_DESTINATION_SELECT, {
+        previous_destination: destination === FarmToMode.EXTERNAL ? "external" : "internal",
+        new_destination: newDestination === FarmToMode.EXTERNAL ? "external" : "internal",
+        token_symbol: siloToken.symbol,
+      });
+      setDestination(newDestination);
+    },
+    [destination, siloToken.symbol],
+  );
+
+  // Track token selection
+  const handleTokenOutChange = useCallback(
+    (newToken: Token) => {
+      if (!tokensEqual(newToken, tokenOut)) {
+        trackSimpleEvent(ANALYTICS_EVENTS.SILO.WITHDRAW_TOKEN_SELECTED, {
+          previous_token: tokenOut.symbol,
+          new_token: newToken.symbol,
+          source_token: siloToken.symbol,
+          requires_swap: !tokensEqual(siloToken, newToken),
+        });
+        setTokenOut(newToken);
+      }
+    },
+    [tokenOut, siloToken],
+  );
 
   const queryClient = useQueryClient();
 
@@ -178,6 +209,12 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     if (amountTV.lte(0) || !destination || !account.address || !deposits || inputError) return;
 
     try {
+      // Track withdraw submission
+      trackSimpleEvent(ANALYTICS_EVENTS.SILO.WITHDRAW_SUBMIT, {
+        source_token: siloToken.symbol,
+        target_token: tokenOut.symbol,
+      });
+
       setSubmitting(true);
       toast.loading(`Withdrawing...`);
       const transferData = sortAndPickCrates("withdraw", amountTV, deposits);
@@ -310,7 +347,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       </div>
       <div className="flex flex-col">
         <Label className="flex h-10 items-center">Destination</Label>
-        <DestinationBalanceSelect setBalanceTo={setDestination} balanceTo={destination} />
+        <DestinationBalanceSelect setBalanceTo={handleDestinationChange} balanceTo={destination} />
       </div>
       {siloToken.isLP && (
         <div className="flex flex-col w-full py-4 gap-2">
@@ -320,7 +357,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
               <div className="flex flex-col gap-1">
                 <div className="pinto-h3">{formatter.token(withdrawOutput?.amount, tokenOut)}</div>
               </div>
-              <WithdrawTokenSelect selected={tokenOut} tokens={tokenList} selectToken={setTokenOut} />
+              <WithdrawTokenSelect selected={tokenOut} tokens={tokenList} selectToken={handleTokenOutChange} />
             </div>
             <div className="pinto-sm-light text-pinto-light">{formatter.usd(amountOutUSD)}</div>
           </div>

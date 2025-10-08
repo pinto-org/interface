@@ -20,9 +20,6 @@ export const NFTCard = ({ contractAddress, tokenId, onClick, showOwned = false, 
   const cardSize = useRef<{ width: number; height: number } | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
-  // TEMPORARY: Hide actual NFT images - set to false to show real images
-  const hideNFTImages = true;
-
   const handleMouseEnter = (e: MouseEvent<HTMLDivElement>) => {
     if (cardRef.current) {
       const rect = cardRef.current.getBoundingClientRect();
@@ -78,7 +75,7 @@ export const NFTCard = ({ contractAddress, tokenId, onClick, showOwned = false, 
         transform: transform,
         transformStyle: "preserve-3d",
       }}
-      // onClick={onClick}
+      onClick={onClick}
       onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -138,11 +135,9 @@ export const NFTCard = ({ contractAddress, tokenId, onClick, showOwned = false, 
         </div>
 
         {/* NFT Info */}
-        {/* Temporarily commented out - uncomment to show token ID
         <div className="p-2 sm:p-3">
           <div className="text-xs sm:pinto-xs font-medium mb-1">#{tokenId}</div>
         </div>
-        */}
       </CardContent>
     </Card>
   );
