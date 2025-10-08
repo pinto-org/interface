@@ -120,7 +120,6 @@ export interface ConvertUpOrderbookEntry extends Omit<TractorRequisitionEvent, "
   };
   withdrawalPlan?: WithdrawalPlan;
   totalAvailableBdv: TV;
-  currentlyConvertible: TV;
   amountConvertibleNextExecution: TV;
   meetsConditions: {
     price: boolean;

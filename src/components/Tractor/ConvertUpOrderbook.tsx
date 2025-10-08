@@ -96,7 +96,7 @@ export function ConvertUpOrderbookContent({
     // Apply filtering
     filtered = filtered.filter((order) => {
       // Filter for zero available
-      const hasAvailableBdv = showZeroAvailable || order.currentlyConvertible.gt(TV.ZERO);
+      const hasAvailableBdv = showZeroAvailable || order.totalAvailableBdv.gt(TV.ZERO);
       const matchesBonusFilter = showBelowCurrentBonus || order.meetsConditions.capacity;
       return hasAvailableBdv && matchesBonusFilter;
     });
@@ -135,7 +135,7 @@ export function ConvertUpOrderbookContent({
     const minCapacity = formatter.number(decodedData.convertUpParams.minConvertBonusCapacity);
     const priceRange = `$${decodedData.convertUpParams.minPriceToConvertUp.toHuman()} - $${decodedData.convertUpParams.maxPriceToConvertUp.toHuman()}`;
     const totalBdv = formatter.number(decodedData.convertUpParams.totalBeanAmountToConvert);
-    const availableBdv = formatter.number(order.currentlyConvertible);
+    const availableBdv = formatter.number(order.totalAvailableBdv);
     const executionRange = `${formatter.number(decodedData.convertUpParams.minBeansConvertPerExecution)} - ${formatter.number(decodedData.convertUpParams.maxBeansConvertPerExecution)}`;
     const operatorTip = formatter.number(decodedData.opParams.operatorTipAmount, {
       minDecimals: 2,

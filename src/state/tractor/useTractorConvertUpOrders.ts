@@ -59,13 +59,15 @@ const useTractorAPIConvertUpOrders = ({
 
   const envExists = Boolean(import.meta.env.VITE_TRACTOR_CONVERT_URL);
 
+  const queryEnabled = !!chainId && !chainOnly && enabled && envExists;
+
   const query = useQuery({
     queryKey: queryKeys.tractor.convertUpOrders({ ...args }),
     queryFn: async () => {
       if (!chainId) return;
       return TractorAPI.getOrders<"CONVERT_UP_V0">({ ...args, orderType: "CONVERT_UP_V0", isConvert: true });
     },
-    enabled: !!chainId && !chainOnly && enabled && envExists,
+    enabled: queryEnabled,
     select,
     ...QUERY_SETTINGS.slow,
   });
@@ -113,8 +115,10 @@ const transformAPIOrderbookData =
         blockNumber: order.publishedBlock,
         timestamp: Number(new Date(order.publishedTimestamp).getTime()),
         totalAvailableBdv: availableAmount,
-        amountConvertibleNextExecution: TV.ZERO, // Will be filled in later
-        currentlyConvertible: TV.ZERO,
+        amountConvertibleNextExecution: TV.min(
+          availableAmount,
+          transformed?.convertUpParams?.maxBeansConvertPerExecution ?? TV.ZERO,
+        ),
         // Will be filled in later
         meetsConditions: {
           price: false,

@@ -266,7 +266,6 @@ export async function loadConvertUpOrderbookData(
     return {
       ...entry,
       meetsConditions,
-      currentlyConvertible,
       amountConvertibleNextExecution,
     };
   });
@@ -358,26 +357,8 @@ export async function loadConvertUpOrderbookData(
   });
 
   // Implement three-tier sorting for chain requisitions only
-  const sortedRequisitions = [...requisitionsWithConditions].sort((a, b) => {
-    // Count how many conditions each order meets
-    const aScore =
-      (a.meetsConditions.price ? 1 : 0) + (a.meetsConditions.bonus ? 1 : 0) + (a.meetsConditions.capacity ? 1 : 0);
-    const bScore =
-      (b.meetsConditions.price ? 1 : 0) + (b.meetsConditions.bonus ? 1 : 0) + (b.meetsConditions.capacity ? 1 : 0);
-
-    // Higher score (more conditions met) comes first
-    if (aScore !== bScore) {
-      return bScore - aScore;
-    }
-
-    // If same score, prioritize by individual conditions in order: price > bonus > capacity
-    if (a.meetsConditions.price !== b.meetsConditions.price) return a.meetsConditions.price ? -1 : 1;
-    if (a.meetsConditions.bonus !== b.meetsConditions.bonus) return a.meetsConditions.bonus ? -1 : 1;
-    if (a.meetsConditions.capacity !== b.meetsConditions.capacity) return a.meetsConditions.capacity ? -1 : 1;
-
-    // If all conditions are the same, sort by blueprint hash (higher first). This way it is deterministic.
-    return BigInt(a.requisition.blueprintHash) > BigInt(b.requisition.blueprintHash) ? 1 : -1;
-  });
+  const sortedRequisitions = [...requisitionsWithConditions];
+  sortConvertOrderbookData(sortedRequisitions, "hash");
 
   console.debug(
     "[TRACTOR/loadConvertUpOrderbookData] Sorted orders:",
@@ -533,7 +514,6 @@ export async function loadConvertUpOrderbookData(
         ...entry,
         withdrawalPlan: withdrawalPlan || undefined,
         totalAvailableBdv,
-        currentlyConvertible,
         amountConvertibleNextExecution,
       });
     } catch (error) {
@@ -542,18 +522,13 @@ export async function loadConvertUpOrderbookData(
         ...entry,
         withdrawalPlan: undefined,
         totalAvailableBdv: TV.ZERO,
-        currentlyConvertible: TV.ZERO,
         amountConvertibleNextExecution: TV.ZERO,
       });
     }
   }
 
   // Final sort by operator tips for display/execution priority
-  orderbookData.sort((a, b) => {
-    const aTip = a.decodedData?.opParams.operatorTipAmount ?? TV.ZERO;
-    const bTip = b.decodedData?.opParams.operatorTipAmount ?? TV.ZERO;
-    return bTip.sub(aTip).toNumber();
-  });
+  sortConvertOrderbookData(orderbookData, "tip");
 
   console.debug("[TRACTOR/loadConvertUpOrderbookData] Final results:", {
     totalOrders: orderbookData.length,
@@ -565,6 +540,35 @@ export async function loadConvertUpOrderbookData(
 
   return orderbookData;
 }
+
+const sortConvertOrderbookData = (orderbookData: ConvertUpOrderbookEntry[], finalSortBy: "hash" | "tip" = "tip") => {
+  orderbookData.sort((a, b) => {
+    // Count how many conditions each order meets
+    const aScore =
+      (a.meetsConditions.price ? 1 : 0) + (a.meetsConditions.bonus ? 1 : 0) + (a.meetsConditions.capacity ? 1 : 0);
+    const bScore =
+      (b.meetsConditions.price ? 1 : 0) + (b.meetsConditions.bonus ? 1 : 0) + (b.meetsConditions.capacity ? 1 : 0);
+
+    // Higher score (more conditions met) comes first
+    if (aScore !== bScore) {
+      return bScore - aScore;
+    }
+
+    // If same score, prioritize by individual conditions in order: price > bonus > capacity
+    if (a.meetsConditions.price !== b.meetsConditions.price) return a.meetsConditions.price ? -1 : 1;
+    if (a.meetsConditions.bonus !== b.meetsConditions.bonus) return a.meetsConditions.bonus ? -1 : 1;
+    if (a.meetsConditions.capacity !== b.meetsConditions.capacity) return a.meetsConditions.capacity ? -1 : 1;
+
+    if (finalSortBy === "tip") {
+      const aTip = a.decodedData?.opParams.operatorTipAmount ?? TV.ZERO;
+      const bTip = b.decodedData?.opParams.operatorTipAmount ?? TV.ZERO;
+      return bTip.sub(aTip).toNumber();
+    }
+
+    // If all conditions are the same, sort by blueprint hash (higher first). This way it is deterministic.
+    return BigInt(a.requisition.blueprintHash) > BigInt(b.requisition.blueprintHash) ? 1 : -1;
+  });
+};
 
 export const decodeConvertUpBlueprintFromAdvancedPipe = (
   calls: readonly AdvancedPipeCall[] | undefined,
