@@ -105,9 +105,9 @@ export default function ConvertUpTractorOrderBookChart() {
       ordersMaxBonus = TV.max(order.decodedData.convertUpParams.grownStalkPerBdvBonusBid, ordersMaxBonus);
     }
 
-    ordersMinPrice = TV.max(ordersMinPrice, TV.fromHuman("0.001", 6));
-    ordersMaxPrice = TV.min(ordersMaxPrice, TV.fromHuman("0.999", 6));
-    ordersMinBonus = TV.max(ordersMinBonus, TV.fromHuman("0", 10));
+    ordersMinPrice = TV.max(ordersMinPrice, TV.fromHuman(0.001, 6));
+    ordersMaxPrice = TV.min(ordersMaxPrice, TV.fromHuman(0.999, 6));
+    ordersMinBonus = TV.max(ordersMinBonus, TV.fromHuman(0, 10));
     if (ordersMaxBonus.eq(-1)) {
       ordersMaxBonus = TV.fromHuman("1", 10);
     }
@@ -227,8 +227,8 @@ export default function ConvertUpTractorOrderBookChart() {
                   setMinPrice(newMin);
                   setMaxPrice(newMax);
                 }}
-                showThumbValue
-                formatThumbValue={formatThumbValue}
+                // showThumbValue
+                // formatThumbValue={formatThumbValue}
                 step={0.001}
                 min={minMax?.minPrice ?? 0.001}
                 max={minMax?.maxPrice ?? 0.999}
@@ -276,8 +276,8 @@ export default function ConvertUpTractorOrderBookChart() {
                   setMinBonus(newMin);
                   setMaxBonus(newMax);
                 }}
-                showThumbValue
-                formatThumbValue={formatBonusThumbValue}
+                // showThumbValue
+                // formatThumbValue={formatBonusThumbValue}
                 step={0.0001}
                 min={minMax?.minBonus ?? 0}
                 max={minMax?.maxBonus ?? 1}

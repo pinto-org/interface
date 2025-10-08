@@ -66,7 +66,7 @@ const calculateProfit = (
   const currentGasPrice = gasPrice || BigInt(1_000_000_000);
   const gasCostInWei = gasEstimate * currentGasPrice;
   const gasCostInEth = Number(gasCostInWei) / 1e18;
-  const ethPriceInUsd = Number(ethPrice.toString()) / 1e6;
+  const ethPriceInUsd = Number(ethPrice.toNumber()) / 1e6;
   const gasCostInUsd = gasCostInEth * ethPriceInUsd;
 
   // Calculate tip amount in USD
@@ -120,7 +120,7 @@ export function ConvertUpExecute() {
       const tipAmount = order.decodedData.opParams.operatorTipAmount;
 
       // Only show orders with positive tips
-      return tipAmount.gt(0) && !!order.withdrawalPlan?.totalAvailableBeans.toString();
+      return tipAmount.gt(0) && !!order.amountConvertibleNextExecution.gt(0);
     });
   }, []);
 

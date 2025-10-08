@@ -189,6 +189,8 @@ export async function loadConvertUpOrderbookData(
     }
   }
 
+  console.log("fromBlock", fromBlock);
+
   const [_requisitions, _priceResult, bonusAndCapacityResult] = await Promise.all([
     // publicClient.getContractEvents({
     //   address: CONVERT_UP_BLUEPRINT_V0_ADDRESS,
@@ -289,6 +291,8 @@ export async function loadConvertUpOrderbookData(
   });
 
   console.log("activeRequisitions", activeRequisitions);
+
+  // console.log("activeRequisitions", activeRequisitions);
 
   // Fetch order info for all active requisitions
   const mcResults = await multicall(publicClient, {
