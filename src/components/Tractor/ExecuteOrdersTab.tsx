@@ -7,6 +7,7 @@ import useDelayedLoading from "@/hooks/display/useDelayedLoading";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useGasPrice } from "@/hooks/useGasPrice";
 import useTransaction from "@/hooks/useTransaction";
+import { RequisitionData, prepareRequisitionEventForTxn, prepareRequisitionForTxn } from "@/lib/Tractor";
 import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
@@ -21,18 +22,7 @@ import LoadingSpinner from "../LoadingSpinner";
 
 // Generic types for different order types
 export interface BaseOrderType {
-  requisition: {
-    blueprintHash: `0x${string}`;
-    blueprint: {
-      publisher: `0x${string}`;
-      data: `0x${string}`;
-      operatorPasteInstrs: readonly `0x${string}`[];
-      maxNonce: bigint;
-      startTime: bigint;
-      endTime: bigint;
-    };
-    signature: `0x${string}`;
-  };
+  requisition: RequisitionData;
   timestamp?: number;
   decodedData?: any;
   isCancelled?: boolean;
@@ -253,34 +243,22 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
             ] as const,
           });
 
-          console.log("[TRACTOR/handleSimulateAll] encoded: ", encoded);
+          console.debug("[TRACTOR/handleSimulateAll] encoded: ", encoded);
+
+          const prepared = prepareRequisitionForTxn(order.requisition);
 
           await publicClient.simulateContract({
             address: protocolAddress,
             abi: diamondABI,
             functionName: "tractor",
-            args: [
-              {
-                blueprint: order.requisition.blueprint,
-                signature: order.requisition.signature,
-                blueprintHash: order.requisition.blueprintHash,
-              },
-              "0x",
-            ] as const,
+            args: [prepared as never, "0x"] as const,
           });
 
           const gasEstimate = await publicClient.estimateContractGas({
             address: protocolAddress,
             abi: diamondABI,
             functionName: "tractor",
-            args: [
-              {
-                blueprint: order.requisition.blueprint,
-                blueprintHash: order.requisition.blueprintHash,
-                signature: order.requisition.signature,
-              },
-              "0x",
-            ] as const,
+            args: [prepared as never, "0x"] as const,
           });
 
           setGasEstimates((prev) => {
@@ -341,33 +319,21 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
         return next;
       });
 
+      const prepared = prepareRequisitionForTxn(order.requisition);
+
       try {
         await publicClient.simulateContract({
           address: protocolAddress,
           abi: diamondABI,
           functionName: "tractor",
-          args: [
-            {
-              blueprint: order.requisition.blueprint,
-              blueprintHash: order.requisition.blueprintHash,
-              signature: order.requisition.signature,
-            },
-            "0x",
-          ] as const,
+          args: [prepared as never, "0x"] as const,
         });
 
         const gasEstimate = await publicClient.estimateContractGas({
           address: protocolAddress,
           abi: diamondABI,
           functionName: "tractor",
-          args: [
-            {
-              blueprint: order.requisition.blueprint,
-              blueprintHash: order.requisition.blueprintHash,
-              signature: order.requisition.signature,
-            },
-            "0x",
-          ] as const,
+          args: [prepared as never, "0x"] as const,
         });
 
         setGasEstimates((prev) => {
@@ -402,19 +368,14 @@ export function ExecuteOrdersTab<T extends BaseOrderType>({
       setExecutingReq(order.requisition.blueprintHash);
       setSubmitting(true);
 
+      const prepared = prepareRequisitionForTxn(order.requisition);
+
       try {
         await writeWithEstimateGas({
           address: protocolAddress,
           abi: diamondABI,
           functionName: "tractor",
-          args: [
-            {
-              blueprint: order.requisition.blueprint,
-              blueprintHash: order.requisition.blueprintHash,
-              signature: order.requisition.signature,
-            },
-            "0x",
-          ] as const,
+          args: [prepared as never, "0x"] as const,
         });
         setHasExecutedOrder(true);
       } catch (error) {
