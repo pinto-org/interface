@@ -364,9 +364,9 @@ const GrownStalkPerBdvBonusBidSlider = ({
   const handleOnChange = useCallback(
     (value: number[]) => {
       // Truncate to max 6 decimals
-      const truncatedValue = Math.floor(value[0] * 1000000) / 1000000;
+      const truncatedValue = (Math.floor(value[0] * 1000000) / 1000000).toFixed(2);
       // use the blur handler to set the value with commas
-      handlers.onBlur({ target: { value: truncatedValue.toString() } });
+      handlers.onBlur({ target: { value: truncatedValue } });
     },
     [handlers],
   );
@@ -376,7 +376,7 @@ const GrownStalkPerBdvBonusBidSlider = ({
       min={0}
       max={maxGrownStalk ?? 1}
       disabled={disabled}
-      step={0.0001}
+      step={0.01}
       value={sliderValue}
       onValueChange={handleOnChange}
     />

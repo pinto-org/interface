@@ -8,9 +8,12 @@ import {
 } from "@/components/Tractor/ConvertUp";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
+import useConvertStalkPerBdvBonusAndMaximumCapacity from "@/state/useConvertStalkPerBdvBonusData";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useFormContext } from "react-hook-form";
+import { ConvertUpV0FormSchema } from "./form/schema/convertUp.schema";
 
 /**
  * Form Flow
@@ -74,6 +77,8 @@ function ConvertUpOrderFormController() {
   const siloData = useSiloData();
   const { data: averageTipPaid } = useTractorOperatorAverageTipPaid();
 
+  useInitBonusField();
+
   // Local State
   // Whether the advanced fields have been initialized
   const [didInitRestFields, setDidInitRestFields] = useState(false);
@@ -95,3 +100,27 @@ function ConvertUpOrderFormController() {
     </Col>
   );
 }
+
+// Initialize the bonus field to the current bonus
+const useInitBonusField = () => {
+  const { data: bonusData } = useConvertStalkPerBdvBonusAndMaximumCapacity();
+
+  const ctx = useFormContext<ConvertUpV0FormSchema>();
+
+  const [didInitBonus, setDidInitBonus] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (didInitBonus || !bonusData?.bonus) {
+      return;
+    }
+
+    setDidInitBonus(true);
+    const fs = ctx.getFieldState("grownStalkPerBdvBonusBid");
+
+    if (fs.isDirty || fs.isTouched) {
+      return;
+    }
+
+    ctx.setValue("grownStalkPerBdvBonusBid", bonusData.bonus.toNumber().toFixed(2).toString());
+  }, [bonusData?.bonus, ctx]);
+};

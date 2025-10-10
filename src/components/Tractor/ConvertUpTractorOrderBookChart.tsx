@@ -174,7 +174,7 @@ export default function ConvertUpTractorOrderBookChart() {
         const orderMin = order.decodedData?.convertUpParams.minPriceToConvertUp;
         const orderMax = order.decodedData?.convertUpParams.maxPriceToConvertUp;
         if (!orderMin || !orderMax) return false;
-        return orderMin.gt(minPrice) && orderMax.lt(maxPrice);
+        return orderMin.gte(minPrice) && orderMax.lte(maxPrice);
       });
     }
 

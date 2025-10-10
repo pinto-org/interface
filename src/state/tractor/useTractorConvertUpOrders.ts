@@ -80,7 +80,7 @@ const useTractorAPIConvertUpOrders = ({
     if (query.data) {
       console.log("query.data", query.data);
     }
-  }, [query.data]);
+  }, [query.data?.orders?.length]);
 
   return query;
 };
@@ -210,13 +210,6 @@ export function useTractorConvertUpOrderbook<T = ConvertUpOrderbookEntry[]>(
       if (!client) return [];
       const latestBlock = await client.getBlock({ blockTag: "latest" });
       const lookbackBlocks = getLookbackBlocks(chainOnly, orderQueriesError, latestBlock.number, orders?.lastUpdated);
-
-      console.log("lookbackBlocks", {
-        orders,
-        ordersAPIDataExists,
-        orderChainQueryEnabled,
-        lookbackBlocks,
-      });
 
       const events = await loadConvertUpOrderbookData(
         address,
