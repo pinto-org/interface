@@ -149,3 +149,8 @@ export const postSanitizedSanitizedValue = (
 export const capitalizeString = (str: string) => {
   return str.length ? `${str[0].toUpperCase()}${str.slice(1)}` : str;
 };
+
+export const is0xString = (str: string | `0x${string}`): str is `0x${string}` => {
+  if (typeof str !== "string") return false;
+  return str.startsWith("0x");
+};

@@ -30,30 +30,11 @@ import { tractorHelpersABI } from "@/constants/abi/TractorHelpersABI";
 import { viewSeasonABI } from "@/constants/abi/viewSeasonABI";
 import { viewSiloABI } from "@/constants/abi/viewSiloABI";
 import ABI_CONFIG from "@/constants/abiConfig";
-import { TRACTOR_HELPERS_ADDRESS } from "@/constants/address";
-import { SOW_BLUEPRINT_V0_ADDRESS } from "@/constants/address";
 
 const TESTNET_CHAIN_ID = 41337;
 
 const config = defineConfig(() => {
   const reactHookNames: string[] = [];
-
-  // const env = loadEnv({
-  //   mode: process.env.NODE_ENV,
-  //   envDir: process.cwd(),
-  // });
-
-  // console.log(env);
-  // const testnetRPC
-
-  const beanstalkAddresses = {
-    [mainnet.id]: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5" as HashString,
-    [arbitrum.id]: "0xD1A0060ba708BC4BCD3DA6C37EFa8deDF015FB70" as HashString,
-    [base.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString,
-    [localhost.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString, // base
-    [TESTNET_CHAIN_ID]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString, // base
-    [foundry.id]: "0xD1A0D188E861ed9d15773a2F3574a2e94134bA8f" as HashString, // base
-  };
 
   return {
     out: "src/generated/contractHooks.ts",
@@ -97,6 +78,11 @@ const config = defineConfig(() => {
         name: "depot",
         abi: ABI_CONFIG.depot.abi,
         address: ABI_CONFIG.depot.address,
+      },
+      {
+        name: "siloHelpers",
+        abi: ABI_CONFIG.siloHelpers.abi,
+        address: ABI_CONFIG.siloHelpers.address,
       },
       {
         name: "tractorHelpers",

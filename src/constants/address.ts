@@ -1,3 +1,9 @@
+import {
+  convertUpBlueprintAddress,
+  siloHelpersAddress,
+  sowBlueprintv0Address,
+  tractorHelpersAddress,
+} from "@/generated/contractHooks";
 import { ChainLookup, HashString } from "@/utils/types.generic";
 
 import { base } from "viem/chains";
@@ -10,13 +16,14 @@ export const PIPELINE_ADDRESS: HashString = "0xb1bE0001f5a373b69b1E132b420e6D968
 
 export const JUNCTION_ADDRESS: HashString = "0x5A5A5AF07D8a389472AdC1E60aA71BAC89Fcff8b";
 
-export const TRACTOR_HELPERS_ADDRESS: HashString = "0x8C40De70aaa48157cF554359d15eF2Dab43F9191";
+// re-export here for backwards compatibility
+export const TRACTOR_HELPERS_ADDRESS: HashString = tractorHelpersAddress[base.id];
 
-export const SILO_HELPERS_ADDRESS: HashString = "0xC419dAEeec30524f568f4f72D8957728fe09AACa";
+export const SILO_HELPERS_ADDRESS: HashString = siloHelpersAddress[base.id];
 
-export const SOW_BLUEPRINT_V0_ADDRESS: HashString = "0xbb0a41927895F8ca2b4ECCc659ba158735fCF28B";
+export const SOW_BLUEPRINT_V0_ADDRESS: HashString = sowBlueprintv0Address[base.id];
 
-export const CONVERT_UP_BLUEPRINT_V0_ADDRESS: HashString = "0xD7d1be99676c792066b162aB902eF6E2bbC291Fe";
+export const CONVERT_UP_BLUEPRINT_V0_ADDRESS: HashString = convertUpBlueprintAddress[base.id];
 
 export const SOW_BLUEPRINT_V0_SELECTOR = "0x3ca8e1b2" as const;
 
