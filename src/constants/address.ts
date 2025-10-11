@@ -1,5 +1,6 @@
 import {
   convertUpBlueprintAddress,
+  pipelineAddress,
   siloHelpersAddress,
   sowBlueprintv0Address,
   tractorHelpersAddress,
@@ -12,11 +13,11 @@ export const ZERO_ADDRESS: HashString = "0x";
 
 export const ZERO_ADDRESS_HEX: HashString = "0x0000000000000000000000000000000000000000";
 
-export const PIPELINE_ADDRESS: HashString = "0xb1bE0001f5a373b69b1E132b420e6D9687155e80";
-
 export const JUNCTION_ADDRESS: HashString = "0x5A5A5AF07D8a389472AdC1E60aA71BAC89Fcff8b";
 
 // re-export here for backwards compatibility
+export const PIPELINE_ADDRESS: HashString = pipelineAddress[base.id];
+
 export const TRACTOR_HELPERS_ADDRESS: HashString = tractorHelpersAddress[base.id];
 
 export const SILO_HELPERS_ADDRESS: HashString = siloHelpersAddress[base.id];
