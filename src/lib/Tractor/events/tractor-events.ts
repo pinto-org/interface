@@ -99,7 +99,16 @@ export async function fetchPublisherTractorExecutionEvents(
 
       // First, find the TractorExecutionBegan event with matching blueprint hash
       let tractorExecutionBeganIndex = -1;
-      let tractorExecutionBeganEvent: any = null;
+      let tractorExecutionBeganEvent: {
+        eventName: "TractorExecutionBegan";
+        args: {
+          operator: `0x${string}`;
+          publisher: `0x${string}`;
+          blueprintHash: `0x${string}`;
+          nonce: bigint;
+          gasleft: bigint;
+        };
+      } | null = null;
 
       const mainToken = getChainConstant(chainId, MAIN_TOKEN);
 
@@ -131,6 +140,9 @@ export async function fetchPublisherTractorExecutionEvents(
       let convertUpData: TractorExecutionEventLog<"Convert", TV, Token>["args"] | undefined;
       let bonusData: TractorExecutionEventLog<"ConvertUpBonus", TV>["args"] | undefined;
 
+      const bonusDatas: TractorExecutionEventLog<"ConvertUpBonus", TV>["args"][] = [];
+      const convertUpDatas: TractorExecutionEventLog<"Convert", TV, Token>["args"][] = [];
+
       if (tractorExecutionBeganIndex >= 0) {
         for (let i = tractorExecutionBeganIndex + 1; i < receipt.logs.length; i++) {
           const log = receipt.logs[i];
@@ -160,7 +172,7 @@ export async function fetchPublisherTractorExecutionEvents(
               const fromToken = tokenMap[getTokenIndex(decoded.args.fromToken)];
               const toToken = tokenMap[getTokenIndex(decoded.args.toToken)];
 
-              convertUpData = {
+              convertUpDatas.push({
                 account: decoded.args.account,
                 fromToken: fromToken,
                 toToken: toToken,
@@ -168,36 +180,39 @@ export async function fetchPublisherTractorExecutionEvents(
                 toAmount: TV.fromBigInt(decoded.args.toAmount, toToken.decimals),
                 fromBdv: TV.fromBigInt(decoded.args.fromBdv, mainToken.decimals),
                 toBdv: TV.fromBigInt(decoded.args.toBdv, mainToken.decimals),
-              };
+              });
             } else if (decoded.eventName === "ConvertUpBonus") {
-              bonusData = {
+              bonusDatas.push({
                 account: decoded.args.account,
                 grownStalkGained: TV.fromBigInt(decoded.args.grownStalkGained, STALK.decimals),
                 bdvCapacityUsed: TV.fromBigInt(decoded.args.bdvCapacityUsed, mainToken.decimals),
-                bdvConverted: TV.fromBigInt(0n, mainToken.decimals),
-                newGrownStalk: TV.fromBigInt(0n, STALK.decimals),
-              };
-
-              if ("newGrownStalk" in decoded.args) {
-                bonusData.newGrownStalk = TV.fromBigInt(decoded.args.newGrownStalk, STALK.decimals);
-              }
-              if ("bdvConverted" in decoded.args) {
-                bonusData.bdvConverted = TV.fromBigInt(decoded.args.bdvConverted, mainToken.decimals);
-              }
-            }
-
-            if (convertUpData && bonusData) {
-              eventType = "convertUp";
-              processedEvent = {
-                ...convertUpData,
-                ...bonusData,
-              };
-              break;
+                bdvConverted: TV.fromBigInt(decoded.args.bdvConverted, mainToken.decimals),
+                newGrownStalk: TV.fromBigInt(decoded.args.newGrownStalk, STALK.decimals),
+              });
             }
           } catch {
             // Skip logs that can't be decoded
           }
         }
+      }
+
+      if (convertUpDatas.length > 0) {
+        if (convertUpDatas.length !== bonusDatas.length) {
+          throw new Error("[Tractor/fetchTractorExecutions] ConvertUpBonus and Convert events mismatch");
+        }
+
+        const gsBonusStalk = bonusDatas.reduce((acc, curr) => acc.add(curr.grownStalkGained), TV.ZERO);
+        const beansConverted = convertUpDatas.reduce((acc, curr) => acc.add(curr.toAmount), TV.ZERO);
+
+        eventType = "convertUp";
+        processedEvent = {
+          account: convertUpDatas[0].account,
+          fromTokens: convertUpDatas.map((d) => d.fromToken),
+          fromAmounts: convertUpDatas.map((d) => d.fromAmount),
+          toToken: convertUpDatas[0].toToken,
+          gsBonusStalk: gsBonusStalk,
+          beansConverted: beansConverted,
+        };
       }
 
       // Create the tractorExecutionBeganData object conditionally

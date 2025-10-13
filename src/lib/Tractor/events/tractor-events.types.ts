@@ -59,9 +59,14 @@ export type TractorEventLogArgsMap<T extends bigint | TV = TV, TokenIsh extends 
 export type CombinedConvertUpEventLog<
   T extends bigint | TV = TV,
   TokenIsh extends HashString | Token = Token, //
-> = Prettify<
-  TractorEventLogArgsMap<T, TokenIsh>["Convert"]["args"] & TractorEventLogArgsMap<T, TokenIsh>["ConvertUpBonus"]["args"]
->;
+> = {
+  account: HashString;
+  fromTokens: TokenIsh[];
+  fromAmounts: T[];
+  toToken: TokenIsh;
+  gsBonusStalk: T; // sum of all ConvertUpBonus events' grownStalkGained
+  beansConverted: T; // sum of all Convert events' toAmounts
+};
 
 // ────────────────────────────────────────────────────────────────────────────────
 // Tractor Execution Event Log Args Types

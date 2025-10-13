@@ -1,4 +1,4 @@
-import { TV, TokenValue } from "@/classes/TokenValue";
+import { TV } from "@/classes/TokenValue";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { PublisherTractorExecution } from "@/lib/Tractor";
 import { formatter } from "@/utils/format";
@@ -34,12 +34,7 @@ export default function ConvertUpExecutionHistory({
   };
 
   // Calculate total results from execution history for convert up
-  const totalBdvConverted = executionEvents.reduce((acc, exec) => {
-    // For ConvertUp, we'd need to look at the convert event data
-    // This is a placeholder - in reality we'd extract the BDV amount from the convert event
-
-    return acc.add(exec.event.bdvConverted || 0n);
-  }, TokenValue.ZERO);
+  const totalBdvConverted = executionEvents.reduce((acc, exec) => acc.add(exec.event.beansConverted), TV.ZERO);
 
   const totalExecutions = executionEvents.length;
 
@@ -72,9 +67,7 @@ export default function ConvertUpExecutionHistory({
           <span className="text-xl font-medium mt-3">
             {(() => {
               // Get tip amount from order data
-              const tipAmount = convertData.operatorTip
-                ? TokenValue.fromHuman(convertData.operatorTip, 6)
-                : TokenValue.ZERO;
+              const tipAmount = convertData.operatorTip ? TV.fromHuman(convertData.operatorTip, 6) : TV.ZERO;
               // Calculate total tips paid
               const totalTipsPaid = tipAmount.mul(executionEvents.length);
               return formatter.number(totalTipsPaid);
@@ -86,8 +79,8 @@ export default function ConvertUpExecutionHistory({
       {/* Progress indicator */}
       <div className="px-6 mb-4">
         {(() => {
-          const totalBdv = TokenValue.fromHuman(convertData.totalBeanAmountToConvert, 6);
-          const percentComplete = totalBdv.gt(0) ? totalBdvConverted.div(totalBdv).mul(100) : TokenValue.ZERO;
+          const totalBdv = TV.fromHuman(convertData.totalBeanAmountToConvert, 6);
+          const percentComplete = totalBdv.gt(0) ? totalBdvConverted.div(totalBdv).mul(100) : TV.ZERO;
 
           const percentCompleteNumber = Math.min(
             percentComplete.toNumber
@@ -133,7 +126,7 @@ export default function ConvertUpExecutionHistory({
             <tr className="bg-gray-50">
               <th className="px-4 py-3 text-left text-gray-600 border-b">Execution</th>
               <th className="px-4 py-3 text-right text-gray-600 border-b">PDV Converted</th>
-              <th className="px-4 py-3 text-right text-gray-600 border-b">From Token</th>
+              <th className="px-4 py-3 text-right text-gray-600 border-b">From Token(s)</th>
               <th className="px-4 py-3 text-right text-gray-600 border-b">To Token</th>
               <th className="px-4 py-3 text-right text-gray-600 border-b">Operator</th>
               <th className="px-4 py-3 text-right text-gray-600 border-b min-w-[150px]">Date & Time</th>
@@ -151,17 +144,21 @@ export default function ConvertUpExecutionHistory({
                 return b.blockNumber - a.blockNumber;
               })
               .map((_convertEvent, index) => {
-                const convertEvent = _convertEvent as any;
+                const convertEvent = _convertEvent;
                 // For ConvertUp executions, we'd extract convert-specific data
 
                 return (
                   <tr key={index} className="hover:bg-gray-50 border-b">
                     <td className="px-4 py-3 font-medium">#{executionEvents.length - index}</td>
                     <td className="px-4 py-3 text-right">
-                      {convertEvent ? formatter.number(convertEvent.event?.bdv) : "0 PDV"}
+                      {convertEvent ? formatter.number(convertEvent.event?.beansConverted) : "0 PDV"}
                     </td>
                     <td className="px-4 py-3 text-right text-gray-500">
-                      {convertEvent ? tokenMap[getTokenIndex(convertEvent.event.fromToken)]?.symbol : "N/A"}
+                      {convertEvent
+                        ? convertEvent.event.fromTokens
+                            .map((token) => tokenMap[getTokenIndex(token)]?.symbol)
+                            .join(", ")
+                        : "N/A"}
                     </td>
                     <td className="px-4 py-3 text-right text-gray-500">
                       {convertEvent ? tokenMap[getTokenIndex(convertEvent.event.toToken)]?.symbol : "N/A"}

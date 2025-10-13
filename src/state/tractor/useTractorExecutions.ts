@@ -193,20 +193,18 @@ const transformConvertUpEvent = (
   const mainToken = getChainConstant(resolveChainId(chainId), MAIN_TOKEN);
 
   const bd = e.blueprintData;
-  const usedToken = tokenMap[getTokenIndex(bd.usedTokens[0])];
+  const fromTokens = bd.usedTokens.map((t) => tokenMap[getTokenIndex(t)]);
+  const fromAmounts = bd.tokenFromAmounts.map((a, idx) => {
+    return TV.fromBlockchain(a, fromTokens[idx].decimals);
+  });
 
   return {
     account: e.orderInfo.publisher,
-    fromToken: usedToken,
+    fromTokens: bd.usedTokens.map((t) => tokenMap[getTokenIndex(t)]),
     toToken: mainToken,
-    fromAmount: TV.fromBlockchain(bd.tokenFromAmounts[0], usedToken.decimals),
-    toAmount: TV.fromBlockchain(bd.tokenToAmounts[0], mainToken.decimals),
-    fromBdv: TV.fromBlockchain(0, mainToken.decimals),
-    toBdv: TV.fromBlockchain(bd.beansConverted, mainToken.decimals),
-    grownStalkGained: TV.fromBlockchain(bd.gsBonusStalk, STALK.decimals),
-    newGrownStalk: TV.fromBlockchain(bd.gsBonusStalk, STALK.decimals),
-    bdvCapacityUsed: TV.fromBlockchain(bd.gsBonusBdv, mainToken.decimals),
-    bdvConverted: TV.fromBlockchain(bd.gsBonusBdv, mainToken.decimals),
+    fromAmounts,
+    beansConverted: TV.fromBlockchain(bd.beansConverted, mainToken.decimals),
+    gsBonusStalk: TV.fromBlockchain(bd.gsBonusStalk, STALK.decimals),
   };
 };
 
