@@ -1,7 +1,9 @@
-import { TokenValue } from "@/classes/TokenValue";
+import { TV, TokenValue } from "@/classes/TokenValue";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
+import { PublisherTractorExecution } from "@/lib/Tractor";
 import { formatter } from "@/utils/format";
 import { getTokenIndex } from "@/utils/token";
+import { Token } from "@/utils/types";
 import { format } from "date-fns";
 import { useMemo } from "react";
 import { ConvertUpExecutionEvent, ConvertUpOrderData, ExecutionData, ExecutionHistoryProps } from "../types";
@@ -11,7 +13,10 @@ function shortenAddress(address: string): string {
   return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
 }
 
-export default function ConvertUpExecutionHistory({ executionHistory, orderData }: ExecutionHistoryProps) {
+export default function ConvertUpExecutionHistory({
+  executionHistory: _executionHistory,
+  orderData,
+}: ExecutionHistoryProps) {
   const tokenMap = useTokenMap();
 
   // Type guard to ensure we have convert up order data
@@ -19,25 +24,8 @@ export default function ConvertUpExecutionHistory({ executionHistory, orderData 
     throw new Error("ConvertUpExecutionHistory requires convertUp order data");
   }
 
-  const executionEvents = useMemo(() => {
-    const k = (executionHistory as any[]).map((exec) => {
-      return {
-        ...exec,
-        type: "convertUp",
-        event: {
-          account: exec.publisher,
-          fromToken: exec.convertUpEvent.fromToken,
-          toToken: exec.convertUpEvent.toToken,
-          fromAmount: exec.convertUpEvent.fromAmount,
-          toAmount: exec.convertUpEvent.toAmount,
-          bdv: exec.bonusEvent?.bdvConverted || 0n,
-        },
-      };
-    });
-    return k as (ExecutionData & ConvertUpExecutionEvent)[];
-  }, []);
-
   const convertData = orderData as ConvertUpOrderData;
+  const executionEvents = _executionHistory as PublisherTractorExecution<TV, Token, "convertUp">[];
 
   // Helper function to format dates with time
   const formatDate = (timestamp?: number) => {
@@ -50,14 +38,16 @@ export default function ConvertUpExecutionHistory({ executionHistory, orderData 
     // For ConvertUp, we'd need to look at the convert event data
     // This is a placeholder - in reality we'd extract the BDV amount from the convert event
 
-    return acc.add((exec as any)?.bonusEvent?.bdvConverted || 0n);
+    return acc.add(exec.event.bdvConverted || 0n);
   }, TokenValue.ZERO);
 
-  const totalExecutions = executionHistory.length;
+  const totalExecutions = executionEvents.length;
 
-  if (executionHistory.length === 0) {
+  if (executionEvents.length === 0) {
     return <div className="text-center text-gray-500 py-8">No executions yet</div>;
   }
+
+  console.log("[ConvertUpExecutionHistory] executionEvents", executionEvents);
 
   return (
     <div>
@@ -86,7 +76,7 @@ export default function ConvertUpExecutionHistory({ executionHistory, orderData 
                 ? TokenValue.fromHuman(convertData.operatorTip, 6)
                 : TokenValue.ZERO;
               // Calculate total tips paid
-              const totalTipsPaid = tipAmount.mul(executionHistory.length);
+              const totalTipsPaid = tipAmount.mul(executionEvents.length);
               return formatter.number(totalTipsPaid);
             })()} PINTO
           </span>
@@ -166,7 +156,7 @@ export default function ConvertUpExecutionHistory({ executionHistory, orderData 
 
                 return (
                   <tr key={index} className="hover:bg-gray-50 border-b">
-                    <td className="px-4 py-3 font-medium">#{executionHistory.length - index}</td>
+                    <td className="px-4 py-3 font-medium">#{executionEvents.length - index}</td>
                     <td className="px-4 py-3 text-right">
                       {convertEvent ? formatter.number(convertEvent.event?.bdv) : "0 PDV"}
                     </td>

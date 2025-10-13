@@ -201,7 +201,7 @@ const transformConvertUpEvent = (
     toToken: mainToken,
     fromAmount: TV.fromBlockchain(bd.tokenFromAmounts[0], usedToken.decimals),
     toAmount: TV.fromBlockchain(bd.tokenToAmounts[0], mainToken.decimals),
-    fromBdv: TV.fromBlockchain(bd.beansConverted, mainToken.decimals),
+    fromBdv: TV.fromBlockchain(0, mainToken.decimals),
     toBdv: TV.fromBlockchain(bd.beansConverted, mainToken.decimals),
     grownStalkGained: TV.fromBlockchain(bd.gsBonusStalk, STALK.decimals),
     newGrownStalk: TV.fromBlockchain(bd.gsBonusStalk, STALK.decimals),
