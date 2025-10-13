@@ -17,7 +17,7 @@ import { getChainConstant, resolveChainId } from "@/utils/chain";
 import { HashString } from "@/utils/types.generic";
 import { isDev } from "@/utils/utils";
 import { DefaultError, QueryObserverOptions, useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useChainId, usePublicClient } from "wagmi";
 import { queryKeys } from "../queryKeys";
 
@@ -67,7 +67,6 @@ const useTractorAPIConvertUpOrders = ({
       if (!chainId) return;
       return TractorAPI.getOrders<"CONVERT_UP_V0">({
         ...args,
-        orderType: "CONVERT_UP_V0",
         isConvert: true,
       });
     },
@@ -76,18 +75,18 @@ const useTractorAPIConvertUpOrders = ({
     ...QUERY_SETTINGS.slow,
   });
 
-  useEffect(() => {
-    if (query.data) {
-      console.log("query.data", query.data);
-    }
-  }, [query.data?.orders?.length]);
-
   return query;
 };
 
 const transformAPIOrderbookData =
   (chainId: number) => (response: TractorAPIOrdersResponse<"CONVERT_UP_V0"> | undefined) => {
-    if (!response) return { orders: [], lastUpdated: 0, totalRecords: 0 };
+    if (!response) {
+      return {
+        orders: [],
+        lastUpdated: 0,
+        totalRecords: 0,
+      };
+    }
 
     const mainToken = getChainConstant(resolveChainId(chainId), MAIN_TOKEN);
 
@@ -230,5 +229,13 @@ export function useTractorConvertUpOrderbook<T = ConvertUpOrderbookEntry[]>(
     ...defaultQuerySettingsMedium,
   });
 
-  return ordersChainQuery;
+  const refetch = useCallback(async () => {
+    if (chainOnly) {
+      return ordersChainQuery.refetch();
+    }
+    return ordersQuery.refetch();
+    // no need to refetch the chain query, it will refetch automatically when the orders refetch
+  }, [ordersChainQuery, ordersQuery, chainOnly]);
+
+  return { ...ordersChainQuery, refetch } as const;
 }

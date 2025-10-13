@@ -1,18 +1,8 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { Token } from "@/utils/types";
 import { Requisition, RequisitionEvent } from "./core";
+import { CombinedConvertUpEventLog } from "./events/tractor-events.types";
 import { RequisitionData, TractorRequisitionEvent } from "./types";
-
-export interface PublisherTractorExecution {
-  type: "sow" | "convertUp";
-  blockNumber: number;
-  operator: `0x${string}`;
-  publisher: `0x${string}`;
-  blueprintHash: `0x${string}`;
-  transactionHash: `0x${string}`;
-  timestamp: number | undefined;
-  sowEvent?: SowEventArgs;
-  convertUpEvent?: any;
-}
 
 interface SowEventArgs<T extends bigint | TokenValue = TokenValue> {
   account: `0x${string}`;
@@ -21,6 +11,22 @@ interface SowEventArgs<T extends bigint | TokenValue = TokenValue> {
   beans: T;
   pods: T;
 }
+
+// export interface PublisherTractorExecution<
+//   BlueprintType = "sow" | "convertUp",
+//   Numeric extends bigint | TokenValue = TokenValue,
+//   TokenIsh extends `0x${string}` | Token = Token
+// > {
+//   type: BlueprintType;
+//   blockNumber: number;
+//   operator: `0x${string}`;
+//   publisher: `0x${string}`;
+//   blueprintHash: `0x${string}`;
+//   transactionHash: `0x${string}`;
+//   timestamp: number | undefined;
+//   sowEvent?: BlueprintType extends "sow" ? SowEventArgs<Numeric> : never;
+//   convertUpEvent?: BlueprintType extends "convertUp" ? CombinedConvertUpEventLog<Numeric, TokenIsh> : never;
+// }
 
 const normalizeBPEndTime = (endTime: bigint) => {
   if (endTime === 8640000000000n) {

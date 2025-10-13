@@ -226,5 +226,5 @@ export function useTractorSowOrderbook<T = OrderbookEntry[]>({
     // no need to refetch the chain query, it will refetch automatically when the orders refetch
   }, [ordersChainQuery, ordersQuery, chainOnly]);
 
-  return { ...ordersChainQuery, refetch };
+  return { ...ordersChainQuery, refetch } as const;
 }

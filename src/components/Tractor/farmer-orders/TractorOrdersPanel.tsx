@@ -1,6 +1,7 @@
 import { Col } from "@/components/Container";
 import EmptyTable from "@/components/EmptyTable";
 import ReviewTractorOrderDialog from "@/components/ReviewTractorOrderDialog";
+import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
@@ -124,7 +125,6 @@ function TractorOrdersPanelGeneric({
     }
     // Process ConvertUp orders
     if (filters.orderTypes.includes("convertUp") && convertUpOrders) {
-      console.log("convertUpOrders", convertUpOrders);
       convertUpOrders
         .filter((req) => stringEq(req.requisition.blueprint.publisher, address))
         .forEach((req) => {
@@ -138,15 +138,10 @@ function TractorOrdersPanelGeneric({
 
           unified.push(transformConvertUpOrderToUnified(reqWithDecodedData, orderExecutions));
         });
-
-      console.log("unified", unified);
-      console.log("executionsByHash", executionsByHash);
     }
 
     // Apply filters and sorting
     const filtered = filterUnifiedOrders(unified, filters);
-
-    console.log("filtered", filtered);
     return sortUnifiedOrders(filtered, currentSortBy);
   }, [sowOrders, convertUpOrders, executions, address, filters, currentSortBy, executionsByHash]);
 
@@ -272,6 +267,7 @@ function TractorOrdersPanelGeneric({
 
   return (
     <div className="flex flex-col gap-4 w-full">
+      <Button onClick={() => executionsQuery.refetch()}>refetch</Button>
       {/* Filter and Sort Controls (if enabled) */}
       {/* Orders List */}
       {unifiedOrders.map((order, index) => {

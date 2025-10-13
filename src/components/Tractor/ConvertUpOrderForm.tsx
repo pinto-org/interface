@@ -121,6 +121,9 @@ const useInitBonusField = () => {
       return;
     }
 
-    ctx.setValue("grownStalkPerBdvBonusBid", bonusData.bonus.toNumber().toFixed(2).toString());
+    // trucate to 2 decimals
+    const trucatedBonus = bonusData.bonus.trimDecimals(bonusData.bonus, 3).toHuman();
+
+    ctx.setValue("grownStalkPerBdvBonusBid", trucatedBonus);
   }, [bonusData?.bonus, ctx]);
 };

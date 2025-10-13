@@ -47,7 +47,6 @@ export default function ConvertUpExecutionHistory({ executionHistory, orderData 
 
   // Calculate total results from execution history for convert up
   const totalBdvConverted = executionEvents.reduce((acc, exec) => {
-    console.log("exec", exec);
     // For ConvertUp, we'd need to look at the convert event data
     // This is a placeholder - in reality we'd extract the BDV amount from the convert event
 

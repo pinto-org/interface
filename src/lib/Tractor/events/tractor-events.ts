@@ -9,7 +9,13 @@ import { MinimumViableBlock, Token } from "@/utils/types";
 import { MayArray } from "@/utils/types.generic";
 import { arrayify } from "@/utils/utils";
 import { PublicClient, decodeEventLog } from "viem";
-import { TractorExecutionEventLog } from "./tractor-events.types";
+import { BlueprintType } from "../blueprint-decoders";
+import {
+  CombinedConvertUpEventLog,
+  PublisherTractorExecution,
+  TractorEventMapping,
+  TractorExecutionEventLog,
+} from "./tractor-events.types";
 
 export async function fetchTractorEvents(
   publicClient: PublicClient,
@@ -118,8 +124,10 @@ export async function fetchPublisherTractorExecutionEvents(
 
       const tokenMap = getChainTokenMap(chainId);
 
-      // Decode the Sow event if found
-      let sowData: TractorExecutionEventLog<"Sow", TV>["args"] | undefined;
+      let processedEvent: TractorEventMapping["sow" | "convertUp"] | undefined = undefined;
+      let eventType: "sow" | "convertUp" | undefined = undefined;
+
+      // Decode the convertup events to get the combined data
       let convertUpData: TractorExecutionEventLog<"Convert", TV, Token>["args"] | undefined;
       let bonusData: TractorExecutionEventLog<"ConvertUpBonus", TV>["args"] | undefined;
 
@@ -134,7 +142,8 @@ export async function fetchPublisherTractorExecutionEvents(
             });
 
             if (decoded.eventName === "Sow") {
-              sowData = {
+              eventType = "sow";
+              processedEvent = {
                 account: decoded.args.account,
                 fieldId: decoded.args.fieldId,
                 index: TV.fromBigInt(decoded.args.index, PODS.decimals),
@@ -178,6 +187,11 @@ export async function fetchPublisherTractorExecutionEvents(
             }
 
             if (convertUpData && bonusData) {
+              eventType = "convertUp";
+              processedEvent = {
+                ...convertUpData,
+                ...bonusData,
+              };
               break;
             }
           } catch {
@@ -197,13 +211,16 @@ export async function fetchPublisherTractorExecutionEvents(
           }
         : undefined;
 
+      if (!eventType || !processedEvent) {
+        return undefined;
+      }
+
       return {
+        type: eventType,
         blockNumber: receipt.blockNumber,
         event,
+        processedEvent,
         receipt,
-        sowData,
-        convertUpData,
-        bonusData,
         tractorExecutionBeganEvent: tractorExecutionBeganData,
       };
     }),
@@ -220,20 +237,36 @@ export async function fetchPublisherTractorExecutionEvents(
     blockTimestamps.set(block.number.toString(), Number(block.timestamp) * 1000);
   });
 
+  const filtered = processingResults.filter((r) => r !== undefined);
+
   // Assemble the final result
-  const processed = processingResults.map((result) => {
-    return {
+  const processed = filtered.map((result) => {
+    const baseData = {
       blockNumber: Number(result.blockNumber),
       operator: result.event.args?.operator as `0x${string}`,
       publisher: result.event.args?.publisher as `0x${string}`,
       blueprintHash: result.event.args?.blueprintHash as `0x${string}`,
       transactionHash: result.event.transactionHash,
       timestamp: blockTimestamps.get(result.blockNumber.toString()),
-      sowEvent: result.sowData,
-      convertUpEvent: result.convertUpData,
-      bonusEvent: result.bonusData,
-      tractorExecutionBeganEvent: result.tractorExecutionBeganEvent,
     };
+
+    // separate these for type safety
+    if (result.type === "sow") {
+      return {
+        ...baseData,
+        type: "sow" as const,
+        event: result.processedEvent as TractorExecutionEventLog<"Sow", TV>["args"],
+        sowEvent: result.processedEvent as TractorExecutionEventLog<"Sow", TV>["args"],
+        // tractorExecutionBeganEvent: result.tractorExecutionBeganEvent,
+      } satisfies PublisherTractorExecution<TV, Token>;
+    }
+
+    return {
+      ...baseData,
+      type: "convertUp" as const,
+      event: result.processedEvent as CombinedConvertUpEventLog<TV, Token>,
+      sowEvent: undefined,
+    } satisfies PublisherTractorExecution<TV, Token>;
   });
 
   console.debug("[Tractor/fetchTractorExecutions] RESPONSE", processed);

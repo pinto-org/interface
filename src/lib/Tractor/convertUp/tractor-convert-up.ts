@@ -189,8 +189,6 @@ export async function loadConvertUpOrderbookData(
     }
   }
 
-  console.log("fromBlock", fromBlock);
-
   const [_requisitions, _priceResult, bonusAndCapacityResult] = await Promise.all([
     // publicClient.getContractEvents({
     //   address: CONVERT_UP_BLUEPRINT_V0_ADDRESS,
@@ -272,16 +270,6 @@ export async function loadConvertUpOrderbookData(
     };
   });
 
-  // Create a set of completed blueprint hashes
-  // const completedOrders = new Set<`0x${string}`>(
-  //   loadOptions.filterOutCompleted
-  //     ? completedEvents
-  //         .map((event) => event.args?.blueprintHash)
-  //         .filter((hash): hash is `0x${string}` => hash !== undefined)
-  //     : [],
-  // );
-
-  // Filter out cancelled and completed orders
   const activeRequisitions = requisitions.filter((req) => {
     const hash = req.requisition.blueprintHash;
     if (knownBlueprintHashes.has(hash.toLowerCase())) {
@@ -289,10 +277,6 @@ export async function loadConvertUpOrderbookData(
     }
     return !req.isCancelled;
   });
-
-  console.log("activeRequisitions", activeRequisitions);
-
-  // console.log("activeRequisitions", activeRequisitions);
 
   // Fetch order info for all active requisitions
   const mcResults = await multicall(publicClient, {
@@ -379,7 +363,7 @@ export async function loadConvertUpOrderbookData(
   const publisherWithdrawalPlans: { [publisher: string]: WithdrawalPlan[] } = {};
 
   // create a copy
-  const remainingCapacity = TV.from(currentCapacity.value);
+  // const remainingCapacity = TV.from(currentCapacity.value);
 
   // Initialize orderbook data with updated API entries (they don't need withdrawal plan processing)
   const orderbookData: ConvertUpOrderbookEntry[] = [...updatedApiEntries];
@@ -538,6 +522,7 @@ export async function loadConvertUpOrderbookData(
     totalOrders: orderbookData.length,
     ordersWithWithdrawalPlans: orderbookData.filter((o) => o.withdrawalPlan).length,
     ordersReadyToConvert: orderbookData.filter((o) => o.amountConvertibleNextExecution.gt(0)).length,
+    orderbookData: orderbookData,
   });
 
   console.log("orderbookData", orderbookData);

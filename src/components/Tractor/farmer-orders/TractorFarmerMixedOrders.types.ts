@@ -1,6 +1,5 @@
-import { SowBlueprintData, TractorRequisitionEvent } from "@/lib/Tractor";
+import { PublisherTractorExecution, SowBlueprintData, TractorRequisitionEvent } from "@/lib/Tractor";
 import { ConvertUpOrderbookEntry } from "@/lib/Tractor/convertUp/tractor-convert-up-types";
-import { PublisherTractorExecution } from "@/lib/Tractor/utils";
 import { OrderType } from "./TractorFarmerOrderTypeRegistry";
 
 // Unified order interface that can represent any order type

@@ -3,7 +3,7 @@ import { diamondABI } from "@/constants/abi/diamondABI";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useSignTractorBlueprint from "@/hooks/tractor/useSignTractorBlueprint";
 import useTransaction from "@/hooks/useTransaction";
-import { Blueprint, Requisition, useGetBlueprintHash } from "@/lib/Tractor";
+import { Blueprint, PublisherTractorExecution, Requisition, useGetBlueprintHash } from "@/lib/Tractor";
 import { cn } from "@/utils/utils";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { useMemo, useState } from "react";
@@ -37,7 +37,7 @@ interface ReviewTractorOrderProps {
   operatorPasteInstrs: `0x${string}`[] | readonly `0x${string}`[];
   blueprint: Blueprint;
   isViewOnly?: boolean;
-  executionHistory?: ExecutionData[];
+  executionHistory?: PublisherTractorExecution[];
   includesDepositOptimization?: boolean;
   depositOptimizationCalls?: `0x${string}`[];
 }

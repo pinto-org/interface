@@ -1,4 +1,5 @@
 import { TV } from "@/classes/TokenValue";
+import { PublisherTractorExecution } from "@/lib/Tractor";
 import { TractorTokenStrategyUnion } from "@/lib/Tractor/types";
 import { TimeScaleSelect } from "./form/fields/sharedFields";
 
@@ -96,7 +97,7 @@ export interface TractorOrderVisualizationProps {
 }
 
 export interface ExecutionHistoryProps {
-  executionHistory: ExecutionData[];
+  executionHistory: PublisherTractorExecution[];
   orderData: TractorOrderData;
 }
 
