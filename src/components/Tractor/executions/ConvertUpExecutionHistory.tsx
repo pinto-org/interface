@@ -42,15 +42,7 @@ const ProgressSection = ({
   const totalBdv = TV.fromHuman(convertData.totalBeanAmountToConvert, 6);
   const percentComplete = totalBdv.gt(0) ? totalBdvConverted.div(totalBdv).mul(100) : TV.ZERO;
 
-  const percentCompleteNumber = Math.min(
-    percentComplete.toNumber
-      ? percentComplete.toNumber()
-      : percentComplete.toHuman
-        ? Number(percentComplete.toHuman())
-        : 0,
-    100,
-  );
-
+  const percentCompleteNumber = TV.min(TV.fromHuman(100, 0), percentComplete).toNumber();
   const isComplete = percentCompleteNumber >= 100;
 
   return (

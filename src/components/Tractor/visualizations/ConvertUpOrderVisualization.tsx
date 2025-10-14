@@ -1,7 +1,11 @@
 import { OrderVisualization } from "@/components/OrderVisualization";
+import IconImage from "@/components/ui/IconImage";
+import { useTokenMap } from "@/hooks/pinto/useTokenMap";
+import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetTractorTokenStrategy";
 import { useMainToken } from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { timeScaleToDisplay } from "@/utils/time";
+import { getTokenIndex } from "@/utils/token";
 import { TractorOrderVisualizationProps } from "../types";
 
 export default function ConvertUpOrderVisualization({
@@ -9,11 +13,29 @@ export default function ConvertUpOrderVisualization({
   className,
 }: TractorOrderVisualizationProps) {
   const mainToken = useMainToken();
+  const tokenMap = useTokenMap();
+
+  const getStrategyProps = useGetTractorTokenStrategyWithBlueprint();
 
   // Type guard to ensure we have convert up order data
   if (convertData.type !== "convertUp") {
     throw new Error("ConvertUpOrderVisualization requires convertUp order data");
   }
+
+  const getTokenStrategyText = () => {
+    if (!convertData.sourceTokenIndices) return "Tokens";
+    const ts = getStrategyProps.getTokenStrategy({ sourceTokenIndices: convertData.sourceTokenIndices });
+
+    if (ts?.type === "LOWEST_PRICE") {
+      return "Token with Best Price";
+    }
+    if (ts?.type === "LOWEST_SEEDS") {
+      return "Token with Least Seeds";
+    }
+
+    const mapped = ts?.addresses?.map((adr) => tokenMap[getTokenIndex(adr)].symbol).join(", ");
+    return mapped;
+  };
 
   return (
     <div className={`bg-gray-50 p-6 relative ${className || ""}`}>
@@ -28,48 +50,39 @@ export default function ConvertUpOrderVisualization({
           <OrderVisualization.Container>
             <OrderVisualization.FlowVisualization
               steps={[
-                { type: "action", content: "Withdraw Tokens" },
-                {
-                  type: "context",
-                  content: <OrderVisualization.TractorTokenStrategyDisplay strategy={convertData.tokenStrategy} />,
-                },
-              ]}
-              size="sm"
-            />
-            <OrderVisualization.ConditionsList
-              conditions={[
-                {
-                  text: (
-                    <>Convert up to {formatter.number(convertData.totalBeanAmountToConvert)} PDV of deposited tokens</>
-                  ),
-                },
-              ]}
-              size="sm"
-            />
-          </OrderVisualization.Container>
-        </div>
-
-        {/* Convert Conditions Section */}
-        <div className="flex flex-col items-center mt-8">
-          <OrderVisualization.Container>
-            <OrderVisualization.FlowVisualization
-              steps={[
                 { type: "action", content: "Convert" },
                 {
-                  type: "context",
+                  type: "amount",
                   content: (
-                    <span className="text-pinto-green-4">
-                      {formatter.number(convertData.minBeansConvertPerExecution)}
-                      {" - "}
-                      {formatter.number(convertData.maxBeansConvertPerExecution)} PDV
-                    </span>
+                    <>
+                      {/* <span className="text-pinto-gray-4 text-sm font-thin whitespace-nowrap"></span> */}
+                      <IconImage src={mainToken.logoURI} size={4} />
+                      <span className="whitespace-nowrap overflow-hidden text-ellipsis">
+                        <span className="text-pinto-green-4">
+                          {formatter.number(convertData.totalBeanAmountToConvert)} PDV
+                        </span>
+                        <span className="text-box bg-transparent">
+                          {" "}
+                          ({formatter.number(convertData.minBeansConvertPerExecution)}
+                          {" - "}
+                          {formatter.number(convertData.maxBeansConvertPerExecution)} PDV per execution)
+                        </span>
+                      </span>
+                    </>
                   ),
+                },
+                {
+                  type: "context",
+                  content: <>into {mainToken.symbol}</>,
                 },
               ]}
               size="sm"
             />
             <OrderVisualization.ConditionsList
               conditions={[
+                {
+                  text: <>Using Deposited {getTokenStrategyText()}</>,
+                },
                 {
                   text: (
                     <>
