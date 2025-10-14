@@ -72,7 +72,7 @@ const ContextLabel = ({ content, size = "md" }: StepProps) => (
 );
 
 const AmountDisplay = ({ content, size = "md" }: StepProps) => (
-  <div className="bg-pinto-gray-1 px-2 py-1 rounded-xl">
+  <div className="bg-pinto-gray-1 rounded-xl ">
     <div className={cn("flex items-center gap-1", sizeClasses[size].pill, sizeClasses[size].font)}>{content}</div>
   </div>
 );
