@@ -311,12 +311,3 @@ export default function ReviewTractorOrderDialog({
     </Dialog>
   );
 }
-
-const styles = {
-  smallerButtonText: {
-    fontSize: "1.125rem !important",
-  },
-  smallerButtonTextButton: {
-    fontSize: "1.125rem !important",
-  },
-};

@@ -402,11 +402,11 @@ const AdvancedParametersSummary = ({
 
   const seedDiffNum = Number(seedDifference);
   const seedDiffAbs = seedDiffNum >= 0 ? seedDiffNum : seedDiffNum * -1;
-  const seedDiffLabel = seedDiffNum >= 0 ? "Minimum Seed Gain Per PDV" : "Maximum Seed Loss Per PDV";
+  const seedDiffLabel = seedDiffNum >= 0 ? "Minimum Seeds Gained Per PDV Converted" : "Maximum Seed Loss Per PDV";
   const seedDiffTooltip =
     seedDiffNum >= 0
-      ? "The minimum seed difference required between your selected tokens and PINTO at the time of execution."
-      : "The maximum seed loss per PDV allowed between your selected tokens and PINTO at the time of execution.";
+      ? "The minimum Seed gain per PDV required between the token being Converted into Pinto and Pinto at the time of execution."
+      : "The maximum Seed loss per PDV allowed between the token being Converted into Pinto and Pinto at the time of execution.";
 
   return (
     <Card className="flex flex-col gap-2 border-none">
@@ -432,7 +432,7 @@ const AdvancedParametersSummary = ({
       />
       <ReviewRow
         label="Execution Size"
-        tooltip="The minimum and maximum execution size of the Convert Up Order"
+        tooltip="The range of PDV acceptable per execution of this Convert Up order. "
         value={`${formatter.number(minConvertBdvPerExecution)} - ${formatter.number(maxConvertBdvPerExecution)} PDV`}
       />
       <ReviewRow

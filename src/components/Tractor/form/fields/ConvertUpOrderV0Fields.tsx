@@ -69,24 +69,26 @@ const sharedInputProps = {
 const TOOLTIP_COPY = {
   tokenStrategy: "The source token(s) use for the Convert Up Order.",
   totalConvertBdv: "The total PDV of the Convert Up Order.",
-  minBeansConvertPerExecution: "The minimum PDV per execution of the Convert Up Order.",
-  maxBeansConvertPerExecution: "The maximum PDV per execution of the Convert Up Order.",
+  minBeansConvertPerExecution: "The minimum PDV per execution of the Convert Up order.",
+  maxBeansConvertPerExecution: "The maximum PDV per execution of the Convert Up order.",
   capAmountToBonusCapacity:
     "Cap the conversion amount to the available bonus capacity. When enabled, conversions will be limited to the current bonus capacity regardless of your max PDV per execution setting.",
-  minTimeBetweenConverts: "The minimum time between converts of the Convert Up Order.",
-  minConvertBonusCapacity: "The minimum convert bonus capacity of the Convert Up Order.",
-  maxGrownStalkPerBdv: "The maximum grown stalk per PDV of the Convert Up Order.",
-  grownStalkPerBdvBonusBid: "The minimum Grown Stalk Bonus in which this order can be executed.",
-  maxPriceToConvertUp: "The maximum price in which this order can be executed.",
-  minPriceToConvertUp: "The minimum price in which this order can be executed.",
-  maxGrownStalkPerBdvPenalty: "The maximum grown stalk per PDV penalty of the Convert Up Order.",
-  slippageRatio: "The slippage ratio of the Convert Up Order.",
-  lowStalkDeposits: "The condition or eligibility in which Silo deposits with low Grown Stalk are used.",
+  minTimeBetweenConverts: "The minimum time between fills of your Convert Up order.",
+  minConvertBonusCapacity: "The minimum Convert Bonus Capacity per PDV of the Convert Up order.",
+  maxGrownStalkPerBdv:
+    "The upper limit of Mown Stalk per PDV of Deposits eligible to be Converted by this Convert Up order. Deposits that exceed this limit will not be Converted.",
+  grownStalkPerBdvBonusBid: "The minimum Stalk Bonus at which this order can be executed.",
+  maxPriceToConvertUp: "The maximum price at which this order can be executed.",
+  minPriceToConvertUp: "The minimum price at which this order can be executed.",
+  maxGrownStalkPerBdvPenalty: "The maximum Stalk per PDV penalty of the Convert Up Order.",
+  slippageRatio:
+    "the maximum slippage allowed between when the transaction including the Convert Up and the price at which the Convert up occurs.",
+  lowStalkDeposits: "This setting determines whether Deposits with low Stalk are used first, last or not at all. ",
   operatorTip: "The operator tip of the Convert Up Order.",
   priceRange:
     "The price range to execute the Convert Up Order. The order will be executed when the price is between the minimum and maximum price.",
   seedDifference:
-    "The minimum seed difference required between your selected tokens and PINTO at the time of execution.",
+    "The minimum Seed difference required between the tokens being Converted into Pinto and Pinto at the time of execution.",
 } as const;
 
 export default function ConvertUpOrderV0Fields({ children }: { children: React.ReactNode }) {
@@ -191,7 +193,7 @@ ConvertUpOrderV0Fields.TotalConvertBdv = function TotalConvertBdv({
 
   return (
     <Col className={cn("flex-1", showSlider ? "gap-0" : "gap-2")}>
-      <TooltipLabel tooltipText={TOOLTIP_COPY.totalConvertBdv}>I want to convert up to</TooltipLabel>
+      <TooltipLabel tooltipText={TOOLTIP_COPY.totalConvertBdv}>I want to Convert up to</TooltipLabel>
       <Row className="flex-1 gap-4 w-full">
         {showSlider ? (
           <TotalConvertBdvSlider maxPDV={maxPDV} disabled={!tokenStrategy} ctx={ctx} handlers={handlers} />
@@ -408,7 +410,7 @@ ConvertUpOrderV0Fields.GrownStalkPerBdvBonusBid = function GrownStalkPerBdvBonus
 
   return (
     <Col className={cn("flex-1", showSlider ? "gap-0" : "gap-2")}>
-      <TooltipLabel tooltipText={TOOLTIP_COPY.grownStalkPerBdvBonusBid}>Min Grown Stalk Bonus Per PDV</TooltipLabel>
+      <TooltipLabel tooltipText={TOOLTIP_COPY.grownStalkPerBdvBonusBid}>Min Stalk Bonus Per PDV</TooltipLabel>
       <Row className="flex-1 gap-4 w-full">
         {showSlider ? (
           <GrownStalkPerBdvBonusBidSlider
@@ -493,7 +495,7 @@ ConvertUpOrderV0Fields.PriceRange = function PriceRange() {
   return (
     <>
       <Col className="gap-2 w-full">
-        <TooltipLabel tooltipText={TOOLTIP_COPY.priceRange}>Execute when Price is Between</TooltipLabel>
+        <TooltipLabel tooltipText={TOOLTIP_COPY.priceRange}>Execute when price is between</TooltipLabel>
         <MultiSlider
           min={sliderMin}
           max={sliderMax}

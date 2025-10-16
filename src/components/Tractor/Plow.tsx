@@ -207,7 +207,7 @@ export function Plow() {
         nativeToken={nativeToken}
         tokenPrices={tokenPrices}
         emptyStateMessage="No active requisitions found"
-        instructionText="Select Soil Orders to Simulate and Execute for a tip."
+        instructionText="Select Soil Orders to Simulate and execute for a tip."
         onRowClick={handlePlow}
         refetchOrders={requisitionsQuery.refetch}
       />

@@ -237,7 +237,7 @@ export function ConvertUpExecute() {
       nativeToken={nativeToken}
       tokenPrices={tokenPrices}
       emptyStateMessage="No active convert up orders found"
-      instructionText="Select Convert Up Orders to Simulate and Execute for a tip."
+      instructionText="Select Convert Up Orders to Simulate and execute for a tip."
       refetchOrders={refetch}
     />
   );

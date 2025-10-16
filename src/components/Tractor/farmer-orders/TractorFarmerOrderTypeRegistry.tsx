@@ -63,26 +63,12 @@ const SowOrderDescription = ({ isViewOnly }: { isViewOnly: boolean }) => {
 // Convert Up Order Description
 const ConvertUpOrderDescription = ({ isViewOnly }: { isViewOnly: boolean }) => {
   if (isViewOnly) {
-    return (
-      <span>
-        This is your active Convert Order. It allows an Operator to execute convert transactions for you on the{" "}
-        <span className="whitespace-nowrap">
-          <BaseIcon /> Base&nbsp;
-        </span>
-        network when the conditions are met.
-      </span>
-    );
+    return <span>Review and publish your Convert order.</span>;
   }
 
   return (
     <span className="flex flex-col gap-3">
-      <span>
-        A Convert Order allows you to pay an Operator to execute convert transactions for you on the{" "}
-        <span className="whitespace-nowrap">
-          <BaseIcon /> Base&nbsp;
-        </span>
-        network.
-      </span>
+      <span>Review and publish your Convert order.</span>
       <span>
         This allows you to automatically convert your LP assets for bonus Grown Stalk when market conditions are
         favorable.
@@ -217,7 +203,7 @@ export const ORDER_TYPE_REGISTRY = {
     executionHistory: ConvertUpExecutionHistory,
 
     // Metadata
-    title: "Review and Publish Convert Order",
+    title: "Review Convert Order",
     description: (isViewOnly: boolean) => <ConvertUpOrderDescription isViewOnly={isViewOnly} />,
 
     // Data Handling

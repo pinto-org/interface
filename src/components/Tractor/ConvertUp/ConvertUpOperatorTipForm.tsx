@@ -108,7 +108,7 @@ export const ConvertUpEstimatedTipPaid = () => {
         <div className="pinto-sm-light text-pinto-secondary">Estimated Total Tip Paid</div>
         <TooltipSimple
           variant="outlined"
-          content={`The minimum and maximum ${mainToken.symbol} you will have paid to the Operator to complete this Order`}
+          content={`The minimum and maximum Pinto you will have paid to the Operator to complete this Order, depending on the number of fills it takes to fill your entire order.`}
         />
       </Row>
       <Row className="gap-1 pinto-sm font-normal">

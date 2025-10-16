@@ -131,12 +131,12 @@ const FarmerTractorConvertUpOrderCard = ({
                 {
                   text: (
                     <>
-                      when the Bonus exceeds{" "}
+                      when the Convert Bonus exceeds{" "}
                       {formatter.number(data.convertUpParams.grownStalkPerBdvBonusBid, {
                         minDecimals: 2,
                         maxDecimals: 6,
                       })}{" "}
-                      Grown stalk per PDV
+                      Stalk per PDV
                     </>
                   ),
                   operator: "AND",
@@ -148,7 +148,7 @@ const FarmerTractorConvertUpOrderCard = ({
               total={totalAmount}
               unit="PDV"
               icon={pintoIcon}
-              label="PDV Converted through this Order"
+              label="PDV Converted of this Order"
             />
           </div>
 

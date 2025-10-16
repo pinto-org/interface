@@ -312,7 +312,7 @@ export default function ModifyConvertUpOrderDialog({
           <DialogHeader className="hidden">
             <DialogTitle>Convert Up Order Modification</DialogTitle>
             <DialogDescription className="pinto-sm-light text-pinto-light pt-2">
-              Update your existing Convert Up Order. The current order will be cancelled and a new one will be created
+              Update your existing Convert Up order. The current order will be cancelled and a new one will be created
               with your updated conditions.
             </DialogDescription>
           </DialogHeader>
@@ -759,12 +759,12 @@ function AdvancedParametersSummary({
         value={minConvertBonusCapacity ? `${formatter.twoDec(minConvertBonusCapacity)} PDV` : "--"}
       />
       <ReviewRow
-        label="Max Grown Stalk per PDV Penalty"
+        label="Max Stalk per PDV Penalty"
         tooltip={CONVERT_UP_TOOLTIP_COPY.maxGrownStalkPerBdvPenalty}
         value={`${formatter.twoDec(maxGrownStalkPerBdvPenalty)} PDV`}
       />
       <ReviewRow
-        label="Max Grown Stalk per PDV"
+        label="Max Stalk per PDV"
         tooltip={CONVERT_UP_TOOLTIP_COPY.maxGrownStalkPerBdv}
         value={`${formatter.twoDec(maxGrownStalkPerBdv)} Grown Stalk`}
       />
@@ -930,7 +930,7 @@ function ModifyConvertUpOrderReviewDialog({
                 <div className="pinto-body font-medium text-pinto-secondary">Review Order Modification</div>
               </DialogTitle>
               <DialogDescription className="pinto-sm-light text-pinto-light pt-2">
-                <div>Your existing Convert Up Order will be cancelled and replaced with this new order.</div>
+                <div>Your existing Convert Up order will be cancelled and replaced with this new order.</div>
               </DialogDescription>
             </DialogHeader>
             <div>

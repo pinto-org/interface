@@ -166,7 +166,7 @@ export const CustomOperatorTipFormField = ({
               endIcon={
                 <div className="flex items-center gap-2 px-4 bg-white">
                   <IconImage src={mainToken.logoURI} alt="PINTO" size={6} className="rounded-full" />
-                  <span className="hidden sm:block text-black pinto-sm-light">{mainToken.symbol}</span>
+                  <span className="hidden sm:block text-black pinto-sm-light">Pinto</span>
                 </div>
               }
               isError={!!formState.errors.customOperatorTip}
@@ -221,7 +221,7 @@ export const OperatorTipFormField = ({ averageTipPaid, preset, setPreset }: Oper
     <Row className="w-full justify-between">
       <Row className="pinto-sm-light text-pinto-secondary gap-1">
         Tip Per Execution
-        <TooltipSimple content="The tip per execution of the Convert Up Order." variant="outlined" />
+        <TooltipSimple content="The tip per execution of the Convert Up order." variant="outlined" />
       </Row>
       <OperatorTipPresetDropdown
         averageTipPaid={averageTipPaid}

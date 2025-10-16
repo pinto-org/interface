@@ -137,7 +137,7 @@ export default function TractorTokenStrategyDialog({
                 Select {multiSelect ? "Tokens" : "Token"} from Silo Deposits
               </DialogTitle>
               <DialogDescription className="text-gray-500 pb-1">
-                Tractor allows you to fund Orders using Deposits
+                Tractor allows you to fund orders using Deposits
               </DialogDescription>
               <Separator className="h-[1px] border-pinto-gray-2 bg-pinto-gray-2" />
             </DialogHeader>

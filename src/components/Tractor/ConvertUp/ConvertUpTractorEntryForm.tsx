@@ -259,7 +259,7 @@ const EstimatedSeasonsOfGrownStalk = ({
       <Row className="gap-1 items-center">
         <Label variant="form">Approximate Seasons of Grown Stalk Gained</Label>
         <TooltipSimple
-          content="The approximate number of seasons of Grown Stalk that will be gained."
+          content="The approximate number Seasons of Stalk that will be gained if this order is cleared."
           variant="outlined"
         />
       </Row>

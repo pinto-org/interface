@@ -65,7 +65,12 @@ export const SiloConvertUpContent = () => {
             Automated Convert Up Blueprint Orders executed by Tractor
             <TooltipSimple
               variant="outlined"
-              content={<>Automated Convert Up Blueprint Orders executed by Tractor.</>}
+              content={
+                <>
+                  Tractor enables Farmers to place Bids to Convert UP when at a minimum Convert Up Bonus per PDV
+                  Converted and Convert Bonus Capacity (measured in PDV) is reached.
+                </>
+              }
             />
           </Row>
         </Col>
