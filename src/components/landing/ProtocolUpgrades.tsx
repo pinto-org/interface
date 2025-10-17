@@ -53,6 +53,7 @@ const piAudits: TimelineEvent[] = [
     auditHash: "",
     auditor: "bean",
     type: ["modelImprovement"],
+    customLines: { after: 6, before: 6 },
   },
   {
     name: "PI-12",
@@ -64,7 +65,6 @@ const piAudits: TimelineEvent[] = [
     auditHash: "",
     auditor: "bean",
     type: ["modelImprovement", "parametrization"],
-    customLines: { after: 6, before: 6 },
   },
   {
     name: "PI-11",
