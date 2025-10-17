@@ -52,7 +52,7 @@ const piAudits: TimelineEvent[] = [
     timestamp: new Date("October 18, 2025").getTime(),
     auditHash: "",
     auditor: "bean",
-    type: ["modelImprovement", "parametrization"],
+    type: ["modelImprovement"],
   },
   {
     name: "PI-12",
