@@ -44,6 +44,17 @@ interface TimelineEvent {
 // Pinto Improvement Proposals
 const piAudits: TimelineEvent[] = [
   {
+    name: "PI-13",
+    description: "Dynamic Convert Up Bonus and Optimizations",
+    githubLink: "https://github.com/pinto-org/protocol/pull/46",
+    hashLink: "",
+    date: "October 21, 2025",
+    timestamp: new Date("October 18, 2025").getTime(),
+    auditHash: "",
+    auditor: "bean",
+    type: ["modelImprovement", "parametrization"],
+  },
+  {
     name: "PI-12",
     description: "Decrease Excessively Low L2SR Threshold",
     githubLink: "https://github.com/pinto-org/protocol/issues/142",
