@@ -267,7 +267,6 @@ function TractorOrdersPanelGeneric({
 
   return (
     <div className="flex flex-col gap-4 w-full">
-      <Button onClick={() => executionsQuery.refetch()}>refetch</Button>
       {/* Filter and Sort Controls (if enabled) */}
       {/* Orders List */}
       {unifiedOrders.map((order, index) => {

@@ -1,6 +1,6 @@
 import { diamondABI } from "@/constants/abi/diamondABI";
 
-import { TokenValue } from "@/classes/TokenValue";
+import { TV, TokenValue } from "@/classes/TokenValue";
 import { Col, Row } from "@/components/Container";
 import { Form } from "@/components/Form";
 import TooltipSimple from "@/components/TooltipSimple";
@@ -26,7 +26,11 @@ import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetT
 import useSignTractorBlueprint from "@/hooks/tractor/useSignTractorBlueprint";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
 import useTransaction from "@/hooks/useTransaction";
-import { LowStalkDepositsMode, tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
+import {
+  LowStalkDepositsMode,
+  tractorTokenStrategyUtil as StrategyUtil,
+  prepareRequisitionForTxn,
+} from "@/lib/Tractor";
 import { useGetBlueprintHash } from "@/lib/Tractor/blueprint";
 import { ConvertUpOrderbookEntry } from "@/lib/Tractor/convertUp/tractor-convert-up-types";
 import {
@@ -36,6 +40,7 @@ import {
   TractorTokenStrategy,
   TractorTokenStrategyUnion,
 } from "@/lib/Tractor/types";
+import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
@@ -150,6 +155,9 @@ function ModifyConvertUpOrderProvider({
 
       const transformed = transformConvertUpFormValues(values, chainId);
 
+      const seedDiff = transformed.seedDifference;
+      const isSeedDiff = seedDiff.tv.gt(1n);
+
       const newDraftState = val
         ? {
             ...transformed,
@@ -160,7 +168,8 @@ function ModifyConvertUpOrderProvider({
             minConvertBonusCapacity: transformed.minConvertBonusCapacity.tv.toHuman(),
             maxGrownStalkPerBdv: transformed.maxGrownStalkPerBdv.tv.toHuman(),
             grownStalkPerBdvBonusBid: transformed.grownStalkPerBdvBonusBid.tv.toHuman(),
-            seedDifference: transformed.seedDifference.tv.toHuman(),
+            seedDifference: seedDiff.tv.toHuman(),
+            seedDifferenceCheck: isSeedDiff,
             maxPriceToConvertUp: transformed.maxPriceToConvertUp.tv.toHuman(),
             minPriceToConvertUp: transformed.minPriceToConvertUp.tv.toHuman(),
             maxGrownStalkPerBdvPenalty: transformed.maxGrownStalkPerBdvPenalty.tv.toHuman(),
@@ -220,9 +229,13 @@ function ModifyConvertUpOrderProvider({
         tokenStrategy = { type: "LOWEST_SEEDS" as const };
       }
 
+      const seedDiff = data.convertUpParams.seedDifference;
+      const isSeedDiff = seedDiff.eq(TV.fromBigInt(1n, seedDiff.decimals));
+
       // Prepare the prefill values - handle TokenValue objects properly
       const prefillValues = {
         tokenStrategy: tokenStrategy ?? { type: "LOWEST_SEEDS" as const },
+        capAmountToBonusCapacity: data.convertUpParams.capAmountToBonusCapacity,
         totalBeanAmountToConvert: data.convertUpParams.totalBeanAmountToConvert.toHuman(),
         minBeansConvertPerExecution: data.convertUpParams.minBeansConvertPerExecution.toHuman(),
         maxBeansConvertPerExecution: data.convertUpParams.maxBeansConvertPerExecution.toHuman(),
@@ -234,7 +247,8 @@ function ModifyConvertUpOrderProvider({
         maxPriceToConvertUp: data.convertUpParams.maxPriceToConvertUp.toHuman(),
         minPriceToConvertUp: data.convertUpParams.minPriceToConvertUp.toHuman(),
         maxGrownStalkPerBdvPenalty: data.convertUpParams.maxGrownStalkPerBdvPenalty.toHuman(),
-        seedDifference: data.convertUpParams.seedDifference.toHuman(),
+        seedDifference: seedDiff.toHuman(),
+        seedDifferenceCheck: isSeedDiff,
         slippageRatio: data.convertUpParams.slippageRatio.toHuman(),
         operatorTip: data.opParams.operatorTipAmount.toHuman(),
         lowStalkDeposits: data.convertUpParams.lowStalkDeposits,
@@ -833,6 +847,7 @@ function ModifyConvertUpOrderReviewDialog({
   const { address } = useAccount();
   const protocolAddress = useProtocolAddress();
   const queryClient = useQueryClient();
+  const farmerOrders = useTractorConvertUpOrderbook({ address });
 
   // Accordion state for advanced fields
   const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
@@ -850,7 +865,7 @@ function ModifyConvertUpOrderReviewDialog({
     successMessage: "Order modified successfully",
     errorMessage: "Failed to modify order",
     successCallback: () => {
-      queryClient.invalidateQueries();
+      farmerOrders.refetch();
       onOpenChange(false);
       if (onSuccess) {
         onSuccess();
@@ -880,6 +895,9 @@ function ModifyConvertUpOrderReviewDialog({
       return;
     }
 
+    const prevRequisition = prepareRequisitionForTxn(existingOrder.requisition);
+    const preparedRequisition = prepareRequisitionForTxn(signedRequisition);
+
     try {
       setSubmitting(true);
       toast.loading("Modifying order...");
@@ -890,16 +908,13 @@ function ModifyConvertUpOrderReviewDialog({
         encodeFunctionData({
           abi: diamondABI,
           functionName: "cancelBlueprint",
-          args: [existingOrder.requisition],
+          args: [prevRequisition],
         }),
         // Create the new order (publish requisition)
         encodeFunctionData({
           abi: diamondABI,
           functionName: "publishRequisition",
-          args: [
-            // Type cast is okay here since we check signature above
-            signedRequisition as Required<Requisition>,
-          ],
+          args: [preparedRequisition],
         }),
       ];
 
@@ -1313,10 +1328,10 @@ function getDiffs(mapping: ReturnType<typeof getMapping>) {
       }
 
       if ("addresses" in prev && "addresses" in curr) {
-        if (
-          prev.addresses.length !== curr.addresses.length ||
-          prev.addresses.some((adr, index) => stringEq(adr, curr.addresses[index]))
-        ) {
+        const nonSameLen = prev.addresses.length !== curr.addresses.length;
+        // Check if the addresses are different. Order is important here.
+        const nonSameAddr = prev.addresses.some((adr, index) => !stringEq(adr, curr.addresses[index]));
+        if (nonSameLen || nonSameAddr) {
           hasChanged = true;
           valueDiff = { label, prev, curr };
         }

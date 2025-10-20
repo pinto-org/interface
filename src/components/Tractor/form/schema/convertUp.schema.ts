@@ -216,7 +216,7 @@ export const convertUpOrderDialogSchema = z
 export type ConvertUpV0FormSchema = FormSchema<string>;
 
 // Default values for the form
-const defaultConvertOrderUpValues: FormSchema = {
+export const defaultConvertOrderUpValues: FormSchema = {
   // Initial required fields
   tokenStrategy: { type: "LOWEST_SEEDS" }, // Default to first silo token
   totalBeanAmountToConvert: "",
@@ -402,6 +402,8 @@ export const transformConvertUpFormValues = (values: FormSchema, chainId: number
   const operatorTip = postSanitizedSanitizedValue(values.operatorTip, dc.operatorTip);
   const customOperatorTip = postSanitizedSanitizedValue(values.customOperatorTip ?? "", dc.operatorTip);
   const slippageRatio = postSanitizedSanitizedValue(values.slippageRatio, dc.slippageRatio);
+
+  const { seedDifferenceCheck: _, ...cleanedValues } = values;
 
   return {
     ...values,

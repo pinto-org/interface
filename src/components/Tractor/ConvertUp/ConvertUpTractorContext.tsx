@@ -67,6 +67,23 @@ export default function ConvertUpOrderProvider({ children, onOpenChange, disallo
 
   const form = useConvertUpV0Form();
 
+  /**
+   * Manages the draft state of the form, allowing preservation of form values
+   * when switching between views or comparing against original values.
+   *
+   * @param val - true to activate draft mode (saves current form state), false to deactivate
+   *
+   * When activated:
+   * - Captures current form values
+   * - Transforms them to their final format via transformConvertUpFormValues
+   * - Converts all numeric TokenValue fields to human-readable strings
+   * - Stores this snapshot as originalValues for later reference
+   *
+   * Common usage scenarios:
+   * - Preserving form state when navigating to advanced settings
+   * - Comparing current values against a saved baseline
+   * - Restoring form to a previous state after cancellation
+   */
   const toggleDraftState = useCallback(
     (val: boolean) => {
       const values = form.form.getValues();

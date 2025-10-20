@@ -16,6 +16,7 @@ import {
 } from "@/lib/Tractor";
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
+import useConvertStalkPerBdvBonusAndMaximumCapacity from "@/state/useConvertStalkPerBdvBonusData";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { formatter } from "@/utils/format";
 import { TimeScale, timeScaleToDisplay } from "@/utils/time";
@@ -28,7 +29,12 @@ import { toast } from "sonner";
 import { useAccount } from "wagmi";
 import { CONVERT_UP_TOOLTIP_COPY } from "../form/fields/ConvertUpOrderV0Fields";
 import { OperatorTipFormField, TractorFormButtonsRow, TractorOperatorTipStrategy } from "../form/fields/sharedFields";
-import { ConvertUpV0FormSchema, TractorConvertUpFormKeys, useConvertUpV0State } from "../form/schema/convertUp.schema";
+import {
+  ConvertUpV0FormSchema,
+  TractorConvertUpFormKeys,
+  defaultConvertOrderUpValues,
+  useConvertUpV0State,
+} from "../form/schema/convertUp.schema";
 import ConvertUpCustomOperatorTipForm, { ConvertUpEstimatedTipPaid } from "./ConvertUpOperatorTipForm";
 import ConvertUpTractorAdvancedForm from "./ConvertUpTractorAdvancedForm";
 import { ConvertUpTractorOrderFormStep, useConvertUpOrderFormContext } from "./ConvertUpTractorContext";
@@ -54,6 +60,7 @@ const ConvertUpTractorReviewController = ({
   const { address } = useAccount();
   const { refetch: refetchOrders } = useTractorConvertUpOrderbook();
   const { refetch: refetchFarmerOrders } = useTractorConvertUpOrderbook({ address });
+  const { data: bonusData } = useConvertStalkPerBdvBonusAndMaximumCapacity();
 
   // Blueprint creation state
   const farmerDeposits = useFarmerSilo();
@@ -253,6 +260,11 @@ const ConvertUpTractorReviewController = ({
           open={showReviewDialog}
           onOpenChange={setShowReviewDialog}
           onSuccess={() => {
+            setFormStep(ConvertUpTractorOrderFormStep.ENTRY);
+            form.reset({
+              ...defaultConvertOrderUpValues,
+              grownStalkPerBdvBonusBid: bonusData?.bonus?.toHuman() ?? "",
+            });
             onOpenChange(false);
             refetchOrders();
             refetchFarmerOrders();

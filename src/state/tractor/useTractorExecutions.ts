@@ -99,7 +99,7 @@ export default function usePublisherTractorExecutions(
 
       const allExecutions: PublisherTractorExecution[] = [...sowBlueprintv0, ...convertUpBlueprint];
 
-      console.log("[Tractor/mergeExecutions] onchain executions", onChainExecutions);
+      // console.log("[Tractor/mergeExecutions] onchain executions", onChainExecutions);
 
       // Filter out any on-chain executions that already exist in the API data & add the SOW_V0 executions if sowEvent is present
       onChainExecutions?.forEach((exec) => {
@@ -110,7 +110,7 @@ export default function usePublisherTractorExecutions(
 
       // Combine and sort all executions
       allExecutions.sort((a, b) => b.blockNumber - a.blockNumber);
-      console.log("[Tractor/mergeExecutions] All executions", allExecutions);
+      // console.log("[Tractor/mergeExecutions] All executions", allExecutions);
 
       return allExecutions;
     },

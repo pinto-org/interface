@@ -115,6 +115,8 @@ export async function createConvertUpTractorData({
     },
   } as const;
 
+  console.log("struct", struct);
+
   // Encode the convertUpBlueprintv0 function call
   const convertUpCall = encodeFunctionData({
     abi: convertUpBlueprintV0ABI,

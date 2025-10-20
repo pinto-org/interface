@@ -233,7 +233,7 @@ export function useTractorConvertUpOrderbook<T = ConvertUpOrderbookEntry[]>(
     if (chainOnly) {
       return ordersChainQuery.refetch();
     }
-    return ordersQuery.refetch();
+    return Promise.all([ordersQuery.refetch(), ordersChainQuery.refetch()]);
     // no need to refetch the chain query, it will refetch automatically when the orders refetch
   }, [ordersChainQuery, ordersQuery, chainOnly]);
 
