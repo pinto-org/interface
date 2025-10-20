@@ -51,10 +51,10 @@ const ConvertUpTractorAdvancedForm = ({ onSubmit, onCancel }: Props) => {
           <Fields.MaxConvertBdvPerExecution />
         </Row>
         <Fields.CapAmountToBonusCapacity />
+        <Fields.SeedDifference />
         <Fields.MinConvertBonusCapacity />
         <Fields.MaxGrownStalkPerBdvPenalty />
         <Fields.MaxGrownStalkPerBdv />
-        <Fields.SeedDifference />
         <Fields.SlippageRatio />
         <Fields.LowStalkDepositsSelect />
       </Fields>

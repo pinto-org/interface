@@ -19,6 +19,7 @@ import { useAccount, useChainId, usePublicClient } from "wagmi";
 import { z } from "zod";
 
 import { TV } from "@/classes/TokenValue";
+import { SEEDS } from "@/constants/internalTokens";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { getChainConstant } from "@/utils/chain";
 import FormUtils from "@/utils/form";
@@ -48,6 +49,7 @@ type FormSchema<T = string> = {
   maxPriceToConvertUp: T;
   minPriceToConvertUp: T;
   seedDifference: T;
+  seedDifferenceCheck: boolean;
   maxGrownStalkPerBdvPenalty: T;
   slippageRatio: T;
   operatorTip: T;
@@ -105,6 +107,7 @@ const inferrableKeys: (keyof FormSchema)[] = [
   "maxGrownStalkPerBdv",
   "maxGrownStalkPerBdvPenalty",
   "lowStalkDeposits",
+  "seedDifferenceCheck",
   "operatorTip",
   "seedDifference",
   "slippageRatio",
@@ -148,6 +151,7 @@ export const convertUpOrderDialogSchema = z
     grownStalkPerBdvBonusBid: nonNegativeNumber("Min Grown Stalk per BDV Bonus"),
 
     seedDifference: z.string().min(1, "Seed Difference is required"),
+    seedDifferenceCheck: z.boolean().default(false),
 
     // Price constraints
     maxPriceToConvertUp: positiveNumber("Max Price").refine((data) => {
@@ -221,7 +225,8 @@ const defaultConvertOrderUpValues: FormSchema = {
   grownStalkPerBdvBonusBid: "",
 
   // inferrable fields
-  seedDifference: "",
+  seedDifferenceCheck: false,
+  seedDifference: TV.fromBigInt(1n, SEEDS.decimals).toHuman(),
   minBeansConvertPerExecution: "",
   maxBeansConvertPerExecution: "",
   capAmountToBonusCapacity: true, // default to capping enabled
@@ -350,6 +355,8 @@ const getSecondsBetweenConverts = (minTimeBetweenConverts: TV, timeScale: TimeSc
   }
 };
 
+const MICRO_SEED = TV.fromBigInt(1n, SEEDS.decimals);
+
 export const transformConvertUpFormValues = (values: FormSchema, chainId: number): FormSchema<SanitizedTV> => {
   const dc = getTractorConvertUpParamsDecimalConfig(chainId);
 
@@ -385,7 +392,12 @@ export const transformConvertUpFormValues = (values: FormSchema, chainId: number
     dc.maxGrownStalkPerBdvPenalty,
   );
 
-  const seedDifference = postSanitizedSanitizedValue(values.seedDifference, dc.seedDifference, true);
+  // Default seed difference if seed difference check is false
+  const seedDifference: SanitizedTV = postSanitizedSanitizedValue(
+    !values.seedDifferenceCheck ? MICRO_SEED.toHuman() : values.seedDifference,
+    dc.seedDifference,
+    true,
+  );
 
   const operatorTip = postSanitizedSanitizedValue(values.operatorTip, dc.operatorTip);
   const customOperatorTip = postSanitizedSanitizedValue(values.customOperatorTip ?? "", dc.operatorTip);

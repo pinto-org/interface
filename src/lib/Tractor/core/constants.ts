@@ -6,7 +6,7 @@ import { LowStalkDepositsMode } from "./shared-tractor-types";
 
 // Block number at which Tractor was deployed - use this as starting point for event queries
 export const TRACTOR_DEPLOYMENT_BLOCK = 28930876n;
-export const TRACTOR_DEPLOYMENT_BLOCK_CONVERT_UP = 36509748n;
+export const TRACTOR_DEPLOYMENT_BLOCK_CONVERT_UP = 37073327n;
 
 export const TRACTOR_TOKEN_STRATEGY_INDICIES = {
   LOWEST_PRICE: 254,

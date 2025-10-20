@@ -440,7 +440,11 @@ const AdvancedParametersSummary = ({
         tooltip={CONVERT_UP_TOOLTIP_COPY.capAmountToBonusCapacity}
         value={values.capAmountToBonusCapacity ? "Yes" : "No"}
       />
-      <ReviewRow label={seedDiffLabel} tooltip={seedDiffTooltip} value={`${formatter.number(seedDiffAbs)} Seeds`} />
+      <ReviewRow
+        label={seedDiffLabel}
+        tooltip={seedDiffTooltip}
+        value={`${formatter.number(seedDiffAbs, { minValue: 0.01 })} Seeds`}
+      />
       <ReviewRow
         label="Slippage Tolerance"
         tooltip={CONVERT_UP_TOOLTIP_COPY.slippageRatio}

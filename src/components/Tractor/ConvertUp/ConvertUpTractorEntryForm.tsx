@@ -257,13 +257,13 @@ const EstimatedSeasonsOfGrownStalk = ({
   return (
     <Row className="w-full justify-between">
       <Row className="gap-1 items-center">
-        <Label variant="form">Approximate Seasons of Grown Stalk Gained</Label>
+        <Label variant="form">Approximate Seasons of Stalk Gained</Label>
         <TooltipSimple
           content="The approximate number Seasons of Stalk that will be gained if this order is cleared."
           variant="outlined"
         />
       </Row>
-      <div className="pinto-sm-light text-pinto-green-4">~ {seasonsOfGrownStalk}</div>
+      <div className="pinto-sm-light text-pinto-green-4">~ {seasonsOfGrownStalk} season(s)</div>
     </Row>
   );
 };

@@ -224,7 +224,7 @@ ConvertUpOrderV0Fields.MinConvertBdvPerExecution = function MinConvertBdvPerExec
         {...sharedInputProps}
         placeholder="0.00"
         isError={isError}
-        endIcon={<TextAdornment text="PDV" />}
+        endIcon={<PDVIconAdornment />}
       />
     </Col>
   );
@@ -242,7 +242,7 @@ ConvertUpOrderV0Fields.MaxConvertBdvPerExecution = function MaxConvertBdvPerExec
         {...sharedInputProps}
         placeholder="0.00"
         isError={isError}
-        endIcon={<TextAdornment text="PDV" />}
+        endIcon={<PDVIconAdornment />}
       />
     </Col>
   );
@@ -312,7 +312,7 @@ ConvertUpOrderV0Fields.MinConvertBonusCapacity = function MinConvertBonusCapacit
               {...handlers}
               placeholder="0.00"
               isError={!!fieldState.error}
-              endIcon={<TextAdornment text="PDV" />}
+              endIcon={<PDVIconAdornment />}
             />
           </FormControl>
         </FormItem>
@@ -549,7 +549,9 @@ ConvertUpOrderV0Fields.MaxGrownStalkPerBdvPenalty = function MaxGrownStalkPerBdv
       name="maxGrownStalkPerBdvPenalty"
       render={({ field, fieldState }) => (
         <FormItem>
-          <FormLabel tooltipText={TOOLTIP_COPY.maxGrownStalkPerBdvPenalty}>Max Grown Stalk per BDV Penalty</FormLabel>
+          <FormLabel tooltipText={TOOLTIP_COPY.maxGrownStalkPerBdvPenalty}>
+            Max Grown Stalk per PDV Penalty Percent
+          </FormLabel>
           <FormControl>
             <Input
               {...field}
@@ -570,21 +572,63 @@ ConvertUpOrderV0Fields.SeedDifference = function SeedDifference() {
   const ctx = useFormContext<ConvertUpV0FormSchema>();
   const handlers = useFieldHandlers(ctx, "seedDifference", SEEDS.decimals, true);
 
+  const [shouldSeedCheck] = useWatch({ control: ctx.control, name: ["seedDifferenceCheck"] });
+
   return (
-    <FormField
-      control={ctx.control}
-      name="seedDifference"
-      render={({ field, fieldState }) => (
-        <FormItem>
-          <FormLabel tooltipText={TOOLTIP_COPY.seedDifference}>Min Seed Difference</FormLabel>
-          <FormControl>
-            <Input {...field} {...sharedInputProps} {...handlers} placeholder="0.00" isError={!!fieldState.error} />
-          </FormControl>
-        </FormItem>
-      )}
-    />
+    <>
+      <FormField
+        control={ctx.control}
+        name="seedDifferenceCheck"
+        render={({ field }) => (
+          <FormItem>
+            <Row className="gap-2 w-full justify-between">
+              <FormLabel tooltipText={TOOLTIP_COPY.seedDifference}>
+                Check for Seed difference before Converting
+              </FormLabel>
+              <FormControl>
+                <Switch checked={field.value} onCheckedChange={field.onChange} />
+              </FormControl>
+            </Row>
+          </FormItem>
+        )}
+      />
+      {shouldSeedCheck ? (
+        <FormField
+          control={ctx.control}
+          name="seedDifference"
+          render={({ field, fieldState }) => (
+            <FormItem>
+              <FormLabel tooltipText={TOOLTIP_COPY.seedDifference}>Min Seed Difference</FormLabel>
+              <FormControl>
+                <Input {...field} {...sharedInputProps} {...handlers} placeholder="0.00" isError={!!fieldState.error} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+      ) : null}
+    </>
   );
 };
+
+// ConvertUpOrderV0Fields.SeedDifference = function SeedDifference() {
+//   const ctx = useFormContext<ConvertUpV0FormSchema>();
+//   const handlers = useFieldHandlers(ctx, "seedDifference", SEEDS.decimals, true);
+
+//   return (
+//     <FormField
+//       control={ctx.control}
+//       name="seedDifference"
+//       render={({ field, fieldState }) => (
+//         <FormItem>
+//           <FormLabel tooltipText={TOOLTIP_COPY.seedDifference}>Min Seed Difference</FormLabel>
+//           <FormControl>
+//             <Input {...field} {...sharedInputProps} {...handlers} placeholder="0.00" isError={!!fieldState.error} />
+//           </FormControl>
+//         </FormItem>
+//       )}
+//     />
+//   );
+// };
 
 ConvertUpOrderV0Fields.SlippageRatio = function SlippageRatio() {
   const { register, isError } = useFormFieldProps("slippageRatio", 18);
