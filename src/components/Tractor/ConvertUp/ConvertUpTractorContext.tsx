@@ -1,9 +1,13 @@
+import { TV } from "@/classes/TokenValue";
 import { Form } from "@/components/Form";
 import {
   ConvertUpV0FormSchema,
   transformConvertUpFormValues,
   useConvertUpV0Form,
 } from "@/components/Tractor/form/schema/convertUp.schema";
+import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetTractorTokenStrategy";
+import { ConvertUpOrderbookEntry } from "@/lib/Tractor/convertUp/tractor-convert-up-types";
+import { ExtendedTractorTokenStrategy } from "@/lib/Tractor/types";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { exists } from "@/utils/utils";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
@@ -35,6 +39,12 @@ export interface IConvertUpOrderFormContext extends ReturnType<typeof useConvert
   setDraftState: (val: boolean) => void;
   onOpenChange: (open: boolean) => void;
   disallowCloseForm: boolean;
+
+  // Optional fields for modify mode
+  mode?: "create" | "modify";
+  existingOrder?: ConvertUpOrderbookEntry;
+  onOrderModified?: () => void;
+  getStrategyProps?: ReturnType<typeof useGetTractorTokenStrategyWithBlueprint>;
 }
 
 export const ConvertUpOrderFormContext = createContext<IConvertUpOrderFormContext | null>(null);
@@ -52,9 +62,21 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   disallowCloseForm?: boolean;
   children: React.ReactNode;
+
+  // Optional props for modify mode
+  mode?: "create" | "modify";
+  existingOrder?: ConvertUpOrderbookEntry;
+  onOrderModified?: () => void;
 }
 
-export default function ConvertUpOrderProvider({ children, onOpenChange, disallowCloseForm = false }: Props) {
+export default function ConvertUpOrderProvider({
+  children,
+  onOpenChange,
+  disallowCloseForm = false,
+  mode = "create",
+  existingOrder,
+  onOrderModified,
+}: Props) {
   const [formStep, setFormStep] = useState(ConvertUpTractorOrderFormStep.ENTRY);
   const chainId = useChainId();
 
@@ -66,6 +88,9 @@ export default function ConvertUpOrderProvider({ children, onOpenChange, disallo
   });
 
   const form = useConvertUpV0Form();
+
+  // Always call the hook, but only include in context for modify mode
+  const getStrategyProps = useGetTractorTokenStrategyWithBlueprint();
 
   /**
    * Manages the draft state of the form, allowing preservation of form values
@@ -120,14 +145,83 @@ export default function ConvertUpOrderProvider({ children, onOpenChange, disallo
   // External hooks
   const { data: averageTipPaid } = useTractorOperatorAverageTipPaid();
 
+  // Pre-fill form with existing order data (modify mode only)
+  const [didPrefill, setDidPrefill] = useState(false);
+  useEffect(() => {
+    if (mode !== "modify" || !existingOrder || didPrefill || getStrategyProps.isLoading || !existingOrder.decodedData) {
+      return;
+    }
+
+    try {
+      const data = existingOrder.decodedData;
+
+      if (!data.convertUpParams || !data.opParams) {
+        console.error("Invalid decoded data structure:", data);
+        return;
+      }
+
+      if (!data.convertUpParams.sourceTokenIndices || !Array.isArray(data.convertUpParams.sourceTokenIndices)) {
+        console.error("Invalid sourceTokenIndices:", data.convertUpParams);
+        return;
+      }
+
+      let tokenStrategy: ExtendedTractorTokenStrategy | undefined;
+      try {
+        tokenStrategy = getStrategyProps.getTokenStrategy({
+          sourceTokenIndices: data.convertUpParams.sourceTokenIndices,
+        });
+      } catch (strategyError) {
+        console.error("Error getting token strategy:", strategyError);
+        tokenStrategy = { type: "LOWEST_SEEDS" as const };
+      }
+
+      const seedDiff = data.convertUpParams.seedDifference;
+      const isSeedDiff = seedDiff.eq(TV.fromBigInt(1n, seedDiff.decimals));
+
+      const prefillValues = {
+        tokenStrategy: tokenStrategy ?? { type: "LOWEST_SEEDS" as const },
+        capAmountToBonusCapacity: data.convertUpParams.capAmountToBonusCapacity,
+        totalBeanAmountToConvert: data.convertUpParams.totalBeanAmountToConvert.toHuman(),
+        minBeansConvertPerExecution: data.convertUpParams.minBeansConvertPerExecution.toHuman(),
+        maxBeansConvertPerExecution: data.convertUpParams.maxBeansConvertPerExecution.toHuman(),
+        minTimeBetweenConverts: data.convertUpParams.minTimeBetweenConverts.toHuman(),
+        timeScale: "SECONDS" as const,
+        minConvertBonusCapacity: data.convertUpParams.minConvertBonusCapacity.toHuman(),
+        maxGrownStalkPerBdv: data.convertUpParams.maxGrownStalkPerBdv.toHuman(),
+        grownStalkPerBdvBonusBid: data.convertUpParams.grownStalkPerBdvBonusBid.toHuman(),
+        maxPriceToConvertUp: data.convertUpParams.maxPriceToConvertUp.toHuman(),
+        minPriceToConvertUp: data.convertUpParams.minPriceToConvertUp.toHuman(),
+        maxGrownStalkPerBdvPenalty: data.convertUpParams.maxGrownStalkPerBdvPenalty.toHuman(),
+        seedDifference: seedDiff.toHuman(),
+        seedDifferenceCheck: isSeedDiff,
+        slippageRatio: data.convertUpParams.slippageRatio.toHuman(),
+        operatorTip: data.opParams.operatorTipAmount.toHuman(),
+        lowStalkDeposits: data.convertUpParams.lowStalkDeposits,
+      };
+
+      form.prefillValues(prefillValues);
+      setDidPrefill(true);
+    } catch (error) {
+      console.error("Failed to pre-fill form:", error);
+    }
+  }, [mode, existingOrder, didPrefill, form.prefillValues, getStrategyProps]);
+
   // Initialize operator tip
   const [didInitOperatorTip, setDidInitOperatorTip] = useState(false);
   useEffect(() => {
-    if (!didInitOperatorTip && exists(averageTipPaid)) {
+    const shouldInit =
+      mode === "create"
+        ? !didInitOperatorTip && exists(averageTipPaid)
+        : !didInitOperatorTip && exists(averageTipPaid) && didPrefill;
+
+    if (shouldInit) {
       setDidInitOperatorTip(true);
-      form.form.setValue("operatorTip", averageTipPaid.toFixed(2));
+      const currentTip = form.form.getValues("operatorTip");
+      if (!currentTip || mode === "create") {
+        form.form.setValue("operatorTip", averageTipPaid?.toFixed(2) ?? "");
+      }
     }
-  }, [averageTipPaid, form.form.setValue, didInitOperatorTip]);
+  }, [mode, averageTipPaid, form.form, didInitOperatorTip, didPrefill]);
 
   const handleSetOperatorTipPreset = useCallback(
     (preset: TractorOperatorTipStrategy) => {
@@ -148,6 +242,13 @@ export default function ConvertUpOrderProvider({ children, onOpenChange, disallo
         setFormStep,
         onOpenChange,
         setOperatorTipPreset: handleSetOperatorTipPreset,
+        // Include mode-specific fields
+        mode,
+        ...(mode === "modify" && {
+          existingOrder,
+          onOrderModified,
+          getStrategyProps,
+        }),
       }}
     >
       <Form {...form.form}>{children}</Form>
