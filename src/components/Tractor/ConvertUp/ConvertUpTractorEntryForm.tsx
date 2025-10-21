@@ -34,7 +34,6 @@ const ConvertUpTractorEntryForm = ({
   isLoading = false,
   didSetAdvancedFormFields,
   setDidSetAdvancedFormFields,
-  disallowCloseForm,
 }: {
   isLoading?: boolean;
   farmerSilo: ReturnType<typeof useFarmerSilo>;
@@ -42,7 +41,6 @@ const ConvertUpTractorEntryForm = ({
   calculations: ReturnType<typeof useSowOrderV0Calculations>;
   didSetAdvancedFormFields: boolean;
   setDidSetAdvancedFormFields: (val: boolean) => void;
-  disallowCloseForm?: boolean;
 }) => {
   const { form, setFormStep, onOpenChange } = useConvertUpOrderFormContext();
   const [showTokenStrategyDialog, setShowTokenStrategyDialog] = useState(false);
@@ -149,7 +147,7 @@ const ConvertUpTractorEntryForm = ({
             <Fields.PriceRange />
             <Col className="gap-3">
               <Fields.GrownStalkPerBdvBonusBid />
-              <EstimatedSeasonsOfGrownStalk siloData={siloData} />
+              <EstimatedSeasonsOfGrownStalk />
             </Col>
           </>
         </Col>
@@ -225,15 +223,12 @@ const ButtonRow = ({
     />
   );
 };
+
 /**
  * Isolated component that displays the estimated number of seasons of grown stalk that will be gained
  * given the current form values.
  */
-const EstimatedSeasonsOfGrownStalk = ({
-  siloData,
-}: {
-  siloData: ReturnType<typeof useSiloData>;
-}) => {
+const EstimatedSeasonsOfGrownStalk = () => {
   const { form } = useConvertUpOrderFormContext();
   const mainToken = useMainToken();
 
@@ -338,16 +333,11 @@ const inferAdvancedFormFields = (
   const minSizePerExecution = postSanitizedSanitizedValue(values.minBeansConvertPerExecution, mainTokenDecimals).tv;
   const maxSizePerExecution = postSanitizedSanitizedValue(values.maxBeansConvertPerExecution, mainTokenDecimals).tv;
 
-  // Default to min of (5% of total convert bdv) or (100 PDV)
+  // min(TotalValueToConvert, min(50 BDV, 5%-10%))
   const defaultMinSizePerExecution = TV.min(
-    totalConvertBdv.mul(TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS.minSizePerExecutionPct),
     TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS.minSizePerExecution,
-  );
-
-  // default to min of (10% of total convert bdv) or (125 PDV)
-  const defaultMaxSizePerExecution = TV.min(
-    totalConvertBdv.sub(TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS.maxSizePerExecutionPct),
-    TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS.maxSizePerExecution,
+    totalConvertBdv.mul(TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS.minSizePerExecutionPct),
+    totalConvertBdv,
   );
 
   const preparedArgs = {
@@ -355,7 +345,8 @@ const inferAdvancedFormFields = (
     totalBeanAmountToConvert: totalConvertBdv,
     minConvertBonusCapacity: defaultMinSizePerExecution,
     minBeansConvertPerExecution: minSizePerExecution.eq(0) ? defaultMinSizePerExecution : minSizePerExecution,
-    maxBeansConvertPerExecution: maxSizePerExecution.eq(0) ? defaultMaxSizePerExecution : maxSizePerExecution,
+    // default to total convert bdv if max size per execution is not set
+    maxBeansConvertPerExecution: maxSizePerExecution.eq(0) ? totalConvertBdv : maxSizePerExecution,
     minPriceToConvertUp,
     maxPriceToConvertUp,
     minTimeBetweenConverts: values.minTimeBetweenConverts,

@@ -98,7 +98,7 @@ export default function ConvertUpOrderV0Fields({ children }: { children: React.R
 const PDVIconAdornment = () => {
   return (
     <div className="flex items-center gap-2 pr-4 pl-2 bg-white">
-      <img src={PDVIcon} alt="PDV" className="w-5 h-4" />
+      <img src={PDVIcon} alt="PDV" className="w-5 h-4 mb-0.5" />
       <span className="hidden sm:block text-black pinto-sm-light">PDV</span>
     </div>
   );

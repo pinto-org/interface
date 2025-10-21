@@ -61,8 +61,6 @@ function TractorOrdersPanelGeneric({
   const protocolAddress = useProtocolAddress();
   const getStrategyProps = useGetTractorTokenStrategyWithBlueprint();
 
-  const averageTipPaid = useTractorOperatorAverageTipPaid();
-
   // State for dialogs and filters
   const [selectedOrder, setSelectedOrder] = useState<UnifiedTractorOrder | null>(null);
   const [showDialog, setShowDialog] = useState<"review" | "modify" | undefined>(undefined);

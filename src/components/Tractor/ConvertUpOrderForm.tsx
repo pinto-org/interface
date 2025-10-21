@@ -34,12 +34,6 @@ import { ConvertUpV0FormSchema } from "./form/schema/convertUp.schema";
  *          - Go back to Review
  *      - Save Changes
  *          - Go back to Review
- *   - Custom Operator Tip:
- *      - Back:
- *          - Revert to previous operator tip preset
- *          - Go back to Review
- *      - Save Changes:
- *          - Go back to Review
  *
  *
  */
@@ -72,10 +66,10 @@ const REVIEW_STEPS = new Set([FormStep.REVIEW, FormStep.ADVANCED, FormStep.OPERA
 function ConvertUpOrderFormController() {
   // External hooks
   const { formStep } = useConvertUpOrderFormContext();
-  const calculations = useSowOrderV0Calculations();
+  const calculations = useSowOrderV0Calculations({ disableSwapCalc: true });
   const farmerSilo = useFarmerSilo();
   const siloData = useSiloData();
-  const { data: averageTipPaid } = useTractorOperatorAverageTipPaid();
+  const { data: averageTipPaid = 0.15 } = useTractorOperatorAverageTipPaid();
 
   useInitBonusField();
 
@@ -95,7 +89,7 @@ function ConvertUpOrderFormController() {
         />
       )}
       {REVIEW_STEPS.has(formStep) && (
-        <ConvertUpTractorReviewController didInitAdv={didInitRestFields} averageTipPaid={averageTipPaid ?? 1} />
+        <ConvertUpTractorReviewController didInitAdv={didInitRestFields} averageTipPaid={averageTipPaid} />
       )}
     </Col>
   );

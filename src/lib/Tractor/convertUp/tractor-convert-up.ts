@@ -54,10 +54,8 @@ const guardDecimals = (args: PreparedConvertUpArgs<TV>, chainId: number) => {
 // ────────────────────────────────────────────────────────────────────────────────
 
 export const TRACTOR_CONVERT_UP_DEFAULT_CONSTRAINTS = {
-  minSizePerExecution: TV.fromHuman("100", 6),
-  maxSizePerExecution: TV.fromHuman("125", 6),
+  minSizePerExecution: TV.fromHuman("50", 6),
   minSizePerExecutionPct: 0.05,
-  maxSizePerExecutionPct: 0.1,
 } as const;
 
 export async function createConvertUpTractorData({

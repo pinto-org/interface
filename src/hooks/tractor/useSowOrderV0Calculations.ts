@@ -9,7 +9,11 @@ import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { DepositData } from "@/utils/types";
 
-export default function useSowOrderV0Calculations() {
+type UseSowOrderV0CalculationsOptions = {
+  disableSwapCalc?: boolean;
+};
+
+export default function useSowOrderV0Calculations(options?: UseSowOrderV0CalculationsOptions) {
   const farmerSilo = useFarmerSilo();
   const farmerDeposits = farmerSilo.deposits;
   const { whitelistedTokens, mainToken } = useTokenData();
@@ -31,7 +35,7 @@ export default function useSowOrderV0Calculations() {
     });
   }, [mainToken, farmerDeposits, lpTokens]);
 
-  const swapQuotes = useSwapMany({ args: swapArgs });
+  const swapQuotes = useSwapMany({ args: swapArgs, disabled: options?.disableSwapCalc });
 
   const swapResults = useMemo(() => {
     const results = new Map<string, TokenValue>();
@@ -119,8 +123,16 @@ export default function useSowOrderV0Calculations() {
       priceData, // return price data for convenience
       needsOptimization,
       allTokensSorted,
-      isLoading: swapQuotes.isLoading,
+      isLoading: swapQuotes.isLoading && !options?.disableSwapCalc,
     }),
-    [allTokensSorted, needsOptimization, tokenWithHighestValue, swapResults, priceData, swapQuotes.isLoading],
+    [
+      allTokensSorted,
+      needsOptimization,
+      tokenWithHighestValue,
+      swapResults,
+      priceData,
+      swapQuotes.isLoading,
+      options?.disableSwapCalc,
+    ],
   );
 }

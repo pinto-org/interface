@@ -13,7 +13,6 @@ import { Separator } from "@/components/ui/Separator";
 import { useSharedNumericFormFieldHandlers } from "@/hooks/form/useSharedNumericFormFieldHandlers";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { tractorTokenStrategyUtil as StrategyUtil, TractorTokenStrategy } from "@/lib/Tractor";
-import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useMainToken } from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { sanitizeNumericInputValue } from "@/utils/string";
