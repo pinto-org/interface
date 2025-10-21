@@ -285,6 +285,13 @@ const InlineTipFormField = ({
 
   const invalidValue = sanitizeNumericInputValue(value, mainToken.decimals).nonAmount;
 
+  const handleConfirmClick = () => {
+    if (invalidValue) {
+      return;
+    }
+    onConfirm(value);
+  };
+
   return (
     <Row className="w-full p-2 gap-2 justify-between box-border">
       <Row className="gap-2">
@@ -299,7 +306,7 @@ const InlineTipFormField = ({
         />
       </Row>
       <Row>
-        <Button variant="ghost" className="p-2 sm:p-2 h-fit" onClick={() => onConfirm(value)} disabled={invalidValue}>
+        <Button variant="ghost" className="p-2 sm:p-2 h-fit" onClick={handleConfirmClick} disabled={invalidValue}>
           <CheckIcon className={cn("w-4 h-4 text-pinto-success", invalidValue && "text-pinto-gray-2")} />
         </Button>
         <Button variant="ghost" className="p-2 sm:p-2 h-fit" onClick={onReset}>
@@ -367,6 +374,8 @@ export const OperatorTipPresetDropdown = ({
   // Set the custom tip value in the form and close the custom input
   const handleConfirmCustom = (customTipValue: string) => {
     // In case an invalid value is entered, treat it the same as a reset
+
+    console.log({ customTipValue });
     if (!customTipValue) {
       handleResetCustom();
       return;
@@ -380,6 +389,16 @@ export const OperatorTipPresetDropdown = ({
     setPrevPreset(undefined);
     setCustomOpen(false);
   };
+
+  const amountsToWithPresets = Object.values(OperatorTipPresets).map((preset) => {
+    const amt =
+      getTractorOperatorTipAmountFromPreset(preset.type, averageTipPaid, customAmount, mainToken.decimals)?.toHuman() ??
+      "";
+    return {
+      preset: preset,
+      amount: amt,
+    };
+  });
 
   return (
     <Popover modal open={isOpen} onOpenChange={setIsOpen}>
@@ -424,24 +443,21 @@ export const OperatorTipPresetDropdown = ({
           {/**
            * Preset Options
            */}
-          {Object.values(OperatorTipPresets).map((preset) => {
+          {amountsToWithPresets.map(({ amount, preset }) => {
             if (customOpen && preset.type === "Custom") {
               return null;
             }
-            const amount = getTractorOperatorTipAmountFromPreset(
-              preset.type,
-              averageTipPaid,
-              customAmount,
-              mainToken.decimals,
-            );
+            const onEndIconClick = preset.type === "Custom" ? handleOpenCustom : undefined;
+            const selected = selectedPreset === preset.type;
+
             return (
               <OperatorTipPreset
-                key={preset.type}
+                key={`operator-tip-preset-${preset.type}-${amount}`}
                 preset={preset}
-                selected={selectedPreset === preset.type}
-                amount={amount?.toHuman() ?? ""}
+                selected={selected}
+                amount={amount}
                 onClick={() => handleOptionClick(preset.type)}
-                onEndIconClick={preset.type === "Custom" ? () => handleOpenCustom() : undefined}
+                onEndIconClick={onEndIconClick}
               />
             );
           })}

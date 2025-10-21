@@ -113,8 +113,6 @@ export async function createConvertUpTractorData({
     },
   } as const;
 
-  console.log("struct", struct);
-
   // Encode the convertUpBlueprintv0 function call
   const convertUpCall = encodeFunctionData({
     abi: convertUpBlueprintV0ABI,
@@ -524,8 +522,6 @@ export async function loadConvertUpOrderbookData(
     ordersReadyToConvert: orderbookData.filter((o) => o.amountConvertibleNextExecution.gt(0)).length,
     orderbookData: orderbookData,
   });
-
-  console.log("orderbookData", orderbookData);
 
   return orderbookData;
 }
