@@ -133,7 +133,7 @@ const ConvertUpTractorEntryForm = ({
     <>
       <Col className="gap-6 overflow-y-auto">
         <div className="flex flex-col gap-2">
-          <div className="pinto-body font-medium text-pinto-secondary mb-4">{"🚜 Automated Convert Parameters"}</div>
+          <div className="pinto-body font-medium text-pinto-secondary mb-4">{"🚜 Place a Convert Up Order"}</div>
           <Separator className="h-[1px] w-full bg-pinto-gray-2" />
         </div>
         <Col className="w-full gap-5">
