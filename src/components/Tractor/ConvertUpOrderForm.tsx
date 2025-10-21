@@ -62,20 +62,23 @@ const REVIEW_STEPS = new Set([FormStep.REVIEW, FormStep.ADVANCED, FormStep.OPERA
 
 /**
  * The contents of the form.
+ * Supports both create and modify modes based on context.
  */
-function ConvertUpOrderFormController() {
+export function ConvertUpOrderFormController() {
   // External hooks
-  const { formStep } = useConvertUpOrderFormContext();
+  const { formStep, mode } = useConvertUpOrderFormContext();
   const calculations = useSowOrderV0Calculations({ disableSwapCalc: true });
   const farmerSilo = useFarmerSilo();
   const siloData = useSiloData();
   const { data: averageTipPaid = 0.15 } = useTractorOperatorAverageTipPaid();
 
-  useInitBonusField();
+  useInitBonusField(mode);
 
   // Local State
   // Whether the advanced fields have been initialized
-  const [didInitRestFields, setDidInitRestFields] = useState(false);
+  // For modify mode, fields are pre-filled so start as true
+  // For create mode, fields need to be inferred so start as false
+  const [didInitRestFields, setDidInitRestFields] = useState(mode === "modify");
 
   return (
     <Col className="w-full">
@@ -96,7 +99,7 @@ function ConvertUpOrderFormController() {
 }
 
 // Initialize the bonus field to the current bonus
-const useInitBonusField = () => {
+const useInitBonusField = (mode: "create" | "modify" | undefined) => {
   const { data: bonusData } = useConvertStalkPerBdvBonusAndMaximumCapacity();
 
   const ctx = useFormContext<ConvertUpV0FormSchema>();
@@ -104,6 +107,7 @@ const useInitBonusField = () => {
   const [didInitBonus, setDidInitBonus] = useState<boolean>(false);
 
   useEffect(() => {
+    if (mode === "modify") return;
     if (didInitBonus || !bonusData?.bonus) {
       return;
     }
@@ -119,5 +123,5 @@ const useInitBonusField = () => {
     const trucatedBonus = bonusData.bonus.trimDecimals(bonusData.bonus, 3).toHuman();
 
     ctx.setValue("grownStalkPerBdvBonusBid", trucatedBonus);
-  }, [bonusData?.bonus, ctx]);
+  }, [bonusData?.bonus, ctx, mode]);
 };
