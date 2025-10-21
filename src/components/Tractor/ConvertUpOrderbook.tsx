@@ -264,7 +264,7 @@ export function ConvertUpOrderbookDialog({ open, onOpenChange }: ConvertUpOrderb
         <DialogOverlay className="fixed inset-0 backdrop-blur-[2px] bg-white/50" />
         <DialogContent
           id="content-dialog"
-          className="max-w-[98rem] w-[95vw] bg-gray-50 border border-gray-200 p-0 sm:p-0 gap-2"
+          className="max-w-[98rem] w-[95vw] bg-gray-50 border border-gray-200 p-0 sm:p-0 gap-2 pointer-events-auto"
         >
           <DialogHeader className="px-6 pt-6 pb-0">
             <DialogTitle className="text-xl font-bold">Convert Up Orders</DialogTitle>
@@ -338,13 +338,13 @@ function ConvertUpOrderbookSettingsPopover({
   onShowBelowCurrentBonusChange,
 }: ConvertUpOrderbookSettingsPopoverProps) {
   return (
-    <Popover>
+    <Popover modal={true}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="sm" rounded="full" className="h-8 p-2" aria-label="Table Settings">
           <GearIcon className="h-5 w-5 text-pinto-gray-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-4" align="end">
+      <PopoverContent className="w-80 p-4 z-[9999]" align="end" sideOffset={5}>
         <div className="pinto-sm font-medium mb-3 leading-same-sm">Table Settings</div>
         <div className="space-y-4">
           <Row className="items-center justify-between gap-4">

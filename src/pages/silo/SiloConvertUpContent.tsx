@@ -81,13 +81,12 @@ export const SiloConvertUpContent = () => {
                 <div className="flex w-full h-full">
                   <ConvertUpTractorOrderBookChart />
                 </div>
-                <Card className="flex rounded-xl p-4 w-full lg:max-w-[31rem] h-full">
+                <Card className="hidden sm:flex rounded-xl p-4 w-full lg:max-w-[31rem] h-full">
                   <ConvertUpOrderForm onOpenChange={noop} disallowCloseForm={true} />
                 </Card>
               </div>
               {isDev() && (
                 <Col className="gap-4">
-                  <span className="pinto-body">These are DEV ENV ONLY stats.</span>
                   <div className="flex flex-row gap-2 items-center min-w-0">
                     <div
                       className={cn(
@@ -106,22 +105,24 @@ export const SiloConvertUpContent = () => {
             </div>
           </Col>
         </Col>
-        <Tabs.Tabs defaultValue="orders" value={value} onValueChange={setActiveTab}>
-          <Tabs.TabsList variant="text">
-            <Tabs.TabsTrigger value="orders" variant="text">
-              Convert Up
-            </Tabs.TabsTrigger>
-            <Tabs.TabsTrigger value="tractor" variant="text" className="hidden sm:block">
-              My Orders
-            </Tabs.TabsTrigger>
-          </Tabs.TabsList>
-          <Tabs.TabsContent value="orders">
-            <ConvertUpTractorOrders onSeeAllClick={() => setOpen(true)} />
-          </Tabs.TabsContent>
-          <Tabs.TabsContent value="tractor">
-            <TractorConvertUpOrdersPanel />
-          </Tabs.TabsContent>
-        </Tabs.Tabs>
+        <div className="hidden sm:block">
+          <Tabs.Tabs defaultValue="orders" value={value} onValueChange={setActiveTab}>
+            <Tabs.TabsList variant="text">
+              <Tabs.TabsTrigger value="orders" variant="text">
+                Convert Up
+              </Tabs.TabsTrigger>
+              <Tabs.TabsTrigger value="tractor" variant="text" className="hidden sm:block">
+                My Orders
+              </Tabs.TabsTrigger>
+            </Tabs.TabsList>
+            <Tabs.TabsContent value="orders">
+              <ConvertUpTractorOrders onSeeAllClick={() => setOpen(true)} />
+            </Tabs.TabsContent>
+            <Tabs.TabsContent value="tractor">
+              <TractorConvertUpOrdersPanel />
+            </Tabs.TabsContent>
+          </Tabs.Tabs>
+        </div>
       </Col>
       <ConvertUpOrderbookDialog open={open} onOpenChange={setOpen} />
     </>

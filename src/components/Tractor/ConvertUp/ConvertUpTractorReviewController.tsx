@@ -35,7 +35,7 @@ import {
   defaultConvertOrderUpValues,
   useConvertUpV0State,
 } from "../form/schema/convertUp.schema";
-import ConvertUpCustomOperatorTipForm, { ConvertUpEstimatedTipPaid } from "./ConvertUpOperatorTipForm";
+import { ConvertUpEstimatedTipPaid } from "./ConvertUpOperatorTipForm";
 import ConvertUpTractorAdvancedForm from "./ConvertUpTractorAdvancedForm";
 import { ConvertUpTractorOrderFormStep, useConvertUpOrderFormContext } from "./ConvertUpTractorContext";
 
@@ -109,9 +109,9 @@ const ConvertUpTractorReviewController = ({
 
     setOperatorTipPreset(preset);
 
-    if (preset === "Custom") {
-      setFormStep(ConvertUpTractorOrderFormStep.OPERATOR_TIP);
-    }
+    // if (preset === "Custom") {
+    //   setFormStep(ConvertUpTractorOrderFormStep.OPERATOR_TIP);
+    // }
   };
 
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -190,69 +190,69 @@ const ConvertUpTractorReviewController = ({
 
   return (
     <>
-      {formStep === ConvertUpTractorOrderFormStep.OPERATOR_TIP ? (
+      {/* {formStep === ConvertUpTractorOrderFormStep.OPERATOR_TIP ? (
         <ConvertUpCustomOperatorTipForm
           averageTipPaid={averageTipPaid ?? 1}
           onSubmit={handleCustomTipSubmit}
           onCancel={handleCustomTipCancel}
         />
-      ) : (
-        <Col className="gap-6 w-full">
-          <div className="flex flex-col gap-2">
-            <div className="pinto-body font-medium text-pinto-secondary mb-4">
-              {"🚜 Review Automated Convert Parameters"}
-            </div>
-            <Separator className="h-[1px] w-full bg-pinto-gray-2" />
+      ) : ( */}
+      <Col className="gap-6 w-full">
+        <div className="flex flex-col gap-2">
+          <div className="pinto-body font-medium text-pinto-secondary mb-4">
+            {"🚜 Review Automated Convert Parameters"}
           </div>
-          <Col className="w-full gap-5">
-            <Col className="w-full gap-3">
-              <EntryFormParametersSummary />
-              {formStep === ConvertUpTractorOrderFormStep.REVIEW ? (
-                <Accordion
-                  className="AccordionRoot"
-                  type="single"
-                  collapsible
-                  value={accordionValue}
-                  onValueChange={handleSetAccordionValue}
+          <Separator className="h-[1px] w-full bg-pinto-gray-2" />
+        </div>
+        <Col className="w-full gap-5">
+          <Col className="w-full gap-3">
+            <EntryFormParametersSummary />
+            {formStep === ConvertUpTractorOrderFormStep.REVIEW ? (
+              <Accordion
+                className="AccordionRoot"
+                type="single"
+                collapsible
+                value={accordionValue}
+                onValueChange={handleSetAccordionValue}
+              >
+                <AccordionItem
+                  className={cn("AccordionItem", "border-[1px] px-2 border-pinto-gray-2 rounded-md bg-white")}
+                  value="advanced-settings"
                 >
-                  <AccordionItem
-                    className={cn("AccordionItem", "border-[1px] px-2 border-pinto-gray-2 rounded-md bg-white")}
-                    value="advanced-settings"
+                  <AccordionTrigger
+                    className="pinto-sm-light text-pinto-secondary"
+                    iconClassName="text-pinto-secondary"
                   >
-                    <AccordionTrigger
-                      className="pinto-sm-light text-pinto-secondary"
-                      iconClassName="text-pinto-secondary"
-                    >
-                      <span>Advanced</span>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <AdvancedParametersSummary toggleEdit={handleSetAdvanced} />
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              ) : null}
-              {formStep === ConvertUpTractorOrderFormStep.ADVANCED ? (
-                <div className="py-3">
-                  <ConvertUpTractorAdvancedForm onSubmit={handleAdvancedSubmit} onCancel={handleAdvancedCancel} />
-                </div>
-              ) : null}
-              {formStep === ConvertUpTractorOrderFormStep.REVIEW ? (
-                <Col className="gap-2">
-                  <OperatorTipFormField
-                    averageTipPaid={averageTipPaid}
-                    preset={operatorTipPreset}
-                    setPreset={handleSetOperatorTipPreset}
-                  />
-                  <ConvertUpEstimatedTipPaid />
-                </Col>
-              ) : null}
-            </Col>
+                    <span>Advanced</span>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <AdvancedParametersSummary toggleEdit={handleSetAdvanced} />
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            ) : null}
+            {formStep === ConvertUpTractorOrderFormStep.ADVANCED ? (
+              <div className="py-3">
+                <ConvertUpTractorAdvancedForm onSubmit={handleAdvancedSubmit} onCancel={handleAdvancedCancel} />
+              </div>
+            ) : null}
+            {formStep === ConvertUpTractorOrderFormStep.REVIEW ? (
+              <Col className="gap-2">
+                <OperatorTipFormField
+                  averageTipPaid={averageTipPaid}
+                  preset={operatorTipPreset}
+                  setPreset={handleSetOperatorTipPreset}
+                />
+                <ConvertUpEstimatedTipPaid />
+              </Col>
+            ) : null}
           </Col>
-          {formStep === ConvertUpTractorOrderFormStep.REVIEW ? (
-            <ButtonRow handleBack={handleBack} handleNext={handleNext} isLoading={isLoading} />
-          ) : null}
         </Col>
-      )}
+        {formStep === ConvertUpTractorOrderFormStep.REVIEW ? (
+          <ButtonRow handleBack={handleBack} handleNext={handleNext} isLoading={isLoading} />
+        ) : null}
+      </Col>
+      {/* )} */}
 
       {/* Review Dialog for ConvertUp Orders */}
       {showReviewDialog && state && orderData && (

@@ -152,7 +152,7 @@ const CompactSeasonalLineChart = ({
           {/* Keep sizing the same as when there is data. Allows centering spinner/error vertically */}
           <div className={`${size === "small" ? "aspect-3/1" : "aspect-6/1"} pt-4`}>
             <div className="relative w-full flex items-center justify-center">
-              <div className="flex flex-col items-center justify-center h-40 sm:h-52 box-border">
+              <div className="flex flex-col items-center justify-center h-52 sm:h-52 box-border">
                 {(isLoading && !isError) || !didLoad ? (
                   <FrameAnimator size={75} />
                 ) : isError ? (
@@ -177,7 +177,7 @@ const CompactSeasonalLineChart = ({
               </div>
             ) : (
               <div className="pt-4">
-                <div className="h-40 sm:h-52 box-border">
+                <div className="h-52 sm:h-52 box-border">
                   <MultiAxisLineChart
                     {...data}
                     size={size}

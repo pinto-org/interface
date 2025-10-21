@@ -4,20 +4,23 @@ import { Col, Row } from "@/components/Container";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/Form";
 import TooltipSimple from "@/components/TooltipSimple";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent } from "@/components/ui/Card";
 import IconImage from "@/components/ui/IconImage";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
 import { Separator } from "@/components/ui/Separator";
 import { useSharedNumericFormFieldHandlers } from "@/hooks/form/useSharedNumericFormFieldHandlers";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { tractorTokenStrategyUtil as StrategyUtil, TractorTokenStrategy } from "@/lib/Tractor";
+import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useMainToken } from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
+import { sanitizeNumericInputValue } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { cn, exists } from "@/utils/utils";
 import {
+  CheckIcon,
   ChevronDownIcon,
   CircleIcon,
   Cross1Icon,
@@ -26,7 +29,7 @@ import {
   Pencil1Icon,
   TargetIcon,
 } from "@radix-ui/react-icons";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
 const empty = [];
@@ -262,6 +265,52 @@ export const getTractorOperatorTipAmountFromPreset = (
   throw new Error(`Invalid preset configuration: ${preset}`);
 };
 
+const InlineTipFormField = ({
+  averageTipPaid,
+  onReset,
+  onConfirm,
+}: {
+  averageTipPaid: number;
+  onReset: () => void;
+  onConfirm: (str: string) => void;
+}) => {
+  const ctx = useFormContext<{ customOperatorTip?: string }>();
+  const mainToken = useMainToken();
+
+  const [value, setValue] = useState<string>(ctx.getValues("customOperatorTip") ?? "");
+
+  const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cleaned = sanitizeNumericInputValue(e.target.value, mainToken.decimals);
+    setValue(cleaned.str);
+  };
+
+  const invalidValue = sanitizeNumericInputValue(value, mainToken.decimals).nonAmount;
+
+  return (
+    <Row className="w-full p-2 gap-2 justify-between box-border">
+      <Row className="gap-2">
+        <div className="shrink-0">{OperatorTipPresets.Custom.icon}</div>
+        <Input
+          {...numericInputProps}
+          outlined
+          value={value}
+          onChange={handleValueChange}
+          className="max-w-24 h-10"
+          placeholder={averageTipPaid.toFixed(2)}
+        />
+      </Row>
+      <Row>
+        <Button variant="ghost" className="p-2 sm:p-2 h-fit" onClick={() => onConfirm(value)} disabled={invalidValue}>
+          <CheckIcon className={cn("w-4 h-4 text-pinto-success", invalidValue && "text-pinto-gray-2")} />
+        </Button>
+        <Button variant="ghost" className="p-2 sm:p-2 h-fit" onClick={onReset}>
+          <Cross1Icon className="w-4 h-4 text-pinto-error" />
+        </Button>
+      </Row>
+    </Row>
+  );
+};
+
 export const OperatorTipPresetDropdown = ({
   averageTipPaid,
   selectedPreset,
@@ -271,11 +320,17 @@ export const OperatorTipPresetDropdown = ({
   selectedPreset: TractorOperatorTipStrategy;
   setSelectedPreset: (preset: TractorOperatorTipStrategy) => void;
 }) => {
-  const ctx = useFormContext<{ operatorTip: string; customOperatorTip?: string }>();
+  // Hooks
+  const ctx = useFormContext<{ customOperatorTip?: string }>();
   const customAmount = useWatch({ control: ctx.control, name: "customOperatorTip" });
   const mainToken = useMainToken();
-  const ref = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Local State
+  const [isOpen, setIsOpen] = useState(false);
+  const [customOpen, setCustomOpen] = useState(false);
+  const [prevPreset, setPrevPreset] = useState<TractorOperatorTipStrategy | undefined>(undefined);
+
+  // Derived values
   const value =
     getTractorOperatorTipAmountFromPreset(
       selectedPreset,
@@ -284,87 +339,116 @@ export const OperatorTipPresetDropdown = ({
       mainToken.decimals,
     )?.toHuman() ?? "";
 
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleOptionClick = (preset: TractorOperatorTipStrategy) => {
-    setIsOpen(false);
-    setSelectedPreset(preset);
+  // Toggle on the custom tip input state
+  const handleOpenCustom = () => {
+    setPrevPreset(selectedPreset);
+    setCustomOpen(true);
   };
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleClick = (event: MouseEvent) => {
-      if (
-        ref.current &&
-        !ref.current.contains(event.target as Node) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
+  // Set the selected preset to the clicked preset
+  const handleOptionClick = (preset: TractorOperatorTipStrategy) => {
+    // If the selected preset is custom, and there is no custom amount, open the custom input
+    // Otherwise, set the selected preset to the clicked preset and close the popover
+    if (preset === "Custom" && !customAmount) {
+      handleOpenCustom();
+      return;
+    }
+    setSelectedPreset(preset);
+    setIsOpen(false);
+    setCustomOpen(false);
+  };
 
-    document.addEventListener("mousedown", handleClick);
+  // Reset the custom tip value to the previous preset
+  const handleResetCustom = () => {
+    setPrevPreset(undefined);
+    setSelectedPreset(prevPreset ?? "Normal");
+    setCustomOpen(false);
+  };
 
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [ref, isOpen]);
+  // Set the custom tip value in the form and close the custom input
+  const handleConfirmCustom = (customTipValue: string) => {
+    // In case an invalid value is entered, treat it the same as a reset
+    if (!customTipValue) {
+      handleResetCustom();
+      return;
+    }
+    // re-validate the custom tip value
+    const cleaned = sanitizeNumericInputValue(customTipValue, mainToken.decimals);
+    // set the custom tip value in the form
+    ctx.setValue("customOperatorTip", cleaned.str);
+    // Set the selected preset to custom, reset the cached preset, and close the custom input
+    setSelectedPreset("Custom");
+    setPrevPreset(undefined);
+    setCustomOpen(false);
+  };
 
   return (
-    <div className="relative z-30">
-      {/* Custom Dropdown Button */}
+    <Popover modal open={isOpen} onOpenChange={setIsOpen}>
       <Row className="space-x-2">
-        <Row className="gap-1">
+        <Row className="gap-1 flex-nowrap whitespace-nowrap">
           <IconImage src={mainToken.logoURI} size={4} />
           <span className="pinto-sm">
             {formatOperatorTipAmount(value)} {mainToken.symbol}
           </span>
         </Row>
-        <Button
-          ref={buttonRef}
-          variant="outline"
-          className="rounded-full px-2 py-2 sm:px-2 sm:py-2 flex items-center space-x-2 pinto-sm sm:pinto-sm h-fit border-pinto-gray-2"
-          onClick={() => setIsOpen((prev) => !prev)}
-        >
-          <span>{selectedPreset}</span>
-          <ChevronDownIcon className={cn("w-4 h-4", isOpen && "rotate-180 transition-transform duration-200")} />
-        </Button>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className="rounded-full px-2 py-2 sm:px-2 sm:py-2 w-24 flex items-center space-x-2 pinto-sm sm:pinto-sm h-fit border-pinto-gray-2"
+          >
+            <span>{selectedPreset}</span>
+            <ChevronDownIcon className={cn("w-4 h-4", isOpen && "rotate-180 transition-transform duration-200")} />
+          </Button>
+        </PopoverTrigger>
       </Row>
-
-      {/* Operator Tip Card - Only visible when open */}
-      {isOpen && (
-        <Card ref={ref} className="absolute bottom-full left-1/2 transform -translate-x-1/4 shadow-sm z-40 w-[12rem]">
-          <CardContent className="p-0">
-            <div className="p-3">
-              <Row className="gap-1 justify-between">
-                <h3 className="text-xl font-semibold">Operator Tip</h3>
-                <Cross1Icon className="w-4 h-4 cursor-pointer" onClick={() => setIsOpen(false)} />
-              </Row>
-            </div>
-            <Separator className="h-[0.5px] bg-pinto-gray-2" />
-            <Col className="p-1 gap-1">
-              {Object.values(OperatorTipPresets).map((preset) => {
-                const amount = getTractorOperatorTipAmountFromPreset(
-                  preset.type,
-                  averageTipPaid,
-                  customAmount,
-                  mainToken.decimals,
-                );
-
-                return (
-                  <OperatorTipPreset
-                    key={preset.type}
-                    preset={preset}
-                    selected={selectedPreset === preset.type}
-                    amount={amount?.toHuman() ?? ""}
-                    onClick={() => handleOptionClick(preset.type)}
-                  />
-                );
-              })}
-            </Col>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+      <PopoverContent side="top" align="center" className="w-[14rem] p-0 mr-3">
+        <div className="p-3">
+          <Row className="gap-1 justify-between">
+            <h3 className="text-xl font-semibold">Operator Tip</h3>
+            <Cross1Icon className="w-4 h-4 cursor-pointer" onClick={() => setIsOpen(false)} />
+          </Row>
+        </div>
+        <Separator className="h-[0.5px] bg-pinto-gray-2" />
+        <Col className="p-1 gap-1">
+          {/**
+           * If the custom tip input is open, show the inline tip form field
+           */}
+          {customOpen ? (
+            <>
+              <InlineTipFormField
+                averageTipPaid={averageTipPaid}
+                onReset={handleResetCustom}
+                onConfirm={handleConfirmCustom}
+              />
+            </>
+          ) : null}
+          {/**
+           * Preset Options
+           */}
+          {Object.values(OperatorTipPresets).map((preset) => {
+            if (customOpen && preset.type === "Custom") {
+              return null;
+            }
+            const amount = getTractorOperatorTipAmountFromPreset(
+              preset.type,
+              averageTipPaid,
+              customAmount,
+              mainToken.decimals,
+            );
+            return (
+              <OperatorTipPreset
+                key={preset.type}
+                preset={preset}
+                selected={selectedPreset === preset.type}
+                amount={amount?.toHuman() ?? ""}
+                onClick={() => handleOptionClick(preset.type)}
+                onEndIconClick={preset.type === "Custom" ? () => handleOpenCustom() : undefined}
+              />
+            );
+          })}
+        </Col>
+      </PopoverContent>
+    </Popover>
   );
 };
 
@@ -373,13 +457,21 @@ const OperatorTipPreset = ({
   amount,
   selected,
   onClick,
+  onEndIconClick,
 }: {
   preset: TractorOperatorTipPreset;
   amount: string | undefined;
   selected: boolean;
   onClick: (preset: TractorOperatorTipPreset) => void;
+  onEndIconClick?: () => void;
 }) => {
   const mainToken = useMainToken();
+
+  const handleEndIconClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onEndIconClick?.();
+  };
 
   return (
     <Row
@@ -397,7 +489,13 @@ const OperatorTipPreset = ({
             {formatOperatorTipAmount(amount)} {mainToken.symbol}
           </span>
         </Col>
-        {preset.endIcon ? preset.endIcon : <></>}
+        {preset.endIcon ? (
+          <div onClick={handleEndIconClick} className="cursor-pointer hover:bg-pinto-green-1/50 rounded-lg p-2">
+            {preset.endIcon}
+          </div>
+        ) : (
+          <></>
+        )}
       </Row>
     </Row>
   );
