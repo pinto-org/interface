@@ -3,10 +3,8 @@ import { diamondABI } from "@/constants/abi/diamondABI";
 import { TV, TokenValue } from "@/classes/TokenValue";
 import { Col, Row } from "@/components/Container";
 import { Form } from "@/components/Form";
-import TooltipSimple from "@/components/TooltipSimple";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/Accordion";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import {
   Dialog,
   DialogContent,
@@ -16,30 +14,17 @@ import {
   DialogPortal,
   DialogTitle,
 } from "@/components/ui/Dialog";
-import IconImage from "@/components/ui/IconImage";
-import { Label } from "@/components/ui/Label";
 import { Separator } from "@/components/ui/Separator";
-import { STALK } from "@/constants/internalTokens";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetTractorTokenStrategy";
 import useSignTractorBlueprint from "@/hooks/tractor/useSignTractorBlueprint";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
 import useTransaction from "@/hooks/useTransaction";
-import {
-  LowStalkDepositsMode,
-  tractorTokenStrategyUtil as StrategyUtil,
-  prepareRequisitionForTxn,
-} from "@/lib/Tractor";
+import { LOW_STALK_DEPOSIT_MODES_TO_LABELS, LowStalkDepositsMode, prepareRequisitionForTxn } from "@/lib/Tractor";
 import { useGetBlueprintHash } from "@/lib/Tractor/blueprint";
 import { ConvertUpOrderbookEntry } from "@/lib/Tractor/convertUp/tractor-convert-up-types";
-import {
-  Blueprint,
-  ExtendedTractorTokenStrategy,
-  Requisition,
-  TractorTokenStrategy,
-  TractorTokenStrategyUnion,
-} from "@/lib/Tractor/types";
+import { Blueprint, ExtendedTractorTokenStrategy } from "@/lib/Tractor/types";
 import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
@@ -47,33 +32,28 @@ import { useSiloData } from "@/state/useSiloData";
 import { formatter } from "@/utils/format";
 import { postSanitizedSanitizedValue, stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
-import { tokensEqual } from "@/utils/token";
-import { MayPromise } from "@/utils/types.generic";
 import { exists } from "@/utils/utils";
 import { ArrowRightIcon } from "@radix-ui/react-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { useFormContext, useFormState, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useAccount, useChainId } from "wagmi";
 import { ConvertUpTractorEntryForm, ConvertUpTractorOrderFormStep } from "./ConvertUp";
 import ConvertUpCustomOperatorTipForm, { ConvertUpEstimatedTipPaid } from "./ConvertUp/ConvertUpOperatorTipForm";
+import {
+  ConvertUpEntryFormParametersSummary,
+  ConvertUpFormAdvancedParametersSummary,
+  ConvertUpFormButtonRow,
+} from "./ConvertUp/ConvertUpSharedComponents";
 import ConvertUpTractorAdvancedForm from "./ConvertUp/ConvertUpTractorAdvancedForm";
 import {
   ConvertUpOrderFormContext,
   ConvertUpV0FormDraftState,
   IConvertUpOrderFormContext,
 } from "./ConvertUp/ConvertUpTractorContext";
-import { CONVERT_UP_TOOLTIP_COPY } from "./form/fields/ConvertUpOrderV0Fields";
-import { OperatorTipFormField, TractorFormButtonsRow, TractorOperatorTipStrategy } from "./form/fields/sharedFields";
-import {
-  ConvertUpV0FormSchema,
-  TractorConvertUpFormKeys,
-  transformConvertUpFormValues,
-  useConvertUpV0Form,
-  useConvertUpV0State,
-} from "./form/schema/convertUp.schema";
+import { OperatorTipFormField, TractorOperatorTipStrategy } from "./form/fields/sharedFields";
+import { transformConvertUpFormValues, useConvertUpV0Form, useConvertUpV0State } from "./form/schema/convertUp.schema";
 
 // ============================================================================
 // Types & Interfaces
@@ -156,7 +136,6 @@ function ModifyConvertUpOrderProvider({
       const transformed = transformConvertUpFormValues(values, chainId);
 
       const seedDiff = transformed.seedDifference;
-      const isSeedDiff = seedDiff.tv.gt(1n);
 
       const newDraftState = val
         ? {
@@ -169,7 +148,7 @@ function ModifyConvertUpOrderProvider({
             maxGrownStalkPerBdv: transformed.maxGrownStalkPerBdv.tv.toHuman(),
             grownStalkPerBdvBonusBid: transformed.grownStalkPerBdvBonusBid.tv.toHuman(),
             seedDifference: seedDiff.tv.toHuman(),
-            seedDifferenceCheck: isSeedDiff,
+            seedDifferenceCheck: values.seedDifferenceCheck,
             maxPriceToConvertUp: transformed.maxPriceToConvertUp.tv.toHuman(),
             minPriceToConvertUp: transformed.minPriceToConvertUp.tv.toHuman(),
             maxGrownStalkPerBdvPenalty: transformed.maxGrownStalkPerBdvPenalty.tv.toHuman(),
@@ -230,7 +209,7 @@ function ModifyConvertUpOrderProvider({
       }
 
       const seedDiff = data.convertUpParams.seedDifference;
-      const isSeedDiff = seedDiff.eq(TV.fromBigInt(1n, seedDiff.decimals));
+      const isSeedDiff = !seedDiff.eq(TV.fromBigInt(1n, seedDiff.decimals));
 
       // Prepare the prefill values - handle TokenValue objects properly
       const prefillValues = {
@@ -551,7 +530,7 @@ function ModifyConvertUpTractorReviewController({
           </div>
           <Col className="w-full gap-5">
             <Col className="w-full gap-3">
-              <EntryFormParametersSummary />
+              <ConvertUpEntryFormParametersSummary />
               {formStep === ConvertUpTractorOrderFormStep.REVIEW ? (
                 <Accordion
                   className="AccordionRoot"
@@ -568,7 +547,7 @@ function ModifyConvertUpTractorReviewController({
                       <span>Advanced</span>
                     </AccordionTrigger>
                     <AccordionContent>
-                      <AdvancedParametersSummary toggleEdit={handleSetAdvanced} />
+                      <ConvertUpFormAdvancedParametersSummary toggleEdit={handleSetAdvanced} />
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
@@ -591,7 +570,7 @@ function ModifyConvertUpTractorReviewController({
             </Col>
           </Col>
           {formStep === ConvertUpTractorOrderFormStep.REVIEW ? (
-            <ButtonRow handleBack={handleBack} handleNext={handleNext} isLoading={isLoading} />
+            <ConvertUpFormButtonRow handleBack={handleBack} handleNext={handleNext} isLoading={isLoading} />
           ) : null}
         </Col>
       )}
@@ -614,220 +593,6 @@ function ModifyConvertUpTractorReviewController({
         />
       )}
     </>
-  );
-}
-
-// ============================================================================
-// Helper Components
-// ============================================================================
-
-function ButtonRow({
-  handleBack,
-  handleNext,
-  isLoading,
-}: {
-  handleBack: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  handleNext: (e: React.MouseEvent<HTMLButtonElement>) => MayPromise<void>;
-  isLoading: boolean;
-}) {
-  const { getMissingFields } = useModifyConvertUpOrderFormContext();
-  const { errors } = useFormState<ConvertUpV0FormSchema>();
-
-  const missingFields = getMissingFields(TractorConvertUpFormKeys.advanced);
-
-  const hasErrors = Boolean(Object.keys(errors).length);
-
-  const hasMissingFields = Boolean(missingFields.length);
-
-  return (
-    <TractorFormButtonsRow
-      handleLeft={handleBack}
-      handleRight={handleNext}
-      isLoading={isLoading}
-      right={{
-        content: "Review Changes",
-        disabled: Boolean(hasErrors || hasMissingFields),
-        tooltip: hasMissingFields ? (
-          <div className="p-1">
-            <div className="font-medium mb-1">Please fill in the following fields:</div>
-            <ul className="list-disc pl-4 text-sm">
-              {missingFields.map((field) => (
-                <li key={`missing-field${field}`}>{field}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null,
-      }}
-      left={{
-        content: "← Back",
-      }}
-    />
-  );
-}
-
-function EntryFormParametersSummary() {
-  const ctx = useFormContext<ConvertUpV0FormSchema>();
-  const values = useWatch({ control: ctx.control });
-  const tokenMap = useTokenMap();
-
-  const totalValueToConvert = `${values.totalBeanAmountToConvert} PDV`;
-  const priceRange = `$${values.minPriceToConvertUp} - $${values.maxPriceToConvertUp}`;
-
-  const summary = StrategyUtil.getSummary((values.tokenStrategy ?? { type: "LOWEST_SEEDS" }) as TractorTokenStrategy);
-
-  const renderTokenStrategy = () => {
-    if (summary.isLowestPrice) return "Token with Best Price";
-    if (summary.isLowestSeeds) return "Token with Least Seeds";
-
-    const addresses = summary.addresses ?? [];
-
-    if ((summary.isMulti || summary.isSingle) && !!addresses.length) {
-      return (
-        <Col className="gap-1">
-          {addresses.map((adr) => {
-            const tk = tokenMap[getTokenIndex(adr)];
-            return (
-              <Row key={`${adr}-selected-token-strategy`} className="gap-1 items-center">
-                <IconImage src={tk.logoURI} size={4} alt={tk.symbol} />
-                <div className="pinto-sm font-normal">{tk.symbol}</div>
-              </Row>
-            );
-          })}
-        </Col>
-      );
-    }
-
-    return <></>;
-  };
-
-  return (
-    <>
-      <ReviewRow
-        label="Total Value to Convert"
-        tooltip={CONVERT_UP_TOOLTIP_COPY.totalConvertBdv}
-        value={totalValueToConvert}
-      />
-      <ReviewRow label="Execution Price Bounds" tooltip={CONVERT_UP_TOOLTIP_COPY.priceRange} value={priceRange} />
-      <ReviewRow label="Token Sources" tooltip={CONVERT_UP_TOOLTIP_COPY.tokenStrategy} value={renderTokenStrategy()} />
-      <ReviewRow
-        label="Min Grown Stalk Bonus Per PDV"
-        tooltip={CONVERT_UP_TOOLTIP_COPY.grownStalkPerBdvBonusBid}
-        value={
-          <Row className="gap-1 items-center">
-            <IconImage src={STALK.logoURI} size={4} alt={STALK.symbol} />
-            <div className="pinto-sm font-normal">{values.grownStalkPerBdvBonusBid}</div>
-          </Row>
-        }
-      />
-    </>
-  );
-}
-
-const DEPOSIT_MODE_LABELS = {
-  [LowStalkDepositsMode.USE]: "Yes",
-  [LowStalkDepositsMode.OMIT]: "No",
-  [LowStalkDepositsMode.USE_LAST]: "Use Last",
-} as const;
-
-function AdvancedParametersSummary({
-  toggleEdit,
-}: {
-  toggleEdit: (e: React.MouseEvent<HTMLButtonElement>) => void;
-}) {
-  const ctx = useFormContext<ConvertUpV0FormSchema>();
-  const values = useWatch({ control: ctx.control });
-
-  const getTimeScaleDisplay = () => {
-    const timeScale = values.timeScale;
-    switch (timeScale) {
-      case "SECONDS":
-        return "seconds";
-      case "MINUTES":
-        return "minutes";
-      case "HOURS":
-        return "hours";
-      default:
-        return "days";
-    }
-  };
-
-  const minTimeBetweenConverts = values.minTimeBetweenConverts;
-  const minConvertBonusCapacity = values.minConvertBonusCapacity;
-  const maxGrownStalkPerBdvPenalty = values.maxGrownStalkPerBdvPenalty;
-  const maxGrownStalkPerBdv = values.maxGrownStalkPerBdv;
-  const minConvertBdvPerExecution = values.minBeansConvertPerExecution;
-  const maxConvertBdvPerExecution = values.maxBeansConvertPerExecution;
-  const slippageRatio = values.slippageRatio;
-  const lowStalkDeposits = values.lowStalkDeposits;
-
-  return (
-    <Card className="flex flex-col p-3 gap-2 rounded-sm border-pinto-gray-2 bg-white">
-      <ReviewRow
-        label="Min Time Between Executions"
-        tooltip={CONVERT_UP_TOOLTIP_COPY.minTimeBetweenConverts}
-        value={minTimeBetweenConverts ? `${formatter.noDec(minTimeBetweenConverts)} ${getTimeScaleDisplay()}` : "--"}
-      />
-      <ReviewRow
-        label="Min Convert Capacity"
-        tooltip={CONVERT_UP_TOOLTIP_COPY.minConvertBonusCapacity}
-        value={minConvertBonusCapacity ? `${formatter.twoDec(minConvertBonusCapacity)} PDV` : "--"}
-      />
-      <ReviewRow
-        label="Max Stalk per PDV Penalty"
-        tooltip={CONVERT_UP_TOOLTIP_COPY.maxGrownStalkPerBdvPenalty}
-        value={`${formatter.twoDec(maxGrownStalkPerBdvPenalty)} PDV`}
-      />
-      <ReviewRow
-        label="Max Stalk per PDV"
-        tooltip={CONVERT_UP_TOOLTIP_COPY.maxGrownStalkPerBdv}
-        value={`${formatter.twoDec(maxGrownStalkPerBdv)} Grown Stalk`}
-      />
-      <ReviewRow
-        label="Execution Size"
-        tooltip="The minimum and maximum execution size of the Convert Up Order"
-        value={`${formatter.twoDec(minConvertBdvPerExecution)} - ${formatter.twoDec(maxConvertBdvPerExecution)} PDV`}
-      />
-      <ReviewRow
-        label="Slippage Tolerance"
-        tooltip={CONVERT_UP_TOOLTIP_COPY.slippageRatio}
-        value={`${formatter.pct(slippageRatio)}`}
-      />
-      <ReviewRow
-        label="Use Low Stalk Deposits"
-        tooltip={CONVERT_UP_TOOLTIP_COPY.lowStalkDeposits}
-        value={DEPOSIT_MODE_LABELS[lowStalkDeposits as LowStalkDepositsMode]}
-      />
-      <Separator className="h-[0.5px] bg-pinto-gray-2 my-1" />
-      <Button variant="outline-primary-2" size="md" className="w-full rounded-sm" onClick={toggleEdit}>
-        <span>Edit Advanced Parameters</span>
-      </Button>
-    </Card>
-  );
-}
-
-function ReviewRow({
-  label,
-  tooltip,
-  value,
-}: {
-  label: string;
-  tooltip?: string;
-  value: string | JSX.Element;
-}) {
-  return (
-    <Row className="w-full justify-between items-start">
-      <Row className="gap-1 items-center">
-        {tooltip ? (
-          <Row className="gap-1 items-center">
-            <div className="pinto-sm-light text-pinto-secondary">{label}</div>
-            <TooltipSimple content={tooltip} variant="outlined" triggerClassName="text-pinto-secondary" />
-          </Row>
-        ) : (
-          <Label variant="form">{label}</Label>
-        )}
-      </Row>
-      {typeof value === "string" ? <div className="pinto-sm font-normal">{value}</div> : value}
-    </Row>
   );
 }
 
@@ -1094,7 +859,7 @@ function RenderConstantParam(props: ValueDiff<unknown>) {
       } else if (typeof prev === "boolean") {
         return prev ? "Yes" : "No";
       } else if (typeof prev === "number") {
-        return DEPOSIT_MODE_LABELS[prev as LowStalkDepositsMode] || prev.toString();
+        return LOW_STALK_DEPOSIT_MODES_TO_LABELS[prev as LowStalkDepositsMode] || prev.toString();
       } else if (prev instanceof TokenValue) {
         return formatter.number(prev);
       } else if (prev && typeof prev === "object" && "type" in prev) {
