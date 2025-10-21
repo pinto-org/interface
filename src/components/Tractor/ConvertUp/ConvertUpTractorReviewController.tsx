@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useAccount } from "wagmi";
 import { OperatorTipFormField, TractorOperatorTipStrategy } from "../form/fields/sharedFields";
 import { defaultConvertOrderUpValues, useConvertUpV0State } from "../form/schema/convertUp.schema";
+import ConvertUpModifyOrderReviewDialog from "./ConvertUpModifyOrderReviewDialog";
 import { ConvertUpEstimatedTipPaid } from "./ConvertUpOperatorTipForm";
 import {
   ConvertUpEntryFormParametersSummary,
@@ -37,6 +38,10 @@ const ConvertUpTractorReviewController = ({
     setOperatorTipPreset,
     setDraftState,
     onOpenChange,
+    mode,
+    existingOrder,
+    onOrderModified,
+    getStrategyProps,
   } = useConvertUpOrderFormContext();
   const { address } = useAccount();
   const { refetch: refetchOrders } = useTractorConvertUpOrderbook();
@@ -180,7 +185,9 @@ const ConvertUpTractorReviewController = ({
       ) : ( */}
       <Col className="gap-6 w-full">
         <div className="flex flex-col gap-2">
-          <div className="pinto-body font-medium text-pinto-secondary mb-4">{"🚜 Review your Convert Up Order"}</div>
+          <div className="pinto-body font-medium text-pinto-secondary mb-4">
+            {mode === "modify" ? "🚜 Review Modified Convert Parameters" : "🚜 Review Automated Convert Parameters"}
+          </div>
           <Separator className="h-[1px] w-full bg-pinto-gray-2" />
         </div>
         <Col className="w-full gap-5">
@@ -232,7 +239,7 @@ const ConvertUpTractorReviewController = ({
         ) : null}
       </Col>
       {/* Review Dialog for ConvertUp Orders */}
-      {showReviewDialog && state && orderData && (
+      {showReviewDialog && state && orderData && mode === "create" && (
         <ReviewTractorOrderDialog
           open={showReviewDialog}
           onOpenChange={setShowReviewDialog}
@@ -256,6 +263,24 @@ const ConvertUpTractorReviewController = ({
           operatorPasteInstrs={state.operatorPasteInstructions}
           blueprint={state.blueprint}
           depositOptimizationCalls={state.depositOptimizationCalls}
+        />
+      )}
+
+      {/* Review Dialog for Modified ConvertUp Orders */}
+      {showReviewDialog && state && orderData && mode === "modify" && existingOrder && getStrategyProps && (
+        <ConvertUpModifyOrderReviewDialog
+          open={showReviewDialog}
+          onOpenChange={setShowReviewDialog}
+          onSuccess={() => {
+            onOpenChange(false);
+            onOrderModified?.();
+          }}
+          existingOrder={existingOrder}
+          orderData={orderData}
+          encodedData={state.encodedData}
+          operatorPasteInstrs={state.operatorPasteInstructions}
+          blueprint={state.blueprint}
+          getStrategyProps={getStrategyProps}
         />
       )}
     </>

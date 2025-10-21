@@ -5,6 +5,3 @@ export { default as ConvertUpCustomOperatorTipForm } from "./ConvertUpOperatorTi
 
 export * from "./ConvertUpTractorContext";
 export * from "./ConvertUpSharedComponents";
-
-// Re-export the controller for use in modify dialog
-export { ConvertUpOrderFormController } from "../ConvertUpOrderForm";

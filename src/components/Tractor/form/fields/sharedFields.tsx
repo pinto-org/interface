@@ -301,7 +301,7 @@ const InlineTipFormField = ({
           outlined
           value={value}
           onChange={handleValueChange}
-          className="max-w-24 h-10"
+          className="max-w-24 h-10 pointer-events-auto"
           placeholder={averageTipPaid.toFixed(2)}
         />
       </Row>
@@ -419,7 +419,7 @@ export const OperatorTipPresetDropdown = ({
           </Button>
         </PopoverTrigger>
       </Row>
-      <PopoverContent side="top" align="center" className="w-[14rem] p-0 mr-3">
+      <PopoverContent side="top" align="center" className="w-[14rem] p-0 mr-3 z-[100] pointer-events-auto">
         <div className="p-3">
           <Row className="gap-1 justify-between">
             <h3 className="text-xl font-semibold">Operator Tip</h3>

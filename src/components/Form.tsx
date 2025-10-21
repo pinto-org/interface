@@ -91,8 +91,12 @@ function FormLabel({
 
   const handleClick = (e: React.MouseEvent<HTMLLabelElement>) => {
     e.stopPropagation();
-    e.preventDefault();
-    props.onClick?.(e);
+    // Only preventDefault if there's a custom onClick handler
+    if (props.onClick) {
+      e.preventDefault();
+      props.onClick(e);
+    }
+    // Otherwise, let the label's native focus behavior work
   };
 
   if (!tooltipText) {

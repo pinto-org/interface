@@ -204,21 +204,6 @@ export default function ConvertUpOrderProvider({
     }
   }, [mode, existingOrder, didPrefill, form.prefillValues, getStrategyProps]);
 
-  // // Initialize operator tip
-  // const [didInitOperatorTip, setDidInitOperatorTip] = useState(false);
-  // useEffect(() => {
-  //   if (mode !== "create") return;
-  //   const shouldInit = !didInitOperatorTip && exists(averageTipPaid)
-
-  //   if (shouldInit) {
-  //     setDidInitOperatorTip(true);
-  //     const currentTip = form.form.getValues("operatorTip");
-  //     if (!currentTip || mode === "create") {
-  //       form.form.setValue("operatorTip", averageTipPaid?.toFixed(2) ?? "");
-  //     }
-  //   }
-  // }, [mode, averageTipPaid, form.form, didInitOperatorTip, didPrefill]);
-
   const handleSetOperatorTipPreset = useCallback(
     (preset: TractorOperatorTipStrategy) => {
       setOperatorTipPresetState(preset);
