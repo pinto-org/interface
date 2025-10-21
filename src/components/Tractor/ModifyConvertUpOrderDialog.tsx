@@ -39,7 +39,12 @@ import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } 
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useAccount, useChainId } from "wagmi";
-import { ConvertUpTractorEntryForm, ConvertUpTractorOrderFormStep } from "./ConvertUp";
+import {
+  ConvertUpOrderFormController,
+  ConvertUpOrderProvider,
+  ConvertUpTractorEntryForm,
+  ConvertUpTractorOrderFormStep,
+} from "./ConvertUp";
 import ConvertUpCustomOperatorTipForm, { ConvertUpEstimatedTipPaid } from "./ConvertUp/ConvertUpOperatorTipForm";
 import {
   ConvertUpEntryFormParametersSummary,
@@ -105,186 +110,6 @@ const useModifyConvertUpOrderFormContext = () => {
   return context as IModifyConvertUpOrderFormContext;
 };
 
-function ModifyConvertUpOrderProvider({
-  children,
-  existingOrder,
-  onOpenChange,
-  onOrderModified,
-}: {
-  existingOrder: ConvertUpOrderbookEntry;
-  onOpenChange: (open: boolean) => void;
-  onOrderModified?: () => void;
-  children: React.ReactNode;
-}) {
-  const [formStep, setFormStep] = useState(ConvertUpTractorOrderFormStep.ENTRY);
-  const chainId = useChainId();
-
-  // Simplified operator tip state management
-  const [operatorTipPreset, setOperatorTipPresetState] = useState<TractorOperatorTipStrategy>("Normal");
-  const [draftState, setDraftState] = useState<ConvertUpV0FormDraftState>({
-    isActive: false,
-    originalValues: null,
-  });
-
-  const form = useConvertUpV0Form();
-  const getStrategyProps = useGetTractorTokenStrategyWithBlueprint();
-
-  const toggleDraftState = useCallback(
-    (val: boolean) => {
-      const values = form.form.getValues();
-
-      const transformed = transformConvertUpFormValues(values, chainId);
-
-      const seedDiff = transformed.seedDifference;
-
-      const newDraftState = val
-        ? {
-            ...transformed,
-            totalBeanAmountToConvert: transformed.totalBeanAmountToConvert.tv.toHuman(),
-            minBeansConvertPerExecution: transformed.minBeansConvertPerExecution.tv.toHuman(),
-            maxBeansConvertPerExecution: transformed.maxBeansConvertPerExecution.tv.toHuman(),
-            minTimeBetweenConverts: transformed.minTimeBetweenConverts.tv.toHuman(),
-            minConvertBonusCapacity: transformed.minConvertBonusCapacity.tv.toHuman(),
-            maxGrownStalkPerBdv: transformed.maxGrownStalkPerBdv.tv.toHuman(),
-            grownStalkPerBdvBonusBid: transformed.grownStalkPerBdvBonusBid.tv.toHuman(),
-            seedDifference: seedDiff.tv.toHuman(),
-            seedDifferenceCheck: values.seedDifferenceCheck,
-            maxPriceToConvertUp: transformed.maxPriceToConvertUp.tv.toHuman(),
-            minPriceToConvertUp: transformed.minPriceToConvertUp.tv.toHuman(),
-            maxGrownStalkPerBdvPenalty: transformed.maxGrownStalkPerBdvPenalty.tv.toHuman(),
-            slippageRatio: transformed.slippageRatio.tv.toHuman(),
-            operatorTip: transformed.operatorTip.tv.toHuman(),
-            customOperatorTip: transformed.customOperatorTip?.nonAmount
-              ? ""
-              : transformed.customOperatorTip?.tv.toHuman() ?? "",
-          }
-        : null;
-
-      setDraftState({ isActive: val, originalValues: newDraftState });
-    },
-    [form.form, chainId],
-  );
-
-  // External hooks
-  const { data: averageTipPaid } = useTractorOperatorAverageTipPaid();
-
-  // Pre-fill form with existing order data
-  const [didPrefill, setDidPrefill] = useState(false);
-
-  useEffect(() => {
-    if (didPrefill || getStrategyProps.isLoading || !existingOrder.decodedData) {
-      return;
-    }
-
-    try {
-      const data = existingOrder.decodedData;
-
-      // Check if we have the expected structure
-      if (!data.convertUpParams || !data.opParams) {
-        console.error("Invalid decoded data structure - missing convertUpParams or opParams:", {
-          hasConvertUpParams: !!data.convertUpParams,
-          hasOpParams: !!data.opParams,
-          data,
-        });
-        return;
-      }
-      // Check if sourceTokenIndices exists and is an array
-      if (!data.convertUpParams.sourceTokenIndices || !Array.isArray(data.convertUpParams.sourceTokenIndices)) {
-        console.error("Invalid sourceTokenIndices:", {
-          sourceTokenIndices: data.convertUpParams.sourceTokenIndices,
-          isArray: Array.isArray(data.convertUpParams.sourceTokenIndices),
-          convertUpParams: data.convertUpParams,
-        });
-        return;
-      }
-
-      let tokenStrategy: ExtendedTractorTokenStrategy | undefined;
-      try {
-        tokenStrategy = getStrategyProps.getTokenStrategy({
-          sourceTokenIndices: existingOrder.decodedData.convertUpParams.sourceTokenIndices,
-        });
-      } catch (strategyError) {
-        console.error("Error getting token strategy:", strategyError);
-        tokenStrategy = { type: "LOWEST_SEEDS" as const };
-      }
-
-      const seedDiff = data.convertUpParams.seedDifference;
-      const isSeedDiff = !seedDiff.eq(TV.fromBigInt(1n, seedDiff.decimals));
-
-      // Prepare the prefill values - handle TokenValue objects properly
-      const prefillValues = {
-        tokenStrategy: tokenStrategy ?? { type: "LOWEST_SEEDS" as const },
-        capAmountToBonusCapacity: data.convertUpParams.capAmountToBonusCapacity,
-        totalBeanAmountToConvert: data.convertUpParams.totalBeanAmountToConvert.toHuman(),
-        minBeansConvertPerExecution: data.convertUpParams.minBeansConvertPerExecution.toHuman(),
-        maxBeansConvertPerExecution: data.convertUpParams.maxBeansConvertPerExecution.toHuman(),
-        minTimeBetweenConverts: data.convertUpParams.minTimeBetweenConverts.toHuman(),
-        timeScale: "SECONDS" as const, // Default to seconds, might need to derive this
-        minConvertBonusCapacity: data.convertUpParams.minConvertBonusCapacity.toHuman(),
-        maxGrownStalkPerBdv: data.convertUpParams.maxGrownStalkPerBdv.toHuman(),
-        grownStalkPerBdvBonusBid: data.convertUpParams.grownStalkPerBdvBonusBid.toHuman(),
-        maxPriceToConvertUp: data.convertUpParams.maxPriceToConvertUp.toHuman(),
-        minPriceToConvertUp: data.convertUpParams.minPriceToConvertUp.toHuman(),
-        maxGrownStalkPerBdvPenalty: data.convertUpParams.maxGrownStalkPerBdvPenalty.toHuman(),
-        seedDifference: seedDiff.toHuman(),
-        seedDifferenceCheck: isSeedDiff,
-        slippageRatio: data.convertUpParams.slippageRatio.toHuman(),
-        operatorTip: data.opParams.operatorTipAmount.toHuman(),
-        lowStalkDeposits: data.convertUpParams.lowStalkDeposits,
-      };
-
-      // Map the decoded data to form schema
-      form.prefillValues(prefillValues);
-      console.debug("Form prefilled successfully");
-      setDidPrefill(true);
-    } catch (error) {
-      console.error("Failed to pre-fill form with existing order data:", error);
-    }
-  }, [existingOrder, didPrefill, form.prefillValues, getStrategyProps]);
-
-  // Initialize operator tip
-  const [didInitOperatorTip, setDidInitOperatorTip] = useState(false);
-  useEffect(() => {
-    if (!didInitOperatorTip && exists(averageTipPaid) && didPrefill) {
-      setDidInitOperatorTip(true);
-      // Only set if not already pre-filled from existing order
-      const currentTip = form.form.getValues("operatorTip");
-      if (!currentTip) {
-        form.form.setValue("operatorTip", averageTipPaid.toFixed(2));
-      }
-    }
-  }, [averageTipPaid, form.form, didInitOperatorTip, didPrefill]);
-
-  const handleSetOperatorTipPreset = useCallback(
-    (preset: TractorOperatorTipStrategy) => {
-      setOperatorTipPresetState(preset);
-    },
-    [operatorTipPreset],
-  );
-
-  // Create the context value with modify-specific data
-  const contextValue: IModifyConvertUpOrderFormContext = {
-    ...form,
-    formStep,
-    operatorTipPreset,
-    disallowCloseForm: false,
-    draftState,
-    setDraftState: toggleDraftState,
-    setFormStep,
-    onOpenChange,
-    onOrderModified,
-    existingOrder,
-    getStrategyProps,
-    setOperatorTipPreset: handleSetOperatorTipPreset,
-  };
-
-  return (
-    <ConvertUpOrderFormContext.Provider value={contextValue}>
-      <Form {...form.form}>{children}</Form>
-    </ConvertUpOrderFormContext.Provider>
-  );
-}
-
 // ============================================================================
 // Main Dialog Component
 // ============================================================================
@@ -309,56 +134,17 @@ export default function ModifyConvertUpOrderDialog({
               with your updated conditions.
             </DialogDescription>
           </DialogHeader>
-          <ModifyConvertUpOrderProvider
+          <ConvertUpOrderProvider
+            mode="modify"
             existingOrder={existingOrder}
             onOpenChange={onOpenChange}
             onOrderModified={onOrderModified}
           >
-            <ModifyConvertUpOrderFormController />
-          </ModifyConvertUpOrderProvider>
+            <ConvertUpOrderFormController />
+          </ConvertUpOrderProvider>
         </DialogContent>
       </DialogPortal>
     </Dialog>
-  );
-}
-
-// ============================================================================
-// Form Controller Components
-// ============================================================================
-
-const REVIEW_STEPS = new Set([
-  ConvertUpTractorOrderFormStep.REVIEW,
-  ConvertUpTractorOrderFormStep.ADVANCED,
-  ConvertUpTractorOrderFormStep.OPERATOR_TIP,
-]);
-
-function ModifyConvertUpOrderFormController() {
-  // External hooks
-  const { formStep } = useModifyConvertUpOrderFormContext();
-  const calculations = useSowOrderV0Calculations();
-  const farmerSilo = useFarmerSilo();
-  const siloData = useSiloData();
-  const { data: averageTipPaid } = useTractorOperatorAverageTipPaid();
-
-  // Local State
-  // Whether the advanced fields have been initialized
-  const [didInitRestFields, setDidInitRestFields] = useState(true);
-
-  return (
-    <Col className="w-full h-full">
-      {formStep === ConvertUpTractorOrderFormStep.ENTRY && (
-        <ConvertUpTractorEntryForm
-          farmerSilo={farmerSilo}
-          siloData={siloData}
-          calculations={calculations}
-          didSetAdvancedFormFields={didInitRestFields}
-          setDidSetAdvancedFormFields={setDidInitRestFields}
-        />
-      )}
-      {REVIEW_STEPS.has(formStep) && (
-        <ModifyConvertUpTractorReviewController didInitAdv={didInitRestFields} averageTipPaid={averageTipPaid ?? 1} />
-      )}
-    </Col>
   );
 }
 
