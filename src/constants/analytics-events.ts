@@ -204,6 +204,7 @@ const MARKET_EVENTS = {
   BUY_SELL_TAB_CLICK: "market_buy_sell_tab_click",
   CREATE_FILL_TAB_CLICK: "market_create_fill_tab_click",
   CHART_POINT_CLICK: "market_chart_point_click",
+  CONTEXT_MENU_OPEN: "market_context_menu_open",
 
   // Pod Order Events
   POD_ORDER_CREATE: "market_pod_order_create",

@@ -150,6 +150,7 @@ export function Market() {
     x: number;
     y: number;
     clickedCoords: { x: number; y: number };
+    chartBounds: DOMRect;
   } | null>(null);
   const navigate = useNavigate();
   const { data, isLoaded } = useAllMarket();
@@ -285,8 +286,7 @@ export function Market() {
         onClick: () => {
           navigate("/market/pods/buy", {
             state: {
-              // Convert Y from percentage (0-100) to decimal (0-1)
-              prefillPrice: contextMenu.clickedCoords.y / 100,
+              prefillPrice: contextMenu.clickedCoords.y,
               prefillPlaceInLine: contextMenu.clickedCoords.x,
             },
           });
@@ -297,9 +297,7 @@ export function Market() {
         onClick: () => {
           navigate("/market/pods/sell", {
             state: {
-              // Convert Y from percentage (0-100) to decimal (0-1)
-              prefillPrice: contextMenu.clickedCoords.y / 100,
-              // X coordinate for place in line (also used for expires in)
+              prefillPrice: contextMenu.clickedCoords.y,
               prefillPlaceInLine: contextMenu.clickedCoords.x,
               prefillExpiresIn: contextMenu.clickedCoords.x,
             },
@@ -336,10 +334,19 @@ export function Market() {
     // If clicked on empty space, open context menu
     if (payload.clickedXY && payload.rawEvent.native) {
       const nativeEvent = payload.rawEvent.native as MouseEvent;
+
+      // Track context menu open event
+      trackSimpleEvent(ANALYTICS_EVENTS.MARKET.CONTEXT_MENU_OPEN, {
+        price_per_pod: payload.clickedXY.y,
+        place_in_line_millions: Math.floor(payload.clickedXY.x),
+        current_mode: viewMode,
+      });
+
       setContextMenu({
         x: nativeEvent.clientX,
         y: nativeEvent.clientY,
         clickedCoords: payload.clickedXY,
+        chartBounds: payload.chartBounds,
       });
     }
   };
@@ -368,7 +375,7 @@ export function Market() {
                 <ScatterChart
                   data={scatterChartData}
                   xOptions={{ label: "Place in line", min: 0, max: podLineAsNumber }}
-                  yOptions={{ label: "Price per pod", min: 0, max: 100 }}
+                  yOptions={{ label: "Price per pod", min: 0, max: 1 }}
                   onPointClick={onPointClick}
                   toolTipOptions={toolTipOptions as TooltipOptions}
                 />
@@ -409,6 +416,8 @@ export function Market() {
         <ContextMenu
           x={contextMenu.x}
           y={contextMenu.y}
+          clickedCoords={contextMenu.clickedCoords}
+          chartBounds={contextMenu.chartBounds}
           options={contextMenuOptions}
           onClose={() => setContextMenu(null)}
         />

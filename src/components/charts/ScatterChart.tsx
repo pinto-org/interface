@@ -1,5 +1,4 @@
 import {
-  ActiveElement,
   CategoryScale,
   Chart,
   ChartData,
@@ -72,6 +71,9 @@ export interface PointClickPayload {
   // Raw Chart.js references for advanced usage
   rawEvent: ChartEvent;
   chart: Chart;
+
+  // Chart canvas bounds for positioning context menus
+  chartBounds: DOMRect;
 }
 
 export interface ScatterChartProps {
@@ -113,6 +115,7 @@ const ScatterChart = React.memo(
     const chartRef = useRef<Chart | null>(null);
     const activeIndexRef = useRef<number | undefined>(activeIndex);
     const selectedPointRef = useRef<[number, number] | null>(null);
+    const mousePositionRef = useRef<{ x: number; y: number } | null>(null);
 
     useEffect(() => {
       activeIndexRef.current = activeIndex;
@@ -213,37 +216,72 @@ const ScatterChart = React.memo(
       [data],
     );
 
-    const verticalLinePlugin: Plugin = useMemo<Plugin>(
+    const hoverCrosshairPlugin: Plugin = useMemo<Plugin>(
       () => ({
-        id: "customVerticalLine",
+        id: "hoverCrosshair",
         afterDraw: (chart: Chart) => {
           const ctx = chart.ctx;
-          const activeIndex = activeIndexRef.current;
-          if (ctx) {
-            ctx.save();
-            ctx.setLineDash([4, 4]);
+          if (!ctx) return;
 
-            // Draw the vertical line for the active element (hovered point)
-            const activeElements = chart.getActiveElements();
-            if (activeElements.length > 0) {
-              const activeElement = activeElements[0];
-              const datasetIndex = activeElement.datasetIndex;
-              const index = activeElement.index;
-              const dataPoint = chart.getDatasetMeta(datasetIndex).data[index];
+          const mousePos = mousePositionRef.current;
+          if (!mousePos) return;
 
-              if (dataPoint) {
-                const { x } = dataPoint.getProps(["x"], true);
-                ctx.beginPath();
-                ctx.moveTo(x, chart.chartArea.top);
-                ctx.lineTo(x, chart.chartArea.bottom);
-                ctx.strokeStyle = "black";
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-              }
-            }
+          ctx.save();
+          ctx.setLineDash([4, 4]);
+          ctx.strokeStyle = "#B9B9B9"; // pinto-gray-3
+          ctx.lineWidth = 1;
 
-            ctx.restore();
+          const { x, y } = mousePos;
+
+          // Draw vertical line
+          if (x >= chart.chartArea.left && x <= chart.chartArea.right) {
+            ctx.beginPath();
+            ctx.moveTo(x, chart.chartArea.top);
+            ctx.lineTo(x, chart.chartArea.bottom);
+            ctx.stroke();
           }
+
+          // Draw horizontal line
+          if (y >= chart.chartArea.top && y <= chart.chartArea.bottom) {
+            ctx.beginPath();
+            ctx.moveTo(chart.chartArea.left, y);
+            ctx.lineTo(chart.chartArea.right, y);
+            ctx.stroke();
+          }
+
+          ctx.restore();
+        },
+      }),
+      [],
+    );
+
+    const activeElementLinePlugin: Plugin = useMemo<Plugin>(
+      () => ({
+        id: "activeElementLine",
+        afterDraw: (chart: Chart) => {
+          const ctx = chart.ctx;
+          if (!ctx) return;
+
+          const activeElements = chart.getActiveElements();
+          if (activeElements.length === 0) return;
+
+          const activeElement = activeElements[0];
+          const datasetIndex = activeElement.datasetIndex;
+          const index = activeElement.index;
+          const dataPoint = chart.getDatasetMeta(datasetIndex).data[index];
+          if (!dataPoint) return;
+
+          const { x } = dataPoint.getProps(["x"], true);
+
+          ctx.save();
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(x, chart.chartArea.top);
+          ctx.lineTo(x, chart.chartArea.bottom);
+          ctx.strokeStyle = "black";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.restore();
         },
       }),
       [],
@@ -428,10 +466,36 @@ const ScatterChart = React.memo(
       [onMouseOver],
     );
 
+    // Handle mouse leave event
+    useEffect(() => {
+      const chart = chartRef.current;
+      if (!chart) return;
+
+      const handleMouseLeave = () => {
+        mousePositionRef.current = null;
+        // Use render() instead of update() to avoid state changes
+        chart.render();
+      };
+
+      chart.canvas.addEventListener("mouseleave", handleMouseLeave);
+
+      return () => {
+        chart.canvas.removeEventListener("mouseleave", handleMouseLeave);
+      };
+    }, []);
+
     const chartOptions: ChartOptions = useMemo(() => {
       return {
         maintainAspectRatio: false,
         responsive: true,
+        onHover: (event, activeElements, chart) => {
+          // Track mouse X and Y position for crosshair
+          if (event.x !== undefined && event.x !== null && event.y !== undefined && event.y !== null) {
+            mousePositionRef.current = { x: event.x, y: event.y };
+            // Use render() instead of update() to avoid state changes
+            chart.render();
+          }
+        },
         plugins: {
           tooltip: toolTipOptions || {},
           legend: {
@@ -449,7 +513,7 @@ const ScatterChart = React.memo(
         },
         interaction: {
           mode: "point",
-          intersect: true,
+          intersect: false,
         },
         scales: {
           x: {
@@ -467,7 +531,7 @@ const ScatterChart = React.memo(
             },
           },
           y: {
-            type: useLogarithmicScale ? "logarithmic" : "linear",
+            type: "linear",
             title: {
               display: true,
               text: yOptions.label || "",
@@ -501,6 +565,7 @@ const ScatterChart = React.memo(
             },
             rawEvent: event,
             chart,
+            chartBounds: canvasPosition,
           };
 
           // Add active element info if point was clicked
@@ -527,8 +592,20 @@ const ScatterChart = React.memo(
     }, [data, yTickMin, yTickMax, valueFormatter, useLogarithmicScale, customValueTransform]);
 
     const allPlugins = useMemo<Plugin[]>(
-      () => [verticalLinePlugin, horizontalReferenceLinePlugin, selectionPointPlugin, selectionCallbackPlugin],
-      [verticalLinePlugin, horizontalReferenceLinePlugin, selectionPointPlugin, selectionCallbackPlugin],
+      () => [
+        hoverCrosshairPlugin,
+        activeElementLinePlugin,
+        horizontalReferenceLinePlugin,
+        selectionPointPlugin,
+        selectionCallbackPlugin,
+      ],
+      [
+        hoverCrosshairPlugin,
+        activeElementLinePlugin,
+        horizontalReferenceLinePlugin,
+        selectionPointPlugin,
+        selectionCallbackPlugin,
+      ],
     );
 
     const chartDimensions = useMemo(() => {
@@ -544,6 +621,7 @@ const ScatterChart = React.memo(
         };
       }
     }, [size]);
+
     return (
       <ReactChart
         ref={chartRef}

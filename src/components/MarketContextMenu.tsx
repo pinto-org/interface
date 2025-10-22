@@ -12,10 +12,13 @@ export interface ContextMenuProps {
   y: number;
   onClose: () => void;
   options: ContextMenuOption[];
+  clickedCoords: { x: number; y: number };
+  chartBounds?: DOMRect;
 }
 
-export const ContextMenu = ({ x, y, onClose, options }: ContextMenuProps) => {
+export const ContextMenu = ({ x, y, onClose, options, clickedCoords, chartBounds }: ContextMenuProps) => {
   const menuRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -39,56 +42,97 @@ export const ContextMenu = ({ x, y, onClose, options }: ContextMenuProps) => {
     };
   }, [onClose]);
 
-  // Adjust position if menu would overflow viewport
+  // Adjust position if menu would overflow chart or viewport
   useEffect(() => {
-    if (menuRef.current) {
-      const rect = menuRef.current.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
+    if (!menuRef.current || !headerRef.current) return;
 
-      let adjustedX = x;
-      let adjustedY = y;
+    const menuRect = menuRef.current.getBoundingClientRect();
+    const headerRect = headerRef.current.getBoundingClientRect();
+    const paddingX = 20;
+    const paddingY = 50;
 
-      if (rect.right > viewportWidth) {
-        adjustedX = viewportWidth - rect.width - 10;
-      }
+    // Use chart bounds if provided, otherwise use viewport
+    const bounds = chartBounds || {
+      left: 0,
+      right: window.innerWidth,
+      top: 0,
+      bottom: window.innerHeight,
+    };
 
-      if (rect.bottom > viewportHeight) {
-        adjustedY = viewportHeight - rect.height - 10;
-      }
+    // Calculate adjusted X position
+    let adjustedX = x;
+    const maxWidth = Math.max(menuRect.width, headerRect.width);
 
-      if (adjustedX !== x || adjustedY !== y) {
-        menuRef.current.style.left = `${adjustedX}px`;
-        menuRef.current.style.top = `${adjustedY}px`;
-      }
+    if (x + maxWidth > bounds.right - paddingX) {
+      adjustedX = bounds.right - maxWidth - paddingX;
     }
-  }, [x, y]);
+    if (adjustedX < bounds.left + paddingX) {
+      adjustedX = bounds.left + paddingX;
+    }
+
+    // Calculate adjusted Y position for menu
+    let adjustedMenuTop = y + 8; // original top + gap
+    if (adjustedMenuTop + menuRect.height > bounds.bottom - paddingY) {
+      adjustedMenuTop = bounds.bottom - menuRect.height - paddingY;
+    }
+    if (adjustedMenuTop < bounds.top + paddingY) {
+      adjustedMenuTop = bounds.top + paddingY;
+    }
+
+    // Apply adjustments
+    if (adjustedX !== x) {
+      headerRef.current.style.left = `${adjustedX}px`;
+      menuRef.current.style.left = `${adjustedX}px`;
+    }
+
+    if (adjustedMenuTop !== y + 8) {
+      menuRef.current.style.top = `${adjustedMenuTop}px`;
+      // Adjust header bottom accordingly
+      const headerBottom = window.innerHeight - (adjustedMenuTop - 8);
+      headerRef.current.style.bottom = `${headerBottom}px`;
+    }
+  }, [x, y, chartBounds]);
 
   return (
-    <div
-      ref={menuRef}
-      className="fixed z-50 min-w-[200px] bg-white border border-gray-300 rounded-lg shadow-xl"
-      style={{ left: x, top: y }}
-    >
-      {options.map((option, idx) => (
-        <button
-          key={idx}
-          type="button"
-          className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-100 transition-colors first:rounded-t-lg last:rounded-b-lg ${
-            option.className || ""
-          }`}
-          onClick={(e) => {
-            e.stopPropagation();
-            option.onClick();
-            onClose();
-          }}
-        >
-          <div className="flex items-center gap-3">
-            {option.icon && <div className="flex-shrink-0">{option.icon}</div>}
-            <span className="font-medium">{option.label}</span>
-          </div>
-        </button>
-      ))}
-    </div>
+    <>
+      <div
+        ref={headerRef}
+        className="fixed z-50 text-xs px-3 py-2 flex flex-col gap-1 text-pinto-pod-bronze"
+        style={{ left: x, bottom: `calc(100vh - ${y}px)` }}
+      >
+        <div>
+          <span>Price per Pod:</span> <span>{clickedCoords.y.toFixed(6)}</span>
+        </div>
+        <div>
+          <span>Place in line:</span> <span>{clickedCoords.x.toFixed(2)}M</span>
+        </div>
+      </div>
+      <div
+        ref={menuRef}
+        className="fixed z-50 min-w-[200px] bg-white border border-gray-300 rounded-lg shadow-md"
+        style={{ left: x, top: `calc(${y}px + 8px)` }}
+      >
+        {options.map((option, idx) => (
+          <button
+            key={idx}
+            type="button"
+            aria-label={option.label}
+            className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-100 transition-colors first:rounded-t-lg last:rounded-b-lg ${
+              option.className || ""
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              option.onClick();
+              onClose();
+            }}
+          >
+            <div className="flex items-center gap-3">
+              {option.icon && <div className="flex-shrink-0">{option.icon}</div>}
+              <span className="font-medium">{option.label}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+    </>
   );
 };
