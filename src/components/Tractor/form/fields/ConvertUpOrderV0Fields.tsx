@@ -3,7 +3,7 @@ import { FormControl, FormField, FormItem, FormLabel } from "@/components/Form";
 import { Input } from "@/components/ui/Input";
 import { MultiSlider } from "@/components/ui/Slider";
 import { Switch } from "@/components/ui/Switch";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { ConvertUpV0FormSchema } from "../schema/convertUp.schema";
 
 import { TV } from "@/classes/TokenValue";
@@ -17,6 +17,7 @@ import useConvertStalkPerBdvBonusAndMaximumCapacity from "@/state/useConvertStal
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloData } from "@/state/useSiloData";
 import { useMainToken } from "@/state/useTokenData";
+import { sanitizeNumericInputValue } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { cn } from "@/utils/utils";
 import { RegisterOptions, useFormContext, useWatch } from "react-hook-form";

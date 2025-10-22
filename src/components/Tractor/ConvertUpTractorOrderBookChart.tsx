@@ -91,11 +91,11 @@ export default function ConvertUpTractorOrderBookChart() {
       return undefined;
     }
 
-    let ordersMinPrice = TV.MAX_UINT256;
-    let ordersMinBonus = TV.MAX_UINT256;
+    let ordersMinPrice = TV.fromHuman(0.001, 6);
+    let ordersMaxPrice = TV.fromHuman(-1, 6);
 
-    let ordersMaxPrice = TV.fromHuman("-1", 6);
-    let ordersMaxBonus = TV.fromHuman("-1", 10);
+    let ordersMinBonus = TV.MAX_UINT256;
+    let ordersMaxBonus = TV.fromHuman(-1, 10);
 
     for (const order of orders ?? []) {
       if (!order.decodedData) continue;
@@ -105,9 +105,11 @@ export default function ConvertUpTractorOrderBookChart() {
       ordersMaxBonus = TV.max(order.decodedData.convertUpParams.grownStalkPerBdvBonusBid, ordersMaxBonus);
     }
 
-    ordersMinPrice = TV.max(ordersMinPrice, TV.fromHuman(0.001, 6));
-    ordersMaxPrice = TV.min(ordersMaxPrice, TV.fromHuman(0.999, 6));
-    ordersMinBonus = TV.max(ordersMinBonus, TV.fromHuman(0, 10));
+    // set sensible defaults
+    ordersMinPrice = TV.min(ordersMinPrice, TV.fromHuman(0.001, 6));
+    ordersMaxPrice = TV.max(ordersMaxPrice, TV.fromHuman(0.999, 6));
+    ordersMinBonus = TV.min(ordersMinBonus, TV.fromHuman(0, 10));
+
     if (ordersMaxBonus.eq(-1)) {
       ordersMaxBonus = TV.fromHuman("1", 10);
     }

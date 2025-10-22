@@ -19,7 +19,7 @@ import { useAverageGrownStalkPerBdvPerSeason, useSiloData } from "@/state/useSil
 import { useMainToken } from "@/state/useTokenData";
 import { postSanitizedSanitizedValue } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useFormContext, useFormState, useWatch } from "react-hook-form";
 import TractorTokenStrategyDialog from "../TractorTokenStrategyDialog";
 import { ConvertUpTractorOrderFormStep, useConvertUpOrderFormContext } from "./ConvertUpTractorContext";
@@ -42,10 +42,11 @@ const ConvertUpTractorEntryForm = ({
   didSetAdvancedFormFields: boolean;
   setDidSetAdvancedFormFields: (val: boolean) => void;
 }) => {
-  const { form, setFormStep, onOpenChange } = useConvertUpOrderFormContext();
+  const { form, mode, setFormStep, onOpenChange } = useConvertUpOrderFormContext();
   const [showTokenStrategyDialog, setShowTokenStrategyDialog] = useState(false);
   const mainToken = useMainToken();
   const tokenMap = useTokenMap();
+  useSynchronizeMaxPerExecution();
 
   const {
     errors: { minPriceToConvertUp, maxPriceToConvertUp },
@@ -175,6 +176,32 @@ const ConvertUpTractorEntryForm = ({
       )}
     </>
   );
+};
+
+/**
+ * Synchronizes the maxBeansConvertPerExecution field with the totalBeanAmountToConvert field when in modify mode.
+ * This is necessary because the maxBeansConvertPerExecution field is not rendered in the same form as the totalBeanAmountToConvert field.
+ * In create mode, the maxBeansConvertPerExecution field will be 0 and thus the totalBeanAmountToConvert will always be > maxBeansConvertPerExecution.
+ */
+const useSynchronizeMaxPerExecution = () => {
+  const { form, mode } = useConvertUpOrderFormContext();
+  const mainToken = useMainToken();
+
+  const totalConvertBdv = useWatch({ control: form.control, name: "totalBeanAmountToConvert" });
+
+  useEffect(() => {
+    if (mode !== "modify") {
+      return;
+    }
+
+    const max = form.getValues("maxBeansConvertPerExecution");
+    const maxSanitized = postSanitizedSanitizedValue(max, mainToken.decimals).tv;
+    const totalSanitized = postSanitizedSanitizedValue(totalConvertBdv, mainToken.decimals).tv;
+
+    if (totalSanitized.lt(maxSanitized)) {
+      form.setValue("maxBeansConvertPerExecution", totalConvertBdv, { shouldValidate: true });
+    }
+  }, [mode, totalConvertBdv, form]);
 };
 
 export default ConvertUpTractorEntryForm;
