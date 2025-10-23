@@ -2,16 +2,11 @@ import { Col } from "@/components/Container";
 import TextSkeleton from "@/components/TextSkeleton";
 import TooltipSimple from "@/components/TooltipSimple";
 import { Card } from "@/components/ui/Card";
-import { useTractorConvertUpOrderbook } from "@/state/tractor/useTractorConvertUpOrders";
 import useConvertStalkPerBdvBonusAndMaximumCapacity, {
   useConvertGrownStalkBonusRemainingCapacity,
 } from "@/state/useConvertStalkPerBdvBonusData";
 import { formatter } from "@/utils/format";
-import { exists } from "@/utils/utils";
 import { ReactNode } from "react";
-
-const empty = {};
-
 interface StatCardWithCardProps {
   title: string;
   tooltip: string;
@@ -44,11 +39,7 @@ const capacityFormat = {
 
 export default function SiloConvertUpStats() {
   const { data, isLoading } = useConvertStalkPerBdvBonusAndMaximumCapacity();
-  const orderbook = useTractorConvertUpOrderbook(empty);
   const remainingCapacity = useConvertGrownStalkBonusRemainingCapacity();
-
-  // Active Orders stat data
-  const activeOrdersValue = exists(orderbook.data?.length) ? orderbook.data?.length : "--";
 
   // Max Capacity stat data
   const maxCapacityValue = formatter.number(data?.maxCapacity, capacityFormat);
@@ -62,19 +53,19 @@ export default function SiloConvertUpStats() {
     <>
       <StatCard
         title="Current Capacity"
-        tooltip="The current capacity of the Convert Up Blueprint"
+        tooltip="The amount of PDV that Pinto is willing to issue a Stalk bonus this Season."
         value={remainingCapacityValue}
         loading={remainingCapacity.isLoading}
       />
       <StatCard
         title="Max Capacity"
-        tooltip="The maximum capacity of the Convert Up Blueprint"
+        tooltip="The maximum PDV Pinto is willing to issue a Stalk bonus this Season."
         value={maxCapacityValue}
         loading={isLoading}
       />
       <StatCard
         title="Stalk Bonus / PDV"
-        tooltip="The bonus given for converting up, in terms of Grown Stalk per Pinto Denominated Value"
+        tooltip="The bonus Pinto is willing to give for farmers Converting up this Season."
         value={stalkBonusValue}
         loading={isLoading}
       />
