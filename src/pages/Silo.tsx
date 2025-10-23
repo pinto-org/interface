@@ -176,11 +176,6 @@ function Silo() {
               </div>
             </div>
           </div>
-          {/* <div className="flex flex-col w-full gap-8">
-            <div className="w-full">
-              <SiloStats />
-            </div>
-          </div> */}
         </div>
       </div>
 

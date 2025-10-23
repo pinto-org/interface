@@ -89,6 +89,7 @@ export default function ConvertUpOrderProvider({
 
   const form = useConvertUpV0Form();
   const getStrategyProps = useGetTractorTokenStrategyWithBlueprint();
+  const { data: averageTipPaid } = useTractorOperatorAverageTipPaid();
 
   /**
    * Manages the draft state of the form, allowing preservation of form values
@@ -210,6 +211,19 @@ export default function ConvertUpOrderProvider({
     },
     [operatorTipPreset],
   );
+
+  const [didSetOperatorTipPreset, setDidSetOperatorTipPreset] = useState(false);
+
+  useEffect(() => {
+    if (didSetOperatorTipPreset) {
+      return;
+    }
+
+    if (averageTipPaid) {
+      setDidSetOperatorTipPreset(true);
+      form.form.setValue("operatorTip", averageTipPaid.toFixed(2));
+    }
+  }, [didSetOperatorTipPreset, averageTipPaid]);
 
   return (
     <ConvertUpOrderFormContext.Provider

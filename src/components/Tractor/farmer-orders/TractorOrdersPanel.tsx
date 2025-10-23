@@ -260,7 +260,7 @@ function TractorOrdersPanelGeneric({
   }
 
   if (!unifiedOrders.length) {
-    return <EmptyTable type="tractor" onTractorClick={onCreateOrder} />;
+    return <EmptyTable type="tractorConvertUp" onTractorClick={onCreateOrder} />;
   }
 
   return (
