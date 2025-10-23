@@ -158,7 +158,7 @@ export async function getAverageTipPaid(
 
     // If no events found, return default value of 1
     if (events.length === 0) {
-      return 1;
+      return 0.2;
     }
 
     // Calculate average tip amount
@@ -191,7 +191,7 @@ export async function getAverageTipPaid(
 
     // If no valid events found, return default value
     if (validEventCount === 0) {
-      return 1;
+      return 0.2;
     }
 
     // Calculate average in human-readable form
@@ -210,7 +210,7 @@ export async function getAverageTipPaid(
   } catch (error) {
     console.error("Error getting average tip amount:", error);
     // Return default value in case of error
-    return 1;
+    return 0.2;
   }
 }
 
