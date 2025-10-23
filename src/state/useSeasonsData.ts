@@ -566,7 +566,7 @@ export default function useSeasonsData(
       if (inflowData) {
         // Ensure api response is fully caught up/in sync
         const currInflow = inflowSnapshots[idx];
-        if (!allData.season || currInflow?.season === allData.season) {
+        if (currInflow && (!allData.season || currInflow.season === allData.season)) {
           allData.inflowAllCumulativeNet = currInflow.all.cumulative.net;
           allData.inflowAllCumulativeIn = currInflow.all.cumulative.in;
           allData.inflowAllCumulativeOut = currInflow.all.cumulative.out;
