@@ -147,7 +147,7 @@ export const convertUpOrderDialogSchema = z
 
     // Bonus/capacity parameters
     minConvertBonusCapacity: nonNegativeNumber("Min Convert Bonus Capacity"),
-    maxGrownStalkPerBdv: positiveNumber("Max Grown Stalk per PDV"),
+    maxGrownStalkPerBdv: positiveNumber("Max Stalk per PDV"),
     grownStalkPerBdvBonusBid: nonNegativeNumber("Min Grown Stalk per BDV Bonus"),
 
     seedDifference: z.string().min(1, "Seed Difference is required"),
