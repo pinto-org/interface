@@ -401,7 +401,11 @@ export const transformConvertUpFormValues = (values: FormSchema, chainId: number
 
   const operatorTip = postSanitizedSanitizedValue(values.operatorTip, dc.operatorTip);
   const customOperatorTip = postSanitizedSanitizedValue(values.customOperatorTip ?? "", dc.operatorTip);
-  const slippageRatio = postSanitizedSanitizedValue(values.slippageRatio, dc.slippageRatio);
+
+  // Convert slippage from percentage (0.1 = 0.1%) to decimal (0.001) by dividing by 100
+  const slippageRatioPercentage = Number(values.slippageRatio || "0");
+  const slippageRatioDecimal = (slippageRatioPercentage / 100).toString();
+  const slippageRatio = postSanitizedSanitizedValue(slippageRatioDecimal, dc.slippageRatio);
 
   const { seedDifferenceCheck: _, ...cleanedValues } = values;
 
