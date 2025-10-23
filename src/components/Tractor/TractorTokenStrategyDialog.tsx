@@ -137,7 +137,7 @@ export default function TractorTokenStrategyDialog({
                 Select {multiSelect ? "Tokens" : "Token"} from Silo Deposits
               </DialogTitle>
               <DialogDescription className="text-gray-500 pb-1">
-                Tractor allows you to fund orders using Deposits
+                Tractor allows you to fund orders using Deposits.
               </DialogDescription>
               <Separator className="h-[1px] border-pinto-gray-2 bg-pinto-gray-2" />
             </DialogHeader>
@@ -224,12 +224,12 @@ export default function TractorTokenStrategyDialog({
               <Col className="gap-2 mt-2">
                 <div className="text-xs text-gray-500 flex items-center gap-1">
                   <InfoOutlinedIcon width={14} height={14} />
-                  Deposits with the least Grown Stalk will always be used first
+                  Deposits with the least Stalk will always be used first.
                 </div>
                 {multiSelect ? (
                   <div className="text-xs text-gray-500 flex items-center gap-1">
                     <InfoOutlinedIcon width={14} height={14} />
-                    If multiple tokens are selected, execution will occur in the order selected
+                    If multiple tokens are selected, execution will occur in the order selected.
                   </div>
                 ) : null}
               </Col>
