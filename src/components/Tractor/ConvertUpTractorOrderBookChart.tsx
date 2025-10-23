@@ -214,12 +214,12 @@ export default function ConvertUpTractorOrderBookChart() {
             <span>Price Axis</span>
           </Row>
         </Row>
-        {/* <Button onClick={() => ordersQuery.refetch()}>
-          refetch
-        </Button> */}
         {!priceToggleActive ? (
           <Col className="gap-2">
-            <TooltipLabel className="pinto-xs" tooltipText={"Price filter"}>
+            <TooltipLabel
+              className="pinto-xs"
+              // tooltipText={"Price filter"}
+            >
               {"Price Filter"}
             </TooltipLabel>
             <Row className="gap-8 items-center">
@@ -268,7 +268,10 @@ export default function ConvertUpTractorOrderBookChart() {
           </Col>
         ) : (
           <Col className="gap-2">
-            <TooltipLabel className="pinto-xs" tooltipText={"Bonus filter"}>
+            <TooltipLabel
+              className="pinto-xs"
+              // tooltipText={"Bonus filter"}
+            >
               {"Bonus Filter"}
             </TooltipLabel>
             <Row className="gap-8 items-center">

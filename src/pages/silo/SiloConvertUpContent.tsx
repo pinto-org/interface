@@ -85,23 +85,21 @@ export const SiloConvertUpContent = () => {
                   <ConvertUpOrderForm onOpenChange={noop} disallowCloseForm={true} />
                 </Card>
               </div>
-              {isDev() && (
-                <Col className="gap-4">
-                  <div className="flex flex-row gap-2 items-center min-w-0">
-                    <div
-                      className={cn(
-                        "gap-2 flex-col", // mobile styles
-                        "flex sm:flex-row w-full min-w-0 gap-4 justify-between",
-                      )}
-                    >
-                      <SiloConvertUpStats />
-                    </div>
+              <Col className="gap-4">
+                <div className="flex flex-row gap-2 items-center min-w-0">
+                  <div
+                    className={cn(
+                      "gap-2 flex-col", // mobile styles
+                      "flex sm:flex-row w-full min-w-0 gap-4 justify-between",
+                    )}
+                  >
+                    <SiloConvertUpStats />
                   </div>
-                </Col>
-              )}
-              <div className={cn("flex gap-4 flex-col sm:flex-row")}>
+                </div>
+              </Col>
+              {/* <div className={cn("flex gap-4 flex-col sm:flex-row")}>
                 <SiloConvertUpCharts />
-              </div>
+              </div> */}
             </div>
           </Col>
         </Col>

@@ -144,11 +144,12 @@ export function ConvertUpExecute() {
     () => [
       {
         header: "Created At",
-        className: "px-0",
+        className: "px-0 w-52 max-w-52",
         accessor: (order) => formatDate(order.timestamp),
       },
       {
         header: "Publisher",
+        className: "w-32 max-w-32",
         accessor: (order) => (
           <a
             href={`${BASESCAN_URL}${order.requisition.blueprint.publisher}`}
@@ -163,6 +164,7 @@ export function ConvertUpExecute() {
       },
       {
         header: "Blueprint Hash",
+        className: "w-32 max-w-32",
         accessor: (order) => (
           <span className="text-pinto-green-4 text-sm">
             {`${order.requisition.blueprintHash.slice(0, 4)}...${order.requisition.blueprintHash.slice(-3)}`}
@@ -171,7 +173,7 @@ export function ConvertUpExecute() {
       },
       {
         header: "Grown Stalk Bonus",
-        className: "text-right",
+        className: "text-right w-36 max-w-36",
         accessor: (order) => (
           <span className="text-sm place-self-end">
             {order.decodedData
@@ -185,7 +187,7 @@ export function ConvertUpExecute() {
       },
       {
         header: "Price Range",
-        className: "text-right",
+        className: "text-right w-40 max-w-40",
         accessor: (order) => (
           <span className="text-sm place-self-end">
             {order.decodedData
@@ -196,7 +198,7 @@ export function ConvertUpExecute() {
       },
       {
         header: "PDV per Execution",
-        className: "text-right",
+        className: "text-right w-44 max-w-44",
         accessor: (order) => (
           <div className="flex items-center gap-1 text-sm place-self-end">
             <IconImage src={PINTO.logoURI} alt="PINTO" size={4} />
@@ -210,7 +212,7 @@ export function ConvertUpExecute() {
       },
       {
         header: "Operator Tip",
-        className: "text-right",
+        className: "text-right w-44 max-w-44",
         accessor: (order) => (
           <div className="flex items-center gap-1 text-sm place-self-end">
             <IconImage src={PINTO.logoURI} alt="PINTO" size={4} />
