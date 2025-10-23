@@ -4,7 +4,6 @@ import { QUERY_SETTINGS, defaultQuerySettingsMedium } from "@/constants/query";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import {
-  ConvertUpBlueprintStruct,
   ConvertUpOrderbookEntry,
   TractorAPI,
   TractorAPIOrdersResponse,
@@ -12,12 +11,11 @@ import {
   transformConvertUpRequisitionEvent,
 } from "@/lib/Tractor";
 import { decodeBlueprintCallData } from "@/lib/Tractor/blueprint-decoders";
-import { convertUpBlueprintDecoder } from "@/lib/Tractor/blueprint-decoders/convert-up-decoder";
 import { getChainConstant, resolveChainId } from "@/utils/chain";
 import { HashString } from "@/utils/types.generic";
 import { isDev } from "@/utils/utils";
 import { DefaultError, QueryObserverOptions, useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useChainId, usePublicClient } from "wagmi";
 import { queryKeys } from "../queryKeys";
 
@@ -57,18 +55,13 @@ const useTractorAPIConvertUpOrders = ({
 
   const select = useMemo(() => transformAPIOrderbookData(chainId), [chainId]);
 
-  const envExists = Boolean(import.meta.env.VITE_TRACTOR_CONVERT_URL);
-
-  const queryEnabled = !!chainId && !chainOnly && enabled && envExists;
+  const queryEnabled = !!chainId && !chainOnly && enabled;
 
   const query = useQuery({
     queryKey: queryKeys.tractor.convertUpOrders({ ...args }),
     queryFn: async () => {
       if (!chainId) return;
-      return TractorAPI.getOrders<"CONVERT_UP_V0">({
-        ...args,
-        isConvert: true,
-      });
+      return TractorAPI.getOrders<"CONVERT_UP_V0">({ ...args });
     },
     enabled: queryEnabled,
     select,
@@ -195,7 +188,7 @@ export function useTractorConvertUpOrderbook<T = ConvertUpOrderbookEntry[]>(
   const ordersAPIDataExists = Boolean(orders?.orders && !ordersQuery.isLoading && !ordersQuery.isError);
 
   // only run the chain query if we have a client, a max temperature, the API data exists, and we have a latest block reference.
-  const orderChainQueryEnabled = (chainOnly || ordersAPIDataExists || !envExists) && enabled;
+  const orderChainQueryEnabled = (chainOnly || ordersAPIDataExists) && enabled;
 
   /**
    * If the orders API request failed, fetch since the TRACTOR_DEPLOYMENT_BLOCK

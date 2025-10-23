@@ -20,14 +20,13 @@ export interface TractorAPIOrderOptions<OrderType extends TractorAPIOrderType = 
   orderType?: OrderType;
   cancelled?: boolean;
   publisher?: `0x${string}`;
-  isConvert?: boolean; // TEMPORARY
 }
 const getOrders = async <OrderType extends TractorAPIOrderType>(_options?: TractorAPIOrderOptions<OrderType>) => {
   console.debug("[Tractor/tractorAPIFetchOrders] Fetching orders...");
 
-  const { isConvert, ...options } = { ..._options };
+  const { ...options } = { ..._options };
 
-  const baseURL = getTractorBaseURL(isConvert);
+  const baseURL = getTractorBaseURL();
 
   try {
     // Fetch the results from the API
@@ -183,11 +182,6 @@ export default TractorAPI;
 const MAX_LIMIT = 5_000;
 
 const getTractorBaseURL = (isConvert?: boolean) => {
-  const tractorUrl = import.meta.env.VITE_TRACTOR_CONVERT_URL;
-  if (isConvert && tractorUrl) {
-    return `http://api.${tractorUrl}`;
-  }
-
   return API_SERVICES.pinto;
 };
 

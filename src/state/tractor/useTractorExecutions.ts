@@ -5,12 +5,9 @@ import { defaultQuerySettingsMedium } from "@/constants/query";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import {
-  CombinedConvertUpEventLog,
   PublisherTractorExecution,
   TractorAPI,
-  TractorAPIExecutionSowOrderItem,
   TractorAPIResponseExecution,
-  TractorEventLogArgsMap,
   TractorEventMapping,
   fetchPublisherTractorExecutionEvents,
 } from "@/lib/Tractor";
@@ -33,7 +30,6 @@ export const useTractorAPIExecutionsQuery = (
   publisher: HashString | undefined,
   enabled: boolean = true,
   chainOnly: boolean = false,
-  isConvert: boolean = false,
 ) => {
   const chainId = useChainId();
 
@@ -43,7 +39,7 @@ export const useTractorAPIExecutionsQuery = (
     queryKey: queryKeys.tractor.tractorExecutions(publisher),
     queryFn: async () => {
       if (!publisher) return undefined;
-      const ex = await TractorAPI.getExecutions({ publisher, isConvert: true });
+      const ex = await TractorAPI.getExecutions({ publisher });
       return ex;
     },
     select: selectTractorExecutions,
@@ -99,8 +95,6 @@ export default function usePublisherTractorExecutions(
 
       const allExecutions: PublisherTractorExecution[] = [...sowBlueprintv0, ...convertUpBlueprint];
 
-      // console.log("[Tractor/mergeExecutions] onchain executions", onChainExecutions);
-
       // Filter out any on-chain executions that already exist in the API data & add the SOW_V0 executions if sowEvent is present
       onChainExecutions?.forEach((exec) => {
         if (!existingTxHashes.has(exec.transactionHash.toLowerCase())) {
@@ -110,7 +104,6 @@ export default function usePublisherTractorExecutions(
 
       // Combine and sort all executions
       allExecutions.sort((a, b) => b.blockNumber - a.blockNumber);
-      // console.log("[Tractor/mergeExecutions] All executions", allExecutions);
 
       return allExecutions;
     },
