@@ -15,7 +15,10 @@ import MobileActionBar from "@/components/MobileActionBar";
 import PageMetaWrapper from "@/components/PageMetaWrapper";
 import SiloActionBox from "@/components/SiloActionBox";
 import TooltipSimple from "@/components/TooltipSimple";
+import ConvertUpOrderForm from "@/components/Tractor/ConvertUpOrderForm";
+import TractorCard from "@/components/Tractor/TractorCard";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import DenominationSwitcher from "@/components/ui/DenominationSwitcher";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
@@ -23,6 +26,7 @@ import { Separator } from "@/components/ui/Separator";
 import META, { MetaSlug } from "@/constants/meta";
 import { S_MAIN_TOKEN } from "@/constants/tokens";
 import useIsMobile from "@/hooks/display/useIsMobile";
+import useMediaQuery from "@/hooks/display/useMediaQuery";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { useDenomination } from "@/hooks/useAppSettings";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
@@ -37,8 +41,10 @@ import { formatter } from "@/utils/format";
 import { stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { SiloTokenData, Token, TokenDepositData } from "@/utils/types";
+import { cn } from "@/utils/utils";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
-import { useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useChainId, useConfig } from "wagmi";
@@ -49,6 +55,7 @@ import SiloTokenPageHeader, { SiloTokenPageSubHeader } from "./siloToken/SiloTok
 function SiloTokenInner({ siloToken }: { siloToken: Token }) {
   const { tokenAddress } = useParams();
   const [params] = useSearchParams();
+  const [tractorFormOpen, setTractorFormOpen] = useState(false);
   const currentAction = params.get("action");
 
   const siloData = useSiloData();
@@ -136,7 +143,12 @@ function SiloTokenInner({ siloToken }: { siloToken: Token }) {
           </div>
           {(!isMobile || (currentAction && isMobile)) && (
             <div className="w-full lg:max-w-[384px] 3xl:max-w-[518px] 3xl:min-w-[425px] lg:-mt-2s mb-14 sm:mb-0">
-              <SiloTokenActions siloToken={siloToken} farmerDeposits={farmerDeposits} />
+              <SiloTokenActions
+                siloToken={siloToken}
+                farmerDeposits={farmerDeposits}
+                tractorFormOpen={tractorFormOpen}
+                setTractorFormOpen={setTractorFormOpen}
+              />
             </div>
           )}
           {!currentAction && (
@@ -202,6 +214,28 @@ export default function SiloToken() {
   );
 }
 
+// ────────────────────────────────────────────────────────────────────────────────
+// Sub Components
+// ────────────────────────────────────────────────────────────────────────────────
+
+const ConvertUpTractorCard = ({
+  setOpen,
+}: {
+  setOpen: (value: boolean) => void;
+}) => {
+  const handleOpen = () => setOpen(true);
+
+  return (
+    <TractorCard
+      label="🚜 Want to Convert Up?"
+      subLabel="Set up a Tractor Order to automate Convert Ups"
+      onClick={handleOpen}
+      shouldAnimateZoom={false}
+      corderBordersDisabled
+    />
+  );
+};
+
 interface IBaseSiloToken {
   siloToken: Token;
   isMobile?: boolean;
@@ -209,14 +243,19 @@ interface IBaseSiloToken {
 
 interface ISiloTokenActions extends IBaseSiloToken {
   farmerDeposits: TokenDepositData | undefined;
+  tractorFormOpen: boolean;
+  setTractorFormOpen: (value: boolean) => void;
 }
 
-const SiloTokenActions = ({ siloToken, farmerDeposits }: ISiloTokenActions) => {
+const SiloTokenActions = ({ siloToken, farmerDeposits, tractorFormOpen, setTractorFormOpen }: ISiloTokenActions) => {
+  const isSmToLg = useMediaQuery("between", "sm", "lg");
+
   return (
-    <div className="flex flex-col w-full gap-6">
+    <div className="relative flex flex-col w-full gap-6">
       <div className="p-4 rounded-[1rem] bg-pinto-off-white border-pinto-gray-2 border">
         <SiloActions token={siloToken} />
       </div>
+      <ConvertUpTractorCard setOpen={setTractorFormOpen} />
       {farmerDeposits?.deposits.map((farmerDeposit) => {
         if (farmerDeposit.isGerminating || farmerDeposit.isPlantDeposit) {
           return <GerminationNotice type="single" deposit={farmerDeposit} key={`germinating-${farmerDeposit.id}`} />;
@@ -224,6 +263,30 @@ const SiloTokenActions = ({ siloToken, farmerDeposits }: ISiloTokenActions) => {
         return null;
       })}
       <SiloActionBox farmerDeposits={farmerDeposits} token={siloToken} />
+
+      {/* Convert Up Modal */}
+      <AnimatePresence mode="wait">
+        {tractorFormOpen && (
+          <div className={cn("absolute top-0 left-0 right-0 flex w-full items-start justify-center pt-4 z-20")}>
+            <motion.div
+              initial={{ opacity: 0, scaleY: 0 }}
+              animate={{ opacity: 1, scaleY: 1 }}
+              exit={{ opacity: 0, scaleY: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="flex flex-col w-full"
+              style={{ transformOrigin: isSmToLg ? "50% 100%" : "50% 70%" }}
+            >
+              <div className={cn("flex w-full sm:px-8 lg:px-4")}>
+                <Card className="flex w-full rounded-xl" id="convert-up-order-dialog">
+                  <div className="flex flex-col w-full items-center p-4">
+                    <ConvertUpOrderForm onOpenChange={setTractorFormOpen} />
+                  </div>
+                </Card>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

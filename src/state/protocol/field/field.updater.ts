@@ -229,7 +229,7 @@ const useUpdateWeather = () => {
       lastDeltaSoil: TV.fromBlockchain(lastDeltaSoil, SOIL_DECIMALS),
       lastSowTime,
       thisSowTime,
-      temp,
+      temp: TV.fromBigInt(temp, TEMPERATURE_DECIMALS).toNumber(),
       isLoading: false,
     });
   }, [weatherQuery.data]);

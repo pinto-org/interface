@@ -7,7 +7,7 @@ import {
   useSowOrderV0State,
 } from "@/components/Tractor/form/SowOrderV0Schema";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
-import { TractorTokenStrategy, isTractorTokenStrategy } from "@/lib/Tractor";
+import { tractorTokenStrategyUtil as StrategyUtil, TractorTokenStrategy } from "@/lib/Tractor";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { AnimatePresence, motion } from "framer-motion";
@@ -252,7 +252,9 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
           onSuccess={() => onOpenChange(false)}
           onOrderPublished={onOrderPublished}
           orderData={{
+            type: "sow",
             ...orderData,
+            tokenStrategy: form.getValues("selectedTokenStrategy"),
             tokenSymbol: orderData.token?.symbol,
           }}
           encodedData={state.encodedData}
@@ -296,7 +298,7 @@ export const SowOrderV0TokenStrategyDialog = ({
     [ctx, onOpenChange],
   );
 
-  if (!isTractorTokenStrategy(selectedTokenStrategy)) {
+  if (!StrategyUtil.isValidStrategy(selectedTokenStrategy)) {
     return null;
   }
 

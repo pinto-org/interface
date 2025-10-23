@@ -16,6 +16,7 @@ import Footer from "@/components/Footer";
 import { MobileActionBarProvider } from "@/components/MobileActionBarContext";
 import TourOfTheFarm from "@/components/TourOfTheFarm";
 import { useLocation } from "react-router-dom";
+import DevToolsInstall from "./pages/DevToolsInstall";
 import Hypernative from "./pages/Hypernative";
 import { useMetaCRM } from "./utils/meta-crm";
 

@@ -15,6 +15,8 @@ import { SowOrderV0FormSchema } from "./SowOrderV0Schema";
 
 import { Col, Row } from "@/components/Container";
 import { Label } from "@/components/ui/Label";
+import { tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
+import { TractorTokenStrategy } from "@/lib/Tractor/types";
 import { cn } from "@/utils/utils";
 import { useFormContext, useWatch } from "react-hook-form";
 
@@ -270,13 +272,15 @@ SowOrderV0Fields.TokenStrategy = function TokenStrategy({
 }: {
   openDialog: () => void;
 }) {
-  const ctx = useFormContext<SowOrderV0FormSchema>();
+  const ctx = useFormContext<{ selectedTokenStrategy: TractorTokenStrategy }>();
   const tokenMap = useTokenMap();
 
   const strategy = useWatch({ control: ctx.control, name: "selectedTokenStrategy" });
 
+  const addresses = StrategyUtil.extractAddresses(strategy);
+
   const selectedToken =
-    strategy?.address && strategy.type === "SPECIFIC_TOKEN" ? tokenMap[getTokenIndex(strategy.address)] : undefined;
+    strategy.type === "SPECIFIC_TOKEN" && addresses?.length ? tokenMap[getTokenIndex(addresses[0] ?? "")] : undefined;
 
   const getSelectedTokenDisplay = () => {
     if (strategy?.type === "LOWEST_SEEDS") {

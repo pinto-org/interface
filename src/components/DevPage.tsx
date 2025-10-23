@@ -1,7 +1,9 @@
 import { mockAddressAtom } from "@/Web3Provider";
 import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
 import { tractorHelpersABI } from "@/constants/abi/TractorHelpersABI";
+import { convertUpBlueprintV0ABI } from "@/constants/abi/convertUpBlueprintV0ABI";
 import { diamondABI as beanstalkAbi, diamondABI } from "@/constants/abi/diamondABI";
+import ABI_CONFIG from "@/constants/abiConfig";
 import { TRACTOR_HELPERS_ADDRESS } from "@/constants/address";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
@@ -22,10 +24,11 @@ import { isDev, isLocalhost } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { useEffect, useMemo, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   http,
+  AbiFunction,
   PublicClient,
   createPublicClient,
   decodeEventLog,
@@ -38,10 +41,14 @@ import {
 } from "viem";
 import { base, hardhat } from "viem/chains";
 import { useAccount, useBlockNumber, useChainId, usePublicClient, useWalletClient } from "wagmi";
+import { Col, Row } from "./Container";
 import MorningCard from "./MorningCard";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/Accordion";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { Input } from "./ui/Input";
+import { Label } from "./ui/Label";
+import { Separator } from "./ui/Separator";
 
 type ServerStatus = "running" | "not-running" | "checking";
 
@@ -56,7 +63,13 @@ const publicClient = createPublicClient({
 });
 
 // Merge the ABIs
-const combinedABI = [...beanstalkAbi, ...sowBlueprintv0ABI, ...tractorHelpersABI, ...erc20Abi] as const;
+const combinedABI = [
+  ...beanstalkAbi,
+  ...sowBlueprintv0ABI,
+  ...tractorHelpersABI,
+  ...erc20Abi,
+  ...convertUpBlueprintV0ABI,
+] as const;
 
 /**
  * Packs a token address and stem into a deposit ID
@@ -147,7 +160,7 @@ export default function DevPage() {
     if (priceData.pools.length === 0) {
       return true;
     }
-    const result = priceData.pools.some((pool) => pool.price?.eq(0));
+    const result = priceData.pools.some((pool) => pool.price?.eq(0) && !!pool.pool.isWhitelisted);
     return result;
   })();
 
@@ -179,6 +192,7 @@ export default function DevPage() {
     };
   } | null>(null);
 
+  const [hardhatTaskName, setHardhatTaskName] = useState("");
   const [sortingToken, setSortingToken] = useState<string | null>(null);
   const [farmingSortToken, setFarmingSortToken] = useState<string | null>(null);
   const [sortingAllTokens, setSortingAllTokens] = useState(false);
@@ -266,8 +280,8 @@ export default function DevPage() {
     return <Navigate to="/" replace />;
   }
 
-  const executeTask = async (taskName: string, params?: Record<string, any>): Promise<void> => {
-    setLoading(taskName);
+  const executeTask = async (taskName: string, params?: Record<string, any>, loadingKey?: string): Promise<void> => {
+    setLoading(loadingKey || taskName);
     try {
       // Merge the provided params with the default network param
       const taskParams = {
@@ -301,6 +315,16 @@ export default function DevPage() {
       }
     } finally {
       setLoading(null);
+    }
+  };
+
+  const executeDeploy = async (taskName: string, params?: Record<string, any>) => {
+    try {
+      await executeTask(taskName, params, "deploying");
+      setHardhatTaskName("");
+      location.reload();
+    } catch (e) {
+      // don't do anything
     }
   };
 
@@ -509,64 +533,110 @@ export default function DevPage() {
           </div>
         )}
 
-        {/* Basic Actions */}
-        <Card className="p-6">
-          <h2 className="text-2xl mb-4">Basic Actions</h2>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap gap-4">
-              <Button onClick={() => executeTask("callSunrise")} disabled={loading === "callSunrise"}>
-                Call Sunrise
-              </Button>
-              <Button
-                onClick={async () => {
-                  await executeTask("callSunrise");
-                  await executeTask("callSunrise");
-                }}
-                disabled={loading === "callSunrise"}
-              >
-                Double Sunrise
-              </Button>
-              <Button onClick={() => executeTask("skipMorningAuction")} disabled={loading === "skipMorningAuction"}>
-                Skip Morning Auction
-              </Button>
-              <Button onClick={() => executeTask("megaDeploy")} disabled={loading === "megaDeploy"}>
-                Mega Deploy
-              </Button>
-              <Button onClick={() => executeTask("forceFlood")} disabled={loading === "forceFlood"}>
-                Force Flood
-              </Button>
-              <Button onClick={() => executeTask("updateOracleTimeouts")} disabled={loading === "updateOracleTimeouts"}>
-                Update Oracle Timeouts
-              </Button>
-              <Button onClick={() => executeTask("PI-8")} disabled={loading === "TractorHelpers"}>
-                Deploy PI-8
-              </Button>
-              <Button
-                onClick={handleQuickMint}
-                disabled={!address || loading === "quickMint"}
-                className="bg-pinto-green-4 hover:bg-pinto-green-5 text-white"
-              >
-                Mint Me ETH/USDC/Pinto
-              </Button>
-            </div>
-            <div className="flex gap-2 items-center">
-              <Input
-                placeholder="# Blocks to skip"
-                value={blockSkipAmount}
-                onChange={(e) => setBlockSkipAmount(e.target.value)}
-                className="w-32"
-              />
-              <Button onClick={() => skipBlocks()}>Skip Blocks</Button>
-            </div>
-          </div>
+        <Card className="p-6 flex flex-row gap-4 items-center justify-between">
+          <Col className="gap-2">
+            <h2 className="text-2xl">Need to set up your dev environment?</h2>
+            <p className="pinto-sm text-gray-500">
+              Set up your dev environment by installing the necessary tools and cloning the protocol repository.
+            </p>
+          </Col>
+          <Button asChild variant="default">
+            <Link to="/dev-tools-install">View Instructions</Link>
+          </Button>
         </Card>
 
-        {/* Mock Address */}
-        <Card className="p-6">
-          <h2 className="text-2xl mb-4">Mock Configuration</h2>
-          <div className="flex flex-col gap-4">
-            <div className="text-sm text-gray-500">Configure the mock wallet address for local development</div>
-            <div className="flex gap-2">
+        {/* Basic Actions and Deployments - Side by Side */}
+        <div className="grid grid-cols-2 gap-6">
+          {/* Basic Actions */}
+          <Card className="p-6">
+            <h2 className="text-2xl mb-4">Basic Actions</h2>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-wrap gap-4">
+                <Button onClick={() => executeTask("callSunrise")} disabled={loading === "callSunrise"}>
+                  Call Sunrise
+                </Button>
+                <Button
+                  onClick={async () => {
+                    await executeTask("callSunrise");
+                    await executeTask("callSunrise");
+                  }}
+                  disabled={loading === "callSunrise"}
+                >
+                  Double Sunrise
+                </Button>
+                <Button onClick={() => executeTask("skipMorningAuction")} disabled={loading === "skipMorningAuction"}>
+                  Skip Morning Auction
+                </Button>
+                <Button onClick={() => executeTask("forceFlood")} disabled={loading === "forceFlood"}>
+                  Force Flood
+                </Button>
+                <Button
+                  onClick={() => executeTask("updateOracleTimeouts")}
+                  disabled={loading === "updateOracleTimeouts"}
+                >
+                  Update Oracle Timeouts
+                </Button>
+                <Button
+                  onClick={handleQuickMint}
+                  disabled={!address || loading === "quickMint"}
+                  className="bg-pinto-green-4 hover:bg-pinto-green-5 text-white"
+                >
+                  Mint Me ETH/USDC/Pinto
+                </Button>
+              </div>
+              <div className="flex gap-2 items-center">
+                <Input
+                  placeholder="# Blocks to skip"
+                  outlined
+                  value={blockSkipAmount}
+                  onChange={(e) => setBlockSkipAmount(e.target.value)}
+                  className="h-10 w-48"
+                />
+                <Button disabled={!blockSkipAmount} onClick={() => skipBlocks()}>
+                  Skip Blocks
+                </Button>
+              </div>
+            </div>
+          </Card>
+
+          {/* Deployments */}
+          <Card className="p-6">
+            <h2 className="text-2xl mb-4">Deployments</h2>
+            <div className="flex flex-col gap-4">
+              <div className="flex gap-2">
+                <Button disabled={loading === "deploying"} onClick={() => executeDeploy("runLatestUpgrade")}>
+                  Deploy Latest Upgrade
+                </Button>
+                <Button onClick={() => executeTask("megaDeploy")} disabled={loading === "megaDeploy"}>
+                  Mega Deploy
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  outlined
+                  placeholder="Hardhat Task Name"
+                  value={hardhatTaskName}
+                  onChange={(e) => setHardhatTaskName(e.target.value)}
+                  className="max-h-10 h-10 flex-1"
+                />
+                <Button
+                  disabled={loading === "deploying" || !hardhatTaskName}
+                  onClick={() => executeDeploy(hardhatTaskName)}
+                >
+                  Execute Hardhat Task
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Mock Configuration and Token Approvals - Side by Side */}
+        <div className="grid grid-cols-2 gap-6">
+          {/* Mock Address */}
+          <Card className="p-6">
+            <h2 className="text-2xl mb-4">Mock Configuration</h2>
+            <div className="flex flex-col gap-4">
+              <div className="text-sm text-gray-500">Configure the mock wallet address for local development</div>
               <Input
                 placeholder="Mock Wallet Address"
                 value={mockAddress}
@@ -579,101 +649,181 @@ export default function DevPage() {
                     localStorage.removeItem("mockAddress");
                   }
                 }}
-                className={`flex-1 ${mockAddress && !isAddress(mockAddress) ? "border-pinto-red-2" : ""}`}
+                className={`w-full ${mockAddress && !isAddress(mockAddress) ? "border-pinto-red-2" : ""}`}
               />
+              <div className="text-right h-4 text-sm text-pinto-gray-4">
+                {isAddress(mockAddress) ? "Valid Address" : "Invalid Address"}
+              </div>
             </div>
-            <div className="text-right h-4 text-sm text-pinto-gray-4">
-              {isAddress(mockAddress) ? "Valid Address" : "Invalid Address"}
-            </div>
-          </div>
-        </Card>
+          </Card>
 
-        {/* Minting Actions */}
-        <Card className="p-6">
-          <h2 className="text-2xl mb-4">Minting</h2>
-          <div className="flex flex-col gap-4">
-            {/* ETH Minting */}
-            <div className="flex flex-col gap-2">
-              <Input
-                placeholder="ETH Receiver Address"
-                value={mintAddress}
-                onChange={(e) => setMintAddress(e.target.value)}
-              />
-              <Button
-                onClick={() => executeTask("mintEth", { account: mintAddress })}
-                disabled={!mintAddress || loading === "mintEth"}
-              >
-                Mint ETH
-              </Button>
-            </div>
-
-            {/* USDC Minting */}
-            <div className="flex flex-col gap-2">
-              <Input
-                placeholder="USDC Receiver Address"
-                value={usdcAddress}
-                onChange={(e) => setUsdcAddress(e.target.value)}
-              />
-              <div className="flex gap-2">
+          {/* Token Approvals */}
+          <Card className="p-6">
+            <h2 className="text-2xl mb-4">Token Approvals</h2>
+            <div className="flex flex-col gap-4">
+              <div className="text-sm text-gray-500">
+                Approves all non-PINTO tokens for whitelisted wells using the specified account.
+              </div>
+              <div className="flex flex-col gap-2">
                 <Input
-                  placeholder="Amount"
-                  value={mintAmount}
-                  onChange={(e) => setMintAmount(e.target.value)}
-                  className="max-w-[200px]"
+                  placeholder="Account Address"
+                  value={approvalAddress}
+                  onChange={(e) => setApprovalAddress(e.target.value)}
                 />
                 <Button
                   onClick={() =>
-                    executeTask("mintUsdc", {
-                      account: usdcAddress,
-                      amount: mintAmount,
+                    executeTask("approveTokens", {
+                      account: approvalAddress,
                     })
                   }
-                  disabled={!usdcAddress || !mintAmount || loading === "mintUsdc"}
+                  disabled={!approvalAddress || loading === "approveTokens"}
                 >
-                  Mint USDC
+                  Approve All Tokens
                 </Button>
               </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
 
-        {/* Token Balance Management */}
-        <Card className="p-6">
-          <h2 className="text-2xl mb-4">Token Balance Management</h2>
-          <div className="text-sm text-gray-500 mb-4">
-            Available tokens: PINTO, WETH, USDC, cbBTC, cbETH, wstETH. You can use either token symbols or addresses.
-          </div>
-          <div className="flex flex-col gap-2">
-            <Input
-              placeholder="Receiver Address"
-              value={tokenBalance.receiver}
-              onChange={(e) => setTokenBalance((prev) => ({ ...prev, receiver: e.target.value }))}
-            />
-            <Input
-              placeholder="Amount"
-              value={tokenBalance.amount}
-              onChange={(e) => setTokenBalance((prev) => ({ ...prev, amount: e.target.value }))}
-            />
-            <Input
-              placeholder="Token Address or Name"
-              value={tokenBalance.token}
-              onChange={(e) => setTokenBalance((prev) => ({ ...prev, token: e.target.value }))}
-            />
-            <Button
-              onClick={() => executeTask("getTokens", tokenBalance)}
-              disabled={
-                !tokenBalance.receiver || !tokenBalance.amount || !tokenBalance.token || loading === "getTokens"
-              }
-            >
-              Get Tokens
-            </Button>
-          </div>
-        </Card>
+        {/* Minting and Single-Sided Deposits - Side by Side */}
+        <div className="grid grid-cols-2 gap-6">
+          {/* Minting Actions */}
+          <Card className="p-6">
+            <h2 className="text-2xl mb-4">Minting</h2>
+            <div className="flex flex-col gap-4">
+              {/* ETH Minting */}
+              <div className="flex flex-col gap-2">
+                <Input
+                  placeholder="ETH Receiver Address"
+                  value={mintAddress}
+                  onChange={(e) => setMintAddress(e.target.value)}
+                />
+                <Button
+                  onClick={() => executeTask("mintEth", { account: mintAddress })}
+                  disabled={!mintAddress || loading === "mintEth"}
+                >
+                  Mint ETH
+                </Button>
+              </div>
 
-        {/* Liquidity Actions */}
-        <Card className="p-6">
-          <h2 className="text-2xl mb-4">Liquidity Management</h2>
-          <div className="flex flex-col gap-4">
+              {/* USDC Minting */}
+              <div className="flex flex-col gap-2">
+                <Input
+                  placeholder="USDC Receiver Address"
+                  value={usdcAddress}
+                  onChange={(e) => setUsdcAddress(e.target.value)}
+                />
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Amount"
+                    value={mintAmount}
+                    onChange={(e) => setMintAmount(e.target.value)}
+                    className="max-w-[200px]"
+                  />
+                  <Button
+                    onClick={() =>
+                      executeTask("mintUsdc", {
+                        account: usdcAddress,
+                        amount: mintAmount,
+                      })
+                    }
+                    disabled={!usdcAddress || !mintAmount || loading === "mintUsdc"}
+                  >
+                    Mint USDC
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Single-Sided Deposits */}
+          <Card className="p-6">
+            <h2 className="text-2xl mb-4">Single-Sided Deposits</h2>
+            <div className="flex flex-col gap-4">
+              <div className="text-sm text-gray-500">
+                Deposits non-PINTO tokens into wells and then into beanstalk. Enter amounts in order:
+                WETH,cbETH,cbBTC,USDC,WSOL
+              </div>
+              <div className="flex flex-col gap-2">
+                <Input
+                  placeholder="Account Address"
+                  value={singleSidedAddress}
+                  onChange={(e) => setSingleSidedAddress(e.target.value)}
+                />
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Amounts (comma-separated)"
+                    value={singleSidedAmounts}
+                    onChange={(e) => setSingleSidedAmounts(e.target.value)}
+                    className="flex-1"
+                  />
+                  <div className="flex gap-1">
+                    {[1, 5, 10, 50, 100].map((percent) => (
+                      <Button
+                        key={percent}
+                        onClick={() => calculatePercentAmounts(percent)}
+                        variant={selectedPercent === percent ? "default" : "outline"}
+                        className="px-3"
+                      >
+                        {percent}%
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                <Button
+                  onClick={() =>
+                    executeTask("singleSidedDeposits", {
+                      account: singleSidedAddress,
+                      amounts: singleSidedAmounts,
+                    })
+                  }
+                  disabled={!singleSidedAddress || !singleSidedAmounts || loading === "singleSidedDeposits"}
+                >
+                  Execute Single-Sided Deposits
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Token Balance Management and Liquidity Management - Side by Side */}
+        <div className="grid grid-cols-2 gap-6">
+          {/* Token Balance Management */}
+          <Card className="p-6">
+            <h2 className="text-2xl mb-4">Token Balance Management</h2>
+            <div className="text-sm text-gray-500 mb-4">
+              Available tokens: PINTO, WETH, USDC, cbBTC, cbETH, wstETH. You can use either token symbols or addresses.
+            </div>
+            <div className="flex flex-col gap-2">
+              <Input
+                placeholder="Receiver Address"
+                value={tokenBalance.receiver}
+                onChange={(e) => setTokenBalance((prev) => ({ ...prev, receiver: e.target.value }))}
+              />
+              <Input
+                placeholder="Amount"
+                value={tokenBalance.amount}
+                onChange={(e) => setTokenBalance((prev) => ({ ...prev, amount: e.target.value }))}
+              />
+              <Input
+                placeholder="Token Address or Name"
+                value={tokenBalance.token}
+                onChange={(e) => setTokenBalance((prev) => ({ ...prev, token: e.target.value }))}
+              />
+              <Button
+                onClick={() => executeTask("getTokens", tokenBalance)}
+                disabled={
+                  !tokenBalance.receiver || !tokenBalance.amount || !tokenBalance.token || loading === "getTokens"
+                }
+              >
+                Get Tokens
+              </Button>
+            </div>
+          </Card>
+
+          {/* Liquidity Management */}
+          <Card className="p-6">
+            <h2 className="text-2xl mb-4">Liquidity Management</h2>
             <div className="text-sm text-gray-500 mb-4">
               <div className="font-medium mb-2">Available Wells:</div>
               {getWellsList().map((well) => (
@@ -720,267 +870,196 @@ export default function DevPage() {
                 </Button>
               </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
 
-        {/* Token Approvals */}
-        <Card className="p-6">
-          <h2 className="text-2xl mb-4">Token Approvals</h2>
-          <div className="flex flex-col gap-4">
-            <div className="text-sm text-gray-500">
-              Approves all non-PINTO tokens for whitelisted wells using the specified account.
-            </div>
-            <div className="flex flex-col gap-2">
-              <Input
-                placeholder="Account Address"
-                value={approvalAddress}
-                onChange={(e) => setApprovalAddress(e.target.value)}
-              />
-              <Button
-                onClick={() =>
-                  executeTask("approveTokens", {
-                    account: approvalAddress,
-                  })
-                }
-                disabled={!approvalAddress || loading === "approveTokens"}
-              >
-                Approve All Tokens
-              </Button>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <h2 className="text-2xl mb-4">Single-Sided Deposits</h2>
-          <div className="flex flex-col gap-4">
-            <div className="text-sm text-gray-500">
-              Deposits non-PINTO tokens into wells and then into beanstalk. Enter amounts in order:
-              WETH,cbETH,cbBTC,USDC,WSOL
-            </div>
-            <div className="flex flex-col gap-2">
-              <Input
-                placeholder="Account Address"
-                value={singleSidedAddress}
-                onChange={(e) => setSingleSidedAddress(e.target.value)}
-              />
+        {/* Morning Auction and Transaction Analysis - Side by Side */}
+        <div className="grid grid-cols-2 gap-6">
+          <MorningAuctionDev executeTask={executeTask} skipBlocks={skipBlocks} />
+          <Card className="p-6">
+            <h2 className="text-2xl mb-4">Transaction Analysis</h2>
+            <div className="flex flex-col gap-4">
+              <div className="text-sm text-gray-500">
+                Paste a transaction hash to see all events that occurred in that transaction.
+              </div>
               <div className="flex gap-2">
                 <Input
-                  placeholder="Amounts (comma-separated)"
-                  value={singleSidedAmounts}
-                  onChange={(e) => setSingleSidedAmounts(e.target.value)}
+                  placeholder="Transaction Hash"
+                  value={txHash}
+                  onChange={(e) => setTxHash(e.target.value as `0x${string}`)}
                   className="flex-1"
                 />
-                <div className="flex gap-1">
-                  {[1, 5, 10, 50, 100].map((percent) => (
-                    <Button
-                      key={percent}
-                      onClick={() => calculatePercentAmounts(percent)}
-                      variant={selectedPercent === percent ? "default" : "outline"}
-                      className="px-3"
-                    >
-                      {percent}%
-                    </Button>
-                  ))}
-                </div>
+                <Button onClick={() => analyzeTxEvents()} disabled={!txHash || loading === "analyzeTx"}>
+                  Analyze
+                </Button>
               </div>
-              <Button
-                onClick={() =>
-                  executeTask("singleSidedDeposits", {
-                    account: singleSidedAddress,
-                    amounts: singleSidedAmounts,
-                  })
-                }
-                disabled={!singleSidedAddress || !singleSidedAmounts || loading === "singleSidedDeposits"}
-              >
-                Execute Single-Sided Deposits
-              </Button>
-            </div>
-          </div>
-        </Card>
-        <MorningAuctionDev executeTask={executeTask} skipBlocks={skipBlocks} />
-        <Card className="p-6">
-          <h2 className="text-2xl mb-4">Transaction Analysis</h2>
-          <div className="flex flex-col gap-4">
-            <div className="text-sm text-gray-500">
-              Paste a transaction hash to see all events that occurred in that transaction.
-            </div>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Transaction Hash"
-                value={txHash}
-                onChange={(e) => setTxHash(e.target.value as `0x${string}`)}
-                className="flex-1"
-              />
-              <Button onClick={() => analyzeTxEvents()} disabled={!txHash || loading === "analyzeTx"}>
-                Analyze
-              </Button>
-            </div>
 
-            {/* Add Recent Transactions Section */}
-            {recentTxs.length > 0 && (
-              <div className="mt-2">
-                <div className="text-sm text-gray-500 mb-2">Recent transactions:</div>
-                <div className="flex flex-col gap-2">
-                  {recentTxs.map((hash, index) => (
-                    <div key={index} className="flex items-center gap-4">
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          await analyzeTxEvents(hash);
-                          setTxHash(hash as `0x${string}`);
-                        }}
-                        className="text-sm text-pinto-green-4 hover:text-pinto-green-5 hover:underline font-mono break-all text-left"
-                        title="Click to analyze this transaction"
-                      >
-                        {hash}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const command = `cast run ${hash} --rpc-url http://localhost:8545`;
-                          navigator.clipboard.writeText(command);
-                          toast.success("Debug command copied to clipboard");
-                        }}
-                        className="text-sm text-pinto-gray-4 hover:text-pinto-gray-5 whitespace-nowrap"
-                        title="Copy debug command to clipboard"
-                      >
-                        Copy Debug Command
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Existing Events Display */}
-            {txEvents && (
-              <div className="mt-4 space-y-4">
-                <h3 className="text-lg font-medium">Events:</h3>
-                <div className="space-y-4">
-                  {txEvents.map((event, index) => (
-                    <div key={index} className="p-4 border rounded-lg">
-                      <div className="flex justify-between items-start">
-                        <span className="font-medium text-pinto-green-4">{event.eventName}</span>
-                        <span className="text-sm text-gray-500">Log Index: {event.logIndex}</span>
+              {/* Add Recent Transactions Section */}
+              {recentTxs.length > 0 && (
+                <div className="mt-2">
+                  <div className="text-sm text-gray-500 mb-2">Recent transactions:</div>
+                  <div className="flex flex-col gap-2">
+                    {recentTxs.map((hash, index) => (
+                      <div key={index} className="flex items-center gap-4">
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await analyzeTxEvents(hash);
+                            setTxHash(hash as `0x${string}`);
+                          }}
+                          className="text-sm text-pinto-green-4 hover:text-pinto-green-5 hover:underline font-mono break-all text-left"
+                          title="Click to analyze this transaction"
+                        >
+                          {hash}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const command = `cast run ${hash} --rpc-url http://localhost:8545`;
+                            navigator.clipboard.writeText(command);
+                            toast.success("Debug command copied to clipboard");
+                          }}
+                          className="text-sm text-pinto-gray-4 hover:text-pinto-gray-5 whitespace-nowrap"
+                          title="Copy debug command to clipboard"
+                        >
+                          Copy Debug Command
+                        </button>
                       </div>
-                      <div className="text-sm font-mono mt-2">Contract: {event.address}</div>
-                      <div className="mt-2">
-                        <div className="text-sm font-medium">Arguments:</div>
-                        <pre className="mt-1 p-2 bg-gray-50 rounded text-sm overflow-x-auto">
-                          {JSON.stringify(event.args, null, 2)}
-                        </pre>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Add new transaction details section */}
-            {txEvents && transactionDetails && (
-              <div className="mt-4 space-y-4">
-                <h3 className="text-lg font-medium">Transaction Details:</h3>
-                <div className="p-4 border rounded-lg space-y-3">
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                    <div className="col-span-2">
-                      <span className="font-medium">Hash: </span>
-                      <span className="font-mono break-all">{transactionDetails.hash}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium">From: </span>
-                      <span className="font-mono break-all">{transactionDetails.from}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium">To: </span>
-                      <span className="font-mono break-all">{transactionDetails.to || "Contract Creation"}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium">Value: </span>
-                      <span className="font-mono">{transactionDetails.value.toString()} wei</span>
-                    </div>
-                    <div>
-                      <span className="font-medium">Status: </span>
-                      <span
-                        className={`font-medium ${transactionDetails.status === "success" ? "text-green-500" : "text-red-500"}`}
-                      >
-                        {transactionDetails.status}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="font-medium">Block: </span>
-                      <span className="font-mono">{transactionDetails.blockNumber.toString()}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium">Nonce: </span>
-                      <span className="font-mono">{transactionDetails.nonce}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium">Gas Used: </span>
-                      <span className="font-mono">
-                        {transactionDetails.gasUsed.toString()} (
-                        {((Number(transactionDetails.gasUsed) / Number(transactionDetails.gasLimit)) * 100).toFixed(2)}
-                        %)
-                      </span>
-                    </div>
-                    <div>
-                      <span className="font-medium">Gas Limit: </span>
-                      <span className="font-mono">{transactionDetails.gasLimit.toString()}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium">Gas Price: </span>
-                      <span className="font-mono">
-                        {transactionDetails.effectiveGasPrice
-                          ? (Number(transactionDetails.effectiveGasPrice) / 1e9).toFixed(2) + " gwei"
-                          : "N/A"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="font-medium">Type: </span>
-                      <span className="font-mono">
-                        {transactionDetails.type !== undefined ? transactionDetails.type : "N/A"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="font-medium">Chain ID: </span>
-                      <span className="font-mono">
-                        {transactionDetails.chainId !== undefined ? transactionDetails.chainId : "N/A"}
-                      </span>
-                    </div>
+                    ))}
                   </div>
+                </div>
+              )}
 
-                  {decodedFunctionData && (
+              {/* Existing Events Display */}
+              {txEvents && (
+                <div className="mt-4 space-y-4">
+                  <h3 className="text-lg font-medium">Events:</h3>
+                  <div className="space-y-4">
+                    {txEvents.map((event, index) => (
+                      <div key={index} className="p-4 border rounded-lg">
+                        <div className="flex justify-between items-start">
+                          <span className="font-medium text-pinto-green-4">{event.eventName}</span>
+                          <span className="text-sm text-gray-500">Log Index: {event.logIndex}</span>
+                        </div>
+                        <div className="text-sm font-mono mt-2">Contract: {event.address}</div>
+                        <div className="mt-2">
+                          <div className="text-sm font-medium">Arguments:</div>
+                          <pre className="mt-1 p-2 bg-gray-50 rounded text-sm overflow-x-auto">
+                            {JSON.stringify(event.args, null, 2)}
+                          </pre>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Add new transaction details section */}
+              {txEvents && transactionDetails && (
+                <div className="mt-4 space-y-4">
+                  <h3 className="text-lg font-medium">Transaction Details:</h3>
+                  <div className="p-4 border rounded-lg space-y-3">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                      <div className="col-span-2">
+                        <span className="font-medium">Hash: </span>
+                        <span className="font-mono break-all">{transactionDetails.hash}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">From: </span>
+                        <span className="font-mono break-all">{transactionDetails.from}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">To: </span>
+                        <span className="font-mono break-all">{transactionDetails.to || "Contract Creation"}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Value: </span>
+                        <span className="font-mono">{transactionDetails.value.toString()} wei</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Status: </span>
+                        <span
+                          className={`font-medium ${transactionDetails.status === "success" ? "text-green-500" : "text-red-500"}`}
+                        >
+                          {transactionDetails.status}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Block: </span>
+                        <span className="font-mono">{transactionDetails.blockNumber.toString()}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Nonce: </span>
+                        <span className="font-mono">{transactionDetails.nonce}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Gas Used: </span>
+                        <span className="font-mono">
+                          {transactionDetails.gasUsed.toString()} (
+                          {((Number(transactionDetails.gasUsed) / Number(transactionDetails.gasLimit)) * 100).toFixed(
+                            2,
+                          )}
+                          %)
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Gas Limit: </span>
+                        <span className="font-mono">{transactionDetails.gasLimit.toString()}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Gas Price: </span>
+                        <span className="font-mono">
+                          {transactionDetails.effectiveGasPrice
+                            ? (Number(transactionDetails.effectiveGasPrice) / 1e9).toFixed(2) + " gwei"
+                            : "N/A"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Type: </span>
+                        <span className="font-mono">
+                          {transactionDetails.type !== undefined ? transactionDetails.type : "N/A"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Chain ID: </span>
+                        <span className="font-mono">
+                          {transactionDetails.chainId !== undefined ? transactionDetails.chainId : "N/A"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {decodedFunctionData && (
+                      <div className="mt-4">
+                        <div className="font-medium mb-2">Function Call:</div>
+                        <div className="bg-gray-50 p-3 rounded">
+                          <div className="font-medium text-pinto-green-4">{decodedFunctionData.functionName}</div>
+                          <pre className="mt-2 text-sm font-mono overflow-x-auto">
+                            {JSON.stringify(decodedFunctionData.args, null, 2)}
+                          </pre>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="mt-4">
-                      <div className="font-medium mb-2">Function Call:</div>
+                      <div className="font-medium mb-2">Raw Calldata:</div>
                       <div className="bg-gray-50 p-3 rounded">
-                        <div className="font-medium text-pinto-green-4">{decodedFunctionData.functionName}</div>
-                        <pre className="mt-2 text-sm font-mono overflow-x-auto">
-                          {JSON.stringify(decodedFunctionData.args, null, 2)}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="mt-4">
-                    <div className="font-medium mb-2">Raw Calldata:</div>
-                    <div className="bg-gray-50 p-3 rounded">
-                      <div className="text-sm font-mono break-all overflow-x-auto max-h-[100px] overflow-y-auto">
-                        {transactionDetails.data}
+                        <div className="text-sm font-mono break-all overflow-x-auto max-h-[100px] overflow-y-auto">
+                          {transactionDetails.data}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
-        </Card>
+              )}
+            </div>
+          </Card>
+        </div>
 
-        {/* NFT Collection Toggle */}
-        <Card className="p-6">
-          <div className="flex flex-col gap-4">
-            <div className="text-lg font-semibold">NFT Collection</div>
-            <NFTCollectionToggle />
-          </div>
-        </Card>
+        {/* View Function Caller */}
+        <ViewFunctionCaller />
+
+        {/* External View Function Caller */}
+        <ExternalViewFunctionCaller />
 
         {/* Farmer Silo Deposits section - render component directly */}
         <FarmerSiloDeposits />
@@ -989,39 +1068,409 @@ export default function DevPage() {
   );
 }
 
-const NFTCollectionToggle = () => {
-  const handleResetCardFlip = () => {
-    console.log("Reset button clicked!"); // Debug log
+const ViewFunctionCaller = () => {
+  const publicClient = usePublicClient();
+  const protocolAddress = useProtocolAddress();
+  const [selectedFunction, setSelectedFunction] = useState<string>("");
+  const [functionInputs, setFunctionInputs] = useState<Record<string, string>>({});
+  const [callResult, setCallResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-    // Clear the card flip animation storage for all addresses
-    const keysToRemove: string[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith("nft-card-flip-")) {
-        keysToRemove.push(key);
+  // Extract view and pure functions from diamondABI
+  const viewFunctions = useMemo(() => {
+    const filtered = ABI_CONFIG.beanstalk.abi.filter((item) => {
+      if (item.type === "function") {
+        return item.stateMutability === "view" || item.stateMutability === "pure";
       }
+      return false;
+    });
+
+    return filtered as AbiFunction[];
+  }, []);
+
+  // Get the currently selected function object
+  const selectedFunctionObj = useMemo(() => {
+    return viewFunctions.find((fn) => fn.name === selectedFunction);
+  }, [selectedFunction, viewFunctions]);
+
+  // Reset inputs when function changes
+  useEffect(() => {
+    setFunctionInputs({});
+    setCallResult(null);
+  }, [selectedFunction]);
+
+  const handleInputChange = (paramName: string, value: string) => {
+    setFunctionInputs((prev) => ({ ...prev, [paramName]: value }));
+  };
+
+  const handleCallFunction = async () => {
+    if (!publicClient || !protocolAddress || !selectedFunctionObj) {
+      toast.error("Missing required data");
+      return;
     }
 
-    console.log("Keys to remove:", keysToRemove); // Debug log
-    keysToRemove.forEach((key) => localStorage.removeItem(key));
-    console.log("Keys removed from localStorage"); // Debug log
+    setLoading(true);
+    setCallResult(null);
 
-    toast.success("Card flip animation reset - will replay on next visit");
-    console.log("Toast should have been shown"); // Debug log
+    try {
+      // Parse inputs based on their types
+      const args =
+        selectedFunctionObj.inputs?.map((input) => {
+          const value = functionInputs[input.name || ""];
+
+          if (!value) {
+            throw new Error(`Missing input: ${input.name}`);
+          }
+
+          // Handle different input types
+          if (input.type.includes("uint") || input.type.includes("int")) {
+            return BigInt(value);
+          } else if (input.type === "address") {
+            if (!isAddress(value)) {
+              throw new Error(`Invalid address: ${input.name}`);
+            }
+            return value;
+          } else if (input.type === "bool") {
+            return value.toLowerCase() === "true";
+          } else if (input.type.includes("[]")) {
+            // Handle arrays - expect comma-separated values
+            return value.split(",").map((v) => v.trim());
+          }
+
+          return value;
+        }) || [];
+
+      // @ts-ignore
+      const result = await publicClient.readContract({
+        address: protocolAddress,
+        abi: diamondABI,
+        // @ts-ignore
+        functionName: selectedFunctionObj.name as any,
+        // @ts-ignore
+        args: args as any,
+      });
+
+      setCallResult(result);
+      toast.success("Function called successfully");
+    } catch (error) {
+      console.error("Error calling function:", error);
+      toast.error(`Failed to call function: ${(error as Error).message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col">
-          <span className="text-sm font-medium">Reset Card Flip Animation</span>
-          <span className="text-xs text-gray-500">Clears localStorage to allow first-time animation to replay</span>
+    <Card className="p-6">
+      <h2 className="text-2xl mb-4">View Function Caller</h2>
+      <div className="flex flex-col gap-4">
+        <div className="text-sm text-gray-500">
+          Call any view or pure function from the Diamond contract. Select a function and provide inputs to test.
         </div>
-        <Button variant="outline" size="sm" onClick={handleResetCardFlip}>
-          Reset Animation
-        </Button>
+
+        <div className="grid grid-cols-2 gap-6">
+          {/* Left Column: Function Selector and Call Button */}
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <Label>Select Function</Label>
+              <select
+                value={selectedFunction}
+                onChange={(e) => setSelectedFunction(e.target.value)}
+                className="h-10 px-3 py-2 text-sm border rounded-md bg-white"
+              >
+                <option value="">-- Select a function --</option>
+                {viewFunctions.map((fn) => (
+                  <option key={fn.name} value={fn.name}>
+                    {fn.name}
+                    {fn.inputs && fn.inputs.length > 0 && ` (${fn.inputs.length} params)`}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Call Button */}
+            {selectedFunctionObj && (
+              <Button onClick={handleCallFunction} disabled={loading || !protocolAddress} className="w-full">
+                {loading ? "Calling..." : "Call Function"}
+              </Button>
+            )}
+          </div>
+
+          {/* Right Column: Function Parameters */}
+          <div className="flex flex-col gap-2">
+            {selectedFunctionObj && selectedFunctionObj.inputs && selectedFunctionObj.inputs.length > 0 ? (
+              <>
+                <div className="text-sm font-medium">Function Parameters:</div>
+                <div className="flex flex-col gap-3 p-4 border rounded-lg bg-gray-50">
+                  {selectedFunctionObj.inputs.map((input, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <Label className="text-xs text-gray-600 whitespace-nowrap min-w-[120px]">
+                        {input.name || `param${idx}`} ({input.type}):
+                      </Label>
+                      <Input
+                        placeholder={`Enter ${input.type}`}
+                        value={functionInputs[input.name || ""] || ""}
+                        onChange={(e) => handleInputChange(input.name || "", e.target.value)}
+                        className="h-9 flex-1"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-sm text-gray-400 italic">
+                {selectedFunction ? "No parameters required" : "Select a function to view parameters"}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Results Display */}
+        {callResult !== null && (
+          <div className="flex flex-col gap-2 p-4 border rounded-lg bg-green-50">
+            <div className="text-sm font-medium text-green-800">Result:</div>
+            <pre className="text-xs font-mono overflow-auto max-h-[300px] p-3 bg-white rounded border">
+              {typeof callResult === "bigint"
+                ? callResult.toString()
+                : JSON.stringify(callResult, (key, value) => (typeof value === "bigint" ? value.toString() : value), 2)}
+            </pre>
+          </div>
+        )}
       </div>
-    </div>
+    </Card>
+  );
+};
+
+const ExternalViewFunctionCaller = () => {
+  const publicClient = usePublicClient();
+  const chainId = useChainId();
+  const [selectedContract, setSelectedContract] = useState<string>("");
+  const [selectedFunction, setSelectedFunction] = useState<string>("");
+  const [functionInputs, setFunctionInputs] = useState<Record<string, string>>({});
+  const [callResult, setCallResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Get available contracts from ABI_CONFIG (excluding beanstalk)
+  const availableContracts = useMemo(() => {
+    return Object.keys(ABI_CONFIG).filter((contract) => contract !== "beanstalk");
+  }, []);
+
+  // Get the selected contract config
+  const selectedContractConfig = useMemo(() => {
+    if (!selectedContract) return null;
+    return ABI_CONFIG[selectedContract as keyof typeof ABI_CONFIG];
+  }, [selectedContract]);
+
+  // Get the contract address for the current chain
+  const contractAddress = useMemo(() => {
+    if (!selectedContractConfig || !chainId) return null;
+
+    // Handle both address and addresses structures
+    const config = selectedContractConfig as any;
+    if (config.addresses) {
+      return config.addresses[chainId];
+    } else if (config.address) {
+      return config.address[chainId];
+    }
+    return null;
+  }, [selectedContractConfig, chainId]);
+
+  // Extract view and pure functions from selected contract's ABI
+  const viewFunctions = useMemo(() => {
+    if (!selectedContractConfig) return [];
+
+    const filtered = selectedContractConfig.abi.filter((item: any) => {
+      if (item.type === "function") {
+        return item.stateMutability === "view" || item.stateMutability === "pure";
+      }
+      return false;
+    });
+
+    return filtered as AbiFunction[];
+  }, [selectedContractConfig]);
+
+  // Get the currently selected function object
+  const selectedFunctionObj = useMemo(() => {
+    return viewFunctions.find((fn) => fn.name === selectedFunction);
+  }, [selectedFunction, viewFunctions]);
+
+  // Reset function and inputs when contract changes
+  useEffect(() => {
+    setSelectedFunction("");
+    setFunctionInputs({});
+    setCallResult(null);
+  }, [selectedContract]);
+
+  // Reset inputs when function changes
+  useEffect(() => {
+    setFunctionInputs({});
+    setCallResult(null);
+  }, [selectedFunction]);
+
+  const handleInputChange = (paramName: string, value: string) => {
+    setFunctionInputs((prev) => ({ ...prev, [paramName]: value }));
+  };
+
+  const handleCallFunction = async () => {
+    if (!publicClient || !contractAddress || !selectedFunctionObj || !selectedContractConfig) {
+      toast.error("Missing required data");
+      return;
+    }
+
+    setLoading(true);
+    setCallResult(null);
+
+    try {
+      // Parse inputs based on their types
+      const args =
+        selectedFunctionObj.inputs?.map((input) => {
+          const value = functionInputs[input.name || ""];
+
+          if (!value) {
+            throw new Error(`Missing input: ${input.name}`);
+          }
+
+          // Handle different input types
+          if (input.type.includes("uint") || input.type.includes("int")) {
+            return BigInt(value);
+          } else if (input.type === "address") {
+            if (!isAddress(value)) {
+              throw new Error(`Invalid address: ${input.name}`);
+            }
+            return value;
+          } else if (input.type === "bool") {
+            return value.toLowerCase() === "true";
+          } else if (input.type.includes("[]")) {
+            // Handle arrays - expect comma-separated values
+            return value.split(",").map((v) => v.trim());
+          }
+
+          return value;
+        }) || [];
+
+      // @ts-ignore
+      const result = await publicClient.readContract({
+        address: contractAddress,
+        abi: selectedContractConfig.abi,
+        // @ts-ignore
+        functionName: selectedFunctionObj.name as any,
+        // @ts-ignore
+        args: args as any,
+      });
+
+      setCallResult(result);
+      toast.success("Function called successfully");
+    } catch (error) {
+      console.error("Error calling function:", error);
+      toast.error(`Failed to call function: ${(error as Error).message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Card className="p-6">
+      <h2 className="text-2xl mb-4">External View Function Caller</h2>
+      <div className="flex flex-col gap-4">
+        <div className="text-sm text-gray-500">
+          Call any view or pure function from external contracts defined in abiConfig.ts. Select a contract, then a
+          function, and provide inputs to test.
+        </div>
+
+        <div className="grid grid-cols-2 gap-6">
+          {/* Left Column: Contract and Function Selectors, Call Button */}
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <Label>Select Contract</Label>
+              <select
+                value={selectedContract}
+                onChange={(e) => setSelectedContract(e.target.value)}
+                className="h-10 px-3 py-2 text-sm border rounded-md bg-white"
+              >
+                <option value="">-- Select a contract --</option>
+                {availableContracts.map((contract) => (
+                  <option key={contract} value={contract}>
+                    {contract}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label>Select Function</Label>
+              <select
+                value={selectedFunction}
+                onChange={(e) => setSelectedFunction(e.target.value)}
+                className="h-10 px-3 py-2 text-sm border rounded-md bg-white"
+                disabled={!selectedContract}
+              >
+                <option value="">-- Select a function --</option>
+                {viewFunctions.map((fn) => (
+                  <option key={fn.name} value={fn.name}>
+                    {fn.name}
+                    {fn.inputs && fn.inputs.length > 0 && ` (${fn.inputs.length} params)`}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {contractAddress && (
+              <div className="text-xs text-gray-500 p-2 bg-gray-50 rounded">
+                <span className="font-medium">Contract Address:</span>
+                <div className="font-mono break-all mt-1">{contractAddress}</div>
+              </div>
+            )}
+
+            {/* Call Button */}
+            {selectedFunctionObj && contractAddress && (
+              <Button onClick={handleCallFunction} disabled={loading || !contractAddress} className="w-full">
+                {loading ? "Calling..." : "Call Function"}
+              </Button>
+            )}
+          </div>
+
+          {/* Right Column: Function Parameters */}
+          <div className="flex flex-col gap-2">
+            {selectedFunctionObj && selectedFunctionObj.inputs && selectedFunctionObj.inputs.length > 0 ? (
+              <>
+                <div className="text-sm font-medium">Function Parameters:</div>
+                <div className="flex flex-col gap-3 p-4 border rounded-lg bg-gray-50">
+                  {selectedFunctionObj.inputs.map((input, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <Label className="text-xs text-gray-600 whitespace-nowrap min-w-[120px]">
+                        {input.name || `param${idx}`} ({input.type}):
+                      </Label>
+                      <Input
+                        placeholder={`Enter ${input.type}`}
+                        value={functionInputs[input.name || ""] || ""}
+                        onChange={(e) => handleInputChange(input.name || "", e.target.value)}
+                        className="h-9 flex-1"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-sm text-gray-400 italic">
+                {selectedFunction ? "No parameters required" : "Select a function to view parameters"}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Results Display */}
+        {callResult !== null && (
+          <div className="flex flex-col gap-2 p-4 border rounded-lg bg-green-50">
+            <div className="text-sm font-medium text-green-800">Result:</div>
+            <pre className="text-xs font-mono overflow-auto max-h-[300px] p-3 bg-white rounded border">
+              {typeof callResult === "bigint"
+                ? callResult.toString()
+                : JSON.stringify(callResult, (key, value) => (typeof value === "bigint" ? value.toString() : value), 2)}
+            </pre>
+          </div>
+        )}
+      </div>
+    </Card>
   );
 };
 

@@ -1,19 +1,24 @@
 import { TV } from "@/classes/TokenValue";
 import { TIME_TO_BLOCKS } from "@/constants/blocks";
-import { PODS } from "@/constants/internalTokens";
+import { PODS, STALK } from "@/constants/internalTokens";
 import { defaultQuerySettingsMedium } from "@/constants/query";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import {
+  CombinedConvertUpEventLog,
   PublisherTractorExecution,
   TractorAPI,
   TractorAPIExecutionSowOrderItem,
   TractorAPIResponseExecution,
-  fetchTractorExecutions,
+  TractorEventLogArgsMap,
+  TractorEventMapping,
+  fetchPublisherTractorExecutionEvents,
 } from "@/lib/Tractor";
 import { queryKeys } from "@/state/queryKeys";
 import { getChainConstant } from "@/utils/chain";
 import { resolveChainId } from "@/utils/chain";
+import { getChainTokenMap, getTokenIndex } from "@/utils/token";
+import { Token } from "@/utils/types";
 import { HashString } from "@/utils/types.generic";
 import { isDev } from "@/utils/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -28,6 +33,7 @@ export const useTractorAPIExecutionsQuery = (
   publisher: HashString | undefined,
   enabled: boolean = true,
   chainOnly: boolean = false,
+  isConvert: boolean = false,
 ) => {
   const chainId = useChainId();
 
@@ -37,7 +43,8 @@ export const useTractorAPIExecutionsQuery = (
     queryKey: queryKeys.tractor.tractorExecutions(publisher),
     queryFn: async () => {
       if (!publisher) return undefined;
-      return TractorAPI.getExecutions({ publisher });
+      const ex = await TractorAPI.getExecutions({ publisher, isConvert: true });
+      return ex;
     },
     select: selectTractorExecutions,
     enabled: !!publisher && !chainOnly && enabled,
@@ -53,7 +60,7 @@ const getLookbackBlocks = (
 ) => {
   if (chainOnly || error || !lastUpdatedBlock) return undefined;
   if (isDev()) {
-    return TIME_TO_BLOCKS.day;
+    return TIME_TO_BLOCKS.week;
   }
   const diff = currentBlock - BigInt(lastUpdatedBlock);
   return diff > 0n ? diff : undefined;
@@ -78,17 +85,21 @@ export default function usePublisherTractorExecutions(
 
   // Merge the on-chain executions with the API data. Use useCallback to create a stable reference to the function
   const mergeExecutions = useCallback(
-    (onChainExecutions: Awaited<ReturnType<typeof fetchTractorExecutions>> | undefined) => {
+    (onChainExecutions: Awaited<ReturnType<typeof fetchPublisherTractorExecutionEvents>> | undefined) => {
       const sowBlueprintv0 = executionData?.executions.sowBlueprintv0 ?? [];
+      const convertUpBlueprint = executionData?.executions.convertUpBlueprint ?? [];
       const unknown = executionData?.executions.unknown ?? [];
 
       // Create a Set of existing transaction hashes for O(1) lookup
       const existingTxHashes = new Set([
         ...sowBlueprintv0.map((exec) => exec.transactionHash.toLowerCase()),
+        ...convertUpBlueprint.map((exec) => exec.transactionHash.toLowerCase()),
         ...unknown.map((exec) => exec.executedTxn.toLowerCase()),
       ]);
 
-      const allExecutions = [...sowBlueprintv0];
+      const allExecutions: PublisherTractorExecution[] = [...sowBlueprintv0, ...convertUpBlueprint];
+
+      // console.log("[Tractor/mergeExecutions] onchain executions", onChainExecutions);
 
       // Filter out any on-chain executions that already exist in the API data & add the SOW_V0 executions if sowEvent is present
       onChainExecutions?.forEach((exec) => {
@@ -99,6 +110,7 @@ export default function usePublisherTractorExecutions(
 
       // Combine and sort all executions
       allExecutions.sort((a, b) => b.blockNumber - a.blockNumber);
+      // console.log("[Tractor/mergeExecutions] All executions", allExecutions);
 
       return allExecutions;
     },
@@ -117,7 +129,16 @@ export default function usePublisherTractorExecutions(
         executionData?.lastUpdated,
       );
 
-      return fetchTractorExecutions(client, diamond, publisher, latestBlock, lookbackBlocks);
+      const executions = await fetchPublisherTractorExecutionEvents(
+        client,
+        diamond,
+        publisher,
+        ["sowBlueprintv0", "convertUpBlueprint"],
+        latestBlock,
+        lookbackBlocks,
+      );
+
+      return executions;
     },
     enabled: executionsChainQueryEnabled && enabled,
     select: mergeExecutions,
@@ -145,45 +166,94 @@ export default function usePublisherTractorExecutions(
 // Helper Functions & Interfaces
 // ────────────────────────────────────────────────────────────────────────────────
 
+const transformSowEvent = (
+  e: Awaited<ReturnType<typeof TractorAPI.getExecutions>>["sowBlueprintV0"][number],
+  chainId: number,
+): TractorEventMapping<TV>["sow"] => {
+  const mainToken = getChainConstant(resolveChainId(chainId), MAIN_TOKEN);
+
+  return {
+    account: e.orderInfo.publisher,
+    fieldId: 0n,
+    index: TV.fromBlockchain(e.blueprintData.index, PODS.decimals),
+    beans: TV.fromBlockchain(e.blueprintData.beans, mainToken.decimals),
+    pods: TV.fromBlockchain(e.blueprintData.pods, PODS.decimals),
+  };
+};
+
+const transformConvertUpEvent = (
+  e: Awaited<ReturnType<typeof TractorAPI.getExecutions>>["convertUpBlueprintV0"][number],
+  chainId: number,
+): TractorEventMapping<TV, Token>["convertUp"] => {
+  if (!e.blueprintData.usedTokens.length) {
+    throw new Error("No used tokens found");
+  }
+
+  const tokenMap = getChainTokenMap(resolveChainId(chainId));
+  const mainToken = getChainConstant(resolveChainId(chainId), MAIN_TOKEN);
+
+  const bd = e.blueprintData;
+  const fromTokens = bd.usedTokens.map((t) => tokenMap[getTokenIndex(t)]);
+  const fromAmounts = bd.tokenFromAmounts.map((a, idx) => {
+    return TV.fromBlockchain(a, fromTokens[idx].decimals);
+  });
+
+  return {
+    account: e.orderInfo.publisher,
+    fromTokens: bd.usedTokens.map((t) => tokenMap[getTokenIndex(t)]),
+    toToken: mainToken,
+    fromAmounts,
+    beansConverted: TV.fromBlockchain(bd.beansConverted, mainToken.decimals),
+    gsBonusStalk: TV.fromBlockchain(bd.gsBonusStalk, STALK.decimals),
+  };
+};
+
+type SelectTractorExecutions = {
+  sowBlueprintv0: PublisherTractorExecution[];
+  convertUpBlueprint: PublisherTractorExecution[];
+  unknown: TractorAPIResponseExecution<unknown>[];
+};
+
 const getSelectTractorExecutions = (chainId: number) => {
   return (args: Awaited<ReturnType<typeof TractorAPI.getExecutions>> | undefined) => {
     if (!args) return undefined;
-    const { executions } = args;
 
-    const mainToken = getChainConstant(resolveChainId(chainId), MAIN_TOKEN);
-
-    const executionsByType = {
-      sowBlueprintv0: [] as PublisherTractorExecution[],
-      unknown: [] as TractorAPIResponseExecution<unknown>[],
+    const executionsByType: SelectTractorExecutions = {
+      sowBlueprintv0: [],
+      convertUpBlueprint: [],
+      unknown: args.unknown,
     };
 
-    const knownOrderTypes = new Set(["SOW_V0"]);
+    executionsByType.sowBlueprintv0 = args.sowBlueprintV0.map((e) => {
+      const sowEv = transformSowEvent(e, chainId);
 
-    for (const execution of executions) {
-      if (!knownOrderTypes.has(execution.orderInfo.orderType)) {
-        // Add unknown executions to the unknown array
-        executionsByType.unknown.push(execution);
-        continue;
-      }
-      if (execution.orderInfo.orderType === "SOW_V0") {
-        const e = execution as TractorAPIExecutionSowOrderItem<string>;
-        executionsByType.sowBlueprintv0.push({
-          blockNumber: e.executedBlock,
-          operator: e.operator,
-          publisher: e.orderInfo.publisher,
-          blueprintHash: e.blueprintHash,
-          transactionHash: e.executedTxn,
-          timestamp: Number(e.executedTimestamp),
-          sowEvent: {
-            account: e.orderInfo.publisher,
-            fieldId: 0n,
-            index: TV.fromBlockchain(e.blueprintData.index, PODS.decimals),
-            beans: TV.fromBlockchain(e.blueprintData.beans, mainToken.decimals),
-            pods: TV.fromBlockchain(e.blueprintData.pods, PODS.decimals),
-          },
-        });
-      }
-    }
+      return {
+        type: "sow",
+        blockNumber: e.executedBlock,
+        operator: e.operator,
+        publisher: e.orderInfo.publisher,
+        blueprintHash: e.blueprintHash,
+        transactionHash: e.executedTxn,
+        timestamp: new Date(e.executedTimestamp).getTime(),
+        event: sowEv,
+        sowEvent: sowEv,
+      };
+    });
+
+    executionsByType.convertUpBlueprint = args.convertUpBlueprintV0.map((e) => {
+      const ev = transformConvertUpEvent(e, chainId);
+
+      return {
+        type: "convertUp",
+        blockNumber: e.executedBlock,
+        operator: e.operator,
+        publisher: e.orderInfo.publisher,
+        blueprintHash: e.blueprintHash,
+        transactionHash: e.executedTxn,
+        timestamp: new Date(e.executedTimestamp).getTime(),
+        event: ev,
+      };
+    });
 
     return {
       lastUpdated: args.lastUpdated,

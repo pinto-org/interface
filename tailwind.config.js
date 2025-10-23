@@ -212,6 +212,10 @@ module.exports = {
           from: { transform: "translateX( 0% )" },
           to: { transform: "translateX( -50% )" },
         },
+        "pulse-scale": {
+          "0%, 100%": { transform: "scale(0.98)" },
+          "50%": { transform: "scale(1.02)" },
+        },
         "marquee-reverse": {
           from: { transform: "translateX( -50% )" },
           to: { transform: "translateX( 0% )" },
@@ -282,42 +286,42 @@ module.exports = {
       addComponents({
         // Text variants as complete utilities
         ".pinto-h1": {
-          "@apply text-h1 font-thin tracking-normal text-pinto-primary": {},
+          "@apply text-h1 font-thin tracking-normal": {},
         },
         ".pinto-h2": {
-          "@apply text-h2 font-thin tracking-h2 text-pinto-primary": {},
+          "@apply text-h2 font-thin tracking-h2": {},
         },
         ".pinto-h3": {
-          "@apply text-h3 font-light tracking-h3 text-pinto-primary sm:text-[2rem]":
+          "@apply text-h3 font-light tracking-h3 sm:text-[2rem]":
             {},
         },
         ".pinto-h4": {
-          "@apply text-h4 font-regular tracking-h4 text-pinto-primary": {},
+          "@apply text-h4 font-regular tracking-h4": {},
         },
         ".pinto-lg": {
-          "@apply text-lg font-light text-pinto-primary": {},
+          "@apply text-lg font-light": {},
         },
         ".pinto-body": {
-          "@apply text-body font-regular text-pinto-primary": {},
+          "@apply text-body font-regular": {},
         },
         ".pinto-body-light": {
-          "@apply text-body font-light tracking-body-light text-pinto-primary":
+          "@apply text-body font-light tracking-body-light":
             {},
         },
         ".pinto-body-bold": {
-          "@apply text-body font-medium text-pinto-primary": {},
+          "@apply text-body font-medium": {},
         },
         ".pinto-sm": {
-          "@apply text-sm font-regular text-pinto-primary": {},
+          "@apply text-sm font-regular": {},
         },
         ".pinto-sm-light": {
-          "@apply text-sm font-light text-pinto-primary": {},
+          "@apply text-sm font-light": {},
         },
         ".pinto-sm-bold": {
-          "@apply text-sm font-medium text-pinto-primary": {},
+          "@apply text-sm font-medium": {},
         },
         ".pinto-xs": {
-          "@apply text-xs font-light text-pinto-primary": {},
+          "@apply text-xs font-light": {},
         },
         ".pinto-inherit": {
           "@apply text-inherit leading-inherit font-inherit tracking-inherit":
