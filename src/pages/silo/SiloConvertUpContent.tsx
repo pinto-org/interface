@@ -1,3 +1,4 @@
+import { TV } from "@/classes/TokenValue";
 import { Col, Row } from "@/components/Container";
 import TooltipSimple from "@/components/TooltipSimple";
 import ConvertUpOrderForm from "@/components/Tractor/ConvertUpOrderForm";
@@ -7,21 +8,18 @@ import ConvertUpTractorOrders from "@/components/Tractor/ConvertUpTractorOrders"
 import { TractorConvertUpOrdersPanel } from "@/components/Tractor/farmer-orders/TractorOrdersPanel";
 import CompactSeasonalLineChart from "@/components/charts/CompactSeasonalLineChart";
 import { tabToSeasonalLookback } from "@/components/charts/SeasonalChart";
-import { TimeTab } from "@/components/charts/TimeTabs";
+import TimeTabsSelector, { TimeTab } from "@/components/charts/TimeTabs";
 import { getAreaGradientFunctions, getStrokeGradientFunctions } from "@/components/charts/chartHelpers";
 import { Card } from "@/components/ui/Card";
 import * as Tabs from "@/components/ui/Tabs";
 import { STALK } from "@/constants/internalTokens";
-import { MAIN_TOKEN, S_MAIN_TOKEN } from "@/constants/tokens";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import { useParamsTabs } from "@/hooks/useRouterTabs";
-import { truncateBeanstalkWrappedDespositsSeasons } from "@/state/seasonal/queries/useSeasonalBeanstalkWrappedDepositsSG";
-import { useFarmerSeasonalGrownStalkPerDepositedBDV } from "@/state/seasonal/seasonalDataHooks";
+import useSeasonalGaugeInfo from "@/state/seasonal/queries/useSeasonalGaugeInfo";
 import { useSeason } from "@/state/useSunData";
-import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
 import { stringEq } from "@/utils/string";
-import { cn, isDev } from "@/utils/utils";
+import { cn } from "@/utils/utils";
 import { noop } from "lodash";
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -85,6 +83,9 @@ export const SiloConvertUpContent = () => {
                   <ConvertUpOrderForm onOpenChange={noop} disallowCloseForm={true} />
                 </Card>
               </div>
+              <div className="pt-4">
+                <SiloConvertUpCharts />
+              </div>
               <Col className="gap-4">
                 <div className="flex flex-row gap-2 items-center min-w-0">
                   <div
@@ -97,9 +98,6 @@ export const SiloConvertUpContent = () => {
                   </div>
                 </div>
               </Col>
-              {/* <div className={cn("flex gap-4 flex-col sm:flex-row")}>
-                <SiloConvertUpCharts />
-              </div> */}
             </div>
           </Col>
         </Col>
@@ -133,16 +131,28 @@ const SiloConvertUpCharts = () => {
   const [tab, setTab] = useState(TimeTab.Week);
 
   return (
-    <>
-      <Card className="w-full p-4">
-        <BonusGrownStalkPerPDVChart tab={tab} season={season} setTab={setTab} />
-      </Card>
-      <Card className="w-full p-4">
-        <BonusCapacityChart tab={tab} season={season} setTab={setTab} />
-      </Card>
-    </>
+    <Col className="gap-4">
+      <div className="flex flex-row align-center justify-between pinto-body-light">
+        <span>Convert Up Data</span>
+        <TimeTabsSelector tab={tab} setTab={setTab} />
+      </div>
+      <div className={cn("flex gap-4 flex-col sm:flex-row")}>
+        <Card className="w-full p-4">
+          <BonusGrownStalkPerPDVChart tab={tab} season={season} setTab={setTab} />
+        </Card>
+        <Card className="w-full p-4">
+          <BonusCapacityChart tab={tab} season={season} setTab={setTab} />
+        </Card>
+      </div>
+    </Col>
   );
 };
+
+interface IChart {
+  tab: TimeTab;
+  season: number;
+  setTab: React.Dispatch<React.SetStateAction<TimeTab>>;
+}
 
 const chartSharedProps = {
   hideYTicks: true,
@@ -150,92 +160,75 @@ const chartSharedProps = {
   size: "small",
 } as const;
 
-const useContextTokens = () => {
-  const mainToken = useChainConstant(MAIN_TOKEN);
-  const sMainToken = useChainConstant(S_MAIN_TOKEN);
-
-  return { mainToken, sMainToken };
-};
-
 const grownStalkPerBDVFormatter = [(value: number) => formatter.xDec(value, 4)];
-const grownStalkPerBDVBorderFunction = getStrokeGradientFunctions(["#387F5C"]);
-const grownStalkPerBDVAreaFunction = getAreaGradientFunctions(["fadeGreen"]);
+const bonusCapacityFormatter = [(value: number) => formatter.xDec(value, 2)];
+const chartBorderFunction = getStrokeGradientFunctions(["#387F5C"]);
+const chartAreaFunction = getAreaGradientFunctions(["fadeGreen"]);
 
-const BonusGrownStalkPerPDVChart = React.memo(({ tab, season, setTab }: ISiloedTokenChart) => {
-  const { mainToken, sMainToken } = useContextTokens();
+const bonusStalkTitle = ["Bonus Grown Stalk Per PDV"];
 
-  const range = useTimeToSeasonRange(season, tab);
+const BonusGrownStalkPerPDVChart = React.memo(({ tab, season, setTab }: IChart) => {
+  const range = useIGaugesInfoTimeToSeasonRange(season, tab);
 
-  const query = useFarmerSeasonalGrownStalkPerDepositedBDV(range.queryFrom, range.to, sMainToken.address);
+  const query = useSeasonalGaugeInfo(range.queryFrom, range.to, (gaugesInfo, timestamp) => ({
+    season: Number(gaugesInfo.season),
+    value: TV.fromBlockchain(gaugesInfo.g2BonusStalkPerBdv, 10).toNumber(),
+    timestamp,
+  }));
 
-  const titles = useMemo(() => [`Bonus Grown Stalk Per PDV`], [mainToken]);
   const results = useMemo(() => [query], [query]);
 
   return (
     <CompactSeasonalLineChart
-      titles={titles}
+      titles={bonusStalkTitle}
       activeTab={tab}
       onChangeTab={setTab}
       useSeasonalResult={results}
       valueFormatter={grownStalkPerBDVFormatter}
-      borderFunctions={grownStalkPerBDVBorderFunction}
-      areaFunctions={grownStalkPerBDVAreaFunction}
+      borderFunctions={chartBorderFunction}
+      areaFunctions={chartAreaFunction}
       token={STALK}
       {...chartSharedProps}
     />
   );
 });
 
-const BonusCapacityChart = React.memo(({ tab, season, setTab }: ISiloedTokenChart) => {
-  const { mainToken, sMainToken } = useContextTokens();
+const bonusCapacityTitle = ["Max Convert Bonus Capacity (PDV)"];
+const BonusCapacityChart = React.memo(({ tab, season, setTab }: IChart) => {
+  const range = useIGaugesInfoTimeToSeasonRange(season, tab);
 
-  const range = useTimeToSeasonRange(season, tab);
+  const query = useSeasonalGaugeInfo(range.queryFrom, range.to, (gaugesInfo, timestamp) => ({
+    season: Number(gaugesInfo.season),
+    value: TV.fromBlockchain(gaugesInfo.g2MaxConvertCapacity, 6).toNumber(),
+    timestamp,
+  }));
 
-  const query = useFarmerSeasonalGrownStalkPerDepositedBDV(range.queryFrom, range.to, sMainToken.address);
-
-  const titles = useMemo(() => [`Max Convert Bonus Capacity (PDV)`], [mainToken]);
   const results = useMemo(() => [query], [query]);
 
   return (
     <CompactSeasonalLineChart
-      titles={titles}
+      titles={bonusCapacityTitle}
       activeTab={tab}
       onChangeTab={setTab}
       useSeasonalResult={results}
-      valueFormatter={grownStalkPerBDVFormatter}
-      borderFunctions={grownStalkPerBDVBorderFunction}
-      areaFunctions={grownStalkPerBDVAreaFunction}
+      valueFormatter={bonusCapacityFormatter}
+      borderFunctions={chartBorderFunction}
+      areaFunctions={chartAreaFunction}
       token={STALK}
       {...chartSharedProps}
     />
   );
 });
 
-interface ISiloedTokenChart {
-  tab: TimeTab;
-  season: number;
-  setTab: React.Dispatch<React.SetStateAction<TimeTab>>;
-}
+const PI_13_SEASON = 8083;
 
-// SG only creates a datapoint if there is an unwrap/wrap event. To protect against no datapoints being returned,
-// we fetch 1000 seasons to increase the likelihood of a single event.
-const useTimeToSeasonRange = (season: number, tab: TimeTab, minTabMonth: boolean = false) => {
+const useIGaugesInfoTimeToSeasonRange = (season: number, tab: TimeTab) => {
   const tabLookbackSeasons = tabToSeasonalLookback(tab);
-  const queryLookbackSeasons = minTabMonth
-    ? tab === TimeTab.AllTime
-      ? Number.MAX_SAFE_INTEGER
-      : 999
-    : tabLookbackSeasons;
-
-  const displayFromSeason = Math.max(0, season - tabLookbackSeasons);
-  const queryFromSeason = Math.max(0, season - queryLookbackSeasons);
-
-  const querySeasons = truncateBeanstalkWrappedDespositsSeasons(queryFromSeason, season);
-  const displaySeasons = truncateBeanstalkWrappedDespositsSeasons(displayFromSeason, season);
+  // We only have data for PI 13 and later, so we need to adjust the query from season accordingly
+  const minQueryFromSeason = Math.max(season - tabLookbackSeasons, PI_13_SEASON);
 
   return {
-    displayFrom: displaySeasons.fromSeason,
-    queryFrom: querySeasons.fromSeason,
-    to: querySeasons.toSeason,
-  };
+    queryFrom: minQueryFromSeason,
+    to: season,
+  } as const;
 };
