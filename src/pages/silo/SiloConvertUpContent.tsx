@@ -65,8 +65,11 @@ export const SiloConvertUpContent = () => {
               variant="outlined"
               content={
                 <>
-                  Tractor enables Farmers to place Bids to Convert UP when at a minimum Convert Up Bonus per PDV
-                  Converted and Convert Bonus Capacity (measured in PDV) is reached.
+                  Tractor enables Farmers to place Bids to Convert Up
+                  <br />
+                  when at a minimum Convert Up Bonus per PDV Converted and
+                  <br />
+                  Convert Bonus Capacity (measured in PDV) is reached.
                 </>
               }
             />

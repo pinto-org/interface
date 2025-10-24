@@ -186,12 +186,12 @@ export const ConvertUpFormAdvancedParametersSummary = ({
         value={minConvertBonusCapacity ? `${formatter.number(minConvertBonusCapacity)} PDV` : "--"}
       />
       <ReviewRow
-        label="Max Grown Stalk per PDV Penalty"
+        label="Max Stalk per PDV Penalty"
         tooltip={CONVERT_UP_TOOLTIP_COPY.maxGrownStalkPerBdvPenalty}
         value={`${formatter.number(maxGrownStalkPerBdvPenalty)} %`}
       />
       <ReviewRow
-        label="Max Grown Stalk per PDV"
+        label="Max Stalk per PDV"
         tooltip={CONVERT_UP_TOOLTIP_COPY.maxGrownStalkPerBdv}
         value={`${formatter.number(maxGrownStalkPerBdv)} Stalk/PDV`}
       />

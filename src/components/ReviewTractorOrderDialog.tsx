@@ -262,7 +262,7 @@ export default function ReviewTractorOrderDialog({
               <Row className="justify-between items-center border-t p-6">
                 <div className="flex flex-col gap-2">
                   <p className="pinto-sm-light text-pinto-light">
-                    Your Order will remain active until completion or until Order cancellation
+                    Your order will remain active until completion or until order cancellation
                   </p>
                   {includesDepositOptimization && (
                     <p className="text-xs text-gray-500">Your Deposits will be optimized to be usable with Tractor</p>

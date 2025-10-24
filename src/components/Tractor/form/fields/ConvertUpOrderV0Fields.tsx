@@ -74,17 +74,20 @@ const TOOLTIP_COPY = {
   maxBeansConvertPerExecution: "The maximum PDV per execution of the Convert Up order.",
   capAmountToBonusCapacity:
     "Cap the conversion amount to the available bonus capacity. When enabled, conversions will be limited to the current bonus capacity regardless of your max PDV per execution setting.",
-  minTimeBetweenConverts: "The minimum time between fills of your Convert Up order.",
-  minConvertBonusCapacity: "The minimum Convert Bonus Capacity per PDV of the Convert Up order.",
+  minTimeBetweenConverts: "The minimum time between fills of your Convert Up Order.",
+  minConvertBonusCapacity: "The minimum Convert Bonus Capacity per PDV of the Convert Up Order.",
   maxGrownStalkPerBdv:
-    "The upper limit of Mown Stalk per PDV of Deposits eligible to be Converted by this Convert Up order. Deposits that exceed this limit will not be Converted.",
+    "The upper limit of Mown Stalk per PDV of Deposits eligible to be Converted by this Convert Up Order. Deposits that exceed this limit will not be Converted.",
   grownStalkPerBdvBonusBid: "The minimum Stalk Bonus at which this order can be executed.",
   maxPriceToConvertUp: "The maximum price at which this order can be executed.",
   minPriceToConvertUp: "The minimum price at which this order can be executed.",
   maxGrownStalkPerBdvPenalty: "The maximum Stalk per PDV penalty of the Convert Up Order.",
   slippageRatio:
-    "the maximum slippage allowed between when the transaction including the Convert Up and the price at which the Convert up occurs.",
-  lowStalkDeposits: "This setting determines whether Deposits with low Stalk are used first, last or not at all. ",
+    "The maximum slippage allowed between when the transaction including the Convert Up and the price at which the Convert Up occurs.",
+  lowStalkDeposits:
+    "This setting determines whether Deposits with low Stalk are used first, last or not at all.\n" +
+    "If 'Do Not Use' is selected, only Deposits with Mown Stalk greater than\n" +
+    "the Stalk Bonus per PDV Converted will be used",
   operatorTip: "The operator tip of the Convert Up Order.",
   priceRange:
     "The price range to execute the Convert Up Order. The order will be executed when the price is between the minimum and maximum price.",
@@ -550,9 +553,7 @@ ConvertUpOrderV0Fields.MaxGrownStalkPerBdvPenalty = function MaxGrownStalkPerBdv
       name="maxGrownStalkPerBdvPenalty"
       render={({ field, fieldState }) => (
         <FormItem>
-          <FormLabel tooltipText={TOOLTIP_COPY.maxGrownStalkPerBdvPenalty}>
-            Max Grown Stalk per PDV Penalty Percent
-          </FormLabel>
+          <FormLabel tooltipText={TOOLTIP_COPY.maxGrownStalkPerBdvPenalty}>Max Stalk per PDV Penalty Percent</FormLabel>
           <FormControl>
             <Input
               {...field}
