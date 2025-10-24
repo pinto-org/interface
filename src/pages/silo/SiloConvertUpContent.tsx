@@ -23,6 +23,7 @@ import { cn } from "@/utils/utils";
 import { noop } from "lodash";
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useIGaugesInfoTimeToSeasonRange } from "../explorer/SiloExplorer";
 import SiloConvertUpStats from "./SiloConvertUpStats";
 
 // ---------- Sub Components ----------
@@ -65,11 +66,8 @@ export const SiloConvertUpContent = () => {
               variant="outlined"
               content={
                 <>
-                  Tractor enables Farmers to place Bids to Convert Up
-                  <br />
-                  when at a minimum Convert Up Bonus per PDV Converted and
-                  <br />
-                  Convert Bonus Capacity (measured in PDV) is reached.
+                  Tractor enables Farmers to place Bids to Convert UP when at a minimum Convert Up Bonus per PDV
+                  Converted and Convert Bonus Capacity (measured in PDV) is reached.
                 </>
               }
             />
@@ -222,16 +220,3 @@ const BonusCapacityChart = React.memo(({ tab, season, setTab }: IChart) => {
     />
   );
 });
-
-const PI_13_SEASON = 8083;
-
-const useIGaugesInfoTimeToSeasonRange = (season: number, tab: TimeTab) => {
-  const tabLookbackSeasons = tabToSeasonalLookback(tab);
-  // We only have data for PI 13 and later, so we need to adjust the query from season accordingly
-  const minQueryFromSeason = Math.max(season - tabLookbackSeasons, PI_13_SEASON);
-
-  return {
-    queryFrom: minQueryFromSeason,
-    to: season,
-  } as const;
-};
