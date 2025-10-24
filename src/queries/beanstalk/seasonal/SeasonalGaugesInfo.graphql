@@ -1,0 +1,14 @@
+query SeasonalGaugesInfo($from: Int, $to: Int) {
+  gaugesInfoHourlySnapshots(
+    where: { season_gte: $from, season_lte: $to }
+    first: 1000 
+    orderBy: season 
+    orderDirection: asc
+  ) {
+    id
+    g2BonusStalkPerBdv
+    g2MaxConvertCapacity
+    season
+    createdAt
+  }
+}
