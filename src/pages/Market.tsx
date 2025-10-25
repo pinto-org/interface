@@ -3,14 +3,14 @@ import PintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
 import FrameAnimator from "@/components/LoadingSpinner";
 import { ContextMenu } from "@/components/MarketContextMenu";
-import ScatterChart, { PointClickPayload } from "@/components/charts/ScatterChart";
+import ScatterChart, { PointClickPayload, PointHoverPayload } from "@/components/charts/ScatterChart";
 import { Separator } from "@/components/ui/Separator";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { useAllMarket } from "@/state/market/useAllMarket";
 import { useHarvestableIndex, usePodLine } from "@/state/useFieldData";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { PointStyle, TooltipOptions } from "chart.js";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AllActivityTable } from "./market/AllActivityTable";
 import { FarmerActivityTable } from "./market/FarmerActivityTable";
@@ -152,10 +152,14 @@ export function Market() {
     clickedCoords: { x: number; y: number };
     chartBounds: DOMRect;
   } | null>(null);
+  const hoverInfoRef = useRef<HTMLDivElement>(null);
+  const lastPositionSideRef = useRef<{ isRight: boolean; isAbove: boolean } | null>(null);
   const navigate = useNavigate();
   const { data, isLoaded } = useAllMarket();
   const podLine = usePodLine();
   const podLineAsNumber = podLine.toNumber() / 1000000;
+  // Chart rounds X max to nearest 10 (not ceil), so we need to match that for validation
+  const chartXMax = Math.round((podLineAsNumber / 10) * 10);
   const harvestableIndex = useHarvestableIndex();
 
   const scatterChartData: MarketScatterChartData[] = useMemo(
@@ -277,6 +281,128 @@ export function Market() {
     [mode],
   );
 
+  const onHover = useCallback(
+    (payload: PointHoverPayload | null) => {
+      if (!hoverInfoRef.current) return;
+
+      if (!payload) {
+        // Remove animation class and hide
+        hoverInfoRef.current.classList.remove("animate-fade-in-smooth");
+        hoverInfoRef.current.style.display = "none";
+        lastPositionSideRef.current = null;
+        return;
+      }
+
+      // Direct DOM manipulation - NO React state updates = NO re-renders!
+      const { hoverXY, pixelXY, chartBounds } = payload;
+
+      // Validate that hover is within chart bounds (min/max)
+      // Chart rounds X max to nearest 10, use chartXMax for accurate validation
+      if (hoverXY.x < 0 || hoverXY.x > chartXMax || hoverXY.y < 0 || hoverXY.y > 1) {
+        hoverInfoRef.current.style.display = "none";
+        return;
+      }
+
+      // Check if this is initial show (display was none)
+      const wasHidden = hoverInfoRef.current.style.display === "none";
+
+      // Update text content first
+      const priceSpan = hoverInfoRef.current.querySelector("[data-price]");
+      const placeSpan = hoverInfoRef.current.querySelector("[data-place]");
+
+      if (priceSpan) {
+        priceSpan.textContent = hoverXY.y.toFixed(6);
+      }
+      if (placeSpan) {
+        placeSpan.textContent = `${hoverXY.x.toFixed(2)}M`;
+      }
+
+      // Make sure element is visible for dimension calculation (but positioned off-screen temporarily)
+      hoverInfoRef.current.style.display = "flex";
+      hoverInfoRef.current.style.left = "-9999px";
+      hoverInfoRef.current.style.top = "-9999px";
+
+      // Force a reflow to get accurate dimensions
+      const rect = hoverInfoRef.current.getBoundingClientRect();
+      const infoWidth = rect.width;
+      const infoHeight = rect.height;
+
+      // Default offsets - right and above cursor
+      const offsetX = 8;
+      const offsetY = infoHeight + 5; // Always above by height + small gap
+
+      // Start with default position (right and ABOVE cursor)
+      let left = pixelXY.x + offsetX;
+      let top = pixelXY.y - offsetY; // Negative to go UP
+
+      // Use chart bounds if available, otherwise use viewport
+      const viewportWidth = chartBounds?.right || window.innerWidth;
+      const viewportHeight = chartBounds?.bottom || window.innerHeight;
+      const minX = chartBounds?.left || 0;
+      const minY = chartBounds?.top || 0;
+
+      // Bottom padding to avoid axis labels (give extra space at bottom)
+      const bottomPadding = 60;
+
+      // Check right edge overflow - flip to left
+      if (left + infoWidth > viewportWidth - 10) {
+        left = pixelXY.x - infoWidth - offsetX;
+      }
+
+      // Check left edge overflow - push right
+      if (left < minX + 10) {
+        left = minX + 10;
+      }
+
+      // Check top edge overflow - flip to bottom
+      if (top < minY + 10) {
+        top = pixelXY.y + 20; // Show below cursor
+      }
+
+      // Check bottom edge overflow with axis padding - keep it above axis labels
+      if (top + infoHeight > viewportHeight - bottomPadding) {
+        // Force it to be above cursor with more space
+        top = pixelXY.y - offsetY - 10;
+        // If still too low, pin to safe zone above axis
+        if (top + infoHeight > viewportHeight - bottomPadding) {
+          top = viewportHeight - bottomPadding - infoHeight - 5;
+        }
+      }
+
+      // Make sure it's visible
+      hoverInfoRef.current.style.display = "flex";
+
+      // Round positions
+      const roundedLeft = Math.round(left);
+      const roundedTop = Math.round(top);
+
+      // Determine which side of cursor the info is on
+      const isRight = roundedLeft > pixelXY.x;
+      const isAbove = roundedTop < pixelXY.y;
+
+      // Check if we flipped sides (right/left or above/below)
+      const sideChanged =
+        lastPositionSideRef.current &&
+        (lastPositionSideRef.current.isRight !== isRight || lastPositionSideRef.current.isAbove !== isAbove);
+
+      // Apply final position
+      hoverInfoRef.current.style.left = `${roundedLeft}px`;
+      hoverInfoRef.current.style.top = `${roundedTop}px`;
+
+      // Only animate on first show or when flipping sides
+      if (wasHidden || sideChanged) {
+        // Update last side
+        lastPositionSideRef.current = { isRight, isAbove };
+
+        // Trigger animation
+        hoverInfoRef.current.classList.remove("animate-fade-in-smooth");
+        void hoverInfoRef.current.offsetHeight;
+        hoverInfoRef.current.classList.add("animate-fade-in-smooth");
+      }
+    },
+    [chartXMax],
+  );
+
   const contextMenuOptions = useMemo(() => {
     if (!contextMenu) return [];
 
@@ -377,6 +503,7 @@ export function Market() {
                   xOptions={{ label: "Place in line", min: 0, max: podLineAsNumber }}
                   yOptions={{ label: "Price per pod", min: 0, max: 1 }}
                   onPointClick={onPointClick}
+                  onHover={onHover}
                   toolTipOptions={toolTipOptions as TooltipOptions}
                 />
               </div>
@@ -409,6 +536,20 @@ export function Market() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Hover info - rendered once, updated via direct DOM manipulation for performance */}
+      <div
+        ref={hoverInfoRef}
+        className="fixed z-40 text-xs px-3 py-2 flex-col gap-1 text-pinto-pod-bronze pointer-events-none"
+        style={{ display: "none" }}
+      >
+        <div>
+          <span>Price per Pod:</span> <span data-price>0.000</span>
+        </div>
+        <div>
+          <span>Place in line:</span> <span data-place>0.0M</span>
         </div>
       </div>
 

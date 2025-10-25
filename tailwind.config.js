@@ -244,6 +244,16 @@ module.exports = {
             boxShadow: "0 0 30px var(--glow-color, rgba(36, 102, 69, 0.7))" 
           },
         },
+        "fade-in-smooth": {
+          "0%": { 
+            opacity: "0",
+            transform: "scale(0.95)"
+          },
+          "100%": { 
+            opacity: "1",
+            transform: "scale(1)"
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -257,6 +267,7 @@ module.exports = {
         "vertical-marquee-small": "vertical-marquee-small 80s linear infinite",
         "text-background-scroll": "text-background-scroll 5s linear infinite",
         "pulse-glow": "pulse-glow 8s ease-in-out infinite",
+        "fade-in-smooth": "fade-in-smooth 0.25s ease-out",
       },
       aspectRatio: {
         "3/1": "3 / 1",

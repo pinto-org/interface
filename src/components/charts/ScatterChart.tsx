@@ -76,6 +76,18 @@ export interface PointClickPayload {
   chartBounds: DOMRect;
 }
 
+export interface PointHoverPayload {
+  // Hover coordinates in chart scale and pixel coordinates
+  hoverXY: { x: number; y: number };
+  pixelXY: { x: number; y: number };
+
+  // Chart canvas bounds for positioning tooltips
+  chartBounds: DOMRect;
+
+  // DOM element to update directly (performance optimization)
+  updateDOM?: (coords: { x: number; y: number }, pixel: { x: number; y: number }) => void;
+}
+
 export interface ScatterChartProps {
   data: ScatterChartData;
   size?: "small" | "large";
@@ -91,6 +103,7 @@ export interface ScatterChartProps {
     label?: string;
   }[];
   onPointClick?: (payload: PointClickPayload) => void;
+  onHover?: (payload: PointHoverPayload | null) => void;
   xOptions: ScatterChartAxisOptions;
   yOptions: ScatterChartAxisOptions;
   customValueTransform?: CustomChartValueTransform;
@@ -110,12 +123,21 @@ const ScatterChart = React.memo(
     yOptions,
     customValueTransform,
     onPointClick,
+    onHover,
     toolTipOptions,
   }: ScatterChartProps) => {
     const chartRef = useRef<Chart | null>(null);
     const activeIndexRef = useRef<number | undefined>(activeIndex);
     const selectedPointRef = useRef<[number, number] | null>(null);
     const mousePositionRef = useRef<{ x: number; y: number } | null>(null);
+    const lastHoverTimeRef = useRef<number>(0);
+    const onHoverRef = useRef(onHover);
+    const HOVER_THROTTLE_MS = 16; // ~60fps for smooth updates
+
+    // Keep the ref updated but don't trigger re-renders
+    useEffect(() => {
+      onHoverRef.current = onHover;
+    }, [onHover]);
 
     useEffect(() => {
       activeIndexRef.current = activeIndex;
@@ -473,8 +495,10 @@ const ScatterChart = React.memo(
 
       const handleMouseLeave = () => {
         mousePositionRef.current = null;
-        // Use render() instead of update() to avoid state changes
-        chart.render();
+        // Clear hover state (DOM manipulation, no re-render needed)
+        onHoverRef.current?.(null);
+        // Don't call chart.render() - it causes visual glitch
+        // The crosshair will disappear naturally on next mouse move or chart update
       };
 
       chart.canvas.addEventListener("mouseleave", handleMouseLeave);
@@ -482,7 +506,7 @@ const ScatterChart = React.memo(
       return () => {
         chart.canvas.removeEventListener("mouseleave", handleMouseLeave);
       };
-    }, []);
+    }, []); // Empty dependency array - handleMouseLeave uses refs only
 
     const chartOptions: ChartOptions = useMemo(() => {
       return {
@@ -494,6 +518,41 @@ const ScatterChart = React.memo(
             mousePositionRef.current = { x: event.x, y: event.y };
             // Use render() instead of update() to avoid state changes
             chart.render();
+
+            // If hovering over a data point (pod), hide our custom hover info
+            if (activeElements.length > 0) {
+              if (onHoverRef.current) {
+                onHoverRef.current(null);
+              }
+              return;
+            }
+
+            // Throttle hover callback for performance
+            const now = Date.now();
+            if (onHoverRef.current && now - lastHoverTimeRef.current >= HOVER_THROTTLE_MS) {
+              const canvasPosition = chart.canvas.getBoundingClientRect();
+              const nativeEvent = event.native as MouseEvent;
+
+              // Get scale values
+              const xScale = chart.scales.x;
+              const yScale = chart.scales.y;
+              const pixelX = event.x;
+              const pixelY = event.y;
+              const xValue = xScale.getValueForPixel(pixelX);
+              const yValue = yScale.getValueForPixel(pixelY);
+
+              if (xValue !== undefined && yValue !== undefined) {
+                // Use original values for accuracy (like clickedCoords)
+                // Only check time throttle, not value changes, for smooth updates
+                lastHoverTimeRef.current = now;
+
+                onHoverRef.current({
+                  hoverXY: { x: xValue, y: yValue },
+                  pixelXY: { x: nativeEvent.clientX, y: nativeEvent.clientY },
+                  chartBounds: canvasPosition,
+                });
+              }
+            }
           }
         },
         plugins: {
@@ -524,7 +583,7 @@ const ScatterChart = React.memo(
             type: "linear",
             position: "bottom",
             min: xOptions.min,
-            max: Math.ceil(xOptions.max / 10) * 10,
+            max: Math.round((xOptions.max / 10) * 10), // round to nearest 10 so auto tick generation works
             ticks: {
               padding: 0,
               callback: (val) => `${Number(val)}M`,
@@ -589,7 +648,8 @@ const ScatterChart = React.memo(
           onPointClick?.(payload);
         },
       };
-    }, [data, yTickMin, yTickMax, valueFormatter, useLogarithmicScale, customValueTransform]);
+    }, [data, yTickMin, yTickMax, valueFormatter, useLogarithmicScale, customValueTransform, onPointClick]);
+    // Note: onHover is handled via ref to prevent chart re-renders
 
     const allPlugins = useMemo<Plugin[]>(
       () => [
