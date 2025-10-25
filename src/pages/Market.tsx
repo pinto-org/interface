@@ -182,8 +182,7 @@ export function Market() {
         div.style.opacity = "1";
         div.style.pointerEvents = "none";
         div.style.position = "absolute";
-        div.style.transform = "translate(25px)"; // Position to right of point
-        div.style.transition = "all .1s ease";
+        div.style.transition = "opacity .25s ease"; // Only fade opacity, not position
         document.body.appendChild(div);
       } else {
         // Hide if no tooltip

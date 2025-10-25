@@ -248,6 +248,10 @@ const ScatterChart = React.memo(
           const mousePos = mousePositionRef.current;
           if (!mousePos) return;
 
+          // Check if hovering over a data point (pod listing/order)
+          const activeElements = chart.getActiveElements();
+          const isHoveringDataPoint = activeElements.length > 0;
+
           ctx.save();
           ctx.setLineDash([4, 4]);
           ctx.strokeStyle = "#B9B9B9"; // pinto-gray-3
@@ -255,15 +259,15 @@ const ScatterChart = React.memo(
 
           const { x, y } = mousePos;
 
-          // Draw vertical line
-          if (x >= chart.chartArea.left && x <= chart.chartArea.right) {
+          // Draw vertical line (skip if hovering over a data point)
+          if (!isHoveringDataPoint && x >= chart.chartArea.left && x <= chart.chartArea.right) {
             ctx.beginPath();
             ctx.moveTo(x, chart.chartArea.top);
             ctx.lineTo(x, chart.chartArea.bottom);
             ctx.stroke();
           }
 
-          // Draw horizontal line
+          // Draw horizontal line (always draw)
           if (y >= chart.chartArea.top && y <= chart.chartArea.bottom) {
             ctx.beginPath();
             ctx.moveTo(chart.chartArea.left, y);
