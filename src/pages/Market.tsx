@@ -474,7 +474,32 @@ export function Market() {
   }, [contextMenu, handleUnfreezeAndNavigate]);
 
   const onPointClick = (payload: PointClickPayload) => {
-    // If clicked on a data point, navigate to detail page
+    // If this click unfroze the chart, close context menu
+    if (payload.wasUnfrozen) {
+      setContextMenu(null);
+      // If clicked on a pod while frozen, still navigate after unfreezing
+      if (payload.activeElement) {
+        const dataPoint = payload.activeElement.dataPoint as any;
+        if (!dataPoint) return;
+
+        trackSimpleEvent(ANALYTICS_EVENTS.MARKET.CHART_POINT_CLICK, {
+          event_type: dataPoint?.eventType?.toLowerCase() ?? "unknown",
+          event_status: dataPoint?.status?.toLowerCase() ?? "unknown",
+          price_per_pod: dataPoint?.y ?? 0,
+          place_in_line_millions: Math.floor(dataPoint?.x ?? -1),
+          current_mode: !mode || mode === "buy" ? "buy" : "sell",
+        });
+
+        if (dataPoint.eventType === "LISTING") {
+          navigate(`/market/pods/buy/${dataPoint.eventIndex.toString().replace(".", "")}`);
+        } else {
+          navigate(`/market/pods/sell/${dataPoint.eventId.replace(".", "")}`);
+        }
+      }
+      return;
+    }
+
+    // If clicked on a data point (and not frozen), navigate to detail page
     if (payload.activeElement) {
       const dataPoint = payload.activeElement.dataPoint as any;
 

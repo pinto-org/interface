@@ -74,6 +74,9 @@ export interface PointClickPayload {
 
   // Chart canvas bounds for positioning context menus
   chartBounds: DOMRect;
+
+  // Flag to indicate if this click unfroze the chart
+  wasUnfrozen?: boolean;
 }
 
 export interface PointHoverPayload {
@@ -660,18 +663,19 @@ const ScatterChart = React.memo(
           const xValue = xScale.getValueForPixel(pixelX);
           const yValue = yScale.getValueForPixel(pixelY);
 
-          // Only toggle frozen crosshair when clicking empty space (not on a data point)
-          if (activeElements.length === 0) {
-            if (frozenCrosshairRef.current) {
-              // If already frozen, unfreeze
-              frozenCrosshairRef.current = null;
-              onFreezeChange?.(false);
-            } else {
-              // Freeze at current mouse position
-              frozenCrosshairRef.current = mousePositionRef.current;
-              onFreezeChange?.(true);
-            }
-            chart.render(); // Re-render to show frozen/unfrozen state
+          let wasUnfrozen = false;
+
+          // If already frozen, unfreeze on ANY click (including pods)
+          if (frozenCrosshairRef.current) {
+            frozenCrosshairRef.current = null;
+            onFreezeChange?.(false);
+            chart.render();
+            wasUnfrozen = true;
+          } else if (activeElements.length === 0) {
+            // Only freeze when clicking empty space (not on a data point)
+            frozenCrosshairRef.current = mousePositionRef.current;
+            onFreezeChange?.(true);
+            chart.render();
           }
 
           // Prepare payload
@@ -684,6 +688,7 @@ const ScatterChart = React.memo(
             rawEvent: event,
             chart,
             chartBounds: canvasPosition,
+            wasUnfrozen,
           };
 
           // Add active element info if point was clicked
