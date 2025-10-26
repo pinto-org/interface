@@ -16,7 +16,7 @@ import {
   TooltipOptions,
 } from "chart.js";
 import { isEqual } from "lodash";
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from "react";
 import { ReactChart } from "../ReactChart";
 
 Chart.register(LineController, LineElement, LinearScale, LogarithmicScale, CategoryScale, PointElement, Filler);
@@ -88,6 +88,10 @@ export interface PointHoverPayload {
   updateDOM?: (coords: { x: number; y: number }, pixel: { x: number; y: number }) => void;
 }
 
+export interface ScatterChartRef {
+  unfreeze: () => void;
+}
+
 export interface ScatterChartProps {
   data: ScatterChartData;
   size?: "small" | "large";
@@ -104,6 +108,7 @@ export interface ScatterChartProps {
   }[];
   onPointClick?: (payload: PointClickPayload) => void;
   onHover?: (payload: PointHoverPayload | null) => void;
+  onFreezeChange?: (isFrozen: boolean) => void;
   xOptions: ScatterChartAxisOptions;
   yOptions: ScatterChartAxisOptions;
   customValueTransform?: CustomChartValueTransform;
@@ -111,7 +116,7 @@ export interface ScatterChartProps {
 }
 
 const ScatterChart = React.memo(
-  ({
+  forwardRef<ScatterChartRef, ScatterChartProps>(({
     data,
     size,
     valueFormatter,
@@ -124,12 +129,14 @@ const ScatterChart = React.memo(
     customValueTransform,
     onPointClick,
     onHover,
+    onFreezeChange,
     toolTipOptions,
-  }: ScatterChartProps) => {
+  }, ref) => {
     const chartRef = useRef<Chart | null>(null);
     const activeIndexRef = useRef<number | undefined>(activeIndex);
     const selectedPointRef = useRef<[number, number] | null>(null);
     const mousePositionRef = useRef<{ x: number; y: number } | null>(null);
+    const frozenCrosshairRef = useRef<{ x: number; y: number } | null>(null);
     const lastHoverTimeRef = useRef<number>(0);
     const onHoverRef = useRef(onHover);
     const HOVER_THROTTLE_MS = 16; // ~60fps for smooth updates
@@ -145,6 +152,25 @@ const ScatterChart = React.memo(
         chartRef.current.update("none"); // Disable animations during update
       }
     }, [activeIndex]);
+
+    // Expose unfreeze method to parent via ref
+    useImperativeHandle(ref, () => ({
+      unfreeze: () => {
+        // Force unfreeze regardless of current state
+        const wasFrozen = frozenCrosshairRef.current !== null;
+        frozenCrosshairRef.current = null;
+        selectedPointRef.current = null; // Also clear selected point
+        mousePositionRef.current = null; // Clear mouse position
+        
+        if (wasFrozen) {
+          onFreezeChange?.(false);
+        }
+        
+        if (chartRef.current) {
+          chartRef.current.render();
+        }
+      }
+    }), [onFreezeChange]);
 
     const [yTickMin, yTickMax] = useMemo(() => {
       // If custom min/max are provided, use those
@@ -245,7 +271,8 @@ const ScatterChart = React.memo(
           const ctx = chart.ctx;
           if (!ctx) return;
 
-          const mousePos = mousePositionRef.current;
+          // Use frozen crosshair position if available, otherwise use mouse position
+          const mousePos = frozenCrosshairRef.current || mousePositionRef.current;
           if (!mousePos) return;
 
           // Check if hovering over a data point (pod listing/order)
@@ -254,21 +281,22 @@ const ScatterChart = React.memo(
 
           ctx.save();
           ctx.setLineDash([4, 4]);
-          ctx.strokeStyle = "#B9B9B9"; // pinto-gray-3
-          ctx.lineWidth = 1;
+          // Use different color for frozen crosshair
+          ctx.strokeStyle = frozenCrosshairRef.current ? "#387F5C" : "#B9B9B9"; // green for frozen, gray for normal
+          ctx.lineWidth = frozenCrosshairRef.current ? 1.5 : 1;
 
           const { x, y } = mousePos;
 
-          // Draw vertical line (skip if hovering over a data point)
-          if (!isHoveringDataPoint && x >= chart.chartArea.left && x <= chart.chartArea.right) {
+          // Draw vertical line (skip if hovering over a data point and not frozen)
+          if ((!isHoveringDataPoint || frozenCrosshairRef.current) && x >= chart.chartArea.left && x <= chart.chartArea.right) {
             ctx.beginPath();
             ctx.moveTo(x, chart.chartArea.top);
             ctx.lineTo(x, chart.chartArea.bottom);
             ctx.stroke();
           }
 
-          // Draw horizontal line (always draw)
-          if (y >= chart.chartArea.top && y <= chart.chartArea.bottom) {
+          // Draw horizontal line (skip if hovering over a data point and not frozen)
+          if ((!isHoveringDataPoint || frozenCrosshairRef.current) && y >= chart.chartArea.top && y <= chart.chartArea.bottom) {
             ctx.beginPath();
             ctx.moveTo(chart.chartArea.left, y);
             ctx.lineTo(chart.chartArea.right, y);
@@ -297,16 +325,25 @@ const ScatterChart = React.memo(
           const dataPoint = chart.getDatasetMeta(datasetIndex).data[index];
           if (!dataPoint) return;
 
-          const { x } = dataPoint.getProps(["x"], true);
+          const { x, y } = dataPoint.getProps(["x", "y"], true);
 
           ctx.save();
           ctx.setLineDash([4, 4]);
+          ctx.strokeStyle = "black";
+          ctx.lineWidth = 1.5;
+          
+          // Draw vertical line
           ctx.beginPath();
           ctx.moveTo(x, chart.chartArea.top);
           ctx.lineTo(x, chart.chartArea.bottom);
-          ctx.strokeStyle = "black";
-          ctx.lineWidth = 1.5;
           ctx.stroke();
+          
+          // Draw horizontal line
+          ctx.beginPath();
+          ctx.moveTo(chart.chartArea.left, y);
+          ctx.lineTo(chart.chartArea.right, y);
+          ctx.stroke();
+          
           ctx.restore();
         },
       }),
@@ -501,7 +538,11 @@ const ScatterChart = React.memo(
         mousePositionRef.current = null;
         // Clear hover state (DOM manipulation, no re-render needed)
         onHoverRef.current?.(null);
-        // Don't call chart.render() - it causes visual glitch
+        // If crosshair is frozen, keep it visible by re-rendering
+        if (frozenCrosshairRef.current) {
+          chart.render();
+        }
+        // Don't call chart.render() otherwise - it causes visual glitch
         // The crosshair will disappear naturally on next mouse move or chart update
       };
 
@@ -619,6 +660,18 @@ const ScatterChart = React.memo(
           const xValue = xScale.getValueForPixel(pixelX);
           const yValue = yScale.getValueForPixel(pixelY);
 
+          // Toggle frozen crosshair
+          if (frozenCrosshairRef.current) {
+            // If already frozen, unfreeze
+            frozenCrosshairRef.current = null;
+            onFreezeChange?.(false);
+          } else {
+            // Freeze at current mouse position
+            frozenCrosshairRef.current = mousePositionRef.current;
+            onFreezeChange?.(true);
+          }
+          chart.render(); // Re-render to show frozen/unfrozen state
+
           // Prepare payload
           const payload: PointClickPayload = {
             clickedXY: xValue !== undefined && yValue !== undefined ? { x: xValue, y: yValue } : null,
@@ -697,8 +750,7 @@ const ScatterChart = React.memo(
         height={500}
       />
     );
-  },
-  areScatterChartPropsEqual,
+  }), areScatterChartPropsEqual,
 );
 
 /**

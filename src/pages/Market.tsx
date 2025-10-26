@@ -3,7 +3,7 @@ import PintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
 import FrameAnimator from "@/components/LoadingSpinner";
 import { ContextMenu } from "@/components/MarketContextMenu";
-import ScatterChart, { PointClickPayload, PointHoverPayload } from "@/components/charts/ScatterChart";
+import ScatterChart, { PointClickPayload, PointHoverPayload, ScatterChartRef } from "@/components/charts/ScatterChart";
 import { Separator } from "@/components/ui/Separator";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { useAllMarket } from "@/state/market/useAllMarket";
@@ -146,12 +146,16 @@ const shapeScatterChartData = (data: any[], harvestableIndex: TokenValue): Marke
 export function Market() {
   const { mode, id } = useParams();
   const [tab, handleChangeTab] = useState(TABLE_SLUGS[0]);
+  const [isCrosshairFrozen, setIsCrosshairFrozen] = useState(false);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
     clickedCoords: { x: number; y: number };
     chartBounds: DOMRect;
   } | null>(null);
+  const isNavigatingRef = useRef(false);
+  const isCrosshairFrozenRef = useRef(false);
+  const chartRef = useRef<ScatterChartRef>(null);
   const hoverInfoRef = useRef<HTMLDivElement>(null);
   const lastPositionSideRef = useRef<{ isRight: boolean; isAbove: boolean } | null>(null);
   const navigate = useNavigate();
@@ -166,6 +170,14 @@ export function Market() {
     () => shapeScatterChartData(data || [], harvestableIndex),
     [data, harvestableIndex],
   );
+
+  // Keep ref in sync with state and hide hover info when frozen
+  useEffect(() => {
+    isCrosshairFrozenRef.current = isCrosshairFrozen;
+    if (isCrosshairFrozen && hoverInfoRef.current) {
+      hoverInfoRef.current.style.display = "none";
+    }
+  }, [isCrosshairFrozen]);
 
   const toolTipOptions: Partial<TooltipOptions> = {
     enabled: false,
@@ -182,6 +194,7 @@ export function Market() {
         div.style.opacity = "1";
         div.style.pointerEvents = "none";
         div.style.position = "absolute";
+        div.style.transform = "translate(25px)"; // Position to right of point
         div.style.transition = "opacity .25s ease"; // Only fade opacity, not position
         document.body.appendChild(div);
       } else {
@@ -284,6 +297,12 @@ export function Market() {
     (payload: PointHoverPayload | null) => {
       if (!hoverInfoRef.current) return;
 
+      // Don't show hover info when crosshair is frozen (use ref for always-current value)
+      if (isCrosshairFrozenRef.current) {
+        hoverInfoRef.current.style.display = "none";
+        return;
+      }
+
       if (!payload) {
         // Remove animation class and hide
         hoverInfoRef.current.classList.remove("animate-fade-in-smooth");
@@ -326,46 +345,54 @@ export function Market() {
       const infoWidth = rect.width;
       const infoHeight = rect.height;
 
-      // Default offsets - right and above cursor
-      const offsetX = 8;
-      const offsetY = infoHeight + 5; // Always above by height + small gap
+      // Default offsets - start at (4, 4) from cursor
+      const offsetX = 4;
+      const offsetY = 4;
 
-      // Start with default position (right and ABOVE cursor)
+      // Start with default position (right and above cursor)
       let left = pixelXY.x + offsetX;
-      let top = pixelXY.y - offsetY; // Negative to go UP
+      let top = pixelXY.y - offsetY - infoHeight; // Above cursor with offset
 
       // Use chart bounds if available, otherwise use viewport
       const viewportWidth = chartBounds?.right || window.innerWidth;
       const viewportHeight = chartBounds?.bottom || window.innerHeight;
       const minX = chartBounds?.left || 0;
       const minY = chartBounds?.top || 0;
+      
+      // Detect which edges are overflowing
+      const overflowTop = top < minY + 10;
+      const overflowRight = left + infoWidth > viewportWidth - 10;
+      const overflowBottom = top + infoHeight > viewportHeight - 10;
+      const overflowLeft = left < minX + 10;
 
-      // Bottom padding to avoid axis labels (give extra space at bottom)
-      const bottomPadding = 60;
-
-      // Check right edge overflow - flip to left
-      if (left + infoWidth > viewportWidth - 10) {
-        left = pixelXY.x - infoWidth - offsetX;
-      }
-
-      // Check left edge overflow - push right
-      if (left < minX + 10) {
-        left = minX + 10;
-      }
-
-      // Check top edge overflow - flip to bottom
-      if (top < minY + 10) {
-        top = pixelXY.y + 20; // Show below cursor
-      }
-
-      // Check bottom edge overflow with axis padding - keep it above axis labels
-      if (top + infoHeight > viewportHeight - bottomPadding) {
-        // Force it to be above cursor with more space
-        top = pixelXY.y - offsetY - 10;
-        // If still too low, pin to safe zone above axis
-        if (top + infoHeight > viewportHeight - bottomPadding) {
-          top = viewportHeight - bottomPadding - infoHeight - 5;
+      // Handle combinations of overflows
+      if (overflowTop && overflowRight) {
+        // Top-right corner: component's top-right corner at (-4, 4)
+        left = pixelXY.x - infoWidth - 4;
+        top = pixelXY.y + 4;
+      } else if (overflowTop) {
+        // Top edge only: component's top-left corner at (4, 4)
+        left = pixelXY.x + 4;
+        top = pixelXY.y + 4;
+        // Check if also overflowing right edge while at top
+        if (left + infoWidth > viewportWidth - 10) {
+          left = pixelXY.x - infoWidth - 4;
         }
+      } else if (overflowRight) {
+        // Right edge: default to top-right corner (2nd quadrant) at (-4, -4)
+        left = pixelXY.x - infoWidth - 4;
+        top = pixelXY.y - infoHeight - 4; // Component's bottom-right corner at mouse
+        
+        // If not enough space above mouse, flip to below (3rd quadrant)
+        if (pixelXY.y - infoHeight - 4 < minY + 10) {
+          top = pixelXY.y + 4; // Component's top-right corner below mouse
+        }
+      } else if (overflowBottom) {
+        // Bottom edge only: component's bottom-left corner at (4, -4)
+        top = pixelXY.y - infoHeight - 4;
+      } else if (overflowLeft) {
+        // Left edge: push right
+        left = minX + 10;
       }
 
       // Make sure it's visible
@@ -402,6 +429,24 @@ export function Market() {
     [chartXMax],
   );
 
+  const handleUnfreezeAndNavigate = useCallback((path: string, state: any) => {
+    // Mark that we're navigating so onClose doesn't unfreeze again
+    isNavigatingRef.current = true;
+    
+    // Unfreeze crosshair via ref (no re-render, no animations)
+    chartRef.current?.unfreeze();
+    setIsCrosshairFrozen(false);
+    setContextMenu(null);
+    
+    // Navigate immediately - unfreeze is already done
+    navigate(path, { state });
+    
+    // Reset flag after navigation
+    setTimeout(() => {
+      isNavigatingRef.current = false;
+    }, 100);
+  }, [navigate]);
+
   const contextMenuOptions = useMemo(() => {
     if (!contextMenu) return [];
 
@@ -409,28 +454,24 @@ export function Market() {
       {
         label: "Create Order",
         onClick: () => {
-          navigate("/market/pods/buy", {
-            state: {
-              prefillPrice: contextMenu.clickedCoords.y,
-              prefillPlaceInLine: contextMenu.clickedCoords.x,
-            },
+          handleUnfreezeAndNavigate("/market/pods/buy", {
+            prefillPrice: contextMenu.clickedCoords.y,
+            prefillPlaceInLine: contextMenu.clickedCoords.x,
           });
         },
       },
       {
         label: "Create Listing",
         onClick: () => {
-          navigate("/market/pods/sell", {
-            state: {
-              prefillPrice: contextMenu.clickedCoords.y,
-              prefillPlaceInLine: contextMenu.clickedCoords.x,
-              prefillExpiresIn: contextMenu.clickedCoords.x,
-            },
+          handleUnfreezeAndNavigate("/market/pods/sell", {
+            prefillPrice: contextMenu.clickedCoords.y,
+            prefillPlaceInLine: contextMenu.clickedCoords.x,
+            prefillExpiresIn: contextMenu.clickedCoords.x,
           });
         },
       },
     ];
-  }, [contextMenu, navigate]);
+  }, [contextMenu, handleUnfreezeAndNavigate]);
 
   const onPointClick = (payload: PointClickPayload) => {
     // If clicked on a data point, navigate to detail page
@@ -456,23 +497,30 @@ export function Market() {
       return;
     }
 
-    // If clicked on empty space, open context menu
+    // If clicked on empty space, sync context menu with freeze state
     if (payload.clickedXY && payload.rawEvent.native) {
       const nativeEvent = payload.rawEvent.native as MouseEvent;
 
-      // Track context menu open event
-      trackSimpleEvent(ANALYTICS_EVENTS.MARKET.CONTEXT_MENU_OPEN, {
-        price_per_pod: payload.clickedXY.y,
-        place_in_line_millions: Math.floor(payload.clickedXY.x),
-        current_mode: viewMode,
-      });
+      // Check if context menu is currently open to determine action
+      if (!contextMenu) {
+        // No context menu open - open it (freezing)
+        // Track context menu open event
+        trackSimpleEvent(ANALYTICS_EVENTS.MARKET.CONTEXT_MENU_OPEN, {
+          price_per_pod: payload.clickedXY.y,
+          place_in_line_millions: Math.floor(payload.clickedXY.x),
+          current_mode: viewMode,
+        });
 
-      setContextMenu({
-        x: nativeEvent.clientX,
-        y: nativeEvent.clientY,
-        clickedCoords: payload.clickedXY,
-        chartBounds: payload.chartBounds,
-      });
+        setContextMenu({
+          x: nativeEvent.clientX,
+          y: nativeEvent.clientY,
+          clickedCoords: payload.clickedXY,
+          chartBounds: payload.chartBounds,
+        });
+      } else {
+        // Context menu is open - close it (unfreezing)
+        setContextMenu(null);
+      }
     }
   };
 
@@ -498,11 +546,13 @@ export function Market() {
                   </div>
                 )}
                 <ScatterChart
+                  ref={chartRef}
                   data={scatterChartData}
                   xOptions={{ label: "Place in line", min: 0, max: podLineAsNumber }}
                   yOptions={{ label: "Price per pod", min: 0, max: 1 }}
                   onPointClick={onPointClick}
                   onHover={onHover}
+                  onFreezeChange={setIsCrosshairFrozen}
                   toolTipOptions={toolTipOptions as TooltipOptions}
                 />
               </div>
@@ -559,7 +609,15 @@ export function Market() {
           clickedCoords={contextMenu.clickedCoords}
           chartBounds={contextMenu.chartBounds}
           options={contextMenuOptions}
-          onClose={() => setContextMenu(null)}
+          onClose={() => {
+            // Only unfreeze if NOT navigating (closed via Escape/click outside)
+            // If navigating, handleUnfreezeAndNavigate already handles unfreeze
+            if (!isNavigatingRef.current && isCrosshairFrozen) {
+              chartRef.current?.unfreeze();
+              setIsCrosshairFrozen(false);
+            }
+            setContextMenu(null);
+          }}
         />
       )}
     </>

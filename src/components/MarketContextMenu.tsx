@@ -109,7 +109,7 @@ export const ContextMenu = ({ x, y, onClose, options, clickedCoords, chartBounds
       </div>
       <div
         ref={menuRef}
-        className="fixed z-50 min-w-[200px] bg-white border border-gray-300 rounded-lg shadow-md"
+        className="fixed z-50 min-w-[200px] bg-white border border-gray-300 rounded-lg shadow-md mx-2"
         style={{ left: x, top: `calc(${y}px + 8px)` }}
       >
         {options.map((option, idx) => (
