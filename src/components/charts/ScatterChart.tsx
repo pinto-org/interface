@@ -660,17 +660,19 @@ const ScatterChart = React.memo(
           const xValue = xScale.getValueForPixel(pixelX);
           const yValue = yScale.getValueForPixel(pixelY);
 
-          // Toggle frozen crosshair
-          if (frozenCrosshairRef.current) {
-            // If already frozen, unfreeze
-            frozenCrosshairRef.current = null;
-            onFreezeChange?.(false);
-          } else {
-            // Freeze at current mouse position
-            frozenCrosshairRef.current = mousePositionRef.current;
-            onFreezeChange?.(true);
+          // Only toggle frozen crosshair when clicking empty space (not on a data point)
+          if (activeElements.length === 0) {
+            if (frozenCrosshairRef.current) {
+              // If already frozen, unfreeze
+              frozenCrosshairRef.current = null;
+              onFreezeChange?.(false);
+            } else {
+              // Freeze at current mouse position
+              frozenCrosshairRef.current = mousePositionRef.current;
+              onFreezeChange?.(true);
+            }
+            chart.render(); // Re-render to show frozen/unfrozen state
           }
-          chart.render(); // Re-render to show frozen/unfrozen state
 
           // Prepare payload
           const payload: PointClickPayload = {
