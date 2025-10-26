@@ -14,25 +14,37 @@ export interface ContextMenuProps {
   options: ContextMenuOption[];
   clickedCoords: { x: number; y: number };
   chartBounds?: DOMRect;
+  isClosing?: boolean;
 }
 
-export const ContextMenu = ({ x, y, onClose, options, clickedCoords, chartBounds }: ContextMenuProps) => {
+export const ContextMenu = ({ x, y, onClose, options, clickedCoords, chartBounds, isClosing = false }: ContextMenuProps) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Don't handle click outside - let the chart's unfreeze logic handle closing
-    // Only handle Escape key for manual close
+    // Only handle Escape key for manual close and scroll to unfreeze
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose();
       }
     };
 
+    const handleScroll = () => {
+      // Close context menu and unfreeze on scroll
+      onClose();
+    };
+
     document.addEventListener("keydown", handleEscape);
+    // Listen to wheel event for mouse wheel scroll
+    document.addEventListener("wheel", handleScroll, { passive: true });
+    // Listen to scroll on window with capture to catch all scroll events (including keyboard scroll)
+    window.addEventListener("scroll", handleScroll, { passive: true, capture: true });
 
     return () => {
       document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener("wheel", handleScroll);
+      window.removeEventListener("scroll", handleScroll, true);
     };
   }, [onClose]);
 
@@ -123,8 +135,8 @@ export const ContextMenu = ({ x, y, onClose, options, clickedCoords, chartBounds
       bottom: window.innerHeight,
     };
 
-    const buttonOffsetX = 8; // Horizontal offset from cursor for buttons
-    const buttonOffsetY = 8; // Vertical offset from cursor for buttons
+    const buttonOffsetX = 12; // Horizontal offset from cursor for buttons (0.75rem)
+    const buttonOffsetY = 8; // Vertical offset from cursor for buttons (0.5rem)
     const gap = 4; // Gap between tooltip and buttons when in same quadrant
     const bottomMargin = 40; // Minimum margin from bottom before flipping (accounts for chart padding/legend)
 
@@ -152,7 +164,8 @@ export const ContextMenu = ({ x, y, onClose, options, clickedCoords, chartBounds
       // Check if buttons fit below cursor (with bottom margin: base 10px + 16px extra)
       const wouldOverflow = menuTop + menuHeight > bounds.bottom - 10 - bottomMargin;
       if (wouldOverflow) {
-        // Not enough space below, place buttons above tooltip
+        // Not enough space below, place buttons above tooltip (aligned with tooltip)
+        menuLeft = headerLeft + 8; // Align with tooltip, shifted 8px right
         menuTop = headerTop - gap - menuHeight;
         
         // If still doesn't fit, place above cursor
@@ -208,20 +221,19 @@ export const ContextMenu = ({ x, y, onClose, options, clickedCoords, chartBounds
       menuLeft = bounds.right - 10 - menuWidth;
     }
 
-    // Apply menu positions and adjust width
-    // If buttons are aligned with header (same or shifted = same quadrant), make narrower by 16px
-    // Otherwise subtract 8px for offset difference
-    const isSameQuadrant = menuLeft === headerLeft || menuLeft === headerLeft + 8;
+    // Apply menu positions and width
+    // Width is narrower by offset difference (buttonOffsetX 12px - textOffsetX 4px = 8px)
+    const offsetDifference = buttonOffsetX + 4;
     menuRef.current.style.left = `${menuLeft}px`;
     menuRef.current.style.top = `${menuTop}px`;
-    menuRef.current.style.width = `${isSameQuadrant ? headerWidth - 16 : headerWidth - 8}px`;
+    menuRef.current.style.width = `${headerWidth - offsetDifference}px`;
   }, [x, y, chartBounds]);
 
   return (
     <>
       <div
         ref={headerRef}
-        className="fixed z-50 text-xs px-3 py-2 flex flex-col gap-1 text-pinto-pod-bronze"
+        className={`fixed z-50 text-xs px-3 py-2 flex flex-col gap-1 text-pinto-pod-bronze ${isClosing && "animate-fade-out-smooth"}`}
         style={{ left: x, top: y }}
       >
         <div>
@@ -233,7 +245,7 @@ export const ContextMenu = ({ x, y, onClose, options, clickedCoords, chartBounds
       </div>
       <div
         ref={menuRef}
-        className="fixed z-50 bg-white border border-pinto-gray-2 rounded-[0.75rem] shadow-md p-0.5"
+        className={`fixed z-50 bg-white border border-pinto-gray-2 rounded-[0.75rem] shadow-md p-0.5 ${isClosing ? "animate-fade-out-smooth" : "animate-fade-in-smooth"}`}
         style={{ left: x, top: y }}
       >
         {options.map((option, idx) => (

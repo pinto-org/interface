@@ -246,12 +246,18 @@ module.exports = {
         },
         "fade-in-smooth": {
           "0%": { 
-            opacity: "0",
-            transform: "scale(0.95)"
+            opacity: "0"
           },
           "100%": { 
-            opacity: "1",
-            transform: "scale(1)"
+            opacity: "1"
+          },
+        },
+        "fade-out-smooth": {
+          "0%": { 
+            opacity: "1"
+          },
+          "100%": { 
+            opacity: "0"
           },
         },
       },
@@ -268,6 +274,7 @@ module.exports = {
         "text-background-scroll": "text-background-scroll 5s linear infinite",
         "pulse-glow": "pulse-glow 8s ease-in-out infinite",
         "fade-in-smooth": "fade-in-smooth 0.25s ease-out",
+        "fade-out-smooth": "fade-out-smooth 0.2s ease-in",
       },
       aspectRatio: {
         "3/1": "3 / 1",

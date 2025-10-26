@@ -153,6 +153,7 @@ export function Market() {
     clickedCoords: { x: number; y: number };
     chartBounds: DOMRect;
   } | null>(null);
+  const [isContextMenuClosing, setIsContextMenuClosing] = useState(false);
   const isNavigatingRef = useRef(false);
   const isCrosshairFrozenRef = useRef(false);
   const chartRef = useRef<ScatterChartRef>(null);
@@ -433,18 +434,22 @@ export function Market() {
     // Mark that we're navigating so onClose doesn't unfreeze again
     isNavigatingRef.current = true;
     
-    // Unfreeze crosshair via ref (no re-render, no animations)
-    chartRef.current?.unfreeze();
-    setIsCrosshairFrozen(false);
-    setContextMenu(null);
+    // Trigger closing animation
+    setIsContextMenuClosing(true);
     
-    // Navigate immediately - unfreeze is already done
-    navigate(path, { state });
-    
-    // Reset flag after navigation
+    // Wait for animation to complete before unfreezing and navigating
     setTimeout(() => {
-      isNavigatingRef.current = false;
-    }, 100);
+      chartRef.current?.unfreeze();
+      setIsCrosshairFrozen(false);
+      setContextMenu(null);
+      setIsContextMenuClosing(false);
+      navigate(path, { state });
+      
+      // Reset flag after navigation
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 100);
+    }, 200); // Match fade-out animation duration
   }, [navigate]);
 
   const contextMenuOptions = useMemo(() => {
@@ -474,9 +479,17 @@ export function Market() {
   }, [contextMenu, handleUnfreezeAndNavigate]);
 
   const onPointClick = (payload: PointClickPayload) => {
-    // If this click unfroze the chart, close context menu
+    // If this click unfroze the chart, close context menu with animation
     if (payload.wasUnfrozen) {
-      setContextMenu(null);
+      // Trigger closing animation
+      setIsContextMenuClosing(true);
+      
+      // Wait for animation to complete before closing
+      setTimeout(() => {
+        setContextMenu(null);
+        setIsContextMenuClosing(false);
+      }, 200);
+      
       // If clicked on a pod while frozen, still navigate after unfreezing
       if (payload.activeElement) {
         const dataPoint = payload.activeElement.dataPoint as any;
@@ -542,9 +555,15 @@ export function Market() {
           clickedCoords: payload.clickedXY,
           chartBounds: payload.chartBounds,
         });
+        setIsContextMenuClosing(false); // Reset closing state for new menu
       } else {
-        // Context menu is open - close it (unfreezing)
-        setContextMenu(null);
+        // Context menu is open - close it with animation (unfreezing)
+        setIsContextMenuClosing(true);
+        
+        setTimeout(() => {
+          setContextMenu(null);
+          setIsContextMenuClosing(false);
+        }, 200);
       }
     }
   };
@@ -634,14 +653,24 @@ export function Market() {
           clickedCoords={contextMenu.clickedCoords}
           chartBounds={contextMenu.chartBounds}
           options={contextMenuOptions}
+          isClosing={isContextMenuClosing}
           onClose={() => {
-            // Only unfreeze if NOT navigating (closed via Escape/click outside)
+            // Only unfreeze if NOT navigating (closed via Escape/click outside/scroll)
             // If navigating, handleUnfreezeAndNavigate already handles unfreeze
-            if (!isNavigatingRef.current && isCrosshairFrozen) {
-              chartRef.current?.unfreeze();
-              setIsCrosshairFrozen(false);
+            if (!isNavigatingRef.current) {
+              // Trigger closing animation
+              setIsContextMenuClosing(true);
+              
+              // Wait for animation to complete before unfreezing
+              setTimeout(() => {
+                if (isCrosshairFrozen) {
+                  chartRef.current?.unfreeze();
+                  setIsCrosshairFrozen(false);
+                }
+                setContextMenu(null);
+                setIsContextMenuClosing(false);
+              }, 200); // Match fade-out animation duration
             }
-            setContextMenu(null);
           }}
         />
       )}
