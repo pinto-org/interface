@@ -119,645 +119,663 @@ export interface ScatterChartProps {
 }
 
 const ScatterChart = React.memo(
-  forwardRef<ScatterChartRef, ScatterChartProps>(({
-    data,
-    size,
-    valueFormatter,
-    onMouseOver,
-    activeIndex,
-    useLogarithmicScale = false,
-    horizontalReferenceLines = [],
-    xOptions,
-    yOptions,
-    customValueTransform,
-    onPointClick,
-    onHover,
-    onFreezeChange,
-    toolTipOptions,
-  }, ref) => {
-    const chartRef = useRef<Chart | null>(null);
-    const activeIndexRef = useRef<number | undefined>(activeIndex);
-    const selectedPointRef = useRef<[number, number] | null>(null);
-    const mousePositionRef = useRef<{ x: number; y: number } | null>(null);
-    const frozenCrosshairRef = useRef<{ x: number; y: number } | null>(null);
-    const lastHoverTimeRef = useRef<number>(0);
-    const onHoverRef = useRef(onHover);
-    const HOVER_THROTTLE_MS = 16; // ~60fps for smooth updates
+  forwardRef<ScatterChartRef, ScatterChartProps>(
+    (
+      {
+        data,
+        size,
+        valueFormatter,
+        onMouseOver,
+        activeIndex,
+        useLogarithmicScale = false,
+        horizontalReferenceLines = [],
+        xOptions,
+        yOptions,
+        customValueTransform,
+        onPointClick,
+        onHover,
+        onFreezeChange,
+        toolTipOptions,
+      },
+      ref,
+    ) => {
+      const chartRef = useRef<Chart | null>(null);
+      const activeIndexRef = useRef<number | undefined>(activeIndex);
+      const selectedPointRef = useRef<[number, number] | null>(null);
+      const mousePositionRef = useRef<{ x: number; y: number } | null>(null);
+      const frozenCrosshairRef = useRef<{ x: number; y: number } | null>(null);
+      const lastHoverTimeRef = useRef<number>(0);
+      const onHoverRef = useRef(onHover);
+      const HOVER_THROTTLE_MS = 16; // ~60fps for smooth updates
 
-    // Keep the ref updated but don't trigger re-renders
-    useEffect(() => {
-      onHoverRef.current = onHover;
-    }, [onHover]);
+      // Keep the ref updated but don't trigger re-renders
+      useEffect(() => {
+        onHoverRef.current = onHover;
+      }, [onHover]);
 
-    useEffect(() => {
-      activeIndexRef.current = activeIndex;
-      if (chartRef.current) {
-        chartRef.current.update("none"); // Disable animations during update
-      }
-    }, [activeIndex]);
-
-    // Expose unfreeze method to parent via ref
-    useImperativeHandle(ref, () => ({
-      unfreeze: () => {
-        // Force unfreeze regardless of current state
-        const wasFrozen = frozenCrosshairRef.current !== null;
-        frozenCrosshairRef.current = null;
-        selectedPointRef.current = null; // Also clear selected point
-        mousePositionRef.current = null; // Clear mouse position
-        
-        if (wasFrozen) {
-          onFreezeChange?.(false);
-        }
-        
+      useEffect(() => {
+        activeIndexRef.current = activeIndex;
         if (chartRef.current) {
-          chartRef.current.render();
+          chartRef.current.update("none"); // Disable animations during update
         }
-      }
-    }), [onFreezeChange]);
+      }, [activeIndex]);
 
-    const [yTickMin, yTickMax] = useMemo(() => {
-      // If custom min/max are provided, use those
-      if (yOptions.min !== undefined && yOptions.max !== undefined) {
-        // Even with custom ranges, ensure 1.0 is visible if showReferenceLineAtOne is true
+      // Expose unfreeze method to parent via ref
+      useImperativeHandle(
+        ref,
+        () => ({
+          unfreeze: () => {
+            // Force unfreeze regardless of current state
+            const wasFrozen = frozenCrosshairRef.current !== null;
+            frozenCrosshairRef.current = null;
+            selectedPointRef.current = null; // Also clear selected point
+            mousePositionRef.current = null; // Clear mouse position
+
+            if (wasFrozen) {
+              onFreezeChange?.(false);
+            }
+
+            if (chartRef.current) {
+              chartRef.current.render();
+            }
+          },
+        }),
+        [onFreezeChange],
+      );
+
+      const [yTickMin, yTickMax] = useMemo(() => {
+        // If custom min/max are provided, use those
+        if (yOptions.min !== undefined && yOptions.max !== undefined) {
+          // Even with custom ranges, ensure 1.0 is visible if showReferenceLineAtOne is true
+          if (horizontalReferenceLines.some((line) => line.value === 1)) {
+            const hasOne = yOptions.min <= 1 && yOptions.max >= 1;
+            if (!hasOne) {
+              // If 1.0 is not in range, adjust the range to include it
+              if (useLogarithmicScale) {
+                // For logarithmic scale, we need to ensure we maintain the ratio
+                // but include 1.0 in the range
+                if (yOptions.min > 1) {
+                  return [0.7, Math.max(yOptions.max, 1.5)]; // Include 1.0 with padding below
+                } else if (yOptions.max < 1) {
+                  return [Math.min(yOptions.min, 0.7), 1.5]; // Include 1.0 with padding above
+                }
+              } else {
+                // For linear scale, just expand the range to include 1.0
+                if (yOptions.min > 1) {
+                  return [0.9, Math.max(yOptions.max, 1.1)]; // Include 1.0 with padding
+                } else if (yOptions.max < 1) {
+                  return [Math.min(yOptions.min, 0.9), 1.1]; // Include 1.0 with padding
+                }
+              }
+            }
+          }
+          return [yOptions.min, yOptions.max];
+        }
+
+        // Otherwise calculate based on data
+        const maxData = Number.MIN_SAFE_INTEGER; //data.reduce((acc, next) => Math.max(acc, next.y), Number.MIN_SAFE_INTEGER);
+        const minData = Number.MAX_SAFE_INTEGER; //data.reduce((acc, next) => Math.min(acc, next.y), Number.MAX_SAFE_INTEGER);
+
+        const maxTick = maxData === minData && maxData === 0 ? 1 : maxData;
+        let minTick = Math.max(0, minData - (maxData - minData) * 0.1);
+        if (minTick === maxData) {
+          minTick = maxData * 0.99;
+        }
+
+        // For logarithmic scale, ensure minTick is positive
+        if (useLogarithmicScale && minTick <= 0) {
+          minTick = 0.000001; // Small positive value
+        }
+
+        // Use custom min/max if provided
+        let finalMin = yOptions.min !== undefined ? yOptions.min : minTick;
+        let finalMax = yOptions.max !== undefined ? yOptions.max : maxTick;
+
+        // Ensure 1.0 is visible if there's a reference line at 1.0
         if (horizontalReferenceLines.some((line) => line.value === 1)) {
-          const hasOne = yOptions.min <= 1 && yOptions.max >= 1;
-          if (!hasOne) {
-            // If 1.0 is not in range, adjust the range to include it
+          if (finalMin > 1 || finalMax < 1) {
             if (useLogarithmicScale) {
               // For logarithmic scale, we need to ensure we maintain the ratio
-              // but include 1.0 in the range
-              if (yOptions.min > 1) {
-                return [0.7, Math.max(yOptions.max, 1.5)]; // Include 1.0 with padding below
-              } else if (yOptions.max < 1) {
-                return [Math.min(yOptions.min, 0.7), 1.5]; // Include 1.0 with padding above
+              if (finalMin > 1) {
+                finalMin = 0.7; // Include 1.0 with padding below
+                finalMax = Math.max(finalMax, 1.5);
+              } else if (finalMax < 1) {
+                finalMin = Math.min(finalMin, 0.7);
+                finalMax = 1.5; // Include 1.0 with padding above
               }
             } else {
               // For linear scale, just expand the range to include 1.0
-              if (yOptions.min > 1) {
-                return [0.9, Math.max(yOptions.max, 1.1)]; // Include 1.0 with padding
-              } else if (yOptions.max < 1) {
-                return [Math.min(yOptions.min, 0.9), 1.1]; // Include 1.0 with padding
+              if (finalMin > 1) {
+                finalMin = 0.9; // Include 1.0 with padding
+                finalMax = Math.max(finalMax, 1.1);
+              } else if (finalMax < 1) {
+                finalMin = Math.min(finalMin, 0.9);
+                finalMax = 1.1; // Include 1.0 with padding
               }
             }
           }
         }
-        return [yOptions.min, yOptions.max];
-      }
 
-      // Otherwise calculate based on data
-      const maxData = Number.MIN_SAFE_INTEGER; //data.reduce((acc, next) => Math.max(acc, next.y), Number.MIN_SAFE_INTEGER);
-      const minData = Number.MAX_SAFE_INTEGER; //data.reduce((acc, next) => Math.min(acc, next.y), Number.MAX_SAFE_INTEGER);
+        return [finalMin, finalMax];
+      }, [data, useLogarithmicScale, yOptions.min, yOptions.max, horizontalReferenceLines]);
 
-      const maxTick = maxData === minData && maxData === 0 ? 1 : maxData;
-      let minTick = Math.max(0, minData - (maxData - minData) * 0.1);
-      if (minTick === maxData) {
-        minTick = maxData * 0.99;
-      }
+      const chartData = useCallback(
+        (ctx: CanvasRenderingContext2D | null): ChartData => {
+          return {
+            datasets: data.map(({ label, data, color, pointStyle, pointRadius }) => ({
+              label,
+              data,
+              backgroundColor: color,
+              pointStyle,
+              pointRadius: pointRadius,
+              hoverRadius: pointRadius + 1,
+            })),
+          };
+        },
+        [data],
+      );
 
-      // For logarithmic scale, ensure minTick is positive
-      if (useLogarithmicScale && minTick <= 0) {
-        minTick = 0.000001; // Small positive value
-      }
+      const hoverCrosshairPlugin: Plugin = useMemo<Plugin>(
+        () => ({
+          id: "hoverCrosshair",
+          afterDraw: (chart: Chart) => {
+            const ctx = chart.ctx;
+            if (!ctx) return;
 
-      // Use custom min/max if provided
-      let finalMin = yOptions.min !== undefined ? yOptions.min : minTick;
-      let finalMax = yOptions.max !== undefined ? yOptions.max : maxTick;
+            // Use frozen crosshair position if available, otherwise use mouse position
+            const mousePos = frozenCrosshairRef.current || mousePositionRef.current;
+            if (!mousePos) return;
 
-      // Ensure 1.0 is visible if there's a reference line at 1.0
-      if (horizontalReferenceLines.some((line) => line.value === 1)) {
-        if (finalMin > 1 || finalMax < 1) {
-          if (useLogarithmicScale) {
-            // For logarithmic scale, we need to ensure we maintain the ratio
-            if (finalMin > 1) {
-              finalMin = 0.7; // Include 1.0 with padding below
-              finalMax = Math.max(finalMax, 1.5);
-            } else if (finalMax < 1) {
-              finalMin = Math.min(finalMin, 0.7);
-              finalMax = 1.5; // Include 1.0 with padding above
+            // Check if hovering over a data point (pod listing/order)
+            const activeElements = chart.getActiveElements();
+            const isHoveringDataPoint = activeElements.length > 0;
+
+            ctx.save();
+            ctx.setLineDash([4, 4]);
+            // Use different color for frozen crosshair
+            ctx.strokeStyle = frozenCrosshairRef.current ? "#387F5C" : "#B9B9B9"; // green for frozen, gray for normal
+            ctx.lineWidth = frozenCrosshairRef.current ? 1.5 : 1;
+
+            const { x, y } = mousePos;
+
+            // Draw vertical line (skip if hovering over a data point and not frozen)
+            if (
+              (!isHoveringDataPoint || frozenCrosshairRef.current) &&
+              x >= chart.chartArea.left &&
+              x <= chart.chartArea.right
+            ) {
+              ctx.beginPath();
+              ctx.moveTo(x, chart.chartArea.top);
+              ctx.lineTo(x, chart.chartArea.bottom);
+              ctx.stroke();
             }
-          } else {
-            // For linear scale, just expand the range to include 1.0
-            if (finalMin > 1) {
-              finalMin = 0.9; // Include 1.0 with padding
-              finalMax = Math.max(finalMax, 1.1);
-            } else if (finalMax < 1) {
-              finalMin = Math.min(finalMin, 0.9);
-              finalMax = 1.1; // Include 1.0 with padding
+
+            // Draw horizontal line (skip if hovering over a data point and not frozen)
+            if (
+              (!isHoveringDataPoint || frozenCrosshairRef.current) &&
+              y >= chart.chartArea.top &&
+              y <= chart.chartArea.bottom
+            ) {
+              ctx.beginPath();
+              ctx.moveTo(chart.chartArea.left, y);
+              ctx.lineTo(chart.chartArea.right, y);
+              ctx.stroke();
             }
-          }
-        }
-      }
 
-      return [finalMin, finalMax];
-    }, [data, useLogarithmicScale, yOptions.min, yOptions.max, horizontalReferenceLines]);
+            ctx.restore();
+          },
+        }),
+        [],
+      );
 
-    const chartData = useCallback(
-      (ctx: CanvasRenderingContext2D | null): ChartData => {
-        return {
-          datasets: data.map(({ label, data, color, pointStyle, pointRadius }) => ({
-            label,
-            data,
-            backgroundColor: color,
-            pointStyle,
-            pointRadius: pointRadius,
-            hoverRadius: pointRadius + 1,
-          })),
-        };
-      },
-      [data],
-    );
+      const activeElementLinePlugin: Plugin = useMemo<Plugin>(
+        () => ({
+          id: "activeElementLine",
+          afterDraw: (chart: Chart) => {
+            const ctx = chart.ctx;
+            if (!ctx) return;
 
-    const hoverCrosshairPlugin: Plugin = useMemo<Plugin>(
-      () => ({
-        id: "hoverCrosshair",
-        afterDraw: (chart: Chart) => {
-          const ctx = chart.ctx;
-          if (!ctx) return;
+            const activeElements = chart.getActiveElements();
+            if (activeElements.length === 0) return;
 
-          // Use frozen crosshair position if available, otherwise use mouse position
-          const mousePos = frozenCrosshairRef.current || mousePositionRef.current;
-          if (!mousePos) return;
+            const activeElement = activeElements[0];
+            const datasetIndex = activeElement.datasetIndex;
+            const index = activeElement.index;
+            const dataPoint = chart.getDatasetMeta(datasetIndex).data[index];
+            if (!dataPoint) return;
 
-          // Check if hovering over a data point (pod listing/order)
-          const activeElements = chart.getActiveElements();
-          const isHoveringDataPoint = activeElements.length > 0;
+            const { x, y } = dataPoint.getProps(["x", "y"], true);
 
-          ctx.save();
-          ctx.setLineDash([4, 4]);
-          // Use different color for frozen crosshair
-          ctx.strokeStyle = frozenCrosshairRef.current ? "#387F5C" : "#B9B9B9"; // green for frozen, gray for normal
-          ctx.lineWidth = frozenCrosshairRef.current ? 1.5 : 1;
+            ctx.save();
+            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 1.5;
 
-          const { x, y } = mousePos;
-
-          // Draw vertical line (skip if hovering over a data point and not frozen)
-          if ((!isHoveringDataPoint || frozenCrosshairRef.current) && x >= chart.chartArea.left && x <= chart.chartArea.right) {
+            // Draw vertical line
             ctx.beginPath();
             ctx.moveTo(x, chart.chartArea.top);
             ctx.lineTo(x, chart.chartArea.bottom);
             ctx.stroke();
-          }
 
-          // Draw horizontal line (skip if hovering over a data point and not frozen)
-          if ((!isHoveringDataPoint || frozenCrosshairRef.current) && y >= chart.chartArea.top && y <= chart.chartArea.bottom) {
+            // Draw horizontal line
             ctx.beginPath();
             ctx.moveTo(chart.chartArea.left, y);
             ctx.lineTo(chart.chartArea.right, y);
             ctx.stroke();
-          }
 
-          ctx.restore();
-        },
-      }),
-      [],
-    );
-
-    const activeElementLinePlugin: Plugin = useMemo<Plugin>(
-      () => ({
-        id: "activeElementLine",
-        afterDraw: (chart: Chart) => {
-          const ctx = chart.ctx;
-          if (!ctx) return;
-
-          const activeElements = chart.getActiveElements();
-          if (activeElements.length === 0) return;
-
-          const activeElement = activeElements[0];
-          const datasetIndex = activeElement.datasetIndex;
-          const index = activeElement.index;
-          const dataPoint = chart.getDatasetMeta(datasetIndex).data[index];
-          if (!dataPoint) return;
-
-          const { x, y } = dataPoint.getProps(["x", "y"], true);
-
-          ctx.save();
-          ctx.setLineDash([4, 4]);
-          ctx.strokeStyle = "black";
-          ctx.lineWidth = 1.5;
-          
-          // Draw vertical line
-          ctx.beginPath();
-          ctx.moveTo(x, chart.chartArea.top);
-          ctx.lineTo(x, chart.chartArea.bottom);
-          ctx.stroke();
-          
-          // Draw horizontal line
-          ctx.beginPath();
-          ctx.moveTo(chart.chartArea.left, y);
-          ctx.lineTo(chart.chartArea.right, y);
-          ctx.stroke();
-          
-          ctx.restore();
-        },
-      }),
-      [],
-    );
-
-    const horizontalReferenceLinePlugin: Plugin = useMemo<Plugin>(
-      () => ({
-        id: "horizontalReferenceLine",
-        afterDraw: (chart: Chart) => {
-          const ctx = chart.ctx;
-          if (!ctx || horizontalReferenceLines.length === 0) return;
-
-          ctx.save();
-
-          // Draw each horizontal reference line
-          horizontalReferenceLines.forEach((line) => {
-            const yScale = chart.scales.y;
-            const y = yScale.getPixelForValue(line.value);
-
-            // Only draw if within chart area
-            if (y >= chart.chartArea.top && y <= chart.chartArea.bottom) {
-              ctx.beginPath();
-              if (line.dash) {
-                ctx.setLineDash(line.dash);
-              } else {
-                ctx.setLineDash([4, 4]); // Default dash pattern
-              }
-              ctx.moveTo(chart.chartArea.left, y);
-              ctx.lineTo(chart.chartArea.right, y);
-              ctx.strokeStyle = line.color;
-              ctx.lineWidth = 1;
-              ctx.stroke();
-
-              // Reset dash pattern
-              ctx.setLineDash([]);
-
-              // Add label if provided
-              if (line.label) {
-                ctx.font = "12px Arial";
-                ctx.fillStyle = line.color;
-
-                // Measure text width to ensure it doesn't get cut off
-                const textWidth = ctx.measureText(line.label).width;
-                const rightPadding = 10; // Padding from right edge
-
-                // Position the label at the right side of the chart with padding
-                const labelX = chart.chartArea.right - textWidth - rightPadding;
-                const labelPadding = 5; // Padding between line and text
-                const textHeight = 12; // Approximate height of the text
-
-                // Check if the line is too close to the top of the chart
-                const isNearTop = y - textHeight - labelPadding < chart.chartArea.top;
-
-                // Check if the line is too close to the bottom of the chart
-                const isNearBottom = y + textHeight + labelPadding > chart.chartArea.bottom;
-
-                // Set text alignment
-                ctx.textAlign = "left";
-
-                // Position the label based on proximity to chart edges
-                // biome-ignore lint/suspicious/noExplicitAny:
-                let labelY: any;
-                ctx.textBaseline = "bottom";
-                labelY = y - labelPadding;
-                if (isNearTop) {
-                  ctx.textBaseline = "top";
-                  labelY = y + labelPadding;
-                } else if (isNearBottom) {
-                  labelY = y - labelPadding;
-                }
-                ctx.fillText(line.label, labelX, labelY);
-              }
-            }
-          });
-
-          ctx.restore();
-        },
-      }),
-      [horizontalReferenceLines],
-    );
-
-    const selectionPointPlugin: Plugin = useMemo<Plugin>(
-      () => ({
-        id: "customSelectPoint",
-        afterDraw: (chart: Chart) => {
-          const ctx = chart.ctx;
-          if (!ctx) return;
-
-          // Define the function to draw the selection point
-          const drawSelectionPoint = (
-            x: number,
-            y: number,
-            pointRadius: number,
-            pointStyle: PointStyle,
-            color?: string,
-          ) => {
-            // console.info("🚀 ~ drawSelectionPoint ~ pointRadius:", pointRadius);
-            ctx.save();
-            ctx.fillStyle = "transparent";
-            ctx.strokeStyle = color || "black";
-            ctx.lineWidth = !!color ? 2 : 1;
-
-            const rectWidth = pointRadius * 2.5 || 10;
-            const rectHeight = pointRadius * 2.5 || 10;
-            const cornerRadius = pointStyle === "rect" ? 0 : pointRadius * 1.5;
-
-            ctx.beginPath();
-            ctx.moveTo(x - rectWidth / 2 + cornerRadius, y - rectHeight / 2);
-            ctx.lineTo(x + rectWidth / 2 - cornerRadius, y - rectHeight / 2);
-            ctx.quadraticCurveTo(
-              x + rectWidth / 2,
-              y - rectHeight / 2,
-              x + rectWidth / 2,
-              y - rectHeight / 2 + cornerRadius,
-            );
-            ctx.lineTo(x + rectWidth / 2, y + rectHeight / 2 - cornerRadius);
-            ctx.quadraticCurveTo(
-              x + rectWidth / 2,
-              y + rectHeight / 2,
-              x + rectWidth / 2 - cornerRadius,
-              y + rectHeight / 2,
-            );
-            ctx.lineTo(x - rectWidth / 2 + cornerRadius, y + rectHeight / 2);
-            ctx.quadraticCurveTo(
-              x - rectWidth / 2,
-              y + rectHeight / 2,
-              x - rectWidth / 2,
-              y + rectHeight / 2 - cornerRadius,
-            );
-            ctx.lineTo(x - rectWidth / 2, y - rectHeight / 2 + cornerRadius);
-            ctx.quadraticCurveTo(
-              x - rectWidth / 2,
-              y - rectHeight / 2,
-              x - rectWidth / 2 + cornerRadius,
-              y - rectHeight / 2,
-            );
-            ctx.closePath();
-
-            ctx.fill();
-            ctx.stroke();
             ctx.restore();
-          };
+          },
+        }),
+        [],
+      );
 
-          // Draw selection point for the hovered data point
-          const activeElements = chart.getActiveElements();
-          for (const activeElement of activeElements) {
-            const datasetIndex = activeElement.datasetIndex;
-            const index = activeElement.index;
-            const dataPoint = chart.getDatasetMeta(datasetIndex).data[index];
+      const horizontalReferenceLinePlugin: Plugin = useMemo<Plugin>(
+        () => ({
+          id: "horizontalReferenceLine",
+          afterDraw: (chart: Chart) => {
+            const ctx = chart.ctx;
+            if (!ctx || horizontalReferenceLines.length === 0) return;
 
-            if (dataPoint) {
-              const { x, y } = dataPoint.getProps(["x", "y"], true);
-              const pointRadius = dataPoint.options.radius;
-              const pointStyle = dataPoint.options.pointStyle;
-              drawSelectionPoint(x, y, pointRadius, pointStyle);
-            }
-          }
+            ctx.save();
 
-          // Draw the circle around currently selected element (i.e. clicked)
-          const [selectedPointDatasetIndex, selectedPointIndex] = selectedPointRef.current || [];
-          if (selectedPointDatasetIndex !== undefined && selectedPointIndex !== undefined) {
-            const dataPoint = chart.getDatasetMeta(selectedPointDatasetIndex).data[selectedPointIndex];
-            if (dataPoint) {
-              const { x, y } = dataPoint.getProps(["x", "y"], true);
-              const pointRadius = dataPoint.options.radius;
-              const pointStyle = dataPoint.options.pointStyle;
-              drawSelectionPoint(x, y, pointRadius, pointStyle, "#387F5C");
-            }
-          }
-        },
-      }),
-      [],
-    );
-
-    const selectionCallbackPlugin: Plugin = useMemo<Plugin>(
-      () => ({
-        id: "selectionCallback",
-        afterDraw: (chart: Chart) => {
-          onMouseOver?.(chart.getActiveElements()[0]?.index);
-        },
-      }),
-      [onMouseOver],
-    );
-
-    // Handle mouse leave event
-    useEffect(() => {
-      const chart = chartRef.current;
-      if (!chart) return;
-
-      const handleMouseLeave = () => {
-        mousePositionRef.current = null;
-        // Clear hover state (DOM manipulation, no re-render needed)
-        onHoverRef.current?.(null);
-        // If crosshair is frozen, keep it visible by re-rendering
-        if (frozenCrosshairRef.current) {
-          chart.render();
-        }
-        // Don't call chart.render() otherwise - it causes visual glitch
-        // The crosshair will disappear naturally on next mouse move or chart update
-      };
-
-      chart.canvas.addEventListener("mouseleave", handleMouseLeave);
-
-      return () => {
-        chart.canvas.removeEventListener("mouseleave", handleMouseLeave);
-      };
-    }, []); // Empty dependency array - handleMouseLeave uses refs only
-
-    const chartOptions: ChartOptions = useMemo(() => {
-      return {
-        maintainAspectRatio: false,
-        responsive: true,
-        onHover: (event, activeElements, chart) => {
-          // Track mouse X and Y position for crosshair
-          if (event.x !== undefined && event.x !== null && event.y !== undefined && event.y !== null) {
-            mousePositionRef.current = { x: event.x, y: event.y };
-            // Use render() instead of update() to avoid state changes
-            chart.render();
-
-            // If hovering over a data point (pod), hide our custom hover info
-            if (activeElements.length > 0) {
-              if (onHoverRef.current) {
-                onHoverRef.current(null);
-              }
-              return;
-            }
-
-            // Throttle hover callback for performance
-            const now = Date.now();
-            if (onHoverRef.current && now - lastHoverTimeRef.current >= HOVER_THROTTLE_MS) {
-              const canvasPosition = chart.canvas.getBoundingClientRect();
-              const nativeEvent = event.native as MouseEvent;
-
-              // Get scale values
-              const xScale = chart.scales.x;
+            // Draw each horizontal reference line
+            horizontalReferenceLines.forEach((line) => {
               const yScale = chart.scales.y;
-              const pixelX = event.x;
-              const pixelY = event.y;
-              const xValue = xScale.getValueForPixel(pixelX);
-              const yValue = yScale.getValueForPixel(pixelY);
+              const y = yScale.getPixelForValue(line.value);
 
-              if (xValue !== undefined && yValue !== undefined) {
-                // Use original values for accuracy (like clickedCoords)
-                // Only check time throttle, not value changes, for smooth updates
-                lastHoverTimeRef.current = now;
+              // Only draw if within chart area
+              if (y >= chart.chartArea.top && y <= chart.chartArea.bottom) {
+                ctx.beginPath();
+                if (line.dash) {
+                  ctx.setLineDash(line.dash);
+                } else {
+                  ctx.setLineDash([4, 4]); // Default dash pattern
+                }
+                ctx.moveTo(chart.chartArea.left, y);
+                ctx.lineTo(chart.chartArea.right, y);
+                ctx.strokeStyle = line.color;
+                ctx.lineWidth = 1;
+                ctx.stroke();
 
-                onHoverRef.current({
-                  hoverXY: { x: xValue, y: yValue },
-                  pixelXY: { x: nativeEvent.clientX, y: nativeEvent.clientY },
-                  chartBounds: canvasPosition,
-                });
+                // Reset dash pattern
+                ctx.setLineDash([]);
+
+                // Add label if provided
+                if (line.label) {
+                  ctx.font = "12px Arial";
+                  ctx.fillStyle = line.color;
+
+                  // Measure text width to ensure it doesn't get cut off
+                  const textWidth = ctx.measureText(line.label).width;
+                  const rightPadding = 10; // Padding from right edge
+
+                  // Position the label at the right side of the chart with padding
+                  const labelX = chart.chartArea.right - textWidth - rightPadding;
+                  const labelPadding = 5; // Padding between line and text
+                  const textHeight = 12; // Approximate height of the text
+
+                  // Check if the line is too close to the top of the chart
+                  const isNearTop = y - textHeight - labelPadding < chart.chartArea.top;
+
+                  // Check if the line is too close to the bottom of the chart
+                  const isNearBottom = y + textHeight + labelPadding > chart.chartArea.bottom;
+
+                  // Set text alignment
+                  ctx.textAlign = "left";
+
+                  // Position the label based on proximity to chart edges
+                  // biome-ignore lint/suspicious/noExplicitAny:
+                  let labelY: any;
+                  ctx.textBaseline = "bottom";
+                  labelY = y - labelPadding;
+                  if (isNearTop) {
+                    ctx.textBaseline = "top";
+                    labelY = y + labelPadding;
+                  } else if (isNearBottom) {
+                    labelY = y - labelPadding;
+                  }
+                  ctx.fillText(line.label, labelX, labelY);
+                }
+              }
+            });
+
+            ctx.restore();
+          },
+        }),
+        [horizontalReferenceLines],
+      );
+
+      const selectionPointPlugin: Plugin = useMemo<Plugin>(
+        () => ({
+          id: "customSelectPoint",
+          afterDraw: (chart: Chart) => {
+            const ctx = chart.ctx;
+            if (!ctx) return;
+
+            // Define the function to draw the selection point
+            const drawSelectionPoint = (
+              x: number,
+              y: number,
+              pointRadius: number,
+              pointStyle: PointStyle,
+              color?: string,
+            ) => {
+              // console.info("🚀 ~ drawSelectionPoint ~ pointRadius:", pointRadius);
+              ctx.save();
+              ctx.fillStyle = "transparent";
+              ctx.strokeStyle = color || "black";
+              ctx.lineWidth = !!color ? 2 : 1;
+
+              const rectWidth = pointRadius * 2.5 || 10;
+              const rectHeight = pointRadius * 2.5 || 10;
+              const cornerRadius = pointStyle === "rect" ? 0 : pointRadius * 1.5;
+
+              ctx.beginPath();
+              ctx.moveTo(x - rectWidth / 2 + cornerRadius, y - rectHeight / 2);
+              ctx.lineTo(x + rectWidth / 2 - cornerRadius, y - rectHeight / 2);
+              ctx.quadraticCurveTo(
+                x + rectWidth / 2,
+                y - rectHeight / 2,
+                x + rectWidth / 2,
+                y - rectHeight / 2 + cornerRadius,
+              );
+              ctx.lineTo(x + rectWidth / 2, y + rectHeight / 2 - cornerRadius);
+              ctx.quadraticCurveTo(
+                x + rectWidth / 2,
+                y + rectHeight / 2,
+                x + rectWidth / 2 - cornerRadius,
+                y + rectHeight / 2,
+              );
+              ctx.lineTo(x - rectWidth / 2 + cornerRadius, y + rectHeight / 2);
+              ctx.quadraticCurveTo(
+                x - rectWidth / 2,
+                y + rectHeight / 2,
+                x - rectWidth / 2,
+                y + rectHeight / 2 - cornerRadius,
+              );
+              ctx.lineTo(x - rectWidth / 2, y - rectHeight / 2 + cornerRadius);
+              ctx.quadraticCurveTo(
+                x - rectWidth / 2,
+                y - rectHeight / 2,
+                x - rectWidth / 2 + cornerRadius,
+                y - rectHeight / 2,
+              );
+              ctx.closePath();
+
+              ctx.fill();
+              ctx.stroke();
+              ctx.restore();
+            };
+
+            // Draw selection point for the hovered data point
+            const activeElements = chart.getActiveElements();
+            for (const activeElement of activeElements) {
+              const datasetIndex = activeElement.datasetIndex;
+              const index = activeElement.index;
+              const dataPoint = chart.getDatasetMeta(datasetIndex).data[index];
+
+              if (dataPoint) {
+                const { x, y } = dataPoint.getProps(["x", "y"], true);
+                const pointRadius = dataPoint.options.radius;
+                const pointStyle = dataPoint.options.pointStyle;
+                drawSelectionPoint(x, y, pointRadius, pointStyle);
               }
             }
-          }
-        },
-        plugins: {
-          tooltip: toolTipOptions || {},
-          legend: {
-            display: false,
-          },
-        },
-        layout: {
-          // Tick padding must be uniform, undo it here
-          padding: {
-            left: 0,
-            right: 0,
-            top: 0,
-            bottom: 0,
-          },
-        },
-        interaction: {
-          mode: "point",
-          intersect: false,
-        },
-        scales: {
-          x: {
-            title: {
-              display: true,
-              text: xOptions.label || "",
-            },
-            type: "linear",
-            position: "bottom",
-            min: xOptions.min,
-            max: Math.round((xOptions.max / 10) * 10), // round to nearest 10 so auto tick generation works
-            ticks: {
-              padding: 0,
-              callback: (val) => `${Number(val)}M`,
-            },
-          },
-          y: {
-            type: "linear",
-            title: {
-              display: true,
-              text: yOptions.label || "",
-            },
-            min: yTickMin,
-            max: yTickMax,
-            ticks: {
-              padding: 0,
-              callback: (val) => (valueFormatter ? valueFormatter(Number(val)) : Number(val)),
-            },
-          },
-        },
-        onClick: (event, activeElements, chart) => {
-          // Convert pixel coordinates to scale values
-          const canvasPosition = chart.canvas.getBoundingClientRect();
-          const nativeEvent = event.native as MouseEvent;
-          const pixelX = nativeEvent.clientX - canvasPosition.left;
-          const pixelY = nativeEvent.clientY - canvasPosition.top;
 
-          const xScale = chart.scales.x;
-          const yScale = chart.scales.y;
-          const xValue = xScale.getValueForPixel(pixelX);
-          const yValue = yScale.getValueForPixel(pixelY);
+            // Draw the circle around currently selected element (i.e. clicked)
+            const [selectedPointDatasetIndex, selectedPointIndex] = selectedPointRef.current || [];
+            if (selectedPointDatasetIndex !== undefined && selectedPointIndex !== undefined) {
+              const dataPoint = chart.getDatasetMeta(selectedPointDatasetIndex).data[selectedPointIndex];
+              if (dataPoint) {
+                const { x, y } = dataPoint.getProps(["x", "y"], true);
+                const pointRadius = dataPoint.options.radius;
+                const pointStyle = dataPoint.options.pointStyle;
+                drawSelectionPoint(x, y, pointRadius, pointStyle, "#387F5C");
+              }
+            }
+          },
+        }),
+        [],
+      );
 
-          let wasUnfrozen = false;
+      const selectionCallbackPlugin: Plugin = useMemo<Plugin>(
+        () => ({
+          id: "selectionCallback",
+          afterDraw: (chart: Chart) => {
+            onMouseOver?.(chart.getActiveElements()[0]?.index);
+          },
+        }),
+        [onMouseOver],
+      );
 
-          // If already frozen, unfreeze on ANY click (including pods)
+      // Handle mouse leave event
+      useEffect(() => {
+        const chart = chartRef.current;
+        if (!chart) return;
+
+        const handleMouseLeave = () => {
+          mousePositionRef.current = null;
+          // Clear hover state (DOM manipulation, no re-render needed)
+          onHoverRef.current?.(null);
+          // If crosshair is frozen, keep it visible by re-rendering
           if (frozenCrosshairRef.current) {
-            frozenCrosshairRef.current = null;
-            onFreezeChange?.(false);
-            chart.render();
-            wasUnfrozen = true;
-          } else if (activeElements.length === 0) {
-            // Only freeze when clicking empty space (not on a data point)
-            frozenCrosshairRef.current = mousePositionRef.current;
-            onFreezeChange?.(true);
             chart.render();
           }
+          // Don't call chart.render() otherwise - it causes visual glitch
+          // The crosshair will disappear naturally on next mouse move or chart update
+        };
 
-          // Prepare payload
-          const payload: PointClickPayload = {
-            clickedXY: xValue !== undefined && yValue !== undefined ? { x: xValue, y: yValue } : null,
-            scaleRanges: {
-              x: { min: xScale.min, max: xScale.max },
-              y: { min: yScale.min, max: yScale.max },
+        chart.canvas.addEventListener("mouseleave", handleMouseLeave);
+
+        return () => {
+          chart.canvas.removeEventListener("mouseleave", handleMouseLeave);
+        };
+      }, []); // Empty dependency array - handleMouseLeave uses refs only
+
+      const chartOptions: ChartOptions = useMemo(() => {
+        return {
+          maintainAspectRatio: false,
+          responsive: true,
+          onHover: (event, activeElements, chart) => {
+            // Track mouse X and Y position for crosshair
+            if (event.x !== undefined && event.x !== null && event.y !== undefined && event.y !== null) {
+              mousePositionRef.current = { x: event.x, y: event.y };
+              // Use render() instead of update() to avoid state changes
+              chart.render();
+
+              // If hovering over a data point (pod), hide our custom hover info
+              if (activeElements.length > 0) {
+                if (onHoverRef.current) {
+                  onHoverRef.current(null);
+                }
+                return;
+              }
+
+              // Throttle hover callback for performance
+              const now = Date.now();
+              if (onHoverRef.current && now - lastHoverTimeRef.current >= HOVER_THROTTLE_MS) {
+                const canvasPosition = chart.canvas.getBoundingClientRect();
+                const nativeEvent = event.native as MouseEvent;
+
+                // Get scale values
+                const xScale = chart.scales.x;
+                const yScale = chart.scales.y;
+                const pixelX = event.x;
+                const pixelY = event.y;
+                const xValue = xScale.getValueForPixel(pixelX);
+                const yValue = yScale.getValueForPixel(pixelY);
+
+                if (xValue !== undefined && yValue !== undefined) {
+                  // Use original values for accuracy (like clickedCoords)
+                  // Only check time throttle, not value changes, for smooth updates
+                  lastHoverTimeRef.current = now;
+
+                  onHoverRef.current({
+                    hoverXY: { x: xValue, y: yValue },
+                    pixelXY: { x: nativeEvent.clientX, y: nativeEvent.clientY },
+                    chartBounds: canvasPosition,
+                  });
+                }
+              }
+            }
+          },
+          plugins: {
+            tooltip: toolTipOptions || {},
+            legend: {
+              display: false,
             },
-            rawEvent: event,
-            chart,
-            chartBounds: canvasPosition,
-            wasUnfrozen,
+          },
+          layout: {
+            // Tick padding must be uniform, undo it here
+            padding: {
+              left: 0,
+              right: 0,
+              top: 0,
+              bottom: 0,
+            },
+          },
+          interaction: {
+            mode: "point",
+            intersect: false,
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: xOptions.label || "",
+              },
+              type: "linear",
+              position: "bottom",
+              min: xOptions.min,
+              max: Math.round((xOptions.max / 10) * 10), // round to nearest 10 so auto tick generation works
+              ticks: {
+                padding: 0,
+                callback: (val) => `${Number(val)}M`,
+              },
+            },
+            y: {
+              type: "linear",
+              title: {
+                display: true,
+                text: yOptions.label || "",
+              },
+              min: yTickMin,
+              max: yTickMax,
+              ticks: {
+                padding: 0,
+                callback: (val) => (valueFormatter ? valueFormatter(Number(val)) : Number(val)),
+              },
+            },
+          },
+          onClick: (event, activeElements, chart) => {
+            // Convert pixel coordinates to scale values
+            const canvasPosition = chart.canvas.getBoundingClientRect();
+            const nativeEvent = event.native as MouseEvent;
+            const pixelX = nativeEvent.clientX - canvasPosition.left;
+            const pixelY = nativeEvent.clientY - canvasPosition.top;
+
+            const xScale = chart.scales.x;
+            const yScale = chart.scales.y;
+            const xValue = xScale.getValueForPixel(pixelX);
+            const yValue = yScale.getValueForPixel(pixelY);
+
+            let wasUnfrozen = false;
+
+            // If already frozen, unfreeze on ANY click (including pods)
+            if (frozenCrosshairRef.current) {
+              frozenCrosshairRef.current = null;
+              onFreezeChange?.(false);
+              chart.render();
+              wasUnfrozen = true;
+            } else if (activeElements.length === 0) {
+              // Only freeze when clicking empty space (not on a data point)
+              frozenCrosshairRef.current = mousePositionRef.current;
+              onFreezeChange?.(true);
+              chart.render();
+            }
+
+            // Prepare payload
+            const payload: PointClickPayload = {
+              clickedXY: xValue !== undefined && yValue !== undefined ? { x: xValue, y: yValue } : null,
+              scaleRanges: {
+                x: { min: xScale.min, max: xScale.max },
+                y: { min: yScale.min, max: yScale.max },
+              },
+              rawEvent: event,
+              chart,
+              chartBounds: canvasPosition,
+              wasUnfrozen,
+            };
+
+            // Add active element info if point was clicked
+            if (activeElements.length > 0) {
+              const activeElement = activeElements[0];
+              selectedPointRef.current = [activeElement.datasetIndex, activeElement.index];
+
+              const dataPoint = chart.data.datasets[activeElement.datasetIndex].data[activeElement.index] as Point & {
+                [key: string]: any;
+              };
+
+              payload.activeElement = {
+                datasetIndex: activeElement.datasetIndex,
+                index: activeElement.index,
+                dataPoint,
+              };
+            } else {
+              selectedPointRef.current = null;
+            }
+
+            onPointClick?.(payload);
+          },
+        };
+      }, [data, yTickMin, yTickMax, valueFormatter, useLogarithmicScale, customValueTransform, onPointClick]);
+      // Note: onHover is handled via ref to prevent chart re-renders
+
+      const allPlugins = useMemo<Plugin[]>(
+        () => [
+          hoverCrosshairPlugin,
+          activeElementLinePlugin,
+          horizontalReferenceLinePlugin,
+          selectionPointPlugin,
+          selectionCallbackPlugin,
+        ],
+        [
+          hoverCrosshairPlugin,
+          activeElementLinePlugin,
+          horizontalReferenceLinePlugin,
+          selectionPointPlugin,
+          selectionCallbackPlugin,
+        ],
+      );
+
+      const chartDimensions = useMemo(() => {
+        if (size === "small") {
+          return {
+            w: 3,
+            h: 1,
           };
+        } else {
+          return {
+            w: 6,
+            h: 2,
+          };
+        }
+      }, [size]);
 
-          // Add active element info if point was clicked
-          if (activeElements.length > 0) {
-            const activeElement = activeElements[0];
-            selectedPointRef.current = [activeElement.datasetIndex, activeElement.index];
-
-            const dataPoint = chart.data.datasets[activeElement.datasetIndex].data[activeElement.index] as Point & {
-              [key: string]: any;
-            };
-
-            payload.activeElement = {
-              datasetIndex: activeElement.datasetIndex,
-              index: activeElement.index,
-              dataPoint,
-            };
-          } else {
-            selectedPointRef.current = null;
-          }
-
-          onPointClick?.(payload);
-        },
-      };
-    }, [data, yTickMin, yTickMax, valueFormatter, useLogarithmicScale, customValueTransform, onPointClick]);
-    // Note: onHover is handled via ref to prevent chart re-renders
-
-    const allPlugins = useMemo<Plugin[]>(
-      () => [
-        hoverCrosshairPlugin,
-        activeElementLinePlugin,
-        horizontalReferenceLinePlugin,
-        selectionPointPlugin,
-        selectionCallbackPlugin,
-      ],
-      [
-        hoverCrosshairPlugin,
-        activeElementLinePlugin,
-        horizontalReferenceLinePlugin,
-        selectionPointPlugin,
-        selectionCallbackPlugin,
-      ],
-    );
-
-    const chartDimensions = useMemo(() => {
-      if (size === "small") {
-        return {
-          w: 3,
-          h: 1,
-        };
-      } else {
-        return {
-          w: 6,
-          h: 2,
-        };
-      }
-    }, [size]);
-
-    return (
-      <ReactChart
-        ref={chartRef}
-        type="scatter"
-        data={chartData}
-        options={chartOptions}
-        plugins={allPlugins}
-        width={chartDimensions.w}
-        height={500}
-      />
-    );
-  }), areScatterChartPropsEqual,
+      return (
+        <ReactChart
+          ref={chartRef}
+          type="scatter"
+          data={chartData}
+          options={chartOptions}
+          plugins={allPlugins}
+          width={chartDimensions.w}
+          height={500}
+        />
+      );
+    },
+  ),
+  areScatterChartPropsEqual,
 );
 
 /**

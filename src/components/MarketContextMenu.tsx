@@ -17,7 +17,15 @@ export interface ContextMenuProps {
   isClosing?: boolean;
 }
 
-export const ContextMenu = ({ x, y, onClose, options, clickedCoords, chartBounds, isClosing = false }: ContextMenuProps) => {
+export const ContextMenu = ({
+  x,
+  y,
+  onClose,
+  options,
+  clickedCoords,
+  chartBounds,
+  isClosing = false,
+}: ContextMenuProps) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
 
@@ -94,7 +102,7 @@ export const ContextMenu = ({ x, y, onClose, options, clickedCoords, chartBounds
       // Right edge: move to 2nd quadrant (top-left of cursor)
       headerLeft = x - headerWidth - 4;
       headerTop = y - headerHeight - 4;
-      
+
       // If not enough space above mouse, flip to 3rd quadrant (below cursor, left side)
       if (headerTop < bounds.top + 10) {
         headerTop = y + 4;
@@ -110,7 +118,7 @@ export const ContextMenu = ({ x, y, onClose, options, clickedCoords, chartBounds
     // Apply header positions
     headerRef.current.style.left = `${headerLeft}px`;
     headerRef.current.style.top = `${headerTop}px`;
-    headerRef.current.style.bottom = 'auto';
+    headerRef.current.style.bottom = "auto";
   }, [x, y, chartBounds]);
 
   // Position menu buttons independently based on quadrant logic
@@ -167,7 +175,7 @@ export const ContextMenu = ({ x, y, onClose, options, clickedCoords, chartBounds
         // Not enough space below, place buttons above tooltip (aligned with tooltip)
         menuLeft = headerLeft + 8; // Align with tooltip, shifted 8px right
         menuTop = headerTop - gap - menuHeight;
-        
+
         // If still doesn't fit, place above cursor
         if (menuTop < bounds.top + 10) {
           menuTop = y - buttonOffsetY - menuHeight;
@@ -186,7 +194,7 @@ export const ContextMenu = ({ x, y, onClose, options, clickedCoords, chartBounds
       if (wouldOverflow) {
         // Not enough space below tooltip, place buttons above cursor instead
         menuTop = y - buttonOffsetY - menuHeight;
-        
+
         // If still doesn't fit above, place above tooltip
         if (menuTop < bounds.top + 10) {
           menuTop = headerTop - gap - menuHeight;
@@ -198,7 +206,7 @@ export const ContextMenu = ({ x, y, onClose, options, clickedCoords, chartBounds
       // Default to right/below cursor
       menuLeft = x + buttonOffsetX;
       menuTop = y + buttonOffsetY;
-      
+
       // Check horizontal alignment with tooltip
       if (headerLeft > x) {
         menuLeft = headerLeft;
@@ -272,3 +280,87 @@ export const ContextMenu = ({ x, y, onClose, options, clickedCoords, chartBounds
     </>
   );
 };
+
+/**
+ * COORDINATE SYSTEM & QUADRANT MODEL
+ * ====================================
+ *
+ * This component uses a Cartesian-style quadrant system to intelligently position
+ * the context menu and tooltip relative to the cursor position.
+ *
+ * QUADRANT LAYOUT (relative to cursor):
+ *
+ *     2nd Quadrant  |  1st Quadrant
+ *     (top-left)    |  (top-right)     ← Preferred default for tooltip
+ *   ----------------+-----------------
+ *     3rd Quadrant  |  4th Quadrant
+ *     (bottom-left) |  (bottom-right)  ← Preferred default for buttons
+ *                   ↑
+ *                cursor (x, y)
+ *
+ * POSITIONING STRATEGY:
+ *
+ * 1. TOOLTIP (Header):
+ *    - Default: 1st quadrant (top-right of cursor)
+ *    - Falls back to other quadrants based on viewport/chart boundaries
+ *    - Prioritizes visibility and readability
+ *
+ * 2. BUTTONS (Menu):
+ *    - Prefer different quadrant from tooltip to avoid overlap
+ *    - If tooltip is above (1st/2nd quadrant) → buttons go below (4th/3rd quadrant)
+ *    - If tooltip is below (3rd/4th quadrant) → buttons stack below tooltip with gap
+ *    - Includes bottom margin (40px) to avoid chart legends and padding
+ *
+ * 3. OVERFLOW HANDLING:
+ *    - Detects overflow in all directions (top, right, bottom, left)
+ *    - Flips to appropriate quadrant when space is limited
+ *    - Maintains minimum 10px padding from boundaries
+ *    - Chart-aware: respects chartBounds when provided
+ *
+ * EDGE CASES HANDLED:
+ *
+ * 1. Corner Overflow (Top-Right):
+ *    - When both top and right edges overflow → flip to 4th quadrant (bottom-left)
+ *    - Ensures tooltip remains visible in tight corner spaces
+ *
+ * 2. Compound Edge Overflow:
+ *    - Top overflow while checking right → conditionally flip horizontal alignment
+ *    - Right overflow with insufficient space above → cascade to 3rd quadrant
+ *    - Prevents tooltip from being pushed outside bounds in multiple directions
+ *
+ * 3. Tooltip at Cursor Level (Rare):
+ *    - When tooltip ends up horizontally aligned with cursor (neither above nor below)
+ *    - Falls back to default right/below positioning
+ *    - Adjusts horizontal alignment based on tooltip's actual position
+ *
+ * 4. Button Overflow Cascading:
+ *    - When buttons can't fit below cursor → try above tooltip
+ *    - When buttons can't fit above tooltip → try above cursor
+ *    - Final boundary check ensures buttons stay within viewport even if logic fails
+ *
+ * 5. Bottom Margin Enforcement:
+ *    - Adds 40px extra margin from bottom to avoid chart legends/padding
+ *    - Prevents buttons from overlapping with chart UI elements
+ *    - Takes precedence in overflow calculations
+ *
+ * 6. Missing Chart Bounds:
+ *    - Falls back to viewport dimensions (window.innerWidth/innerHeight)
+ *    - Ensures component works both inside and outside chart contexts
+ *
+ * 7. Dynamic Element Sizing:
+ *    - Uses getBoundingClientRect() for actual rendered dimensions
+ *    - Falls back to estimated heights (92px for menu) during initial render
+ *    - Prevents positioning glitches before elements are measured
+ *
+ * 8. Final Boundary Clamping:
+ *    - After all quadrant logic, applies hard limits to prevent any overflow
+ *    - Clamps positions to stay within [bounds + 10px] margins
+ *    - Last resort to ensure visibility even in extreme edge cases
+ *
+ * OFFSET VALUES:
+ *    - Tooltip: offsetX=4px, offsetY=4px
+ *    - Buttons: buttonOffsetX=12px, buttonOffsetY=8px
+ *    - Gap between components: 4px
+ *    - Bottom margin for buttons: 40px (accounts for chart UI elements)
+ *    - Minimum boundary padding: 10px (all edges)
+ */

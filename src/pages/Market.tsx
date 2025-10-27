@@ -359,7 +359,7 @@ export function Market() {
       const viewportHeight = chartBounds?.bottom || window.innerHeight;
       const minX = chartBounds?.left || 0;
       const minY = chartBounds?.top || 0;
-      
+
       // Detect which edges are overflowing
       const overflowTop = top < minY + 10;
       const overflowRight = left + infoWidth > viewportWidth - 10;
@@ -383,7 +383,7 @@ export function Market() {
         // Right edge: default to top-right corner (2nd quadrant) at (-4, -4)
         left = pixelXY.x - infoWidth - 4;
         top = pixelXY.y - infoHeight - 4; // Component's bottom-right corner at mouse
-        
+
         // If not enough space above mouse, flip to below (3rd quadrant)
         if (pixelXY.y - infoHeight - 4 < minY + 10) {
           top = pixelXY.y + 4; // Component's top-right corner below mouse
@@ -430,27 +430,30 @@ export function Market() {
     [chartXMax],
   );
 
-  const handleUnfreezeAndNavigate = useCallback((path: string, state: any) => {
-    // Mark that we're navigating so onClose doesn't unfreeze again
-    isNavigatingRef.current = true;
-    
-    // Trigger closing animation
-    setIsContextMenuClosing(true);
-    
-    // Wait for animation to complete before unfreezing and navigating
-    setTimeout(() => {
-      chartRef.current?.unfreeze();
-      setIsCrosshairFrozen(false);
-      setContextMenu(null);
-      setIsContextMenuClosing(false);
-      navigate(path, { state });
-      
-      // Reset flag after navigation
+  const handleUnfreezeAndNavigate = useCallback(
+    (path: string, state: any) => {
+      // Mark that we're navigating so onClose doesn't unfreeze again
+      isNavigatingRef.current = true;
+
+      // Trigger closing animation
+      setIsContextMenuClosing(true);
+
+      // Wait for animation to complete before unfreezing and navigating
       setTimeout(() => {
-        isNavigatingRef.current = false;
-      }, 100);
-    }, 200); // Match fade-out animation duration
-  }, [navigate]);
+        chartRef.current?.unfreeze();
+        setIsCrosshairFrozen(false);
+        setContextMenu(null);
+        setIsContextMenuClosing(false);
+        navigate(path, { state });
+
+        // Reset flag after navigation
+        setTimeout(() => {
+          isNavigatingRef.current = false;
+        }, 100);
+      }, 200); // Match fade-out animation duration
+    },
+    [navigate],
+  );
 
   const contextMenuOptions = useMemo(() => {
     if (!contextMenu) return [];
@@ -483,13 +486,13 @@ export function Market() {
     if (payload.wasUnfrozen) {
       // Trigger closing animation
       setIsContextMenuClosing(true);
-      
+
       // Wait for animation to complete before closing
       setTimeout(() => {
         setContextMenu(null);
         setIsContextMenuClosing(false);
       }, 200);
-      
+
       // If clicked on a pod while frozen, still navigate after unfreezing
       if (payload.activeElement) {
         const dataPoint = payload.activeElement.dataPoint as any;
@@ -559,7 +562,7 @@ export function Market() {
       } else {
         // Context menu is open - close it with animation (unfreezing)
         setIsContextMenuClosing(true);
-        
+
         setTimeout(() => {
           setContextMenu(null);
           setIsContextMenuClosing(false);
@@ -660,7 +663,7 @@ export function Market() {
             if (!isNavigatingRef.current) {
               // Trigger closing animation
               setIsContextMenuClosing(true);
-              
+
               // Wait for animation to complete before unfreezing
               setTimeout(() => {
                 if (isCrosshairFrozen) {
