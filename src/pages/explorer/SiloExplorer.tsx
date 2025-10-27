@@ -229,7 +229,6 @@ const BonusGrownStalkPerPDVChart = React.memo(({ season }: ISeason) => {
   return (
     <SeasonalChart
       title="Stalk Per PDV Bonus"
-      fillArea
       activeTab={tab}
       onChangeTab={setTab}
       useSeasonalResult={query}
