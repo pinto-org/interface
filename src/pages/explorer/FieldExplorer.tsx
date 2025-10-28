@@ -77,7 +77,6 @@ const PodRateChart = React.memo(({ season }: ISeason) => {
       title="Pod Rate"
       tooltip="The ratio of Unharvestable Pods per Pinto. The Pod Rate is used by Pinto as a proxy for its health."
       size="small"
-      fillArea
       activeTab={podRateTab}
       onChangeTab={setPodRateTab}
       useSeasonalResult={podRateData}
