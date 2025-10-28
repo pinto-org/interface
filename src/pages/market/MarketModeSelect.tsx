@@ -1,6 +1,7 @@
 import { Separator } from "@/components/ui/Separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
+import { useFarmerField } from "@/state/useFarmerField";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { useCallback } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -13,9 +14,11 @@ interface MarketModeSelectProps {
 export default function MarketModeSelect({ onMainSelectionChange, onSecondarySelectionChange }: MarketModeSelectProps) {
   const { mode, id } = useParams();
   const navigate = useNavigate();
+  const farmerField = useFarmerField();
 
   const mainTab = mode === "buy" || mode === "sell" ? mode : undefined;
   const secondaryTab = id === "fill" ? "fill" : id === "create" ? "create" : undefined;
+  const hasNoPods = farmerField.plots.length === 0;
 
   const handleMainChange = useCallback(
     (v: string) => {
@@ -61,13 +64,27 @@ export default function MarketModeSelect({ onMainSelectionChange, onSecondarySel
       </Tabs>
       {mainTab ? (
         <>
-          <Separator className="bg-pinto-gray-2" />
-          <Tabs key={mainTab} className="w-full" value={secondaryTab} onValueChange={handleSecondaryChange}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="create">{mainTab === "buy" ? "Order" : "List"}</TabsTrigger>
-              <TabsTrigger value="fill">Fill</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          {mainTab === "sell" && hasNoPods ? (
+            <>
+              <Separator className="bg-pinto-gray-2" />
+              <div className="flex flex-col gap-2 justify-center items-center w-full h-[12rem] border rounded-[0.75rem] bg-pinto-off-white border-pinto-gray-2">
+                <div className="pinto-body-light text-pinto-light text-center px-4">
+                  You have no Pods. You can get Pods by placing a bid on the Field or selecting{" "}
+                  <span className="text-pinto-primary font-medium">Buy Pods</span>!
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <Separator className="bg-pinto-gray-2" />
+              <Tabs key={mainTab} className="w-full" value={secondaryTab} onValueChange={handleSecondaryChange}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="create">{mainTab === "buy" ? "Order" : "List"}</TabsTrigger>
+                  <TabsTrigger value="fill">Fill</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </>
+          )}
         </>
       ) : (
         <div className="flex flex-col gap-2 justify-center items-center w-full h-[12rem] border rounded-[0.75rem] bg-pinto-off-white border-pinto-gray-2">
