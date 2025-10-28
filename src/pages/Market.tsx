@@ -265,7 +265,7 @@ export function Market() {
   const handleSecondaryTabClick = useCallback(
     (v: string) => {
       if (v === "fill") {
-        handleChangeTab(!mode || mode === "buy" ? TABLE_SLUGS[1] : TABLE_SLUGS[2]);
+        handleChangeTab(mode === "buy" ? TABLE_SLUGS[1] : TABLE_SLUGS[2]);
       }
     },
     [mode],
@@ -282,7 +282,7 @@ export function Market() {
       event_status: dataPoint?.status?.toLowerCase() ?? "unknown",
       price_per_pod: dataPoint?.y ?? 0,
       place_in_line_millions: Math.floor(dataPoint?.x ?? -1),
-      current_mode: !mode || mode === "buy" ? "buy" : "sell",
+      current_mode: mode ?? "unknown",
     });
 
     if (dataPoint.eventType === "LISTING") {
@@ -292,8 +292,7 @@ export function Market() {
     }
   };
 
-  const viewMode = !mode || mode === "buy" ? "buy" : "sell";
-  const fillView = !!id;
+  const viewMode = mode;
 
   return (
     <>
@@ -343,10 +342,10 @@ export function Market() {
             <div className="flex flex-col gap-4 self-start px-4 py-4 h-full w-[384px] min-w-[384px] 3xl:w-[540px] 3xl:min-w-[540px] flex-shrink-0 overflow-auto scrollbar-none">
               <div>
                 <MarketModeSelect onSecondarySelectionChange={handleSecondaryTabClick} />
-                {viewMode === "buy" && !fillView && <CreateOrder />}
-                {viewMode === "buy" && fillView && <FillListing />}
-                {viewMode === "sell" && !fillView && <CreateListing />}
-                {viewMode === "sell" && fillView && <FillOrder />}
+                {viewMode === "buy" && id === "create" && <CreateOrder />}
+                {viewMode === "buy" && id === "fill" && <FillListing />}
+                {viewMode === "sell" && id === "create" && <CreateListing />}
+                {viewMode === "sell" && id === "fill" && <FillOrder />}
               </div>
             </div>
           </div>

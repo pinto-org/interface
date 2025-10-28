@@ -14,8 +14,8 @@ export default function MarketModeSelect({ onMainSelectionChange, onSecondarySel
   const { mode, id } = useParams();
   const navigate = useNavigate();
 
-  const mainTab = !mode || mode === "buy" ? "buy" : "sell";
-  const secondaryTab = !id || id === "create" ? "create" : "fill";
+  const mainTab = mode === "buy" || mode === "sell" ? mode : undefined;
+  const secondaryTab = id === "fill" ? "fill" : id === "create" ? "create" : undefined;
 
   const handleMainChange = useCallback(
     (v: string) => {
@@ -42,7 +42,7 @@ export default function MarketModeSelect({ onMainSelectionChange, onSecondarySel
       });
 
       if (v === "create") {
-        navigate(`/market/pods/${mainTab}`);
+        navigate(`/market/pods/${mainTab}/create`);
       } else if (v === "fill") {
         navigate(`/market/pods/${mainTab}/fill`);
       }
@@ -53,19 +53,31 @@ export default function MarketModeSelect({ onMainSelectionChange, onSecondarySel
 
   return (
     <div className="flex flex-col gap-4 mb-4">
-      <Tabs defaultValue="buy" className="w-full" value={mainTab} onValueChange={handleMainChange}>
+      <Tabs className="w-full" value={mainTab} onValueChange={handleMainChange}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="buy">Buy Pods</TabsTrigger>
           <TabsTrigger value="sell">Sell Pods</TabsTrigger>
         </TabsList>
       </Tabs>
-      <Separator className="bg-pinto-gray-2" />
-      <Tabs defaultValue="create" className="w-full" value={secondaryTab} onValueChange={handleSecondaryChange}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="create">{mainTab === "buy" ? "Order" : "List"}</TabsTrigger>
-          <TabsTrigger value="fill">Fill</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {mainTab ? (
+        <>
+          <Separator className="bg-pinto-gray-2" />
+          <Tabs key={mainTab} className="w-full" value={secondaryTab} onValueChange={handleSecondaryChange}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="create">{mainTab === "buy" ? "Order" : "List"}</TabsTrigger>
+              <TabsTrigger value="fill">Fill</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </>
+      ) : (
+        <div className="flex flex-col gap-2 justify-center items-center w-full h-[12rem] border rounded-[0.75rem] bg-pinto-off-white border-pinto-gray-2">
+          <div className="pinto-body-light text-pinto-light text-center">
+            Select <span className="text-pinto-primary font-medium">Buy Pods</span>
+            <br />
+            or <span className="text-pinto-primary font-medium">Sell Pods</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
