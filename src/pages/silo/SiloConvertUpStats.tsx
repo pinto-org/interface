@@ -1,0 +1,74 @@
+import { Col } from "@/components/Container";
+import TextSkeleton from "@/components/TextSkeleton";
+import TooltipSimple from "@/components/TooltipSimple";
+import { Card } from "@/components/ui/Card";
+import useConvertStalkPerBdvBonusAndMaximumCapacity, {
+  useConvertGrownStalkBonusRemainingCapacity,
+} from "@/state/useConvertStalkPerBdvBonusData";
+import { formatter } from "@/utils/format";
+import { ReactNode } from "react";
+interface StatCardWithCardProps {
+  title: string;
+  tooltip: string;
+  value: string | number | ReactNode;
+  loading: boolean;
+  className?: string;
+}
+
+function StatCard({ title, tooltip, value, loading, className = "" }: StatCardWithCardProps) {
+  return (
+    <Card className={`flex flex-1 p-4 min-w-0 ${className}`}>
+      <Col className="gap-2 min-w-0">
+        <div className="flex flex-row gap-1 flex-nowrap">
+          <div className="pinto-sm-light whitespace-nowrap">{title}</div>
+          <TooltipSimple variant="outlined" content={tooltip} triggerClassName="pinto-sm-light" />
+        </div>
+        <TextSkeleton loading={loading} height="body" className="w-10">
+          <div className="pinto-body truncate">{value}</div>
+        </TextSkeleton>
+      </Col>
+    </Card>
+  );
+}
+
+const capacityFormat = {
+  minDecimals: 0,
+  maxDecimals: 6,
+  minValue: 0.01,
+} as const;
+
+export default function SiloConvertUpStats() {
+  const { data, isLoading } = useConvertStalkPerBdvBonusAndMaximumCapacity();
+  const remainingCapacity = useConvertGrownStalkBonusRemainingCapacity();
+
+  // Max Capacity stat data
+  const maxCapacityValue = formatter.number(data?.maxCapacity, capacityFormat);
+  // Remaining Capacity stat data
+  const remainingCapacityValue = formatter.number(remainingCapacity.data, capacityFormat);
+
+  // Stalk Bonus stat data
+  const stalkBonusValue = formatter.number(data?.bonus, { minDecimals: 6, maxDecimals: 6 });
+
+  return (
+    <>
+      <StatCard
+        title="Current Capacity"
+        tooltip="The amount of PDV that Pinto is willing to issue a Stalk bonus this Season."
+        value={remainingCapacityValue}
+        loading={remainingCapacity.isLoading}
+      />
+      <StatCard
+        title="Max Capacity"
+        tooltip="The maximum PDV Pinto is willing to issue a Stalk bonus this Season."
+        value={maxCapacityValue}
+        loading={isLoading}
+      />
+      <StatCard
+        title="Stalk Bonus / PDV"
+        tooltip="The bonus Pinto is willing to give for farmers Converting up this Season."
+        value={stalkBonusValue}
+        loading={isLoading}
+      />
+    </>
+  );
+}

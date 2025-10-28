@@ -25,6 +25,8 @@ import ReadMoreAccordion from "@/components/ReadMoreAccordion";
 import SowOrderDialog, { AnimateSowOrderDialog } from "@/components/SowOrderDialog";
 import TextSkeleton from "@/components/TextSkeleton";
 import TooltipSimple from "@/components/TooltipSimple";
+import TractorCard from "@/components/Tractor/TractorCard";
+import { TractorSowOrdersPanel } from "@/components/Tractor/farmer-orders/TractorOrdersPanel";
 import { navLinks } from "@/components/nav/nav/Navbar";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import useLocalStorage from "@/hooks/useLocalStorage";
@@ -44,7 +46,6 @@ import FieldStats from "./field/FieldStats";
 import FieldTemperatureBarChart from "./field/FieldTemperatureBarChart";
 import MorningPanel from "./field/MorningPanel";
 import TemperatureChart from "./field/Temperature";
-import TractorOrdersPanel from "./field/TractorOrdersPanel";
 
 // Add a custom hook to track the current sow amount
 function useTotalSowAmount() {
@@ -72,71 +73,16 @@ function useTotalSowAmount() {
 
 // TractorButton component
 function TractorButton({ onClick }: { onClick: () => void }) {
-  const [hoveredTractor, setHoveredTractor] = useState(false);
-  const { totalSoil, isLoading: totalSoilLoading } = useTotalSoil();
-  // Use the atom value directly instead of localStorage
   const inputExceedsSoil = useAtomValue(inputExceedsSoilAtom);
 
-  // Create the animation styles on mount
-  useEffect(() => {
-    const styleEl = document.createElement("style");
-    styleEl.innerHTML = `
-      @keyframes pulse-scale {
-        0%, 100% { transform: scale(0.98); }
-        50% { transform: scale(1.02); }
-      }
-    `;
-    document.head.appendChild(styleEl);
-
-    return () => {
-      document.head.removeChild(styleEl);
-    };
-  }, []);
-
   return (
-    <div className="relative w-full">
-      <button
-        type="button"
-        onClick={onClick}
-        className="group box-border flex flex-col items-start p-4 gap-1 w-full rounded-[1rem] transition-colors duration-200 bg-white border border-pinto-gray-2 relative"
-        onMouseEnter={() => setHoveredTractor(true)}
-        onMouseLeave={() => setHoveredTractor(false)}
-        style={{
-          ...(inputExceedsSoil || hoveredTractor
-            ? {
-                backgroundColor: "#E5F5E5",
-                borderColor: "#387F5C",
-              }
-            : {}),
-          // If input exceeds soil, apply special highlight styling
-          ...(inputExceedsSoil && {
-            boxShadow: "0 0 0 2px rgba(56, 127, 92, 0.5)",
-            animation: "pulse-scale 1.5s ease-in-out infinite",
-          }),
-        }}
-      >
-        {/* Position the icon absolutely to place it on the right side and vertically centered */}
-        <SizeIcon
-          className={`absolute top-1/2 right-4 transform -translate-y-1/2 w-5 h-5 text-[#404040] ${
-            inputExceedsSoil || hoveredTractor ? "hidden" : "block"
-          }`}
-        />
-
-        <div className="flex flex-row items-center gap-1">
-          <span className={`pinto-h4 ${inputExceedsSoil || hoveredTractor ? "text-pinto-green-4" : "text-[#404040]"}`}>
-            🚜 Want to Sow with size?
-          </span>
-        </div>
-        <span
-          className={`pinto-body-light ${inputExceedsSoil || hoveredTractor ? "text-pinto-green-3" : "text-[#9C9C9C]"}`}
-        >
-          Set up a Tractor Order to automate Sowing
-        </span>
-      </button>
-      {!inputExceedsSoil && (
-        <CornerBorders rowNumber={0} active={hoveredTractor} standalone={true} cornerRadius="1rem" />
-      )}
-    </div>
+    <TractorCard
+      label="🚜 Want to Sow with size?"
+      subLabel="Set up a Tractor Order to automate Sowing"
+      onClick={onClick}
+      shouldAnimateZoom={inputExceedsSoil}
+      corderBordersDisabled={!inputExceedsSoil}
+    />
   );
 }
 
@@ -336,7 +282,10 @@ function Field() {
               )}
               {activeTab === "tractor" && (
                 <div className="w-full">
-                  <TractorOrdersPanel refreshData={tractorRefreshCounter} onCreateOrder={() => setShowSowOrder(true)} />
+                  <TractorSowOrdersPanel
+                    refreshData={tractorRefreshCounter}
+                    onCreateOrder={() => setShowSowOrder(true)}
+                  />
                 </div>
               )}
             </>

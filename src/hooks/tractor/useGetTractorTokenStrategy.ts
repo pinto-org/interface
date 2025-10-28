@@ -1,7 +1,11 @@
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { defaultQuerySettingsNoRefetch } from "@/constants/query";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { ExtendedTractorTokenStrategy, getSowOrderTokenStrategy } from "@/lib/Tractor";
+import {
+  ExtendedTractorTokenStrategy,
+  tractorTokenStrategyUtil as StrategyUtil,
+  TractorOrderDynamicFundingStrategy,
+} from "@/lib/Tractor";
 import { getTokenIndex } from "@/utils/token";
 import { useCallback } from "react";
 import { useReadContract } from "wagmi";
@@ -45,24 +49,30 @@ const useGetTractorTokenStrategyWithBlueprint = () => {
       if (!indicies.length) {
         throw new Error("No source token indices provided");
       }
-      if (indicies.length > 1) {
-        throw new Error("Multiple source token indices currently not supported");
-      }
 
-      const strat = getSowOrderTokenStrategy(indicies);
+      const strat = StrategyUtil.getSowOrderTokenStrategy(indicies);
 
-      const index = indicies[0];
-
-      if (strat === "SPECIFIC_TOKEN") {
+      if (strat === "SPECIFIC_TOKEN" && indicies.length === 1) {
+        const index = indicies[0];
         return {
-          address: wlStatuses[index]?.token,
+          addresses: [wlStatuses[index]?.token],
           type: "SPECIFIC_TOKEN",
           token: tokenMap[getTokenIndex(wlStatuses[index]?.token)] ?? undefined,
         };
       }
 
+      if (strat === "MULTI_TOKENS" && !!indicies.length) {
+        const addresses = indicies.map((i) => wlStatuses[i]?.token).filter(Boolean);
+        const tokens = addresses.map((address) => tokenMap[getTokenIndex(address)] ?? undefined).filter(Boolean);
+        return {
+          addresses,
+          type: "MULTI_TOKENS",
+          tokens,
+        };
+      }
+
       return {
-        type: strat,
+        type: strat as "LOWEST_SEEDS" | "LOWEST_PRICE",
       };
     },
     [wlStatuses, tokenMap],

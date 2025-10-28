@@ -104,7 +104,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
   }, [apys]);
 
   return (
-    <div className="border border-pinto-gray-2 rounded-[1rem] overflow-clip">
+    <div className="flex w-full border border-pinto-gray-2 rounded-[1rem] overflow-clip">
       {/* <ScrollArea className="w-full"> */}
       <Table className="w-full">
         <TableHeader className="rounded-t-xl bg-pinto-gray-1 hover:bg-pinto-gray-1">

@@ -1,7 +1,5 @@
-import { sowBlueprintv0ABI } from "@/constants/abi/SowBlueprintv0ABI";
-import { SOW_BLUEPRINT_V0_SELECTOR } from "@/constants/address";
-import { beanstalkAbi } from "@/generated/contractHooks";
-import { decodeFunctionData, keccak256, toHex } from "viem";
+import { type BlueprintType, decodeBlueprintCallData } from "@/lib/Tractor/blueprint-decoders";
+import { safeJSONParse } from "@/utils/utils";
 
 interface HighlightedCallDataProps {
   blueprintData: `0x${string}`;
@@ -10,84 +8,77 @@ interface HighlightedCallDataProps {
   decodeAbi?: boolean;
   isRequisitionData?: boolean;
   encodedData?: `0x${string}` | null;
-  showSowBlueprintParams?: boolean;
+  blueprintType?: BlueprintType;
 }
 
-export function decodeCallData(callData: string) {
-  const selector = callData.slice(0, 10);
-  const data = callData.slice(10);
-
-  console.log("Function selector:", selector);
-  console.log("sowBlueprintv0Selector:", SOW_BLUEPRINT_V0_SELECTOR);
-
-  // For sowBlueprintv0, show decoded parameters
-  if (selector === SOW_BLUEPRINT_V0_SELECTOR) {
-    console.log("Decoding sowBlueprintv0 data");
-
-    try {
-      // Try to decode using the ABI
-      const decoded = decodeFunctionData({
-        abi: sowBlueprintv0ABI,
-        data: callData as `0x${string}`,
-      });
-
-      console.log("Decoded sowBlueprintv0:", decoded);
-
-      if (decoded.functionName === "sowBlueprintv0" && decoded.args[0]) {
-        const params = decoded.args[0];
-        return (
-          <div className="space-y-2">
-            <div className="text-gray-500">Function: sowBlueprintv0</div>
-            <div className="pl-4 space-y-1 text-gray-600">
-              <div>sourceTokenIndices: [{params.sowParams.sourceTokenIndices.join(", ")}]</div>
-              <div>
-                sowAmounts:
-                <div className="pl-4">
-                  <div>totalAmountToSow: {params.sowParams.sowAmounts.totalAmountToSow.toString()}</div>
-                  <div>minAmountToSowPerSeason: {params.sowParams.sowAmounts.minAmountToSowPerSeason.toString()}</div>
-                  <div>maxAmountToSowPerSeason: {params.sowParams.sowAmounts.maxAmountToSowPerSeason.toString()}</div>
-                </div>
-              </div>
-              <div>minTemp: {params.sowParams.minTemp.toString()}</div>
-              <div>maxPodlineLength: {params.sowParams.maxPodlineLength.toString()}</div>
-              <div>maxGrownStalkPerBdv: {params.sowParams.maxGrownStalkPerBdv.toString()}</div>
-              <div>runBlocksAfterSunrise: {params.sowParams.runBlocksAfterSunrise.toString()}</div>
-              <div>
-                operatorParams:
-                <div className="pl-4">
-                  <div>operatorTipAmount: {params.opParams.operatorTipAmount.toString()}</div>
-                  <div>tipAddress: {params.opParams.tipAddress}</div>
-                  <div>whitelistedOperators: [{params.opParams.whitelistedOperators.join(", ")}]</div>
-                </div>
-              </div>
-            </div>
+function SowBlueprintDisplay({ params }: { params: any }) {
+  return (
+    <div className="space-y-2">
+      <div className="text-gray-500">Function: sowBlueprintv0</div>
+      <div className="pl-4 space-y-1 text-gray-600">
+        <div>sourceTokenIndices: [{params.sowParams.sourceTokenIndices.join(", ")}]</div>
+        <div>
+          sowAmounts:
+          <div className="pl-4">
+            <div>totalAmountToSow: {params.sowParams.sowAmounts.totalAmountToSow.toString()}</div>
+            <div>minAmountToSowPerSeason: {params.sowParams.sowAmounts.minAmountToSowPerSeason.toString()}</div>
+            <div>maxAmountToSowPerSeason: {params.sowParams.sowAmounts.maxAmountToSowPerSeason.toString()}</div>
           </div>
-        );
-      }
-    } catch (error) {
-      console.error("Error decoding sowBlueprintv0:", error);
-    }
-
-    // Fallback to manual decoding if the above fails
-    // ... existing manual decoding code ...
-  }
-
-  // Find the function in the ABI that matches this selector
-  const functionAbi = beanstalkAbi.find(
-    (item) =>
-      item.type === "function" &&
-      item.name ===
-        (selector === "0x553030d0"
-          ? "sowWithMin"
-          : selector === "0x6204aa43"
-            ? "transferToken"
-            : selector === "0x36bfafbd"
-              ? "advancedFarm"
-              : selector === SOW_BLUEPRINT_V0_SELECTOR
-                ? "sowBlueprintv0"
-                : null),
+        </div>
+        <div>minTemp: {params.sowParams.minTemp.toString()}</div>
+        <div>maxPodlineLength: {params.sowParams.maxPodlineLength.toString()}</div>
+        <div>maxGrownStalkPerBdv: {params.sowParams.maxGrownStalkPerBdv.toString()}</div>
+        <div>runBlocksAfterSunrise: {params.sowParams.runBlocksAfterSunrise.toString()}</div>
+        <div>
+          operatorParams:
+          <div className="pl-4">
+            <div>operatorTipAmount: {params.opParams.operatorTipAmount.toString()}</div>
+            <div>tipAddress: {params.opParams.tipAddress}</div>
+            <div>whitelistedOperators: [{params.opParams.whitelistedOperators.join(", ")}]</div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
+}
 
+function ConvertUpBlueprintDisplay({ params }: { params: any }) {
+  return (
+    <div className="space-y-2">
+      <div className="text-gray-500">Function: convertUpBlueprint</div>
+      <div className="pl-4 space-y-1 text-gray-600">
+        <div>sourceTokenIndices: [{params.convertUpParams.sourceTokenIndices.join(", ")}]</div>
+        <div>totalBeanAmountToConvert: {params.convertUpParams.totalBeanAmountToConvert.toString()}</div>
+        <div>minBeansConvertPerExecution: {params.convertUpParams.minBeansConvertPerExecution.toString()}</div>
+        <div>maxBeansConvertPerExecution: {params.convertUpParams.maxBeansConvertPerExecution.toString()}</div>
+        <div>minTimeBetweenConverts: {params.convertUpParams.minTimeBetweenConverts.toString()}</div>
+        <div>minConvertBonusCapacity: {params.convertUpParams.minConvertBonusCapacity.toString()}</div>
+        <div>maxGrownStalkPerBdv: {params.convertUpParams.maxGrownStalkPerBdv.toString()}</div>
+        <div>grownStalkPerBdvBonusBid: {params.convertUpParams.grownStalkPerBdvBonusBid.toString()}</div>
+        <div>maxPriceToConvertUp: {params.convertUpParams.maxPriceToConvertUp.toString()}</div>
+        <div>minPriceToConvertUp: {params.convertUpParams.minPriceToConvertUp.toString()}</div>
+        <div>maxGrownStalkPerBdvPenalty: {params.convertUpParams.maxGrownStalkPerBdvPenalty.toString()}</div>
+        <div>slippageRatio: {params.convertUpParams.slippageRatio.toString()}</div>
+        <div>seedDifference: {params.convertUpParams.seedDifference.toString()}</div>
+        <div>lowStalkDeposits: {params.convertUpParams.lowStalkDeposits.toString()}</div>
+        <div>
+          operatorParams:
+          <div className="pl-4">
+            <div>operatorTipAmount: {params.opParams.operatorTipAmount.toString()}</div>
+            <div>tipAddress: {params.opParams.tipAddress}</div>
+            <div>whitelistedOperators: [{params.opParams.whitelistedOperators.join(", ")}]</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GenericParameterDisplay({
+  selector,
+  data,
+  functionAbi,
+}: { selector: string; data: string; functionAbi: any }) {
   if (!functionAbi || functionAbi.type !== "function" || !functionAbi.inputs) {
     return (
       <div>
@@ -97,30 +88,14 @@ export function decodeCallData(callData: string) {
     );
   }
 
-  // For advancedFarm or sowBlueprintv0, show structured data
-  if (selector === "0x36bfafbd" || selector === "0x01f6a174") {
+  // For advancedFarm, show structured data
+  if (selector === "0x36bfafbd") {
     return (
       <div>
         <div className="text-gray-500">
           Selector: {selector} ({functionAbi.name})
         </div>
-        {selector === "0x01f6a174" && (
-          <div className="space-y-2 mt-2">
-            <div className="text-gray-500">SowBlueprintStruct:</div>
-            <div className="pl-4 space-y-1">
-              <div>sourceTokenIndices: {data.slice(0, 64)}</div>
-              <div>sowAmounts: {data.slice(64, 128)}</div>
-              <div>minTemp: {data.slice(128, 192)}</div>
-              <div>operatorTipAmount: {data.slice(192, 256)}</div>
-              <div>tipAddress: 0x{data.slice(280, 320)}</div>
-              <div>maxPodlineLength: {data.slice(320, 384)}</div>
-              <div>maxGrownStalkPerBdv: {data.slice(384, 448)}</div>
-              <div>runBlocksAfterSunrise: {data.slice(448, 512)}</div>
-              <div>whitelistedOperators: {data.slice(512)}</div>
-            </div>
-          </div>
-        )}
-        {selector === "0x36bfafbd" && <div className="text-gray-500">Raw Data: {data}</div>}
+        <div className="text-gray-500">Raw Data: {data}</div>
       </div>
     );
   }
@@ -130,7 +105,7 @@ export function decodeCallData(callData: string) {
     <div>
       <div className="text-gray-500">Selector: {selector}</div>
       <div className="space-y-1">
-        {functionAbi.inputs.map((input, index) => {
+        {functionAbi.inputs.map((input: any, index: number) => {
           const value = data.slice(index * 64, (index + 1) * 64);
           let displayValue = `0x${value}`;
 
@@ -150,6 +125,30 @@ export function decodeCallData(callData: string) {
   );
 }
 
+function RequisitionDataDisplay({
+  targetData,
+  decodeAbi,
+  className,
+}: { targetData: string; decodeAbi: boolean; className: string }) {
+  try {
+    // If it's JSON data, try to parse and format it
+    const jsonData = safeJSONParse(targetData, {});
+    const formattedJson = JSON.stringify(jsonData, null, 2);
+
+    return (
+      <div className={className}>
+        <pre>{formattedJson}</pre>
+      </div>
+    );
+  } catch (e) {
+    console.error("Failed to parse JSON:", e);
+    // If parsing fails, fall back to the original display
+    return <div className={className}>{targetData}</div>;
+  }
+}
+
+const knownBlueprintTypes = new Set(["sow", "convertUp"]);
+
 export function HighlightedCallData({
   blueprintData,
   targetData,
@@ -157,71 +156,55 @@ export function HighlightedCallData({
   decodeAbi = false,
   isRequisitionData = false,
   encodedData,
-  showSowBlueprintParams = false,
+  blueprintType: _blueprintType = "auto",
 }: HighlightedCallDataProps) {
-  if (showSowBlueprintParams) {
-    return decodeCallData(blueprintData);
-  }
-
-  // For requisition data, try to parse and format the JSON
+  const blueprintType = knownBlueprintTypes.has(_blueprintType) ? _blueprintType : "auto";
+  // Handle requisition data display
   if (isRequisitionData) {
-    try {
-      // If it's JSON data, try to parse and format it
-      const jsonData = JSON.parse(targetData);
-      const formattedJson = JSON.stringify(jsonData, null, 2);
-
-      if (decodeAbi) {
-        // If we're in decode mode, show the formatted JSON
-        return (
-          <div className={className}>
-            <pre>{formattedJson}</pre>
-          </div>
-        );
-      }
-
-      // If we're not in decode mode, show the formatted JSON with syntax highlighting
-      return (
-        <div className={className}>
-          <pre>{formattedJson}</pre>
-        </div>
-      );
-    } catch (e) {
-      console.error("Failed to parse JSON:", e);
-      // If parsing fails, fall back to the original display
-    }
+    return <RequisitionDataDisplay targetData={targetData} decodeAbi={decodeAbi} className={className} />;
   }
 
-  try {
-    // For sowBlueprintv0 data
-    if (blueprintData.startsWith(SOW_BLUEPRINT_V0_SELECTOR)) {
+  // Handle blueprint decoding when specifically requested or in decode mode
+  if (blueprintType !== "auto" || decodeAbi) {
+    const decodedResult = decodeBlueprintCallData(blueprintData);
+
+    if (decodedResult) {
       if (decodeAbi) {
+        const displayContent = () => {
+          switch (decodedResult.type) {
+            case "sow":
+              return <SowBlueprintDisplay params={decodedResult.params} />;
+            case "convertUp":
+              return <ConvertUpBlueprintDisplay params={decodedResult.params} />;
+            case "generic":
+              return (
+                <GenericParameterDisplay
+                  selector={decodedResult.params.selector}
+                  data={decodedResult.params.data}
+                  functionAbi={decodedResult.params.functionAbi}
+                />
+              );
+            default:
+              return <div className="text-gray-500">Unknown blueprint type</div>;
+          }
+        };
+
         return (
           <div className={className}>
             <div className="space-y-4">
               <div>
-                <div className="text-sm text-gray-500 mb-1">sowBlueprintv0 call:</div>
-                <div className="text-gray-500">{decodeCallData(blueprintData)}</div>
+                <div className="text-sm text-gray-500 mb-1">{decodedResult.functionName} call:</div>
+                <div className="text-gray-500">{displayContent()}</div>
               </div>
             </div>
           </div>
         );
       }
+
       return <div className={className}>{targetData}</div>;
     }
-
-    const decoded = decodeFunctionData({
-      abi: beanstalkAbi,
-      data: blueprintData,
-    });
-    const sowWithMinCall = decoded.args?.[0]?.[0]?.callData;
-    const transferTokenCall = decoded.args?.[0]?.[1]?.callData;
-    if (!sowWithMinCall || !transferTokenCall) return targetData;
-
-    // If it's requisition data and we're in decode mode, just show the JSON
-    if (isRequisitionData && decodeAbi) {
-      return <div className={className}>{targetData}</div>;
-    }
-  } catch {
-    return targetData;
   }
+
+  // Fallback to target data
+  return <div className={className}>{targetData}</div>;
 }

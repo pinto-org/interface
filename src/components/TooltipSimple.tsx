@@ -4,9 +4,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/Tooltip";
+import useIsMobile from "@/hooks/display/useIsMobile";
 import { cn } from "@/utils/utils";
 import { TooltipContent, TooltipPortal } from "@radix-ui/react-tooltip";
-import { ReactNode } from "react";
+import { ReactNode, useCallback, useState } from "react";
 import { InfoOutlinedIcon, InfoSolidIcon } from "./Icons";
 
 interface TooltipSimpleProps {
@@ -49,16 +50,41 @@ export default function TooltipSimple({
   disabled = false,
   ...props
 }: TooltipSimpleProps) {
+  const [open, setOpen] = useState<boolean>(false);
+  const isMobile = useIsMobile();
+
   const ContentComponent = variant === "unstyled" ? TooltipContent : RadixStyledTooltipContent;
+
+  // manually handle open and close on mobile
+  const handleOpen = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      setOpen((prev) => !prev);
+    },
+    [open],
+  );
+
+  const handleClose = useCallback((e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setOpen(false);
+  }, []);
 
   if (disabled) {
     return <>{children}</>;
   }
 
   return (
-    <TooltipProvider>
-      <Tooltip delayDuration={0}>
-        <TooltipTrigger asChild className={`${showOnMobile ? "" : "hidden sm:flex"}`}>
+    <TooltipProvider delayDuration={0}>
+      {/* manually handle open and close on mobile */}
+      <Tooltip open={isMobile ? open : undefined}>
+        <TooltipTrigger
+          asChild
+          className={`cursor-pointer ${showOnMobile ? "" : "hidden sm:flex"}`}
+          onClick={isMobile ? handleOpen : undefined}
+          onMouseEnter={isMobile ? handleOpen : undefined}
+          onMouseLeave={isMobile ? handleClose : undefined}
+          onTouchStart={isMobile ? handleOpen : undefined}
+        >
           {children || (
             <span
               className={cn(
@@ -75,7 +101,13 @@ export default function TooltipSimple({
           )}
         </TooltipTrigger>
         <TooltipPortal>
-          <ContentComponent side={side} align={align} sideOffset={sideOffset} className={className} {...props}>
+          <ContentComponent
+            side={side}
+            align={align}
+            sideOffset={sideOffset}
+            {...props}
+            className={cn(showOnMobile && "max-w-[calc(100vw-2rem)] sm:max-w-none", className)}
+          >
             {content}
           </ContentComponent>
         </TooltipPortal>

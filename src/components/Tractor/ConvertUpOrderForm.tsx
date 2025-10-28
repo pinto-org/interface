@@ -1,0 +1,127 @@
+import { Col } from "@/components/Container";
+import {
+  ConvertUpOrderProvider,
+  ConvertUpTractorEntryForm,
+  ConvertUpTractorReviewController,
+  ConvertUpTractorOrderFormStep as FormStep,
+  useConvertUpOrderFormContext,
+} from "@/components/Tractor/ConvertUp";
+import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
+import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
+import useConvertStalkPerBdvBonusAndMaximumCapacity from "@/state/useConvertStalkPerBdvBonusData";
+import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useSiloData } from "@/state/useSiloData";
+import { useEffect, useState } from "react";
+import { useFormContext } from "react-hook-form";
+import { ConvertUpV0FormSchema } from "./form/schema/convertUp.schema";
+
+/**
+ * Form Flow
+ *
+ * Entry Form
+ *   - Back: Close the form
+ *   - Review
+ *       1. Validate Entry Form fields. Do nothing if the fields are invalid.
+ *       2. Infer the advanced paramters fields & set 'didInitRestFields' to true.
+ *       3. Set the form step to Review.
+ *
+ * Review Controller
+ *   - Back: Set the form step to Entry.
+ *   - Submit:
+ *   - Advanced:
+ *      - Back:
+ *          - Revert all changes to the previous state from before the advanced field was open
+ *          - Go back to Review
+ *      - Save Changes
+ *          - Go back to Review
+ *
+ *
+ */
+
+interface IConvertUpOrderForm {
+  onOpenChange: (open: boolean) => void;
+  disallowCloseForm?: boolean;
+}
+
+// ------------------------------------------------------------
+// Form
+// ------------------------------------------------------------
+
+/**
+ * The main form container for creating a Convert Up Tractor order.
+ */
+export default function ConvertUpOrderForm({ onOpenChange, disallowCloseForm }: IConvertUpOrderForm) {
+  return (
+    <ConvertUpOrderProvider onOpenChange={onOpenChange} disallowCloseForm={disallowCloseForm}>
+      <ConvertUpOrderFormController />
+    </ConvertUpOrderProvider>
+  );
+}
+
+const REVIEW_STEPS = new Set([FormStep.REVIEW, FormStep.ADVANCED, FormStep.OPERATOR_TIP]);
+
+/**
+ * The contents of the form.
+ * Supports both create and modify modes based on context.
+ */
+export function ConvertUpOrderFormController() {
+  // External hooks
+  const { formStep, mode } = useConvertUpOrderFormContext();
+  const calculations = useSowOrderV0Calculations({ disableSwapCalc: true });
+  const farmerSilo = useFarmerSilo();
+  const siloData = useSiloData();
+  const { data: averageTipPaid = 0.15 } = useTractorOperatorAverageTipPaid();
+
+  useInitBonusField(mode);
+
+  // Local State
+  // Whether the advanced fields have been initialized
+  // For modify mode, fields are pre-filled so start as true
+  // For create mode, fields need to be inferred so start as false
+  const [didInitRestFields, setDidInitRestFields] = useState(mode === "modify");
+
+  return (
+    <Col className="w-full">
+      {formStep === FormStep.ENTRY && (
+        <ConvertUpTractorEntryForm
+          farmerSilo={farmerSilo}
+          siloData={siloData}
+          calculations={calculations}
+          didSetAdvancedFormFields={didInitRestFields}
+          setDidSetAdvancedFormFields={setDidInitRestFields}
+        />
+      )}
+      {REVIEW_STEPS.has(formStep) && (
+        <ConvertUpTractorReviewController didInitAdv={didInitRestFields} averageTipPaid={averageTipPaid} />
+      )}
+    </Col>
+  );
+}
+
+// Initialize the bonus field to the current bonus
+const useInitBonusField = (mode: "create" | "modify" | undefined) => {
+  const { data: bonusData } = useConvertStalkPerBdvBonusAndMaximumCapacity();
+
+  const ctx = useFormContext<ConvertUpV0FormSchema>();
+
+  const [didInitBonus, setDidInitBonus] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (mode === "modify") return;
+    if (didInitBonus || !bonusData?.bonus) {
+      return;
+    }
+
+    setDidInitBonus(true);
+    const fs = ctx.getFieldState("grownStalkPerBdvBonusBid");
+
+    if (fs.isDirty || fs.isTouched) {
+      return;
+    }
+
+    // trucate to 2 decimals
+    const trucatedBonus = bonusData.bonus.trimDecimals(bonusData.bonus, 3).toHuman();
+
+    ctx.setValue("grownStalkPerBdvBonusBid", trucatedBonus);
+  }, [bonusData?.bonus, ctx, mode]);
+};
