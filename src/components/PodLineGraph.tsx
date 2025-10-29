@@ -27,6 +27,8 @@ interface PodLineGraphProps {
   plots?: Plot[];
   /** Indices of selected plots */
   selectedPlotIndices?: string[];
+  /** Optional: specify a partial range selection (absolute pod line positions) */
+  selectedPodRange?: { start: TokenValue; end: TokenValue };
   /** Callback when a plot group is clicked - receives all plot indices in the group */
   onPlotGroupSelect?: (plotIndices: string[]) => void;
   /** Additional CSS classes */
@@ -156,6 +158,7 @@ function formatAxisLabel(value: number): string {
 export default function PodLineGraph({
   plots: providedPlots,
   selectedPlotIndices = [],
+  selectedPodRange,
   onPlotGroupSelect,
   className,
 }: PodLineGraphProps) {
@@ -344,8 +347,35 @@ export default function PodLineGraph({
                 const hasSelectedPlot = group.plots.some((p) => selectedSet.has(p.index.toHuman()));
                 const hasHarvestablePlot = group.plots.some((p) => p.harvestablePods?.gt(0));
 
+                // Calculate partial selection if selectedPodRange is provided
+                let partialSelectionPercent: { start: number; end: number } | null = null;
+                if (selectedPodRange && hasSelectedPlot) {
+                  // Calculate intersection of group and selected range
+                  const groupStart = group.startIndex;
+                  const groupEnd = group.endIndex;
+                  const rangeStart = selectedPodRange.start;
+                  const rangeEnd = selectedPodRange.end;
+
+                  // Check if there's an overlap
+                  if (rangeStart.lt(groupEnd) && rangeEnd.gt(groupStart)) {
+                    // Calculate the overlapping range within the group
+                    const overlapStart = rangeStart.gt(groupStart) ? rangeStart : groupStart;
+                    const overlapEnd = rangeEnd.lt(groupEnd) ? rangeEnd : groupEnd;
+                    
+                    // Convert to percentages within the group
+                    const groupTotal = groupEnd.sub(groupStart).toNumber();
+                    const overlapStartOffset = overlapStart.sub(groupStart).toNumber();
+                    const overlapEndOffset = overlapEnd.sub(groupStart).toNumber();
+                    
+                    partialSelectionPercent = {
+                      start: (overlapStartOffset / groupTotal) * 100,
+                      end: (overlapEndOffset / groupTotal) * 100,
+                    };
+                  }
+                }
+
                 // Determine group color
-                const groupIsGreen = hasHarvestablePlot || hasSelectedPlot || hasHoveredPlot;
+                const groupIsGreen = hasHarvestablePlot || (hasSelectedPlot && !partialSelectionPercent) || hasHoveredPlot;
                 const groupIsActive = hasHoveredPlot || hasSelectedPlot;
 
                 // Border radius for the group
@@ -363,27 +393,52 @@ export default function PodLineGraph({
                   }
                 };
 
-                // Render group as single solid unit
+                // Render group with partial selection if applicable
                 return (
                   <div
                     key={`group-${group.startIndex.toHuman()}`}
-                    className={cn(
-                      "absolute cursor-pointer transition-all",
-                      groupIsGreen ? "bg-pinto-green-1" : "bg-pinto-morning-orange",
-                    )}
+                    className="absolute"
                     style={{
                       left: `${groupLeftPercent}%`,
                       width: `${groupDisplayWidth}%`,
                       minWidth: "4px",
                       height: "100%",
                       top: "0%",
-                      borderRadius: groupBorderRadius,
                       zIndex: groupIsActive ? 20 : 1,
                     }}
-                    onClick={handleGroupClick}
-                    onMouseEnter={() => setHoveredPlotIndex(groupFirstPlotIndex)}
-                    onMouseLeave={() => setHoveredPlotIndex(null)}
-                  />
+                  >
+                    {/* Base rectangle (background color) */}
+                    <div
+                      className={cn(
+                        "absolute inset-0 cursor-pointer transition-all",
+                        groupIsGreen ? "bg-pinto-green-1" : "bg-pinto-morning-orange",
+                      )}
+                      style={{
+                        borderRadius: groupBorderRadius,
+                      }}
+                      onClick={handleGroupClick}
+                      onMouseEnter={() => setHoveredPlotIndex(groupFirstPlotIndex)}
+                      onMouseLeave={() => setHoveredPlotIndex(null)}
+                    />
+                    
+                    {/* Partial selection overlay (green) */}
+                    {partialSelectionPercent && (
+                      <div
+                        className="absolute bg-pinto-green-1 pointer-events-none"
+                        style={{
+                          left: `${partialSelectionPercent.start}%`,
+                          width: `${partialSelectionPercent.end - partialSelectionPercent.start}%`,
+                          height: "100%",
+                          top: "0%",
+                          // Apply border radius only on edges that align with the group edges
+                          borderTopLeftRadius: partialSelectionPercent.start <= 0.1 ? groupBorderRadius : "0",
+                          borderBottomLeftRadius: partialSelectionPercent.start <= 0.1 ? groupBorderRadius : "0",
+                          borderTopRightRadius: partialSelectionPercent.end >= 99.9 ? groupBorderRadius : "0",
+                          borderBottomRightRadius: partialSelectionPercent.end >= 99.9 ? groupBorderRadius : "0",
+                        }}
+                      />
+                    )}
+                  </div>
                 );
               })}
             </div>

@@ -98,6 +98,40 @@ export default function CreateListing() {
     };
   }, [plot, farmerField.plots, harvestableIndex]);
 
+  // Calculate selected pod range for PodLineGraph partial selection
+  const selectedPodRange = useMemo(() => {
+    if (plot.length === 0) return undefined;
+    
+    // Sort plots by index
+    const sortedPlots = [...plot].sort((a, b) => a.index.sub(b.index).toNumber());
+    
+    // Helper function to convert pod offset to absolute index
+    const offsetToAbsoluteIndex = (offset: number): TokenValue => {
+      let remainingOffset = offset;
+      
+      for (const p of sortedPlots) {
+        const plotPods = p.pods.toNumber();
+        
+        if (remainingOffset <= plotPods) {
+          // The offset falls within this plot
+          return p.index.add(TokenValue.fromHuman(remainingOffset, PODS.decimals));
+        }
+        
+        // Move to next plot
+        remainingOffset -= plotPods;
+      }
+      
+      // If we've exhausted all plots, return the end of the last plot
+      const lastPlot = sortedPlots[sortedPlots.length - 1];
+      return lastPlot.index.add(lastPlot.pods);
+    };
+    
+    return {
+      start: offsetToAbsoluteIndex(podRange[0]),
+      end: offsetToAbsoluteIndex(podRange[1]),
+    };
+  }, [plot, podRange]);
+
   // Plot selection handler with tracking
   const handlePlotSelection = useCallback(
     (plots: Plot[]) => {
@@ -123,8 +157,15 @@ export default function CreateListing() {
   // Pod range slider handler (two thumbs)
   const handlePodRangeChange = useCallback((value: number[]) => {
     const [min, max] = value;
+    const newAmount = max - min;
+    
     setPodRange([min, max]);
-    setAmount(max - min);
+    setAmount(newAmount);
+    
+    // If amount becomes 0, clear the plot selection
+    if (newAmount === 0) {
+      setPlot([]);
+    }
   }, []);
 
   // Price per pod slider handler
@@ -244,6 +285,7 @@ export default function CreateListing() {
         {/* Pod Line Graph Visualization */}
         <PodLineGraph
           selectedPlotIndices={plot.map((p) => p.index.toHuman())}
+          selectedPodRange={selectedPodRange}
           onPlotGroupSelect={(plotIndices) => {
             // Check if all plots in the group are already selected
             const allSelected = plotIndices.every((index) => plot.some((p) => p.index.toHuman() === index));
@@ -349,13 +391,13 @@ export default function CreateListing() {
               </p>
             )}
           </div> */}
-          {/* <div className="flex flex-row w-full items-center justify-between gap-2">
+          <div className="flex flex-row w-full items-center justify-between gap-2">
             <p className="pinto-body text-pinto-light">Send balances to Farm Balance</p>
             <Switch
               checked={balanceTo === FarmToMode.INTERNAL}
               onCheckedChange={(checked) => setBalanceTo(checked ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL)}
             />
-          </div> */}
+          </div>
         </div>
       )}
       <div className="flex flex-col gap-4">
