@@ -36,11 +36,7 @@ interface PodLineGraphProps {
 /**
  * Groups nearby plots for visual display while keeping each plot individually interactive
  */
-function combinePlots(
-  plots: Plot[],
-  harvestableIndex: TokenValue,
-  selectedIndices: Set<string>,
-): CombinedPlot[] {
+function combinePlots(plots: Plot[], harvestableIndex: TokenValue, selectedIndices: Set<string>): CombinedPlot[] {
   if (plots.length === 0) return [];
 
   // Sort plots by index
@@ -73,9 +69,7 @@ function combinePlots(
       const totalPods = currentGroup.reduce((sum, p) => sum.add(p.pods), TokenValue.ZERO);
 
       // Check if any plot in group is harvestable or selected
-      const isHarvestable = currentGroup.some(
-        (p) => p.harvestablePods?.gt(0) || endIndex.lte(harvestableIndex),
-      );
+      const isHarvestable = currentGroup.some((p) => p.harvestablePods?.gt(0) || endIndex.lte(harvestableIndex));
       const isSelected = currentGroup.some((p) => selectedIndices.has(p.index.toHuman()));
 
       combined.push({
@@ -100,16 +94,16 @@ function combinePlots(
 function generateAxisLabels(min: number, max: number): number[] {
   const INTERVAL = 10_000_000; // 10M
   const labels: number[] = [];
-  
+
   // Start from 0 or the first 10M multiple
   const start = Math.floor(min / INTERVAL) * INTERVAL;
-  
+
   for (let value = start; value <= max; value += INTERVAL) {
     if (value >= min) {
       labels.push(value);
     }
   }
-  
+
   return labels;
 }
 
@@ -119,11 +113,11 @@ function generateAxisLabels(min: number, max: number): number[] {
  */
 function generateLogGridPoints(maxValue: number): number[] {
   if (maxValue <= 0) return [];
-  
+
   const gridPoints: number[] = [];
   const million = 1_000_000;
   const minValue = maxValue / 10;
-  
+
   // For values less than 10M, use simple 1M, 2M, 5M pattern
   if (maxValue <= 10 * million) {
     if (maxValue > 1 * million && 1 * million > minValue) gridPoints.push(1 * million);
@@ -131,7 +125,7 @@ function generateLogGridPoints(maxValue: number): number[] {
     if (maxValue > 5 * million && 5 * million > minValue) gridPoints.push(5 * million);
     return gridPoints;
   }
-  
+
   // For larger values, use powers of 10
   let power = million;
   while (power < maxValue) {
@@ -142,7 +136,7 @@ function generateLogGridPoints(maxValue: number): number[] {
     if (next5 < maxValue && next5 > minValue) gridPoints.push(next5);
     power *= 10;
   }
-  
+
   return gridPoints.sort((a, b) => a - b);
 }
 
@@ -223,10 +217,10 @@ export default function PodLineGraph({
 
   // Calculate max harvested index for log scale
   const maxHarvestedIndex = harvestableIndex.gt(0) ? harvestableIndex.toNumber() : 1;
-  
+
   // Check if there are any harvested plots
   const hasHarvestedPlots = harvestedPlots.length > 0;
-  
+
   // Adjust width percentages based on whether we have harvested plots
   const harvestedWidthPercent = hasHarvestedPlots ? HARVESTED_WIDTH_PERCENT : 0;
   const podlineWidthPercent = hasHarvestedPlots ? PODLINE_WIDTH_PERCENT : 100;
@@ -237,30 +231,90 @@ export default function PodLineGraph({
       <div className="mb-1">
         <p className="text-pinto-gray-4 text-[0.75rem]">My Pods In Line</p>
       </div>
-      
+
       {/* Plot container with border */}
       <div className="relative w-full h-12 border border-pinto-gray-2 rounded-lg overflow-hidden">
         <div className="relative w-full h-full flex">
           {/* Harvested Section (Log Scale) - Left 20% (only shown if there are harvested plots) */}
           {hasHarvestedPlots && (
-          <div className="relative" style={{ width: `${harvestedWidthPercent}%` }}>
-            {/* Grid lines (exponential scale) */}
+            <div className="relative" style={{ width: `${harvestedWidthPercent}%` }}>
+              {/* Grid lines (exponential scale) */}
+              <div className="absolute inset-0">
+                {generateLogGridPoints(maxHarvestedIndex).map((value) => {
+                  // Exponential scale: small values compressed to the left, large values spread to the right
+                  const minValue = maxHarvestedIndex / 10;
+                  const normalizedValue = (value - minValue) / (maxHarvestedIndex - minValue);
+
+                  // Apply exponential transformation: position = (e^(k*x) - 1) / (e^k - 1)
+                  // Using k=1 for very gentle exponential curve (almost linear)
+                  const k = 1;
+                  const position = ((Math.exp(k * normalizedValue) - 1) / (Math.exp(k) - 1)) * 100;
+
+                  if (position > 100 || position < 0) return null;
+
+                  return (
+                    <div
+                      key={`harvested-grid-${value}`}
+                      className="absolute top-0 bottom-0 w-px bg-pinto-gray-2"
+                      style={{ left: `${position}%` }}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Plot rectangles */}
+              <div className="absolute inset-0 flex items-center">
+                {harvestedPlots.map((plot, idx) => {
+                  // Exponential scale: small values compressed to the left, large values spread to the right
+                  const minValue = maxHarvestedIndex / 10;
+                  const plotStart = Math.max(plot.startIndex.toNumber(), minValue);
+                  const plotEnd = Math.max(plot.endIndex.toNumber(), minValue);
+
+                  const normalizedStart = (plotStart - minValue) / (maxHarvestedIndex - minValue);
+                  const normalizedEnd = (plotEnd - minValue) / (maxHarvestedIndex - minValue);
+
+                  // Apply exponential transformation
+                  const k = 1;
+                  const leftPercent = ((Math.exp(k * normalizedStart) - 1) / (Math.exp(k) - 1)) * 100;
+                  const rightPercent = ((Math.exp(k * normalizedEnd) - 1) / (Math.exp(k) - 1)) * 100;
+                  const widthPercent = rightPercent - leftPercent;
+                  const displayWidth = Math.max(widthPercent, MIN_PLOT_WIDTH_PERCENT);
+
+                  // Check if this is the leftmost plot
+                  const isLeftmost = idx === 0 && leftPercent < 1;
+
+                  return (
+                    <div
+                      key={`harvested-${plot.startIndex.toHuman()}`}
+                      className="absolute bg-pinto-green-1"
+                      style={{
+                        left: `${leftPercent}%`,
+                        width: `${displayWidth}%`,
+                        minWidth: "4px",
+                        height: "100%",
+                        top: "0%",
+                        borderRadius: isLeftmost ? "2px 0 0 2px" : "2px",
+                        zIndex: plot.isSelected ? 10 : 1,
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Podline Section (Linear Scale) - Right 80% or 100% if no harvested plots */}
+          <div className="relative" style={{ width: `${podlineWidthPercent}%` }}>
+            {/* Grid lines at 10M intervals */}
             <div className="absolute inset-0">
-              {generateLogGridPoints(maxHarvestedIndex).map((value) => {
-                // Exponential scale: small values compressed to the left, large values spread to the right
-                const minValue = maxHarvestedIndex / 10;
-                const normalizedValue = (value - minValue) / (maxHarvestedIndex - minValue);
-                
-                // Apply exponential transformation: position = (e^(k*x) - 1) / (e^k - 1)
-                // Using k=1 for very gentle exponential curve (almost linear)
-                const k = 1;
-                const position = (Math.exp(k * normalizedValue) - 1) / (Math.exp(k) - 1) * 100;
-                
-                if (position > 100 || position < 0) return null;
+              {generateAxisLabels(0, podLine.toNumber()).map((value) => {
+                if (value === 0) return null; // Skip 0, it's the marker
+                const position = podLine.gt(0) ? (value / podLine.toNumber()) * 100 : 0;
+                if (position > 100) return null;
 
                 return (
                   <div
-                    key={`harvested-grid-${value}`}
+                    key={`grid-${value}`}
                     className="absolute top-0 bottom-0 w-px bg-pinto-gray-2"
                     style={{ left: `${position}%` }}
                   />
@@ -268,217 +322,157 @@ export default function PodLineGraph({
               })}
             </div>
 
-            {/* Plot rectangles */}
+            {/* Plot rectangles - grouped visually but individually interactive */}
             <div className="absolute inset-0 flex items-center">
-            {harvestedPlots.map((plot, idx) => {
-              // Exponential scale: small values compressed to the left, large values spread to the right
-              const minValue = maxHarvestedIndex / 10;
-              const plotStart = Math.max(plot.startIndex.toNumber(), minValue);
-              const plotEnd = Math.max(plot.endIndex.toNumber(), minValue);
-              
-              const normalizedStart = (plotStart - minValue) / (maxHarvestedIndex - minValue);
-              const normalizedEnd = (plotEnd - minValue) / (maxHarvestedIndex - minValue);
-              
-              // Apply exponential transformation
-              const k = 1;
-              const leftPercent = (Math.exp(k * normalizedStart) - 1) / (Math.exp(k) - 1) * 100;
-              const rightPercent = (Math.exp(k * normalizedEnd) - 1) / (Math.exp(k) - 1) * 100;
-              const widthPercent = rightPercent - leftPercent;
-              const displayWidth = Math.max(widthPercent, MIN_PLOT_WIDTH_PERCENT);
+              {unharvestedPlots.map((group, groupIdx) => {
+                const groupPlaceInLine = group.startIndex.sub(harvestableIndex);
+                const groupEnd = group.endIndex.sub(harvestableIndex);
 
-              // Check if this is the leftmost plot
-              const isLeftmost = idx === 0 && leftPercent < 1;
+                const groupLeftPercent = podLine.gt(0) ? (groupPlaceInLine.toNumber() / podLine.toNumber()) * 100 : 0;
+                const groupWidthPercent = podLine.gt(0)
+                  ? ((groupEnd.toNumber() - groupPlaceInLine.toNumber()) / podLine.toNumber()) * 100
+                  : 0;
+                const groupDisplayWidth = Math.max(groupWidthPercent, MIN_PLOT_WIDTH_PERCENT);
 
-              return (
-                <div
-                  key={`harvested-${plot.startIndex.toHuman()}`}
-                  className="absolute bg-pinto-green-1"
-                  style={{
-                    left: `${leftPercent}%`,
-                    width: `${displayWidth}%`,
-                    minWidth: "4px",
-                    height: "100%",
-                    top: "0%",
-                    borderRadius: isLeftmost ? "2px 0 0 2px" : "2px",
-                    zIndex: plot.isSelected ? 10 : 1,
-                  }}
-                />
-              );
-            })}
+                // Check if this is the rightmost group
+                const isRightmost =
+                  groupIdx === unharvestedPlots.length - 1 && groupLeftPercent + groupDisplayWidth > 99;
+
+                // Check if group is hovered or selected (based on first plot in group)
+                const groupFirstPlotIndex = group.plots[0].index.toHuman();
+                const hasHoveredPlot = group.plots.some((p) => p.index.toHuman() === hoveredPlotIndex);
+                const hasSelectedPlot = group.plots.some((p) => selectedSet.has(p.index.toHuman()));
+                const hasHarvestablePlot = group.plots.some((p) => p.harvestablePods?.gt(0));
+
+                // Determine group color
+                const groupIsGreen = hasHarvestablePlot || hasSelectedPlot || hasHoveredPlot;
+                const groupIsActive = hasHoveredPlot || hasSelectedPlot;
+
+                // Border radius for the group
+                let groupBorderRadius = "2px";
+                if (isRightmost) {
+                  groupBorderRadius = "0 2px 2px 0";
+                }
+
+                // Handle group click - select all plots in the group
+                const handleGroupClick = () => {
+                  if (onPlotGroupSelect) {
+                    // Send all plot indices in the group
+                    const plotIndices = group.plots.map((p) => p.index.toHuman());
+                    onPlotGroupSelect(plotIndices);
+                  }
+                };
+
+                // Render group as single solid unit
+                return (
+                  <div
+                    key={`group-${group.startIndex.toHuman()}`}
+                    className={cn(
+                      "absolute cursor-pointer transition-all",
+                      groupIsGreen ? "bg-pinto-green-1" : "bg-pinto-morning-orange",
+                    )}
+                    style={{
+                      left: `${groupLeftPercent}%`,
+                      width: `${groupDisplayWidth}%`,
+                      minWidth: "4px",
+                      height: "100%",
+                      top: "0%",
+                      borderRadius: groupBorderRadius,
+                      zIndex: groupIsActive ? 20 : 1,
+                    }}
+                    onClick={handleGroupClick}
+                    onMouseEnter={() => setHoveredPlotIndex(groupFirstPlotIndex)}
+                    onMouseLeave={() => setHoveredPlotIndex(null)}
+                  />
+                );
+              })}
             </div>
           </div>
-          )}
-
-          {/* Podline Section (Linear Scale) - Right 80% or 100% if no harvested plots */}
-          <div className="relative" style={{ width: `${podlineWidthPercent}%` }}>
-          {/* Grid lines at 10M intervals */}
-          <div className="absolute inset-0">
-            {generateAxisLabels(0, podLine.toNumber()).map((value) => {
-              if (value === 0) return null; // Skip 0, it's the marker
-              const position = podLine.gt(0) ? (value / podLine.toNumber()) * 100 : 0;
-              if (position > 100) return null;
-
-              return (
-                <div
-                  key={`grid-${value}`}
-                  className="absolute top-0 bottom-0 w-px bg-pinto-gray-2"
-                  style={{ left: `${position}%` }}
-                />
-              );
-            })}
-          </div>
-
-          {/* Plot rectangles - grouped visually but individually interactive */}
-          <div className="absolute inset-0 flex items-center">
-            {unharvestedPlots.map((group, groupIdx) => {
-              const groupPlaceInLine = group.startIndex.sub(harvestableIndex);
-              const groupEnd = group.endIndex.sub(harvestableIndex);
-
-              const groupLeftPercent = podLine.gt(0) ? (groupPlaceInLine.toNumber() / podLine.toNumber()) * 100 : 0;
-              const groupWidthPercent =
-                podLine.gt(0) ? ((groupEnd.toNumber() - groupPlaceInLine.toNumber()) / podLine.toNumber()) * 100 : 0;
-              const groupDisplayWidth = Math.max(groupWidthPercent, MIN_PLOT_WIDTH_PERCENT);
-
-              // Check if this is the rightmost group
-              const isRightmost = groupIdx === unharvestedPlots.length - 1 && groupLeftPercent + groupDisplayWidth > 99;
-
-              // Check if group is hovered or selected (based on first plot in group)
-              const groupFirstPlotIndex = group.plots[0].index.toHuman();
-              const hasHoveredPlot = group.plots.some((p) => p.index.toHuman() === hoveredPlotIndex);
-              const hasSelectedPlot = group.plots.some((p) => selectedSet.has(p.index.toHuman()));
-              const hasHarvestablePlot = group.plots.some((p) => p.harvestablePods?.gt(0));
-              
-              // Determine group color
-              const groupIsGreen = hasHarvestablePlot || hasSelectedPlot || hasHoveredPlot;
-              const groupIsActive = hasHoveredPlot || hasSelectedPlot;
-
-              // Border radius for the group
-              let groupBorderRadius = "2px";
-              if (isRightmost) {
-                groupBorderRadius = "0 2px 2px 0";
-              }
-
-              // Handle group click - select all plots in the group
-              const handleGroupClick = () => {
-                if (onPlotGroupSelect) {
-                  // Send all plot indices in the group
-                  const plotIndices = group.plots.map((p) => p.index.toHuman());
-                  onPlotGroupSelect(plotIndices);
-                }
-              };
-
-              // Render group as single solid unit
-              return (
-                <div
-                  key={`group-${group.startIndex.toHuman()}`}
-                  className={cn(
-                    "absolute cursor-pointer transition-all",
-                    groupIsGreen ? "bg-pinto-green-1" : "bg-pinto-morning-orange"
-                  )}
-                  style={{
-                    left: `${groupLeftPercent}%`,
-                    width: `${groupDisplayWidth}%`,
-                    minWidth: "4px",
-                    height: "100%",
-                    top: "0%",
-                    borderRadius: groupBorderRadius,
-                    zIndex: groupIsActive ? 20 : 1,
-                  }}
-                  onClick={handleGroupClick}
-                  onMouseEnter={() => setHoveredPlotIndex(groupFirstPlotIndex)}
-                  onMouseLeave={() => setHoveredPlotIndex(null)}
-                >
-                </div>
-              );
-            })}
-          </div>
-        </div>
         </div>
       </div>
 
       {/* "0" Marker - vertical line extending to labels (only shown if there are harvested plots) */}
       {hasHarvestedPlots && (
-      <div
-        className="absolute w-0.5 z-10"
-        style={{ 
-          left: `${harvestedWidthPercent}%`, 
-          top: "-0.25rem", // 4px above graph
-          height: "3.5rem", // graph height (3rem = 48px) + 8px = 56px
-          backgroundColor: "#ED7A00",
-          transform: "translateX(-50%)" // Center the line on the 20% mark
-        }}
-      />
+        <div
+          className="absolute w-0.5 z-10"
+          style={{
+            left: `${harvestedWidthPercent}%`,
+            top: "-0.25rem", // 4px above graph
+            height: "3.5rem", // graph height (3rem = 48px) + 8px = 56px
+            backgroundColor: "#ED7A00",
+            transform: "translateX(-50%)", // Center the line on the 20% mark
+          }}
+        />
       )}
 
       {/* Bottom axis labels - outside border */}
       <div className="absolute left-0 right-0" style={{ bottom: "4px" }}>
         {/* "0" Label - positioned at the marker (only shown if there are harvested plots) */}
         {hasHarvestedPlots && (
-        <div
-          className="absolute text-[0.75rem] font-semibold"
-          style={{ 
-            left: `${harvestedWidthPercent}%`, 
-            transform: "translateX(-50%)",
-            color: "#ED7A00" 
-          }}
-        >
-          0
-        </div>
+          <div
+            className="absolute text-[0.75rem] font-semibold"
+            style={{
+              left: `${harvestedWidthPercent}%`,
+              transform: "translateX(-50%)",
+              color: "#ED7A00",
+            }}
+          >
+            0
+          </div>
         )}
 
         <div className="flex">
-        {/* Harvested section labels (only shown if there are harvested plots) */}
-        {hasHarvestedPlots && (
-        <div className="relative" style={{ width: `${harvestedWidthPercent}%` }}>
-          {generateLogGridPoints(maxHarvestedIndex).map((value) => {
-            // Exponential scale: small values compressed to the left, large values spread to the right
-            const minValue = maxHarvestedIndex / 10;
-            const normalizedValue = (value - minValue) / (maxHarvestedIndex - minValue);
-            
-            // Apply exponential transformation
-            const k = 1;
-            const position = (Math.exp(k * normalizedValue) - 1) / (Math.exp(k) - 1) * 100;
+          {/* Harvested section labels (only shown if there are harvested plots) */}
+          {hasHarvestedPlots && (
+            <div className="relative" style={{ width: `${harvestedWidthPercent}%` }}>
+              {generateLogGridPoints(maxHarvestedIndex).map((value) => {
+                // Exponential scale: small values compressed to the left, large values spread to the right
+                const minValue = maxHarvestedIndex / 10;
+                const normalizedValue = (value - minValue) / (maxHarvestedIndex - minValue);
 
-            return (
-              <div
-                key={`harvested-label-${value}`}
-                className="absolute text-pinto-gray-4 text-[0.75rem]"
-                style={{
-                  left: `${position}%`,
-                  transform: "translateX(-50%)",
-                }}
-              >
-                {formatAxisLabel(value)}
-              </div>
-            );
-          })}
-        </div>
-        )}
+                // Apply exponential transformation
+                const k = 1;
+                const position = ((Math.exp(k * normalizedValue) - 1) / (Math.exp(k) - 1)) * 100;
 
-        {/* Podline section labels - show place in line (10M, 20M, etc.) */}
-        <div className="relative" style={{ width: `${podlineWidthPercent}%` }}>
-          {generateAxisLabels(0, podLine.toNumber()).map((value) => {
-            if (value === 0 && hasHarvestedPlots) return null; // Skip 0 only if harvested section is shown
-            const position = podLine.gt(0) ? (value / podLine.toNumber()) * 100 : 0;
-            if (position > 100) return null;
+                return (
+                  <div
+                    key={`harvested-label-${value}`}
+                    className="absolute text-pinto-gray-4 text-[0.75rem]"
+                    style={{
+                      left: `${position}%`,
+                      transform: "translateX(-50%)",
+                    }}
+                  >
+                    {formatAxisLabel(value)}
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
-            return (
-              <div
-                key={`podline-label-${value}`}
-                className="absolute text-pinto-gray-4 text-[0.75rem]"
-                style={{
-                  left: `${position}%`,
-                  transform: "translateX(-50%)",
-                }}
-              >
-                {formatAxisLabel(value)}
-              </div>
-            );
-          })}
-        </div>
+          {/* Podline section labels - show place in line (10M, 20M, etc.) */}
+          <div className="relative" style={{ width: `${podlineWidthPercent}%` }}>
+            {generateAxisLabels(0, podLine.toNumber()).map((value) => {
+              if (value === 0 && hasHarvestedPlots) return null; // Skip 0 only if harvested section is shown
+              const position = podLine.gt(0) ? (value / podLine.toNumber()) * 100 : 0;
+              if (position > 100) return null;
+
+              return (
+                <div
+                  key={`podline-label-${value}`}
+                  className="absolute text-pinto-gray-4 text-[0.75rem]"
+                  style={{
+                    left: `${position}%`,
+                    transform: "translateX(-50%)",
+                  }}
+                >
+                  {formatAxisLabel(value)}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
