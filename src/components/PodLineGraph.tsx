@@ -233,6 +233,11 @@ export default function PodLineGraph({
 
   return (
     <div className={cn("relative w-full pb-2", className)}>
+      {/* Label */}
+      <div className="mb-1">
+        <p className="text-pinto-gray-4 text-[0.75rem]">My Pods In Line</p>
+      </div>
+      
       {/* Plot container with border */}
       <div className="relative w-full h-12 border border-pinto-gray-2 rounded-lg overflow-hidden">
         <div className="relative w-full h-full flex">

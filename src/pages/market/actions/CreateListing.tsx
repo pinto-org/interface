@@ -158,7 +158,7 @@ export default function CreateListing() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <p className="pinto-body text-pinto-light">Select Plot</p>
+        <p className="pinto-body text-pinto-light">Select the Plot(s) you want to List (i):</p>
         
         {/* Pod Line Graph Visualization */}
         <div className="flex flex-col gap-2 mb-2">
@@ -186,14 +186,14 @@ export default function CreateListing() {
           />
         </div>
         
-        <ComboPlotInputField
+{/*         <ComboPlotInputField
           amount={amount}
           minAmount={minFill}
           selectedPlots={plot}
           setAmount={setAmount}
           setPlots={handlePlotSelection}
           type="single"
-        />
+        /> */}
       </div>
       <div className="flex flex-col gap-2">
         <p className="pinto-body text-pinto-light">Amount I want for each Pod</p>
