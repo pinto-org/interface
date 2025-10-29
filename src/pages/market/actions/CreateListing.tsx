@@ -2,6 +2,7 @@ import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TV, TokenValue } from "@/classes/TokenValue";
 import ComboPlotInputField from "@/components/ComboPlotInputField";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
+import PodLineGraph from "@/components/PodLineGraph";
 import SimpleInputField from "@/components/SimpleInputField";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Separator } from "@/components/ui/Separator";
@@ -10,6 +11,7 @@ import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
+import { useFarmerField } from "@/state/useFarmerField";
 import { useHarvestableIndex, usePodIndex } from "@/state/useFieldData";
 import { useQueryKeys } from "@/state/useQueryKeys";
 import useTokenData from "@/state/useTokenData";
@@ -17,7 +19,7 @@ import { trackSimpleEvent } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
 import { FarmToMode, Plot } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
@@ -34,6 +36,7 @@ export default function CreateListing() {
   const mainToken = useTokenData().mainToken;
   const harvestableIndex = useHarvestableIndex();
   const navigate = useNavigate();
+  const farmerField = useFarmerField();
 
   const queryClient = useQueryClient();
   const { allPodListings, allMarket, farmerMarket } = useQueryKeys({ account, harvestableIndex });
@@ -156,6 +159,33 @@ export default function CreateListing() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <p className="pinto-body text-pinto-light">Select Plot</p>
+        
+        {/* Pod Line Graph Visualization */}
+        <div className="flex flex-col gap-2 mb-2">
+          <PodLineGraph
+            selectedPlotIndices={plot.map((p) => p.index.toHuman())}
+            onPlotGroupSelect={(plotIndices) => {
+              // Check if all plots in the group are already selected
+              const allSelected = plotIndices.every((index) => 
+                plot.some((p) => p.index.toHuman() === index)
+              );
+              
+              if (allSelected) {
+                // Deselect if already selected
+                setPlot([]);
+              } else {
+                // Find and select all plots in the group from farmer plots
+                const plotsToSelect = farmerField.plots.filter((p) => 
+                  plotIndices.includes(p.index.toHuman())
+                );
+                if (plotsToSelect.length > 0) {
+                  handlePlotSelection(plotsToSelect);
+                }
+              }
+            }}
+          />
+        </div>
+        
         <ComboPlotInputField
           amount={amount}
           minAmount={minFill}
