@@ -75,24 +75,49 @@ export function useContinuousMorningTime(): number {
  */
 export function useScaledTemperature(intervalMs: number = 2000): { max: TV; scaled: TV; isLoading: boolean } {
   const morning = useMorning();
+  const season = useSunData();
   const contractTemperature = useTemperature();
-  const secondsElapsed = useContinuousMorningTime();
 
   const [scaledTemp, setScaledTemp] = useState<TV>(contractTemperature.scaled);
 
   const isMorning = morning.isMorning;
   const maxTemperature = contractTemperature.max;
 
+  // Use stable reference for sunrise timestamp (only changes when the actual timestamp value changes)
+  const sunriseTimestampSeconds = useMemo(() => {
+    return season.timestamp?.toSeconds() ?? 0;
+  }, [season.timestamp?.toMillis()]);
+
   useEffect(() => {
-    // If not morning, use max temperature
+    // If scaled temperature is already set, don't recalculate
+    if (scaledTemp.lt(0)) {
+      return;
+    }
+    // If not morning, use contract scaled temperature
     if (!isMorning) {
-      setScaledTemp(contractTemperature.max);
+      setScaledTemp(contractTemperature.scaled);
+      return;
+    }
+
+    // If no sunrise timestamp, can't calculate
+    if (!sunriseTimestampSeconds) {
+      setScaledTemp(contractTemperature.scaled);
       return;
     }
 
     // During morning, calculate scaled temperature at intervals
     const updateScaledTemperature = () => {
-      const calculated = scaleTemperatureWithMaxTemperature(maxTemperature, secondsElapsed);
+      const now = DateTime.now();
+      const nowSecs = now.toSeconds();
+
+      // Calculate seconds elapsed since sunrise
+      const elapsed = nowSecs - sunriseTimestampSeconds;
+
+      // Clamp between 0 and MORNING_AUCTION_DURATION (600 seconds)
+      const clampedElapsed = Math.max(0, Math.min(elapsed, MORNING_AUCTION_DURATION));
+
+      // Calculate scaled temperature using the logarithmic formula
+      const calculated = scaleTemperatureWithMaxTemperature(maxTemperature, clampedElapsed);
       setScaledTemp(calculated);
     };
 
@@ -106,7 +131,7 @@ export function useScaledTemperature(intervalMs: number = 2000): { max: TV; scal
     return () => {
       clearInterval(intervalId);
     };
-  }, [isMorning, maxTemperature, secondsElapsed, contractTemperature.scaled, intervalMs]);
+  }, [isMorning, maxTemperature, sunriseTimestampSeconds, contractTemperature.scaled, intervalMs]);
 
   return useMemo(
     () => ({
