@@ -101,31 +101,31 @@ export default function CreateListing() {
   // Calculate selected pod range for PodLineGraph partial selection
   const selectedPodRange = useMemo(() => {
     if (plot.length === 0) return undefined;
-    
+
     // Sort plots by index
     const sortedPlots = [...plot].sort((a, b) => a.index.sub(b.index).toNumber());
-    
+
     // Helper function to convert pod offset to absolute index
     const offsetToAbsoluteIndex = (offset: number): TokenValue => {
       let remainingOffset = offset;
-      
+
       for (const p of sortedPlots) {
         const plotPods = p.pods.toNumber();
-        
+
         if (remainingOffset <= plotPods) {
           // The offset falls within this plot
           return p.index.add(TokenValue.fromHuman(remainingOffset, PODS.decimals));
         }
-        
+
         // Move to next plot
         remainingOffset -= plotPods;
       }
-      
+
       // If we've exhausted all plots, return the end of the last plot
       const lastPlot = sortedPlots[sortedPlots.length - 1];
       return lastPlot.index.add(lastPlot.pods);
     };
-    
+
     return {
       start: offsetToAbsoluteIndex(podRange[0]),
       end: offsetToAbsoluteIndex(podRange[1]),
@@ -158,10 +158,10 @@ export default function CreateListing() {
   const handlePodRangeChange = useCallback((value: number[]) => {
     const [min, max] = value;
     const newAmount = max - min;
-    
+
     setPodRange([min, max]);
     setAmount(newAmount);
-    
+
     // If amount becomes 0, clear the plot selection
     if (newAmount === 0) {
       setPlot([]);

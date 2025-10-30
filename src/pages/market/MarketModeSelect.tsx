@@ -17,7 +17,8 @@ export default function MarketModeSelect({ onMainSelectionChange, onSecondarySel
   const farmerField = useFarmerField();
 
   const mainTab = mode === "buy" || mode === "sell" ? mode : undefined;
-  const secondaryTab = id === "fill" ? "fill" : id === "create" ? "create" : undefined;
+  // Only set secondaryTab if id is explicitly "create" or "fill"
+  const secondaryTab = id === "create" ? "create" : id === "fill" ? "fill" : undefined;
   const hasNoPods = farmerField.plots.length === 0;
 
   const handleMainChange = useCallback(

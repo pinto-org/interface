@@ -72,7 +72,8 @@ function combinePlots(plots: Plot[], harvestableIndex: TokenValue, selectedIndic
 
       // Check if any plot in group is harvestable or selected
       const isHarvestable = currentGroup.some((p) => p.harvestablePods?.gt(0) || endIndex.lte(harvestableIndex));
-      const isSelected = currentGroup.some((p) => selectedIndices.has(p.index.toHuman()));
+      // Check selection by id (for order markers) or index (for regular plots)
+      const isSelected = currentGroup.some((p) => selectedIndices.has(p.id || p.index.toHuman()));
 
       combined.push({
         startIndex,
@@ -342,9 +343,10 @@ export default function PodLineGraph({
                   groupIdx === unharvestedPlots.length - 1 && groupLeftPercent + groupDisplayWidth > 99;
 
                 // Check if group is hovered or selected (based on first plot in group)
-                const groupFirstPlotIndex = group.plots[0].index.toHuman();
-                const hasHoveredPlot = group.plots.some((p) => p.index.toHuman() === hoveredPlotIndex);
-                const hasSelectedPlot = group.plots.some((p) => selectedSet.has(p.index.toHuman()));
+                // Use id (for order markers) or index (for regular plots)
+                const groupFirstPlotIndex = group.plots[0].id || group.plots[0].index.toHuman();
+                const hasHoveredPlot = group.plots.some((p) => (p.id || p.index.toHuman()) === hoveredPlotIndex);
+                const hasSelectedPlot = group.plots.some((p) => selectedSet.has(p.id || p.index.toHuman()));
                 const hasHarvestablePlot = group.plots.some((p) => p.harvestablePods?.gt(0));
 
                 // Calculate partial selection if selectedPodRange is provided
@@ -361,12 +363,12 @@ export default function PodLineGraph({
                     // Calculate the overlapping range within the group
                     const overlapStart = rangeStart.gt(groupStart) ? rangeStart : groupStart;
                     const overlapEnd = rangeEnd.lt(groupEnd) ? rangeEnd : groupEnd;
-                    
+
                     // Convert to percentages within the group
                     const groupTotal = groupEnd.sub(groupStart).toNumber();
                     const overlapStartOffset = overlapStart.sub(groupStart).toNumber();
                     const overlapEndOffset = overlapEnd.sub(groupStart).toNumber();
-                    
+
                     partialSelectionPercent = {
                       start: (overlapStartOffset / groupTotal) * 100,
                       end: (overlapEndOffset / groupTotal) * 100,
@@ -375,7 +377,8 @@ export default function PodLineGraph({
                 }
 
                 // Determine group color
-                const groupIsGreen = hasHarvestablePlot || (hasSelectedPlot && !partialSelectionPercent) || hasHoveredPlot;
+                const groupIsGreen =
+                  hasHarvestablePlot || (hasSelectedPlot && !partialSelectionPercent) || hasHoveredPlot;
                 const groupIsActive = hasHoveredPlot || hasSelectedPlot;
 
                 // Border radius for the group
@@ -387,8 +390,9 @@ export default function PodLineGraph({
                 // Handle group click - select all plots in the group
                 const handleGroupClick = () => {
                   if (onPlotGroupSelect) {
-                    // Send all plot indices in the group
-                    const plotIndices = group.plots.map((p) => p.index.toHuman());
+                    // Send all plot IDs or indices in the group
+                    // Prefer 'id' if available (for order markers), otherwise use index
+                    const plotIndices = group.plots.map((p) => p.id || p.index.toHuman());
                     onPlotGroupSelect(plotIndices);
                   }
                 };
@@ -420,7 +424,7 @@ export default function PodLineGraph({
                       onMouseEnter={() => setHoveredPlotIndex(groupFirstPlotIndex)}
                       onMouseLeave={() => setHoveredPlotIndex(null)}
                     />
-                    
+
                     {/* Partial selection overlay (green) */}
                     {partialSelectionPercent && (
                       <div
