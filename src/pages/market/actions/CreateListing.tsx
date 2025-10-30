@@ -483,6 +483,15 @@ export default function CreateListing() {
                 endIcon={<TextAdornment text={mainToken.symbol} className="bg-white" />}
               />
             </div>
+            {/* Effective Temperature Display */}
+            {pricePerPod && pricePerPod > 0 && (
+              <div className="flex justify-end mr-1">
+                <p className="pinto-sm text-pinto-light">
+                  effective Temperature (i):{" "}
+                  <span className="text-green-600 font-semibold">{formatter.noDec((1 / pricePerPod) * 100)}%</span>
+                </p>
+              </div>
+            )}
           </div>
           {/* Expires In - Auto-set to max expiration */}
           {/* <div className="flex flex-col gap-2">
