@@ -57,6 +57,11 @@ const clampAndFormatPrice = (value: number): number => {
   return formatPricePerPod(clamped);
 };
 
+// Utility function to remove trailing zeros from formatted price
+const removeTrailingZeros = (value: string): string => {
+  return value.includes(".") ? value.replace(/\.?0+$/, "") : value;
+};
+
 export default function CreateListing() {
   const { address: account } = useAccount();
   const diamondAddress = useProtocolAddress();
@@ -220,7 +225,7 @@ export default function CreateListing() {
   const handlePriceSliderChange = useCallback((value: number[]) => {
     const formatted = formatPricePerPod(value[0]);
     setPricePerPod(formatted);
-    setPricePerPodInput(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS));
+    setPricePerPodInput(removeTrailingZeros(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS)));
   }, []);
 
   // Price per pod input handlers
@@ -234,7 +239,7 @@ export default function CreateListing() {
     if (!Number.isNaN(numValue)) {
       const formatted = clampAndFormatPrice(numValue);
       setPricePerPod(formatted);
-      setPricePerPodInput(formatted.toString());
+      setPricePerPodInput(removeTrailingZeros(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS)));
     } else {
       setPricePerPodInput("");
       setPricePerPod(undefined);
@@ -404,7 +409,7 @@ export default function CreateListing() {
                 <Slider
                   min={PRICE_PER_POD_CONFIG.MIN}
                   max={PRICE_PER_POD_CONFIG.MAX}
-                  step={0.001}
+                  step={0.000001}
                   value={[pricePerPod || PRICE_PER_POD_CONFIG.MIN]}
                   onValueChange={handlePriceSliderChange}
                   className="w-[300px]"
