@@ -31,6 +31,8 @@ interface PodLineGraphProps {
   selectedPodRange?: { start: TokenValue; end: TokenValue };
   /** Optional: show order range overlay from 0 to this position (absolute index) */
   orderRangeEnd?: TokenValue;
+  /** Optional: show range overlay from start to end position (absolute indices) */
+  rangeOverlay?: { start: TokenValue; end: TokenValue };
   /** Callback when a plot group is clicked - receives all plot indices in the group */
   onPlotGroupSelect?: (plotIndices: string[]) => void;
   /** Additional CSS classes */
@@ -163,6 +165,7 @@ export default function PodLineGraph({
   selectedPlotIndices = [],
   selectedPodRange,
   orderRangeEnd,
+  rangeOverlay,
   onPlotGroupSelect,
   className,
 }: PodLineGraphProps) {
@@ -336,6 +339,21 @@ export default function PodLineGraph({
                 style={{
                   left: "0%",
                   width: `${podLine.gt(0) ? (orderRangeEnd.sub(harvestableIndex).toNumber() / podLine.toNumber()) * 100 : 0}%`,
+                  height: "100%",
+                  top: "0%",
+                  borderRadius: "2px",
+                  zIndex: 5,
+                }}
+              />
+            )}
+
+            {/* Range overlay (from start to end) */}
+            {rangeOverlay?.start.gte(harvestableIndex) && rangeOverlay?.end.gt(rangeOverlay.start) && (
+              <div
+                className="absolute bg-pinto-green-1 opacity-60 pointer-events-none"
+                style={{
+                  left: `${podLine.gt(0) ? (rangeOverlay.start.sub(harvestableIndex).toNumber() / podLine.toNumber()) * 100 : 0}%`,
+                  width: `${podLine.gt(0) ? (rangeOverlay.end.sub(rangeOverlay.start).toNumber() / podLine.toNumber()) * 100 : 0}%`,
                   height: "100%",
                   top: "0%",
                   borderRadius: "2px",
