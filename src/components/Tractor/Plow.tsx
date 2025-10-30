@@ -1,7 +1,7 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { useScaledTemperature } from "@/hooks/useContinuousMorningTime";
 import { TractorRequisitionEvent as RequisitionEvent, SowBlueprintData } from "@/lib/Tractor";
 import useTractorPublishedRequisitions from "@/state/tractor/useTractorPublishedRequisitions";
-import { useTemperature } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
@@ -80,7 +80,7 @@ export function Plow() {
   const [selectedRequisition, setSelectedRequisition] = useState<RequisitionEvent<SowBlueprintData> | null>(null);
   const { tokenPrices } = usePriceData();
   const { mainToken, nativeToken } = useTokenData();
-  const temperatures = useTemperature();
+  const temperatures = useScaledTemperature();
 
   const { isLoading: requisitionsLoading, ...requisitionsQuery } = useTractorPublishedRequisitions(
     undefined,

@@ -62,3 +62,58 @@ export function useContinuousMorningTime(): number {
 
   return secondsElapsed;
 }
+
+/**
+ * Hook that provides scaled temperature updates during the morning auction period.
+ * Updates at a configurable interval (default: 2 seconds) for efficient temperature tracking.
+ *
+ * @param {number} intervalMs - Interval in milliseconds for temperature updates (default: 2000ms)
+ * @returns {{ max: TV, scaled: TV, isLoading: boolean }} Object containing max and scaled temperatures with loading state
+ *
+ * During morning: Calculates scaled temperature based on elapsed time using the logarithmic formula
+ * Outside morning: Returns the current temperature from contract state
+ */
+export function useScaledTemperature(intervalMs: number = 2000): { max: TV; scaled: TV; isLoading: boolean } {
+  const morning = useMorning();
+  const contractTemperature = useTemperature();
+  const secondsElapsed = useContinuousMorningTime();
+
+  const [scaledTemp, setScaledTemp] = useState<TV>(contractTemperature.scaled);
+
+  const isMorning = morning.isMorning;
+  const maxTemperature = contractTemperature.max;
+
+  useEffect(() => {
+    // If not morning, use max temperature
+    if (!isMorning) {
+      setScaledTemp(contractTemperature.max);
+      return;
+    }
+
+    // During morning, calculate scaled temperature at intervals
+    const updateScaledTemperature = () => {
+      const calculated = scaleTemperatureWithMaxTemperature(maxTemperature, secondsElapsed);
+      setScaledTemp(calculated);
+    };
+
+    // Initial calculation
+    updateScaledTemperature();
+
+    // Set up interval for periodic updates
+    const intervalId = setInterval(updateScaledTemperature, intervalMs);
+
+    // Cleanup on unmount or when dependencies change
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [isMorning, maxTemperature, secondsElapsed, contractTemperature.scaled, intervalMs]);
+
+  return useMemo(
+    () => ({
+      max: maxTemperature,
+      scaled: scaledTemp,
+      isLoading: contractTemperature.isLoading,
+    }),
+    [maxTemperature, scaledTemp, contractTemperature.isLoading],
+  );
+}

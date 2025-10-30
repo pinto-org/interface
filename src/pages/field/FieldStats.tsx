@@ -1,6 +1,7 @@
 import TextSkeleton from "@/components/TextSkeleton";
 import TooltipSimple from "@/components/TooltipSimple";
-import { useInitialSoil, usePodLine, usePodLoading, useTemperature, useTotalSoil } from "@/state/useFieldData";
+import { useScaledTemperature } from "@/hooks/useContinuousMorningTime";
+import { useInitialSoil, usePodLine, usePodLoading, useTotalSoil } from "@/state/useFieldData";
 import { useMorning, useSunData } from "@/state/useSunData";
 import { formatter } from "@/utils/format";
 import { normalizeTV } from "@/utils/number";
@@ -8,7 +9,7 @@ import { MorningIntervalCountdown } from "./MorningCountdown";
 
 const FieldStats = () => {
   const abovePeg = useSunData().abovePeg;
-  const temperatures = useTemperature();
+  const temperatures = useScaledTemperature();
   const { isMorning } = useMorning();
 
   const totalSoilAtom = useTotalSoil();
