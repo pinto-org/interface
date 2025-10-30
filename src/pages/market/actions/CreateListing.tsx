@@ -4,6 +4,7 @@ import ComboPlotInputField from "@/components/ComboPlotInputField";
 import PodLineGraph from "@/components/PodLineGraph";
 import SimpleInputField from "@/components/SimpleInputField";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
+import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Separator } from "@/components/ui/Separator";
 import { MultiSlider, Slider } from "@/components/ui/Slider";
@@ -25,6 +26,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
 
 interface PodListingData {
@@ -80,6 +82,9 @@ export default function CreateListing() {
   const [pricePerPod, setPricePerPod] = useState<number | undefined>(undefined);
   const [pricePerPodInput, setPricePerPodInput] = useState<string>("");
   const [balanceTo, setBalanceTo] = useState(FarmToMode.EXTERNAL); // Default: Wallet Balance (toggle off)
+  const [isSuccessful, setIsSuccessful] = useState(false);
+  const [successAmount, setSuccessAmount] = useState<number | null>(null);
+  const [successPrice, setSuccessPrice] = useState<number | null>(null);
   const podIndex = usePodIndex();
   const maxExpiration = Number.parseInt(podIndex.toHuman()) - Number.parseInt(harvestableIndex.toHuman()) || 0;
   const expiresIn = maxExpiration; // Auto-set to max expiration
@@ -248,14 +253,16 @@ export default function CreateListing() {
 
   // reset form and invalidate pod listing query
   const onSuccess = useCallback(() => {
-    navigate(`/market/pods/buy/${plot[0].index.toBigInt()}`);
+    setSuccessAmount(amount);
+    setSuccessPrice(pricePerPod || 0);
+    setIsSuccessful(true);
     setPlot([]);
     setAmount(0);
     setPodRange([0, 0]);
     setPricePerPod(undefined);
     setPricePerPodInput("");
     allQK.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
-  }, [navigate, plot, queryClient, allQK]);
+  }, [amount, pricePerPod, queryClient, allQK]);
 
   // state for toast txns
   const { isConfirming, writeWithEstimateGas, submitting, setSubmitting } = useTransaction({
@@ -265,42 +272,89 @@ export default function CreateListing() {
   });
 
   const onSubmit = useCallback(async () => {
-    if (!pricePerPod || pricePerPod <= 0 || !expiresIn || !amount || amount <= 0 || !account || plot.length !== 1) {
+    if (
+      !pricePerPod ||
+      pricePerPod <= 0 ||
+      !expiresIn ||
+      !amount ||
+      amount <= 0 ||
+      !account ||
+      listingData.length === 0
+    ) {
       return;
     }
 
     // Track pod listing creation
     trackSimpleEvent(ANALYTICS_EVENTS.MARKET.POD_LIST_CREATE, {
       has_price_per_pod: !!pricePerPod,
+      listing_count: listingData.length,
       plot_position_millions: plot.length > 0 ? Math.round(plotPosition.div(1_000_000).toNumber()) : 0,
     });
 
     const _pricePerPod = TokenValue.fromHuman(pricePerPod, mainToken.decimals);
     const _expiresIn = TokenValue.fromHuman(expiresIn, PODS.decimals);
-    const index = plot[0].index;
-    const start = TokenValue.fromHuman(0, PODS.decimals);
-    const _amount = TokenValue.fromHuman(amount, PODS.decimals);
     const maxHarvestableIndex = _expiresIn.add(harvestableIndex);
     try {
       setSubmitting(true);
-      toast.loading("Creating Listing...");
+      toast.loading(`Creating ${listingData.length} Listing${listingData.length > 1 ? "s" : ""}...`);
+
+      // Log listing data for debugging
+      // console.log("=== CREATE LISTING DATA ===");
+      // console.log(`Total listings to create: ${listingData.length}`);
+      // console.log(`Price per pod: ${pricePerPod} ${mainToken.symbol}`);
+
+      const farmData: `0x${string}`[] = [];
+
+      // Create a listing call for each plot
+      for (const data of listingData) {
+        // console.log(`\n--- Listing ${index + 1} ---`);
+        // console.log(`Plot Index: ${data.index.toHuman()}`);
+        // console.log(`Start (relative): ${data.start.toHuman()}`);
+        // console.log(`End (relative): ${data.end.toHuman()}`);
+        // console.log(`Amount: ${data.amount.toHuman()} pods`);
+        // console.log(`Place in line: ${data.index.sub(harvestableIndex).toHuman()}`);
+
+        const listingArgs = {
+          lister: account,
+          fieldId: 0n,
+          index: data.index.toBigInt(),
+          start: data.start.toBigInt(),
+          podAmount: data.amount.toBigInt(),
+          pricePerPod: Number(_pricePerPod),
+          maxHarvestableIndex: maxHarvestableIndex.toBigInt(),
+          minFillAmount: minFill.toBigInt(),
+          mode: Number(balanceTo),
+        };
+
+        // console.log("Encoded args:", {
+        //   lister: listingArgs.lister,
+        //   fieldId: listingArgs.fieldId.toString(),
+        //   index: listingArgs.index.toString(),
+        //   start: listingArgs.start.toString(),
+        //   podAmount: listingArgs.podAmount.toString(),
+        //   pricePerPod: listingArgs.pricePerPod,
+        //   maxHarvestableIndex: listingArgs.maxHarvestableIndex.toString(),
+        //   minFillAmount: listingArgs.minFillAmount.toString(),
+        //   mode: listingArgs.mode,
+        // });
+
+        const listingCall = encodeFunctionData({
+          abi: beanstalkAbi,
+          functionName: "createPodListing",
+          args: [listingArgs],
+        });
+        farmData.push(listingCall);
+      }
+
+      // console.log(`\nTotal farm calls: ${farmData.length}`);
+      // console.log("=========================\n");
+
+      // Use farm to batch all listings in one transaction
       writeWithEstimateGas({
         address: diamondAddress,
         abi: beanstalkAbi,
-        functionName: "createPodListing",
-        args: [
-          {
-            lister: account,
-            fieldId: 0n,
-            index: index.toBigInt(),
-            start: start.toBigInt(),
-            podAmount: _amount.toBigInt(),
-            pricePerPod: Number(_pricePerPod),
-            maxHarvestableIndex: maxHarvestableIndex.toBigInt(),
-            minFillAmount: minFill.toBigInt(),
-            mode: Number(balanceTo),
-          },
-        ],
+        functionName: "farm",
+        args: [farmData],
       });
     } catch (e: unknown) {
       console.error(e);
@@ -319,6 +373,7 @@ export default function CreateListing() {
     harvestableIndex,
     minFill,
     plot,
+    listingData,
     plotPosition,
     setSubmitting,
     mainToken.decimals,
@@ -466,11 +521,36 @@ export default function CreateListing() {
         <SmartSubmitButton
           variant="gradient"
           size="xxl"
-          submitButtonText="List Pods"
-          disabled={disabled || isConfirming || submitting}
+          submitButtonText={isSuccessful ? "Listing Created!" : "List Pods"}
+          disabled={disabled || isConfirming || submitting || isSuccessful}
           submitFunction={onSubmit}
         />
       </div>
+
+      {/* Success Screen */}
+      {isSuccessful && successAmount !== null && successPrice !== null && (
+        <div className="flex flex-col gap-6 w-full animate-fade-in">
+          <Separator />
+
+          <div className="flex flex-col gap-3 items-center text-center px-4">
+            <p className="pinto-body text-pinto-light">
+              You have successfully created a Pod Listing with {formatter.noDec(successAmount)} Pods at a price of{" "}
+              {formatter.number(successPrice, { minDecimals: 0, maxDecimals: 6 })} Pintos!
+            </p>
+          </div>
+
+          <div className="flex justify-center">
+            <Button
+              variant="outline-primary-2"
+              size="lg"
+              onClick={() => navigate("/overview")}
+              className="w-full sm:w-auto"
+            >
+              Go to Overview
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
