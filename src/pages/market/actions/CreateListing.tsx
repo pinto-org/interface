@@ -488,7 +488,9 @@ export default function CreateListing() {
               <div className="flex justify-end mr-1">
                 <p className="pinto-sm text-pinto-light">
                   effective Temperature (i):{" "}
-                  <span className="text-green-600 font-semibold">{formatter.noDec((1 / pricePerPod) * 100)}%</span>
+                  <span className="text-green-600 font-semibold">
+                    {formatter.number((1 / pricePerPod) * 100, { minDecimals: 2, maxDecimals: 2 })}%
+                  </span>
                 </p>
               </div>
             )}

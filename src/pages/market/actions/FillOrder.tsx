@@ -384,12 +384,21 @@ export default function FillOrder() {
                 {/* Order Info Display - Based on selected range */}
                 <div className="flex flex-col gap-2">
                   <div className="flex flex-row justify-between">
-                    <p className="pinto-body text-pinto-light">
-                      {ordersToFill.length > 1 ? "Weighted Avg Price/Pod" : "Price/Pod"}
-                    </p>
+                    <p className="pinto-body text-pinto-light">Average Price Per Pod</p>
                     <div className="flex items-center">
                       <p className="pinto-body text-pinto-primary">
                         {formatter.number(weightedAvgPricePerPod, { minDecimals: 2, maxDecimals: 6 })} Pinto
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-row justify-between">
+                    <p className="pinto-body text-pinto-light">Effective Temperature</p>
+                    <div className="flex items-center">
+                      <p className="pinto-body text-pinto-primary">
+                        {weightedAvgPricePerPod > 0
+                          ? formatter.number((1 / weightedAvgPricePerPod) * 100, { minDecimals: 2, maxDecimals: 2 })
+                          : "0.00"}
+                        %
                       </p>
                     </div>
                   </div>
