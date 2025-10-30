@@ -89,8 +89,8 @@ const useUpdateTotalSoil = () => {
 
   const query = useReadContract({
     address: diamond,
-    abi: soilABI,
-    functionName: "totalSoil",
+    abi: diamondABI,
+    functionName: "totalSoil" as const,
     scopeKey: "field",
     query: settings.query,
   });
@@ -162,8 +162,8 @@ export const useTemperatureQuery = () => {
 
   return useReadContracts({
     contracts: [
-      { address: diamond, abi: temperatureABI, functionName: "maxTemperature" },
-      { address: diamond, abi: temperatureABI, functionName: "temperature" },
+      { address: diamond, abi: diamondABI, functionName: "maxTemperature" as const },
+      { address: diamond, abi: diamondABI, functionName: "temperature" as const },
     ],
     allowFailure: false,
     scopeKey: "field",
@@ -244,41 +244,6 @@ export const useUpdateField = () => {
   useUpdateInitialSoil();
 };
 
-// ---------------------------------------- ABI ----------------------------------------
-
-const soilABI = [
-  {
-    inputs: [],
-    name: "totalSoil",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "initialSoil",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    type: "function",
-  },
-] as const;
-
-const temperatureABI = [
-  {
-    inputs: [],
-    name: "maxTemperature",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "temperature",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;
-
 // ---------------------------------------- Non Top level updater hooks ----------------------------------------
 
 const FIELD_REFRESH_MS = 1000 * 6;
@@ -289,6 +254,7 @@ const FIELD_REFRESH_MS = 1000 * 6;
 export const useUpdateMorningSoilOnInterval = () => {
   const morning = useAtomValue(morningAtom);
   const soil = useAtomValue(fieldTotalSoilAtom).totalSoil;
+
   const invalidateField = useInvalidateField();
   const devMode = useAtomValue(morningFieldDevModeAtom);
   const intervalRef = useRef<boolean | null>(null);
@@ -299,7 +265,9 @@ export const useUpdateMorningSoilOnInterval = () => {
   useEffect(() => {
     if (intervalRef.current || !!devMode.freeze) return;
     // update the soil every 2 seconds
-    if (!isMorning || noSoil) return;
+    if (!isMorning || noSoil) {
+      return;
+    }
 
     intervalRef.current = true;
     const soilUpdateInterval = setInterval(() => {

@@ -102,6 +102,56 @@ const DELTA_TEMPERATURE_PCTS: Record<number, number> = {
   24: 976861116107,
 };
 
+const MORNING_CONTROL = 1 / 240;
+
+/**
+ * Duration of morning auction in seconds (default: 600)
+ */
+const MORNING_DURATION = 600;
+
+/**
+ * Calculate the current temperature during the morning auction
+ * @param {number} maxTemperature - Maximum temperature for the season (1e6 precision, e.g., 1000000 = 1%)
+ * @param {number} secondsElapsed - Seconds since the season started
+ * @param {number} morningDuration - Duration of morning auction in seconds (default: 600)
+ * @param {number} morningControl - Control parameter (default: 1/240)
+ * @returns {number} Current temperature (1e6 precision)
+ *
+ *
+ * T(t) = T_max × [log₂(t × c + 1) / log₂(D × c + 1)]
+ * Variables:
+ * - T(t) = Current temperature at time t
+ * - T_max = Maximum temperature for this season (from protocol state)
+ * - t = Seconds elapsed since season started
+ * - c = Control parameter = 1/240 = 0.004166666667
+ * - D = Morning duration = 600 seconds (10 minutes)
+ *
+ * With Floor:
+ * - T(t) = max(T_max / 100, calculated_value)
+ * Minimum temperature is 1% of maximum.
+ */
+export function scaleTemperatureWithMaxTemperature(
+  maxTemperature: TV,
+  secondsElapsed: number,
+  morningDuration: number = MORNING_DURATION,
+) {
+  // If past morning duration, return max temperature
+  if (secondsElapsed >= morningDuration) {
+    return maxTemperature;
+  }
+
+  // Calculate scaled temperature using logarithmic formula
+  const numerator = Math.log2(secondsElapsed * MORNING_CONTROL + 1);
+  const denominator = Math.log2(morningDuration * MORNING_CONTROL + 1);
+
+  const scaledTemperature = maxTemperature.mul(numerator / denominator);
+
+  // Apply 1% floor
+  const floor = maxTemperature.div(100);
+
+  return TV.max(floor, scaledTemperature);
+}
+
 const scaleTemperature = (pct: TV, maxTemp: TV) => {
   if (maxTemp.eq(0)) {
     return TV.ZERO;
@@ -111,6 +161,11 @@ const scaleTemperature = (pct: TV, maxTemp: TV) => {
   return temperature.reDecimal(TEMPERATURE_DECIMALS);
 };
 
+/**
+ * @deprecated.
+ * From PI-13, we now use the scaleTemperatureWithMaxTemperature function to scale the temperature.
+ * This function is kept for backwards compatibility.
+ */
 export function getMorningTemperature(
   index: number, // in terms of L1 blocks
   maxTemperature: TV,
