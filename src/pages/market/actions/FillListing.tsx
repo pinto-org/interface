@@ -537,7 +537,9 @@ export default function FillListing() {
               max={maxPlace}
               className="flex-1 min-w-0"
             />
-            <p className="pinto-body text-pinto-light whitespace-nowrap flex-shrink-0 min-w-[80px] text-right">{formatter.noDec(maxPlace)}</p>
+            <p className="pinto-body text-pinto-light whitespace-nowrap flex-shrink-0 min-w-[80px] text-right">
+              {formatter.noDec(maxPlace)}
+            </p>
           </div>
           {/* Input row */}
           <div className="flex flex-row gap-2 w-full items-center">
@@ -578,75 +580,73 @@ export default function FillListing() {
       {/* Fill Using Section - Only show if there are eligible listings */}
       {eligibleListingIds.length > 0 && (
         <div className="flex flex-col gap-4 animate-fade-in">
-        <div className="-mt-2">
-          <div className="flex flex-row justify-between items-center">
-            <p className="pinto-body text-pinto-light">Fill Using</p>
-            <SlippageButton slippage={slippage} setSlippage={setSlippage} />
-          </div>
-          <ComboInputField
-            amount={amountIn}
-            disableInput={isConfirming || submitting}
-            setAmount={setAmountIn}
-            setToken={handleTokenSelection}
-            setBalanceFrom={setBalanceFrom}
-            selectedToken={tokenIn}
-            balanceFrom={balanceFrom}
-            customMaxAmount={
-              maxFillAmount?.gt(0) ? TokenValue.min(balanceFromMode, maxFillAmount) : TokenValue.ZERO
-            }
-            filterTokens={filterTokens}
-            altText={balanceExceedsMax ? "Usable balance:" : undefined}
-            disableClamping={true}
-          />
-          {!isUsingMain && amountInTV.gt(0) && (
-            <RoutingAndSlippageInfo
-              title="Total Swap Slippage"
-              swapSummary={swapSummary}
-              priceImpactSummary={priceImpactSummary}
-              preferredSummary="swap"
-              txnType="Swap"
-              tokenIn={tokenIn}
-              tokenOut={mainToken}
-            />
-          )}
-          {slippageWarning}
-        </div>
-        <div className="flex flex-col gap-4">
-          <Separator />
-          {disabled && Number(amountIn) > 0 && (
-            <div className="flex justify-center">
-              <FrameAnimator className="-mt-5 -mb-10" size={150} />
+          <div className="-mt-2">
+            <div className="flex flex-row justify-between items-center">
+              <p className="pinto-body text-pinto-light">Fill Using</p>
+              <SlippageButton slippage={slippage} setSlippage={setSlippage} />
             </div>
-          )}
-          {!disabled && eligibleSummary && mainTokensIn && (
-            <ActionSummary
-              pricePerPod={eligibleSummary.avgPricePerPod}
-              plotPosition={eligibleSummary.avgPlaceInLine}
-              beanAmount={mainTokensIn}
-            />
-          )}
-          <div className="flex flex-row gap-2 items-center w-full">
-            <SmartSubmitButton
-              variant="gradient"
-              size="xxl"
-              submitButtonText="Approve"
-              disabled={disabled || !ackSlippage || isConfirming || submitting}
-              submitFunction={() => {}}
-              className="flex-1"
-            />
-            <SmartSubmitButton
-              variant="gradient"
-              size="xxl"
-              submitButtonText="Buy Pods"
-              token={tokenIn}
+            <ComboInputField
               amount={amountIn}
+              disableInput={isConfirming || submitting}
+              setAmount={setAmountIn}
+              setToken={handleTokenSelection}
+              setBalanceFrom={setBalanceFrom}
+              selectedToken={tokenIn}
               balanceFrom={balanceFrom}
-              submitFunction={onSubmit}
-              disabled={disabled || !ackSlippage || submitting || isConfirming}
-              className="flex-1"
+              customMaxAmount={maxFillAmount?.gt(0) ? TokenValue.min(balanceFromMode, maxFillAmount) : TokenValue.ZERO}
+              filterTokens={filterTokens}
+              altText={balanceExceedsMax ? "Usable balance:" : undefined}
+              disableClamping={true}
             />
+            {!isUsingMain && amountInTV.gt(0) && (
+              <RoutingAndSlippageInfo
+                title="Total Swap Slippage"
+                swapSummary={swapSummary}
+                priceImpactSummary={priceImpactSummary}
+                preferredSummary="swap"
+                txnType="Swap"
+                tokenIn={tokenIn}
+                tokenOut={mainToken}
+              />
+            )}
+            {slippageWarning}
           </div>
-        </div>
+          <div className="flex flex-col gap-4">
+            <Separator />
+            {disabled && Number(amountIn) > 0 && (
+              <div className="flex justify-center">
+                <FrameAnimator className="-mt-5 -mb-10" size={150} />
+              </div>
+            )}
+            {!disabled && eligibleSummary && mainTokensIn && (
+              <ActionSummary
+                pricePerPod={eligibleSummary.avgPricePerPod}
+                plotPosition={eligibleSummary.avgPlaceInLine}
+                beanAmount={mainTokensIn}
+              />
+            )}
+            <div className="flex flex-row gap-2 items-center w-full">
+              <SmartSubmitButton
+                variant="gradient"
+                size="xxl"
+                submitButtonText="Approve"
+                disabled={disabled || !ackSlippage || isConfirming || submitting}
+                submitFunction={() => {}}
+                className="flex-1"
+              />
+              <SmartSubmitButton
+                variant="gradient"
+                size="xxl"
+                submitButtonText="Buy Pods"
+                token={tokenIn}
+                amount={amountIn}
+                balanceFrom={balanceFrom}
+                submitFunction={onSubmit}
+                disabled={disabled || !ackSlippage || submitting || isConfirming}
+                className="flex-1"
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -27,6 +27,14 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 
+interface PodListingData {
+  plot: Plot;
+  index: TokenValue;
+  start: TokenValue; // plot içindeki relative start
+  end: TokenValue; // plot içindeki relative end
+  amount: TokenValue; // list edilecek pod miktarı
+}
+
 const PRICE_PER_POD_CONFIG = {
   MAX: 1,
   MIN: 0.000001,
@@ -131,6 +139,46 @@ export default function CreateListing() {
       end: offsetToAbsoluteIndex(podRange[1]),
     };
   }, [plot, podRange]);
+
+  // Convert pod range (offset based) to individual plot listing data
+  const listingData = useMemo((): PodListingData[] => {
+    if (plot.length === 0 || amount === 0) return [];
+
+    const sortedPlots = [...plot].sort((a, b) => a.index.sub(b.index).toNumber());
+    const result: PodListingData[] = [];
+
+    // Calculate cumulative pod amounts to find which plots are affected
+    let cumulativeStart = 0;
+    const rangeStart = podRange[0];
+    const rangeEnd = podRange[1];
+
+    for (const p of sortedPlots) {
+      const plotPods = p.pods.toNumber();
+      const cumulativeEnd = cumulativeStart + plotPods;
+
+      // Check if this plot is within the selected range
+      if (rangeEnd > cumulativeStart && rangeStart < cumulativeEnd) {
+        // Calculate the intersection
+        const startInPlot = Math.max(0, rangeStart - cumulativeStart);
+        const endInPlot = Math.min(plotPods, rangeEnd - cumulativeStart);
+        const amountInPlot = endInPlot - startInPlot;
+
+        if (amountInPlot > 0) {
+          result.push({
+            plot: p,
+            index: p.index,
+            start: TokenValue.fromHuman(startInPlot, PODS.decimals),
+            end: TokenValue.fromHuman(endInPlot, PODS.decimals),
+            amount: TokenValue.fromHuman(amountInPlot, PODS.decimals),
+          });
+        }
+      }
+
+      cumulativeStart = cumulativeEnd;
+    }
+
+    return result;
+  }, [plot, podRange, amount]);
 
   // Plot selection handler with tracking
   const handlePlotSelection = useCallback(
@@ -274,7 +322,7 @@ export default function CreateListing() {
   ]);
 
   // ui state
-  const disabled = !pricePerPod || !amount || !account || plot.length !== 1;
+  const disabled = !pricePerPod || !amount || !account || plot.length === 0;
 
   return (
     <div className="flex flex-col gap-4">
@@ -402,7 +450,14 @@ export default function CreateListing() {
       )}
       <div className="flex flex-col gap-4">
         <Separator />
-        {!disabled && <ActionSummary podAmount={amount} plotPosition={plotPosition} pricePerPod={pricePerPod} />}
+        {!disabled && (
+          <ActionSummary
+            podAmount={amount}
+            listingData={listingData}
+            pricePerPod={pricePerPod}
+            harvestableIndex={harvestableIndex}
+          />
+        )}
         <SmartSubmitButton
           variant="gradient"
           size="xxl"
@@ -417,10 +472,30 @@ export default function CreateListing() {
 
 const ActionSummary = ({
   podAmount,
-  plotPosition,
+  listingData,
   pricePerPod,
-}: { podAmount: number; plotPosition: TV; pricePerPod: number }) => {
+  harvestableIndex,
+}: { podAmount: number; listingData: PodListingData[]; pricePerPod: number; harvestableIndex: TokenValue }) => {
   const beansOut = podAmount * pricePerPod;
+
+  // Format line positions
+  const formatLinePositions = (): string => {
+    if (listingData.length === 0) return "";
+    if (listingData.length === 1) {
+      const placeInLine = listingData[0].index.sub(harvestableIndex);
+      return `@ ${placeInLine.toHuman("short")} in Line`;
+    }
+
+    // Multiple plots: show range
+    const sortedData = [...listingData].sort((a, b) => a.index.sub(b.index).toNumber());
+    const firstPlace = sortedData[0].index.sub(harvestableIndex);
+    const lastPlace = sortedData[sortedData.length - 1].index.sub(harvestableIndex);
+
+    if (firstPlace.eq(lastPlace)) {
+      return `@ ${firstPlace.toHuman("short")} in Line`;
+    }
+    return `@ ${firstPlace.toHuman("short")} - ${lastPlace.toHuman("short")} in Lines`;
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -431,7 +506,7 @@ const ActionSummary = ({
           {formatter.number(beansOut, { minDecimals: 0, maxDecimals: 2 })} Pinto
         </p>
         <p className="pinto-body text-pinto-light">
-          in exchange for {formatter.noDec(podAmount)} Pods @ {plotPosition.toHuman("short")} in Line.
+          in exchange for {formatter.noDec(podAmount)} Pods {formatLinePositions()}.
         </p>
       </div>
     </div>
