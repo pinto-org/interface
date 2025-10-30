@@ -29,6 +29,8 @@ interface PodLineGraphProps {
   selectedPlotIndices?: string[];
   /** Optional: specify a partial range selection (absolute pod line positions) */
   selectedPodRange?: { start: TokenValue; end: TokenValue };
+  /** Optional: show order range overlay from 0 to this position (absolute index) */
+  orderRangeEnd?: TokenValue;
   /** Callback when a plot group is clicked - receives all plot indices in the group */
   onPlotGroupSelect?: (plotIndices: string[]) => void;
   /** Additional CSS classes */
@@ -160,6 +162,7 @@ export default function PodLineGraph({
   plots: providedPlots,
   selectedPlotIndices = [],
   selectedPodRange,
+  orderRangeEnd,
   onPlotGroupSelect,
   className,
 }: PodLineGraphProps) {
@@ -325,6 +328,21 @@ export default function PodLineGraph({
                 );
               })}
             </div>
+
+            {/* Order range overlay (from 0 to orderRangeEnd) */}
+            {orderRangeEnd?.gt(harvestableIndex) && (
+              <div
+                className="absolute bg-pinto-green-1 opacity-60 pointer-events-none"
+                style={{
+                  left: "0%",
+                  width: `${podLine.gt(0) ? (orderRangeEnd.sub(harvestableIndex).toNumber() / podLine.toNumber()) * 100 : 0}%`,
+                  height: "100%",
+                  top: "0%",
+                  borderRadius: "2px",
+                  zIndex: 5,
+                }}
+              />
+            )}
 
             {/* Plot rectangles - grouped visually but individually interactive */}
             <div className="absolute inset-0 flex items-center">
