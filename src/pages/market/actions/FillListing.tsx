@@ -606,6 +606,7 @@ export default function FillListing() {
           selectedPlotIndices={eligibleListingIds}
           rangeOverlay={rangeOverlay}
           disableInteractions={true}
+          label="Available Listings"
         />
       </div>
 

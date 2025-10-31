@@ -370,7 +370,7 @@ export default function CreateOrder() {
   return (
     <div className="flex flex-col gap-4">
       {/* PodLineGraph Visualization */}
-      <PodLineGraph orderRangeEnd={orderRangeEnd} disableInteractions={true} />
+      <PodLineGraph orderRangeEnd={orderRangeEnd} disableInteractions={true} label="Order Range" />
 
       {/* Place in Line Slider */}
       <div className="flex flex-col gap-3 mt-2">

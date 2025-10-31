@@ -39,6 +39,8 @@ interface PodLineGraphProps {
   disableInteractions?: boolean;
   /** Additional CSS classes */
   className?: string;
+  /** Optional: custom label text (default: "My Pods In Line") */
+  label?: string;
 }
 
 /**
@@ -171,6 +173,7 @@ export default function PodLineGraph({
   onPlotGroupSelect,
   disableInteractions = false,
   className,
+  label = "My Pods In Line",
 }: PodLineGraphProps) {
   const farmerField = useFarmerField();
   const harvestableIndex = useHarvestableIndex();
@@ -242,7 +245,7 @@ export default function PodLineGraph({
     <div className={cn("relative w-full pb-2", className)}>
       {/* Label */}
       <div className="mb-1">
-        <p className="text-pinto-gray-4 text-[0.75rem]">My Pods In Line</p>
+        <p className="text-pinto-gray-4 text-[0.75rem]">{label}</p>
       </div>
 
       {/* Plot container with border */}

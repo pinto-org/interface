@@ -440,7 +440,7 @@ export default function FillOrder() {
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3">
           <p className="pinto-body text-pinto-light">Select the order you want to fill (i):</p>
-          <PodLineGraph plots={[]} selectedPlotIndices={[]} className="" />
+          <PodLineGraph plots={[]} selectedPlotIndices={[]} className="" label="Open Orders" />
         </div>
         <div className="flex justify-center mt-4">
           <p className="pinto-body text-pinto-light">There are no open orders that can be filled with your Pods.</p>
@@ -459,6 +459,7 @@ export default function FillOrder() {
         <PodLineGraph
           plots={plotsForGraph}
           selectedPlotIndices={ordersToFill.map((item) => item.order.id)}
+          label="Open Orders"
           onPlotGroupSelect={(plotIndices) => {
             // Multi-select toggle: add or remove clicked order
             if (plotIndices.length > 0) {

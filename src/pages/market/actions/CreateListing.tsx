@@ -395,6 +395,7 @@ export default function CreateListing() {
         <PodLineGraph
           selectedPlotIndices={plot.map((p) => p.index.toHuman())}
           selectedPodRange={selectedPodRange}
+          label="My Pods In Line"
           onPlotGroupSelect={(plotIndices) => {
             // Check if all plots in the group are already selected
             const allSelected = plotIndices.every((index) => plot.some((p) => p.index.toHuman() === index));
