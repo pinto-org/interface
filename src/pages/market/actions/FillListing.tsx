@@ -5,7 +5,9 @@ import FrameAnimator from "@/components/LoadingSpinner";
 import PodLineGraph from "@/components/PodLineGraph";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
 import SlippageButton from "@/components/SlippageButton";
+import SmartApprovalButton from "@/components/SmartApprovalButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
+import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Separator } from "@/components/ui/Separator";
 import { MultiSlider, Slider } from "@/components/ui/Slider";
@@ -36,7 +38,7 @@ import { tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Plot, Token } from "@/utils/types";
 import { cn, getBalanceFromMode } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Address } from "viem";
@@ -112,10 +114,15 @@ export default function FillListing() {
   const [tokenIn, setTokenIn] = useState(mainToken);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.INTERNAL_EXTERNAL);
   const [slippage, setSlippage] = useState(0.1);
+  const [isSuccessful, setIsSuccessful] = useState(false);
+  const [successPods, setSuccessPods] = useState<number | null>(null);
+  const [successAvgPrice, setSuccessAvgPrice] = useState<number | null>(null);
+  const [successTotal, setSuccessTotal] = useState<number | null>(null);
+  const successDataRef = useRef<{ pods: number; avgPrice: number; total: number } | null>(null);
 
   // Price per pod filter state
   const [maxPricePerPod, setMaxPricePerPod] = useState<number>(0);
-  const [maxPricePerPodInput, setMaxPricePerPodInput] = useState<string>("0");
+  const [maxPricePerPodInput, setMaxPricePerPodInput] = useState<string>("0.000000");
 
   // Place in line range state
   const podIndex = usePodIndex();
@@ -178,7 +185,7 @@ export default function FillListing() {
   const handlePriceSliderChange = useCallback((value: number[]) => {
     const formatted = formatPricePerPod(value[0]);
     setMaxPricePerPod(formatted);
-    setMaxPricePerPodInput(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS));
+    setMaxPricePerPodInput(formatted.toFixed(6));
   }, []);
 
   // Price per pod input handlers
@@ -193,9 +200,9 @@ export default function FillListing() {
       const clamped = Math.max(0, Math.min(PRICE_PER_POD_CONFIG.MAX, numValue));
       const formatted = formatPricePerPod(clamped);
       setMaxPricePerPod(formatted);
-      setMaxPricePerPodInput(formatted.toString());
+      setMaxPricePerPodInput(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS));
     } else {
-      setMaxPricePerPodInput("0");
+      setMaxPricePerPodInput("0.000000");
       setMaxPricePerPod(0);
     }
   }, [maxPricePerPodInput]);
@@ -298,28 +305,22 @@ export default function FillListing() {
     }, 0);
   }, [allListings, eligibleListingIds]);
 
-  // Plot selection handler - navigate to selected listing
-  const handlePlotGroupSelect = useCallback(
-    (plotIndices: string[]) => {
-      if (plotIndices.length > 0) {
-        const listingId = plotIndices[0];
-        // Extract the index from the listing ID (format: "0-{index}")
-        const indexPart = listingId.split("-")[1];
-        if (indexPart) {
-          navigate(`/market/pods/buy/${indexPart}`);
-        }
-      }
-    },
-    [navigate],
-  );
-
   // reset form and invalidate pod listings/farmer plot queries
   const onSuccess = useCallback(() => {
-    navigate(`/market/pods/buy/fill`);
+    // Set success state from ref (to avoid stale closure)
+    if (successDataRef.current) {
+      const { pods, avgPrice, total } = successDataRef.current;
+      setSuccessPods(pods);
+      setSuccessAvgPrice(avgPrice);
+      setSuccessTotal(total);
+      setIsSuccessful(true);
+      successDataRef.current = null; // Clear ref after use
+    }
+
     setAmountIn("");
     resetSwap();
     allQK.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
-  }, [navigate, resetSwap, queryClient, allQK]);
+  }, [resetSwap, queryClient, allQK]);
 
   const { writeWithEstimateGas, submitting, isConfirming, setSubmitting } = useTransaction({
     successMessage: "Listing Fill successful",
@@ -386,6 +387,25 @@ export default function FillListing() {
     if (!eligibleListingIds.length) {
       toast.error("No eligible listings available");
       throw new Error("No eligible listings");
+    }
+
+    // Reset success state when starting new transaction
+    setIsSuccessful(false);
+    setSuccessPods(null);
+    setSuccessAvgPrice(null);
+    setSuccessTotal(null);
+
+    // Calculate and save success data to ref (to avoid stale closure in onSuccess callback)
+    if (eligibleSummary && mainTokensIn) {
+      const estimatedPods = mainTokensIn.div(eligibleSummary.avgPricePerPod).toNumber();
+      const avgPrice = eligibleSummary.avgPricePerPod.toNumber();
+      const total = mainTokensIn.toNumber();
+
+      successDataRef.current = {
+        pods: estimatedPods,
+        avgPrice,
+        total,
+      };
     }
 
     // Track pod listing fill
@@ -473,6 +493,8 @@ export default function FillListing() {
     mainToken,
     eligibleListingIds.length,
     tokenIn.symbol,
+    eligibleSummary,
+    mainTokensIn,
   ]);
 
   // Disable submit if no tokens entered, no eligible listings, or no listing selected
@@ -486,7 +508,7 @@ export default function FillListing() {
           plots={listingPlots}
           selectedPlotIndices={listing ? [listing.id] : eligibleListingIds}
           rangeOverlay={rangeOverlay}
-          onPlotGroupSelect={handlePlotGroupSelect}
+          disableInteractions={true}
         />
       </div>
 
@@ -513,13 +535,24 @@ export default function FillListing() {
             onChange={handlePriceInputChange}
             onBlur={handlePriceInputBlur}
             onFocus={(e) => e.target.select()}
-            placeholder="0"
+            placeholder="0.000000"
             outlined
             containerClassName=""
             className=""
             endIcon={<TextAdornment text={mainToken.symbol} className="bg-white" />}
           />
         </div>
+        {/* Effective Temperature Display */}
+        {maxPricePerPod > 0 && (
+          <div className="flex justify-end mr-1">
+            <p className="pinto-sm text-pinto-light">
+              effective Temperature (i):{" "}
+              <span className="text-green-600 font-semibold">
+                {formatter.number((1 / maxPricePerPod) * 100, { minDecimals: 2, maxDecimals: 2 })}%
+              </span>
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Place in Line Range Selector */}
@@ -626,26 +659,53 @@ export default function FillListing() {
               />
             )}
             <div className="flex flex-row gap-2 items-center w-full">
-              <SmartSubmitButton
+              <SmartApprovalButton
                 variant="gradient"
                 size="xxl"
-                submitButtonText="Approve"
-                disabled={disabled || !ackSlippage || isConfirming || submitting}
-                submitFunction={() => {}}
+                token={tokenIn}
+                amount={amountIn}
+                balanceFrom={balanceFrom}
+                disabled={disabled || !ackSlippage || isConfirming || submitting || isSuccessful}
                 className="flex-1"
               />
               <SmartSubmitButton
                 variant="gradient"
                 size="xxl"
-                submitButtonText="Buy Pods"
+                submitButtonText={isSuccessful ? "Purchase Complete!" : "Buy Pods"}
                 token={tokenIn}
                 amount={amountIn}
                 balanceFrom={balanceFrom}
                 submitFunction={onSubmit}
-                disabled={disabled || !ackSlippage || submitting || isConfirming}
+                disabled={disabled || !ackSlippage || submitting || isConfirming || isSuccessful}
                 className="flex-1"
               />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Screen */}
+      {isSuccessful && successPods !== null && successAvgPrice !== null && successTotal !== null && (
+        <div className="flex flex-col gap-6 w-full animate-fade-in">
+          <Separator />
+
+          <div className="flex flex-col gap-3 items-center text-center px-4">
+            <p className="pinto-body text-pinto-light">
+              You've successfully purchased {formatter.noDec(successPods)} Pods for{" "}
+              {formatter.number(successTotal, { minDecimals: 0, maxDecimals: 2 })} Pinto, for an average price of{" "}
+              {formatter.number(successAvgPrice, { minDecimals: 2, maxDecimals: 6 })} Pintos per Pod!
+            </p>
+          </div>
+
+          <div className="flex justify-center">
+            <Button
+              variant="outline-primary-2"
+              size="lg"
+              onClick={() => navigate("/overview")}
+              className="w-full sm:w-auto"
+            >
+              Go to Overview
+            </Button>
           </div>
         </div>
       )}
