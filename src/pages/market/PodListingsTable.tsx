@@ -32,7 +32,7 @@ export function PodListingsTable() {
   const navigate = useNavigate();
   const navigateTo = useCallback(
     (id: string) => {
-      navigate(`/market/pods/buy/${id}`);
+      navigate(`/market/pods/buy/fill?listingId=${id}`);
     },
     [navigate],
   );

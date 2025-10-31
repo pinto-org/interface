@@ -38,9 +38,9 @@ export function MarketActivityTable({ marketData, titleText, farmer }: MarketAct
       if (event.status === "ACTIVE") {
         if (event.type === "LISTING") {
           const listingEvent = event as Listing;
-          navigate(`/market/pods/buy/${listingEvent.index}`);
+          navigate(`/market/pods/buy/fill?listingId=${listingEvent.id}`);
         } else {
-          navigate(`/market/pods/sell/${event.id}`);
+          navigate(`/market/pods/sell/fill?orderId=${event.id}`);
         }
       }
     },

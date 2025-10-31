@@ -42,7 +42,7 @@ export function PodOrdersTable() {
   const navigate = useNavigate();
   const navigateTo = useCallback(
     (id: string) => {
-      navigate(`/market/pods/sell/${id}`);
+      navigate(`/market/pods/sell/fill?orderId=${id}`);
     },
     [navigate],
   );

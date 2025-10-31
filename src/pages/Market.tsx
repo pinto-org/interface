@@ -286,9 +286,9 @@ export function Market() {
     });
 
     if (dataPoint.eventType === "LISTING") {
-      navigate(`/market/pods/buy/${dataPoint.eventIndex.toString().replace(".", "")}`);
+      navigate(`/market/pods/buy/fill?listingId=${dataPoint.eventId}`);
     } else {
-      navigate(`/market/pods/sell/${dataPoint.eventId.replace(".", "")}`);
+      navigate(`/market/pods/sell/fill?orderId=${dataPoint.eventId}`);
     }
   };
 

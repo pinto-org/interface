@@ -39,7 +39,7 @@ import { FarmFromMode, FarmToMode, Plot, Token } from "@/utils/types";
 import { cn, getBalanceFromMode } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Address, encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
@@ -86,6 +86,8 @@ export default function FillListing() {
   const farmerBalances = useFarmerBalances();
   const harvestableIndex = useHarvestableIndex();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const listingId = searchParams.get("listingId");
 
   const filterTokens = useFilterTokens();
 
@@ -165,6 +167,32 @@ export default function FillListing() {
       setDidSetPreferred(true);
     }
   }, [preferredToken, preferredLoading, didSetPreferred]);
+
+  // Pre-fill form when listingId parameter is present (clicked from chart)
+  useEffect(() => {
+    if (!listingId || !allListings?.podListings || maxPlace === 0) return;
+
+    // Find the listing with matching ID
+    const listing = allListings.podListings.find((l) => l.id === listingId);
+    if (!listing) return;
+
+    // Pre-fill price per pod
+    const listingPrice = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals).toNumber();
+    const formattedPrice = formatPricePerPod(listingPrice);
+    setMaxPricePerPod(formattedPrice);
+    setMaxPricePerPodInput(formattedPrice.toFixed(6));
+
+    // Calculate listing's place in line
+    const listingIndex = TokenValue.fromBlockchain(listing.index, PODS.decimals);
+    const placeInLine = listingIndex.sub(harvestableIndex).toNumber();
+
+    // Set place in line range to include this listing with a small margin
+    // Clamp to valid range [0, maxPlace]
+    const margin = Math.max(1, Math.floor(maxPlace * 0.01)); // 1% margin or at least 1
+    const minPlace = Math.max(0, Math.floor(placeInLine - margin));
+    const maxPlaceValue = Math.min(maxPlace, Math.ceil(placeInLine + margin));
+    setPlaceInLineRange([minPlace, maxPlaceValue]);
+  }, [listingId, allListings, maxPlace, mainToken.decimals, harvestableIndex]);
 
   // Token selection handler with tracking
   const handleTokenSelection = useCallback(

@@ -21,7 +21,7 @@ import { formatter } from "@/utils/format";
 import { FarmToMode, Plot } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Address, encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
@@ -79,6 +79,8 @@ export default function FillOrder() {
   const podIndex = usePodIndex();
   const podLine = podIndex.sub(harvestableIndex);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const orderId = searchParams.get("orderId");
 
   const queryClient = useQueryClient();
   const {
@@ -216,6 +218,20 @@ export default function FillOrder() {
       prevTotalCapacityRef.current = totalCapacity;
     }
   }, [totalCapacity]);
+
+  // Pre-select order when orderId parameter is present (clicked from chart)
+  useEffect(() => {
+    if (!orderId || !allOrders?.podOrders) return;
+
+    // Find the order with matching ID
+    const order = allOrders.podOrders.find((o) => o.id === orderId);
+    if (!order) return;
+
+    // Add order to selection if not already selected
+    if (!selectedOrderIds.includes(orderId)) {
+      setSelectedOrderIds((prev) => [...prev, orderId]);
+    }
+  }, [orderId, allOrders, selectedOrderIds]);
 
   const orderMarkers = useMemo(() => {
     if (eligibleOrders.length === 0) return [];
