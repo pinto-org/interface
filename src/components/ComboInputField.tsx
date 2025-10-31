@@ -171,24 +171,30 @@ function ComboInputField({
       return selectedPlots.reduce((total, plot) => total.add(plot.pods), TokenValue.ZERO);
     }
 
-    if (customMaxAmount) {
-      return customMaxAmount;
-    }
-
+    // Get base balance first
+    let baseBalance = TokenValue.ZERO;
     if (tokenAndBalanceMap && selectedToken) {
-      return tokenAndBalanceMap.get(selectedToken) ?? TokenValue.ZERO;
+      baseBalance = tokenAndBalanceMap.get(selectedToken) ?? TokenValue.ZERO;
+    } else if (farmerTokenBalance) {
+      switch (balanceFrom) {
+        case FarmFromMode.EXTERNAL:
+          baseBalance = farmerTokenBalance.external || TokenValue.ZERO;
+          break;
+        case FarmFromMode.INTERNAL:
+          baseBalance = farmerTokenBalance.internal || TokenValue.ZERO;
+          break;
+        default:
+          baseBalance = farmerTokenBalance.total || TokenValue.ZERO;
+      }
     }
 
-    if (!farmerTokenBalance) return TokenValue.ZERO;
-
-    switch (balanceFrom) {
-      case FarmFromMode.EXTERNAL:
-        return farmerTokenBalance.external || TokenValue.ZERO;
-      case FarmFromMode.INTERNAL:
-        return farmerTokenBalance.internal || TokenValue.ZERO;
-      default:
-        return farmerTokenBalance.total || TokenValue.ZERO;
+    // If customMaxAmount is provided and greater than 0, use the minimum of base balance and customMaxAmount
+    if (customMaxAmount?.gt(0)) {
+      return TokenValue.min(baseBalance, customMaxAmount);
     }
+
+    // Otherwise use base balance
+    return baseBalance;
   }, [mode, selectedPlots, customMaxAmount, tokenAndBalanceMap, selectedToken, balanceFrom, farmerTokenBalance]);
 
   const balance = useMemo(() => {
@@ -200,8 +206,17 @@ function ComboInputField({
         return tokenAndBalanceMap.get(selectedToken) ?? TokenValue.ZERO;
       }
     }
-    return maxAmount;
-  }, [mode, selectedPlots, tokenAndBalanceMap, selectedToken, maxAmount]);
+    // Always use farmerTokenBalance for display, not maxAmount (which may be limited by customMaxAmount)
+    if (!farmerTokenBalance) return TokenValue.ZERO;
+    switch (balanceFrom) {
+      case FarmFromMode.EXTERNAL:
+        return farmerTokenBalance.external || TokenValue.ZERO;
+      case FarmFromMode.INTERNAL:
+        return farmerTokenBalance.internal || TokenValue.ZERO;
+      default:
+        return farmerTokenBalance.total || TokenValue.ZERO;
+    }
+  }, [mode, selectedPlots, tokenAndBalanceMap, selectedToken, farmerTokenBalance, balanceFrom]);
 
   /**
    * Clamp the input amount to the max amount ONLY IF clamping is enabled

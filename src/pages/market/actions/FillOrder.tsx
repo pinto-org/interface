@@ -171,6 +171,12 @@ export default function FillOrder() {
   const weightedAvgPricePerPod = useMemo(() => {
     if (ordersToFill.length === 0 || amount === 0) return 0;
 
+    // If only one order, use its price directly (no need for average)
+    if (ordersToFill.length === 1) {
+      return TokenValue.fromBlockchain(ordersToFill[0].order.pricePerPod, mainToken.decimals).toNumber();
+    }
+
+    // Multiple orders - calculate weighted average
     let totalValue = 0;
     let totalPods = 0;
 

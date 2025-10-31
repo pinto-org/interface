@@ -405,6 +405,21 @@ export default function FillListing() {
       return null;
     }
 
+    // If only one listing, use its price directly (no need for average)
+    if (listingsToFill.length === 1) {
+      const { listing, beanAmount } = listingsToFill[0];
+      const listingPrice = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals);
+      const podsFromListing = beanAmount.div(listingPrice);
+      const listingPlace = TokenValue.fromBlockchain(listing.index, PODS.decimals).sub(harvestableIndex);
+
+      return {
+        avgPricePerPod: listingPrice,
+        avgPlaceInLine: listingPlace,
+        totalPods: podsFromListing.toNumber(),
+      };
+    }
+
+    // Multiple listings - calculate weighted average
     let totalValue = 0;
     let totalPods = 0;
     let totalPlaceInLine = 0;
@@ -718,6 +733,7 @@ export default function FillListing() {
             </div>
             <ComboInputField
               amount={amountIn}
+              connectedAccount={!!account.address}
               disableInput={isConfirming || submitting}
               setAmount={setAmountIn}
               setToken={handleTokenSelection}
