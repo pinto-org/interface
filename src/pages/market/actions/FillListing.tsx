@@ -39,9 +39,9 @@ import { FarmFromMode, FarmToMode, Plot, Token } from "@/utils/types";
 import { cn, getBalanceFromMode } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Address } from "viem";
+import { Address, encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
 
 // Configuration constants
@@ -105,9 +105,7 @@ export default function FillListing() {
   });
 
   const podListings = usePodListings();
-  const { id } = useParams();
   const allListings = podListings.data;
-  const listing = allListings?.podListings.find((listing) => listing.index === id);
 
   const [didSetPreferred, setDidSetPreferred] = useState(false);
   const [amountIn, setAmountIn] = useState("");
@@ -330,27 +328,67 @@ export default function FillListing() {
 
   const mainTokensIn = isUsingMain ? toSafeTVFromHuman(amountIn, mainToken.decimals) : swapData?.buyAmount;
 
-  // Calculate weighted average for eligible listings
-  const eligibleSummary = useMemo(() => {
+  // Get eligible listings sorted by price (cheapest first)
+  const eligibleListings = useMemo(() => {
     if (!allListings?.podListings.length || eligibleListingIds.length === 0) {
-      return null;
+      return [];
     }
 
     const eligibleSet = new Set(eligibleListingIds);
-    const eligibleListings = allListings.podListings.filter((l) => eligibleSet.has(l.id));
+    return allListings.podListings
+      .filter((l) => eligibleSet.has(l.id))
+      .sort((a, b) => {
+        const priceA = TokenValue.fromBlockchain(a.pricePerPod, mainToken.decimals).toNumber();
+        const priceB = TokenValue.fromBlockchain(b.pricePerPod, mainToken.decimals).toNumber();
+        return priceA - priceB; // Sort by price ascending (cheapest first)
+      });
+  }, [allListings, eligibleListingIds, mainToken.decimals]);
+
+  // Calculate which listings to fill and how much from each (based on mainTokensIn)
+  const listingsToFill = useMemo(() => {
+    if (!mainTokensIn || mainTokensIn.eq(0) || eligibleListings.length === 0) {
+      return [];
+    }
+
+    const result: Array<{ listing: (typeof eligibleListings)[0]; beanAmount: TokenValue }> = [];
+    let remainingBeans = mainTokensIn;
+
+    for (const listing of eligibleListings) {
+      if (remainingBeans.lte(0)) break;
+
+      const listingPrice = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals);
+      const listingRemainingPods = TokenValue.fromBlockchain(listing.remainingAmount, PODS.decimals);
+      const maxBeansForListing = listingRemainingPods.mul(listingPrice);
+
+      // Take the minimum of: remaining beans and max beans we can spend on this listing
+      const beansToSpend = TokenValue.min(remainingBeans, maxBeansForListing);
+      if (beansToSpend.gt(0)) {
+        result.push({ listing, beanAmount: beansToSpend });
+        remainingBeans = remainingBeans.sub(beansToSpend);
+      }
+    }
+
+    return result;
+  }, [mainTokensIn, eligibleListings, mainToken.decimals]);
+
+  // Calculate weighted average for eligible listings
+  const eligibleSummary = useMemo(() => {
+    if (listingsToFill.length === 0) {
+      return null;
+    }
 
     let totalValue = 0;
     let totalPods = 0;
     let totalPlaceInLine = 0;
 
-    eligibleListings.forEach((listing) => {
-      const listingPrice = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals).toNumber();
-      const listingPods = TokenValue.fromBlockchain(listing.remainingAmount, PODS.decimals).toNumber();
-      const listingPlace = TokenValue.fromBlockchain(listing.index, PODS.decimals).sub(harvestableIndex).toNumber();
+    listingsToFill.forEach(({ listing, beanAmount }) => {
+      const listingPrice = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals);
+      const podsFromListing = beanAmount.div(listingPrice);
+      const listingPlace = TokenValue.fromBlockchain(listing.index, PODS.decimals).sub(harvestableIndex);
 
-      totalValue += listingPrice * listingPods;
-      totalPods += listingPods;
-      totalPlaceInLine += listingPlace * listingPods;
+      totalValue += listingPrice.toNumber() * podsFromListing.toNumber();
+      totalPods += podsFromListing.toNumber();
+      totalPlaceInLine += listingPlace.toNumber() * podsFromListing.toNumber();
     });
 
     const avgPricePerPod = totalPods > 0 ? totalValue / totalPods : 0;
@@ -361,7 +399,7 @@ export default function FillListing() {
       avgPlaceInLine: TokenValue.fromHuman(avgPlaceInLine, PODS.decimals),
       totalPods,
     };
-  }, [allListings, eligibleListingIds, mainToken.decimals, harvestableIndex]);
+  }, [listingsToFill, mainToken.decimals, harvestableIndex]);
 
   // Calculate total tokens needed to fill eligible listings
   const totalMainTokensToFill = useMemo(() => {
@@ -376,17 +414,17 @@ export default function FillListing() {
 
   const onSubmit = useCallback(async () => {
     // Validate requirements
-    if (!listing) {
-      toast.error("No listing selected");
-      throw new Error("Listing not found");
-    }
     if (!account.address) {
       toast.error("Please connect your wallet");
       throw new Error("Signer required");
     }
-    if (!eligibleListingIds.length) {
-      toast.error("No eligible listings available");
-      throw new Error("No eligible listings");
+    if (listingsToFill.length === 0) {
+      toast.error("No eligible listings to fill");
+      throw new Error("No listings to fill");
+    }
+    if (!mainTokensIn || mainTokensIn.eq(0)) {
+      toast.error("No amount specified");
+      throw new Error("Amount required");
     }
 
     // Reset success state when starting new transaction
@@ -412,54 +450,86 @@ export default function FillListing() {
     trackSimpleEvent(ANALYTICS_EVENTS.MARKET.POD_LIST_FILL, {
       payment_token: tokenIn.symbol,
       balance_source: balanceFrom,
-      eligible_listings_count: eligibleListingIds.length,
+      eligible_listings_count: listingsToFill.length,
     });
 
     try {
       setSubmitting(true);
-      toast.loading("Filling Listing...");
+      toast.loading(`Filling ${listingsToFill.length} Listing${listingsToFill.length !== 1 ? "s" : ""}...`);
+
       if (isUsingMain) {
+        // Direct fill - create farm calls for each listing
+        const farmData: `0x${string}`[] = [];
+
+        for (const { listing, beanAmount } of listingsToFill) {
+          // Encode pricePerPod with 6 decimals (like CreateOrder.tsx)
+          const pricePerPodNumber = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals).toNumber();
+          const encodedPricePerPod = Math.floor(pricePerPodNumber * PRICE_PER_POD_CONFIG.DECIMAL_MULTIPLIER);
+
+          const fillCall = encodeFunctionData({
+            abi: beanstalkAbi,
+            functionName: "fillPodListing",
+            args: [
+              {
+                lister: listing.farmer.id as Address,
+                fieldId: 0n,
+                index: TokenValue.fromBlockchain(listing.index, PODS.decimals).toBigInt(),
+                start: TokenValue.fromBlockchain(listing.start, PODS.decimals).toBigInt(),
+                podAmount: TokenValue.fromBlockchain(listing.amount, PODS.decimals).toBigInt(),
+                pricePerPod: encodedPricePerPod,
+                maxHarvestableIndex: TokenValue.fromBlockchain(listing.maxHarvestableIndex, PODS.decimals).toBigInt(),
+                minFillAmount: TokenValue.fromBlockchain(listing.minFillAmount, mainToken.decimals).toBigInt(),
+                mode: Number(listing.mode),
+              },
+              beanAmount.toBigInt(),
+              Number(balanceFrom),
+            ],
+          });
+
+          farmData.push(fillCall);
+        }
+
+        if (farmData.length === 0) {
+          throw new Error("No valid fill operations to execute");
+        }
+
+        // Use farm to batch all listing fills in one transaction
         return writeWithEstimateGas({
           address: diamondAddress,
           abi: beanstalkAbi,
-          functionName: "fillPodListing",
-          args: [
-            {
-              lister: listing.farmer.id as Address, // account
-              fieldId: 0n, // fieldId
-              index: TokenValue.fromBlockchain(listing.index, PODS.decimals).toBigInt(), // index
-              start: TokenValue.fromBlockchain(listing.start, PODS.decimals).toBigInt(), // start
-              podAmount: TokenValue.fromBlockchain(listing.amount, PODS.decimals).toBigInt(), // amount
-              pricePerPod: Number(TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals)), // pricePerPod
-              maxHarvestableIndex: TokenValue.fromBlockchain(listing.maxHarvestableIndex, PODS.decimals).toBigInt(), // maxHarvestableIndex
-              minFillAmount: TokenValue.fromBlockchain(listing.minFillAmount, mainToken.decimals).toBigInt(), // minFillAmount, measured in Beans
-              mode: Number(listing.mode), // mode
-            },
-            toSafeTVFromHuman(amountIn, mainToken.decimals).toBigInt(), // amountIn
-            Number(balanceFrom), // fromMode
-          ],
+          functionName: "farm",
+          args: [farmData],
         });
       } else if (swapBuild?.advancedFarm.length) {
+        // Swap + fill - use advancedFarm
         const { clipboard } = await swapBuild.deriveClipboardWithOutputToken(mainToken, 9, account.address, {
           value: value ?? TV.ZERO,
         });
 
         const advFarm = [...swapBuild.advancedFarm];
-        advFarm.push(
-          fillPodListing(
-            listing.farmer.id as Address, // account
-            TokenValue.fromBlockchain(listing.index, PODS.decimals), // index
-            TokenValue.fromBlockchain(listing.start, PODS.decimals), // start
-            TokenValue.fromBlockchain(listing.amount, PODS.decimals), // amount
-            Number(TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals)), // pricePerPod
-            TokenValue.fromBlockchain(listing.maxHarvestableIndex, PODS.decimals), // maxHarvestableIndex
-            TokenValue.fromBlockchain(listing.minFillAmount, mainToken.decimals), // minFillAmount, measured in Beans
-            Number(listing.mode), // mode
-            TV.ZERO, // amountIn (from clipboard)
-            FarmFromMode.INTERNAL, // fromMode
+
+        // Add fillPodListing calls for each listing
+        for (const { listing, beanAmount } of listingsToFill) {
+          // Encode pricePerPod with 6 decimals (like CreateOrder.tsx)
+          const pricePerPodNumber = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals).toNumber();
+          const encodedPricePerPod = Math.floor(pricePerPodNumber * PRICE_PER_POD_CONFIG.DECIMAL_MULTIPLIER);
+
+          const fillCall = fillPodListing(
+            listing.farmer.id as Address,
+            TokenValue.fromBlockchain(listing.index, PODS.decimals),
+            TokenValue.fromBlockchain(listing.start, PODS.decimals),
+            TokenValue.fromBlockchain(listing.amount, PODS.decimals),
+            encodedPricePerPod,
+            TokenValue.fromBlockchain(listing.maxHarvestableIndex, PODS.decimals),
+            TokenValue.fromBlockchain(listing.minFillAmount, mainToken.decimals),
+            Number(listing.mode),
+            beanAmount,
+            FarmFromMode.INTERNAL,
             clipboard,
-          ),
-        );
+          );
+
+          advFarm.push(fillCall);
+        }
 
         return writeWithEstimateGas({
           address: diamondAddress,
@@ -474,15 +544,16 @@ export default function FillListing() {
     } catch (e) {
       console.error(e);
       toast.dismiss();
-      toast.error("Listing Fill Failed");
+      const errorMessage = e instanceof Error ? e.message : "Listing Fill Failed";
+      toast.error(errorMessage);
       throw e;
     } finally {
       setSubmitting(false);
     }
   }, [
-    listing,
     account.address,
-    amountIn,
+    listingsToFill,
+    mainTokensIn,
     balanceFrom,
     swapBuild,
     writeWithEstimateGas,
@@ -491,14 +562,12 @@ export default function FillListing() {
     value,
     diamondAddress,
     mainToken,
-    eligibleListingIds.length,
     tokenIn.symbol,
     eligibleSummary,
-    mainTokensIn,
   ]);
 
-  // Disable submit if no tokens entered, no eligible listings, or no listing selected
-  const disabled = !mainTokensIn || mainTokensIn.eq(0) || !eligibleListingIds.length || !listing;
+  // Disable submit if no tokens entered, no eligible listings, or no listings to fill
+  const disabled = !mainTokensIn || mainTokensIn.eq(0) || listingsToFill.length === 0;
 
   return (
     <div className="flex flex-col gap-4">
@@ -506,7 +575,7 @@ export default function FillListing() {
       <div className="flex flex-col gap-3">
         <PodLineGraph
           plots={listingPlots}
-          selectedPlotIndices={listing ? [listing.id] : eligibleListingIds}
+          selectedPlotIndices={eligibleListingIds}
           rangeOverlay={rangeOverlay}
           disableInteractions={true}
         />
