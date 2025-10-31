@@ -1,3 +1,4 @@
+import settingsIcon from "@/assets/misc/Settings.svg";
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TV, TokenValue } from "@/classes/TokenValue";
 import ComboPlotInputField from "@/components/ComboPlotInputField";
@@ -23,6 +24,7 @@ import { formatter } from "@/utils/format";
 import { FarmToMode, Plot } from "@/utils/types";
 import { cn } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -87,10 +89,20 @@ export default function CreateListing() {
   const [successPrice, setSuccessPrice] = useState<number | null>(null);
   const podIndex = usePodIndex();
   const maxExpiration = Number.parseInt(podIndex.toHuman()) - Number.parseInt(harvestableIndex.toHuman()) || 0;
-  const expiresIn = maxExpiration; // Auto-set to max expiration
+  const [expiresIn, setExpiresIn] = useState(maxExpiration); // Auto-set to max expiration
   const minFill = TokenValue.fromHuman(1, PODS.decimals);
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
   const plotPosition = plot.length > 0 ? plot[0].index.sub(harvestableIndex) : TV.ZERO;
+
+  const maxExpirationValidation = useMemo(
+    () => ({
+      minValue: 1,
+      maxValue: maxExpiration,
+      maxDecimals: 0,
+    }),
+    [maxExpiration],
+  );
 
   // Calculate max pods based on selected plots OR all farmer plots
   const maxPodAmount = useMemo(() => {
@@ -197,7 +209,7 @@ export default function CreateListing() {
         plot_count: plots.length,
         previous_count: plot.length,
       });
-      
+
       // Sort plots by index to ensure consistent ordering
       const sortedPlots = [...plots].sort((a, b) => a.index.sub(b.index).toNumber());
       setPlot(sortedPlots);
@@ -416,7 +428,7 @@ export default function CreateListing() {
               // Add this group to existing selection - merge with current selection (avoid duplicates)
               const plotIndexSet = new Set(plot.map((p) => p.index.toHuman()));
               const newPlots = [...plot];
-              
+
               plotsInGroup.forEach((plotToAdd) => {
                 if (!plotIndexSet.has(plotToAdd.index.toHuman())) {
                   newPlots.push(plotToAdd);
@@ -515,28 +527,57 @@ export default function CreateListing() {
               </div>
             )}
           </div>
-          {/* Expires In - Auto-set to max expiration */}
-          {/* <div className="flex flex-col gap-2">
-            <p className="pinto-body text-pinto-light">Expires In</p>
-            <SimpleInputField
-              amount={expiresIn}
-              setAmount={setExpiresIn}
-              placeholder={formatter.noDec(maxExpiration)}
-              validation={maxExpirationValidation}
-            />
-            {!!expiresIn && (
-              <p className="pinto-sm text-pinto-light">
-                This listing will automatically expire after {formatter.noDec(expiresIn)} more Pods become Harvestable.
-              </p>
-            )}
-          </div> */}
-          <div className="flex flex-row w-full items-center justify-between gap-2">
-            <p className="pinto-body text-pinto-light">Send balances to Farm Balance</p>
-            <Switch
-              checked={balanceTo === FarmToMode.INTERNAL}
-              onCheckedChange={(checked) => setBalanceTo(checked ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL)}
-            />
+          {/* Advanced Settings Toggle */}
+          <div className="flex justify-end -mb-6 items-center justify-between">
+            <p className="pinto-body text-pinto-light">Settings</p>
+            <button
+              onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
+              className="rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-colors"
+              type="button"
+            >
+              <img
+                src={settingsIcon}
+                className={cn("w-4 h-4 transition-transform", showAdvancedSettings && "rotate-90")}
+                alt="settings"
+              />
+            </button>
           </div>
+          {/* Advanced Settings - Collapsible */}
+          <motion.div
+            initial={false}
+            animate={{
+              height: showAdvancedSettings ? "auto" : 0,
+              opacity: showAdvancedSettings ? 1 : 0,
+            }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="flex flex-col gap-4">
+              {/* Expires In - Auto-set to max expiration */}
+              <div className="flex flex-col gap-2 pt-4">
+                <p className="pinto-body text-pinto-light">Expires In</p>
+                <SimpleInputField
+                  amount={expiresIn}
+                  setAmount={setExpiresIn}
+                  placeholder={formatter.noDec(maxExpiration)}
+                  validation={maxExpirationValidation}
+                />
+                {!!expiresIn && (
+                  <p className="pinto-sm text-pinto-light">
+                    This listing will automatically expire after {formatter.noDec(expiresIn)} more Pods become
+                    Harvestable.
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-row w-full items-center justify-between gap-2">
+                <p className="pinto-body text-pinto-light">Send balances to Farm Balance</p>
+                <Switch
+                  checked={balanceTo === FarmToMode.INTERNAL}
+                  onCheckedChange={(checked) => setBalanceTo(checked ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL)}
+                />
+              </div>
+            </div>
+          </motion.div>
         </div>
       )}
       <div className="flex flex-col gap-4">
