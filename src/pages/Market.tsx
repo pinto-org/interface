@@ -1,6 +1,7 @@
 import PodIcon from "@/assets/protocol/Pod.png";
 import PintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
+import { Col } from "@/components/Container";
 import FrameAnimator from "@/components/LoadingSpinner";
 import ReadMoreAccordion from "@/components/ReadMoreAccordion";
 import ScatterChart from "@/components/charts/ScatterChart";
@@ -305,23 +306,26 @@ export function Market() {
       </div>
       <div className="hidden sm:block">
         <div className={`flex flex-col`}>
-          <div className="flex flex-col gap-4 mb-4 mx-4">
-            <div className="pinto-h2 sm:pinto-h1">Market</div>
-            <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">
-              Buy and sell Pods on the open market.
-              <ReadMoreAccordion defaultOpen={false} inline>
-                The Pod Market is a decentralized marketplace where users can trade Pods, which are protocol-native debt
-                instruments that represent future Pinto tokens. When you buy Pods, you're essentially purchasing the
-                right to redeem them for Pinto tokens at a fixed rate when they become harvestable. The market operates
-                on a first-in-first-out (FIFO) basis, meaning the oldest Pods become harvestable first. You can place
-                buy orders to acquire Pods at a specific price, or create listings to sell your existing Pods to other
-                users. The scatter chart above visualizes all active orders and listings, showing their place in line
-                and price per Pod. This allows you to see market depth and make informed trading decisions based on
-                current market conditions and your investment strategy.
-              </ReadMoreAccordion>
+          <Col className="gap-4 mx-4 mb-8">
+            <div className="flex flex-col gap-4">
+              <div className="pinto-h2 sm:pinto-h1">Market</div>
+              <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">
+                Buy and sell Pods on the open market.
+              </div>
             </div>
-          </div>
-          <div className="flex flex-row border-t border-pinto-gray-2 mt-4 ">
+            <ReadMoreAccordion defaultOpen={false} inline>
+              The Pod Market is a decentralized marketplace where users can trade Pods, which are protocol-native debt
+              instruments that represent future Pinto tokens. When you buy Pods, you're essentially purchasing the right
+              to redeem them for Pinto tokens at a fixed rate when they become harvestable. The market operates on a
+              first-in-first-out (FIFO) basis, meaning the oldest Pods become harvestable first. You can place buy
+              orders to acquire Pods at a specific price, or create listings to sell your existing Pods to other users.
+              The scatter chart above visualizes all active orders and listings, showing their place in line and price
+              per Pod. This allows you to see market depth and make informed trading decisions based on current market
+              conditions and your investment strategy.
+            </ReadMoreAccordion>
+          </Col>
+          <Separator />
+          <div className="flex flex-row mt-4 ">
             <div className="flex flex-col flex-grow ml-4 border-r border-pinto-gray-2 pr-4">
               <div className="w-full h-[75vh] relative mt-4">
                 {!isLoaded && (
