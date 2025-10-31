@@ -197,11 +197,14 @@ export default function CreateListing() {
         plot_count: plots.length,
         previous_count: plot.length,
       });
-      setPlot(plots);
+      
+      // Sort plots by index to ensure consistent ordering
+      const sortedPlots = [...plots].sort((a, b) => a.index.sub(b.index).toNumber());
+      setPlot(sortedPlots);
 
-      // Reset range when plots change
-      if (plots.length > 0) {
-        const totalPods = plots.reduce((sum, p) => sum + p.pods.toNumber(), 0);
+      // Reset range when plots change - slider always starts from first plot and ends at last plot
+      if (sortedPlots.length > 0) {
+        const totalPods = sortedPlots.reduce((sum, p) => sum + p.pods.toNumber(), 0);
         setPodRange([0, totalPods]);
         setAmount(totalPods);
       } else {
@@ -397,17 +400,32 @@ export default function CreateListing() {
           selectedPodRange={selectedPodRange}
           label="My Pods In Line"
           onPlotGroupSelect={(plotIndices) => {
+            // Find all plots in the clicked group from farmer plots
+            const plotsInGroup = farmerField.plots.filter((p) => plotIndices.includes(p.index.toHuman()));
+
+            if (plotsInGroup.length === 0) return;
+
             // Check if all plots in the group are already selected
             const allSelected = plotIndices.every((index) => plot.some((p) => p.index.toHuman() === index));
 
             if (allSelected) {
-              // Deselect if already selected
-              setPlot([]);
+              // Deselect only this group - remove plots from this group
+              const updatedPlots = plot.filter((p) => !plotIndices.includes(p.index.toHuman()));
+              handlePlotSelection(updatedPlots);
             } else {
-              // Find and select all plots in the group from farmer plots
-              const plotsToSelect = farmerField.plots.filter((p) => plotIndices.includes(p.index.toHuman()));
-              if (plotsToSelect.length > 0) {
-                handlePlotSelection(plotsToSelect);
+              // Add this group to existing selection - merge with current selection (avoid duplicates)
+              const plotIndexSet = new Set(plot.map((p) => p.index.toHuman()));
+              const newPlots = [...plot];
+              
+              plotsInGroup.forEach((plotToAdd) => {
+                if (!plotIndexSet.has(plotToAdd.index.toHuman())) {
+                  newPlots.push(plotToAdd);
+                  plotIndexSet.add(plotToAdd.index.toHuman());
+                }
+              });
+
+              if (newPlots.length > plot.length) {
+                handlePlotSelection(newPlots);
               }
             }
           }}

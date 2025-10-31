@@ -458,20 +458,28 @@ export default function FillOrder() {
         {/* Pod Line Graph - Shows order markers (orange thin lines at maxPlaceInLine) */}
         <PodLineGraph
           plots={plotsForGraph}
-          selectedPlotIndices={ordersToFill.map((item) => item.order.id)}
+          selectedPlotIndices={selectedOrderIds}
           label="Open Orders"
           onPlotGroupSelect={(plotIndices) => {
-            // Multi-select toggle: add or remove clicked order
-            if (plotIndices.length > 0) {
-              const clickedOrderId = plotIndices[0];
+            // Multi-select toggle: add or remove clicked order group
+            if (plotIndices.length === 0) return;
 
+            // Check if all orders in the group are already selected
+            const allSelected = plotIndices.every((orderId) => selectedOrderIds.includes(orderId));
+
+            if (allSelected) {
+              // Deselect only this group - remove orders from this group
+              setSelectedOrderIds((prev) => prev.filter((id) => !plotIndices.includes(id)));
+            } else {
+              // Add this group to existing selection - merge with current selection (avoid duplicates)
               setSelectedOrderIds((prev) => {
-                // If already selected, remove it
-                if (prev.includes(clickedOrderId)) {
-                  return prev.filter((id) => id !== clickedOrderId);
-                }
-                // Otherwise, add it to selection
-                return [...prev, clickedOrderId];
+                const newOrderIds = [...prev];
+                plotIndices.forEach((orderId) => {
+                  if (!newOrderIds.includes(orderId)) {
+                    newOrderIds.push(orderId);
+                  }
+                });
+                return newOrderIds;
               });
             }
           }}
