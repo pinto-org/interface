@@ -615,7 +615,7 @@ export default function FillListing() {
         {maxPricePerPod > 0 && (
           <div className="flex justify-end mr-1">
             <p className="pinto-sm text-pinto-light">
-              effective Temperature (i):{" "}
+              Effective Temperature (i):{" "}
               <span className="text-green-600 font-semibold">
                 {formatter.number((1 / maxPricePerPod) * 100, { minDecimals: 2, maxDecimals: 2 })}%
               </span>

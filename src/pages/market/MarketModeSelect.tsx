@@ -4,7 +4,7 @@ import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { useFarmerField } from "@/state/useFarmerField";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { useCallback } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 interface MarketModeSelectProps {
   onMainSelectionChange?: (v: string) => void;
@@ -57,12 +57,30 @@ export default function MarketModeSelect({ onMainSelectionChange, onSecondarySel
 
   return (
     <div className="flex flex-col gap-4 mb-4">
-      <Tabs className="w-full" value={mainTab} onValueChange={handleMainChange}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="buy">Buy Pods</TabsTrigger>
-          <TabsTrigger value="sell">Sell Pods</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <div className="flex justify-around items-center w-full pt-1 pb-1">
+        <button
+          type="button"
+          onClick={() => handleMainChange("buy")}
+          className={`pinto-body relative pb-1 cursor-pointer transition-all ${
+            mainTab === "buy"
+              ? "text-pinto-green-4 font-medium border-b-2 border-pinto-green-4"
+              : "text-pinto-gray-4 border-b-2 border-transparent hover:text-pinto-gray-5"
+          }`}
+        >
+          Buy Pods
+        </button>
+        <button
+          type="button"
+          onClick={() => handleMainChange("sell")}
+          className={`pinto-body relative pb-1 cursor-pointer transition-all ${
+            mainTab === "sell"
+              ? "text-pinto-green-4 font-medium border-b-2 border-pinto-green-4"
+              : "text-pinto-gray-4 border-b-2 border-transparent hover:text-pinto-gray-5"
+          }`}
+        >
+          Sell Pods
+        </button>
+      </div>
       {mainTab ? (
         <>
           {mainTab === "sell" && hasNoPods ? (
