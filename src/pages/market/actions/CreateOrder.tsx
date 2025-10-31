@@ -6,6 +6,7 @@ import PodLineGraph from "@/components/PodLineGraph";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
 import SimpleInputField from "@/components/SimpleInputField";
 import SlippageButton from "@/components/SlippageButton";
+import SmartApprovalButton from "@/components/SmartApprovalButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Input } from "@/components/ui/Input";
 import { Separator } from "@/components/ui/Separator";
@@ -440,12 +441,13 @@ export default function CreateOrder() {
               <ActionSummary beansIn={beansInOrder} pricePerPod={pricePerPod} maxPlaceInLine={maxPlaceInLine} />
             )}
             <div className="flex flex-row gap-2 items-center w-full">
-              <SmartSubmitButton
+              <SmartApprovalButton
+                token={tokenIn}
+                amount={amountIn}
+                balanceFrom={balanceFrom}
                 variant="gradient"
                 size="xxl"
-                submitButtonText="Approve"
                 disabled={disabled || !ackSlippage || isConfirming || submitting}
-                submitFunction={() => {}}
                 className="flex-1"
               />
               <SmartSubmitButton
