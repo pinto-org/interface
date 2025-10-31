@@ -8,6 +8,7 @@ import SimpleInputField from "@/components/SimpleInputField";
 import SlippageButton from "@/components/SlippageButton";
 import SmartApprovalButton from "@/components/SmartApprovalButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
+import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Separator } from "@/components/ui/Separator";
 import { Slider } from "@/components/ui/Slider";
@@ -33,7 +34,8 @@ import { tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 
@@ -104,6 +106,13 @@ export default function CreateOrder() {
   const [tokenIn, setTokenIn] = useState(preferredToken);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.INTERNAL_EXTERNAL);
   const [slippage, setSlippage] = useState(0.1);
+  const [isSuccessful, setIsSuccessful] = useState(false);
+  const [successPods, setSuccessPods] = useState<number | null>(null);
+  const [successPricePerPod, setSuccessPricePerPod] = useState<number | null>(null);
+  const [successAmountIn, setSuccessAmountIn] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const successDataRef = useRef<{ pods: number; pricePerPod: number; amountIn: string } | null>(null);
 
   const shouldSwap = !tokensEqual(tokenIn, mainToken);
 
@@ -213,8 +222,25 @@ export default function CreateOrder() {
     [maxPlace],
   );
 
+  // Calculate pods out for success message
+  const podsOut = useMemo(() => {
+    if (!pricePerPod || pricePerPod <= 0 || beansInOrder.isZero) return 0;
+    const pricePerPodTV = TokenValue.fromHuman(pricePerPod.toString(), beansInOrder.decimals);
+    return beansInOrder.div(pricePerPodTV).reDecimal(PODS.decimals).toNumber();
+  }, [beansInOrder, pricePerPod]);
+
   // invalidate pod orders query
   const onSuccess = useCallback(() => {
+    // Set success state from ref (to avoid stale closure)
+    if (successDataRef.current) {
+      const { pods, pricePerPod, amountIn } = successDataRef.current;
+      setSuccessPods(pods);
+      setSuccessPricePerPod(pricePerPod);
+      setSuccessAmountIn(amountIn);
+      setIsSuccessful(true);
+      successDataRef.current = null; // Clear ref after use
+    }
+
     setAmountIn("");
     setMaxPlaceInLine(undefined);
     setPricePerPod(undefined);
@@ -231,6 +257,19 @@ export default function CreateOrder() {
 
   // submit txn
   const onSubmit = useCallback(async () => {
+    // Reset success state when starting new transaction
+    setIsSuccessful(false);
+    setSuccessPods(null);
+    setSuccessPricePerPod(null);
+    setSuccessAmountIn(null);
+
+    // Save success data to ref (to avoid stale closure in onSuccess callback)
+    successDataRef.current = {
+      pods: podsOut,
+      pricePerPod: pricePerPod || 0,
+      amountIn: amountIn,
+    };
+
     // Track pod order creation
     trackSimpleEvent(ANALYTICS_EVENTS.MARKET.POD_ORDER_CREATE, {
       payment_token: tokenIn.symbol,
@@ -311,6 +350,9 @@ export default function CreateOrder() {
     mainToken,
     swapBuild,
     tokenIn.symbol,
+    podsOut,
+    pricePerPod,
+    amountIn,
   ]);
 
   const swapDataNotReady = (shouldSwap && (!swapData || !swapBuild)) || !!swapQuery.error;
@@ -470,15 +512,42 @@ export default function CreateOrder() {
               <SmartSubmitButton
                 variant="gradient"
                 size="xxl"
-                submitButtonText="Place Pod Order"
+                submitButtonText={isSuccessful ? "Order Placed!" : "Place Pod Order"}
                 token={tokenIn}
-                disabled={disabled || !ackSlippage || isConfirming || submitting}
+                disabled={disabled || !ackSlippage || isConfirming || submitting || isSuccessful}
                 amount={amountIn}
                 balanceFrom={balanceFrom}
                 submitFunction={onSubmit}
                 className="flex-1"
               />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Screen */}
+      {isSuccessful && successPods !== null && successPricePerPod !== null && successAmountIn !== null && (
+        <div className="flex flex-col gap-6 w-full animate-fade-in">
+          <Separator />
+
+          <div className="flex flex-col gap-3 items-center text-center px-4">
+            <p className="pinto-body text-pinto-light">
+              You have successfully placed an order for {formatter.noDec(successPods)} Pods at{" "}
+              {formatter.number(successPricePerPod, { minDecimals: 2, maxDecimals: 6 })} Pintos per Pod, with{" "}
+              {formatter.number(Number.parseFloat(successAmountIn) || 0, { minDecimals: 0, maxDecimals: 2 })}{" "}
+              {tokenIn.symbol}!
+            </p>
+          </div>
+
+          <div className="flex justify-center">
+            <Button
+              variant="outline-primary-2"
+              size="lg"
+              onClick={() => navigate("/overview")}
+              className="w-full sm:w-auto"
+            >
+              Go to Overview
+            </Button>
           </div>
         </div>
       )}
