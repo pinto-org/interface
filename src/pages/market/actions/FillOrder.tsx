@@ -2,6 +2,7 @@ import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
 import PodLineGraph from "@/components/PodLineGraph";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
+import { Button } from "@/components/ui/Button";
 import { Separator } from "@/components/ui/Separator";
 import { MultiSlider } from "@/components/ui/Slider";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
@@ -11,7 +12,7 @@ import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
 import usePodOrders from "@/state/market/usePodOrders";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
-import { useFarmerPlotsQuery } from "@/state/useFarmerField";
+import { useFarmerField, useFarmerPlotsQuery } from "@/state/useFarmerField";
 import { useHarvestableIndex, usePodIndex } from "@/state/useFieldData";
 import { useQueryKeys } from "@/state/useQueryKeys";
 import useTokenData from "@/state/useTokenData";
@@ -20,8 +21,9 @@ import { formatter } from "@/utils/format";
 import { FarmToMode, Plot } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Address } from "viem";
+import { Address, encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
 import CancelOrder from "./CancelOrder";
 
@@ -31,7 +33,6 @@ import CancelOrder from "./CancelOrder";
 
 // Constants
 const FIELD_ID = 0n;
-const START_INDEX_WITHIN_PLOT = 0n;
 const MIN_PODS_THRESHOLD = 1; // Minimum pods required for order eligibility
 
 // Helper Functions
@@ -77,6 +78,7 @@ export default function FillOrder() {
   const harvestableIndex = useHarvestableIndex();
   const podIndex = usePodIndex();
   const podLine = podIndex.sub(harvestableIndex);
+  const navigate = useNavigate();
 
   const queryClient = useQueryClient();
   const {
@@ -93,12 +95,16 @@ export default function FillOrder() {
     [allPodOrders, allMarket, farmerMarket, farmerFieldQK, farmerPlotsQK, balanceQKs],
   );
 
-  const [plot, setPlot] = useState<Plot[]>([]);
   const [podRange, setPodRange] = useState<[number, number]>([0, 0]);
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
+  const [isSuccessful, setIsSuccessful] = useState(false);
+  const [successAmount, setSuccessAmount] = useState<number | null>(null);
+  const [successAvgPrice, setSuccessAvgPrice] = useState<number | null>(null);
+  const [successTotal, setSuccessTotal] = useState<number | null>(null);
 
   const prevTotalCapacityRef = useRef<number>(0);
   const selectedOrderIdsRef = useRef<string[]>([]);
+  const successDataRef = useRef<{ amount: number; avgPrice: number; total: number } | null>(null);
 
   // Keep ref in sync and reset capacity ref when selection changes
   useEffect(() => {
@@ -108,6 +114,7 @@ export default function FillOrder() {
 
   const podOrders = usePodOrders();
   const allOrders = podOrders.data;
+  const farmerField = useFarmerField();
 
   const { selectedOrders, orderPositions, totalCapacity } = useMemo(() => {
     if (!allOrders?.podOrders) return { selectedOrders: [], orderPositions: [], totalCapacity: 0 };
@@ -136,9 +143,7 @@ export default function FillOrder() {
     };
   }, [allOrders?.podOrders, selectedOrderIds, mainToken.decimals]);
 
-  const order = selectedOrders[0];
   const amount = podRange[1] - podRange[0];
-  const amountToSell = TokenValue.fromHuman(amount || 0, PODS.decimals);
 
   const ordersToFill = useMemo(() => {
     const [rangeStart, rangeEnd] = podRange;
@@ -156,7 +161,8 @@ export default function FillOrder() {
           order: pos.order,
           amount: fillAmount,
         };
-      });
+      })
+      .filter((item) => item.amount > 0);
   }, [orderPositions, podRange]);
 
   // Calculate weighted average price per pod once for reuse
@@ -178,8 +184,31 @@ export default function FillOrder() {
   const eligibleOrders = useMemo(() => {
     if (!allOrders?.podOrders) return [];
 
-    return allOrders.podOrders.filter((order) => isOrderEligible(order, mainToken.decimals, podLine));
-  }, [allOrders?.podOrders, mainToken.decimals, podLine]);
+    // Get farmer's frontmost pod position (lowest index)
+    const farmerPlots = farmerField.plots;
+    const farmerFrontmostPodIndex =
+      farmerPlots.length > 0
+        ? farmerPlots.reduce((min, plot) => (plot.index.lt(min) ? plot.index : min), farmerPlots[0].index)
+        : null;
+
+    return allOrders.podOrders.filter((order) => {
+      // Check basic eligibility
+      if (!isOrderEligible(order, mainToken.decimals, podLine)) {
+        return false;
+      }
+
+      // Check if farmer has pods that can fill this order
+      // Order's maxPlaceInLine + harvestableIndex must be >= farmer's frontmost pod index
+      if (!farmerFrontmostPodIndex) {
+        return false; // No pods available
+      }
+
+      const orderMaxPlaceIndex = harvestableIndex.add(TokenValue.fromBlockchain(order.maxPlaceInLine, PODS.decimals));
+
+      // Farmer's pod must be at or before the order's maxPlaceInLine position
+      return farmerFrontmostPodIndex.lte(orderMaxPlaceIndex);
+    });
+  }, [allOrders?.podOrders, mainToken.decimals, podLine, farmerField.plots, harvestableIndex]);
 
   useEffect(() => {
     if (totalCapacity !== prevTotalCapacityRef.current) {
@@ -219,7 +248,16 @@ export default function FillOrder() {
   }, []);
 
   const onSuccess = useCallback(() => {
-    setPlot([]);
+    // Set success state from ref (to avoid stale closure)
+    if (successDataRef.current) {
+      const { amount, avgPrice, total } = successDataRef.current;
+      setSuccessAmount(amount);
+      setSuccessAvgPrice(avgPrice);
+      setSuccessTotal(total);
+      setIsSuccessful(true);
+      successDataRef.current = null; // Clear ref after use
+    }
+
     setPodRange([0, 0]);
     setSelectedOrderIds([]);
     allQK.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
@@ -231,48 +269,155 @@ export default function FillOrder() {
     successCallback: onSuccess,
   });
 
-  const onSubmit = useCallback(() => {
-    if (!order || !plot[0]) {
+  const onSubmit = useCallback(async () => {
+    if (ordersToFill.length === 0 || !account || farmerField.plots.length === 0) {
       return;
     }
 
-    trackSimpleEvent(ANALYTICS_EVENTS.MARKET.POD_ORDER_FILL, {
-      order_price_per_pod: Number(order.pricePerPod),
-      order_max_place: Number(order.maxPlaceInLine),
+    // Reset success state when starting new transaction
+    setIsSuccessful(false);
+    setSuccessAmount(null);
+    setSuccessAvgPrice(null);
+    setSuccessTotal(null);
+
+    // Save success data to ref (to avoid stale closure in onSuccess callback)
+    successDataRef.current = {
+      amount,
+      avgPrice: weightedAvgPricePerPod,
+      total: amount * weightedAvgPricePerPod,
+    };
+
+    // Track analytics for each order being filled
+    ordersToFill.forEach(({ order: orderToFill }) => {
+      trackSimpleEvent(ANALYTICS_EVENTS.MARKET.POD_ORDER_FILL, {
+        order_price_per_pod: Number(orderToFill.pricePerPod),
+        order_max_place: Number(orderToFill.maxPlaceInLine),
+      });
     });
 
     try {
       setSubmitting(true);
-      toast.loading("Filling Order...");
+      toast.loading(`Filling ${ordersToFill.length} Order${ordersToFill.length !== 1 ? "s" : ""}...`);
+
+      // Sort farmer plots by index to use them in order (only sort once)
+      const sortedPlots = [...farmerField.plots].sort((a, b) => a.index.sub(b.index).toNumber());
+
+      if (sortedPlots.length === 0) {
+        throw new Error("No pods available to fill orders");
+      }
+
+      // Allocate pods from plots to orders
+      let plotIndex = 0;
+      let remainingPodsInCurrentPlot = sortedPlots[0].pods.toNumber();
+      let currentPlot = sortedPlots[0];
+      let currentPlotStartOffset = 0;
+
+      const farmData: `0x${string}`[] = [];
+
+      for (const { order: orderToFill, amount: fillAmount } of ordersToFill) {
+        let remainingAmount = fillAmount;
+        const orderMaxPlaceIndex = harvestableIndex.add(
+          TokenValue.fromBlockchain(orderToFill.maxPlaceInLine, PODS.decimals),
+        );
+
+        // Continue using plots until we have enough pods to fill this order
+        while (remainingAmount > 0 && plotIndex < sortedPlots.length) {
+          // Move to next plot if current one is exhausted
+          if (remainingPodsInCurrentPlot === 0) {
+            plotIndex++;
+            if (plotIndex >= sortedPlots.length) {
+              throw new Error(
+                `Insufficient pods in your plots to fill order. Need ${remainingAmount.toFixed(2)} more pods.`,
+              );
+            }
+            currentPlot = sortedPlots[plotIndex];
+            remainingPodsInCurrentPlot = currentPlot.pods.toNumber();
+            currentPlotStartOffset = 0;
+          }
+
+          // Validate that plot position is valid for this order
+          if (currentPlot.index.gt(orderMaxPlaceIndex)) {
+            throw new Error(
+              `Your pod at position ${currentPlot.index.toHuman()} is too far in line for order (max: ${orderMaxPlaceIndex.toHuman()})`,
+            );
+          }
+
+          const podsToUse = Math.min(remainingAmount, remainingPodsInCurrentPlot);
+          const podAmount = TokenValue.fromHuman(podsToUse, PODS.decimals);
+          const startOffset = TokenValue.fromHuman(currentPlotStartOffset, PODS.decimals);
+
+          // Create fillPodOrder call for this order with pod allocation from current plot
+          const fillOrderArgs = {
+            orderer: orderToFill.farmer.id as Address,
+            fieldId: FIELD_ID,
+            maxPlaceInLine: BigInt(orderToFill.maxPlaceInLine),
+            pricePerPod: Number(orderToFill.pricePerPod),
+            minFillAmount: BigInt(orderToFill.minFillAmount),
+          };
+
+          const fillCall = encodeFunctionData({
+            abi: beanstalkAbi,
+            functionName: "fillPodOrder",
+            args: [
+              fillOrderArgs,
+              currentPlot.index.toBigInt(),
+              startOffset.toBigInt(),
+              podAmount.toBigInt(),
+              Number(FarmToMode.INTERNAL),
+            ],
+          });
+
+          farmData.push(fillCall);
+
+          // Update tracking variables
+          remainingAmount -= podsToUse;
+          remainingPodsInCurrentPlot -= podsToUse;
+          currentPlotStartOffset += podsToUse;
+        }
+
+        // Validate all pods were allocated
+        if (remainingAmount > 0) {
+          throw new Error(
+            `Insufficient pods in your plots to fill order. Need ${remainingAmount.toFixed(2)} more pods.`,
+          );
+        }
+      }
+
+      if (farmData.length === 0) {
+        throw new Error("No valid fill operations to execute");
+      }
+
+      // Use farm to batch all order fills in one transaction
+      // Success state will be set in onSuccess callback via ref
       writeWithEstimateGas({
         address: diamondAddress,
         abi: beanstalkAbi,
-        functionName: "fillPodOrder",
-        args: [
-          {
-            orderer: order.farmer.id as Address,
-            fieldId: FIELD_ID,
-            maxPlaceInLine: BigInt(order.maxPlaceInLine),
-            pricePerPod: Number(order.pricePerPod),
-            minFillAmount: BigInt(order.minFillAmount),
-          },
-          plot[0].index.toBigInt(),
-          START_INDEX_WITHIN_PLOT,
-          amountToSell.toBigInt(),
-          Number(FarmToMode.INTERNAL),
-        ],
+        functionName: "farm",
+        args: [farmData],
       });
     } catch (e) {
-      console.error(e);
+      console.error("Fill order error:", e);
       toast.dismiss();
-      toast.error("Order Fill Failed");
-      throw e;
-    } finally {
+      const errorMessage =
+        e instanceof Error ? e.message : "Order Fill Failed. Please check your pod balance and try again.";
+      toast.error(errorMessage);
       setSubmitting(false);
     }
-  }, [order, plot, amountToSell, writeWithEstimateGas, setSubmitting, diamondAddress]);
+  }, [
+    ordersToFill,
+    account,
+    farmerField.plots,
+    writeWithEstimateGas,
+    setSubmitting,
+    diamondAddress,
+    amount,
+    weightedAvgPricePerPod,
+    harvestableIndex,
+  ]);
 
-  const isOwnOrder = order && order.farmer.id === account.address?.toLowerCase();
+  const isOwnOrder = useMemo(() => {
+    return selectedOrders.some((order) => order.farmer.id === account.address?.toLowerCase());
+  }, [selectedOrders, account.address]);
 
   if (eligibleOrders.length === 0) {
     return (
@@ -328,10 +473,14 @@ export default function FillOrder() {
       </div>
 
       {/* Show cancel option if user owns an order */}
-      {isOwnOrder && order && (
+      {isOwnOrder && selectedOrders.length > 0 && (
         <>
           <Separator />
-          <CancelOrder order={order} />
+          {selectedOrders
+            .filter((order) => order.farmer.id === account.address?.toLowerCase())
+            .map((order) => (
+              <CancelOrder key={order.id} order={order} />
+            ))}
         </>
       )}
 
@@ -419,14 +568,44 @@ export default function FillOrder() {
                 <SmartSubmitButton
                   variant="gradient"
                   size="xxl"
-                  submitButtonText={`Fill ${ordersToFill.length} Pod Order${ordersToFill.length !== 1 ? "s" : ""}`}
-                  disabled={ordersToFill.length === 0 || !amount || isConfirming || submitting}
+                  submitButtonText={
+                    isSuccessful
+                      ? "Order Filled!"
+                      : `Fill ${ordersToFill.length} Pod Order${ordersToFill.length !== 1 ? "s" : ""}`
+                  }
+                  disabled={ordersToFill.length === 0 || !amount || isConfirming || submitting || isSuccessful}
                   submitFunction={onSubmit}
                 />
               </div>
             </>
           );
         })()}
+
+      {/* Success Screen */}
+      {isSuccessful && successAmount !== null && successAvgPrice !== null && successTotal !== null && (
+        <div className="flex flex-col gap-6 w-full animate-fade-in">
+          <Separator />
+
+          <div className="flex flex-col gap-3 items-center text-center px-4">
+            <p className="pinto-body text-pinto-light">
+              You have successfully filled {formatter.noDec(successAmount)} Pods at an average price of{" "}
+              {formatter.number(successAvgPrice, { minDecimals: 2, maxDecimals: 6 })} Pintos per Pod, for a total of{" "}
+              {formatter.number(successTotal, { minDecimals: 0, maxDecimals: 2 })} Pintos!
+            </p>
+          </div>
+
+          <div className="flex justify-center">
+            <Button
+              variant="outline-primary-2"
+              size="lg"
+              onClick={() => navigate("/overview")}
+              className="w-full sm:w-auto"
+            >
+              Go to Overview
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
