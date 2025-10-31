@@ -35,6 +35,8 @@ interface PodLineGraphProps {
   rangeOverlay?: { start: TokenValue; end: TokenValue };
   /** Callback when a plot group is clicked - receives all plot indices in the group */
   onPlotGroupSelect?: (plotIndices: string[]) => void;
+  /** Disable hover and click interactions */
+  disableInteractions?: boolean;
   /** Additional CSS classes */
   className?: string;
 }
@@ -167,6 +169,7 @@ export default function PodLineGraph({
   orderRangeEnd,
   rangeOverlay,
   onPlotGroupSelect,
+  disableInteractions = false,
   className,
 }: PodLineGraphProps) {
   const farmerField = useFarmerField();
@@ -425,6 +428,7 @@ export default function PodLineGraph({
 
                 // Handle group click - select all plots in the group
                 const handleGroupClick = () => {
+                  if (disableInteractions) return;
                   if (onPlotGroupSelect) {
                     // Send all plot IDs or indices in the group
                     // Prefer 'id' if available (for order markers), otherwise use index
@@ -450,15 +454,16 @@ export default function PodLineGraph({
                     {/* Base rectangle (background color) */}
                     <div
                       className={cn(
-                        "absolute inset-0 cursor-pointer transition-all",
+                        "absolute inset-0 transition-all",
+                        !disableInteractions && "cursor-pointer",
                         groupIsGreen ? "bg-pinto-green-1" : "bg-pinto-morning-orange",
                       )}
                       style={{
                         borderRadius: groupBorderRadius,
                       }}
-                      onClick={handleGroupClick}
-                      onMouseEnter={() => setHoveredPlotIndex(groupFirstPlotIndex)}
-                      onMouseLeave={() => setHoveredPlotIndex(null)}
+                      onClick={disableInteractions ? undefined : handleGroupClick}
+                      onMouseEnter={disableInteractions ? undefined : () => setHoveredPlotIndex(groupFirstPlotIndex)}
+                      onMouseLeave={disableInteractions ? undefined : () => setHoveredPlotIndex(null)}
                     />
 
                     {/* Partial selection overlay (green) */}

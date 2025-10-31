@@ -59,6 +59,11 @@ const clampAndFormatPrice = (value: number): number => {
   return formatPricePerPod(clamped);
 };
 
+// Utility function to remove trailing zeros from formatted price
+const removeTrailingZeros = (value: string): string => {
+  return value.includes(".") ? value.replace(/\.?0+$/, "") : value;
+};
+
 const useFilterTokens = () => {
   const tokens = useTokenMap();
   const isWSOL = useIsWSOL();
@@ -167,7 +172,7 @@ export default function CreateOrder() {
   const handlePriceSliderChange = useCallback((value: number[]) => {
     const formatted = formatPricePerPod(value[0]);
     setPricePerPod(formatted);
-    setPricePerPodInput(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS));
+    setPricePerPodInput(removeTrailingZeros(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS)));
   }, []);
 
   // Price per pod input handlers
@@ -181,7 +186,7 @@ export default function CreateOrder() {
     if (!Number.isNaN(numValue)) {
       const formatted = clampAndFormatPrice(numValue);
       setPricePerPod(formatted);
-      setPricePerPodInput(formatted.toString());
+      setPricePerPodInput(removeTrailingZeros(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS)));
     } else {
       setPricePerPodInput("");
       setPricePerPod(undefined);
@@ -257,13 +262,14 @@ export default function CreateOrder() {
         : undefined;
 
     const _maxPlaceInLine = TokenValue.fromHuman(maxPlaceInLine?.toString() || "0", PODS.decimals);
-    const _pricePerPod = TokenValue.fromHuman(pricePerPod?.toString() || "0", mainToken.decimals);
+    // pricePerPod should be encoded as uint24 with 6 decimals (0.5 * 1_000_000 = 500000)
+    const encodedPricePerPod = pricePerPod ? Math.floor(pricePerPod * PRICE_PER_POD_CONFIG.DECIMAL_MULTIPLIER) : 0;
     const minFill = TokenValue.fromHuman("1", PODS.decimals);
 
     const orderCallStruct = createPodOrder(
       account,
       _amount,
-      Number(_pricePerPod),
+      encodedPricePerPod,
       _maxPlaceInLine,
       minFill,
       fromMode,
@@ -322,7 +328,7 @@ export default function CreateOrder() {
   return (
     <div className="flex flex-col gap-4">
       {/* PodLineGraph Visualization */}
-      <PodLineGraph orderRangeEnd={orderRangeEnd} />
+      <PodLineGraph orderRangeEnd={orderRangeEnd} disableInteractions={true} />
 
       {/* Place in Line Slider */}
       <div className="flex flex-col gap-3 mt-2">
@@ -373,7 +379,7 @@ export default function CreateOrder() {
                 <Slider
                   min={PRICE_PER_POD_CONFIG.MIN}
                   max={PRICE_PER_POD_CONFIG.MAX}
-                  step={0.001}
+                  step={0.000001}
                   value={[pricePerPod || PRICE_PER_POD_CONFIG.MIN]}
                   onValueChange={handlePriceSliderChange}
                   className="w-[300px]"
@@ -394,6 +400,17 @@ export default function CreateOrder() {
                 endIcon={<TextAdornment text={mainToken.symbol} className="bg-white" />}
               />
             </div>
+            {/* Effective Temperature Display */}
+            {pricePerPod && pricePerPod > 0 && (
+              <div className="flex justify-end mr-1">
+                <p className="pinto-sm text-pinto-light">
+                  effective Temperature (i):{" "}
+                  <span className="text-green-600 font-semibold">
+                    {formatter.number((1 / pricePerPod) * 100, { minDecimals: 2, maxDecimals: 2 })}%
+                  </span>
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Order Using Section */}
@@ -474,7 +491,10 @@ const ActionSummary = ({
   pricePerPod,
   maxPlaceInLine,
 }: { beansIn: TV; pricePerPod: number; maxPlaceInLine: number }) => {
-  const podsOut = beansIn.div(TokenValue.fromHuman(pricePerPod, 6));
+  // pricePerPod is Pinto per Pod (0-1), convert to TokenValue with same decimals as beansIn (mainToken decimals)
+  // Then divide to get pods and convert to Pods decimals
+  const pricePerPodTV = TokenValue.fromHuman(pricePerPod.toString(), beansIn.decimals);
+  const podsOut = beansIn.div(pricePerPodTV).reDecimal(PODS.decimals);
 
   return (
     <div className="flex flex-col gap-4">

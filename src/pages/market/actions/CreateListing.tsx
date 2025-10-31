@@ -291,7 +291,8 @@ export default function CreateListing() {
       plot_position_millions: plot.length > 0 ? Math.round(plotPosition.div(1_000_000).toNumber()) : 0,
     });
 
-    const _pricePerPod = TokenValue.fromHuman(pricePerPod, mainToken.decimals);
+    // pricePerPod should be encoded as uint24 with 6 decimals (0.5 * 1_000_000 = 500000)
+    const encodedPricePerPod = pricePerPod ? Math.floor(pricePerPod * PRICE_PER_POD_CONFIG.DECIMAL_MULTIPLIER) : 0;
     const _expiresIn = TokenValue.fromHuman(expiresIn, PODS.decimals);
     const maxHarvestableIndex = _expiresIn.add(harvestableIndex);
     try {
@@ -320,7 +321,7 @@ export default function CreateListing() {
           index: data.index.toBigInt(),
           start: data.start.toBigInt(),
           podAmount: data.amount.toBigInt(),
-          pricePerPod: Number(_pricePerPod),
+          pricePerPod: encodedPricePerPod,
           maxHarvestableIndex: maxHarvestableIndex.toBigInt(),
           minFillAmount: minFill.toBigInt(),
           mode: Number(balanceTo),
