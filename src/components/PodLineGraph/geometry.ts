@@ -8,9 +8,7 @@ export function computeGroupLayout(
   podLine: TokenValue,
   isLastGroup: boolean,
 ): { leftPercent: number; displayWidthPercent: number; borderRadius: string } {
-  const leftPercent = podLine.gt(0)
-    ? (groupStartMinusHarvestable.toNumber() / podLine.toNumber()) * 100
-    : 0;
+  const leftPercent = podLine.gt(0) ? (groupStartMinusHarvestable.toNumber() / podLine.toNumber()) * 100 : 0;
   const widthPercent = podLine.gt(0)
     ? ((groupEndMinusHarvestable.toNumber() - groupStartMinusHarvestable.toNumber()) / podLine.toNumber()) * 100
     : 0;
@@ -46,5 +44,3 @@ export function computePartialSelectionPercent(
     end: (overlapEndOffset / groupTotal) * 100,
   };
 }
-
-

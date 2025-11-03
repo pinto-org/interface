@@ -6,8 +6,8 @@ import { formatter } from "@/utils/format";
 import { Plot } from "@/utils/types";
 import { cn } from "@/utils/utils";
 import { useMemo, useState } from "react";
-import { PlotGroup } from "./PodLineGraph/PlotGroup";
 import { PartialSelectionOverlay } from "./PodLineGraph/PartialSelectionOverlay";
+import { PlotGroup } from "./PodLineGraph/PlotGroup";
 import { computeGroupLayout, computePartialSelectionPercent } from "./PodLineGraph/geometry";
 import { deriveGroupState } from "./PodLineGraph/selection";
 
@@ -257,7 +257,7 @@ export default function PodLineGraph({
         <div className="relative w-full h-full flex">
           {/* Harvested Section (Log Scale) - Left 20% (only shown if there are harvested plots) */}
           {hasHarvestedPlots && (
-            <div className="relative" style={{ width: `${harvestedWidthPercent}%` }}>
+            <div className="relative w-1/5">
               {/* Grid lines (exponential scale) */}
               <div className="absolute inset-0">
                 {generateLogGridPoints(maxHarvestedIndex).map((value) => {
@@ -318,7 +318,7 @@ export default function PodLineGraph({
           )}
 
           {/* Podline Section (Linear Scale) - Right 80% or 100% if no harvested plots */}
-          <div className="relative" style={{ width: `${podlineWidthPercent}%` }}>
+          <div className={cn("relative", hasHarvestedPlots ? "w-4/5" : "w-full")}>
             {/* Grid lines at 10M intervals */}
             <div className="absolute inset-0">
               {generateAxisLabels(0, podLine.toNumber()).map((value) => {
@@ -391,14 +391,15 @@ export default function PodLineGraph({
                   : false;
 
                 // Compute partial selection overlay only when selection overlaps
-                const partialSelectionPercent = selectedPodRange && overlapsSelection
-                  ? computePartialSelectionPercent(
-                      group.startIndex,
-                      group.endIndex,
-                      selectedPodRange.start,
-                      selectedPodRange.end,
-                    )
-                  : null;
+                const partialSelectionPercent =
+                  selectedPodRange && overlapsSelection
+                    ? computePartialSelectionPercent(
+                        group.startIndex,
+                        group.endIndex,
+                        selectedPodRange.start,
+                        selectedPodRange.end,
+                      )
+                    : null;
 
                 // In Create (range present), green follows overlap; in Fill (no range), green follows selection
                 const selectionGreen = selectedPodRange ? overlapsSelection : hasSelectedPlot;

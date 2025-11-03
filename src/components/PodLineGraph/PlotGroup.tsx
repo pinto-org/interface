@@ -29,7 +29,14 @@ function PlotGroupComponent({
   return (
     <div
       className="absolute"
-      style={{ left: `${leftPercent}%`, width: `${widthPercent}%`, minWidth: "4px", height: "100%", top: "0%", zIndex: isActive ? 20 : 1 }}
+      style={{
+        left: `${leftPercent}%`,
+        width: `${widthPercent}%`,
+        minWidth: "4px",
+        height: "100%",
+        top: "0%",
+        zIndex: isActive ? 20 : 1,
+      }}
     >
       <div
         className={cn(
@@ -48,5 +55,3 @@ function PlotGroupComponent({
 }
 
 export const PlotGroup = React.memo(PlotGroupComponent);
-
-

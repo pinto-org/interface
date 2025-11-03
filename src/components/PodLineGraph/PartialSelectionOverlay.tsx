@@ -26,5 +26,3 @@ function PartialSelectionOverlayComponent({ startPercent, endPercent, borderRadi
 }
 
 export const PartialSelectionOverlay = React.memo(PartialSelectionOverlayComponent);
-
-
