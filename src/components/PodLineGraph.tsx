@@ -245,6 +245,11 @@ export default function PodLineGraph({
   const harvestedWidthPercent = hasHarvestedPlots ? HARVESTED_WIDTH_PERCENT : 0;
   const podlineWidthPercent = hasHarvestedPlots ? PODLINE_WIDTH_PERCENT : 100;
 
+  // Memoized grid points and axis labels
+  const logGridPoints = useMemo(() => generateLogGridPoints(maxHarvestedIndex), [maxHarvestedIndex]);
+  const topAxisLabels = useMemo(() => generateAxisLabels(0, podLine.toNumber()), [podLine]);
+  const bottomAxisLabels = topAxisLabels;
+
   return (
     <div className={cn("relative w-full pb-2", className)}>
       {/* Label */}
@@ -260,7 +265,7 @@ export default function PodLineGraph({
             <div className="relative w-1/5">
               {/* Grid lines (exponential scale) */}
               <div className="absolute inset-0">
-                {generateLogGridPoints(maxHarvestedIndex).map((value) => {
+                {logGridPoints.map((value) => {
                   // Exponential scale: small values compressed to the left, large values spread to the right
                   const minValue = maxHarvestedIndex / 10;
                   const normalizedValue = (value - minValue) / (maxHarvestedIndex - minValue);
@@ -321,7 +326,7 @@ export default function PodLineGraph({
           <div className={cn("relative", hasHarvestedPlots ? "w-4/5" : "w-full")}>
             {/* Grid lines at 10M intervals */}
             <div className="absolute inset-0">
-              {generateAxisLabels(0, podLine.toNumber()).map((value) => {
+              {bottomAxisLabels.map((value) => {
                 if (value === 0) return null; // Skip 0, it's the marker
                 const position = podLine.gt(0) ? (value / podLine.toNumber()) * 100 : 0;
                 if (position > 100) return null;
