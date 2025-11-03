@@ -314,21 +314,10 @@ export default function CreateListing() {
       setSubmitting(true);
       toast.loading(`Creating ${listingData.length} Listing${listingData.length > 1 ? "s" : ""}...`);
 
-      // Log listing data for debugging
-      // console.log("=== CREATE LISTING DATA ===");
-      // console.log(`Total listings to create: ${listingData.length}`);
-      // console.log(`Price per pod: ${pricePerPod} ${mainToken.symbol}`);
-
       const farmData: `0x${string}`[] = [];
 
       // Create a listing call for each plot
       for (const data of listingData) {
-        // console.log(`\n--- Listing ${index + 1} ---`);
-        // console.log(`Plot Index: ${data.index.toHuman()}`);
-        // console.log(`Start (relative): ${data.start.toHuman()}`);
-        // console.log(`End (relative): ${data.end.toHuman()}`);
-        // console.log(`Amount: ${data.amount.toHuman()} pods`);
-        // console.log(`Place in line: ${data.index.sub(harvestableIndex).toHuman()}`);
 
         const listingArgs = {
           lister: account,
@@ -342,18 +331,6 @@ export default function CreateListing() {
           mode: Number(balanceTo),
         };
 
-        // console.log("Encoded args:", {
-        //   lister: listingArgs.lister,
-        //   fieldId: listingArgs.fieldId.toString(),
-        //   index: listingArgs.index.toString(),
-        //   start: listingArgs.start.toString(),
-        //   podAmount: listingArgs.podAmount.toString(),
-        //   pricePerPod: listingArgs.pricePerPod,
-        //   maxHarvestableIndex: listingArgs.maxHarvestableIndex.toString(),
-        //   minFillAmount: listingArgs.minFillAmount.toString(),
-        //   mode: listingArgs.mode,
-        // });
-
         const listingCall = encodeFunctionData({
           abi: beanstalkAbi,
           functionName: "createPodListing",
@@ -361,9 +338,6 @@ export default function CreateListing() {
         });
         farmData.push(listingCall);
       }
-
-      // console.log(`\nTotal farm calls: ${farmData.length}`);
-      // console.log("=========================\n");
 
       // Use farm to batch all listings in one transaction
       writeWithEstimateGas({
