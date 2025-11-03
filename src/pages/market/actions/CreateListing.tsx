@@ -266,6 +266,34 @@ export default function CreateListing() {
     }
   }, [pricePerPodInput]);
 
+  const handlePlotGroupSelect = useCallback(
+    (plotIndices: string[]) => {
+      const plotsInGroup = farmerField.plots.filter((p) => plotIndices.includes(p.index.toHuman()));
+      if (plotsInGroup.length === 0) return;
+
+      const allSelected = plotIndices.every((index) => plot.some((p) => p.index.toHuman() === index));
+      if (allSelected) {
+        const updatedPlots = plot.filter((p) => !plotIndices.includes(p.index.toHuman()));
+        handlePlotSelection(updatedPlots);
+        return;
+      }
+
+      const plotIndexSet = new Set(plot.map((p) => p.index.toHuman()));
+      const newPlots = [...plot];
+      plotsInGroup.forEach((plotToAdd) => {
+        const key = plotToAdd.index.toHuman();
+        if (!plotIndexSet.has(key)) {
+          newPlots.push(plotToAdd);
+          plotIndexSet.add(key);
+        }
+      });
+      if (newPlots.length > plot.length) {
+        handlePlotSelection(newPlots);
+      }
+    },
+    [farmerField.plots, plot, handlePlotSelection],
+  );
+
   // reset form and invalidate pod listing query
   const onSuccess = useCallback(() => {
     setSuccessAmount(amount);
@@ -384,36 +412,7 @@ export default function CreateListing() {
           selectedPlotIndices={plot.map((p) => p.index.toHuman())}
           selectedPodRange={selectedPodRange}
           label="My Pods In Line"
-          onPlotGroupSelect={(plotIndices) => {
-            // Find all plots in the clicked group from farmer plots
-            const plotsInGroup = farmerField.plots.filter((p) => plotIndices.includes(p.index.toHuman()));
-
-            if (plotsInGroup.length === 0) return;
-
-            // Check if all plots in the group are already selected
-            const allSelected = plotIndices.every((index) => plot.some((p) => p.index.toHuman() === index));
-
-            if (allSelected) {
-              // Deselect only this group - remove plots from this group
-              const updatedPlots = plot.filter((p) => !plotIndices.includes(p.index.toHuman()));
-              handlePlotSelection(updatedPlots);
-            } else {
-              // Add this group to existing selection - merge with current selection (avoid duplicates)
-              const plotIndexSet = new Set(plot.map((p) => p.index.toHuman()));
-              const newPlots = [...plot];
-
-              plotsInGroup.forEach((plotToAdd) => {
-                if (!plotIndexSet.has(plotToAdd.index.toHuman())) {
-                  newPlots.push(plotToAdd);
-                  plotIndexSet.add(plotToAdd.index.toHuman());
-                }
-              });
-
-              if (newPlots.length > plot.length) {
-                handlePlotSelection(newPlots);
-              }
-            }
-          }}
+          onPlotGroupSelect={handlePlotGroupSelect}
         />
 
         {/* Position in Line Display (below graph) */}
