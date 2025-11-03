@@ -57,7 +57,7 @@ function combinePlots(plots: Plot[], harvestableIndex: TokenValue, selectedIndic
 
   for (let i = 0; i < sortedPlots.length; i++) {
     const plot = sortedPlots[i];
-    const nextPlot = sortedPlots[i + 1];
+    const nextPlot = i + 1 < sortedPlots.length ? sortedPlots[i + 1] : undefined;
 
     currentGroup.push(plot);
 
