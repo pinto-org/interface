@@ -6,6 +6,10 @@ import { formatter } from "@/utils/format";
 import { Plot } from "@/utils/types";
 import { cn } from "@/utils/utils";
 import { useMemo, useState } from "react";
+import { PlotGroup } from "./PodLineGraph/PlotGroup";
+import { PartialSelectionOverlay } from "./PodLineGraph/PartialSelectionOverlay";
+import { computeGroupLayout, computePartialSelectionPercent } from "./PodLineGraph/geometry";
+import { deriveGroupState } from "./PodLineGraph/selection";
 
 // Layout constants
 const HARVESTED_WIDTH_PERCENT = 20;
@@ -281,7 +285,6 @@ export default function PodLineGraph({
               {/* Plot rectangles */}
               <div className="absolute inset-0 flex items-center">
                 {harvestedPlots.map((plot, idx) => {
-                  // Exponential scale: small values compressed to the left, large values spread to the right
                   const minValue = maxHarvestedIndex / 10;
                   const plotStart = Math.max(plot.startIndex.toNumber(), minValue);
                   const plotEnd = Math.max(plot.endIndex.toNumber(), minValue);
@@ -289,29 +292,24 @@ export default function PodLineGraph({
                   const normalizedStart = (plotStart - minValue) / (maxHarvestedIndex - minValue);
                   const normalizedEnd = (plotEnd - minValue) / (maxHarvestedIndex - minValue);
 
-                  // Apply exponential transformation
                   const k = 1;
                   const leftPercent = ((Math.exp(k * normalizedStart) - 1) / (Math.exp(k) - 1)) * 100;
                   const rightPercent = ((Math.exp(k * normalizedEnd) - 1) / (Math.exp(k) - 1)) * 100;
                   const widthPercent = rightPercent - leftPercent;
                   const displayWidth = Math.max(widthPercent, MIN_PLOT_WIDTH_PERCENT);
 
-                  // Check if this is the leftmost plot
                   const isLeftmost = idx === 0 && leftPercent < 1;
+                  const borderRadius = isLeftmost ? "2px 0 0 2px" : "2px";
 
                   return (
-                    <div
+                    <PlotGroup
                       key={`harvested-${plot.startIndex.toHuman()}`}
-                      className="absolute bg-pinto-green-1"
-                      style={{
-                        left: `${leftPercent}%`,
-                        width: `${displayWidth}%`,
-                        minWidth: "4px",
-                        height: "100%",
-                        top: "0%",
-                        borderRadius: isLeftmost ? "2px 0 0 2px" : "2px",
-                        zIndex: plot.isSelected ? 10 : 1,
-                      }}
+                      leftPercent={leftPercent}
+                      widthPercent={displayWidth}
+                      borderRadius={borderRadius}
+                      isGreen={true}
+                      isActive={Boolean(plot.isSelected)}
+                      disableInteractions={true}
                     />
                   );
                 })}
@@ -371,122 +369,76 @@ export default function PodLineGraph({
             {/* Plot rectangles - grouped visually but individually interactive */}
             <div className="absolute inset-0 flex items-center">
               {unharvestedPlots.map((group, groupIdx) => {
-                const groupPlaceInLine = group.startIndex.sub(harvestableIndex);
-                const groupEnd = group.endIndex.sub(harvestableIndex);
+                const groupStartMinusHarvestable = group.startIndex.sub(harvestableIndex);
+                const groupEndMinusHarvestable = group.endIndex.sub(harvestableIndex);
 
-                const groupLeftPercent = podLine.gt(0) ? (groupPlaceInLine.toNumber() / podLine.toNumber()) * 100 : 0;
-                const groupWidthPercent = podLine.gt(0)
-                  ? ((groupEnd.toNumber() - groupPlaceInLine.toNumber()) / podLine.toNumber()) * 100
-                  : 0;
-                const groupDisplayWidth = Math.max(groupWidthPercent, MIN_PLOT_WIDTH_PERCENT);
+                const isLastGroup = groupIdx === unharvestedPlots.length - 1;
+                const { leftPercent, displayWidthPercent, borderRadius } = computeGroupLayout(
+                  groupStartMinusHarvestable,
+                  groupEndMinusHarvestable,
+                  podLine,
+                  isLastGroup,
+                );
 
-                // Check if this is the rightmost group
-                const isRightmost =
-                  groupIdx === unharvestedPlots.length - 1 && groupLeftPercent + groupDisplayWidth > 99;
-
-                // Check if group is hovered or selected (based on first plot in group)
-                // Use id (for order markers) or index (for regular plots)
                 const groupFirstPlotIndex = group.plots[0].id || group.plots[0].index.toHuman();
                 const hasHoveredPlot = group.plots.some((p) => (p.id || p.index.toHuman()) === hoveredPlotIndex);
                 const hasSelectedPlot = group.plots.some((p) => selectedSet.has(p.id || p.index.toHuman()));
                 const hasHarvestablePlot = group.plots.some((p) => p.harvestablePods?.gt(0));
 
-                // Calculate partial selection if selectedPodRange is provided
-                let partialSelectionPercent: { start: number; end: number } | null = null;
-                if (selectedPodRange && hasSelectedPlot) {
-                  // Calculate intersection of group and selected range
-                  const groupStart = group.startIndex;
-                  const groupEnd = group.endIndex;
-                  const rangeStart = selectedPodRange.start;
-                  const rangeEnd = selectedPodRange.end;
+                // Determine if the current range overlaps this group (used for coloring when range is present)
+                const overlapsSelection = selectedPodRange
+                  ? selectedPodRange.start.lt(group.endIndex) && selectedPodRange.end.gt(group.startIndex)
+                  : false;
 
-                  // Check if there's an overlap
-                  if (rangeStart.lt(groupEnd) && rangeEnd.gt(groupStart)) {
-                    // Calculate the overlapping range within the group
-                    const overlapStart = rangeStart.gt(groupStart) ? rangeStart : groupStart;
-                    const overlapEnd = rangeEnd.lt(groupEnd) ? rangeEnd : groupEnd;
+                // Compute partial selection overlay only when selection overlaps
+                const partialSelectionPercent = selectedPodRange && overlapsSelection
+                  ? computePartialSelectionPercent(
+                      group.startIndex,
+                      group.endIndex,
+                      selectedPodRange.start,
+                      selectedPodRange.end,
+                    )
+                  : null;
 
-                    // Convert to percentages within the group
-                    const groupTotal = groupEnd.sub(groupStart).toNumber();
-                    const overlapStartOffset = overlapStart.sub(groupStart).toNumber();
-                    const overlapEndOffset = overlapEnd.sub(groupStart).toNumber();
+                // In Create (range present), green follows overlap; in Fill (no range), green follows selection
+                const selectionGreen = selectedPodRange ? overlapsSelection : hasSelectedPlot;
 
-                    partialSelectionPercent = {
-                      start: (overlapStartOffset / groupTotal) * 100,
-                      end: (overlapEndOffset / groupTotal) * 100,
-                    };
-                  }
-                }
+                const { isGreen: groupIsGreen, isActive: groupIsActive } = deriveGroupState(
+                  hasHarvestablePlot,
+                  hasSelectedPlot,
+                  hasHoveredPlot,
+                  selectionGreen,
+                );
 
-                // Determine group color
-                const groupIsGreen =
-                  hasHarvestablePlot || (hasSelectedPlot && !partialSelectionPercent) || hasHoveredPlot;
-                const groupIsActive = hasHoveredPlot || hasSelectedPlot;
-
-                // Border radius for the group
-                let groupBorderRadius = "2px";
-                if (isRightmost) {
-                  groupBorderRadius = "0 2px 2px 0";
-                }
-
-                // Handle group click - select all plots in the group
                 const handleGroupClick = () => {
                   if (disableInteractions) return;
                   if (onPlotGroupSelect) {
-                    // Send all plot IDs or indices in the group
-                    // Prefer 'id' if available (for order markers), otherwise use index
                     const plotIndices = group.plots.map((p) => p.id || p.index.toHuman());
                     onPlotGroupSelect(plotIndices);
                   }
                 };
 
-                // Render group with partial selection if applicable
                 return (
-                  <div
+                  <PlotGroup
                     key={`group-${group.startIndex.toHuman()}`}
-                    className="absolute"
-                    style={{
-                      left: `${groupLeftPercent}%`,
-                      width: `${groupDisplayWidth}%`,
-                      minWidth: "4px",
-                      height: "100%",
-                      top: "0%",
-                      zIndex: groupIsActive ? 20 : 1,
-                    }}
+                    leftPercent={leftPercent}
+                    widthPercent={displayWidthPercent}
+                    borderRadius={borderRadius}
+                    isGreen={groupIsGreen}
+                    isActive={groupIsActive}
+                    disableInteractions={disableInteractions}
+                    onClick={handleGroupClick}
+                    onMouseEnter={() => setHoveredPlotIndex(groupFirstPlotIndex)}
+                    onMouseLeave={() => setHoveredPlotIndex(null)}
                   >
-                    {/* Base rectangle (background color) */}
-                    <div
-                      className={cn(
-                        "absolute inset-0 transition-all",
-                        !disableInteractions && "cursor-pointer",
-                        groupIsGreen ? "bg-pinto-green-1" : "bg-pinto-morning-orange",
-                      )}
-                      style={{
-                        borderRadius: groupBorderRadius,
-                      }}
-                      onClick={disableInteractions ? undefined : handleGroupClick}
-                      onMouseEnter={disableInteractions ? undefined : () => setHoveredPlotIndex(groupFirstPlotIndex)}
-                      onMouseLeave={disableInteractions ? undefined : () => setHoveredPlotIndex(null)}
-                    />
-
-                    {/* Partial selection overlay (green) */}
-                    {partialSelectionPercent && (
-                      <div
-                        className="absolute bg-pinto-green-1 pointer-events-none"
-                        style={{
-                          left: `${partialSelectionPercent.start}%`,
-                          width: `${partialSelectionPercent.end - partialSelectionPercent.start}%`,
-                          height: "100%",
-                          top: "0%",
-                          // Apply border radius only on edges that align with the group edges
-                          borderTopLeftRadius: partialSelectionPercent.start <= 0.1 ? groupBorderRadius : "0",
-                          borderBottomLeftRadius: partialSelectionPercent.start <= 0.1 ? groupBorderRadius : "0",
-                          borderTopRightRadius: partialSelectionPercent.end >= 99.9 ? groupBorderRadius : "0",
-                          borderBottomRightRadius: partialSelectionPercent.end >= 99.9 ? groupBorderRadius : "0",
-                        }}
+                    {partialSelectionPercent && hasSelectedPlot && (
+                      <PartialSelectionOverlay
+                        startPercent={partialSelectionPercent.start}
+                        endPercent={partialSelectionPercent.end}
+                        borderRadius={borderRadius}
                       />
                     )}
-                  </div>
+                  </PlotGroup>
                 );
               })}
             </div>
