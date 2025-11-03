@@ -166,6 +166,22 @@ function ComboInputField({
       : selectedTokenPrice.mul(disableInput ? amountAsTokenValue : internalAmount)
     : undefined;
 
+  // Helper to get balance from farmerTokenBalance based on balanceFrom mode
+  const getFarmerBalanceByMode = useCallback(
+    (farmerBalance: typeof farmerTokenBalance, mode: FarmFromMode | undefined): TokenValue => {
+      if (!farmerBalance) return TokenValue.ZERO;
+      switch (mode) {
+        case FarmFromMode.EXTERNAL:
+          return farmerBalance.external || TokenValue.ZERO;
+        case FarmFromMode.INTERNAL:
+          return farmerBalance.internal || TokenValue.ZERO;
+        default:
+          return farmerBalance.total || TokenValue.ZERO;
+      }
+    },
+    [],
+  );
+
   const maxAmount = useMemo(() => {
     if (mode === "plots" && selectedPlots) {
       return selectedPlots.reduce((total, plot) => total.add(plot.pods), TokenValue.ZERO);
@@ -176,16 +192,7 @@ function ComboInputField({
     if (tokenAndBalanceMap && selectedToken) {
       baseBalance = tokenAndBalanceMap.get(selectedToken) ?? TokenValue.ZERO;
     } else if (farmerTokenBalance) {
-      switch (balanceFrom) {
-        case FarmFromMode.EXTERNAL:
-          baseBalance = farmerTokenBalance.external || TokenValue.ZERO;
-          break;
-        case FarmFromMode.INTERNAL:
-          baseBalance = farmerTokenBalance.internal || TokenValue.ZERO;
-          break;
-        default:
-          baseBalance = farmerTokenBalance.total || TokenValue.ZERO;
-      }
+      baseBalance = getFarmerBalanceByMode(farmerTokenBalance, balanceFrom);
     }
 
     // If customMaxAmount is provided and greater than 0, use the minimum of base balance and customMaxAmount
@@ -195,7 +202,16 @@ function ComboInputField({
 
     // Otherwise use base balance
     return baseBalance;
-  }, [mode, selectedPlots, customMaxAmount, tokenAndBalanceMap, selectedToken, balanceFrom, farmerTokenBalance]);
+  }, [
+    mode,
+    selectedPlots,
+    customMaxAmount,
+    tokenAndBalanceMap,
+    selectedToken,
+    balanceFrom,
+    farmerTokenBalance,
+    getFarmerBalanceByMode,
+  ]);
 
   const balance = useMemo(() => {
     if (mode === "plots" && selectedPlots) {
@@ -207,16 +223,8 @@ function ComboInputField({
       }
     }
     // Always use farmerTokenBalance for display, not maxAmount (which may be limited by customMaxAmount)
-    if (!farmerTokenBalance) return TokenValue.ZERO;
-    switch (balanceFrom) {
-      case FarmFromMode.EXTERNAL:
-        return farmerTokenBalance.external || TokenValue.ZERO;
-      case FarmFromMode.INTERNAL:
-        return farmerTokenBalance.internal || TokenValue.ZERO;
-      default:
-        return farmerTokenBalance.total || TokenValue.ZERO;
-    }
-  }, [mode, selectedPlots, tokenAndBalanceMap, selectedToken, farmerTokenBalance, balanceFrom]);
+    return getFarmerBalanceByMode(farmerTokenBalance, balanceFrom);
+  }, [mode, selectedPlots, tokenAndBalanceMap, selectedToken, farmerTokenBalance, balanceFrom, getFarmerBalanceByMode]);
 
   /**
    * Clamp the input amount to the max amount ONLY IF clamping is enabled
