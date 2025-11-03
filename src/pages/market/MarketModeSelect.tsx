@@ -1,5 +1,5 @@
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/AnimatedTabs";
 import { Separator } from "@/components/ui/Separator";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { useCallback } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 

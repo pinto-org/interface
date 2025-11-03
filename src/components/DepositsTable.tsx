@@ -274,7 +274,7 @@ export default function DepositsTable({
               <TableRow className="bg-white hover:bg-white">
                 <TableCell colSpan={5}>
                   <div className="flex flex-row h-48 w-full items-center justify-center text-pinto-gray-4 font-[400] text-[1rem]">
-                    {`Your Deposits will appear here`}
+                    {`You have nothing Deposited in the Silo. Deposit now to get Stalk and Seeds!`}
                   </div>
                 </TableCell>
               </TableRow>

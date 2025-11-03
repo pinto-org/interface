@@ -264,12 +264,12 @@ const Navbar = () => {
                         ? "Connect your Wallet"
                         : /* : floodValue.gt(0)
                           ? `Claim ${formatter.usd(floodValue)} from Flood`
-                          : `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet ${hasInternal ? "+ Farm Balances" : "Balance"}`
+                          : `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet ${hasInternal ? "+ Farm Wallets" : "Balance"}`
                           */
                           /*
-                        `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet Balance`
+                        `Manage ${usdValue.gt(0.01) ? `${formatter.usd(usdValue)} in` : "your"} Wallet`
                         */
-                          `Manage Wallet Balance`
+                          `Manage External Wallet`
                     }
                     className={`absolute top-[9.375rem] right-[22.5rem] flex flex-row-reverse`}
                     sourceAnchor="right"

@@ -8,6 +8,7 @@ import QuotedRoutesSelector from "@/components/QuotedRoutesSelector";
 import RoutingAndSlippageInfo from "@/components/RoutingAndSlippageInfo";
 import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
+import TextSkeleton from "@/components/TextSkeleton";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
@@ -97,7 +98,6 @@ function ConvertForm({
   const { mode, targetToken, setTargetToken } = useSiloConvertContext();
 
   const diamond = useProtocolAddress();
-  const pintoToken = useChainConstant(MAIN_TOKEN);
   const account = useAccount();
 
   const [amountIn, setAmountIn] = useState("");
@@ -373,11 +373,7 @@ function ConvertForm({
     }
   }, [amountInNum, minAmountIn, showMinAmountWarning]);
 
-  // Auto-default target token to PINTO when converting from LP tokens
-  useEffect(() => {
-    if (!siloToken.isLP || targetToken || !pintoToken) return;
-    setTargetToken(pintoToken);
-  }, [siloToken.isLP, targetToken, pintoToken, setTargetToken]);
+  // Removed auto-default target token to allow users to explicitly select
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Reset stalk penalty toggle when amount in changes
   useEffect(() => {
@@ -423,7 +419,9 @@ function ConvertForm({
     submitting ||
     loading;
 
-  const getAltTextProps = () => {
+  const siloLabels = convertResult ? getSiloLabels(convertResult.deltaStalk, convertResult.deltaSeed) : null;
+
+  const altTextProps = useMemo(() => {
     let alt: string = "Deposited";
 
     if (canExceedMax) alt = "Convertible";
@@ -433,7 +431,7 @@ function ConvertForm({
       altText: `${alt} Balance:`,
       altTextMobile: `${alt}:`,
     };
-  };
+  }, [canExceedMax, hasGerminating]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -452,7 +450,7 @@ function ConvertForm({
           customMaxAmount={maxConvert}
           setAmount={setAmountIn}
           selectedToken={siloToken}
-          {...getAltTextProps()}
+          {...altTextProps}
           mode="balance"
           disableButton
           isLoading={targetToken && maxConvertLoading}
@@ -486,7 +484,7 @@ function ConvertForm({
           />
         </div>
       ) : null}
-      <ConvertTokenOutput route={selectedRoute} siloToken={siloToken} />
+      <ConvertTokenOutput route={selectedRoute} siloToken={siloToken} isLoading={quoteLoading} />
       <div className="flex flex-col">
         <AnimatePresence mode="wait">
           {((loading && !quoteQuery.isError) || convertResult) && (
@@ -510,19 +508,16 @@ function ConvertForm({
                     germinatingStalk={convertResult.germinatingStalk}
                     germinatingSeasons={convertResult.germinatingSeasons}
                   />
-                  {(() => {
-                    const { stalkLabel, seedsLabel } = getSiloLabels(convertResult.deltaStalk, convertResult.deltaSeed);
-                    return (
-                      <SiloOutputDisplay
-                        amount={convertResult.totalAmountOut}
-                        token={targetToken}
-                        stalk={convertResult.deltaStalk}
-                        seeds={convertResult.deltaSeed}
-                        stalkLabel={stalkLabel}
-                        seedsLabel={seedsLabel}
-                      />
-                    );
-                  })()}
+                  {siloLabels && (
+                    <SiloOutputDisplay
+                      amount={convertResult.totalAmountOut}
+                      token={targetToken}
+                      stalk={convertResult.deltaStalk}
+                      seeds={convertResult.deltaSeed}
+                      stalkLabel={siloLabels.stalkLabel}
+                      seedsLabel={siloLabels.seedsLabel}
+                    />
+                  )}
                 </>
               ) : null}
             </motion.div>
@@ -720,15 +715,18 @@ const ConvertTokenOutput = ({
   // amount,
   siloToken,
   route,
+  isLoading,
 }: {
   // amount: TV;
   siloToken: Token;
   route: SiloConvertSummary<SiloConvertType> | undefined;
+  isLoading?: boolean;
 }) => {
   const { targetToken } = useSiloConvertContext();
 
   const amount = route?.totalAmountOut ?? TV.ZERO;
-  const formattedAmount = targetToken ? formatter.token(amount, targetToken) : "0.00";
+  const isCalculating = Boolean(isLoading && targetToken);
+  const formattedAmount = targetToken && amount.gt(0) ? formatter.token(amount, targetToken) : "";
   const displayAmount = useDebounceValue(formattedAmount, 50);
 
   const postPriceData = route?.postPriceData;
@@ -755,11 +753,19 @@ const ConvertTokenOutput = ({
       <div className="flex flex-col w-full gap-1">
         <div className="flex flex-row items-center justify-between w-full">
           <div className="flex flex-col gap-1">
-            <div className="pinto-h3">{displayAmount}</div>
+            <div className="pinto-h3">
+              <TextSkeleton loading={isCalculating} height="h4" className="w-24">
+                {displayAmount}
+              </TextSkeleton>
+            </div>
           </div>
           <SiloConvertTokenSelect siloToken={siloToken} />
         </div>
-        <div className="pinto-sm-light text-pinto-light">{getDisplayUSD()}</div>
+        <div className="pinto-sm-light text-pinto-light">
+          <TextSkeleton loading={isCalculating} height="sm" className="w-16">
+            {targetToken && amount.gt(0) ? getDisplayUSD() : ""}
+          </TextSkeleton>
+        </div>
       </div>
     </div>
   );
@@ -866,7 +872,7 @@ const SiloConvertTokenSelectComponent = ({ siloToken }: BaseConvertProps) => {
             ) : (
               <div className="flex flex-col h-[140px] sm:h-[240px] justify-center items-center">
                 <div className="pinto-sm text-pinto-light">
-                  Converting to any other token from Pinto will result in a loss.
+                  Converting to another token will result in a loss in Seeds.
                 </div>
               </div>
             )}
@@ -915,7 +921,7 @@ const RecommendedConverts = ({
   if (!paths.length) {
     return (
       <div className="flex flex-col h-[140px] sm:h-[240px] justify-center items-center">
-        <div className="pinto-sm text-pinto-light">Converting to any other token from Pinto will result in a loss.</div>
+        <div className="pinto-sm text-pinto-light">Converting to another token will result in a loss in Seeds.</div>
       </div>
     );
   }

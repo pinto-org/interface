@@ -31,7 +31,7 @@ export default function CancelOrder({ order }: CancelOrderProps) {
   const account = useAccount();
   const navigate = useNavigate();
 
-  const [toFarm, setToFarm] = useFarmTogglePreference();
+  const [mode, toFarm, setMode] = useFarmTogglePreference();
 
   const queryClient = useQueryClient();
   const { allPodOrders, allMarket, farmerMarket } = useQueryKeys({
@@ -76,7 +76,7 @@ export default function CancelOrder({ order }: CancelOrderProps) {
             maxPlaceInLine, // maxPlaceInLine
             minFillAmount, // minFillAmount
           },
-          Number(toFarm ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL), // mode
+          Number(mode), // mode
         ],
       });
     } catch (e) {
@@ -91,7 +91,11 @@ export default function CancelOrder({ order }: CancelOrderProps) {
 
   return (
     <>
-      <FarmBalanceToggle checked={toFarm} onCheckedChange={setToFarm} label="Return Pinto to Farm Balance" />
+      <FarmBalanceToggle
+        checked={toFarm}
+        onCheckedChange={(checked) => setMode(checked ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL)}
+        label="Return Pinto to Farm Wallet"
+      />
       <Separator />
       <ActionSummary beansOut={remainingBeans} toFarm={toFarm} />
       <SmartSubmitButton

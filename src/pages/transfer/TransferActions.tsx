@@ -46,7 +46,7 @@ export default function TransferActions() {
         className={`font-[400] text-[1rem] sm:text-[1.25rem] p-6 md:py-10 md:px-6 w-full text-black hover:text-black rounded-full justify-between bg-white shadow-none ${totalInternalBalance.eq(0) ? "opacity-50 pointer-events-none" : ""}`}
       >
         <Link to="/transfer/farmbalance">
-          <span>Tokens from my Farm Balance</span>
+          <span>Tokens from my Farm Wallet</span>
           <span>{formatter.usd(totalInternalBalance)}</span>
         </Link>
       </Button>

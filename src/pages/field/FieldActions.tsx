@@ -1,7 +1,7 @@
 import SowOrderDialog from "@/components/SowOrderDialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/AnimatedTabs";
 import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { useParamsTabs } from "@/hooks/useRouterTabs";
 import { useMorning } from "@/state/useSunData";
 import clsx from "clsx";
