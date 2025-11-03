@@ -97,7 +97,7 @@ export function PodListingsTable() {
                         key={listing.id}
                         className={`hover:cursor-pointer ${selectedListing === id ? "bg-pinto-green-1 hover:bg-pinto-green-1" : ""}`}
                         noHoverMute
-                        onClick={() => navigateTo(listing.index.valueOf())}
+                        onClick={() => navigateTo(listing.id)}
                       >
                         <TableCell className="font-medium">
                           {createdAt.toLocaleString(undefined, dateOptions)}
