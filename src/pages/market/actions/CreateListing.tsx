@@ -318,7 +318,6 @@ export default function CreateListing() {
 
       // Create a listing call for each plot
       for (const data of listingData) {
-
         const listingArgs = {
           lister: account,
           fieldId: 0n,
