@@ -178,6 +178,7 @@ export default function SmartSubmitButton({
       rounded="full"
       size="xxl"
       width="full"
+      variant={props.variant || "gradient"}
       className={`${className}`}
       onClick={(e) => {
         e.preventDefault();

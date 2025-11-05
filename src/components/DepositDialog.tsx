@@ -35,6 +35,8 @@ export default function DepositDialog({ open, onOpenChange, deposit, token, pric
     ? 0
     : formatter.twoDec(deposit.stalk.grown, { showPositiveSign: true });
 
+  const bdvToUse = token.isWhitelisted ? deposit.currentBdv : deposit.depositBdv;
+
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
       <ResponsiveDialog.Content className="w-full sm:w-[calc(100%-2rem)] max-w-[65rem] sm:p-0 mx-auto">
@@ -159,7 +161,7 @@ export default function DepositDialog({ open, onOpenChange, deposit, token, pric
                   <span className="text-primary">
                     {`${
                       denomination === "USD"
-                        ? formatter.usd((deposit.currentBdv || TokenValue.ZERO).mul(price))
+                        ? formatter.usd((bdvToUse || TokenValue.ZERO).mul(price))
                         : formatter.pdv(deposit.depositBdv)
                     }`}
                   </span>

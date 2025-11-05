@@ -256,7 +256,7 @@ const useFarmerSiloDepositsQuery = () => {
   return query;
 };
 
-export function useFarmerSilo(address?: `0x${string}`) {
+export function useFarmerSilo(address?: `0x${string}`, shouldLog?: boolean) {
   const account = useAccount();
   const { mainToken: BEAN, preferredTokens, mayBeWhitelistedTokens: maybeWLTokens } = useTokenData();
   const siloData = useSiloData();
@@ -468,8 +468,10 @@ export function useFarmerSilo(address?: `0x${string}`) {
         convertibleDeposits,
       });
 
+      const bdvToUse = token.isWhitelisted ? currentBDV : depositBDV;
+
       _depositsBDV = _depositsBDV.add(depositBDV);
-      _depositsUSD = _depositsUSD.add(token.isMain ? currentBDV.mul(currPrice) : currentBDV.mul(poolPrice));
+      _depositsUSD = _depositsUSD.add(token.isMain ? bdvToUse.mul(currPrice) : bdvToUse.mul(poolPrice));
       _activeSeeds = _activeSeeds.add(totalSeeds);
       _totalGerminatingStalk = _totalGerminatingStalk.add(totalGerminatingStalk);
     });
@@ -589,6 +591,13 @@ export function useFarmerSilo(address?: `0x${string}`) {
     grownStalkPerToken.isLoading ||
     mowStatusPerToken.isLoading;
 
+  const queriesLessFloodInfoLoading =
+    activeStalkBalance.isLoading ||
+    earnedBeansBalance.isLoading ||
+    depositsQuery.isLoading ||
+    grownStalkPerToken.isLoading ||
+    mowStatusPerToken.isLoading;
+
   return useMemo(
     () => ({
       // Balances
@@ -615,6 +624,8 @@ export function useFarmerSilo(address?: `0x${string}`) {
 
       // Is Loading
       isLoading: queriesLoading,
+      // Is Loading without flood info. Flood Info fetches after some of the other queries, so it can cause flickering
+      isLoadingLessFlood: queriesLessFloodInfoLoading,
 
       // Query management
       queryKeys,
@@ -634,6 +645,7 @@ export function useFarmerSilo(address?: `0x${string}`) {
       mowStatusPerToken.data,
       floodInfo,
       queriesLoading,
+      queriesLessFloodInfoLoading,
       queryKeys,
       refetch,
     ],

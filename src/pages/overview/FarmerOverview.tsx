@@ -9,14 +9,20 @@ import PlotsTable from "@/components/PlotsTable";
 import StatPanel from "@/components/StatPanel";
 import StatPanelAltDisplay from "@/components/StatPanelAltDisplay";
 import TableRowConnector from "@/components/TableRowConnector";
+import { OrderType } from "@/components/Tractor/farmer-orders/TractorFarmerOrderTypeRegistry";
+import TractorOrdersPanelGeneric, {
+  TractorSowOrdersPanel,
+} from "@/components/Tractor/farmer-orders/TractorOrdersPanel";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import useIsSmallDesktop from "@/hooks/display/useIsSmallDesktop";
 import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import { useHarvestAndDeposit } from "@/hooks/useHarvestAndDeposit";
+import { useTractorSowOrderbook } from "@/state/tractor/useTractorSowOrders";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
@@ -25,14 +31,15 @@ import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import { useSiloWrappedTokenToUSD } from "@/state/useSiloWrappedTokenData";
 import useTokenData from "@/state/useTokenData";
+import { trackClick, trackSimpleEvent, withTracking } from "@/utils/analytics";
 import { getClaimText } from "@/utils/string";
 import { StatPanelData } from "@/utils/types";
 import { getSiloConvertUrl } from "@/utils/url";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import TractorOrdersPanel from "../field/TractorOrdersPanel";
+import { useAccount } from "wagmi";
 
 const Overview = () => {
   // Hooks
@@ -45,6 +52,9 @@ const Overview = () => {
   const harvestableIndex = useHarvestableIndex();
   const priceData = usePriceData();
   const totalSoil = useTotalSoil().totalSoil;
+
+  // Get current user's address for tractor orders
+  const { address } = useAccount();
 
   const navigate = useNavigate();
   const { submitClaimRewards } = useClaimRewards();
@@ -108,6 +118,29 @@ const Overview = () => {
   useEffect(() => {
     setHoveredId("");
   }, []);
+
+  // Tab change handler with analytics tracking
+  const handleTabChange = useCallback(
+    (newTab: string) => {
+      const typedNewTab = newTab as "deposits" | "pods" | "tractor";
+
+      // Track the tab switch event
+      const eventName =
+        typedNewTab === "deposits"
+          ? ANALYTICS_EVENTS.OVERVIEW.TAB_DEPOSITS_CLICK
+          : typedNewTab === "pods"
+            ? ANALYTICS_EVENTS.OVERVIEW.TAB_PODS_CLICK
+            : ANALYTICS_EVENTS.OVERVIEW.TAB_TRACTOR_CLICK;
+
+      trackSimpleEvent(eventName, {
+        previous_tab: currentTab,
+        new_tab: typedNewTab,
+      });
+
+      setCurrentTab(typedNewTab);
+    },
+    [currentTab, hasDeposits, hasPods, hasOnlyPods, isMobile, valueInSystem],
+  );
 
   // Memoized calculations
   const { siloPct, claimSiloPct, harvestSiloPct, stalkPerSeason, placesInLine } = useMemo(() => {
@@ -191,7 +224,14 @@ const Overview = () => {
           Your ownership of the Stalk supply determines the portion of Pinto
           <br />
           supply increases that you earn.{" "}
-          <Link to="/explorer/silo" className="text-pinto-green-4 hover:underline transition-all">
+          <Link
+            to="/explorer/silo"
+            className="text-pinto-green-4 hover:underline transition-all"
+            onClick={trackClick(ANALYTICS_EVENTS.OVERVIEW.HELPER_SILO_EXPLORER_NAVIGATE, {
+              source_page: "farmer_overview",
+              destination_page: "explorer_silo",
+            })}
+          >
             See total Stalk supply over time →
           </Link>
         </span>
@@ -267,7 +307,14 @@ const Overview = () => {
           <StatPanel {...(hasOnlyPods ? statPanelData.seeds : statPanelData.pods)} />
           {statPanelData.pods.mainValue.eq(0) && !hasOnlyPods && isSoilAvailable && (
             <HelperLink
-              onClick={() => navigate("/field?action=sow")}
+              onClick={withTracking(
+                ANALYTICS_EVENTS.OVERVIEW.HELPER_SOW_NAVIGATE,
+                () => navigate("/field?action=sow"),
+                {
+                  source_page: "farmer_overview",
+                  destination_page: "field",
+                },
+              )}
               text={"Sow (Lend) in the Field for Pods"}
               className={`absolute -mt-[13.75rem] w-[120px] min-[1100px]:-right-52 min-[1200px]:-right-40 min-[1300px]:-right-32 min-[1400px]:-right-40 min-[1500px]:-right-28 min-[1600px]:-right-56 min-[1700px]:-right-56 whitespace-break-spaces z-20 2xl:whitespace-normal 2xl:w-auto`}
               dataTarget="pods-stats"
@@ -279,7 +326,9 @@ const Overview = () => {
           )}
           {statPanelData.pods.mainValue.gt(0) && statPanelData.pods.mainValueChange?.lt(0) && !hasOnlyPods && (
             <HelperLink
-              onClick={() => submitHarvestAndDeposit()}
+              onClick={withTracking(ANALYTICS_EVENTS.OVERVIEW.HELPER_HARVEST_CLICK, () => submitHarvestAndDeposit(), {
+                action_type: "harvest_and_deposit",
+              })}
               text={"Harvest Pods"}
               className={`absolute -mt-[13.75rem] min-[1100px]:-right-48 min-[1200px]:-right-36 min-[1300px]:-right-24 min-[1400px]:-right-0 min-[1500px]:right-8 min-[1600px]:-right-24 min-[1700px]:-right-20 whitespace-break-spaces z-20 2xl:whitespace-normal w-auto opacity-100 transition-opacity ${isHarvestSubmitting ? "opacity-50 pointer-events-none" : ""}`}
               dataTarget="pods-stats"
@@ -345,12 +394,7 @@ const Overview = () => {
         ) : null}
       </AnimatePresence>
       <div className="flex flex-col items-center">
-        <Tabs
-          defaultValue="deposits"
-          className="w-full"
-          value={currentTab}
-          onValueChange={(value) => setCurrentTab(value as "deposits" | "pods" | "tractor")}
-        >
+        <Tabs defaultValue="deposits" className="w-full" value={currentTab} onValueChange={handleTabChange}>
           <TabsList className="h-0 bg-transparent p-0 border-0 -ml-3 flex flex-row justify-start">
             {/* Conditionally render My Deposits and My Pods based on hasOnlyPods */}
             {hasOnlyPods ? (
@@ -500,7 +544,7 @@ const Overview = () => {
           </TabsContent>
           <TabsContent className="mt-8" value="tractor">
             <div className="overflow-visible">
-              <TractorOrdersPanel />
+              <TractorOrdersPanelGeneric orderTypes={ORDER_TYPES} />
             </div>
           </TabsContent>
         </Tabs>
@@ -524,3 +568,5 @@ const Overview = () => {
 };
 
 export default Overview;
+
+const ORDER_TYPES: OrderType[] = ["sow", "convertUp"] as const;

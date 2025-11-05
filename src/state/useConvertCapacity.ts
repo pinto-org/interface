@@ -1,3 +1,4 @@
+import { diamondABI } from "@/constants/abi/diamondABI";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { Address } from "viem";
 import { useReadContract } from "wagmi";
@@ -11,8 +12,8 @@ export const useOverallConvertCapacity = (enabled?: boolean) => {
 
   const { data = 0n, ...query } = useReadContract({
     address: diamondAddress,
-    abi: abi,
-    functionName: "getOverallConvertCapacity",
+    abi: diamondABI,
+    functionName: "getOverallConvertCapacity" as const,
     query: {
       enabled: enabled ?? true,
       refetchOnWindowFocus: true,
@@ -33,8 +34,8 @@ export const useWellConvertCapacity = (well: Address, enabled?: boolean) => {
 
   const { data = 0n, ...query } = useReadContract({
     address: diamondAddress,
-    abi: abi,
-    functionName: "getWellConvertCapacity",
+    abi: diamondABI,
+    functionName: "getWellConvertCapacity" as const,
     args: [well],
     query: {
       enabled: enabled ?? true,
@@ -45,38 +46,3 @@ export const useWellConvertCapacity = (well: Address, enabled?: boolean) => {
 
   return { data, ...query };
 };
-
-const abi = [
-  {
-    inputs: [],
-    name: "getOverallConvertCapacity",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "well",
-        type: "address",
-      },
-    ],
-    name: "getWellConvertCapacity",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;

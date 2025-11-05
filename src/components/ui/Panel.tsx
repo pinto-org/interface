@@ -9,11 +9,12 @@ import { Card } from "./Card";
 interface IBaseSidebar {
   isOpen: boolean;
   side: "left" | "right";
+  fitHeight?: boolean;
 }
 
 export interface ISidebar extends React.ComponentProps<typeof Card>, IBaseSidebar {}
 
-export const Sidebar = ({ isOpen, side, className, ...props }: ISidebar) => {
+export const Sidebar = ({ isOpen, side, className, fitHeight = true, ...props }: ISidebar) => {
   const translateClass = useMemo(() => {
     if (side === "left") {
       return isOpen ? `translate-x-6` : `-translate-x-full`;
@@ -21,11 +22,14 @@ export const Sidebar = ({ isOpen, side, className, ...props }: ISidebar) => {
     return isOpen ? `translate-x-6` : `translate-x-full`;
   }, [isOpen, side]);
 
+  const heightClasses = fitHeight ? `top-4 max-h-[calc(100vh-${renderAnnouncement ? 8 : 6}rem)] h-fit` : "";
+
   return (
     <Card
       {...props}
       className={cn(
-        `absolute box-border top-[${top}rem] transition-all overflow-clip h-[calc(100vh-${renderAnnouncement ? 8 : 6}rem)] z-[51]`,
+        `absolute box-border transition-all overflow-clip z-[51]`,
+        heightClasses,
         side === "left" ? `left-0 transform ${translateClass} mr-12` : `right-0 transform ${translateClass} ml-12`,
         className,
       )}
@@ -48,6 +52,7 @@ const Panel = ({
   trigger,
   isOpen,
   side,
+  fitHeight,
   toggle,
   panelProps,
   drawerProps,
@@ -72,7 +77,7 @@ const Panel = ({
     <>
       {trigger}
       <>
-        <Sidebar isOpen={isOpen} side={side} {...panelProps}>
+        <Sidebar isOpen={isOpen} side={side} fitHeight={fitHeight} {...panelProps}>
           {props.children}
         </Sidebar>
       </>
@@ -82,7 +87,16 @@ const Panel = ({
 
 export default Panel;
 
-export const TabletPanel = ({ trigger, isOpen, side, toggle, panelProps, drawerProps, ...props }: IPanel) => {
+export const TabletPanel = ({
+  trigger,
+  isOpen,
+  side,
+  fitHeight,
+  toggle,
+  panelProps,
+  drawerProps,
+  ...props
+}: IPanel) => {
   const isTablet = useIsTablet();
 
   if (isTablet) {
@@ -98,7 +112,7 @@ export const TabletPanel = ({ trigger, isOpen, side, toggle, panelProps, drawerP
     <>
       {trigger}
       <>
-        <Sidebar isOpen={isOpen} side={side} {...panelProps}>
+        <Sidebar isOpen={isOpen} side={side} fitHeight={fitHeight} {...panelProps}>
           {props.children}
         </Sidebar>
       </>

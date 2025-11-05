@@ -7,6 +7,7 @@ import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/componen
 import SlippageButton from "@/components/SlippageButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Separator } from "@/components/ui/Separator";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { PODS } from "@/constants/internalTokens";
 import fillPodListing from "@/encoders/fillPodListing";
 import { beanstalkAbi } from "@/generated/contractHooks";
@@ -26,6 +27,7 @@ import { useFarmerPlotsQuery } from "@/state/useFarmerField";
 import { useHarvestableIndex } from "@/state/useFieldData";
 import { useQueryKeys } from "@/state/useQueryKeys";
 import useTokenData from "@/state/useTokenData";
+import { trackSimpleEvent } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
 import { toSafeTVFromHuman } from "@/utils/number";
 import { tokensEqual } from "@/utils/token";
@@ -125,6 +127,19 @@ export default function FillListing() {
     }
   }, [preferredToken, preferredLoading, didSetPreferred]);
 
+  // Token selection handler with tracking
+  const handleTokenSelection = useCallback(
+    (newToken: Token) => {
+      trackSimpleEvent(ANALYTICS_EVENTS.MARKET.ORDER_TOKEN_SELECTED, {
+        previous_token: tokenIn.symbol,
+        new_token: newToken.symbol,
+        fill_action: "listing",
+      });
+      setTokenIn(newToken);
+    },
+    [tokenIn, mainToken],
+  );
+
   // reset form and invalidate pod listings/farmer plot queries
   const onSuccess = useCallback(() => {
     navigate(`/market/pods/buy/fill`);
@@ -157,6 +172,13 @@ export default function FillListing() {
     if (!account.address) {
       throw new Error("Signer required");
     }
+
+    // Track pod listing fill
+    trackSimpleEvent(ANALYTICS_EVENTS.MARKET.POD_LIST_FILL, {
+      payment_token: tokenIn.symbol,
+      balance_source: balanceFrom,
+    });
+
     try {
       setSubmitting(true);
       toast.loading("Filling Listing...");
@@ -292,7 +314,7 @@ export default function FillListing() {
                     amount={amountIn}
                     disableInput={isConfirming || submitting}
                     setAmount={setAmountIn}
-                    setToken={setTokenIn}
+                    setToken={handleTokenSelection}
                     setBalanceFrom={setBalanceFrom}
                     selectedToken={tokenIn}
                     balanceFrom={balanceFrom}

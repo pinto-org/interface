@@ -19,6 +19,31 @@ const BASE_QKS = {
 // TRACTOR Query Keys
 // ────────────────────────────────────────────────────────────────────────────────
 
+const convertUpQK = {
+  convertUpOrders: (args: TractorAPIOrderOptions) => [
+    BASE_QKS.tractor,
+    "convertUpOrders",
+    "api",
+    `publisher-${args?.publisher ?? "none"}`,
+    `orderType-${args?.orderType ?? "any"}`,
+    `cancelled-${args?.cancelled ?? "any"}`,
+  ],
+  convertUpOrdersV0Chain: (
+    lastUpdatedBlock: number,
+    options?: {
+      cancelled?: boolean;
+      filterOutCompleted?: boolean;
+    },
+  ) => [
+    BASE_QKS.tractor,
+    "convertUpOrders",
+    "chain",
+    lastUpdatedBlock?.toString() ?? "0",
+    `filter-completed-${Number(options?.filterOutCompleted ?? true)}`,
+    `cancelled-${Number(options?.cancelled ?? "any")}`,
+  ],
+} as const;
+
 const tractorQueryKeys = {
   // Sow Orders V0 api cal
   sowOrdersV0: (args?: TractorAPIOrderOptions) => [
@@ -62,6 +87,7 @@ const tractorQueryKeys = {
     publisher ?? "no-publisher",
     lastUpdatedBlock?.toString() ?? "0",
   ],
+  ...convertUpQK,
 } as const;
 
 // ────────────────────────────────────────────────────────────────────────────────

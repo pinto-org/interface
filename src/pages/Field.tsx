@@ -10,11 +10,13 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import MorningTemperatureChart from "@/pages/field/MorningTemperature";
 import {
   useUpdateMorningSoilOnInterval,
   useUpdateMorningTemperatureOnInterval,
 } from "@/state/protocol/field/field.updater";
+import { trackSimpleEvent } from "@/utils/analytics";
 
 import { Col } from "@/components/Container";
 import CornerBorders from "@/components/CornerBorders";
@@ -23,6 +25,8 @@ import ReadMoreAccordion from "@/components/ReadMoreAccordion";
 import SowOrderDialog, { AnimateSowOrderDialog } from "@/components/SowOrderDialog";
 import TextSkeleton from "@/components/TextSkeleton";
 import TooltipSimple from "@/components/TooltipSimple";
+import TractorCard from "@/components/Tractor/TractorCard";
+import { TractorSowOrdersPanel } from "@/components/Tractor/farmer-orders/TractorOrdersPanel";
 import { navLinks } from "@/components/nav/nav/Navbar";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import useLocalStorage from "@/hooks/useLocalStorage";
@@ -42,7 +46,6 @@ import FieldStats from "./field/FieldStats";
 import FieldTemperatureBarChart from "./field/FieldTemperatureBarChart";
 import MorningPanel from "./field/MorningPanel";
 import TemperatureChart from "./field/Temperature";
-import TractorOrdersPanel from "./field/TractorOrdersPanel";
 
 // Add a custom hook to track the current sow amount
 function useTotalSowAmount() {
@@ -70,71 +73,16 @@ function useTotalSowAmount() {
 
 // TractorButton component
 function TractorButton({ onClick }: { onClick: () => void }) {
-  const [hoveredTractor, setHoveredTractor] = useState(false);
-  const { totalSoil, isLoading: totalSoilLoading } = useTotalSoil();
-  // Use the atom value directly instead of localStorage
   const inputExceedsSoil = useAtomValue(inputExceedsSoilAtom);
 
-  // Create the animation styles on mount
-  useEffect(() => {
-    const styleEl = document.createElement("style");
-    styleEl.innerHTML = `
-      @keyframes pulse-scale {
-        0%, 100% { transform: scale(0.98); }
-        50% { transform: scale(1.02); }
-      }
-    `;
-    document.head.appendChild(styleEl);
-
-    return () => {
-      document.head.removeChild(styleEl);
-    };
-  }, []);
-
   return (
-    <div className="relative w-full">
-      <button
-        type="button"
-        onClick={onClick}
-        className="group box-border flex flex-col items-start p-4 gap-1 w-full rounded-[1rem] transition-colors duration-200 bg-white border border-pinto-gray-2 relative"
-        onMouseEnter={() => setHoveredTractor(true)}
-        onMouseLeave={() => setHoveredTractor(false)}
-        style={{
-          ...(inputExceedsSoil || hoveredTractor
-            ? {
-                backgroundColor: "#E5F5E5",
-                borderColor: "#387F5C",
-              }
-            : {}),
-          // If input exceeds soil, apply special highlight styling
-          ...(inputExceedsSoil && {
-            boxShadow: "0 0 0 2px rgba(56, 127, 92, 0.5)",
-            animation: "pulse-scale 1.5s ease-in-out infinite",
-          }),
-        }}
-      >
-        {/* Position the icon absolutely to place it on the right side and vertically centered */}
-        <SizeIcon
-          className={`absolute top-1/2 right-4 transform -translate-y-1/2 w-5 h-5 text-[#404040] ${
-            inputExceedsSoil || hoveredTractor ? "hidden" : "block"
-          }`}
-        />
-
-        <div className="flex flex-row items-center gap-1">
-          <span className={`pinto-h4 ${inputExceedsSoil || hoveredTractor ? "text-pinto-green-4" : "text-[#404040]"}`}>
-            🚜 Want to Sow with size?
-          </span>
-        </div>
-        <span
-          className={`pinto-body-light ${inputExceedsSoil || hoveredTractor ? "text-pinto-green-3" : "text-[#9C9C9C]"}`}
-        >
-          Set up a Tractor Order to automate Sowing
-        </span>
-      </button>
-      {!inputExceedsSoil && (
-        <CornerBorders rowNumber={0} active={hoveredTractor} standalone={true} cornerRadius="1rem" />
-      )}
-    </div>
+    <TractorCard
+      label="🚜 Want to Sow with size?"
+      subLabel="Set up a Tractor Order to automate Sowing"
+      onClick={onClick}
+      shouldAnimateZoom={inputExceedsSoil}
+      corderBordersDisabled={!inputExceedsSoil}
+    />
   );
 }
 
@@ -216,7 +164,7 @@ function Field() {
       <div className="flex flex-col lg:flex-row justify-between gap-14 mt-0 sm:mt-0">
         <div className="flex flex-col w-full gap-4 sm:gap-8">
           {showInfos && (
-            <Col className="gap-2">
+            <Col className="gap-4">
               <div className="flex flex-col gap-4">
                 <div className="pinto-h2 sm:pinto-h1">Field</div>
                 <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">
@@ -252,7 +200,17 @@ function Field() {
                 </TextSkeleton>
               </div>
               <Button asChild variant={"outline"} className="rounded-full text-[1rem] sm:text-[1.25rem]">
-                <Link to="/explorer/field">View Data</Link>
+                <Link
+                  to="/explorer/field"
+                  onClick={() =>
+                    trackSimpleEvent(ANALYTICS_EVENTS.FIELD.EXPLORER_LINK_CLICK, {
+                      source_page: "field",
+                      destination: "/explorer/field",
+                    })
+                  }
+                >
+                  View Data
+                </Link>
               </Button>
             </div>
           )}
@@ -264,6 +222,10 @@ function Field() {
                     type="button"
                     className={`hidden sm:block pinto-h3 py-2 pr-4 pl-0 text-left ${activeTab === "activity" ? "text-pinto-secondary" : "text-pinto-gray-4"}`}
                     onClick={() => {
+                      trackSimpleEvent(ANALYTICS_EVENTS.FIELD.TAB_CLICK, {
+                        previous_tab: activeTab,
+                        new_tab: "activity",
+                      });
                       setActiveTab("activity");
                       const params = new URLSearchParams(window.location.search);
                       params.set("tab", "activity");
@@ -276,6 +238,10 @@ function Field() {
                     type="button"
                     className={`hidden sm:block pinto-h3 py-2 pr-4 pl-0 text-left ${activeTab === "tractor" ? "text-pinto-secondary" : "text-pinto-gray-4"}`}
                     onClick={() => {
+                      trackSimpleEvent(ANALYTICS_EVENTS.FIELD.TAB_CLICK, {
+                        previous_tab: activeTab,
+                        new_tab: "tractor",
+                      });
                       setActiveTab("tractor");
                       const params = new URLSearchParams(window.location.search);
                       params.set("tab", "tractor");
@@ -288,6 +254,10 @@ function Field() {
                     type="button"
                     className={`pinto-h3 py-2 pr-4 pl-0 text-left ${activeTab === "pods" ? "text-pinto-secondary" : "text-pinto-gray-4"}`}
                     onClick={() => {
+                      trackSimpleEvent(ANALYTICS_EVENTS.FIELD.TAB_CLICK, {
+                        previous_tab: activeTab,
+                        new_tab: "pods",
+                      });
                       setActiveTab("pods");
                       const params = new URLSearchParams(window.location.search);
                       params.set("tab", "pods");
@@ -312,7 +282,10 @@ function Field() {
               )}
               {activeTab === "tractor" && (
                 <div className="w-full">
-                  <TractorOrdersPanel refreshData={tractorRefreshCounter} onCreateOrder={() => setShowSowOrder(true)} />
+                  <TractorSowOrdersPanel
+                    refreshData={tractorRefreshCounter}
+                    onCreateOrder={() => setShowSowOrder(true)}
+                  />
                 </div>
               )}
             </>
@@ -342,10 +315,20 @@ function Field() {
               )}
             </div>
           )}
-          {!isMobile && <TractorButton onClick={() => setShowSowOrder(true)} />}
+          {!isMobile && (
+            <TractorButton
+              onClick={() => {
+                trackSimpleEvent(ANALYTICS_EVENTS.FIELD.TRACTOR_BUTTON_CLICK, {
+                  source_page: "field",
+                });
+                setShowSowOrder(true);
+              }}
+            />
+          )}
           {!isMobile && (
             <div className="p-2 rounded-[1rem] bg-pinto-off-white border-pinto-gray-2 border flex flex-col gap-2">
               <Button
+                asChild
                 className="w-full"
                 variant="silo-action"
                 disabled={totalPods.isZero}
@@ -353,6 +336,11 @@ function Field() {
                   if (totalPods.isZero) {
                     e.preventDefault();
                     e.stopPropagation();
+                  } else {
+                    trackSimpleEvent(ANALYTICS_EVENTS.FIELD.SEND_PODS_CLICK, {
+                      source_page: "field",
+                      destination: "/transfer/pods",
+                    });
                   }
                 }}
               >
@@ -366,7 +354,16 @@ function Field() {
                 </NavLink>
               </Button>
               <Button asChild variant="silo-action" className="w-full">
-                <NavLink to="/market/pods" className="flex flex-row gap-2 items-center">
+                <NavLink
+                  to="/market/pods"
+                  className="flex flex-row gap-2 items-center"
+                  onClick={() =>
+                    trackSimpleEvent(ANALYTICS_EVENTS.FIELD.MARKET_PODS_CLICK, {
+                      source_page: "field",
+                      destination: "/market/pods",
+                    })
+                  }
+                >
                   <div className="rounded-full bg-pinto-green h-6 w-6 flex justify-evenly">
                     <span className="self-center items-center">
                       <UpDownArrowsIcon color={"white"} height={"1rem"} width={"1rem"} />
@@ -380,7 +377,13 @@ function Field() {
           {!currentAction && (
             <MobileActionBar>
               <Button
-                onClick={() => navigate(`/field?action=harvest`)}
+                onClick={() => {
+                  trackSimpleEvent(ANALYTICS_EVENTS.FIELD.MOBILE_HARVEST_CLICK, {
+                    source_page: "field",
+                    destination: "/field?action=harvest",
+                  });
+                  navigate(`/field?action=harvest`);
+                }}
                 rounded={"full"}
                 variant={"outline-secondary"}
                 className="pinto-sm-bold text-sm flex-1 flex h-full"
@@ -388,7 +391,14 @@ function Field() {
                 Harvest
               </Button>
               <Button
-                onClick={() => navigate(`/field?action=sow`)}
+                onClick={() => {
+                  trackSimpleEvent(ANALYTICS_EVENTS.FIELD.MOBILE_SOW_CLICK, {
+                    source_page: "field",
+                    destination: "/field?action=sow",
+                    is_morning: morning.isMorning,
+                  });
+                  navigate(`/field?action=sow`);
+                }}
                 rounded={"full"}
                 className={`pinto-sm-bold text-sm flex-1 flex h-full transition-colors ${morning.isMorning ? "bg-pinto-morning-orange text-pinto-morning" : ""}`}
               >
@@ -441,12 +451,16 @@ const ReadMoreField = () => {
   return (
     <ReadMoreAccordion defaultOpen={!learnDidVisit.field}>
       <>
-        Pinto can be lent to the protocol in exchange for a fixed interest rate bond, where the rate payback is a
-        function of Pinto supply growth. The debt to the user is represented by Pods, which are defined by their
-        position in the Pod Line. Soil is the amount of Pinto the protocol is willing to purchase on the open market and
-        temperature is the interest rate it will pay. Each season the Soil and maximum Temperature are set based on
-        Protocol state. When Pinto is priced over $1 new Pinto is minted with 48.5% being distributed to lenders in the
-        Field. Loans are paid back in first in first out (FIFO) ordering.
+        Pinto can be lent (Sown) to the protocol in exchange for Pods, protocol-native debt issued with a fixed interest
+        rate. Pods function as zero coupon bonds that become redeemable (Harvestable) for 1 Pinto each on a first in,
+        first out (FIFO) basis when new Pinto are minted.
+        <br />
+        When the time-weighted average Pinto price over the previous Season is over $1, new Pinto are minted, 48.5% of
+        which are distributed to Pod holders.
+        <br />
+        Soil is the amount of Pinto the protocol is willing to purchase on the open market and Temperature is the
+        interest rate it will pay. At the beginning of each Season (i.e., the top of each hour), the Soil and maximum
+        Temperature are set based on protocol state.
       </>
     </ReadMoreAccordion>
   );

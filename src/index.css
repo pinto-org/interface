@@ -7,6 +7,7 @@
   max-height: var(--radix-dropdown-menu-content-available-height);
 }
 
+
 @layer base {
   @font-face {
     font-family: "Pinto";
@@ -160,6 +161,12 @@
     );
   }
 
+  .bg-pinto-green-shimmer {
+    background: linear-gradient(to right, #246645, #00c76780, #246645, #00c76780, #246645, #00c76780, #246645);
+    background-size: 300% 300%;
+    background-clip: text;
+  }
+
   /* Used for text boxes in Tractor order blueprint visualization */
   .text-box {
     @apply bg-gray-100 px-2 py-1 rounded-lg text-gray-400;
@@ -183,6 +190,23 @@
 
   .text-pinto-body {
     @apply body;
+  }
+
+  .animate-pop-in {
+    animation: pop-in 0.78s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  @keyframes pop-in {
+    0% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 }
 
@@ -210,6 +234,8 @@ body {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE 10+ */
   overscroll-behavior-x: auto; /* allow navigation swiping */
+
+  @apply text-pinto-primary;
 }
 
 body::-webkit-scrollbar {

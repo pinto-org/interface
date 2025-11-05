@@ -13,16 +13,25 @@ import {
 } from "@/components/ui/Dialog";
 import IconImage from "@/components/ui/IconImage";
 import { Separator } from "@/components/ui/Separator";
+import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
+import { tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
+import { stringEq } from "@/utils/string";
+import { tokensEqual } from "@/utils/token";
+import { Token } from "@/utils/types";
+import { Col, Row } from "../Container";
 
 export type ITractorTokenStrategyDialogProps = {
   open: boolean;
   selectedTokenStrategy: TractorTokenStrategy | undefined;
   farmerDeposits: ReturnType<typeof useFarmerSilo>["deposits"];
+  multiSelect?: boolean;
+  onlyLP?: boolean;
+  mode?: "bdv" | "amount";
   onOpenChange: (open: boolean) => void;
   onTokenStrategySelected: (tokenStrategy: TractorTokenStrategy) => void;
 } & ReturnType<typeof useSowOrderV0Calculations>;
@@ -62,32 +71,75 @@ const DyamicFundingSource = ({
 
 export default function TractorTokenStrategyDialog({
   open,
-  selectedTokenStrategy,
+  selectedTokenStrategy: tokenStrategy,
   farmerDeposits,
   onOpenChange,
   onTokenStrategySelected,
   swapResults,
+  multiSelect = false,
+  onlyLP = false,
   priceData,
+  mode = "amount",
 }: ITractorTokenStrategyDialogProps) {
   const { whitelistedTokens } = useTokenData();
+  const { mainToken } = useTokenData();
+  const tokenMap = useTokenMap();
+
+  const selectedTokenAddresses = tokenStrategy && StrategyUtil.extractAddresses(tokenStrategy);
+
+  // Callbacks
+  const handleSelectDynamicStrategy = (strategy: TractorTokenStrategy) => {
+    onTokenStrategySelected(strategy);
+    onOpenChange(false);
+    return;
+  };
+
+  const getIsTokenSelected = (token: Token) => {
+    if (!tokenStrategy || StrategyUtil.isDynamic(tokenStrategy)) {
+      return false;
+    }
+
+    return !!selectedTokenAddresses?.find((adr) => stringEq(adr, token.address));
+  };
+
+  const handleSelectSpecificToken = (token: Token) => {
+    if (!multiSelect) {
+      onTokenStrategySelected({
+        type: "SPECIFIC_TOKEN",
+        addresses: [token.address],
+      });
+      return;
+    }
+
+    const isIncluded = getIsTokenSelected(token);
+
+    const newAddresses = isIncluded
+      ? selectedTokenAddresses?.filter((adr) => !stringEq(token.address, adr)) ?? []
+      : [...(selectedTokenAddresses || []), token.address];
+
+    onTokenStrategySelected({
+      type: "MULTI_TOKENS",
+      addresses: newAddresses,
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
         <DialogOverlay className="fixed inset-0 backdrop-blur-sm bg-black/30" />
         <DialogContent
-          className="sm:max-w-[40rem] w-full mx-auto p-0 bg-white rounded-2xl border border-pinto-gray-2"
+          className="sm:max-w-[40rem] w-full mx-auto bg-white rounded-2xl border border-pinto-gray-2"
           style={{ padding: 0, gap: 0 }}
         >
           <div className="p-3">
             <DialogHeader className="mb-6 -mt-1">
               <DialogTitle className="font-medium mb-1 text-[1.25rem] tracking-normal">
-                Select Token from Silo Deposits
+                Select {multiSelect ? "Tokens" : "Token"} from Silo Deposits
               </DialogTitle>
               <DialogDescription className="text-gray-500 pb-1">
-                Tractor allows you to fund Orders for Soil using Deposits
+                Tractor allows you to fund orders using Deposits.
               </DialogDescription>
-              <Separator />
+              <Separator className="h-[1px] border-pinto-gray-2 bg-pinto-gray-2" />
             </DialogHeader>
 
             {/* Dynamic funding source options */}
@@ -97,35 +149,39 @@ export default function TractorTokenStrategyDialog({
                 <DyamicFundingSource
                   label="Token with Best Price"
                   tokenStrategy={{ type: "LOWEST_PRICE" }}
-                  selectedTokenStrategy={selectedTokenStrategy}
-                  onTokenStrategySelected={onTokenStrategySelected}
+                  selectedTokenStrategy={tokenStrategy}
+                  onTokenStrategySelected={handleSelectDynamicStrategy}
                 />
                 <DyamicFundingSource
                   label="Token with Least Seeds"
                   tokenStrategy={{ type: "LOWEST_SEEDS" }}
-                  selectedTokenStrategy={selectedTokenStrategy}
-                  onTokenStrategySelected={onTokenStrategySelected}
+                  selectedTokenStrategy={tokenStrategy}
+                  onTokenStrategySelected={handleSelectDynamicStrategy}
                 />
               </div>
             </div>
+            <Row className="gap-4 items-center mb-3">
+              <div className="w-full h-[1px] border-pinto-gray-2 bg-pinto-gray-2" />
+              <span className="pinto-sm text-pinto-gray-4">or</span>
+              <div className="w-full h-[1px] bg-pinto-gray-2" />
+            </Row>
 
             {/* Deposited Tokens */}
             <div className="flex flex-col gap-2">
               <div className="text-gray-500">Deposited Tokens</div>
               <div className="flex flex-col space-y-1 bg-white rounded-xl">
                 {whitelistedTokens.map((token) => {
+                  if (onlyLP && !token.isLP) return null;
+
                   const deposit = farmerDeposits.get(token);
                   const amount = deposit?.amount || TokenValue.ZERO;
 
                   // Calculate dollar value - use price for PINTO, swap results for LP tokens
-                  const pintoAmount =
-                    token.symbol === "PINTO"
-                      ? amount.mul(priceData.price)
-                      : swapResults.get(token.address) || TokenValue.ZERO;
+                  const pintoAmount = tokensEqual(token, mainToken)
+                    ? amount.mul(priceData.price)
+                    : swapResults.get(token.address) || TokenValue.ZERO;
 
-                  const isSelected =
-                    selectedTokenStrategy?.type === "SPECIFIC_TOKEN" &&
-                    selectedTokenStrategy?.address === token.address;
+                  const isSelected = getIsTokenSelected(token);
 
                   return (
                     <div
@@ -134,11 +190,8 @@ export default function TractorTokenStrategyDialog({
                         isSelected ? "bg-green-50" : "bg-white"
                       }`}
                       onClick={() => {
-                        onTokenStrategySelected({
-                          type: "SPECIFIC_TOKEN",
-                          address: token.address as `0x${string}`,
-                        });
-                        onOpenChange(false);
+                        handleSelectSpecificToken(token);
+                        !multiSelect && onOpenChange(false);
                       }}
                     >
                       <div className="flex items-center gap-3">
@@ -154,17 +207,32 @@ export default function TractorTokenStrategyDialog({
                         </div>
                       </div>
                       <div className="flex flex-col items-end">
-                        <div className="text-right text-xl font-medium">{formatter.token(amount, token)}</div>
-                        <div className="text-right text-gray-500 text-sm">${formatter.twoDec(pintoAmount)}</div>
+                        {mode === "amount" ? (
+                          <>
+                            <div className="text-right text-xl font-medium">{formatter.token(amount, token)}</div>
+                            <div className="text-right text-gray-500 text-sm">${formatter.twoDec(pintoAmount)}</div>
+                          </>
+                        ) : (
+                          <div className="text-right text-xl font-medium">{formatter.pdv(deposit?.depositBDV)}</div>
+                        )}
                       </div>
                     </div>
                   );
                 })}
               </div>
-              <div className="text-xs text-gray-500 flex items-center gap-1 mt-2">
-                <InfoOutlinedIcon width={14} height={14} />
-                Deposits with the least Grown Stalk will always be used first
-              </div>
+              <Separator className="h-[1px] bg-pinto-gray-2" />
+              <Col className="gap-2 mt-2">
+                <div className="text-xs text-gray-500 flex items-center gap-1">
+                  <InfoOutlinedIcon width={14} height={14} />
+                  Deposits with the least Stalk will always be used first.
+                </div>
+                {multiSelect ? (
+                  <div className="text-xs text-gray-500 flex items-center gap-1">
+                    <InfoOutlinedIcon width={14} height={14} />
+                    If multiple tokens are selected, execution will occur in the order selected.
+                  </div>
+                ) : null}
+              </Col>
             </div>
           </div>
         </DialogContent>

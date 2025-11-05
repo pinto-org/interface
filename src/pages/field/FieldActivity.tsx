@@ -6,7 +6,7 @@ import { SoilOrderbookDialog } from "@/components/Tractor/SoilOrderbook";
 import { Button } from "@/components/ui/Button";
 import IconImage from "@/components/ui/IconImage";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { OrderbookEntry, SowBlueprintData, decodeSowTractorData } from "@/lib/Tractor/utils";
+import { OrderbookEntry, SowBlueprintData, decodeSowTractorData } from "@/lib/Tractor";
 import useFieldSowEvents from "@/state/events/useFieldSowEvents";
 import { useTractorSowOrderbook } from "@/state/tractor/useTractorSowOrders";
 import { useTemperature } from "@/state/useFieldData";

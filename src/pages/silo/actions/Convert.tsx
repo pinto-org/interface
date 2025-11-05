@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/Separator";
 import VerticalAccordion from "@/components/ui/VerticalAccordion";
 import Warning from "@/components/ui/Warning";
 import { diamondABI } from "@/constants/abi/diamondABI";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { SEEDS } from "@/constants/internalTokens";
 import { CONVERT_DOWN_PENALTY_RATE_WITH_BUFFER, NO_MAX_CONVERT_AMOUNT } from "@/constants/silo";
 import { MAIN_TOKEN, PINTO_USDC_TOKEN, PINTO_WSOL_TOKEN } from "@/constants/tokens";
@@ -45,6 +46,7 @@ import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { PoolData, usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import { useInvalidateSun } from "@/state/useSunData";
+import { trackSimpleEvent } from "@/utils/analytics";
 import { getChainConstant, useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
 import { getSiloLabels } from "@/utils/silo";
@@ -253,6 +255,14 @@ function ConvertForm({
       if (!exists(routeIndex)) throw new Error("No route index");
       const bestQuote = quote?.[routeIndex];
       if (!bestQuote || bestQuote.totalAmountOut.lte(0) || !expectedTotalStalk) throw new Error("No convert quote");
+
+      // Track convert submission
+      trackSimpleEvent(ANALYTICS_EVENTS.SILO.CONVERT_SUBMIT, {
+        source_token: siloToken.symbol,
+        target_token: targetToken.symbol,
+        has_penalty: allowStalkPenalty,
+      });
+
       toast.loading(`Converting...`);
       if (isDefaultConvert) {
         // If there is only 1 quote, we can unwrap the quote & use the convert funciton directly instead of using advancedFarm

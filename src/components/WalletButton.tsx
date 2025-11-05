@@ -1,5 +1,9 @@
 import chevronDown from "@/assets/misc/ChevronDown.svg";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
+import useIsExtraSmall from "@/hooks/display/useIsExtraSmall";
 import useIsTablet from "@/hooks/display/useIsTablet";
+import { useWalletNFTProfile } from "@/hooks/useWalletNFTProfile";
+import { withTracking } from "@/utils/analytics";
 import { truncateAddress } from "@/utils/string";
 import { useModal } from "connectkit";
 import { Avatar } from "connectkit";
@@ -21,13 +25,41 @@ const WalletButton = forwardRef<HTMLButtonElement, WalletButtonProps>(
     const account = useAccount();
     const modal = useModal();
     const isTablet = useIsTablet();
+    const isExtraSmall = useIsExtraSmall();
 
     const { address } = account;
 
     const { data: ensName } = useEnsName({ address });
     const { data: ensAvatar } = useEnsAvatar({ name: ensName as string });
+    const { hasNFT, profileImageUrl } = useWalletNFTProfile();
+
+    // TEMPORARY: Hide NFT profile images - set to false to show real NFT images
+    const hideNFTProfile = false;
+
+    // State for image loading and error handling
+    const [imageError, setImageError] = useState(false);
+    const [retryAttempt, setRetryAttempt] = useState(0);
+
+    // Reset error state when profileImageUrl changes
+    useEffect(() => {
+      setImageError(false);
+      setRetryAttempt(0);
+    }, [profileImageUrl]);
 
     useSyncAccountConnecting(modal.open, account);
+
+    const handleTogglePanel = () => {
+      return withTracking(
+        address ? ANALYTICS_EVENTS.WALLET.PANEL_OPEN : ANALYTICS_EVENTS.WALLET.CONNECT_BUTTON_CLICK,
+        () => (address ? togglePanel() : modal.setOpen(true)),
+        {
+          wallet_connected: !!address,
+          panel_state: isOpen ? "open" : "closed",
+          has_ens: !!ensName,
+          has_nft: hasNFT,
+        },
+      );
+    };
 
     return (
       <Panel
@@ -40,26 +72,50 @@ const WalletButton = forwardRef<HTMLButtonElement, WalletButtonProps>(
         screenReaderTitle="Wallet Panel"
         trigger={
           <Button
-            onClick={() => (address ? togglePanel() : modal.setOpen(true))}
+            onClick={handleTogglePanel()}
             variant="outline-secondary"
             noShrink
             rounded="full"
             className={`flex flex-row gap-0.5 sm:gap-2 items-center ${isOpen && "border-pinto-green"} ${className}`}
             ref={ref}
           >
-            {ensAvatar && <Avatar address={address} size={28} />}
+            {/* NFT Circle Pic */}
+            {address && hasNFT && (
+              <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white bg-white flex-shrink-0 flex items-center justify-center">
+                {hideNFTProfile || imageError ? (
+                  <span className="text-gray-500 font-semibold text-sm">?</span>
+                ) : (
+                  <img
+                    key={`${profileImageUrl}-${retryAttempt}`}
+                    src={profileImageUrl || ensAvatar || ""}
+                    alt="Profile"
+                    crossOrigin="anonymous"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Try once more before giving up
+                      if (retryAttempt === 0) {
+                        setRetryAttempt(1);
+                      } else {
+                        setImageError(true);
+                      }
+                    }}
+                  />
+                )}
+              </div>
+            )}
+
             <>
               {ensName
                 ? ensName
                 : address
-                  ? `${truncateAddress(address, { suffix: !isTablet, letters: isTablet ? 3 : undefined })}`
+                  ? `${truncateAddress(address, { suffix: !isTablet, letters: isTablet ? 2 : undefined })}`
                   : "Connect"}
             </>
-            <IconImage src={chevronDown} size={4} mobileSize={2.5} alt="chevron down" />
+            {!isExtraSmall && <IconImage src={chevronDown} size={4} mobileSize={2.5} alt="chevron down" />}
           </Button>
         }
       >
-        <WalletButtonPanel togglePanel={togglePanel} />
+        <WalletButtonPanel togglePanel={handleTogglePanel()} />
       </Panel>
     );
   },

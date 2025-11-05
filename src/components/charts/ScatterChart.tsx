@@ -318,7 +318,7 @@ const ScatterChart = React.memo(
             pointStyle: PointStyle,
             color?: string,
           ) => {
-            console.info("🚀 ~ drawSelectionPoint ~ pointRadius:", pointRadius);
+            // console.info("🚀 ~ drawSelectionPoint ~ pointRadius:", pointRadius);
             ctx.save();
             ctx.fillStyle = "transparent";
             ctx.strokeStyle = color || "black";

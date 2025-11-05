@@ -11,7 +11,7 @@ import { useTotalDepositedBdvPerTokenQuery } from "./useSiloData";
 import { useSeason } from "./useSunData";
 import useTokenData, { useWhitelistedTokens } from "./useTokenData";
 
-export type EmaWindow = 24 | 168 | 720; // | 2160;
+export type EmaWindow = 24 | 168 | 720 | 2160;
 
 /**
  * Yields for a single token, for a single EMA window.
@@ -65,41 +65,45 @@ export function useSiloYieldsQuery<TSelect = SiloYieldsAPIResponse>(
   return useQuery<SiloYieldsAPIResponse, Error, TSelect, QueryKey>({
     queryKey: ["api", "silo", "yields"],
     queryFn: async () => {
+      // First fetch with standard windows
       const res = await fetch(`${API_SERVICES.pinto}/silo/yield`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          emaWindows: [24, 168, 720 /*2160 */],
+          emaWindows: [24, 168, 720],
         }),
       });
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
       const result = await res.json();
-      /*
-      const season90d = result.ema["2160"].effectiveWindow;
-
-      if (season90d < 2160) {
-        const seasonData = result.yields[season90d];
-        const currentBeansPerSeason = result.ema["2160"].beansPerSeason;
-
-        // Update yields
-        delete result.yields[season90d];
-        result.yields["2160"] = seasonData;
-
-        // Update EMA
-        result.ema["2160"] = {
-          effectiveWindow: 2160,
-          beansPerSeason: currentBeansPerSeason,
-        };
-      }
-        */
 
       result.yields[24] = normalizeYields(result.yields[24]);
       result.yields[168] = normalizeYields(result.yields[168]);
       result.yields[720] = normalizeYields(result.yields[720]);
-      // result.yields[2160] = normalizeYields(result.yields[2160]);
+
+      // Check if 720 APY is 0 for all tokens, if so fetch 2160
+      const has720Data = Object.values(result.yields[720] || {}).some((tokenYield: any) => tokenYield?.bean > 0);
+
+      if (!has720Data) {
+        // Fetch 2160 window data
+        const res2160 = await fetch(`${API_SERVICES.pinto}/silo/yield`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            emaWindows: [2160],
+          }),
+        });
+
+        if (res2160.ok) {
+          const result2160 = await res2160.json();
+          result.yields[2160] = normalizeYields(result2160.yields[2160]);
+          result.ema[2160] = result2160.ema[2160];
+        }
+      }
 
       return result;
     },
@@ -129,13 +133,13 @@ export function useSiloYieldsByToken<T = SiloYieldsByToken>(args?: {
         const ema24 = data.yields[24]?.[tokenIndex]?.bean ?? 0;
         const ema168 = data.yields[168]?.[tokenIndex]?.bean ?? 0;
         const ema720 = data.yields[720]?.[tokenIndex]?.bean ?? 0;
-        // const ema2160 = data.yields[2160]?.[tokenIndex]?.bean ?? 0;
+        const ema2160 = data.yields[2160]?.[tokenIndex]?.bean ?? 0;
 
         const obj = {
           ema24,
           ema168,
           ema720,
-          ema2160: 0,
+          ema2160,
         };
 
         apys[tokenIndex] = obj;
@@ -168,7 +172,7 @@ export const useSiloTokenAPYs = (token: Token | string | undefined) => {
         apys.ema24 = data.yields[24]?.[tokenIndex]?.bean;
         apys.ema168 = data.yields[168]?.[tokenIndex]?.bean;
         apys.ema720 = data.yields[720]?.[tokenIndex]?.bean;
-        apys.ema2160 = 0; // data.yields[2160]?.[tokenIndex]?.bean;
+        apys.ema2160 = data.yields[2160]?.[tokenIndex]?.bean;
       }
 
       return apys;
@@ -210,12 +214,12 @@ export const useAverageBDVWeightedSiloAPYs = () => {
       const yield24 = apyResponse.yields[24]?.[tokenIndex]?.bean;
       const yield168 = apyResponse.yields[168]?.[tokenIndex]?.bean;
       const yield720 = apyResponse.yields[720]?.[tokenIndex]?.bean;
-      const yield2160 = 0; // apyResponse.yields[2160]?.[tokenIndex]?.bean;
+      const yield2160 = apyResponse.yields[2160]?.[tokenIndex]?.bean;
 
       const weightedYield24 = yield24 ? yield24 * depositedBDV.toNumber() : 0;
       const weightedYield168 = yield168 ? yield168 * depositedBDV.toNumber() : 0;
       const weightedYield720 = yield720 ? yield720 * depositedBDV.toNumber() : 0;
-      const weightedYield2160 = 0; // yield2160 ? yield2160 * depositedBDV.toNumber() : 0;
+      const weightedYield2160 = yield2160 ? yield2160 * depositedBDV.toNumber() : 0;
 
       totalWeightedYield24 += weightedYield24;
       totalWeightedYield168 += weightedYield168;

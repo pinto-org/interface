@@ -60,9 +60,10 @@ export const useDiamondEvalulationParameters = () => {
   }, [data]);
 
   return {
+    data,
     ...query,
     getEvaluationParametersWithSeason,
-  };
+  } as const;
 };
 
 // ---------- Constants ----------

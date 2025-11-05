@@ -46,7 +46,7 @@ type FormatUSDOptions = IShowPositiveSign & IExactDecimals;
 export const formatNum = (val: NumberPrimitive, options?: FormatNumOptions) => {
   if (val === undefined || val === null) return options?.defaultValue || "0";
 
-  const normalised = val instanceof TokenValue ? val.toHuman() : val.toString();
+  const normalised = val instanceof TokenValue ? val.toHuman() : val.toString().replaceAll(",", "");
 
   const num = Number(normalised);
 
@@ -185,6 +185,27 @@ export const formatDate = (date: Date) => {
   return `${month}/${day}/${year} • ${formattedTime}`;
 };
 
+const formatDateFromTimestamp = (timestamp: number | undefined) => {
+  if (!timestamp) return "Unknown";
+  const date = new Date(timestamp);
+
+  return (
+    date.toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "2-digit",
+    }) +
+    " " +
+    date
+      .toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })
+      .replace(" ", "")
+  );
+};
+
 function normalizeTokenAmount(val: NumberPrimitive, token: Token | InternalToken) {
   if (!exists(val)) {
     return 0;
@@ -259,6 +280,7 @@ export const formatter = {
   twoDec: format2Decimals,
   xDec: formatXDecimals,
   date: formatDate,
+  dateFromTS: formatDateFromTimestamp,
   token: formatTokenAmount,
   noDecTrunc: formatNumNoDecimalTruncation,
 };

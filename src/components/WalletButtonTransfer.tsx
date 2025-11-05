@@ -1,9 +1,10 @@
-import { TokenValue } from "@/classes/TokenValue";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
 import useTransaction from "@/hooks/useTransaction";
 import { navbarPanelAtom } from "@/state/app/navBar.atoms";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useTokenData from "@/state/useTokenData";
+import { trackClick, withTracking } from "@/utils/analytics";
 import { toSafeTVFromHuman } from "@/utils/number";
 import { stringToNumber } from "@/utils/string";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
@@ -62,6 +63,9 @@ export default function WalletButtonTransfer() {
   });
 
   async function onSubmit() {
+    // Track transfer submission
+    trackClick(ANALYTICS_EVENTS.WALLET.TRANSFER_SUBMIT)();
+
     setSubmitting(true);
     toast.loading("Transferring...");
     try {
@@ -104,7 +108,7 @@ export default function WalletButtonTransfer() {
           <Button
             variant={"outline"}
             className="rounded-full h-9 w-9 sm:h-12 sm:w-12 p-0 hover:cursor-pointer rotate-180"
-            onClick={() => {
+            onClick={withTracking(ANALYTICS_EVENTS.WALLET.TRANSFER_MODE_EXIT, () => {
               setPanelState({
                 ...panelState,
                 walletPanel: {
@@ -112,7 +116,7 @@ export default function WalletButtonTransfer() {
                   showTransfer: false,
                 },
               });
-            }}
+            })}
           >
             <LeftArrowIcon />
           </Button>
@@ -136,11 +140,11 @@ export default function WalletButtonTransfer() {
           <Button
             variant={"outline"}
             className="rounded-full h-10 w-10 sm:h-12 sm:w-12 p-0 border-none self-center hover:cursor-pointer"
-            onClick={
-              balanceFrom === FarmFromMode.EXTERNAL
-                ? () => setBalanceFrom(FarmFromMode.INTERNAL)
-                : () => setBalanceFrom(FarmFromMode.EXTERNAL)
-            }
+            onClick={() => {
+              const newDirection =
+                balanceFrom === FarmFromMode.EXTERNAL ? FarmFromMode.INTERNAL : FarmFromMode.EXTERNAL;
+              setBalanceFrom(newDirection);
+            }}
           >
             <UpDownArrowsIcon />
           </Button>

@@ -3,12 +3,15 @@ import MobileActionBar from "@/components/MobileActionBar";
 import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import IconImage from "@/components/ui/IconImage";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { useHarvestAndDeposit } from "@/hooks/useHarvestAndDeposit";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useHarvestableIndex } from "@/state/useFieldData";
 import { usePriceData } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
+import { trackSimpleEvent } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
+import { useCallback } from "react";
 
 type HarvestProps = {
   isMorning: boolean;
@@ -27,6 +30,12 @@ function Harvest({ isMorning }: HarvestProps) {
   const nextHarvestablePlot = fieldPlots?.[0];
 
   const nextHarvestablePlaceInLine = nextHarvestablePlot?.index.sub(harvestableIndex);
+
+  // Track harvest submission
+  const handleHarvestSubmit = useCallback(async () => {
+    trackSimpleEvent(ANALYTICS_EVENTS.FIELD.HARVEST_SUBMIT);
+    return submitHarvestAndDeposit();
+  }, [isMorning, hasHarvestablePods, submitHarvestAndDeposit]);
 
   return (
     <div className="flex flex-col gap-6 pt-2">
@@ -73,7 +82,7 @@ function Harvest({ isMorning }: HarvestProps) {
         type="button"
         token={undefined}
         disabled={harvestableAmount.eq(0) || isSubmitting}
-        submitFunction={submitHarvestAndDeposit}
+        submitFunction={handleHarvestSubmit}
         submitButtonText="Harvest"
         className="hidden sm:flex"
       />
@@ -83,7 +92,7 @@ function Harvest({ isMorning }: HarvestProps) {
           type="button"
           token={undefined}
           disabled={harvestableAmount.eq(0) || isSubmitting}
-          submitFunction={submitHarvestAndDeposit}
+          submitFunction={handleHarvestSubmit}
           submitButtonText="Harvest"
           className="h-full"
         />

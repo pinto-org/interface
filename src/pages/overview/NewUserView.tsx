@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import GradientCard from "@/components/ui/GradientCard";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { PODS, SEEDS, STALK } from "@/constants/internalTokens";
 import { PINTO } from "@/constants/tokens";
 import useIsTablet from "@/hooks/display/useIsTablet";
@@ -14,6 +15,7 @@ import { usePriceQuery } from "@/state/usePriceData";
 import { SiloTokenYield, useAverageBDVWeightedSiloAPYs } from "@/state/useSiloAPYs";
 import { useSeason } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
+import { trackClick, trackSimpleEvent, withTracking } from "@/utils/analytics";
 import { formatter, numberAbbr } from "@/utils/format";
 import { normalizeTV } from "@/utils/number";
 import { cn } from "@/utils/utils";
@@ -33,7 +35,16 @@ const ConnectWalletBanner = () => {
     <GradientCard variant="light" className="w-full">
       <div className="flex flex-row w-full items-center justify-between py-3 px-6 gap-4">
         <div className="pinto-h4 font-light">Connect your wallet to see your Deposits and Plots</div>
-        <Button variant="gradient" size="xl" rounded="full" onClick={() => modal.setOpen(true)}>
+        <Button
+          variant="gradient"
+          size="xl"
+          rounded="full"
+          onClick={withTracking(ANALYTICS_EVENTS.OVERVIEW.NEWUSER_CONNECT_WALLET_CLICK, () => modal.setOpen(true), {
+            user_type: "new_user",
+            source_component: "connect_wallet_banner",
+            page_section: "new_user_onboarding",
+          })}
+        >
           Connect Wallet
         </Button>
       </div>
@@ -49,7 +60,16 @@ const UndepositedBalanceBanner = () => {
         You have Pinto in your Wallet that isn't earning yield. Deposit your Pinto for Stalk and Seed.
       </div>
       <Button variant="gradient" size="xxl" rounded="full">
-        <Link to={`/silo/${token.address}`}>
+        <Link
+          to={`/silo/${token.address}`}
+          onClick={trackClick(ANALYTICS_EVENTS.OVERVIEW.NEWUSER_UNDEPOSITED_BANNER_DEPOSIT_CLICK, {
+            user_type: "returning_user_with_undeposited_balance",
+            source_component: "undeposited_balance_banner",
+            destination_page: "silo_token",
+            has_undeposited_balance: true,
+            page_section: "new_user_onboarding",
+          })}
+        >
           <span className="px-11">Deposit</span>
         </Link>
       </Button>
@@ -175,7 +195,7 @@ const flowCards: {
         <InlineFlex>
           <PintoIcon /> Depositors
         </InlineFlex>{" "}
-        <span>can</span> <span>convert</span> <span>LP</span> <span>into</span> <span>Pinto</span> <span>to</span>{" "}
+        <span>can</span> <span>Convert</span> <span>LP</span> <span>into</span> <span>Pinto</span> <span>to</span>{" "}
         <span>buy</span> <span>at</span> <span>a</span> <span>lower</span> <span>price</span>
       </FlowCard>
     ),
@@ -210,6 +230,27 @@ const PegToggle = ({ containerRef }: IContainerRef) => {
   useSetComponentPosition(ref, "peg-state", containerRef);
 
   const [selected, setSelected] = useAtom(selectedAtom);
+  const price = usePriceQuery();
+
+  const handleToggleClick = useCallback(
+    (newSelection: Selected) => {
+      const currentPrice = price.data?.price ? TV.fromBlockchain(price.data.price, 6) : null;
+      const isPriceAbovePeg = currentPrice ? currentPrice.gt(1) : null;
+
+      trackSimpleEvent(ANALYTICS_EVENTS.OVERVIEW.NEWUSER_PEG_TOGGLE_CLICK, {
+        previous_selection: selected,
+        new_selection: newSelection,
+        price_above_peg: isPriceAbovePeg,
+        current_price_usd: currentPrice?.toNumber(),
+        user_type: "new_user",
+        source_component: "peg_toggle",
+        page_section: "educational_flow",
+      });
+
+      setSelected(newSelection);
+    },
+    [selected, price.data?.price, setSelected],
+  );
 
   return (
     <div className="relative flex flex-col">
@@ -227,7 +268,7 @@ const PegToggle = ({ containerRef }: IContainerRef) => {
                     selected === text.id ? "border border-pinto-green-4" : "border border-pinto-gray-2",
                     index === 0 ? "border-r-0" : "border-l-0",
                   )}
-                  onClick={() => setSelected(text.id)}
+                  onClick={() => handleToggleClick(text.id)}
                 >
                   <div className="pinto-body-light text-pinto-green-3 inline-flex items-center gap-1">
                     <IconImage size={6} nudge={0} src={PINTO.logoURI} />
@@ -262,6 +303,8 @@ const SiloInfo = ({ containerRef, avgSiloYields }: SiloInfoProps) => {
   useSetComponentPosition(ref, "silo-info", containerRef);
   const selected = useAtomValue(selectedAtom);
   const season = useSeason();
+  const price = usePriceQuery();
+  const isTablet = useIsTablet();
 
   const ema2160 = avgSiloYields?.ema2160 ?? 0;
   const ema720 = avgSiloYields?.ema720 ?? 0;
@@ -296,6 +339,16 @@ const SiloInfo = ({ containerRef, avgSiloYields }: SiloInfoProps) => {
   ];
 
   const has24h = Number(ema24) > 0;
+  const currentPrice = price.data?.price ? TV.fromBlockchain(price.data.price, 6) : null;
+  const isPriceAbovePeg = currentPrice ? currentPrice.gt(1) : null;
+
+  // Create yield range for privacy
+  const getYieldRange = (apy: number) => {
+    if (apy === 0) return "none";
+    if (apy < 0.05) return "low"; // < 5%
+    if (apy < 0.15) return "medium"; // 5-15%
+    return "high"; // > 15%
+  };
 
   return (
     <div className="relative flex flex-col items-center w-full">
@@ -320,7 +373,24 @@ const SiloInfo = ({ containerRef, avgSiloYields }: SiloInfoProps) => {
         </div>
         <InlineStats title="Variable APY:" stats={stats} mode={"apy"} styleAsRow={!has24h} />
         <Button asChild size="xxl" rounded="full" width="full">
-          <Link to={`/silo`} className="text-[1rem] sm:text-[1.5rem]">
+          <Link
+            to={`/silo`}
+            className="text-[1rem] sm:text-[1.5rem]"
+            onClick={trackClick(ANALYTICS_EVENTS.OVERVIEW.NEWUSER_SILO_INFO_DEPOSIT_CLICK, {
+              user_type: "new_user",
+              source_component: "silo_info_card",
+              destination_page: "silo",
+              page_section: "feature_education",
+              selected_peg_state: selected,
+              price_above_peg: isPriceAbovePeg,
+              has_24h_apy_data: has24h,
+              apy_24h_range: getYieldRange(ema24),
+              apy_7d_range: getYieldRange(ema168),
+              apy_30d_range: getYieldRange(ema720),
+              current_season: season,
+              recommended_by_price: isPriceAbovePeg === true,
+            })}
+          >
             Deposit in the Silo
           </Link>
         </Button>
@@ -337,6 +407,7 @@ const FieldInfo = ({ containerRef }: IContainerRef) => {
   useSetComponentPosition(ref, "field-info", containerRef);
   const selected = useAtomValue(selectedAtom);
   const isTablet = useIsTablet();
+  const price = usePriceQuery();
 
   const temperature = useTemperature();
   const soil = useTotalSoil().totalSoil;
@@ -360,6 +431,34 @@ const FieldInfo = ({ containerRef }: IContainerRef) => {
     },
   ];
 
+  const currentPrice = price.data?.price ? TV.fromBlockchain(price.data.price, 6) : null;
+  const isPriceAbovePeg = currentPrice ? currentPrice.gt(1) : null;
+  const hasSoil = soil.gt(0);
+
+  // Create ranges for privacy
+  const getSoilRange = (soilAmount: TV) => {
+    const soilNum = soilAmount.toNumber();
+    if (soilNum === 0) return "none";
+    if (soilNum < 1000) return "low"; // < 1k
+    if (soilNum < 10000) return "medium"; // 1k-10k
+    return "high"; // > 10k
+  };
+
+  const getPodLineRange = (podlineAmount: TV) => {
+    const podlineNum = podlineAmount.toNumber();
+    if (podlineNum === 0) return "none";
+    if (podlineNum < 100000) return "low"; // < 100k
+    if (podlineNum < 1000000) return "medium"; // 100k-1M
+    return "high"; // > 1M
+  };
+
+  const getTemperatureRange = (temp: number) => {
+    if (temp === 0) return "none";
+    if (temp < 50) return "low"; // < 50%
+    if (temp < 200) return "medium"; // 50-200%
+    return "high"; // > 200%
+  };
+
   return (
     <div className="relative flex flex-col items-center w-full">
       <div ref={ref} className="absolute top-[-28px]" />
@@ -379,7 +478,25 @@ const FieldInfo = ({ containerRef }: IContainerRef) => {
         <div className="pinto-sm text-pinto-light">Pods become redeemable for one Pinto each.</div>
         <InlineStats title="Field Conditions:" stats={stats} />
         <Button asChild size="xxl" rounded="full" width="full" className="self-end">
-          <Link to={`/field`} className="text-[1rem] sm:text-[1.5rem]">
+          <Link
+            to={`/field`}
+            className="text-[1rem] sm:text-[1.5rem]"
+            onClick={trackClick(ANALYTICS_EVENTS.OVERVIEW.NEWUSER_FIELD_INFO_SOW_CLICK, {
+              user_type: "new_user",
+              source_component: "field_info_card",
+              destination_page: "field",
+              page_section: "feature_education",
+              selected_peg_state: selected,
+              price_above_peg: isPriceAbovePeg,
+              has_soil: hasSoil,
+              soil_range: getSoilRange(soil),
+              pod_line_range: getPodLineRange(podline),
+              temperature_range: getTemperatureRange(temperature.max.mul(100).toNumber()),
+              temperature_percent: temperature.max.mul(100).toNumber(),
+              is_mobile: isTablet,
+              recommended_by_price: isPriceAbovePeg === false,
+            })}
+          >
             Sow in the Field
           </Link>
         </Button>

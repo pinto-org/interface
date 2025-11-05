@@ -3,6 +3,8 @@ import * as SelectPrimitive from "@radix-ui/react-select";
 import * as React from "react";
 
 import { cn } from "@/utils/utils";
+import { VariantProps, cva } from "class-variance-authority";
+import clsx from "clsx";
 
 const Select = SelectPrimitive.Root;
 
@@ -10,24 +12,43 @@ const SelectGroup = SelectPrimitive.Group;
 
 const SelectValue = SelectPrimitive.Value;
 
-const SelectTrigger = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
-      className,
-    )}
-    {...props}
-  >
-    {children}
-    <SelectPrimitive.Icon asChild>
-      <ChevronDownIcon className="h-4 w-4 opacity-50" />
-    </SelectPrimitive.Icon>
-  </SelectPrimitive.Trigger>
-));
+const selectTriggerVariants = cva(
+  clsx(
+    "flex h-10 w-full items-center justify-between rounded-md border border-input",
+    "bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground",
+    "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+    "[&>span]:line-clamp-1",
+  ),
+  {
+    variants: {
+      variant: {
+        default: "",
+        form: clsx(
+          "cursor-pointer rounded-[0.75rem] w-fit h-12 bg-white",
+          "px-3 py-1 text-[1.25rem] text-black",
+          "border border-pinto-gray-2 shadow-none",
+          "ring-0 focus:ring-0 focus-visible:ring-0",
+          "focus:ring-offset-0 focus-visible:ring-offset-0",
+          "outline-none focus:outline-none focus-visible:outline-none",
+        ),
+      },
+    },
+  },
+);
+
+type SelectTriggerProps = React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> &
+  VariantProps<typeof selectTriggerVariants>;
+
+const SelectTrigger = React.forwardRef<React.ElementRef<typeof SelectPrimitive.Trigger>, SelectTriggerProps>(
+  ({ className, children, variant = "default", ...props }, ref) => (
+    <SelectPrimitive.Trigger ref={ref} className={cn(selectTriggerVariants({ variant }), className)} {...props}>
+      {children}
+      <SelectPrimitive.Icon asChild>
+        <ChevronDownIcon className="h-4 w-4 opacity-50" />
+      </SelectPrimitive.Icon>
+    </SelectPrimitive.Trigger>
+  ),
+);
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
 
 const SelectScrollUpButton = React.forwardRef<

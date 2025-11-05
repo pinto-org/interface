@@ -130,7 +130,7 @@ const checkApyMode = (stats: InlineStat[]) => {
   const has24h = !(!stats[0]?.rawValue || stats[0].rawValue === 0);
   const has7d = !(!stats[1]?.rawValue || stats[1].rawValue === 0);
   const has30d = !(!stats[2]?.rawValue || stats[2].rawValue === 0);
-  const has90d = !(!stats[2]?.rawValue || stats[2].rawValue === 0);
+  const has90d = !(!stats[3]?.rawValue || stats[3].rawValue === 0);
 
   // Return mode based on available data
   if (has24h) {

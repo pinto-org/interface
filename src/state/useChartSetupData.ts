@@ -1058,7 +1058,6 @@ const createMarketCharts = (mainToken: Token): ChartSetupBase[] => {
       description: "WSOL Price",
       formatter: usdFormatter,
     }),
-    /*
     marketEntry({
       id: "marketCumulativeNonPintoUsd",
       name: "Protocol Cumulative Non-Pinto Value Change (USD)",
@@ -1229,7 +1228,6 @@ const createMarketCharts = (mainToken: Token): ChartSetupBase[] => {
       description: "Percentage change of WSOL liquidity value by season.",
       formatter: chartFormatters.percentFormatter(4),
     }),
-    */
   ];
 };
 

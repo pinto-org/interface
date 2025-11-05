@@ -239,7 +239,6 @@ const MarketPerformanceChart = ({ season, size, className }: MarketPerformanceCh
             content="Measures historical fluctuations of non-Pinto value in the ecosystem."
             variant="gray"
           />
-          {/*
           <div className="ml-4 flex items-center gap-1 bg-gray-2 rounded-lg p-0.5 border border-pinto-gray-2">
             {Object.values(DataType).map((type) => (
               <button
@@ -257,7 +256,6 @@ const MarketPerformanceChart = ({ season, size, className }: MarketPerformanceCh
               </button>
             ))}
           </div>
-          */}
         </div>
         <CalendarButton
           setTimePeriod={handleChangeTimeSelect}

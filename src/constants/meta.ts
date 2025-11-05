@@ -14,6 +14,8 @@ const slugs = [
   "market",
   "transfer",
   "explorer",
+  "nftCollection",
+  "nftCollectionSoon",
   "404",
   "PINTOUSDC",
   "PINTOcbBTC",
@@ -120,6 +122,16 @@ const PINTO_META: Record<MetaSlug, MetaProps> = {
     description:
       "Automate your Pinto farming with Tractor, the tool for creating Blueprints and executing them on your behalf.",
     url: "https://pinto.money/tractor",
+  },
+  nftCollection: {
+    title: "My Collection | Pinto",
+    description: "View and manage your collection of Pinto NFTs.",
+    url: "https://pinto.money/collection",
+  },
+  nftCollectionSoon: {
+    title: "My Collection | Pinto",
+    description: "View and manage your collection of Pinto NFTs.",
+    url: "https://pinto.money/collectionsoon",
   },
 };
 

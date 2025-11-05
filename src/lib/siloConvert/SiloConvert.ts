@@ -379,8 +379,9 @@ export class SiloConvert {
 
     // If the route incurs a penalty, sort the crates by stem to minimize grown stalk loss. Otherwise, sort by bdv
     const sortBy = incursGSPenalty || isWithdrawal ? "stem" : "bdv";
+    const sortOrder = sortBy === "stem" ? "desc" : "asc";
 
-    const crates = pickCratesMultiple(farmerDeposits, sortBy, "asc", amounts);
+    const crates = pickCratesMultiple(farmerDeposits, sortBy, sortOrder, amounts);
 
     return crates;
   }

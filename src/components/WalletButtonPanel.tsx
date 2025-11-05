@@ -1,8 +1,11 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
+import { useWalletNFTProfile } from "@/hooks/useWalletNFTProfile";
 import { navbarPanelAtom } from "@/state/app/navBar.atoms";
 import { FarmerBalance, useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
+import { trackClick, withTracking } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
 import { ENABLE_SWITCH_CHAINS } from "@/utils/wagmi/chains";
@@ -23,6 +26,51 @@ import { ScrollArea } from "./ui/ScrollArea";
 import { Separator } from "./ui/Separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/Tabs";
 
+// NFT Profile Display component for right side of header
+interface NFTProfileDisplayProps {
+  navigate: ReturnType<typeof useNavigate>;
+  togglePanel: () => void;
+}
+const NFTProfileDisplay = ({ navigate, togglePanel }: NFTProfileDisplayProps) => {
+  const { hasNFT, profileImageUrl } = useWalletNFTProfile();
+
+  // TEMPORARY: Hide NFT profile images - set to false to show real NFT images
+  const hideNFTProfile = false;
+
+  if (!hasNFT || !profileImageUrl) {
+    return null;
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={withTracking(
+        ANALYTICS_EVENTS.WALLET.PANEL_NFT_COLLECTION_NAVIGATE,
+        () => {
+          navigate("/collection");
+          togglePanel();
+        },
+        {
+          has_nft: hasNFT,
+          from_page: "wallet_panel",
+        },
+      )}
+      className="w-[11.25rem] h-20 rounded-lg overflow-hidden bg-gray-100 hover:opacity-80 transition-opacity flex-shrink-0 flex items-center justify-center"
+    >
+      {hideNFTProfile ? (
+        <span className="text-gray-500 font-semibold text-2xl">?</span>
+      ) : (
+        <img
+          src={profileImageUrl}
+          alt="NFT Profile"
+          className="w-full h-full object-cover"
+          style={{ objectPosition: "50% 10%" }}
+        />
+      )}
+    </button>
+  );
+};
+
 // Wallet header component
 interface WalletHeaderProps {
   address: `0x${string}` | undefined;
@@ -31,29 +79,15 @@ interface WalletHeaderProps {
   disconnect: () => void;
   togglePanel: () => void;
   totalBalance: FarmerBalance;
+  navigate: ReturnType<typeof useNavigate>;
 }
-const WalletHeader = ({ address, ensName, ensAvatar, disconnect, togglePanel, totalBalance }: WalletHeaderProps) => (
+const WalletHeader = ({ address, ensName, ensAvatar, totalBalance }: WalletHeaderProps) => (
   <div className="flex flex-col gap-2 2xl:gap-4">
-    <div className="flex flex-row justify-between items-center h-4">
-      <div className="flex flex-row gap-1">
-        {ensAvatar && <Avatar address={address} size={24} />}
-        <span className="pinto-sm text-pinto-gray-5">
-          {ensName || (address ? `${address.substring(0, 7)}...${address.substring(38, 42)}` : "")}
-        </span>
-      </div>
-      {address && (
-        <button
-          type="button"
-          onClick={() => {
-            disconnect();
-            togglePanel();
-          }}
-          className="flex justify-center items-center gap-1 w-[11.25rem] h-[2.125rem] bg-[#F8F8F8] rounded-full pinto-sm hover:hover:bg-pinto-green hover:text-white"
-        >
-          <span>Disconnect Wallet</span>
-          <span className="w-4 h-4">×</span>
-        </button>
-      )}
+    <div className="flex flex-row gap-1 items-center h-4">
+      {ensAvatar && <Avatar address={address} size={24} />}
+      <span className="pinto-sm text-pinto-gray-5">
+        {ensName || (address ? `${address.substring(0, 7)}...${address.substring(38, 42)}` : "")}
+      </span>
     </div>
     <span className="text-[3rem] leading-[1.1] 2xl:pinto-h1 text-pinto-gray-5">
       {formatter.usd(totalBalance.total, { decimals: totalBalance.total.gt(9999999) ? 0 : 2 })}
@@ -88,10 +122,16 @@ interface ActionButtonsProps {
 const ActionButtons = ({ navigate, togglePanel }: ActionButtonsProps) => (
   <div className="flex flex-row gap-3 w-full">
     <Button
-      onClick={() => {
-        navigate("/swap");
-        togglePanel();
-      }}
+      onClick={withTracking(
+        ANALYTICS_EVENTS.WALLET.PANEL_SWAP_NAVIGATE,
+        () => {
+          navigate("/swap");
+          togglePanel();
+        },
+        {
+          from_page: "wallet_panel",
+        },
+      )}
       variant="ghost"
       className="bg-pinto-gray-1 hover:hover:bg-pinto-green flex-1 h-auto 2xl:h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-row 2xl:flex-col gap-4"
     >
@@ -103,10 +143,16 @@ const ActionButtons = ({ navigate, togglePanel }: ActionButtonsProps) => (
       Swap
     </Button>
     <Button
-      onClick={() => {
-        navigate("/transfer");
-        togglePanel();
-      }}
+      onClick={withTracking(
+        ANALYTICS_EVENTS.WALLET.PANEL_SEND_NAVIGATE,
+        () => {
+          navigate("/transfer");
+          togglePanel();
+        },
+        {
+          from_page: "wallet_panel",
+        },
+      )}
       variant="ghost"
       className="bg-pinto-gray-1 hover:hover:bg-pinto-green flex-1 h-auto 2xl:h-[6.375rem] rounded-[1rem] font-[400] text-[1rem] text-pinto-gray-5 hover:text-white flex flex-row 2xl:flex-col gap-4"
     >
@@ -220,20 +266,6 @@ export default function WalletButtonPanel({ togglePanel }) {
     [setPanelState],
   );
 
-  const setCurrentTab = useCallback(
-    (tab) => {
-      if (!tab) return;
-      setPanelState((prev) => ({
-        ...prev,
-        walletPanel: {
-          ...prev.walletPanel,
-          balanceTab: tab,
-        },
-      }));
-    },
-    [setPanelState],
-  );
-
   const { balances: farmerBalances } = useFarmerBalances();
   const priceData = usePriceData();
   const farmerSilo = useFarmerSilo();
@@ -285,6 +317,30 @@ export default function WalletButtonPanel({ togglePanel }) {
     return { totalBalance, hasSiloWrappedToken, tokens };
   }, [farmerBalances, priceData.tokenPrices]);
 
+  const setCurrentTab = useCallback(
+    (tab: string) => {
+      if (!tab) return;
+
+      // Track tab switch
+      trackClick(ANALYTICS_EVENTS.WALLET.BALANCE_TAB_SWITCH, {
+        previous_tab: currentTab,
+        new_tab: tab,
+        total_balance: totalBalance.total.toHuman(),
+        has_external_balance: totalBalance.external.gt(0),
+        has_internal_balance: totalBalance.internal.gt(0),
+      })();
+
+      setPanelState((prev) => ({
+        ...prev,
+        walletPanel: {
+          ...prev.walletPanel,
+          balanceTab: tab,
+        },
+      }));
+    },
+    [setPanelState, currentTab, totalBalance],
+  );
+
   // If in transfer mode, just render the transfer component
   if (showTransfer) {
     return <WalletButtonTransfer />;
@@ -296,14 +352,45 @@ export default function WalletButtonPanel({ togglePanel }) {
       style={{ height: `calc(100vh - ${renderAnnouncement ? 7.5 : 5}rem)` }}
     >
       <CardHeader className="flex flex-col gap-4 p-4 2xl:p-6">
-        <WalletHeader
-          address={address}
-          ensName={ensName}
-          ensAvatar={ensAvatar}
-          disconnect={disconnect}
-          togglePanel={togglePanel}
-          totalBalance={totalBalance}
-        />
+        <div className="flex flex-row justify-between items-start">
+          <div className="flex-1">
+            <WalletHeader
+              address={address}
+              ensName={ensName}
+              ensAvatar={ensAvatar}
+              disconnect={disconnect}
+              togglePanel={togglePanel}
+              totalBalance={totalBalance}
+              navigate={navigate}
+            />
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            {address && (
+              <button
+                type="button"
+                onClick={withTracking(
+                  ANALYTICS_EVENTS.WALLET.DISCONNECT_BUTTON_CLICK,
+                  () => {
+                    disconnect();
+                    togglePanel();
+                  },
+                  {
+                    has_ens: !!ensName,
+                    from_page: "wallet_panel",
+                  },
+                )}
+                className="flex justify-center items-center gap-1 w-[11.25rem] h-[2.125rem] bg-[#F8F8F8] rounded-full pinto-sm hover:hover:bg-pinto-green hover:text-white"
+              >
+                <span>Disconnect Wallet</span>
+                <span className="w-4 h-4">×</span>
+              </button>
+            )}
+            {/* NFT Profile Display - Hidden on mobile */}
+            <div className="hidden sm:block">
+              <NFTProfileDisplay navigate={navigate} togglePanel={togglePanel} />
+            </div>
+          </div>
+        </div>
         <BalanceSummary totalBalance={totalBalance} />
         <ActionButtons navigate={navigate} togglePanel={togglePanel} />
       </CardHeader>
@@ -380,7 +467,10 @@ export default function WalletButtonPanel({ togglePanel }) {
         {ENABLE_SWITCH_CHAINS && !showClaim && <ChainButton />}
         <Button
           variant="default"
-          onClick={() => setShowTransfer(true)}
+          onClick={withTracking(ANALYTICS_EVENTS.WALLET.FARM_BALANCE_MANAGE_CLICK, () => setShowTransfer(true), {
+            has_internal_balance: totalBalance.internal.gt(0),
+            from_page: "wallet_panel",
+          })}
           className={`transition-all ${showClaim ? "hidden" : "inline-flex"} rounded-full gap-x-1 m-0 text-[1rem] 2xl:text-[1.25rem] h-8 sm:h-10`}
         >
           <span className="self-center items-center">

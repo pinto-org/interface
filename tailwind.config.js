@@ -8,9 +8,11 @@ module.exports = {
   theme: {
     // also change in src/utils/theme/breakpoints.ts
     screens: {
+      xs: "400px",
       sm: "768px",
       md: "900px",
       lg: "1100px",
+      xl: "1200px",
       "2xl": "1400px",
       "3xl": "1600px"
     },
@@ -18,9 +20,11 @@ module.exports = {
       center: true,
       padding: "2rem",
       screens: {
+        xs: "400px",
         sm: "768px",
         md: "900px",
         lg: "1100px",
+        xl: "1200px",
         "2xl": "1400px",
         "3xl": "1600px"
       },
@@ -106,6 +110,8 @@ module.exports = {
           "green-2": "#00C767",
           "green-3": "#246645",
           "green-4": "#387F5C",
+          "green-5": "#0CB763",
+          "orange-1": "#FFF6EA",
           "off-green": "#9A9F6C",
           "off-green-bg": "#EFEEDF",
           "gray-1": "#F8F8F8",
@@ -125,6 +131,7 @@ module.exports = {
           "seed-silver": "#7B9387",
           "pod-bronze": "#9F7F54",
           "red-2": "#FF0000",
+          "purple-2": "#C9B3F4",
           morning: "#D9AD0F",
           "morning-orange": "#FBE39B",
           primary: "#000000", // black clsx("text-black"),
@@ -158,6 +165,7 @@ module.exports = {
         "gradient-lighter-2":
           "linear-gradient(90deg, #E9E7E0 0%, #FEE18C 52.5%, #F1F88C 100%)",
         "dot-grid": "radial-gradient(#D9D9D9 2px, transparent 2px)",
+        'double-fade': 'linear-gradient(270deg, rgba(255, 255, 255, 0.50) 0%, rgba(255, 255, 255, 0.00) 50%, rgba(255, 255, 255, 0.50) 100%), linear-gradient(180deg, rgba(255, 255, 255, 0.50) 0%, rgba(255, 255, 255, 0.00) 50%, rgba(255, 255, 255, 0.50) 100%)',
       },
       borderRadius: {
         xl: "calc(var(--radius) + 0.5rem)", // 20px
@@ -204,15 +212,62 @@ module.exports = {
           from: { transform: "translateX( 0% )" },
           to: { transform: "translateX( -50% )" },
         },
+        "pulse-scale": {
+          "0%, 100%": { transform: "scale(0.98)" },
+          "50%": { transform: "scale(1.02)" },
+        },
+        "marquee-reverse": {
+          from: { transform: "translateX( -50% )" },
+          to: { transform: "translateX( 0% )" },
+        },
+        "vertical-marquee": {
+          from: { transform: "translateY( 0% )" },
+          to: { transform: "translateY( -200% )" },
+        },
+        "vertical-marquee-reverse": {
+          from: { transform: "translateY( -300% )" },
+          to: { transform: "translateY( 0% )" },
+        },
+        "vertical-marquee-small": {
+          from: { transform: "translateY( 0% )" },
+          to: { transform: "translateY( -100% )" },
+        },
+        shimmer: {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" },
+        },
+        "text-background-scroll": {
+          "0%": { backgroundPosition: "100% 50%"},
+          "100%": { backgroundPosition: "0% 50%" },
+        },
+        "pulse-glow": {
+          "0%, 100%": { 
+            boxShadow: "0 0 20px var(--glow-color, rgba(36, 102, 69, 0.4))" 
+          },
+          "50%": { 
+            boxShadow: "0 0 30px var(--glow-color, rgba(36, 102, 69, 0.7))" 
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         marquee: "marquee 24s linear infinite",
+        "marquee-reverse": "marquee-reverse 24s linear infinite",
+        "long-marquee": "marquee 90s linear infinite",
+        "long-marquee-reverse": "marquee-reverse 90s linear infinite",
+        "vertical-marquee": "vertical-marquee 36s linear infinite",
+        "vertical-marquee-reverse": "vertical-marquee-reverse 54s linear infinite",
+        "vertical-marquee-small": "vertical-marquee-small 80s linear infinite",
+        "text-background-scroll": "text-background-scroll 5s linear infinite",
+        "pulse-glow": "pulse-glow 8s ease-in-out infinite",
       },
       aspectRatio: {
         "3/1": "3 / 1",
         "6/1": "6 / 1",
+      },
+      transitionDuration: {
+        "1500": "1500ms",
       },
       scrollbar: {
         none: {
@@ -231,42 +286,42 @@ module.exports = {
       addComponents({
         // Text variants as complete utilities
         ".pinto-h1": {
-          "@apply text-h1 font-thin tracking-normal text-pinto-primary": {},
+          "@apply text-h1 font-thin tracking-normal": {},
         },
         ".pinto-h2": {
-          "@apply text-h2 font-thin tracking-h2 text-pinto-primary": {},
+          "@apply text-h2 font-thin tracking-h2": {},
         },
         ".pinto-h3": {
-          "@apply text-h3 font-light tracking-h3 text-pinto-primary sm:text-[2rem]":
+          "@apply text-h3 font-light tracking-h3 sm:text-[2rem]":
             {},
         },
         ".pinto-h4": {
-          "@apply text-h4 font-regular tracking-h4 text-pinto-primary": {},
+          "@apply text-h4 font-regular tracking-h4": {},
         },
         ".pinto-lg": {
-          "@apply text-lg font-light text-pinto-primary": {},
+          "@apply text-lg font-light": {},
         },
         ".pinto-body": {
-          "@apply text-body font-regular text-pinto-primary": {},
+          "@apply text-body font-regular": {},
         },
         ".pinto-body-light": {
-          "@apply text-body font-light tracking-body-light text-pinto-primary":
+          "@apply text-body font-light tracking-body-light":
             {},
         },
         ".pinto-body-bold": {
-          "@apply text-body font-medium text-pinto-primary": {},
+          "@apply text-body font-medium": {},
         },
         ".pinto-sm": {
-          "@apply text-sm font-regular text-pinto-primary": {},
+          "@apply text-sm font-regular": {},
         },
         ".pinto-sm-light": {
-          "@apply text-sm font-light text-pinto-primary": {},
+          "@apply text-sm font-light": {},
         },
         ".pinto-sm-bold": {
-          "@apply text-sm font-medium text-pinto-primary": {},
+          "@apply text-sm font-medium": {},
         },
         ".pinto-xs": {
-          "@apply text-xs font-light text-pinto-primary": {},
+          "@apply text-xs font-light": {},
         },
         ".pinto-inherit": {
           "@apply text-inherit leading-inherit font-inherit tracking-inherit":
@@ -285,6 +340,6 @@ module.exports = {
         },
       });
     },
-    // require("@tailwindcss/typography")
+    require("@tailwindcss/typography")
   ],
 };

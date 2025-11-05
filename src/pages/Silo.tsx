@@ -1,50 +1,33 @@
-import { TokenValue } from "@/classes/TokenValue";
 import ActionsMenu from "@/components/ActionsMenu";
-import { Col, Row } from "@/components/Container";
-import DonutChart from "@/components/DonutChart";
 import GerminationNotice from "@/components/GerminationNotice";
 import HelperLink from "@/components/HelperLink";
 import ReadMoreAccordion from "@/components/ReadMoreAccordion";
 import StatPanel from "@/components/StatPanel";
-import TableRowConnector from "@/components/TableRowConnector";
-import TextSkeleton from "@/components/TextSkeleton";
-import TooltipSimple from "@/components/TooltipSimple";
-import { tabToSeasonalLookback } from "@/components/charts/SeasonalChart";
-import { TimeTab } from "@/components/charts/TimeTabs";
-import { navLinks } from "@/components/nav/nav/Navbar";
-import { Card } from "@/components/ui/Card";
-import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import { PINTO_WETH_TOKEN, PINTO_WSOL_TOKEN } from "@/constants/tokens";
-import useIsMobile from "@/hooks/display/useIsMobile";
 import useIsSmallDesktop from "@/hooks/display/useIsSmallDesktop";
+import useMediaQuery from "@/hooks/display/useMediaQuery";
 import { useClaimRewards } from "@/hooks/useClaimRewards";
 import useFarmerActions from "@/hooks/useFarmerActions";
 import useLocalStorage from "@/hooks/useLocalStorage";
-import { useSeasonalSiloActiveFarmers } from "@/state/seasonal/seasonalDataHooks";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { usePriceData } from "@/state/usePriceData";
-import { useSeedGauge } from "@/state/useSeedGauge";
-import { useSiloData } from "@/state/useSiloData";
-import { useSeason } from "@/state/useSunData";
-import useTokenData, { useWhitelistedTokens } from "@/state/useTokenData";
+import useTokenData from "@/state/useTokenData";
 import { useChainConstant } from "@/utils/chain";
-import { formatter } from "@/utils/format";
 import { getClaimText } from "@/utils/string";
-import { getTokenIndex, tokensEqual } from "@/utils/token";
-import { StatPanelData, Token } from "@/utils/types";
-import { getSiloConvertUrl } from "@/utils/url";
-import { cn } from "@/utils/utils";
+import { tokensEqual } from "@/utils/token";
+import { StatPanelData } from "@/utils/types";
 import { AnimatePresence, motion } from "framer-motion";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { SiloConvertUpContent } from "./silo/SiloConvertUpContent";
 import SiloTable from "./silo/SiloTable";
 
 const VALUE_TARGET = 1;
 
 function Silo() {
-  const farmerSilo = useFarmerSilo();
+  const farmerSilo = useFarmerSilo(undefined, true);
   const farmerActions = useFarmerActions();
   const tokenData = useTokenData();
   const priceData = usePriceData();
@@ -56,7 +39,8 @@ function Silo() {
   const pintoWETHLP = useChainConstant(PINTO_WETH_TOKEN);
   const pintoWSOLLP = useChainConstant(PINTO_WSOL_TOKEN);
 
-  const [hoveredButton, setHoveredButton] = useState("");
+  const [showConvertUpOrderDialog, setShowConvertUpOrderDialog] = useState(false);
+  const [hoveredButton, setHoveredButton] = useState("claim");
   const enableStatPanels =
     farmerSilo.depositsUSD.gt(0) || farmerSilo.activeStalkBalance.gt(0) || farmerSilo.activeSeedsBalance.gt(0);
 
@@ -122,8 +106,10 @@ function Silo() {
     },
   };
 
+  const isLg = useMediaQuery("between", "lg", "2xl");
+
   return (
-    <PageContainer variant={"lgAlt"} bottomMarginOnMobile>
+    <PageContainer variant={isLg ? "lg" : "lgAlt"} bottomMarginOnMobile>
       <div className="flex flex-col w-full items-center">
         <div className="flex flex-col w-full gap-4 sm:gap-12">
           <div className="flex flex-col gap-2">
@@ -169,143 +155,25 @@ function Silo() {
             <div className="pinto-sm-light sm:pinto-body-light text-pinto-light sm:text-pinto-light">
               These are Deposits which are currently incentivized by Pinto.
             </div>
-            <div className="relative action-container">
-              <SiloTable hovering={hoveredButton === "claim"} />
-
-              {/*convertEnabled && convertFrom && convertTo && (
-                <TableRowConnector
-                  fromTarget={`token-row-${convertFrom.address}`}
-                  toTarget={`token-row-${convertTo.address}`}
-                  color="#246645"
-                  capHeight={isSmallDesktop ? 52 : 68}
-                  extensionLength={isSmallDesktop ? 20 : 35}
-                  componentOffset={10}
-                  dotted={true}
-                  startCapColor={convertFrom.color}
-                  endCapColor={convertTo.color}
-                  component={
-                    <div className="group flex flex-col group max-w-[250px] cursor-pointer place-items-end gap-2">
-                      <div
-                        data-action-target="convert"
-                        className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
-                        // @ts-ignore
-                        style={{ "--convert-color": convertFrom.color }}
-                        onClick={() => navigate(getSiloConvertUrl(convertFrom, convertTo))}
-                      >
-                        {`Convert ${convertFrom.name}`}
-                      </div>
-                      {/* This should stay commented out
-                      <div className="flex flex-col gap-4">
-                        <Text
-                          data-action-target="convert"
-                          variant="sm-light"
-                          className="text-pinto-gray-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          {`Convert ${convertFrom.name} for ${convertTo.name} a gain in Seeds`}
-                        </Text>
-                        <Text
-                          data-action-target="convert"
-                          variant="sm-light"
-                          className="text-pinto-gray-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          {"Arbitrage the increased Seeds reward for a gain in Seeds."}
-                        </Text>
-                      </div>*/
-              /*}
-                    </div>
-                  }
-                />
-              )*/}
-              {claimEnabled && (
-                <HelperLink
-                  text={claimableText}
-                  className="absolute -right-[90px] max-[1800px]:-right-[215px] top-8 max-[1800px]:whitespace-break-spaces max-[1800px]:w-[160px]"
-                  dataTarget={`token-row-${mainToken.address}`}
-                  sourceAnchor="left"
-                  targetAnchor="right"
-                  source90Degree={true}
-                  perpLength={10}
-                  onClick={submitClaimRewards}
-                  onMouseEnter={() => setHoveredButton("claim")}
-                  onMouseLeave={() => setHoveredButton("")}
-                />
-              )}
-              {/* {enablePintoToLPHelper && (
-                <TableRowConnector
-                  toTarget={`token-row-${mainToken.address}`}
-                  color="#246645"
-                  mode="singleLine"
-                  extensionLength={40}
-                  dotted={true}
-                  endCapColor={mainToken.color}
-                  componentOffsetHeight={22}
-                  component={
-                    <div className="group flex flex-col group max-w-[250px] cursor-pointer place-items-end gap-2">
-                      <div
-                        data-action-target="convert"
-                        className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
-                        // @ts-ignore
-                        style={{ "--convert-color": mainToken.color }}
-                        onClick={() =>
-                          navigate(
-                            `/silo/${mainToken.address}?action=convert&mode=max`
-                          )
-                        }
-                      >
-                        {`Convert ${mainToken.name} to LP`}
-                      </div>
-                      <div className="flex flex-col gap-4">
-                        <div
-                          data-action-target="convert"
-                          className="pinto-sm-light text-pinto-gray-4 text-end"
-                        >
-                          {`Arbitrage the increased price of Pinto for an increase in Seeds`}
-                        </div>
-                      </div>
-                    </div>
-                  }
-                />
-              )} */}
-              {/*
-              {!convertEnabled && bestDeposit && (
-                <TableRowConnector
-                  toTarget={`token-row-${bestDeposit.address}`}
-                  color="#246645"
-                  mode="singleLine"
-                  capHeight={isSmallDesktop ? 52 : 68}
-                  extensionLength={40}
-                  dotted={true}
-                  endCapColor={bestDeposit.color}
-                  componentOffsetHeight={22}
-                  component={
-                    <div className="group flex flex-col group max-w-[250px] cursor-pointer place-items-end gap-2">
-                      <div
-                        data-action-target="convert"
-                        className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
-                        // @ts-ignore
-                        style={{ "--convert-color": bestDeposit.color }}
-                        onClick={() => navigate(`/silo/${bestDeposit.address}`)}
-                      >
-                        {`Deposit ${bestDeposit.name}`}
-                      </div>
-                      <div className="flex flex-col gap-4">
-                        <div
-                          data-action-target="convert"
-                          className="text-pinto-gray-4 pinto-sm-light text-end w-[12rem]"
-                        >
-                          {`${bestDeposit.name} currently has the highest incentive for Depositors.`}
-                        </div>
-                      </div>
-                    </div>
-                  }
-                />
-              )}
-              */}
-            </div>
-          </div>
-          <div className="flex flex-col w-full gap-8">
-            <div className="w-full">
-              <SiloStats />
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4 w-full max-w-full overflow-hidden">
+              <div className="flex flex-col gap-4 sm:gap-12 w-full">
+                <div className="relative action-container flex flex-1 min-w-0">
+                  <SiloTable hovering={hoveredButton === "claim"} />
+                  {claimEnabled && (
+                    <HelperLink
+                      text={claimableText}
+                      className="absolute -right-[90px] max-[1800px]:-right-[215px] top-8 max-[1800px]:whitespace-break-spaces max-[1800px]:w-[160px]"
+                      dataTarget={`token-row-${mainToken.address}`}
+                      sourceAnchor="left"
+                      targetAnchor="right"
+                      source90Degree={true}
+                      perpLength={10}
+                      onClick={submitClaimRewards}
+                    />
+                  )}
+                </div>
+                <SiloConvertUpContent />
+              </div>
             </div>
           </div>
         </div>
@@ -337,394 +205,132 @@ const LearnSilo = () => {
     <>
       <ReadMoreAccordion defaultOpen={!learnDidVisit.silo}>
         <>
-          Pinto or Pinto-LP can be deposited into the Silo and can be withdrawn at any time. Deposits are eligible to
-          earn Pinto after at least 1 full season has passed. When Pinto is priced over $1, new Pinto is minted with
-          48.5% being distributed to Silo depositors. Depositors earn a share of the Pinto mints to the silo based on
-          their Stalk balance proportional to total Stalk supply. A Deposit is issued an initial amount of Stalk and
-          Seeds, which is determined by token type and value. Seeds grow Stalk every season. All stalk is forfeit upon a
-          withdrawal.
+          Pinto and Pinto-LP can be Deposited into and Withdrawn from the Silo at any time. When the time-weighted
+          average Pinto price over the previous Season is over $1, new Pinto are minted, 48.5% of which are distributed
+          to Deposits.
+          <br />
+          <br />
+          Deposits are eligible to earn a portion of Pinto mints after being Deposited for at least 1 full Season,
+          earning directly based on their proportion of the total Stalk supply. Deposits receive Stalk and Seeds based
+          on token type and Pinto-denominated value at the time of Deposit. Seeds grow Stalk every season. All Stalk and
+          Seeds are forfeited upon Withdrawal.
         </>
       </ReadMoreAccordion>
     </>
   );
 };
 
-// ---------- Silo Stats ----------
-
-const SiloStats = React.memo(() => {
-  const { data: siloStats, siloWhitelistData, isLoading } = useSiloStats();
-
-  const [hoveredIndex, setHoveredIndex] = useState<number | undefined>(undefined);
-
-  const handleSetHoveredIndex = useCallback((index: number) => {
-    setHoveredIndex(index);
-  }, []);
-
-  return (
-    <Card className="flex flex-col p-4 sm:p-6 gap-2 sm:gap-6 h-auto w-full">
-      <Col className="gap-2">
-        <div className="flex flex-row gap-4">
-          <SiloStatContent data={siloStats} isLoading={isLoading} />
-        </div>
-        <Link
-          to="/explorer/silo"
-          className="pinto-xs sm:pinto-sm font-light text-pinto-green-4 sm:text-pinto-green-4 hover:underline transition-all mt-2"
+/*convertEnabled && convertFrom && convertTo && (
+  <TableRowConnector
+    fromTarget={`token-row-${convertFrom.address}`}
+    toTarget={`token-row-${convertTo.address}`}
+    color="#246645"
+    capHeight={isSmallDesktop ? 52 : 68}
+    extensionLength={isSmallDesktop ? 20 : 35}
+    componentOffset={10}
+    dotted={true}
+    startCapColor={convertFrom.color}
+    endCapColor={convertTo.color}
+    component={
+      <div className="group flex flex-col group max-w-[250px] cursor-pointer place-items-end gap-2">
+        <div
+          data-action-target="convert"
+          className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
+          // @ts-ignore
+          style={{ "--convert-color": convertFrom.color }}
+          onClick={() => navigate(getSiloConvertUrl(convertFrom, convertTo))}
         >
-          See more data →
-        </Link>
-      </Col>
-      <div className="grid sm:pt-4 grid-cols-1 sm:grid-cols-2 gap-4 w-full justify-between">
-        <Col className="gap-4 self-stretch order-2 sm:order-1">
-          {Object.entries(siloWhitelistData).map(([key, wlData], i) => {
-            const isHovered = (hoveredIndex || 0) === i;
-            if (!isHovered) return null;
-
-            return (
-              <HoveredSiloTokenStatContent
-                key={`${key}-${wlData.token.symbol}`}
-                wlTokenSiloDetails={wlData}
-                isLoading={isLoading}
-              />
-            );
-          })}
-        </Col>
-        <DepositedByTokenDoughnutChart
-          setHoveredIndex={handleSetHoveredIndex}
-          siloWhitelistData={siloWhitelistData}
-          isLoading={isLoading}
-        />
-      </div>
-    </Card>
-  );
-});
-
-// ---------- Hovered Silo Token Stat Content ----------
-
-interface HoveredSiloTokenStatContentProps {
-  wlTokenSiloDetails: SiloTokenDepositOverallDetails;
-  isLoading: boolean;
-}
-
-const tooltipProps = {
-  variant: "outlined",
-  showOnMobile: true,
-  className: "pinto-sm",
-} as const;
-
-const HoveredSiloStatRow = (props: {
-  label: string | JSX.Element;
-  value: string | JSX.Element;
-  loading: boolean;
-  tooltip?: string | JSX.Element;
-}) => {
-  const { label, value, loading, tooltip } = props;
-
-  return (
-    <Row className="gap-2 justify-between">
-      <Row className="gap-1 items-center pinto-sm-light sm:pinto-body-light text-pinto-light sm:text-pinto-light">
-        {label}
-        {tooltip && <TooltipSimple {...tooltipProps} content={tooltip} />}
-      </Row>
-      <TextSkeleton height="same-sm" desktopHeight="same-body" className="w-32" loading={loading}>
-        <div className="pinto-sm-light sm:pinto-body-light shrink-0">{value}</div>
-      </TextSkeleton>
-    </Row>
-  );
-};
-
-const HoveredSiloTokenStatContent = ({
-  wlTokenSiloDetails: {
-    token,
-    depositedBDV,
-    depositedAmount,
-    siloDepositedRatio,
-    optimalPctDepositedBdv,
-    currentDepositedLPBDVRatio,
-  },
-  isLoading,
-}: HoveredSiloTokenStatContentProps) => {
-  const { tokenPrices, loading: priceLoading } = usePriceData();
-
-  const usdPrice = tokenPrices.get(token)?.instant;
-
-  const usdDeposited = usdPrice ? depositedAmount.mul(usdPrice) : undefined;
-
-  const loading = isLoading || priceLoading;
-
-  return (
-    <Col className="gap-4 justify-start self-stretch h-auto">
-      <div className="pinto-body-bold flex flex-row gap-1">
-        <TextSkeleton height="same-body" className="w-32" loading={loading}>
-          <>
-            <IconImage size={5} src={token.logoURI} />
-            <>{token.symbol}</>
-          </>
-        </TextSkeleton>
-      </div>
-      <HoveredSiloStatRow
-        label="Total Deposited Amount"
-        value={formatter.token(depositedAmount, token)}
-        loading={loading}
-      />
-      <HoveredSiloStatRow
-        label="Total Deposited PDV"
-        value={formatter.twoDec(depositedBDV)}
-        loading={loading}
-        tooltip={<>The total Pinto-denominated value deposited into the Silo.</>}
-      />
-      <HoveredSiloStatRow
-        label="Total Deposited Value"
-        value={usdDeposited ? formatter.usd(usdDeposited) : "--"}
-        loading={loading}
-        tooltip={<>The total USD value deposited into the Silo.</>}
-      />
-      <HoveredSiloStatRow
-        label=" % of Total Deposited PDV"
-        value={formatter.pct(siloDepositedRatio.mul(100))}
-        loading={loading}
-        tooltip={<>The percentage of the total Pinto-denominated value deposited into the Silo.</>}
-      />
-      {!token.isMain && (
-        <>
-          <HoveredSiloStatRow
-            label="Optimal % LP Deposited PDV"
-            value={formatter.pct(optimalPctDepositedBdv)}
-            loading={loading}
-            tooltip={<>The optimal percentage of the total LP Deposited PDV deposited into the Silo.</>}
-          />
-          <HoveredSiloStatRow
-            label="Current % LP Deposited PDV"
-            value={formatter.pct(currentDepositedLPBDVRatio.mul(100))}
-            loading={loading}
-            tooltip={<>The current percentage of the total LP Deposited PDV in the Silo.</>}
-          />
-        </>
-      )}
-    </Col>
-  );
-};
-
-// ---------- Upper Silo Stats ----------
-
-const SiloStatContent = ({
-  data,
-  isLoading,
-}: { data: ReturnType<typeof useSiloStats>["data"]; isLoading: boolean }) => {
-  const stats = useMemo(
-    () => [
-      {
-        label: "Total Deposited PDV",
-        subLabel: "Total Pinto Denominated Value deposited into the Silo",
-        value: formatter.twoDec(data.totalDepositedBDV),
-      },
-      {
-        label: "Total Stalk",
-        subLabel: "Total Stalk issued to Silo Depositors",
-        value: formatter.twoDec(data.totalStalk),
-      },
-      {
-        label: "Active Farmers",
-        subLabel: "Total number of unique depositors in the Silo",
-        value: data.uniqueDepositors,
-      },
-    ],
-    [data.totalDepositedBDV, data.totalStalk, data.uniqueDepositors],
-  );
-
-  return (
-    <>
-      <div className="hidden sm:flex flex-row gap-x-12 gap-y-4 flex-wrap w-full">
-        {stats.map(({ label, subLabel, value }) => {
-          return (
-            <div key={`silo-stat-desktop-${label}`} className="flex flex-col flex-grow gap-1 sm:gap-2">
-              <div className="pinto-sm-light sm:pinto-body-light font-thin">{label}</div>
-              <div className="pinto-xs sm:pinto-sm text-pinto-light sm:text-pinto-light">{subLabel}</div>
-              <TextSkeleton height="same-body" desktopHeight="h3" className="w-32" loading={isLoading}>
-                <div className="pinto-body sm:pinto-h3">{isLoading ? "--" : value}</div>
-              </TextSkeleton>
-            </div>
-          );
-        })}
-      </div>
-      <Col className="flex sm:hidden gap-2 w-full">
-        {stats.map(({ label, value }) => {
-          return (
-            <Row key={`silo-stat-mobile-${label}`} className="gap-2 items-center justify-between">
-              <div className="pinto-xs">{label}</div>
-              <TextSkeleton height="same-sm" desktopHeight="same-body" className="w-32" loading={isLoading}>
-                <div className="pinto-sm text-end">{value}</div>
-              </TextSkeleton>
-            </Row>
-          );
-        })}
-      </Col>
-    </>
-  );
-};
-
-// ---------- Deposited By Token Doughnut Chart ----------
-
-const donutOptions = {
-  layout: {
-    padding: 12,
-  },
-  plugins: {
-    tooltip: {
-      enabled: true,
-      callbacks: {
-        label: (context) => {
-          return `% TVD: ${context.formattedValue}%`;
-        },
-      },
-    },
-  },
-} as const;
-
-const chartColors = [
-  "#246645", // Pinto Green (pinto-green-3)
-  "#1E6091", // Deep Blue
-  "#D62828", // Vibrant Red
-  "#8338EC", // Bright Purple
-  "#FF9F1C", // Golden Orange
-  "#00BCD4", // Light Blue / Cyan
-];
-
-// Memoize to prevent chart animations from re-rendering
-const DepositedByTokenDoughnutChart = React.memo(
-  (
-    props: Omit<ReturnType<typeof useSiloStats>, "data"> & {
-      setHoveredIndex: (index: number) => void;
-    },
-  ) => {
-    const { siloWhitelistData, isLoading, setHoveredIndex } = props;
-
-    const isMobile = useIsMobile();
-
-    const donutChartProps = useMemo(() => {
-      return {
-        labels: Object.keys(siloWhitelistData),
-        datasets: [
-          {
-            label: "",
-            data: Object.values(siloWhitelistData).map((d) => d.siloDepositedRatio.mul(100).toNumber()),
-            backgroundColor: chartColors,
-            borderWidth: 0,
-            offset: 2,
-            borderRadius: 4,
-          },
-        ],
-      };
-    }, [siloWhitelistData]);
-
-    return (
-      <Col className="relative gap-4 items-center order-1 sm:order-2">
-        <div className="flex flex-col self-stretch items-center">
-          <DonutChart
-            className={cn("w-72 h-72", isMobile && "w-52 h-52")}
-            size={isMobile ? 200 : 350}
-            data={donutChartProps}
-            options={donutOptions}
-            onHover={setHoveredIndex}
-          />
+          {`Convert ${convertFrom.name}`}
         </div>
-      </Col>
-    );
-  },
-);
-
-// ---------- Hooks ----------
-
-const useUniqueDepositors = () => {
-  const season = useSeason();
-  const query = useSeasonalSiloActiveFarmers(Math.max(0, season - tabToSeasonalLookback(TimeTab.Week)), season);
-
-  return {
-    ...query,
-    data: query.data?.length ? query.data[0].value : undefined,
-  };
-};
-
-type SiloTokenDepositOverallDetails = {
-  token: Token;
-  depositedBDV: TokenValue;
-  depositedAmount: TokenValue;
-  siloDepositedRatio: TokenValue;
-  optimalPctDepositedBdv: TokenValue;
-  currentDepositedLPBDVRatio: TokenValue;
-};
-
-const baseObj: Omit<SiloTokenDepositOverallDetails, "token"> = {
-  depositedBDV: TokenValue.ZERO,
-  siloDepositedRatio: TokenValue.ZERO,
-  depositedAmount: TokenValue.ZERO,
-  optimalPctDepositedBdv: TokenValue.ZERO,
-  currentDepositedLPBDVRatio: TokenValue.ZERO,
-};
-
-const reduceTotalDepositedBDV = (tokenData: ReturnType<typeof useSiloData>["tokenData"]) => {
-  const entries = [...tokenData.entries()];
-  return entries.reduce<TokenValue>((acc, [_, tokenData]) => acc.add(tokenData.depositedBDV), TokenValue.ZERO);
-};
-
-const useSiloStats = () => {
-  const [totalDepositedBDV, setTotalDepositedBDV] = useState<TokenValue>(TokenValue.ZERO);
-  const [byToken, setByToken] = useState<Record<string, SiloTokenDepositOverallDetails>>({});
-  const whitelist = useWhitelistedTokens();
-
-  const uniqueDepositors = useUniqueDepositors();
-  const seedGauge = useSeedGauge();
-  const silo = useSiloData();
-
-  const gaugeDataLoaded = !!Object.values(seedGauge.data.gaugeData).length && !seedGauge.isLoading;
-  const siloDataLoaded = !!silo.tokenData.size;
-
-  const dataLoaded = gaugeDataLoaded && siloDataLoaded;
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-  useEffect(() => {
-    if (!dataLoaded) return;
-
-    const totalBDV = reduceTotalDepositedBDV(silo.tokenData);
-
-    // Only set data if data has changed.
-    if (totalBDV.gt(0) && totalDepositedBDV.eq(totalBDV)) return;
-
-    const map = whitelist.reduce<Record<string, SiloTokenDepositOverallDetails>>((prev, token) => {
-      const obj = { token, ...baseObj };
-
-      const wlTokenData = silo.tokenData.get(token);
-      const tokenGaugeData = seedGauge.data.gaugeData[getTokenIndex(token)];
-
-      if (wlTokenData) {
-        obj.depositedBDV = wlTokenData.depositedBDV;
-        obj.siloDepositedRatio = wlTokenData.depositedBDV.div(totalBDV);
-        obj.depositedAmount = wlTokenData.totalDeposited;
-      }
-
-      if (tokenGaugeData) {
-        obj.optimalPctDepositedBdv = tokenGaugeData.optimalPctDepositedBdv;
-        obj.currentDepositedLPBDVRatio = tokenGaugeData.currentDepositedLPBDVRatio ?? TokenValue.ZERO;
-      }
-
-      prev[token.symbol] = obj;
-      return prev;
-    }, {});
-
-    setTotalDepositedBDV(totalBDV);
-    setByToken(map);
-  }, [whitelist, silo.tokenData, seedGauge.data.gaugeData]);
-
-  const isLoading = uniqueDepositors.isLoading || totalDepositedBDV.lte(0);
-
-  return useMemo(() => {
-    return {
-      data: {
-        totalDepositedBDV: totalDepositedBDV,
-        uniqueDepositors: uniqueDepositors.data,
-        totalStalk: silo.totalStalk,
-      },
-      siloWhitelistData: byToken,
-      isLoading,
-    };
-  }, [totalDepositedBDV, uniqueDepositors.data, silo.totalStalk, byToken, isLoading]);
-};
+        {/* This should stay commented out
+        <div className="flex flex-col gap-4">
+          <Text
+            data-action-target="convert"
+            variant="sm-light"
+            className="text-pinto-gray-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            {`Convert ${convertFrom.name} for ${convertTo.name} a gain in Seeds`}
+          </Text>
+          <Text
+            data-action-target="convert"
+            variant="sm-light"
+            className="text-pinto-gray-4 text-end opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            {"Arbitrage the increased Seeds reward for a gain in Seeds."}
+          </Text>
+        </div>*/
+/*}
+      </div>
+    }
+  />
+)
+{enablePintoToLPHelper && (
+  <TableRowConnector
+    toTarget={`token-row-${mainToken.address}`}
+    color="#246645"
+    mode="singleLine"
+    extensionLength={40}
+    dotted={true}
+    endCapColor={mainToken.color}
+    componentOffsetHeight={22}
+    component={
+      <div className="group flex flex-col group max-w-[250px] cursor-pointer place-items-end gap-2">
+        <div
+          data-action-target="convert"
+          className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
+          // @ts-ignore
+          style={{ "--convert-color": mainToken.color }}
+          onClick={() =>
+            navigate(
+              `/silo/${mainToken.address}?action=convert&mode=max`
+            )
+          }
+        >
+          {`Convert ${mainToken.name} to LP`}
+        </div>
+        <div className="flex flex-col gap-4">
+          <div
+            data-action-target="convert"
+            className="pinto-sm-light text-pinto-gray-4 text-end"
+          >
+            {`Arbitrage the increased price of Pinto for an increase in Seeds`}
+          </div>
+        </div>
+      </div>
+    }
+  />
+)}
+{!convertEnabled && bestDeposit && (
+  <TableRowConnector
+    toTarget={`token-row-${bestDeposit.address}`}
+    color="#246645"
+    mode="singleLine"
+    capHeight={isSmallDesktop ? 52 : 68}
+    extensionLength={40}
+    dotted={true}
+    endCapColor={bestDeposit.color}
+    componentOffsetHeight={22}
+    component={
+      <div className="group flex flex-col group max-w-[250px] cursor-pointer place-items-end gap-2">
+        <div
+          data-action-target="convert"
+          className="cursor-pointer convert-color text-[1.25rem] font-[340] tracking-[-0.025rem] leading-[1.375rem] text-end"
+          // @ts-ignore
+          style={{ "--convert-color": bestDeposit.color }}
+          onClick={() => navigate(`/silo/${bestDeposit.address}`)}
+        >
+          {`Deposit ${bestDeposit.name}`}
+        </div>
+        <div className="flex flex-col gap-4">
+          <div
+            data-action-target="convert"
+            className="text-pinto-gray-4 pinto-sm-light text-end w-[12rem]"
+          >
+            {`${bestDeposit.name} currently has the highest incentive for Depositors.`}
+          </div>
+        </div>
+      </div>
+    }
+  />
+)}
+*/

@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/Switch";
 import Warning from "@/components/ui/Warning";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { siloedPintoABI } from "@/constants/abi/siloedPintoABI";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { MAIN_TOKEN, S_MAIN_TOKEN } from "@/constants/tokens";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap, useWSOL } from "@/hooks/pinto/useTokenMap";
@@ -25,6 +26,7 @@ import { useFarmerBalances } from "@/state/useFarmerBalances";
 import useFarmerDepositAllowance from "@/state/useFarmerDepositAllowance";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useSiloWrappedTokenToUSD } from "@/state/useSiloWrappedTokenData";
+import { trackSimpleEvent } from "@/utils/analytics";
 import { useChainConstant } from "@/utils/chain";
 import { extractStemsAndAmountsFromCrates, sortAndPickCrates } from "@/utils/convert";
 import { tryExtractErrorMessage } from "@/utils/error";
@@ -133,6 +135,48 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
     successCallback: onSuccess,
   });
 
+  // Track destination changes
+  const handleDestinationChange = useCallback(
+    (newMode: FarmToMode | undefined) => {
+      if (newMode !== mode) {
+        trackSimpleEvent(ANALYTICS_EVENTS.SILO.WRAP_DESTINATION_SELECT, {
+          previous_destination: mode === FarmToMode.EXTERNAL ? "external" : "internal",
+          new_destination: newMode === FarmToMode.EXTERNAL ? "external" : "internal",
+          token_symbol: siloToken.symbol,
+        });
+        setMode(newMode);
+      }
+    },
+    [mode, siloToken.symbol],
+  );
+
+  // Track token selection
+  const handleTokenChange = useCallback(
+    (newToken: Token) => {
+      if (!tokensEqual(newToken, token)) {
+        trackSimpleEvent(ANALYTICS_EVENTS.SILO.WRAP_TOKEN_SELECTED, {
+          previous_token: token.symbol,
+          new_token: newToken.symbol,
+          target_token: siloToken.symbol,
+        });
+        setToken(newToken);
+      }
+    },
+    [token, siloToken],
+  );
+
+  // Track source switching
+  const handleSourceChange = useCallback(() => {
+    const newSource = source === "deposits" ? "balances" : "deposits";
+    trackSimpleEvent(ANALYTICS_EVENTS.SILO.WRAP_SOURCE_TOGGLE, {
+      previous_source: source,
+      new_source: newSource,
+      token_symbol: siloToken.symbol,
+    });
+    setAmountIn("");
+    setSource(newSource);
+  }, [source, siloToken.symbol]);
+
   // Callbacks
   const handleWrap = useCallback(async () => {
     const nofityIsWrapping = () => {
@@ -144,6 +188,14 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
       if (!isValidAddress(account)) {
         throw new Error("Signer required");
       }
+
+      // Track wrap submission
+      trackSimpleEvent(ANALYTICS_EVENTS.SILO.WRAP_SUBMIT, {
+        input_token: token.symbol,
+        output_token: siloToken.symbol,
+        source_type: source,
+      });
+
       if (exceedsBalance) {
         throw new Error("Insufficient deposits");
       }
@@ -272,7 +324,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
           amount={amountIn}
           isLoading={!didInitSource}
           setAmount={setAmountIn}
-          setToken={setToken}
+          setToken={handleTokenChange}
           filterTokens={filterTokens}
           setBalanceFrom={setBalanceFrom}
           balanceFrom={balanceFrom}
@@ -294,13 +346,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
             Use {mainToken.symbol} deposits
           </div>
           <TextSkeleton loading={!didInitSource} className="w-11 h-6">
-            <Switch
-              checked={source === "deposits"}
-              onCheckedChange={() => {
-                setAmountIn("");
-                setSource((prev) => (prev === "deposits" ? "balances" : "deposits"));
-              }}
-            />
+            <Switch checked={source === "deposits"} onCheckedChange={handleSourceChange} />
           </TextSkeleton>
         </div>
       </div>
@@ -325,7 +371,7 @@ export default function WrapToken({ siloToken }: { siloToken: Token }) {
         <div className="h-10 pinto-sm sm:pinto-body-light sm:text-pinto-light text-pinto-light">
           Receive {siloToken.symbol} to my
         </div>
-        <DestinationBalanceSelect setBalanceTo={setMode} balanceTo={mode} />
+        <DestinationBalanceSelect setBalanceTo={handleDestinationChange} balanceTo={mode} />
       </div>
       {isValidAmount && !usingDeposits ? (
         <>

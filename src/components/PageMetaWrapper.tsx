@@ -1,5 +1,7 @@
 import META, { MetaSlug } from "@/constants/meta";
 import { useDynamicTabTitle } from "@/hooks/useDynamicTabTitle";
+import { trackPageView } from "@/utils/analytics";
+import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 export interface PageMetaWrapperProps {
   children: React.ReactNode;
@@ -17,6 +19,13 @@ export default function PageMetaWrapper({ metaKey, children }: PageMetaWrapperPr
   const dynamicTitle = useDynamicTabTitle(title);
   const shouldShowPriceInTitle = !["index", "404"].includes(metaKey);
   const displayTitle = shouldShowPriceInTitle ? dynamicTitle : title;
+
+  const pageViewKey = `${title}-${metaKey}-page-view`;
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Only on mount
+  useEffect(() => {
+    trackPageView(title, url, metaKey);
+  }, [pageViewKey]);
 
   return (
     <>

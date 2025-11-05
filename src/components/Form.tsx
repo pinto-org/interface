@@ -15,6 +15,7 @@ import {
 
 import { Label } from "@/components/ui/Label";
 import { cn } from "@/utils/utils";
+import TooltipSimple from "./TooltipSimple";
 
 const Form = FormProvider;
 
@@ -79,25 +80,52 @@ function FormItem({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function FormLabel({ className, ...props }: React.ComponentProps<typeof LabelPrimitive.Root>) {
+function FormLabel({
+  className,
+  tooltipText,
+  ...props
+}: React.ComponentProps<typeof LabelPrimitive.Root> & {
+  tooltipText?: string;
+}) {
   const { error, formItemId } = useFormField();
 
   const handleClick = (e: React.MouseEvent<HTMLLabelElement>) => {
     e.stopPropagation();
-    e.preventDefault();
-    props.onClick?.(e);
+    // Only preventDefault if there's a custom onClick handler
+    if (props.onClick) {
+      e.preventDefault();
+      props.onClick(e);
+    }
+    // Otherwise, let the label's native focus behavior work
   };
 
+  if (!tooltipText) {
+    return (
+      <Label
+        variant="form"
+        data-slot="form-label"
+        data-error={!!error}
+        className={cn("data-[error=true]:text-destructive", className)}
+        htmlFor={formItemId}
+        onClick={handleClick}
+        {...props}
+      />
+    );
+  }
+
   return (
-    <Label
-      variant="form"
-      data-slot="form-label"
-      data-error={!!error}
-      className={cn("data-[error=true]:text-destructive", className)}
-      htmlFor={formItemId}
-      onClick={handleClick}
-      {...props}
-    />
+    <div className="flex flex-row gap-1 items-center">
+      <Label
+        variant="form"
+        data-slot="form-label"
+        data-error={!!error}
+        className={cn("data-[error=true]:text-destructive", className)}
+        htmlFor={formItemId}
+        onClick={handleClick}
+        {...props}
+      />
+      <TooltipSimple content={tooltipText} variant="outlined" />
+    </div>
   );
 }
 

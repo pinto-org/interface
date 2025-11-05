@@ -19,9 +19,9 @@ import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetT
 import useSignTractorBlueprint from "@/hooks/tractor/useSignTractorBlueprint";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
 import useTransaction from "@/hooks/useTransaction";
+import { RequisitionEvent, SowBlueprintData, prepareRequisitionForTxn } from "@/lib/Tractor";
 import { useGetBlueprintHash } from "@/lib/Tractor/blueprint";
 import { Blueprint, ExtendedTractorTokenStrategy, Requisition, TractorTokenStrategy } from "@/lib/Tractor/types";
-import { RequisitionEvent } from "@/lib/Tractor/utils";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { formatter } from "@/utils/format";
@@ -41,7 +41,7 @@ interface ModifyTractorOrderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onOrderModified?: () => void;
-  existingOrder: RequisitionEvent;
+  existingOrder: RequisitionEvent<SowBlueprintData>;
   // pass in as a prop to ensure data is loaded before the dialog is opened
   getStrategyProps: ReturnType<typeof useGetTractorTokenStrategyWithBlueprint>;
 }
@@ -222,7 +222,6 @@ export default function ModifyTractorOrderDialog({
                     </TooltipSimple>
                   </Row>
                 </div>
-
                 {/* Token Selection Dialog */}
                 <SowOrderV0TokenStrategyDialog
                   open={showTokenSelectionDialog}
@@ -262,7 +261,7 @@ interface ModifyTractorOrderReviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
-  existingOrder: RequisitionEvent;
+  existingOrder: RequisitionEvent<SowBlueprintData>;
   orderData: OrderData;
   encodedData: `0x${string}`;
   operatorPasteInstrs: `0x${string}`[];
@@ -330,22 +329,22 @@ function ModifyTractorOrderReviewDialog({
       setSubmitting(true);
       toast.loading("Modifying order...");
 
+      const prevRequisition = prepareRequisitionForTxn(existingOrder.requisition);
+      const preparedRequisition = prepareRequisitionForTxn(signedRequisition);
+
       // Create the farm call data that cancels the old order and creates the new one
       const farmCalls = [
         // Cancel the existing order
         encodeFunctionData({
           abi: diamondABI,
           functionName: "cancelBlueprint",
-          args: [existingOrder.requisition],
+          args: [prevRequisition],
         }),
         // Create the new order (publish requisition)
         encodeFunctionData({
           abi: diamondABI,
           functionName: "publishRequisition",
-          args: [
-            // Type cast is okay here since we check signature above
-            signedRequisition as Required<Requisition>,
-          ],
+          args: [preparedRequisition],
         }),
       ];
 
@@ -550,7 +549,7 @@ const RenderTokenStrategyDiff = ({ prev, curr }: RenderDiffProps<ExtendedTractor
 };
 
 const getMapping = (
-  requisition: RequisitionEvent,
+  requisition: RequisitionEvent<SowBlueprintData>,
   orderData: OrderData,
   getStrategyProps: ReturnType<typeof useGetTractorTokenStrategyWithBlueprint>,
 ) => {

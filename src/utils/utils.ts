@@ -1,4 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { PricePoint } from "@/components/landing/LandingChart";
 import { FarmerBalance } from "@/state/useFarmerBalances";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -257,12 +258,59 @@ export function safeJSONStringify<T>(value: T | null | undefined, fallbackValue:
   }
 }
 
-interface RatioDeposit {
-  stem: string;
-  ratio: TokenValue;
-}
-
 export function truncSeconds(date: Date): Date {
   date.setSeconds(0, 0);
   return date;
+}
+
+// Helper: cubic Bezier at t
+export function cubicBezier(p0: number, c1: number, c2: number, p1: number, t: number) {
+  const mt = 1 - t;
+  return mt ** 3 * p0 + 3 * mt ** 2 * t * c1 + 3 * mt * t ** 2 * c2 + t ** 3 * p1;
+}
+
+// Helper: derivative of cubic Bezier at t
+export function cubicBezierDerivative(p0: number, c1: number, c2: number, p1: number, t: number) {
+  const mt = 1 - t;
+  return 3 * mt ** 2 * (c1 - p0) + 6 * mt * t * (c2 - c1) + 3 * t ** 2 * (p1 - c2);
+}
+
+// Find extrema (peaks/valleys) of a cubic Bezier curve segment
+export function findBezierExtrema(segment: {
+  p0: { x: number; y: number };
+  c1: { x: number; y: number };
+  c2: { x: number; y: number };
+  p1: { x: number; y: number };
+}) {
+  const extrema: { t: number; x: number; y: number; type: "peak" | "valley" }[] = [];
+
+  // Find Y extrema (where dy/dt = 0)
+  const a = 3 * (segment.p1.y - 3 * segment.c2.y + 3 * segment.c1.y - segment.p0.y);
+  const b = 6 * (segment.c2.y - 2 * segment.c1.y + segment.p0.y);
+  const c = 3 * (segment.c1.y - segment.p0.y);
+
+  // Solve quadratic equation at^2 + bt + c = 0
+  const discriminant = b * b - 4 * a * c;
+
+  if (discriminant >= 0 && Math.abs(a) > 1e-10) {
+    const sqrt_d = Math.sqrt(discriminant);
+    const t1 = (-b + sqrt_d) / (2 * a);
+    const t2 = (-b - sqrt_d) / (2 * a);
+
+    [t1, t2].forEach((t) => {
+      if (t > 0.01 && t < 0.99) {
+        // Exclude endpoints, small buffer for stability
+        const x = cubicBezier(segment.p0.x, segment.c1.x, segment.c2.x, segment.p1.x, t);
+        const y = cubicBezier(segment.p0.y, segment.c1.y, segment.c2.y, segment.p1.y, t);
+
+        // Determine if it's a peak or valley by checking second derivative
+        const secondDerivY = 6 * a * t + 2 * b;
+        const type = secondDerivY < 0 ? "peak" : "valley";
+
+        extrema.push({ t, x, y, type });
+      }
+    });
+  }
+
+  return extrema;
 }

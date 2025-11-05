@@ -14,6 +14,8 @@ import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
 import { Separator } from "@/components/ui/Separator";
 import VerticalAccordion from "@/components/ui/VerticalAccordion";
+import Warning from "@/components/ui/Warning";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import encoders from "@/encoders";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
@@ -37,6 +39,7 @@ import { useSiloData } from "@/state/useSiloData";
 import useSiloSnapshots from "@/state/useSiloSnapshots";
 import { useInvalidateSun } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
+import { trackSimpleEvent } from "@/utils/analytics";
 import { getChainConstant, useChainConstant } from "@/utils/chain";
 import { sortAndPickCrates } from "@/utils/convert";
 import { formatter } from "@/utils/format";
@@ -95,6 +98,34 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const underlyingPairToken = siloToken.isLP ? underlyingMap[getTokenIndex(siloToken)] : undefined;
   const amountTV = useSafeTokenValue(amount, siloToken);
+  // Track destination changes
+  const handleDestinationChange = useCallback(
+    (newDestination: FarmToMode) => {
+      trackSimpleEvent(ANALYTICS_EVENTS.SILO.WITHDRAW_DESTINATION_SELECT, {
+        previous_destination: mode === FarmToMode.EXTERNAL ? "external" : "internal",
+        new_destination: newDestination === FarmToMode.EXTERNAL ? "external" : "internal",
+        token_symbol: siloToken.symbol,
+      });
+      setMode(newDestination);
+    },
+    [mode, siloToken.symbol],
+  );
+
+  // Track token selection
+  const handleTokenOutChange = useCallback(
+    (newToken: Token) => {
+      if (!tokensEqual(newToken, tokenOut)) {
+        trackSimpleEvent(ANALYTICS_EVENTS.SILO.WITHDRAW_TOKEN_SELECTED, {
+          previous_token: tokenOut?.symbol,
+          new_token: newToken.symbol,
+          source_token: siloToken.symbol,
+          requires_swap: !tokensEqual(siloToken, newToken),
+        });
+        setTokenOut(newToken);
+      }
+    },
+    [tokenOut, siloToken],
+  );
 
   const farmerDepositData = farmerDeposits.get(siloToken);
   const deposits = farmerDepositData?.deposits;
@@ -259,6 +290,12 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     if (amountTV.lte(0) || !account.address || !deposits || inputError) return;
 
     try {
+      // Track withdraw submission
+      trackSimpleEvent(ANALYTICS_EVENTS.SILO.WITHDRAW_SUBMIT, {
+        source_token: siloToken.symbol,
+        target_token: tokenOut?.symbol || "none",
+      });
+
       setSubmitting(true);
       toast.loading(`Withdrawing...`);
       const transferData = sortAndPickCrates("withdraw", amountTV, deposits);
@@ -434,6 +471,11 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
           disableButton
         />
       </div>
+      <FarmBalanceToggle
+        checked={toFarm}
+        onCheckedChange={(checked) => handleDestinationChange(checked ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL)}
+        label={`Destination`}
+      />
       {siloToken.isLP && (
         <div className="flex flex-col w-full py-4 gap-2">
           <div className="pinto-body-light text-pinto-light">{tokenOut ? "Withdraw" : "Withdraw as"}</div>
@@ -465,7 +507,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
                 setShouldConvertWithdraw={setShouldConvertWithdraw}
                 selected={tokenOut}
                 tokens={tokenList}
-                selectToken={setTokenOut}
+                selectToken={handleTokenOutChange}
                 underlyingPairToken={underlyingPairToken}
                 disableOpen={false}
               />

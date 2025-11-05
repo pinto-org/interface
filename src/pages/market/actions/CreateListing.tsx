@@ -5,6 +5,7 @@ import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import SimpleInputField from "@/components/SimpleInputField";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Separator } from "@/components/ui/Separator";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
@@ -12,6 +13,7 @@ import useTransaction from "@/hooks/useTransaction";
 import { useHarvestableIndex, usePodIndex } from "@/state/useFieldData";
 import { useQueryKeys } from "@/state/useQueryKeys";
 import useTokenData from "@/state/useTokenData";
+import { trackSimpleEvent } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
 import { FarmToMode, Plot } from "@/utils/types";
 import { useQueryClient } from "@tanstack/react-query";
@@ -57,6 +59,18 @@ export default function CreateListing() {
     [maxExpiration],
   );
 
+  // Plot selection handler with tracking
+  const handlePlotSelection = useCallback(
+    (plots: Plot[]) => {
+      trackSimpleEvent(ANALYTICS_EVENTS.MARKET.LISTING_PLOT_SELECTED, {
+        plot_count: plots.length,
+        previous_count: plot.length,
+      });
+      setPlot(plots);
+    },
+    [plot.length],
+  );
+
   // reset form and invalidate pod listing query
   const onSuccess = useCallback(() => {
     navigate(`/market/pods/buy/${plot[0].index.toBigInt()}`);
@@ -78,6 +92,12 @@ export default function CreateListing() {
     if (!pricePerPod || pricePerPod <= 0 || !expiresIn || !amount || amount <= 0 || !account || plot.length !== 1) {
       return;
     }
+
+    // Track pod listing creation
+    trackSimpleEvent(ANALYTICS_EVENTS.MARKET.POD_LIST_CREATE, {
+      has_price_per_pod: !!pricePerPod,
+      plot_position_millions: plot.length > 0 ? Math.round(plotPosition.div(1_000_000).toNumber()) : 0,
+    });
 
     const _pricePerPod = TokenValue.fromHuman(pricePerPod, mainToken.decimals);
     const _expiresIn = TokenValue.fromHuman(expiresIn, PODS.decimals);
@@ -141,7 +161,7 @@ export default function CreateListing() {
           minAmount={minFill}
           selectedPlots={plot}
           setAmount={setAmount}
-          setPlots={setPlot}
+          setPlots={handlePlotSelection}
           type="single"
         />
       </div>

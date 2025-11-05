@@ -1,7 +1,9 @@
+import { TV } from "@/classes/TokenValue";
 import SeasonalAPYChart from "@/components/charts/SeasonalAPYChart";
 import SeasonalChart, { tabToSeasonalLookback } from "@/components/charts/SeasonalChart";
 import { TimeTab } from "@/components/charts/TimeTabs";
 import { useSharedTimeTab } from "@/hooks/useSharedTimeTab";
+import useSeasonalGaugeInfo from "@/state/seasonal/queries/useSeasonalGaugeInfo";
 import {
   useSeasonalAvgSeeds,
   useSeasonalBDV,
@@ -10,7 +12,7 @@ import {
   useSeasonalTotalLiquidity,
 } from "@/state/seasonal/seasonalDataHooks";
 import { useSunData } from "@/state/useSunData";
-import { chartFormatters as f } from "@/utils/format";
+import { chartFormatters as f, formatter } from "@/utils/format";
 import React from "react";
 import { useState } from "react";
 
@@ -37,7 +39,23 @@ const SiloExplorer = () => {
           <TotalDepositedPDVChart season={season} />
         </div>
       </div>
-      <SeasonalAPYChart season={season} size="large" />
+      <div className="flex flex-col sm:flex-row w-full sm:space-x-8 mt-8">
+        <div className="w-full sm:w-1/2">
+          <BonusGrownStalkPerPDVChart season={season} />
+        </div>
+        <div className="w-full sm:w-1/2">
+          <BonusCapacityChart season={season} />
+        </div>
+      </div>
+      <SeasonalAPYChart
+        season={season}
+        size="large"
+        analyticsContext={{
+          chart_id: "apy",
+          chart_title: "APY Chart",
+          explorer_tab: "silo",
+        }}
+      />
     </>
   );
 };
@@ -65,6 +83,11 @@ const TotalLiquidityChart = React.memo(({ season }: ISeason) => {
       useSeasonalResult={liquidityData}
       valueFormatter={f.price0dFormatter}
       tickValueFormatter={f.largePrice1dFormatter}
+      analyticsContext={{
+        chart_id: "totalLiquidity",
+        chart_title: "Total Liquidity",
+        explorer_tab: "silo",
+      }}
     />
   );
 });
@@ -84,6 +107,11 @@ const L2SRChart = React.memo(({ season }: ISeason) => {
       useSeasonalResult={l2srData}
       valueFormatter={f.percent2dFormatter}
       tickValueFormatter={f.percent0dFormatter}
+      analyticsContext={{
+        chart_id: "l2sr",
+        chart_title: "Liquidity to Supply ratio",
+        explorer_tab: "silo",
+      }}
     />
   );
 });
@@ -104,6 +132,11 @@ const StalkSupplyChart = React.memo(({ season }: ISeason) => {
       useSeasonalResult={stalkData}
       valueFormatter={f.number0dFormatter}
       tickValueFormatter={f.largeNumber1dFormatter}
+      analyticsContext={{
+        chart_id: "stalkSupply",
+        chart_title: "Stalk Supply",
+        explorer_tab: "silo",
+      }}
     />
   );
 });
@@ -124,6 +157,11 @@ const TotalDepositedPDVChart = React.memo(({ season }: ISeason) => {
       useSeasonalResult={bdvData}
       valueFormatter={f.number0dFormatter}
       tickValueFormatter={f.largeNumber1dFormatter}
+      analyticsContext={{
+        chart_id: "totalDepositedPDV",
+        chart_title: "Total Deposited PDV",
+        explorer_tab: "silo",
+      }}
     />
   );
 });
@@ -145,3 +183,76 @@ const AvgSeedsChart = React.memo(({ season }: ISeason) => {
     />
   );
 });
+
+const bonusCapacityFormatter = (value: number) => formatter.xDec(value, 2);
+
+const BonusCapacityChart = React.memo(({ season }: ISeason) => {
+  const [tab, setTab] = useTimeTabs("maxConvertBonusCapacity");
+  const range = useIGaugesInfoTimeToSeasonRange(season, tab);
+
+  const query = useSeasonalGaugeInfo(range.queryFrom, range.to, (gaugesInfo, timestamp) => ({
+    season: Number(gaugesInfo.season),
+    value: TV.fromBlockchain(gaugesInfo.g2MaxConvertCapacity, 6).toNumber(),
+    timestamp,
+  }));
+
+  return (
+    <SeasonalChart
+      title="Max Convert Bonus Capacity"
+      fillArea
+      activeTab={tab}
+      onChangeTab={setTab}
+      useSeasonalResult={query}
+      valueFormatter={bonusCapacityFormatter}
+      tickValueFormatter={bonusCapacityFormatter}
+      size="small"
+      analyticsContext={{
+        chart_id: "maxConvertBonusCapacity",
+        chart_title: "Max Convert Bonus Capacity",
+        explorer_tab: "silo",
+      }}
+    />
+  );
+});
+
+const grownStalkPerBDVFormatter = (value: number) => formatter.xDec(value, 4);
+const BonusGrownStalkPerPDVChart = React.memo(({ season }: ISeason) => {
+  const [tab, setTab] = useTimeTabs("bonusGrownStalkPerPDV");
+  const range = useIGaugesInfoTimeToSeasonRange(season, tab);
+
+  const query = useSeasonalGaugeInfo(range.queryFrom, range.to, (gaugesInfo, timestamp) => ({
+    season: Number(gaugesInfo.season),
+    value: TV.fromBlockchain(gaugesInfo.g2BonusStalkPerBdv, 10).toNumber(),
+    timestamp,
+  }));
+
+  return (
+    <SeasonalChart
+      title="Stalk Per PDV Bonus"
+      activeTab={tab}
+      onChangeTab={setTab}
+      useSeasonalResult={query}
+      valueFormatter={grownStalkPerBDVFormatter}
+      tickValueFormatter={grownStalkPerBDVFormatter}
+      size="small"
+      analyticsContext={{
+        chart_id: "bonusGrownStalkPerPDV",
+        chart_title: "Stalk Per PDV Bonus",
+        explorer_tab: "silo",
+      }}
+    />
+  );
+});
+
+const PI_13_SEASON = 8083;
+
+export const useIGaugesInfoTimeToSeasonRange = (season: number, tab: TimeTab) => {
+  const tabLookbackSeasons = tabToSeasonalLookback(tab);
+  // We only have data for PI 13 and later, so we need to adjust the query from season accordingly
+  const minQueryFromSeason = Math.max(season - tabLookbackSeasons, PI_13_SEASON);
+
+  return {
+    queryFrom: minQueryFromSeason,
+    to: season,
+  } as const;
+};

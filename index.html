@@ -7,17 +7,38 @@
     </script>
 
     <!-- MetaCRM -->
-    <script 
-    src="https://attribution.metacrm.inc/tracking-1-3-0.js" 
-    data-entity-id="677e121976923f113d7ae7a8" 
-    id="metacrm-tracking" 
-    crossorigin="anonymous" 
-    data-api-key="jwexi2th4h" 
-    data-eco-systems='{"evm":true}'
-    integrity="sha384-LkepA/fAsOX6JggmmktPy4V6KRGi3EikCz4BG7xdtZ57IlczJNRzUz6L/j4+97wD"></script>
+    <script>
+      // Only load MetaCRM if not on landing page
+      if (window.location.pathname !== '/') {
+        const script = document.createElement('script');
+        script.src = 'https://attribution.metacrm.inc/tracking-1-3-0.js';
+        script.setAttribute('data-entity-id', '677e121976923f113d7ae7a8');
+        script.id = 'metacrm-tracking';
+        script.crossOrigin = 'anonymous';
+        script.setAttribute('data-api-key', 'jwexi2th4h');
+        script.setAttribute('data-eco-systems', '{"evm":true}');
+        script.integrity = 'sha384-LkepA/fAsOX6JggmmktPy4V6KRGi3EikCz4BG7xdtZ57IlczJNRzUz6L/j4+97wD';
+        document.head.appendChild(script);
+      }
+    </script>
 
     <!-- JSON-LD -->
 
+    <!-- Google tag (gtag.js) - Production Only -->
+    <!-- VITE_GA_ENABLED_START -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1RR0N5NJLH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      // Config call moved to PageMetaWrapper for SPA tracking
+    </script>
+    <!-- VITE_GA_ENABLED_END -->
+
+    <!-- Preconnect to critical origins for improved LCP -->
+    <link rel="preconnect" href="https://base-mainnet.g.alchemy.com">
+    <link rel="preconnect" href="https://graph.pinto.money">
+    <link rel="preconnect" href="https://app.netlify.com">
 
     <!-- Favicons -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -30,7 +51,7 @@
 
     <meta name="title" content="Pinto" />
     <meta name="description" content="Pinto: Censorship Resistant Low Volatility Money on Base. Interact with the Silo and Field" />
-
+    <meta name="theme-color" content="#FFFCF4">
     <meta name="robots" content="index, follow" />
 
     <link rel="canonical" href="https://pinto.money" />

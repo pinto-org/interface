@@ -4,8 +4,10 @@ import { TokenValue } from "@/classes/TokenValue";
 import FrameAnimator from "@/components/LoadingSpinner";
 import ScatterChart from "@/components/charts/ScatterChart";
 import { Separator } from "@/components/ui/Separator";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { useAllMarket } from "@/state/market/useAllMarket";
 import { useHarvestableIndex, usePodLine } from "@/state/useFieldData";
+import { trackSimpleEvent } from "@/utils/analytics";
 import { ActiveElement, ChartEvent, PointStyle, TooltipOptions } from "chart.js";
 import { Chart } from "chart.js";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -244,6 +246,12 @@ export function Market() {
 
   const handleChangeTabFactory = useCallback(
     (selection: string) => () => {
+      // Track activity tab changes
+      trackSimpleEvent(ANALYTICS_EVENTS.MARKET.ACTIVITY_TAB_CLICK, {
+        previous_tab: tab,
+        new_tab: selection,
+      });
+
       if (selection === TABLE_SLUGS[1]) {
         navigate(`/market/pods/buy/fill`);
       } else if (selection === TABLE_SLUGS[2]) {
@@ -251,7 +259,7 @@ export function Market() {
       }
       handleChangeTab(selection);
     },
-    [navigate],
+    [navigate, tab],
   );
 
   const handleSecondaryTabClick = useCallback(
@@ -265,6 +273,18 @@ export function Market() {
 
   const onPointClick = (event: ChartEvent, activeElements: ActiveElement[], chart: Chart) => {
     const dataPoint = scatterChartData[activeElements[0].datasetIndex].data[activeElements[0].index] as any;
+
+    if (!dataPoint) return;
+
+    // Track chart point click event
+    trackSimpleEvent(ANALYTICS_EVENTS.MARKET.CHART_POINT_CLICK, {
+      event_type: dataPoint?.eventType?.toLowerCase() ?? "unknown",
+      event_status: dataPoint?.status?.toLowerCase() ?? "unknown",
+      price_per_pod: dataPoint?.y ?? 0,
+      place_in_line_millions: Math.floor(dataPoint?.x ?? -1),
+      current_mode: !mode || mode === "buy" ? "buy" : "sell",
+    });
+
     if (dataPoint.eventType === "LISTING") {
       navigate(`/market/pods/buy/${dataPoint.eventIndex.toString().replace(".", "")}`);
     } else {

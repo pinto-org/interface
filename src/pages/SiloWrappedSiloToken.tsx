@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
+import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { SEEDS, STALK } from "@/constants/internalTokens";
 import useIsMobile from "@/hooks/display/useIsMobile";
 import { ProtocolIntegrationSummary, useProtocolIntegrationLinks } from "@/hooks/useProtocolIntegrations";
@@ -22,6 +23,7 @@ import { useSiloWrappedDepositsAPYs } from "@/state/useSiloWrappedDepositsAPYs";
 import { useSiloWrappedTokenExchangeRateQuery, useSiloWrappedTokenTotalSupply } from "@/state/useSiloWrappedTokenData";
 import { useSeason } from "@/state/useSunData";
 import useTokenData from "@/state/useTokenData";
+import { trackClick } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
@@ -248,6 +250,25 @@ const IntegrationLinks = ({ token }: { token: Token }) => {
   const spectraData = useSpectraPoolData();
   const poolData = spectraData.data?.[0];
 
+  // Helper function to get specific event name based on integration key
+  const getEventNameForIntegration = (key: string, protocol: string) => {
+    const eventMap: Record<string, string> = {
+      cream: ANALYTICS_EVENTS.SILO.WRAPPED_TOKEN_CREAM_FINANCE_CLICK,
+      spectraPool: ANALYTICS_EVENTS.SILO.WRAPPED_TOKEN_SPECTRA_POOL_CLICK,
+      spectraFixedRate: ANALYTICS_EVENTS.SILO.WRAPPED_TOKEN_SPECTRA_FIXED_RATE_CLICK,
+      spectraTradeYield: ANALYTICS_EVENTS.SILO.WRAPPED_TOKEN_SPECTRA_YIELD_TRADING_CLICK,
+    };
+    return eventMap[key] || ANALYTICS_EVENTS.SILO.WRAPPED_TOKEN_PROTOCOL_INTEGRATION_CLICK;
+  };
+
+  // Helper function to create privacy-safe APY ranges
+  const getAPYRange = (apy: number | undefined) => {
+    if (!apy || apy === 0) return "none";
+    if (apy < 5) return "low"; // < 5%
+    if (apy < 15) return "medium"; // 5-15%
+    return "high"; // > 15%
+  };
+
   const ProtocolIntegrationCard = ({
     ctaMessage,
     protocol,
@@ -255,12 +276,26 @@ const IntegrationLinks = ({ token }: { token: Token }) => {
     url,
     name,
     value,
-  }: ProtocolIntegrationSummary & { value?: number }) => {
+    integrationKey,
+  }: ProtocolIntegrationSummary & { value?: number; integrationKey: string }) => {
     return (
       <div className="flex flex-row items-center justify-between p-4 box-border rounded-[1.25rem] bg-pinto-off-white border-pinto-gray-2 border gap-2">
         <div className="pinto-sm-light text-pinto-light">{ctaMessage(token, value)}</div>
         <Button asChild variant="outline-secondary" className="rounded-[0.75rem] min-w-min">
-          <Link to={url} target="_blank" rel="noopener noreferrer">
+          <Link
+            to={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={trackClick(getEventNameForIntegration(integrationKey, protocol), {
+              integration_type: integrationKey,
+              external_url: url,
+              apy_range: getAPYRange(value),
+              apy_value: value,
+              source_page: "silo_wrapped_token",
+              source_component: "protocol_integration_card",
+              link_type: "external_protocol",
+            })}
+          >
             <div className="flex flex-row items-center gap-2 pinto-sm-light">
               <IconImage src={logoURI} size={6} alt={protocol} />
               <span>Visit {protocol}</span>
@@ -295,6 +330,7 @@ const IntegrationLinks = ({ token }: { token: Token }) => {
             protocol={integration.protocol}
             url={integration.url}
             value={getCardValue(key)}
+            integrationKey={key}
           />
         );
       })}

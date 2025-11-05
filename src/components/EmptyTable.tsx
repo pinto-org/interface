@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "./ui/Button";
 
 type EmptyTableProps = {
-  type?: "deposits" | "plots" | "plots-field" | "tractor";
+  type?: "deposits" | "plots" | "plots-field" | "tractor" | "tractorConvertUp";
   onTractorClick?: () => void;
 };
 
@@ -33,6 +33,13 @@ const EMPTY_TABLE_CONTENT = {
     link: {
       text: "Create a Tractor Order",
       to: "/field",
+    },
+  },
+  tractorConvertUp: {
+    message: "Your Convert Up Orders will appear here.",
+    link: {
+      text: "",
+      to: "",
     },
   },
 } as const;
