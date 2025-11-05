@@ -5,7 +5,7 @@ import TextSkeleton from "@/components/TextSkeleton";
 import BarChart from "@/components/charts/BarChart";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { OrderbookEntry, decodeSowTractorData } from "@/lib/Tractor/utils";
+import { OrderbookEntry, decodeSowTractorData } from "@/lib/Tractor";
 import { useTractorSowOrderbook } from "@/state/tractor/useTractorSowOrders";
 import { formatter, numberAbbr } from "@/utils/format";
 import { useDebounceValue } from "@/utils/useDebounce";
