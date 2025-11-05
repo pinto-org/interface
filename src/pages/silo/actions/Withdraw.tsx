@@ -1,6 +1,7 @@
 import arrowDown from "@/assets/misc/ChevronDown.svg";
 import { TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
+import { Col, Row } from "@/components/Container";
 import FarmBalanceToggle from "@/components/FarmBalanceToggle";
 import MobileActionBar from "@/components/MobileActionBar";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
@@ -473,12 +474,14 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       </div>
       <FarmBalanceToggle
         checked={toFarm}
-        onCheckedChange={(checked) => handleDestinationChange(checked ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL)}
-        label={`Destination`}
+        onCheckedChange={(checked) => setMode(checked ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL)}
+        label={`Withdraw ${tokenOut?.symbol || "Assets"} to Farm Wallet`}
       />
       {siloToken.isLP && (
-        <div className="flex flex-col w-full py-4 gap-2">
-          <div className="pinto-body-light text-pinto-light">{tokenOut ? "Withdraw" : "Withdraw as"}</div>
+        <Col className="w-full py-2 gap-2">
+          <div className="pinto-body-light text-pinto-light whitespace-nowrap">
+            {tokenOut ? "Withdraw" : "Withdraw as"}
+          </div>
           <div className="flex flex-col w-full gap-1">
             <div className="flex flex-row items-center justify-between w-full">
               <div className="flex flex-col gap-1">
@@ -530,7 +533,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
               )}
             </div>
           </div>
-        </div>
+        </Col>
       )}
       {siloToken.isLP && shouldConvertWithdraw && (
         <div className="flex flex-col w-full py-4 gap-2">
@@ -613,13 +616,6 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
           tokenIn={siloToken}
           tokenOut={tokenOut}
           wellToken={siloToken}
-        />
-      )}
-      {amount && amountTV?.gt(0) && (
-        <FarmBalanceToggle
-          checked={toFarm}
-          onCheckedChange={(checked) => setMode(checked ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL)}
-          label={`Withdraw ${tokenOut?.symbol || "Assets"} to Farm Wallet`}
         />
       )}
       {slippageWarning}
