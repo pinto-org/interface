@@ -2,11 +2,12 @@ import chevronDown from "@/assets/misc/ChevronDown.svg";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import useIsExtraSmall from "@/hooks/display/useIsExtraSmall";
 import useIsTablet from "@/hooks/display/useIsTablet";
+import { useWalletImage } from "@/hooks/useWalletImage";
 import { useWalletNFTProfile } from "@/hooks/useWalletNFTProfile";
 import { withTracking } from "@/utils/analytics";
 import { truncateAddress } from "@/utils/string";
-import { ComponentPropsWithoutRef, forwardRef, useEffect, useState } from "react";
-import { useAccount, useDisconnect, useEnsAvatar, useEnsName } from "wagmi";
+import { ComponentPropsWithoutRef, forwardRef, useState } from "react";
+import { useAccount, useEnsAvatar, useEnsName } from "wagmi";
 import WalletButtonPanel from "./WalletButtonPanel";
 import WalletConnectionModal from "./WalletConnectionModal";
 import { Button } from "./ui/Button";
@@ -21,31 +22,17 @@ interface WalletButtonProps extends ComponentPropsWithoutRef<"div"> {
 
 const WalletButton = forwardRef<HTMLButtonElement, WalletButtonProps>(
   ({ isOpen = false, togglePanel, className }, ref) => {
-    const account = useAccount();
+    const { address } = useAccount();
     const isTablet = useIsTablet();
     const isExtraSmall = useIsExtraSmall();
-
-    const { address } = account;
 
     const { data: ensName } = useEnsName({ address });
     const { data: ensAvatar } = useEnsAvatar({ name: ensName as string });
     const { hasNFT, profileImageUrl } = useWalletNFTProfile();
-
-    // TEMPORARY: Hide NFT profile images - set to false to show real NFT images
-    const hideNFTProfile = false;
-
-    // State for image loading and error handling
-    const [imageError, setImageError] = useState(false);
-    const [retryAttempt, setRetryAttempt] = useState(0);
-
-    // State for wallet connection modal
+    const { imageError, retryAttempt, handleImageError } = useWalletImage(profileImageUrl);
     const [isConnectionModalOpen, setIsConnectionModalOpen] = useState(false);
 
-    // Reset error state when profileImageUrl changes
-    useEffect(() => {
-      setImageError(false);
-      setRetryAttempt(0);
-    }, [profileImageUrl]);
+    const hideNFTProfile = false;
 
     const handleTogglePanel = () => {
       return withTracking(
@@ -98,14 +85,7 @@ const WalletButton = forwardRef<HTMLButtonElement, WalletButtonProps>(
                       alt="Profile"
                       crossOrigin="anonymous"
                       className="w-full h-full object-cover"
-                      onError={() => {
-                        // Try once more before giving up
-                        if (retryAttempt === 0) {
-                          setRetryAttempt(1);
-                        } else {
-                          setImageError(true);
-                        }
-                      }}
+                      onError={handleImageError}
                     />
                   )}
                 </div>
