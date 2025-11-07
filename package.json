@@ -123,7 +123,9 @@
     "@babel/runtime": "^7.26.10",
     "brace-expansion": "^2.0.2",
     "micromatch": "^4.0.8",
-    "cross-spawn": "7.0.6"
+    "cross-spawn": "7.0.6",
+    "viem": "^2.33.1",
+    "ox": "^0.8.1"
   },
   "packageManager": "yarn@4.5.0"
 }
