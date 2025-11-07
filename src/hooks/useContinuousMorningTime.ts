@@ -5,6 +5,7 @@ import { useTemperature } from "@/state/useFieldData";
 import { useMorning, useSunData } from "@/state/useSunData";
 import { DateTime } from "luxon";
 import { useEffect, useMemo, useState } from "react";
+import { normalizeTV } from "./../utils/number";
 
 /**
  * Hook that provides continuous time tracking during the morning auction period.
@@ -78,7 +79,7 @@ export function useScaledTemperature(intervalMs: number = 2000): { max: TV; scal
   const season = useSunData();
   const contractTemperature = useTemperature();
 
-  const [scaledTemp, setScaledTemp] = useState<TV>(contractTemperature.scaled);
+  const [scaledTemp, setScaledTemp] = useState<TV>(normalizeTV(contractTemperature.scaled));
 
   const isMorning = morning.isMorning;
   const maxTemperature = contractTemperature.max;
@@ -87,6 +88,16 @@ export function useScaledTemperature(intervalMs: number = 2000): { max: TV; scal
   const sunriseTimestampSeconds = useMemo(() => {
     return season.timestamp?.toSeconds() ?? 0;
   }, [season.timestamp?.toMillis()]);
+
+  /**
+   * Set the scaled temperature to the normalized value if it is less than 0
+   * Initial value is set to 0, so we need to set it to the normalized value if it is less than 0
+   */
+  useEffect(() => {
+    if (contractTemperature.scaled.lt(0)) {
+      setScaledTemp(normalizeTV(contractTemperature.scaled));
+    }
+  }, [contractTemperature.scaled]);
 
   useEffect(() => {
     // If scaled temperature is already set, don't recalculate

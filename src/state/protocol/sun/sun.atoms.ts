@@ -1,9 +1,8 @@
 import { QueryKey } from "@tanstack/react-query";
 import { atom } from "jotai";
 import { atomWithImmer } from "jotai-immer";
-import { DateTime, Duration } from "luxon";
+import { Duration } from "luxon";
 import { Sun, SunQueryKeys, getNextExpectedSunrise, getNextMorningIntervalUpdate } from ".";
-import { getDiffNow } from "./index";
 
 export const seasonTimeAtom = atomWithImmer<Sun["seasonTime"]>(0);
 
@@ -29,6 +28,7 @@ export const morningAtom = atomWithImmer<Sun["morning"]>({
   isMorning: false,
   blockNumber: 0,
   index: -1,
+  endTime: getNextMorningIntervalUpdate(),
   next: getNextMorningIntervalUpdate(),
 });
 

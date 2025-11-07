@@ -2,6 +2,7 @@ import {
   APPROX_L2_BLOCK_PER_L1_BLOCK,
   APPROX_SECS_PER_L2_BLOCK,
   INTERVALS_PER_MORNING,
+  MORNING_AUCTION_DURATION,
   MORNING_INTERVAL_1,
   SECONDS_PER_MORNING_INTERVAL,
 } from "@/constants/morning";
@@ -22,6 +23,10 @@ export interface Morning {
   index: number;
   /** The DateTime of the next expected morning interval update */
   next: DateTime;
+  /**
+   * end time of the morning interval
+   */
+  endTime: DateTime;
 }
 
 export interface Sun {
@@ -65,6 +70,10 @@ export interface SunQueryKeys {
 export const getNextExpectedSunrise = () => {
   const now = DateTime.now();
   return now.set({ minute: 0, second: 0, millisecond: 0 }).plus({ hour: 1 });
+};
+
+export const getMorningEndTime = (from: DateTime = getNextExpectedSunrise()) => {
+  return from.plus({ seconds: MORNING_AUCTION_DURATION });
 };
 
 export const getNextMorningIntervalUpdate = (from: DateTime = getNextExpectedSunrise()) =>
@@ -148,6 +157,7 @@ export const getMorningResult = ({
     blockNumber,
     index,
     next,
+    endTime: getMorningEndTime(curr),
   };
 };
 

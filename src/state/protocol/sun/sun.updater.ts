@@ -1,15 +1,18 @@
+import { diamondABI } from "@/constants/abi/diamondABI";
 import { INTERVALS_PER_MORNING } from "@/constants/morning";
+import { QUERY_SETTINGS } from "@/constants/query";
 import { useReadSeasonFacetView_SeasonTime } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
 import useCalculateTemperature from "@/state/useCalculateTemperature";
 import { useMorning, useSunData } from "@/state/useSunData";
 import { exists, isDev } from "@/utils/utils";
+import { arbitrumNetwork } from "@/utils/wagmi/chains";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { DateTime } from "luxon";
 import { useCallback, useEffect, useState } from "react";
 import { useChainId, useReadContract } from "wagmi";
-import { getDiffNow, getMorningResult, getNextExpectedSunrise, getNowRounded } from ".";
+import { Sun, getDiffNow, getMorningResult, getNextExpectedSunrise, getNowRounded } from ".";
 import { fieldTemperatureAtom, morningFieldDevModeAtom } from "../field/field.atoms";
 import { useTemperatureQuery } from "../field/field.updater";
 import {
@@ -23,12 +26,9 @@ import {
   sunriseRemainingAtom,
 } from "./sun.atoms";
 
-const TWENTY_MINUTES = 1000 * 60 * 20;
-
 const settings = {
   query: {
-    staleTime: TWENTY_MINUTES,
-    refetchInterval: TWENTY_MINUTES,
+    ...QUERY_SETTINGS.default,
     refetchOnWindowFocus: true,
     refetchIntervalInBackground: false,
   },
@@ -44,7 +44,7 @@ const useFetchSun = () => {
 
   const seasonQuery = useReadContract({
     address: diamond,
-    abi: chainId === 42161 ? arbTimeAbi : timeAbi,
+    abi: chainId === arbitrumNetwork.id ? arbTimeAbi : timeAbi,
     functionName: "time",
     query: settings.query,
   });
@@ -77,7 +77,7 @@ const useFetchSun = () => {
   useEffect(() => {
     if (!seasonQuery.data) return;
     const time = seasonQuery.data;
-    const season = {
+    const season: Sun["season"] = {
       current: time.current,
       lastSopStart: time.lastSop,
       lastSopEnd: time.lastSopSeason,
