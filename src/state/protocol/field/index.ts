@@ -14,6 +14,9 @@ export interface InitialSoil {
 
 export interface FieldTemperature {
   max: TV;
+  /**
+   * @deprecated. use useScaledTemperature hook instead.
+   */
   scaled: TV;
   isLoading: boolean;
 }
