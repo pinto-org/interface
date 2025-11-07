@@ -9,6 +9,7 @@ import { trackClick, withTracking } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
 import { ENABLE_SWITCH_CHAINS } from "@/utils/wagmi/chains";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { Avatar } from "connectkit";
 import { useAtom } from "jotai";
 import { useCallback, useMemo } from "react";
@@ -249,6 +250,11 @@ export default function WalletButtonPanel({ togglePanel }) {
   const { data: ensAvatar } = useEnsAvatar({ name: ensName ?? undefined });
   const { disconnect } = useDisconnect();
   const navigate = useNavigate();
+  const { logout: privyLogout, authenticated: privyAuthenticated } = usePrivy();
+  const wallets = useWallets();
+
+  const walletsArray = Array.isArray(wallets) ? wallets : wallets?.wallets || [];
+  const isPrivyWallet = walletsArray.some((w) => w.address === address && w.walletClientType === "privy");
 
   const [panelState, setPanelState] = useAtom(navbarPanelAtom);
   const { showTransfer, showClaim, balanceTab: currentTab } = panelState.walletPanel;
@@ -370,13 +376,19 @@ export default function WalletButtonPanel({ togglePanel }) {
                 type="button"
                 onClick={withTracking(
                   ANALYTICS_EVENTS.WALLET.DISCONNECT_BUTTON_CLICK,
-                  () => {
+                  async () => {
+                    // If connected via Privy, logout from Privy first
+                    if (isPrivyWallet && privyAuthenticated && privyLogout) {
+                      await privyLogout();
+                    }
+                    // Then disconnect from wagmi
                     disconnect();
                     togglePanel();
                   },
                   {
                     has_ens: !!ensName,
                     from_page: "wallet_panel",
+                    is_privy_wallet: isPrivyWallet,
                   },
                 )}
                 className="flex justify-center items-center gap-1 w-[11.25rem] h-[2.125rem] bg-[#F8F8F8] rounded-full pinto-sm hover:hover:bg-pinto-green hover:text-white"
