@@ -3,11 +3,13 @@ import PintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { Col } from "@/components/Container";
 import FrameAnimator from "@/components/LoadingSpinner";
+import PodLineGraph from "@/components/PodLineGraph";
 import ReadMoreAccordion from "@/components/ReadMoreAccordion";
 import ScatterChart from "@/components/charts/ScatterChart";
 import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
+import useNavHeight from "@/hooks/display/useNavHeight";
 import { useAllMarket } from "@/state/market/useAllMarket";
 import { useHarvestableIndex, usePodLine } from "@/state/useFieldData";
 import { trackSimpleEvent } from "@/utils/analytics";
@@ -161,6 +163,7 @@ export function Market() {
   const podLine = usePodLine();
   const podLineAsNumber = podLine.toNumber() / MILLION;
   const harvestableIndex = useHarvestableIndex();
+  const navHeight = useNavHeight();
 
   const scatterChartData: MarketScatterChartData[] = useMemo(
     () => shapeScatterChartData(data || [], harvestableIndex),
@@ -363,6 +366,9 @@ export function Market() {
                   toolTipOptions={toolTipOptions as TooltipOptions}
                 />
               </div>
+              <div className=" mb-4 pl-[52px] pr-[12px]">
+                <PodLineGraph className="h-24" />
+              </div>
               <div className="flex gap-10 ml-2.5 mt-4 mb-[1.625rem]">
                 {TABLE_SLUGS.map((s, idx) => (
                   <p
@@ -382,7 +388,10 @@ export function Market() {
                 {tab === TABLE_SLUGS[3] && <FarmerActivityTable />}
               </div>
             </div>
-            <div className="flex flex-col self-start px-4 py-4 h-full w-[384px] min-w-[384px] 3xl:w-[540px] 3xl:min-w-[540px] flex-shrink-0 overflow-auto scrollbar-none">
+            <div
+              className="flex flex-col self-start px-4 py-4 sticky w-[384px] min-w-[384px] 3xl:w-[540px] 3xl:min-w-[540px] flex-shrink-0 overflow-auto scrollbar-none"
+              style={{ top: `${navHeight - 8}px` }}
+            >
               <Card className="w-full h-full">
                 <div className="flex flex-col gap-4 p-4">
                   <MarketModeSelect onSecondarySelectionChange={handleSecondaryTabClick} />

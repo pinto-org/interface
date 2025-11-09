@@ -279,14 +279,14 @@ export default function PodLineGraph({
   const bottomAxisLabels = topAxisLabels;
 
   return (
-    <div ref={containerRef} className={cn("relative w-full pb-2", className)}>
+    <div ref={containerRef} className="relative w-full pb-2">
       {/* Label */}
       <div className="mb-1">
         <p className="text-pinto-gray-4 text-[0.75rem]">{label}</p>
       </div>
 
       {/* Plot container with border */}
-      <div className="relative w-full h-12 border border-pinto-gray-2 rounded-lg overflow-hidden">
+      <div className={cn("relative w-full h-12 border border-pinto-gray-2 rounded-lg overflow-hidden", className)}>
         <div className="relative w-full h-full flex">
           {/* Harvested Section (Log Scale) - Left 20% (only shown if there are harvested plots) */}
           {hasHarvestedPlots && (
