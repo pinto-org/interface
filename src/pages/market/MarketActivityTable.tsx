@@ -2,8 +2,8 @@ import podIcon from "@/assets/protocol/Pod.png";
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
 import FrameAnimator from "@/components/LoadingSpinner";
-import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import { MarketPaginationControls } from "@/components/MarketPaginationControls";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { PODS } from "@/constants/internalTokens";
@@ -25,7 +25,7 @@ export function MarketActivityTable({ marketData, titleText, farmer }: MarketAct
   const harvestableIndex = useHarvestableIndex();
   const { data, isLoaded, isFetching } = marketData;
 
-  const rowsPerPage = 5000;
+  const rowsPerPage = 12;
   const totalRows = data?.length || 0;
   const totalPages = Math.ceil(totalRows / rowsPerPage);
   const [currentPage, setCurrentPage] = useState(1);
@@ -237,27 +237,13 @@ export function MarketActivityTable({ marketData, titleText, farmer }: MarketAct
               </TableBody>
             </>
           </Table>
-          {totalPages > 1 && (
-            <div className="flex items-center justify-end space-x-2 py-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-              <div className="text-xs">{`${currentPage} of ${totalPages}`}</div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </Button>
-            </div>
-          )}
+          <MarketPaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={totalRows}
+            itemsPerPage={rowsPerPage}
+          />
         </CardContent>
       )}
     </Card>
