@@ -2,10 +2,10 @@ import { TokenValue } from "@/classes/TokenValue";
 import { PODS } from "@/constants/internalTokens";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useHarvestableIndex, usePodIndex } from "@/state/useFieldData";
-import { formatter } from "@/utils/format";
 import { Plot } from "@/utils/types";
 import { cn } from "@/utils/utils";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
+import { HoverTooltip } from "./PodLineGraph/HoverTooltip";
 import { PartialSelectionOverlay } from "./PodLineGraph/PartialSelectionOverlay";
 import { PlotGroup } from "./PodLineGraph/PlotGroup";
 import { computeGroupLayout, computePartialSelectionPercent } from "./PodLineGraph/geometry";
@@ -16,6 +16,12 @@ const HARVESTED_WIDTH_PERCENT = 20;
 const PODLINE_WIDTH_PERCENT = 80;
 const MIN_PLOT_WIDTH_PERCENT = 0.3; // Minimum plot width for clickability
 const MAX_GAP_TO_COMBINE = TokenValue.fromHuman("1000000", PODS.decimals); // Combine plots within 1M gap for visual grouping
+
+// Grid and scale constants
+const AXIS_INTERVAL = 10_000_000; // 10M intervals for axis labels
+const LOG_SCALE_K = 1; // Exponential transformation factor for log scale
+const MILLION = 1_000_000;
+const TOOLTIP_OFFSET = 12; // px offset for tooltip positioning
 
 interface CombinedPlot {
   startIndex: TokenValue;
@@ -107,13 +113,10 @@ function combinePlots(plots: Plot[], harvestableIndex: TokenValue, selectedIndic
  * Generates nice axis labels at 10M intervals
  */
 function generateAxisLabels(min: number, max: number): number[] {
-  const INTERVAL = 10_000_000; // 10M
   const labels: number[] = [];
+  const start = Math.floor(min / AXIS_INTERVAL) * AXIS_INTERVAL;
 
-  // Start from 0 or the first 10M multiple
-  const start = Math.floor(min / INTERVAL) * INTERVAL;
-
-  for (let value = start; value <= max; value += INTERVAL) {
+  for (let value = start; value <= max; value += AXIS_INTERVAL) {
     if (value >= min) {
       labels.push(value);
     }
@@ -130,19 +133,18 @@ function generateLogGridPoints(maxValue: number): number[] {
   if (maxValue <= 0) return [];
 
   const gridPoints: number[] = [];
-  const million = 1_000_000;
   const minValue = maxValue / 10;
 
   // For values less than 10M, use simple 1M, 2M, 5M pattern
-  if (maxValue <= 10 * million) {
-    if (maxValue > 1 * million && 1 * million > minValue) gridPoints.push(1 * million);
-    if (maxValue > 2 * million && 2 * million > minValue) gridPoints.push(2 * million);
-    if (maxValue > 5 * million && 5 * million > minValue) gridPoints.push(5 * million);
+  if (maxValue <= 10 * MILLION) {
+    if (maxValue > MILLION && MILLION > minValue) gridPoints.push(MILLION);
+    if (maxValue > 2 * MILLION && 2 * MILLION > minValue) gridPoints.push(2 * MILLION);
+    if (maxValue > 5 * MILLION && 5 * MILLION > minValue) gridPoints.push(5 * MILLION);
     return gridPoints;
   }
 
   // For larger values, use powers of 10
-  let power = million;
+  let power = MILLION;
   while (power < maxValue) {
     if (power > minValue) gridPoints.push(power);
     const next2 = power * 2;
@@ -159,13 +161,21 @@ function generateLogGridPoints(maxValue: number): number[] {
  * Formats large numbers for axis labels (e.g., 1000000 -> "1M")
  */
 function formatAxisLabel(value: number): string {
-  if (value >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(0)}M`;
+  if (value >= MILLION) {
+    return `${(value / MILLION).toFixed(0)}M`;
   }
   if (value >= 1_000) {
     return `${(value / 1_000).toFixed(0)}K`;
   }
   return value.toFixed(0);
+}
+
+/**
+ * Calculates exponential position for log scale visualization
+ */
+function calculateLogPosition(value: number, minValue: number, maxValue: number): number {
+  const normalizedValue = (value - minValue) / (maxValue - minValue);
+  return ((Math.exp(LOG_SCALE_K * normalizedValue) - 1) / (Math.exp(LOG_SCALE_K) - 1)) * 100;
 }
 
 export default function PodLineGraph({
@@ -184,6 +194,24 @@ export default function PodLineGraph({
   const podIndex = usePodIndex();
 
   const [hoveredPlotIndex, setHoveredPlotIndex] = useState<string | null>(null);
+  const [tooltipData, setTooltipData] = useState<{
+    podAmount: TokenValue;
+    placeStart: TokenValue;
+    placeEnd: TokenValue;
+    mouseX: number;
+    mouseY: number;
+  } | null>(null);
+  const rafRef = useRef<number>();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Cleanup RAF on unmount
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
 
   // Use provided plots or default to farmer's plots
   const plots = providedPlots ?? farmerField.plots;
@@ -251,7 +279,7 @@ export default function PodLineGraph({
   const bottomAxisLabels = topAxisLabels;
 
   return (
-    <div className={cn("relative w-full pb-2", className)}>
+    <div ref={containerRef} className={cn("relative w-full pb-2", className)}>
       {/* Label */}
       <div className="mb-1">
         <p className="text-pinto-gray-4 text-[0.75rem]">{label}</p>
@@ -266,14 +294,8 @@ export default function PodLineGraph({
               {/* Grid lines (exponential scale) */}
               <div className="absolute inset-0">
                 {logGridPoints.map((value) => {
-                  // Exponential scale: small values compressed to the left, large values spread to the right
                   const minValue = maxHarvestedIndex / 10;
-                  const normalizedValue = (value - minValue) / (maxHarvestedIndex - minValue);
-
-                  // Apply exponential transformation: position = (e^(k*x) - 1) / (e^k - 1)
-                  // Using k=1 for very gentle exponential curve (almost linear)
-                  const k = 1;
-                  const position = ((Math.exp(k * normalizedValue) - 1) / (Math.exp(k) - 1)) * 100;
+                  const position = calculateLogPosition(value, minValue, maxHarvestedIndex);
 
                   if (position > 100 || position < 0) return null;
 
@@ -289,30 +311,22 @@ export default function PodLineGraph({
 
               {/* Plot rectangles */}
               <div className="absolute inset-0 flex items-center">
-                {harvestedPlots.map((plot, idx) => {
+                {harvestedPlots.map((plot) => {
                   const minValue = maxHarvestedIndex / 10;
                   const plotStart = Math.max(plot.startIndex.toNumber(), minValue);
                   const plotEnd = Math.max(plot.endIndex.toNumber(), minValue);
 
-                  const normalizedStart = (plotStart - minValue) / (maxHarvestedIndex - minValue);
-                  const normalizedEnd = (plotEnd - minValue) / (maxHarvestedIndex - minValue);
-
-                  const k = 1;
-                  const leftPercent = ((Math.exp(k * normalizedStart) - 1) / (Math.exp(k) - 1)) * 100;
-                  const rightPercent = ((Math.exp(k * normalizedEnd) - 1) / (Math.exp(k) - 1)) * 100;
+                  const leftPercent = calculateLogPosition(plotStart, minValue, maxHarvestedIndex);
+                  const rightPercent = calculateLogPosition(plotEnd, minValue, maxHarvestedIndex);
                   const widthPercent = rightPercent - leftPercent;
                   const displayWidth = Math.max(widthPercent, MIN_PLOT_WIDTH_PERCENT);
-
-                  const isLeftmost = idx === 0 && leftPercent < 1;
-                  const borderRadius = isLeftmost ? "2px 0 0 2px" : "2px";
 
                   return (
                     <PlotGroup
                       key={`harvested-${plot.startIndex.toHuman()}`}
                       leftPercent={leftPercent}
                       widthPercent={displayWidth}
-                      borderRadius={borderRadius}
-                      isGreen={true}
+                      isHighlighted={true}
                       isActive={Boolean(plot.isSelected)}
                       disableInteractions={true}
                     />
@@ -350,7 +364,6 @@ export default function PodLineGraph({
                   width: `${podLine.gt(0) ? (orderRangeEnd.sub(harvestableIndex).toNumber() / podLine.toNumber()) * 100 : 0}%`,
                   height: "100%",
                   top: "0%",
-                  borderRadius: "2px",
                   zIndex: 5,
                 }}
               />
@@ -365,7 +378,6 @@ export default function PodLineGraph({
                   width: `${podLine.gt(0) ? (rangeOverlay.end.sub(rangeOverlay.start).toNumber() / podLine.toNumber()) * 100 : 0}%`,
                   height: "100%",
                   top: "0%",
-                  borderRadius: "2px",
                   zIndex: 5,
                 }}
               />
@@ -377,12 +389,10 @@ export default function PodLineGraph({
                 const groupStartMinusHarvestable = group.startIndex.sub(harvestableIndex);
                 const groupEndMinusHarvestable = group.endIndex.sub(harvestableIndex);
 
-                const isLastGroup = groupIdx === unharvestedPlots.length - 1;
-                const { leftPercent, displayWidthPercent, borderRadius } = computeGroupLayout(
+                const { leftPercent, displayWidthPercent } = computeGroupLayout(
                   groupStartMinusHarvestable,
                   groupEndMinusHarvestable,
                   podLine,
-                  isLastGroup,
                 );
 
                 const groupFirstPlotIndex = group.plots[0].id || group.plots[0].index.toHuman();
@@ -406,15 +416,26 @@ export default function PodLineGraph({
                       )
                     : null;
 
-                // In Create (range present), green follows overlap; in Fill (no range), green follows selection
-                const selectionGreen = selectedPodRange ? overlapsSelection : hasSelectedPlot;
+                // In Create (range present), highlighted follows overlap; in Fill (no range), highlighted follows selection
+                // However, if there's a partial selection AND not hovered, don't highlight the whole group - let the overlay show the selection
+                const hasPartialSelection = Boolean(partialSelectionPercent) && !hasHoveredPlot;
+                const selectionHighlighted = hasPartialSelection
+                  ? false
+                  : selectedPodRange
+                    ? overlapsSelection
+                    : hasSelectedPlot;
 
-                const { isGreen: groupIsGreen, isActive: groupIsActive } = deriveGroupState(
+                const { isHighlighted: groupIsHighlighted, isActive: groupIsActive } = deriveGroupState(
                   hasHarvestablePlot,
                   hasSelectedPlot,
                   hasHoveredPlot,
-                  selectionGreen,
+                  selectionHighlighted,
                 );
+
+                // If there's a partial selection AND not hovered, don't make the whole group active (yellow)
+                // The partial overlay will show the yellow color for the selected portion
+                // When hovered, the whole group should be yellow
+                const finalIsActive = hasPartialSelection ? false : groupIsActive;
 
                 const handleGroupClick = () => {
                   if (disableInteractions) return;
@@ -424,24 +445,60 @@ export default function PodLineGraph({
                   }
                 };
 
+                const handleMouseEnter = (e: React.MouseEvent) => {
+                  setHoveredPlotIndex(groupFirstPlotIndex);
+                  if (!disableInteractions) {
+                    setTooltipData({
+                      podAmount: group.totalPods,
+                      placeStart: groupStartMinusHarvestable,
+                      placeEnd: groupEndMinusHarvestable,
+                      mouseX: e.clientX,
+                      mouseY: e.clientY,
+                    });
+                  }
+                };
+
+                const handleMouseMove = (e: React.MouseEvent) => {
+                  if (!disableInteractions && tooltipData) {
+                    // Use RAF for smooth 60fps updates
+                    if (rafRef.current) {
+                      cancelAnimationFrame(rafRef.current);
+                    }
+                    rafRef.current = requestAnimationFrame(() => {
+                      setTooltipData({
+                        ...tooltipData,
+                        mouseX: e.clientX,
+                        mouseY: e.clientY,
+                      });
+                    });
+                  }
+                };
+
+                const handleMouseLeave = () => {
+                  setHoveredPlotIndex(null);
+                  setTooltipData(null);
+                  if (rafRef.current) {
+                    cancelAnimationFrame(rafRef.current);
+                  }
+                };
+
                 return (
                   <PlotGroup
                     key={`group-${group.startIndex.toHuman()}`}
                     leftPercent={leftPercent}
                     widthPercent={displayWidthPercent}
-                    borderRadius={borderRadius}
-                    isGreen={groupIsGreen}
-                    isActive={groupIsActive}
+                    isHighlighted={groupIsHighlighted}
+                    isActive={finalIsActive}
                     disableInteractions={disableInteractions}
                     onClick={handleGroupClick}
-                    onMouseEnter={() => setHoveredPlotIndex(groupFirstPlotIndex)}
-                    onMouseLeave={() => setHoveredPlotIndex(null)}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseLeave}
                   >
                     {partialSelectionPercent && hasSelectedPlot && (
                       <PartialSelectionOverlay
                         startPercent={partialSelectionPercent.start}
                         endPercent={partialSelectionPercent.end}
-                        borderRadius={borderRadius}
                       />
                     )}
                   </PlotGroup>
@@ -486,14 +543,9 @@ export default function PodLineGraph({
           {/* Harvested section labels (only shown if there are harvested plots) */}
           {hasHarvestedPlots && (
             <div className="relative" style={{ width: `${harvestedWidthPercent}%` }}>
-              {generateLogGridPoints(maxHarvestedIndex).map((value) => {
-                // Exponential scale: small values compressed to the left, large values spread to the right
+              {logGridPoints.map((value) => {
                 const minValue = maxHarvestedIndex / 10;
-                const normalizedValue = (value - minValue) / (maxHarvestedIndex - minValue);
-
-                // Apply exponential transformation
-                const k = 1;
-                const position = ((Math.exp(k * normalizedValue) - 1) / (Math.exp(k) - 1)) * 100;
+                const position = calculateLogPosition(value, minValue, maxHarvestedIndex);
 
                 return (
                   <div
@@ -534,6 +586,35 @@ export default function PodLineGraph({
           </div>
         </div>
       </div>
+
+      {/* Tooltip - follows mouse cursor */}
+      {tooltipData &&
+        containerRef.current &&
+        (() => {
+          const containerRect = containerRef.current.getBoundingClientRect();
+          const relativeX = tooltipData.mouseX - containerRect.left;
+          const alignRight = relativeX > containerRect.width / 2;
+
+          return (
+            <div
+              className="fixed pointer-events-none"
+              style={{
+                left: `${tooltipData.mouseX}px`,
+                top: `${tooltipData.mouseY}px`,
+                transform: alignRight ? "translate(-100%, -100%)" : `translate(${TOOLTIP_OFFSET}px, -100%)`,
+                zIndex: 200,
+              }}
+            >
+              <HoverTooltip
+                podAmount={tooltipData.podAmount}
+                placeInLineStart={tooltipData.placeStart}
+                placeInLineEnd={tooltipData.placeEnd}
+                visible={true}
+                {...(alignRight ? { alignRight: true } : {})}
+              />
+            </div>
+          );
+        })()}
     </div>
   );
 }

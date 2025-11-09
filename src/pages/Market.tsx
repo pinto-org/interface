@@ -5,6 +5,7 @@ import { Col } from "@/components/Container";
 import FrameAnimator from "@/components/LoadingSpinner";
 import ReadMoreAccordion from "@/components/ReadMoreAccordion";
 import ScatterChart from "@/components/charts/ScatterChart";
+import { Card } from "@/components/ui/Card";
 import { Separator } from "@/components/ui/Separator";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { useAllMarket } from "@/state/market/useAllMarket";
@@ -24,27 +25,35 @@ import CreateOrder from "./market/actions/CreateOrder";
 import FillListing from "./market/actions/FillListing";
 import FillOrder from "./market/actions/FillOrder";
 
+// Constants
 const TABLE_SLUGS = ["activity", "listings", "orders", "my-activity"];
 const TABLE_LABELS = ["Activity", "Listings", "Orders", "My Activity"];
 
-const getPointTopOffset = () => {
-  if (window.innerWidth > 1600) {
-    return 90;
-  } else if (window.innerWidth > 1100) {
-    return 80;
-  } else {
-    return 40;
-  }
+const MILLION = 1_000_000;
+const TOOLTIP_Z_INDEX = 1;
+const CHART_MAX_PRICE = 100;
+
+// Responsive breakpoints for tooltip positioning
+const BREAKPOINT_XL = 1600;
+const BREAKPOINT_LG = 1100;
+
+const TOOLTIP_OFFSET = {
+  TOP: { XL: 90, LG: 80, DEFAULT: 40 },
+  BOTTOM: { XL: 175, LG: 130, DEFAULT: 90 },
 };
 
-const getPointBottomOffset = () => {
-  if (window.innerWidth > 1600) {
-    return 175;
-  } else if (window.innerWidth > 1100) {
-    return 130;
-  } else {
-    return 90;
-  }
+const getPointTopOffset = (): number => {
+  const width = window.innerWidth;
+  if (width > BREAKPOINT_XL) return TOOLTIP_OFFSET.TOP.XL;
+  if (width > BREAKPOINT_LG) return TOOLTIP_OFFSET.TOP.LG;
+  return TOOLTIP_OFFSET.TOP.DEFAULT;
+};
+
+const getPointBottomOffset = (): number => {
+  const width = window.innerWidth;
+  if (width > BREAKPOINT_XL) return TOOLTIP_OFFSET.BOTTOM.XL;
+  if (width > BREAKPOINT_LG) return TOOLTIP_OFFSET.BOTTOM.LG;
+  return TOOLTIP_OFFSET.BOTTOM.DEFAULT;
 };
 
 type MarketScatterChartDataPoint = {
@@ -66,82 +75,81 @@ type MarketScatterChartData = {
   pointRadius: number;
 };
 
+/**
+ * Transforms raw market data into scatter chart format
+ */
 const shapeScatterChartData = (data: any[], harvestableIndex: TokenValue): MarketScatterChartData[] => {
-  return (
-    data?.reduce(
-      (acc, event) => {
-        // Skip Fill Orders
-        if ("toFarmer" in event) {
-          return acc;
-        }
+  if (!data) return [];
 
-        let amount: number | null = null;
-        let status = "";
-        let placeInLine: number | null = null;
-        let eventIndex: number | null = null;
-        const price = event.pricePerPod.toNumber();
-        const eventId = event.id;
-        const eventType: "ORDER" | "LISTING" = event.type as "ORDER" | "LISTING";
-
-        if ("beanAmount" in event) {
-          // Handle Orders
-          amount = event.beanAmount.div(event.pricePerPod).toNumber();
-          const fillPct = event.beanAmountFilled.div(event.beanAmount).mul(100).toNumber();
-          status = fillPct > 99 ? "FILLED" : event.status === "CANCELLED_PARTIAL" ? "CANCELLED" : event.status;
-          placeInLine = event.maxPlaceInLine.toNumber();
-
-          if (status === "ACTIVE" && placeInLine !== null && price !== null) {
-            acc[0].data.push({
-              x: placeInLine / 1_000_000,
-              y: price,
-              eventId,
-              eventType,
-              status,
-              amount,
-              placeInLine,
-            });
-          }
-        } else if ("originalAmount" in event) {
-          // Handle Listings
-          amount = event.originalAmount.toNumber();
-          const fillPct = event.filled.div(event.originalAmount).mul(100).toNumber();
-          status = fillPct > 99 ? "FILLED" : event.status === "CANCELLED_PARTIAL" ? "CANCELLED" : event.status;
-          placeInLine = status === "ACTIVE" ? event.index.sub(harvestableIndex).toNumber() : null;
-          eventIndex = event.index.toNumber();
-
-          if (placeInLine !== null && price !== null) {
-            acc[1].data.push({
-              x: placeInLine / 1_000_000,
-              y: price,
-              eventId,
-              eventIndex,
-              eventType,
-              status,
-              amount,
-              placeInLine,
-            });
-          }
-        }
-
+  return data.reduce(
+    (acc, event) => {
+      // Skip Fill Orders
+      if ("toFarmer" in event) {
         return acc;
+      }
+
+      const price = event.pricePerPod.toNumber();
+      const eventId = event.id;
+      const eventType: "ORDER" | "LISTING" = event.type as "ORDER" | "LISTING";
+
+      if ("beanAmount" in event) {
+        // Handle Orders
+        const amount = event.beanAmount.div(event.pricePerPod).toNumber();
+        const fillPct = event.beanAmountFilled.div(event.beanAmount).mul(100).toNumber();
+        const status = fillPct > 99 ? "FILLED" : event.status === "CANCELLED_PARTIAL" ? "CANCELLED" : event.status;
+        const placeInLine = event.maxPlaceInLine.toNumber();
+
+        if (status === "ACTIVE" && placeInLine !== null && price !== null) {
+          acc[0].data.push({
+            x: placeInLine / MILLION,
+            y: price,
+            eventId,
+            eventType,
+            status,
+            amount,
+            placeInLine,
+          });
+        }
+      } else if ("originalAmount" in event) {
+        // Handle Listings
+        const amount = event.originalAmount.toNumber();
+        const fillPct = event.filled.div(event.originalAmount).mul(100).toNumber();
+        const status = fillPct > 99 ? "FILLED" : event.status === "CANCELLED_PARTIAL" ? "CANCELLED" : event.status;
+        const placeInLine = status === "ACTIVE" ? event.index.sub(harvestableIndex).toNumber() : null;
+        const eventIndex = event.index.toNumber();
+
+        if (placeInLine !== null && price !== null) {
+          acc[1].data.push({
+            x: placeInLine / MILLION,
+            y: price,
+            eventId,
+            eventIndex,
+            eventType,
+            status,
+            amount,
+            placeInLine,
+          });
+        }
+      }
+
+      return acc;
+    },
+    [
+      {
+        label: "Orders",
+        data: [] as MarketScatterChartDataPoint[],
+        color: "#40b0a6", // teal
+        pointStyle: "circle" as PointStyle,
+        pointRadius: 6,
       },
-      [
-        {
-          label: "Orders",
-          data: [] as MarketScatterChartDataPoint[],
-          color: "#40b0a6", // teal
-          pointStyle: "circle" as PointStyle,
-          pointRadius: 6,
-        },
-        {
-          label: "Listings",
-          data: [] as MarketScatterChartDataPoint[],
-          color: "#e0b57d", // tan
-          pointStyle: "rect" as PointStyle,
-          pointRadius: 6,
-        },
-      ],
-    ) || []
+      {
+        label: "Listings",
+        data: [] as MarketScatterChartDataPoint[],
+        color: "#e0b57d", // tan
+        pointStyle: "rect" as PointStyle,
+        pointRadius: 6,
+      },
+    ],
   );
 };
 
@@ -151,7 +159,7 @@ export function Market() {
   const navigate = useNavigate();
   const { data, isLoaded } = useAllMarket();
   const podLine = usePodLine();
-  const podLineAsNumber = podLine.toNumber() / 1000000;
+  const podLineAsNumber = podLine.toNumber() / MILLION;
   const harvestableIndex = useHarvestableIndex();
 
   const scatterChartData: MarketScatterChartData[] = useMemo(
@@ -194,7 +202,7 @@ export function Market() {
           tooltipEl.style.color = "black";
           tooltipEl.style.borderRadius = "10px";
           tooltipEl.style.border = "1px solid #D9D9D9";
-          tooltipEl.style.zIndex = "1";
+          tooltipEl.style.zIndex = String(TOOLTIP_Z_INDEX);
           // Basically all of this is custom logic for 3 different breakpoints to either display the tooltip to the top right or bottom right of the point.
           const topOfPoint = position.y + getPointTopOffset();
           const bottomOfPoint = position.y + getPointBottomOffset();
@@ -246,6 +254,14 @@ export function Market() {
     }
   }, []);
 
+  useEffect(() => {
+    if (mode === "buy" && !id) {
+      navigate("/market/pods/buy/fill", { replace: true });
+    } else if (mode === "sell" && !id) {
+      navigate("/market/pods/sell/create", { replace: true });
+    }
+  }, [id, mode, navigate]);
+
   const handleChangeTabFactory = useCallback(
     (selection: string) => () => {
       // Track activity tab changes
@@ -273,26 +289,32 @@ export function Market() {
     [mode],
   );
 
-  const onPointClick = (event: ChartEvent, activeElements: ActiveElement[], chart: Chart) => {
-    const dataPoint = scatterChartData[activeElements[0].datasetIndex].data[activeElements[0].index] as any;
+  const onPointClick = useCallback(
+    (_event: ChartEvent, activeElements: ActiveElement[], _chart: Chart) => {
+      if (!activeElements.length) return;
 
-    if (!dataPoint) return;
+      const { datasetIndex, index } = activeElements[0];
+      const dataPoint = scatterChartData[datasetIndex]?.data[index];
 
-    // Track chart point click event
-    trackSimpleEvent(ANALYTICS_EVENTS.MARKET.CHART_POINT_CLICK, {
-      event_type: dataPoint?.eventType?.toLowerCase() ?? "unknown",
-      event_status: dataPoint?.status?.toLowerCase() ?? "unknown",
-      price_per_pod: dataPoint?.y ?? 0,
-      place_in_line_millions: Math.floor(dataPoint?.x ?? -1),
-      current_mode: mode ?? "unknown",
-    });
+      if (!dataPoint) return;
 
-    if (dataPoint.eventType === "LISTING") {
-      navigate(`/market/pods/buy/fill?listingId=${dataPoint.eventId}`);
-    } else {
-      navigate(`/market/pods/sell/fill?orderId=${dataPoint.eventId}`);
-    }
-  };
+      // Track chart point click event
+      trackSimpleEvent(ANALYTICS_EVENTS.MARKET.CHART_POINT_CLICK, {
+        event_type: dataPoint.eventType.toLowerCase(),
+        event_status: dataPoint.status.toLowerCase(),
+        price_per_pod: dataPoint.y,
+        place_in_line_millions: Math.floor(dataPoint.x),
+        current_mode: mode ?? "unknown",
+      });
+
+      if (dataPoint.eventType === "LISTING") {
+        navigate(`/market/pods/buy/fill?listingId=${dataPoint.eventId}`);
+      } else {
+        navigate(`/market/pods/sell/fill?orderId=${dataPoint.eventId}`);
+      }
+    },
+    [scatterChartData, mode, navigate],
+  );
 
   const viewMode = mode;
 
@@ -336,7 +358,7 @@ export function Market() {
                 <ScatterChart
                   data={scatterChartData}
                   xOptions={{ label: "Place in line", min: 0, max: podLineAsNumber }}
-                  yOptions={{ label: "Price per pod", min: 0, max: 100 }}
+                  yOptions={{ label: "Price per pod", min: 0, max: CHART_MAX_PRICE }}
                   onPointClick={onPointClick}
                   toolTipOptions={toolTipOptions as TooltipOptions}
                 />
@@ -360,14 +382,18 @@ export function Market() {
                 {tab === TABLE_SLUGS[3] && <FarmerActivityTable />}
               </div>
             </div>
-            <div className="flex flex-col gap-4 self-start px-4 py-4 h-full w-[384px] min-w-[384px] 3xl:w-[540px] 3xl:min-w-[540px] flex-shrink-0 overflow-auto scrollbar-none">
-              <div>
-                <MarketModeSelect onSecondarySelectionChange={handleSecondaryTabClick} />
-                {viewMode === "buy" && id === "create" && <CreateOrder />}
-                {viewMode === "buy" && id === "fill" && <FillListing />}
-                {viewMode === "sell" && id === "create" && <CreateListing />}
-                {viewMode === "sell" && id === "fill" && <FillOrder />}
-              </div>
+            <div className="flex flex-col self-start px-4 py-4 h-full w-[384px] min-w-[384px] 3xl:w-[540px] 3xl:min-w-[540px] flex-shrink-0 overflow-auto scrollbar-none">
+              <Card className="w-full h-full">
+                <div className="flex flex-col gap-4 p-4">
+                  <MarketModeSelect onSecondarySelectionChange={handleSecondaryTabClick} />
+                  <div className="flex flex-col gap-4">
+                    {viewMode === "buy" && id === "create" && <CreateOrder />}
+                    {viewMode === "buy" && id === "fill" && <FillListing />}
+                    {viewMode === "sell" && id === "create" && <CreateListing />}
+                    {viewMode === "sell" && id === "fill" && <FillOrder />}
+                  </div>
+                </div>
+              </Card>
             </div>
           </div>
         </div>

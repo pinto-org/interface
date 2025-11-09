@@ -4,7 +4,6 @@ import { ComboInputField } from "@/components/ComboInputField";
 import FrameAnimator from "@/components/LoadingSpinner";
 import PodLineGraph from "@/components/PodLineGraph";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
-import SimpleInputField from "@/components/SimpleInputField";
 import SlippageButton from "@/components/SlippageButton";
 import SmartApprovalButton from "@/components/SmartApprovalButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
@@ -39,12 +38,16 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 
+// Constants
 const PRICE_PER_POD_CONFIG = {
   MAX: 1,
-  MIN: 0.000001,
+  MIN: 0.001,
   DECIMALS: 6,
   DECIMAL_MULTIPLIER: 1_000_000, // 10^6 for 6 decimals
 } as const;
+
+const MILLION = 1_000_000;
+const MIN_FILL_AMOUNT = "1";
 
 const TextAdornment = ({ text, className }: { text: string; className?: string }) => {
   return <div className={cn("text-black pinto-sm-light mr-2", className)}>{text}</div>;
@@ -151,9 +154,10 @@ export default function CreateOrder() {
   const podIndex = usePodIndex();
   const harvestableIndex = useHarvestableIndex();
   const maxPlace = Number.parseInt(podIndex.toHuman()) - Number.parseInt(harvestableIndex.toHuman()) || 0;
+  const initialPrice = removeTrailingZeros(PRICE_PER_POD_CONFIG.MIN.toFixed(PRICE_PER_POD_CONFIG.DECIMALS));
   const [maxPlaceInLine, setMaxPlaceInLine] = useState<number | undefined>(undefined);
-  const [pricePerPod, setPricePerPod] = useState<number | undefined>(undefined);
-  const [pricePerPodInput, setPricePerPodInput] = useState<string>("");
+  const [pricePerPod, setPricePerPod] = useState<number>(PRICE_PER_POD_CONFIG.MIN);
+  const [pricePerPodInput, setPricePerPodInput] = useState<string>(initialPrice);
 
   // set preferred token
   useEffect(() => {
@@ -188,6 +192,17 @@ export default function CreateOrder() {
   const handlePriceInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setPricePerPodInput(value);
+
+    if (value === "" || value === ".") {
+      setPricePerPod(PRICE_PER_POD_CONFIG.MIN);
+      return;
+    }
+
+    const numValue = Number.parseFloat(value);
+    if (!Number.isNaN(numValue)) {
+      const formatted = clampAndFormatPrice(numValue);
+      setPricePerPod(formatted);
+    }
   }, []);
 
   const handlePriceInputBlur = useCallback(() => {
@@ -197,8 +212,9 @@ export default function CreateOrder() {
       setPricePerPod(formatted);
       setPricePerPodInput(removeTrailingZeros(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS)));
     } else {
-      setPricePerPodInput("");
-      setPricePerPod(undefined);
+      const formatted = clampAndFormatPrice(PRICE_PER_POD_CONFIG.MIN);
+      setPricePerPod(formatted);
+      setPricePerPodInput(removeTrailingZeros(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS)));
     }
   }, [pricePerPodInput]);
 
@@ -243,10 +259,10 @@ export default function CreateOrder() {
 
     setAmountIn("");
     setMaxPlaceInLine(undefined);
-    setPricePerPod(undefined);
-    setPricePerPodInput("");
+    setPricePerPod(PRICE_PER_POD_CONFIG.MIN);
+    setPricePerPodInput(initialPrice);
     allQK.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
-  }, [queryClient, allQK]);
+  }, [queryClient, allQK, initialPrice]);
 
   // state for toast txns
   const { isConfirming, writeWithEstimateGas, submitting, setSubmitting } = useTransaction({
@@ -303,7 +319,7 @@ export default function CreateOrder() {
     const _maxPlaceInLine = TokenValue.fromHuman(maxPlaceInLine?.toString() || "0", PODS.decimals);
     // pricePerPod should be encoded as uint24 with 6 decimals (0.5 * 1_000_000 = 500000)
     const encodedPricePerPod = pricePerPod ? Math.floor(pricePerPod * PRICE_PER_POD_CONFIG.DECIMAL_MULTIPLIER) : 0;
-    const minFill = TokenValue.fromHuman("1", PODS.decimals);
+    const minFill = TokenValue.fromHuman(MIN_FILL_AMOUNT, PODS.decimals);
 
     const orderCallStruct = createPodOrder(
       account,
@@ -351,7 +367,6 @@ export default function CreateOrder() {
     swapBuild,
     tokenIn.symbol,
     podsOut,
-    pricePerPod,
     amountIn,
   ]);
 
@@ -361,10 +376,10 @@ export default function CreateOrder() {
   const formIsFilled = !!pricePerPod && !!maxPlaceInLine && !!account && amountInTV.gt(0);
   const disabled = !formIsFilled || swapDataNotReady;
 
-  // Calculate orderRangeEnd for PodLineGraph overlay (memoized)
+  // Calculate orderRangeEnd for PodLineGraph overlay
   const orderRangeEnd = useMemo(() => {
     if (!maxPlaceInLine) return undefined;
-    return harvestableIndex.add(TokenValue.fromHuman(maxPlaceInLine, PODS.decimals));
+    return harvestableIndex.add(TokenValue.fromHuman(maxPlaceInLine.toString(), PODS.decimals));
   }, [maxPlaceInLine, harvestableIndex]);
 
   return (
@@ -414,7 +429,7 @@ export default function CreateOrder() {
         <div className="flex flex-col gap-4 animate-fade-in">
           {/* Price Per Pod */}
           <div className="flex flex-col gap-2">
-            <p className="pinto-body text-pinto-light">Amount I am willing to pay for each Pod for:</p>
+            <p className="pinto-body text-pinto-light">I am willing to buy Pods up to:</p>
             <div className="flex flex-row gap-4 w-full items-center">
               <div className="flex flex-row gap-4 items-center">
                 <p className="pinto-body text-pinto-light">0</p>
@@ -424,7 +439,7 @@ export default function CreateOrder() {
                   step={0.000001}
                   value={[pricePerPod || PRICE_PER_POD_CONFIG.MIN]}
                   onValueChange={handlePriceSliderChange}
-                  className="w-[300px]"
+                  className="w-[18rem]"
                 />
                 <p className="pinto-body text-pinto-light">1</p>
               </div>
@@ -435,10 +450,8 @@ export default function CreateOrder() {
                 onChange={handlePriceInputChange}
                 onBlur={handlePriceInputBlur}
                 onFocus={(e) => e.target.select()}
-                placeholder="0.00"
+                placeholder="0.001"
                 outlined
-                containerClassName=""
-                className=""
                 endIcon={<TextAdornment text={mainToken.symbol} className="bg-white" />}
               />
             </div>
@@ -555,15 +568,20 @@ export default function CreateOrder() {
   );
 }
 
-const ActionSummary = ({
-  beansIn,
-  pricePerPod,
-  maxPlaceInLine,
-}: { beansIn: TV; pricePerPod: number; maxPlaceInLine: number }) => {
-  // pricePerPod is Pinto per Pod (0-1), convert to TokenValue with same decimals as beansIn (mainToken decimals)
-  // Then divide to get pods and convert to Pods decimals
-  const pricePerPodTV = TokenValue.fromHuman(pricePerPod.toString(), beansIn.decimals);
-  const podsOut = beansIn.div(pricePerPodTV).reDecimal(PODS.decimals);
+interface ActionSummaryProps {
+  beansIn: TV;
+  pricePerPod: number;
+  maxPlaceInLine: number;
+}
+
+const ActionSummary = ({ beansIn, pricePerPod, maxPlaceInLine }: ActionSummaryProps) => {
+  // Calculate pods out - memoized to avoid recalculation
+  const podsOut = useMemo(() => {
+    // pricePerPod is Pinto per Pod (0-1), convert to TokenValue with same decimals as beansIn (mainToken decimals)
+    // Then divide to get pods and convert to Pods decimals
+    const pricePerPodTV = TokenValue.fromHuman(pricePerPod.toString(), beansIn.decimals);
+    return beansIn.div(pricePerPodTV).reDecimal(PODS.decimals);
+  }, [beansIn, pricePerPod]);
 
   return (
     <div className="flex flex-col gap-4">

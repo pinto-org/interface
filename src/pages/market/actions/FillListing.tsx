@@ -53,6 +53,9 @@ const PRICE_PER_POD_CONFIG = {
 } as const;
 
 const PRICE_SLIDER_STEP = 0.001;
+const MILLION = 1_000_000;
+const DEFAULT_PRICE_INPUT = "0.001";
+const PLACE_MARGIN_PERCENT = 0.01; // 1% margin for place in line range
 
 const TextAdornment = ({ text, className }: { text: string; className?: string }) => {
   return <div className={cn("text-black pinto-sm-light mr-2", className)}>{text}</div>;
@@ -122,7 +125,7 @@ export default function FillListing() {
 
   // Price per pod filter state
   const [maxPricePerPod, setMaxPricePerPod] = useState<number>(0);
-  const [maxPricePerPodInput, setMaxPricePerPodInput] = useState<string>("0.000000");
+  const [maxPricePerPodInput, setMaxPricePerPodInput] = useState<string>(DEFAULT_PRICE_INPUT);
 
   // Place in line range state
   const podIndex = usePodIndex();
@@ -188,7 +191,7 @@ export default function FillListing() {
 
     // Set place in line range to include this listing with a small margin
     // Clamp to valid range [0, maxPlace]
-    const margin = Math.max(1, Math.floor(maxPlace * 0.01)); // 1% margin or at least 1
+    const margin = Math.max(1, Math.floor(maxPlace * PLACE_MARGIN_PERCENT));
     const minPlace = Math.max(0, Math.floor(placeInLine - margin));
     const maxPlaceValue = Math.min(maxPlace, Math.ceil(placeInLine + margin));
     setPlaceInLineRange([minPlace, maxPlaceValue]);
@@ -218,6 +221,18 @@ export default function FillListing() {
   const handlePriceInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setMaxPricePerPodInput(value);
+
+    if (value === "" || value === ".") {
+      setMaxPricePerPod(0);
+      return;
+    }
+
+    const numValue = Number.parseFloat(value);
+    if (!Number.isNaN(numValue)) {
+      const clamped = Math.max(PRICE_PER_POD_CONFIG.MIN, Math.min(PRICE_PER_POD_CONFIG.MAX, numValue));
+      const formatted = formatPricePerPod(clamped);
+      setMaxPricePerPod(formatted);
+    }
   }, []);
 
   const handlePriceInputBlur = useCallback(() => {
@@ -388,7 +403,6 @@ export default function FillListing() {
       const listingRemainingPods = TokenValue.fromBlockchain(listing.remainingAmount, PODS.decimals);
       const maxBeansForListing = listingRemainingPods.mul(listingPrice);
 
-      // Take the minimum of: remaining beans and max beans we can spend on this listing
       const beansToSpend = TokenValue.min(remainingBeans, maxBeansForListing);
       if (beansToSpend.gt(0)) {
         result.push({ listing, beanAmount: beansToSpend });
@@ -401,11 +415,9 @@ export default function FillListing() {
 
   // Calculate weighted average for eligible listings
   const eligibleSummary = useMemo(() => {
-    if (listingsToFill.length === 0) {
-      return null;
-    }
+    if (listingsToFill.length === 0) return null;
 
-    // If only one listing, use its price directly (no need for average)
+    // Single listing - use its price directly
     if (listingsToFill.length === 1) {
       const { listing, beanAmount } = listingsToFill[0];
       const listingPrice = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals);
@@ -424,15 +436,16 @@ export default function FillListing() {
     let totalPods = 0;
     let totalPlaceInLine = 0;
 
-    listingsToFill.forEach(({ listing, beanAmount }) => {
+    for (const { listing, beanAmount } of listingsToFill) {
       const listingPrice = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals);
       const podsFromListing = beanAmount.div(listingPrice);
       const listingPlace = TokenValue.fromBlockchain(listing.index, PODS.decimals).sub(harvestableIndex);
 
-      totalValue += listingPrice.toNumber() * podsFromListing.toNumber();
-      totalPods += podsFromListing.toNumber();
-      totalPlaceInLine += listingPlace.toNumber() * podsFromListing.toNumber();
-    });
+      const pods = podsFromListing.toNumber();
+      totalValue += listingPrice.toNumber() * pods;
+      totalPods += pods;
+      totalPlaceInLine += listingPlace.toNumber() * pods;
+    }
 
     const avgPricePerPod = totalPods > 0 ? totalValue / totalPods : 0;
     const avgPlaceInLine = totalPods > 0 ? totalPlaceInLine / totalPods : 0;
@@ -637,7 +650,7 @@ export default function FillListing() {
               step={PRICE_SLIDER_STEP}
               value={[maxPricePerPod]}
               onValueChange={handlePriceSliderChange}
-              className="w-[300px]"
+              className="w-[18rem]"
             />
             <p className="pinto-body text-pinto-light">1</p>
           </div>
@@ -648,10 +661,8 @@ export default function FillListing() {
             onChange={handlePriceInputChange}
             onBlur={handlePriceInputBlur}
             onFocus={(e) => e.target.select()}
-            placeholder="0.000000"
+            placeholder="0.001"
             outlined
-            containerClassName=""
-            className=""
             endIcon={<TextAdornment text={mainToken.symbol} className="bg-white" />}
           />
         </div>
@@ -827,21 +838,19 @@ export default function FillListing() {
   );
 }
 
+interface ActionSummaryProps {
+  pricePerPod: TV;
+  plotPosition: TV;
+  beanAmount: TV;
+}
+
 /**
  * Displays summary of the fill transaction
  * Shows estimated pods to receive, average position, and pricing details
  */
-const ActionSummary = ({
-  pricePerPod,
-  plotPosition,
-  beanAmount,
-}: {
-  pricePerPod: TV;
-  plotPosition: TV;
-  beanAmount: TV;
-}) => {
-  // Calculate estimated pods to receive
-  const estimatedPods = beanAmount.div(pricePerPod);
+const ActionSummary = ({ pricePerPod, plotPosition, beanAmount }: ActionSummaryProps) => {
+  // Calculate estimated pods to receive - memoized to avoid recalculation
+  const estimatedPods = useMemo(() => beanAmount.div(pricePerPod), [beanAmount, pricePerPod]);
 
   return (
     <div className="flex flex-col gap-4">

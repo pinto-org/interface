@@ -27,10 +27,6 @@ import { Address, encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
 import CancelOrder from "./CancelOrder";
 
-//! TODO: ADD INPUT FIELD FOR POD AMOUNTS
-//! TODO: SOLVE CHART REDIRECT ISSUE
-//! TODO: ADD SETTINGS SECTION
-
 // Constants
 const FIELD_ID = 0n;
 const MIN_PODS_THRESHOLD = 1; // Minimum pods required for order eligibility
@@ -143,7 +139,7 @@ export default function FillOrder() {
       orderPositions: positions,
       totalCapacity: cumulative,
     };
-  }, [allOrders?.podOrders, selectedOrderIds, mainToken.decimals]);
+  }, [allOrders, selectedOrderIds, mainToken.decimals]);
 
   const amount = podRange[1] - podRange[0];
 
@@ -151,9 +147,7 @@ export default function FillOrder() {
     const [rangeStart, rangeEnd] = podRange;
 
     return orderPositions
-      .filter((pos) => {
-        return pos.endPos > rangeStart && pos.startPos < rangeEnd;
-      })
+      .filter((pos) => pos.endPos > rangeStart && pos.startPos < rangeEnd)
       .map((pos) => {
         const overlapStart = Math.max(pos.startPos, rangeStart);
         const overlapEnd = Math.min(pos.endPos, rangeEnd);
@@ -171,7 +165,7 @@ export default function FillOrder() {
   const weightedAvgPricePerPod = useMemo(() => {
     if (ordersToFill.length === 0 || amount === 0) return 0;
 
-    // If only one order, use its price directly (no need for average)
+    // Single order - use its price directly
     if (ordersToFill.length === 1) {
       return TokenValue.fromBlockchain(ordersToFill[0].order.pricePerPod, mainToken.decimals).toNumber();
     }
@@ -180,11 +174,11 @@ export default function FillOrder() {
     let totalValue = 0;
     let totalPods = 0;
 
-    ordersToFill.forEach(({ order, amount: fillAmount }) => {
+    for (const { order, amount: fillAmount } of ordersToFill) {
       const orderPricePerPod = TokenValue.fromBlockchain(order.pricePerPod, mainToken.decimals).toNumber();
       totalValue += orderPricePerPod * fillAmount;
       totalPods += fillAmount;
-    });
+    }
 
     return totalPods > 0 ? totalValue / totalPods : 0;
   }, [ordersToFill, amount, mainToken.decimals]);
@@ -310,12 +304,12 @@ export default function FillOrder() {
     };
 
     // Track analytics for each order being filled
-    ordersToFill.forEach(({ order: orderToFill }) => {
+    for (const { order: orderToFill } of ordersToFill) {
       trackSimpleEvent(ANALYTICS_EVENTS.MARKET.POD_ORDER_FILL, {
         order_price_per_pod: Number(orderToFill.pricePerPod),
         order_max_place: Number(orderToFill.maxPlaceInLine),
       });
-    });
+    }
 
     try {
       setSubmitting(true);
@@ -585,12 +579,6 @@ export default function FillOrder() {
                 </div>
               </div>
 
-              {/* OLD DESTINATION SECTION - COMMENTED OUT FOR POTENTIAL FUTURE USE */}
-              {/* <div className="flex flex-col gap-2">
-                <p className="pinto-body text-pinto-light">Destination</p>
-                <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} />
-        </div> */}
-
               <div className="flex flex-col gap-4">
                 <Separator />
                 {ordersToFill.length > 0 && amount > 0 && (
@@ -641,8 +629,13 @@ export default function FillOrder() {
   );
 }
 
-const ActionSummary = ({ podAmount, pricePerPod }: { podAmount: number; pricePerPod: number }) => {
-  const beansOut = podAmount * pricePerPod;
+interface ActionSummaryProps {
+  podAmount: number;
+  pricePerPod: number;
+}
+
+const ActionSummary = ({ podAmount, pricePerPod }: ActionSummaryProps) => {
+  const beansOut = useMemo(() => podAmount * pricePerPod, [podAmount, pricePerPod]);
 
   return (
     <div className="flex flex-col gap-4">

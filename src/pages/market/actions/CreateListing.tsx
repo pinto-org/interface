@@ -1,9 +1,7 @@
 import settingsIcon from "@/assets/misc/Settings.svg";
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TV, TokenValue } from "@/classes/TokenValue";
-import ComboPlotInputField from "@/components/ComboPlotInputField";
 import PodLineGraph from "@/components/PodLineGraph";
-import SimpleInputField from "@/components/SimpleInputField";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -39,12 +37,15 @@ interface PodListingData {
   amount: TokenValue; // list edilecek pod miktarı
 }
 
+// Constants
 const PRICE_PER_POD_CONFIG = {
   MAX: 1,
-  MIN: 0.000001,
+  MIN: 0.001,
   DECIMALS: 6,
   DECIMAL_MULTIPLIER: 1_000_000, // 10^6 for 6 decimals
 } as const;
+
+const MILLION = 1_000_000;
 
 const TextAdornment = ({ text, className }: { text: string; className?: string }) => {
   return <div className={cn("text-black pinto-sm-light mr-2", className)}>{text}</div>;
@@ -81,28 +82,21 @@ export default function CreateListing() {
   const [plot, setPlot] = useState<Plot[]>([]);
   const [amount, setAmount] = useState(0);
   const [podRange, setPodRange] = useState<[number, number]>([0, 0]);
-  const [pricePerPod, setPricePerPod] = useState<number | undefined>(undefined);
-  const [pricePerPodInput, setPricePerPodInput] = useState<string>("");
+  const initialPrice = removeTrailingZeros(PRICE_PER_POD_CONFIG.MIN.toFixed(PRICE_PER_POD_CONFIG.DECIMALS));
+  const [pricePerPod, setPricePerPod] = useState<number>(PRICE_PER_POD_CONFIG.MIN);
+  const [pricePerPodInput, setPricePerPodInput] = useState<string>(initialPrice);
   const [balanceTo, setBalanceTo] = useState(FarmToMode.EXTERNAL); // Default: Wallet Balance (toggle off)
   const [isSuccessful, setIsSuccessful] = useState(false);
   const [successAmount, setSuccessAmount] = useState<number | null>(null);
   const [successPrice, setSuccessPrice] = useState<number | null>(null);
   const podIndex = usePodIndex();
   const maxExpiration = Number.parseInt(podIndex.toHuman()) - Number.parseInt(harvestableIndex.toHuman()) || 0;
-  const [expiresIn, setExpiresIn] = useState(maxExpiration); // Auto-set to max expiration
+  const [expiresIn, setExpiresIn] = useState<number | null>(null);
+  const selectedExpiresIn = expiresIn ?? maxExpiration;
   const minFill = TokenValue.fromHuman(1, PODS.decimals);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
   const plotPosition = plot.length > 0 ? plot[0].index.sub(harvestableIndex) : TV.ZERO;
-
-  const maxExpirationValidation = useMemo(
-    () => ({
-      minValue: 1,
-      maxValue: maxExpiration,
-      maxDecimals: 0,
-    }),
-    [maxExpiration],
-  );
 
   // Calculate max pods based on selected plots OR all farmer plots
   const maxPodAmount = useMemo(() => {
@@ -132,8 +126,7 @@ export default function CreateListing() {
   const selectedPodRange = useMemo(() => {
     if (plot.length === 0) return undefined;
 
-    // Sort plots by index
-    const sortedPlots = [...plot].sort((a, b) => a.index.sub(b.index).toNumber());
+    const sortedPlots = plot; // Already sorted in handlePlotSelection
 
     // Helper function to convert pod offset to absolute index
     const offsetToAbsoluteIndex = (offset: number): TokenValue => {
@@ -166,7 +159,7 @@ export default function CreateListing() {
   const listingData = useMemo((): PodListingData[] => {
     if (plot.length === 0 || amount === 0) return [];
 
-    const sortedPlots = [...plot].sort((a, b) => a.index.sub(b.index).toNumber());
+    const sortedPlots = plot; // Already sorted in handlePlotSelection
     const result: PodListingData[] = [];
 
     // Calculate cumulative pod amounts to find which plots are affected
@@ -202,6 +195,11 @@ export default function CreateListing() {
     return result;
   }, [plot, podRange, amount]);
 
+  // Helper function to sort plots by index
+  const sortPlotsByIndex = useCallback((plots: Plot[]): Plot[] => {
+    return [...plots].sort((a, b) => a.index.sub(b.index).toNumber());
+  }, []);
+
   // Plot selection handler with tracking
   const handlePlotSelection = useCallback(
     (plots: Plot[]) => {
@@ -210,8 +208,7 @@ export default function CreateListing() {
         previous_count: plot.length,
       });
 
-      // Sort plots by index to ensure consistent ordering
-      const sortedPlots = [...plots].sort((a, b) => a.index.sub(b.index).toNumber());
+      const sortedPlots = sortPlotsByIndex(plots);
       setPlot(sortedPlots);
 
       // Reset range when plots change - slider always starts from first plot and ends at last plot
@@ -224,7 +221,7 @@ export default function CreateListing() {
         setAmount(0);
       }
     },
-    [plot.length],
+    [plot.length, sortPlotsByIndex],
   );
 
   // Pod range slider handler (two thumbs)
@@ -252,6 +249,17 @@ export default function CreateListing() {
   const handlePriceInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setPricePerPodInput(value);
+
+    if (value === "" || value === ".") {
+      setPricePerPod(PRICE_PER_POD_CONFIG.MIN);
+      return;
+    }
+
+    const numValue = Number.parseFloat(value);
+    if (!Number.isNaN(numValue)) {
+      const formatted = clampAndFormatPrice(numValue);
+      setPricePerPod(formatted);
+    }
   }, []);
 
   const handlePriceInputBlur = useCallback(() => {
@@ -261,8 +269,9 @@ export default function CreateListing() {
       setPricePerPod(formatted);
       setPricePerPodInput(removeTrailingZeros(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS)));
     } else {
-      setPricePerPodInput("");
-      setPricePerPod(undefined);
+      const formatted = clampAndFormatPrice(PRICE_PER_POD_CONFIG.MIN);
+      setPricePerPod(formatted);
+      setPricePerPodInput(removeTrailingZeros(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS)));
     }
   }, [pricePerPodInput]);
 
@@ -302,10 +311,11 @@ export default function CreateListing() {
     setPlot([]);
     setAmount(0);
     setPodRange([0, 0]);
-    setPricePerPod(undefined);
-    setPricePerPodInput("");
+    setPricePerPod(PRICE_PER_POD_CONFIG.MIN);
+    setPricePerPodInput(initialPrice);
+    setExpiresIn(null);
     allQK.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
-  }, [amount, pricePerPod, queryClient, allQK]);
+  }, [amount, pricePerPod, queryClient, allQK, initialPrice]);
 
   // state for toast txns
   const { isConfirming, writeWithEstimateGas, submitting, setSubmitting } = useTransaction({
@@ -318,7 +328,7 @@ export default function CreateListing() {
     if (
       !pricePerPod ||
       pricePerPod <= 0 ||
-      !expiresIn ||
+      selectedExpiresIn <= 0 ||
       !amount ||
       amount <= 0 ||
       !account ||
@@ -331,12 +341,12 @@ export default function CreateListing() {
     trackSimpleEvent(ANALYTICS_EVENTS.MARKET.POD_LIST_CREATE, {
       has_price_per_pod: !!pricePerPod,
       listing_count: listingData.length,
-      plot_position_millions: plot.length > 0 ? Math.round(plotPosition.div(1_000_000).toNumber()) : 0,
+      plot_position_millions: plot.length > 0 ? Math.round(plotPosition.div(MILLION).toNumber()) : 0,
     });
 
     // pricePerPod should be encoded as uint24 with 6 decimals (0.5 * 1_000_000 = 500000)
     const encodedPricePerPod = pricePerPod ? Math.floor(pricePerPod * PRICE_PER_POD_CONFIG.DECIMAL_MULTIPLIER) : 0;
-    const _expiresIn = TokenValue.fromHuman(expiresIn, PODS.decimals);
+    const _expiresIn = TokenValue.fromHuman(selectedExpiresIn, PODS.decimals);
     const maxHarvestableIndex = _expiresIn.add(harvestableIndex);
     try {
       setSubmitting(true);
@@ -385,7 +395,7 @@ export default function CreateListing() {
     account,
     amount,
     pricePerPod,
-    expiresIn,
+    selectedExpiresIn,
     balanceTo,
     harvestableIndex,
     minFill,
@@ -393,19 +403,31 @@ export default function CreateListing() {
     listingData,
     plotPosition,
     setSubmitting,
-    mainToken.decimals,
     diamondAddress,
     writeWithEstimateGas,
   ]);
 
   // ui state
-  const disabled = !pricePerPod || !amount || !account || plot.length === 0;
+  const disabled = !pricePerPod || !amount || !account || plot.length === 0 || selectedExpiresIn <= 0;
 
   return (
     <div className="flex flex-col gap-4">
       {/* Plot Selection Section */}
       <div className="flex flex-col gap-3">
-        <p className="pinto-body text-pinto-light">Select the Plot(s) you want to List (i):</p>
+        <div className="flex items-center justify-between">
+          <p className="pinto-body text-pinto-light">Select the Plot(s) you want to List (i):</p>
+          <button
+            onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
+            className="rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-colors"
+            type="button"
+          >
+            <img
+              src={settingsIcon}
+              className={cn("w-4 h-4 transition-transform", showAdvancedSettings && "rotate-90")}
+              alt="settings"
+            />
+          </button>
+        </div>
 
         {/* Pod Line Graph Visualization */}
         <PodLineGraph
@@ -471,7 +493,7 @@ export default function CreateListing() {
                   step={0.000001}
                   value={[pricePerPod || PRICE_PER_POD_CONFIG.MIN]}
                   onValueChange={handlePriceSliderChange}
-                  className="w-[300px]"
+                  className="w-[18rem]"
                 />
                 <p className="pinto-body text-pinto-light">1</p>
               </div>
@@ -480,10 +502,8 @@ export default function CreateListing() {
                 value={pricePerPodInput}
                 onChange={handlePriceInputChange}
                 onBlur={handlePriceInputBlur}
-                placeholder="0.00"
+                placeholder="0.001"
                 outlined
-                containerClassName=""
-                className=""
                 endIcon={<TextAdornment text={mainToken.symbol} className="bg-white" />}
               />
             </div>
@@ -499,21 +519,6 @@ export default function CreateListing() {
               </div>
             )}
           </div>
-          {/* Advanced Settings Toggle */}
-          <div className="flex justify-end -mb-6 items-center justify-between">
-            <p className="pinto-body text-pinto-light">Settings</p>
-            <button
-              onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
-              className="rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-colors"
-              type="button"
-            >
-              <img
-                src={settingsIcon}
-                className={cn("w-4 h-4 transition-transform", showAdvancedSettings && "rotate-90")}
-                alt="settings"
-              />
-            </button>
-          </div>
           {/* Advanced Settings - Collapsible */}
           <motion.div
             initial={false}
@@ -528,15 +533,24 @@ export default function CreateListing() {
               {/* Expires In - Auto-set to max expiration */}
               <div className="flex flex-col gap-2 pt-4">
                 <p className="pinto-body text-pinto-light">Expires In</p>
-                <SimpleInputField
-                  amount={expiresIn}
-                  setAmount={setExpiresIn}
-                  placeholder={formatter.noDec(maxExpiration)}
-                  validation={maxExpirationValidation}
-                />
-                {!!expiresIn && (
+                <div className="flex items-center gap-4 flex-1 min-h-[48px]">
+                  <p className="pinto-body text-pinto-light text-right shrink-0">{formatter.noDec(0)}</p>
+                  <Slider
+                    min={0}
+                    max={maxExpiration}
+                    step={1}
+                    value={[selectedExpiresIn]}
+                    onValueChange={(value) => setExpiresIn(value[0])}
+                    className="flex-1"
+                  />
+                  <div className="flex flex-col items-end w-[7.2rem] shrink-0 leading-tight text-right">
+                    <span className="pinto-body text-pinto-light truncate">{formatter.noDec(maxExpiration)}</span>
+                  </div>
+                </div>
+                {selectedExpiresIn > 0 && (
                   <p className="pinto-sm text-pinto-light">
-                    This listing will automatically expire after {formatter.noDec(expiresIn)} more Pods become
+                    This listing will automatically expire after{" "}
+                    <span className="text-pinto-green-4">{formatter.noDec(selectedExpiresIn)}</span> more Pods become
                     Harvestable.
                   </p>
                 )}
@@ -599,32 +613,33 @@ export default function CreateListing() {
   );
 }
 
-const ActionSummary = ({
-  podAmount,
-  listingData,
-  pricePerPod,
-  harvestableIndex,
-}: { podAmount: number; listingData: PodListingData[]; pricePerPod: number; harvestableIndex: TokenValue }) => {
+interface ActionSummaryProps {
+  podAmount: number;
+  listingData: PodListingData[];
+  pricePerPod: number;
+  harvestableIndex: TokenValue;
+}
+
+const ActionSummary = ({ podAmount, listingData, pricePerPod, harvestableIndex }: ActionSummaryProps) => {
   const beansOut = podAmount * pricePerPod;
 
-  // Format line positions
-  const formatLinePositions = (): string => {
+  // Format line positions - memoized to avoid recalculation
+  const linePositions = useMemo((): string => {
     if (listingData.length === 0) return "";
     if (listingData.length === 1) {
       const placeInLine = listingData[0].index.sub(harvestableIndex);
       return `@ ${placeInLine.toHuman("short")} in Line`;
     }
 
-    // Multiple plots: show range
-    const sortedData = [...listingData].sort((a, b) => a.index.sub(b.index).toNumber());
-    const firstPlace = sortedData[0].index.sub(harvestableIndex);
-    const lastPlace = sortedData[sortedData.length - 1].index.sub(harvestableIndex);
+    // Multiple plots: show range (already sorted)
+    const firstPlace = listingData[0].index.sub(harvestableIndex);
+    const lastPlace = listingData[listingData.length - 1].index.sub(harvestableIndex);
 
     if (firstPlace.eq(lastPlace)) {
       return `@ ${firstPlace.toHuman("short")} in Line`;
     }
-    return `@ ${firstPlace.toHuman("short")} - ${lastPlace.toHuman("short")} in Lines`;
-  };
+    return `@ ${firstPlace.toHuman("short")} - ${lastPlace.toHuman("short")} in Line`;
+  }, [listingData, harvestableIndex]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -635,7 +650,7 @@ const ActionSummary = ({
           {formatter.number(beansOut, { minDecimals: 0, maxDecimals: 2 })} Pinto
         </p>
         <p className="pinto-body text-pinto-light">
-          in exchange for {formatter.noDec(podAmount)} Pods {formatLinePositions()}.
+          in exchange for {formatter.noDec(podAmount)} Pods {linePositions}.
         </p>
       </div>
     </div>
