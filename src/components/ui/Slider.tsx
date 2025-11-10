@@ -53,14 +53,12 @@ const Slider = React.forwardRef<React.ElementRef<typeof SliderPrimitive.Root>, I
             return (
               <div
                 key={`marker-${index}`}
-                className={cn("absolute pointer-events-none", isAboveValue ? "bg-pinto-gray-2" : "bg-pinto-green-4")}
+                className={cn(
+                  "absolute pointer-events-none w-3 h-3 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2",
+                  isAboveValue ? "bg-pinto-gray-2" : "bg-pinto-green-4",
+                )}
                 style={{
                   left: `${position}%`,
-                  top: "50%",
-                  width: "10px",
-                  height: "10px",
-                  borderRadius: "50%",
-                  transform: "translate(-50%, -50%)",
                 }}
               />
             );
