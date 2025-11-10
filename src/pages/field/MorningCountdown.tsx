@@ -2,6 +2,7 @@ import { MORNING_AUCTION_DURATION } from "@/constants/morning";
 import { getBlockchainNow, getMorningEndTime } from "@/state/protocol/sun";
 import { useSunData, useTimeOffset } from "@/state/useSunData";
 import { cn } from "@/utils/utils";
+import { useEffect, useState } from "react";
 
 const sizeToWidth = {
   lg: "w-[1.375rem] min-w-[1.375rem]",
@@ -40,13 +41,24 @@ export const MorningIntervalCountdown = ({ prefix }: { prefix?: string }) => {
   const season = useSunData();
   const timeOffsetMs = useTimeOffset();
 
-  // Calculate remaining time until morning ends
-  const morningEndTime = getMorningEndTime(season.timestamp);
-  const blockchainNow = getBlockchainNow(timeOffsetMs);
-  const remainingSeconds = morningEndTime.diff(blockchainNow, "seconds").seconds;
+  const [remainingSeconds, setRemainingSeconds] = useState(() => {
+    const morningEndTime = getMorningEndTime(season.timestamp);
+    const blockchainNow = getBlockchainNow(timeOffsetMs);
+    return morningEndTime.diff(blockchainNow, "seconds").seconds;
+  });
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      const morningEndTime = getMorningEndTime(season.timestamp);
+      const blockchainNow = getBlockchainNow(timeOffsetMs);
+      const remaining = morningEndTime.diff(blockchainNow, "seconds").seconds;
+      setRemainingSeconds(remaining);
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [season.timestamp, timeOffsetMs]);
 
   const formatted = formatTime(remainingSeconds);
-
   const [minutes, seconds] = formatted.split(":");
 
   return (
@@ -72,13 +84,24 @@ export const MorningTimer = () => {
   const season = useSunData();
   const timeOffsetMs = useTimeOffset();
 
-  // Calculate elapsed time since sunrise
-  const blockchainNow = getBlockchainNow(timeOffsetMs);
-  const elapsedSeconds = blockchainNow.diff(season.timestamp, "seconds").seconds;
-  const clampedElapsed = Math.max(0, Math.min(elapsedSeconds, MORNING_AUCTION_DURATION));
+  const [elapsedSeconds, setElapsedSeconds] = useState(() => {
+    const blockchainNow = getBlockchainNow(timeOffsetMs);
+    const elapsed = blockchainNow.diff(season.timestamp, "seconds").seconds;
+    return Math.max(0, Math.min(elapsed, MORNING_AUCTION_DURATION));
+  });
 
-  const formatted = formatTime(clampedElapsed);
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      const blockchainNow = getBlockchainNow(timeOffsetMs);
+      const elapsed = blockchainNow.diff(season.timestamp, "seconds").seconds;
+      const clamped = Math.max(0, Math.min(elapsed, MORNING_AUCTION_DURATION));
+      setElapsedSeconds(clamped);
+    }, 1000);
 
+    return () => clearInterval(intervalId);
+  }, [season.timestamp, timeOffsetMs]);
+
+  const formatted = formatTime(elapsedSeconds);
   const [minutes, seconds] = formatted.split(":");
 
   return (
