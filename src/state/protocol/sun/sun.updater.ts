@@ -209,14 +209,17 @@ export function useUpdateMorning() {
   useEffect(() => {
     if (devMode.freeze) return;
 
+    // Only run the interval during morning to optimize performance
+    if (!isMorning) return;
+
     const intervalId = setInterval(() => {
       // Recalculate if it's morning using blockchain-synchronized time
       const nowIsMorning = getIsMorning(season.timestamp, timeOffsetMs);
 
-      // Update morning state if it changed
+      // Update morning state if it changed (morning ended)
       if (nowIsMorning !== isMorning) {
         setMorning({ isMorning: nowIsMorning });
-        console.debug("[protocol/sun/useUpdateMorning]: morning state changed", {
+        console.debug("[protocol/sun/useUpdateMorning]: morning ended", {
           isMorning: nowIsMorning,
         });
       }
