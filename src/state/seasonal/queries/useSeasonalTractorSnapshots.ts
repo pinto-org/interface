@@ -101,7 +101,6 @@ export function useSeasonalTractorSnapshotsV2(
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       const response = await res.json();
-      console.log("response", response);
       return response;
     },
     select: select,
