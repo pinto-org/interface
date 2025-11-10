@@ -56,6 +56,7 @@ export const QUERY_SETTINGS = {
   quote: defaultQuerySettingsQuote,
   fast: defaultQuerySettingsFast,
   medium: defaultQuerySettingsMedium,
+  default: defaultQuerySettings,
   slow: defaultQuerySettingsSlow,
   noRefetch: defaultQuerySettingsNoRefetch,
 } as const;

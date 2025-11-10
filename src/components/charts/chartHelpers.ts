@@ -197,12 +197,31 @@ const activeIndexVerticalLinePlugin = (activeIndexRef: MutableRefObject<number |
 
       // Draw the vertical line at morningIndex
       if (typeof activeIndex === "number") {
-        const activeIdxPoint = chart.getDatasetMeta(0).data[activeIndex];
-        if (activeIdxPoint) {
-          const { x } = activeIdxPoint.getProps(["x"], true);
+        const dataPoints = chart.getDatasetMeta(0).data;
+        const floorIndex = Math.floor(activeIndex);
+        const ceilIndex = Math.ceil(activeIndex);
+        const fraction = activeIndex - floorIndex;
+
+        const dataPoint1 = dataPoints[floorIndex];
+        const dataPoint2 = dataPoints[ceilIndex];
+
+        let interpolatedX: number | undefined;
+
+        if (dataPoint1 && dataPoint2) {
+          // Interpolate x position between two points for smooth movement
+          const { x: x1 } = dataPoint1.getProps(["x"], true);
+          const { x: x2 } = dataPoint2.getProps(["x"], true);
+          interpolatedX = x1 + (x2 - x1) * fraction;
+        } else if (dataPoint1) {
+          // Fallback to single point if we're at the last index
+          const { x } = dataPoint1.getProps(["x"], true);
+          interpolatedX = x;
+        }
+
+        if (interpolatedX !== undefined) {
           ctx.beginPath();
-          ctx.moveTo(x, chart.chartArea.top);
-          ctx.lineTo(x, chart.chartArea.bottom);
+          ctx.moveTo(interpolatedX, chart.chartArea.top);
+          ctx.lineTo(interpolatedX, chart.chartArea.bottom);
           ctx.strokeStyle = "#D9AD0F"; // Use a different color for the morning line
           ctx.lineWidth = 1.5;
           ctx.stroke();
@@ -380,9 +399,26 @@ const getSelectionPointPlugin = (
 
       // Draw selection point for the morningIndex
       if (typeof activeIndex === "number") {
-        const dataPoint = chart.getDatasetMeta(0).data[activeIndex];
-        if (dataPoint) {
-          const { x, y } = dataPoint.getProps(["x", "y"], true);
+        const dataPoints = chart.getDatasetMeta(0).data;
+        const floorIndex = Math.floor(activeIndex);
+        const ceilIndex = Math.ceil(activeIndex);
+        const fraction = activeIndex - floorIndex;
+
+        const dataPoint1 = dataPoints[floorIndex];
+        const dataPoint2 = dataPoints[ceilIndex];
+
+        if (dataPoint1 && dataPoint2) {
+          // Interpolate between two points for smooth movement
+          const { x: x1, y: y1 } = dataPoint1.getProps(["x", "y"], true);
+          const { x: x2, y: y2 } = dataPoint2.getProps(["x", "y"], true);
+
+          const interpolatedX = x1 + (x2 - x1) * fraction;
+          const interpolatedY = y1 + (y2 - y1) * fraction;
+
+          drawSelectionPoint(interpolatedX, interpolatedY, 0);
+        } else if (dataPoint1) {
+          // Fallback to single point if we're at the last index
+          const { x, y } = dataPoint1.getProps(["x", "y"], true);
           drawSelectionPoint(x, y, 0);
         }
       }
@@ -406,9 +442,9 @@ const getGradientShiftPlugin = (
   beforeUpdate: (chart) => {
     const ctx = chart.ctx;
     const activeIndex = activeIndexRef.current;
-    if (ctx && typeof activeIndex === "number") {
-      const grayColor = "rgba(128, 128, 128, 0.1)"; // Define your gray color here
+    const grayColor = "rgba(128, 128, 128, 0.1)"; // Define your gray color here
 
+    if (ctx) {
       for (let i = 0; i < chart.data.datasets.length; ++i) {
         const dataset = chart.data.datasets[i];
         const lineGradientFnOrHex = makeLineGradients[i];
@@ -422,19 +458,25 @@ const getGradientShiftPlugin = (
           dataset.borderColor = lineGradientFnOrHex(ctx, 1);
         }
 
-        // Use segment configuration for conditional coloring
-        dataset.segment = {
-          borderColor: (ctx) => {
-            const dataIndex = ctx.p0DataIndex;
-            const isAfterActiveIndex = dataIndex >= activeIndex;
-            return isAfterActiveIndex ? grayColor : undefined;
-          },
-          backgroundColor: (ctx) => {
-            const dataIndex = ctx.p0DataIndex;
-            const isAfterActiveIndex = dataIndex >= activeIndex;
-            return isAfterActiveIndex ? grayColor : undefined;
-          },
-        };
+        // Apply segment coloring if activeIndex is defined
+        if (typeof activeIndex === "number") {
+          // Floor the activeIndex for segment comparison since segments use integer indices
+          const flooredActiveIndex = Math.floor(activeIndex);
+
+          // Use segment configuration for conditional coloring
+          dataset.segment = {
+            borderColor: (ctx) => {
+              const dataIndex = ctx.p0DataIndex;
+              const isAfterActiveIndex = dataIndex >= flooredActiveIndex;
+              return isAfterActiveIndex ? grayColor : undefined;
+            },
+            backgroundColor: (ctx) => {
+              const dataIndex = ctx.p0DataIndex;
+              const isAfterActiveIndex = dataIndex >= flooredActiveIndex;
+              return isAfterActiveIndex ? grayColor : undefined;
+            },
+          };
+        }
       }
     }
   },
