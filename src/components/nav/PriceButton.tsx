@@ -176,7 +176,7 @@ function PriceButtonPanel() {
             />
             <PoolGroup
               pools={sortedPools.dewhitelisted}
-              title="DeWhitelisted Pools"
+              title="Dewhitelisted Pools"
               priceData={priceData}
               showPrices={showPrices}
               chainId={chainId}
