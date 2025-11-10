@@ -185,7 +185,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const exceedsBalance = farmerDepositData?.amount.lt(amountTV);
 
-  const shouldSwap = tokenOut && !tokensEqual(siloToken, tokenOut) && !siloToken.isMain;
+  const shouldSwap = tokenOut && !tokensEqual(siloToken, tokenOut) && !siloToken.isMain && !shouldConvertWithdraw;
 
   const swapDisabled = amountTV.lte(0) || !account.address || !shouldSwap || inputError;
 
@@ -433,8 +433,14 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   const outputAmount = shouldConvertWithdraw ? convertResult?.withdrawalAmount : withdrawOutput?.amount;
 
   const tokenOutUSD = tokenOut ? prices.tokenPrices.get(tokenOut) : undefined;
-  const amountOutUSD =
-    tokenOutUSD && withdrawOutput?.amount ? withdrawOutput.amount.mul(tokenOutUSD.instant) : undefined;
+  const amountOutUSD = tokenOutUSD
+    ? shouldConvertWithdraw
+      ? tokenOutAmount?.mul(tokenOutUSD.instant)
+      : withdrawOutput
+        ? withdrawOutput?.amount.mul(tokenOutUSD.instant)
+        : undefined
+    : undefined;
+
   const swapReady = Boolean(swapBuild && swapData?.buyAmount?.gt(0));
 
   const convertWithdrawalReady = shouldConvertWithdraw
@@ -452,6 +458,11 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     !convertWithdrawalReady ||
     !defaultWithdrawReady ||
     exceedsBalance;
+
+  const outputLoading =
+    (shouldSwap && (!swapData?.buyAmount || swapData.buyAmount.eq(0))) ||
+    (shouldConvertWithdraw && (!tokenOutAmount || tokenOutAmount.eq(0))) ||
+    (!shouldSwap && !shouldConvertWithdraw && (!outputAmount || outputAmount.eq(0)));
 
   return (
     <div className="flex flex-col gap-4">
@@ -487,15 +498,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
               <div className="flex flex-col gap-1">
                 <div className="pinto-h3">
                   {tokenOut && amount && amountTV?.gt(0) ? (
-                    <TextSkeleton
-                      loading={
-                        (shouldSwap && (!swapData?.buyAmount || swapData.buyAmount.eq(0))) ||
-                        (shouldConvertWithdraw && (!tokenOutAmount || tokenOutAmount.eq(0))) ||
-                        (!shouldSwap && !shouldConvertWithdraw && (!outputAmount || outputAmount.eq(0)))
-                      }
-                      height="h4"
-                      className="w-24"
-                    >
+                    <TextSkeleton loading={outputLoading} height="h4" className="w-24">
                       {shouldConvertWithdraw
                         ? formatter.token(tokenOutAmount, tokenOut)
                         : formatter.token(outputAmount, tokenOut)}
@@ -517,15 +520,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
             </div>
             <div className="pinto-sm-light text-pinto-light">
               {tokenOut && amount && amountTV?.gt(0) ? (
-                <TextSkeleton
-                  loading={
-                    (shouldSwap && (!swapData?.buyAmount || swapData.buyAmount.eq(0))) ||
-                    (shouldConvertWithdraw && (!tokenOutAmount || tokenOutAmount.eq(0))) ||
-                    (!shouldSwap && !shouldConvertWithdraw && (!outputAmount || outputAmount.eq(0)))
-                  }
-                  height="sm"
-                  className="w-16"
-                >
+                <TextSkeleton loading={outputLoading} height="sm" className="w-16">
                   {formatter.usd(amountOutUSD)}
                 </TextSkeleton>
               ) : (
