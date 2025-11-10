@@ -18,7 +18,7 @@ import { HTMLAttributes, memo, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useChainId } from "wagmi";
 import { renderAnnouncement } from "../AnnouncementBanner";
-import { InlineCenterSpan } from "../Container";
+import { InlineCenterSpan, Row } from "../Container";
 import { ExternalLinkIcon, ForwardArrowIcon } from "../Icons";
 import TooltipSimple from "../TooltipSimple";
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/Card";
@@ -59,10 +59,6 @@ function PriceButtonPanel() {
     return priceData.pools.filter((pool) => pool.pool.isWhitelisted);
   }, [priceData.pools]);
 
-  const dewhitelistedPools = useMemo(() => {
-    return priceData.pools.filter((pool) => pool.pool.isLP && !pool.pool.isWhitelisted);
-  }, [priceData.pools]);
-
   const mainTokenBalances = useMemo(() => {
     return whitelistedPools.flatMap((pool) =>
       pool.balances.map(
@@ -87,6 +83,15 @@ function PriceButtonPanel() {
   }, [whitelistedPools]);
 
   const totalDeltaBar = combinedDeltaB.div(totalMainTokens.gt(0) ? totalMainTokens : 1).mul(-100);
+
+  const sortedPools = useMemo(() => {
+    const whitelisted = priceData.pools.filter((pool) => pool.pool.isWhitelisted);
+    const dewhitelisted = priceData.pools.filter((pool) => pool.pool.isLP && !pool.pool.isWhitelisted);
+    return {
+      whitelisted,
+      dewhitelisted,
+    };
+  }, [priceData.pools]);
 
   const [showPrices, setShowPrices] = useState(false);
 
@@ -255,51 +260,30 @@ function PriceButtonPanel() {
                 </span>
               </Button>
             )}
-            {priceData.pools.map((pool, i) => {
-              if (!pool.pool.isWhitelisted) return null;
-              const token0Price = pool.tokens[0].isMain
-                ? pool.price
-                : useTwa
-                  ? priceData.tokenPrices.get(pool.tokens[0])?.twa
-                  : priceData.tokenPrices.get(pool.tokens[0])?.instant || TokenValue.ZERO;
-              const token1Price = pool.tokens[1].isMain
-                ? pool.price
-                : useTwa
-                  ? priceData.tokenPrices.get(pool.tokens[1])?.twa
-                  : priceData.tokenPrices.get(pool.tokens[1])?.instant || TokenValue.ZERO;
-              const token0BalanceUsd = pool.balances[0].mul(token0Price ?? TokenValue.ZERO) || 0n;
-              const token1BalanceUsd = pool.balances[1].mul(token1Price ?? TokenValue.ZERO) || 0n;
-              const mainTokenIndex = pool.tokens.findIndex((token: Token) => token.isMain);
-              const backingTokenIndex = pool.tokens.findIndex((token: Token) => !token.isMain);
-              const deltaBar = pool.balances[mainTokenIndex].gt(0)
-                ? Number(pool.deltaB.abs().div(pool.balances[mainTokenIndex]).mul(100).toHuman()).toFixed(2)
-                : "0";
-
-              if (showPrices) {
-                return (
-                  <PoolPriceDisplay
-                    key={`${pool.pool.address}_prices_${i}`}
-                    pool={pool}
-                    backingTokenIndex={backingTokenIndex}
-                    priceData={priceData}
-                  />
-                );
-              }
-
-              return (
-                <PoolCard
-                  key={`${pool.pool.address}_card_${i}`}
-                  pool={pool}
-                  chainId={chainId}
-                  deltaBar={deltaBar}
-                  token0BalanceUsd={token0BalanceUsd}
-                  token1BalanceUsd={token1BalanceUsd}
-                  expandAll={expandAll}
-                  useTwa={useTwa}
-                  twaDeltaBMap={twaDeltaBMap}
-                />
-              );
-            })}
+            <PoolGroup
+              pools={sortedPools.whitelisted}
+              title="Whitelisted Pools"
+              priceData={priceData}
+              showPrices={showPrices}
+              chainId={chainId}
+              expandAll={expandAll}
+              useTwa={useTwa}
+              twaDeltaBMap={twaDeltaBMap}
+              priceDisplayEnabled
+              showTitle={!showPrices}
+            />
+            <PoolGroup
+              pools={sortedPools.dewhitelisted}
+              title="DeWhitelisted Pools"
+              priceData={priceData}
+              showPrices={showPrices}
+              chainId={chainId}
+              expandAll={expandAll}
+              useTwa={useTwa}
+              twaDeltaBMap={twaDeltaBMap}
+              priceDisplayEnabled={false}
+              showTitle={!showPrices}
+            />
           </div>
         </ScrollArea>
       </CardContent>
@@ -407,13 +391,57 @@ const PriceButton = memo(({ isOpen = false, togglePanel, ...props }: IPriceButto
   );
 });
 
+const PoolGroup = ({
+  priceDisplayEnabled = false,
+  showTitle = true,
+  ...props
+}: {
+  pools: PoolData[];
+  title: string;
+  priceData: ReturnType<typeof usePriceData>;
+  showPrices: boolean;
+  chainId: number;
+  expandAll: boolean;
+  useTwa: boolean;
+  twaDeltaBMap: ReturnType<typeof useTwaDeltaBLPQuery>["data"];
+  priceDisplayEnabled?: boolean;
+  showTitle?: boolean;
+}) => {
+  return (
+    <>
+      {showTitle && <p className="pinto-body text-pinto-secondary mt-4">{props.title}</p>}
+      {props.pools.map((pool, i) => {
+        if (props.showPrices) {
+          return (
+            <>
+              <PoolPriceDisplay key={`${pool.pool.address}_prices_${i}`} pool={pool} priceData={props.priceData} />
+            </>
+          );
+        }
+
+        return (
+          <PoolCard
+            key={`${pool.pool.address}_card_${i}`}
+            pool={pool}
+            chainId={props.chainId}
+            priceData={props.priceData}
+            expandAll={props.expandAll}
+            useTwa={props.useTwa}
+            twaDeltaBMap={props.twaDeltaBMap}
+          />
+        );
+      })}
+    </>
+  );
+};
+
 interface PoolPriceDisplayProps {
   pool: PoolData;
-  backingTokenIndex: number;
   priceData: ReturnType<typeof usePriceData>;
 }
 
-const PoolPriceDisplay = ({ pool, backingTokenIndex, priceData }: PoolPriceDisplayProps) => {
+const PoolPriceDisplay = ({ pool, priceData }: PoolPriceDisplayProps) => {
+  const backingTokenIndex = pool.tokens.findIndex((token: Token) => !token.isMain);
   const tokenToShow = priceData.tokenPrices.get(pool.tokens[backingTokenIndex]);
   if (!tokenToShow) return null;
 
@@ -440,24 +468,30 @@ const PoolPriceDisplay = ({ pool, backingTokenIndex, priceData }: PoolPriceDispl
 interface PoolCardProps {
   pool: PoolData;
   chainId: number;
-  deltaBar: string;
-  token0BalanceUsd: TokenValue;
-  token1BalanceUsd: TokenValue;
+  priceData: ReturnType<typeof usePriceData>;
   expandAll: boolean;
   useTwa: boolean;
   twaDeltaBMap?: ReturnType<typeof useTwaDeltaBLPQuery>["data"];
 }
 
-const PoolCard = ({
-  pool,
-  chainId,
-  deltaBar,
-  token0BalanceUsd,
-  token1BalanceUsd,
-  expandAll,
-  useTwa,
-  twaDeltaBMap,
-}: PoolCardProps) => {
+const PoolCard = ({ pool, chainId, priceData, expandAll, useTwa, twaDeltaBMap }: PoolCardProps) => {
+  const token0Price = pool.tokens[0].isMain
+    ? pool.price
+    : useTwa
+      ? priceData.tokenPrices.get(pool.tokens[0])?.twa
+      : priceData.tokenPrices.get(pool.tokens[0])?.instant || TokenValue.ZERO;
+  const token1Price = pool.tokens[1].isMain
+    ? pool.price
+    : useTwa
+      ? priceData.tokenPrices.get(pool.tokens[1])?.twa
+      : priceData.tokenPrices.get(pool.tokens[1])?.instant || TokenValue.ZERO;
+  const token0BalanceUsd = pool.balances[0].mul(token0Price ?? TokenValue.ZERO) || 0n;
+  const token1BalanceUsd = pool.balances[1].mul(token1Price ?? TokenValue.ZERO) || 0n;
+  const mainTokenIndex = pool.tokens.findIndex((token: Token) => token.isMain);
+  const deltaBar = pool.balances[mainTokenIndex].gt(0)
+    ? Number(pool.deltaB.abs().div(pool.balances[mainTokenIndex]).mul(100).toHuman()).toFixed(2)
+    : "0";
+
   return (
     <Card className="overflow-clip group hover:border-pinto-green-4">
       <Link
@@ -518,22 +552,26 @@ const PoolCard = ({
             </div>
           </div>
           <div
-            className={`flex flex-row gap-4 justify-center transition-all duration-200 ease-in-out ${
-              expandAll ? "mb-0 opacity-100" : "-mb-8 sm:-mb-10 opacity-0 group-hover:mb-0 group-hover:opacity-100"
-            }`}
+            className={cn(
+              "flex flex-row gap-4 justify-center transition-all duration-200 ease-in-out",
+              pool.pool.isWhitelisted ? "justify-center" : "justify-start ml-10",
+              expandAll ? "mb-0 opacity-100" : "-mb-8 sm:-mb-10 opacity-0 group-hover:mb-0 group-hover:opacity-100",
+            )}
           >
             <div className="pinto-xs inline-flex font-normal leading-same-xs items-center px-2 py-0.5 h-6 bg-pinto-gray-blue rounded-[0.25rem]">
               <span className="hidden sm:block">Liquidity: {formatter.usd(pool.liquidity)}</span>
               <span className="sm:hidden">Liq: ${pool.liquidity.toHuman("ultraShort")}</span>
             </div>
-            <div className="pinto-xs inline-flex font-normal leading-same-xs items-center px-2 py-0.5 h-6 text-pinto-green-3 bg-pinto-green-1 rounded-[0.25rem] gap-1">
-              <span className="hidden sm:block">ΔP: {formatter.twoDec(pool.deltaB, { showPositiveSign: true })}</span>
-              <span className="sm:hidden">ΔP: {pool.deltaB.toHuman("ultraShort", true)}</span>
-              <TooltipSimple content={"The current shortage or excess of Pinto in the pool."} />
-            </div>
+            {pool.pool.isWhitelisted && (
+              <div className="pinto-xs inline-flex font-normal leading-same-xs items-center px-2 py-0.5 h-6 text-pinto-green-3 bg-pinto-green-1 rounded-[0.25rem] gap-1">
+                <span className="hidden sm:block">ΔP: {formatter.twoDec(pool.deltaB, { showPositiveSign: true })}</span>
+                <span className="sm:hidden">ΔP: {pool.deltaB.toHuman("ultraShort", true)}</span>
+                <TooltipSimple content={"The current shortage or excess of Pinto in the pool."} />
+              </div>
+            )}
             <div
               className={`pinto-xs inline-flex font-normal leading-same-xs items-center px-2 py-0.5 h-6 text-pinto-green-3 bg-pinto-green-1 rounded-[0.25rem] gap-1 transition-all duration-200 ease-in-out ${
-                useTwa ? "mb-0 opacity-100" : "-mb-6 opacity-0"
+                useTwa && pool.pool.isWhitelisted ? "mb-0 opacity-100" : "-mb-6 opacity-0"
               }`}
             >
               <span className="hidden sm:block">
