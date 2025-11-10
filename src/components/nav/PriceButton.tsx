@@ -7,6 +7,7 @@ import Panel from "@/components/ui/Panel";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import useIsExtraSmall from "@/hooks/display/useIsExtraSmall";
 import useIsMobile from "@/hooks/display/useIsMobile";
+import useLocalStorage from "@/hooks/useLocalStorage";
 import { PoolData, usePriceData, useTwaDeltaBLPQuery, useTwaDeltaBQuery } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { withTracking } from "@/utils/analytics";
@@ -14,7 +15,7 @@ import { formatter } from "@/utils/format";
 import { getTokenIndex } from "@/utils/token";
 import { Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
-import { HTMLAttributes, memo, useEffect, useMemo, useState } from "react";
+import { HTMLAttributes, memo, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useChainId } from "wagmi";
 import { renderAnnouncement } from "../AnnouncementBanner";
@@ -26,25 +27,6 @@ import { ScrollArea } from "../ui/ScrollArea";
 import { Separator } from "../ui/Separator";
 import { Skeleton } from "../ui/Skeleton";
 import { Switch } from "../ui/Switch";
-
-const getPintoUseTWA = () => {
-  try {
-    const savedUseTwa = localStorage.getItem("pinto.priceButton.useTwa");
-    return savedUseTwa ? JSON.parse(savedUseTwa) : false;
-  } catch (e) {
-    return false;
-  }
-};
-
-const getPintoExpandAll = () => {
-  try {
-    // Initialize from localStorage, default to false if not found
-    const savedExpandAll = localStorage.getItem("pinto.priceButton.expandAll");
-    return savedExpandAll ? JSON.parse(savedExpandAll) : false;
-  } catch (e) {
-    return false;
-  }
-};
 
 function PriceButtonPanel() {
   const priceData = usePriceData();
@@ -95,45 +77,9 @@ function PriceButtonPanel() {
 
   const [showPrices, setShowPrices] = useState(false);
 
-  const [useTwa, setUseTwa] = useState(getPintoUseTWA());
+  const [useTwa, setUseTwa] = useLocalStorage<boolean>("pinto.priceButton.useTwa", false);
 
-  const [expandAll, setExpandAll] = useState(getPintoExpandAll());
-
-  // Update localStorage when settings change
-  useEffect(() => {
-    localStorage.setItem("pinto.priceButton.useTwa", JSON.stringify(useTwa));
-  }, [useTwa]);
-
-  useEffect(() => {
-    localStorage.setItem("pinto.priceButton.expandAll", JSON.stringify(expandAll));
-  }, [expandAll]);
-
-  const underlyingTokensToShow = useMemo(() => {
-    return Array.from(priceData.tokenPrices).filter(([tk]) => tk.isLPUnderlying && tk.isCompositeLPWhitelisted);
-  }, [priceData.tokenPrices]);
-
-  const marqueeTokens = useMemo(
-    () => [...underlyingTokensToShow, ...underlyingTokensToShow, ...underlyingTokensToShow, ...underlyingTokensToShow],
-    [underlyingTokensToShow],
-  );
-
-  const renderTokenItem = (token, index, marqueeId) => {
-    const [tokenData, priceInfo] = token;
-
-    if (!tokenData.isWhitelisted || !tokenData.name) return null;
-
-    const price = priceInfo[useTwa ? "twa" : "instant"];
-    const formattedPrice = formatter.usd(price ? price.toHuman() : 0);
-
-    return (
-      <div key={`${tokenData.address}_marquee${marqueeId}_${index}`}>
-        <div className="inline-flex items-center px-2 gap-1.5">
-          <IconImage src={tokenData.logoURI} size={6} />
-          <div className="pinto-body text-pinto-secondary text-nowrap">{`${tokenData.symbol}: ${formattedPrice}`}</div>
-        </div>
-      </div>
-    );
-  };
+  const [expandAll, setExpandAll] = useLocalStorage<boolean>("pinto.priceButton.expandAll", false);
 
   return (
     <div
@@ -252,26 +198,7 @@ function PriceButtonPanel() {
           className="flex flex-col z-[2] peer bg-pinto-gray-1 p-0 items-stretch hover:bg-pinto-gray-2 transition-colors cursor-pointer"
         >
           <Separator className="w-full" />
-          <div className="px-4 py-3 sm:p-2">
-            <div className="inline-flex items-center">
-              <div className="flex flex-row min-w-fit max-w-fit animate-marquee">
-                {marqueeTokens.map((token, i) => {
-                  return (
-                    <div key={`${token[0].address}_marquee_${i}`}>
-                      {token[0]?.name && (
-                        <div className="inline-flex items-center px-2 gap-1.5">
-                          <IconImage src={token[0].logoURI} size={6} />
-                          <div className="pinto-body text-pinto-secondary text-nowrap">
-                            {`${token[0].symbol}: ${formatter.usd(token[1][useTwa ? "twa" : "instant"] ? token[1][useTwa ? "twa" : "instant"].toHuman() : 0)}`}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
+          <TokenPriceMarquee tokenPrices={priceData.tokenPrices} useTwa={useTwa} />
         </CardFooter>
       )}
       {!showPrices && (
@@ -615,6 +542,45 @@ const WhitelistedWellLiquidityInfoChart = ({
           {/* <span>target</span> */}
         </div>
         <div className="h-6 border-box text-center w-0 bg-white border-pinto-gray-3 border border-dashed" />
+      </div>
+    </div>
+  );
+};
+
+interface TokenPriceMarqueeProps {
+  tokenPrices: Map<Token, { instant: TokenValue; twa: TokenValue }>;
+  useTwa: boolean;
+}
+
+const TokenPriceMarquee = ({ tokenPrices, useTwa }: TokenPriceMarqueeProps) => {
+  const underlyingTokensToShow = useMemo(() => {
+    return Array.from(tokenPrices).filter(([tk]) => tk.isLPUnderlying && tk.isCompositeLPWhitelisted);
+  }, [tokenPrices]);
+
+  const marqueeTokens = useMemo(
+    () => [...underlyingTokensToShow, ...underlyingTokensToShow, ...underlyingTokensToShow, ...underlyingTokensToShow],
+    [underlyingTokensToShow],
+  );
+
+  return (
+    <div className="px-4 py-3 sm:p-2">
+      <div className="inline-flex items-center">
+        <div className="flex flex-row min-w-fit max-w-fit animate-marquee">
+          {marqueeTokens.map((token, i) => {
+            return (
+              <div key={`${token[0].address}_marquee_${i}`}>
+                {token[0]?.name && (
+                  <div className="inline-flex items-center px-2 gap-1.5">
+                    <IconImage src={token[0].logoURI} size={6} />
+                    <div className="pinto-body text-pinto-secondary text-nowrap">
+                      {`${token[0].symbol}: ${formatter.usd(token[1][useTwa ? "twa" : "instant"] ? token[1][useTwa ? "twa" : "instant"].toHuman() : 0)}`}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
