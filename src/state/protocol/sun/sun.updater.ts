@@ -74,8 +74,12 @@ const useFetchSun = () => {
 
   // Update Season
   useEffect(() => {
-    if (!seasonQuery.data) return;
+    if (!seasonQuery.data || !exists(seasonTime)) return;
     const time = seasonQuery.data;
+
+    // Capture the time when we received this data
+    const localNow = DateTime.now();
+
     const season: Sun["season"] = {
       current: time.current,
       lastSopStart: time.lastSop,
@@ -90,10 +94,12 @@ const useFetchSun = () => {
     };
 
     // Calculate time offset between local time and blockchain time
-    const localNow = DateTime.now();
-    const timeOffsetMs = localNow.toMillis() - season.timestamp.toMillis();
+    // seasonTime is the current blockchain timestamp (seconds since epoch)
+    // We compare it to our local time to get the offset
+    const blockchainNow = DateTime.fromSeconds(seasonTime);
+    const timeOffsetMs = localNow.toMillis() - blockchainNow.toMillis();
 
-    // Calculate if it's currently morning
+    // Calculate if it's currently morning using the calculated offset
     const isMorning = getIsMorning(season.timestamp, timeOffsetMs);
 
     // Update atoms
@@ -102,9 +108,11 @@ const useFetchSun = () => {
     setSeasonData(season);
 
     console.debug("[protocol/sun/useFetchSun]: season", season);
+    console.debug("[protocol/sun/useFetchSun]: blockchainNow", blockchainNow.toISO());
+    console.debug("[protocol/sun/useFetchSun]: localNow", localNow.toISO());
     console.debug("[protocol/sun/useFetchSun]: timeOffsetMs", timeOffsetMs);
     console.debug("[protocol/sun/useFetchSun]: isMorning", isMorning);
-  }, [seasonQuery.data, setSeasonData, setMorning, setTimeOffset]);
+  }, [seasonQuery.data, seasonTime, setSeasonData, setMorning, setTimeOffset]);
 
   return { seasonData, seasonTime, refetch: refetch };
 };
