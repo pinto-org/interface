@@ -286,7 +286,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
           filterTokens={filterSet}
           disableClamping={true}
         />
-
         <AnimatePresence mode="wait">
           {((!depositOutput && amountInTV.gt(0)) || swapQuery.isLoading || depositOutput) && (
             <motion.div
