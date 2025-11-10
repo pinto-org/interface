@@ -9,7 +9,7 @@ import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useTransaction from "@/hooks/useTransaction";
 import { generateBatchSortDepositsCallData, simulateAndPrepareFarmCalls } from "@/lib/claim/depositUtils";
 import { morningFieldDevModeAtom } from "@/state/protocol/field/field.atoms";
-import { getMorningResult, getNowRounded } from "@/state/protocol/sun";
+import { getIsMorning, getSecondsElapsedInMorning } from "@/state/protocol/sun";
 import { morningAtom, seasonAtom, sunQueryKeysAtom } from "@/state/protocol/sun/sun.atoms";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
 import { useFieldQueryKeys, useInvalidateField } from "@/state/useFieldData";
@@ -23,6 +23,7 @@ import { DepositData } from "@/utils/types";
 import { isDev, isLocalhost } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
+import { DateTime } from "luxon";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -1512,13 +1513,15 @@ const MorningAuctionDev = ({
     { label: "Current block", value: blockQuery.data?.toString() },
     { label: "Sunrise block", value: sun.sunriseBlock?.toString() },
     { label: "Delta blocks", value: blockQuery.data ? Number(blockQuery.data) - sun.sunriseBlock : 0 },
-    { label: "morning index (0-24)", value: !morning.isMorning ? "N/A" : morning.index },
+    {
+      label: "morning elapsed (seconds)",
+      value: !morning.isMorning ? "N/A" : Math.floor(getSecondsElapsedInMorning(sun.timestamp, 0)),
+    },
   ];
 
   const tryFetchSeason = async () => {
     try {
       const time: any = await queryClient.fetchQuery({ queryKey: seasonQueryKeys.season });
-      const now = getNowRounded();
       const struct = {
         current: time.current,
         lastSopStart: time.lastSop,
@@ -1529,7 +1532,7 @@ const MorningAuctionDev = ({
         abovePeg: time.abovePeg,
         start: Number(time.start),
         period: Number(time.period),
-        timestamp: now,
+        timestamp: DateTime.fromSeconds(Number(time.timestamp)),
       };
       console.log("data", struct);
       return struct;
@@ -1583,16 +1586,16 @@ const MorningAuctionDev = ({
       console.log("waiting for 2 seconds...");
       await new Promise((resolve) => setTimeout(resolve, 500));
       console.log("done waiting");
-      // Do the initialization directly here instead of relying on the useEffect
-      const morningResult = getMorningResult({
-        timestamp: struct.timestamp,
-        blockNumber: struct.sunriseBlock,
-      });
+      // Calculate if it's morning using the time-based system
+      const timeOffsetMs = DateTime.now().toMillis() - struct.timestamp.toMillis();
+      const isMorning = getIsMorning(struct.timestamp, timeOffsetMs);
 
-      console.log("struct", struct);
-      console.log("morningResult", morningResult);
+      console.log("struct", {
+        struct,
+        isMorning,
+      });
       setSun(struct);
-      setMorning(morningResult);
+      setMorning({ isMorning });
       await blockQuery.refetch();
       console.log("morning initialized...");
 
@@ -1608,7 +1611,8 @@ const MorningAuctionDev = ({
   };
 
   const handleIncrementIndex = async () => {
-    const toSkip = 12 - Math.floor(deltaBlocks % 12);
+    // Skip 24 seconds (1 morning interval in the old system)
+    const toSkip = 12; // Skip 12 blocks = ~24 seconds
     console.log("[handleIncrementIndex]: toSkip", toSkip);
     await skipBlocks(toSkip);
     invalidateField("all");
@@ -1617,12 +1621,10 @@ const MorningAuctionDev = ({
     if (d.data) {
       setBlocknum(Number(d.data));
     }
-    setMorning((draft) => {
-      draft.index += 1;
-      if (draft.index === 25) {
-        draft.isMorning = false;
-      }
-    });
+    // Recalculate morning state based on elapsed time
+    const timeOffsetMs = DateTime.now().toMillis() - sun.timestamp.toMillis();
+    const isMorning = getIsMorning(sun.timestamp, timeOffsetMs);
+    setMorning({ isMorning });
   };
 
   return (
@@ -1655,12 +1657,6 @@ const MorningAuctionDev = ({
             <Button onClick={() => handleFWDSeasonAndInitMorning(false)} disabled={isInitializing}>
               {isInitializing ? "Initializing..." : "Start Morning UI only mode"}
             </Button>
-          </div>
-          <div className="flex flex-col gap-2">
-            <div className="pinto-sm-thin text-pinto-secondary">
-              Increment morning index by 1 (12 blocks). Still WIP.
-            </div>
-            <Button onClick={handleIncrementIndex}>Increment index</Button>
           </div>
         </div>
       </div>

@@ -55,6 +55,8 @@ export interface LineChartProps {
   yAxisMax?: number;
   customValueTransform?: CustomChartValueTransform;
   hideYAxis?: boolean;
+  hideXAxisGrid?: boolean;
+  xAxisTickIndices?: number[]; // Custom indices for x-axis ticks (e.g., [0, 120, 240, 360, 480, 599])
   hoverPointImages?: (string | null | undefined)[];
 }
 
@@ -77,6 +79,8 @@ const LineChart = React.memo(
     yAxisMax,
     customValueTransform,
     hideYAxis = false,
+    hideXAxisGrid = false,
+    xAxisTickIndices,
     hoverPointImages,
   }: LineChartProps) => {
     const chartRef = useRef<Chart | null>(null);
@@ -214,7 +218,7 @@ const LineChart = React.memo(
         scales: {
           x: {
             grid: {
-              display: true,
+              display: !hideXAxisGrid,
               color: (context) => {
                 const tickLabel = context.tick?.label;
                 if (typeof activeIndexRef.current === "number") {
@@ -247,6 +251,12 @@ const LineChart = React.memo(
                 const tickLabel = xValue instanceof Date ? `${xValue.getMonth() + 1}/${xValue.getDate()}` : xValue;
 
                 if (typeof activeIndexRef.current === "number") {
+                  // Use custom tick indices if provided
+                  if (xAxisTickIndices) {
+                    return xAxisTickIndices.includes(index) ? tickLabel : "";
+                  }
+
+                  // Default behavior: show ticks at specific indices
                   if (index === 0 || index === values.length - 1) {
                     return tickLabel;
                   }
@@ -300,7 +310,17 @@ const LineChart = React.memo(
           },
         },
       };
-    }, [data, xKey, yTickMin, yTickMax, valueFormatter, useLogarithmicScale, customValueTransform]);
+    }, [
+      data,
+      xKey,
+      yTickMin,
+      yTickMax,
+      valueFormatter,
+      useLogarithmicScale,
+      customValueTransform,
+      hideXAxisGrid,
+      xAxisTickIndices,
+    ]);
 
     const activeIndexVerticalLinePlugin: Plugin = useMemo(() => plugins.activeIndexVerticalLine(activeIndexRef), []);
 

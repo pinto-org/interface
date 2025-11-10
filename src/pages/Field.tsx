@@ -12,10 +12,7 @@ import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import MorningTemperatureChart from "@/pages/field/MorningTemperature";
-import {
-  useUpdateMorningSoilOnInterval,
-  useUpdateMorningTemperatureOnInterval,
-} from "@/state/protocol/field/field.updater";
+import { useUpdateMorningSoilOnInterval } from "@/state/protocol/field/field.updater";
 import { trackSimpleEvent } from "@/utils/analytics";
 
 import { Col } from "@/components/Container";
@@ -87,7 +84,6 @@ function TractorButton({ onClick }: { onClick: () => void }) {
 }
 
 function Field() {
-  useUpdateMorningTemperatureOnInterval();
   useUpdateMorningSoilOnInterval();
   const farmerField = useFarmerField();
   const harvestableIndex = useHarvestableIndex();
