@@ -7,7 +7,7 @@ import Panel from "@/components/ui/Panel";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import useIsExtraSmall from "@/hooks/display/useIsExtraSmall";
 import useIsMobile from "@/hooks/display/useIsMobile";
-import { usePriceData, useTwaDeltaBLPQuery, useTwaDeltaBQuery } from "@/state/usePriceData";
+import { PoolData, usePriceData, useTwaDeltaBLPQuery, useTwaDeltaBQuery } from "@/state/usePriceData";
 import useTokenData from "@/state/useTokenData";
 import { withTracking } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
@@ -57,6 +57,10 @@ function PriceButtonPanel() {
 
   const whitelistedPools = useMemo(() => {
     return priceData.pools.filter((pool) => pool.pool.isWhitelisted);
+  }, [priceData.pools]);
+
+  const dewhitelistedPools = useMemo(() => {
+    return priceData.pools.filter((pool) => pool.pool.isLP && !pool.pool.isWhitelisted);
   }, [priceData.pools]);
 
   const mainTokenBalances = useMemo(() => {
@@ -269,155 +273,31 @@ function PriceButtonPanel() {
               const backingTokenIndex = pool.tokens.findIndex((token: Token) => !token.isMain);
               const deltaBar = pool.balances[mainTokenIndex].gt(0)
                 ? Number(pool.deltaB.abs().div(pool.balances[mainTokenIndex]).mul(100).toHuman()).toFixed(2)
-                : TokenValue.ZERO;
+                : "0";
 
               if (showPrices) {
-                const tokenToShow = priceData.tokenPrices.get(pool.tokens[backingTokenIndex]);
-                if (!tokenToShow) return;
                 return (
-                  <div key={`${pool.pool.address}_prices_${i}`} className="flex flex-row justify-between">
-                    <div className="inline-flex gap-2 sm:gap-4 items-center">
-                      <IconImage src={pool.tokens[backingTokenIndex].logoURI} size={12} mobileSize={9} />
-                      <div className="pinto-body text-pinto-secondary">{pool.tokens[backingTokenIndex].symbol}</div>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <div className="text-pinto-secondary">
-                        <span className="pinto-sm sm:pinto-body mr-2">Current Price:</span>
-                        <span className="pinto-sm sm:pinto-h4 sm:font-medium">
-                          {formatter.usd(tokenToShow.instant)}
-                        </span>
-                      </div>
-                      <div className="pinto-sm text-pinto-light mt-0.5">
-                        <span className="hidden sm:block">
-                          Time Weighted Average Price: {formatter.usd(tokenToShow.twa)}
-                        </span>
-                        <span className="sm:hidden">TWA Price: {formatter.usd(tokenToShow.twa)}</span>
-                      </div>
-                    </div>
-                  </div>
+                  <PoolPriceDisplay
+                    key={`${pool.pool.address}_prices_${i}`}
+                    pool={pool}
+                    backingTokenIndex={backingTokenIndex}
+                    priceData={priceData}
+                  />
                 );
               }
 
               return (
-                <Card key={`${pool.pool.address}_card_${i}`} className="overflow-clip group hover:border-pinto-green-4">
-                  <Link
-                    to={`https://pinto.exchange/#/wells/${chainId}/${pool.pool?.address}`}
-                    target={"_blank"}
-                    className="hover:cursor-pointer transition-all"
-                    onClick={withTracking(ANALYTICS_EVENTS.PRICE_PANEL.EXCHANGE_NAVIGATE, () => {}, {
-                      pool_symbol: pool.pool?.symbol,
-                    })}
-                  >
-                    <CardContent className="px-2 py-1.5 3xl:p-4 bg-white flex flex-col gap-2 sm:gap-4">
-                      <div className="flex flex-row justify-between items-center">
-                        <div className="inline-flex gap-1.5 items-center">
-                          <IconImage src={pool.pool?.logoURI} size={8} mobileSize={6} />
-                          <div className="pinto-sm text-pinto-secondary">{pool.pool?.symbol || ""}</div>
-                        </div>
-                        <div className="pinto-sm-bold sm:pinto-body-bold text-pinto-secondary sm:text-pinto-secondary gap-2 items-center flex flex-row">
-                          $
-                          {formatter.number(pool.price, {
-                            minDecimals: 4,
-                            maxDecimals: 4,
-                          })}
-                          <div className="text-pinto-gray-5 ml-2 -mr-10 group-hover:ml-0 group-hover:mr-0 hover:text-pinto-green-4 hover:cursor-pointer transition-all">
-                            <ExternalLinkIcon color="currentColor" />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex flex-row relative">
-                        <div
-                          className={"w-full h-2 rounded-l-[0.5rem]"}
-                          style={{
-                            background: pool.tokens[0].color,
-                          }}
-                        />
-                        <div
-                          className={"w-full h-2 rounded-r-[0.5rem]"}
-                          style={{
-                            background: pool.tokens[1].color,
-                          }}
-                        />
-                        <div
-                          className={`${pool.deltaB.gt(0) ? "right-[50%] border-l-2" : "left-[50%] border-r-2"} h-2 border-white bg-white absolute max-w-[calc(50%_-_0.5rem)]`}
-                          style={{
-                            width: `${deltaBar}%`,
-                          }}
-                        />
-                        <div
-                          className={`${pool.deltaB.gt(0) ? "right-[50%] border-l-2" : "left-[50%] border-r-2"} h-2 border-white opacity-50 absolute max-w-[calc(50%_-_0.5rem)]`}
-                          style={{
-                            width: `${deltaBar}%`,
-                            background: `${pool.deltaB.gt(0) ? pool.tokens[1].color : pool.tokens[0].color}`,
-                          }}
-                        />
-                        <div className="left-[50%] absolute -bottom-2 flex flex-col">
-                          <div className="pinto-xs text-[0.75rem] sm:pinto-xs text-pinto-lighter sm:text-pinto-lighter flex flex-col text-center -ml-4 mb-1">
-                            <span className="invisible sm:visible">$1.00</span>
-                            <span>target</span>
-                          </div>
-                          <div className="h-6 box-border text-center w-0 bg-white border-pinto-gray-3 border border-dashed" />
-                        </div>
-                      </div>
-                      <div className="flex flex-row justify-between">
-                        <div className="inline-flex gap-1 items-center flex-wrap">
-                          <IconImage src={pool.tokens[0].logoURI} size={4} className="hidden sm:flex" />
-                          <div className="pinto-xs sm:pinto-sm text-pinto-light sm:text-pinto-light text-left">
-                            {`${pool.balances[0].toHuman("short")} ${pool.tokens[0].symbol} (~$${token0BalanceUsd.toHuman("short")})`}
-                          </div>
-                        </div>
-                        <div className="inline-flex gap-1 items-center justify-end flex-wrap">
-                          <IconImage src={pool.tokens[1].logoURI} size={4} className="hidden sm:flex" />
-                          <div className="pinto-xs sm:pinto-sm text-pinto-light sm:text-pinto-light text-right">
-                            {`${pool.balances[1].toHuman("short")} ${pool.tokens[1].symbol} (~$${token1BalanceUsd.toHuman("short")})`}
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        className={`flex flex-row gap-4 justify-center transition-all duration-200 ease-in-out ${
-                          expandAll
-                            ? "mb-0 opacity-100"
-                            : "-mb-8 sm:-mb-10 opacity-0 group-hover:mb-0 group-hover:opacity-100"
-                        }`}
-                      >
-                        <div className="pinto-xs inline-flex font-normal leading-same-xs items-center px-2 py-0.5 h-6 bg-pinto-gray-blue rounded-[0.25rem]">
-                          <span className="hidden sm:block">Liquidity: {formatter.usd(pool.liquidity)}</span>
-                          <span className="sm:hidden">Liq: ${pool.liquidity.toHuman("ultraShort")}</span>
-                        </div>
-                        <div className="pinto-xs inline-flex font-normal leading-same-xs items-center px-2 py-0.5 h-6 text-pinto-green-3 bg-pinto-green-1 rounded-[0.25rem] gap-1">
-                          <span className="hidden sm:block">
-                            ΔP:{" "}
-                            {formatter.twoDec(pool.deltaB, {
-                              showPositiveSign: true,
-                            })}
-                          </span>
-                          <span className="sm:hidden">ΔP: {pool.deltaB.toHuman("ultraShort", true)}</span>
-                          <TooltipSimple content={"The current shortage or excess of Pinto in the pool."} />
-                        </div>
-                        <div
-                          className={`pinto-xs inline-flex font-normal leading-same-xs items-center px-2 py-0.5 h-6 text-pinto-green-3 bg-pinto-green-1 rounded-[0.25rem] gap-1 transition-all duration-200 ease-in-out ${
-                            useTwa ? "mb-0 opacity-100" : "-mb-6 opacity-0"
-                          }`}
-                        >
-                          <span className="hidden sm:block">
-                            TWAΔP:{" "}
-                            {formatter.twoDec(twaDeltaBMap?.[getTokenIndex(pool.pool)], {
-                              showPositiveSign: true,
-                            })}
-                          </span>
-                          <span className="sm:hidden">
-                            TWAΔP: {twaDeltaBMap?.[getTokenIndex(pool.pool)]?.toHuman("ultraShort")}
-                          </span>
-                          <TooltipSimple
-                            content={
-                              "The time weighted average shortage or excess of Pinto in the pool since the beginning of the Season."
-                            }
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Link>
-                </Card>
+                <PoolCard
+                  key={`${pool.pool.address}_card_${i}`}
+                  pool={pool}
+                  chainId={chainId}
+                  deltaBar={deltaBar}
+                  token0BalanceUsd={token0BalanceUsd}
+                  token1BalanceUsd={token1BalanceUsd}
+                  expandAll={expandAll}
+                  useTwa={useTwa}
+                  twaDeltaBMap={twaDeltaBMap}
+                />
               );
             })}
           </div>
@@ -526,6 +406,154 @@ const PriceButton = memo(({ isOpen = false, togglePanel, ...props }: IPriceButto
     </Panel>
   );
 });
+
+interface PoolPriceDisplayProps {
+  pool: PoolData;
+  backingTokenIndex: number;
+  priceData: ReturnType<typeof usePriceData>;
+}
+
+const PoolPriceDisplay = ({ pool, backingTokenIndex, priceData }: PoolPriceDisplayProps) => {
+  const tokenToShow = priceData.tokenPrices.get(pool.tokens[backingTokenIndex]);
+  if (!tokenToShow) return null;
+
+  return (
+    <div className="flex flex-row justify-between">
+      <div className="inline-flex gap-2 sm:gap-4 items-center">
+        <IconImage src={pool.tokens[backingTokenIndex].logoURI} size={12} mobileSize={9} />
+        <div className="pinto-body text-pinto-secondary">{pool.tokens[backingTokenIndex].symbol}</div>
+      </div>
+      <div className="flex flex-col items-end">
+        <div className="text-pinto-secondary">
+          <span className="pinto-sm sm:pinto-body mr-2">Current Price:</span>
+          <span className="pinto-sm sm:pinto-h4 sm:font-medium">{formatter.usd(tokenToShow.instant)}</span>
+        </div>
+        <div className="pinto-sm text-pinto-light mt-0.5">
+          <span className="hidden sm:block">Time Weighted Average Price: {formatter.usd(tokenToShow.twa)}</span>
+          <span className="sm:hidden">TWA Price: {formatter.usd(tokenToShow.twa)}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface PoolCardProps {
+  pool: PoolData;
+  chainId: number;
+  deltaBar: string;
+  token0BalanceUsd: TokenValue;
+  token1BalanceUsd: TokenValue;
+  expandAll: boolean;
+  useTwa: boolean;
+  twaDeltaBMap?: ReturnType<typeof useTwaDeltaBLPQuery>["data"];
+}
+
+const PoolCard = ({
+  pool,
+  chainId,
+  deltaBar,
+  token0BalanceUsd,
+  token1BalanceUsd,
+  expandAll,
+  useTwa,
+  twaDeltaBMap,
+}: PoolCardProps) => {
+  return (
+    <Card className="overflow-clip group hover:border-pinto-green-4">
+      <Link
+        to={`https://pinto.exchange/#/wells/${chainId}/${pool.pool?.address}`}
+        target={"_blank"}
+        className="hover:cursor-pointer transition-all"
+        onClick={withTracking(ANALYTICS_EVENTS.PRICE_PANEL.EXCHANGE_NAVIGATE, () => {}, {
+          pool_symbol: pool.pool?.symbol,
+        })}
+      >
+        <CardContent className="px-2 py-1.5 3xl:p-4 bg-white flex flex-col gap-2 sm:gap-4">
+          <div className="flex flex-row justify-between items-center">
+            <div className="inline-flex gap-1.5 items-center">
+              <IconImage src={pool.pool?.logoURI} size={8} mobileSize={6} />
+              <div className="pinto-sm text-pinto-secondary">{pool.pool?.symbol || ""}</div>
+            </div>
+            <div className="pinto-sm-bold sm:pinto-body-bold text-pinto-secondary sm:text-pinto-secondary gap-2 items-center flex flex-row">
+              ${formatter.number(pool.price, { minDecimals: 4, maxDecimals: 4 })}
+              <div className="text-pinto-gray-5 ml-2 -mr-10 group-hover:ml-0 group-hover:mr-0 hover:text-pinto-green-4 hover:cursor-pointer transition-all">
+                <ExternalLinkIcon color="currentColor" />
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-row relative">
+            <div className={"w-full h-2 rounded-l-[0.5rem]"} style={{ background: pool.tokens[0].color }} />
+            <div className={"w-full h-2 rounded-r-[0.5rem]"} style={{ background: pool.tokens[1].color }} />
+            <div
+              className={`${pool.deltaB.gt(0) ? "right-[50%] border-l-2" : "left-[50%] border-r-2"} h-2 border-white bg-white absolute max-w-[calc(50%_-_0.5rem)]`}
+              style={{ width: `${deltaBar}%` }}
+            />
+            <div
+              className={`${pool.deltaB.gt(0) ? "right-[50%] border-l-2" : "left-[50%] border-r-2"} h-2 border-white opacity-50 absolute max-w-[calc(50%_-_0.5rem)]`}
+              style={{
+                width: `${deltaBar}%`,
+                background: `${pool.deltaB.gt(0) ? pool.tokens[1].color : pool.tokens[0].color}`,
+              }}
+            />
+            <div className="left-[50%] absolute -bottom-2 flex flex-col">
+              <div className="pinto-xs text-[0.75rem] sm:pinto-xs text-pinto-lighter sm:text-pinto-lighter flex flex-col text-center -ml-4 mb-1">
+                <span className="invisible sm:visible">$1.00</span>
+                <span>target</span>
+              </div>
+              <div className="h-6 box-border text-center w-0 bg-white border-pinto-gray-3 border border-dashed" />
+            </div>
+          </div>
+          <div className="flex flex-row justify-between">
+            <div className="inline-flex gap-1 items-center flex-wrap">
+              <IconImage src={pool.tokens[0].logoURI} size={4} className="hidden sm:flex" />
+              <div className="pinto-xs sm:pinto-sm text-pinto-light sm:text-pinto-light text-left">
+                {`${pool.balances[0].toHuman("short")} ${pool.tokens[0].symbol} (~$${token0BalanceUsd.toHuman("short")})`}
+              </div>
+            </div>
+            <div className="inline-flex gap-1 items-center justify-end flex-wrap">
+              <IconImage src={pool.tokens[1].logoURI} size={4} className="hidden sm:flex" />
+              <div className="pinto-xs sm:pinto-sm text-pinto-light sm:text-pinto-light text-right">
+                {`${pool.balances[1].toHuman("short")} ${pool.tokens[1].symbol} (~$${token1BalanceUsd.toHuman("short")})`}
+              </div>
+            </div>
+          </div>
+          <div
+            className={`flex flex-row gap-4 justify-center transition-all duration-200 ease-in-out ${
+              expandAll ? "mb-0 opacity-100" : "-mb-8 sm:-mb-10 opacity-0 group-hover:mb-0 group-hover:opacity-100"
+            }`}
+          >
+            <div className="pinto-xs inline-flex font-normal leading-same-xs items-center px-2 py-0.5 h-6 bg-pinto-gray-blue rounded-[0.25rem]">
+              <span className="hidden sm:block">Liquidity: {formatter.usd(pool.liquidity)}</span>
+              <span className="sm:hidden">Liq: ${pool.liquidity.toHuman("ultraShort")}</span>
+            </div>
+            <div className="pinto-xs inline-flex font-normal leading-same-xs items-center px-2 py-0.5 h-6 text-pinto-green-3 bg-pinto-green-1 rounded-[0.25rem] gap-1">
+              <span className="hidden sm:block">ΔP: {formatter.twoDec(pool.deltaB, { showPositiveSign: true })}</span>
+              <span className="sm:hidden">ΔP: {pool.deltaB.toHuman("ultraShort", true)}</span>
+              <TooltipSimple content={"The current shortage or excess of Pinto in the pool."} />
+            </div>
+            <div
+              className={`pinto-xs inline-flex font-normal leading-same-xs items-center px-2 py-0.5 h-6 text-pinto-green-3 bg-pinto-green-1 rounded-[0.25rem] gap-1 transition-all duration-200 ease-in-out ${
+                useTwa ? "mb-0 opacity-100" : "-mb-6 opacity-0"
+              }`}
+            >
+              <span className="hidden sm:block">
+                TWAΔP: {formatter.twoDec(twaDeltaBMap?.[getTokenIndex(pool.pool)], { showPositiveSign: true })}
+              </span>
+              <span className="sm:hidden">
+                TWAΔP: {twaDeltaBMap?.[getTokenIndex(pool.pool)]?.toHuman("ultraShort")}
+              </span>
+              <TooltipSimple
+                content={
+                  "The time weighted average shortage or excess of Pinto in the pool since the beginning of the Season."
+                }
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Link>
+    </Card>
+  );
+};
 
 const panelProps = {
   className: "max-w-panel-price w-panel-price mt-4",
