@@ -83,7 +83,7 @@ function PriceButtonPanel() {
 
   return (
     <div
-      className="grid grid-rows-[auto_auto_auto]"
+      className="grid grid-rows-[auto_1fr_auto]"
       style={{ maxHeight: `calc(100vh - ${renderAnnouncement ? 7.5 : 5}rem)` }}
     >
       <CardHeader className="transition-all p-0 space-y-0 sm:space-y-1.5">
@@ -146,7 +146,7 @@ function PriceButtonPanel() {
         <Separator className="w-full" />
       </CardHeader>
       <CardContent className="px-3 pb-0 3xl:px-4 3xl:pb-4 3xl:pt-0 min-h-0 overflow-hidden">
-        <ScrollArea className="-mx-3 px-3 flex-1 transition-all">
+        <ScrollArea className="-mx-3 px-3 h-full transition-all">
           <div className="flex flex-col gap-3 sm:gap-4 mt-0 sm:mt-4 relative first:mt-3 last:mb-3 sm:first:mt-4 sm:last:mb-8">
             {showPrices && (
               <Button
