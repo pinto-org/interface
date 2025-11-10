@@ -71,13 +71,6 @@ export const getBlockchainNow = (timeOffsetMs: number): DateTime => {
 export const getIsMorning = (seasonTimestamp: DateTime, timeOffsetMs: number): boolean => {
   const blockchainNow = getBlockchainNow(timeOffsetMs);
   const secondsSinceSunrise = blockchainNow.diff(seasonTimestamp, "seconds").seconds;
-  console.log({
-    seasonTimestamp: seasonTimestamp.toFormat("HH:mm:ss"),
-    secondsSinceSunrise: secondsSinceSunrise,
-    timeSinceSunrise: getDiffNow(seasonTimestamp, timeOffsetMs),
-    blockchainNow: blockchainNow.toFormat("HH:mm:ss"),
-    isMorning: secondsSinceSunrise >= 0 && secondsSinceSunrise < MORNING_AUCTION_DURATION,
-  });
   return secondsSinceSunrise >= 0 && secondsSinceSunrise < MORNING_AUCTION_DURATION;
 };
 
