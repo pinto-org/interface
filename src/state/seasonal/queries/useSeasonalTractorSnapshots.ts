@@ -1,31 +1,124 @@
 import { SeasonalChartData } from "@/components/charts/SeasonalChart";
 import { API_SERVICES } from "@/constants/endpoints";
 import { UseSeasonalResult } from "@/utils/types";
+import { MayArray } from "@/utils/types.generic";
 import { useQuery } from "@tanstack/react-query";
+import { useCallback } from "react";
 
-type SowV0Snapshot = {
+// ==================== Base Tractor Snapshots ====================
+export type BaseTractorSnapshot = {
   snapshotTimestamp: string;
   snapshotBlock: number;
   season: number;
-  totalPintoSown: string;
-  totalPodsMinted: string;
-  totalCascadeFundedBelowTemp: string;
-  totalCascadeFundedAnyTemp: string;
-  maxSowThisSeason: string;
   totalTipsPaid: string;
   currentMaxTip: string;
   totalExecutions: number;
   uniquePublishers: number;
 };
 
-type TractorSnapshotResponse = {
-  lastUpdated: number;
-  snapshots: SowV0Snapshot[];
-  totalRecords: number;
+type SowV0SnapshotBase = {
+  totalPintoSown: string;
+  totalPodsMinted: string;
+  totalCascadeFundedBelowTemp: string;
+  totalCascadeFundedAnyTemp: string;
+  maxSowThisSeason: string;
 };
 
+type ConvertUpV0SnapshotBase = {
+  totalBeansConverted: string;
+  totalGsBonusStalk: string;
+  totalGsBonusBdv: string;
+  totalGsPenaltyStalk: string;
+  totalGsPenaltyBdv: string;
+  totalCascadeFunded: string;
+  totalCascadeFundedExecutable: string;
+};
+
+// ==================== Full Snapshot Types ====================
+
+export type SowV0Snapshot = BaseTractorSnapshot & SowV0SnapshotBase;
+
+export type ConvertUpV0Snapshot = BaseTractorSnapshot & ConvertUpV0SnapshotBase;
+
+export type AggregatedTractorSnapshot = BaseTractorSnapshot & SowV0Snapshot & ConvertUpV0Snapshot;
+
+export type TractorSnapshotV2 = {
+  SOW_V0: SowV0Snapshot[];
+  CONVERT_UP_V0: ConvertUpV0Snapshot[];
+};
+
+type BaseTractorSnapshotResponse<T> = {
+  lastUpdated: number;
+  totalRecords: number;
+  snapshots: T;
+};
+
+export type TractorSnapshotResponse = BaseTractorSnapshotResponse<SowV0Snapshot[]>;
+
+export type TractorSnapshotV2Response = BaseTractorSnapshotResponse<TractorSnapshotV2>;
+
+type TractorSnapshotOrderType = "SOW_V0" | "CONVERT_UP_V0";
+
+const sortBySeasonAsc = (a: { season: number }, b: { season: number }) => a.season - b.season;
+const sortBySeasonDesc = (a: { season: number }, b: { season: number }) => b.season - a.season;
+
+export function useSeasonalTractorSnapshotsV2(
+  orderTypes: MayArray<TractorSnapshotOrderType>,
+  fromSeason: number,
+  toSeason: number,
+  selectFn: (entry: TractorSnapshotV2) => SeasonalChartData[],
+  { orderBy = "asc", enabled = true } = {},
+) {
+  const select = useCallback(
+    (data: TractorSnapshotV2Response) => {
+      const sortFn = orderBy === "asc" ? sortBySeasonAsc : sortBySeasonDesc;
+      return selectFn(data.snapshots).sort(sortFn);
+    },
+    [orderBy, selectFn],
+  );
+
+  const dataQuery = useQuery({
+    queryKey: [
+      "tractor",
+      "snapshots",
+      Array.isArray(orderTypes) ? orderTypes.join(",") : orderTypes,
+      fromSeason,
+      toSeason,
+    ],
+    queryFn: async (): Promise<TractorSnapshotV2Response> => {
+      const res = await fetch(`${API_SERVICES.pinto}/tractor/v2/snapshots`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          orderTypes,
+          betweenSeasons: [fromSeason, toSeason],
+          limit: 50000,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const response = await res.json();
+      console.log("response", response);
+      return response;
+    },
+    select: select,
+    staleTime: Infinity,
+    gcTime: 20 * 60 * 1000,
+    enabled: enabled && orderTypes && fromSeason >= 0 && toSeason > 0,
+  });
+
+  return {
+    data: dataQuery.data,
+    isLoading: dataQuery.isLoading,
+    isError: dataQuery.isError,
+  };
+}
+
 export default function useSeasonalTractorSnapshots(
-  orderType: "SOW_V0",
+  orderType: TractorSnapshotOrderType,
   fromSeason: number,
   toSeason: number,
   selectFn: (entry: SowV0Snapshot) => SeasonalChartData,
