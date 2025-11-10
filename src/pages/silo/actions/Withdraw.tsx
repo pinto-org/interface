@@ -69,6 +69,13 @@ const getInitialWithdrawToken = (siloToken: Token) => {
   throw new Error("Invalid silo token");
 };
 
+interface WithdrawOutput {
+  amount: TokenValue;
+  stalkLost: TokenValue;
+  seedsLost: TokenValue;
+  bdvLost: TokenValue;
+}
+
 function Withdraw({ siloToken }: { siloToken: Token }) {
   const config = useConfig();
   const account = useAccount();
@@ -346,7 +353,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     }
   };
 
-  const withdrawOutput = useMemo(() => {
+  const withdrawOutput: WithdrawOutput | undefined = useMemo(() => {
     if (shouldConvertWithdraw) {
       return undefined;
     }
@@ -464,6 +471,14 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     (shouldConvertWithdraw && (!tokenOutAmount || tokenOutAmount.eq(0))) ||
     (!shouldSwap && !shouldConvertWithdraw && (!outputAmount || outputAmount.eq(0)));
 
+  const withdrawalOutputSiloLabels = withdrawOutput
+    ? getSiloLabels(withdrawOutput.stalkLost.mul(-1), withdrawOutput.seedsLost.mul(-1))
+    : undefined;
+  const convertOutputSiloLabels =
+    convertResult && shouldConvertWithdraw
+      ? getSiloLabels(convertResult.deltaStalk, convertResult.deltaSeed)
+      : undefined;
+
   return (
     <div className="flex flex-col gap-4">
       <div>
@@ -560,44 +575,32 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
             transition={{ duration: 0.1 }}
             className="relative overflow-hidden"
           >
-            {withdrawOutput &&
-              (() => {
-                const { stalkLabel, seedsLabel } = getSiloLabels(
-                  withdrawOutput.stalkLost.mul(-1),
-                  withdrawOutput.seedsLost.mul(-1),
-                );
-                return (
-                  <SiloOutputDisplay
-                    title=""
-                    stalk={withdrawOutput?.stalkLost}
-                    seeds={withdrawOutput?.seedsLost}
-                    stalkLabel={stalkLabel}
-                    seedsLabel={seedsLabel}
-                    showNegativeDeltas
-                    showGrownStalkSeasonsNotice
-                    grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
-                  />
-                );
-              })()}
-            {convertResult &&
-              shouldConvertWithdraw &&
-              (() => {
-                const { stalkLabel, seedsLabel } = getSiloLabels(convertResult.deltaStalk, convertResult.deltaSeed);
-                return (
-                  <SiloOutputDisplay
-                    title=""
-                    stalk={convertResult.deltaStalk.abs()}
-                    seeds={convertResult.deltaSeed.abs()}
-                    stalkLabel={stalkLabel}
-                    seedsLabel={seedsLabel}
-                    stalkDelta={convertResult.deltaStalk.toNumber()}
-                    seedsDelta={convertResult.deltaSeed.toNumber()}
-                    showNegativeDeltas
-                    showGrownStalkSeasonsNotice
-                    grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
-                  />
-                );
-              })()}
+            {withdrawOutput && withdrawalOutputSiloLabels ? (
+              <SiloOutputDisplay
+                title=""
+                stalk={withdrawOutput?.stalkLost}
+                seeds={withdrawOutput?.seedsLost}
+                stalkLabel={withdrawalOutputSiloLabels?.stalkLabel}
+                seedsLabel={withdrawalOutputSiloLabels?.seedsLabel}
+                showNegativeDeltas
+                showGrownStalkSeasonsNotice
+                grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
+              />
+            ) : null}
+            {convertResult && shouldConvertWithdraw && convertOutputSiloLabels ? (
+              <SiloOutputDisplay
+                title=""
+                stalk={convertResult.deltaStalk.abs()}
+                seeds={convertResult.deltaSeed.abs()}
+                stalkLabel={convertOutputSiloLabels?.stalkLabel}
+                seedsLabel={convertOutputSiloLabels?.seedsLabel}
+                stalkDelta={convertResult.deltaStalk.toNumber()}
+                seedsDelta={convertResult.deltaSeed.toNumber()}
+                showNegativeDeltas
+                showGrownStalkSeasonsNotice
+                grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
+              />
+            ) : null}
           </motion.div>
         )}
       </AnimatePresence>
@@ -637,6 +640,16 @@ const sharedButtonProps = {
 } as const;
 
 export default Withdraw;
+
+// const ConvertWithdrawOutput = ({
+//   convertResult,
+//   shouldConvertWithdraw,
+// }: {
+//   convertResult: SiloConvertResult;
+//   shouldConvertWithdraw: boolean;
+// }) => {
+//   if (!convertResult || !shouldConvertWithdraw) return null;
+// }
 
 const WithdrawTokenSelectRow = ({ token, onClick }: { token: Token; onClick: () => void }) => {
   return (
