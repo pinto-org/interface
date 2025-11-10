@@ -428,7 +428,6 @@ const selectTractorExecutionsData = (data: TractorSnapshotV2) => {
 };
 
 const selectTractorCumulativeTipsData = (data: TractorSnapshotV2) => {
-  console.log("data", data);
   return selectMultiOrderTypesV2Data(
     data,
     (data) => TV.fromBlockchain(data.totalTipsPaid, PINTO.decimals).toNumber(),
