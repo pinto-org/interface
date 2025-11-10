@@ -1,4 +1,5 @@
 import { TV } from "@/classes/TokenValue";
+import { SiloConvertTokenDirection } from "@/lib/siloConvert/types";
 import { tokensEqual } from "@/utils/token";
 import { Token } from "@/utils/types";
 import { AnyRecord } from "@/utils/types.generic";
@@ -15,11 +16,7 @@ export class SiloConvertValidationRules {
   /**
    * Validates token conversion patterns
    */
-  static validateConversionTokens(
-    expectedType: "default" | "LP2LP" | "default-down",
-    sourceToken: Token,
-    targetToken: Token,
-  ) {
+  static validateConversionTokens(expectedType: SiloConvertTokenDirection, sourceToken: Token, targetToken: Token) {
     // Basic token validation
     if (!sourceToken || !targetToken) {
       throw new InvalidConversionTokensError(sourceToken, targetToken, expectedType, "Missing source or target token");
@@ -75,11 +72,19 @@ export class SiloConvertValidationRules {
           `Default convert requires one main token but got source: ${sourceToken.symbol}(isMain:${sourceToken.isMain}) and target: ${targetToken.symbol}(isMain:${targetToken.isMain})`,
         );
       }
-    } else if (expectedType === "default-down") {
+    } else if (expectedType === "Main2LP") {
       if (!sourceToken.isMain || !targetToken.isLP) {
         const msg = !sourceToken.isMain
-          ? `Default down convert requires source token to be a main token but got source: ${sourceToken.symbol}(isMain:${sourceToken.isMain})`
-          : `Default down convert requires target token to be a LP token but got target: ${targetToken.symbol}(isLP:${targetToken.isLP})`;
+          ? `Main2LP convert requires source token to be a main token but got source: ${sourceToken.symbol}(isMain:${sourceToken.isMain})`
+          : `Main2LP convert requires target token to be a LP token but got target: ${targetToken.symbol}(isLP:${targetToken.isLP})`;
+
+        throw new InvalidConversionTokensError(sourceToken, targetToken, expectedType, msg);
+      }
+    } else if (expectedType === "LP2Main") {
+      if (!sourceToken.isLP || !targetToken.isMain) {
+        const msg = !sourceToken.isLP
+          ? `LP2Main convert requires source token to be a LP token but got source: ${sourceToken.symbol}(isLP:${sourceToken.isLP})`
+          : `LP2Main convert requires target token to be a main token but got target: ${targetToken.symbol}(isMain:${targetToken.isMain})`;
 
         throw new InvalidConversionTokensError(sourceToken, targetToken, expectedType, msg);
       }

@@ -8,6 +8,7 @@ import QuotedRoutesSelector from "@/components/QuotedRoutesSelector";
 import RoutingAndSlippageInfo from "@/components/RoutingAndSlippageInfo";
 import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
+import TextSkeleton from "@/components/TextSkeleton";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
@@ -48,12 +49,14 @@ import { useInvalidateSun } from "@/state/useSunData";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { getChainConstant, useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
+import { getSiloLabels } from "@/utils/silo";
 import { stringEq, stringToNumber } from "@/utils/string";
 import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { AddressMap, Token } from "@/utils/types";
 import { useDebounceValue } from "@/utils/useDebounce";
 import { cn, exists, noop } from "@/utils/utils";
 import { UseQueryResult, useQueryClient } from "@tanstack/react-query";
+import { AnimatePresence, motion } from "framer-motion";
 import React, {
   createContext,
   Dispatch,
@@ -97,8 +100,8 @@ function ConvertForm({
   const { mode, targetToken, setTargetToken } = useSiloConvertContext();
 
   const diamond = useProtocolAddress();
-  const pintoToken = useChainConstant(MAIN_TOKEN);
   const account = useAccount();
+
   const [amountIn, setAmountIn] = useState("");
   const [slippage, setSlippage] = useState(0.25);
   const [maxConvert, setMaxConvert] = useState(TV.ZERO);
@@ -163,7 +166,16 @@ function ConvertForm({
     data: quote,
     isLoading: quoteLoading,
     ...quoteQuery
-  } = useSiloConvertQuote(siloConvert, siloToken, targetToken, amountIn, convertibleDeposits, slippage, quoteEnabled);
+  } = useSiloConvertQuote(
+    siloConvert,
+    siloToken,
+    targetToken,
+    amountIn,
+    convertibleDeposits,
+    slippage,
+    undefined,
+    quoteEnabled,
+  );
 
   const [routeIndex, setRouteIndex] = useState<number | undefined>(undefined);
 
@@ -371,11 +383,7 @@ function ConvertForm({
     }
   }, [amountInNum, minAmountIn, showMinAmountWarning]);
 
-  // Auto-default target token to PINTO when converting from LP tokens
-  useEffect(() => {
-    if (!siloToken.isLP || targetToken || !pintoToken) return;
-    setTargetToken(pintoToken);
-  }, [siloToken.isLP, targetToken, pintoToken, setTargetToken]);
+  // Removed auto-default target token to allow users to explicitly select
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Reset stalk penalty toggle when amount in changes
   useEffect(() => {
@@ -421,7 +429,9 @@ function ConvertForm({
     submitting ||
     loading;
 
-  const getAltTextProps = () => {
+  const siloLabels = convertResult ? getSiloLabels(convertResult.deltaStalk, convertResult.deltaSeed) : null;
+
+  const altTextProps = useMemo(() => {
     let alt: string = "Deposited";
 
     if (canExceedMax) alt = "Convertible";
@@ -431,7 +441,7 @@ function ConvertForm({
       altText: `${alt} Balance:`,
       altTextMobile: `${alt}:`,
     };
-  };
+  }, [canExceedMax, hasGerminating]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -450,7 +460,7 @@ function ConvertForm({
           customMaxAmount={maxConvert}
           setAmount={setAmountIn}
           selectedToken={siloToken}
-          {...getAltTextProps()}
+          {...altTextProps}
           mode="balance"
           disableButton
           isLoading={targetToken && maxConvertLoading}
@@ -484,27 +494,45 @@ function ConvertForm({
           />
         </div>
       ) : null}
-      <ConvertTokenOutput route={selectedRoute} siloToken={siloToken} />
+      <ConvertTokenOutput route={selectedRoute} siloToken={siloToken} isLoading={quoteLoading} />
       <div className="flex flex-col">
-        {loading && !quoteQuery.isError ? (
-          <div className="flex flex-col w-full h-[181px] items-center justify-center">
-            <FrameAnimator size={64} />
-          </div>
-        ) : convertResult ? (
-          <>
-            <GerminatingStalkWarning
-              enabled={!!renderGerminatingStalkWarning}
-              germinatingStalk={convertResult.germinatingStalk}
-              germinatingSeasons={convertResult.germinatingSeasons}
-            />
-            <SiloOutputDisplay
-              amount={convertResult.totalAmountOut}
-              token={targetToken}
-              stalk={convertResult.deltaStalk}
-              seeds={convertResult.deltaSeed}
-            />
-          </>
-        ) : null}
+        <AnimatePresence mode="wait">
+          {((loading && !quoteQuery.isError) || convertResult) && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.1 }}
+              className="relative overflow-hidden"
+            >
+              {loading && !quoteQuery.isError ? (
+                <div className="flex flex-col w-full h-[181px] items-center justify-center">
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <FrameAnimator size={64} />
+                  </div>
+                </div>
+              ) : convertResult ? (
+                <>
+                  <GerminatingStalkWarning
+                    enabled={!!renderGerminatingStalkWarning}
+                    germinatingStalk={convertResult.germinatingStalk}
+                    germinatingSeasons={convertResult.germinatingSeasons}
+                  />
+                  {siloLabels && (
+                    <SiloOutputDisplay
+                      amount={convertResult.totalAmountOut}
+                      token={targetToken}
+                      stalk={convertResult.deltaStalk}
+                      seeds={convertResult.deltaSeed}
+                      stalkLabel={siloLabels.stalkLabel}
+                      seedsLabel={siloLabels.seedsLabel}
+                    />
+                  )}
+                </>
+              ) : null}
+            </motion.div>
+          )}
+        </AnimatePresence>
         {targetToken && isValidAmountIn && showRoutes && (
           <QuotedRoutesSelector
             quote={quote}
@@ -697,15 +725,18 @@ const ConvertTokenOutput = ({
   // amount,
   siloToken,
   route,
+  isLoading,
 }: {
   // amount: TV;
   siloToken: Token;
   route: SiloConvertSummary<SiloConvertType> | undefined;
+  isLoading?: boolean;
 }) => {
   const { targetToken } = useSiloConvertContext();
 
   const amount = route?.totalAmountOut ?? TV.ZERO;
-  const formattedAmount = targetToken ? formatter.token(amount, targetToken) : "0.00";
+  const isCalculating = Boolean(isLoading && targetToken);
+  const formattedAmount = targetToken && amount.gt(0) ? formatter.token(amount, targetToken) : "";
   const displayAmount = useDebounceValue(formattedAmount, 50);
 
   const postPriceData = route?.postPriceData;
@@ -732,11 +763,19 @@ const ConvertTokenOutput = ({
       <div className="flex flex-col w-full gap-1">
         <div className="flex flex-row items-center justify-between w-full">
           <div className="flex flex-col gap-1">
-            <div className="pinto-h3">{displayAmount}</div>
+            <div className="pinto-h3">
+              <TextSkeleton loading={isCalculating} height="h4" className="w-24">
+                {displayAmount}
+              </TextSkeleton>
+            </div>
           </div>
           <SiloConvertTokenSelect siloToken={siloToken} />
         </div>
-        <div className="pinto-sm-light text-pinto-light">{getDisplayUSD()}</div>
+        <div className="pinto-sm-light text-pinto-light">
+          <TextSkeleton loading={isCalculating} height="sm" className="w-16">
+            {targetToken && amount.gt(0) ? getDisplayUSD() : ""}
+          </TextSkeleton>
+        </div>
       </div>
     </div>
   );
@@ -843,7 +882,7 @@ const SiloConvertTokenSelectComponent = ({ siloToken }: BaseConvertProps) => {
             ) : (
               <div className="flex flex-col h-[140px] sm:h-[240px] justify-center items-center">
                 <div className="pinto-sm text-pinto-light">
-                  Converting to any other token from Pinto will result in a loss.
+                  Converting to another token will result in a loss in Seeds.
                 </div>
               </div>
             )}
@@ -892,7 +931,7 @@ const RecommendedConverts = ({
   if (!paths.length) {
     return (
       <div className="flex flex-col h-[140px] sm:h-[240px] justify-center items-center">
-        <div className="pinto-sm text-pinto-light">Converting to any other token from Pinto will result in a loss.</div>
+        <div className="pinto-sm text-pinto-light">Converting to another token will result in a loss in Seeds.</div>
       </div>
     );
   }

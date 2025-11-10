@@ -41,13 +41,13 @@ export default function StatPanelAltDisplay({
   const getSiloWrappedTooltip = () => {
     const amount = formatter.twoDec(totalSiloWrapped, { allowZero: true });
     if (hasSiloWrappedExternal && !hasSiloWrappedInternal) {
-      return `Value of ${amount} Wrapped Silo Pinto in your Wallet balance.`;
+      return `Value of ${amount} Wrapped Silo Pinto in your Wallet.`;
     } else if (!hasSiloWrappedExternal && hasSiloWrappedInternal) {
-      return `Value of ${amount} Wrapped Silo Pinto in your Farm balance.`;
+      return `Value of ${amount} Wrapped Silo Pinto in your Farm Wallet.`;
     } else if (hasSiloWrappedExternal && hasSiloWrappedInternal) {
-      return `Value of ${amount} Wrapped Silo Pinto in your Wallet / Farm balance.`;
+      return `Value of ${amount} Wrapped Silo Pinto in your Wallet / Farm Wallet.`;
     } else {
-      return "Value of the Wrapped Silo Pinto in your Wallet / Farm balance.";
+      return "Value of the Wrapped Silo Pinto in your Wallet / Farm Wallet.";
     }
   };
 
@@ -116,10 +116,10 @@ export default function StatPanelAltDisplay({
           onClick={() => openWalletPanel(false, true)}
         >
           <span className="inline-flex items-center gap-1">
-            <span>Farm Balance: {farmBalance.lte(0) ? "-" : formatter.usd(farmBalance)}</span>
+            <span>Farm Wallet: {farmBalance.lte(0) ? "-" : formatter.usd(farmBalance)}</span>
             <TooltipSimple
               variant="gray"
-              content={"Value of your Farm Balance, ERC-20 tokens stored by the protocol on your behalf."}
+              content={"Value of your Farm Wallet, ERC-20 tokens stored by the protocol on your behalf."}
             />
           </span>
           <span className="absolute top-4 opacity-0 transition-all sm:group-hover:top-6 sm:group-hover:opacity-100 pinto-sm-light text-pinto-gray-3 text-center w-full">

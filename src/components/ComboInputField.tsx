@@ -509,13 +509,13 @@ function ComboInputField({
                         {balanceFrom === FarmFromMode.EXTERNAL ? (
                           <>
                             <span className="sm:hidden">Wallet:</span>
-                            <span className="hidden sm:inline">Wallet Balance:</span>
+                            <span className="hidden sm:inline">External Wallet:</span>
                             {` ${balance.toHuman("short")}`}
                           </>
                         ) : balanceFrom === FarmFromMode.INTERNAL ? (
                           <>
                             <span className="sm:hidden">Farm:</span>
-                            <span className="hidden sm:inline">Farm Balance:</span>
+                            <span className="hidden sm:inline">Farm Wallet:</span>
                             {` ${balance.toHuman("short")}`}
                           </>
                         ) : (

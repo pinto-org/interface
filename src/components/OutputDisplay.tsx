@@ -12,7 +12,7 @@ export interface OutputDisplayProps {
 const OutputDisplay = ({ children, title = "I receive" }: OutputDisplayProps) => {
   return (
     <div className="flex flex-col w-full gap-4">
-      <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">{title}</div>
+      {title && <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">{title}</div>}
       <div className="flex flex-col gap-2 px-2">{children}</div>
     </div>
   );

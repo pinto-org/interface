@@ -1,5 +1,5 @@
 import { TokenValue } from "@/classes/TokenValue";
-import OutputDisplay from "@/components/OutputDisplay";
+import OutputDisplay, { DisplayValueProps } from "@/components/OutputDisplay";
 import { SEEDS, STALK } from "@/constants/internalTokens";
 import { formatSeasonsAsTime, formatter } from "@/utils/format";
 import { Token } from "@/utils/types";
@@ -15,6 +15,15 @@ interface SiloOutputDisplayProps {
   showNegativeDeltas?: boolean;
   showGrownStalkSeasonsNotice?: boolean;
   grownStalkSeasons?: number;
+  amountLabel?: string;
+  stalkLabel?: string;
+  seedsLabel?: string;
+  stalkDelta?: number;
+  seedsDelta?: number;
+  before?: {
+    label: string;
+    valueProps: DisplayValueProps;
+  };
 }
 
 export default function SiloOutputDisplay({
@@ -26,13 +35,24 @@ export default function SiloOutputDisplay({
   showNegativeDeltas = false,
   showGrownStalkSeasonsNotice = false,
   grownStalkSeasons = 0,
+  amountLabel = "Deposited Amount",
+  stalkLabel = "Stalk",
+  seedsLabel = "Seed",
+  stalkDelta,
+  seedsDelta,
+  before,
 }: SiloOutputDisplayProps) {
   const deltaMultiplier = showNegativeDeltas ? -1 : 1;
 
   return (
     <OutputDisplay title={title}>
+      {before ? (
+        <OutputDisplay.Item label={before.label}>
+          <OutputDisplay.Value {...before.valueProps} />
+        </OutputDisplay.Item>
+      ) : null}
       {amount && token && (
-        <OutputDisplay.Item label="Deposited Amount">
+        <OutputDisplay.Item label={amountLabel}>
           <OutputDisplay.Value
             value={formatter.token(amount, token)}
             token={token}
@@ -41,13 +61,23 @@ export default function SiloOutputDisplay({
           />
         </OutputDisplay.Item>
       )}
-      <OutputDisplay.Item label="Stalk">
+      <OutputDisplay.Item label={stalkLabel}>
         <OutputDisplay.Value
           value={formatter.twoDec(stalk)}
           suffix="Stalk"
-          delta={stalk.toNumber() * deltaMultiplier}
+          delta={stalkDelta !== undefined ? stalkDelta : stalk.toNumber() * deltaMultiplier}
           token={STALK}
           showArrow={stalk.toNumber() !== 0}
+          className="whitespace-nowrap"
+        />
+      </OutputDisplay.Item>
+      <OutputDisplay.Item label={seedsLabel}>
+        <OutputDisplay.Value
+          value={formatter.twoDec(seeds)}
+          suffix="Seeds"
+          delta={seedsDelta !== undefined ? seedsDelta : seeds.toNumber() * deltaMultiplier}
+          token={SEEDS}
+          showArrow={seeds.toNumber() !== 0}
           className="whitespace-nowrap"
         />
       </OutputDisplay.Item>
@@ -71,16 +101,6 @@ export default function SiloOutputDisplay({
           </div>
         </Warning>
       )}
-      <OutputDisplay.Item label="Seed">
-        <OutputDisplay.Value
-          value={formatter.twoDec(seeds)}
-          suffix="Seeds"
-          delta={seeds.toNumber() * deltaMultiplier}
-          token={SEEDS}
-          showArrow={seeds.toNumber() !== 0}
-          className="whitespace-nowrap"
-        />
-      </OutputDisplay.Item>
     </OutputDisplay>
   );
 }

@@ -2,11 +2,14 @@ import { TV } from "@/classes/TokenValue";
 import { defaultQuerySettingsQuote } from "@/constants/query";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useSafeTokenValue from "@/hooks/useSafeTokenValue";
-import { SiloConvert } from "@/lib/siloConvert/SiloConvert";
+import { SiloConvert, SiloConvertQuoteOptions, SiloConvertSummary } from "@/lib/siloConvert/SiloConvert";
 import { MaxConvertResult } from "@/lib/siloConvert/SiloConvert.maxConvertQuoter";
+import { ConvertStrategyQuote, SiloConvertType } from "@/lib/siloConvert/strategies/core/types";
+import { SiloConvertLP2MainWithdrawPairStrategy as LP2MainWithdrawPairStrategy } from "@/lib/siloConvert/strategies/implementations";
+import { PipelineConvertStrategyAndArgs } from "@/lib/siloConvert/types";
 import { queryKeys } from "@/state/queryKeys";
 import { stringEq } from "@/utils/string";
-import { DepositData, Token, TokenDepositData } from "@/utils/types";
+import { AdvancedFarmCall, DepositData, FarmToMode, Token, TokenDepositData } from "@/utils/types";
 import { isDev } from "@/utils/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef } from "react";
@@ -145,6 +148,9 @@ export function useSiloMaxConvertQuery(
  * @param enabled - Whether the query should be enabled
  * @returns Query result with SiloConvertSummary array containing class instances
  */
+
+const emptyQuoteOptions: SiloConvertQuoteOptions = {};
+
 export function useSiloConvertQuote(
   siloConvert: SiloConvert,
   source: Token,
@@ -152,13 +158,22 @@ export function useSiloConvertQuote(
   amountIn: string,
   convertibleDeposits: DepositData[] | undefined,
   slippage: number,
+  options: SiloConvertQuoteOptions = emptyQuoteOptions,
   enabled: boolean = true,
 ) {
   const account = useAccount();
 
   const queryKey = useMemo(
-    () => queryKeys.silo.convert.quote(account.address, source.address, target?.address, amountIn, slippage),
-    [account.address, source.address, target?.address, amountIn, slippage],
+    () =>
+      queryKeys.silo.convert.quote(
+        account.address,
+        source.address,
+        target?.address,
+        amountIn,
+        options.isPairWithdrawal ?? false,
+        slippage,
+      ),
+    [account.address, source.address, target?.address, amountIn, options.isPairWithdrawal, slippage],
   );
 
   const sourceAmount = useSafeTokenValue(amountIn, source.decimals);
@@ -173,7 +188,7 @@ export function useSiloConvertQuote(
       }
 
       try {
-        return await siloConvert.quote(source, target, convertibleDeposits, sourceAmount, slippage, signal);
+        return await siloConvert.quote(source, target, convertibleDeposits, sourceAmount, slippage, options, signal);
       } catch (e) {
         // Don't log or throw for aborted requests
         if (e instanceof Error && e.name === "AbortError") {
@@ -207,5 +222,34 @@ export function useSiloConvertQuote(
     toast.error(msg);
   }, [query.error, target?.address, isDefaultConvert, sourceAmount]);
 
-  return { ...query, queryKey };
+  // This gets the quote & rebuilds it to be a withdrawal quote w/ the proper FarmToMode
+  const rebuildConvertWithdrawal = useCallback(
+    (
+      convertQuotes: SiloConvertSummary<SiloConvertType>[],
+      mode: FarmToMode,
+    ): PipelineConvertStrategyAndArgs<"LP2MainWithdrawPair">[] | undefined => {
+      const argsAndStrategies: PipelineConvertStrategyAndArgs<"LP2MainWithdrawPair">[] = [];
+
+      for (const convertQuote of convertQuotes) {
+        if (convertQuote.route.convertType !== "LP2MainWithdrawPair") continue;
+
+        convertQuote.route.strategies.forEach(({ strategy }, i) => {
+          const thisQuote = convertQuote.quotes[i];
+          const reArgs = LP2MainWithdrawPairStrategy.rebuildCallStructFromQuoteAndMode(
+            strategy.context,
+            thisQuote,
+            mode,
+          );
+          if (reArgs) {
+            argsAndStrategies.push(reArgs);
+          }
+        });
+      }
+
+      return argsAndStrategies.length ? argsAndStrategies : undefined;
+    },
+    [],
+  );
+
+  return { ...query, rebuildConvertWithdrawal, queryKey };
 }

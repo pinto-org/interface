@@ -2,7 +2,6 @@ import { Clipboard } from "@/classes/Clipboard";
 import { TV } from "@/classes/TokenValue";
 import { abiSnippets } from "@/constants/abiSnippets";
 import { PIPELINE_ADDRESS } from "@/constants/address";
-import encoders from "@/encoders";
 import { pipelineAddress } from "@/generated/contractHooks";
 import { AdvancedFarmWorkflow, AdvancedPipeWorkflow } from "@/lib/farm/workflow";
 import { ZeroX } from "@/lib/matcha/ZeroX";
@@ -15,6 +14,7 @@ import { Token } from "@/utils/types";
 import { HashString } from "@/utils/types.generic";
 import { throwIfAborted } from "@/utils/utils";
 import { decodeFunctionResult, encodeFunctionData } from "viem";
+import { quoteSiloConvertGetWellRemoveLiquidity } from "../../utils";
 
 class Eq2EQStrategy extends LP2LPStrategy implements ConvertStrategyWithSwap {
   readonly name = "LP2LP_EQ2EQ";
@@ -152,46 +152,7 @@ class Eq2EQStrategy extends LP2LPStrategy implements ConvertStrategyWithSwap {
     pickedCratesDetails: ExtendedPickedCratesDetails,
     workflow: AdvancedFarmWorkflow,
   ): Promise<TV[]> {
-    // Validation
-    this.errorHandler.validateAmount(pickedCratesDetails.totalAmount, "remove liquidity amount");
-
-    const pipe = new AdvancedPipeWorkflow(this.context.chainId, this.context.wagmiConfig);
-    const [token0, token1] = this.sourceWell.tokens;
-
-    pipe.add(encoders.well.getRemoveLiquidityOut(this.sourceWell.pool, pickedCratesDetails.totalAmount));
-
-    const simulate = await this.errorHandler.wrapAsync(
-      () =>
-        workflow.simulate({
-          after: pipe,
-          account: this.context.account,
-        }),
-      "remove liquidity simulation",
-      { amountIn: pickedCratesDetails.totalAmount.toHuman(), account: this.context.account },
-    );
-
-    // Validate simulation results
-    this.errorHandler.validateSimulation(simulate, "remove liquidity simulation");
-
-    const result = this.errorHandler.wrap(
-      () => this.decodeRemoveLiquidityResult(simulate.result),
-      "decode remove liquidity result",
-      { resultLength: simulate.result.length },
-    );
-
-    const amounts: TV[] = this.errorHandler.wrap(
-      () => [TV.fromBigInt(result[0], token0.decimals), TV.fromBigInt(result[1], token1.decimals)],
-      "convert remove liquidity amounts",
-      { token0: token0.symbol, token1: token1.symbol },
-    );
-
-    console.debug("[PipelineConvertStrategy/Equal2Equal] getRemoveLiquidityOut: ", {
-      well: this.sourceWell.pool.name,
-      amountIn: pickedCratesDetails.totalAmount,
-      amountsOut: amounts,
-    });
-
-    return amounts;
+    return quoteSiloConvertGetWellRemoveLiquidity(pickedCratesDetails, workflow, this);
   }
 
   async getAddLiquidityOut(amountsIn: TV[], advFarm: AdvancedFarmWorkflow): Promise<TV> {
@@ -311,7 +272,7 @@ class Eq2EQStrategy extends LP2LPStrategy implements ConvertStrategyWithSwap {
       ),
     );
 
-    // 4: transfer swap result to target well
+    // 5: transfer swap result to target well
     pipe.add(
       Eq2EQStrategy.snippets.erc20Transfer(
         validatedSwap.buyToken,
@@ -321,17 +282,32 @@ class Eq2EQStrategy extends LP2LPStrategy implements ConvertStrategyWithSwap {
       ),
     );
 
-    // 5: transfer from from.well.tokens[non-bean index] to target well
+    // 6: transfer from from.well.tokens[bean index] to target well
+
     pipe.add(
       Eq2EQStrategy.snippets.erc20Transfer(
         source.well.tokens[sellTokenIndex === 1 ? 0 : 1],
         target.well.pool.address,
         TV.MAX_UINT256, // overriden w/ clipboard
-        Clipboard.encodeSlot(1, 2, 1),
+        /**
+         * returnDataIndex: 1 -> removeLiquidity happens at index 1
+         *
+         * copySlot:
+         * removeLiquidity pipeline(index 1) returns an array:
+         *    index 0 -> location of length of data
+         *    index 1 -> length of data
+         *    index 2 -> amount of tokens[0] removed
+         *    index 3 -> amount of tokens[1] removed
+         * ---> If sourceIndexes.main is 0, then the main token is the 1st token in the array (index 2)
+         *
+         * token.transfer(recipient, amount);
+         * ---> pasteSlot: index 1
+         */
+        Clipboard.encodeSlot(1, this.sourceIndexes.main === 0 ? 2 : 3, 1),
       ),
     );
 
-    // 6. Call Sync on target well
+    // 7. Call Sync on target well
     pipe.add(
       Eq2EQStrategy.snippets.wellSync(
         target.well,
@@ -361,40 +337,6 @@ class Eq2EQStrategy extends LP2LPStrategy implements ConvertStrategyWithSwap {
   }
 
   // ------------------------------ Decoders ------------------------------ //
-
-  private decodeRemoveLiquidityResult(data: readonly HashString[]) {
-    this.errorHandler.assert(data.length > 0, "Remove liquidity result data is empty", {
-      dataLength: data.length,
-    });
-
-    const decoded = this.errorHandler.wrap(
-      () =>
-        decodeFunctionResult({
-          abi: abiSnippets.advancedPipe,
-          functionName: "advancedPipe",
-          data: data[data.length - 1],
-        }),
-      "decode advanced pipe result",
-      { dataLength: data.length },
-    );
-
-    this.errorHandler.assert(decoded.length > 0, "Decoded advanced pipe result is empty", {
-      decodedLength: decoded.length,
-    });
-
-    const removeLiquidityResult = this.errorHandler.wrap(
-      () =>
-        decodeFunctionResult({
-          abi: abiSnippets.wells.getRemoveLiquidityOut,
-          functionName: "getRemoveLiquidityOut",
-          data: decoded[decoded.length - 1],
-        }),
-      "decode remove liquidity result",
-      { decodedLength: decoded.length },
-    );
-
-    return removeLiquidityResult;
-  }
 
   private decodeAddLiquidityResult(data: readonly HashString[]) {
     this.errorHandler.assert(data.length > 0, "Add liquidity result data is empty", {

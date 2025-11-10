@@ -3,7 +3,7 @@ import { ITTLCache, InMemoryTTLCache } from "@/classes/TTLCache";
 import { TV } from "@/classes/TokenValue";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import encoders from "@/encoders";
-import { PriceContractPriceResult, decodePriceResult } from "@/encoders/ecosystem/price";
+import { PriceContractPriceResult } from "@/encoders/ecosystem/price";
 import junctionGte from "@/encoders/junction/junctionGte";
 import { AdvancedFarmWorkflow, AdvancedPipeWorkflow } from "@/lib/farm/workflow";
 import { getChainConstant } from "@/utils/chain";
@@ -18,8 +18,8 @@ import { MaxConvertResult, SiloConvertMaxConvertQuoter } from "./SiloConvert.max
 import { SiloConvertRoute, SiloConvertStrategizer } from "./siloConvert.strategizer";
 import { ConvertStrategyQuote } from "./strategies/core";
 import { SiloConvertType } from "./strategies/core";
-import { DefaultConvertStrategy } from "./strategies/implementations";
-import { ConversionQuotationError, SimulationError } from "./strategies/validation/SiloConvertErrors";
+import { DefaultConvertStrategy, SiloConvertLP2MainWithdrawPairStrategy } from "./strategies/implementations";
+import { ConversionQuotationError, SiloConvertError, SimulationError } from "./strategies/validation/SiloConvertErrors";
 import { SiloConvertContext } from "./types";
 import { decodeConvertResults } from "./utils";
 
@@ -106,6 +106,10 @@ export interface ConvertResultStruct<T = TV> {
    */
   toBdv: T;
 }
+
+export type SiloConvertQuoteOptions = {
+  isPairWithdrawal?: boolean;
+};
 
 export interface SiloConvertSummary<T extends SiloConvertType> {
   route: SiloConvertRoute<T>;
@@ -195,11 +199,12 @@ export class SiloConvert {
     farmerDeposits: DepositData[],
     amountIn: TV,
     slippage: number,
+    options: SiloConvertQuoteOptions = {},
     signal?: AbortSignal,
     forceUpdateCache: boolean = false,
   ): Promise<SiloConvertSummary<SiloConvertType>[]> {
     try {
-      return this._quote(source, target, farmerDeposits, amountIn, slippage, signal, forceUpdateCache);
+      return this._quote(source, target, farmerDeposits, amountIn, slippage, options, signal, forceUpdateCache);
     } catch (_e) {
       // Don't retry if the request was aborted
       if (_e instanceof Error && _e.name === "AbortError") {
@@ -207,7 +212,7 @@ export class SiloConvert {
       }
       console.debug("[SiloConvert/quote] Failed to quote, retrying with forceUpdateCache: ", forceUpdateCache);
       // if we fail to quote, force update the caches and try again.
-      return this._quote(source, target, farmerDeposits, amountIn, slippage, signal, true);
+      return this._quote(source, target, farmerDeposits, amountIn, slippage, options, signal, true);
     }
   }
 
@@ -220,13 +225,14 @@ export class SiloConvert {
     farmerDeposits: DepositData[],
     amountIn: TV,
     slippage: number,
+    options: SiloConvertQuoteOptions = {},
     signal?: AbortSignal,
     forceUpdateCache: boolean = false,
   ): Promise<SiloConvertSummary<SiloConvertType>[]> {
     // Check if already aborted
     throwIfAborted(signal);
     await this.priceCache.update(forceUpdateCache).catch((e) => {
-      console.error("[SiloConvert/quote] FAILED to update cache: ", e);
+      logError("[SiloConvert/quote] FAILED to update cache: ", e);
       throw new ConversionQuotationError(e instanceof Error ? e.message : "Failed to update cache", {
         source,
         target,
@@ -243,8 +249,8 @@ export class SiloConvert {
       this.scalarCache.clear();
     }
 
-    const routes = await this.strategizer.strategize(source, target, amountIn).catch((e) => {
-      console.error("[SiloConvert/quote] FAILED to strategize: ", e);
+    const routes = await this.strategizer.strategize(source, target, amountIn, options).catch((e) => {
+      logError("[SiloConvert/quote] FAILED to strategize: ", e);
       throw new ConversionQuotationError(e instanceof Error ? e.message : "Failed to strategize", {
         source,
         target,
@@ -270,7 +276,7 @@ export class SiloConvert {
           try {
             quote = await strategy.strategy.quote(crates[i], advFarm, slippage, signal);
           } catch (e) {
-            console.error(`[SiloConvert/quote${i}] FAILED: `, strategy, e);
+            logError(`[SiloConvert/quote${i}] FAILED: `, e);
             throw e;
           }
           advFarm.add(strategy.strategy.encodeFromQuote(quote));
@@ -285,10 +291,8 @@ export class SiloConvert {
         };
       }),
     ).catch((e) => {
-      console.error("[SiloConvert/quote] FAILED to quote routes: ", e);
-      throw new ConversionQuotationError(e instanceof Error ? e.message : "Failed to quote routes", {
-        routes,
-      });
+      logError("[SiloConvert/quote] FAILED to quote routes: ", e);
+      throw e;
     });
 
     const simulationsRawResults = await Promise.all(
@@ -299,7 +303,7 @@ export class SiloConvert {
             after: this.priceCache.constructPriceAdvPipe({ noTokenPrices: true }),
           })
           .catch((e) => {
-            console.error("[SiloConvert/quote] FAILED to simulate routes : ", route, e);
+            logError("[SiloConvert/quote] FAILED to simulate routes : ", e);
             throw new SimulationError("quote", e instanceof Error ? e.message : "Unknown error", {
               routes,
               quotedRoutes,
@@ -331,7 +335,7 @@ export class SiloConvert {
       try {
         decoded = this.decodeRouteAndPriceResults(staticCallResult, route.route);
       } catch (e) {
-        console.error("[SiloConvert/quote] FAILED to decode route and price results: ", e);
+        logError("[SiloConvert/quote] FAILED to decode route and price results: ", e);
         throw new ConversionQuotationError("Failed to decode route and price results", {
           staticCallResult,
           route,
@@ -371,19 +375,10 @@ export class SiloConvert {
         return s.strategy instanceof DefaultConvertStrategy && s.strategy.grownStalkPenaltyExpected;
       });
 
-    /**
-     * In the case where the user is incurring a grown stalk penalty,
-     * we want to sort the crates by stem to minimize grown stalk loss.
-     * Otherwise, we want to sort the crates by bdv.
-     *
-     * For any given deposit,
-     * As the grown stalk per deposit increases,
-     * the amount of grown stalk lost increases.
-     *
-     * Therefore, we want to sort the crates by stem in descending order.
-     */
+    const isWithdrawal = route.strategies.some((s) => s.strategy instanceof SiloConvertLP2MainWithdrawPairStrategy);
 
-    const sortBy = incursGSPenalty ? "stem" : "bdv";
+    // If the route incurs a penalty, sort the crates by stem to minimize grown stalk loss. Otherwise, sort by bdv
+    const sortBy = incursGSPenalty || isWithdrawal ? "stem" : "bdv";
     const sortOrder = sortBy === "stem" ? "desc" : "asc";
 
     const crates = pickCratesMultiple(farmerDeposits, sortBy, sortOrder, amounts);
@@ -439,7 +434,7 @@ export class SiloConvert {
         ),
       };
     } catch (e) {
-      console.error("[SiloConvert/decodeRouteAndPriceResults] FAILED to decode convert and price results: ", e);
+      logError("[SiloConvert/decodeRouteAndPriceResults] FAILED to decode convert and price results: ", e);
       throw new Error("Failed to decode convert and price results");
     }
   }
@@ -461,17 +456,14 @@ export class SiloConvert {
 
     return pipe;
   }
+}
 
-  /**
-   * Returns an empty pipeline convert quote.
-   */
-  // getEmptyResult() {
-  //   return {
-  //     workflow: new AdvancedFarmWorkflow(8543, defaultWagmiConfig),
-  //     quotes: [] as ConvertStrategyQuote<SiloConvertType>[],
-  //     totalAmountOut: TV.ZERO,
-  //     results: [] as ConvertResultStruct<TV>[],
-  //     postPriceData: undefined,
-  //   };
-  // }
+function logError(prefix: string, e: unknown) {
+  if (e instanceof SiloConvertError) {
+    console.error(prefix, e.toLogObject());
+  } else if (e instanceof Error) {
+    console.error(prefix, e.message);
+  } else {
+    console.error("[SiloConvert] Unknown error: ", e);
+  }
 }
