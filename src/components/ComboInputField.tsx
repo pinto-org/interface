@@ -28,9 +28,31 @@ import PlotSelect from "./PlotSelect";
 import TextSkeleton from "./TextSkeleton";
 import TokenSelectWithBalances, { TransformTokenLabelsFunction } from "./TokenSelectWithBalances";
 import { Button } from "./ui/Button";
+import { Input } from "./ui/Input";
 import { Skeleton } from "./ui/Skeleton";
+import { Slider } from "./ui/Slider";
 
 const ETH_GAS_RESERVE = TokenValue.fromHuman("0.0003333333333", 18); // Reserve $1 of gas if eth is $3k
+
+/**
+ * Convert slider value (0-100) to TokenValue
+ */
+const sliderToTokenValue = (sliderValue: number, maxAmount: TokenValue): TokenValue => {
+  const percentage = sliderValue / 100;
+  return maxAmount.mul(percentage);
+};
+
+/**
+ * Convert TokenValue to slider value (0-100)
+ */
+const tokenValueToSlider = (tokenValue: TokenValue, maxAmount: TokenValue): number => {
+  if (maxAmount.eq(0)) return 0;
+  return tokenValue.div(maxAmount).mul(100).toNumber();
+};
+
+const TextAdornment = ({ text, className }: { text: string; className?: string }) => {
+  return <div className={cn("text-black pinto-sm-light mr-2", className)}>{text}</div>;
+};
 
 export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
   // Token mode props
@@ -75,6 +97,10 @@ export interface ComboInputProps extends InputHTMLAttributes<HTMLInputElement> {
 
   // Token select props
   transformTokenLabels?: TransformTokenLabelsFunction;
+
+  // Slider props
+  enableSlider?: boolean;
+  sliderMarkers?: number[];
 }
 
 function ComboInputField({
@@ -112,6 +138,8 @@ function ComboInputField({
   selectKey,
   transformTokenLabels,
   placeholder,
+  enableSlider,
+  sliderMarkers,
 }: ComboInputProps) {
   const tokenData = useTokenData();
   const { balances } = useFarmerBalances();
@@ -269,6 +297,18 @@ function ComboInputField({
     },
     [connectedAccount, setError],
   );
+
+  /**
+   * Reset amount when token changes
+   */
+  useEffect(() => {
+    setInternalAmount(TokenValue.ZERO);
+    setDisplayValue("0");
+    if (setAmount) {
+      setAmount("0");
+      lastInternalAmountRef.current = "0";
+    }
+  }, [selectedToken, setAmount]);
 
   /**
    * Clamp the internal amount to the max amount
@@ -436,6 +476,58 @@ function ComboInputField({
     return sortedPlots.map((plot) => truncateHex(plot.idHex)).join(", ");
   }, [selectedPlots]);
 
+  // Calculate slider value from internal amount
+  const sliderValue = useMemo(() => {
+    if (!enableSlider || maxAmount.eq(0)) return 0;
+    return tokenValueToSlider(internalAmount, maxAmount);
+  }, [enableSlider, internalAmount, maxAmount]);
+
+  // Handle slider value changes
+  const handleSliderChange = useCallback(
+    (values: number[]) => {
+      if (disableInput || !enableSlider) return;
+
+      const sliderVal = values[0] ?? 0;
+      const tokenVal = sliderToTokenValue(sliderVal, maxAmount);
+
+      setIsUserInput(true);
+      setInternalAmount(tokenVal);
+      setDisplayValue(tokenVal.toHuman());
+      handleSetError(tokenVal.gt(maxAmount));
+    },
+    [disableInput, enableSlider, maxAmount, handleSetError],
+  );
+
+  // Handle percentage input changes
+  const handlePercentageChange = useCallback(
+    (value: string) => {
+      if (disableInput || !enableSlider) return;
+
+      // Allow empty string or valid number input
+      if (value === "") {
+        const tokenVal = TokenValue.ZERO;
+        setIsUserInput(true);
+        setInternalAmount(tokenVal);
+        setDisplayValue(tokenVal.toHuman());
+        return;
+      }
+
+      // Sanitize and validate percentage input (0-100)
+      const numValue = parseFloat(value);
+      if (Number.isNaN(numValue)) return;
+
+      // Clamp between 0 and 100
+      const clampedPct = Math.max(0, Math.min(100, numValue));
+      const tokenVal = sliderToTokenValue(clampedPct, maxAmount);
+
+      setIsUserInput(true);
+      setInternalAmount(tokenVal);
+      setDisplayValue(tokenVal.toHuman());
+      handleSetError(tokenVal.gt(maxAmount));
+    },
+    [disableInput, enableSlider, maxAmount, handleSetError],
+  );
+
   return (
     <>
       <div
@@ -565,6 +657,37 @@ function ComboInputField({
                     <div className="pinto-sm px-1.5 py-1 text-pinto-green-3">Max</div>
                   </Button>
                 )}
+              </div>
+            </div>
+          )}
+          {enableSlider && (
+            <div className="mt-2">
+              <div className="flex flex-row items-center gap-3">
+                <div className="flex-1">
+                  <Slider
+                    min={0}
+                    max={100}
+                    step={0.1}
+                    value={[sliderValue]}
+                    onValueChange={handleSliderChange}
+                    markers={sliderMarkers}
+                    disabled={disableInput || maxAmount.eq(0)}
+                  />
+                </div>
+                <div className="flex items-center gap-1">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    value={sliderValue ? formatter.noDec(sliderValue) : ""}
+                    onChange={(e) => handlePercentageChange(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    placeholder={formatter.noDec(sliderValue)}
+                    outlined
+                    containerClassName="w-[6rem]"
+                    disabled={disableInput || maxAmount.eq(0)}
+                    endIcon={<TextAdornment text="%" className="bg-white" />}
+                  />
+                </div>
               </div>
             </div>
           )}

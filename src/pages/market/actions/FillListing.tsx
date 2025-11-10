@@ -47,7 +47,7 @@ import { useAccount } from "wagmi";
 // Configuration constants
 const PRICE_PER_POD_CONFIG = {
   MAX: 1,
-  MIN: 0,
+  MIN: 0.001,
   DECIMALS: 6,
   DECIMAL_MULTIPLIER: 1_000_000, // 10^6 for 6 decimals
 } as const;
@@ -755,6 +755,8 @@ export default function FillListing() {
               filterTokens={filterTokens}
               altText={balanceExceedsMax ? "Usable balance:" : undefined}
               disableClamping={true}
+              enableSlider
+              sliderMarkers={[25, 50, 75]}
             />
             {!isUsingMain && amountInTV.gt(0) && (
               <RoutingAndSlippageInfo

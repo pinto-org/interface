@@ -488,6 +488,8 @@ export default function CreateOrder() {
               filterTokens={filterTokens}
               tokenSelectLoading={preferredLoading || !didSetPreferred}
               disableClamping={true}
+              enableSlider
+              sliderMarkers={[25, 50, 75]}
             />
             {shouldSwap && amountInTV.gt(0) && (
               <RoutingAndSlippageInfo
