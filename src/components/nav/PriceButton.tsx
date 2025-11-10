@@ -190,56 +190,12 @@ function PriceButtonPanel() {
               </div>
             </div>
           </div>
-          <div className="flex flex-row relative pt-2.5 sm:pt-6">
-            <div
-              className={"h-2 rounded-l-[0.5rem] bg-pinto min-w-2"}
-              style={{
-                width: `${Number(totalDeltaBar.add(50).toHuman())}%`,
-              }}
-            />
-            <div
-              className={"h-2 w-full relative flex flex-row min-w-2 rounded-r-[0.5rem] overflow-clip bg-red-500"}
-              style={{
-                width: `${totalDeltaBar.add(50).sub(100).abs().toHuman()}%`,
-              }}
-            >
-              {whitelistedPools.map((pool, i) => {
-                const liquidityPercentage = totalLiquidity.gt(0)
-                  ? Number(pool.liquidity.div(totalLiquidity).mul(100).toHuman()).toFixed(2)
-                  : "0";
-                if (!pool.pool?.color) return;
-                return (
-                  <div
-                    key={`${pool.pool.address}_bar_${i}`}
-                    className={`${i === 0 ? "border-l-0" : "border-l-2"} border-white min-w-2`}
-                    style={{
-                      background: pool.pool.color,
-                      width: `${liquidityPercentage}%`,
-                    }}
-                  />
-                );
-              })}
-            </div>
-            <div
-              className={`${combinedDeltaB.gt(0) ? "right-[50%] border-l-2" : "left-[50%] border-r-2"} h-2 bg-white opacity-50 absolute max-w-[calc(50%_-_0.5rem)]`}
-              style={{
-                width: `${totalDeltaBar.abs().toHuman()}%`,
-              }}
-            />
-            <div
-              className={`${combinedDeltaB.gt(0) ? "right-[50%] border-l-2" : "left-[50%] border-r-2"} h-2 bg-transparent border-white absolute max-w-[calc(50%_-_0.5rem)]`}
-              style={{
-                width: `${totalDeltaBar.abs().toHuman()}%`,
-              }}
-            />
-            <div className="left-[50%] absolute -bottom-2 flex flex-col">
-              <div className="pinto-xs text-pinto-lighter flex flex-col text-center -ml-4 mb-1">
-                <span className="hidden sm:block">$1.00</span>
-                {/* <span>target</span> */}
-              </div>
-              <div className="h-6 border-box text-center w-0 bg-white border-pinto-gray-3 border border-dashed" />
-            </div>
-          </div>
+          <WhitelistedWellLiquidityInfoChart
+            whitelistedPools={whitelistedPools}
+            totalLiquidity={totalLiquidity}
+            combinedDeltaB={combinedDeltaB}
+            totalDeltaBar={totalDeltaBar}
+          />
         </div>
         <Separator className="w-full" />
       </CardHeader>
@@ -390,6 +346,10 @@ const PriceButton = memo(({ isOpen = false, togglePanel, ...props }: IPriceButto
     </Panel>
   );
 });
+
+// ------------------------------------------------------------
+// COMPONENTS
+// ------------------------------------------------------------
 
 const PoolGroup = ({
   priceDisplayEnabled = false,
@@ -590,6 +550,73 @@ const PoolCard = ({ pool, chainId, priceData, expandAll, useTwa, twaDeltaBMap }:
         </CardContent>
       </Link>
     </Card>
+  );
+};
+
+interface WhitelistedWellLiquidityInfoChartProps {
+  whitelistedPools: PoolData[];
+  totalLiquidity: TokenValue;
+  combinedDeltaB: TokenValue;
+  totalDeltaBar: TokenValue;
+}
+
+const WhitelistedWellLiquidityInfoChart = ({
+  whitelistedPools,
+  totalLiquidity,
+  combinedDeltaB,
+  totalDeltaBar,
+}: WhitelistedWellLiquidityInfoChartProps) => {
+  return (
+    <div className="flex flex-row relative pt-2.5 sm:pt-6">
+      <div
+        className={"h-2 rounded-l-[0.5rem] bg-pinto min-w-2"}
+        style={{
+          width: `${Number(totalDeltaBar.add(50).toHuman())}%`,
+        }}
+      />
+      <div
+        className={"h-2 w-full relative flex flex-row min-w-2 rounded-r-[0.5rem] overflow-clip bg-red-500"}
+        style={{
+          width: `${totalDeltaBar.add(50).sub(100).abs().toHuman()}%`,
+        }}
+      >
+        {whitelistedPools.map((pool, i) => {
+          const liquidityPercentage = totalLiquidity.gt(0)
+            ? Number(pool.liquidity.div(totalLiquidity).mul(100).toHuman()).toFixed(2)
+            : "0";
+          if (!pool.pool?.color) return;
+          return (
+            <div
+              key={`${pool.pool.address}_bar_${i}`}
+              className={`${i === 0 ? "border-l-0" : "border-l-2"} border-white min-w-2`}
+              style={{
+                background: pool.pool.color,
+                width: `${liquidityPercentage}%`,
+              }}
+            />
+          );
+        })}
+      </div>
+      <div
+        className={`${combinedDeltaB.gt(0) ? "right-[50%] border-l-2" : "left-[50%] border-r-2"} h-2 bg-white opacity-50 absolute max-w-[calc(50%_-_0.5rem)]`}
+        style={{
+          width: `${totalDeltaBar.abs().toHuman()}%`,
+        }}
+      />
+      <div
+        className={`${combinedDeltaB.gt(0) ? "right-[50%] border-l-2" : "left-[50%] border-r-2"} h-2 bg-transparent border-white absolute max-w-[calc(50%_-_0.5rem)]`}
+        style={{
+          width: `${totalDeltaBar.abs().toHuman()}%`,
+        }}
+      />
+      <div className="left-[50%] absolute -bottom-2 flex flex-col">
+        <div className="pinto-xs text-pinto-lighter flex flex-col text-center -ml-4 mb-1">
+          <span className="hidden sm:block">$1.00</span>
+          {/* <span>target</span> */}
+        </div>
+        <div className="h-6 border-box text-center w-0 bg-white border-pinto-gray-3 border border-dashed" />
+      </div>
+    </div>
   );
 };
 
