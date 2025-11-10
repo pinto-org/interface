@@ -11,10 +11,9 @@ import { useSeason } from "@/state/useSunData";
 import { exists, isDev } from "@/utils/utils";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useRef } from "react";
 import { useChainId, useReadContract, useReadContracts } from "wagmi";
-import { getMorningTemperature } from ".";
 import { morningAtom } from "../sun/sun.atoms";
 import {
   fieldInitialSoilAtom,
@@ -281,24 +280,12 @@ export const useUpdateMorningSoilOnInterval = () => {
   }, [invalidateField, isMorning, noSoil, devMode.freeze]);
 };
 
+/**
+ * @deprecated This hook is no longer needed. Temperature scaling during morning
+ * is now handled by the useScaledTemperature hook in useContinuousMorningTime.ts
+ * which uses blockchain-synchronized time for accurate temperature calculations.
+ */
 export const useUpdateMorningTemperatureOnInterval = () => {
-  const morning = useAtomValue(morningAtom);
-  const devMode = useAtomValue(morningFieldDevModeAtom);
-  const [temperature, setTemperature] = useAtom(fieldTemperatureAtom);
-
-  const isMorning = morning.isMorning;
-  const morningIndex = morning.index;
-
-  const maxTemperature = temperature.max;
-
-  useEffect(() => {
-    const noTemperature = maxTemperature.lte(0);
-    if (!isMorning || noTemperature || !!devMode.freeze) return;
-
-    const current = isMorning ? getMorningTemperature(morningIndex, maxTemperature) : maxTemperature;
-
-    setTemperature((draft) => {
-      draft.scaled = current;
-    });
-  }, [isMorning, morningIndex, maxTemperature, setTemperature, devMode.freeze]);
+  // No-op: This hook is deprecated and no longer performs any operations
+  // Temperature scaling is handled by useScaledTemperature hook
 };

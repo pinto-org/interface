@@ -1,8 +1,9 @@
 import type { TV } from "@/classes/TokenValue";
 import { MORNING_AUCTION_DURATION } from "@/constants/morning";
 import { scaleTemperatureWithMaxTemperature } from "@/state/protocol/field";
+import { getBlockchainNow } from "@/state/protocol/sun";
 import { useTemperature } from "@/state/useFieldData";
-import { useMorning, useSunData } from "@/state/useSunData";
+import { useMorning, useSunData, useTimeOffset } from "@/state/useSunData";
 import { DateTime } from "luxon";
 import { useEffect, useMemo, useState } from "react";
 import { normalizeTV } from "./../utils/number";
@@ -17,6 +18,7 @@ import { normalizeTV } from "./../utils/number";
 export function useContinuousMorningTime(): number {
   const morning = useMorning();
   const season = useSunData();
+  const timeOffsetMs = useTimeOffset();
   const [secondsElapsed, setSecondsElapsed] = useState<number>(0);
 
   const isMorning = morning.isMorning;
@@ -35,8 +37,9 @@ export function useContinuousMorningTime(): number {
     let animationFrameId: number;
 
     const updateTime = () => {
-      const now = DateTime.now();
-      const nowSecs = now.toSeconds();
+      // Use blockchain-synchronized time
+      const blockchainNow = getBlockchainNow(timeOffsetMs);
+      const nowSecs = blockchainNow.toSeconds();
 
       // Calculate fractional seconds elapsed since sunrise
       const elapsed = nowSecs - sunriseTimestampSeconds;
@@ -59,7 +62,7 @@ export function useContinuousMorningTime(): number {
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [isMorning, sunriseTimestampSeconds]);
+  }, [isMorning, sunriseTimestampSeconds, timeOffsetMs]);
 
   return secondsElapsed;
 }
@@ -77,6 +80,7 @@ export function useContinuousMorningTime(): number {
 export function useScaledTemperature(intervalMs: number = 2000): { max: TV; scaled: TV; isLoading: boolean } {
   const morning = useMorning();
   const season = useSunData();
+  const timeOffsetMs = useTimeOffset();
   const contractTemperature = useTemperature();
 
   const [scaledTemp, setScaledTemp] = useState<TV>(normalizeTV(contractTemperature.scaled));
@@ -118,8 +122,9 @@ export function useScaledTemperature(intervalMs: number = 2000): { max: TV; scal
 
     // During morning, calculate scaled temperature at intervals
     const updateScaledTemperature = () => {
-      const now = DateTime.now();
-      const nowSecs = now.toSeconds();
+      // Use blockchain-synchronized time
+      const blockchainNow = getBlockchainNow(timeOffsetMs);
+      const nowSecs = blockchainNow.toSeconds();
 
       // Calculate seconds elapsed since sunrise
       const elapsed = nowSecs - sunriseTimestampSeconds;
@@ -142,7 +147,7 @@ export function useScaledTemperature(intervalMs: number = 2000): { max: TV; scal
     return () => {
       clearInterval(intervalId);
     };
-  }, [isMorning, maxTemperature, sunriseTimestampSeconds, contractTemperature.scaled, intervalMs]);
+  }, [isMorning, maxTemperature, sunriseTimestampSeconds, contractTemperature.scaled, intervalMs, timeOffsetMs]);
 
   return useMemo(
     () => ({

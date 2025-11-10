@@ -1,5 +1,5 @@
 import { TV } from "@/classes/TokenValue";
-import { INTERVALS_PER_MORNING, MORNING_AUCTION_DURATION } from "@/constants/morning";
+import { MORNING_AUCTION_DURATION } from "@/constants/morning";
 import { useCallback, useMemo } from "react";
 import { getMorningTemperature, scaleTemperatureWithMaxTemperature } from "./protocol/field";
 import { useTemperature } from "./useFieldData";
@@ -19,7 +19,9 @@ export type MorningTemperatureLookup = {
   [blockNumber: string]: MorningBlockTemperature;
 };
 
-const intervalBlocks = Array.from({ length: INTERVALS_PER_MORNING + 1 }, (_, i) => i);
+// Deprecated: Keep for backward compatibility with interval-based system
+const INTERVALS_PER_MORNING_DEPRECATED = 25;
+const intervalBlocks = Array.from({ length: INTERVALS_PER_MORNING_DEPRECATED + 1 }, (_, i) => i);
 
 // Generate 600 data points for continuous temperature display (1 per second)
 const secondsArray = Array.from({ length: MORNING_AUCTION_DURATION }, (_, i) => i);

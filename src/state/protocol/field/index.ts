@@ -75,6 +75,9 @@ export const TEMPERATURE_LOG_BASE = 3.5;
 export const TEMPERATURE_PRECISION = 1e6;
 
 /**
+ * @deprecated Block-based temperature lookup table. No longer used.
+ * Temperature is now calculated using scaleTemperatureWithMaxTemperature()
+ * with time-based logarithmic formula.
  * indexes in terms of L1 blocks
  */
 const DELTA_TEMPERATURE_PCTS: Record<number, number> = {

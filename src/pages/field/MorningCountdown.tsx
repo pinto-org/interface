@@ -1,7 +1,7 @@
-import { morningDurationAtom } from "@/state/protocol/sun/sun.atoms";
-import { useMorningRemaining } from "@/state/useSunData";
+import { MORNING_AUCTION_DURATION } from "@/constants/morning";
+import { getBlockchainNow, getMorningEndTime } from "@/state/protocol/sun";
+import { useSunData, useTimeOffset } from "@/state/useSunData";
 import { cn } from "@/utils/utils";
-import { useAtomValue } from "jotai";
 
 const sizeToWidth = {
   lg: "w-[1.375rem] min-w-[1.375rem]",
@@ -37,9 +37,15 @@ const MonoSpace = ({
 };
 
 export const MorningIntervalCountdown = ({ prefix }: { prefix?: string }) => {
-  const remaining = useMorningRemaining();
+  const season = useSunData();
+  const timeOffsetMs = useTimeOffset();
 
-  const formatted = formatTime(remaining.as("seconds"));
+  // Calculate remaining time until morning ends
+  const morningEndTime = getMorningEndTime(season.timestamp);
+  const blockchainNow = getBlockchainNow(timeOffsetMs);
+  const remainingSeconds = morningEndTime.diff(blockchainNow, "seconds").seconds;
+
+  const formatted = formatTime(remainingSeconds);
 
   const [minutes, seconds] = formatted.split(":");
 
@@ -63,9 +69,15 @@ const formatTime = (_seconds: number) => {
 };
 
 export const MorningTimer = () => {
-  const morningDuration = useAtomValue(morningDurationAtom);
+  const season = useSunData();
+  const timeOffsetMs = useTimeOffset();
 
-  const formatted = formatTime(morningDuration.as("seconds"));
+  // Calculate elapsed time since sunrise
+  const blockchainNow = getBlockchainNow(timeOffsetMs);
+  const elapsedSeconds = blockchainNow.diff(season.timestamp, "seconds").seconds;
+  const clampedElapsed = Math.max(0, Math.min(elapsedSeconds, MORNING_AUCTION_DURATION));
+
+  const formatted = formatTime(clampedElapsed);
 
   const [minutes, seconds] = formatted.split(":");
 
