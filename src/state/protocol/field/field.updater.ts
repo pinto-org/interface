@@ -1,19 +1,18 @@
 import { TV } from "@/classes/TokenValue";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { PODS } from "@/constants/internalTokens";
-import { defaultQuerySettings } from "@/constants/query";
 import { subgraphs } from "@/constants/subgraph";
 import { FieldIssuedSoilDocument } from "@/generated/gql/pintostalk/graphql";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
 import { useInvalidateField } from "@/state/useFieldData";
 import { useSeason } from "@/state/useSunData";
-import { exists, isDev } from "@/utils/utils";
+import { exists } from "@/utils/utils";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef } from "react";
-import { useChainId, useReadContract, useReadContracts } from "wagmi";
+import { useCallback, useEffect } from "react";
+import { useChainId, useReadContract, useReadContracts, useWatchContractEvent } from "wagmi";
 import { morningAtom } from "../sun/sun.atoms";
 import {
   fieldInitialSoilAtom,
@@ -245,47 +244,31 @@ export const useUpdateField = () => {
 
 // ---------------------------------------- Non Top level updater hooks ----------------------------------------
 
-const FIELD_REFRESH_MS = 1000 * 6;
-
 /**
- * Update the soil every 2 seconds during the morning. 6 seconds on dev.
+ * Update the soil every 10 seconds
  */
 export const useUpdateMorningSoilOnInterval = () => {
+  const diamond = useProtocolAddress();
+
   const morning = useAtomValue(morningAtom);
   const soil = useAtomValue(fieldTotalSoilAtom).totalSoil;
 
   const invalidateField = useInvalidateField();
   const devMode = useAtomValue(morningFieldDevModeAtom);
-  const intervalRef = useRef<boolean | null>(null);
 
   const isMorning = morning.isMorning;
   const noSoil = soil.lte(0);
 
-  useEffect(() => {
-    if (intervalRef.current || !!devMode.freeze) return;
-    // update the soil every 2 seconds
-    if (!isMorning || noSoil) {
-      return;
-    }
+  const handleInvalidateSoil = useCallback(() => {
+    invalidateField("soil");
+  }, [invalidateField]);
 
-    intervalRef.current = true;
-    const soilUpdateInterval = setInterval(() => {
-      invalidateField("soil");
-    }, FIELD_REFRESH_MS);
-
-    return () => {
-      clearInterval(soilUpdateInterval);
-      intervalRef.current = null;
-    };
-  }, [invalidateField, isMorning, noSoil, devMode.freeze]);
-};
-
-/**
- * @deprecated This hook is no longer needed. Temperature scaling during morning
- * is now handled by the useScaledTemperature hook in useContinuousMorningTime.ts
- * which uses blockchain-synchronized time for accurate temperature calculations.
- */
-export const useUpdateMorningTemperatureOnInterval = () => {
-  // No-op: This hook is deprecated and no longer performs any operations
-  // Temperature scaling is handled by useScaledTemperature hook
+  // Watch for Sow Events & invalidate the soil query when they occur
+  useWatchContractEvent({
+    address: diamond,
+    abi: diamondABI,
+    eventName: "Sow",
+    onLogs: handleInvalidateSoil,
+    enabled: isMorning && !noSoil && !devMode.freeze,
+  });
 };
