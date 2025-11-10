@@ -287,7 +287,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
           <div
             className={cn(
               `flex flex-col w-full items-center justify-center`,
-              depositingSiloToken ? "h-[181px]" : "h-[222.5px]",
+              depositingSiloToken ? "h-[10rem]" : "h-[12.85rem]",
             )}
           >
             <FrameAnimator size={64} />
