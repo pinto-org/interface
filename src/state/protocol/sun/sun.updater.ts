@@ -36,12 +36,12 @@ const useFetchSun = () => {
   // Queries
   const seasonQuery = useReadContract({
     address: diamond,
-    abi: chainId === arbitrumNetwork.id ? arbTimeAbi : timeAbi,
+    abi: chainId === arbitrumNetwork.id ? arbTimeAbi : diamondABI,
     functionName: "time",
     query: QUERY_SETTINGS.default,
   });
-
   const seasonTimeQuery = useReadContract({
+    address: diamond,
     abi: diamondABI,
     functionName: "seasonTime" as const,
     scopeKey: "season",
