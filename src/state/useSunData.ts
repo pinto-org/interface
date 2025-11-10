@@ -4,11 +4,11 @@ import { useCallback } from "react";
 import { SunQueryKeys } from "./protocol/sun";
 import {
   morningAtom,
-  morningRemainingAtom,
   seasonAtom,
   seasonTimeAtom,
   sunQueryKeysAtom,
   sunriseRemainingAtom,
+  timeOffsetAtom,
 } from "./protocol/sun/sun.atoms";
 
 // Atoms
@@ -35,8 +35,8 @@ export function useMorning() {
   return useAtomValue(morningAtom);
 }
 
-export function useMorningRemaining() {
-  return useAtomValue(morningRemainingAtom);
+export function useTimeOffset() {
+  return useAtomValue(timeOffsetAtom);
 }
 
 export function useSeasonQueryKeys() {

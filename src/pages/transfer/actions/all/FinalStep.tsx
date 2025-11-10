@@ -40,7 +40,7 @@ export default function FinalStep({ destination }: StepTwoProps) {
       <div className="flex flex-col gap-8">
         {hasBalance && (
           <div className="flex flex-col">
-            <Label className="font-[340] text-[1rem] sm:text-[1.25rem]">Value in my Farm Balance:</Label>
+            <Label className="font-[340] text-[1rem] sm:text-[1.25rem]">Value in my Farm Wallet:</Label>
             <FarmBalancesList />
           </div>
         )}

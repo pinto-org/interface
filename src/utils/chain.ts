@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { Address, StateOverride, encodePacked, keccak256, maxUint256, numberToHex } from "viem";
 import { base } from "viem/chains";
 import { useChainId } from "wagmi";
+import { stringEq } from "./string";
 import { getTokenIndex } from "./token";
 import { Token } from "./types";
 import { ChainLookup } from "./types.generic";
@@ -67,3 +68,10 @@ export const getExplorerLink = (hash: string, chainId: number) => {
   const baseUrl = "https://basescan.org";
   return `${baseUrl}/tx/${hash}`;
 };
+
+/**
+ * Validate that the address is in the lookup table
+ */
+export function getMatchingAddressFromLookup(address: Address, lookup: ChainLookup<Address>) {
+  return Object.values(lookup).find((a) => stringEq(a, address));
+}

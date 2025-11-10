@@ -2,7 +2,6 @@ import { LP_TOKENS, MAIN_TOKEN, NATIVE_TOKEN, S_MAIN_TOKEN, WETH_TOKEN, tokens }
 import { useChainConstant, useResolvedChainId } from "@/utils/chain";
 import { Token } from "@/utils/types";
 import { useMemo } from "react";
-import { base } from "viem/chains";
 
 export function useWhitelistedTokens() {
   const chainId = useResolvedChainId();
@@ -12,6 +11,14 @@ export function useWhitelistedTokens() {
     const t = LP_TOKENS[chainId].filter((token) => token.isWhitelisted);
 
     return [mainToken, ...t];
+  }, [chainId]);
+}
+
+export function useDeWhitelistedLPTokens() {
+  const chainId = useResolvedChainId();
+
+  return useMemo(() => {
+    return LP_TOKENS[chainId].filter((token) => !token.isWhitelisted && token.isLP);
   }, [chainId]);
 }
 

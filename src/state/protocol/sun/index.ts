@@ -1,31 +1,17 @@
-import {
-  APPROX_L2_BLOCK_PER_L1_BLOCK,
-  APPROX_SECS_PER_L2_BLOCK,
-  INTERVALS_PER_MORNING,
-  MORNING_INTERVAL_1,
-  SECONDS_PER_MORNING_INTERVAL,
-} from "@/constants/morning";
+import { MORNING_AUCTION_DURATION } from "@/constants/morning";
 
-import { BlockInfo } from "@/utils/types";
 import { QueryKey } from "@tanstack/react-query";
 import { DateTime, Duration } from "luxon";
 
 export interface Morning {
-  /** The L2 Block Number that represents the start of the current morning interval. */
-  blockNumber: number;
-  /** Whether it is morning */
+  /** Whether it is currently morning (within 600 seconds of season start) */
   isMorning: boolean;
-  /**
-   * The index (0 - 24) of the current morning.
-   * Can think of this as 12 second intervals (L1 blocks) since sunrise
-   */
-  index: number;
-  /** The DateTime of the next expected morning interval update */
-  next: DateTime;
 }
 
 export interface Sun {
   seasonTime: number;
+  /** Time offset in milliseconds between user's local clock and blockchain time */
+  timeOffsetMs: number;
   sunrise: {
     /** Whether we're waiting for the sunrise() function to be called. */
     awaiting: boolean;
@@ -67,90 +53,66 @@ export const getNextExpectedSunrise = () => {
   return now.set({ minute: 0, second: 0, millisecond: 0 }).plus({ hour: 1 });
 };
 
-export const getNextMorningIntervalUpdate = (from: DateTime = getNextExpectedSunrise()) =>
-  from.plus({ seconds: SECONDS_PER_MORNING_INTERVAL });
+/**
+ * Get blockchain-synchronized current time by adjusting for time offset
+ * @param timeOffsetMs - Time offset in milliseconds between user's local clock and blockchain time
+ * @returns DateTime representing the current blockchain time
+ */
+export const getBlockchainNow = (timeOffsetMs: number): DateTime => {
+  return DateTime.now().minus({ milliseconds: timeOffsetMs });
+};
 
 /**
- * diff between some data & now rounded down to the nearest second
- * @param dt - the DateTime to calculate the difference from
- * @param _now - the current DateTime (defaults to now)
+ * Calculate if currently in morning period (first 600 seconds after season start)
+ * @param seasonTimestamp - The DateTime when the season started
+ * @param timeOffsetMs - Time offset in milliseconds between user's local clock and blockchain time
+ * @returns true if currently in morning period
  */
-export const getDiffNow = (dt: DateTime, _now?: DateTime) => {
-  const now = (_now || DateTime.now()).toSeconds();
-  const nowRounded = Math.floor(now);
+export const getIsMorning = (seasonTimestamp: DateTime, timeOffsetMs: number): boolean => {
+  const blockchainNow = getBlockchainNow(timeOffsetMs);
+  const secondsSinceSunrise = blockchainNow.diff(seasonTimestamp, "seconds").seconds;
+  return secondsSinceSunrise >= 0 && secondsSinceSunrise < MORNING_AUCTION_DURATION;
+};
+
+/**
+ * Get the end time of the morning period
+ * @param seasonTimestamp - The DateTime when the season started
+ * @returns DateTime when morning period ends (season start + 600 seconds)
+ */
+export const getMorningEndTime = (seasonTimestamp: DateTime): DateTime => {
+  return seasonTimestamp.plus({ seconds: MORNING_AUCTION_DURATION });
+};
+
+/**
+ * Get seconds elapsed in the current morning period
+ * @param seasonTimestamp - The DateTime when the season started
+ * @param timeOffsetMs - Time offset in milliseconds between user's local clock and blockchain time
+ * @returns Seconds elapsed since sunrise, clamped between 0 and MORNING_AUCTION_DURATION
+ */
+export const getSecondsElapsedInMorning = (seasonTimestamp: DateTime, timeOffsetMs: number): number => {
+  const blockchainNow = getBlockchainNow(timeOffsetMs);
+  const elapsed = blockchainNow.diff(seasonTimestamp, "seconds").seconds;
+  return Math.max(0, Math.min(elapsed, MORNING_AUCTION_DURATION));
+};
+
+/**
+ * diff between some date & now rounded down to the nearest second
+ * @param dt - the DateTime to calculate the difference from
+ * @param timeOffsetMs - Optional time offset in milliseconds for blockchain synchronization
+ */
+export const getDiffNow = (dt: DateTime, timeOffsetMs?: number): Duration => {
+  const now = timeOffsetMs !== undefined ? getBlockchainNow(timeOffsetMs) : DateTime.now();
+  const nowSecs = now.toSeconds();
+  const nowRounded = Math.floor(nowSecs);
   return dt.diff(DateTime.fromSeconds(nowRounded));
 };
 
 /**
  * current timestamp rounded down to the nearest second
+ * @param timeOffsetMs - Optional time offset in milliseconds for blockchain synchronization
  */
-export const getNowRounded = () => {
-  const now = Math.floor(DateTime.now().toSeconds());
-  return DateTime.fromSeconds(now);
-};
-
-/**
- * @param timestamp the timestamp of the block in which gm() was called
- * @param blockNumber the blockNumber of the block in which gm() was called
- *
- * Ethereum block times don't include MS, so we use the current timestamp
- * rounded down to the nearest second.
- *
- * We approximate the current block using the difference in seconds between
- * the current timestamp & the sunriseBlock timestamp.
- *
- * We determine it is morning by calculating whether we are within 5 mins
- * since sunrise was called.
- *
- */
-export const getMorningResult = ({
-  timestamp: sunriseTime,
-  blockNumber: sunriseBlock,
-}: BlockInfo): Morning & {
-  remaining: Duration;
-} => {
-  // sunrise timestamp in seconds
-  const sunriseSecs = Math.floor(sunriseTime.toSeconds());
-  // current timestamp in seconds
-  const nowSecs = getNowRounded().toSeconds();
-  // seconds since sunrise
-  const secondsSinceSunrise = Math.floor(nowSecs - sunriseSecs);
-
-  const diff = BigInt(secondsSinceSunrise) / BigInt(SECONDS_PER_MORNING_INTERVAL);
-
-  // The morning interval index (0 - 24) (25 means we're no longer in the morning state)
-  const index = Math.min(Math.floor(Number(diff)), INTERVALS_PER_MORNING);
-  // The approximate blockNumber that represents the start the current morning interval
-  const deltaBlocks = index * APPROX_L2_BLOCK_PER_L1_BLOCK * 2; // 24 seconds per interval
-
-  // It is considered morning if...
-  // - SunriseBlock has been fetched
-  // - We are within the first 25 L1 blocks (1200 L2 blocks) since sunrise
-  const isMorning = index >= 0 && index < INTERVALS_PER_MORNING && sunriseBlock > 0;
-
-  // The L2 Block Number that represents the start of the current morning interval
-  const blockNumber = sunriseBlock + deltaBlocks;
-
-  // we could use secondsSinceSunrise, but this is more precise.
-  // Using secondsSinceSunrise results in 0.5s inaccuracy.
-  const elapsedSeconds = deltaBlocks * APPROX_SECS_PER_L2_BLOCK;
-
-  const curr = isMorning
-    ? sunriseTime.plus({ seconds: elapsedSeconds })
-    : getNextExpectedSunrise().plus({ seconds: SECONDS_PER_MORNING_INTERVAL });
-
-  const next = getNextMorningIntervalUpdate(curr);
-  const remaining = getDiffNow(next);
-
-  return {
-    remaining,
-    isMorning,
-    blockNumber,
-    index,
-    next,
-  };
-};
-
-export const getIsMorningInterval = (interval: number) => {
-  return interval >= MORNING_INTERVAL_1 && interval <= INTERVALS_PER_MORNING;
+export const getNowRounded = (timeOffsetMs?: number): DateTime => {
+  const now = timeOffsetMs !== undefined ? getBlockchainNow(timeOffsetMs) : DateTime.now();
+  const nowSecs = Math.floor(now.toSeconds());
+  return DateTime.fromSeconds(nowSecs);
 };

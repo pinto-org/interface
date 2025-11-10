@@ -4,8 +4,10 @@ export type Denomination = "USD" | "PDV";
 
 export interface AppSettings {
   denomination: Denomination;
+  farmTogglePreference: boolean;
 }
 
 export const appSettingsAtom = atomWithImmer<AppSettings>({
   denomination: "USD",
+  farmTogglePreference: false,
 });
