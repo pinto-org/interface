@@ -183,7 +183,7 @@ export const WSTETH_TOKEN: ChainLookup<Token> = {
     decimals: 18,
     displayDecimals: 2,
     isLPUnderlying: true,
-    isCompositeLPWhitelisted: false,
+    isCompositeLPWhitelisted: true,
     logoURI: "https://assets.coingecko.com/coins/images/18834/thumb/wstETH.png?1696518295",
     color: "#00A3FF",
   },
@@ -200,7 +200,7 @@ export const PINTO_WSTETH_TOKEN: ChainLookup<Token> = {
     decimals: 18,
     displayDecimals: 6, // show 6 decimal places for this token
     isLP: true,
-    isWhitelisted: false,
+    isWhitelisted: true,
     logoURI: pintoWsolIcon,
     color: "#00A3FF",
     tokens: [MAIN_TOKEN[base.id].address, WSTETH_TOKEN[base.id].address],
@@ -398,6 +398,7 @@ export const LP_TOKENS: ChainLookup<Token[]> = {
     PINTO_CBETH_TOKEN[base.id],
     PINTO_CBBTC_TOKEN[base.id],
     PINTO_WSOL_TOKEN[base.id],
+    PINTO_WSTETH_TOKEN[base.id],
   ],
 } as const;
 
@@ -430,6 +431,7 @@ export const UNDERLYING_TOKENS: ChainLookup<Token[]> = {
     CBETH_TOKEN[base.id],
     CBBTC_TOKEN[base.id],
     WSOL_TOKEN[base.id],
+    WSTETH_TOKEN[base.id],
   ],
 } as const;
 
