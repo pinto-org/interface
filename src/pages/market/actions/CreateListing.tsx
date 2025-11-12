@@ -23,8 +23,8 @@ import { FarmToMode, Plot } from "@/utils/types";
 import { cn } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { useCallback, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
@@ -223,6 +223,54 @@ export default function CreateListing() {
     },
     [plot.length, sortPlotsByIndex],
   );
+
+  // Auto-select plots from location state (from Market page PodLineGraph)
+  const location = useLocation();
+  const lastProcessedIndices = useRef<string | null>(null);
+
+  useEffect(() => {
+    const selectedPlotIndices = location.state?.selectedPlotIndices;
+
+    // Type guard and validation
+    if (!selectedPlotIndices || !Array.isArray(selectedPlotIndices) || selectedPlotIndices.length === 0) {
+      return;
+    }
+
+    // Create a unique key from the indices to detect if this is a new selection
+    // Use slice() to avoid mutating the original array
+    const indicesKey = [...selectedPlotIndices].sort().join(",");
+
+    // Skip if we've already processed this exact selection
+    if (lastProcessedIndices.current === indicesKey) {
+      return;
+    }
+
+    // Find matching plots from farmer's field using string comparison
+    const validPlots = farmerField.plots.filter((p) => selectedPlotIndices.includes(p.index.toHuman()));
+
+    if (validPlots.length > 0) {
+      // Mark this selection as processed
+      lastProcessedIndices.current = indicesKey;
+
+      // Track auto-selection
+      trackSimpleEvent(ANALYTICS_EVENTS.MARKET.LISTING_AUTO_SELECTED, {
+        plot_count: validPlots.length,
+        source: "market_podline_graph",
+      });
+
+      // Sort and set plots directly to avoid re-triggering handlePlotSelection
+      const sortedPlots = sortPlotsByIndex(validPlots);
+      setPlot(sortedPlots);
+
+      // Set range and amount
+      const totalPods = sortedPlots.reduce((sum, p) => sum + p.pods.toNumber(), 0);
+      setPodRange([0, totalPods]);
+      setAmount(totalPods);
+
+      // Clean up location state to prevent re-selection on re-mount
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, farmerField.plots, sortPlotsByIndex]);
 
   // Pod range slider handler (two thumbs)
   const handlePodRangeChange = useCallback((value: number[]) => {

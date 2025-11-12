@@ -319,6 +319,24 @@ export function Market() {
     [scatterChartData, mode, navigate],
   );
 
+  const handleMarketPodLineGraphSelect = useCallback(
+    (plotIndices: string[]) => {
+      if (plotIndices.length === 0) return;
+
+      // Track analytics
+      trackSimpleEvent(ANALYTICS_EVENTS.MARKET.LISTING_PLOT_SELECTED, {
+        plot_count: plotIndices.length,
+        source: "market_page",
+      });
+
+      // Navigate to CreateListing with plot indices (not full Plot objects to avoid serialization issues)
+      navigate("/market/pods/sell/create", {
+        state: { selectedPlotIndices: plotIndices },
+      });
+    },
+    [navigate],
+  );
+
   const viewMode = mode;
 
   return (
@@ -367,7 +385,7 @@ export function Market() {
                 />
               </div>
               <div className=" mb-4 pl-[52px] pr-[12px]">
-                <PodLineGraph className="h-24" />
+                <PodLineGraph className="h-24" onPlotGroupSelect={handleMarketPodLineGraphSelect} />
               </div>
               <div className="flex gap-10 ml-2.5 mt-4 mb-[1.625rem]">
                 {TABLE_SLUGS.map((s, idx) => (
