@@ -2,6 +2,12 @@ import type { CodegenConfig } from "@graphql-codegen/cli";
 
 const config: CodegenConfig = {
   ignoreNoDocuments: true,
+  config: {
+    namingConvention: {
+      typeNames: "pascal-case#pascalCase",
+      enumValues: "keep",
+    },
+  },
   generates: {
     "src/generated/gql/pintostalk/": {
       schema: "https://graph.pinto.money/pintostalk",
