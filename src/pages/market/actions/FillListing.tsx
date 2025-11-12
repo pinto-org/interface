@@ -10,7 +10,7 @@ import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Separator } from "@/components/ui/Separator";
-import { MultiSlider, Slider } from "@/components/ui/Slider";
+import { Slider } from "@/components/ui/Slider";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { PODS } from "@/constants/internalTokens";
 import fillPodListing from "@/encoders/fillPodListing";
@@ -53,7 +53,6 @@ const PRICE_PER_POD_CONFIG = {
 } as const;
 
 const PRICE_SLIDER_STEP = 0.001;
-const MILLION = 1_000_000;
 const DEFAULT_PRICE_INPUT = "0.001";
 const PLACE_MARGIN_PERCENT = 0.01; // 1% margin for place in line range
 
@@ -127,15 +126,19 @@ export default function FillListing() {
   const [maxPricePerPod, setMaxPricePerPod] = useState<number>(0);
   const [maxPricePerPodInput, setMaxPricePerPodInput] = useState<string>(DEFAULT_PRICE_INPUT);
 
-  // Place in line range state
+  // Place in line state
   const podIndex = usePodIndex();
   const maxPlace = Number.parseInt(podIndex.toHuman()) - Number.parseInt(harvestableIndex.toHuman()) || 0;
-  const [placeInLineRange, setPlaceInLineRange] = useState<[number, number]>([0, maxPlace]);
+  const [maxPlaceInLine, setMaxPlaceInLine] = useState<number | undefined>(undefined);
+  const [hasInitializedPlace, setHasInitializedPlace] = useState(false);
 
-  // Update place in line range when maxPlace changes
+  // Set maxPlaceInLine to maxPlace by default when maxPlace is available (only once on initial load)
   useEffect(() => {
-    setPlaceInLineRange((prev) => [prev[0], maxPlace]);
-  }, [maxPlace]);
+    if (maxPlace > 0 && !hasInitializedPlace && maxPlaceInLine === undefined) {
+      setMaxPlaceInLine(maxPlace);
+      setHasInitializedPlace(true);
+    }
+  }, [maxPlace, hasInitializedPlace, maxPlaceInLine]);
 
   const isUsingMain = tokensEqual(tokenIn, mainToken);
 
@@ -183,18 +186,18 @@ export default function FillListing() {
     const listingPrice = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals).toNumber();
     const formattedPrice = formatPricePerPod(listingPrice);
     setMaxPricePerPod(formattedPrice);
-    setMaxPricePerPodInput(formattedPrice.toFixed(6));
+    setMaxPricePerPodInput(formattedPrice.toFixed(PRICE_PER_POD_CONFIG.DECIMALS));
 
     // Calculate listing's place in line
     const listingIndex = TokenValue.fromBlockchain(listing.index, PODS.decimals);
     const placeInLine = listingIndex.sub(harvestableIndex).toNumber();
 
-    // Set place in line range to include this listing with a small margin
+    // Set max place in line to include this listing with a small margin
     // Clamp to valid range [0, maxPlace]
     const margin = Math.max(1, Math.floor(maxPlace * PLACE_MARGIN_PERCENT));
-    const minPlace = Math.max(0, Math.floor(placeInLine - margin));
     const maxPlaceValue = Math.min(maxPlace, Math.ceil(placeInLine + margin));
-    setPlaceInLineRange([minPlace, maxPlaceValue]);
+    setMaxPlaceInLine(maxPlaceValue);
+    setHasInitializedPlace(true); // Mark as initialized to prevent default value override
   }, [listingId, allListings, maxPlace, mainToken.decimals, harvestableIndex]);
 
   // Token selection handler with tracking
@@ -214,7 +217,7 @@ export default function FillListing() {
   const handlePriceSliderChange = useCallback((value: number[]) => {
     const formatted = formatPricePerPod(value[0]);
     setMaxPricePerPod(formatted);
-    setMaxPricePerPodInput(formatted.toFixed(6));
+    setMaxPricePerPodInput(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS));
   }, []);
 
   // Price per pod input handlers
@@ -248,37 +251,24 @@ export default function FillListing() {
     }
   }, [maxPricePerPodInput]);
 
-  // Place in line range handler
-  const handlePlaceInLineRangeChange = useCallback((value: number[]) => {
-    const [min, max] = value;
-    setPlaceInLineRange([Math.floor(min), Math.floor(max)]);
+  // Max place in line slider handler
+  const handleMaxPlaceSliderChange = useCallback((value: number[]) => {
+    const newValue = Math.floor(value[0]);
+    setMaxPlaceInLine(newValue > 0 ? newValue : undefined);
   }, []);
 
-  // Place in line input handlers
-  const handleMinPlaceInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const cleanValue = e.target.value.replace(/,/g, "");
-      const value = Number.parseInt(cleanValue);
-      if (!Number.isNaN(value) && value >= 0 && value <= maxPlace) {
-        setPlaceInLineRange([value, placeInLineRange[1]]);
-      } else if (cleanValue === "") {
-        setPlaceInLineRange([0, placeInLineRange[1]]);
-      }
-    },
-    [maxPlace, placeInLineRange],
-  );
-
+  // Max place in line input handler
   const handleMaxPlaceInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const cleanValue = e.target.value.replace(/,/g, "");
       const value = Number.parseInt(cleanValue);
-      if (!Number.isNaN(value) && value >= 0 && value <= maxPlace) {
-        setPlaceInLineRange([placeInLineRange[0], value]);
+      if (!Number.isNaN(value) && value > 0 && value <= maxPlace) {
+        setMaxPlaceInLine(value);
       } else if (cleanValue === "") {
-        setPlaceInLineRange([placeInLineRange[0], maxPlace]);
+        setMaxPlaceInLine(undefined);
       }
     },
-    [maxPlace, placeInLineRange],
+    [maxPlace],
   );
 
   /**
@@ -300,36 +290,39 @@ export default function FillListing() {
       idHex: listing.id,
     }));
 
-    // Calculate place in line boundaries for filtering
-    const minPlaceIndex = harvestableIndex.add(TokenValue.fromHuman(placeInLineRange[0], PODS.decimals));
-    const maxPlaceIndex = harvestableIndex.add(TokenValue.fromHuman(placeInLineRange[1], PODS.decimals));
+    // Calculate place in line boundary for filtering
+    const maxPlaceIndex = maxPlaceInLine
+      ? harvestableIndex.add(TokenValue.fromHuman(maxPlaceInLine.toString(), PODS.decimals))
+      : undefined;
 
     // Determine eligible listings (shown as green on graph)
-    // When maxPricePerPod is 0, no listings are eligible (all show as orange)
-    // When maxPricePerPod > 0, filter by both price and place in line
+    // When maxPricePerPod is 0 OR maxPlaceInLine is not set, no listings are eligible (all show as orange)
+    // When both maxPricePerPod > 0 AND maxPlaceInLine is set, filter by both price and place in line
     const eligible: string[] =
-      maxPricePerPod > 0
+      maxPricePerPod > 0 && maxPlaceIndex
         ? allListings.podListings
             .filter((listing) => {
               const listingPrice = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals).toNumber();
               const listingIndex = TokenValue.fromBlockchain(listing.index, PODS.decimals);
 
               // Listing must match both criteria to be eligible
-              return (
-                listingPrice <= maxPricePerPod && listingIndex.gte(minPlaceIndex) && listingIndex.lte(maxPlaceIndex)
-              );
+              const matchesPrice = listingPrice <= maxPricePerPod;
+              const matchesPlace = listingIndex.lte(maxPlaceIndex);
+              return matchesPrice && matchesPlace;
             })
             .map((listing) => listing.id)
         : [];
 
     // Calculate range overlay for visual feedback on graph
-    const overlay = {
-      start: harvestableIndex.add(TokenValue.fromHuman(placeInLineRange[0], PODS.decimals)),
-      end: harvestableIndex.add(TokenValue.fromHuman(placeInLineRange[1], PODS.decimals)),
-    };
+    const overlay = maxPlaceInLine
+      ? {
+          start: harvestableIndex,
+          end: harvestableIndex.add(TokenValue.fromHuman(maxPlaceInLine.toString(), PODS.decimals)),
+        }
+      : undefined;
 
     return { listingPlots: plots, eligibleListingIds: eligible, rangeOverlay: overlay };
-  }, [allListings, maxPricePerPod, placeInLineRange, mainToken.decimals, harvestableIndex]);
+  }, [allListings, maxPricePerPod, maxPlaceInLine, mainToken.decimals, harvestableIndex]);
 
   // Calculate open available pods count (eligible listings only - already filtered by price AND place)
   const openAvailablePods = useMemo(() => {
@@ -679,135 +672,131 @@ export default function FillListing() {
         )}
       </div>
 
-      {/* Place in Line Range Selector */}
-      {maxPlace > 0 && (
-        <div className="flex flex-col gap-3">
-          <p className="pinto-body text-pinto-light">At a Place in Line between:</p>
-          {/* Slider row */}
-          <div className="flex flex-row gap-4 w-full items-center min-w-0">
-            <p className="pinto-body text-pinto-light whitespace-nowrap flex-shrink-0">0</p>
-            <MultiSlider
-              value={placeInLineRange}
-              onValueChange={handlePlaceInLineRangeChange}
-              step={1}
-              min={0}
-              max={maxPlace}
-              className="flex-1 min-w-0"
-            />
-            <p className="pinto-body text-pinto-light whitespace-nowrap flex-shrink-0 min-w-[80px] text-right">
-              {formatter.noDec(maxPlace)}
-            </p>
-          </div>
-          {/* Input row */}
-          <div className="flex flex-row gap-2 w-full items-center">
+      {/* Place in Line Slider */}
+      <div className="flex flex-col gap-3 mt-2">
+        <p className="pinto-body text-pinto-light">I want to fill listings with a Place in Line up to:</p>
+        {maxPlace === 0 ? (
+          <p className="pinto-sm text-pinto-light italic">No Pods in Line currently available to fill.</p>
+        ) : (
+          <div className="flex flex-row gap-4 w-full items-center">
+            <div className="flex flex-row gap-4 items-center flex-1">
+              <p className="pinto-body text-pinto-light">0</p>
+              {maxPlace > 0 && (
+                <Slider
+                  value={[maxPlaceInLine || 0]}
+                  onValueChange={handleMaxPlaceSliderChange}
+                  step={1}
+                  min={0}
+                  max={maxPlace}
+                  className="flex-1"
+                />
+              )}
+              <p className="pinto-body text-pinto-light">{formatter.noDec(maxPlace)}</p>
+            </div>
             <Input
               type="text"
               inputMode="numeric"
-              value={placeInLineRange[0] ? formatter.noDec(placeInLineRange[0]) : "0"}
-              onChange={handleMinPlaceInputChange}
-              onFocus={(e) => e.target.select()}
-              placeholder="0"
-              outlined
-              containerClassName="flex-1"
-              className=""
-            />
-            <span className="pinto-body text-pinto-light">—</span>
-            <Input
-              type="text"
-              inputMode="numeric"
-              value={placeInLineRange[1] ? formatter.noDec(placeInLineRange[1]) : formatter.noDec(maxPlace)}
+              value={maxPlaceInLine ? formatter.noDec(maxPlaceInLine) : ""}
               onChange={handleMaxPlaceInputChange}
               onFocus={(e) => e.target.select()}
               placeholder={formatter.noDec(maxPlace)}
               outlined
-              containerClassName="flex-1"
+              containerClassName="w-[108px]"
               className=""
+              disabled={maxPlace === 0}
             />
           </div>
-        </div>
-      )}
-
-      {/* Open Available Pods Display */}
-      <div className="flex">
-        <p className="pinto-body text-pinto-light">
-          Open available pods: <span className="font-semibold">{formatter.noDec(openAvailablePods)}</span> Pods
-        </p>
+        )}
       </div>
 
-      {/* Fill Using Section - Only show if there are eligible listings */}
-      {eligibleListingIds.length > 0 && (
+      {/* Show these sections only when maxPlaceInLine is greater than 0 */}
+      {maxPlaceInLine !== undefined && maxPlaceInLine > 0 && (
         <div className="flex flex-col gap-4 animate-fade-in">
-          <div className="-mt-2">
-            <div className="flex flex-row justify-between items-center">
-              <p className="pinto-body text-pinto-light">Fill Using</p>
-              <SlippageButton slippage={slippage} setSlippage={setSlippage} />
-            </div>
-            <ComboInputField
-              amount={amountIn}
-              connectedAccount={!!account.address}
-              disableInput={isConfirming || submitting}
-              setAmount={setAmountIn}
-              setToken={handleTokenSelection}
-              setBalanceFrom={setBalanceFrom}
-              selectedToken={tokenIn}
-              balanceFrom={balanceFrom}
-              customMaxAmount={maxFillAmount?.gt(0) ? TokenValue.min(balanceFromMode, maxFillAmount) : TokenValue.ZERO}
-              filterTokens={filterTokens}
-              altText={balanceExceedsMax ? "Usable balance:" : undefined}
-              disableClamping={true}
-              enableSlider
-              sliderMarkers={[25, 50, 75]}
-            />
-            {!isUsingMain && amountInTV.gt(0) && (
-              <RoutingAndSlippageInfo
-                title="Total Swap Slippage"
-                swapSummary={swapSummary}
-                priceImpactSummary={priceImpactSummary}
-                preferredSummary="swap"
-                txnType="Swap"
-                tokenIn={tokenIn}
-                tokenOut={mainToken}
-              />
-            )}
-            {slippageWarning}
+          {/* Open Available Pods Display */}
+          <div className="flex">
+            <p className="pinto-body text-pinto-light">
+              Open available pods: <span className="font-semibold">{formatter.noDec(openAvailablePods)}</span> Pods
+            </p>
           </div>
-          <div className="flex flex-col gap-4">
-            <Separator />
-            {disabled && Number(amountIn) > 0 && (
-              <div className="flex justify-center">
-                <FrameAnimator className="-mt-5 -mb-10" size={150} />
+
+          {/* Fill Using Section - Only show if there are eligible listings */}
+          {eligibleListingIds.length > 0 && (
+            <>
+              <div className="-mt-2">
+                <div className="flex flex-row justify-between items-center">
+                  <p className="pinto-body text-pinto-light">Fill Using</p>
+                  <SlippageButton slippage={slippage} setSlippage={setSlippage} />
+                </div>
+                <ComboInputField
+                  amount={amountIn}
+                  connectedAccount={!!account.address}
+                  disableInput={isConfirming || submitting}
+                  setAmount={setAmountIn}
+                  setToken={handleTokenSelection}
+                  setBalanceFrom={setBalanceFrom}
+                  selectedToken={tokenIn}
+                  balanceFrom={balanceFrom}
+                  customMaxAmount={
+                    maxFillAmount?.gt(0) ? TokenValue.min(balanceFromMode, maxFillAmount) : TokenValue.ZERO
+                  }
+                  filterTokens={filterTokens}
+                  altText={balanceExceedsMax ? "Usable balance:" : undefined}
+                  disableClamping={true}
+                  enableSlider
+                  sliderMarkers={[25, 50, 75]}
+                />
+                {!isUsingMain && amountInTV.gt(0) && (
+                  <RoutingAndSlippageInfo
+                    title="Total Swap Slippage"
+                    swapSummary={swapSummary}
+                    priceImpactSummary={priceImpactSummary}
+                    preferredSummary="swap"
+                    txnType="Swap"
+                    tokenIn={tokenIn}
+                    tokenOut={mainToken}
+                  />
+                )}
+                {slippageWarning}
               </div>
-            )}
-            {!disabled && eligibleSummary && mainTokensIn && (
-              <ActionSummary
-                pricePerPod={eligibleSummary.avgPricePerPod}
-                plotPosition={eligibleSummary.avgPlaceInLine}
-                beanAmount={mainTokensIn}
-              />
-            )}
-            <div className="flex flex-row gap-2 items-center w-full">
-              <SmartApprovalButton
-                variant="gradient"
-                size="xxl"
-                token={tokenIn}
-                amount={amountIn}
-                balanceFrom={balanceFrom}
-                disabled={disabled || !ackSlippage || isConfirming || submitting || isSuccessful}
-                className="flex-1"
-              />
-              <SmartSubmitButton
-                variant="gradient"
-                size="xxl"
-                submitButtonText={isSuccessful ? "Purchase Complete!" : "Buy Pods"}
-                token={tokenIn}
-                amount={amountIn}
-                balanceFrom={balanceFrom}
-                submitFunction={onSubmit}
-                disabled={disabled || !ackSlippage || submitting || isConfirming || isSuccessful}
-                className="flex-1"
-              />
-            </div>
-          </div>
+              <div className="flex flex-col gap-4">
+                <Separator />
+                {disabled && Number(amountIn) > 0 && (
+                  <div className="flex justify-center">
+                    <FrameAnimator className="-mt-5 -mb-10" size={150} />
+                  </div>
+                )}
+                {!disabled && eligibleSummary && mainTokensIn && (
+                  <ActionSummary
+                    pricePerPod={eligibleSummary.avgPricePerPod}
+                    plotPosition={eligibleSummary.avgPlaceInLine}
+                    beanAmount={mainTokensIn}
+                  />
+                )}
+                <div className="flex flex-row gap-2 items-center w-full">
+                  <SmartApprovalButton
+                    variant="gradient"
+                    size="xxl"
+                    token={tokenIn}
+                    amount={amountIn}
+                    balanceFrom={balanceFrom}
+                    disabled={disabled || !ackSlippage || isConfirming || submitting || isSuccessful}
+                    className="flex-1"
+                  />
+                  <SmartSubmitButton
+                    variant="gradient"
+                    size="xxl"
+                    submitButtonText={isSuccessful ? "Purchase Complete!" : "Buy Pods"}
+                    token={tokenIn}
+                    amount={amountIn}
+                    balanceFrom={balanceFrom}
+                    submitFunction={onSubmit}
+                    disabled={disabled || !ackSlippage || submitting || isConfirming || isSuccessful}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 
