@@ -174,7 +174,38 @@ export const WSOL_TOKEN: ChainLookup<Token> = {
   },
 } as const;
 
+export const WSTETH_TOKEN: ChainLookup<Token> = {
+  [base.id]: {
+    chainId: base.id,
+    name: "Wrapped stETH",
+    symbol: "WSTETH",
+    address: "0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452",
+    decimals: 18,
+    displayDecimals: 2,
+    isLPUnderlying: true,
+    isCompositeLPWhitelisted: false,
+    logoURI: "https://assets.coingecko.com/coins/images/18834/thumb/wstETH.png?1696518295",
+    color: "#00A3FF",
+  },
+};
+
 // -------------------- LP TOKENS --------------------
+
+export const PINTO_WSTETH_TOKEN: ChainLookup<Token> = {
+  [base.id]: {
+    chainId: base.id,
+    name: "PINTOWSTETH LP",
+    symbol: "PINTOWSTETH",
+    address: "0xbd2d86B89353e0d441A3CC3d939A48f17CCDDff5",
+    decimals: 18,
+    displayDecimals: 6, // show 6 decimal places for this token
+    isLP: true,
+    isWhitelisted: false,
+    logoURI: pintoWsolIcon,
+    color: "#00A3FF",
+    tokens: [MAIN_TOKEN[base.id].address, WSTETH_TOKEN[base.id].address],
+  },
+} as const;
 
 export const PINTO_WSOL_TOKEN: ChainLookup<Token> = {
   [base.id]: {
