@@ -28,6 +28,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
+import type { OverlayParams, PlotOverlayData } from "@/components/MarketChartOverlay";
 
 interface PodListingData {
   plot: Plot;
@@ -67,7 +68,11 @@ const removeTrailingZeros = (value: string): string => {
   return value.includes(".") ? value.replace(/\.?0+$/, "") : value;
 };
 
-export default function CreateListing() {
+interface CreateListingProps {
+  onOverlayParamsChange?: (params: OverlayParams) => void;
+}
+
+export default function CreateListing({ onOverlayParamsChange }: CreateListingProps) {
   const { address: account } = useAccount();
   const diamondAddress = useProtocolAddress();
   const mainToken = useTokenData().mainToken;
@@ -454,6 +459,47 @@ export default function CreateListing() {
     diamondAddress,
     writeWithEstimateGas,
   ]);
+
+  // Throttle overlay parameter updates for better performance
+  const overlayUpdateTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Clear any pending update
+    if (overlayUpdateTimerRef.current) {
+      clearTimeout(overlayUpdateTimerRef.current);
+    }
+
+    // Throttle overlay updates to avoid performance issues during slider drag
+    overlayUpdateTimerRef.current = setTimeout(() => {
+      if (listingData.length > 0 && pricePerPod > 0) {
+        const plotOverlayData: PlotOverlayData[] = listingData.map((data) => ({
+          startIndex: data.index,
+          amount: data.amount,
+        }));
+
+        onOverlayParamsChange?.({
+          mode: "sell",
+          pricePerPod,
+          plots: plotOverlayData,
+        });
+      } else {
+        onOverlayParamsChange?.(null);
+      }
+    }, 16); // ~60fps (16ms)
+
+    return () => {
+      if (overlayUpdateTimerRef.current) {
+        clearTimeout(overlayUpdateTimerRef.current);
+      }
+    };
+  }, [listingData, pricePerPod, onOverlayParamsChange]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      onOverlayParamsChange?.(null);
+    };
+  }, [onOverlayParamsChange]);
 
   // ui state
   const disabled = !pricePerPod || !amount || !account || plot.length === 0 || selectedExpiresIn <= 0;

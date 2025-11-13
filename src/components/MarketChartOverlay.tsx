@@ -2,16 +2,53 @@ import { TokenValue } from "@/classes/TokenValue";
 import { Chart } from "chart.js";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+// Performance constants - hoisted outside component
 const MILLION = 1_000_000;
+const RESIZE_DEBOUNCE_MS = 100;
+const DIMENSION_UPDATE_DELAY_MS = 0;
+const BOX_SIZE = 12;
+const HALF_BOX_SIZE = 6; // Pre-calculated for performance
+const BORDER_WIDTH = 1;
 
-const OVERLAY_COLORS = {
+// Frozen color constants for immutability and optimization
+const BUY_OVERLAY_COLORS = Object.freeze({
   shadedRegion: "rgba(64, 176, 166, 0.15)", // Teal with 15% opacity
   border: "rgba(64, 176, 166, 0.8)", // Teal with 80% opacity
-};
+});
+
+const SELL_OVERLAY_COLORS = Object.freeze({
+  plotBorder: "#ED7A00",
+  plotFill: "#e0b57d",
+  lineColor: "black",
+});
+
+// Tailwind class strings for reuse
+const BASE_OVERLAY_CLASSES = "absolute pointer-events-none";
+const TRANSITION_CLASSES = "transition-all duration-150 ease-out";
+const LINE_TRANSITION_CLASSES = "transition-[top,opacity] duration-150 ease-out";
+
+// Overlay parameter types
+export interface PlotOverlayData {
+  startIndex: TokenValue; // Absolute pod index
+  amount: TokenValue; // Number of pods in this plot
+}
+
+interface BuyOverlayParams {
+  mode: "buy";
+  pricePerPod: number;
+  maxPlaceInLine: number;
+}
+
+interface SellOverlayParams {
+  mode: "sell";
+  pricePerPod: number;
+  plots: PlotOverlayData[];
+}
+
+export type OverlayParams = BuyOverlayParams | SellOverlayParams | null;
 
 interface MarketChartOverlayProps {
-  pricePerPod: number | null;
-  maxPlaceInLine: number | null;
+  overlayParams: OverlayParams;
   chartRef: React.RefObject<Chart | null>;
   visible: boolean;
   harvestableIndex: TokenValue;
@@ -26,248 +63,350 @@ type ChartDimensions = {
   right: number;
 };
 
+interface PlotRectangle {
+  x: number; // Left edge pixel position
+  y: number; // Top edge pixel position (price line)
+  width: number; // Width in pixels (based on plot amount)
+  height: number; // Height in pixels (from price to bottom)
+}
+
 const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
-  ({ pricePerPod, maxPlaceInLine, chartRef, visible, harvestableIndex }) => {
+  ({ overlayParams, chartRef, visible, harvestableIndex }) => {
     const [dimensions, setDimensions] = useState<ChartDimensions | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Calculate pixel position from data value using chart scales
+    // Optimized pixel position calculator with minimal validation overhead
     const calculatePixelPosition = useCallback((dataValue: number, axis: "x" | "y"): number | null => {
-      // Handle null chart ref gracefully
-      if (!chartRef.current) return null;
+      const chart = chartRef.current;
+      if (!chart?.scales) return null;
 
-      // Handle uninitialized chart scales
-      const scale = chartRef.current.scales?.[axis];
-      if (!scale) return null;
+      const scale = chart.scales[axis];
+      if (!scale?.getPixelForValue || scale.min === undefined || scale.max === undefined) {
+        return null;
+      }
 
-      // Verify scale has required methods and properties
-      if (typeof scale.getPixelForValue !== 'function') return null;
-      if (scale.min === undefined || scale.max === undefined) return null;
-
-      // Clamp data value to scale bounds to prevent out-of-range rendering
-      const clampedValue = Math.max(scale.min, Math.min(dataValue, scale.max));
+      // Fast clamp without Math.max/min for better performance
+      const clampedValue = dataValue < scale.min ? scale.min : dataValue > scale.max ? scale.max : dataValue;
 
       try {
         return scale.getPixelForValue(clampedValue);
-      } catch (error) {
-        // Handle any errors during pixel calculation
-        console.warn(`Error calculating pixel position for ${axis}-axis:`, error);
+      } catch {
         return null;
       }
     }, [chartRef]);
 
-    // Get chart dimensions from chart instance
+    // Optimized dimension calculator with minimal object creation
     const getChartDimensions = useCallback((): ChartDimensions | null => {
-      // Handle null chart ref gracefully
-      if (!chartRef.current) return null;
+      const chart = chartRef.current;
+      if (!chart?.chartArea) return null;
 
-      // Handle uninitialized chart area
-      const chartArea = chartRef.current.chartArea;
-      if (!chartArea) return null;
-
-      // Validate all required properties exist
-      if (
-        typeof chartArea.left !== 'number' ||
-        typeof chartArea.top !== 'number' ||
-        typeof chartArea.right !== 'number' ||
-        typeof chartArea.bottom !== 'number'
-      ) {
-        return null;
-      }
-
-      // Validate dimensions are positive and sensible
-      const width = chartArea.right - chartArea.left;
-      const height = chartArea.bottom - chartArea.top;
+      const { left, top, right, bottom } = chart.chartArea;
       
-      if (width <= 0 || height <= 0) {
+      // Fast type validation
+      if (typeof left !== 'number' || typeof top !== 'number' || 
+          typeof right !== 'number' || typeof bottom !== 'number') {
         return null;
       }
 
-      return {
-        left: chartArea.left,
-        top: chartArea.top,
-        width,
-        height,
-        bottom: chartArea.bottom,
-        right: chartArea.right,
-      };
+      const width = right - left;
+      const height = bottom - top;
+      
+      if (width <= 0 || height <= 0) return null;
+
+      return { left, top, width, height, bottom, right };
     }, [chartRef]);
 
-    // Update dimensions when chart changes or resizes
+    // Optimized resize handling with single debounced handler
     useEffect(() => {
-      const updateDimensions = () => {
-        try {
+      let timeoutId: NodeJS.Timeout;
+      let resizeObserver: ResizeObserver | null = null;
+      
+      const debouncedUpdate = () => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
           const newDimensions = getChartDimensions();
           if (newDimensions) {
             setDimensions(newDimensions);
           }
-        } catch (error) {
-          // Handle errors during dimension calculation
-          console.warn('Error updating chart dimensions:', error);
-        }
+        }, RESIZE_DEBOUNCE_MS);
       };
 
-      // Initial dimensions with slight delay to ensure chart is ready
-      const initialTimeout = setTimeout(updateDimensions, 0);
+      // Initial update
+      const initialTimeout = setTimeout(() => {
+        const dimensions = getChartDimensions();
+        if (dimensions) setDimensions(dimensions);
+      }, DIMENSION_UPDATE_DELAY_MS);
 
-      // Set up ResizeObserver with debouncing for parent element
-      let resizeTimeoutId: NodeJS.Timeout;
-      let resizeObserver: ResizeObserver | null = null;
-
-      try {
-        resizeObserver = new ResizeObserver(() => {
-          clearTimeout(resizeTimeoutId);
-          resizeTimeoutId = setTimeout(updateDimensions, 100);
-        });
-
-        if (containerRef.current?.parentElement) {
-          resizeObserver.observe(containerRef.current.parentElement);
+      // Single ResizeObserver for all resize events
+      if (typeof ResizeObserver !== 'undefined') {
+        resizeObserver = new ResizeObserver(debouncedUpdate);
+        const parent = containerRef.current?.parentElement;
+        if (parent) {
+          resizeObserver.observe(parent);
         }
-      } catch (error) {
-        console.warn('Error setting up ResizeObserver:', error);
       }
 
-      // Also listen to window resize events
-      let windowResizeTimeoutId: NodeJS.Timeout;
-      const handleWindowResize = () => {
-        clearTimeout(windowResizeTimeoutId);
-        windowResizeTimeoutId = setTimeout(updateDimensions, 100);
-      };
-
-      window.addEventListener("resize", handleWindowResize);
+      // Fallback window resize listener with passive flag for better performance
+      window.addEventListener("resize", debouncedUpdate, { passive: true });
 
       return () => {
         clearTimeout(initialTimeout);
-        clearTimeout(resizeTimeoutId);
-        clearTimeout(windowResizeTimeoutId);
-        if (resizeObserver) {
-          resizeObserver.disconnect();
-        }
-        window.removeEventListener("resize", handleWindowResize);
+        clearTimeout(timeoutId);
+        resizeObserver?.disconnect();
+        window.removeEventListener("resize", debouncedUpdate);
       };
     }, [getChartDimensions]);
 
-    // Calculate pixel coordinates for overlay elements
-    const overlayCoordinates = useMemo(() => {
-      // Early return for missing required data
-      if (!visible || !pricePerPod || !maxPlaceInLine || !dimensions) {
-        return null;
-      }
+    // Optimized buy overlay renderer with minimal validation
+    const renderBuyOverlay = useCallback(
+      (params: BuyOverlayParams) => {
+        const { pricePerPod, maxPlaceInLine } = params;
 
-      // Validate input values are finite numbers
-      if (!Number.isFinite(pricePerPod) || !Number.isFinite(maxPlaceInLine)) {
-        return null;
-      }
+        // Fast early returns
+        if (!dimensions || !chartRef.current?.scales) return null;
 
-      // Handle null chart ref gracefully
-      if (!chartRef.current) {
-        return null;
-      }
+        const { scales } = chartRef.current;
+        const { x: xScale, y: yScale } = scales;
 
-      // Check if chart has valid scales
-      const xScale = chartRef.current.scales?.x;
-      const yScale = chartRef.current.scales?.y;
+        if (!xScale?.max || xScale.max === 0 || !yScale?.max) return null;
+
+        // Optimized conversion and validation
+        const placeInLineChartX = maxPlaceInLine / MILLION;
+        if (placeInLineChartX < 0) return null;
+
+        // Batch pixel position calculations
+        const priceY = calculatePixelPosition(pricePerPod, "y");
+        const placeX = calculatePixelPosition(placeInLineChartX, "x");
+
+        if (priceY === null || placeX === null) return null;
+
+        // Fast clamping with ternary operators
+        const { left, right, top, bottom } = dimensions;
+        const clampedPlaceX = placeX < left ? left : placeX > right ? right : placeX;
+        const clampedPriceY = priceY < top ? top : priceY > bottom ? bottom : priceY;
+
+        // Calculate dimensions
+        const rectWidth = clampedPlaceX - left;
+        const rectHeight = bottom - clampedPriceY;
+
+        // Single validation check
+        if (rectWidth <= 0 || rectHeight <= 0) return null;
+
+        return (
+          <svg className="w-full h-full" style={{ willChange: "contents" }}>
+            <rect
+              x={left}
+              y={clampedPriceY}
+              width={rectWidth}
+              height={rectHeight}
+              rx={4}
+              ry={4}
+              fill={BUY_OVERLAY_COLORS.shadedRegion}
+              stroke={BUY_OVERLAY_COLORS.border}
+              strokeWidth={1}
+              style={{
+                willChange: "auto",
+                transition: "x 0.15s ease-out, y 0.15s ease-out, width 0.15s ease-out, height 0.15s ease-out",
+              }}
+            />
+          </svg>
+        );
+      },
+      [dimensions, calculatePixelPosition],
+    );
+
+    // Highly optimized plot rectangle calculator
+    const calculatePlotRectangle = useCallback(
+      (plot: PlotOverlayData, pricePerPod: number): PlotRectangle | null => {
+        // Early returns for performance
+        if (!dimensions || !chartRef.current?.scales || !plot.startIndex || !plot.amount) {
+          return null;
+        }
+
+        const { scales } = chartRef.current;
+        const { x: xScale, y: yScale } = scales;
+        
+        if (!xScale?.max || !yScale?.max) return null;
+
+        // Optimized place in line calculation - avoid intermediate TokenValue object
+        const placeInLineNum = plot.startIndex.toNumber() - harvestableIndex.toNumber();
+        if (placeInLineNum < 0) return null;
+
+        // Batch calculations for better performance
+        const startX = placeInLineNum / MILLION;
+        const endX = (placeInLineNum + plot.amount.toNumber()) / MILLION;
+        
+        // Fast validation
+        if (startX < 0 || endX <= startX) return null;
+
+        // Batch pixel position calculations
+        const startPixelX = calculatePixelPosition(startX, "x");
+        const endPixelX = calculatePixelPosition(endX, "x");
+        const pricePixelY = calculatePixelPosition(pricePerPod, "y");
+
+        if (startPixelX === null || endPixelX === null || pricePixelY === null) {
+          return null;
+        }
+
+        // Optimized clamping with ternary operators
+        const { left, right, top, bottom } = dimensions;
+        const clampedStartX = startPixelX < left ? left : startPixelX > right ? right : startPixelX;
+        const clampedEndX = endPixelX < left ? left : endPixelX > right ? right : endPixelX;
+        const clampedPriceY = pricePixelY < top ? top : pricePixelY > bottom ? bottom : pricePixelY;
+
+        const width = clampedEndX - clampedStartX;
+        const height = bottom - clampedPriceY;
+
+        // Single validation check
+        if (width <= 0 || height <= 0 || clampedStartX >= right || clampedEndX <= left) {
+          return null;
+        }
+
+        return { x: clampedStartX, y: clampedPriceY, width, height };
+      },
+      [dimensions, calculatePixelPosition, harvestableIndex],
+    );
+
+    // Highly optimized rectangle memoization with minimal object creation
+    const memoizedRectangles = useMemo(() => {
+      if (!overlayParams || overlayParams.mode !== "sell" || !dimensions) return null;
+
+      const { pricePerPod, plots } = overlayParams;
+
+      // Fast validation
+      if (pricePerPod <= 0 || !plots?.length) return null;
+
+      // Pre-allocate array for better performance
+      const rectangles: Array<PlotRectangle & { plotKey: string; plotIndex: number }> = [];
       
-      if (!xScale || !yScale) {
-        return null;
+      // Use for loop for better performance than map/filter chain
+      for (let i = 0; i < plots.length; i++) {
+        const plot = plots[i];
+        const rect = calculatePlotRectangle(plot, pricePerPod);
+        
+        if (rect) {
+          rectangles.push({
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height,
+            plotKey: plot.startIndex.toHuman(),
+            plotIndex: i,
+          });
+        }
       }
 
-      // Handle uninitialized chart scales
-      if (xScale.max === undefined || xScale.max === 0 || yScale.max === undefined) {
-        return null;
-      }
+      return rectangles.length > 0 ? rectangles : null;
+    }, [overlayParams, dimensions, calculatePlotRectangle]);
 
-      // Convert maxPlaceInLine to chart x-axis value (millions)
-      const placeInLineChartX = maxPlaceInLine / MILLION;
+    // Highly optimized sell overlay renderer with pre-calculated values
+    const renderSellOverlay = useCallback(
+      (params: SellOverlayParams) => {
+        const { pricePerPod } = params;
 
-      // Validate converted value is reasonable
-      if (!Number.isFinite(placeInLineChartX) || placeInLineChartX < 0) {
-        return null;
-      }
+        if (!dimensions || !memoizedRectangles) return null;
 
-      // Get pixel positions (already clamped in calculatePixelPosition)
-      const priceY = calculatePixelPosition(pricePerPod, "y");
-      const placeX = calculatePixelPosition(placeInLineChartX, "x");
+        // Calculate price line Y position
+        const pricePixelY = calculatePixelPosition(pricePerPod, "y");
+        if (pricePixelY === null) return null;
 
-      if (priceY === null || placeX === null) {
-        return null;
-      }
+        // Fast clamping
+        const { top, bottom, left } = dimensions;
+        const clampedPriceY = pricePixelY < top ? top : pricePixelY > bottom ? bottom : pricePixelY;
 
-      // Additional clamping to chart boundaries to prevent overflow
-      const clampedPlaceX = Math.max(dimensions.left, Math.min(placeX, dimensions.right));
-      const clampedPriceY = Math.max(dimensions.top, Math.min(priceY, dimensions.bottom));
+        // Pre-calculate common values to avoid repeated calculations
+        const lineWidth = dimensions.right - left;
+        const lineHeight = bottom - top;
+        const lastRectIndex = memoizedRectangles.length - 1;
 
-      // Validate final coordinates are within bounds
-      if (
-        !Number.isFinite(clampedPlaceX) ||
-        !Number.isFinite(clampedPriceY) ||
-        clampedPlaceX < dimensions.left ||
-        clampedPlaceX > dimensions.right ||
-        clampedPriceY < dimensions.top ||
-        clampedPriceY > dimensions.bottom
-      ) {
-        return null;
-      }
+        return (
+          <>
+            {/* Horizontal price line - Tailwind + minimal inline styles */}
+            <div
+              className={`${BASE_OVERLAY_CLASSES} ${LINE_TRANSITION_CLASSES} h-0 border-t border-dashed border-black`}
+              style={{
+                left,
+                top: clampedPriceY,
+                width: lineWidth,
+              }}
+            />
 
-      return {
-        priceY: clampedPriceY,
-        placeX: clampedPlaceX,
-      };
-    }, [visible, pricePerPod, maxPlaceInLine, dimensions, calculatePixelPosition, chartRef]);
+            {/* Selection boxes - Tailwind + minimal inline styles */}
+            {memoizedRectangles.map((rect) => {
+              const centerX = rect.x + (rect.width >> 1); // Bit shift for division by 2
+              const centerY = clampedPriceY;
 
-    // Don't render if not visible or no valid coordinates
-    if (!visible || !overlayCoordinates || !dimensions) {
+              return (
+                <div
+                  key={rect.plotKey}
+                  className={`${BASE_OVERLAY_CLASSES} ${TRANSITION_CLASSES} box-border`}
+                  style={{
+                    left: centerX - HALF_BOX_SIZE,
+                    top: centerY - HALF_BOX_SIZE,
+                    width: BOX_SIZE,
+                    height: BOX_SIZE,
+                    backgroundColor: SELL_OVERLAY_COLORS.plotFill,
+                    borderWidth: BORDER_WIDTH,
+                    borderStyle: "solid",
+                    borderColor: SELL_OVERLAY_COLORS.plotBorder,
+                  }}
+                />
+              );
+            })}
+
+            {/* Vertical lines - Tailwind + minimal inline styles */}
+            {memoizedRectangles.length > 0 && (
+              <>
+                <div
+                  key="vertical-line-left"
+                  className={`${BASE_OVERLAY_CLASSES} ${TRANSITION_CLASSES} w-0 border-l border-dashed border-black`}
+                  style={{
+                    left: memoizedRectangles[0].x,
+                    top,
+                    height: lineHeight,
+                  }}
+                />
+                <div
+                  key="vertical-line-right"
+                  className={`${BASE_OVERLAY_CLASSES} ${TRANSITION_CLASSES} w-0 border-l border-dashed border-black`}
+                  style={{
+                    left: memoizedRectangles[lastRectIndex].x + memoizedRectangles[lastRectIndex].width,
+                    top,
+                    height: lineHeight,
+                  }}
+                />
+              </>
+            )}
+          </>
+        );
+      },
+      [dimensions, memoizedRectangles, calculatePixelPosition],
+    );
+
+    // Don't render if not visible or no overlay params
+    if (!visible || !overlayParams || !dimensions) {
       return null;
     }
 
-    const { priceY, placeX } = overlayCoordinates;
-
-    // Additional validation: ensure coordinates are within chart bounds
-    // This is a safety check since coordinates should already be clamped
-    if (
-      !Number.isFinite(placeX) ||
-      !Number.isFinite(priceY) ||
-      placeX < dimensions.left ||
-      placeX > dimensions.right ||
-      priceY < dimensions.top ||
-      priceY > dimensions.bottom
-    ) {
-      return null;
+    // Determine which overlay to render based on mode
+    let overlayContent: JSX.Element | null = null;
+    if (overlayParams.mode === "buy") {
+      overlayContent = renderBuyOverlay(overlayParams);
+    } else if (overlayParams.mode === "sell") {
+      overlayContent = renderSellOverlay(overlayParams);
     }
 
-    // Calculate dimensions for the shaded region
-    const rectWidth = placeX - dimensions.left;
-    const rectHeight = dimensions.bottom - priceY;
-
-    // Don't render if dimensions are invalid or too small
-    if (!Number.isFinite(rectWidth) || !Number.isFinite(rectHeight) || rectWidth <= 0 || rectHeight <= 0) {
+    if (!overlayContent) {
       return null;
     }
 
     return (
       <div
         ref={containerRef}
-        className="absolute inset-0 pointer-events-none"
-        style={{ zIndex: 2, willChange: "transform" }}
+        className="absolute inset-0 pointer-events-none z-[2]"
+        style={{ willChange: "transform" }}
       >
-        <svg className="w-full h-full" style={{ willChange: "contents" }}>
-          {/* Shaded region - from top-left to the intersection point */}
-          <rect
-            x={dimensions.left}
-            y={priceY}
-            width={rectWidth}
-            height={rectHeight}
-            rx={4}
-            ry={4}
-            fill={OVERLAY_COLORS.shadedRegion}
-            stroke={OVERLAY_COLORS.border}
-            strokeWidth={1}
-            style={{
-              willChange: "auto",
-              transition: "x 0.15s ease-out, y 0.15s ease-out, width 0.15s ease-out, height 0.15s ease-out",
-            }}
-          />
-        </svg>
+        {overlayContent}
       </div>
     );
   },

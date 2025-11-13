@@ -15,8 +15,9 @@ import { useHarvestableIndex, usePodLine } from "@/state/useFieldData";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { ActiveElement, ChartEvent, PointStyle, TooltipOptions } from "chart.js";
 import { Chart } from "chart.js";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import MarketChartOverlay, { type OverlayParams } from "@/components/MarketChartOverlay";
 import { AllActivityTable } from "./market/AllActivityTable";
 import { FarmerActivityTable } from "./market/FarmerActivityTable";
 import MarketModeSelect from "./market/MarketModeSelect";
@@ -161,71 +162,91 @@ export function Market() {
   const navigate = useNavigate();
   const { data, isLoaded } = useAllMarket();
   const podLine = usePodLine();
-  const podLineAsNumber = podLine.toNumber() / MILLION;
   const harvestableIndex = useHarvestableIndex();
+  const podLineAsNumber = podLine.toNumber() / MILLION;
   const navHeight = useNavHeight();
+  
+  // Overlay state and chart ref
+  const chartRef = useRef<Chart | null>(null);
+  const [overlayParams, setOverlayParams] = useState<OverlayParams>(null);
+
+  // Memoized callback to update overlay params
+  const handleOverlayParamsChange = useCallback((params: OverlayParams) => {
+    setOverlayParams(params);
+  }, []);
 
   const scatterChartData: MarketScatterChartData[] = useMemo(
     () => shapeScatterChartData(data || [], harvestableIndex),
     [data, harvestableIndex],
   );
 
-  const toolTipOptions: Partial<TooltipOptions> = {
-    enabled: false,
-    external: (context) => {
-      const tooltipEl = document.getElementById("chartjs-tooltip");
+  // Calculate chart x-axis max value - use podLineAsNumber with a minimum value
+  // Don't depend on overlayParams to avoid re-rendering chart on every slider change
+  const chartXMax = useMemo(() => {
+    // Use podLineAsNumber if available, otherwise use a reasonable default
+    const maxValue = podLineAsNumber > 0 ? podLineAsNumber : 50; // Default to 50 million
+    
+    // Ensure a minimum value for the chart to render properly
+    return Math.max(maxValue, 1); // At least 1 million
+  }, [podLineAsNumber]);
 
-      // Create element on first render
-      if (!tooltipEl) {
-        const div = document.createElement("div");
-        div.id = "chartjs-tooltip";
-        div.style.background = "rgba(0, 0, 0, 0.7)";
-        div.style.borderRadius = "3px";
-        div.style.color = "white";
-        div.style.opacity = "1";
-        div.style.pointerEvents = "none";
-        div.style.position = "absolute";
-        div.style.transform = "translate(25px)"; // Position to right of point
-        div.style.transition = "all .1s ease";
-        document.body.appendChild(div);
-      } else {
-        // Hide if no tooltip
-        if (context.tooltip.opacity === 0) {
-          tooltipEl.style.opacity = "0";
-          return;
-        }
+  const toolTipOptions: Partial<TooltipOptions> = useMemo(
+    () => ({
+      enabled: false,
+      external: (context) => {
+        const tooltipEl = document.getElementById("chartjs-tooltip");
 
-        // Set Text
-        if (context.tooltip.body) {
-          const position = context.tooltip.dataPoints[0].element.getProps(["x", "y"], true);
-          const dataPoint = context.tooltip.dataPoints[0].raw as MarketScatterChartDataPoint;
-          tooltipEl.style.opacity = "1";
-          tooltipEl.style.width = "250px";
-          tooltipEl.style.backgroundColor = "white";
-          tooltipEl.style.color = "black";
-          tooltipEl.style.borderRadius = "10px";
-          tooltipEl.style.border = "1px solid #D9D9D9";
-          tooltipEl.style.zIndex = String(TOOLTIP_Z_INDEX);
-          // Basically all of this is custom logic for 3 different breakpoints to either display the tooltip to the top right or bottom right of the point.
-          const topOfPoint = position.y + getPointTopOffset();
-          const bottomOfPoint = position.y + getPointBottomOffset();
-          tooltipEl.style.top = dataPoint.y > 0.8 ? bottomOfPoint : topOfPoint + "px"; // Position relative to point y
-          // end custom logic
-          tooltipEl.style.left = position.x + "px"; // Position relative to point x
-          tooltipEl.style.padding = context.tooltip.options.padding + "px " + context.tooltip.options.padding + "px";
-          const listingHeader = `
+        // Create element on first render
+        if (!tooltipEl) {
+          const div = document.createElement("div");
+          div.id = "chartjs-tooltip";
+          div.style.background = "rgba(0, 0, 0, 0.7)";
+          div.style.borderRadius = "3px";
+          div.style.color = "white";
+          div.style.opacity = "1";
+          div.style.pointerEvents = "none";
+          div.style.position = "absolute";
+          div.style.transform = "translate(25px)"; // Position to right of point
+          div.style.transition = "all .1s ease";
+          document.body.appendChild(div);
+        } else {
+          // Hide if no tooltip
+          if (context.tooltip.opacity === 0) {
+            tooltipEl.style.opacity = "0";
+            return;
+          }
+
+          // Set Text
+          if (context.tooltip.body) {
+            const position = context.tooltip.dataPoints[0].element.getProps(["x", "y"], true);
+            const dataPoint = context.tooltip.dataPoints[0].raw as MarketScatterChartDataPoint;
+            tooltipEl.style.opacity = "1";
+            tooltipEl.style.width = "250px";
+            tooltipEl.style.backgroundColor = "white";
+            tooltipEl.style.color = "black";
+            tooltipEl.style.borderRadius = "10px";
+            tooltipEl.style.border = "1px solid #D9D9D9";
+            tooltipEl.style.zIndex = String(TOOLTIP_Z_INDEX);
+            // Basically all of this is custom logic for 3 different breakpoints to either display the tooltip to the top right or bottom right of the point.
+            const topOfPoint = position.y + getPointTopOffset();
+            const bottomOfPoint = position.y + getPointBottomOffset();
+            tooltipEl.style.top = dataPoint.y > 0.8 ? bottomOfPoint : topOfPoint + "px"; // Position relative to point y
+            // end custom logic
+            tooltipEl.style.left = position.x + "px"; // Position relative to point x
+            tooltipEl.style.padding = context.tooltip.options.padding + "px " + context.tooltip.options.padding + "px";
+            const listingHeader = `
            <div class="flex items-center">
             <img src="${PodIcon}" class="w-4 h-4 scale-110 mr-[6px]" alt="pod icon">
             <span>${TokenValue.fromHuman(dataPoint.amount, 0).toHuman("short")} Pods Listed</span>
           </div>
           `;
-          const orderHeader = `
+            const orderHeader = `
           <div class="flex items-center">
            <img src="${PodIcon}" class="w-4 h-4 scale-110 mr-[6px]" alt="pod icon">
            <span>Order for ${TokenValue.fromHuman(dataPoint.amount, 0).toHuman("short")} Pods</span>
          </div>
          `;
-          tooltipEl.innerHTML = `
+            tooltipEl.innerHTML = `
             <div class="flex flex-col">
             ${dataPoint.eventType === "LISTING" ? listingHeader : orderHeader}
               <div class="flex justify-between">
@@ -241,10 +262,12 @@ export function Market() {
               </div>
             </div>
         `;
+          }
         }
-      }
-    },
-  };
+      },
+    }),
+    [],
+  );
 
   // Upon initial page load only, navigate to a page other than Activity if the url is granular.
   // In general it is allowed to be on Activity tab with these granular urls, hence the empty dependency array.
@@ -377,11 +400,21 @@ export function Market() {
                   </div>
                 )}
                 <ScatterChart
+                  ref={chartRef}
                   data={scatterChartData}
-                  xOptions={{ label: "Place in line", min: 0, max: podLineAsNumber }}
+                  xOptions={{ label: "Place in line", min: 0, max: chartXMax }}
                   yOptions={{ label: "Price per pod", min: 0, max: CHART_MAX_PRICE }}
                   onPointClick={onPointClick}
                   toolTipOptions={toolTipOptions as TooltipOptions}
+                />
+                <MarketChartOverlay
+                  overlayParams={overlayParams}
+                  chartRef={chartRef}
+                  visible={
+                    (mode === "buy" && (id === "create" || id === "fill")) ||
+                    (mode === "sell" && id === "create")
+                  }
+                  harvestableIndex={harvestableIndex}
                 />
               </div>
               <div className=" mb-4 pl-[52px] pr-[12px]">
@@ -414,9 +447,13 @@ export function Market() {
                 <div className="flex flex-col gap-4 p-4">
                   <MarketModeSelect onSecondarySelectionChange={handleSecondaryTabClick} />
                   <div className="flex flex-col gap-4">
-                    {viewMode === "buy" && id === "create" && <CreateOrder />}
-                    {viewMode === "buy" && id === "fill" && <FillListing />}
-                    {viewMode === "sell" && id === "create" && <CreateListing />}
+                    {viewMode === "buy" && id === "create" && (
+                      <CreateOrder onOverlayParamsChange={handleOverlayParamsChange} />
+                    )}
+                    {viewMode === "buy" && id === "fill" && <FillListing onOverlayParamsChange={handleOverlayParamsChange} />}
+                    {viewMode === "sell" && id === "create" && (
+                      <CreateListing onOverlayParamsChange={handleOverlayParamsChange} />
+                    )}
                     {viewMode === "sell" && id === "fill" && <FillOrder />}
                   </div>
                 </div>

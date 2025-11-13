@@ -74,23 +74,30 @@ export interface ScatterChartProps {
 }
 
 const ScatterChart = React.memo(
-  ({
-    data,
-    size,
-    valueFormatter,
-    onMouseOver,
-    activeIndex,
-    useLogarithmicScale = false,
-    horizontalReferenceLines = [],
-    xOptions,
-    yOptions,
-    customValueTransform,
-    onPointClick,
-    toolTipOptions,
-  }: ScatterChartProps) => {
-    const chartRef = useRef<Chart | null>(null);
-    const activeIndexRef = useRef<number | undefined>(activeIndex);
-    const selectedPointRef = useRef<[number, number] | null>(null);
+  React.forwardRef<Chart, ScatterChartProps>(
+    (
+      {
+        data,
+        size,
+        valueFormatter,
+        onMouseOver,
+        activeIndex,
+        useLogarithmicScale = false,
+        horizontalReferenceLines = [],
+        xOptions,
+        yOptions,
+        customValueTransform,
+        onPointClick,
+        toolTipOptions,
+      },
+      ref,
+    ) => {
+      const chartRef = useRef<Chart | null>(null);
+      const activeIndexRef = useRef<number | undefined>(activeIndex);
+      const selectedPointRef = useRef<[number, number] | null>(null);
+
+      // Expose chart instance through ref
+      React.useImperativeHandle(ref, () => chartRef.current as Chart, []);
 
     useEffect(() => {
       activeIndexRef.current = activeIndex;
@@ -480,18 +487,19 @@ const ScatterChart = React.memo(
         };
       }
     }, [size]);
-    return (
-      <ReactChart
-        ref={chartRef}
-        type="scatter"
-        data={chartData}
-        options={chartOptions}
-        plugins={allPlugins}
-        width={chartDimensions.w}
-        height={500}
-      />
-    );
-  },
+      return (
+        <ReactChart
+          ref={chartRef}
+          type="scatter"
+          data={chartData}
+          options={chartOptions}
+          plugins={allPlugins}
+          width={chartDimensions.w}
+          height={500}
+        />
+      );
+    },
+  ),
   areScatterChartPropsEqual,
 );
 
@@ -643,5 +651,7 @@ function areScatterChartPropsEqual(prevProps: ScatterChartProps, nextProps: Scat
 
   return true;
 }
+
+ScatterChart.displayName = "ScatterChart";
 
 export default ScatterChart;

@@ -37,6 +37,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
+import type { OverlayParams } from "@/components/MarketChartOverlay";
 
 // Constants
 const PRICE_PER_POD_CONFIG = {
@@ -85,7 +86,11 @@ const useFilterTokens = () => {
   }, [tokens, isWSOL]);
 };
 
-export default function CreateOrder() {
+interface CreateOrderProps {
+  onOverlayParamsChange?: (params: OverlayParams) => void;
+}
+
+export default function CreateOrder({ onOverlayParamsChange }: CreateOrderProps = {}) {
   const diamondAddress = useProtocolAddress();
   const mainToken = useTokenData().mainToken;
   const { queryKeys: balanceQKs } = useFarmerBalances();
@@ -168,6 +173,42 @@ export default function CreateOrder() {
       setDidSetPreferred(true);
     }
   }, [preferredToken, preferredLoading, didSetPreferred]);
+
+  // Throttle overlay parameter updates for better performance
+  const overlayUpdateTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  useEffect(() => {
+    // Clear any pending update
+    if (overlayUpdateTimerRef.current) {
+      clearTimeout(overlayUpdateTimerRef.current);
+    }
+
+    // Throttle overlay updates to avoid performance issues during slider drag
+    overlayUpdateTimerRef.current = setTimeout(() => {
+      if (maxPlaceInLine && maxPlaceInLine > 0 && pricePerPod > 0) {
+        onOverlayParamsChange?.({
+          mode: "buy",
+          pricePerPod,
+          maxPlaceInLine,
+        });
+      } else {
+        onOverlayParamsChange?.(null);
+      }
+    }, 16); // ~60fps (16ms)
+
+    return () => {
+      if (overlayUpdateTimerRef.current) {
+        clearTimeout(overlayUpdateTimerRef.current);
+      }
+    };
+  }, [pricePerPod, maxPlaceInLine, onOverlayParamsChange]);
+
+  // Cleanup overlay on unmount
+  useEffect(() => {
+    return () => {
+      onOverlayParamsChange?.(null);
+    };
+  }, [onOverlayParamsChange]);
 
   // Token selection handler with tracking
   const handleTokenSelection = useCallback(
