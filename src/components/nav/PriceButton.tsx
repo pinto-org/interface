@@ -12,6 +12,7 @@ import { PoolData, usePriceData, useTwaDeltaBLPQuery, useTwaDeltaBQuery } from "
 import useTokenData from "@/state/useTokenData";
 import { withTracking } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
+import { stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
 import { Token } from "@/utils/types";
 import { cn } from "@/utils/utils";
@@ -19,7 +20,7 @@ import { HTMLAttributes, memo, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useChainId } from "wagmi";
 import { renderAnnouncement } from "../AnnouncementBanner";
-import { InlineCenterSpan, Row } from "../Container";
+import { InlineCenterSpan } from "../Container";
 import { ExternalLinkIcon, ForwardArrowIcon } from "../Icons";
 import TooltipSimple from "../TooltipSimple";
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/Card";
@@ -301,14 +302,18 @@ const PoolGroup = ({
         if (props.showPrices) {
           return (
             <>
-              <PoolPriceDisplay key={`${pool.pool.address}_prices_${i}`} pool={pool} priceData={props.priceData} />
+              <PoolPriceDisplay
+                key={`${props.title}_${pool.pool.address}_prices_${i}`}
+                pool={pool}
+                priceData={props.priceData}
+              />
             </>
           );
         }
 
         return (
           <PoolCard
-            key={`${pool.pool.address}_card_${i}`}
+            key={`${props.title}_${pool.pool.address}_card_${i}`}
             pool={pool}
             chainId={props.chainId}
             priceData={props.priceData}
@@ -329,8 +334,16 @@ interface PoolPriceDisplayProps {
 
 const PoolPriceDisplay = ({ pool, priceData }: PoolPriceDisplayProps) => {
   const backingTokenIndex = pool.tokens.findIndex((token: Token) => !token.isMain);
+
+  if (backingTokenIndex === -1) {
+    return null;
+  }
+
   const tokenToShow = priceData.tokenPrices.get(pool.tokens[backingTokenIndex]);
-  if (!tokenToShow) return null;
+
+  if (!tokenToShow) {
+    return null;
+  }
 
   return (
     <div className="flex flex-row justify-between">
@@ -375,7 +388,7 @@ const PoolCard = ({ pool, chainId, priceData, expandAll, useTwa, twaDeltaBMap }:
   const token0BalanceUsd = pool.balances[0].mul(token0Price ?? TokenValue.ZERO) || 0n;
   const token1BalanceUsd = pool.balances[1].mul(token1Price ?? TokenValue.ZERO) || 0n;
   const mainTokenIndex = pool.tokens.findIndex((token: Token) => token.isMain);
-  const deltaBar = pool.balances[mainTokenIndex].gt(0)
+  const deltaBar = pool.balances[mainTokenIndex]?.gt(0)
     ? Number(pool.deltaB.abs().div(pool.balances[mainTokenIndex]).mul(100).toHuman()).toFixed(2)
     : "0";
 

@@ -1,4 +1,3 @@
-import { TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
 import { UpDownArrowsIcon } from "@/components/Icons";

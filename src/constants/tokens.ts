@@ -11,6 +11,7 @@ import spectrasPintoYTIcon from "@/assets/tokens/SPECTRA-sPINTO-YT.png";
 import wsolIcon from "@/assets/tokens/WSOL.png";
 import crsPintoIcon from "@/assets/tokens/crsPINTO.png";
 import sPintoIcon from "@/assets/tokens/sPINTO.png";
+import wstETHIcon from "@/assets/tokens/wstETH.svg";
 import { Token, Token3PIntegration } from "@/utils/types";
 import { ChainLookup } from "@/utils/types.generic";
 import { arbitrum, base } from "viem/chains";
@@ -177,17 +178,24 @@ export const WSOL_TOKEN: ChainLookup<Token> = {
 export const WSTETH_TOKEN: ChainLookup<Token> = {
   [base.id]: {
     chainId: base.id,
-    name: "Wrapped stETH",
-    symbol: "WSTETH",
+    name: "Wrapped liquid staked Ether 2.0",
+    symbol: "wstETH",
     address: "0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452",
     decimals: 18,
     displayDecimals: 2,
     isLPUnderlying: true,
     isCompositeLPWhitelisted: true,
-    logoURI: "https://assets.coingecko.com/coins/images/18834/thumb/wstETH.png?1696518295",
+    logoURI: wstETHIcon,
     color: "#00A3FF",
   },
 };
+
+const defaultLPTokenIndicies = {
+  tokenIndicies: {
+    main: 0,
+    pair: 1,
+  },
+} as const;
 
 // -------------------- LP TOKENS --------------------
 
@@ -196,14 +204,15 @@ export const PINTO_WSTETH_TOKEN: ChainLookup<Token> = {
     chainId: base.id,
     name: "PINTOWSTETH LP",
     symbol: "PINTOWSTETH",
-    address: "0xbd2d86B89353e0d441A3CC3d939A48f17CCDDff5",
+    address: "0x1957F43834d4e538cE99378FB26059579cf9bEe1", // temp address
     decimals: 18,
-    displayDecimals: 6, // show 6 decimal places for this token
+    displayDecimals: 2,
     isLP: true,
     isWhitelisted: true,
     logoURI: pintoWsolIcon,
     color: "#00A3FF",
     tokens: [MAIN_TOKEN[base.id].address, WSTETH_TOKEN[base.id].address],
+    ...defaultLPTokenIndicies,
   },
 } as const;
 
@@ -220,6 +229,7 @@ export const PINTO_WSOL_TOKEN: ChainLookup<Token> = {
     logoURI: pintoWsolIcon,
     color: "#9945FF",
     tokens: [MAIN_TOKEN[base.id].address, WSOL_TOKEN[base.id].address],
+    ...defaultLPTokenIndicies,
   },
 } as const;
 
@@ -236,6 +246,7 @@ export const PINTO_WETH_TOKEN: ChainLookup<Token> = {
     logoURI: pintoWethIcon,
     color: "#8C8C8C",
     tokens: [MAIN_TOKEN[base.id].address, WETH_TOKEN[base.id].address],
+    ...defaultLPTokenIndicies,
   },
 } as const;
 
@@ -252,6 +263,7 @@ export const PINTO_CBETH_TOKEN: ChainLookup<Token> = {
     logoURI: pintoCbethIcon,
     color: "#0052FF",
     tokens: [MAIN_TOKEN[base.id].address, CBETH_TOKEN[base.id].address],
+    ...defaultLPTokenIndicies,
   },
 } as const;
 
@@ -268,6 +280,7 @@ export const PINTO_USDC_TOKEN: ChainLookup<Token> = {
     logoURI: pintoUsdcIcon,
     color: "#2775CA",
     tokens: [MAIN_TOKEN[base.id].address, USDC_TOKEN[base.id].address],
+    ...defaultLPTokenIndicies,
   },
 } as const;
 
@@ -284,6 +297,7 @@ export const PINTO_CBBTC_TOKEN: ChainLookup<Token> = {
     logoURI: pintoCbbtcIcon,
     color: "#F7931A",
     tokens: [MAIN_TOKEN[base.id].address, CBBTC_TOKEN[base.id].address],
+    ...defaultLPTokenIndicies,
   },
 } as const;
 
@@ -479,7 +493,7 @@ export const tokens: { [chainId: number]: Token[] } = {
 export const PINTO = MAIN_TOKEN[defaultChain];
 
 // Native Chain Token
-export const ETH = NATIVE_TOKEN[defaultChain][1];
+export const ETH = NATIVE_TOKEN[defaultChain];
 
 // Well LP Tokens
 export const PINTOWETH = LP_TOKENS[defaultChain][0];
@@ -487,6 +501,7 @@ export const PINTOCBETH = LP_TOKENS[defaultChain][1];
 export const PINTOUSDC = LP_TOKENS[defaultChain][2];
 export const PINTOCBBTC = LP_TOKENS[defaultChain][3];
 export const PINTOWSOL = LP_TOKENS[defaultChain][4];
+export const PINTOWSTETH = LP_TOKENS[defaultChain][5];
 
 // Underlying Tokens
 export const WETH = UNDERLYING_TOKENS[defaultChain][0];
@@ -494,3 +509,4 @@ export const USDC = UNDERLYING_TOKENS[defaultChain][1];
 export const CBETH = UNDERLYING_TOKENS[defaultChain][2];
 export const CBBTC = UNDERLYING_TOKENS[defaultChain][3];
 export const WSOL = UNDERLYING_TOKENS[defaultChain][4];
+export const WSTETH = UNDERLYING_TOKENS[defaultChain][5];
