@@ -13,11 +13,14 @@ import useNavHeight from "@/hooks/display/useNavHeight";
 import { useAllMarket } from "@/state/market/useAllMarket";
 import { useHarvestableIndex, usePodLine } from "@/state/useFieldData";
 import { trackSimpleEvent } from "@/utils/analytics";
+import { buildPodScoreColorScaler } from "@/utils/podScoreColorScaler";
+import { calculatePodScore } from "@/utils/podScore";
 import { ActiveElement, ChartEvent, PointStyle, TooltipOptions } from "chart.js";
 import { Chart } from "chart.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import MarketChartOverlay, { type OverlayParams } from "@/components/MarketChartOverlay";
+import PodScoreGradientLegend from "@/components/PodScoreGradientLegend";
 import { AllActivityTable } from "./market/AllActivityTable";
 import { FarmerActivityTable } from "./market/FarmerActivityTable";
 import MarketModeSelect from "./market/MarketModeSelect";
@@ -68,6 +71,8 @@ type MarketScatterChartDataPoint = {
   amount: number;
   placeInLine: number;
   eventIndex?: number;
+  podScore?: number;
+  color?: string;
 };
 
 type MarketScatterChartData = {
@@ -79,12 +84,12 @@ type MarketScatterChartData = {
 };
 
 /**
- * Transforms raw market data into scatter chart format
+ * Transforms raw market data into scatter chart format with Pod Score coloring
  */
 const shapeScatterChartData = (data: any[], harvestableIndex: TokenValue): MarketScatterChartData[] => {
   if (!data) return [];
 
-  return data.reduce(
+  const result = data.reduce(
     (acc, event) => {
       // Skip Fill Orders
       if ("toFarmer" in event) {
@@ -122,6 +127,10 @@ const shapeScatterChartData = (data: any[], harvestableIndex: TokenValue): Marke
         const eventIndex = event.index.toNumber();
 
         if (placeInLine !== null && price !== null) {
+          // Calculate Pod Score for the listing
+          // Use placeInLine in millions for consistent scaling with chart x-axis
+          const podScore = calculatePodScore(price, placeInLine / MILLION);
+          
           acc[1].data.push({
             x: placeInLine / MILLION,
             y: price,
@@ -131,6 +140,7 @@ const shapeScatterChartData = (data: any[], harvestableIndex: TokenValue): Marke
             status,
             amount,
             placeInLine,
+            podScore,
           });
         }
       }
@@ -141,19 +151,38 @@ const shapeScatterChartData = (data: any[], harvestableIndex: TokenValue): Marke
       {
         label: "Orders",
         data: [] as MarketScatterChartDataPoint[],
-        color: "#40b0a6", // teal
+        color: "#5CB8A9", // teal
         pointStyle: "circle" as PointStyle,
         pointRadius: 6,
       },
       {
         label: "Listings",
         data: [] as MarketScatterChartDataPoint[],
-        color: "#e0b57d", // tan
+        color: "#e0b57d", // tan (fallback)
         pointStyle: "rect" as PointStyle,
         pointRadius: 6,
       },
     ],
   );
+
+  // Apply Pod Score coloring to listings
+  // Extract all listing Pod Scores (filter out undefined values)
+  const listingScores = result[1].data
+    .map(point => point.podScore)
+    .filter((score): score is number => score !== undefined);
+
+  // Build color scaler from listing scores
+  const colorScaler = buildPodScoreColorScaler(listingScores);
+
+  // Map through listings and apply colors
+  result[1].data = result[1].data.map(point => ({
+    ...point,
+    color: point.podScore !== undefined 
+      ? colorScaler.toColor(point.podScore)
+      : "#e0b57d", // Fallback color for invalid Pod Scores
+  }));
+
+  return result;
 };
 
 export function Market() {
@@ -179,6 +208,21 @@ export function Market() {
     () => shapeScatterChartData(data || [], harvestableIndex),
     [data, harvestableIndex],
   );
+
+  // Extract Pod Scores from market listings for overlay color scaling
+  const marketListingScores = useMemo(() => {
+    if (!scatterChartData || scatterChartData.length < 2) return [];
+    
+    // Listings are at index 1 in scatterChartData
+    const listingsData = scatterChartData[1];
+    if (!listingsData?.data) return [];
+    
+    const scores = listingsData.data
+      .map(point => point.podScore)
+      .filter((score): score is number => score !== undefined);
+    
+    return scores;
+  }, [scatterChartData]);
 
   // Calculate chart x-axis max value - use podLineAsNumber with a minimum value
   // Don't depend on overlayParams to avoid re-rendering chart on every slider change
@@ -246,6 +290,24 @@ export function Market() {
            <span>Order for ${TokenValue.fromHuman(dataPoint.amount, 0).toHuman("short")} Pods</span>
          </div>
          `;
+            // Format Pod Score for display (only for listings)
+            const formatPodScore = (score: number): string => {
+              if (score >= 1000000) {
+                return `${(score / 1000000).toFixed(2)}M`;
+              } else if (score >= 1000) {
+                return `${(score / 1000).toFixed(1)}K`;
+              } else {
+                return score.toFixed(2);
+              }
+            };
+            
+            const podScoreRow = dataPoint.eventType === "LISTING" && dataPoint.podScore !== undefined
+              ? `<div class="flex justify-between">
+                <span>Pod Score:</span>
+                <span>${formatPodScore(dataPoint.podScore)}</span>
+              </div>`
+              : '';
+
             tooltipEl.innerHTML = `
             <div class="flex flex-col">
             ${dataPoint.eventType === "LISTING" ? listingHeader : orderHeader}
@@ -260,6 +322,7 @@ export function Market() {
                 <span>Place in Line:</span>
                 <span>${TokenValue.fromHuman(dataPoint.placeInLine, 0).toHuman("long")}</span>
               </div>
+              ${podScoreRow}
             </div>
         `;
           }
@@ -407,6 +470,12 @@ export function Market() {
                   onPointClick={onPointClick}
                   toolTipOptions={toolTipOptions as TooltipOptions}
                 />
+                
+                {/* Gradient Legend - positioned in top-right corner */}
+                <div className="absolute top-5 right-6 z-[3]">
+                  <PodScoreGradientLegend/>
+                </div>
+                
                 <MarketChartOverlay
                   overlayParams={overlayParams}
                   chartRef={chartRef}
@@ -415,6 +484,7 @@ export function Market() {
                     (mode === "sell" && id === "create")
                   }
                   harvestableIndex={harvestableIndex}
+                  marketListingScores={marketListingScores}
                 />
               </div>
               <div className=" mb-4 pl-[52px] pr-[12px]">

@@ -61,6 +61,34 @@ const TextAdornment = ({ text, className }: { text: string; className?: string }
   return <div className={cn("text-black pinto-sm-light mr-2", className)}>{text}</div>;
 };
 
+/**
+ * Calculates Pod Score for a listing based on price per pod and place in line.
+ * Formula: (1/pricePerPod - 1) / placeInLine * 1e6
+ * 
+ * @param pricePerPod - Price per pod (must be > 0)
+ * @param placeInLine - Position in harvest queue in millions (must be > 0)
+ * @returns Pod Score value, or undefined for invalid inputs
+ */
+const calculatePodScore = (pricePerPod: number, placeInLine: number): number | undefined => {
+  // Handle edge cases: invalid price or place in line
+  if (pricePerPod <= 0 || placeInLine <= 0) {
+    return undefined;
+  }
+
+  // Calculate return: (1/pricePerPod - 1)
+  const returnValue = 1 / pricePerPod - 1;
+  
+  // Calculate Pod Score: return / placeInLine * 1e6
+  const podScore = (returnValue / placeInLine) * 1e6;
+
+  // Filter out invalid results (NaN, Infinity)
+  if (!Number.isFinite(podScore)) {
+    return undefined;
+  }
+
+  return podScore;
+};
+
 // Utility function to format and truncate price per pod values
 const formatPricePerPod = (value: number): number => {
   return Math.floor(value * PRICE_PER_POD_CONFIG.DECIMAL_MULTIPLIER) / PRICE_PER_POD_CONFIG.DECIMAL_MULTIPLIER;
@@ -178,6 +206,25 @@ export default function FillListing({ onOverlayParamsChange }: FillListingProps 
       setDidSetPreferred(true);
     }
   }, [preferredToken, preferredLoading, didSetPreferred]);
+
+  // Find selected listing based on listingId parameter
+  const selectedListing = useMemo(() => {
+    if (!listingId || !allListings?.podListings) return null;
+    return allListings.podListings.find((l) => l.id === listingId) || null;
+  }, [listingId, allListings]);
+
+  // Calculate Pod Score for the selected listing
+  const listingPodScore = useMemo(() => {
+    if (!selectedListing) return undefined;
+    
+    const price = TokenValue.fromBlockchain(selectedListing.pricePerPod, mainToken.decimals).toNumber();
+    const placeInLine = TokenValue.fromBlockchain(selectedListing.index, PODS.decimals)
+      .sub(harvestableIndex)
+      .toNumber();
+    
+    // Use placeInLine in millions for consistent scaling
+    return calculatePodScore(price, placeInLine / 1_000_000);
+  }, [selectedListing, mainToken.decimals, harvestableIndex]);
 
   // Pre-fill form when listingId parameter is present (clicked from chart)
   useEffect(() => {
@@ -707,6 +754,19 @@ export default function FillListing({ onOverlayParamsChange }: FillListingProps 
               Effective Temperature (i):{" "}
               <span className="text-green-600 font-semibold">
                 {formatter.number((1 / maxPricePerPod) * 100, { minDecimals: 2, maxDecimals: 2 })}%
+              </span>
+            </p>
+          </div>
+        )}
+        {/* Pod Score Display */}
+        {selectedListing && (
+          <div className="flex justify-end mr-1">
+            <p className="pinto-sm text-pinto-light">
+              Pod Score:{" "}
+              <span className="font-semibold">
+                {listingPodScore !== undefined 
+                  ? formatter.number(listingPodScore, { minDecimals: 2, maxDecimals: 2 })
+                  : 'N/A'}
               </span>
             </p>
           </div>

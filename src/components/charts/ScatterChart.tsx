@@ -188,7 +188,8 @@ const ScatterChart = React.memo(
           datasets: data.map(({ label, data, color, pointStyle, pointRadius }) => ({
             label,
             data,
-            backgroundColor: color,
+            // Use per-point colors if available, otherwise use dataset color
+            backgroundColor: data.map((point: any) => point.color || color),
             pointStyle,
             pointRadius: pointRadius,
             hoverRadius: pointRadius + 1,
@@ -626,7 +627,8 @@ function areScatterChartPropsEqual(prevProps: ScatterChartProps, nextProps: Scat
       if (
         prevPoint.x !== nextPoint.x ||
         prevPoint.y !== nextPoint.y ||
-        (prevPoint as any).eventId !== (nextPoint as any).eventId
+        (prevPoint as any).eventId !== (nextPoint as any).eventId ||
+        (prevPoint as any).color !== (nextPoint as any).color
       ) {
         return false;
       }
@@ -641,7 +643,8 @@ function areScatterChartPropsEqual(prevProps: ScatterChartProps, nextProps: Scat
         if (
           prevPoint.x !== nextPoint.x ||
           prevPoint.y !== nextPoint.y ||
-          (prevPoint as any).eventId !== (nextPoint as any).eventId
+          (prevPoint as any).eventId !== (nextPoint as any).eventId ||
+          (prevPoint as any).color !== (nextPoint as any).color
         ) {
           return false;
         }

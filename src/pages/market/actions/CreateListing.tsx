@@ -19,6 +19,7 @@ import { useQueryKeys } from "@/state/useQueryKeys";
 import useTokenData from "@/state/useTokenData";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
+import { calculatePodScore } from "@/utils/podScore";
 import { FarmToMode, Plot } from "@/utils/types";
 import { cn } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
@@ -199,6 +200,26 @@ export default function CreateListing({ onOverlayParamsChange }: CreateListingPr
 
     return result;
   }, [plot, podRange, amount]);
+
+  // Calculate Pod Score range for selected plots
+  const podScoreRange = useMemo(() => {
+    if (listingData.length === 0 || !pricePerPod || pricePerPod <= 0) return null;
+
+    const scores = listingData
+      .map((data) => {
+        const placeInLine = data.index.sub(harvestableIndex).toNumber();
+        // Use placeInLine in millions for consistent scaling
+        return calculatePodScore(pricePerPod, placeInLine / MILLION);
+      })
+      .filter((score): score is number => score !== undefined);
+
+    if (scores.length === 0) return null;
+
+    const min = Math.min(...scores);
+    const max = Math.max(...scores);
+
+    return { min, max, isSingle: scores.length === 1 || min === max };
+  }, [listingData, pricePerPod, harvestableIndex]);
 
   // Helper function to sort plots by index
   const sortPlotsByIndex = useCallback((plots: Plot[]): Plot[] => {
@@ -608,6 +629,19 @@ export default function CreateListing({ onOverlayParamsChange }: CreateListingPr
                   Effective Temperature (i):{" "}
                   <span className="text-green-600 font-semibold">
                     {formatter.number((1 / pricePerPod) * 100, { minDecimals: 2, maxDecimals: 2 })}%
+                  </span>
+                </p>
+              </div>
+            )}
+            {/* Pod Score Display */}
+            {podScoreRange && (
+              <div className="flex justify-end mr-1">
+                <p className="pinto-sm text-pinto-light">
+                  Pod Score:{" "}
+                  <span className="font-semibold">
+                    {podScoreRange.isSingle
+                      ? formatter.number(podScoreRange.min, { minDecimals: 2, maxDecimals: 2 })
+                      : `${formatter.number(podScoreRange.min, { minDecimals: 2, maxDecimals: 2 })} - ${formatter.number(podScoreRange.max, { minDecimals: 2, maxDecimals: 2 })}`}
                   </span>
                 </p>
               </div>

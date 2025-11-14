@@ -1,4 +1,6 @@
 import { TokenValue } from "@/classes/TokenValue";
+import { buildPodScoreColorScaler } from "@/utils/podScoreColorScaler";
+import { calculatePodScore } from "@/utils/podScore";
 import { Chart } from "chart.js";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -12,8 +14,8 @@ const BORDER_WIDTH = 1;
 
 // Frozen color constants for immutability and optimization
 const BUY_OVERLAY_COLORS = Object.freeze({
-  shadedRegion: "rgba(64, 176, 166, 0.15)", // Teal with 15% opacity
-  border: "rgba(64, 176, 166, 0.8)", // Teal with 80% opacity
+  shadedRegion: "rgba(92, 184, 169, 0.15)", // Teal with 15% opacity
+  border: "rgba(92, 184, 169, 0.8)", // Teal with 80% opacity
 });
 
 const SELL_OVERLAY_COLORS = Object.freeze({
@@ -52,6 +54,7 @@ interface MarketChartOverlayProps {
   chartRef: React.RefObject<Chart | null>;
   visible: boolean;
   harvestableIndex: TokenValue;
+  marketListingScores?: number[]; // Pod Scores from existing market listings for color scaling
 }
 
 type ChartDimensions = {
@@ -71,9 +74,13 @@ interface PlotRectangle {
 }
 
 const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
-  ({ overlayParams, chartRef, visible, harvestableIndex }) => {
+  ({ overlayParams, chartRef, visible, harvestableIndex, marketListingScores = [] }) => {
     const [dimensions, setDimensions] = useState<ChartDimensions | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    
+    // Note: Throttling removed to ensure immediate updates during price changes
+    // Performance is acceptable without throttling due to optimized calculations
+    const throttledOverlayParams = overlayParams;
 
     // Optimized pixel position calculator with minimal validation overhead
     const calculatePixelPosition = useCallback((dataValue: number, axis: "x" | "y"): number | null => {
@@ -119,16 +126,27 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
     // Optimized resize handling with single debounced handler
     useEffect(() => {
       let timeoutId: NodeJS.Timeout;
+      let animationFrameId: number | null = null;
       let resizeObserver: ResizeObserver | null = null;
       
-      const debouncedUpdate = () => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
+      const updateDimensions = () => {
+        // Use requestAnimationFrame to sync with browser's repaint cycle
+        if (animationFrameId !== null) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        
+        animationFrameId = requestAnimationFrame(() => {
           const newDimensions = getChartDimensions();
           if (newDimensions) {
             setDimensions(newDimensions);
           }
-        }, RESIZE_DEBOUNCE_MS);
+          animationFrameId = null;
+        });
+      };
+
+      const debouncedUpdate = () => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(updateDimensions, RESIZE_DEBOUNCE_MS);
       };
 
       // Initial update
@@ -144,18 +162,45 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
         if (parent) {
           resizeObserver.observe(parent);
         }
+        // Also observe the chart canvas itself for more accurate updates
+        const chart = chartRef.current;
+        if (chart?.canvas) {
+          resizeObserver.observe(chart.canvas);
+        }
       }
 
       // Fallback window resize listener with passive flag for better performance
       window.addEventListener("resize", debouncedUpdate, { passive: true });
+      
+      // Listen to Chart.js resize events for immediate sync
+      const chart = chartRef.current;
+      if (chart) {
+        // Chart.js emits 'resize' event when chart dimensions change
+        chart.resize();
+        // Force update after chart is ready
+        updateDimensions();
+      }
 
       return () => {
         clearTimeout(initialTimeout);
         clearTimeout(timeoutId);
+        if (animationFrameId !== null) {
+          cancelAnimationFrame(animationFrameId);
+        }
         resizeObserver?.disconnect();
         window.removeEventListener("resize", debouncedUpdate);
       };
-    }, [getChartDimensions]);
+    }, [getChartDimensions, chartRef]);
+
+    // Update dimensions when overlay params or visibility changes
+    useEffect(() => {
+      if (visible && throttledOverlayParams) {
+        const newDimensions = getChartDimensions();
+        if (newDimensions) {
+          setDimensions(newDimensions);
+        }
+      }
+    }, [throttledOverlayParams, visible, getChartDimensions]);
 
     // Optimized buy overlay renderer with minimal validation
     const renderBuyOverlay = useCallback(
@@ -269,15 +314,15 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
 
     // Highly optimized rectangle memoization with minimal object creation
     const memoizedRectangles = useMemo(() => {
-      if (!overlayParams || overlayParams.mode !== "sell" || !dimensions) return null;
+      if (!throttledOverlayParams || throttledOverlayParams.mode !== "sell" || !dimensions) return null;
 
-      const { pricePerPod, plots } = overlayParams;
+      const { pricePerPod, plots } = throttledOverlayParams;
 
       // Fast validation
       if (pricePerPod <= 0 || !plots?.length) return null;
 
       // Pre-allocate array for better performance
-      const rectangles: Array<PlotRectangle & { plotKey: string; plotIndex: number }> = [];
+      const rectangles: Array<PlotRectangle & { plotKey: string; plotIndex: number; podScore?: number }> = [];
       
       // Use for loop for better performance than map/filter chain
       for (let i = 0; i < plots.length; i++) {
@@ -285,6 +330,12 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
         const rect = calculatePlotRectangle(plot, pricePerPod);
         
         if (rect) {
+          // Calculate place in line for Pod Score
+          const placeInLineNum = plot.startIndex.toNumber() - harvestableIndex.toNumber();
+          // Use placeInLine in millions for consistent scaling with market listings
+          const podScore = calculatePodScore(pricePerPod, placeInLineNum / MILLION);
+          
+
           rectangles.push({
             x: rect.x,
             y: rect.y,
@@ -292,12 +343,13 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
             height: rect.height,
             plotKey: plot.startIndex.toHuman(),
             plotIndex: i,
+            podScore,
           });
         }
       }
 
       return rectangles.length > 0 ? rectangles : null;
-    }, [overlayParams, dimensions, calculatePlotRectangle]);
+    }, [throttledOverlayParams, dimensions, calculatePlotRectangle, harvestableIndex]);
 
     // Highly optimized sell overlay renderer with pre-calculated values
     const renderSellOverlay = useCallback(
@@ -319,6 +371,17 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
         const lineHeight = bottom - top;
         const lastRectIndex = memoizedRectangles.length - 1;
 
+        // Build color scaler from both market listings and overlay plot scores
+        // This ensures overlay colors are relative to existing market conditions
+        const plotScores = memoizedRectangles
+          .map(rect => rect.podScore)
+          .filter((score): score is number => score !== undefined);
+        
+        // Combine market listing scores with overlay plot scores for consistent scaling
+        const allScores = [...marketListingScores, ...plotScores];
+        
+        const colorScaler = buildPodScoreColorScaler(allScores);
+
         return (
           <>
             {/* Horizontal price line - Tailwind + minimal inline styles */}
@@ -336,18 +399,19 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
               const centerX = rect.x + (rect.width >> 1); // Bit shift for division by 2
               const centerY = clampedPriceY;
 
+              // Get dynamic color based on Pod Score, fallback to default if undefined
+              const fillColor = rect.podScore !== undefined 
+                ? colorScaler.toColor(rect.podScore)
+                : SELL_OVERLAY_COLORS.plotFill;
+
               return (
                 <div
                   key={rect.plotKey}
-                  className={`${BASE_OVERLAY_CLASSES} ${TRANSITION_CLASSES} box-border`}
+                  className={`${BASE_OVERLAY_CLASSES} ${TRANSITION_CLASSES} w-3 h-3 border border-solid`}
                   style={{
                     left: centerX - HALF_BOX_SIZE,
                     top: centerY - HALF_BOX_SIZE,
-                    width: BOX_SIZE,
-                    height: BOX_SIZE,
-                    backgroundColor: SELL_OVERLAY_COLORS.plotFill,
-                    borderWidth: BORDER_WIDTH,
-                    borderStyle: "solid",
+                    backgroundColor: fillColor,
                     borderColor: SELL_OVERLAY_COLORS.plotBorder,
                   }}
                 />
@@ -384,16 +448,16 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
     );
 
     // Don't render if not visible or no overlay params
-    if (!visible || !overlayParams || !dimensions) {
+    if (!visible || !throttledOverlayParams || !dimensions) {
       return null;
     }
 
     // Determine which overlay to render based on mode
     let overlayContent: JSX.Element | null = null;
-    if (overlayParams.mode === "buy") {
-      overlayContent = renderBuyOverlay(overlayParams);
-    } else if (overlayParams.mode === "sell") {
-      overlayContent = renderSellOverlay(overlayParams);
+    if (throttledOverlayParams.mode === "buy") {
+      overlayContent = renderBuyOverlay(throttledOverlayParams);
+    } else if (throttledOverlayParams.mode === "sell") {
+      overlayContent = renderSellOverlay(throttledOverlayParams);
     }
 
     if (!overlayContent) {
@@ -403,8 +467,7 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
     return (
       <div
         ref={containerRef}
-        className="absolute inset-0 pointer-events-none z-[2]"
-        style={{ willChange: "transform" }}
+        className="absolute inset-0 pointer-events-none z-[2] will-change-transform"
       >
         {overlayContent}
       </div>
