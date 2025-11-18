@@ -397,6 +397,10 @@ export class SiloConvert {
       // price result is the last element in the static call result
       const priceResult = staticCallResult.pop();
 
+      console.log({
+        priceResult,
+      });
+
       const decodedConvertResults = decodeConvertResults(staticCallResult, route.convertType);
 
       const decodedPriceCalls = priceResult ? AdvancedPipeWorkflow.decodeResult(priceResult) : undefined;

@@ -24,7 +24,6 @@ import { AddressLookup, HashString } from "@/utils/types.generic";
 import {
   Address,
   ContractFunctionParameters,
-  MulticallResponse,
   MulticallReturnType,
   decodeFunctionResult,
   encodeFunctionData,
@@ -260,15 +259,19 @@ export class SiloConvertPriceCache {
   }
 
   getPriceCallStructs(): AdvancedPipeCall[] {
+    const availWells = Object.values(this.dewhitelistedLP).filter((tk) => this.getIsWellAvailable(tk.address));
+
     return [
       encodePrice(this.context.chainId),
-      ...Object.values(this.dewhitelistedLP).map((tk) => encodeGetWell(this.context.chainId, tk.address)),
+      ...availWells.map((tk) => encodeGetWell(this.context.chainId, tk.address)),
     ];
   }
 
   decodePriceCallResults(results: HashString[]) {
+    const availWells = Object.values(this.dewhitelistedLP).filter((tk) => this.getIsWellAvailable(tk.address));
+
     // +1 for the price call
-    const expectedLength = Object.keys(this.dewhitelistedLP).length + 1;
+    const expectedLength = availWells.length + 1;
 
     if (results.length < expectedLength) {
       throw new Error(`Cannot decode price call results. Expected ${expectedLength} results but got ${results.length}`);
@@ -279,7 +282,7 @@ export class SiloConvertPriceCache {
 
     priceResult.pools = { ...priceResult.pools };
 
-    Object.values(this.dewhitelistedLP).forEach((tk, idx) => {
+    availWells.forEach((tk, idx) => {
       const res = decodeGetWell(dewhitelistedLPResults[idx]);
       priceResult.pools[getTokenIndex(tk.address)] = res;
     });
@@ -441,76 +444,6 @@ export class SiloConvertPriceCache {
       liquidity: TV.fromBigInt(priceResult.liquidity, 6),
       pools: map,
       erroredWells,
-    };
-  }
-
-  /**
-   * Fetches the relevant pool data from on chain
-   */
-  async fetch(): Promise<ExtendedPriceResult> {
-    console.debug("[SiloConvertCache/fetch] fetching price data...");
-    const tokenMap = getChainTokenMap(this.context.chainId);
-    const mainToken = MAIN_TOKEN[resolveChainId(this.context.chainId)];
-
-    const advPipe = this.constructPriceAdvPipe();
-
-    const others = await this.fetchMulticall();
-
-    // Fetch price contract data & price oracle data
-
-    const advPipeResult = await advPipe.readStatic();
-    const sliceIdx = Object.keys(this.dewhitelistedLP).length + 1;
-    const priceFragments = advPipeResult.slice(0, sliceIdx);
-    const tokenUsdData = advPipeResult.slice(sliceIdx, advPipeResult.length);
-
-    const priceResult = this.decodePriceCallResults(priceFragments);
-
-    const map: AddressLookup<ExtendedPoolData> = {};
-
-    for (const [index, [lpTokenIndex, pairToken]] of Object.entries(this.lp2Pair).entries()) {
-      const pairPriceBigInt = decodeFunctionResult({
-        abi: abiSnippets.price.getTokenUsdPrice,
-        functionName: "getTokenUsdPrice",
-        data: tokenUsdData[index],
-      });
-
-      const poolResult = priceResult.pools[lpTokenIndex];
-      const wellTokens = poolResult?.tokens.map((t) => getChainToken(this.context.chainId, t));
-
-      if (!poolResult) {
-        throw new Error(`Pool result not found for ${lpTokenIndex}`);
-      }
-      if (!wellTokens.length) {
-        throw new Error(`No well tokens found with address: ${lpTokenIndex}`);
-      }
-
-      const poolPrice = TV.fromBigInt(poolResult.price, mainToken.decimals);
-
-      const pairData = {
-        token: pairToken,
-        index: wellTokens[0].isMain ? 1 : 0,
-        price: TV.fromBigInt(pairPriceBigInt, mainToken.decimals),
-      };
-
-      map[lpTokenIndex] = {
-        pool: tokenMap[lpTokenIndex],
-        price: poolPrice,
-        pair: pairData,
-        tokens: wellTokens,
-        liquidity: TV.fromBigInt(poolResult.liquidity, 6),
-        lpUsd: TV.fromBigInt(poolResult.lpUsd, mainToken.decimals),
-        lpBdv: TV.fromBigInt(poolResult.lpBdv, mainToken.decimals),
-        deltaB: TV.fromBigInt(poolResult.deltaB, mainToken.decimals),
-        balances: wellTokens.map((t, i) => TV.fromBigInt(poolResult.balances[i], t.decimals)),
-        prices: wellTokens.map((t) => (t.isMain ? poolPrice : pairData.price)),
-      };
-    }
-
-    return {
-      deltaB: TV.fromBigInt(priceResult.deltaB, 6),
-      price: TV.fromBigInt(priceResult.price, 6),
-      liquidity: TV.fromBigInt(priceResult.liquidity, 6),
-      pools: map,
     };
   }
 
