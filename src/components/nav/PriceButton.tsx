@@ -39,7 +39,7 @@ function PriceButtonPanel() {
   const { data: twaDeltaBMap } = useTwaDeltaBLPQuery();
 
   const whitelistedPools = useMemo(() => {
-    return priceData.pools.filter((pool) => pool.pool.isWhitelisted);
+    return priceData.pools.filter((pool) => pool.pool && pool.pool.isWhitelisted);
   }, [priceData.pools]);
 
   const mainTokenBalances = useMemo(() => {

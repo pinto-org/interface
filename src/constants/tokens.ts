@@ -204,7 +204,7 @@ export const PINTO_WSTETH_TOKEN: ChainLookup<Token> = {
     chainId: base.id,
     name: "PINTOWSTETH LP",
     symbol: "PINTOWSTETH",
-    address: "0x1957F43834d4e538cE99378FB26059579cf9bEe1", // temp address
+    address: "0x3e1155480Fce43686793dd18E43104A01abCBC92", // temp address
     decimals: 18,
     displayDecimals: 2,
     isLP: true,

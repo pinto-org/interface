@@ -1180,8 +1180,8 @@ const ViewFunctionCaller = () => {
                 className="h-10 px-3 py-2 text-sm border rounded-md bg-white"
               >
                 <option value="">-- Select a function --</option>
-                {viewFunctions.map((fn) => (
-                  <option key={fn.name} value={fn.name}>
+                {viewFunctions.map((fn, i) => (
+                  <option key={`${fn.name}-view-funciton-caller-${i.toString()}`} value={fn.name}>
                     {fn.name}
                     {fn.inputs && fn.inputs.length > 0 && ` (${fn.inputs.length} params)`}
                   </option>
@@ -1204,7 +1204,10 @@ const ViewFunctionCaller = () => {
                 <div className="text-sm font-medium">Function Parameters:</div>
                 <div className="flex flex-col gap-3 p-4 border rounded-lg bg-gray-50">
                   {selectedFunctionObj.inputs.map((input, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
+                    <div
+                      key={`${idx.toString()}-view-function-caller-input-${input.name ?? ""}`}
+                      className="flex items-center gap-2"
+                    >
                       <Label className="text-xs text-gray-600 whitespace-nowrap min-w-[120px]">
                         {input.name || `param${idx}`} ({input.type}):
                       </Label>
