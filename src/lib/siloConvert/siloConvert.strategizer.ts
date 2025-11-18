@@ -137,19 +137,23 @@ export class Strategizer {
       const sourceWell = source.isLP ? this.cache.getWell(source.address) : undefined;
 
       // if SourceWell exists, target must be main due to validation above.
-      if (sourceWell && !this.maxConvertQuoter.isAggDisabledToken(source)) {
-        routes.push({
-          source,
-          target,
-          strategies: [
-            {
-              strategy: new LP2MainPipeline(sourceWell, target, this.context),
-              amount: amountIn,
-            },
-          ],
-          convertType: "LP2MainPipeline",
-        });
-      }
+      // if (
+      //   sourceWell &&
+      //   !this.maxConvertQuoter.isAggDisabledToken(source) &&
+      //   this.cache.getIsWellAvailable(source.address)
+      // ) {
+      //   routes.push({
+      //     source,
+      //     target,
+      //     strategies: [
+      //       {
+      //         strategy: new LP2MainPipeline(sourceWell, target, this.context),
+      //         amount: amountIn,
+      //       },
+      //     ],
+      //     convertType: "LP2MainPipeline",
+      //   });
+      // }
 
       return routes;
     }, "strategizeLPAndMain");

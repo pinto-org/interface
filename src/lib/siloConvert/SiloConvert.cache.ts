@@ -186,6 +186,14 @@ export class SiloConvertPriceCache {
     return well.pair.price;
   }
 
+  getIsWellAvailable(well: Address) {
+    if (this.invalidWells.has(getTokenIndex(well))) {
+      return false;
+    }
+
+    return true;
+  }
+
   /**
    * Returns the Extended Well data for a given Well address.
    */
@@ -211,7 +219,8 @@ export class SiloConvertPriceCache {
     console.debug("[SiloConvertCache/update] updating cache...");
     const diff = Date.now() - this.lastUpdateTimestamp;
     if (force || this.lastUpdateTimestamp === 0 || diff > REFETCH_INTERVAL) {
-      const priceResult = await this.fetch();
+      const priceResult = await this.fetchMulticall();
+      this.invalidWells = priceResult.erroredWells;
       this.priceStruct = priceResult;
       this.lastUpdateTimestamp = Date.now();
       console.debug("[PipelineConvert/Cache/update]: ", this);
