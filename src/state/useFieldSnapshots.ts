@@ -13,15 +13,15 @@ export default function useFieldSnapshots() {
   const season = useSeason();
   const chainId = useChainId();
   const tokenData = useTokenData();
-  const fieldId = beanstalkAddress[chainId as keyof typeof beanstalkAddress];
+  const fieldId = beanstalkAddress[chainId as keyof typeof beanstalkAddress].toLowerCase();
 
-  const queryKey = ["fieldSnapshots", { chainId: chainId, season: season, variables: [fieldId.toLowerCase()] }];
+  const queryKey = ["fieldSnapshots", { chainId: chainId, season: season, variables: [fieldId] }];
 
   const query = useQuery({
     queryKey: queryKey,
     queryFn: async () => {
       return request(subgraphs[chainId].beanstalk, FieldSnapshotsDocument, {
-        fieldId: fieldId.toLowerCase(),
+        fieldId,
         first: 48,
       });
     },

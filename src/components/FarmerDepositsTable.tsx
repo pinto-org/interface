@@ -404,10 +404,7 @@ export default function FarmerDepositsTable({
                           <IconImage src={stalkIcon} size={4} />
                           <div>
                             {formatter.twoDec(
-                              userData?.stalk.base
-                                .add(grownStalk)
-                                .add(updateGains.stalkGain)
-                                .add(addClaimable ? stalkGain : 0),
+                              userData?.stalk.base.add(updateGains.stalkGain).add(addClaimable ? stalkGain : 0),
                             )}
                           </div>
                           {germinatingStalk.gt(0) && (
