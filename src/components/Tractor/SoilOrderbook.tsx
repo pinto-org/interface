@@ -137,7 +137,7 @@ export function SoilOrderbookContent({
       type: "sow",
       totalAmount: TokenValue.fromBlockchain(d.sowAmounts.totalAmountToSow, 6).toHuman(),
       temperature: d.minTempAsString,
-      podLineLength: d.maxPodlineLengthAsString,
+      maxPodLine: d.maxPodlineLengthAsString,
       minSoil: d.sowAmounts.minAmountToSowPerSeasonAsString,
       operatorTip: TokenValue.fromBlockchain(d.operatorParams.operatorTipAmount, 6).toHuman(),
       tokenStrategy: getTokenStrategy(d),

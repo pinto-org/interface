@@ -114,7 +114,7 @@ export default function TractorTokenStrategyDialog({
     const isIncluded = getIsTokenSelected(token);
 
     const newAddresses = isIncluded
-      ? selectedTokenAddresses?.filter((adr) => !stringEq(token.address, adr)) ?? []
+      ? (selectedTokenAddresses?.filter((adr) => !stringEq(token.address, adr)) ?? [])
       : [...(selectedTokenAddresses || []), token.address];
 
     onTokenStrategySelected({

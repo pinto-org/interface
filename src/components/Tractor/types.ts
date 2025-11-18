@@ -14,7 +14,7 @@ export interface SowOrderData extends BaseTractorOrderData {
   type: "sow";
   totalAmount: string;
   temperature: string;
-  podLineLength: string;
+  maxPodLine: string;
   minSoil: string;
   tokenStrategy?: TractorTokenStrategyUnion;
   tokenSymbol?: string;

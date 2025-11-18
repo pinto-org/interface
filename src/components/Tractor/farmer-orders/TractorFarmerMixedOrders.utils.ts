@@ -50,7 +50,7 @@ export function transformSowOrderToUnified(
     amountSown: totalSown.toHuman(),
     percentComplete,
     temperature: data.minTempAsString,
-    podLineLength: data.maxPodlineLengthAsString,
+    maxPodLine: data.maxPodlineLengthAsString,
     minSoil: data.sowAmounts.minAmountToSowPerSeasonAsString,
     operatorTip: TokenValue.fromBlockchain(data.operatorParams.operatorTipAmount, 6).toHuman(),
     strategy: strategyText,

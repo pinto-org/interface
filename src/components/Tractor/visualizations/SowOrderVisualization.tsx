@@ -84,11 +84,11 @@ export default function SowOrderVisualization({ orderData, className }: TractorO
                   <span className="font-light text-[#9C9C9C]">
                     AND when Pod Line Length is at most{" "}
                     <span className="text-pinto-green-4">
-                      {typeof sowData.podLineLength === "string" && sowData.podLineLength.includes(".")
-                        ? formatter.number(parseFloat(sowData.podLineLength.replace(/,/g, "")), {
+                      {typeof sowData.maxPodLine === "string" && sowData.maxPodLine.includes(".")
+                        ? formatter.number(parseFloat(sowData.maxPodLine.replace(/,/g, "")), {
                             maxDecimals: 0,
                           })
-                        : formatter.number(sowData.podLineLength, { maxDecimals: 0 })}
+                        : formatter.number(sowData.maxPodLine, { maxDecimals: 0 })}
                     </span>
                   </span>
                 </li>

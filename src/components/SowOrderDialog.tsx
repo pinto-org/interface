@@ -7,6 +7,7 @@ import {
   useSowOrderV0State,
 } from "@/components/Tractor/form/SowOrderV0Schema";
 import useSowOrderV0Calculations from "@/hooks/tractor/useSowOrderV0Calculations";
+import { useScaledTemperature } from "@/hooks/useContinuousMorningTime";
 import { tractorTokenStrategyUtil as StrategyUtil, TractorTokenStrategy } from "@/lib/Tractor";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
@@ -31,13 +32,14 @@ interface SowOrderDialogProps {
 // Types
 enum FormStep {
   MAIN_FORM = 1,
-  OPERATOR_TIP = 2,
+  SUMMARY = 2,
 }
 
 export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }: SowOrderDialogProps) {
   // External hooks
   const farmerSilo = useFarmerSilo();
   const { data: averageTipPaid = 1 } = useTractorOperatorAverageTipPaid();
+  const currTemp = useScaledTemperature();
 
   // Local state
   const [formStep, setFormStep] = useState(FormStep.MAIN_FORM);
@@ -72,6 +74,15 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     setDidInitTokenStrategy(true);
   }, [calculations.tokenWithHighestValue, calculations.isLoading, didInitTokenStrategy]);
 
+  // Initialize temperature to current temperature
+  const [didInitTemperature, setDidInitTemperature] = useState(false);
+  useEffect(() => {
+    if (didInitTemperature || !currTemp.scaled) return;
+    const currentTemp = currTemp.scaled.toNumber();
+    form.setValue("temperature", currentTemp.toFixed(0));
+    setDidInitTemperature(true);
+  }, [currTemp.scaled, didInitTemperature, form.setValue]);
+
   const handleOpenTokenSelectionDialog = () => {
     setShowTokenSelectionDialog(true);
   };
@@ -84,7 +95,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     if (formStep === FormStep.MAIN_FORM) {
       const isValid = await form.trigger();
       if (isValid) {
-        setFormStep(FormStep.OPERATOR_TIP);
+        setFormStep(FormStep.SUMMARY);
       }
       return;
     }
@@ -102,7 +113,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     // prevent default to avoid form submission
     e.preventDefault();
-    if (formStep === FormStep.OPERATOR_TIP) {
+    if (formStep === FormStep.SUMMARY) {
       setFormStep(FormStep.MAIN_FORM);
     } else {
       onOpenChange(false);
@@ -131,49 +142,26 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
               <div className="flex flex-col gap-6">
                 {formStep === FormStep.MAIN_FORM ? (
                   // Step 1 - Main Form
-                  <Col className="gap-6 pinto-sm-light text-pinto-light">
+                  <Col className="gap-4 pinto-sm-light text-pinto-light">
                     {/* Title and separator */}
-                    <div className="flex flex-col gap-2">
-                      <div className="pinto-body font-medium text-pinto-secondary mb-4">
-                        🚜 Specify Conditions for automated Sowing
-                      </div>
+                    <div className="flex flex-col gap-2 mb-2">
+                      <div className="pinto-body font-medium text-pinto-secondary mb-4">🚜 Place a Sow Order</div>
                       <div className="h-[1px] w-full bg-pinto-gray-2" />
                     </div>
                     <SowOrderV0Fields>
+                      {/* Sow using */}
+                      <SowOrderV0Fields.TokenStrategy openDialog={handleOpenTokenSelectionDialog} />
                       {/* I want to Sow up to */}
                       <SowOrderV0Fields.TotalAmount />
-                      {/* Min and Max per Season - combined in a single row */}
-                      <div className="flex flex-col gap-2">
-                        <div className="flex gap-4">
-                          <SowOrderV0Fields.MinSoil />
-                          <SowOrderV0Fields.MaxPerSeason />
-                        </div>
-                      </div>
-                      {/* Fund order using */}
-                      <SowOrderV0Fields.TokenStrategy openDialog={handleOpenTokenSelectionDialog} />
                       {/* Execute when Temperature is at least */}
                       <SowOrderV0Fields.Temperature />
-                      {/* Execute when the length of the Pod Line is at most */}
-                      <SowOrderV0Fields.PodLineLength />
-                      {/* Execute during the Morning Auction */}
-                      <SowOrderV0Fields.MorningAuction />
+                      {/* Pods Display */}
+                      <SowOrderV0Fields.PodsDisplay />
                     </SowOrderV0Fields>
                   </Col>
                 ) : (
-                  // Step 2 - Operator Tip
-                  <Col className="gap-6">
-                    <Col>
-                      {/* Title and separator for Step 2 */}
-                      <div className="flex flex-col gap-2">
-                        <div className="pinto-body font-medium text-pinto-secondary mb-4">🚜 Tip per Execution</div>
-                        <div className="h-[1px] w-full bg-pinto-gray-2 mb-6" />
-                      </div>
-                      <SowOrderV0Fields>
-                        <SowOrderV0Fields.OperatorTip averageTipPaid={averageTipPaid} />
-                        <SowOrderV0Fields.ExecutionsAndTip className="mt-32" />
-                      </SowOrderV0Fields>
-                    </Col>
-                  </Col>
+                  // Step 2 - Order Summary
+                  <SowOrderV0Fields.OrderSummary />
                 )}
                 <SowOrderV0FormErrors errors={form.formState.errors} />
                 <Row className="gap-6">
@@ -221,9 +209,9 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
                           </div>
                         ) : formStep === FormStep.MAIN_FORM ? (
-                          "Next"
-                        ) : (
                           "Review"
+                        ) : (
+                          "Submit Order"
                         )}
                       </Button>
                     </div>

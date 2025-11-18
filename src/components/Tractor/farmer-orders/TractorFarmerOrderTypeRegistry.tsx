@@ -88,7 +88,7 @@ const transformSowOrderData = (
     type: "sow",
     totalAmount: req.decodedData.sowAmounts.totalAmountToSowAsString,
     temperature: req.decodedData.minTempAsString,
-    podLineLength: req.decodedData.maxPodlineLengthAsString,
+    maxPodLine: req.decodedData.maxPodlineLengthAsString,
     minSoil: req.decodedData.sowAmounts.minAmountToSowPerSeasonAsString,
     operatorTip: req.decodedData.operatorParams.operatorTipAmountAsString,
     tokenStrategy: getStrategyProps.getTokenStrategy(req.decodedData),

@@ -30,7 +30,7 @@ export interface SowOrderData {
   amountSown: string;
   percentComplete: number;
   temperature: string;
-  podLineLength: string;
+  maxPodLine: string;
   minSoil: string;
   operatorTip: string;
   strategy: string;

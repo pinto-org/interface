@@ -3,6 +3,7 @@ import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
 import { Blueprint, TractorTokenStrategy, createBlueprint, createSowTractorData } from "@/lib/Tractor";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { usePodLine } from "@/state/useFieldData";
 import { getTokenIndex } from "@/utils/token";
 import { Token } from "@/utils/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,46 +15,28 @@ import { z } from "zod";
 import FormUtils from "@/utils/form";
 
 const {
-  schema: { tokenStrategy, positiveNumber, addCTXErrors },
-  validate: { lte },
+  schema: { tokenStrategy, positiveNumber },
 } = FormUtils;
 
-export const sowOrderSchemaErrors = {
-  minLteMax: "Min per Season cannot exceed Max per Season",
-  minLteTotal: "Min per Season cannot exceed the total amount to Sow",
-  maxLteTotal: "Max per Season cannot exceed the total amount to Sow",
-} as const;
+export const sowOrderSchemaErrors = {} as const;
+
+// Custom validation for totalAmount with minimum 0.001
+const totalAmountValidation = z
+  .string()
+  .min(1, "Total Amount is required")
+  .refine((val) => {
+    const num = parseFloat(val.replace(/,/g, ""));
+    return !Number.isNaN(num) && num >= 0.001;
+  }, "Total Amount must be at least 0.001");
 
 // Main schema for sow order dialog
-export const sowOrderDialogSchema = z
-  .object({
-    totalAmount: positiveNumber("Total Amount"),
-    minSoil: positiveNumber("Min per Season"),
-    maxPerSeason: positiveNumber("Max per Season"),
-    temperature: positiveNumber("Temperature"),
-    podLineLength: positiveNumber("Pod Line Length"),
-    morningAuction: z.boolean().default(false),
-    operatorTip: positiveNumber("Operator Tip"),
-    selectedTokenStrategy: tokenStrategy,
-  })
-  .superRefine((data, ctx) => {
-    // Cross-field validation: minSoil <= maxPerSeason
-    if (!lte(data.minSoil, data.maxPerSeason, 6, 6)) {
-      addCTXErrors(ctx, sowOrderSchemaErrors.minLteMax, ["minSoil", "maxPerSeason"]);
-    }
-  })
-  .superRefine((data, ctx) => {
-    // Cross-field validation: minSoil <= totalAmount
-    if (!lte(data.minSoil, data.totalAmount, 6, 6)) {
-      addCTXErrors(ctx, sowOrderSchemaErrors.minLteTotal, ["minSoil", "totalAmount"]);
-    }
-  })
-  .superRefine((data, ctx) => {
-    // Cross-field validation: maxPerSeason <= totalAmount
-    if (!lte(data.maxPerSeason, data.totalAmount, 6, 6)) {
-      addCTXErrors(ctx, sowOrderSchemaErrors.maxLteTotal, ["maxPerSeason", "totalAmount"]);
-    }
-  });
+export const sowOrderDialogSchema = z.object({
+  totalAmount: totalAmountValidation,
+  temperature: positiveNumber("Temperature"),
+  morningAuction: z.boolean().default(false),
+  operatorTip: positiveNumber("Operator Tip"),
+  selectedTokenStrategy: tokenStrategy,
+});
 
 // Type inference from schema
 export type SowOrderV0FormSchema = z.infer<typeof sowOrderDialogSchema>;
@@ -61,10 +44,7 @@ export type SowOrderV0FormSchema = z.infer<typeof sowOrderDialogSchema>;
 // Default values for the form
 export const defaultSowOrderDialogValues: Partial<SowOrderV0FormSchema> = {
   totalAmount: "",
-  minSoil: "",
-  maxPerSeason: "",
   temperature: "",
-  podLineLength: "",
   morningAuction: false,
   operatorTip: "1",
   selectedTokenStrategy: { type: "LOWEST_SEEDS" },
@@ -133,9 +113,9 @@ export const useSowOrderV0Form = (): SowOrderV0Form => {
 export type SowV0FormOrderData = {
   totalAmount: string;
   temperature: string;
-  podLineLength: string;
   minSoil: string;
   maxPerSeason: string;
+  maxPodLine: string;
   operatorTip: string;
   morningAuction: boolean;
   tokenStrategy: TractorTokenStrategy["type"];
@@ -149,12 +129,45 @@ export type SowOrderV0State = {
   depositOptimizationCalls: `0x${string}`[];
 };
 
+/**
+ * Calculate smart defaults for sow order parameters
+ * @param totalAmount - The total amount to sow (as string)
+ * @param currentPodLine - The current pod line length (as TokenValue)
+ * @returns Object containing calculated default values
+ */
+export function calculateSmartDefaults(
+  totalAmount: string,
+  currentPodLine: TokenValue,
+): {
+  minSoil: string;
+  maxPerSeason: string;
+  maxPodLine: string;
+} {
+  const totalAmountNum = parseFloat(totalAmount || "0");
+
+  // Set minSoil to min(totalAmount, 25 PINTO)
+  const minSoil = Math.min(totalAmountNum, 25).toString();
+
+  // Set maxPerSeason to totalAmount
+  const maxPerSeason = totalAmount;
+
+  // Set maxPodLine to currentPodLine * 2
+  const maxPodLine = currentPodLine.mul(2).toHuman();
+
+  return {
+    minSoil,
+    maxPerSeason,
+    maxPodLine,
+  };
+}
+
 export const useSowOrderV0State = () => {
   const client = usePublicClient();
   const { address } = useAccount();
   const protocolAddress = useProtocolAddress();
 
   const tokenMap = useTokenMap();
+  const podLine = usePodLine();
 
   const [state, setState] = useState<SowOrderV0State | undefined>(undefined);
   const [orderData, setOrderData] = useState<SowV0FormOrderData | undefined>(undefined);
@@ -181,12 +194,15 @@ export const useSowOrderV0State = () => {
       try {
         const formData = form.getValues();
 
+        // Calculate smart defaults
+        const smartDefaults = calculateSmartDefaults(formData.totalAmount, podLine);
+
         const { data, operatorPasteInstrs, rawCall, depositOptimizationCalls } = await createSowTractorData({
           totalAmountToSow: formData.totalAmount,
           temperature: formData.temperature,
-          minAmountPerSeason: formData.minSoil,
-          maxAmountToSowPerSeason: formData.maxPerSeason,
-          maxPodlineLength: formData.podLineLength,
+          minAmountPerSeason: smartDefaults.minSoil,
+          maxAmountToSowPerSeason: smartDefaults.maxPerSeason,
+          maxPodlineLength: smartDefaults.maxPodLine,
           maxGrownStalkPerBdv: "10000000000000000",
           runBlocksAfterSunrise: formData.morningAuction ? "0" : "300",
           operatorTip: formData.operatorTip,
@@ -212,10 +228,10 @@ export const useSowOrderV0State = () => {
 
         setOrderData({
           totalAmount: formData.totalAmount || "",
-          minSoil: formData.minSoil || "",
-          maxPerSeason: formData.maxPerSeason || "",
+          minSoil: smartDefaults.minSoil || "",
+          maxPerSeason: smartDefaults.maxPerSeason || "",
+          maxPodLine: smartDefaults.maxPodLine || "",
           temperature: formData.temperature || "",
-          podLineLength: formData.podLineLength || "",
           morningAuction: formData.morningAuction || false,
           tokenStrategy: formData.selectedTokenStrategy.type,
           token: tokenInstance,
@@ -235,7 +251,7 @@ export const useSowOrderV0State = () => {
         setIsLoading(false);
       }
     },
-    [client, address, protocolAddress, tokenMap],
+    [client, address, protocolAddress, tokenMap, podLine],
   );
 
   return {
