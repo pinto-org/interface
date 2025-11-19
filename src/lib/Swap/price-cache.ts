@@ -100,9 +100,6 @@ export class SwapPriceCache {
         functionName: "previewRedeem",
         args: [BigInt(10 ** this.#context.siloWrappedToken.decimals)],
       }),
-      // multicall(this.#context.config, { 
-        // contracts: this.tokens
-      // })
     ]);
 
     const priceMap = new Map<Token, TV>();
