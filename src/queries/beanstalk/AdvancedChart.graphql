@@ -26,7 +26,6 @@ query BeanstalkAdvancedChart($from: Int, $to: Int) {
     temperature
     deltaTemperature
     season
-    cultivationFactor
     cultivationTemperature
     harvestableIndex
     harvestablePods
@@ -47,9 +46,23 @@ query BeanstalkAdvancedChart($from: Int, $to: Int) {
     where: { silo: "0xd1a0d188e861ed9d15773a2f3574a2e94134ba8f", season_gte: $from, season_lte: $to }
   ) {
     id
-    beanToMaxLpGpPerBdvRatio
-    deltaBeanToMaxLpGpPerBdvRatio
     season
     stalk
+    cropRatio
+    deltaCropRatio
+  }
+  gaugesInfoHourlySnapshots(
+    first: 1000
+    orderBy: season
+    orderDirection: desc
+    where: { season_gte: $from, season_lte: $to }
+  ) {
+    id
+    g0CultivationFactor
+    g1BlightFactor
+    g1ConvertDownPenalty
+    g2BdvConvertedThisSeason
+    g2BonusStalkPerBdv
+    g2MaxConvertCapacity
   }
 }
