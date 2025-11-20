@@ -71,7 +71,7 @@ export interface SeasonsTableData {
   convertDownBlightFactor: number;
   convertUpBonusStalkPerBdv: TokenValue;
   convertUpBonusMaxCapacity: TokenValue;
-  convertUpBonusCapacityUsedThisSeason: TokenValue;
+  convertUpBonusCapacityUsedLastSeason: TokenValue;
   cumulativeVolumeNet: number;
   cumulativeBuyVolumeUSD: number;
   cumulativeSellVolumeUSD: number;
@@ -452,37 +452,42 @@ export default function useSeasonsData(
         allData.numberOfSowers = currFieldHourlySnapshots.numberOfSowers;
         allData.numberOfSows = currFieldHourlySnapshots.numberOfSows;
         allData.stalk = TokenValue.fromBlockchain(currSiloHourlySnapshots.stalk || 0n, STALK.decimals);
-        allData.cropRatio = currSiloHourlySnapshots.cropRatio;
+        allData.cropRatio = TokenValue.fromHuman(currSiloHourlySnapshots.cropRatio, 2).toNumber();
 
-        if (currGaugeInfoSnapshots.g0CultivationFactor !== null) {
-          allData.cultivationFactor = TokenValue.fromHuman(currGaugeInfoSnapshots.g0CultivationFactor, 2);
-        }
         if (currFieldHourlySnapshots.cultivationTemperature !== null) {
           allData.cultivationTemperature = TokenValue.fromHuman(currFieldHourlySnapshots.cultivationTemperature, 2);
         }
-        if (currGaugeInfoSnapshots.g1ConvertDownPenalty !== null) {
-          allData.convertDownPenalty = currGaugeInfoSnapshots.g1ConvertDownPenalty;
-        }
-        if (currGaugeInfoSnapshots.g1BlightFactor !== null) {
-          allData.convertDownBlightFactor = currGaugeInfoSnapshots.g1BlightFactor;
-        }
-        if (currGaugeInfoSnapshots.g2BonusStalkPerBdv !== null) {
-          allData.convertUpBonusStalkPerBdv = TokenValue.fromBlockchain(
-            currGaugeInfoSnapshots.g2BonusStalkPerBdv || 0n,
-            STALK.decimals,
-          );
-        }
-        if (currGaugeInfoSnapshots.g2MaxConvertCapacity !== null) {
-          allData.convertUpBonusMaxCapacity = TokenValue.fromBlockchain(
-            currGaugeInfoSnapshots.g2MaxConvertCapacity || 0n,
-            tokenData.mainToken.decimals,
-          );
-        }
-        if (currGaugeInfoSnapshots.g2BdvConvertedThisSeason !== null) {
-          allData.convertUpBonusCapacityUsedThisSeason = TokenValue.fromBlockchain(
-            currGaugeInfoSnapshots.g2BdvConvertedThisSeason || 0n,
-            tokenData.mainToken.decimals,
-          );
+
+        if (!!currGaugeInfoSnapshots) {
+          if (currGaugeInfoSnapshots.g0CultivationFactor !== null) {
+            allData.cultivationFactor = TokenValue.fromHuman(currGaugeInfoSnapshots.g0CultivationFactor, 2);
+          }
+          if (currGaugeInfoSnapshots.g1ConvertDownPenalty !== null) {
+            allData.convertDownPenalty = TokenValue.fromHuman(currGaugeInfoSnapshots.g1ConvertDownPenalty, 4)
+              .mul(100)
+              .toNumber();
+          }
+          if (currGaugeInfoSnapshots.g1BlightFactor !== null) {
+            allData.convertDownBlightFactor = TokenValue.fromHuman(currGaugeInfoSnapshots.g1BlightFactor, 0).toNumber();
+          }
+          if (currGaugeInfoSnapshots.g2BonusStalkPerBdv !== null) {
+            allData.convertUpBonusStalkPerBdv = TokenValue.fromBlockchain(
+              currGaugeInfoSnapshots.g2BonusStalkPerBdv || 0n,
+              STALK.decimals - tokenData.mainToken.decimals,
+            );
+          }
+          if (currGaugeInfoSnapshots.g2MaxConvertCapacity !== null) {
+            allData.convertUpBonusMaxCapacity = TokenValue.fromBlockchain(
+              currGaugeInfoSnapshots.g2MaxConvertCapacity || 0n,
+              tokenData.mainToken.decimals,
+            );
+          }
+          if (currGaugeInfoSnapshots.g2BdvConvertedThisSeason !== null) {
+            allData.convertUpBonusCapacityUsedLastSeason = TokenValue.fromBlockchain(
+              currGaugeInfoSnapshots.g2BdvConvertedThisSeason || 0n,
+              tokenData.mainToken.decimals,
+            );
+          }
         }
 
         if (!allData.season) {

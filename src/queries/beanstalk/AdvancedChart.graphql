@@ -46,6 +46,8 @@ query BeanstalkAdvancedChart($from: Int, $to: Int) {
     where: { silo: "0xd1a0d188e861ed9d15773a2f3574a2e94134ba8f", season_gte: $from, season_lte: $to }
   ) {
     id
+    beanToMaxLpGpPerBdvRatio
+    deltaBeanToMaxLpGpPerBdvRatio
     season
     stalk
     cropRatio
