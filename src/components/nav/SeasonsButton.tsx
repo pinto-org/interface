@@ -87,7 +87,6 @@ const PanelContent = ({
       const min = isRaining && snapshot.season >= 175 ? _minRain : _min;
 
       const range = max.sub(min);
-      // TODO(pp): see if this can be updated to use the crop ratio directly?
       const currentRatio = min.add(range.mul(snapshot.beanToMaxLpGpPerBdvRatio));
 
       if (i === 0) {

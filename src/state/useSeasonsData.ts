@@ -67,11 +67,12 @@ export interface SeasonsTableData {
   numberOfSowers: number;
   stalk: TokenValue;
   cropRatio: number;
+  deltaCropRatio: number;
   convertDownPenalty: number;
   convertDownBlightFactor: number;
   convertUpBonusStalkPerBdv: TokenValue;
   convertUpBonusMaxCapacity: TokenValue;
-  convertUpBonusCapacityUsedLastSeason: TokenValue;
+  convertUpBonusCapacityUsedThisSeason: TokenValue;
   cumulativeVolumeNet: number;
   cumulativeBuyVolumeUSD: number;
   cumulativeSellVolumeUSD: number;
@@ -453,6 +454,7 @@ export default function useSeasonsData(
         allData.numberOfSows = currFieldHourlySnapshots.numberOfSows;
         allData.stalk = TokenValue.fromBlockchain(currSiloHourlySnapshots.stalk || 0n, STALK.decimals);
         allData.cropRatio = TokenValue.fromHuman(currSiloHourlySnapshots.cropRatio, 2).toNumber();
+        allData.deltaCropRatio = TokenValue.fromHuman(currSiloHourlySnapshots.deltaCropRatio, 2).toNumber();
 
         if (currFieldHourlySnapshots.cultivationTemperature !== null) {
           allData.cultivationTemperature = TokenValue.fromHuman(currFieldHourlySnapshots.cultivationTemperature, 2);
@@ -483,7 +485,7 @@ export default function useSeasonsData(
             );
           }
           if (currGaugeInfoSnapshots.g2BdvConvertedThisSeason !== null) {
-            allData.convertUpBonusCapacityUsedLastSeason = TokenValue.fromBlockchain(
+            allData.convertUpBonusCapacityUsedThisSeason = TokenValue.fromBlockchain(
               currGaugeInfoSnapshots.g2BdvConvertedThisSeason || 0n,
               tokenData.mainToken.decimals,
             );

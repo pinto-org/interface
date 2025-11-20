@@ -90,8 +90,8 @@ export const SeasonsTable = ({ seasonsData, page, hiddenFields, hideColumn }: Se
   const RenderRow = React.memo(({ index, style }: ListChildComponentProps<SeasonsTableData>) => {
     const data = displaySeasonsData[index];
     const seasonsIndexOffset = (page - 1) * SEASON_TABLE_PAGE_SIZE + index;
-    // TODO(pp): see if this can be updated to use the crop ratio/delta crop ratio directly?
-    const { cropScalar, cropRatio } = calculateCropScales(data.beanToMaxLpGpPerBdvRatio, data.raining, data.season);
+    const { cropScalar } = calculateCropScales(data.beanToMaxLpGpPerBdvRatio, data.raining, data.season);
+    const cropRatio = data.cropRatio;
     const deltaCropScalar = (data.deltaBeanToMaxLpGpPerBdvRatio / 1e18).toFixed(1);
     const priceDescriptiveText = caseIdToDescriptiveText(data.caseId, "price");
     const filteredSowEvents = sowEvents.data.reduce(

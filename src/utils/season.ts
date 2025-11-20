@@ -16,6 +16,9 @@ const getMaxCropRatioBySeason = (season: number) => {
   return 100;
 };
 
+/**
+ * @deprecated - the cropRatio return value is incorrect! Safe to use for cropScalar only.
+ */
 export function calculateCropScales(value: number, isRaining: boolean, season: number) {
   const maxInput = 1e18;
   const maxOutput = getMaxCropRatioBySeason(season);
