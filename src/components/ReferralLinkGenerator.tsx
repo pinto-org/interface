@@ -1,63 +1,53 @@
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
-import { useFarmerField } from "@/state/useFarmerField";
 import { trackSimpleEvent } from "@/utils/analytics";
-import { formatter } from "@/utils/format";
+import { truncateHex } from "@/utils/format";
 import { encodeReferralAddress } from "@/utils/referral";
-import { CopyIcon, Share1Icon } from "@radix-ui/react-icons";
+import { CopyIcon, Share1Icon, ChatBubbleIcon, BarChartIcon } from "@radix-ui/react-icons";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 
-const MIN_SOWN_BEANS = 1000;
-
 export function ReferralLinkGenerator() {
   const { address } = useAccount();
-  const farmerField = useFarmerField();
 
   if (!address) {
     return (
-      <Card className="p-6">
-        <div className="text-center text-pinto-gray-4">Connect your wallet to generate a referral link</div>
-      </Card>
+      <div className="text-center text-pinto-gray-4">Connect your wallet to access referral features</div>
     );
   }
 
-  const encodedRef = encodeReferralAddress(address);
-  const referralUrl = `${window.location.origin}/field?ref=${encodedRef}`;
+  const referralCode = encodeReferralAddress(address);
+  const referralUrl = `${window.location.origin}/field?ref=${referralCode}`;
+  const podDestinationAddress = address;
 
-  // Calculate total sown beans from plots
-  const totalSownBeans = farmerField.plots.reduce((total, plot) => {
-    // Each plot represents pods sown. To get beans sown, we use the initial sown amount
-    // which is stored in the plot data
-    return total + (plot.pods?.toNumber() || 0);
-  }, 0);
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(referralCode);
+    toast.success("Referral code copied to clipboard!");
 
-  // For now, we'll use the totalPods as a proxy. In production, you'd want to query
-  // the subgraph for the actual sownBeans value from farmer.field.sownBeans
-  const isEligible = totalSownBeans >= MIN_SOWN_BEANS;
+    trackSimpleEvent(ANALYTICS_EVENTS.REFERRAL.LINK_COPIED, {
+      address,
+      type: "code",
+    });
+  };
 
-  const handleCopy = () => {
+  const handleCopyLink = () => {
     navigator.clipboard.writeText(referralUrl);
     toast.success("Referral link copied to clipboard!");
 
     trackSimpleEvent(ANALYTICS_EVENTS.REFERRAL.LINK_COPIED, {
       address,
-      is_eligible: isEligible,
-      total_sown_beans: totalSownBeans,
+      type: "link",
     });
   };
 
-  const handleGenerateClick = () => {
-    trackSimpleEvent(ANALYTICS_EVENTS.REFERRAL.LINK_GENERATED, {
-      address,
-      is_eligible: isEligible,
-      total_sown_beans: totalSownBeans,
-    });
+  const handleChangeAddress = () => {
+    console.log("Change pod destination address clicked");
+    toast.info("Change address functionality coming soon!");
   };
 
   const handleTwitterShare = () => {
+    console.log("Twitter/X share clicked");
     const tweetText =
       "🌱 I'm farming on @PintoProtocol and earning passive rewards!\n\nJoin me and I'll earn bonus Pods when you Sow Pinto 🫘\n\nStart farming today:";
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(referralUrl)}`;
@@ -65,73 +55,93 @@ export function ReferralLinkGenerator() {
 
     trackSimpleEvent(ANALYTICS_EVENTS.REFERRAL.TWITTER_SHARE, {
       address,
-      is_eligible: isEligible,
-      total_sown_beans: totalSownBeans,
     });
   };
 
-  const progressPercentage = Math.min((totalSownBeans / MIN_SOWN_BEANS) * 100, 100);
+  const handleTelegramShare = () => {
+    console.log("Telegram share clicked");
+    toast.info("Telegram share functionality coming soon!");
+  };
+
+  const handleQRCode = () => {
+    console.log("QR code clicked");
+    toast.info("QR code functionality coming soon!");
+  };
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <div className="pinto-h3">Your Referral Link</div>
-        <div className="pinto-body-light text-pinto-light">
-          Share your link to earn 10% bonus Pods when others Sow using it
-        </div>
-      </div>
+      <div className="pinto-h3 sm:pinto-h2">Invite via</div>
 
-      <div className="flex flex-col gap-3">
-        {!isEligible && (
-          <div className="flex flex-col gap-3 p-4 bg-pinto-off-white rounded-lg">
-            <div className="flex justify-between items-center">
-              <div className="pinto-sm-bold text-pinto-dark">Qualification Progress</div>
-              <div className="pinto-sm text-pinto-light">
-                {formatter.number(totalSownBeans)} / {formatter.number(MIN_SOWN_BEANS)} Pinto
-              </div>
-            </div>
-            <div className="w-full h-3 bg-pinto-light/10 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-pinto-green to-pinto-green-dark transition-all duration-500 ease-out rounded-full"
-                style={{ width: `${progressPercentage}%` }}
-              />
-            </div>
-            <div className="pinto-sm text-pinto-light">
-              Sow {formatter.number(MIN_SOWN_BEANS - totalSownBeans)} more Pinto to unlock your referral link
+      <div className="flex flex-col gap-4">
+        {/* Referral Code */}
+        <div className="flex flex-col gap-2">
+          <label className="pinto-sm text-pinto-light">Referral Code</label>
+          <div className="flex flex-row gap-2">
+            <Input value={referralCode} readOnly className="flex-1 min-w-0 text-sm" />
+            <Button onClick={handleCopyCode} variant="outline" className="gap-2 whitespace-nowrap">
+              <CopyIcon className="w-4 h-4" />
+              Copy
+            </Button>
+          </div>
+        </div>
+
+        {/* Referral Link */}
+        <div className="flex flex-col gap-2">
+          <label className="pinto-sm text-pinto-light">Referral Link</label>
+          <div className="flex flex-row gap-2">
+            <Input value={referralUrl} readOnly className="flex-1 min-w-0 text-sm" />
+            <Button onClick={handleCopyLink} variant="outline" className="gap-2 whitespace-nowrap">
+              <CopyIcon className="w-4 h-4" />
+              Copy
+            </Button>
+          </div>
+        </div>
+
+        {/* Pod Destination Address and Share via - Row Layout */}
+        <div className="flex flex-row gap-4 items-start">
+          {/* Pod Destination Address */}
+          <div className="flex flex-col gap-2 flex-1">
+            <label className="pinto-sm text-pinto-light">Pod Destination Address</label>
+            <div className="flex flex-col gap-1">
+              <span className="pinto-body text-pinto-dark">{truncateHex(podDestinationAddress, 6, 4)}</span>
+              <button
+                type="button"
+                onClick={handleChangeAddress}
+                className="text-pinto-green underline cursor-pointer pinto-sm hover:text-pinto-green-dark transition-colors text-left w-fit"
+              >
+                change
+              </button>
             </div>
           </div>
-        )}
 
-        <div className="flex flex-row gap-2">
-          <Input
-            value={referralUrl}
-            readOnly
-            disabled={!isEligible}
-            className="flex-1 min-w-0 text-sm"
-            onClick={isEligible ? handleGenerateClick : undefined}
-          />
-          <Button onClick={handleCopy} disabled={!isEligible} variant="outline" className="gap-2 whitespace-nowrap">
-            <CopyIcon className="w-4 h-4" />
-            Copy
-          </Button>
-        </div>
-
-        {isEligible && (
-          <>
-            <div className="pinto-sm text-pinto-green bg-pinto-green/10 p-3 rounded-lg">
-              ✓ Your referral link is active! You'll earn 10% bonus Pods when someone Sows using your link.
-            </div>
-
-            {/* Twitter Share Button */}
-            <div className="flex flex-col gap-2">
-              <div className="pinto-sm-bold text-pinto-light">Share on Social</div>
-              <Button onClick={handleTwitterShare} variant="outline" className="gap-2 w-full justify-center">
-                <Share1Icon className="w-4 h-4" />
-                Share on Twitter
+          {/* Social Sharing Icons */}
+          <div className="flex flex-col gap-2">
+            <label className="pinto-sm text-pinto-light">Share via</label>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleTwitterShare}
+                variant="outline"
+                size="icon"
+                className="w-10 h-10"
+                title="Share on X (Twitter)"
+              >
+                <Share1Icon className="w-5 h-5" />
+              </Button>
+              <Button
+                onClick={handleTelegramShare}
+                variant="outline"
+                size="icon"
+                className="w-10 h-10"
+                title="Share on Telegram"
+              >
+                <ChatBubbleIcon className="w-5 h-5" />
+              </Button>
+              <Button onClick={handleQRCode} variant="outline" size="icon" className="w-10 h-10" title="Show QR Code">
+                <BarChartIcon className="w-5 h-5" />
               </Button>
             </div>
-          </>
-        )}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,6 @@
+import { HowToCard } from "@/components/HowToCard";
 import { ReferralLinkGenerator } from "@/components/ReferralLinkGenerator";
+import { ReferralStatsCard } from "@/components/ReferralStatsCard";
 import { Card } from "@/components/ui/Card";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
@@ -27,26 +29,21 @@ export default function Referral() {
 
           {/* Main Referral Cards - Two Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            {/* Your Referral Link */}
+            {/* Invite via */}
             <Card className="p-4 sm:p-6">
               <ReferralLinkGenerator />
             </Card>
 
-            {/* Your Referral Stats */}
-            <Card className="p-4 sm:p-6 space-y-4">
-              <div className="pinto-h3 sm:pinto-h2">Your Referral Stats</div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-pinto-off-white p-4 rounded-lg">
-                  <div className="pinto-sm text-pinto-light mb-1">Total Pods Earned</div>
-                  <div className="pinto-h3 text-pinto-dark">0</div>
-                </div>
-                <div className="bg-pinto-off-white p-4 rounded-lg">
-                  <div className="pinto-sm text-pinto-light mb-1">Successful Referrals</div>
-                  <div className="pinto-h3 text-pinto-dark">0</div>
-                </div>
-              </div>
+            {/* How to */}
+            <Card className="p-4 sm:p-6">
+              <HowToCard />
             </Card>
           </div>
+
+          {/* Your Referral Stats - Standalone Section */}
+          <Card className="p-4 sm:p-6">
+            <ReferralStatsCard />
+          </Card>
 
           {/* Leaderboard */}
           <Card className="p-4 sm:p-6 space-y-4">
