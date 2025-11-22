@@ -3,7 +3,9 @@ import PintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { Col } from "@/components/Container";
 import FrameAnimator from "@/components/LoadingSpinner";
+import MarketChartOverlay, { type OverlayParams } from "@/components/MarketChartOverlay";
 import PodLineGraph from "@/components/PodLineGraph";
+import PodScoreGradientLegend from "@/components/PodScoreGradientLegend";
 import ReadMoreAccordion from "@/components/ReadMoreAccordion";
 import ScatterChart from "@/components/charts/ScatterChart";
 import { Card } from "@/components/ui/Card";
@@ -13,14 +15,12 @@ import useNavHeight from "@/hooks/display/useNavHeight";
 import { useAllMarket } from "@/state/market/useAllMarket";
 import { useHarvestableIndex, usePodLine } from "@/state/useFieldData";
 import { trackSimpleEvent } from "@/utils/analytics";
-import { buildPodScoreColorScaler } from "@/utils/podScoreColorScaler";
 import { calculatePodScore } from "@/utils/podScore";
+import { buildPodScoreColorScaler } from "@/utils/podScoreColorScaler";
 import { ActiveElement, ChartEvent, PointStyle, TooltipOptions } from "chart.js";
 import { Chart } from "chart.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import MarketChartOverlay, { type OverlayParams } from "@/components/MarketChartOverlay";
-import PodScoreGradientLegend from "@/components/PodScoreGradientLegend";
 import { AllActivityTable } from "./market/AllActivityTable";
 import { FarmerActivityTable } from "./market/FarmerActivityTable";
 import MarketModeSelect from "./market/MarketModeSelect";
@@ -130,7 +130,7 @@ const shapeScatterChartData = (data: any[], harvestableIndex: TokenValue): Marke
           // Calculate Pod Score for the listing
           // Use placeInLine in millions for consistent scaling with chart x-axis
           const podScore = calculatePodScore(price, placeInLine / MILLION);
-          
+
           acc[1].data.push({
             x: placeInLine / MILLION,
             y: price,
@@ -168,18 +168,16 @@ const shapeScatterChartData = (data: any[], harvestableIndex: TokenValue): Marke
   // Apply Pod Score coloring to listings
   // Extract all listing Pod Scores (filter out undefined values)
   const listingScores = result[1].data
-    .map(point => point.podScore)
+    .map((point) => point.podScore)
     .filter((score): score is number => score !== undefined);
 
   // Build color scaler from listing scores
   const colorScaler = buildPodScoreColorScaler(listingScores);
 
   // Map through listings and apply colors
-  result[1].data = result[1].data.map(point => ({
+  result[1].data = result[1].data.map((point) => ({
     ...point,
-    color: point.podScore !== undefined 
-      ? colorScaler.toColor(point.podScore)
-      : "#e0b57d", // Fallback color for invalid Pod Scores
+    color: point.podScore !== undefined ? colorScaler.toColor(point.podScore) : "#e0b57d", // Fallback color for invalid Pod Scores
   }));
 
   return result;
@@ -194,7 +192,7 @@ export function Market() {
   const harvestableIndex = useHarvestableIndex();
   const podLineAsNumber = podLine.toNumber() / MILLION;
   const navHeight = useNavHeight();
-  
+
   // Overlay state and chart ref
   const chartRef = useRef<Chart | null>(null);
   const [overlayParams, setOverlayParams] = useState<OverlayParams>(null);
@@ -212,15 +210,15 @@ export function Market() {
   // Extract Pod Scores from market listings for overlay color scaling
   const marketListingScores = useMemo(() => {
     if (!scatterChartData || scatterChartData.length < 2) return [];
-    
+
     // Listings are at index 1 in scatterChartData
     const listingsData = scatterChartData[1];
     if (!listingsData?.data) return [];
-    
+
     const scores = listingsData.data
-      .map(point => point.podScore)
+      .map((point) => point.podScore)
       .filter((score): score is number => score !== undefined);
-    
+
     return scores;
   }, [scatterChartData]);
 
@@ -229,7 +227,7 @@ export function Market() {
   const chartXMax = useMemo(() => {
     // Use podLineAsNumber if available, otherwise use a reasonable default
     const maxValue = podLineAsNumber > 0 ? podLineAsNumber : 50; // Default to 50 million
-    
+
     // Ensure a minimum value for the chart to render properly
     return Math.max(maxValue, 1); // At least 1 million
   }, [podLineAsNumber]);
@@ -300,13 +298,14 @@ export function Market() {
                 return score.toFixed(2);
               }
             };
-            
-            const podScoreRow = dataPoint.eventType === "LISTING" && dataPoint.podScore !== undefined
-              ? `<div class="flex justify-between">
+
+            const podScoreRow =
+              dataPoint.eventType === "LISTING" && dataPoint.podScore !== undefined
+                ? `<div class="flex justify-between">
                 <span>Pod Score:</span>
                 <span>${formatPodScore(dataPoint.podScore)}</span>
               </div>`
-              : '';
+                : "";
 
             tooltipEl.innerHTML = `
             <div class="flex flex-col">
@@ -470,18 +469,17 @@ export function Market() {
                   onPointClick={onPointClick}
                   toolTipOptions={toolTipOptions as TooltipOptions}
                 />
-                
+
                 {/* Gradient Legend - positioned in top-right corner */}
                 <div className="absolute top-5 right-6 z-[3]">
-                  <PodScoreGradientLegend/>
+                  <PodScoreGradientLegend />
                 </div>
-                
+
                 <MarketChartOverlay
                   overlayParams={overlayParams}
                   chartRef={chartRef}
                   visible={
-                    (mode === "buy" && (id === "create" || id === "fill")) ||
-                    (mode === "sell" && id === "create")
+                    (mode === "buy" && (id === "create" || id === "fill")) || (mode === "sell" && id === "create")
                   }
                   harvestableIndex={harvestableIndex}
                   marketListingScores={marketListingScores}
@@ -520,7 +518,9 @@ export function Market() {
                     {viewMode === "buy" && id === "create" && (
                       <CreateOrder onOverlayParamsChange={handleOverlayParamsChange} />
                     )}
-                    {viewMode === "buy" && id === "fill" && <FillListing onOverlayParamsChange={handleOverlayParamsChange} />}
+                    {viewMode === "buy" && id === "fill" && (
+                      <FillListing onOverlayParamsChange={handleOverlayParamsChange} />
+                    )}
                     {viewMode === "sell" && id === "create" && (
                       <CreateListing onOverlayParamsChange={handleOverlayParamsChange} />
                     )}

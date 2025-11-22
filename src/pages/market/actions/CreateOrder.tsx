@@ -2,6 +2,7 @@ import podIcon from "@/assets/protocol/Pod.png";
 import { TV, TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import FrameAnimator from "@/components/LoadingSpinner";
+import type { OverlayParams } from "@/components/MarketChartOverlay";
 import PodLineGraph from "@/components/PodLineGraph";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
 import SlippageButton from "@/components/SlippageButton";
@@ -37,7 +38,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
-import type { OverlayParams } from "@/components/MarketChartOverlay";
 
 // Constants
 const PRICE_PER_POD_CONFIG = {
@@ -176,7 +176,7 @@ export default function CreateOrder({ onOverlayParamsChange }: CreateOrderProps 
 
   // Throttle overlay parameter updates for better performance
   const overlayUpdateTimerRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   useEffect(() => {
     // Clear any pending update
     if (overlayUpdateTimerRef.current) {

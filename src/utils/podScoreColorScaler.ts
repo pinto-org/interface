@@ -1,6 +1,6 @@
 /**
  * Pod Score Color Scaler Utility
- * 
+ *
  * Provides percentile-based color scaling for Pod Score visualization.
  * Maps scores to a three-stop gradient: brown (poor) → gold (average) → green (good)
  */
@@ -14,12 +14,12 @@ interface RGB {
 }
 
 interface ScalerOptions {
-  lowerPct?: number;      // Default: 5
-  upperPct?: number;      // Default: 95
-  smoothFactor?: number;  // Default: 0 (no smoothing)
-  bad?: Hex;              // Default: '#91580D'
-  mid?: Hex;              // Default: '#E8C15F'
-  good?: Hex;             // Default: '#A8E868'
+  lowerPct?: number; // Default: 5
+  upperPct?: number; // Default: 95
+  smoothFactor?: number; // Default: 0 (no smoothing)
+  bad?: Hex; // Default: '#91580D'
+  mid?: Hex; // Default: '#E8C15F'
+  good?: Hex; // Default: '#A8E868'
 }
 
 export interface ColorScaler {
@@ -34,20 +34,20 @@ export interface ColorScaler {
 function percentile(values: number[], p: number): number {
   if (values.length === 0) return 0;
   if (values.length === 1) return values[0];
-  
+
   // Sort values in ascending order
   const sorted = [...values].sort((a, b) => a - b);
-  
+
   // Calculate index (using linear interpolation)
   const index = (p / 100) * (sorted.length - 1);
   const lower = Math.floor(index);
   const upper = Math.ceil(index);
   const weight = index - lower;
-  
+
   if (lower === upper) {
     return sorted[lower];
   }
-  
+
   return sorted[lower] * (1 - weight) + sorted[upper] * weight;
 }
 
@@ -86,7 +86,7 @@ function hexToRgb(hex: Hex): RGB {
 function rgbToHex(c: RGB): Hex {
   const toHex = (n: number) => {
     const hex = Math.round(clamp(n, 0, 255)).toString(16);
-    return hex.length === 1 ? '0' + hex : hex;
+    return hex.length === 1 ? "0" + hex : hex;
   };
   return `#${toHex(c.r)}${toHex(c.g)}${toHex(c.b)}` as Hex;
 }
@@ -105,7 +105,7 @@ function mix(a: RGB, b: RGB, t: number): RGB {
 
 /**
  * Build a color scaler for Pod Scores
- * 
+ *
  * @param scores - Array of Pod Score values
  * @param prevBounds - Optional previous bounds for smoothing
  * @param opts - Optional configuration
@@ -114,20 +114,20 @@ function mix(a: RGB, b: RGB, t: number): RGB {
 export function buildPodScoreColorScaler(
   scores: number[],
   prevBounds?: { low: number; high: number } | null,
-  opts?: ScalerOptions
+  opts?: ScalerOptions,
 ): ColorScaler {
   // Default options
   const options: Required<ScalerOptions> = {
     lowerPct: opts?.lowerPct ?? 5,
     upperPct: opts?.upperPct ?? 95,
     smoothFactor: opts?.smoothFactor ?? 0,
-    bad: opts?.bad ?? '#91580D',
-    mid: opts?.mid ?? '#E8C15F',
-    good: opts?.good ?? '#A8E868',
+    bad: opts?.bad ?? "#91580D",
+    mid: opts?.mid ?? "#E8C15F",
+    good: opts?.good ?? "#A8E868",
   };
 
   // Filter out invalid values (NaN, Infinity)
-  const validScores = scores.filter(s => Number.isFinite(s));
+  const validScores = scores.filter((s) => Number.isFinite(s));
 
   // Calculate percentile bounds
   let low: number;
@@ -145,7 +145,7 @@ export function buildPodScoreColorScaler(
     // Calculate percentiles
     low = percentile(validScores, options.lowerPct);
     high = percentile(validScores, options.upperPct);
-    
+
     // Ensure high > low
     if (high <= low) {
       high = low + 1;
@@ -156,7 +156,7 @@ export function buildPodScoreColorScaler(
   if (prevBounds && options.smoothFactor > 0) {
     low = smooth(prevBounds.low, low, options.smoothFactor);
     high = smooth(prevBounds.high, high, options.smoothFactor);
-    
+
     // Ensure smoothed high > smoothed low
     if (high <= low) {
       high = low + 1;
@@ -182,7 +182,7 @@ export function buildPodScoreColorScaler(
    */
   const toColor = (score: number): Hex => {
     const unit = toUnit(score);
-    
+
     // Three-stop gradient: bad → mid → good
     // 0.0 - 0.5: bad to mid
     // 0.5 - 1.0: mid to good
@@ -196,7 +196,7 @@ export function buildPodScoreColorScaler(
       const t = (unit - 0.5) / 0.5;
       rgb = mix(midRgb, goodRgb, t);
     }
-    
+
     return rgbToHex(rgb);
   };
 

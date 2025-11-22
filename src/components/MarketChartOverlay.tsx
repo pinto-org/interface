@@ -1,6 +1,6 @@
 import { TokenValue } from "@/classes/TokenValue";
-import { buildPodScoreColorScaler } from "@/utils/podScoreColorScaler";
 import { calculatePodScore } from "@/utils/podScore";
+import { buildPodScoreColorScaler } from "@/utils/podScoreColorScaler";
 import { Chart } from "chart.js";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -77,30 +77,33 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
   ({ overlayParams, chartRef, visible, harvestableIndex, marketListingScores = [] }) => {
     const [dimensions, setDimensions] = useState<ChartDimensions | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    
+
     // Note: Throttling removed to ensure immediate updates during price changes
     // Performance is acceptable without throttling due to optimized calculations
     const throttledOverlayParams = overlayParams;
 
     // Optimized pixel position calculator with minimal validation overhead
-    const calculatePixelPosition = useCallback((dataValue: number, axis: "x" | "y"): number | null => {
-      const chart = chartRef.current;
-      if (!chart?.scales) return null;
+    const calculatePixelPosition = useCallback(
+      (dataValue: number, axis: "x" | "y"): number | null => {
+        const chart = chartRef.current;
+        if (!chart?.scales) return null;
 
-      const scale = chart.scales[axis];
-      if (!scale?.getPixelForValue || scale.min === undefined || scale.max === undefined) {
-        return null;
-      }
+        const scale = chart.scales[axis];
+        if (!scale?.getPixelForValue || scale.min === undefined || scale.max === undefined) {
+          return null;
+        }
 
-      // Fast clamp without Math.max/min for better performance
-      const clampedValue = dataValue < scale.min ? scale.min : dataValue > scale.max ? scale.max : dataValue;
+        // Fast clamp without Math.max/min for better performance
+        const clampedValue = dataValue < scale.min ? scale.min : dataValue > scale.max ? scale.max : dataValue;
 
-      try {
-        return scale.getPixelForValue(clampedValue);
-      } catch {
-        return null;
-      }
-    }, [chartRef]);
+        try {
+          return scale.getPixelForValue(clampedValue);
+        } catch {
+          return null;
+        }
+      },
+      [chartRef],
+    );
 
     // Optimized dimension calculator with minimal object creation
     const getChartDimensions = useCallback((): ChartDimensions | null => {
@@ -108,16 +111,20 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
       if (!chart?.chartArea) return null;
 
       const { left, top, right, bottom } = chart.chartArea;
-      
+
       // Fast type validation
-      if (typeof left !== 'number' || typeof top !== 'number' || 
-          typeof right !== 'number' || typeof bottom !== 'number') {
+      if (
+        typeof left !== "number" ||
+        typeof top !== "number" ||
+        typeof right !== "number" ||
+        typeof bottom !== "number"
+      ) {
         return null;
       }
 
       const width = right - left;
       const height = bottom - top;
-      
+
       if (width <= 0 || height <= 0) return null;
 
       return { left, top, width, height, bottom, right };
@@ -128,13 +135,13 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
       let timeoutId: NodeJS.Timeout;
       let animationFrameId: number | null = null;
       let resizeObserver: ResizeObserver | null = null;
-      
+
       const updateDimensions = () => {
         // Use requestAnimationFrame to sync with browser's repaint cycle
         if (animationFrameId !== null) {
           cancelAnimationFrame(animationFrameId);
         }
-        
+
         animationFrameId = requestAnimationFrame(() => {
           const newDimensions = getChartDimensions();
           if (newDimensions) {
@@ -156,7 +163,7 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
       }, DIMENSION_UPDATE_DELAY_MS);
 
       // Single ResizeObserver for all resize events
-      if (typeof ResizeObserver !== 'undefined') {
+      if (typeof ResizeObserver !== "undefined") {
         resizeObserver = new ResizeObserver(debouncedUpdate);
         const parent = containerRef.current?.parentElement;
         if (parent) {
@@ -171,7 +178,7 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
 
       // Fallback window resize listener with passive flag for better performance
       window.addEventListener("resize", debouncedUpdate, { passive: true });
-      
+
       // Listen to Chart.js resize events for immediate sync
       const chart = chartRef.current;
       if (chart) {
@@ -270,7 +277,7 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
 
         const { scales } = chartRef.current;
         const { x: xScale, y: yScale } = scales;
-        
+
         if (!xScale?.max || !yScale?.max) return null;
 
         // Optimized place in line calculation - avoid intermediate TokenValue object
@@ -280,7 +287,7 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
         // Batch calculations for better performance
         const startX = placeInLineNum / MILLION;
         const endX = (placeInLineNum + plot.amount.toNumber()) / MILLION;
-        
+
         // Fast validation
         if (startX < 0 || endX <= startX) return null;
 
@@ -323,18 +330,17 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
 
       // Pre-allocate array for better performance
       const rectangles: Array<PlotRectangle & { plotKey: string; plotIndex: number; podScore?: number }> = [];
-      
+
       // Use for loop for better performance than map/filter chain
       for (let i = 0; i < plots.length; i++) {
         const plot = plots[i];
         const rect = calculatePlotRectangle(plot, pricePerPod);
-        
+
         if (rect) {
           // Calculate place in line for Pod Score
           const placeInLineNum = plot.startIndex.toNumber() - harvestableIndex.toNumber();
           // Use placeInLine in millions for consistent scaling with market listings
           const podScore = calculatePodScore(pricePerPod, placeInLineNum / MILLION);
-          
 
           rectangles.push({
             x: rect.x,
@@ -374,12 +380,12 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
         // Build color scaler from both market listings and overlay plot scores
         // This ensures overlay colors are relative to existing market conditions
         const plotScores = memoizedRectangles
-          .map(rect => rect.podScore)
+          .map((rect) => rect.podScore)
           .filter((score): score is number => score !== undefined);
-        
+
         // Combine market listing scores with overlay plot scores for consistent scaling
         const allScores = [...marketListingScores, ...plotScores];
-        
+
         const colorScaler = buildPodScoreColorScaler(allScores);
 
         return (
@@ -400,9 +406,8 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
               const centerY = clampedPriceY;
 
               // Get dynamic color based on Pod Score, fallback to default if undefined
-              const fillColor = rect.podScore !== undefined 
-                ? colorScaler.toColor(rect.podScore)
-                : SELL_OVERLAY_COLORS.plotFill;
+              const fillColor =
+                rect.podScore !== undefined ? colorScaler.toColor(rect.podScore) : SELL_OVERLAY_COLORS.plotFill;
 
               return (
                 <div
@@ -465,10 +470,7 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
     }
 
     return (
-      <div
-        ref={containerRef}
-        className="absolute inset-0 pointer-events-none z-[2] will-change-transform"
-      >
+      <div ref={containerRef} className="absolute inset-0 pointer-events-none z-[2] will-change-transform">
         {overlayContent}
       </div>
     );

@@ -1,6 +1,7 @@
 import settingsIcon from "@/assets/misc/Settings.svg";
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TV, TokenValue } from "@/classes/TokenValue";
+import type { OverlayParams, PlotOverlayData } from "@/components/MarketChartOverlay";
 import PodLineGraph from "@/components/PodLineGraph";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Button } from "@/components/ui/Button";
@@ -29,7 +30,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
-import type { OverlayParams, PlotOverlayData } from "@/components/MarketChartOverlay";
 
 interface PodListingData {
   plot: Plot;

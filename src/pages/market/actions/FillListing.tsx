@@ -2,6 +2,7 @@ import podIcon from "@/assets/protocol/Pod.png";
 import { TV, TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import FrameAnimator from "@/components/LoadingSpinner";
+import type { OverlayParams } from "@/components/MarketChartOverlay";
 import PodLineGraph from "@/components/PodLineGraph";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
 import SlippageButton from "@/components/SlippageButton";
@@ -43,7 +44,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Address, encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
-import type { OverlayParams } from "@/components/MarketChartOverlay";
 
 // Configuration constants
 const PRICE_PER_POD_CONFIG = {
@@ -64,7 +64,7 @@ const TextAdornment = ({ text, className }: { text: string; className?: string }
 /**
  * Calculates Pod Score for a listing based on price per pod and place in line.
  * Formula: (1/pricePerPod - 1) / placeInLine * 1e6
- * 
+ *
  * @param pricePerPod - Price per pod (must be > 0)
  * @param placeInLine - Position in harvest queue in millions (must be > 0)
  * @returns Pod Score value, or undefined for invalid inputs
@@ -77,7 +77,7 @@ const calculatePodScore = (pricePerPod: number, placeInLine: number): number | u
 
   // Calculate return: (1/pricePerPod - 1)
   const returnValue = 1 / pricePerPod - 1;
-  
+
   // Calculate Pod Score: return / placeInLine * 1e6
   const podScore = (returnValue / placeInLine) * 1e6;
 
@@ -216,12 +216,12 @@ export default function FillListing({ onOverlayParamsChange }: FillListingProps 
   // Calculate Pod Score for the selected listing
   const listingPodScore = useMemo(() => {
     if (!selectedListing) return undefined;
-    
+
     const price = TokenValue.fromBlockchain(selectedListing.pricePerPod, mainToken.decimals).toNumber();
     const placeInLine = TokenValue.fromBlockchain(selectedListing.index, PODS.decimals)
       .sub(harvestableIndex)
       .toNumber();
-    
+
     // Use placeInLine in millions for consistent scaling
     return calculatePodScore(price, placeInLine / 1_000_000);
   }, [selectedListing, mainToken.decimals, harvestableIndex]);
@@ -764,9 +764,9 @@ export default function FillListing({ onOverlayParamsChange }: FillListingProps 
             <p className="pinto-sm text-pinto-light">
               Pod Score:{" "}
               <span className="font-semibold">
-                {listingPodScore !== undefined 
+                {listingPodScore !== undefined
                   ? formatter.number(listingPodScore, { minDecimals: 2, maxDecimals: 2 })
-                  : 'N/A'}
+                  : "N/A"}
               </span>
             </p>
           </div>

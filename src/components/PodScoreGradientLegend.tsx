@@ -1,5 +1,5 @@
-import TooltipSimple from "./TooltipSimple";
 import { cn } from "@/utils/utils";
+import TooltipSimple from "./TooltipSimple";
 
 interface PodScoreGradientLegendProps {
   learnMoreUrl?: string;
@@ -17,7 +17,10 @@ export default function PodScoreGradientLegend({
 }: PodScoreGradientLegendProps) {
   return (
     <div
-      className={cn("flex flex-col gap-2 py-2 px-3 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-pinto-gray-2", className)}
+      className={cn(
+        "flex flex-col gap-2 py-2 px-3 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-pinto-gray-2",
+        className,
+      )}
     >
       {/* Row 1: Title and info icon */}
       <div className="flex items-center gap-1.5">
