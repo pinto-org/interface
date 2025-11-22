@@ -132,7 +132,7 @@ export default function ConvertUpOrderProvider({
             operatorTip: transformed.operatorTip.tv.toHuman(),
             customOperatorTip: transformed.customOperatorTip?.nonAmount
               ? ""
-              : transformed.customOperatorTip?.tv.toHuman() ?? "",
+              : (transformed.customOperatorTip?.tv.toHuman() ?? ""),
           }
         : null;
 

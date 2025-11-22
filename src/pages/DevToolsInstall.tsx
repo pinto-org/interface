@@ -230,8 +230,11 @@ const SetEnvironmentVariables = () => {
         Set these environment variables to cache your RPC endpoint and fork block number for faster Anvil node startup:
       </div>
       <Col className="w-full gap-2">
-        <label className="pinto-body-sm text-pinto-secondary">Base RPC URL (optional):</label>
+        <label htmlFor="rpc-url" className="pinto-body-sm text-pinto-secondary">
+          Base RPC URL (optional):
+        </label>
         <input
+          id="rpc-url"
           type="text"
           value={rpcUrl}
           onChange={(e) => setRpcUrl(e.target.value)}
@@ -240,10 +243,11 @@ const SetEnvironmentVariables = () => {
         />
       </Col>
       <Col className="w-full gap-2">
-        <label className="pinto-body-sm text-pinto-secondary">
+        <label htmlFor="block-number" className="pinto-body-sm text-pinto-secondary">
           Latest Block Number {loading ? "(fetching...)" : "(auto-fetched)"}:
         </label>
         <input
+          id="block-number"
           type="text"
           value={blockNumber}
           onChange={(e) => setBlockNumber(e.target.value)}

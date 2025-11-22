@@ -197,7 +197,7 @@ export function useTractorConvertUpOrderbook<T = ConvertUpOrderbookEntry[]>(
    * - PROD, use a 1 hour lookback
    */
   const ordersChainQuery = useQuery({
-    queryKey: queryKeys.tractor.convertUpOrdersV0Chain(orders?.lastUpdated ?? chainOnly ? 1 : 0, params),
+    queryKey: queryKeys.tractor.convertUpOrdersV0Chain((orders?.lastUpdated ?? chainOnly) ? 1 : 0, params),
     queryFn: async () => {
       if (!client) return [];
       const latestBlock = await client.getBlock({ blockTag: "latest" });

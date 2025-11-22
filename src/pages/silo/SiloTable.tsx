@@ -139,8 +139,8 @@ function SiloTable({ hovering }: { hovering: boolean }) {
 
             // non whitelisted wells have 0 currentBDV
             const effectiveBDV = !token.isWhitelisted
-              ? userData?.depositBDV ?? TokenValue.ZERO
-              : (userData?.currentBDV.gt(0) ? userData.currentBDV : userData?.depositBDV) ?? TokenValue.ZERO;
+              ? (userData?.depositBDV ?? TokenValue.ZERO)
+              : ((userData?.currentBDV.gt(0) ? userData.currentBDV : userData?.depositBDV) ?? TokenValue.ZERO);
 
             const currentBDV = userData ? userData.currentBDV : TokenValue.ZERO;
             const depositBDV = userData ? userData.depositBDV : TokenValue.ZERO;
