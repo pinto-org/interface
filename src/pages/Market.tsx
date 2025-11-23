@@ -396,7 +396,10 @@ export function Market() {
       });
 
       if (dataPoint.eventType === "LISTING") {
-        navigate(`/market/pods/buy/fill?listingId=${dataPoint.eventId}`);
+        // Include placeInLine in URL so FillListing can set it correctly
+        const placeInLine = dataPoint.placeInLine;
+        const placeInLineParam = placeInLine ? `&placeInLine=${placeInLine}` : "";
+        navigate(`/market/pods/buy/fill?listingId=${dataPoint.eventId}${placeInLineParam}`);
       } else {
         navigate(`/market/pods/sell/fill?orderId=${dataPoint.eventId}`);
       }

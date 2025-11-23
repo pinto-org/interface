@@ -123,6 +123,7 @@ export default function FillListing({ onOverlayParamsChange }: FillListingProps 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const listingId = searchParams.get("listingId");
+  const placeInLineFromUrl = searchParams.get("placeInLine");
 
   const filterTokens = useFilterTokens();
 
@@ -240,17 +241,28 @@ export default function FillListing({ onOverlayParamsChange }: FillListingProps 
     setMaxPricePerPod(formattedPrice);
     setMaxPricePerPodInput(formattedPrice.toFixed(PRICE_PER_POD_CONFIG.DECIMALS));
 
-    // Calculate listing's place in line
-    const listingIndex = TokenValue.fromBlockchain(listing.index, PODS.decimals);
-    const placeInLine = listingIndex.sub(harvestableIndex).toNumber();
+    // Use placeInLine from URL if available (from chart click), otherwise calculate from listing index
+    let placeInLine: number;
+    if (placeInLineFromUrl) {
+      // Use the exact place in line value from the chart (pod's actual place in line)
+      placeInLine = Number.parseInt(placeInLineFromUrl, 10);
+      if (Number.isNaN(placeInLine) || placeInLine <= 0) {
+        // Fallback to calculating from listing index if URL value is invalid
+        const listingIndex = TokenValue.fromBlockchain(listing.index, PODS.decimals);
+        placeInLine = listingIndex.sub(harvestableIndex).toNumber();
+      }
+    } else {
+      // Calculate listing's place in line from index (fallback for direct URL access)
+      const listingIndex = TokenValue.fromBlockchain(listing.index, PODS.decimals);
+      placeInLine = listingIndex.sub(harvestableIndex).toNumber();
+    }
 
-    // Set max place in line to include this listing with a small margin
+    // Set max place in line to the exact pod's place in line (no margin needed since it's the exact value)
     // Clamp to valid range [0, maxPlace]
-    const margin = Math.max(1, Math.floor(maxPlace * PLACE_MARGIN_PERCENT));
-    const maxPlaceValue = Math.min(maxPlace, Math.ceil(placeInLine + margin));
+    const maxPlaceValue = Math.min(maxPlace, Math.max(0, placeInLine));
     setMaxPlaceInLine(maxPlaceValue);
     setHasInitializedPlace(true); // Mark as initialized to prevent default value override
-  }, [listingId, allListings, maxPlace, mainToken.decimals, harvestableIndex]);
+  }, [listingId, allListings, maxPlace, mainToken.decimals, harvestableIndex, placeInLineFromUrl]);
 
   // Update overlay parameters when maxPricePerPod or maxPlaceInLine changes
   const overlayUpdateTimerRef = useRef<NodeJS.Timeout | null>(null);

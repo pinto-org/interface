@@ -133,21 +133,88 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
     // Optimized resize handling with single debounced handler
     useEffect(() => {
       let timeoutId: NodeJS.Timeout;
+      let retryTimeouts: NodeJS.Timeout[] = [];
       let animationFrameId: number | null = null;
       let resizeObserver: ResizeObserver | null = null;
+      let isMounted = true;
+
+      // Check if chart is fully ready with all required properties
+      const isChartReady = (): boolean => {
+        const chart = chartRef.current;
+        if (!chart) return false;
+
+        // Check canvas is in DOM (critical check to prevent ownerDocument errors)
+        if (!chart.canvas || !chart.canvas.ownerDocument) return false;
+
+        // Check chartArea exists and has valid dimensions
+        if (!chart.chartArea) return false;
+        const { left, top, right, bottom } = chart.chartArea;
+        if (
+          typeof left !== "number" ||
+          typeof top !== "number" ||
+          typeof right !== "number" ||
+          typeof bottom !== "number" ||
+          right - left <= 0 ||
+          bottom - top <= 0
+        ) {
+          return false;
+        }
+
+        // Check scales exist and are ready
+        if (!chart.scales?.x || !chart.scales?.y) return false;
+        const xScale = chart.scales.x;
+        const yScale = chart.scales.y;
+
+        // Check scales have required methods and valid ranges
+        if (
+          typeof xScale.getPixelForValue !== "function" ||
+          typeof yScale.getPixelForValue !== "function" ||
+          xScale.min === undefined ||
+          xScale.max === undefined ||
+          yScale.min === undefined ||
+          yScale.max === undefined
+        ) {
+          return false;
+        }
+
+        return true;
+      };
 
       const updateDimensions = () => {
+        if (!isMounted) return;
+
+        const chart = chartRef.current;
+
+        // Ensure Chart.js resizes first before getting dimensions
+        // Only resize if canvas is in DOM
+        if (chart?.canvas?.ownerDocument && isChartReady()) {
+          try {
+            chart.resize();
+          } catch (error) {
+            // If resize fails, chart might be detached, skip resize
+            console.warn("Chart resize failed, canvas may be detached:", error);
+          }
+        }
+
         // Use requestAnimationFrame to sync with browser's repaint cycle
+        // Double RAF ensures Chart.js has finished resizing and updated chartArea
         if (animationFrameId !== null) {
           cancelAnimationFrame(animationFrameId);
         }
 
         animationFrameId = requestAnimationFrame(() => {
-          const newDimensions = getChartDimensions();
-          if (newDimensions) {
-            setDimensions(newDimensions);
-          }
-          animationFrameId = null;
+          // Second RAF to ensure Chart.js has updated chartArea after resize
+          requestAnimationFrame(() => {
+            if (!isMounted) return;
+
+            // Try to get dimensions even if chart is not fully ready
+            // This ensures overlay can render when chartArea is available
+            const newDimensions = getChartDimensions();
+            if (newDimensions) {
+              setDimensions(newDimensions);
+            }
+            animationFrameId = null;
+          });
         });
       };
 
@@ -156,11 +223,50 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
         timeoutId = setTimeout(updateDimensions, RESIZE_DEBOUNCE_MS);
       };
 
-      // Initial update
-      const initialTimeout = setTimeout(() => {
-        const dimensions = getChartDimensions();
-        if (dimensions) setDimensions(dimensions);
-      }, DIMENSION_UPDATE_DELAY_MS);
+      // Aggressive retry mechanism for direct link navigation
+      const tryUpdateDimensions = (attempt = 0, maxAttempts = 10) => {
+        if (!isMounted) return;
+
+        if (isChartReady()) {
+          const chart = chartRef.current;
+          if (chart?.canvas?.ownerDocument) {
+            // Only update if canvas is in DOM
+            try {
+              chart.update("none");
+            } catch (error) {
+              // If update fails, chart might be detached, skip update
+              console.warn("Chart update failed, canvas may be detached:", error);
+            }
+          }
+
+          // Use triple RAF to ensure chart is fully rendered
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                if (!isMounted) return;
+                // Try to get dimensions even if chart is not fully ready
+                // This ensures overlay can render when chartArea is available
+                const newDimensions = getChartDimensions();
+                if (newDimensions) {
+                  setDimensions(newDimensions);
+                } else if (attempt < maxAttempts) {
+                  // Retry if dimensions still not available
+                  const timeout = setTimeout(() => tryUpdateDimensions(attempt + 1, maxAttempts), 50);
+                  retryTimeouts.push(timeout);
+                }
+              });
+            });
+          });
+        } else if (attempt < maxAttempts) {
+          // Chart not ready, retry with exponential backoff
+          const delay = Math.min(50 * 1.5 ** attempt, 500);
+          const timeout = setTimeout(() => tryUpdateDimensions(attempt + 1, maxAttempts), delay);
+          retryTimeouts.push(timeout);
+        }
+      };
+
+      // Start initial update attempts
+      tryUpdateDimensions();
 
       // Single ResizeObserver for all resize events
       if (typeof ResizeObserver !== "undefined") {
@@ -179,18 +285,19 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
       // Fallback window resize listener with passive flag for better performance
       window.addEventListener("resize", debouncedUpdate, { passive: true });
 
-      // Listen to Chart.js resize events for immediate sync
+      // Initial resize to ensure chart is properly sized
       const chart = chartRef.current;
       if (chart) {
-        // Chart.js emits 'resize' event when chart dimensions change
         chart.resize();
         // Force update after chart is ready
         updateDimensions();
       }
 
       return () => {
-        clearTimeout(initialTimeout);
+        isMounted = false;
         clearTimeout(timeoutId);
+        retryTimeouts.forEach(clearTimeout);
+        retryTimeouts = [];
         if (animationFrameId !== null) {
           cancelAnimationFrame(animationFrameId);
         }
@@ -202,10 +309,57 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
     // Update dimensions when overlay params or visibility changes
     useEffect(() => {
       if (visible && throttledOverlayParams) {
-        const newDimensions = getChartDimensions();
-        if (newDimensions) {
-          setDimensions(newDimensions);
-        }
+        const tryUpdate = (attempt = 0, maxAttempts = 15) => {
+          const chart = chartRef.current;
+
+          // Comprehensive chart readiness check
+          if (
+            chart?.canvas?.ownerDocument && // Critical: canvas must be in DOM
+            chart?.chartArea &&
+            chart.scales?.x &&
+            chart.scales?.y &&
+            typeof chart.chartArea.left === "number" &&
+            typeof chart.chartArea.right === "number" &&
+            typeof chart.chartArea.top === "number" &&
+            typeof chart.chartArea.bottom === "number" &&
+            chart.chartArea.right - chart.chartArea.left > 0 &&
+            chart.chartArea.bottom - chart.chartArea.top > 0 &&
+            typeof chart.scales.x.getPixelForValue === "function" &&
+            typeof chart.scales.y.getPixelForValue === "function" &&
+            chart.scales.x.min !== undefined &&
+            chart.scales.x.max !== undefined &&
+            chart.scales.y.min !== undefined &&
+            chart.scales.y.max !== undefined
+          ) {
+            // Force chart update to ensure everything is synced
+            // Only update if canvas is in DOM
+            try {
+              chart.update("none");
+            } catch (error) {
+              // If update fails, chart might be detached, but still try to get dimensions
+              console.warn("Chart update failed, canvas may be detached:", error);
+            }
+
+            // Use triple RAF to ensure chart is fully rendered
+            // Continue with dimension update even if chart.update() failed
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                  const newDimensions = getChartDimensions();
+                  if (newDimensions) {
+                    setDimensions(newDimensions);
+                  }
+                });
+              });
+            });
+          } else if (attempt < maxAttempts) {
+            // Chart not ready, retry with exponential backoff
+            const delay = Math.min(50 * 1.3 ** attempt, 300);
+            setTimeout(() => tryUpdate(attempt + 1, maxAttempts), delay);
+          }
+        };
+
+        tryUpdate();
       }
     }, [throttledOverlayParams, visible, getChartDimensions]);
 
@@ -256,6 +410,7 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
               fill={BUY_OVERLAY_COLORS.shadedRegion}
               stroke={BUY_OVERLAY_COLORS.border}
               strokeWidth={1}
+              strokeDasharray="4 4"
               style={{
                 willChange: "auto",
                 transition: "x 0.15s ease-out, y 0.15s ease-out, width 0.15s ease-out, height 0.15s ease-out",
@@ -285,8 +440,9 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
         if (placeInLineNum < 0) return null;
 
         // Batch calculations for better performance
+        // Overlay should extend to the middle of the pod, not the end
         const startX = placeInLineNum / MILLION;
-        const endX = (placeInLineNum + plot.amount.toNumber()) / MILLION;
+        const endX = (placeInLineNum + plot.amount.toNumber() / 2) / MILLION;
 
         // Fast validation
         if (startX < 0 || endX <= startX) return null;
@@ -390,7 +546,7 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
 
         return (
           <>
-            {/* Horizontal price line - Tailwind + minimal inline styles */}
+            {/* Horizontal price line */}
             <div
               className={`${BASE_OVERLAY_CLASSES} ${LINE_TRANSITION_CLASSES} h-0 border-t border-dashed border-black`}
               style={{
@@ -400,7 +556,7 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
               }}
             />
 
-            {/* Selection boxes - Tailwind + minimal inline styles */}
+            {/* Selection boxes */}
             {memoizedRectangles.map((rect) => {
               const centerX = rect.x + (rect.width >> 1); // Bit shift for division by 2
               const centerY = clampedPriceY;
@@ -423,14 +579,14 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
               );
             })}
 
-            {/* Vertical lines - Tailwind + minimal inline styles */}
+            {/* Vertical lines */}
             {memoizedRectangles.length > 0 && (
               <>
                 <div
                   key="vertical-line-left"
                   className={`${BASE_OVERLAY_CLASSES} ${TRANSITION_CLASSES} w-0 border-l border-dashed border-black`}
                   style={{
-                    left: memoizedRectangles[0].x,
+                    left: memoizedRectangles[0].x + (memoizedRectangles[0].width >> 1), // Pod'un ortası
                     top,
                     height: lineHeight,
                   }}
@@ -439,7 +595,7 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
                   key="vertical-line-right"
                   className={`${BASE_OVERLAY_CLASSES} ${TRANSITION_CLASSES} w-0 border-l border-dashed border-black`}
                   style={{
-                    left: memoizedRectangles[lastRectIndex].x + memoizedRectangles[lastRectIndex].width,
+                    left: memoizedRectangles[lastRectIndex].x + (memoizedRectangles[lastRectIndex].width >> 1), // Pod'un ortası
                     top,
                     height: lineHeight,
                   }}
