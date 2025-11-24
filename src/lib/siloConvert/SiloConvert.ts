@@ -295,28 +295,43 @@ export class SiloConvert {
       throw e;
     });
 
-    const simulationsRawResults = await Promise.all(
-      quotedRoutes.map((route) =>
-        route.workflow
-          .simulate({
-            account: this.context.account,
-            after: this.priceCache.constructPriceAdvPipe({ noTokenPrices: true }),
-          })
-          .catch((e) => {
-            logError("[SiloConvert/quote] FAILED to simulate routes : ", e);
-            throw new SimulationError("quote", e instanceof Error ? e.message : "Unknown error", {
-              routes,
-              quotedRoutes,
-            });
-          })
-          .then((r) => {
-            console.debug("[SiloConvert/quote] simulated route!: ", route, r);
-            return r;
-          }),
-      ),
-    );
+    const runSimulate = (getPrices: boolean, warn?: boolean) => {
+      return Promise.all(
+        quotedRoutes.map((route) =>
+          route.workflow
+            .simulate({
+              account: this.context.account,
+              after: getPrices ? this.priceCache.constructPriceAdvPipe({ noTokenPrices: true }) : undefined,
+            })
+            .catch((e) => {
+              logError("[SiloConvert/quote] FAILED to simulate routes : ", e, warn);
+              throw new SimulationError("quote", e instanceof Error ? e.message : "Unknown error", {
+                routes,
+                quotedRoutes,
+              });
+            })
+            .then((r) => {
+              console.debug("[SiloConvert/quote] simulated route!: ", route, r);
+              return r;
+            }),
+        ),
+      );
+    };
 
-    console.debug("[SiloConvert/quote] post simulation results: ", {
+    let didSucceedWithPrices = true;
+
+    const simulationsRawResults = await runSimulate(true, true).catch((e) => {
+      didSucceedWithPrices = false;
+      logError("[SiloConvert/quote] RETRYING to simulate routes w/o prices: ", e, true);
+      return runSimulate(false, false).catch((e) => {
+        throw new SimulationError("quote", e instanceof Error ? e.message : "Unknown error", {
+          routes,
+          quotedRoutes,
+        });
+      });
+    });
+
+    console.log("[SiloConvert/quote] post simulation results: ", {
       quotedRoutes,
       simulationsRawResults,
     });
@@ -333,7 +348,7 @@ export class SiloConvert {
       let decoded: ReturnType<typeof this.decodeRouteAndPriceResults>;
 
       try {
-        decoded = this.decodeRouteAndPriceResults(staticCallResult, route.route);
+        decoded = this.decodeRouteAndPriceResults(staticCallResult, route.route, didSucceedWithPrices);
       } catch (e) {
         logError("[SiloConvert/quote] FAILED to decode route and price results: ", e);
         throw new ConversionQuotationError("Failed to decode route and price results", {
@@ -389,24 +404,22 @@ export class SiloConvert {
   private decodeRouteAndPriceResults(
     rawResponse: HashString[],
     route: SiloConvertRoute<SiloConvertType>,
+    priceCallSuccess: boolean,
   ): Pick<SiloConvertSummary<SiloConvertType>, "results" | "reducedResults" | "postPriceData"> {
     const mainToken = getChainConstant(this.context.chainId, MAIN_TOKEN);
     try {
       const staticCallResult = [...rawResponse];
 
       // price result is the last element in the static call result
-      const priceResult = staticCallResult.pop();
-
-      console.log({
-        priceResult,
-      });
+      const priceResult = !priceCallSuccess ? undefined : staticCallResult.pop();
 
       const decodedConvertResults = decodeConvertResults(staticCallResult, route.convertType);
 
       const decodedPriceCalls = priceResult ? AdvancedPipeWorkflow.decodeResult(priceResult) : undefined;
-      const postPriceData = decodedPriceCalls?.length
-        ? this.priceCache.decodePriceCallResults([...decodedPriceCalls])
-        : undefined;
+      const postPriceData =
+        decodedPriceCalls?.length && priceCallSuccess
+          ? this.priceCache.decodePriceCallResults([...decodedPriceCalls])
+          : undefined;
 
       return {
         postPriceData,
@@ -462,12 +475,12 @@ export class SiloConvert {
   }
 }
 
-function logError(prefix: string, e: unknown) {
+function logError(prefix: string, e: unknown, warn?: boolean) {
   if (e instanceof SiloConvertError) {
-    console.error(prefix, e.toLogObject());
+    console[warn ? "warn" : "error"](prefix, e.toLogObject());
   } else if (e instanceof Error) {
-    console.error(prefix, e.message);
+    console[warn ? "warn" : "error"](prefix, e.message);
   } else {
-    console.error("[SiloConvert] Unknown error: ", e);
+    console[warn ? "warn" : "error"]("[SiloConvert] Unknown error: ", e);
   }
 }

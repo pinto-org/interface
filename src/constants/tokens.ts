@@ -5,13 +5,14 @@ import pintoWethIcon from "@/assets/tokens/PINTO_WETH.png";
 import pintoWsolIcon from "@/assets/tokens/PINTO_WSOL.png";
 import pintoCbbtcIcon from "@/assets/tokens/PINTO_cbBTC.png";
 import pintoCbethIcon from "@/assets/tokens/PINTO_cbETH.png";
+import pintoWstethIcon from "@/assets/tokens/PINTO_wstETH.png";
 import spectrasPintoLPIcon from "@/assets/tokens/SPECTRA-sPINTO-LP.png";
 import spectrasPintoPTIcon from "@/assets/tokens/SPECTRA-sPINTO-PT.png";
 import spectrasPintoYTIcon from "@/assets/tokens/SPECTRA-sPINTO-YT.png";
 import wsolIcon from "@/assets/tokens/WSOL.png";
 import crsPintoIcon from "@/assets/tokens/crsPINTO.png";
 import sPintoIcon from "@/assets/tokens/sPINTO.png";
-import wstETHIcon from "@/assets/tokens/wstETH.svg";
+import wstETHIcon from "@/assets/tokens/wstETH.png";
 import { Token, Token3PIntegration } from "@/utils/types";
 import { ChainLookup } from "@/utils/types.generic";
 import { arbitrum, base } from "viem/chains";
@@ -204,12 +205,12 @@ export const PINTO_WSTETH_TOKEN: ChainLookup<Token> = {
     chainId: base.id,
     name: "PINTOWSTETH LP",
     symbol: "PINTOWSTETH",
-    address: "0x3e1155480Fce43686793dd18E43104A01abCBC92", // temp address
+    address: "0x3e1155245FF9a6a019Bc35827e801c6ED2CE91b9", // temp address
     decimals: 18,
     displayDecimals: 2,
     isLP: true,
     isWhitelisted: true,
-    logoURI: pintoWsolIcon,
+    logoURI: pintoWstethIcon,
     color: "#00A3FF",
     tokens: [MAIN_TOKEN[base.id].address, WSTETH_TOKEN[base.id].address],
     ...defaultLPTokenIndicies,
