@@ -285,30 +285,110 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
       // Fallback window resize listener with passive flag for better performance
       window.addEventListener("resize", debouncedUpdate, { passive: true });
 
-      // Initial resize to ensure chart is properly sized
+      // Listen to chart update events (zoom/pan/scale changes)
       const chart = chartRef.current;
       if (chart) {
+        // Listen to chart's update event to catch zoom/pan/scale changes
+        const handleChartUpdate = () => {
+          // Use RAF to ensure chart has finished updating
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              updateDimensions();
+            });
+          });
+        };
+
+        // Chart.js doesn't have built-in event system, so we'll use a polling approach
+        // or listen to chart's internal update cycle
+        // For now, we'll add a MutationObserver on the canvas to detect changes
+        let lastScaleMin: { x: number | undefined; y: number | undefined } = {
+          x: chart.scales?.x?.min,
+          y: chart.scales?.y?.min,
+        };
+        let lastScaleMax: { x: number | undefined; y: number | undefined } = {
+          x: chart.scales?.x?.max,
+          y: chart.scales?.y?.max,
+        };
+
+        // Poll for scale changes (zoom/pan) - Chart.js doesn't have built-in scale change events
+        const scaleCheckInterval = setInterval(() => {
+          if (!isMounted || !chartRef.current) {
+            clearInterval(scaleCheckInterval);
+            return;
+          }
+
+          const currentChart = chartRef.current;
+          if (!currentChart?.scales?.x || !currentChart?.scales?.y) return;
+
+          const currentXMin = currentChart.scales.x.min;
+          const currentXMax = currentChart.scales.x.max;
+          const currentYMin = currentChart.scales.y.min;
+          const currentYMax = currentChart.scales.y.max;
+
+          // Check if scales have changed (zoom/pan)
+          if (
+            currentXMin !== lastScaleMin.x ||
+            currentXMax !== lastScaleMax.x ||
+            currentYMin !== lastScaleMin.y ||
+            currentYMax !== lastScaleMax.y
+          ) {
+            lastScaleMin = { x: currentXMin, y: currentYMin };
+            lastScaleMax = { x: currentXMax, y: currentYMax };
+            handleChartUpdate();
+          }
+        }, 200); // Check every 200ms for better performance
+
         chart.resize();
         // Force update after chart is ready
         updateDimensions();
-      }
 
-      return () => {
-        isMounted = false;
-        clearTimeout(timeoutId);
-        retryTimeouts.forEach(clearTimeout);
-        retryTimeouts = [];
-        if (animationFrameId !== null) {
-          cancelAnimationFrame(animationFrameId);
-        }
-        resizeObserver?.disconnect();
-        window.removeEventListener("resize", debouncedUpdate);
-      };
+        return () => {
+          isMounted = false;
+          clearInterval(scaleCheckInterval);
+          clearTimeout(timeoutId);
+          retryTimeouts.forEach(clearTimeout);
+          retryTimeouts = [];
+          if (animationFrameId !== null) {
+            cancelAnimationFrame(animationFrameId);
+          }
+          resizeObserver?.disconnect();
+          window.removeEventListener("resize", debouncedUpdate);
+        };
+      } else {
+        return () => {
+          isMounted = false;
+          clearTimeout(timeoutId);
+          retryTimeouts.forEach(clearTimeout);
+          retryTimeouts = [];
+          if (animationFrameId !== null) {
+            cancelAnimationFrame(animationFrameId);
+          }
+          resizeObserver?.disconnect();
+          window.removeEventListener("resize", debouncedUpdate);
+        };
+      }
     }, [getChartDimensions, chartRef]);
 
     // Update dimensions when overlay params or visibility changes
     useEffect(() => {
       if (visible && throttledOverlayParams) {
+        // Force immediate dimension update when overlay params change
+        // This ensures overlay position updates correctly when params change
+        const updateOnParamsChange = () => {
+          const chart = chartRef.current;
+          if (!chart?.chartArea) return;
+
+          // Use RAF to ensure chart is ready
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              const newDimensions = getChartDimensions();
+              if (newDimensions) {
+                setDimensions(newDimensions);
+              }
+            });
+          });
+        };
+
         const tryUpdate = (attempt = 0, maxAttempts = 15) => {
           const chart = chartRef.current;
 
@@ -359,6 +439,9 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
           }
         };
 
+        // Try immediate update first
+        updateOnParamsChange();
+        // Also try comprehensive update
         tryUpdate();
       }
     }, [throttledOverlayParams, visible, getChartDimensions]);
