@@ -120,8 +120,18 @@ export function useMarketPerformanceCalc(
   const responseData = useMemo(() => {
     const result: SeasonalMarketPerformanceChartData = {};
     if (seasonalData) {
-      for (let i = 0; i < seasonalData.length; ++i) {
-        const season = seasonalData[i];
+      const test = [
+        ...seasonalData,
+        {
+          ...seasonalData[0],
+          percentChange: [...(seasonalData[0].percentChange as string[]), "0.01"],
+          totalPercentChange: seasonalData[0].totalPercentChange,
+          usdChange: [...(seasonalData[0].usdChange as string[]), "12345"],
+          totalUsdChange: seasonalData[0].totalUsdChange,
+        },
+      ];
+      for (let i = 0; i < test.length; ++i) {
+        const season = test[i];
         if (chartType !== SMPChartType.TOKEN_PRICES) {
           if (season.season <= (startSeasons.NET ?? 0)) {
             continue;
@@ -149,6 +159,10 @@ export function useMarketPerformanceCalc(
           });
         }
 
+        if (i === test.length - 1) {
+          console.log("abc", season, test[i - 1]);
+        }
+
         let tokenIdx = 0;
         for (const token of season.silo.allWhitelistedTokens) {
           // Skip Pinto token
@@ -167,35 +181,38 @@ export function useMarketPerformanceCalc(
           }
 
           if (chartType !== SMPChartType.TOKEN_PRICES) {
-            result[symbol] ??= [
-              {
-                season: season.season - 1,
-                value: 0,
-                timestamp: new Date((Number(season.timestamp) - 60 * 60) * 1000),
-              },
-            ];
-            const arr = result[symbol];
+            const seasonValue = season[CHART_FIELDS[chartType % 2][0]][tokenIdx] ?? null;
+            if (!!seasonValue) {
+              result[symbol] ??= [
+                {
+                  season: season.season - 1,
+                  value: 0,
+                  timestamp: new Date((Number(season.timestamp) - 60 * 60) * 1000),
+                },
+              ];
+              const arr = result[symbol];
 
-            const value =
-              chartType < SMPChartType.USD_CUMULATIVE
-                ? Number(season[CHART_FIELDS[chartType % 2][0]][tokenIdx])
-                : accumulator(chartType)(
-                    arr[arr.length - 1].value,
-                    Number(season[CHART_FIELDS[chartType % 2][0]][tokenIdx]),
-                  );
-            arr.push({
-              season: season.season,
-              value,
-              timestamp: new Date(Number(season.timestamp) * 1000),
-            });
+              const value =
+                chartType < SMPChartType.USD_CUMULATIVE
+                  ? Number(seasonValue)
+                  : accumulator(chartType)(arr[arr.length - 1].value, Number(seasonValue));
+              arr.push({
+                season: season.season,
+                value,
+                timestamp: new Date(Number(season.timestamp) * 1000),
+              });
+            }
           } else {
-            result[symbol] ??= [];
-            result[symbol].push({
-              season: season.season,
-              // biome-ignore lint/style/noNonNullAssertion: can't be null given only valid=true is retrieved from sg.
-              value: Number(season.thisSeasonTokenUsdPrices![tokenIdx]),
-              timestamp: new Date(Number(season.timestamp) * 1000),
-            });
+            // biome-ignore lint/style/noNonNullAssertion: can't be null given only valid=true is retrieved from sg.
+            const seasonValue = season.thisSeasonTokenUsdPrices![tokenIdx] ?? null;
+            if (!!seasonValue) {
+              result[symbol] ??= [];
+              result[symbol].push({
+                season: season.season,
+                value: Number(seasonValue),
+                timestamp: new Date(Number(season.timestamp) * 1000),
+              });
+            }
           }
           ++tokenIdx;
         }
