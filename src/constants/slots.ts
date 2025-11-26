@@ -6,6 +6,7 @@ import {
   USDC_TOKEN,
   WETH_TOKEN,
   WSOL_TOKEN,
+  WSTETH_TOKEN,
 } from "@/constants/tokens";
 import { AddressMap } from "@/utils/types";
 import { ChainLookup } from "@/utils/types.generic";
@@ -15,6 +16,7 @@ export const addressAllowanceSlotMap: ChainLookup<AddressMap<number>> = {
   [base.id]: {
     [MAIN_TOKEN[base.id].address.toLowerCase()]: 1,
     [WETH_TOKEN[base.id].address.toLowerCase()]: 4,
+    [WSTETH_TOKEN[base.id].address.toLowerCase()]: 2,
     [CBETH_TOKEN[base.id].address.toLowerCase()]: 52,
     [USDC_TOKEN[base.id].address.toLowerCase()]: 10,
     [CBBTC_TOKEN[base.id].address.toLowerCase()]: 10,

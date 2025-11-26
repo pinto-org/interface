@@ -3,7 +3,7 @@ import { PINTO, tokens } from "@/constants/tokens";
 import { Address } from "viem";
 import { resolveChainId } from "./chain";
 import { stringEq } from "./string";
-import { AddressMap, InternalToken, SiloTokenData, Token, TokenDepositData } from "./types";
+import { AddressMap, InternalToken, LPToken, SiloTokenData, Token, TokenDepositData } from "./types";
 import { ChainLookup } from "./types.generic";
 import { exists } from "./utils";
 
@@ -45,6 +45,10 @@ export const tokensEqual = (a: TokenIsh | undefined | null, b: TokenIsh | undefi
   }
 
   return stringEq(a.address, b.address) && stringEq(a.symbol, b.symbol);
+};
+
+export const isLPToken = (token: Token): token is LPToken => {
+  return !!token.tokens && !!token.tokenIndicies && !!token.isLP;
 };
 
 /**
