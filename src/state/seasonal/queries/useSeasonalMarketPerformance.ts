@@ -120,16 +120,30 @@ export function useMarketPerformanceCalc(
   const responseData = useMemo(() => {
     const result: SeasonalMarketPerformanceChartData = {};
     if (seasonalData) {
+      /// TODO(pp): replace test with seasonalData when done testing this mock data
       const test = [
-        ...seasonalData,
+        ...seasonalData.slice(0, -1),
         {
-          ...seasonalData[0],
-          percentChange: [...(seasonalData[0].percentChange as string[]), "0.01"],
-          totalPercentChange: seasonalData[0].totalPercentChange,
-          usdChange: [...(seasonalData[0].usdChange as string[]), "12345"],
-          totalUsdChange: seasonalData[0].totalUsdChange,
+          ...seasonalData[seasonalData.length - 1],
+          season: seasonalData[seasonalData.length - 1].season,
+          silo: {
+            ...seasonalData[seasonalData.length - 1].silo,
+            allWhitelistedTokens: [
+              ...seasonalData[seasonalData.length - 1].silo.allWhitelistedTokens,
+              "0x3e1155245ff9a6a019bc35827e801c6ed2ce91b9",
+            ],
+          },
+          percentChange: [...(seasonalData[seasonalData.length - 1].percentChange as string[]), "0.01"],
+          totalPercentChange: seasonalData[seasonalData.length - 1].totalPercentChange,
+          usdChange: [...(seasonalData[seasonalData.length - 1].usdChange as string[]), "12345"],
+          totalUsdChange: seasonalData[seasonalData.length - 1].totalUsdChange,
+          thisSeasonTokenUsdPrices: [
+            ...(seasonalData[seasonalData.length - 1].thisSeasonTokenUsdPrices as string[]),
+            "3000",
+          ],
         },
       ];
+      ///
       for (let i = 0; i < test.length; ++i) {
         const season = test[i];
         if (chartType !== SMPChartType.TOKEN_PRICES) {
@@ -159,10 +173,6 @@ export function useMarketPerformanceCalc(
           });
         }
 
-        if (i === test.length - 1) {
-          console.log("abc", season, test[i - 1]);
-        }
-
         let tokenIdx = 0;
         for (const token of season.silo.allWhitelistedTokens) {
           // Skip Pinto token
@@ -181,7 +191,7 @@ export function useMarketPerformanceCalc(
           }
 
           if (chartType !== SMPChartType.TOKEN_PRICES) {
-            const seasonValue = season[CHART_FIELDS[chartType % 2][0]][tokenIdx] ?? null;
+            const seasonValue = season[CHART_FIELDS[chartType % 2][0]][tokenIdx];
             if (!!seasonValue) {
               result[symbol] ??= [
                 {
@@ -204,7 +214,7 @@ export function useMarketPerformanceCalc(
             }
           } else {
             // biome-ignore lint/style/noNonNullAssertion: can't be null given only valid=true is retrieved from sg.
-            const seasonValue = season.thisSeasonTokenUsdPrices![tokenIdx] ?? null;
+            const seasonValue = season.thisSeasonTokenUsdPrices![tokenIdx];
             if (!!seasonValue) {
               result[symbol] ??= [];
               result[symbol].push({
@@ -220,6 +230,7 @@ export function useMarketPerformanceCalc(
     }
     return result;
   }, [seasonalData, chartType, startSeasons, mainToken.address, lpToUnderlyingMap]);
+
   return responseData;
 }
 

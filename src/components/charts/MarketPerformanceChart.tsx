@@ -165,24 +165,41 @@ const MarketPerformanceChart = ({ season, size, className }: MarketPerformanceCh
       const chartData: LineChartData[] = [];
       const tokens: (Token | undefined)[] = [];
       const chartStrokeGradients: StrokeGradientFunction[] = [];
-      for (const token of ["NET", "WETH", "cbETH", "wstETH", "cbBTC", "WSOL"]) {
+      const allTokens = ["NET", "WETH", "cbETH", "wstETH", "cbBTC", "WSOL"];
+      const tokensPresent: string[] = [];
+      for (const token of allTokens) {
+        if (allData[token].length > 0) {
+          tokensPresent.push(token);
+        }
+      }
+      for (const token of tokensPresent) {
+        const missingDatapoints = allData.NET.length - allData[token].length;
         for (let i = 0; i < allData[token].length; i++) {
-          chartData[i] ??= {
+          chartData[i + missingDatapoints] ??= {
             timestamp: allData[token][i].timestamp,
             values: [],
           };
           if (dataType !== DataType.PRICE) {
-            chartData[i].values.push(allData[token][i].value);
+            chartData[i + missingDatapoints].values.push(allData[token][i].value);
           } else {
-            chartData[i].values.push(
+            chartData[i + missingDatapoints].values.push(
               transformValue(allData[token][i].value, minValues[token], maxValues[token], priceTransformRanges[token]),
             );
           }
+        }
+        for (let i = 0; i < missingDatapoints; i++) {
+          // Datapoint was missing for this token but present for other tokens
+          chartData[i].values.push(null);
         }
         const tokenObj = tokenConfig.find((t) => t.symbol === token);
         tokens.push(tokenObj);
         chartStrokeGradients.push(gradientFunctions.solid(tokenObj?.color ?? "green"));
       }
+      console.log("abc cd", {
+        chartData,
+        tokens,
+        chartStrokeGradients,
+      });
       return {
         chartData,
         tokens,
@@ -287,10 +304,12 @@ const MarketPerformanceChart = ({ season, size, className }: MarketPerformanceCh
           <div className="h-[85px] px-4 sm:px-6 flex flex-col gap-2 sm:flex-row justify-between">
             <div className="flex flex-col gap-0 sm:gap-2">
               <div className="pinto-xs sm:pinto-sm-light text-pinto-light sm:text-pinto-light">
-                Season {allData.NET[displayIndex].season}
+                {/* TODO(pp): revisit this ?. it only crashes on hovering at the end */}
+                Season {allData.NET[displayIndex]?.season ?? 12345643}
               </div>
               <div className="pinto-xs sm:pinto-sm-light text-pinto-light sm:text-pinto-light">
-                {formatDate(allData.NET[displayIndex].timestamp)}
+                {/* TODO(pp): revisit this &&, ?. it only crashes on hovering at the end */}
+                {allData.NET[displayIndex]?.timestamp && formatDate(allData.NET[displayIndex]?.timestamp)}
               </div>
             </div>
             <div className="pinto-sm sm:pinto-body lg:pinto-h3">
@@ -324,7 +343,8 @@ const MarketPerformanceChart = ({ season, size, className }: MarketPerformanceCh
                       <div style={{ color: token?.color }} className={`${!token?.color && "text-pinto-green-3"}`}>
                         {tokenSymbol === "NET" && "Total: "}
                         <p className="inline-block w-[7.1ch] text-right">
-                          {displayValueFormatter(allData[tokenSymbol][displayIndex].value)}
+                          {/* TODO(pp): revisit this ?. */}
+                          {displayValueFormatter(allData[tokenSymbol][displayIndex]?.value)}
                         </p>
                       </div>
                       {idx < Object.keys(allData).length - 1 && (
