@@ -1,5 +1,6 @@
 import arrowDown from "@/assets/misc/ChevronDown.svg";
 import podIcon from "@/assets/protocol/Pod.png";
+import { TokenValue } from "@/classes/TokenValue";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/Form";
 import { Button } from "@/components/ui/Button";
 import IconImage from "@/components/ui/IconImage";
@@ -16,13 +17,15 @@ import { useCallback, useMemo, useState } from "react";
 import { SowOrderV0FormSchema } from "./SowOrderV0Schema";
 
 import { Col, Row } from "@/components/Container";
+import TooltipSimple from "@/components/TooltipSimple";
 import { Label, TooltipLabel } from "@/components/ui/Label";
 import { Switch } from "@/components/ui/Switch";
 import { tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
 import { cn } from "@/utils/utils";
-import { ChevronDownIcon, ChevronUpIcon } from "@radix-ui/react-icons";
+import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { useFormContext, useWatch } from "react-hook-form";
+import { EstimatedTotalTipField, TIP_LEVELS, TipLevel, TipPerExecutionField } from "./fields/sharedFields";
 
 const sharedInputProps = {
   type: "text",
@@ -112,7 +115,9 @@ SowOrderV0Fields.TotalAmount = function TotalAmount() {
       name="totalAmount"
       render={({ field, fieldState }) => (
         <FormItem>
-          <FormLabel>I want to Sow up to</FormLabel>
+          <FormLabel tooltipText="The maximum amount of Pintos you want to sow across all executions">
+            Total Pintos to Sow
+          </FormLabel>
           <div className="flex items-center gap-4">
             <FormControl className="flex-1">
               <Slider
@@ -134,7 +139,7 @@ SowOrderV0Fields.TotalAmount = function TotalAmount() {
               onBlur={handlers.onBlur}
               onFocus={handlers.onFocus}
               outlined
-              className="w-[200px]"
+              className="w-[12.5rem]"
               isError={!!fieldState.error}
               endIcon={<MainTokenAdornment />}
             />
@@ -171,17 +176,13 @@ SowOrderV0Fields.TokenStrategy = function TokenStrategy({
     return "Select Deposited Silo Token";
   };
 
-  const tooltipContent = (
-    <div className="p-1 max-w-[280px]">
-      Select which deposited Silo token to use for funding your Sow order. You can choose a specific token or let the
-      system automatically select based on criteria like lowest seeds or best price.
-    </div>
-  );
+  const tooltipText =
+    "Select which deposited Silo token to use for funding your Sow order. You can choose a specific token or let the system automatically select based on criteria like lowest seeds or best price.";
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex justify-between items-center">
-        <TooltipLabel tooltipText={tooltipContent}>Sow using</TooltipLabel>
+        <TooltipLabel tooltipText={tooltipText}>Sow using</TooltipLabel>
         <Button variant="outline-gray-shadow" size="xl" rounded="full" onClick={openDialog}>
           <div className="flex items-center gap-2">
             {selectedToken && <IconImage src={selectedToken.logoURI} alt="token" size={6} className="rounded-full" />}
@@ -216,7 +217,9 @@ SowOrderV0Fields.Temperature = function Temperature() {
       name="temperature"
       render={({ field, fieldState }) => (
         <FormItem>
-          <FormLabel>Execute when Temperature is at least</FormLabel>
+          <FormLabel tooltipText="The minimum temperature threshold required for the order to execute">
+            Minimum Temperature
+          </FormLabel>
           <div className="flex items-center gap-4">
             <FormControl className="flex-1">
               <Slider
@@ -238,7 +241,7 @@ SowOrderV0Fields.Temperature = function Temperature() {
               onBlur={handlers.onBlur}
               onFocus={handlers.onFocus}
               outlined
-              className="w-[140px]"
+              className="w-[8.75rem]"
               isError={!!fieldState.error}
               endIcon={<div className="mr-2 text-pinto-primary pinto-body-bold">%</div>}
             />
@@ -260,19 +263,22 @@ SowOrderV0Fields.PodsDisplay = function PodsDisplay() {
 
   // Calculate pods based on: totalAmount * (1 + temperature/100)
   const calculatedPods = useMemo(() => {
-    const amount = parseFloat(formValues[0] || "0");
-    const temp = parseFloat(formValues[1] || "0");
+    const amountStr = formValues[0] || "0";
+    const tempStr = formValues[1] || "0";
 
-    if (amount === 0) return 0;
+    // Use TokenValue to avoid floating-point precision errors
+    const amount = TokenValue.fromHuman(amountStr, 18);
+    if (amount.isZero) return 0;
 
-    return amount * (1 + temp / 100);
+    const temp = TokenValue.fromHuman(tempStr, 18);
+    const tempMultiplier = temp.div(100).add(1); // (temperature/100) + 1
+    const pods = amount.mul(tempMultiplier);
+
+    return pods.toNumber();
   }, [formValues]);
 
   // Format the pod amount with commas
-  const formattedPods = formatter.number(calculatedPods, {
-    minDecimals: 2,
-    maxDecimals: 2,
-  });
+  const formattedPods = formatter.twoDec(calculatedPods);
 
   return (
     <div className="flex items-center justify-between py-3 bg-pinto-gray-1/30 rounded-lg">
@@ -304,14 +310,6 @@ SowOrderV0Fields.MorningAuction = function MorningAuction() {
   );
 };
 
-type TipLevel = "low" | "medium" | "high";
-
-const TIP_LEVELS: Record<TipLevel, number> = {
-  low: 0.15,
-  medium: 0.2,
-  high: 0.25,
-};
-
 SowOrderV0Fields.ExecutionsAndTip = function ExecutionsAndTip({ className }: { className?: string }) {
   const ctx = useFormContext<SowOrderV0FormSchema>();
   const mainToken = useChainConstant(MAIN_TOKEN);
@@ -328,42 +326,74 @@ SowOrderV0Fields.ExecutionsAndTip = function ExecutionsAndTip({ className }: { c
   );
 
   // Use selective watching instead of watching all fields
-  const operatorTip = useWatch({
+  const [totalAmount, operatorTip] = useWatch({
     control: ctx.control,
-    name: "operatorTip",
-  }) as string;
+    name: ["totalAmount", "operatorTip"],
+  }) as [string, string];
 
-  const estimatedTotalTip = "TBD";
+  const calculationFields = { totalAmount, operatorTip };
+
+  // Memoize cleaned values calculation
+  const cleanedValues = useMemo(() => {
+    const total = sanitizeNumericInputValue(calculationFields.totalAmount || "", mainToken.decimals).tv;
+
+    // Calculate smart defaults based on totalAmount
+    const totalAmountNum = parseFloat(calculationFields.totalAmount || "0");
+    const minSoil = Math.min(totalAmountNum, 25);
+    const maxPerSeason = totalAmountNum;
+
+    return {
+      total,
+      min: sanitizeNumericInputValue(minSoil.toString(), mainToken.decimals).tv,
+      max: sanitizeNumericInputValue(maxPerSeason.toString(), mainToken.decimals).tv,
+    };
+  }, [calculationFields.totalAmount, mainToken.decimals]);
+
+  // Memoize estimated total tip calculation
+  const estimatedTotalTip = useMemo(() => {
+    if (!calculationFields.operatorTip || !calculationFields.totalAmount) {
+      return "~0";
+    }
+
+    const { total, min, max } = cleanedValues;
+
+    try {
+      const tipValue = parseFloat(calculationFields.operatorTip);
+      if (total.eq(0) || max.eq(0) || Number.isNaN(tipValue)) {
+        return "~0";
+      }
+
+      let lowerBound = Math.floor(total.div(max).toNumber());
+      lowerBound = Math.max(1, lowerBound);
+      const lowerTip = lowerBound * tipValue;
+
+      if (min.eq(0)) {
+        return `~${lowerTip.toFixed(2)}-∞`;
+      }
+
+      let upperBound = Math.ceil(total.div(min).toNumber());
+      upperBound = Math.max(lowerBound, upperBound);
+      const upperTip = upperBound * tipValue;
+
+      if (lowerTip === upperTip) {
+        return `~${lowerTip.toFixed(2)}`;
+      } else {
+        return `~${lowerTip.toFixed(2)}-${upperTip.toFixed(2)}`;
+      }
+    } catch (e) {
+      console.error("Error calculating total tip:", e);
+      return "~0";
+    }
+  }, [cleanedValues, calculationFields.operatorTip, calculationFields.totalAmount]);
 
   return (
     <Col className={cn("gap-2", className)}>
-      <Row className="justify-between pinto-sm-light items-center">
-        <div className="text-pinto-light">Tip per execution</div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center text-pinto-primary">
-            {operatorTip || "0.00"}
-            <IconImage src={mainToken.logoURI} alt="PINTO" size={5} className="rounded-full mx-1" />
-            {mainToken.symbol}
-          </div>
-          <select
-            value={selectedTipLevel}
-            onChange={(e) => handleTipLevelChange(e.target.value as TipLevel)}
-            className="pinto-sm text-pinto-primary bg-white border border-pinto-gray-2 rounded-lg px-2 py-1 cursor-pointer hover:border-pinto-gray-3"
-          >
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
-        </div>
-      </Row>
-      <Row className="justify-between pinto-sm-light">
-        <div className="text-pinto-light">Estimated total tip</div>
-        <div className="flex items-center text-pinto-primary">
-          {estimatedTotalTip}
-          <IconImage src={mainToken.logoURI} alt="PINTO" size={5} className="rounded-full mx-1" />
-          {mainToken.symbol}
-        </div>
-      </Row>
+      <TipPerExecutionField
+        operatorTip={operatorTip}
+        selectedTipLevel={selectedTipLevel}
+        onTipLevelChange={handleTipLevelChange}
+      />
+      <EstimatedTotalTipField estimatedTotalTip={estimatedTotalTip} />
     </Col>
   );
 };
@@ -384,12 +414,18 @@ SowOrderV0Fields.OrderSummary = function OrderSummary() {
 
   // Calculate pods
   const calculatedPods = useMemo(() => {
-    const amount = parseFloat(totalAmount || "0");
-    const temp = parseFloat(temperature || "0");
+    const amountStr = totalAmount || "0";
+    const tempStr = temperature || "0";
 
-    if (amount === 0) return 0;
+    // Use TokenValue to avoid floating-point precision errors
+    const amount = TokenValue.fromHuman(amountStr, 18);
+    if (amount.isZero) return 0;
 
-    return amount * (1 + temp / 100);
+    const temp = TokenValue.fromHuman(tempStr, 18);
+    const tempMultiplier = temp.div(100).add(1); // (temperature/100) + 1
+    const pods = amount.mul(tempMultiplier);
+
+    return pods.toNumber();
   }, [totalAmount, temperature]);
 
   // Get token display info
@@ -411,15 +447,9 @@ SowOrderV0Fields.OrderSummary = function OrderSummary() {
   };
 
   // Format numbers
-  const formattedTotalAmount = formatter.number(parseFloat(totalAmount || "0"), {
-    minDecimals: 2,
-    maxDecimals: 2,
-  });
+  const formattedTotalAmount = formatter.twoDec(parseFloat(totalAmount || "0"));
 
-  const formattedPods = formatter.number(calculatedPods, {
-    minDecimals: 2,
-    maxDecimals: 2,
-  });
+  const formattedPods = formatter.twoDec(calculatedPods);
 
   return (
     <Col className="gap-4">
@@ -429,7 +459,10 @@ SowOrderV0Fields.OrderSummary = function OrderSummary() {
       {/* Summary Items */}
       <Col className="gap-1">
         {/* Sow using */}
-        <SummaryRow label="Sow using">
+        <SummaryRow
+          label="Sow using"
+          tooltipText="Select which deposited Silo token to use for funding your Sow order. You can choose a specific token or let the system automatically select based on criteria like lowest seeds or best price."
+        >
           <div className="flex items-center gap-2">
             {selectedToken && <IconImage src={selectedToken.logoURI} alt="token" size={6} className="rounded-full" />}
             <span className="pinto-body text-pinto-primary">{getTokenStrategyDisplay()}</span>
@@ -437,7 +470,10 @@ SowOrderV0Fields.OrderSummary = function OrderSummary() {
         </SummaryRow>
 
         {/* Total Amount */}
-        <SummaryRow label="Total Amount">
+        <SummaryRow
+          label="Total Pintos to Sow"
+          tooltipText="The maximum amount of Pintos you want to sow across all executions"
+        >
           <div className="flex items-center gap-2">
             <span className="pinto-body text-pinto-primary">{formattedTotalAmount}</span>
             <IconImage src={mainToken.logoURI} alt="PINTO" size={6} className="rounded-full" />
@@ -446,40 +482,32 @@ SowOrderV0Fields.OrderSummary = function OrderSummary() {
         </SummaryRow>
 
         {/* Temperature Threshold */}
-        <SummaryRow label="Temperature Threshold">
+        <SummaryRow
+          label="Minimum Temperature"
+          tooltipText="The minimum temperature threshold required for the order to execute"
+        >
           <span className="pinto-body text-pinto-primary">{temperature}%</span>
-        </SummaryRow>
-
-        {/* Expected Pods */}
-        <SummaryRow label="Expected Pods">
-          <div className="flex items-center gap-2">
-            <span className="pinto-body text-pinto-primary">{formattedPods}</span>
-            <IconImage src={podIcon} alt="Pod" size={6} className="rounded-full" />
-          </div>
         </SummaryRow>
       </Col>
 
       {/* Advanced Settings Box */}
-      <div className="flex flex-col gap-2 bg-white rounded-lg border border-pinto-gray-2 p-4">
-        <button
-          type="button"
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center justify-between"
-        >
+      <Col className="gap-2 bg-white rounded-lg border border-pinto-gray-2 p-4">
+        <Row className="justify-between items-center cursor-pointer" onClick={() => setShowAdvanced(!showAdvanced)}>
           <span className="pinto-body-light text-pinto-secondary">Advanced</span>
-          {showAdvanced ? (
-            <ChevronUpIcon className="w-5 h-5 text-pinto-secondary" />
-          ) : (
-            <ChevronDownIcon className="w-5 h-5 text-pinto-secondary" />
-          )}
-        </button>
+          <ChevronDownIcon
+            className={cn(
+              "w-5 h-5 text-pinto-secondary transition-transform duration-200",
+              showAdvanced && "rotate-180",
+            )}
+          />
+        </Row>
 
         {showAdvanced && (
-          <div className="mt-2">
+          <Col className="mt-2">
             <SowOrderV0Fields.MorningAuction />
-          </div>
+          </Col>
         )}
-      </div>
+      </Col>
 
       {/* Operator Tip Section */}
       <SowOrderV0Fields.ExecutionsAndTip />
@@ -488,12 +516,23 @@ SowOrderV0Fields.OrderSummary = function OrderSummary() {
 };
 
 // Helper component for summary rows
-const SummaryRow = ({ label, children }: { label: string; children: React.ReactNode }) => {
+const SummaryRow = ({
+  label,
+  children,
+  tooltipText,
+}: {
+  label: string;
+  children: React.ReactNode;
+  tooltipText?: string;
+}) => {
   return (
-    <div className="flex items-center justify-between py-1">
-      <div className="pinto-body-light text-pinto-secondary">{label}</div>
+    <Row className="gap-2 w-full justify-between">
+      <Row className="gap-1 items-center">
+        <div className="pinto-body-light text-pinto-secondary">{label}</div>
+        {tooltipText && <TooltipSimple content={tooltipText} variant="outlined" />}
+      </Row>
       <div className="flex items-center">{children}</div>
-    </div>
+    </Row>
   );
 };
 

@@ -572,3 +572,68 @@ export const TractorFormButtonsRow = ({
     </Row>
   );
 };
+
+export type TipLevel = "low" | "medium" | "high";
+
+export const TIP_LEVELS: Record<TipLevel, number> = {
+  low: 0.15,
+  medium: 0.2,
+  high: 0.25,
+};
+
+interface TipPerExecutionFieldProps {
+  operatorTip: string;
+  selectedTipLevel: TipLevel;
+  onTipLevelChange: (level: TipLevel) => void;
+}
+
+export const TipPerExecutionField = ({
+  operatorTip,
+  selectedTipLevel,
+  onTipLevelChange,
+}: TipPerExecutionFieldProps) => {
+  const mainToken = useMainToken();
+
+  return (
+    <Row className="justify-between pinto-sm-light items-center">
+      <Row className="gap-1 items-center">
+        <span className="text-pinto-light">Tip per execution</span>
+      </Row>
+      <Row className="gap-2 items-center">
+        <Row className="gap-1 items-center text-pinto-primary">
+          <span>{operatorTip || "0.00"}</span>
+          <IconImage src={mainToken.logoURI} alt={mainToken.symbol} size={5} className="rounded-full" />
+          <span>{mainToken.symbol}</span>
+        </Row>
+        <select
+          value={selectedTipLevel}
+          onChange={(e) => onTipLevelChange(e.target.value as TipLevel)}
+          className="pinto-sm text-pinto-primary bg-white border border-pinto-gray-2 rounded-lg px-2 py-1 cursor-pointer hover:border-pinto-gray-3"
+        >
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </Row>
+    </Row>
+  );
+};
+
+interface EstimatedTotalTipFieldProps {
+  estimatedTotalTip: string;
+}
+
+export const EstimatedTotalTipField = ({ estimatedTotalTip }: EstimatedTotalTipFieldProps) => {
+  const mainToken = useMainToken();
+
+  return (
+    <Row className="justify-between pinto-sm-light">
+      <span className="text-pinto-light">Estimated total tip</span>
+      <Row className="gap-1 items-center text-pinto-primary">
+        <span>{estimatedTotalTip}</span>
+        <IconImage src={mainToken.logoURI} alt={mainToken.symbol} size={5} className="rounded-full" />
+        <span>{mainToken.symbol}</span>
+      </Row>
+    </Row>
+  );
+};
