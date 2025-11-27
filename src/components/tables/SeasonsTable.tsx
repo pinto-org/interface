@@ -268,15 +268,16 @@ export const SeasonsTable = ({ seasonsData, page, hiddenFields, hideColumn }: Se
             <TableCell colSpan={seasonColumns.length}>Currently No Data to show</TableCell>
           </TableRow>
         )}
-        {(VariableSizeList as any)({
-          className: "overscroll-auto mb-[50px] scrollbar-none",
-          height: height,
-          itemCount: displaySeasonsData.length,
-          itemSize: () => 50,
-          width: calculatedWidth,
-          overscanCount: 4,
-          children: RenderRow,
-        })}
+        <VariableSizeList
+          className="overscroll-auto mb-[50px] scrollbar-none"
+          height={height}
+          itemCount={displaySeasonsData.length}
+          itemSize={() => 50}
+          width={calculatedWidth}
+          overscanCount={4}
+        >
+          {RenderRow}
+        </VariableSizeList>
       </TableBody>
     </Table>
   );
