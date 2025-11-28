@@ -87,6 +87,7 @@ const tractorQueryKeys = {
     publisher ?? "no-publisher",
     lastUpdatedBlock?.toString() ?? "0",
   ],
+  tractorExecutionEvents: [BASE_QKS.tractor, "executionEvents"] as const,
   ...convertUpQK,
 } as const;
 

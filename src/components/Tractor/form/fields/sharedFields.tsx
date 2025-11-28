@@ -575,22 +575,18 @@ export const TractorFormButtonsRow = ({
 
 export type TipLevel = "low" | "medium" | "high";
 
-export const TIP_LEVELS: Record<TipLevel, number> = {
-  low: 0.15,
-  medium: 0.2,
-  high: 0.25,
-};
-
 interface TipPerExecutionFieldProps {
   operatorTip: string;
   selectedTipLevel: TipLevel;
   onTipLevelChange: (level: TipLevel) => void;
+  isLoading?: boolean;
 }
 
 export const TipPerExecutionField = ({
   operatorTip,
   selectedTipLevel,
   onTipLevelChange,
+  isLoading = false,
 }: TipPerExecutionFieldProps) => {
   const mainToken = useMainToken();
 
@@ -601,7 +597,7 @@ export const TipPerExecutionField = ({
       </Row>
       <Row className="gap-2 items-center">
         <Row className="gap-1 items-center text-pinto-primary">
-          <span>{operatorTip || "0.00"}</span>
+          <span className={cn(isLoading && "opacity-50")}>{operatorTip || "0.00"}</span>
           <IconImage src={mainToken.logoURI} alt={mainToken.symbol} size={5} className="rounded-full" />
           <span>{mainToken.symbol}</span>
         </Row>
@@ -609,6 +605,7 @@ export const TipPerExecutionField = ({
           value={selectedTipLevel}
           onChange={(e) => onTipLevelChange(e.target.value as TipLevel)}
           className="pinto-sm text-pinto-primary bg-white border border-pinto-gray-2 rounded-lg px-2 py-1 cursor-pointer hover:border-pinto-gray-3"
+          disabled={isLoading}
         >
           <option value="low">Low</option>
           <option value="medium">Medium</option>

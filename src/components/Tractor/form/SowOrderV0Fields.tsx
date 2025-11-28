@@ -13,19 +13,20 @@ import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
 import { sanitizeNumericInputValue } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { SowOrderV0FormSchema } from "./SowOrderV0Schema";
 
 import { Col, Row } from "@/components/Container";
 import TooltipSimple from "@/components/TooltipSimple";
 import { Label, TooltipLabel } from "@/components/ui/Label";
 import { Switch } from "@/components/ui/Switch";
+import { useAverageTractorTip } from "@/hooks/tractor/useAverageTractorTip";
 import { tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
 import { TractorTokenStrategy } from "@/lib/Tractor/types";
 import { cn } from "@/utils/utils";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { useFormContext, useWatch } from "react-hook-form";
-import { EstimatedTotalTipField, TIP_LEVELS, TipLevel, TipPerExecutionField } from "./fields/sharedFields";
+import { EstimatedTotalTipField, TipLevel, TipPerExecutionField } from "./fields/sharedFields";
 
 const sharedInputProps = {
   type: "text",
@@ -314,15 +315,28 @@ SowOrderV0Fields.ExecutionsAndTip = function ExecutionsAndTip({ className }: { c
   const ctx = useFormContext<SowOrderV0FormSchema>();
   const mainToken = useChainConstant(MAIN_TOKEN);
 
+  // Get dynamic tip levels from the hook
+  const { tipLevels, isLoading: isTipLoading } = useAverageTractorTip();
+
   const [selectedTipLevel, setSelectedTipLevel] = useState<TipLevel>("medium");
 
-  // Handle tip level change
+  // Initialize form with medium tip level when tip data loads
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    if (!isTipLoading && !isInitialized) {
+      ctx.setValue("operatorTip", tipLevels.medium.toFixed(2));
+      setIsInitialized(true);
+    }
+  }, [isTipLoading, isInitialized, tipLevels.medium, ctx]);
+
+  // Handle tip level change with dynamic values
   const handleTipLevelChange = useCallback(
     (level: TipLevel) => {
       setSelectedTipLevel(level);
-      ctx.setValue("operatorTip", TIP_LEVELS[level].toFixed(2));
+      ctx.setValue("operatorTip", tipLevels[level].toFixed(2));
     },
-    [ctx],
+    [ctx, tipLevels],
   );
 
   // Use selective watching instead of watching all fields
@@ -389,9 +403,10 @@ SowOrderV0Fields.ExecutionsAndTip = function ExecutionsAndTip({ className }: { c
   return (
     <Col className={cn("gap-2", className)}>
       <TipPerExecutionField
-        operatorTip={operatorTip}
+        operatorTip={isTipLoading ? tipLevels.medium.toFixed(2) : operatorTip}
         selectedTipLevel={selectedTipLevel}
         onTipLevelChange={handleTipLevelChange}
+        isLoading={isTipLoading}
       />
       <EstimatedTotalTipField estimatedTotalTip={estimatedTotalTip} />
     </Col>
