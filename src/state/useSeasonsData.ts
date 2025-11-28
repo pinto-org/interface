@@ -445,7 +445,8 @@ export default function useSeasonsData(
           18,
         ).toNumber();
         allData.deltaBeans = TokenValue.fromBlockchain(currStalkSeasons.deltaBeans, tokenData.mainToken.decimals);
-        allData.price = TokenValue.fromHuman(currStalkSeasons.price, 4);
+        // No sync offset needed for price
+        allData.price = TokenValue.fromHuman(stalkResults.seasons[idx].price, 4);
         allData.raining = currStalkSeasons.raining;
         allData.rewardBeans = TokenValue.fromHuman(currStalkSeasons.rewardBeans, 2);
         allData.deltaPodDemand = TokenValue.fromBlockchain(currFieldHourlySnapshots.deltaPodDemand, 18);
@@ -508,14 +509,17 @@ export default function useSeasonsData(
       if (beanData && idx + syncOffset < countSubgraphSeasons) {
         const beanHourly = beanResults[idx + syncOffset].beanHourlySnapshot;
         allData.crosses = beanHourly.crosses;
-        allData.marketCap = Number(beanHourly.marketCap);
         allData.supply = TokenValue.fromBlockchain(beanHourly.supply, tokenData.mainToken.decimals);
         allData.supplyInPegLP = TokenValue.fromBlockchain(beanHourly.supply, tokenData.mainToken.decimals);
-        allData.instDeltaB = TokenValue.fromHuman(beanHourly.instDeltaB, tokenData.mainToken.decimals);
-        allData.instPrice = TokenValue.fromHuman(beanHourly.instPrice, tokenData.mainToken.decimals);
-        allData.l2sr = TokenValue.fromHuman(beanHourly.l2sr * 100, 2);
-        allData.twaDeltaB = TokenValue.fromHuman(beanHourly.twaDeltaB, 2);
-        allData.twaPrice = TokenValue.fromHuman(beanHourly.twaPrice, 4);
+
+        // No sync offset needed for some of these
+        const beanHourlyNoSync = beanResults[idx].beanHourlySnapshot;
+        allData.marketCap = Number(beanHourlyNoSync.marketCap);
+        allData.l2sr = TokenValue.fromHuman(beanHourlyNoSync.l2sr * 100, 2);
+        allData.instPrice = TokenValue.fromHuman(beanHourlyNoSync.instPrice, tokenData.mainToken.decimals);
+        allData.instDeltaB = TokenValue.fromHuman(beanHourlyNoSync.instDeltaB, tokenData.mainToken.decimals);
+        allData.twaDeltaB = TokenValue.fromHuman(beanHourlyNoSync.twaDeltaB, 2);
+        allData.twaPrice = TokenValue.fromHuman(beanHourlyNoSync.twaPrice, 4);
 
         if (!allData.season) {
           const season = beanResults[idx].season;
@@ -643,60 +647,52 @@ export default function useSeasonsData(
         }
       }
 
-      if (marketPerformanceData && idx + syncOffset < countSubgraphSeasons) {
+      if (marketPerformanceData && idx < countSubgraphSeasons) {
         allData.marketPriceWeth = marketPrices.WETH[marketPrices.WETH.length - 1 - idx - syncOffset].value;
-        allData.marketPriceCbeth = marketPrices.cbETH[marketPrices.cbETH.length - 1 - idx - syncOffset].value;
-        allData.marketPriceWsteth = marketPrices.wstETH[marketPrices.wstETH.length - 1 - idx - syncOffset].value;
-        allData.marketPriceCbbtc = marketPrices.cbBTC[marketPrices.cbBTC.length - 1 - idx - syncOffset].value;
-        allData.marketPriceWsol = marketPrices.WSOL[marketPrices.WSOL.length - 1 - idx - syncOffset].value;
+        allData.marketPriceCbeth = marketPrices.cbETH[marketPrices.cbETH.length - 1 - idx].value;
+        allData.marketPriceWsteth = marketPrices.wstETH[marketPrices.wstETH.length - 1 - idx]?.value;
+        allData.marketPriceCbbtc = marketPrices.cbBTC[marketPrices.cbBTC.length - 1 - idx].value;
+        allData.marketPriceWsol = marketPrices.WSOL[marketPrices.WSOL.length - 1 - idx].value;
         allData.marketCumulativeNonPintoUsd =
-          marketUsdCumulative.NET?.[marketUsdCumulative.NET.length - 1 - idx - syncOffset]?.value;
-        allData.marketCumulativeWethUsd =
-          marketUsdCumulative.WETH?.[marketUsdCumulative.WETH.length - 1 - idx - syncOffset]?.value;
+          marketUsdCumulative.NET?.[marketUsdCumulative.NET.length - 1 - idx]?.value;
+        allData.marketCumulativeWethUsd = marketUsdCumulative.WETH?.[marketUsdCumulative.WETH.length - 1 - idx]?.value;
         allData.marketCumulativeCbethUsd =
-          marketUsdCumulative.cbETH?.[marketUsdCumulative.cbETH.length - 1 - idx - syncOffset]?.value;
+          marketUsdCumulative.cbETH?.[marketUsdCumulative.cbETH.length - 1 - idx]?.value;
         allData.marketCumulativeWstethUsd =
-          marketUsdCumulative.wstETH?.[marketUsdCumulative.wstETH.length - 1 - idx - syncOffset]?.value;
+          marketUsdCumulative.wstETH?.[marketUsdCumulative.wstETH.length - 1 - idx]?.value;
         allData.marketCumulativeCbbtcUsd =
-          marketUsdCumulative.cbBTC?.[marketUsdCumulative.cbBTC.length - 1 - idx - syncOffset]?.value;
-        allData.marketCumulativeWsolUsd =
-          marketUsdCumulative.WSOL?.[marketUsdCumulative.WSOL.length - 1 - idx - syncOffset]?.value;
-        allData.marketSeasonalNonPintoUsd =
-          marketUsdSeasonal.NET[marketUsdSeasonal.NET.length - 1 - idx - syncOffset]?.value;
-        allData.marketSeasonalWethUsd =
-          marketUsdSeasonal.WETH[marketUsdSeasonal.WETH.length - 1 - idx - syncOffset]?.value;
-        allData.marketSeasonalCbethUsd =
-          marketUsdSeasonal.cbETH[marketUsdSeasonal.cbETH.length - 1 - idx - syncOffset]?.value;
-        allData.marketSeasonalWstethUsd =
-          marketUsdSeasonal.wstETH[marketUsdSeasonal.wstETH.length - 1 - idx - syncOffset]?.value;
-        allData.marketSeasonalCbbtcUsd =
-          marketUsdSeasonal.cbBTC[marketUsdSeasonal.cbBTC.length - 1 - idx - syncOffset]?.value;
-        allData.marketSeasonalWsolUsd =
-          marketUsdSeasonal.WSOL[marketUsdSeasonal.WSOL.length - 1 - idx - syncOffset]?.value;
+          marketUsdCumulative.cbBTC?.[marketUsdCumulative.cbBTC.length - 1 - idx]?.value;
+        allData.marketCumulativeWsolUsd = marketUsdCumulative.WSOL?.[marketUsdCumulative.WSOL.length - 1 - idx]?.value;
+        allData.marketSeasonalNonPintoUsd = marketUsdSeasonal.NET[marketUsdSeasonal.NET.length - 1 - idx]?.value;
+        allData.marketSeasonalWethUsd = marketUsdSeasonal.WETH[marketUsdSeasonal.WETH.length - 1 - idx]?.value;
+        allData.marketSeasonalCbethUsd = marketUsdSeasonal.cbETH[marketUsdSeasonal.cbETH.length - 1 - idx]?.value;
+        allData.marketSeasonalWstethUsd = marketUsdSeasonal.wstETH[marketUsdSeasonal.wstETH.length - 1 - idx]?.value;
+        allData.marketSeasonalCbbtcUsd = marketUsdSeasonal.cbBTC[marketUsdSeasonal.cbBTC.length - 1 - idx]?.value;
+        allData.marketSeasonalWsolUsd = marketUsdSeasonal.WSOL[marketUsdSeasonal.WSOL.length - 1 - idx]?.value;
         allData.marketCumulativeNonPintoPercent =
-          marketPercentCumulative.NET?.[marketPercentCumulative.NET.length - 1 - idx - syncOffset]?.value;
+          marketPercentCumulative.NET?.[marketPercentCumulative.NET.length - 1 - idx]?.value;
         allData.marketCumulativeWethPercent =
-          marketPercentCumulative.WETH?.[marketPercentCumulative.WETH.length - 1 - idx - syncOffset]?.value;
+          marketPercentCumulative.WETH?.[marketPercentCumulative.WETH.length - 1 - idx]?.value;
         allData.marketCumulativeCbethPercent =
-          marketPercentCumulative.cbETH?.[marketPercentCumulative.cbETH.length - 1 - idx - syncOffset]?.value;
+          marketPercentCumulative.cbETH?.[marketPercentCumulative.cbETH.length - 1 - idx]?.value;
         allData.marketCumulativeWstethPercent =
-          marketPercentCumulative.wstETH?.[marketPercentCumulative.wstETH.length - 1 - idx - syncOffset]?.value;
+          marketPercentCumulative.wstETH?.[marketPercentCumulative.wstETH.length - 1 - idx]?.value;
         allData.marketCumulativeCbbtcPercent =
-          marketPercentCumulative.cbBTC?.[marketPercentCumulative.cbBTC.length - 1 - idx - syncOffset]?.value;
+          marketPercentCumulative.cbBTC?.[marketPercentCumulative.cbBTC.length - 1 - idx]?.value;
         allData.marketCumulativeWsolPercent =
-          marketPercentCumulative.WSOL?.[marketPercentCumulative.WSOL.length - 1 - idx - syncOffset]?.value;
+          marketPercentCumulative.WSOL?.[marketPercentCumulative.WSOL.length - 1 - idx]?.value;
         allData.marketSeasonalNonPintoPercent =
-          marketPercentSeasonal.NET[marketPercentSeasonal.NET.length - 1 - idx - syncOffset]?.value;
+          marketPercentSeasonal.NET[marketPercentSeasonal.NET.length - 1 - idx]?.value;
         allData.marketSeasonalWethPercent =
-          marketPercentSeasonal.WETH[marketPercentSeasonal.WETH.length - 1 - idx - syncOffset]?.value;
+          marketPercentSeasonal.WETH[marketPercentSeasonal.WETH.length - 1 - idx]?.value;
         allData.marketSeasonalCbethPercent =
-          marketPercentSeasonal.cbETH[marketPercentSeasonal.cbETH.length - 1 - idx - syncOffset]?.value;
+          marketPercentSeasonal.cbETH[marketPercentSeasonal.cbETH.length - 1 - idx]?.value;
         allData.marketSeasonalWstethPercent =
-          marketPercentSeasonal.wstETH[marketPercentSeasonal.wstETH.length - 1 - idx - syncOffset]?.value;
+          marketPercentSeasonal.wstETH[marketPercentSeasonal.wstETH.length - 1 - idx]?.value;
         allData.marketSeasonalCbbtcPercent =
-          marketPercentSeasonal.cbBTC[marketPercentSeasonal.cbBTC.length - 1 - idx - syncOffset]?.value;
+          marketPercentSeasonal.cbBTC[marketPercentSeasonal.cbBTC.length - 1 - idx]?.value;
         allData.marketSeasonalWsolPercent =
-          marketPercentSeasonal.WSOL[marketPercentSeasonal.WSOL.length - 1 - idx - syncOffset]?.value;
+          marketPercentSeasonal.WSOL[marketPercentSeasonal.WSOL.length - 1 - idx]?.value;
 
         if (!allData.season) {
           const season = marketPerformanceResults[marketPerformanceResults.length - 1 - idx].season;

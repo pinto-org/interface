@@ -1,12 +1,5 @@
 import { subgraphs } from "@/constants/subgraph";
 import {
-  PINTO_CBBTC_TOKEN,
-  PINTO_CBETH_TOKEN,
-  PINTO_USDC_TOKEN,
-  PINTO_WETH_TOKEN,
-  PINTO_WSOL_TOKEN,
-} from "@/constants/tokens";
-import {
   BeanstalkSeasonalMarketPerformanceDocument,
   BeanstalkSeasonalMarketPerformanceQuery,
   MarketPerformanceSeasonal,
