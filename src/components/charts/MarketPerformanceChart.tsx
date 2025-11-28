@@ -343,7 +343,7 @@ const MarketPerformanceChart = ({ season, size, className }: MarketPerformanceCh
                       <div style={{ color: token?.color }} className={`${!token?.color && "text-pinto-green-3"}`}>
                         {tokenSymbol === "NET" && "Total: "}
                         <p className="inline-block w-[7.1ch] text-right">
-                          {!!value ? displayValueFormatter(value) : "-"}
+                          {typeof value === "number" ? displayValueFormatter(value) : "-"}
                         </p>
                       </div>
                       {idx < Object.keys(allData).length - 1 && (
