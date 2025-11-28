@@ -1,0 +1,12 @@
+query TractorDailySnapshots($first: Int!, $orderBy: TractorDailySnapshot_orderBy!, $orderDirection: OrderDirection!) {
+  tractorDailySnapshots(
+    first: $first
+    orderBy: $orderBy
+    orderDirection: $orderDirection
+  ) {
+    season
+    deltaTotalExecutions
+    deltaTotalPosBeanTips
+    createdAt
+  }
+}
