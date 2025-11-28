@@ -304,12 +304,10 @@ const MarketPerformanceChart = ({ season, size, className }: MarketPerformanceCh
           <div className="h-[85px] px-4 sm:px-6 flex flex-col gap-2 sm:flex-row justify-between">
             <div className="flex flex-col gap-0 sm:gap-2">
               <div className="pinto-xs sm:pinto-sm-light text-pinto-light sm:text-pinto-light">
-                {/* TODO(pp): revisit this ?. it only crashes on hovering at the end */}
-                Season {allData.NET[displayIndex]?.season ?? 12345643}
+                Season {allData.NET[displayIndex].season}
               </div>
               <div className="pinto-xs sm:pinto-sm-light text-pinto-light sm:text-pinto-light">
-                {/* TODO(pp): revisit this &&, ?. it only crashes on hovering at the end */}
-                {allData.NET[displayIndex]?.timestamp && formatDate(allData.NET[displayIndex]?.timestamp)}
+                {formatDate(allData.NET[displayIndex].timestamp)}
               </div>
             </div>
             <div className="pinto-sm sm:pinto-body lg:pinto-h3">
@@ -317,6 +315,8 @@ const MarketPerformanceChart = ({ season, size, className }: MarketPerformanceCh
                 {chartDataset.tokens.map((token, idx) => {
                   const tokenSymbol = token?.symbol ?? "NET";
                   const isNetToken = tokenSymbol === "NET";
+                  const missingDatapoints = allData.NET.length - allData[tokenSymbol].length;
+                  const value = allData[tokenSymbol][displayIndex - missingDatapoints]?.value;
                   return (
                     <div
                       key={`${tokenSymbol}-value`}
@@ -343,8 +343,7 @@ const MarketPerformanceChart = ({ season, size, className }: MarketPerformanceCh
                       <div style={{ color: token?.color }} className={`${!token?.color && "text-pinto-green-3"}`}>
                         {tokenSymbol === "NET" && "Total: "}
                         <p className="inline-block w-[7.1ch] text-right">
-                          {/* TODO(pp): revisit this ?. */}
-                          {displayValueFormatter(allData[tokenSymbol][displayIndex]?.value)}
+                          {!!value ? displayValueFormatter(value) : "-"}
                         </p>
                       </div>
                       {idx < Object.keys(allData).length - 1 && (

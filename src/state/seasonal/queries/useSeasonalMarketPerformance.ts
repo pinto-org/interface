@@ -122,7 +122,26 @@ export function useMarketPerformanceCalc(
     if (seasonalData) {
       /// TODO(pp): replace test with seasonalData when done testing this mock data
       const test = [
-        ...seasonalData.slice(0, -1),
+        ...seasonalData.slice(0, -2),
+        {
+          ...seasonalData[seasonalData.length - 2],
+          season: seasonalData[seasonalData.length - 2].season,
+          silo: {
+            ...seasonalData[seasonalData.length - 2].silo,
+            allWhitelistedTokens: [
+              ...seasonalData[seasonalData.length - 2].silo.allWhitelistedTokens,
+              "0x3e1155245ff9a6a019bc35827e801c6ed2ce91b9",
+            ],
+          },
+          percentChange: [...(seasonalData[seasonalData.length - 2].percentChange as string[]), "0.09"],
+          totalPercentChange: seasonalData[seasonalData.length - 2].totalPercentChange,
+          usdChange: [...(seasonalData[seasonalData.length - 2].usdChange as string[]), "10000"],
+          totalUsdChange: seasonalData[seasonalData.length - 2].totalUsdChange,
+          thisSeasonTokenUsdPrices: [
+            ...(seasonalData[seasonalData.length - 2].thisSeasonTokenUsdPrices as string[]),
+            "2900",
+          ],
+        },
         {
           ...seasonalData[seasonalData.length - 1],
           season: seasonalData[seasonalData.length - 1].season,
