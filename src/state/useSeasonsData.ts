@@ -130,26 +130,31 @@ export interface SeasonsTableData {
   inflowFieldDeltaVolume: number;
   marketPriceWeth: number;
   marketPriceCbeth: number;
+  marketPriceWsteth: number;
   marketPriceCbbtc: number;
   marketPriceWsol: number;
   marketCumulativeNonPintoUsd: number;
   marketCumulativeWethUsd: number;
   marketCumulativeCbethUsd: number;
+  marketCumulativeWstethUsd: number;
   marketCumulativeCbbtcUsd: number;
   marketCumulativeWsolUsd: number;
   marketSeasonalNonPintoUsd: number;
   marketSeasonalWethUsd: number;
   marketSeasonalCbethUsd: number;
+  marketSeasonalWstethUsd: number;
   marketSeasonalCbbtcUsd: number;
   marketSeasonalWsolUsd: number;
   marketCumulativeNonPintoPercent: number;
   marketCumulativeWethPercent: number;
   marketCumulativeCbethPercent: number;
+  marketCumulativeWstethPercent: number;
   marketCumulativeCbbtcPercent: number;
   marketCumulativeWsolPercent: number;
   marketSeasonalNonPintoPercent: number;
   marketSeasonalWethPercent: number;
   marketSeasonalCbethPercent: number;
+  marketSeasonalWstethPercent: number;
   marketSeasonalCbbtcPercent: number;
   marketSeasonalWsolPercent: number;
 }
@@ -641,6 +646,7 @@ export default function useSeasonsData(
       if (marketPerformanceData && idx + syncOffset < countSubgraphSeasons) {
         allData.marketPriceWeth = marketPrices.WETH[marketPrices.WETH.length - 1 - idx - syncOffset].value;
         allData.marketPriceCbeth = marketPrices.cbETH[marketPrices.cbETH.length - 1 - idx - syncOffset].value;
+        allData.marketPriceWsteth = marketPrices.wstETH[marketPrices.wstETH.length - 1 - idx - syncOffset].value;
         allData.marketPriceCbbtc = marketPrices.cbBTC[marketPrices.cbBTC.length - 1 - idx - syncOffset].value;
         allData.marketPriceWsol = marketPrices.WSOL[marketPrices.WSOL.length - 1 - idx - syncOffset].value;
         allData.marketCumulativeNonPintoUsd =
@@ -649,6 +655,8 @@ export default function useSeasonsData(
           marketUsdCumulative.WETH?.[marketUsdCumulative.WETH.length - 1 - idx - syncOffset]?.value;
         allData.marketCumulativeCbethUsd =
           marketUsdCumulative.cbETH?.[marketUsdCumulative.cbETH.length - 1 - idx - syncOffset]?.value;
+        allData.marketCumulativeWstethUsd =
+          marketUsdCumulative.wstETH?.[marketUsdCumulative.wstETH.length - 1 - idx - syncOffset]?.value;
         allData.marketCumulativeCbbtcUsd =
           marketUsdCumulative.cbBTC?.[marketUsdCumulative.cbBTC.length - 1 - idx - syncOffset]?.value;
         allData.marketCumulativeWsolUsd =
@@ -659,6 +667,8 @@ export default function useSeasonsData(
           marketUsdSeasonal.WETH[marketUsdSeasonal.WETH.length - 1 - idx - syncOffset]?.value;
         allData.marketSeasonalCbethUsd =
           marketUsdSeasonal.cbETH[marketUsdSeasonal.cbETH.length - 1 - idx - syncOffset]?.value;
+        allData.marketSeasonalWstethUsd =
+          marketUsdSeasonal.wstETH[marketUsdSeasonal.wstETH.length - 1 - idx - syncOffset]?.value;
         allData.marketSeasonalCbbtcUsd =
           marketUsdSeasonal.cbBTC[marketUsdSeasonal.cbBTC.length - 1 - idx - syncOffset]?.value;
         allData.marketSeasonalWsolUsd =
@@ -669,6 +679,8 @@ export default function useSeasonsData(
           marketPercentCumulative.WETH?.[marketPercentCumulative.WETH.length - 1 - idx - syncOffset]?.value;
         allData.marketCumulativeCbethPercent =
           marketPercentCumulative.cbETH?.[marketPercentCumulative.cbETH.length - 1 - idx - syncOffset]?.value;
+        allData.marketCumulativeWstethPercent =
+          marketPercentCumulative.wstETH?.[marketPercentCumulative.wstETH.length - 1 - idx - syncOffset]?.value;
         allData.marketCumulativeCbbtcPercent =
           marketPercentCumulative.cbBTC?.[marketPercentCumulative.cbBTC.length - 1 - idx - syncOffset]?.value;
         allData.marketCumulativeWsolPercent =
@@ -679,6 +691,8 @@ export default function useSeasonsData(
           marketPercentSeasonal.WETH[marketPercentSeasonal.WETH.length - 1 - idx - syncOffset]?.value;
         allData.marketSeasonalCbethPercent =
           marketPercentSeasonal.cbETH[marketPercentSeasonal.cbETH.length - 1 - idx - syncOffset]?.value;
+        allData.marketSeasonalWstethPercent =
+          marketPercentSeasonal.wstETH[marketPercentSeasonal.wstETH.length - 1 - idx - syncOffset]?.value;
         allData.marketSeasonalCbbtcPercent =
           marketPercentSeasonal.cbBTC[marketPercentSeasonal.cbBTC.length - 1 - idx - syncOffset]?.value;
         allData.marketSeasonalWsolPercent =
