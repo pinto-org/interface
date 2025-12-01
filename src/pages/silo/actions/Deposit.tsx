@@ -12,7 +12,9 @@ import { Button } from "@/components/ui/Button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
 import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
+import { ScrollArea } from "@/components/ui/ScrollArea";
 import { Separator } from "@/components/ui/Separator";
+import { Skeleton } from "@/components/ui/Skeleton";
 import VerticalAccordion from "@/components/ui/VerticalAccordion";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
@@ -456,8 +458,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const buttonText =
     exceedsBalance || exceedsPairTokenBalance || exceedsConvertibleAmount ? "Insufficient Funds" : "Deposit";
 
-  console.log("tokenIn: ", tokenIn);
-
   return (
     <div className="flex flex-col gap-4">
       <div>
@@ -503,7 +503,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
         {shouldConvertDeposit && underlyingPairToken && (
           <div className="pt-4">
             <Label className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light mb-2 block">
-              Amount of Pinto to convert from Silo
+              Amount of {mainToken.name} to Convert
             </Label>
             <ComboInputField
               disabled
@@ -561,7 +561,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
             </motion.div>
           )}
         </AnimatePresence>
-        {!depositingSiloToken && amountInTV.gt(0) && (
+        {!depositingSiloToken && amountInTV.gt(0) && !shouldConvertDeposit && (
           <RoutingAndSlippageInfo
             title="Total Deposit Slippage"
             swapSummary={swapSummary}
@@ -677,6 +677,8 @@ const DepositTokenSelect = ({
   balanceFrom,
   setBalanceFrom,
   balancesToShow,
+  isLoading,
+  disabled,
 }: {
   selected: Token | undefined;
   filterTokens: Set<Token>;
@@ -691,6 +693,8 @@ const DepositTokenSelect = ({
   balanceFrom?: FarmFromMode;
   setBalanceFrom?: Dispatch<SetStateAction<FarmFromMode>>;
   balancesToShow?: FarmFromMode[];
+  isLoading?: boolean;
+  disabled?: boolean;
 }) => {
   const [open, setOpen] = useState(false);
   const [showOtherOptions, setShowOtherOptions] = useState(false);
@@ -720,11 +724,27 @@ const DepositTokenSelect = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange} key={`deposit-token-select`}>
       <DialogTrigger asChild>
-        <Button variant="outline-gray-shadow" size="xl" rounded="full">
+        <Button
+          variant="outline-gray-shadow"
+          size="xl"
+          rounded="full"
+          className={cn(
+            disabled || isLoading ? "pointer-events-none" : "pointer-events-auto",
+            "flex-none items-center h-12 gap-1",
+          )}
+          onClick={(e) => {
+            if (disabled || isLoading) e.preventDefault();
+          }}
+        >
           <div className="flex flex-row items-center gap-1">
-            {selected ? (
+            {isLoading ? (
+              <>
+                <Skeleton className={"w-6 h-6 rounded-full"} />
+                <Skeleton className={cn("h-5 rounded-sm", !disabled ? "sm:w-20" : "sm:w-14")} />
+              </>
+            ) : selected ? (
               <>
                 <IconImage src={selected.logoURI} size={6} />
                 <div className="pinto-body-light">{selected.symbol}</div>
@@ -736,12 +756,12 @@ const DepositTokenSelect = ({
           </div>
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-full max-w-xl flex flex-col gap-3 overflow-x-clip">
+      <DialogContent className="w-full max-w-xl flex flex-col gap-3 overflow-x-clip pb-2">
         <div className="flex flex-col">
           <div className="flex flex-col gap-3">
-            <DialogTitle>
-              <DialogHeader>
-                <div className="pinto-body">Select deposit option</div>
+            <DialogHeader>
+              <DialogTitle>
+                <span className="font-[400] text-[1.25rem]">Select Token</span>
                 {balanceFrom && setBalanceFrom && (
                   <div className="mt-6">
                     <SourceBalanceSelect
@@ -751,74 +771,76 @@ const DepositTokenSelect = ({
                     />
                   </div>
                 )}
-              </DialogHeader>
-            </DialogTitle>
+              </DialogTitle>
+            </DialogHeader>
           </div>
-          <Separator className="w-[120%] -ml-6 mt-4 sm:mt-6" />
-          <div className="flex flex-col -m-2 sm:-m-4 mt-2 sm:mt-3">
-            {[...farmerBalances.keys()].map((token) => {
-              const balance = farmerBalances.get(token);
-              if (!balance || filterTokens.has(token)) return null;
-              if (token.isNative && balanceFrom === FarmFromMode.INTERNAL) {
-                return null;
-              }
-              const tokenPrice = priceData.tokenPrices.get(token);
-              const price = tokenPrice?.instant ?? TokenValue.ZERO;
-              let balanceAmount: TokenValue;
-              switch (balanceFrom) {
-                case FarmFromMode.EXTERNAL:
-                  balanceAmount = balance.external;
-                  break;
-                case FarmFromMode.INTERNAL:
-                  balanceAmount = balance.internal;
-                  break;
-                default:
-                  balanceAmount = balance.total;
-              }
-              return (
-                <DepositTokenSelectRow
-                  key={`deposit-token-select-${token.address}`}
-                  token={token}
-                  balanceAmount={balanceAmount}
-                  price={price}
-                  onClick={() => handleStandardTokenSelect(token)}
-                />
-              );
-            })}
-            {underlyingPairToken && (
-              <div className="mt-2 mx-2 sm:mx-4">
-                <VerticalAccordion
-                  title="Show other options"
-                  open={showOtherOptions}
-                  onOpenChange={setShowOtherOptions}
-                  marginOnOpen={true}
-                >
-                  <div className="flex flex-col w-full gap-2">
-                    <div className="pinto-sm text-pinto-light px-4 py-2">Other</div>
-                    <div
-                      className="flex flex-row w-full items-start gap-4 p-4 cursor-pointer hover:bg-pinto-gray-1 rounded-sm"
-                      onClick={handleConvertDepositSelect}
-                    >
-                      <div className="flex flex-row items-center gap-2 flex-shrink-0">
-                        <IconImage src={underlyingPairToken.logoURI} size={12} />
-                        <div className="pinto-body-light">+</div>
-                        <IconImage src={mainToken.logoURI} size={12} />
-                      </div>
-                      <div className="flex flex-col gap-1 items-start flex-1 min-w-0">
-                        <div className="pinto-body text-pinto-secondary">
-                          {underlyingPairToken.symbol} + DEP.{mainToken.symbol}
+          <Separator className="w-[120%] -ml-6 mt-4 sm:mt-6 mb-2" />
+          <ScrollArea className="-mx-4 sm:mt-2">
+            <div className="mx-0 max-h-[60dvh]">
+              {[...farmerBalances.keys()].map((token) => {
+                const balance = farmerBalances.get(token);
+                if (!balance || filterTokens.has(token)) return null;
+                if (token.isNative && balanceFrom === FarmFromMode.INTERNAL) {
+                  return null;
+                }
+                const tokenPrice = priceData.tokenPrices.get(token);
+                const price = tokenPrice?.instant ?? TokenValue.ZERO;
+                let balanceAmount: TokenValue;
+                switch (balanceFrom) {
+                  case FarmFromMode.EXTERNAL:
+                    balanceAmount = balance.external;
+                    break;
+                  case FarmFromMode.INTERNAL:
+                    balanceAmount = balance.internal;
+                    break;
+                  default:
+                    balanceAmount = balance.total;
+                }
+                return (
+                  <DepositTokenSelectRow
+                    key={`deposit-token-select-${token.address}`}
+                    token={token}
+                    balanceAmount={balanceAmount}
+                    price={price}
+                    onClick={() => handleStandardTokenSelect(token)}
+                  />
+                );
+              })}
+              {underlyingPairToken && (
+                <div className="mt-2 mx-0">
+                  <VerticalAccordion
+                    title="Show other options"
+                    open={showOtherOptions}
+                    onOpenChange={setShowOtherOptions}
+                    marginOnOpen={true}
+                  >
+                    <div className="flex flex-col w-full gap-2">
+                      <div className="pinto-sm text-pinto-light px-4 py-2">Other</div>
+                      <div
+                        className="flex flex-row w-full items-start gap-4 p-4 cursor-pointer hover:bg-pinto-gray-1 rounded-sm"
+                        onClick={handleConvertDepositSelect}
+                      >
+                        <div className="flex flex-row items-center gap-2 flex-shrink-0">
+                          <IconImage src={underlyingPairToken.logoURI} size={12} />
+                          <div className="pinto-body-light">+</div>
+                          <IconImage src={mainToken.logoURI} size={12} />
                         </div>
-                        <div className="pinto-sm-light text-pinto-light">
-                          Deposit {underlyingPairToken.symbol} from wallet and convert Pinto from Silo to{" "}
-                          {siloToken.symbol}
+                        <div className="flex flex-col gap-1 items-start flex-1 min-w-0">
+                          <div className="pinto-body text-pinto-secondary">
+                            {underlyingPairToken.symbol} + DEP.{mainToken.symbol}
+                          </div>
+                          <div className="pinto-sm-light text-pinto-light">
+                            Deposit {underlyingPairToken.symbol} from wallet and convert Pinto from Silo to{" "}
+                            {siloToken.symbol}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </VerticalAccordion>
-              </div>
-            )}
-          </div>
+                  </VerticalAccordion>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
         </div>
       </DialogContent>
     </Dialog>
