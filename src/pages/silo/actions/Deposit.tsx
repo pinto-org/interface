@@ -99,7 +99,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.INTERNAL_EXTERNAL);
   const [slippage, setSlippage] = useState(0.5);
   const [shouldConvertDeposit, setShouldConvertDeposit] = useState(false);
-  const [pairTokenAmount, setPairTokenAmount] = useState("");
   const qc = useQueryClient();
 
   // Get underlying pair token for LP tokens
@@ -117,7 +116,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const shouldSwap = !tokensEqual(tokenIn, siloToken) && !shouldConvertDeposit;
 
   const amountInTV = useSafeTokenValue(amountIn, tokenIn);
-  const pairTokenAmountTV = useSafeTokenValue(pairTokenAmount, underlyingPairToken || mainToken);
 
   const tokenInBalance = farmerBalances.balances.get(tokenIn);
   const balanceFromMode = getBalanceFromMode(tokenInBalance, balanceFrom);
@@ -178,7 +176,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     shouldConvertDeposit &&
     convertibleAmount?.gt(0) &&
     amountInTV.gt(0) &&
-    pairTokenAmountTV.gt(0) &&
+    secondaryAmountInTV.gt(0) &&
     !!account.address;
 
   const { data: convertQuote, ...convertQuery } = useSiloConvertQuote(
@@ -189,8 +187,8 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     convertibleDeposits,
     slippage,
     {
-      secondaryAmount: pairTokenAmountTV,
-      fromMode: balanceFrom === FarmFromMode.INTERNAL_EXTERNAL ? FarmFromMode.EXTERNAL : balanceFrom,
+      secondaryAmount: secondaryAmountInTV,
+      fromMode: balanceFrom,
     },
     convertQuoteEnabled,
   );
@@ -239,7 +237,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
 
   const onSuccess = useCallback(() => {
     setAmountIn("");
-    setPairTokenAmount("");
     const allQueryKeys = [...farmerSilo.queryKeys, ...farmerBalances.queryKeys, ...priceQueryKeys];
     allQueryKeys.forEach((query) => qc.invalidateQueries({ queryKey: query }));
     invalidateSun("all", { refetchType: "active" });
@@ -286,7 +283,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
       setShouldConvertDeposit(true);
       setTokenIn(underlyingPairToken);
       setAmountIn("");
-      setPairTokenAmount("");
     }
   }, [underlyingPairToken, mainToken]);
 
@@ -443,7 +439,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const pairTokenBalanceFromMode = pairTokenBalance
     ? getBalanceFromMode(pairTokenBalance, balanceFrom)
     : TokenValue.ZERO;
-  const exceedsPairTokenBalance = shouldConvertDeposit && pairTokenBalanceFromMode.lt(pairTokenAmountTV);
+  const exceedsPairTokenBalance = shouldConvertDeposit && pairTokenBalanceFromMode.lt(secondaryAmountInTV);
 
   // Check main token balance in silo for convert deposits
   const exceedsConvertibleAmount = shouldConvertDeposit && convertibleAmount && convertibleAmount.lt(amountInTV);
@@ -457,8 +453,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     convertDataNotReady ||
     exceedsBalance ||
     exceedsPairTokenBalance ||
-    exceedsConvertibleAmount ||
-    (shouldConvertDeposit && !stringToNumber(pairTokenAmount));
+    exceedsConvertibleAmount;
 
   const buttonText =
     exceedsBalance || exceedsPairTokenBalance || exceedsConvertibleAmount ? "Insufficient Funds" : "Deposit";
