@@ -1,18 +1,12 @@
 import { HowToCard } from "@/components/HowToCard";
+import ReferralLeaderboard from "@/components/ReferralLeaderboard";
 import { ReferralLinkGenerator } from "@/components/ReferralLinkGenerator";
 import { ReferralStatsCard } from "@/components/ReferralStatsCard";
 import { Card } from "@/components/ui/Card";
 import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
-import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
-import { trackSimpleEvent } from "@/utils/analytics";
-import { useEffect } from "react";
 
 export default function Referral() {
-  useEffect(() => {
-    trackSimpleEvent(ANALYTICS_EVENTS.REFERRAL.PAGE_VIEWED);
-  }, []);
-
   return (
     <PageContainer variant="lg">
       <div className="flex flex-col w-full mt-4 sm:mt-0">
@@ -46,15 +40,7 @@ export default function Referral() {
           </Card>
 
           {/* Leaderboard */}
-          <Card className="p-4 sm:p-6 space-y-4">
-            <div className="pinto-h3 sm:pinto-h2">Referral Leaderboard</div>
-            <div className="bg-pinto-off-white p-6 rounded-lg text-center">
-              <div className="pinto-body text-pinto-light">Leaderboard coming soon!</div>
-              <div className="pinto-sm text-pinto-light/60 mt-2">
-                See how you rank among top referrers in the Pinto community.
-              </div>
-            </div>
-          </Card>
+          <ReferralLeaderboard />
 
           {/* How It Works */}
           <Card className="p-4 sm:p-6 space-y-4">

@@ -1,0 +1,16 @@
+query ReferralLeaderboard(
+  $first: Int = 1000
+  $skip: Int = 0
+) {
+  farmers(
+    first: $first
+    skip: $skip
+    orderBy: totalReferralRewardPodsReceived
+    orderDirection: desc
+    where: { totalReferralRewardPodsReceived_gt: "0" }
+  ) {
+    id
+    refereeCount
+    totalReferralRewardPodsReceived
+  }
+}

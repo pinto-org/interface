@@ -10385,4 +10385,205 @@ export const diamondABI = [
     stateMutability: "view",
     type: "function",
   },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "referrer",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "referrerIndex",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "referrerPods",
+        type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "referee",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "refereeIndex",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "refereePods",
+        type: "uint256",
+      },
+    ],
+    name: "SowReferral",
+    type: "event",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "delegate",
+        type: "address",
+      },
+    ],
+    name: "delegateReferralRewards",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getBeanSownEligibilityThreshold",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "referrer",
+        type: "address",
+      },
+    ],
+    name: "getBeansSownForReferral",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "referrer",
+        type: "address",
+      },
+    ],
+    name: "getDelegate",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getRefereePercentage",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getReferrerPercentage",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "referrer",
+        type: "address",
+      },
+    ],
+    name: "isValidReferrer",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "beans",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "minTemperature",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "minSoil",
+        type: "uint256",
+      },
+      {
+        internalType: "enum LibTransfer.From",
+        name: "mode",
+        type: "uint8",
+      },
+      {
+        internalType: "address",
+        name: "referral",
+        type: "address",
+      },
+    ],
+    name: "sowWithReferral",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "pods",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "referrerPods",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "refereePods",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
 ] as const;
