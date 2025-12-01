@@ -14,6 +14,7 @@ import {
   SiloConvertLP2LPSingleSidedPairTokenStrategy as LP2LPSingleSidedPair,
   SiloConvertLP2MainPipelineConvertStrategy as LP2MainPipeline,
   SiloConvertLP2MainWithdrawPairStrategy as LP2MainWithdrawPair,
+  SiloConvertMain2LPDepositPairStrategy as Main2LPDepositPair,
 } from "./strategies/implementations";
 import { ErrorHandlerFactory } from "./strategies/validation/ErrorHandlerFactory";
 import {
@@ -115,6 +116,11 @@ export class Strategizer {
       eh.validateConversionTokens("default", source, target);
 
       if (source.isMain && target.isLP) {
+        // If user provided secondaryAmount and fromMode, only return the Main2LPDeposit route
+        if (options.secondaryAmount && options.fromMode) {
+          return this.strategizeMain2LPDeposit(source, target, amountIn, options);
+        }
+        // Otherwise, use the original down convert behavior
         return this.strategizeLPAndMainDownConvert(source, target, amountIn);
       }
 
@@ -199,6 +205,59 @@ export class Strategizer {
         },
       ];
     }, "strategizeLP2MainWithdrawPair");
+  }
+
+  /**
+   * Main2LPDeposit
+   *
+   * This strategy is used to convert from Main Token (PINTO) to LP Token while depositing pair token from external wallet.
+   *
+   * @param source
+   * @param target
+   * @param amountIn
+   * @returns
+   */
+  async strategizeMain2LPDeposit(
+    source: Token,
+    target: Token,
+    amountIn: TV,
+    options: SiloConvertQuoteOptions,
+  ): Promise<SiloConvertRoute<SiloConvertType>[]> {
+    const eh = ErrorHandlerFactory.createStrategizerHandler(source, target);
+
+    return eh.wrapAsync(async () => {
+      await eh.wrapAsync(async () => this.cache.update(), "strategizeMain2LPDeposit_cache_update", {
+        source: source.symbol,
+        target: target.symbol,
+        amountIn: amountIn.toHuman(),
+      });
+
+      eh.validateConversionTokens("Main2LP", source, target);
+
+      const targetWell = target.isLP ? this.cache.getWell(target.address) : undefined;
+
+      const tw = eh.assertDefined(targetWell, "Target well must be defined for Main2LPDeposit");
+
+      const secondaryAmount = eh.assertDefined(
+        options.secondaryAmount,
+        "Secondary amount is required for Main2LPDeposit strategy",
+      );
+      const fromMode = eh.assertDefined(options.fromMode, "From mode is required for Main2LPDeposit strategy");
+
+      return [
+        {
+          source,
+          target,
+          strategies: [
+            {
+              strategy: new Main2LPDepositPair(source, tw, this.context, secondaryAmount, fromMode),
+              amount: amountIn,
+            },
+          ],
+          convertType: "Main2LPDeposit",
+        },
+      ];
+    }, "strategizeMain2LPDeposit");
   }
 
   async strategizeLP2LP(source: Token, target: Token, amountIn: TV) {

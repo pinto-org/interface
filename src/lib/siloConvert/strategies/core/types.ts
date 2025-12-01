@@ -10,7 +10,7 @@ import { ExtendedPickedCratesDetails } from "@/utils/convert";
 import { Token } from "@/utils/types";
 import { HashString, Prettify } from "@/utils/types.generic";
 
-export type SiloConvertType = "LP2LP" | "LPAndMain" | "LP2MainPipeline" | "LP2MainWithdrawPair";
+export type SiloConvertType = "LP2LP" | "LPAndMain" | "LP2MainPipeline" | "LP2MainWithdrawPair" | "Main2LPDeposit";
 
 type ISourceAndTarget<T, K> = IConvertQuoteMaySwap & {
   source: T;
@@ -50,6 +50,7 @@ export type ConvertSummariesLookup = {
   LPAndMain: ISourceAndTarget<BaseConvertSourceSummary, BaseConvertTargetSummary>;
   LP2MainPipeline: ISourceAndTarget<LP2LPConvertSourceSummary, BaseConvertTargetSummary>;
   LP2MainWithdrawPair: ISourceAndTarget<LP2LPConvertSourceSummary, LP2MainWithdrawPairTargetSummary>;
+  Main2LPDeposit: ISourceAndTarget<BaseConvertSourceSummary, BaseConvertTargetSummary>;
 };
 
 export type ConvertQuoteSummary<T extends SiloConvertType> = Prettify<{

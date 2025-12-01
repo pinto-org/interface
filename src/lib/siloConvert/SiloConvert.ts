@@ -8,7 +8,7 @@ import junctionGte from "@/encoders/junction/junctionGte";
 import { AdvancedFarmWorkflow, AdvancedPipeWorkflow } from "@/lib/farm/workflow";
 import { getChainConstant } from "@/utils/chain";
 import { pickCratesMultiple } from "@/utils/convert";
-import { DepositData, Token } from "@/utils/types";
+import { DepositData, FarmFromMode, Token } from "@/utils/types";
 import { HashString } from "@/utils/types.generic";
 import { throwIfAborted } from "@/utils/utils";
 import { Config } from "@wagmi/core";
@@ -109,6 +109,8 @@ export interface ConvertResultStruct<T = TV> {
 
 export type SiloConvertQuoteOptions = {
   isPairWithdrawal?: boolean;
+  secondaryAmount?: TV;
+  fromMode?: FarmFromMode;
 };
 
 export interface SiloConvertSummary<T extends SiloConvertType> {
