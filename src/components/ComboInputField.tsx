@@ -331,11 +331,43 @@ function ComboInputField({
   );
 
   const [shouldRefocus, setShouldRefocus] = useState(false);
+  const keepCursorAtStartRef = useRef(false);
+  const cursorPositionRef = useRef<number | null>(null);
+
+  // Save cursor position before render
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input || document.activeElement !== input) return;
+
+    // If we want to keep cursor at start, save position 0
+    if (keepCursorAtStartRef.current) {
+      cursorPositionRef.current = 0;
+    }
+  });
+
+  // Restore cursor position after render
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input || cursorPositionRef.current === null) return;
+
+    const position = cursorPositionRef.current;
+    cursorPositionRef.current = null;
+
+    // Set cursor position after React finishes rendering
+    setTimeout(() => {
+      if (document.activeElement === input) {
+        input.setSelectionRange(position, position);
+      }
+    }, 0);
+  });
 
   useEffect(() => {
     if (shouldRefocus && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.setSelectionRange(0, 0);
+      const input = inputRef.current;
+      input.focus();
+      setTimeout(() => {
+        input.setSelectionRange(0, 0);
+      }, 0);
       setShouldRefocus(false);
     }
   }, [shouldRefocus]);
@@ -388,6 +420,11 @@ function ComboInputField({
 
   const handleSetMax = () => {
     if (disableInput) return;
+
+    // Enable cursor anchoring at start
+    keepCursorAtStartRef.current = true;
+    cursorPositionRef.current = 0;
+
     if (selectedToken?.isNative) {
       // For ETH, subtract gas reserve from max amount
       const maxWithGasReserve = maxAmount.gt(ETH_GAS_RESERVE) ? maxAmount.sub(ETH_GAS_RESERVE) : TokenValue.ZERO;
@@ -404,7 +441,10 @@ function ComboInputField({
       lastInternalAmountRef.current = newAmount;
     }
 
-    setShouldRefocus(true);
+    // Focus and set cursor position
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
   const plotIdsToShow = useMemo(() => {
@@ -441,6 +481,10 @@ function ComboInputField({
                 }
                 value={disableInput ? amount : displayValue}
                 onChange={(e) => changeValue(e.target.value)}
+                onKeyDown={() => {
+                  keepCursorAtStartRef.current = false;
+                  cursorPositionRef.current = null;
+                }}
               />
             </TextSkeleton>
             {mode === "plots"
