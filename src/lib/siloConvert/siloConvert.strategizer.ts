@@ -2,6 +2,7 @@ import { TV } from "@/classes/TokenValue";
 import { CONVERT_DOWN_PENALTY_RATE } from "@/constants/silo";
 import { FarmToMode, Token } from "@/utils/types";
 import { Prettify } from "@/utils/types.generic";
+import { exists } from "@/utils/utils";
 import { SiloConvertQuoteOptions } from "./SiloConvert";
 import { ExtendedPoolData, SiloConvertPriceCache } from "./SiloConvert.cache";
 import { SiloConvertMaxConvertQuoter } from "./SiloConvert.maxConvertQuoter";
@@ -89,7 +90,7 @@ export class Strategizer {
       }
 
       if (!isLP2LP) {
-        return this.strategizeLPAndMain(source, target, amountIn);
+        return this.strategizeLPAndMain(source, target, amountIn, options);
       }
 
       return this.strategizeLP2LP(source, target, amountIn);
@@ -103,7 +104,12 @@ export class Strategizer {
    * @param amountIn
    * @returns
    */
-  async strategizeLPAndMain(source: Token, target: Token, amountIn: TV): Promise<SiloConvertRoute<SiloConvertType>[]> {
+  async strategizeLPAndMain(
+    source: Token,
+    target: Token,
+    amountIn: TV,
+    options: SiloConvertQuoteOptions = {},
+  ): Promise<SiloConvertRoute<SiloConvertType>[]> {
     const eh = ErrorHandlerFactory.createStrategizerHandler(source, target);
 
     return eh.wrapAsync(async () => {
@@ -117,7 +123,7 @@ export class Strategizer {
 
       if (source.isMain && target.isLP) {
         // If user provided secondaryAmount and fromMode, only return the Main2LPDeposit route
-        if (options.secondaryAmount && options.fromMode) {
+        if (options.secondaryAmount?.gt(0) && exists(options.fromMode)) {
           return this.strategizeMain2LPDeposit(source, target, amountIn, options);
         }
         // Otherwise, use the original down convert behavior

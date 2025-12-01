@@ -100,7 +100,7 @@ export class DefaultConvertStrategy extends SiloConvertStrategy<"LPAndMain"> {
     };
   }
 
-  encodeFromQuote(quote: ConvertStrategyQuote<"LPAndMain">): AdvancedFarmCall {
+  encodeFromQuote(quote: ConvertStrategyQuote<"LPAndMain">) {
     // Validation
     const convertData = this.errorHandler.assertDefined(quote.convertData, "Missing convert data in quote");
     this.errorHandler.assert(!!quote.pickedCrates?.crates.length, "Missing picked crates in quote", {
@@ -111,7 +111,12 @@ export class DefaultConvertStrategy extends SiloConvertStrategy<"LPAndMain"> {
       () => {
         const stems = quote.pickedCrates.crates.map((crate) => crate.stem.toBigInt());
         const amounts = quote.pickedCrates.crates.map((crate) => crate.amount.toBigInt());
-        return encoders.silo.convert(convertData, stems, amounts);
+        const call = encoders.silo.convert(convertData, stems, amounts);
+
+        return {
+          calls: [call],
+          decodeIndex: 0,
+        };
       },
       "encode from quote",
       { cratesCount: quote.pickedCrates.crates.length },
@@ -191,5 +196,9 @@ export class DefaultConvertStrategy extends SiloConvertStrategy<"LPAndMain"> {
       "decode getAmountOut result",
       { dataLength: data.length },
     );
+  }
+
+  getApprovalTokens() {
+    return undefined;
   }
 }

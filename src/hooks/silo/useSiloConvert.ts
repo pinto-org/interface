@@ -171,6 +171,7 @@ export function useSiloConvertQuote(
         target?.address,
         amountIn,
         options.isPairWithdrawal ?? false,
+        options.secondaryAmount?.gt(0) ?? false,
         slippage,
       ),
     [account.address, source.address, target?.address, amountIn, options.isPairWithdrawal, slippage],

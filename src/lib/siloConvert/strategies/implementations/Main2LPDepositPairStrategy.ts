@@ -1,19 +1,14 @@
 import { Clipboard } from "@/classes/Clipboard";
 import { TV } from "@/classes/TokenValue";
-import { diamondABI } from "@/constants/abi/diamondABI";
 import { abiSnippets } from "@/constants/abiSnippets";
 import { PIPELINE_ADDRESS } from "@/constants/address";
+import encoders from "@/encoders";
 import { AdvancedFarmWorkflow, AdvancedPipeWorkflow } from "@/lib/farm/workflow";
 import { ExtendedPoolData } from "@/lib/siloConvert/SiloConvert.cache";
-import {
-  ConvertQuoteSummary,
-  ConvertStrategyQuote,
-  PipelineConvertStrategy,
-  SiloConvertType,
-} from "@/lib/siloConvert/strategies/core";
+import { ConvertQuoteSummary, ConvertStrategyQuote, PipelineConvertStrategy } from "@/lib/siloConvert/strategies/core";
 import { SiloConvertContext } from "@/lib/siloConvert/types";
 import { ExtendedPickedCratesDetails } from "@/utils/convert";
-import { AdvancedPipeCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
+import { AdvancedFarmCall, FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { exists, throwIfAborted } from "@/utils/utils";
 import { decodeFunctionResult, encodeFunctionData } from "viem";
 
@@ -40,7 +35,7 @@ class Main2LPDepositPairStrategy extends PipelineConvertStrategy<"Main2LPDeposit
     source: Token,
     targetWell: ExtendedPoolData,
     context: SiloConvertContext,
-    secondaryAmount: TV,
+    wellUnderlyingPairTokenAmount: TV,
     fromMode: FarmFromMode,
   ) {
     super(source, targetWell.pool, context);
@@ -52,9 +47,9 @@ class Main2LPDepositPairStrategy extends PipelineConvertStrategy<"Main2LPDeposit
     this.initErrorHandlerCtx();
 
     this.errorHandler.validateConversionTokens("Main2LP", source, targetWell.pool);
-    this.errorHandler.validateAmount(secondaryAmount, "secondary amount");
+    this.errorHandler.validateAmount(wellUnderlyingPairTokenAmount, "secondary amount");
     this.targetWell = targetWell;
-    this.secondaryAmount = secondaryAmount;
+    this.secondaryAmount = wellUnderlyingPairTokenAmount;
     this.fromMode = fromMode;
   }
 
@@ -106,6 +101,8 @@ class Main2LPDepositPairStrategy extends PipelineConvertStrategy<"Main2LPDeposit
       source: {
         token: this.sourceToken,
         amountIn: mainAmount,
+        pairToken: this.pairToken,
+        pairAmountIn: pairAmount,
       },
       target: {
         token: this.targetToken,
@@ -236,53 +233,22 @@ class Main2LPDepositPairStrategy extends PipelineConvertStrategy<"Main2LPDeposit
     this.errorHandler.validateAmount(target.amountOut, "target amount out");
     this.errorHandler.validateAmount(this.secondaryAmount, "secondary amount");
 
-    const pairAmount = this.secondaryAmount;
-
-    const isFromExternal = this.fromMode === FarmFromMode.EXTERNAL;
-
     const pipe = new AdvancedPipeWorkflow(this.context.chainId, this.context.wagmiConfig);
 
-    // 2. Transfer pair token from specified balance (EXTERNAL or INTERNAL) to pipeline
-    pipe.add(
-      Main2LPDepositPairStrategy.snippets.diamondTransferToken(
-        this.pairToken,
-        PIPELINE_ADDRESS,
-        pairAmount,
-        this.fromMode,
-        FarmToMode.EXTERNAL, // to pipeline (external)
-        this.context.diamond,
-        Clipboard.encode([]),
-      ),
-    );
-
-    // 3. Transfer main token (PINTO) from silo to pipeline is handled by pipelineConvert
-    // The main token will be in pipeline after pipelineConvert executes
-
-    // 4. Transfer pair token from pipeline to well
+    // 0. Transfer the underlying pair token to the well
     pipe.add(
       Main2LPDepositPairStrategy.snippets.erc20Transfer(
         this.pairToken,
         this.targetWell.pool.address,
-        pairAmount,
-        Clipboard.encode([]), // Use amount from step 2 (diamondTransferToken result)
+        this.secondaryAmount,
       ),
     );
-
-    // 5. Transfer main token from pipeline to well
-    // The main token is already in pipeline from pipelineConvert execution
-    // We transfer it to the well address
+    // 1. Transfer the main token to the well
     pipe.add(
-      Main2LPDepositPairStrategy.snippets.erc20Transfer(
-        this.mainToken,
-        this.targetWell.pool.address,
-        source.amountIn,
-        Clipboard.encode([]),
-      ),
+      Main2LPDepositPairStrategy.snippets.erc20Transfer(this.mainToken, this.targetWell.pool.address, source.amountIn),
     );
 
-    // 6. Call wellSync to add liquidity in equal proportions
-    // wellSync uses tokens that are already in the well's balance
-    // We've transferred both tokens to the well, so sync will use them
+    // 2. Call wellSync to add liquidity in equal proportions
     pipe.add(
       Main2LPDepositPairStrategy.snippets.wellSync(
         this.targetWell,
@@ -292,6 +258,47 @@ class Main2LPDepositPairStrategy extends PipelineConvertStrategy<"Main2LPDeposit
     );
 
     return pipe;
+  }
+
+  override encodeFromQuote(quote: ConvertStrategyQuote<"Main2LPDeposit">) {
+    const stems: bigint[] = [];
+    const amounts: bigint[] = [];
+
+    quote.pickedCrates.crates.forEach((crate) => {
+      stems.push(crate.stem.toBigInt());
+      amounts.push(crate.amount.toBigInt());
+    });
+
+    if (!quote.advPipeCalls) {
+      throw new Error("No advanced pipe calls provided");
+    }
+
+    const args = {
+      stems,
+      amounts,
+      advPipeCalls: quote.advPipeCalls?.getSteps() ?? [],
+    };
+
+    const transfer = Main2LPDepositPairStrategy.snippets.diamondTransferToken(
+      this.pairToken,
+      PIPELINE_ADDRESS,
+      this.secondaryAmount,
+      this.fromMode,
+      FarmToMode.EXTERNAL, // to pipeline (external)
+      this.context.diamond,
+      Clipboard.encode([]),
+    );
+
+    const calls: AdvancedFarmCall[] = [transfer, encoders.silo.pipelineConvert(this.mainToken, this.targetToken, args)];
+
+    return {
+      calls,
+      decodeIndex: 1,
+    };
+  }
+
+  override getApprovalTokens() {
+    return this.pairToken;
   }
 }
 

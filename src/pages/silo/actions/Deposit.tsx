@@ -163,8 +163,6 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     // Gives max main token given we are not limited by deposited underlying
     const uncappedMaxMainToken = uncappedMaxUnderlying.mul(pintosPerUnderlying);
 
-    console.log({ uncappedMaxMainToken, uncappedMaxUnderlying });
-
     return {
       in: TV.min(uncappedMaxUnderlying, balanceFromMode),
       other: TV.min(uncappedMaxMainToken, convertibleAmount),
@@ -183,11 +181,11 @@ function Deposit({ siloToken }: { siloToken: Token }) {
     siloConvert,
     mainToken,
     siloToken,
-    amountIn,
+    secondaryAmountInTV.toHuman(),
     convertibleDeposits,
     slippage,
     {
-      secondaryAmount: secondaryAmountInTV,
+      secondaryAmount: amountInTV,
       fromMode: balanceFrom,
     },
     convertQuoteEnabled,
@@ -458,6 +456,8 @@ function Deposit({ siloToken }: { siloToken: Token }) {
   const buttonText =
     exceedsBalance || exceedsPairTokenBalance || exceedsConvertibleAmount ? "Insufficient Funds" : "Deposit";
 
+  console.log("tokenIn: ", tokenIn);
+
   return (
     <div className="flex flex-col gap-4">
       <div>
@@ -520,6 +520,8 @@ function Deposit({ siloToken }: { siloToken: Token }) {
               disableButton={true}
               tokenAndBalanceMap={farmerDepositData ? new Map([[mainToken, farmerDepositData.amount]]) : undefined}
               customMaxAmount={maxes.other}
+              hideMax
+              altText="Convertible Amount"
             />
           </div>
         )}

@@ -8,7 +8,7 @@ import { stringEq } from "./string";
 import { getTokenIndex } from "./token";
 import { Token } from "./types";
 import { ChainLookup } from "./types.generic";
-import { exists } from "./utils";
+import { arrayify, exists } from "./utils";
 
 export function getChainConstant<T>(chainId: number, item: ChainLookup<T>) {
   return item[resolveChainId(chainId)];
@@ -43,24 +43,36 @@ export const computeAllowanceStorageSlot = (owner: Address, spender: Address, ba
 
 export const getOverrideAllowanceStateOverride = (
   chainId: number,
-  approvalToken: Token | undefined,
+  approvalToken: Token | Token[] | undefined,
   account: Address | undefined,
 ): StateOverride | undefined => {
-  if (!account || !approvalToken || approvalToken.isNative) return undefined;
-  const slot = addressAllowanceSlotMap[resolveChainId(chainId)]?.[getTokenIndex(approvalToken)];
-  if (!exists(slot)) return undefined;
+  const tokens = arrayify(approvalToken ?? []).filter((t) => !t.isNative);
 
-  return [
-    {
-      address: approvalToken.address,
+  if (!account || !tokens.length) {
+    return undefined;
+  }
+
+  const stateOverrides: StateOverride = [];
+
+  for (const token of tokens) {
+    const slot = addressAllowanceSlotMap[resolveChainId(chainId)]?.[getTokenIndex(token)];
+
+    if (!exists(slot)) {
+      continue;
+    }
+
+    stateOverrides.push({
+      address: token.address,
       stateDiff: [
         {
           slot: computeAllowanceStorageSlot(account, beanstalkAddress[resolveChainId(chainId)], slot),
           value: numberToHex(maxUint256),
         },
       ],
-    },
-  ];
+    });
+  }
+
+  return stateOverrides;
 };
 
 // in the future a local blockchain explorer link can be added here if chainId is not Base
