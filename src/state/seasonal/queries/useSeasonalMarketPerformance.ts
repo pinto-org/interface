@@ -114,10 +114,9 @@ export function useMarketPerformanceCalc(
     if (seasonalData) {
       /// TODO(pp): replace test with seasonalData when done testing this mock data
       const test = [
-        ...seasonalData.slice(0, -2),
+        ...seasonalData.slice(0, -3),
         {
           ...seasonalData[seasonalData.length - 3],
-          season: seasonalData[seasonalData.length - 3].season,
           silo: {
             ...seasonalData[seasonalData.length - 3].silo,
             allWhitelistedTokens: [
@@ -126,9 +125,9 @@ export function useMarketPerformanceCalc(
             ],
           },
           percentChange: [...(seasonalData[seasonalData.length - 3].percentChange as string[]), "-0.02"],
-          totalPercentChange: seasonalData[seasonalData.length - 3].totalPercentChange,
+          // totalPercentChange: seasonalData[seasonalData.length - 3].totalPercentChange,
           usdChange: [...(seasonalData[seasonalData.length - 3].usdChange as string[]), "-500"],
-          totalUsdChange: seasonalData[seasonalData.length - 3].totalUsdChange,
+          // totalUsdChange: seasonalData[seasonalData.length - 3].totalUsdChange,
           thisSeasonTokenUsdPrices: [
             ...(seasonalData[seasonalData.length - 3].thisSeasonTokenUsdPrices as string[]),
             "2700",
@@ -136,7 +135,6 @@ export function useMarketPerformanceCalc(
         },
         {
           ...seasonalData[seasonalData.length - 2],
-          season: seasonalData[seasonalData.length - 2].season,
           silo: {
             ...seasonalData[seasonalData.length - 2].silo,
             allWhitelistedTokens: [
@@ -145,9 +143,9 @@ export function useMarketPerformanceCalc(
             ],
           },
           percentChange: [...(seasonalData[seasonalData.length - 2].percentChange as string[]), "0.09"],
-          totalPercentChange: seasonalData[seasonalData.length - 2].totalPercentChange,
+          // totalPercentChange: seasonalData[seasonalData.length - 2].totalPercentChange,
           usdChange: [...(seasonalData[seasonalData.length - 2].usdChange as string[]), "10000"],
-          totalUsdChange: seasonalData[seasonalData.length - 2].totalUsdChange,
+          // totalUsdChange: seasonalData[seasonalData.length - 2].totalUsdChange,
           thisSeasonTokenUsdPrices: [
             ...(seasonalData[seasonalData.length - 2].thisSeasonTokenUsdPrices as string[]),
             "2900",
@@ -155,7 +153,6 @@ export function useMarketPerformanceCalc(
         },
         {
           ...seasonalData[seasonalData.length - 1],
-          season: seasonalData[seasonalData.length - 1].season,
           silo: {
             ...seasonalData[seasonalData.length - 1].silo,
             allWhitelistedTokens: [
@@ -164,9 +161,9 @@ export function useMarketPerformanceCalc(
             ],
           },
           percentChange: [...(seasonalData[seasonalData.length - 1].percentChange as string[]), "0.01"],
-          totalPercentChange: seasonalData[seasonalData.length - 1].totalPercentChange,
+          // totalPercentChange: seasonalData[seasonalData.length - 1].totalPercentChange,
           usdChange: [...(seasonalData[seasonalData.length - 1].usdChange as string[]), "12345"],
-          totalUsdChange: seasonalData[seasonalData.length - 1].totalUsdChange,
+          // totalUsdChange: seasonalData[seasonalData.length - 1].totalUsdChange,
           thisSeasonTokenUsdPrices: [
             ...(seasonalData[seasonalData.length - 1].thisSeasonTokenUsdPrices as string[]),
             "3000",

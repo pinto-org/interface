@@ -163,6 +163,7 @@ const marketStartSeasonToSymbolMappingUsd = {
   marketCumulativeNonPintoUsd: "NET",
   marketCumulativeWethUsd: "WETH",
   marketCumulativeCbethUsd: "cbETH",
+  marketCumulativeWstethUsd: "wstETH",
   marketCumulativeCbbtcUsd: "cbBTC",
   marketCumulativeWsolUsd: "WSOL",
 };
@@ -171,6 +172,7 @@ const marketStartSeasonToSymbolMappingPercent = {
   marketCumulativeNonPintoPercent: "NET",
   marketCumulativeWethPercent: "WETH",
   marketCumulativeCbethPercent: "cbETH",
+  marketCumulativeWstethPercent: "wstETH",
   marketCumulativeCbbtcPercent: "cbBTC",
   marketCumulativeWsolPercent: "WSOL",
 };
