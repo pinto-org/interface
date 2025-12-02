@@ -6,7 +6,6 @@ import {
 } from "@/generated/gql/pintostalk/graphql";
 import { useLPTokenToNonPintoUnderlyingMap } from "@/hooks/pinto/useTokenMap";
 import useTokenData from "@/state/useTokenData";
-import { useChainConstant } from "@/utils/chain";
 import { PaginationSettings, paginateSubgraph } from "@/utils/paginateSubgraph";
 import {
   SeasonalMarketPerformanceChartData,

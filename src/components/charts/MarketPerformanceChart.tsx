@@ -168,7 +168,7 @@ const MarketPerformanceChart = ({ season, size, className }: MarketPerformanceCh
       const allTokens = ["NET", "WETH", "cbETH", "wstETH", "cbBTC", "WSOL"];
       const tokensPresent: string[] = [];
       for (const token of allTokens) {
-        if (allData[token].length > 0) {
+        if (allData[token]?.length > 0) {
           tokensPresent.push(token);
         }
       }
