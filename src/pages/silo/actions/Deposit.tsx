@@ -1,6 +1,7 @@
 import arrowDown from "@/assets/misc/ChevronDown.svg";
 import { TV, TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
+import { Row } from "@/components/Container";
 import FrameAnimator from "@/components/LoadingSpinner";
 import MobileActionBar from "@/components/MobileActionBar";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
@@ -8,6 +9,7 @@ import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import SourceBalanceSelect from "@/components/SourceBalanceSelect";
+import TooltipSimple from "@/components/TooltipSimple";
 import { Button } from "@/components/ui/Button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
 import IconImage from "@/components/ui/IconImage";
@@ -502,9 +504,16 @@ function Deposit({ siloToken }: { siloToken: Token }) {
         />
         {shouldConvertDeposit && underlyingPairToken && (
           <div className="pt-4">
-            <Label className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light mb-2 block">
-              Amount of {mainToken.name} to Convert
-            </Label>
+            <Row className="gap-1">
+              <Label className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light mb-2 block">
+                Amount of Pinto to Convert
+              </Label>
+              <TooltipSimple
+                triggerClassName="mb-2"
+                variant="outlined"
+                content={`Farmers can combine their existing Pinto Deposited in the Silo with ${underlyingPairToken.symbol} to Deposit into ${siloToken.symbol} without effecting price`}
+              />
+            </Row>
             <ComboInputField
               disabled
               disableInput
@@ -521,7 +530,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
               tokenAndBalanceMap={farmerDepositData ? new Map([[mainToken, farmerDepositData.amount]]) : undefined}
               customMaxAmount={maxes.other}
               hideMax
-              altText="Convertible Amount"
+              altText="Deposited Amount"
             />
           </div>
         )}
