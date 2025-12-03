@@ -161,9 +161,12 @@ const ChartSelectPanel = memo(() => {
       const clampedInputs = {};
       for (const chartId in rawSeasonInputs) {
         const chartData = chartSetupData.find((chart) => chart.id === chartId);
+        if (!chartData || !chartData.inputOptions) {
+          // Should be unreachable (season input cannot change for chart that didn't configure seasons)
+          continue;
+        }
         clampedInputs[chartId] = Math.max(
-          // biome-ignore lint/style/noNonNullAssertion: Season input cannot change for chart that didn't configure seasons.
-          chartData!.inputOptions!.minSeason,
+          chartData.inputOptions.minSeason,
           Math.min(currentSeason, rawSeasonInputs[chartId]),
         );
       }
