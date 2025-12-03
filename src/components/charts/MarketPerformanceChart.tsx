@@ -195,11 +195,6 @@ const MarketPerformanceChart = ({ season, size, className }: MarketPerformanceCh
         tokens.push(tokenObj);
         chartStrokeGradients.push(gradientFunctions.solid(tokenObj?.color ?? "green"));
       }
-      console.log("abc cd", {
-        chartData,
-        tokens,
-        chartStrokeGradients,
-      });
       return {
         chartData,
         tokens,
