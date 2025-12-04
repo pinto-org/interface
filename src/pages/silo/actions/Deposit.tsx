@@ -511,7 +511,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
               <TooltipSimple
                 triggerClassName="mb-2"
                 variant="outlined"
-                content={`Farmers can combine their existing Pinto Deposited in the Silo with ${underlyingPairToken.symbol} to Deposit into ${siloToken.symbol} without effecting price`}
+                content={`Farmers can combine their existing Pinto Deposited in the Silo with ${underlyingPairToken.symbol} to Deposit into ${siloToken.symbol} without affecting price`}
               />
             </Row>
             <ComboInputField
