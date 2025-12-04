@@ -530,7 +530,7 @@ function Deposit({ siloToken }: { siloToken: Token }) {
               tokenAndBalanceMap={farmerDepositData ? new Map([[mainToken, farmerDepositData.amount]]) : undefined}
               customMaxAmount={maxes.other}
               hideMax
-              altText="Deposited Amount"
+              altText="Deposited Amount:"
             />
           </div>
         )}
