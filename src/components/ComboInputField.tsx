@@ -334,32 +334,28 @@ function ComboInputField({
   const keepCursorAtStartRef = useRef(false);
   const cursorPositionRef = useRef<number | null>(null);
 
-  // Save cursor position before render
+  // Save and restore cursor position after render
   useEffect(() => {
     const input = inputRef.current;
     if (!input || document.activeElement !== input) return;
 
     // If we want to keep cursor at start, save position 0
-    if (keepCursorAtStartRef.current) {
+    if (keepCursorAtStartRef.current && cursorPositionRef.current === null) {
       cursorPositionRef.current = 0;
     }
-  });
 
-  // Restore cursor position after render
-  useEffect(() => {
-    const input = inputRef.current;
-    if (!input || cursorPositionRef.current === null) return;
+    // Restore cursor position if we have one saved
+    if (cursorPositionRef.current !== null) {
+      const position = cursorPositionRef.current;
 
-    const position = cursorPositionRef.current;
-    cursorPositionRef.current = null;
-
-    // Set cursor position after React finishes rendering
-    setTimeout(() => {
-      if (document.activeElement === input) {
-        input.setSelectionRange(position, position);
-      }
-    }, 0);
-  });
+      setTimeout(() => {
+        if (document.activeElement === input) {
+          input.setSelectionRange(position, position);
+          cursorPositionRef.current = null;
+        }
+      }, 0);
+    }
+  }, [displayValue]);
 
   useEffect(() => {
     if (shouldRefocus && inputRef.current) {
