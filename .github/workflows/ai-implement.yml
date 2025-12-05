@@ -42,11 +42,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
 
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code
@@ -61,7 +66,8 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          claude -p "You are implementing changes for the Pinto DeFi interface application.
+          claude --print "
+          TASK: Implement the changes described in this GitHub issue.
 
           Issue #${{ github.event.issue.number }}
           Title: ${{ github.event.issue.title }}
@@ -69,26 +75,36 @@ jobs:
           Description:
           ${{ github.event.issue.body }}
 
-          Instructions:
-          - Make ONLY the changes requested in the issue
-          - Keep changes minimal and focused
-          - Do not refactor unrelated code
-          - Follow existing code patterns (React, TypeScript, Tailwind, Radix UI)
-          - Ensure type safety throughout
-          - Run 'yarn format-and-lint' before finishing to fix any linting issues
-          - If the request is unclear, make your best reasonable interpretation"
+          INSTRUCTIONS:
+          1. First, read CLAUDE.md to understand the project structure and patterns
+          2. Search the codebase to find relevant files for this change
+          3. Make the necessary code changes to implement the request
+          4. Keep changes minimal and focused - only change what's needed
+          5. Follow existing code patterns (React, TypeScript, Tailwind, Radix UI)
+          6. Ensure type safety throughout
+          7. Run 'yarn format' to format code before finishing
+
+          IMPORTANT: You MUST make file changes. Do not just analyze - actually edit/create files.
+          If the request is unclear, make your best reasonable interpretation and implement it.
+          "
+
+      - name: Format code
+        run: yarn format || true
 
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          # Check if there are changes to commit
           if git diff --staged --quiet; then
             echo "No changes to commit"
             echo "HAS_CHANGES=false" >> $GITHUB_ENV
           else
-            git commit -m "feat: implement issue #${{ github.event.issue.number }}"
+            git commit -m "feat: implement issue #${{ github.event.issue.number }}
+
+          ${{ github.event.issue.title }}
+
+          🤖 Generated with Claude Code"
             echo "HAS_CHANGES=true" >> $GITHUB_ENV
           fi
 
@@ -115,7 +131,7 @@ jobs:
           - [ ] Follows project patterns
 
           ---
-          *Generated automatically by Claude Code*" \
+          🤖 *Generated with Claude Code*" \
             --base main \
             --head "$BRANCH_NAME"
 
@@ -124,8 +140,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          PR_URL=$(gh pr view "$BRANCH_NAME" --json url -q .url)
           gh issue comment ${{ github.event.issue.number }} \
-            --body "I've created a PR to implement this request. Please review it when ready!"
+            --body "✅ I've created a PR to implement this request: $PR_URL
+
+          Please review the changes!"
 
       - name: Comment on issue (no changes)
         if: env.HAS_CHANGES == 'false'
@@ -133,4 +152,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh issue comment ${{ github.event.issue.number }} \
-            --body "I analyzed this request but couldn't determine what changes to make. Please provide more details or implement manually."
+            --body "⚠️ I analyzed this request but couldn't determine what changes to make.
+
+          **Possible reasons:**
+          - The request may be too vague
+          - The files to modify couldn't be identified
+          - The changes may require more context
+
+          **To help me:**
+          - Specify which file(s) to modify
+          - Provide more detail about the expected behavior
+          - Include code examples if possible"
