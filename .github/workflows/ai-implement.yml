@@ -67,25 +67,20 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           claude --print "
-          TASK: Implement the changes described in this GitHub issue.
+          Implement the following GitHub issue:
 
-          Issue #${{ github.event.issue.number }}
-          Title: ${{ github.event.issue.title }}
+          Issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}
 
-          Description:
           ${{ github.event.issue.body }}
 
-          INSTRUCTIONS:
-          1. First, read CLAUDE.md to understand the project structure and patterns
-          2. Search the codebase to find relevant files for this change
-          3. Make the necessary code changes to implement the request
-          4. Keep changes minimal and focused - only change what's needed
-          5. Follow existing code patterns (React, TypeScript, Tailwind, Radix UI)
-          6. Ensure type safety throughout
-          7. Run 'yarn format' to format code before finishing
+          Instructions:
+          1. Read CLAUDE.md to understand project patterns
+          2. Find relevant files and make the necessary changes
+          3. Keep changes minimal and focused
+          4. Follow existing patterns (React, TypeScript, Tailwind, Radix UI)
+          5. Run 'yarn format' before finishing
 
-          IMPORTANT: You MUST make file changes. Do not just analyze - actually edit/create files.
-          If the request is unclear, make your best reasonable interpretation and implement it.
+          You MUST make file changes. If unclear, use your best judgment.
           "
 
       - name: Format code
