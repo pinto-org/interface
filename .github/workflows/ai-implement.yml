@@ -128,11 +128,9 @@ jobs:
                - Make the minimal, focused changes needed to implement the issue.
                - Prefer touching only the most relevant files. For UI/copy tweaks,
                  avoid broad refactors.
-               - After making changes, run these commands in order:
-                 1. `yarn format` to format the code
-                 2. `yarn lint:fix-all` to fix linting issues
-                 3. If lint errors remain, fix them manually
-                 4. Commit any format/lint fixes before proceeding
+               - DO NOT run `yarn format` or `yarn lint:fix-all` yourself - the CI workflow
+                 will handle formatting and linting automatically after you finish.
+               - Focus on implementing the functionality correctly.
                - When creating the PR, include:
                  - References the issue (e.g. "Closes #<issue_number>")
                  - Describes what you changed and why
@@ -165,3 +163,24 @@ jobs:
             - Keep changes small, localized, and directly related to the `ai-implement` request.
             - Prefer existing patterns and conventions in this repository (as documented in `CLAUDE.md`
               and in the existing code).
+
+      - name: Format and lint code
+        if: success()
+        run: |
+          yarn format
+          yarn lint:fix-all || true
+
+      - name: Commit formatting changes
+        if: success()
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            git add .
+            git commit -m "chore: auto-format and lint code
+
+          🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+          Co-Authored-By: Claude <noreply@anthropic.com>"
+            git push
+          else
+            echo "No formatting changes needed"
+          fi
