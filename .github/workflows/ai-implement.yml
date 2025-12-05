@@ -1,0 +1,136 @@
+name: AI Issue Implementation
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  check-permissions:
+    if: github.event.label.name == 'ai-implement'
+    runs-on: ubuntu-latest
+    outputs:
+      has-write-permission: ${{ steps.check.outputs.has-write-permission }}
+    steps:
+      - name: Check user permissions
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: context.actor
+            });
+
+            const hasWritePermission = ['admin', 'maintain', 'write'].includes(permission.permission);
+            console.log(`User ${context.actor} has permission: ${permission.permission}`);
+            console.log(`Has write permission: ${hasWritePermission}`);
+
+            core.setOutput('has-write-permission', hasWritePermission);
+
+  implement:
+    needs: check-permissions
+    if: needs.check-permissions.outputs.has-write-permission == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Create feature branch
+        run: |
+          BRANCH_NAME="ai/issue-${{ github.event.issue.number }}"
+          git checkout -b "$BRANCH_NAME"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Run Claude Code to implement changes
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude -p "You are implementing changes for the Pinto DeFi interface application.
+
+          Issue #${{ github.event.issue.number }}
+          Title: ${{ github.event.issue.title }}
+
+          Description:
+          ${{ github.event.issue.body }}
+
+          Instructions:
+          - Make ONLY the changes requested in the issue
+          - Keep changes minimal and focused
+          - Do not refactor unrelated code
+          - Follow existing code patterns (React, TypeScript, Tailwind, Radix UI)
+          - Ensure type safety throughout
+          - Run 'yarn format-and-lint' before finishing to fix any linting issues
+          - If the request is unclear, make your best reasonable interpretation"
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            echo "HAS_CHANGES=false" >> $GITHUB_ENV
+          else
+            git commit -m "feat: implement issue #${{ github.event.issue.number }}"
+            echo "HAS_CHANGES=true" >> $GITHUB_ENV
+          fi
+
+      - name: Push branch
+        if: env.HAS_CHANGES == 'true'
+        run: git push origin "$BRANCH_NAME"
+
+      - name: Create Pull Request
+        if: env.HAS_CHANGES == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --title "AI: ${{ github.event.issue.title }}" \
+            --body "## Automated Implementation
+
+          This PR implements the changes requested in #${{ github.event.issue.number }}
+
+          ### Review Checklist
+          - [ ] Changes match what was requested
+          - [ ] No unintended modifications
+          - [ ] Code looks correct
+          - [ ] Types are properly defined
+          - [ ] Follows project patterns
+
+          ---
+          *Generated automatically by Claude Code*" \
+            --base main \
+            --head "$BRANCH_NAME"
+
+      - name: Comment on issue (success)
+        if: env.HAS_CHANGES == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} \
+            --body "I've created a PR to implement this request. Please review it when ready!"
+
+      - name: Comment on issue (no changes)
+        if: env.HAS_CHANGES == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} \
+            --body "I analyzed this request but couldn't determine what changes to make. Please provide more details or implement manually."
