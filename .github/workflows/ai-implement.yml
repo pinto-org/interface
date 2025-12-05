@@ -129,9 +129,10 @@ jobs:
                - Prefer touching only the most relevant files. For UI/copy tweaks,
                  avoid broad refactors.
                - After making changes, run these commands in order:
-                 1. `yarn format-and-lint` to format and lint the code
-                 2. If lint errors remain, fix them
-                 3. Commit any format/lint fixes before proceeding
+                 1. `yarn format` to format the code
+                 2. `yarn lint:fix-all` to fix linting issues
+                 3. If lint errors remain, fix them manually
+                 4. Commit any format/lint fixes before proceeding
                - When creating the PR, include:
                  - References the issue (e.g. "Closes #<issue_number>")
                  - Describes what you changed and why
