@@ -94,7 +94,7 @@ export const chartColors: ChartColors = [
     lineColor: "#1E6091", // Deep Blue
   },
   {
-    lineColor: "#E6E6FA", // Lavender
+    lineColor: "#854f96", // Lavender
   },
   {
     lineColor: "#8338EC", // Bright Purple

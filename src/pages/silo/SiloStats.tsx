@@ -257,7 +257,7 @@ const donutOptions = {
 const chartColors = [
   "#246645", // Pinto Green (pinto-green-3)
   "#1E6091", // Deep Blue
-  "#E6E6FA", // Lavender
+  "#854f96", // Lavender
   "#8338EC", // Bright Purple
   "#FF9F1C", // Golden Orange
   "#00BCD4", // Light Blue / Cyan
