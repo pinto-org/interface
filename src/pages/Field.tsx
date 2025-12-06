@@ -445,7 +445,7 @@ const ReadMoreField = () => {
   }, []);
 
   return (
-    <ReadMoreAccordion defaultOpen={!learnDidVisit.field}>
+    <ReadMoreAccordion defaultOpen={false}>
       <>
         Pinto can be lent (Sown) to the protocol in exchange for Pods, protocol-native debt issued with a fixed interest
         rate. Pods function as zero coupon bonds that become redeemable (Harvestable) for 1 Pinto each on a first in,
