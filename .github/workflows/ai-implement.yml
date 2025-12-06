@@ -214,7 +214,7 @@ jobs:
           🤖 Generated with [Claude Code](https://claude.com/claude-code)" \
               2>&1)
 
-            PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$' || echo "")
+            PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+' || echo "")
             echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
             echo "Created PR: $PR_URL"
           fi
