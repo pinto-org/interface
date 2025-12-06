@@ -166,7 +166,8 @@ jobs:
                - Verify the changes address all points in the user's feedback
 
             5. **Commit and Update**:
-               - Before committing, run `yarn format-and-lint` to auto-format code and fix linting errors
+               - DO NOT run `yarn format` or `yarn lint:fix-all` yourself - the CI workflow
+                 will handle formatting and linting automatically after you finish.
                - Make clear, descriptive commits explaining what was fixed
                - Push the changes to the current PR branch
                - The changes will automatically update the existing PR
@@ -180,6 +181,27 @@ jobs:
             - If you can't address something in the feedback, explain why in your commit message
 
             The goal is to address the reviewer's concerns and improve the PR based on their expert feedback.
+
+      - name: Format and lint code
+        if: success()
+        run: |
+          yarn format
+          yarn lint:fix-all || true
+
+      - name: Commit formatting changes
+        if: success()
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            git add .
+            git commit -m "chore: auto-format and lint code
+
+          🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+          Co-Authored-By: Claude <noreply@anthropic.com>"
+            git push -u origin HEAD
+          else
+            echo "No formatting changes needed"
+          fi
 
   unauthorized-user:
     needs: check-permissions

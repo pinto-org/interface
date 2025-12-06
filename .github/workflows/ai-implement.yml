@@ -1,12 +1,13 @@
-name: AI Issue Implementation
+name: Claude Issue Implement
 
 on:
   issues:
-    types: [labeled]
+    types: [opened, labeled]
+  issue_comment:
+    types: [created]
 
 jobs:
   check-permissions:
-    if: github.event.label.name == 'ai-implement'
     runs-on: ubuntu-latest
     outputs:
       has-write-permission: ${{ steps.check.outputs.has-write-permission }}
@@ -19,7 +20,7 @@ jobs:
             const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              username: context.actor
+              username: context.actor,
             });
 
             const hasWritePermission = ['admin', 'maintain', 'write'].includes(permission.permission);
@@ -28,20 +29,38 @@ jobs:
 
             core.setOutput('has-write-permission', hasWritePermission);
 
-  implement:
+  claude-issue-implement:
     needs: check-permissions
-    if: needs.check-permissions.outputs.has-write-permission == 'true'
+    # Only run when:
+    # - actor has write perms
+    # - issue has `ai-implement` label
+    # - and:
+    #   - issue was opened or labeled, OR
+    #   - issue_comment contains @claude (for follow-ups)
+    if: |
+      needs.check-permissions.outputs.has-write-permission == 'true' &&
+      (
+        (
+          github.event_name == 'issues' &&
+          contains(join(github.event.issue.labels.*.name, ','), 'ai-implement')
+        ) ||
+        (
+          github.event_name == 'issue_comment' &&
+          contains(join(github.event.issue.labels.*.name, ','), 'ai-implement') &&
+          contains(github.event.comment.body, '@claude')
+        )
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
       issues: write
+      id-token: write
 
     steps:
-      - name: Checkout repository
+      - name: Checkout default branch
         uses: actions/checkout@v4
         with:
-          ref: main
           fetch-depth: 0
 
       - name: Setup Node.js
@@ -53,108 +72,166 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Install Claude Code
-        run: npm install -g @anthropic-ai/claude-code
-
-      - name: Create feature branch
+      - name: Configure git identity for Claude
         run: |
-          BRANCH_NAME="ai/issue-${{ github.event.issue.number }}"
-          git checkout -b "$BRANCH_NAME"
-          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+          git config --global user.name 'claude-code[bot]'
+          git config --global user.email 'claude-code[bot]@users.noreply.github.com'
 
-      - name: Run Claude Code to implement changes
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      - name: Run Claude Issue Implement
+        id: claude
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          timeout_minutes: 25
+          max_turns: 10
+          allowed_tools: repo,github
+          label_trigger: ai-implement
+          trigger_phrase: "@claude"
+          branch_prefix: claude/issue-
+          custom_instructions: |
+            ============================================================
+            REPOSITORY RULES (CLAUDE.md)
+            ============================================================
+            Before doing anything else in this run:
+
+            1. Use the repository tools to try to read the file `CLAUDE.md`
+               from the root of the repository.
+               - If it exists, read it completely.
+               - Treat the contents of `CLAUDE.md` as persistent, system-level
+                 instructions for this repository.
+               - Follow the conventions, patterns, and rules defined there
+                 for all implementation work, unless they directly conflict
+                 with an explicit instruction in the issue text.
+
+            2. If `CLAUDE.md` does NOT exist:
+               - Proceed without it, but still follow the rest of these
+                 instructions.
+
+            You MUST attempt to load `CLAUDE.md` on every run.
+
+            ============================================================
+            IMPLEMENTATION REQUIREMENTS
+            ============================================================
+
+            1. Understand the request
+               - Read the issue title, body, and comments.
+               - Infer intent. Many of these will be UI/copy tweaks or small features.
+
+            2. Decide whether you have enough information
+               - If you can reasonably infer the required behavior or text changes,
+                 proceed to implementation.
+               - Only treat the issue as "blocking" if you truly cannot make a reasonable
+                 assumption without risking obviously incorrect behavior.
+
+            3A. If you DO have enough information (preferred path): IMPLEMENT
+               - Make the minimal, focused changes needed to implement the issue.
+               - Prefer touching only the most relevant files. For UI/copy tweaks,
+                 avoid broad refactors.
+               - DO NOT run `yarn format` or `yarn lint:fix-all` yourself - the CI workflow
+                 will handle formatting and linting automatically after you finish.
+               - Focus on implementing the functionality correctly.
+               - When creating the PR, include:
+                 - References the issue (e.g. "Closes #<issue_number>")
+                 - Describes what you changed and why
+                 - Lists any tests or checks you ran
+
+            3B. If you DO NOT have enough information (fallback path): ASK ONCE
+               - Post a comment on the issue asking for clarification
+               - Quote or reference the ambiguous part(s) of the issue
+               - Ask 1–3 very specific questions needed to unblock implementation
+               - Explicitly say that once they reply with `@claude`, you will try again
+               - Do NOT attempt a partial implementation if you are clearly confused
+
+            ============================================================
+            NON-INTERACTIVE ENVIRONMENT RULES
+            ============================================================
+
+            - You are running in a CI workflow and CANNOT wait for user replies within a single run.
+            - Do NOT "pause" or assume a back-and-forth conversation.
+            - In each run, you must either:
+              - (A) Fully implement the change and open a PR, OR
+              - (B) Post a single clarifying comment and stop.
+            - Never ask follow-up questions more than once per run.
+            - Prefer making reasonable, safe assumptions over stalling, when ambiguity is minor.
+
+            ============================================================
+            SAFETY AND SCOPE
+            ============================================================
+
+            - Do not modify GitHub workflow files, secrets, or unrelated project configuration.
+            - Keep changes small, localized, and directly related to the `ai-implement` request.
+            - Prefer existing patterns and conventions in this repository (as documented in `CLAUDE.md`
+              and in the existing code).
+
+      - name: Format and lint code
+        if: success()
         run: |
-          claude --print "
-          Implement the following GitHub issue:
+          yarn format
+          yarn lint:fix-all || true
 
-          Issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}
-
-          ${{ github.event.issue.body }}
-
-          Instructions:
-          1. Read CLAUDE.md to understand project patterns
-          2. Find relevant files and make the necessary changes
-          3. Keep changes minimal and focused
-          4. Follow existing patterns (React, TypeScript, Tailwind, Radix UI)
-          5. Run 'yarn format' before finishing
-
-          You MUST make file changes. If unclear, use your best judgment.
-          "
-
-      - name: Format code
-        run: yarn format || true
-
-      - name: Commit changes
+      - name: Commit formatting changes
+        if: success()
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-            echo "HAS_CHANGES=false" >> $GITHUB_ENV
+          if [[ -n $(git status --porcelain) ]]; then
+            git add .
+            git commit -m "chore: auto-format and lint code
+
+          🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+          Co-Authored-By: Claude <noreply@anthropic.com>"
+            git push -u origin HEAD
           else
-            git commit -m "feat: implement issue #${{ github.event.issue.number }}
-
-          ${{ github.event.issue.title }}
-
-          🤖 Generated with Claude Code"
-            echo "HAS_CHANGES=true" >> $GITHUB_ENV
+            echo "No formatting changes needed"
           fi
 
-      - name: Push branch
-        if: env.HAS_CHANGES == 'true'
-        run: git push origin "$BRANCH_NAME"
+      - name: Create or update PR
+        if: success()
+        id: create-pr
+        run: |
+          BRANCH_NAME=$(git branch --show-current)
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
 
-      - name: Create Pull Request
-        if: env.HAS_CHANGES == 'true'
+          # Check if PR already exists for this branch
+          EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || echo "")
+
+          if [[ -n "$EXISTING_PR" ]]; then
+            echo "pr_number=$EXISTING_PR" >> $GITHUB_OUTPUT
+            echo "PR already exists: #$EXISTING_PR"
+          else
+            # Create new PR
+            PR_URL=$(gh pr create \
+              --base main \
+              --head "$BRANCH_NAME" \
+              --title "$(gh issue view $ISSUE_NUMBER --json title --jq '.title')" \
+              --body "Closes #$ISSUE_NUMBER
+
+          ## Changes
+          This PR was automatically generated by Claude Code to address the issue.
+
+          Please review the changes and merge if they look good.
+
+          🤖 Generated with [Claude Code](https://claude.com/claude-code)" \
+              2>&1)
+
+            PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$' || echo "")
+            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+            echo "Created PR: $PR_URL"
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr create \
-            --title "AI: ${{ github.event.issue.title }}" \
-            --body "## Automated Implementation
 
-          This PR implements the changes requested in #${{ github.event.issue.number }}
+      - name: Comment on issue with PR link
+        if: success() && steps.create-pr.outputs.pr_number
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = '${{ steps.create-pr.outputs.pr_number }}';
+            const issueNumber = ${{ github.event.issue.number }};
 
-          ### Review Checklist
-          - [ ] Changes match what was requested
-          - [ ] No unintended modifications
-          - [ ] Code looks correct
-          - [ ] Types are properly defined
-          - [ ] Follows project patterns
-
-          ---
-          🤖 *Generated with Claude Code*" \
-            --base main \
-            --head "$BRANCH_NAME"
-
-      - name: Comment on issue (success)
-        if: env.HAS_CHANGES == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_URL=$(gh pr view "$BRANCH_NAME" --json url -q .url)
-          gh issue comment ${{ github.event.issue.number }} \
-            --body "✅ I've created a PR to implement this request: $PR_URL
-
-          Please review the changes!"
-
-      - name: Comment on issue (no changes)
-        if: env.HAS_CHANGES == 'false'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh issue comment ${{ github.event.issue.number }} \
-            --body "⚠️ I analyzed this request but couldn't determine what changes to make.
-
-          **Possible reasons:**
-          - The request may be too vague
-          - The files to modify couldn't be identified
-          - The changes may require more context
-
-          **To help me:**
-          - Specify which file(s) to modify
-          - Provide more detail about the expected behavior
-          - Include code examples if possible"
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `✅ I've implemented this issue and created PR #${prNumber} for review.\n\nThe code has been formatted and linted automatically.`
+            });
