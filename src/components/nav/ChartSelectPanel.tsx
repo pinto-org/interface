@@ -6,10 +6,10 @@ import { useDebouncedEffect } from "@/utils/useDebounce";
 import { cn } from "@/utils/utils";
 import { useAtom } from "jotai";
 import { isEqual } from "lodash";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { renderAnnouncement } from "../AnnouncementBanner";
 import { ChevronDownIcon, SearchIcon } from "../Icons";
-import { MIN_ADV_SEASON, chartSeasonInputsAtom, selectedChartsAtom } from "../charts/AdvancedChart";
+import { chartSeasonInputsAtom, selectedChartsAtom } from "../charts/AdvancedChart";
 import { Input } from "../ui/Input";
 import { ScrollArea } from "../ui/ScrollArea";
 import { Separator } from "../ui/Separator";
@@ -105,10 +105,11 @@ const ChartSelectPanel = memo(() => {
       } else {
         // When selecting, initialize season input to min value
         const chartData = chartSetupData.find((chart) => chart.index === selection);
-        if (chartData && chartData.inputOptions === "SEASON") {
+        const opts = chartData?.inputOptions;
+        if (opts && opts.type === "SEASON") {
           setInternalSeasonInputs((prev) => ({
             ...prev,
-            [chartData.id]: MIN_ADV_SEASON,
+            [chartData.id]: opts.minSeason,
           }));
         }
         selectedItems.push(selection);
@@ -159,7 +160,15 @@ const ChartSelectPanel = memo(() => {
     () => {
       const clampedInputs = {};
       for (const chartId in rawSeasonInputs) {
-        clampedInputs[chartId] = Math.max(MIN_ADV_SEASON, Math.min(currentSeason, rawSeasonInputs[chartId]));
+        const chartData = chartSetupData.find((chart) => chart.id === chartId);
+        if (!chartData || !chartData.inputOptions) {
+          // Should be unreachable (season input cannot change for chart that didn't configure seasons)
+          continue;
+        }
+        clampedInputs[chartId] = Math.max(
+          chartData.inputOptions.minSeason,
+          Math.min(currentSeason, rawSeasonInputs[chartId]),
+        );
       }
       setInternalSeasonInputs(clampedInputs);
     },
@@ -230,7 +239,7 @@ const ChartSelectPanel = memo(() => {
                             <div className="pinto-sm-light text-pinto-gray-4">{data.shortDescription}</div>
                           </div>
                         </div>
-                        {isSelected && data.inputOptions === "SEASON" && (
+                        {isSelected && data.inputOptions?.type === "SEASON" && (
                           <div className="mt-2 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                             <label
                               htmlFor={`season-input-${data.id}`}
@@ -241,7 +250,7 @@ const ChartSelectPanel = memo(() => {
                             <Input
                               id={`season-input-${data.id}`}
                               type="number"
-                              min={MIN_ADV_SEASON}
+                              min={data.inputOptions?.minSeason}
                               max={currentSeason}
                               value={rawSeasonInputs[data.id] || ""}
                               onChange={(e) => handleSeasonInputChange(data.id, e.target.value)}
