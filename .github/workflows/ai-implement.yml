@@ -164,6 +164,26 @@ jobs:
             - Prefer existing patterns and conventions in this repository (as documented in `CLAUDE.md`
               and in the existing code).
 
+      - name: Ensure feature branch exists
+        if: success()
+        run: |
+          BRANCH_NAME=$(git branch --show-current)
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+
+          echo "Current branch after Claude action: $BRANCH_NAME"
+
+          # Check if we're on a feature branch, create one if not
+          if [[ "$BRANCH_NAME" == "main" ]]; then
+            echo "⚠️ Still on main branch - creating feature branch for issue #$ISSUE_NUMBER"
+            TIMESTAMP=$(date +%Y%m%d-%H%M)
+            NEW_BRANCH="claude/issue-$ISSUE_NUMBER-$TIMESTAMP"
+            git checkout -b "$NEW_BRANCH"
+            BRANCH_NAME="$NEW_BRANCH"
+            echo "✅ Created and switched to branch: $BRANCH_NAME"
+          fi
+
+          echo "Working on branch: $BRANCH_NAME"
+
       - name: Format and lint code
         if: success()
         run: |
@@ -180,33 +200,49 @@ jobs:
           🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
           Co-Authored-By: Claude <noreply@anthropic.com>"
-            git push -u origin HEAD
+            echo "✅ Committed formatting changes"
           else
             echo "No formatting changes needed"
           fi
 
-      - name: Ensure branch is pushed
+      - name: Push all commits to remote
         if: success()
         run: |
           BRANCH_NAME=$(git branch --show-current)
-          ISSUE_NUMBER="${{ github.event.issue.number }}"
 
-          # Check if we're on a feature branch, create one if not
-          if [[ "$BRANCH_NAME" == "main" ]]; then
-            echo "⚠️ Still on main branch - creating feature branch for issue #$ISSUE_NUMBER"
-            TIMESTAMP=$(date +%Y%m%d-%H%M)
-            NEW_BRANCH="claude/issue-$ISSUE_NUMBER-$TIMESTAMP"
-            git checkout -b "$NEW_BRANCH"
-            BRANCH_NAME="$NEW_BRANCH"
-            echo "✅ Created and switched to branch: $BRANCH_NAME"
+          # Check if there are any commits on this branch that aren't on main
+          COMMIT_COUNT=$(git rev-list --count main..HEAD)
+
+          if [[ "$COMMIT_COUNT" -eq 0 ]]; then
+            echo "❌ No commits found on branch $BRANCH_NAME"
+            echo "This indicates Claude action did not make any changes and formatting also made no changes."
+            echo "This is unexpected - the workflow should not reach this point without changes."
+            exit 1
           fi
 
-          echo "Current branch: $BRANCH_NAME"
+          echo "✅ Found $COMMIT_COUNT commit(s) to push"
 
-          # Ensure the branch exists on remote and is up to date
+          # Push all commits to remote
           git push -u origin HEAD --force-with-lease
 
-          echo "✅ Branch pushed to remote"
+          echo "✅ Pushed $COMMIT_COUNT commit(s) to remote"
+
+          # Give GitHub API more time to replicate refs across zones
+          echo "Waiting for GitHub API to replicate..."
+          sleep 5
+
+          # Verify remote has the commits
+          git fetch origin "$BRANCH_NAME" 2>/dev/null || true
+          REMOTE_COMMITS=$(git rev-list --count main..origin/"$BRANCH_NAME" 2>/dev/null || echo "0")
+
+          if [[ "$REMOTE_COMMITS" -eq 0 ]]; then
+            echo "⚠️ Remote branch not showing commits yet, waiting additional time..."
+            sleep 3
+            git fetch origin "$BRANCH_NAME"
+            REMOTE_COMMITS=$(git rev-list --count main..origin/"$BRANCH_NAME" 2>/dev/null || echo "0")
+          fi
+
+          echo "✅ Remote branch has $REMOTE_COMMITS commit(s)"
 
       - name: Create or update PR
         if: success()
@@ -215,36 +251,9 @@ jobs:
           BRANCH_NAME=$(git branch --show-current)
           ISSUE_NUMBER="${{ github.event.issue.number }}"
 
-          # Check if there are any commits on this branch that aren't on main
+          # Verify we have commits (should always be true at this point)
           COMMIT_COUNT=$(git rev-list --count main..HEAD)
-          if [[ "$COMMIT_COUNT" -eq 0 ]]; then
-            echo "⚠️ No commits found on branch $BRANCH_NAME"
-            echo "Creating a placeholder commit to track this issue attempt..."
-
-            # Create a placeholder file to have something to commit
-            mkdir -p .github/claude-attempts
-            echo "Issue #$ISSUE_NUMBER - $(date -u +"%Y-%m-%d %H:%M:%S UTC")" > .github/claude-attempts/issue-$ISSUE_NUMBER.txt
-            echo "Claude attempted to implement this issue but made no code changes." >> .github/claude-attempts/issue-$ISSUE_NUMBER.txt
-            echo "This may indicate the issue needs clarification or was already resolved." >> .github/claude-attempts/issue-$ISSUE_NUMBER.txt
-
-            git add .github/claude-attempts/issue-$ISSUE_NUMBER.txt
-            git commit -m "chore: track Claude attempt for issue #$ISSUE_NUMBER
-
-No code changes were made by Claude. This commit tracks the attempt.
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
-            git push -u origin HEAD
-
-            COMMIT_COUNT=1
-            echo "✅ Created tracking commit"
-          fi
-
-          echo "✅ Found $COMMIT_COUNT commit(s) on branch $BRANCH_NAME"
-
-          # Give GitHub a moment to process the push
-          sleep 2
+          echo "✅ Creating PR with $COMMIT_COUNT commit(s) on branch $BRANCH_NAME"
 
           # Check if PR already exists for this branch
           EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || true)
