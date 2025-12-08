@@ -419,10 +419,7 @@ const FieldCharts = ({ show }: { show: boolean }) => {
     <>
       {isMorning && <MorningTemperatureChart />}
       {!isMorning && (
-        <TemperatureChart
-          chartWrapperClassName="h-[200px] sm:h-[200px] lg:h-[200px]"
-          className="h-[325px] sm:h-[325px] lg:h-[325px]"
-        />
+        <TemperatureChart chartWrapperClassName="h-[200px] sm:h-[300px]" className="h-[325px] sm:h-[435px]" />
       )}
       <FieldTemperatureBarChart />
     </>
