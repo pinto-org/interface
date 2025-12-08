@@ -1,17 +1,15 @@
-import { Col, Row } from "@/components/Container";
+import { Col } from "@/components/Container";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/Form";
 import IconImage from "@/components/ui/IconImage";
 import { Input } from "@/components/ui/Input";
-import { Switch } from "@/components/ui/Switch";
+import Warning from "@/components/ui/Warning";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { useSharedNumericFormFieldHandlers } from "@/hooks/form/useSharedNumericFormFieldHandlers";
 import { usePodLine } from "@/state/useFieldData";
 import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
-import { sanitizeNumericInputValue } from "@/utils/string";
-import { useCallback } from "react";
-import { useFormContext, useFormState } from "react-hook-form";
-import { toast } from "sonner";
+import { useCallback, useEffect, useState } from "react";
+import { useFormContext, useFormState, useWatch } from "react-hook-form";
 import { SowOrderV0FormSchema, validateAdvancedFormFields } from "../form/SowOrderV0Schema";
 import { TractorFormButtonsRow } from "../form/fields/sharedFields";
 
@@ -42,9 +40,37 @@ const SowOrderTractorAdvancedForm = ({ onSubmit, onCancel }: Props) => {
   const mainToken = useChainConstant(MAIN_TOKEN);
   const podLine = usePodLine();
 
+  // State for tracking cross-field validation errors
+  const [crossFieldErrors, setCrossFieldErrors] = useState<string[]>([]);
+
   const minSoilHandlers = useSharedNumericFormFieldHandlers(form, "minSoil", mainToken.decimals);
   const maxPerSeasonHandlers = useSharedNumericFormFieldHandlers(form, "maxPerSeason", mainToken.decimals);
   const podLineLengthHandlers = useSharedNumericFormFieldHandlers(form, "podLineLength", mainToken.decimals);
+
+  // Watch the relevant fields to trigger validation on change
+  const [minSoil, maxPerSeason, totalAmount] = useWatch({
+    control: form.control,
+    name: ["minSoil", "maxPerSeason", "totalAmount"],
+  });
+
+  // Run cross-field validation whenever watched values change
+  useEffect(() => {
+    if (!minSoil || !maxPerSeason || !totalAmount) {
+      setCrossFieldErrors([]);
+      return;
+    }
+
+    const validationResult = validateAdvancedFormFields(
+      {
+        minSoil,
+        maxPerSeason,
+        totalAmount,
+      },
+      form,
+    );
+
+    setCrossFieldErrors(validationResult.errors);
+  }, [minSoil, maxPerSeason, totalAmount, form]);
 
   const handleBack = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -78,10 +104,6 @@ const SowOrderTractorAdvancedForm = ({ onSubmit, onCancel }: Props) => {
       );
 
       if (!validationResult.isValid) {
-        // Show toast with all validation errors
-        validationResult.errors.forEach((error) => {
-          toast.error(error);
-        });
         return;
       }
 
@@ -148,7 +170,23 @@ const SowOrderTractorAdvancedForm = ({ onSubmit, onCancel }: Props) => {
           </FormItem>
         )}
       />
-      <ButtonRow handleBack={handleBack} handleNext={handleNext} />
+      <AdvancedFormErrors errors={crossFieldErrors} />
+      <ButtonRow handleBack={handleBack} handleNext={handleNext} hasErrors={crossFieldErrors.length > 0} />
+    </Col>
+  );
+};
+
+// Error display component for advanced form validation errors
+const AdvancedFormErrors = ({ errors }: { errors: string[] }) => {
+  if (!errors.length) return null;
+
+  return (
+    <Col className="gap-1">
+      {errors.map((err) => (
+        <div key={`${err}-error`}>
+          <Warning variant="warning">{err}</Warning>
+        </div>
+      ))}
     </Col>
   );
 };
@@ -156,13 +194,16 @@ const SowOrderTractorAdvancedForm = ({ onSubmit, onCancel }: Props) => {
 const ButtonRow = ({
   handleBack,
   handleNext,
+  hasErrors: crossFieldHasErrors,
 }: {
   handleBack: (e: React.MouseEvent<HTMLButtonElement>) => void;
   handleNext: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void>;
+  hasErrors?: boolean;
 }) => {
   const { errors } = useFormState<SowOrderV0FormSchema>();
 
-  const hasErrors = Boolean(Object.keys(errors).length);
+  const hasFormErrors = Boolean(Object.keys(errors).length);
+  const hasErrors = hasFormErrors || crossFieldHasErrors;
 
   return (
     <TractorFormButtonsRow
