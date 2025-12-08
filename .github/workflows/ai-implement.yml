@@ -185,19 +185,30 @@ jobs:
             echo "No formatting changes needed"
           fi
 
+      - name: Ensure branch is pushed
+        if: success()
+        run: |
+          BRANCH_NAME=$(git branch --show-current)
+
+          # Check if we're on a feature branch
+          if [[ "$BRANCH_NAME" == "main" ]]; then
+            echo "❌ Still on main branch - Claude did not create a feature branch"
+            exit 1
+          fi
+
+          echo "Current branch: $BRANCH_NAME"
+
+          # Ensure the branch exists on remote and is up to date
+          git push -u origin HEAD --force-with-lease
+
+          echo "✅ Branch pushed to remote"
+
       - name: Create or update PR
         if: success()
         id: create-pr
         run: |
           BRANCH_NAME=$(git branch --show-current)
           ISSUE_NUMBER="${{ github.event.issue.number }}"
-
-          # Check if we're on a feature branch (not main)
-          if [[ "$BRANCH_NAME" == "main" ]]; then
-            echo "❌ Still on main branch - Claude did not create a feature branch"
-            echo "This usually means no changes were needed or Claude couldn't make changes"
-            exit 1
-          fi
 
           # Check if there are any commits on this branch that aren't on main
           COMMIT_COUNT=$(git rev-list --count main..HEAD)
@@ -208,6 +219,9 @@ jobs:
           fi
 
           echo "✅ Found $COMMIT_COUNT commit(s) on branch $BRANCH_NAME"
+
+          # Give GitHub a moment to process the push
+          sleep 2
 
           # Check if PR already exists for this branch
           EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || true)
