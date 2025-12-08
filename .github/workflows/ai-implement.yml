@@ -111,6 +111,24 @@ jobs:
             You MUST attempt to load `CLAUDE.md` on every run.
 
             ============================================================
+            BRANCH AND PR REQUIREMENTS
+            ============================================================
+
+            CRITICAL: You MUST work on a feature branch (never push to main):
+
+            1. Check what branch you're currently on using git commands
+            2. Determine your path:
+               - If you're already on a feature branch (not main): Work on that branch
+               - If you're on 'main': Create a new feature branch using: git checkout -b claude/issue-<issue_number>
+            3. Make your implementation changes and commit them to the feature branch
+            4. Push the feature branch to origin: git push -u origin HEAD
+            5. NEVER push directly to main
+            6. The CI will automatically format/lint and create the PR after you're done
+
+            If you do not create/use a feature branch and push commits, the workflow will fail.
+            Every successful implementation run MUST result in a pushed feature branch with commits.
+
+            ============================================================
             IMPLEMENTATION REQUIREMENTS
             ============================================================
 
@@ -125,16 +143,15 @@ jobs:
                  assumption without risking obviously incorrect behavior.
 
             3A. If you DO have enough information (preferred path): IMPLEMENT
+               - Follow BRANCH AND PR REQUIREMENTS above to ensure you're on a feature branch
                - Make the minimal, focused changes needed to implement the issue.
                - Prefer touching only the most relevant files. For UI/copy tweaks,
                  avoid broad refactors.
+               - Commit your changes with a clear commit message
+               - Push the feature branch to origin (never push to main)
                - DO NOT run `yarn format` or `yarn lint:fix-all` yourself - the CI workflow
                  will handle formatting and linting automatically after you finish.
                - Focus on implementing the functionality correctly.
-               - When creating the PR, include:
-                 - References the issue (e.g. "Closes #<issue_number>")
-                 - Describes what you changed and why
-                 - Lists any tests or checks you ran
 
             3B. If you DO NOT have enough information (fallback path): ASK ONCE
                - Post a comment on the issue asking for clarification
@@ -142,6 +159,7 @@ jobs:
                - Ask 1–3 very specific questions needed to unblock implementation
                - Explicitly say that once they reply with `@claude`, you will try again
                - Do NOT attempt a partial implementation if you are clearly confused
+               - Do NOT create a branch or push commits if you're only asking questions
 
             ============================================================
             NON-INTERACTIVE ENVIRONMENT RULES
@@ -150,8 +168,9 @@ jobs:
             - You are running in a CI workflow and CANNOT wait for user replies within a single run.
             - Do NOT "pause" or assume a back-and-forth conversation.
             - In each run, you must either:
-              - (A) Fully implement the change and open a PR, OR
-              - (B) Post a single clarifying comment and stop.
+              - (A) If already on a feature branch: Fully implement the change, commit, push, and the CI will create a PR, OR
+              - (B) If on main: Create a new feature branch, commit, push to that feature branch (never push to main), and the CI will create a PR, OR
+              - (C) If unclear: Post a single clarifying comment and stop (no branch/commits).
             - Never ask follow-up questions more than once per run.
             - Prefer making reasonable, safe assumptions over stalling, when ambiguity is minor.
 
