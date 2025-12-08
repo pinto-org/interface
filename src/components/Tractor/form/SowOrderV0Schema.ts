@@ -35,6 +35,7 @@ export const sowOrderDialogSchema = z.object({
   podLineLength: positiveNumber("Pod Line Length"),
   morningAuction: z.boolean().default(false),
   operatorTip: positiveNumber("Operator Tip"),
+  customOperatorTip: z.string().optional(),
   selectedTokenStrategy: tokenStrategy,
 });
 

@@ -329,7 +329,10 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                             preset={operatorTipPreset}
                             setPreset={handleSetOperatorTipPreset}
                           />
-                          <SowOrderEstimatedTipPaid />
+                          <SowOrderEstimatedTipPaid
+                            averageTipPaid={averageTipPaid}
+                            operatorTipPreset={operatorTipPreset}
+                          />
                         </Col>
                       </Col>
                     </Col>
