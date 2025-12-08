@@ -29,10 +29,10 @@ export const SowOrderEstimatedTipPaid = ({ averageTipPaid, operatorTipPreset }: 
   const { initialSoil, isLoading: isInitialSoilLoading } = useInitialSoil();
   const { price: pintoPrice } = usePriceData();
 
-  const [operatorTip, maxPerSeason, minSoil, totalAmount] = useWatch({
+  const [operatorTip, customOperatorTip, maxPerSeason, minSoil, totalAmount] = useWatch({
     control: form.control,
-    name: ["operatorTip", "maxPerSeason", "minSoil", "totalAmount"],
-  }) as [string | undefined, string, string, string];
+    name: ["operatorTip", "customOperatorTip", "maxPerSeason", "minSoil", "totalAmount"],
+  }) as [string | undefined, string | undefined, string, string, string];
 
   const tipEstimations = useMemo(() => {
     const total = postSanitizedSanitizedValue(totalAmount ?? "", mainToken.decimals).tv;
@@ -40,8 +40,10 @@ export const SowOrderEstimatedTipPaid = ({ averageTipPaid, operatorTipPreset }: 
     const min = postSanitizedSanitizedValue(minSoil ?? "", mainToken.decimals).tv;
 
     // Calculate tip from preset (same as OperatorTipPresetDropdown does)
+    // Use customOperatorTip when preset is Custom, otherwise use operatorTip
+    const tipAmount = operatorTipPreset === "Custom" ? customOperatorTip : operatorTip;
     const tip =
-      getTractorOperatorTipAmountFromPreset(operatorTipPreset, averageTipPaid, operatorTip, mainToken.decimals) ??
+      getTractorOperatorTipAmountFromPreset(operatorTipPreset, averageTipPaid, tipAmount, mainToken.decimals) ??
       TV.ZERO;
 
     if (total.eq(0) || tip.eq(0)) {
@@ -82,6 +84,7 @@ export const SowOrderEstimatedTipPaid = ({ averageTipPaid, operatorTipPreset }: 
     };
   }, [
     operatorTip,
+    customOperatorTip,
     maxPerSeason,
     minSoil,
     totalAmount,
@@ -98,10 +101,23 @@ export const SowOrderEstimatedTipPaid = ({ averageTipPaid, operatorTipPreset }: 
   return (
     <Row className="w-full justify-between">
       <Row className="gap-1 items-center">
-        <div className="pinto-sm-light text-pinto-secondary">Estimated Total Tip Paid</div>
+        <div className="pinto-sm-light text-pinto-secondary">Estimated Total Tip</div>
         <TooltipSimple
           variant="outlined"
-          content={`The minimum and maximum Pinto you will have paid to the Operator to complete this Order, depending on the number of fills it takes to fill your entire order.`}
+          content={
+            <span>
+              The total tip paid depends on the number of executions needed to fill your order, based on the Soil supply
+              and Cultivation Factor.{" "}
+              <a
+                href="https://docs.pinto.money/pinto-mechanics/field-the-most-innovative-lending-facility-in-crypto/the-cultivation-system-optimal-soil-issuance"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-pinto-green-4"
+              >
+                Learn more
+              </a>
+            </span>
+          }
         />
       </Row>
       <Row className="gap-1 pinto-sm font-normal">
