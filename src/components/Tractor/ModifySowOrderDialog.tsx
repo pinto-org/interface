@@ -391,7 +391,10 @@ export default function ModifyTractorOrderDialog({
                               preset={operatorTipPreset}
                               setPreset={handleSetOperatorTipPreset}
                             />
-                            <SowOrderEstimatedTipPaid />
+                            <SowOrderEstimatedTipPaid
+                              averageTipPaid={averageTipValue}
+                              operatorTipPreset={operatorTipPreset}
+                            />
                           </Col>
                         </Col>
                       </Col>

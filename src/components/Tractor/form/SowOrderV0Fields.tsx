@@ -339,7 +339,7 @@ SowOrderV0Fields.TokenStrategy = function TokenStrategy({
     } else if (strategy?.type === "LOWEST_PRICE") {
       return "Token with Best Price";
     } else if (strategy?.type === "SPECIFIC_TOKEN") {
-      return selectedToken?.symbol || "Select Token";
+      return selectedToken ? `Dep. ${selectedToken.symbol}` : "Select Token";
     }
     return "Select Deposited Silo Token";
   };
