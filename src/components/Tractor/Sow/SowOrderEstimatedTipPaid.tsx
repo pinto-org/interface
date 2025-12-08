@@ -19,9 +19,9 @@ export const SowOrderEstimatedTipPaid = ({ averageTipPaid, operatorTipPreset }: 
   const mainToken = useMainToken();
   const form = useFormContext<SowOrderV0FormSchema>();
 
-  const [customOperatorTip, maxPerSeason, minSoil, totalAmount] = useWatch({
+  const [operatorTip, maxPerSeason, minSoil, totalAmount] = useWatch({
     control: form.control,
-    name: ["customOperatorTip", "maxPerSeason", "minSoil", "totalAmount"],
+    name: ["operatorTip", "maxPerSeason", "minSoil", "totalAmount"],
   }) as [string | undefined, string, string, string];
 
   const tipEstimations = useMemo(() => {
@@ -31,7 +31,7 @@ export const SowOrderEstimatedTipPaid = ({ averageTipPaid, operatorTipPreset }: 
 
     // Calculate tip from preset (same as OperatorTipPresetDropdown does)
     const tip =
-      getTractorOperatorTipAmountFromPreset(operatorTipPreset, averageTipPaid, customOperatorTip, mainToken.decimals) ??
+      getTractorOperatorTipAmountFromPreset(operatorTipPreset, averageTipPaid, operatorTip, mainToken.decimals) ??
       TV.ZERO;
 
     if (total.eq(0) || tip.eq(0)) {
@@ -50,7 +50,7 @@ export const SowOrderEstimatedTipPaid = ({ averageTipPaid, operatorTipPreset }: 
       min: minTimes.mul(tip),
       max: maxTimes.mul(tip),
     };
-  }, [customOperatorTip, maxPerSeason, minSoil, totalAmount, operatorTipPreset, averageTipPaid, mainToken.decimals]);
+  }, [operatorTip, maxPerSeason, minSoil, totalAmount, operatorTipPreset, averageTipPaid, mainToken.decimals]);
 
   return (
     <Row className="w-full justify-between">
