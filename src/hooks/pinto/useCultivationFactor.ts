@@ -5,6 +5,18 @@ import { decodeAbiParameters } from "viem";
 import { useReadContract } from "wagmi";
 
 /**
+ * Stable select function to transform gauge data into cultivation factor.
+ * Extracted outside the hook to maintain a stable reference.
+ */
+const selectCultivationFactor = (data: `0x${string}`) => {
+  // Decode first uint256 from bytes
+  const [cultivationFactor] = decodeAbiParameters([{ type: "uint256" }], data);
+
+  // Return as TokenValue with 18 decimals (standard Solidity precision)
+  return TokenValue.fromBlockchain(cultivationFactor, 6);
+};
+
+/**
  * Hook to fetch the cultivation factor from the protocol's gauge data.
  *
  * The cultivation factor is retrieved by calling `getGaugeData(0)` on the diamond contract,
@@ -22,13 +34,7 @@ export const useCultivationFactor = () => {
     args: [0], // gaugeId = 0
     query: {
       enabled: !!protocolAddress,
-      select: (data: `0x${string}`) => {
-        // Decode first uint256 from bytes
-        const [cultivationFactor] = decodeAbiParameters([{ type: "uint256" }], data);
-
-        // Return as TokenValue with 18 decimals (standard Solidity precision)
-        return TokenValue.fromBlockchain(cultivationFactor, 6);
-      },
+      select: selectCultivationFactor,
     },
   });
 };
