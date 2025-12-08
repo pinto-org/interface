@@ -39,9 +39,8 @@ const sharedInputProps = {
 export const TOOLTIP_COPY = {
   tokenStrategy: "The source token(s) to use for the Sow Order.",
   totalAmount: "The total amount of PINTO to Sow in this order.",
-  temperature:
-    "The minimum Temperature at which this order can be executed. Temperature represents the current price relative to the moving average.",
-  morningAuction: "When enabled, this order will only execute during the Morning Auction period.",
+  temperature: "The minimum Temperature at which this order can be executed.",
+  morningAuction: "The morning is the first 10 minutes of the Season, where the Temperature slowly increases to its maximum. Farmers can opt for their orders to execute during the Morning, such that their orders fill first.",
 } as const;
 
 interface BaseIFormContextHandlers {
@@ -460,7 +459,7 @@ SowOrderV0Fields.MorningAuction = function MorningAuction() {
       name="morningAuction"
       render={({ field }) => (
         <FormItem className="flex flex-row w-full items-center justify-between gap-2 space-y-0">
-          <FormLabel tooltipText={TOOLTIP_COPY.morningAuction}>Execute during the Morning Auction</FormLabel>
+          <FormLabel tooltipText={TOOLTIP_COPY.morningAuction}>Execute during the Morning</FormLabel>
           <FormControl>
             <Switch checked={field.value} onCheckedChange={field.onChange} />
           </FormControl>
