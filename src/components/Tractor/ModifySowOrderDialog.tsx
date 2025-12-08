@@ -1,5 +1,6 @@
 import { diamondABI } from "@/constants/abi/diamondABI";
 
+import { TV } from "@/classes/TokenValue";
 import { TokenValue } from "@/classes/TokenValue";
 import { Col, Row } from "@/components/Container";
 import { Form } from "@/components/Form";
@@ -16,6 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/Dialog";
 import { Separator } from "@/components/ui/Separator";
+import { MAIN_TOKEN } from "@/constants/tokens";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import { useGetTractorTokenStrategyWithBlueprint } from "@/hooks/tractor/useGetTractorTokenStrategy";
 import useSignTractorBlueprint from "@/hooks/tractor/useSignTractorBlueprint";
@@ -26,13 +28,15 @@ import { useGetBlueprintHash } from "@/lib/Tractor/blueprint";
 import { Blueprint, ExtendedTractorTokenStrategy, Requisition, TractorTokenStrategy } from "@/lib/Tractor/types";
 import useTractorOperatorAverageTipPaid from "@/state/tractor/useTractorOperatorAverageTipPaid";
 import { useFarmerSilo } from "@/state/useFarmerSilo";
+import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
-import { postSanitizedSanitizedValue } from "@/utils/string";
+import { postSanitizedSanitizedValue, sanitizeNumericInputValue } from "@/utils/string";
 import { tokensEqual } from "@/utils/token";
 import { cn } from "@/utils/utils";
 import { ArrowRightIcon } from "@radix-ui/react-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
@@ -114,6 +118,27 @@ export default function ModifyTractorOrderDialog({
       setDidPrefill(true);
     }
   }, [open, existingOrder, didPrefill, prefillValues, getStrategyProps]);
+
+  // Set default values for minSoil and maxPerSeason based on totalAmount
+  const mainToken = useChainConstant(MAIN_TOKEN);
+  const [totalAmount] = useWatch({ control: form.control, name: ["totalAmount"] });
+
+  useEffect(() => {
+    if (!totalAmount || totalAmount === "") return;
+
+    const totalAmountTV = sanitizeNumericInputValue(totalAmount, mainToken.decimals).tv;
+    if (totalAmountTV.eq(0)) return;
+
+    // minSoil: min(TotalValueToSow, 25 PINTO)
+    const twentyFivePinto = TV.fromHuman(25, mainToken.decimals);
+    const minSoilValue = TV.min(totalAmountTV, twentyFivePinto);
+    const minSoilFormatted = formatter.number(minSoilValue);
+    form.setValue("minSoil", minSoilFormatted, { shouldValidate: false });
+
+    // maxPerSeason: TotalValueToSow
+    const maxPerSeasonFormatted = formatter.number(totalAmountTV);
+    form.setValue("maxPerSeason", maxPerSeasonFormatted, { shouldValidate: false });
+  }, [totalAmount, mainToken.decimals, form]);
 
   // Handlers for advanced form
   const handleSetAdvanced = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -269,6 +294,8 @@ export default function ModifyTractorOrderDialog({
                         <SowOrderV0Fields.TotalAmount farmerDeposits={farmerDeposits} />
                         {/* Execute when Temperature is at least */}
                         <SowOrderV0Fields.Temperature />
+                        {/* Execute during the Morning Auction */}
+                        <SowOrderV0Fields.MorningAuction />
                         {/* Pods Display */}
                         <SowOrderV0Fields.PodDisplay />
                       </SowOrderV0Fields>

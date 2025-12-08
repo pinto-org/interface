@@ -11,7 +11,8 @@ import { formatter } from "@/utils/format";
 import { sanitizeNumericInputValue } from "@/utils/string";
 import { useCallback } from "react";
 import { useFormContext, useFormState } from "react-hook-form";
-import { SowOrderV0FormSchema } from "../form/SowOrderV0Schema";
+import { toast } from "sonner";
+import { SowOrderV0FormSchema, validateAdvancedFormFields } from "../form/SowOrderV0Schema";
 import { TractorFormButtonsRow } from "../form/fields/sharedFields";
 
 interface Props {
@@ -59,8 +60,28 @@ const SowOrderTractorAdvancedForm = ({ onSubmit, onCancel }: Props) => {
       e.stopPropagation();
       e.preventDefault();
 
-      const isValid = await form.trigger(["minSoil", "maxPerSeason", "podLineLength", "morningAuction"]);
+      // First validate individual fields
+      const isValid = await form.trigger(["minSoil", "maxPerSeason", "podLineLength"]);
       if (!isValid) {
+        return;
+      }
+
+      // Then validate cross-field relationships
+      const formData = form.getValues();
+      const validationResult = validateAdvancedFormFields(
+        {
+          minSoil: formData.minSoil,
+          maxPerSeason: formData.maxPerSeason,
+          totalAmount: formData.totalAmount,
+        },
+        form,
+      );
+
+      if (!validationResult.isValid) {
+        // Show toast with all validation errors
+        validationResult.errors.forEach((error) => {
+          toast.error(error);
+        });
         return;
       }
 
@@ -123,18 +144,6 @@ const SowOrderTractorAdvancedForm = ({ onSubmit, onCancel }: Props) => {
                 placeholder={podLine.gt(0) ? formatter.number(podLine) : "0.00"}
                 isError={!!fieldState.error}
               />
-            </FormControl>
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
-        name="morningAuction"
-        render={({ field }) => (
-          <FormItem className="flex flex-row w-full items-center justify-between gap-2 space-y-0">
-            <FormLabel>Execute during the Morning Auction</FormLabel>
-            <FormControl>
-              <Switch checked={field.value} onCheckedChange={field.onChange} />
             </FormControl>
           </FormItem>
         )}

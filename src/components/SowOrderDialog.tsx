@@ -117,23 +117,15 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
     const totalAmountTV = sanitizeNumericInputValue(totalAmount, mainToken.decimals).tv;
     if (totalAmountTV.eq(0)) return;
 
-    // Only set defaults if fields are empty (don't override user input)
-    const currentMinSoil = form.getValues("minSoil");
-    const currentMaxPerSeason = form.getValues("maxPerSeason");
-
     // minSoil: min(TotalValueToSow, 25 PINTO)
-    if (!currentMinSoil || currentMinSoil === "") {
-      const twentyFivePinto = TV.fromHuman(25, mainToken.decimals);
-      const minSoilValue = TV.min(totalAmountTV, twentyFivePinto);
-      const minSoilFormatted = formatter.number(minSoilValue);
-      form.setValue("minSoil", minSoilFormatted, { shouldValidate: true });
-    }
+    const twentyFivePinto = TV.fromHuman(25, mainToken.decimals);
+    const minSoilValue = TV.min(totalAmountTV, twentyFivePinto);
+    const minSoilFormatted = formatter.number(minSoilValue);
+    form.setValue("minSoil", minSoilFormatted, { shouldValidate: true });
 
     // maxPerSeason: TotalValueToSow
-    if (!currentMaxPerSeason || currentMaxPerSeason === "") {
-      const maxPerSeasonFormatted = formatter.number(totalAmountTV);
-      form.setValue("maxPerSeason", maxPerSeasonFormatted, { shouldValidate: true });
-    }
+    const maxPerSeasonFormatted = formatter.number(totalAmountTV);
+    form.setValue("maxPerSeason", maxPerSeasonFormatted, { shouldValidate: true });
   }, [totalAmount, mainToken.decimals, form]);
 
   // Set default value for podLineLength: current pod line * 2
@@ -293,6 +285,8 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                       <SowOrderV0Fields.TotalAmount farmerDeposits={farmerDeposits} />
                       {/* Execute when Temperature is at least */}
                       <SowOrderV0Fields.Temperature />
+                      {/* Execute during the Morning Auction */}
+                      <SowOrderV0Fields.MorningAuction />
                       {/* Pods Display */}
                       <SowOrderV0Fields.PodDisplay />
                     </SowOrderV0Fields>

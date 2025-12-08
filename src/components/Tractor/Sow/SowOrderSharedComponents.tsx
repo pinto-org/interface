@@ -107,7 +107,6 @@ export const SowOrderFormAdvancedParametersSummary = ({
   const minSoil = values.minSoil;
   const maxPerSeason = values.maxPerSeason;
   const podLineLength = values.podLineLength;
-  const morningAuction = values.morningAuction;
 
   return (
     <Card className="flex flex-col gap-2 border-none">
@@ -126,7 +125,6 @@ export const SowOrderFormAdvancedParametersSummary = ({
         tooltip="The maximum pod line length at which this order can be executed."
         value={podLineLength ? `${formatter.number(podLineLength)} PODS` : "--"}
       />
-      <ReviewRow label="Morning Auction" tooltip={TOOLTIP_COPY.morningAuction} value={morningAuction ? "Yes" : "No"} />
       <Separator className="h-[0.5px] bg-pinto-gray-2 my-1" />
       <Button variant="outline-primary-2" size="md" className="w-full rounded-sm" onClick={toggleEdit}>
         <span>Edit Advanced Parameters</span>

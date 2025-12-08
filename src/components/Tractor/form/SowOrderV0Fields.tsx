@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/Input";
 import { MultiSlider } from "@/components/ui/Slider";
 import { Switch } from "@/components/ui/Switch";
 import { MAIN_TOKEN } from "@/constants/tokens";
+import { useReadBeanstalk_MaxTemperature } from "@/generated/contractHooks";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
-import { useScaledTemperature } from "@/hooks/useContinuousMorningTime";
+import { useTemperature } from "@/state/useFieldData";
 import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
 import { postSanitizedSanitizedValue, sanitizeNumericInputValue, stringEq } from "@/utils/string";
@@ -228,8 +229,6 @@ SowOrderV0Fields.TotalAmount = function TotalAmount({
     return totalAmount.gt(0) ? totalAmount : undefined;
   }, [accountAddress, farmerDeposits, tokenStrategy, farmerBalances, priceData, tokenData]);
 
-  const showSlider = maxAmount?.gt(0) && accountAddress;
-
   const getHandlers = (): BaseIFormContextHandlers => {
     return {
       ...handlers,
@@ -242,13 +241,14 @@ SowOrderV0Fields.TotalAmount = function TotalAmount({
     };
   };
 
+  // Disable slider if no token strategy selected or no balance available
+  const isSliderDisabled = !tokenStrategy || !maxAmount || maxAmount.lte(0);
+
   return (
     <Col className="flex-1 gap-2">
       <TooltipLabel tooltipText={TOOLTIP_COPY.totalAmount}>I want to Sow up to</TooltipLabel>
       <Row className="flex-1 gap-4 w-full">
-        {showSlider ? (
-          <TotalAmountSlider maxAmount={maxAmount} disabled={!tokenStrategy} ctx={ctx} handlers={handlers} />
-        ) : null}
+        <TotalAmountSlider maxAmount={maxAmount} disabled={isSliderDisabled} ctx={ctx} handlers={handlers} />
         <FormField
           control={ctx.control}
           name="totalAmount"
@@ -262,7 +262,7 @@ SowOrderV0Fields.TotalAmount = function TotalAmount({
                 {...getHandlers()}
                 isError={!!fieldState.error}
                 containerClassName="w-full"
-                className={cn(showSlider ? "min-w-[25rem]" : "")}
+                className="min-w-[25rem]"
                 endIcon={<MainTokenAdornment />}
               />
             </FormControl>
@@ -400,12 +400,16 @@ const TemperatureSlider = ({
 SowOrderV0Fields.Temperature = function Temperature() {
   const ctx = useFormContext<SowOrderV0FormSchema>();
   const handlers = useSharedInputHandlers(ctx, "temperature");
-  const { address: accountAddress } = useAccount();
-  const currTemp = useScaledTemperature();
+  const { data: maxTemperature } = useReadBeanstalk_MaxTemperature();
+  const temperature = useTemperature();
 
   const currentTempValue = useMemo(() => {
-    return Math.floor(currTemp.scaled?.toNumber() || 0);
-  }, [currTemp]);
+    // Use max temperature from contract if available, otherwise use temperature state
+    if (maxTemperature !== undefined) {
+      return Math.floor(TV.fromBigInt(maxTemperature, 6).toNumber());
+    }
+    return Math.floor(temperature.max?.toNumber() || 0);
+  }, [maxTemperature, temperature.max]);
 
   const minTemp = useMemo(() => Math.max(0, currentTempValue - 100), [currentTempValue]);
   const maxTemp = useMemo(() => currentTempValue + 100, [currentTempValue]);
@@ -418,13 +422,11 @@ SowOrderV0Fields.Temperature = function Temperature() {
     }
   }, [currentTempValue, ctx]);
 
-  const showSlider = accountAddress;
-
   return (
     <Col className="flex-1 gap-2">
       <TooltipLabel tooltipText={TOOLTIP_COPY.temperature}>Minimum Temperature to Sow</TooltipLabel>
       <Row className="flex-1 gap-4 w-full">
-        {showSlider ? <TemperatureSlider minTemp={minTemp} maxTemp={maxTemp} disabled={false} ctx={ctx} /> : null}
+        <TemperatureSlider minTemp={minTemp} maxTemp={maxTemp} disabled={false} ctx={ctx} />
         <FormField
           control={ctx.control}
           name="temperature"
@@ -433,12 +435,12 @@ SowOrderV0Fields.Temperature = function Temperature() {
               <Input
                 {...field}
                 {...sharedInputProps}
-                className={cn("rounded-lg", showSlider ? "min-w-[30rem]" : "w-[8.75rem]")}
+                className="rounded-lg min-w-[30rem]"
                 placeholder={currentTempValue.toString()}
                 outlined
                 {...handlers}
                 isError={!!fieldState.error}
-                containerClassName={showSlider ? "w-full" : undefined}
+                containerClassName="w-full"
                 endIcon={<div className="mr-2 text-pinto-primary pinto-body-bold">%</div>}
               />
             </FormControl>
@@ -472,7 +474,8 @@ SowOrderV0Fields.PodDisplay = function PodDisplay() {
   const ctx = useFormContext<SowOrderV0FormSchema>();
   const mainToken = useChainConstant(MAIN_TOKEN);
   const [totalAmount, temperature] = useWatch({ control: ctx.control, name: ["totalAmount", "temperature"] });
-  const currentTemperature = useScaledTemperature();
+  const { data: maxTemperature } = useReadBeanstalk_MaxTemperature();
+  const temperatureState = useTemperature();
 
   const estimatedPods = useMemo(() => {
     if (!totalAmount || totalAmount === "") {
@@ -484,16 +487,18 @@ SowOrderV0Fields.PodDisplay = function PodDisplay() {
       return TV.ZERO;
     }
 
-    // Use temperature from form if available, otherwise use current temperature
+    // Use temperature from form if available, otherwise use max temperature from contract
     const tempValue =
       temperature && temperature !== ""
         ? Number(temperature.replace(/,/g, ""))
-        : currentTemperature.scaled?.toNumber() || 0;
+        : maxTemperature !== undefined
+          ? TV.fromBigInt(maxTemperature, 6).toNumber()
+          : temperatureState.max?.toNumber() || 0;
 
     // Calculate pods: amount * (temperature + 100) / 100
     const multiplier = TV.fromHuman(tempValue + 100, 6).div(100);
     return multiplier.mul(totalAmountTV);
-  }, [totalAmount, temperature, mainToken.decimals, currentTemperature.scaled]);
+  }, [totalAmount, temperature, mainToken.decimals, maxTemperature, temperatureState.max]);
 
   return (
     <Row className="w-full items-center justify-between">
