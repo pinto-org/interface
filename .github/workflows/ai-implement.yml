@@ -192,6 +192,23 @@ jobs:
           BRANCH_NAME=$(git branch --show-current)
           ISSUE_NUMBER="${{ github.event.issue.number }}"
 
+          # Check if we're on a feature branch (not main)
+          if [[ "$BRANCH_NAME" == "main" ]]; then
+            echo "❌ Still on main branch - Claude did not create a feature branch"
+            echo "This usually means no changes were needed or Claude couldn't make changes"
+            exit 1
+          fi
+
+          # Check if there are any commits on this branch that aren't on main
+          COMMIT_COUNT=$(git rev-list --count main..HEAD)
+          if [[ "$COMMIT_COUNT" -eq 0 ]]; then
+            echo "❌ No commits found on branch $BRANCH_NAME"
+            echo "This usually means Claude didn't make any changes"
+            exit 1
+          fi
+
+          echo "✅ Found $COMMIT_COUNT commit(s) on branch $BRANCH_NAME"
+
           # Check if PR already exists for this branch
           EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || echo "")
 
@@ -234,4 +251,18 @@ jobs:
               repo: context.repo.repo,
               issue_number: issueNumber,
               body: `✅ I've implemented this issue and created PR #${prNumber} for review.\n\nThe code has been formatted and linted automatically.`
+            });
+
+      - name: Comment on issue if no changes were made
+        if: failure() && steps.create-pr.conclusion == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = ${{ github.event.issue.number }};
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `⚠️ I analyzed this issue but was unable to create a pull request.\n\nThis could mean:\n- No code changes were needed\n- I need more information to implement this\n- The issue may have already been resolved\n\nPlease check the [workflow logs](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for more details.`
             });
