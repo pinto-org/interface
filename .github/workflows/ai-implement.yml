@@ -210,17 +210,31 @@ jobs:
           echo "✅ Found $COMMIT_COUNT commit(s) on branch $BRANCH_NAME"
 
           # Check if PR already exists for this branch
-          EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || true)
 
-          if [[ -n "$EXISTING_PR" ]]; then
+          if [[ -n "$EXISTING_PR" && "$EXISTING_PR" != "null" ]]; then
             echo "pr_number=$EXISTING_PR" >> $GITHUB_OUTPUT
-            echo "PR already exists: #$EXISTING_PR"
+            echo "✅ PR already exists: #$EXISTING_PR"
           else
-            # Create new PR
-            PR_URL=$(gh pr create \
+            echo "Creating new PR..."
+
+            # Get issue title
+            ISSUE_TITLE=$(gh issue view $ISSUE_NUMBER --json title --jq '.title')
+
+            # Validate we got the title
+            if [[ -z "$ISSUE_TITLE" ]]; then
+              echo "❌ Failed to fetch issue title for issue #$ISSUE_NUMBER"
+              exit 1
+            fi
+
+            echo "Issue title: $ISSUE_TITLE"
+
+            # Create new PR - capture output and exit code separately
+            set +e
+            PR_OUTPUT=$(gh pr create \
               --base main \
               --head "$BRANCH_NAME" \
-              --title "$(gh issue view $ISSUE_NUMBER --json title --jq '.title')" \
+              --title "$ISSUE_TITLE" \
               --body "Closes #$ISSUE_NUMBER
 
           ## Changes
@@ -228,12 +242,34 @@ jobs:
 
           Please review the changes and merge if they look good.
 
-          🤖 Generated with [Claude Code](https://claude.com/claude-code)" \
-              2>&1)
+          🤖 Generated with [Claude Code](https://claude.com/claude-code)" 2>&1)
+            PR_EXIT_CODE=$?
+            set -e
 
-            PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+' || echo "")
-            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-            echo "Created PR: $PR_URL"
+            if [[ $PR_EXIT_CODE -ne 0 ]]; then
+              echo "❌ Failed to create PR. Error output:"
+              echo "$PR_OUTPUT"
+              exit 1
+            fi
+
+            # Extract PR number from URL (format: https://github.com/owner/repo/pull/123)
+            PR_NUMBER=$(echo "$PR_OUTPUT" | grep -oE 'pull/[0-9]+' | grep -oE '[0-9]+' || echo "")
+
+            if [[ -z "$PR_NUMBER" ]]; then
+              echo "⚠️ PR created but could not extract PR number from output:"
+              echo "$PR_OUTPUT"
+              # Try alternative extraction methods
+              PR_NUMBER=$(echo "$PR_OUTPUT" | grep -oE '#[0-9]+' | grep -oE '[0-9]+' | head -1 || echo "")
+            fi
+
+            if [[ -n "$PR_NUMBER" ]]; then
+              echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+              echo "✅ Created PR #$PR_NUMBER"
+              echo "PR URL: $PR_OUTPUT"
+            else
+              echo "❌ Could not determine PR number"
+              exit 1
+            fi
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
