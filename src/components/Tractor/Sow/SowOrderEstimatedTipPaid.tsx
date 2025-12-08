@@ -8,22 +8,31 @@ import { postSanitizedSanitizedValue } from "@/utils/string";
 import { useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { SowOrderV0FormSchema } from "../form/SowOrderV0Schema";
+import { TractorOperatorTipStrategy, getTractorOperatorTipAmountFromPreset } from "../form/fields/sharedFields";
 
-export const SowOrderEstimatedTipPaid = () => {
+interface SowOrderEstimatedTipPaidProps {
+  averageTipPaid: number;
+  operatorTipPreset: TractorOperatorTipStrategy;
+}
+
+export const SowOrderEstimatedTipPaid = ({ averageTipPaid, operatorTipPreset }: SowOrderEstimatedTipPaidProps) => {
   const mainToken = useMainToken();
   const form = useFormContext<SowOrderV0FormSchema>();
-  const values = useWatch({ control: form.control });
-  const operatorTip = values.operatorTip;
-  const maxPerSeason = values.maxPerSeason;
-  const minSoil = values.minSoil;
-  const totalAmount = values.totalAmount;
+
+  const [customOperatorTip, maxPerSeason, minSoil, totalAmount] = useWatch({
+    control: form.control,
+    name: ["customOperatorTip", "maxPerSeason", "minSoil", "totalAmount"],
+  }) as [string | undefined, string, string, string];
 
   const tipEstimations = useMemo(() => {
     const total = postSanitizedSanitizedValue(totalAmount ?? "", mainToken.decimals).tv;
     const max = postSanitizedSanitizedValue(maxPerSeason ?? "", mainToken.decimals).tv;
     const min = postSanitizedSanitizedValue(minSoil ?? "", mainToken.decimals).tv;
 
-    const tip = postSanitizedSanitizedValue(operatorTip ?? "", mainToken.decimals).tv;
+    // Calculate tip from preset (same as OperatorTipPresetDropdown does)
+    const tip =
+      getTractorOperatorTipAmountFromPreset(operatorTipPreset, averageTipPaid, customOperatorTip, mainToken.decimals) ??
+      TV.ZERO;
 
     if (total.eq(0) || tip.eq(0)) {
       return {
@@ -41,7 +50,7 @@ export const SowOrderEstimatedTipPaid = () => {
       min: minTimes.mul(tip),
       max: maxTimes.mul(tip),
     };
-  }, [operatorTip, maxPerSeason, minSoil, totalAmount, mainToken.decimals]);
+  }, [customOperatorTip, maxPerSeason, minSoil, totalAmount, operatorTipPreset, averageTipPaid, mainToken.decimals]);
 
   return (
     <Row className="w-full justify-between">
