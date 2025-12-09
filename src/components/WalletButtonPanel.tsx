@@ -1,3 +1,5 @@
+import copyIcon from "@/assets/misc/Copy.svg";
+import etherscanIcon from "@/assets/misc/Etherscan.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { useWalletNFTProfile } from "@/hooks/useWalletNFTProfile";
@@ -14,6 +16,7 @@ import { Avatar } from "connectkit";
 import { useAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { useAccount, useDisconnect, useEnsAvatar, useEnsName } from "wagmi";
 import { renderAnnouncement } from "./AnnouncementBanner";
 import ChainButton from "./ChainButton";
@@ -23,6 +26,7 @@ import WalletButtonTransfer from "./WalletButtonTransfer";
 import WalletPanelTokenDisplay from "./WalletPanelTokenDisplay";
 import { Button } from "./ui/Button";
 import { CardContent, CardFooter, CardHeader } from "./ui/Card";
+import IconImage from "./ui/IconImage";
 import { ScrollArea } from "./ui/ScrollArea";
 import { Separator } from "./ui/Separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/Tabs";
@@ -82,19 +86,50 @@ interface WalletHeaderProps {
   totalBalance: FarmerBalance;
   navigate: ReturnType<typeof useNavigate>;
 }
-const WalletHeader = ({ address, ensName, ensAvatar, totalBalance }: WalletHeaderProps) => (
-  <div className="flex flex-col gap-2 2xl:gap-4">
-    <div className="flex flex-row gap-1 items-center h-4">
-      {ensAvatar && <Avatar address={address} size={24} />}
-      <span className="pinto-sm text-pinto-gray-5">
-        {ensName || (address ? `${address.substring(0, 7)}...${address.substring(38, 42)}` : "")}
+const WalletHeader = ({ address, ensName, ensAvatar, totalBalance }: WalletHeaderProps) => {
+  const handleCopyAddress = useCallback(() => {
+    if (!address) return;
+    navigator.clipboard.writeText(address);
+    toast.success("Address copied to clipboard");
+  }, [address]);
+
+  const basescanUrl = address ? `https://basescan.org/address/${address}` : "#";
+
+  return (
+    <div className="flex flex-col gap-2 2xl:gap-4">
+      <div className="flex flex-row gap-1 items-center h-4">
+        {ensAvatar && <Avatar address={address} size={24} />}
+        <span className="pinto-sm text-pinto-gray-5">
+          {ensName || (address ? `${address.substring(0, 7)}...${address.substring(38, 42)}` : "")}
+        </span>
+        {address && (
+          <div className="flex flex-row gap-2 items-center ml-1">
+            <button
+              type="button"
+              onClick={handleCopyAddress}
+              className="flex items-center justify-center hover:opacity-70 transition-opacity"
+              aria-label="Copy address"
+            >
+              <IconImage src={copyIcon} size={4} alt="copy address" />
+            </button>
+            <a
+              href={basescanUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center hover:opacity-70 transition-opacity"
+              aria-label="View on Basescan"
+            >
+              <IconImage src={etherscanIcon} size={4} alt="view on basescan" />
+            </a>
+          </div>
+        )}
+      </div>
+      <span className="text-[3rem] leading-[1.1] 2xl:pinto-h1 text-pinto-gray-5">
+        {formatter.usd(totalBalance.total, { decimals: totalBalance.total.gt(9999999) ? 0 : 2 })}
       </span>
     </div>
-    <span className="text-[3rem] leading-[1.1] 2xl:pinto-h1 text-pinto-gray-5">
-      {formatter.usd(totalBalance.total, { decimals: totalBalance.total.gt(9999999) ? 0 : 2 })}
-    </span>
-  </div>
-);
+  );
+};
 
 // Balance summary component
 interface BalanceSummaryProps {
