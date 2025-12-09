@@ -3,6 +3,7 @@ import TextSkeleton from "@/components/TextSkeleton";
 import BarChart from "@/components/charts/BarChart";
 import TimeTabsSelector, { TimeTab } from "@/components/charts/TimeTabs";
 import { Card } from "@/components/ui/Card";
+import { SG_FETCH_DISABLED } from "@/constants/subgraph";
 import { useSharedTimeTab } from "@/hooks/useSharedTimeTab";
 import useBucketedFieldPlotSummary, {
   AggregatedFieldPlotsSummary,
@@ -142,6 +143,7 @@ const FieldTemperatureBarChart = React.memo(({ className, variant = "default" }:
               onMouseOver={setActiveIndex}
               yLabelFormatter={formatY}
               xLabelFormatter={formatX}
+              noData={SG_FETCH_DISABLED}
             />
           </div>
         </Col>

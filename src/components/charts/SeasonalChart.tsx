@@ -1,4 +1,5 @@
 import FrameAnimator from "@/components/LoadingSpinner.tsx";
+import { SG_FETCH_DISABLED } from "@/constants/subgraph";
 import { formatDate } from "@/utils/format";
 import { UseSeasonalResult } from "@/utils/types";
 import { cn } from "@/utils/utils";
@@ -96,7 +97,8 @@ const SeasonalChart = ({
   fillArea,
   statVariant = "explorer",
   className,
-  dataNotFetching = false,
+  // biome-ignore lint/complexity/noUselessTernary: nodata default when sg is down
+  dataNotFetching = SG_FETCH_DISABLED ? true : false,
   useLogarithmicScale = false,
   showReferenceLineAtOne = false,
   analyticsContext,
@@ -158,6 +160,8 @@ const SeasonalChart = ({
     [allData],
   );
 
+  const showMidState = ((!allData && !displayData) || isLoading || isError) && !dataNotFetching;
+
   return (
     <div className={cn("rounded-[20px] bg-gray-1", className)}>
       <div className="flex justify-between pt-4 px-4 sm:pt-6 sm:px-6">
@@ -171,8 +175,7 @@ const SeasonalChart = ({
         </div>
         <TimeTabsSelector tab={activeTab} setTab={handleChangeTab} context={analyticsContext} />
       </div>
-
-      {((!allData && !displayData) || isLoading || isError) && !dataNotFetching && (
+      {showMidState && (
         <>
           {/* Keep sizing the same as when there is data. Allows centering spinner/error vertically */}
           <div
