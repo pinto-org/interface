@@ -5,7 +5,6 @@ import { useAccount } from "wagmi";
 export interface UseChainSelectionReturn {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
-  handleConnect: () => void;
 }
 
 /**
@@ -69,14 +68,8 @@ export function useChainSelection(
     }
   }, [address, walletModalOpen, isConnected, onWalletModalClose]);
 
-  const handleConnect = () => {
-    // Connection handled by useWalletConnection
-    // This is just a placeholder for modal close logic
-  };
-
   return {
     isOpen,
     setIsOpen,
-    handleConnect,
   };
 }
