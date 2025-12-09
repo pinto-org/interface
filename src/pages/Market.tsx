@@ -425,7 +425,9 @@ export function Market() {
     [navigate],
   );
 
-  const viewMode = mode;
+  // Default to buy/fill when no mode is selected
+  const viewMode = mode || "buy";
+  const viewAction = id || (viewMode === "buy" ? "fill" : "create");
 
   return (
     <>
@@ -482,7 +484,8 @@ export function Market() {
                   overlayParams={overlayParams}
                   chartRef={chartRef}
                   visible={
-                    (mode === "buy" && (id === "create" || id === "fill")) || (mode === "sell" && id === "create")
+                    (viewMode === "buy" && (viewAction === "create" || viewAction === "fill")) ||
+                    (viewMode === "sell" && viewAction === "create")
                   }
                   harvestableIndex={harvestableIndex}
                   marketListingScores={marketListingScores}
@@ -518,16 +521,16 @@ export function Market() {
                 <div className="flex flex-col gap-4 p-4">
                   <MarketModeSelect onSecondarySelectionChange={handleSecondaryTabClick} />
                   <div className="flex flex-col gap-4">
-                    {viewMode === "buy" && id === "create" && (
+                    {viewMode === "buy" && viewAction === "create" && (
                       <CreateOrder onOverlayParamsChange={handleOverlayParamsChange} />
                     )}
-                    {viewMode === "buy" && id === "fill" && (
+                    {viewMode === "buy" && viewAction === "fill" && (
                       <FillListing onOverlayParamsChange={handleOverlayParamsChange} />
                     )}
-                    {viewMode === "sell" && id === "create" && (
+                    {viewMode === "sell" && viewAction === "create" && (
                       <CreateListing onOverlayParamsChange={handleOverlayParamsChange} />
                     )}
-                    {viewMode === "sell" && id === "fill" && <FillOrder />}
+                    {viewMode === "sell" && viewAction === "fill" && <FillOrder />}
                   </div>
                 </div>
               </Card>

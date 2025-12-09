@@ -36,19 +36,16 @@ export default function MarketModeSelect({ onMainSelectionChange, onSecondarySel
   const navigate = useNavigate();
 
   // Derive current state from URL params
-  const { mainTab, secondaryTab, mainTabValue, secondaryTabValue } = useMemo(() => {
+  const { mainTab, secondaryTab, secondaryTabValue } = useMemo(() => {
     const validMode = mode === "buy" || mode === "sell" ? (mode as MarketMode) : undefined;
     const validAction = id === "create" || id === "fill" ? (id as MarketAction) : undefined;
 
-    // Only use default mode if a valid mode exists, otherwise leave undefined
-    const currentMode = validMode;
     const defaultAction = validMode ? DEFAULT_ACTION_BY_MODE[validMode] : undefined;
     const currentAction = validAction ?? defaultAction;
 
     return {
       mainTab: validMode,
       secondaryTab: validAction ?? (validMode ? DEFAULT_ACTION_BY_MODE[validMode] : undefined),
-      mainTabValue: currentMode ?? DEFAULT_MODE, // Fallback for Tabs component
       secondaryTabValue: currentAction ?? DEFAULT_ACTION_BY_MODE[DEFAULT_MODE], // Fallback for Tabs component
     };
   }, [mode, id]);
@@ -73,20 +70,18 @@ export default function MarketModeSelect({ onMainSelectionChange, onSecondarySel
 
   const handleSecondaryChange = useCallback(
     (v: string) => {
-      if (!mainTab) {
-        return;
-      }
+      const currentMode = mainTab ?? DEFAULT_MODE;
       // Track create/fill tab changes
       trackSimpleEvent(ANALYTICS_EVENTS.MARKET.CREATE_FILL_TAB_CLICK, {
         previous_action: secondaryTab,
         new_action: v,
-        market_mode: mainTab,
+        market_mode: currentMode,
       });
 
       if (v === "create") {
-        navigate(`/market/pods/${mainTab}/create`);
+        navigate(`/market/pods/${currentMode}/create`);
       } else if (v === "fill") {
-        navigate(`/market/pods/${mainTab}/fill`);
+        navigate(`/market/pods/${currentMode}/fill`);
       }
       onSecondarySelectionChange?.(v);
     },
@@ -95,36 +90,24 @@ export default function MarketModeSelect({ onMainSelectionChange, onSecondarySel
 
   return (
     <div className="flex flex-col gap-4 mb-4">
-      <Tabs className="w-full" value={mainTab ?? ""} onValueChange={handleMainChange}>
+      <Tabs className="w-full" value={mainTab ?? DEFAULT_MODE} onValueChange={handleMainChange}>
         <TabsList variant="textSecondaryLarge" className="justify-around mt-1">
           <TabsTrigger value="buy">Buy Pods</TabsTrigger>
           <TabsTrigger value="sell">Sell Pods</TabsTrigger>
         </TabsList>
       </Tabs>
-      {mainTab ? (
-        <>
-          <Separator className="bg-pinto-gray-2" />
-          <Tabs
-            className="w-full"
-            value={secondaryTabValue}
-            defaultValue={DEFAULT_ACTION_BY_MODE[mainTab]}
-            onValueChange={handleSecondaryChange}
-          >
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="create">{ACTION_LABELS[mainTab].create}</TabsTrigger>
-              <TabsTrigger value="fill">{ACTION_LABELS[mainTab].fill}</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </>
-      ) : (
-        <div className="flex flex-col gap-2 justify-center items-center w-full h-[12rem] border rounded-[0.75rem] bg-pinto-off-white border-pinto-gray-2">
-          <div className="pinto-body-light text-pinto-light text-center">
-            Select <span className="text-pinto-primary font-medium">Buy Pods</span>
-            <br />
-            or <span className="text-pinto-primary font-medium">Sell Pods</span>
-          </div>
-        </div>
-      )}
+      <Separator className="bg-pinto-gray-2" />
+      <Tabs
+        className="w-full"
+        value={secondaryTabValue}
+        defaultValue={DEFAULT_ACTION_BY_MODE[mainTab ?? DEFAULT_MODE]}
+        onValueChange={handleSecondaryChange}
+      >
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="create">{ACTION_LABELS[mainTab ?? DEFAULT_MODE].create}</TabsTrigger>
+          <TabsTrigger value="fill">{ACTION_LABELS[mainTab ?? DEFAULT_MODE].fill}</TabsTrigger>
+        </TabsList>
+      </Tabs>
     </div>
   );
 }
