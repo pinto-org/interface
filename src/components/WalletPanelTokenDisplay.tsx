@@ -63,7 +63,7 @@ const WalletPanelTokenDisplay = ({
                   <div className="relative">
                     <DonutChart
                       data={{
-                        labels: ["Farm Balance", "Wallet Balance"],
+                        labels: ["Farm Wallet", "ExternalWallet"],
                         datasets: [
                           {
                             label: "",
@@ -102,7 +102,7 @@ const WalletPanelTokenDisplay = ({
               <div className="font-[340] text-[0.875rem] sm:text-[1rem] text-pinto-gray-4 flex justify-between items-center">
                 <div className="flex items-center gap-1">
                   <div className="rounded-full bg-pinto w-3 h-3 flex-shrink-0" />
-                  <div>Wallet Balance</div>
+                  <div>External Wallet</div>
                 </div>
                 <div>{`${balances.external.toHuman("short")} ${token.symbol}`}</div>
               </div>
@@ -110,7 +110,7 @@ const WalletPanelTokenDisplay = ({
                 <div className="font-[340] text-[0.875rem] sm:text-[1rem] text-pinto-gray-4 flex justify-between items-center">
                   <div className="flex items-center gap-1">
                     <div className="rounded-full bg-pinto-morning-yellow-1 w-3 h-3 flex-shrink-0" />
-                    <div>Farm Balance</div>
+                    <div>Farm Wallet</div>
                   </div>
                   <div>{`${balances.internal.toHuman("short")} ${token.symbol}`}</div>
                 </div>

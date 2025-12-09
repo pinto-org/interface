@@ -63,7 +63,7 @@ export default function TransferAll() {
       if (!account.address || !destination) return;
       const farmData: `0x${string}`[] = [];
 
-      // Farm Balance Transfers
+      // Farm Wallet Transfers
       for (const balanceData of balancesToSend) {
         if (balanceData.balance.internal.eq(0)) continue;
         const balanceTransferCall = encodeFunctionData({

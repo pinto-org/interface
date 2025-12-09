@@ -168,7 +168,7 @@ export default function StepOne({
           className="font-[340] text-[1rem] sm:text-[1.25rem] text-pinto-green-4 bg-transparent hover:underline hover:bg-transparent"
           onClick={handleMaxToggle}
         >
-          {!usingMax ? "Send all Farm Balance tokens" : "Send only some of my Farm Balance"}
+          {!usingMax ? "Send all Farm Wallet tokens" : "Send only some of my Farm Wallet"}
         </Button>
       </motion.div>
 
@@ -182,7 +182,7 @@ export default function StepOne({
             exit="exit"
             className="flex flex-col gap-2"
           >
-            <Label>Amounts and tokens in my Farm Balance to send</Label>
+            <Label>Amounts and tokens in my Farm Wallet to send</Label>
             <AllFarmBalances />
           </motion.div>
         ) : (
@@ -232,7 +232,7 @@ export default function StepOne({
                     setTokens={setSelectedTokens}
                     selectedTokens={transferData.map((data) => data.token)}
                     tokenAndBalanceMap={tokenAndBalanceMap}
-                    customTitle="Select token(s) in your Farm Balance to send"
+                    customTitle="Select token(s) in your Farm Wallet to send"
                   />
                 </div>
               )}

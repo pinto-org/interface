@@ -7,7 +7,7 @@
     "dev": "vite",
     "wagmi:generate": "wagmi generate --config ./src/utils/wagmi/wagmi.config.ts",
     "generate": "yarn wagmi:generate && graphql-codegen",
-    "build": "yarn generate && tsc && vite build",
+    "build": "vite build",
     "build:netlify": "./scripts/build-netlify.sh",
     "lint:check": "biome check",
     "lint:check-errors-only": "biome check --diagnostic-level=error",

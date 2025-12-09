@@ -12,10 +12,7 @@ import PageContainer from "@/components/ui/PageContainer";
 import { Separator } from "@/components/ui/Separator";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import MorningTemperatureChart from "@/pages/field/MorningTemperature";
-import {
-  useUpdateMorningSoilOnInterval,
-  useUpdateMorningTemperatureOnInterval,
-} from "@/state/protocol/field/field.updater";
+import { useUpdateMorningSoilOnInterval } from "@/state/protocol/field/field.updater";
 import { trackSimpleEvent } from "@/utils/analytics";
 
 import { Col } from "@/components/Container";
@@ -87,7 +84,6 @@ function TractorButton({ onClick }: { onClick: () => void }) {
 }
 
 function Field() {
-  useUpdateMorningTemperatureOnInterval();
   useUpdateMorningSoilOnInterval();
   const farmerField = useFarmerField();
   const harvestableIndex = useHarvestableIndex();
@@ -422,13 +418,10 @@ const FieldCharts = ({ show }: { show: boolean }) => {
   return (
     <>
       {isMorning && <MorningTemperatureChart />}
-      <FieldTemperatureBarChart />
       {!isMorning && (
-        <TemperatureChart
-          chartWrapperClassName="h-[200px] sm:h-[200px] lg:h-[200px]"
-          className="h-[325px] sm:h-[325px] lg:h-[325px]"
-        />
+        <TemperatureChart chartWrapperClassName="h-[200px] sm:h-[300px]" className="h-[325px] sm:h-[435px]" />
       )}
+      <FieldTemperatureBarChart />
     </>
   );
 };
@@ -449,7 +442,7 @@ const ReadMoreField = () => {
   }, []);
 
   return (
-    <ReadMoreAccordion defaultOpen={!learnDidVisit.field}>
+    <ReadMoreAccordion defaultOpen={false}>
       <>
         Pinto can be lent (Sown) to the protocol in exchange for Pods, protocol-native debt issued with a fixed interest
         rate. Pods function as zero coupon bonds that become redeemable (Harvestable) for 1 Pinto each on a first in,

@@ -18,7 +18,7 @@ import { formatter } from "@/utils/format";
 import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { Token } from "@/utils/types";
 import { cn, exists } from "@/utils/utils";
-import { ArrowRightIcon, CornerBottomLeftIcon } from "@radix-ui/react-icons";
+import { ArrowRightIcon, ChevronDownIcon, CornerBottomLeftIcon } from "@radix-ui/react-icons";
 import { Separator } from "@radix-ui/react-separator";
 import React, { createContext, useContext, useMemo } from "react";
 import { Col, Row } from "./Container";
@@ -54,6 +54,42 @@ const useRoutingAndSlippageInfoContext = () => {
 
 const RoutingAndSlippageInfo = (props: RoutingAndSlippageInfoProps) => {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [isExpanded, setIsExpanded] = React.useState(false);
+  const [isAnimating, setIsAnimating] = React.useState(false);
+
+  const handleHeaderClick = (e: React.MouseEvent) => {
+    // prevent opening the dialog if there's no price impact or swap summary
+    if (!exists(props.priceImpactSummary?.priceAfter) && !exists(props.swapSummary)) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    // Header click: toggle expanded state
+    e.preventDefault();
+    e.stopPropagation();
+    setIsAnimating(true);
+    setIsExpanded((prev) => !prev);
+
+    // Clear animation state after animation duration (300ms)
+    setTimeout(() => {
+      setIsAnimating(false);
+    }, 300);
+  };
+
+  const handleContentClick = (e: React.MouseEvent) => {
+    // prevent opening the dialog if there's no price impact or swap summary
+    if (!exists(props.priceImpactSummary?.priceAfter) && !exists(props.swapSummary)) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    // Content area click: open dialog
+    if (isExpanded) {
+      setIsDialogOpen((prev) => !prev);
+    }
+  };
 
   return (
     <>
@@ -73,19 +109,12 @@ const RoutingAndSlippageInfo = (props: RoutingAndSlippageInfoProps) => {
             noMarginTopOnTrigger: props.noMarginTopOnTrigger,
           }}
         >
-          <DialogTrigger
-            className="w-full"
-            onClick={(e) => {
-              // prevent opening the dialog if there's no price impact or swap summary
-              if (!exists(props.priceImpactSummary?.priceAfter) && !exists(props.swapSummary)) {
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-              }
-              setIsDialogOpen((prev) => !prev);
-            }}
-          >
-            <FormRouterAndSlippage />
+          <DialogTrigger className="w-full" onClick={handleContentClick}>
+            <FormRouterAndSlippage
+              isExpanded={isExpanded}
+              isAnimating={isAnimating}
+              onHeaderClick={handleHeaderClick}
+            />
           </DialogTrigger>
           <DialogContent
             hideCloseButton={true}
@@ -112,16 +141,67 @@ export default RoutingAndSlippageInfo;
 // ------------------------------- ROOT COMPONENTS -------------------------------
 // -------------------------------------------------------------------------------
 
-const FormRouterAndSlippage = () => {
-  const { preferredSummary, txnType, noMarginTopOnTrigger } = useRoutingAndSlippageInfoContext();
+const RoutingHeader = ({
+  isExpanded,
+  isAnimating,
+  onHeaderClick,
+}: { isExpanded: boolean; isAnimating: boolean; onHeaderClick: (e: React.MouseEvent) => void }) => {
+  const { swapSummary, noMarginTopOnTrigger, txnType, convertSummary } = useRoutingAndSlippageInfoContext();
+  const exchanges = swapSummary?.swap?.exchanges || [];
+  const parseRoutes = useParseConvertRouteRoutes();
+
+  // Get convert routes for display in header
+  const convertRoutes = useMemo(() => {
+    if (txnType !== "Convert" || !convertSummary) return [];
+    return parseRoutes(convertSummary);
+  }, [txnType, convertSummary, parseRoutes]);
 
   return (
     <div
+      onClick={onHeaderClick}
       className={cn(
-        "flex flex-col bg-pinto-gray-1 border border-pinto-gray-2 rounded-md p-3 gap-y-3 mt-4 hover:bg-pinto-green-1 hover:border-pinto-green-4 cursor-pointer",
-        noMarginTopOnTrigger && "mt-0",
+        "flex flex-row justify-between items-center bg-pinto-gray-1 border border-pinto-gray-2 p-3 cursor-pointer",
+        isAnimating || isExpanded ? "rounded-t-md border-b-0" : "rounded-md",
+        noMarginTopOnTrigger ? "mt-0" : "mt-4",
       )}
     >
+      <div className="flex flex-row items-center gap-x-2">
+        <div className="pinto-sm text-pinto-primary">See Routing</div>
+        {/* Show convert route LP icons for Convert transactions */}
+        {txnType === "Convert" && convertRoutes.length > 0 && (
+          <div className="flex flex-row">
+            {convertRoutes.map((route, _, arr) => (
+              <div key={`header-convert-route-${route.address}`} className={cn(arr.length > 1 && "-ml-1")}>
+                <IconImage src={route.logoURI} alt={route.symbol} size={4} />
+              </div>
+            ))}
+          </div>
+        )}
+        {/* Show exchange icons for non-Convert transactions */}
+        {txnType !== "Convert" && (
+          <div className="flex flex-row gap-x-1">
+            {exchanges?.map((exchange) => {
+              const { logo, text } = getDetailsWithExchange(exchange, true);
+              if (exchange === "base") return null;
+              return <IconImage key={`header-exchange-${exchange}`} src={logo} alt={text} size={4} />;
+            })}
+          </div>
+        )}
+      </div>
+      <div className="flex flex-row items-center gap-x-2">
+        <ChevronDownIcon
+          className={cn("w-4 h-4 text-pinto-light transition-transform duration-200", isExpanded && "rotate-180")}
+        />
+      </div>
+    </div>
+  );
+};
+
+const RoutingContent = () => {
+  const { preferredSummary, txnType } = useRoutingAndSlippageInfoContext();
+
+  return (
+    <div className="bg-pinto-gray-1 border border-pinto-gray-2 border-t-0 rounded-b-md p-3 gap-y-3 flex flex-col cursor-pointer">
       {preferredSummary === "swap" ? <RoutesFormContent /> : null}
       {preferredSummary === "priceImpact" ? (
         txnType === "Convert" ? (
@@ -130,6 +210,21 @@ const FormRouterAndSlippage = () => {
           <PriceImpactContent variant="xs" showTokenName />
         )
       ) : null}
+    </div>
+  );
+};
+
+const FormRouterAndSlippage = ({
+  isExpanded,
+  isAnimating,
+  onHeaderClick,
+}: { isExpanded: boolean; isAnimating: boolean; onHeaderClick: (e: React.MouseEvent) => void }) => {
+  return (
+    <div className="w-full">
+      <RoutingHeader isExpanded={isExpanded} isAnimating={isAnimating} onHeaderClick={onHeaderClick} />
+      <div className={cn("overflow-hidden transition-all duration-300", isExpanded ? "max-h-96" : "max-h-0")}>
+        <RoutingContent />
+      </div>
     </div>
   );
 };
@@ -293,7 +388,6 @@ const ConvertPriceImpactSummary = ({
        */}
       {isDefaultConvert ? (
         <>
-          <ConvertRoutesThroughRow variant={variant} />
           <InlineRow
             variant={variant}
             left={
@@ -800,7 +894,7 @@ export const useRoutingAndSlippageWarning = ({
         />
 
         <label htmlFor="slippage-warning-terms" className="pinto-sm text-pinto-error flex-1">
-          {`Your transaction will execute with ${formatter.pct(totalSlippage)} route slippage${priceImpact ? ` and a ${formatPriceImpact(priceImpact)}% price impact` : ""} during your ${txnType}. Click on the checkbox to continue.`}
+          {`This ${txnType} will experience ${formatter.pct(totalSlippage)} slippage${priceImpact ? ` and will impact the price of Pinto by ${formatPriceImpact(priceImpact)}` : ""}.  Please check the box to confirm you understand and agree to proceed.`}
         </label>
       </div>
     </form>

@@ -1,6 +1,6 @@
 import { Token } from "@/utils/types";
 import { AnyRecord } from "@/utils/types.generic";
-import { Address } from "viem";
+import { SiloConvertTokenDirection } from "../../types";
 
 /**
  * Base error class for all SiloConvert-related errors
@@ -44,7 +44,7 @@ export class InvalidConversionTokensError extends SiloConvertError {
   readonly code = "INVALID_CONVERSION_TOKENS";
   readonly category = "validation" as const;
 
-  constructor(source: Token, target: Token, expectedType: "default" | "LP2LP" | "default-down", reason?: string) {
+  constructor(source: Token, target: Token, expectedType: SiloConvertTokenDirection, reason?: string) {
     const baseMessage = `Invalid conversion tokens: source=${source.symbol}(${source.address}), target=${target.symbol}(${target.address}), expected=${expectedType}`;
     const message = reason ? `${baseMessage}. Reason: ${reason}` : baseMessage;
 

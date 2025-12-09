@@ -23,7 +23,7 @@ export default function FinalStep({ balanceTo, destination, transferData }: Step
       <div>
         <Label className="font-[340] text-[1rem] sm:text-[1.25rem]">To their</Label>
         <div className="font-[340] text-[2rem] leading-[110%] -tracking-[0.02em]">
-          {balanceTo === FarmToMode.EXTERNAL ? "Wallet Balance" : "Farm Balance"}
+          {balanceTo === FarmToMode.EXTERNAL ? "ExternalWallet" : "Farm Wallet"}
         </div>
       </div>
     </div>

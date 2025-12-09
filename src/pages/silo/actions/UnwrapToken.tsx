@@ -1,6 +1,6 @@
 import { TV } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
-import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
+import FarmBalanceToggle from "@/components/FarmBalanceToggle";
 import FrameAnimator from "@/components/LoadingSpinner";
 import MobileActionBar from "@/components/MobileActionBar";
 import RoutingAndSlippageInfo from "@/components/RoutingAndSlippageInfo";
@@ -20,6 +20,7 @@ import { useTokenMap, useWSOL } from "@/hooks/pinto/useTokenMap";
 import { useBuildSwapQuoteAsync } from "@/hooks/swap/useBuildSwapQuote";
 import useSwap from "@/hooks/swap/useSwap";
 import useSwapSummary from "@/hooks/swap/useSwapSummary";
+import { useFarmTogglePreference } from "@/hooks/useFarmTogglePreference";
 import useSafeTokenValue from "@/hooks/useSafeTokenValue";
 import useTransaction from "@/hooks/useTransaction";
 import { FarmerBalance, useFarmerBalances } from "@/state/useFarmerBalances";
@@ -70,7 +71,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   );
   const [inputError, setInputError] = useState<boolean>(false);
   const [tokenOut, setTokenOut] = useState<Token | undefined>(undefined);
-  const [toMode, setToMode] = useState<FarmToMode | undefined>(undefined);
+  const [mode, toFarm, setMode] = useFarmTogglePreference();
 
   // Derived
   const balance = getBalanceFromMode(farmerBalance, balanceSource) ?? TV.ZERO;
@@ -98,12 +99,12 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   });
 
   const swapSummary = useSwapSummary(swap.data);
+  const toMode = mode;
   const buildSwapQuote = useBuildSwapQuoteAsync(swap.data, balanceSource, toMode, account, account);
 
   // Transaction
   const onSuccess = useCallback(() => {
     setAmountIn("");
-    setToMode(undefined);
     setTokenOut(undefined);
     const keys = [...contractBalances.queryKeys, ...farmerBalances.queryKeys, ...farmerDepositsQueryKeys];
     keys.forEach((key) => qc.invalidateQueries({ queryKey: key }));
@@ -117,14 +118,14 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
 
   // Track destination changes
   const handleDestinationChange = useCallback(
-    (newMode: FarmToMode | undefined) => {
+    (newMode: FarmToMode) => {
       if (newMode !== toMode) {
         trackSimpleEvent(ANALYTICS_EVENTS.SILO.UNWRAP_DESTINATION_SELECT, {
           previous_destination: toMode === FarmToMode.EXTERNAL ? "external" : "internal",
           new_destination: newMode === FarmToMode.EXTERNAL ? "external" : "internal",
           token_symbol: siloToken.symbol,
         });
-        setToMode(newMode);
+        setMode(newMode ?? FarmToMode.EXTERNAL);
       }
     },
     [toMode, siloToken.symbol],
@@ -225,10 +226,6 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
         return handleRedeemToSilo(amountTV, account, balanceSource);
       }
 
-      if (!exists(toMode)) {
-        throw new Error("Invalid destination mode");
-      }
-
       if (!toSilo && tokenOut?.isMain) {
         startSubmission();
         return handleRedeemAdvanced(amountTV, account, balanceSource, toMode);
@@ -284,7 +281,7 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
   const outputNotReady = txnType !== "swap" ? output?.amount.lte(0) : swap.data?.buyAmount.lte(0);
 
   const baseDisabled = !account || !validAmountIn || !balance.gte(amountTV);
-  const nonToSiloDisabled = txnType !== "redeemToSilo" && (!exists(toMode) || !tokenOut);
+  const nonToSiloDisabled = txnType !== "redeemToSilo" && !tokenOut;
   const buttonDisabled =
     baseDisabled || isConfirming || submitting || outputNotReady || inputError || quoting || nonToSiloDisabled;
 
@@ -340,10 +337,13 @@ export default function UnwrapToken({ siloToken }: { siloToken: Token }) {
       {txnType !== "redeemToSilo" ? (
         <div>
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col">
-              <Label className="flex h-10 items-center">Destination</Label>
-              <DestinationBalanceSelect setBalanceTo={handleDestinationChange} balanceTo={toMode} />
-            </div>
+            <FarmBalanceToggle
+              checked={toFarm}
+              onCheckedChange={(checked) =>
+                handleDestinationChange(checked ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL)
+              }
+              label="Receive Pinto in Farm Wallet"
+            />
             <div className="flex flex-col w-full pt-4 pb-2 gap-2">
               <div className="pinto-body-light text-pinto-light">Unwrap as</div>
               <div className="flex flex-col w-full gap-1">

@@ -25,6 +25,7 @@ const defaultData = {
   deltaBdv: TV.ZERO,
   fromBdv: TV.ZERO,
   toBdv: TV.ZERO,
+  withdrawalAmount: TV.ZERO,
 };
 
 export type SiloConvertResultResult = typeof defaultData & {
@@ -141,6 +142,11 @@ const reduceSummary = (summary: SiloConvertSummary<SiloConvertType>, targetToken
       const quote = summary.quotes[i];
       const { pickedCrates: picked } = quote;
 
+      let withdrawalAmount = TV.ZERO;
+      if ("withdrawalAmount" in quote.summary.target) {
+        withdrawalAmount = quote.summary.target.withdrawalAmount;
+      }
+
       const resultToStem = result.toStem;
       const willGerminate = resultToStem.gte(targetStemTip);
       const germinatingSeasons = willGerminate ? (resultToStem.eq(targetStemTip) ? 2 : 1) : 0;
@@ -173,6 +179,7 @@ const reduceSummary = (summary: SiloConvertSummary<SiloConvertType>, targetToken
         deltaBdv: prev.deltaBdv.add(deltaBdv),
         fromBdv: prev.fromBdv.add(fromBdv),
         toBdv: prev.toBdv.add(toBdv),
+        withdrawalAmount: prev.withdrawalAmount.add(withdrawalAmount),
       };
 
       return struct;
@@ -243,3 +250,47 @@ export const useParseConvertRouteRoutes = () => {
     [findWellRoutes],
   );
 };
+
+/**
+ * Returns the withdrawal pair amount for a given summary.
+ *
+ * It will only return truthy value if the withdrawal is enabled and if the convert is LP2MainWithdrawPair.
+ *
+ * @param summary - The summary of the convert.
+ * @param source - The source token.
+ * @param target - The target token.
+ * @returns The withdrawal pair amount.
+ */
+export function useSiloConvertResultWithdrawalPairAmount(summary: SiloConvertSummary<SiloConvertType>[] | undefined) {
+  return useMemo(() => {
+    if (!summary) return;
+
+    const isLP2MainWithdrawPair = summary?.find((summary) => {
+      return summary.route.convertType === "LP2MainWithdrawPair";
+    });
+
+    if (!isLP2MainWithdrawPair) return;
+
+    return summary.map((result) => {
+      let withdrawalToken: Token | undefined;
+      const amount = result.quotes.reduce<TV>((memo, quote) => {
+        if ("withdrawalAmount" in quote.summary.target) {
+          const amt = quote.summary.target.withdrawalAmount;
+          const tk = quote.summary.target.withdrawalToken;
+          withdrawalToken = withdrawalToken ?? tk;
+
+          return memo.add(amt);
+        }
+
+        return memo;
+      }, TV.ZERO);
+
+      if (withdrawalToken) {
+        return {
+          token: withdrawalToken,
+          amount,
+        };
+      }
+    });
+  }, [summary]);
+}

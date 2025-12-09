@@ -1,7 +1,8 @@
 import { TV } from "@/classes/TokenValue";
 import { CONVERT_DOWN_PENALTY_RATE } from "@/constants/silo";
-import { Token } from "@/utils/types";
+import { FarmToMode, Token } from "@/utils/types";
 import { Prettify } from "@/utils/types.generic";
+import { SiloConvertQuoteOptions } from "./SiloConvert";
 import { ExtendedPoolData, SiloConvertPriceCache } from "./SiloConvert.cache";
 import { SiloConvertMaxConvertQuoter } from "./SiloConvert.maxConvertQuoter";
 import { SiloConvertStrategy } from "./strategies/core";
@@ -12,6 +13,7 @@ import {
   SiloConvertLP2LPSingleSidedMainTokenStrategy as LP2LPSingleSidedMain,
   SiloConvertLP2LPSingleSidedPairTokenStrategy as LP2LPSingleSidedPair,
   SiloConvertLP2MainPipelineConvertStrategy as LP2MainPipeline,
+  SiloConvertLP2MainWithdrawPairStrategy as LP2MainWithdrawPair,
 } from "./strategies/implementations";
 import { ErrorHandlerFactory } from "./strategies/validation/ErrorHandlerFactory";
 import {
@@ -64,7 +66,12 @@ export class Strategizer {
 
   static MIN_DELTA_B = 100;
 
-  async strategize(source: Token, target: Token, amountIn: TV): Promise<SiloConvertRoute<SiloConvertType>[]> {
+  async strategize(
+    source: Token,
+    target: Token,
+    amountIn: TV,
+    options: SiloConvertQuoteOptions,
+  ): Promise<SiloConvertRoute<SiloConvertType>[]> {
     const eh = ErrorHandlerFactory.createStrategizerHandler(source, target);
 
     return eh.wrapAsync(async () => {
@@ -75,6 +82,10 @@ export class Strategizer {
       });
 
       const isLP2LP = source.isLP && target.isLP;
+
+      if (options.isPairWithdrawal) {
+        return this.strategizeLP2MainWithdrawPair(source, target, amountIn);
+      }
 
       if (!isLP2LP) {
         return this.strategizeLPAndMain(source, target, amountIn);
@@ -142,6 +153,52 @@ export class Strategizer {
 
       return routes;
     }, "strategizeLPAndMain");
+  }
+
+  /**
+   * LP2MainWithdrawPair
+   *
+   * This strategy is used to convert from LP 2 Main while simultaneously withdrawing the underlying liquidity from the LP token to their desired balance.
+   *
+   * @param source
+   * @param target
+   * @param amountIn
+   * @returns
+   */
+  async strategizeLP2MainWithdrawPair(
+    source: Token,
+    target: Token,
+    amountIn: TV,
+  ): Promise<SiloConvertRoute<SiloConvertType>[]> {
+    const eh = ErrorHandlerFactory.createStrategizerHandler(source, target);
+
+    return eh.wrapAsync(async () => {
+      await eh.wrapAsync(async () => this.cache.update(), "strategizeLP2MainWithdrawPair_cache_update", {
+        source: source.symbol,
+        target: target.symbol,
+        amountIn: amountIn.toHuman(),
+      });
+
+      eh.validateConversionTokens("LP2Main", source, target);
+
+      const sourceWell = source.isLP ? this.cache.getWell(source.address) : undefined;
+
+      const sw = eh.assertDefined(sourceWell, "Source well must be defined for LP2MainWithdrawPair");
+
+      return [
+        {
+          source,
+          target,
+          strategies: [
+            {
+              strategy: new LP2MainWithdrawPair(sw, target, this.context, FarmToMode.EXTERNAL),
+              amount: amountIn,
+            },
+          ],
+          convertType: "LP2MainWithdrawPair",
+        },
+      ];
+    }, "strategizeLP2MainWithdrawPair");
   }
 
   async strategizeLP2LP(source: Token, target: Token, amountIn: TV) {
@@ -349,7 +406,7 @@ export class Strategizer {
 
     return eh.wrapAsync(async () => {
       // no need to update cache for this operation
-      eh.validateConversionTokens("default-down", source, target);
+      eh.validateConversionTokens("Main2LP", source, target);
 
       const maxConvert = await this.maxConvertQuoter.quoteMaxConvert(source, target);
 

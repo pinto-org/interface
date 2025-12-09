@@ -1,24 +1,33 @@
 import arrowDown from "@/assets/misc/ChevronDown.svg";
 import { TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
-import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
+import { Col, Row } from "@/components/Container";
+import FarmBalanceToggle from "@/components/FarmBalanceToggle";
 import MobileActionBar from "@/components/MobileActionBar";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
 import SiloOutputDisplay from "@/components/SiloOutputDisplay";
 import SlippageButton from "@/components/SlippageButton";
+import TextSkeleton from "@/components/TextSkeleton";
+import TooltipSimple from "@/components/TooltipSimple";
 import { Button } from "@/components/ui/Button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/Dialog";
 import IconImage from "@/components/ui/IconImage";
 import { Label } from "@/components/ui/Label";
 import { Separator } from "@/components/ui/Separator";
+import VerticalAccordion from "@/components/ui/VerticalAccordion";
 import Warning from "@/components/ui/Warning";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
+import { MAIN_TOKEN } from "@/constants/tokens";
 import encoders from "@/encoders";
 import { beanstalkAbi, beanstalkAddress } from "@/generated/contractHooks";
-import { useTokenMap } from "@/hooks/pinto/useTokenMap";
+import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { useLPTokenToNonPintoUnderlyingMap, useTokenMap } from "@/hooks/pinto/useTokenMap";
+import useSiloConvert, { useSiloConvertQuote } from "@/hooks/silo/useSiloConvert";
+import { useSiloConvertResult } from "@/hooks/silo/useSiloConvertResult";
 import useBuildSwapQuote from "@/hooks/swap/useBuildSwapQuote";
 import useSwap from "@/hooks/swap/useSwap";
 import useSwapSummary from "@/hooks/swap/useSwapSummary";
+import { useFarmTogglePreference } from "@/hooks/useFarmTogglePreference";
 import useSafeTokenValue from "@/hooks/useSafeTokenValue";
 import useTransaction from "@/hooks/useTransaction";
 import usePriceImpactSummary from "@/hooks/wells/usePriceImpactSummary";
@@ -30,34 +39,42 @@ import { usePriceData } from "@/state/usePriceData";
 import { useSiloData } from "@/state/useSiloData";
 import useSiloSnapshots from "@/state/useSiloSnapshots";
 import { useInvalidateSun } from "@/state/useSunData";
+import useTokenData from "@/state/useTokenData";
 import { trackSimpleEvent } from "@/utils/analytics";
+import { getChainConstant, useChainConstant } from "@/utils/chain";
 import { sortAndPickCrates } from "@/utils/convert";
 import { formatter } from "@/utils/format";
+import { getSiloLabels } from "@/utils/silo";
 import { stringToNumber } from "@/utils/string";
 import { getTokenIndex, tokensEqual } from "@/utils/token";
 import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
 import { AddressLookup } from "@/utils/types.generic";
-import { noop } from "@/utils/utils";
+import { cn, exists, noop } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { encodeFunctionData } from "viem";
 import { useConfig } from "wagmi";
 import { useAccount, useChainId } from "wagmi";
 
-const getInitialWithdrawToken = (siloToken: Token, tokenMap: AddressLookup<Token>) => {
+const getInitialWithdrawToken = (siloToken: Token) => {
+  // Return undefined to show "Select Token" initially for LP tokens
   if (siloToken.isLP && siloToken.tokens?.length) {
-    const pairToken = siloToken.tokens.find((t) => !tokenMap[getTokenIndex(t)]?.isMain);
-    if (!pairToken) {
-      throw new Error("Silo token has LP pair tokens but non-main token not found.");
-    }
-
-    return tokenMap[getTokenIndex(pairToken)];
+    return undefined;
   } else if (siloToken.isMain) {
     return siloToken;
   }
 
   throw new Error("Invalid silo token");
 };
+
+interface WithdrawOutput {
+  amount: TokenValue;
+  stalkLost: TokenValue;
+  seedsLost: TokenValue;
+  bdvLost: TokenValue;
+}
 
 function Withdraw({ siloToken }: { siloToken: Token }) {
   const config = useConfig();
@@ -72,27 +89,34 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
   const farmerDeposits = farmerSilo.deposits;
   const tokenMap = useTokenMap();
   const prices = usePriceData();
+  const underlyingMap = useLPTokenToNonPintoUnderlyingMap();
+  const mainToken = useChainConstant(MAIN_TOKEN);
+  const queryClient = useQueryClient();
 
-  const [destination, setDestination] = useState(FarmToMode.EXTERNAL);
+  const diamondAddress = useProtocolAddress();
+
+  const [mode, toFarm, setMode] = useFarmTogglePreference();
   const [amount, setAmount] = useState("");
 
-  const amountTV = useSafeTokenValue(amount, siloToken);
+  const [shouldConvertWithdraw, setShouldConvertWithdraw] = useState(false);
 
-  const [tokenOut, setTokenOut] = useState(getInitialWithdrawToken(siloToken, tokenMap));
+  const [tokenOut, setTokenOut] = useState<Token | undefined>(getInitialWithdrawToken(siloToken));
   const [slippage, setSlippage] = useState(0.1);
   const [inputError, setInputError] = useState(false);
 
+  const underlyingPairToken = siloToken.isLP ? underlyingMap[getTokenIndex(siloToken)] : undefined;
+  const amountTV = useSafeTokenValue(amount, siloToken);
   // Track destination changes
   const handleDestinationChange = useCallback(
     (newDestination: FarmToMode) => {
       trackSimpleEvent(ANALYTICS_EVENTS.SILO.WITHDRAW_DESTINATION_SELECT, {
-        previous_destination: destination === FarmToMode.EXTERNAL ? "external" : "internal",
+        previous_destination: mode === FarmToMode.EXTERNAL ? "external" : "internal",
         new_destination: newDestination === FarmToMode.EXTERNAL ? "external" : "internal",
         token_symbol: siloToken.symbol,
       });
-      setDestination(newDestination);
+      setMode(newDestination);
     },
-    [destination, siloToken.symbol],
+    [mode, siloToken.symbol],
   );
 
   // Track token selection
@@ -100,7 +124,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     (newToken: Token) => {
       if (!tokensEqual(newToken, tokenOut)) {
         trackSimpleEvent(ANALYTICS_EVENTS.SILO.WITHDRAW_TOKEN_SELECTED, {
-          previous_token: tokenOut.symbol,
+          previous_token: tokenOut?.symbol,
           new_token: newToken.symbol,
           source_token: siloToken.symbol,
           requires_swap: !tokensEqual(siloToken, newToken),
@@ -111,10 +135,44 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     [tokenOut, siloToken],
   );
 
-  const queryClient = useQueryClient();
-
   const farmerDepositData = farmerDeposits.get(siloToken);
   const deposits = farmerDepositData?.deposits;
+
+  const convertibleAmount = farmerDepositData?.convertibleAmount;
+  const convertibleDeposits = farmerDepositData?.convertibleDeposits;
+
+  const convertQuoteEnabled = shouldConvertWithdraw && convertibleAmount?.gt(0) && amountTV.gt(0) && !!account.address;
+
+  const siloConvert = useSiloConvert();
+  const {
+    data: convertQuote,
+    rebuildConvertWithdrawal,
+    ...convertQuery
+  } = useSiloConvertQuote(
+    siloConvert,
+    siloToken,
+    mainToken,
+    amount,
+    convertibleDeposits,
+    slippage,
+    { isPairWithdrawal: true },
+    convertQuoteEnabled,
+  );
+  const { results: convertResults, sortedIndexes } = useSiloConvertResult(siloToken, mainToken, convertQuote);
+
+  const [convertRouteIndex, setConvertRouteIndex] = useState<number | undefined>(undefined);
+
+  const convertResult =
+    exists(convertRouteIndex) && exists(convertResults) ? convertResults?.[convertRouteIndex] : undefined;
+
+  // initialize the route index to the first sorted index
+  useEffect(() => {
+    if (!sortedIndexes?.length || convertRouteIndex !== undefined) {
+      return;
+    }
+
+    setConvertRouteIndex(sortedIndexes[0]);
+  }, [sortedIndexes, convertRouteIndex]);
 
   const tokenList = useMemo(() => {
     if (siloToken.isMain) return [siloToken];
@@ -134,7 +192,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
 
   const exceedsBalance = farmerDepositData?.amount.lt(amountTV);
 
-  const shouldSwap = !tokensEqual(siloToken, tokenOut) && !siloToken.isMain;
+  const shouldSwap = tokenOut && !tokensEqual(siloToken, tokenOut) && !siloToken.isMain && !shouldConvertWithdraw;
 
   const swapDisabled = amountTV.lte(0) || !account.address || !shouldSwap || inputError;
 
@@ -143,10 +201,10 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     tokenOut,
     amountIn: amountTV,
     slippage,
-    disabled: swapDisabled,
+    disabled: swapDisabled || shouldConvertWithdraw,
   });
 
-  const swapBuild = useBuildSwapQuote(swapData, FarmFromMode.INTERNAL, destination);
+  const swapBuild = useBuildSwapQuote(swapData, FarmFromMode.INTERNAL, mode);
   const swapSummary = useSwapSummary(swapData);
 
   // have to do the withdraw step first
@@ -185,6 +243,7 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       ...farmerBalances.queryKeys,
     ];
     allQueryKeys.forEach((query) => queryClient.invalidateQueries({ queryKey: query, refetchType: "active" }));
+    siloConvert.clear();
     invalidateSun("all", { refetchType: "active" });
     resetSwap();
     priceImpactQuery.clear();
@@ -194,9 +253,10 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     fieldSnapshots.queryKey,
     siloSnapshots.queryKey,
     invalidateSun,
-    queryClient.invalidateQueries,
+    queryClient,
     resetSwap,
-    priceImpactQuery.clear,
+    priceImpactQuery,
+    siloConvert,
   ]);
 
   const { isConfirming, writeWithEstimateGas, submitting, setSubmitting } = useTransaction({
@@ -205,19 +265,52 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     successCallback: onSuccess,
   });
 
+  const handleWithdrawConvert = async (convQuote: ReturnType<typeof useSiloConvertQuote>["data"]) => {
+    if (!convQuote) {
+      throw new Error("Quote required");
+    }
+
+    try {
+      const argsAndStrategies = rebuildConvertWithdrawal(convQuote, mode);
+
+      if (!argsAndStrategies || !argsAndStrategies.length) {
+        throw new Error("No quote found");
+      }
+
+      const advFarmCalls = argsAndStrategies.flatMap(({ farmStructs }) => farmStructs);
+
+      return writeWithEstimateGas({
+        address: diamondAddress,
+        abi: beanstalkAbi,
+        functionName: "advancedFarm",
+        args: [advFarmCalls],
+      });
+    } catch (e) {
+      console.error("Error in handleWithdrawConvert: ", e);
+      setSubmitting(false);
+      toast.dismiss();
+      toast.error("Convert withdraw failed");
+      throw e;
+    }
+  };
+
   const onSubmit = async () => {
-    if (amountTV.lte(0) || !destination || !account.address || !deposits || inputError) return;
+    if (amountTV.lte(0) || !account.address || !deposits || inputError) return;
 
     try {
       // Track withdraw submission
       trackSimpleEvent(ANALYTICS_EVENTS.SILO.WITHDRAW_SUBMIT, {
         source_token: siloToken.symbol,
-        target_token: tokenOut.symbol,
+        target_token: tokenOut?.symbol || "none",
       });
 
       setSubmitting(true);
       toast.loading(`Withdrawing...`);
       const transferData = sortAndPickCrates("withdraw", amountTV, deposits);
+
+      if (shouldConvertWithdraw) {
+        return handleWithdrawConvert(convertQuote);
+      }
 
       const stems = transferData.crates.map((crate) => crate.stem);
       const amounts = transferData.crates.map((crate) => crate.amount);
@@ -230,19 +323,14 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
             address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
             abi: beanstalkAbi,
             functionName: "withdrawDeposit",
-            args: [siloToken.address, stems[0].toBigInt(), amounts[0].toBigInt(), Number(destination)],
+            args: [siloToken.address, stems[0].toBigInt(), amounts[0].toBigInt(), Number(mode)],
           });
         }
         return writeWithEstimateGas({
           address: beanstalkAddress[chainId as keyof typeof beanstalkAddress],
           abi: beanstalkAbi,
           functionName: "withdrawDeposits",
-          args: [
-            siloToken.address,
-            stems.map((s) => s.toBigInt()),
-            amounts.map((a) => a.toBigInt()),
-            Number(destination),
-          ],
+          args: [siloToken.address, stems.map((s) => s.toBigInt()), amounts.map((a) => a.toBigInt()), Number(mode)],
         });
       }
 
@@ -265,10 +353,14 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     }
   };
 
-  const withdrawOutput = useMemo(() => {
+  const withdrawOutput: WithdrawOutput | undefined = useMemo(() => {
+    if (shouldConvertWithdraw) {
+      return undefined;
+    }
+
     if (
       !amount ||
-      stringToNumber(amount) <= 0 ||
+      !amountTV?.gt(0) ||
       !deposits ||
       inputError ||
       exceedsBalance ||
@@ -289,7 +381,17 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
       seedsLost: transferData.seeds,
       bdvLost: transferData.bdv,
     };
-  }, [amount, deposits, siloToken.decimals, shouldSwap, swapData, inputError, exceedsBalance]);
+  }, [
+    amount,
+    deposits,
+    siloToken.decimals,
+    shouldSwap,
+    swapData,
+    inputError,
+    exceedsBalance,
+    shouldConvertWithdraw,
+    amountTV,
+  ]);
 
   // Calculate seasons of grown stalk being withdrawn
   const seasonsOfGrownStalkWithdrawn = useMemo(() => {
@@ -312,25 +414,76 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
     return seasonsOfGrownStalkWithdrawn;
   }, [withdrawOutput, siloData.averageGrownStalkPerBdvPerSeason]);
 
-  const tokenOutUSD = prices.tokenPrices.get(tokenOut);
-  const amountOutUSD = tokenOutUSD ? withdrawOutput?.amount.mul(tokenOutUSD.instant) : undefined;
+  // Amount of non-Pinto token being withdrawn (e.g., WSOL)
+  const tokenOutAmount =
+    shouldConvertWithdraw && exists(convertRouteIndex)
+      ? convertQuote?.[convertRouteIndex]?.quotes?.reduce((prev, curr) => {
+          const target = curr.summary?.target;
+          // Type guard to check if target has withdrawalAmount property
+          const withdrawalAmount = target && "withdrawalAmount" in target ? target.withdrawalAmount : TokenValue.ZERO;
+          return prev.add(withdrawalAmount);
+        }, TokenValue.ZERO)
+      : undefined;
 
-  const swapReady = swapBuild && swapData?.buyAmount?.gt(0);
+  // Calculate the Pinto amount that remains in the Silo during convert withdraw
+  const pintoKeptInSilo = useMemo(() => {
+    if (!shouldConvertWithdraw || !exists(convertRouteIndex) || !convertQuote?.[convertRouteIndex]) {
+      return undefined;
+    }
+
+    return convertQuote[convertRouteIndex].quotes.reduce(
+      (prev, curr) => prev.add(curr.summary?.target?.amountOut || TokenValue.ZERO),
+      TokenValue.ZERO,
+    );
+  }, [shouldConvertWithdraw, convertRouteIndex, convertQuote]);
+
+  const outputAmount = shouldConvertWithdraw ? convertResult?.withdrawalAmount : withdrawOutput?.amount;
+
+  const tokenOutUSD = tokenOut ? prices.tokenPrices.get(tokenOut) : undefined;
+  const amountOutUSD = tokenOutUSD
+    ? shouldConvertWithdraw
+      ? tokenOutAmount?.mul(tokenOutUSD.instant)
+      : withdrawOutput
+        ? withdrawOutput?.amount.mul(tokenOutUSD.instant)
+        : undefined
+    : undefined;
+
+  const swapReady = Boolean(swapBuild && swapData?.buyAmount?.gt(0));
+
+  const convertWithdrawalReady = shouldConvertWithdraw
+    ? Boolean(convertResults && convertQuote && amountTV?.gt(0))
+    : true;
+
+  const defaultWithdrawReady = shouldConvertWithdraw
+    ? true
+    : Boolean(withdrawOutput && amountTV?.gt(0) && (shouldSwap ? swapReady : true));
+
   const disabled =
-    !stringToNumber(amount) ||
     !account.address ||
     submitting ||
     isConfirming ||
-    (shouldSwap && !swapReady) ||
+    !convertWithdrawalReady ||
+    !defaultWithdrawReady ||
     exceedsBalance;
+
+  const outputLoading =
+    (shouldSwap && (!swapData?.buyAmount || swapData.buyAmount.eq(0))) ||
+    (shouldConvertWithdraw && (!tokenOutAmount || tokenOutAmount.eq(0))) ||
+    (!shouldSwap && !shouldConvertWithdraw && (!outputAmount || outputAmount.eq(0)));
+
+  const withdrawalOutputSiloLabels = withdrawOutput
+    ? getSiloLabels(withdrawOutput.stalkLost.mul(-1), withdrawOutput.seedsLost.mul(-1))
+    : undefined;
+  const convertOutputSiloLabels =
+    convertResult && shouldConvertWithdraw
+      ? getSiloLabels(convertResult.deltaStalk, convertResult.deltaSeed)
+      : undefined;
 
   return (
     <div className="flex flex-col gap-4">
       <div>
         <div className="h-10 flex flex-row justify-between items-center">
-          <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">
-            Amount and Deposited Token to Withdraw
-          </div>
+          <div className="pinto-sm sm:pinto-body-light text-pinto-light sm:text-pinto-light">Amount to Withdraw</div>
           <SlippageButton slippage={slippage} setSlippage={setSlippage} />
         </div>
         <ComboInputField
@@ -345,49 +498,124 @@ function Withdraw({ siloToken }: { siloToken: Token }) {
           disableButton
         />
       </div>
-      <div className="flex flex-col">
-        <Label className="flex h-10 items-center">Destination</Label>
-        <DestinationBalanceSelect setBalanceTo={handleDestinationChange} balanceTo={destination} />
-      </div>
+      <FarmBalanceToggle
+        checked={toFarm}
+        onCheckedChange={(checked) => setMode(checked ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL)}
+        label={`Withdraw ${tokenOut?.symbol || "Assets"} to Farm Wallet`}
+      />
       {siloToken.isLP && (
-        <div className="flex flex-col w-full py-4 gap-2">
-          <div className="pinto-body-light text-pinto-light">Withdraw as</div>
+        <Col className="w-full py-2 gap-2">
+          <div className="pinto-body-light text-pinto-light whitespace-nowrap">
+            {tokenOut ? "Withdraw" : "Withdraw as"}
+          </div>
           <div className="flex flex-col w-full gap-1">
             <div className="flex flex-row items-center justify-between w-full">
               <div className="flex flex-col gap-1">
-                <div className="pinto-h3">{formatter.token(withdrawOutput?.amount, tokenOut)}</div>
+                <div className="pinto-h3">
+                  {tokenOut && amount && amountTV?.gt(0) ? (
+                    <TextSkeleton loading={outputLoading} height="h4" className="w-24">
+                      {shouldConvertWithdraw
+                        ? formatter.token(tokenOutAmount, tokenOut)
+                        : formatter.token(outputAmount, tokenOut)}
+                    </TextSkeleton>
+                  ) : (
+                    ""
+                  )}
+                </div>
               </div>
-              <WithdrawTokenSelect selected={tokenOut} tokens={tokenList} selectToken={handleTokenOutChange} />
+              <WithdrawTokenSelect
+                shouldConvertWithdraw={shouldConvertWithdraw}
+                setShouldConvertWithdraw={setShouldConvertWithdraw}
+                selected={tokenOut}
+                tokens={tokenList}
+                selectToken={handleTokenOutChange}
+                underlyingPairToken={underlyingPairToken}
+                disableOpen={false}
+              />
             </div>
-            <div className="pinto-sm-light text-pinto-light">{formatter.usd(amountOutUSD)}</div>
+            <div className="pinto-sm-light text-pinto-light">
+              {tokenOut && amount && amountTV?.gt(0) ? (
+                <TextSkeleton loading={outputLoading} height="sm" className="w-16">
+                  {formatter.usd(amountOutUSD)}
+                </TextSkeleton>
+              ) : (
+                ""
+              )}
+            </div>
+          </div>
+        </Col>
+      )}
+      {siloToken.isLP && shouldConvertWithdraw && (
+        <div className="flex flex-col w-full py-4 gap-2">
+          <div className="pinto-body-light text-pinto-light">Amount kept Deposited in the Silo</div>
+          <div className="flex flex-col w-full gap-1">
+            <div className="flex flex-row items-center justify-between w-full">
+              <div className="flex flex-col gap-1">
+                <div className="pinto-h3">{formatter.token(pintoKeptInSilo || TokenValue.ZERO, mainToken)}</div>
+              </div>
+              <div className="flex flex-row items-center gap-1 px-4 py-2 bg-pinto-gray-1 rounded-full">
+                <IconImage src={mainToken.logoURI} size={6} />
+                <div className="pinto-body-light">DEP.{mainToken.symbol}</div>
+              </div>
+            </div>
+            <div className="pinto-sm-light text-pinto-light">
+              {formatter.usd(
+                (pintoKeptInSilo || TokenValue.ZERO).mul(prices.tokenPrices.get(mainToken)?.instant || TokenValue.ZERO),
+              )}
+            </div>
           </div>
         </div>
       )}
-      <div className="flex flex-col">
-        {withdrawOutput && (
-          <SiloOutputDisplay
-            amount={withdrawOutput.amount}
-            token={tokenOut}
-            stalk={withdrawOutput.stalkLost}
-            seeds={withdrawOutput.seedsLost}
-            showNegativeDeltas
-            showGrownStalkSeasonsNotice
-            grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
-          />
+      <AnimatePresence mode="wait">
+        {(withdrawOutput || (convertResult && shouldConvertWithdraw)) && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.1 }}
+            className="relative overflow-hidden"
+          >
+            {withdrawOutput && withdrawalOutputSiloLabels ? (
+              <SiloOutputDisplay
+                title=""
+                stalk={withdrawOutput?.stalkLost}
+                seeds={withdrawOutput?.seedsLost}
+                stalkLabel={withdrawalOutputSiloLabels?.stalkLabel}
+                seedsLabel={withdrawalOutputSiloLabels?.seedsLabel}
+                showNegativeDeltas
+                showGrownStalkSeasonsNotice
+                grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
+              />
+            ) : null}
+            {convertResult && shouldConvertWithdraw && convertOutputSiloLabels ? (
+              <SiloOutputDisplay
+                title=""
+                stalk={convertResult.deltaStalk.abs()}
+                seeds={convertResult.deltaSeed.abs()}
+                stalkLabel={convertOutputSiloLabels?.stalkLabel}
+                seedsLabel={convertOutputSiloLabels?.seedsLabel}
+                stalkDelta={convertResult.deltaStalk.toNumber()}
+                seedsDelta={convertResult.deltaSeed.toNumber()}
+                showNegativeDeltas
+                showGrownStalkSeasonsNotice
+                grownStalkSeasons={seasonsOfGrownStalkWithdrawn}
+              />
+            ) : null}
+          </motion.div>
         )}
-        {shouldSwap && withdrawOutput && (
-          <RoutingAndSlippageInfo
-            title="Total Withdraw Slippage"
-            swapSummary={swapSummary}
-            priceImpactSummary={priceImpactSummary}
-            preferredSummary={"priceImpact"}
-            txnType="Withdraw"
-            tokenIn={siloToken}
-            tokenOut={tokenOut}
-            wellToken={siloToken}
-          />
-        )}
-      </div>
+      </AnimatePresence>
+      {shouldSwap && withdrawOutput && (
+        <RoutingAndSlippageInfo
+          title="Total Withdraw Slippage"
+          swapSummary={swapSummary}
+          priceImpactSummary={priceImpactSummary}
+          preferredSummary={"priceImpact"}
+          txnType="Withdraw"
+          tokenIn={siloToken}
+          tokenOut={tokenOut}
+          wellToken={siloToken}
+        />
+      )}
       {slippageWarning}
       <div className="hidden sm:flex">
         <Button onClick={onSubmit} disabled={disabled || !canProceed} {...sharedButtonProps}>
@@ -413,6 +641,16 @@ const sharedButtonProps = {
 
 export default Withdraw;
 
+// const ConvertWithdrawOutput = ({
+//   convertResult,
+//   shouldConvertWithdraw,
+// }: {
+//   convertResult: SiloConvertResult;
+//   shouldConvertWithdraw: boolean;
+// }) => {
+//   if (!convertResult || !shouldConvertWithdraw) return null;
+// }
+
 const WithdrawTokenSelectRow = ({ token, onClick }: { token: Token; onClick: () => void }) => {
   return (
     <div
@@ -432,26 +670,70 @@ const WithdrawTokenSelect = ({
   selected,
   tokens,
   selectToken,
-}: { selected: Token; tokens: Token[]; selectToken: (t: Token) => void }) => {
+  setShouldConvertWithdraw,
+  underlyingPairToken,
+  disableOpen = false,
+}: {
+  selected: Token | undefined;
+  tokens: Token[];
+  selectToken: (t: Token) => void;
+  shouldConvertWithdraw: boolean;
+  setShouldConvertWithdraw: (value: boolean) => void;
+  underlyingPairToken?: Token;
+  disableOpen?: boolean;
+}) => {
   const [open, setOpen] = useState(false);
+  const [showOtherOptions, setShowOtherOptions] = useState(false);
+
+  const handleOpenChange = (open: boolean) => {
+    if (disableOpen) return;
+    setOpen(open);
+    if (!open) {
+      setShowOtherOptions(false);
+    }
+  };
+
+  const { mainToken } = useTokenData();
+
+  const handleConvertWithdrawalSelect = () => {
+    if (underlyingPairToken) {
+      setShouldConvertWithdraw(true);
+      selectToken(underlyingPairToken);
+      setOpen(false);
+      setShowOtherOptions(false);
+    }
+  };
+
+  const handleStandardTokenSelect = (token: Token) => {
+    setShouldConvertWithdraw(false);
+    selectToken(token);
+    setOpen(false);
+    setShowOtherOptions(false);
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline-gray-shadow" size="xl" rounded="full">
           <div className="flex flex-row items-center gap-1">
-            <IconImage src={selected.logoURI} size={6} />
-            <div className="pinto-body-light">{selected.symbol}</div>
+            {selected ? (
+              <>
+                <IconImage src={selected.logoURI} size={6} />
+                <div className="pinto-body-light">{selected.symbol}</div>
+              </>
+            ) : (
+              <div className="pinto-body-light">Select Token</div>
+            )}
             <IconImage src={arrowDown} size={3} alt={"open token select dialog"} />
           </div>
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-full max-w-md flex flex-col gap-3 overflow-x-clip">
+      <DialogContent className="w-full max-w-xl flex flex-col gap-3 overflow-x-clip">
         <div className="flex flex-col">
           <div className="flex flex-col gap-3">
             <DialogTitle>
               <DialogHeader>
-                <div className="pinto-body">Select a token</div>
+                <div className="pinto-body">Select withdrawal option</div>
               </DialogHeader>
             </DialogTitle>
           </div>
@@ -461,12 +743,42 @@ const WithdrawTokenSelect = ({
               <WithdrawTokenSelectRow
                 key={`withdraw-token-select${token.symbol}`}
                 token={token}
-                onClick={() => {
-                  selectToken(token);
-                  setOpen(false);
-                }}
+                onClick={() => handleStandardTokenSelect(token)}
               />
             ))}
+            {underlyingPairToken && (
+              <div className="mt-2 mx-2 sm:mx-4">
+                <VerticalAccordion
+                  title="Show other options"
+                  open={showOtherOptions}
+                  onOpenChange={setShowOtherOptions}
+                  marginOnOpen={true}
+                >
+                  <div className="flex flex-col w-full gap-2">
+                    <div className="pinto-sm text-pinto-light px-4 py-2">Other</div>
+                    <div
+                      className="flex flex-row w-full items-start gap-4 p-4 cursor-pointer hover:bg-pinto-gray-1 rounded-sm"
+                      onClick={handleConvertWithdrawalSelect}
+                    >
+                      <div className="flex flex-row items-center gap-2 flex-shrink-0">
+                        <IconImage src={underlyingPairToken.logoURI} size={12} />
+                        <div className="pinto-body-light">+</div>
+                        <IconImage src={mainToken.logoURI} size={12} />
+                      </div>
+                      <div className="flex flex-col gap-1 items-start flex-1 min-w-0">
+                        <div className="pinto-body text-pinto-secondary">
+                          {underlyingPairToken.symbol} + DEP.{mainToken.symbol}
+                        </div>
+                        <div className="pinto-sm-light text-pinto-light">
+                          Withdraw half your LP as {underlyingPairToken.symbol} and keep the remaining Pinto deposited
+                          in the Silo
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </VerticalAccordion>
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>
