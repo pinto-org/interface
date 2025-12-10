@@ -94,7 +94,7 @@ export const SowOrderEntryFormParametersSummary = () => {
       <ReviewRow label="Total Pintos to Sow" tooltip={TOOLTIP_COPY.totalAmount} value={totalPintosToSow} />
       <ReviewRow label="Token Sources" tooltip={TOOLTIP_COPY.tokenStrategy} value={renderTokenStrategy()} />
       <ReviewRow label="Minimum Temperature" tooltip={TOOLTIP_COPY.temperature} value={minimumTemperature} />
-      <ReviewRow label="Execute During Morning Auction" tooltip={TOOLTIP_COPY.morningAuction} value={morningAuction} />
+      <ReviewRow label="Execute During Morning" tooltip={TOOLTIP_COPY.morningAuction} value={morningAuction} />
     </>
   );
 };
