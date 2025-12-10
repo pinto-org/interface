@@ -18,21 +18,36 @@ export default function useSignTractorBlueprint() {
           throw new Error("No signer found.");
         }
 
+        console.log("[useSignTractorBlueprint] Starting signature process", { address, blueprintHash });
         setSigning(true);
 
         const requisition = createRequisition(blueprint, blueprintHash);
+        console.log("[useSignTractorBlueprint] Created requisition, requesting signature...");
+
         const signedRequisition = await signRequisition(requisition);
 
+        console.log("[useSignTractorBlueprint] Signature successful", signedRequisition);
         setSignedRequisition(signedRequisition);
         toast.success("Blueprint signed successfully");
       } catch (e) {
-        toast.error("Failed to sign blueprint");
-        console.error(e);
+        console.error("[useSignTractorBlueprint] Signature failed:", e);
+
+        // Check if user rejected the signature
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        if (
+          errorMessage.includes("User rejected") ||
+          errorMessage.includes("denied") ||
+          errorMessage.includes("cancelled")
+        ) {
+          toast.error("Signature cancelled");
+        } else {
+          toast.error(`Failed to sign blueprint: ${errorMessage}`);
+        }
       } finally {
         setSigning(false);
       }
     },
-    [address],
+    [address, signRequisition],
   );
 
   return {

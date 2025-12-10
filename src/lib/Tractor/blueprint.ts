@@ -123,12 +123,20 @@ export function useSignRequisition() {
       verifyingContract: protocolAddress,
     };
 
+    console.log("[useSignRequisition] Requesting EIP-712 signature with domain:", {
+      chainId,
+      verifyingContract: protocolAddress,
+      message: requisition.blueprint,
+    });
+
     const signature = await signTypedDataAsync({
       domain,
       types: TYPES,
       primaryType: "Blueprint",
       message: requisition.blueprint,
     });
+
+    console.log("[useSignRequisition] Signature received:", signature);
 
     return {
       ...requisition,
