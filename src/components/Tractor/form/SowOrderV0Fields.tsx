@@ -14,7 +14,7 @@ import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
 import { postSanitizedSanitizedValue, sanitizeNumericInputValue, stringEq } from "@/utils/string";
 import { getTokenIndex } from "@/utils/token";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SowOrderV0FormSchema } from "./SowOrderV0Schema";
 
 import { TV } from "@/classes/TokenValue";
@@ -402,6 +402,7 @@ SowOrderV0Fields.Temperature = function Temperature() {
   const handlers = useSharedInputHandlers(ctx, "temperature");
   const { data: maxTemperature } = useReadBeanstalk_MaxTemperature();
   const temperature = useTemperature();
+  const hasInitialized = useRef(false);
 
   const currentTempValue = useMemo(() => {
     // Use max temperature from contract if available, otherwise use temperature state
@@ -414,12 +415,14 @@ SowOrderV0Fields.Temperature = function Temperature() {
   const minTemp = useMemo(() => Math.max(0, currentTempValue - 100), [currentTempValue]);
   const maxTemp = useMemo(() => currentTempValue + 100, [currentTempValue]);
 
-  // Set default value to current temperature if not set
+  // Set default value to current temperature only on initial mount
   useEffect(() => {
+    if (hasInitialized.current) return;
     const currentValue = ctx.getValues("temperature");
     if (!currentValue || currentValue === "") {
       ctx.setValue("temperature", currentTempValue.toString(), { shouldValidate: false });
     }
+    hasInitialized.current = true;
   }, [currentTempValue, ctx]);
 
   return (
