@@ -1,0 +1,15 @@
+query UserReferralProfile($account: Bytes!) {
+  referrerProfile(id: $account) {
+    id
+    totalPodsEarned
+    totalSuccessfulReferrals
+    totalPodsCreatedFromReferrals
+    totalPintoSownFromReferrals
+    firstReferralTimestamp
+    lastReferralTimestamp
+  }
+  globalReferralStats(id: "global") {
+    totalReferrers
+    totalReferralSows
+  }
+}

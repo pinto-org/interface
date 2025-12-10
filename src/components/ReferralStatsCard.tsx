@@ -1,9 +1,9 @@
 import FrameAnimator from "@/components/LoadingSpinner";
-import { useReferralStats } from "@/state/useReferralStats";
+import { useUserReferralProfile } from "@/state/referral";
 import { formatter } from "@/utils/format";
 
 export function ReferralStatsCard() {
-  const { stats, isLoading } = useReferralStats();
+  const { data, isLoading } = useUserReferralProfile();
 
   if (isLoading) {
     return (
@@ -19,27 +19,27 @@ export function ReferralStatsCard() {
   const statsData = [
     {
       label: "Total Pods Earned",
-      value: stats ? formatter.noDec(stats.totalPodsEarned) : "0",
+      value: data ? formatter.noDec(data.totalPodsEarned) : "0",
       description: "Pods earned from referrals",
     },
     {
       label: "Total successful referrals",
-      value: stats?.totalReferrals ?? 0,
+      value: data?.totalSuccessfulReferrals ?? 0,
       description: "Number of users who used your link",
     },
     {
       label: "Referral Ranking",
-      value: stats?.rank ?? "-",
+      value: data?.rankDisplay ?? "-",
       description: "Your rank among all referrers",
     },
     {
       label: "Total Pods created from referrals",
-      value: stats ? formatter.noDec(stats.totalPodsCreated) : "0",
+      value: data ? formatter.noDec(data.totalPodsCreatedFromReferrals) : "0",
       description: "Total Pods your referrals have earned",
     },
     {
       label: "Total Pinto Sown from referrals",
-      value: stats ? formatter.twoDec(stats.totalPintoSown) : "0.00",
+      value: data ? formatter.twoDec(data.totalPintoSownFromReferrals) : "0.00",
       description: "Total Pinto your referrals have sown",
     },
   ];

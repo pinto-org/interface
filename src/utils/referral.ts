@@ -61,3 +61,32 @@ export function decodeReferralAddress(encoded: string): Address | null {
 export function isValidReferralCode(code: string): boolean {
   return decodeReferralAddress(code) !== null;
 }
+
+/**
+ * Calculate Pinto sown from referee pods and temperature
+ * Formula: refereePods / (1 + temperature/100)
+ *
+ * @param refereePods - Pods earned by referee (BigInt string)
+ * @param temperature - Temperature at time of sow (percentage, e.g., 500 = 500%)
+ * @returns Calculated Pinto sown as BigInt string
+ */
+export function calculatePintoSown(refereePods: string, temperature: number): string {
+  const pods = BigInt(refereePods);
+  // Temperature is in percentage (e.g., 500 means 500%)
+  // Formula: pods / (1 + temperature/100) = pods * 100 / (100 + temperature)
+  const temperatureFactor = BigInt(100 + temperature);
+  const pintoSown = (pods * 100n) / temperatureFactor;
+  return pintoSown.toString();
+}
+
+/**
+ * Calculate total pods created from referrer and referee pods
+ *
+ * @param referrerPods - Pods earned by referrer (BigInt string)
+ * @param refereePods - Pods earned by referee (BigInt string)
+ * @returns Total pods created as BigInt string
+ */
+export function calculateTotalPodsCreated(referrerPods: string, refereePods: string): string {
+  const total = BigInt(referrerPods) + BigInt(refereePods);
+  return total.toString();
+}

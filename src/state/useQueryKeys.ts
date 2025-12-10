@@ -31,8 +31,6 @@ export function useQueryKeys({ chainId, account, harvestableIndex }: UseQueryKey
     [chainId, account],
   );
 
-  const referralLeaderboard = useMemo(() => ["referralLeaderboard", { chainId: chainId }], [chainId]);
-
   return useMemo(
     () => ({
       farmerField,
@@ -40,8 +38,7 @@ export function useQueryKeys({ chainId, account, harvestableIndex }: UseQueryKey
       allPodOrders,
       allMarket,
       farmerMarket,
-      referralLeaderboard,
     }),
-    [farmerField, allPodListings, allPodOrders, allMarket, farmerMarket, referralLeaderboard],
+    [farmerField, allPodListings, allPodOrders, allMarket, farmerMarket],
   );
 }

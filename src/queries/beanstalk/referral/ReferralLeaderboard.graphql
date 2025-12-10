@@ -1,0 +1,13 @@
+query ReferralLeaderboard($first: Int!, $skip: Int!) {
+  referrerProfiles(
+    first: $first
+    skip: $skip
+    orderBy: totalPodsEarned
+    orderDirection: desc
+  ) {
+    id
+    totalPodsEarned
+    totalPintoSownFromReferrals
+    totalSuccessfulReferrals
+  }
+}

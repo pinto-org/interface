@@ -4,7 +4,7 @@ import { DelegateReferralModal } from "@/components/DelegateReferralModal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
-import { useReferralData } from "@/state/useReferralData";
+import { useReferralData } from "@/state/referral";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { truncateHex } from "@/utils/format";
 import { encodeReferralAddress } from "@/utils/referral";
