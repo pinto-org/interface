@@ -1,12 +1,13 @@
+import { Col, Row } from "@/components/Container";
 import { Button } from "@/components/ui/Button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
 import {
   useSimulateBeanstalk_DelegateReferralRewards,
   useWriteBeanstalk_DelegateReferralRewards,
 } from "@/generated/contractHooks";
 import { getExplorerLink } from "@/utils/chain";
-import { CopyIcon } from "@radix-ui/react-icons";
+import { CopyIcon, Cross2Icon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { isAddress } from "viem";
@@ -104,16 +105,30 @@ export function DelegateReferralModal({ isOpen, onOpenChange }: DelegateReferral
     });
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Change Pod Destination Address</DialogTitle>
-        </DialogHeader>
+  if (!isOpen) return null;
 
-        <div className="flex flex-col gap-4 py-4">
+  return (
+    <Col className="h-auto w-full">
+      <div className="flex flex-col gap-6">
+        {/* Title and separator */}
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between items-start">
+            <div className="pinto-body font-medium text-pinto-secondary mb-4">📍 Change Pod Destination Address</div>
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="text-pinto-light hover:text-pinto-dark transition-colors p-1 -mt-1 -mr-1"
+            >
+              <Cross2Icon className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="h-[1px] w-full bg-pinto-gray-2" />
+        </div>
+
+        {/* Form Section */}
+        <Col className="gap-6 pinto-sm-light text-pinto-light">
           <div className="flex flex-col gap-2">
-            <label className="pinto-sm text-pinto-light">Delegate Address</label>
+            <Label variant="form">Delegate Address</Label>
             <Input
               value={delegateAddress}
               onChange={(e) => {
@@ -122,28 +137,41 @@ export function DelegateReferralModal({ isOpen, onOpenChange }: DelegateReferral
               }}
               placeholder="0x..."
               outlined
-              className="text-sm"
-              containerClassName="border-pinto-green"
             />
-            {error && <span className="pinto-sm text-red-500">{error}</span>}
+            {error && <span className="pinto-sm text-pinto-red-2">{error}</span>}
           </div>
 
-          <div className="pinto-sm text-pinto-light">
-            Enter the address where you want your referral reward Pods to be sent. You can reset to your own address by
-            clicking "Reset to My Address".
+          <div className="pinto-sm-light text-pinto-light">
+            Enter the address where you want your referral reward Pods to be sent.
           </div>
+        </Col>
 
-          <div className="flex flex-col gap-2">
-            <Button onClick={handleSubmit} disabled={isPending || isConfirming || !isValidAddress} className="w-full">
-              {isPending || isConfirming ? "Confirming..." : "Update Delegate"}
-            </Button>
+        {/* Action Buttons */}
+        <Row className="gap-4 w-full">
+          <Button
+            onClick={handleReset}
+            variant="outline"
+            size="xlargest"
+            rounded="full"
+            disabled={isPending || isConfirming}
+            className="w-full flex-1 text-pinto-light bg-pinto-gray-1"
+          >
+            Reset Delegate
+          </Button>
 
-            <Button onClick={handleReset} variant="outline" disabled={isPending || isConfirming} className="w-full">
-              Reset to My Address
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+          <Button
+            onClick={handleSubmit}
+            size="xlargest"
+            rounded="full"
+            disabled={isPending || isConfirming || !isValidAddress}
+            className={`w-full flex-1 ${
+              isPending || isConfirming ? "bg-pinto-gray-2 text-pinto-light" : "bg-pinto-green-4 text-white"
+            }`}
+          >
+            {isPending || isConfirming ? "Confirming..." : "Update Delegate"}
+          </Button>
+        </Row>
+      </div>
+    </Col>
   );
 }

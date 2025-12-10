@@ -1,6 +1,5 @@
 import telegramLogo from "@/assets/misc/telegram-logo.png";
 import xLogo from "@/assets/misc/x-logo.png";
-import { DelegateReferralModal } from "@/components/DelegateReferralModal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
@@ -9,14 +8,16 @@ import { trackSimpleEvent } from "@/utils/analytics";
 import { truncateHex } from "@/utils/format";
 import { encodeReferralAddress } from "@/utils/referral";
 import { CopyIcon } from "@radix-ui/react-icons";
-import { useState } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
 
-export function ReferralLinkGenerator() {
+interface ReferralLinkGeneratorProps {
+  onChangeAddress: () => void;
+}
+
+export function ReferralLinkGenerator({ onChangeAddress }: ReferralLinkGeneratorProps) {
   const { address } = useAccount();
   const { delegateAddress } = useReferralData();
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   if (!address) {
     return <div className="text-center text-pinto-gray-4">Connect your wallet to access referral features</div>;
@@ -46,10 +47,6 @@ export function ReferralLinkGenerator() {
     });
   };
 
-  const handleChangeAddress = () => {
-    setIsModalOpen(true);
-  };
-
   const handleTwitterShare = () => {
     console.log("Twitter/X share clicked");
     const tweetText =
@@ -76,103 +73,99 @@ export function ReferralLinkGenerator() {
   };
 
   return (
-    <>
-      <DelegateReferralModal isOpen={isModalOpen} onOpenChange={setIsModalOpen} />
+    <div className="flex flex-col gap-6">
+      <div className="pinto-h3 sm:pinto-h2">Invite via</div>
 
-      <div className="flex flex-col gap-6">
-        <div className="pinto-h3 sm:pinto-h2">Invite via</div>
+      <div className="flex flex-col gap-4">
+        {/* Referral Code */}
+        <div className="flex flex-col gap-2">
+          <label className="pinto-sm text-pinto-light">Referral Code</label>
+          <div className="flex flex-row gap-2">
+            <Input
+              value={referralCode}
+              readOnly
+              outlined
+              className="text-sm"
+              containerClassName="w-80 max-w-full border-pinto-green"
+            />
+            <Button
+              onClick={handleCopyCode}
+              variant="outline"
+              size="icon"
+              className="w-10 h-10 flex-shrink-0"
+              title="Copy code"
+            >
+              <CopyIcon className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
 
-        <div className="flex flex-col gap-4">
-          {/* Referral Code */}
-          <div className="flex flex-col gap-2">
-            <label className="pinto-sm text-pinto-light">Referral Code</label>
-            <div className="flex flex-row gap-2">
-              <Input
-                value={referralCode}
-                readOnly
-                outlined
-                className="text-sm"
-                containerClassName="w-80 max-w-full border-pinto-green"
-              />
-              <Button
-                onClick={handleCopyCode}
-                variant="outline"
-                size="icon"
-                className="w-10 h-10 flex-shrink-0"
-                title="Copy code"
+        {/* Referral Link */}
+        <div className="flex flex-col gap-2">
+          <label className="pinto-sm text-pinto-light">Referral Link</label>
+          <div className="flex flex-row gap-2">
+            <Input
+              value={referralUrl}
+              readOnly
+              outlined
+              className="text-sm"
+              containerClassName="w-80 max-w-full border-pinto-green"
+            />
+            <Button
+              onClick={handleCopyLink}
+              variant="outline"
+              size="icon"
+              className="w-10 h-10 flex-shrink-0"
+              title="Copy link"
+            >
+              <CopyIcon className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Pod Destination Address and Share via - Row Layout */}
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 sm:items-start">
+          {/* Pod Destination Address */}
+          <div className="flex flex-col gap-2 flex-1">
+            <label className="pinto-sm text-pinto-light">Pod Destination Address</label>
+            <div className="flex flex-col gap-1">
+              <span className="pinto-body text-pinto-dark">{truncateHex(podDestinationAddress, 6, 4)}</span>
+              <button
+                type="button"
+                onClick={onChangeAddress}
+                className="text-pinto-green pinto-sm hover:text-pinto-green/80 transition-colors text-left w-fit underline-offset-2 hover:underline"
               >
-                <CopyIcon className="w-4 h-4" />
-              </Button>
+                Change address
+              </button>
             </div>
           </div>
 
-          {/* Referral Link */}
+          {/* Social Sharing Icons */}
           <div className="flex flex-col gap-2">
-            <label className="pinto-sm text-pinto-light">Referral Link</label>
-            <div className="flex flex-row gap-2">
-              <Input
-                value={referralUrl}
-                readOnly
-                outlined
-                className="text-sm"
-                containerClassName="w-80 max-w-full border-pinto-green"
-              />
+            <label className="pinto-sm text-pinto-light">Share via</label>
+            <div className="flex gap-2">
               <Button
-                onClick={handleCopyLink}
+                onClick={handleTwitterShare}
                 variant="outline"
                 size="icon"
-                className="w-10 h-10 flex-shrink-0"
-                title="Copy link"
+                className="w-10 h-10 p-2"
+                title="Share on X (Twitter)"
               >
-                <CopyIcon className="w-4 h-4" />
+                <img src={xLogo} alt="X" className="w-4 h-4 object-contain" />
               </Button>
-            </div>
-          </div>
-
-          {/* Pod Destination Address and Share via - Row Layout */}
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 sm:items-start">
-            {/* Pod Destination Address */}
-            <div className="flex flex-col gap-2 flex-1">
-              <label className="pinto-sm text-pinto-light">Pod Destination Address</label>
-              <div className="flex flex-col gap-1">
-                <span className="pinto-body text-pinto-dark">{truncateHex(podDestinationAddress, 6, 4)}</span>
-                <button
-                  type="button"
-                  onClick={handleChangeAddress}
-                  className="text-pinto-green pinto-sm hover:text-pinto-green/80 transition-colors text-left w-fit underline-offset-2 hover:underline"
-                >
-                  Change address
-                </button>
-              </div>
-            </div>
-
-            {/* Social Sharing Icons */}
-            <div className="flex flex-col gap-2">
-              <label className="pinto-sm text-pinto-light">Share via</label>
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleTwitterShare}
-                  variant="outline"
-                  size="icon"
-                  className="w-10 h-10 p-2"
-                  title="Share on X (Twitter)"
-                >
-                  <img src={xLogo} alt="X" className="w-4 h-4 object-contain" />
-                </Button>
-                <Button
-                  onClick={handleTelegramShare}
-                  variant="outline"
-                  size="icon"
-                  className="w-10 h-10 p-2"
-                  title="Share on Telegram"
-                >
-                  <img src={telegramLogo} alt="Telegram" className="w-5 h-5 object-contain" />
-                </Button>
-              </div>
+              <Button
+                onClick={handleTelegramShare}
+                variant="outline"
+                size="icon"
+                className="w-10 h-10 p-2"
+                title="Share on Telegram"
+              >
+                <img src={telegramLogo} alt="Telegram" className="w-5 h-5 object-contain" />
+              </Button>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
