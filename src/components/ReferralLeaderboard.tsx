@@ -2,7 +2,7 @@ import podIcon from "@/assets/protocol/Pod.png";
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import FrameAnimator from "@/components/LoadingSpinner";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import IconImage from "@/components/ui/IconImage";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { useReferralLeaderboard } from "@/state/referral";
@@ -43,33 +43,32 @@ export default function ReferralLeaderboard() {
   if (!data || data.length === 0) {
     return (
       <Card className="p-4 sm:p-6">
-        <div className="pinto-h3 sm:pinto-h2 mb-4">Referral Leaderboard</div>
-        <div className="relative max-h-[min(37.5rem,50vh)] overflow-auto">
-          <Table>
-            <TableHeader className="sticky top-0 bg-pinto-gray-1 z-2">
-              <TableRow className="hover:bg-pinto-gray-1 h-14">
-                <TableHead className="text-black font-[400] text-[1rem] w-[5rem] p-4">No.</TableHead>
-                <TableHead className="text-black font-[400] text-[1rem] w-[12.5rem] px-4">Name</TableHead>
-                <TableHead className="text-black text-right font-[400] text-[1rem] w-[9.375rem]">Pods Earned</TableHead>
-                <TableHead className="text-black text-right font-[400] text-[1rem] w-[12.5rem]">
-                  Total Pinto Sown
-                </TableHead>
-                <TableHead className="text-black text-right font-[400] text-[1rem] w-[6.25rem] p-4">
-                  Referrals
-                </TableHead>
+        <CardHeader className="p-0 pb-4">
+          <div className="pinto-h3 sm:pinto-h2">Referral Leaderboard</div>
+          <p className="pinto-body-light text-pinto-light">Top referrers ranked by Pods earned</p>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table noOverflow>
+            <TableHeader>
+              <TableRow noHoverMute className="z-[1] [&>*]:text-pinto-gray-4 sticky -top-[1px]">
+                <TableHead className="w-[5rem]">No.</TableHead>
+                <TableHead className="w-[12.5rem]">Address</TableHead>
+                <TableHead className="w-[9.375rem]">Pods Earned</TableHead>
+                <TableHead className="w-[9.375rem]">Total Pinto Sown</TableHead>
+                <TableHead className="text-right w-[6.25rem]">Referrals</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow className="bg-white hover:bg-white">
+              <TableRow noHoverMute>
                 <TableCell colSpan={5}>
-                  <div className="flex flex-row h-48 w-full items-center justify-center text-pinto-gray-4 font-[400] text-[1rem]">
+                  <div className="flex flex-row h-48 w-full items-center justify-center text-pinto-gray-4">
                     No referral activity yet. Be the first to earn referral rewards!
                   </div>
                 </TableCell>
               </TableRow>
             </TableBody>
           </Table>
-        </div>
+        </CardContent>
       </Card>
     );
   }
@@ -77,58 +76,60 @@ export default function ReferralLeaderboard() {
   // Main table with data
   return (
     <Card className="p-4 sm:p-6">
-      <div className="pinto-h3 sm:pinto-h2 mb-4">Referral Leaderboard</div>
-      <div className="relative max-h-[min(37.5rem,50vh)] overflow-auto">
-        <Table>
-          <TableHeader className="sticky top-0 bg-pinto-gray-1 z-2">
-            <TableRow className="hover:bg-pinto-gray-1 h-14">
-              <TableHead className="text-black font-[400] text-[1rem] w-[5rem] p-4">No.</TableHead>
-              <TableHead className="text-black font-[400] text-[1rem] w-[12.5rem] px-4">Name</TableHead>
-              <TableHead className="text-black text-right font-[400] text-[1rem] w-[9.375rem]">Pods Earned</TableHead>
-              <TableHead className="text-black text-right font-[400] text-[1rem] w-[12.5rem]">
-                Total Pinto Sown
-              </TableHead>
-              <TableHead className="text-black text-right font-[400] text-[1rem] w-[6.25rem] p-4">Referrals</TableHead>
+      <CardHeader className="p-0 pb-4">
+        <div className="flex space-x-2 items-center">
+          <div className="pinto-h3 sm:pinto-h2">Referral Leaderboard</div>
+          {isLoading && <FrameAnimator className="-mt-5 -mb-12" size={80} />}
+        </div>
+        <p className="pinto-body-light text-pinto-light">Top referrers ranked by Pods earned</p>
+      </CardHeader>
+      <CardContent className="p-0">
+        <Table noOverflow>
+          <TableHeader>
+            <TableRow noHoverMute className="z-[1] [&>*]:text-pinto-gray-4 sticky -top-[1px]">
+              <TableHead className="w-[5rem]">No.</TableHead>
+              <TableHead className="w-[12.5rem]">Address</TableHead>
+              <TableHead className="w-[9.375rem]">Pods Earned</TableHead>
+              <TableHead className="w-[9.375rem]">Total Pinto Sown</TableHead>
+              <TableHead className="text-right w-[6.25rem]">Referrals</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data?.map((entry) => (
-              <TableRow key={entry.address} className="h-[4.5rem] bg-white hover:bg-pinto-green-1/50">
-                <TableCell className="pinto-sm p-4">{entry.rank}</TableCell>
-                <TableCell className="pinto-sm px-4">{truncateHex(entry.address, 6, 4)}</TableCell>
-                <TableCell className="pinto-sm text-right">
-                  <div className="flex flex-row gap-1 items-center justify-end">
-                    <IconImage src={podIcon} size={4} className="scale-110" />
-                    <div className="opacity-70">{formatter.noDec(entry.podsEarned)}</div>
+              <TableRow key={entry.address} noHoverMute>
+                <TableCell className="font-medium">{entry.rank}</TableCell>
+                <TableCell>{truncateHex(entry.address, 6, 4)}</TableCell>
+                <TableCell>
+                  <div className="flex items-center">
+                    <IconImage src={podIcon} size={4} className="scale-110 mr-[0.375rem]" alt="pod icon" />
+                    {formatter.noDec(entry.podsEarned)}
                   </div>
                 </TableCell>
-                <TableCell className="pinto-sm text-right">
-                  <div className="flex flex-row gap-1 items-center justify-end">
-                    <IconImage src={pintoIcon} size={4} className="scale-110" />
-                    <div className="opacity-70">{formatter.twoDec(entry.totalPintoSown)}</div>
+                <TableCell>
+                  <div className="flex items-center">
+                    <IconImage src={pintoIcon} size={4} className="scale-110 mr-[0.375rem]" alt="pinto icon" />
+                    {formatter.twoDec(entry.totalPintoSown)}
                   </div>
                 </TableCell>
-                <TableCell className="pinto-sm text-right p-4">
-                  <div className="opacity-70">{entry.totalSuccessfulReferrals}</div>
-                </TableCell>
+                <TableCell className="text-right">{entry.totalSuccessfulReferrals}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      </div>
 
-      {/* Pagination controls */}
-      {(currentPage > 0 || hasNextPage) && (
-        <div className="flex items-center justify-center space-x-2 py-4">
-          <Button variant="outline" size="sm" onClick={handlePreviousPage} disabled={currentPage === 0}>
-            Previous
-          </Button>
-          <div className="text-xs">Page {currentPage + 1}</div>
-          <Button variant="outline" size="sm" onClick={handleNextPage} disabled={!hasNextPage}>
-            Next
-          </Button>
-        </div>
-      )}
+        {/* Pagination controls */}
+        {(currentPage > 0 || hasNextPage) && (
+          <div className="flex items-center justify-end space-x-2 py-4">
+            <Button variant="outline" size="sm" onClick={handlePreviousPage} disabled={currentPage === 0}>
+              Previous
+            </Button>
+            <div className="text-xs">{`Page ${currentPage + 1}`}</div>
+            <Button variant="outline" size="sm" onClick={handleNextPage} disabled={!hasNextPage}>
+              Next
+            </Button>
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 }
