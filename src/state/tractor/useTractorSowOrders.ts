@@ -52,8 +52,15 @@ const useTractorAPISowOrders = ({
   return useQuery({
     queryKey,
     queryFn: async () => {
-      if (!chainId) return;
-      return TractorAPI.getOrders(args);
+      if (!chainId)
+        return {
+          lastUpdated: 0,
+          totalRecords: 0,
+          orders: [],
+        };
+
+      const response = await TractorAPI.getOrders<"SOW_V0">({ ...args, orderType: "SOW_V0" });
+      return response;
     },
     enabled: !!chainId && !chainOnly && !!enabled,
     select: selectAndTransformOrders,
@@ -61,7 +68,7 @@ const useTractorAPISowOrders = ({
   });
 };
 
-const transformAPIOrderbookData = (chainId: number) => (response: TractorAPIOrdersResponse | undefined) => {
+const transformAPIOrderbookData = (chainId: number) => (response: TractorAPIOrdersResponse<"SOW_V0"> | undefined) => {
   if (!response) return { orders: [], lastUpdated: 0, totalRecords: 0 };
 
   const mainToken = getChainConstant(resolveChainId(chainId), MAIN_TOKEN);
@@ -219,5 +226,5 @@ export function useTractorSowOrderbook<T = OrderbookEntry[]>({
     // no need to refetch the chain query, it will refetch automatically when the orders refetch
   }, [ordersChainQuery, ordersQuery, chainOnly]);
 
-  return { ...ordersChainQuery, refetch };
+  return { ...ordersChainQuery, refetch } as const;
 }

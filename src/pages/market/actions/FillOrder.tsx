@@ -2,13 +2,14 @@ import podIcon from "@/assets/protocol/Pod.png";
 import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TV, TokenValue } from "@/classes/TokenValue";
 import ComboPlotInputField from "@/components/ComboPlotInputField";
-import DestinationBalanceSelect from "@/components/DestinationBalanceSelect";
+import FarmBalanceToggle from "@/components/FarmBalanceToggle";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Separator } from "@/components/ui/Separator";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { useFarmTogglePreference } from "@/hooks/useFarmTogglePreference";
 import useTransaction from "@/hooks/useTransaction";
 import usePodOrders from "@/state/market/usePodOrders";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
@@ -47,7 +48,7 @@ export default function FillOrder() {
   // TODO: need to handle an edge case with amount where the first half of the plot is sellable, and the second half is not.
   // Currently this is handled my making such a plot not fillable via ComboPlotInputField.
   const [amount, setAmount] = useState(0);
-  const [balanceTo, setBalanceTo] = useState(FarmToMode.INTERNAL);
+  const [mode, toFarm, setMode] = useFarmTogglePreference();
 
   const { id } = useParams();
   const podOrders = usePodOrders();
@@ -126,7 +127,7 @@ export default function FillOrder() {
           plot[0].index.toBigInt(), // index of plot to sell
           0n, // start index within plot
           amountToSell.toBigInt(), // amount of pods to sell
-          Number(balanceTo), //destination balance
+          Number(mode), //destination balance
         ],
       });
     } catch (e) {
@@ -137,7 +138,7 @@ export default function FillOrder() {
     } finally {
       setSubmitting(false);
     }
-  }, [order, plot, amountToSell, balanceTo, writeWithEstimateGas, setSubmitting, diamondAddress]);
+  }, [order, plot, amountToSell, toFarm, writeWithEstimateGas, setSubmitting, diamondAddress]);
 
   const isOwnOrder = order && order?.farmer.id === account.address?.toLowerCase();
   const disabled = !order || !plot[0] || !amount;
@@ -199,10 +200,11 @@ export default function FillOrder() {
                   type="single"
                 />
               </div>
-              <div className="flex flex-col gap-2">
-                <p className="pinto-body text-pinto-light">Destination</p>
-                <DestinationBalanceSelect setBalanceTo={setBalanceTo} balanceTo={balanceTo} />
-              </div>
+              <FarmBalanceToggle
+                checked={toFarm}
+                onCheckedChange={(checked) => setMode(checked ? FarmToMode.INTERNAL : FarmToMode.EXTERNAL)}
+                label="Receive Pinto in Farm Wallet"
+              />
               <div className="flex flex-col gap-4">
                 <Separator />
                 {!disabled && (

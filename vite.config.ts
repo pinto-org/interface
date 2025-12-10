@@ -50,6 +50,11 @@ export default defineConfig(({ command }) => {
       { find: '@', replacement: path.resolve(__dirname, 'src') },
     ],
   },
+  // server: {
+  //   allowedHosts: [
+      
+  //   ]
+  // },
   build: {
     sourcemap: command === "serve",
     rollupOptions: {

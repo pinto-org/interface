@@ -1,6 +1,7 @@
 import { CloseIconAlt } from "@/components/Icons";
 import FrameAnimator from "@/components/LoadingSpinner.tsx";
 import IconImage from "@/components/ui/IconImage";
+import { SG_FETCH_DISABLED } from "@/constants/subgraph";
 import { useNormalizeMayMultipleSeasonalData } from "@/state/seasonal/utils";
 import { formatDate } from "@/utils/format";
 import { UseSeasonalResult } from "@/utils/types";
@@ -25,6 +26,7 @@ interface CompactSeasonalChartProps {
   hideXTicks?: boolean;
   hideYTicks?: boolean;
   token?: { logoURI: string; symbol: string };
+  noData?: boolean;
 }
 
 const gradients = [gradientFunctions.metallicGreen, metallicMorningStrokeGradientFn];
@@ -41,6 +43,8 @@ const CompactSeasonalLineChart = ({
   hideXTicks,
   hideYTicks,
   token,
+  // biome-ignore lint/complexity/noUselessTernary: nodata default when sg is down
+  noData = SG_FETCH_DISABLED ? true : false,
 }: CompactSeasonalChartProps) => {
   const [allData, setAllData] = useState<SeasonalChartData[][] | null>(null);
   const [displayData, setDisplayData] = useState<SeasonalChartData[] | null>(null);
@@ -147,13 +151,15 @@ const CompactSeasonalLineChart = ({
           <span>{displayData?.[0]?.timestamp ? formatDate(displayData[0].timestamp) : "--"}</span>
         </div>
       </div>
-      {(isLoading || isError || !allData) && (
+      {(isLoading || isError || !allData || noData) && (
         <>
           {/* Keep sizing the same as when there is data. Allows centering spinner/error vertically */}
           <div className={`${size === "small" ? "aspect-3/1" : "aspect-6/1"} pt-4`}>
             <div className="relative w-full flex items-center justify-center">
-              <div className="flex flex-col items-center justify-center h-40 sm:h-52 box-border">
-                {(isLoading && !isError) || !didLoad ? (
+              <div className="flex flex-col items-center justify-center h-52 sm:h-52 box-border">
+                {noData ? (
+                  <div className="pinto-body-light text-pinto-light">Unable to load</div>
+                ) : (isLoading && !isError) || !didLoad ? (
                   <FrameAnimator size={75} />
                 ) : isError ? (
                   <>
@@ -177,7 +183,7 @@ const CompactSeasonalLineChart = ({
               </div>
             ) : (
               <div className="pt-4">
-                <div className="h-40 sm:h-52 box-border">
+                <div className="h-52 sm:h-52 box-border">
                   <MultiAxisLineChart
                     {...data}
                     size={size}

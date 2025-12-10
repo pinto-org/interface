@@ -414,7 +414,7 @@ export default function SecondaryCTA() {
             </span>
           </h2>
           <span className="text-xl lg:text-lg lg:leading-[1.4] font-thin text-black text-center sm:whitespace-nowrap">
-            Pinto is designed to save the Ethereum network from the threat of centralized stablecoins
+            Pinto is designed to save the Ethereum network from the threat of centralized stablecoins.
           </span>
           <Link to={navLinks.printsToThePeople} target="_blank" rel="noopener noreferrer">
             <Button

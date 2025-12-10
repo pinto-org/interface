@@ -5,7 +5,8 @@ import IconImage from "@/components/ui/IconImage";
 import { Input } from "@/components/ui/Input";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
-import { usePodLine, useTemperature } from "@/state/useFieldData";
+import { useScaledTemperature } from "@/hooks/useContinuousMorningTime";
+import { usePodLine } from "@/state/useFieldData";
 import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
 import { postSanitizedSanitizedValue, sanitizeNumericInputValue, stringEq } from "@/utils/string";
@@ -15,6 +16,8 @@ import { SowOrderV0FormSchema } from "./SowOrderV0Schema";
 
 import { Col, Row } from "@/components/Container";
 import { Label } from "@/components/ui/Label";
+import { tractorTokenStrategyUtil as StrategyUtil } from "@/lib/Tractor";
+import { TractorTokenStrategy } from "@/lib/Tractor/types";
 import { cn } from "@/utils/utils";
 import { useFormContext, useWatch } from "react-hook-form";
 
@@ -270,13 +273,15 @@ SowOrderV0Fields.TokenStrategy = function TokenStrategy({
 }: {
   openDialog: () => void;
 }) {
-  const ctx = useFormContext<SowOrderV0FormSchema>();
+  const ctx = useFormContext<{ selectedTokenStrategy: TractorTokenStrategy }>();
   const tokenMap = useTokenMap();
 
   const strategy = useWatch({ control: ctx.control, name: "selectedTokenStrategy" });
 
+  const addresses = StrategyUtil.extractAddresses(strategy);
+
   const selectedToken =
-    strategy?.address && strategy.type === "SPECIFIC_TOKEN" ? tokenMap[getTokenIndex(strategy.address)] : undefined;
+    strategy.type === "SPECIFIC_TOKEN" && addresses?.length ? tokenMap[getTokenIndex(addresses[0] ?? "")] : undefined;
 
   const getSelectedTokenDisplay = () => {
     if (strategy?.type === "LOWEST_SEEDS") {
@@ -309,7 +314,7 @@ SowOrderV0Fields.Temperature = function Temperature() {
   const ctx = useFormContext<SowOrderV0FormSchema>();
   const handlers = useSharedInputHandlers(ctx, "temperature");
 
-  const currTemp = useTemperature();
+  const currTemp = useScaledTemperature();
   return (
     <FormField
       control={ctx.control}

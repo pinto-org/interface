@@ -134,7 +134,7 @@ export default function MultiTokenSelectWithBalances({
                   <Button
                     variant="outline"
                     className="w-[calc(100%+16px)] -mx-2 -mb-2 mt-4 rounded-[1rem] font-[400] text-[1.25rem] text-black hover:text-black leading-[110%] h-14"
-                  >{`Select ${selectedTokens.length} token${selectedTokens.length > 1 ? "s" : ""} from my Farm Balance`}</Button>
+                  >{`Select ${selectedTokens.length} token${selectedTokens.length > 1 ? "s" : ""} from my Farm Wallet`}</Button>
                 </DialogClose>
               </div>
             </ScrollArea>

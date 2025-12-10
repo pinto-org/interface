@@ -1,6 +1,6 @@
 import { defaultQuerySettingsMedium } from "@/constants/query";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
-import { RequisitionType, fetchTractorEvents, getSelectRequisitionType } from "@/lib/Tractor/utils";
+import { RequisitionType, fetchTractorEvents, getSelectRequisitionType } from "@/lib/Tractor";
 import { queryKeys } from "@/state/queryKeys";
 import { MayArray } from "@/utils/types.generic";
 import { safeJSONStringify } from "@/utils/utils";

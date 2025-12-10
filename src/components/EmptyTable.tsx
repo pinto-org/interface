@@ -2,20 +2,20 @@ import { Link } from "react-router-dom";
 import { Button } from "./ui/Button";
 
 type EmptyTableProps = {
-  type?: "deposits" | "plots" | "plots-field" | "tractor";
+  type?: "deposits" | "plots" | "plots-field" | "tractor" | "tractorConvertUp";
   onTractorClick?: () => void;
 };
 
 const EMPTY_TABLE_CONTENT = {
   deposits: {
-    message: "Your Deposits will appear here.",
+    message: "You have nothing Deposited in the Silo. Deposit now to get Stalk and Seeds!",
     link: {
       text: "Deposit in the Silo for Stalk and Seeds",
       to: "/silo",
     },
   },
   plots: {
-    message: "Your Pods will appear here.",
+    message: "You have nothing Sown in the Field. Sow now to get Pods!",
     link: {
       text: "Sow in the Field for Pods",
       to: "/field",
@@ -33,6 +33,13 @@ const EMPTY_TABLE_CONTENT = {
     link: {
       text: "Create a Tractor Order",
       to: "/field",
+    },
+  },
+  tractorConvertUp: {
+    message: "Your Convert Up Orders will appear here.",
+    link: {
+      text: "",
+      to: "",
     },
   },
 } as const;

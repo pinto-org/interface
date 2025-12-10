@@ -1,4 +1,4 @@
-query FieldSnapshots($fieldId: Bytes!, $first: Int!) {
+query FieldSnapshots($fieldId: ID!, $first: Int!) {
   fieldHourlySnapshots(
     first: $first
     orderBy: season

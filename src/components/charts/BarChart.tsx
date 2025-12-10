@@ -27,6 +27,8 @@ type BarChartProps = {
   enableTooltips?: boolean;
   yMinScalar?: number;
   yMaxScalar?: number;
+  useLinearXAxis?: boolean;
+  noData?: boolean;
 };
 interface IYScale {
   type: keyof CartesianScaleTypeRegistry;
@@ -49,6 +51,8 @@ const BarChart = React.memo(
     enableTooltips = false,
     yMinScalar = 0.99,
     yMaxScalar = 1.01,
+    useLinearXAxis = false,
+    noData,
   }: BarChartProps) => {
     const [iYScale, setIYScale] = useState<IYScale | undefined>(undefined);
 
@@ -93,6 +97,7 @@ const BarChart = React.memo(
             },
           },
           x: {
+            type: useLinearXAxis ? "linear" : "category",
             stacked: false, //
             ticks: {
               display: !!xLabelFormatter,
@@ -153,6 +158,14 @@ const BarChart = React.memo(
       // eslint-disable-next-line react-hooks/exhaustive-deps
       hasMouseOver, // only redefine if hasMouseOver changes
     ]);
+
+    if (noData) {
+      return (
+        <Col className="flex items-center justify-center h-full">
+          <div className="pinto-body-light">No data to display</div>
+        </Col>
+      );
+    }
 
     if (isLoading || !data.datasets.length || !iYScale) {
       return (

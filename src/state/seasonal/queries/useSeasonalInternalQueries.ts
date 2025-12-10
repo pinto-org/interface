@@ -1,4 +1,5 @@
 import { SeasonalChartData } from "@/components/charts/SeasonalChart";
+import { SG_FETCH_DISABLED } from "@/constants/subgraph";
 import { useSunData } from "@/state/useSunData";
 import { UseMultiSeasonalResult, UseSeasonalResult } from "@/utils/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -89,7 +90,7 @@ export default function useSeasonalQueries<T>(
         })
         .filter((v) => v !== undefined);
     },
-    enabled: enabled && !!historicalVars.to && !disabled,
+    enabled: enabled && !!historicalVars.to && !disabled && !SG_FETCH_DISABLED,
     staleTime: Infinity,
     gcTime: 24 * 24 * 60 * 60 * 1000,
     retry: 1,
@@ -145,7 +146,7 @@ export default function useSeasonalQueries<T>(
         return queryConfig.convertResult(v, lastFetchedTimestamp ? new Date(lastFetchedTimestamp) : new Date());
       });
     },
-    enabled: enabled && !!currentVars.to && !disabled,
+    enabled: enabled && !!currentVars.to && !disabled && !SG_FETCH_DISABLED,
     // Requery result up to once per minute
     gcTime: 60 * 1000,
     retry: 1,
@@ -222,7 +223,7 @@ export function useMultiSeasonalQueries<T>(
         {} as { [key: string]: SeasonalChartData[] },
       );
     },
-    enabled: enabled && !!historicalVars.to,
+    enabled: enabled && !!historicalVars.to && !SG_FETCH_DISABLED,
     gcTime: 24 * 24 * 60 * 60 * 1000,
     staleTime: Infinity,
     retry: 1,
@@ -276,7 +277,7 @@ export function useMultiSeasonalQueries<T>(
         {} as { [key: string]: SeasonalChartData[] },
       );
     },
-    enabled: enabled && !!currentVars.to,
+    enabled: enabled && !!currentVars.to && !SG_FETCH_DISABLED,
     // Requery result up to once per minute
     gcTime: 60 * 1000,
     retry: 1,

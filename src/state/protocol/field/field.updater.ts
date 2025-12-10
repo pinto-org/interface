@@ -1,20 +1,18 @@
 import { TV } from "@/classes/TokenValue";
 import { diamondABI } from "@/constants/abi/diamondABI";
 import { PODS } from "@/constants/internalTokens";
-import { defaultQuerySettings } from "@/constants/query";
-import { subgraphs } from "@/constants/subgraph";
+import { SG_FETCH_DISABLED, subgraphs } from "@/constants/subgraph";
 import { FieldIssuedSoilDocument } from "@/generated/gql/pintostalk/graphql";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
 import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
 import { useInvalidateField } from "@/state/useFieldData";
 import { useSeason } from "@/state/useSunData";
-import { exists, isDev } from "@/utils/utils";
+import { exists } from "@/utils/utils";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useRef } from "react";
-import { useChainId, useReadContract, useReadContracts } from "wagmi";
-import { getMorningTemperature } from ".";
+import { useAtomValue, useSetAtom } from "jotai";
+import { useCallback, useEffect } from "react";
+import { useChainId, useReadContract, useReadContracts, useWatchContractEvent } from "wagmi";
 import { morningAtom } from "../sun/sun.atoms";
 import {
   fieldInitialSoilAtom,
@@ -89,8 +87,8 @@ const useUpdateTotalSoil = () => {
 
   const query = useReadContract({
     address: diamond,
-    abi: soilABI,
-    functionName: "totalSoil",
+    abi: diamondABI,
+    functionName: "totalSoil" as const,
     scopeKey: "field",
     query: settings.query,
   });
@@ -132,7 +130,7 @@ const useUpdateInitialSoil = () => {
         field_contains_nocase: diamond,
       });
     },
-    enabled: !!season && season > 0,
+    enabled: !!season && season > 0 && !SG_FETCH_DISABLED,
     ...settings.query,
   });
 
@@ -162,8 +160,8 @@ export const useTemperatureQuery = () => {
 
   return useReadContracts({
     contracts: [
-      { address: diamond, abi: temperatureABI, functionName: "maxTemperature" },
-      { address: diamond, abi: temperatureABI, functionName: "temperature" },
+      { address: diamond, abi: diamondABI, functionName: "maxTemperature" as const },
+      { address: diamond, abi: diamondABI, functionName: "temperature" as const },
     ],
     allowFailure: false,
     scopeKey: "field",
@@ -229,7 +227,7 @@ const useUpdateWeather = () => {
       lastDeltaSoil: TV.fromBlockchain(lastDeltaSoil, SOIL_DECIMALS),
       lastSowTime,
       thisSowTime,
-      temp,
+      temp: TV.fromBigInt(temp, TEMPERATURE_DECIMALS).toNumber(),
       isLoading: false,
     });
   }, [weatherQuery.data]);
@@ -244,93 +242,33 @@ export const useUpdateField = () => {
   useUpdateInitialSoil();
 };
 
-// ---------------------------------------- ABI ----------------------------------------
-
-const soilABI = [
-  {
-    inputs: [],
-    name: "totalSoil",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "initialSoil",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    type: "function",
-  },
-] as const;
-
-const temperatureABI = [
-  {
-    inputs: [],
-    name: "maxTemperature",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "temperature",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;
-
 // ---------------------------------------- Non Top level updater hooks ----------------------------------------
 
-const FIELD_REFRESH_MS = 1000 * 6;
-
 /**
- * Update the soil every 2 seconds during the morning. 6 seconds on dev.
+ * Update the soil every 10 seconds
  */
 export const useUpdateMorningSoilOnInterval = () => {
+  const diamond = useProtocolAddress();
+
   const morning = useAtomValue(morningAtom);
   const soil = useAtomValue(fieldTotalSoilAtom).totalSoil;
+
   const invalidateField = useInvalidateField();
   const devMode = useAtomValue(morningFieldDevModeAtom);
-  const intervalRef = useRef<boolean | null>(null);
 
   const isMorning = morning.isMorning;
   const noSoil = soil.lte(0);
 
-  useEffect(() => {
-    if (intervalRef.current || !!devMode.freeze) return;
-    // update the soil every 2 seconds
-    if (!isMorning || noSoil) return;
+  const handleInvalidateSoil = useCallback(() => {
+    invalidateField("soil");
+  }, [invalidateField]);
 
-    intervalRef.current = true;
-    const soilUpdateInterval = setInterval(() => {
-      invalidateField("soil");
-    }, FIELD_REFRESH_MS);
-
-    return () => {
-      clearInterval(soilUpdateInterval);
-      intervalRef.current = null;
-    };
-  }, [invalidateField, isMorning, noSoil, devMode.freeze]);
-};
-
-export const useUpdateMorningTemperatureOnInterval = () => {
-  const morning = useAtomValue(morningAtom);
-  const devMode = useAtomValue(morningFieldDevModeAtom);
-  const [temperature, setTemperature] = useAtom(fieldTemperatureAtom);
-
-  const isMorning = morning.isMorning;
-  const morningIndex = morning.index;
-
-  const maxTemperature = temperature.max;
-
-  useEffect(() => {
-    const noTemperature = maxTemperature.lte(0);
-    if (!isMorning || noTemperature || !!devMode.freeze) return;
-
-    const current = isMorning ? getMorningTemperature(morningIndex, maxTemperature) : maxTemperature;
-
-    setTemperature((draft) => {
-      draft.scaled = current;
-    });
-  }, [isMorning, morningIndex, maxTemperature, setTemperature, devMode.freeze]);
+  // Watch for Sow Events & invalidate the soil query when they occur
+  useWatchContractEvent({
+    address: diamond,
+    abi: diamondABI,
+    eventName: "Sow",
+    onLogs: handleInvalidateSoil,
+    enabled: isMorning && !noSoil && !devMode.freeze,
+  });
 };

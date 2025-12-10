@@ -6,6 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+output.txt
 
 # .env
 .env
@@ -14,7 +15,7 @@ node_modules
 dist
 dist-ssr
 *.local
-src/generated
+# src/generated
 
 
 # Editor directories and files

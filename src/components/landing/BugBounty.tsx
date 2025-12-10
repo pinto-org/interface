@@ -24,7 +24,7 @@ export default function BugBounty() {
           // Mark animation as started to prevent repeating
           valueChanged.current = true;
 
-          setValue(1200000);
+          setValue(100000);
         }
       },
       {

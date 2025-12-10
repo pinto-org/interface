@@ -25,6 +25,14 @@ interface ImportMetaEnv {
    *
    */
   readonly VITE_GA_TRACKING_ID?: string;
+  /**
+   *
+   */
+  readonly VITE_TRACTOR_CONVERT_URL?: string;
+  /**
+   *
+   */
+  readonly VITE_SG_FETCH_DISABLED?: string;
 }
 
 declare module "*.md";

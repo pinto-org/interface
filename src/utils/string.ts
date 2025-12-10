@@ -65,10 +65,15 @@ export const isValidAddress = (address: string | HashString | undefined) => {
 };
 
 const nonAmounts = new Set<string>([".", ""]);
-const cleanAmount = (value: string) => value.replace(/[^0-9.]/g, "");
+const cleanAmount = (value: string, allowNegative?: boolean) => {
+  if (allowNegative) {
+    return value.replace(/[^0-9.-]/g, "").replace(/(?!^)-/g, "");
+  }
+  return value.replace(/[^0-9.]/g, "");
+};
 
-export const sanitizeNumericInputValue = (val: string, valueDecimals: number) => {
-  const cleaned = cleanAmount(val);
+export const sanitizeNumericInputValue = (val: string, valueDecimals: number, allowNegative?: boolean) => {
+  const cleaned = cleanAmount(val, allowNegative);
 
   const obj = {
     str: cleaned,
@@ -111,7 +116,18 @@ export const sanitizeNumericInputValue = (val: string, valueDecimals: number) =>
   return obj;
 };
 
-export const postSanitizedSanitizedValue = (value: string, valueDecimals: number) => {
+export interface SanitizedTV {
+  str: string;
+  strValue: string;
+  tv: TokenValue;
+  nonAmount: boolean;
+}
+
+export const postSanitizedSanitizedValue = (
+  value: string,
+  valueDecimals: number,
+  allowNegative?: boolean,
+): SanitizedTV => {
   const obj = {
     str: value,
     strValue: value,
@@ -121,11 +137,20 @@ export const postSanitizedSanitizedValue = (value: string, valueDecimals: number
 
   if (nonAmounts.has(value)) return obj;
 
-  const cleaned = cleanAmount(value);
+  const cleaned = cleanAmount(value, allowNegative);
   if (!cleaned) return obj;
 
   obj.tv = TokenValue.fromHuman(cleaned, valueDecimals);
   obj.nonAmount = false;
 
   return obj;
+};
+
+export const capitalizeString = (str: string) => {
+  return str.length ? `${str[0].toUpperCase()}${str.slice(1)}` : str;
+};
+
+export const is0xString = (str: string | `0x${string}`): str is `0x${string}` => {
+  if (typeof str !== "string") return false;
+  return str.startsWith("0x");
 };

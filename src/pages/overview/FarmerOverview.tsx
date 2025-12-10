@@ -9,6 +9,10 @@ import PlotsTable from "@/components/PlotsTable";
 import StatPanel from "@/components/StatPanel";
 import StatPanelAltDisplay from "@/components/StatPanelAltDisplay";
 import TableRowConnector from "@/components/TableRowConnector";
+import { OrderType } from "@/components/Tractor/farmer-orders/TractorFarmerOrderTypeRegistry";
+import TractorOrdersPanelGeneric, {
+  TractorSowOrdersPanel,
+} from "@/components/Tractor/farmer-orders/TractorOrdersPanel";
 import IconImage from "@/components/ui/IconImage";
 import PageContainer from "@/components/ui/PageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
@@ -36,7 +40,6 @@ import { useAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAccount } from "wagmi";
-import TractorOrdersPanel from "../field/TractorOrdersPanel";
 
 const Overview = () => {
   // Hooks
@@ -541,7 +544,7 @@ const Overview = () => {
           </TabsContent>
           <TabsContent className="mt-8" value="tractor">
             <div className="overflow-visible">
-              <TractorOrdersPanel />
+              <TractorOrdersPanelGeneric orderTypes={ORDER_TYPES} />
             </div>
           </TabsContent>
         </Tabs>
@@ -565,3 +568,5 @@ const Overview = () => {
 };
 
 export default Overview;
+
+const ORDER_TYPES: OrderType[] = ["sow", "convertUp"] as const;

@@ -53,18 +53,18 @@ export default function CardModal({ isOpen, onOpenChange, cardData }: CardModalP
               <h2 className="text-2xl sm:text-4xl leading-[1.1] font-thin text-black">{cardData.title}</h2>
             </div>
           </div>
-          <div className="overflow-hidden overflow-y-auto">
-            <div className="text-base mt-2 mb-4 sm:text-xl md:text-2xl lg:text-3xl leading-[1.2] font-thin text-pinto-gray-5 w-full">
+          <div className="overflow-auto overscroll-auto">
+            <div className="overscroll-auto text-base mt-2 mb-4 sm:text-xl md:text-2xl lg:text-3xl leading-[1.2] font-thin text-pinto-gray-5 w-full">
               {cardData.subtitle}
             </div>
             {/* Definition section */}
-            <div className="text-sm sm:text-lg mb-4 leading-[1.3] font-thin text-black prose prose-p:leading-[1.3] prose-neutral max-w-none prose-strong:font-bold flex-shrink-0">
+            <div className="overscroll-auto text-sm sm:text-lg mb-4 leading-[1.3] font-thin text-black prose prose-p:leading-[1.3] prose-neutral max-w-none prose-strong:font-bold flex-shrink-0">
               <Markdown>{cardData.definition}</Markdown>
             </div>
 
             {/* Description section - fills remaining space with scroll */}
-            <div className="flex-1 rounded-lg">
-              <div className="text-sm sm:text-lg px-4 pt-4 sm:px-8 sm:pt-4 prose-p:leading-[1.3] prose-li:leading-[1.3] prose-a:text-pinto-green-4 hover:prose-a:text-pinto-green-2 prose-a:transition-all prose-a:duration-300 prose-a:after:content-['↗'] prose-a:after:ml-1 prose-a:after:inline-block font-thin text-black overflow-y-auto h-full prose prose-neutral max-w-none prose-h2:font-normal prose-h2:sm:text-lg prose-h2:text-sm prose-h2:text-pinto-gray-4 prose-img:inline prose-img:w-5 prose-img:h-5 sm:prose-img:w-6 sm:prose-img:h-6 prose-img:mx-1 prose-img:align-middle prose-img:-translate-y-0.5 prose-img:!my-0 prose-img:!py-0 prose-ul:!mt-4 prose-ul:!mb-4 prose-ul:!py-0 prose-li:!my-2 prose-li:!py-0 prose-p:!mb-4 prose-p:first:!mt-0 prose-p:last:!mb-0">
+            <div className="overscroll-auto flex-1 rounded-lg">
+              <div className="overscroll-auto text-sm sm:text-lg px-4 pt-4 sm:px-8 sm:pt-4 prose-p:leading-[1.3] prose-li:leading-[1.3] prose-a:text-pinto-green-4 hover:prose-a:text-pinto-green-2 prose-a:transition-all prose-a:duration-300 prose-a:after:content-['↗'] prose-a:after:ml-1 prose-a:after:inline-block font-thin text-black overflow-y-auto h-full prose prose-neutral max-w-none prose-h2:font-normal prose-h2:sm:text-lg prose-h2:text-sm prose-h2:text-pinto-gray-4 prose-img:inline prose-img:w-5 prose-img:h-5 sm:prose-img:w-6 sm:prose-img:h-6 prose-img:mx-1 prose-img:align-middle prose-img:-translate-y-0.5 prose-img:!my-0 prose-img:!py-0 prose-ul:!mt-4 prose-ul:!mb-4 prose-ul:!py-0 prose-li:!my-2 prose-li:!py-0 prose-p:!mb-4 prose-p:first:!mt-0 prose-p:last:!mb-0">
                 <Markdown>{cardData.description}</Markdown>
               </div>
             </div>

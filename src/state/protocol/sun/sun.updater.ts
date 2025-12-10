@@ -1,83 +1,61 @@
-import { INTERVALS_PER_MORNING } from "@/constants/morning";
-import { useReadSeasonFacetView_SeasonTime } from "@/generated/contractHooks";
+import { diamondABI } from "@/constants/abi/diamondABI";
+import { QUERY_SETTINGS } from "@/constants/query";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { morningFieldDevModeAtom } from "@/state/protocol/field/field.atoms";
+import { useTemperatureQuery } from "@/state/protocol/field/field.updater";
 import useUpdateQueryKeys from "@/state/query/useUpdateQueryKeys";
-import useCalculateTemperature from "@/state/useCalculateTemperature";
-import { useMorning, useSunData } from "@/state/useSunData";
-import { exists, isDev } from "@/utils/utils";
+import { useMorning, useSunData, useTimeOffset } from "@/state/useSunData";
+import { arbitrumNetwork, localhostNetwork, tenderlyTestnetNetwork } from "@/utils/wagmi/chains";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { DateTime } from "luxon";
 import { useCallback, useEffect, useState } from "react";
-import { useChainId, useReadContract } from "wagmi";
-import { getDiffNow, getMorningResult, getNextExpectedSunrise, getNowRounded } from ".";
-import { fieldTemperatureAtom, morningFieldDevModeAtom } from "../field/field.atoms";
-import { useTemperatureQuery } from "../field/field.updater";
+import { useChainId, useConfig, useReadContract } from "wagmi";
+import { Sun, getIsMorning, getNextExpectedSunrise } from ".";
 import {
   morningAtom,
-  morningDurationAtom,
-  morningRemainingAtom,
   seasonAtom,
   seasonSunriseAtom,
-  seasonTimeAtom,
   sunQueryKeysAtom,
   sunriseRemainingAtom,
+  timeOffsetAtom,
 } from "./sun.atoms";
 
-const TWENTY_MINUTES = 1000 * 60 * 20;
-
-const settings = {
-  query: {
-    staleTime: TWENTY_MINUTES,
-    refetchInterval: TWENTY_MINUTES,
-    refetchOnWindowFocus: true,
-    refetchIntervalInBackground: false,
-  },
-};
-
 const useFetchSun = () => {
-  const [seasonData, setSeasonData] = useAtom(seasonAtom);
-  const [seasonTime, setSeasonTime] = useAtom(seasonTimeAtom);
-  const setMorningResult = useSetAtom(morningAtom);
-  const setMorningRemaining = useSetAtom(morningRemainingAtom);
+  // Hooks
   const chainId = useChainId();
   const diamond = useProtocolAddress();
 
+  // Atoms & Setters
+  const [seasonData, setSeasonData] = useAtom(seasonAtom);
+  const setTimeOffset = useSetAtom(timeOffsetAtom);
+  const setMorning = useSetAtom(morningAtom);
+
+  // Queries
   const seasonQuery = useReadContract({
     address: diamond,
-    abi: chainId === 42161 ? arbTimeAbi : timeAbi,
+    abi: chainId === arbitrumNetwork.id ? arbTimeAbi : diamondABI,
     functionName: "time",
-    query: settings.query,
+    query: QUERY_SETTINGS.default,
   });
 
-  const seasonTimeQuery = useReadSeasonFacetView_SeasonTime({
-    scopeKey: "season",
-    query: settings.query,
-  });
-
+  // Update Query Keys
   useUpdateQueryKeys(sunQueryKeysAtom, seasonQuery.queryKey, "season");
-  useUpdateQueryKeys(sunQueryKeysAtom, seasonTimeQuery.queryKey, "seasonTime");
 
-  useEffect(() => {
-    if (!exists(seasonTimeQuery.data)) return;
-
-    console.debug("[protocol/sun/useFetchSun]: seasonTime", seasonTimeQuery.data);
-
-    setSeasonTime(seasonTimeQuery.data);
-  }, [seasonTimeQuery.data, setSeasonTime]);
-
+  // Refetch Callback
   const refetch = useCallback(async () => {
-    const datas = await Promise.all([seasonQuery.refetch(), seasonTimeQuery.refetch()]);
-
+    const data = await seasonQuery.refetch();
     return {
-      season: datas[0].data,
-      seasonTime: datas[1].data,
+      season: data.data,
+      seasonTime: undefined,
     };
-  }, [seasonQuery.refetch, seasonTimeQuery.refetch]);
+  }, [seasonQuery]);
 
+  // Update Season
   useEffect(() => {
     if (!seasonQuery.data) return;
     const time = seasonQuery.data;
-    const season = {
+
+    const season: Sun["season"] = {
       current: time.current,
       lastSopStart: time.lastSop,
       lastSopEnd: time.lastSopSeason,
@@ -90,27 +68,56 @@ const useFetchSun = () => {
       timestamp: DateTime.fromSeconds(Number(time.timestamp)),
     };
 
-    const morningResult = getMorningResult({
-      blockNumber: season.sunriseBlock,
-      timestamp: season.timestamp,
-    });
+    // Calculate time offset between local time and blockchain time
+    // We use the season.timestamp (when season started) as a reference point
+    // Since we know seasons start on the hour (e.g., 14:00:00), we can use that
+    // to estimate the current blockchain time based on elapsed local time
+    const localNow = DateTime.now();
 
-    setMorningResult((draft) => {
-      draft.blockNumber = morningResult.blockNumber;
-      draft.index = morningResult.index;
-      draft.next = morningResult.next;
-      draft.isMorning = morningResult.isMorning;
-    });
+    // Calculate how long ago the season started based on local time
+    const localTimeSinceSeasonStart = localNow.diff(season.timestamp, "seconds").seconds;
 
-    console.debug("[protocol/sun/useFetchSun]: season", season);
-    console.debug("[protocol/sun/useFetchSun]: morningResult", morningResult);
+    // If the season started more than an hour ago, something's wrong with data
+    // In that case, assume minimal offset
+    if (localTimeSinceSeasonStart < 0 || localTimeSinceSeasonStart > 3700) {
+      // Data seems stale or clock is very wrong, use 0 offset
+      // useUpdateMorning will correct it over time
+      const timeOffsetMs = 0;
+      const isMorning = getIsMorning(season.timestamp, timeOffsetMs);
 
-    setMorningRemaining(morningResult.remaining);
+      setTimeOffset(timeOffsetMs);
+      setMorning({ isMorning });
+      setSeasonData(season);
 
+      console.debug("[protocol/sun/useFetchSun]: Using 0 offset (data validation failed)");
+      console.debug("[protocol/sun/useFetchSun]: localTimeSinceSeasonStart", localTimeSinceSeasonStart);
+      return;
+    }
+
+    // Estimate current blockchain time = season start + time elapsed on local clock
+    // This assumes user's clock drift is small enough that elapsed time is roughly accurate
+    const estimatedBlockchainNow = season.timestamp.plus({ seconds: localTimeSinceSeasonStart });
+    const timeOffsetMs = localNow.toMillis() - estimatedBlockchainNow.toMillis();
+
+    // Calculate if it's currently morning using the calculated offset
+    const isMorning = getIsMorning(season.timestamp, timeOffsetMs);
+
+    // Update atoms
+    setTimeOffset(timeOffsetMs);
+    setMorning({ isMorning });
     setSeasonData(season);
-  }, [seasonQuery.data, setSeasonData, setMorningResult, setMorningRemaining]);
 
-  return { seasonData, seasonTime, refetch: refetch };
+    console.debug("[protocol/sun/useFetchSun]: season", {
+      season,
+      localNow: localNow.toISO(),
+      localTimeSinceSeasonStart,
+      estimatedBlockchainNow: estimatedBlockchainNow.toISO(),
+      timeOffsetMs,
+      isMorning,
+    });
+  }, [seasonQuery.data, setSeasonData, setMorning, setTimeOffset]);
+
+  return { seasonData, seasonTime: 0, refetch };
 };
 
 export const useSetRemainingUntilSunrise = () => {
@@ -145,6 +152,9 @@ export const useUpdateSunData = () => {
   const seasons = useFetchSun();
   const [seasonSunrise, setSeasonSunrise] = useAtom(seasonSunriseAtom);
   const [cachedSeason, setCachedSeason] = useState<number>(0);
+  const chainId = useChainId();
+
+  const isDevChainId = chainId === localhostNetwork.id || chainId === tenderlyTestnetNetwork.id;
 
   const awaiting = seasonSunrise.awaiting;
   const next = seasonSunrise.next;
@@ -160,14 +170,15 @@ export const useUpdateSunData = () => {
   }, [seasons.seasonData.current, cachedSeason]);
 
   useEffect(() => {
-    if (!awaiting || isDev()) return;
+    if (!awaiting || isDevChainId) return;
     /// When awaiting sunrise, check every 3 seconds to see
     /// if the Season has incremented.
     const i = setInterval(() => {
       (async () => {
         const result = await seasons.refetch();
-        await temperatureQuery.refetch();
         if (!cachedSeason || (result?.season && result.season.current > cachedSeason)) {
+          // Refetch the temperature query to get the latest max temperature
+          await temperatureQuery.refetch();
           const _next = getNextExpectedSunrise();
           setSeasonSunrise({ awaiting: false, next: _next });
           setRemainingUntilSunrise(_next.diffNow());
@@ -175,88 +186,49 @@ export const useUpdateSunData = () => {
       })();
     }, 3000);
     return () => clearInterval(i);
-  }, [awaiting, setSeasonSunrise, setRemainingUntilSunrise, seasons.refetch, cachedSeason, temperatureQuery.refetch]);
+  }, [
+    awaiting,
+    isDevChainId,
+    setSeasonSunrise,
+    setRemainingUntilSunrise,
+    seasons.refetch,
+    cachedSeason,
+    temperatureQuery.refetch,
+  ]);
 };
 
 export function useUpdateMorning() {
-  const setRemaining = useSetAtom(morningRemainingAtom);
-  const setDuration = useSetAtom(morningDurationAtom);
-  const setScaledTemperature = useSetAtom(fieldTemperatureAtom);
   const setMorning = useSetAtom(morningAtom);
   const devMode = useAtomValue(morningFieldDevModeAtom);
-
-  const morning = useMorning();
+  const timeOffsetMs = useTimeOffset();
   const season = useSunData();
-  const nextMorningInterval = morning.next;
-  const morningIndex = morning.index;
+  const morning = useMorning();
+
   const isMorning = morning.isMorning;
 
-  const { calculate: calculateTemperature } = useCalculateTemperature();
-
   useEffect(() => {
-    if (!isMorning || devMode.freeze) return;
-    const { sunriseBlock, timestamp: sTimestamp } = season;
+    if (devMode.freeze) return;
 
-    const intervalId = setInterval(async () => {
-      const now = getNowRounded();
-      const _remaining = getDiffNow(nextMorningInterval, now);
+    // Only run the interval during morning to optimize performance
+    if (!isMorning) return;
 
-      if (now.toSeconds() === nextMorningInterval.toSeconds() || _remaining.as("seconds") <= 0) {
-        const morningResult = getMorningResult({
-          timestamp: sTimestamp,
-          blockNumber: sunriseBlock,
+    const intervalId = setInterval(() => {
+      // Recalculate if it's morning using blockchain-synchronized time
+      const nowIsMorning = getIsMorning(season.timestamp, timeOffsetMs);
+
+      // Update morning state if it changed (morning ended)
+      if (nowIsMorning !== isMorning) {
+        setMorning({ isMorning: nowIsMorning });
+        console.debug("[protocol/sun/useUpdateMorning]: morning ended", {
+          isMorning: nowIsMorning,
         });
-
-        const scaledTemp = calculateTemperature(morningIndex + 1);
-
-        console.debug("[protocol/sun/useUpdateMorning]: morningResult", {
-          temp: scaledTemp.toNumber(),
-          blockNumber: morningResult.blockNumber,
-          index: morningResult.index,
-          isMorning: morningResult.isMorning,
-        });
-
-        /// If we are transitioning out of the morning state, refetch the max Temperature from the subgraph.
-        /// This is to make sure that when transitioning out of the morning state, the max Temperature chart
-        /// shows the maxTemperature for the current season, not the previous season.
-        if (!morningResult.isMorning && morningResult.index === INTERVALS_PER_MORNING) {
-          // triggerQuery(); // todo here...
-        }
-
-        setScaledTemperature((draft) => {
-          draft.scaled = scaledTemp;
-        });
-        setMorning((draft) => {
-          draft.blockNumber = morningResult.blockNumber;
-          draft.index = morningResult.index;
-          draft.next = morningResult.next;
-          draft.isMorning = morningResult.isMorning;
-        });
-        // update the time remaining for the next interval
-        setRemaining(morningResult.remaining);
-        // update the duration of the morning. We update this as well to keep the timers in sync.
-        setDuration(sTimestamp.diff(getNowRounded()));
-      } else {
-        setRemaining(_remaining);
-        setDuration(sTimestamp.diff(getNowRounded()));
       }
     }, 1000);
 
     return () => {
       clearInterval(intervalId);
     };
-  }, [
-    isMorning,
-    morningIndex,
-    season,
-    nextMorningInterval,
-    devMode.freeze,
-    calculateTemperature,
-    setRemaining,
-    setScaledTemperature,
-    setMorning,
-    setDuration,
-  ]);
+  }, [isMorning, season.timestamp, timeOffsetMs, devMode.freeze, setMorning]);
 }
 
 const arbTimeAbi = [
@@ -276,35 +248,6 @@ const arbTimeAbi = [
           { internalType: "bool", name: "abovePeg", type: "bool" },
           { internalType: "uint16", name: "stemStartSeason", type: "uint16" },
           { internalType: "uint16", name: "stemScaleSeason", type: "uint16" },
-          { internalType: "uint256", name: "start", type: "uint256" },
-          { internalType: "uint256", name: "period", type: "uint256" },
-          { internalType: "uint256", name: "timestamp", type: "uint256" },
-          { internalType: "bytes32[8]", name: "_buffer", type: "bytes32[8]" },
-        ],
-        internalType: "struct Season",
-        name: "",
-        type: "tuple",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;
-
-const timeAbi = [
-  {
-    inputs: [],
-    name: "time",
-    outputs: [
-      {
-        components: [
-          { internalType: "uint32", name: "current", type: "uint32" },
-          { internalType: "uint32", name: "lastSop", type: "uint32" },
-          { internalType: "uint32", name: "lastSopSeason", type: "uint32" },
-          { internalType: "uint32", name: "rainStart", type: "uint32" },
-          { internalType: "bool", name: "raining", type: "bool" },
-          { internalType: "uint64", name: "sunriseBlock", type: "uint64" },
-          { internalType: "bool", name: "abovePeg", type: "bool" },
           { internalType: "uint256", name: "start", type: "uint256" },
           { internalType: "uint256", name: "period", type: "uint256" },
           { internalType: "uint256", name: "timestamp", type: "uint256" },

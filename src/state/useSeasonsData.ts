@@ -66,6 +66,13 @@ export interface SeasonsTableData {
   numberOfSows: number;
   numberOfSowers: number;
   stalk: TokenValue;
+  cropRatio: number;
+  deltaCropRatio: number;
+  convertDownPenalty: number;
+  convertDownBlightFactor: number;
+  convertUpBonusStalkPerBdv: TokenValue;
+  convertUpBonusMaxCapacity: TokenValue;
+  convertUpBonusCapacityUsedThisSeason: TokenValue;
   cumulativeVolumeNet: number;
   cumulativeBuyVolumeUSD: number;
   cumulativeSellVolumeUSD: number;
@@ -408,6 +415,7 @@ export default function useSeasonsData(
         const currFieldHourlySnapshots = stalkResults.fieldHourlySnapshots[idx + syncOffset];
         const currSiloHourlySnapshots = stalkResults.siloHourlySnapshots[idx + syncOffset];
         const currStalkSeasons = stalkResults.seasons[idx + syncOffset];
+        const currGaugeInfoSnapshots = stalkResults.gaugesInfoHourlySnapshots[idx + syncOffset];
         const timeSown = currFieldHourlySnapshots.blocksToSoldOutSoil
           ? Duration.fromMillis(currFieldHourlySnapshots.blocksToSoldOutSoil * 2 * 1000).toFormat("mm:ss")
           : "-";
@@ -445,12 +453,43 @@ export default function useSeasonsData(
         allData.numberOfSowers = currFieldHourlySnapshots.numberOfSowers;
         allData.numberOfSows = currFieldHourlySnapshots.numberOfSows;
         allData.stalk = TokenValue.fromBlockchain(currSiloHourlySnapshots.stalk || 0n, STALK.decimals);
+        allData.cropRatio = TokenValue.fromHuman(currSiloHourlySnapshots.cropRatio, 2).toNumber();
+        allData.deltaCropRatio = TokenValue.fromHuman(currSiloHourlySnapshots.deltaCropRatio, 2).toNumber();
 
-        if (currFieldHourlySnapshots.cultivationFactor !== null) {
-          allData.cultivationFactor = TokenValue.fromHuman(currFieldHourlySnapshots.cultivationFactor, 2);
-        }
         if (currFieldHourlySnapshots.cultivationTemperature !== null) {
           allData.cultivationTemperature = TokenValue.fromHuman(currFieldHourlySnapshots.cultivationTemperature, 2);
+        }
+
+        if (!!currGaugeInfoSnapshots) {
+          if (currGaugeInfoSnapshots.g0CultivationFactor !== null) {
+            allData.cultivationFactor = TokenValue.fromHuman(currGaugeInfoSnapshots.g0CultivationFactor, 2);
+          }
+          if (currGaugeInfoSnapshots.g1ConvertDownPenalty !== null) {
+            allData.convertDownPenalty = TokenValue.fromHuman(currGaugeInfoSnapshots.g1ConvertDownPenalty, 4)
+              .mul(100)
+              .toNumber();
+          }
+          if (currGaugeInfoSnapshots.g1BlightFactor !== null) {
+            allData.convertDownBlightFactor = TokenValue.fromHuman(currGaugeInfoSnapshots.g1BlightFactor, 0).toNumber();
+          }
+          if (currGaugeInfoSnapshots.g2BonusStalkPerBdv !== null) {
+            allData.convertUpBonusStalkPerBdv = TokenValue.fromBlockchain(
+              currGaugeInfoSnapshots.g2BonusStalkPerBdv || 0n,
+              STALK.decimals - tokenData.mainToken.decimals,
+            );
+          }
+          if (currGaugeInfoSnapshots.g2MaxConvertCapacity !== null) {
+            allData.convertUpBonusMaxCapacity = TokenValue.fromBlockchain(
+              currGaugeInfoSnapshots.g2MaxConvertCapacity || 0n,
+              tokenData.mainToken.decimals,
+            );
+          }
+          if (currGaugeInfoSnapshots.g2BdvConvertedThisSeason !== null) {
+            allData.convertUpBonusCapacityUsedThisSeason = TokenValue.fromBlockchain(
+              currGaugeInfoSnapshots.g2BdvConvertedThisSeason || 0n,
+              tokenData.mainToken.decimals,
+            );
+          }
         }
 
         if (!allData.season) {
@@ -566,7 +605,7 @@ export default function useSeasonsData(
       if (inflowData) {
         // Ensure api response is fully caught up/in sync
         const currInflow = inflowSnapshots[idx];
-        if (!allData.season || currInflow?.season === allData.season) {
+        if (currInflow && (!allData.season || currInflow.season === allData.season)) {
           allData.inflowAllCumulativeNet = currInflow.all.cumulative.net;
           allData.inflowAllCumulativeIn = currInflow.all.cumulative.in;
           allData.inflowAllCumulativeOut = currInflow.all.cumulative.out;

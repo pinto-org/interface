@@ -2,6 +2,7 @@ import { TV } from "@/classes/TokenValue";
 import * as SCE from "@/lib/siloConvert/strategies/validation/SiloConvertErrors";
 import { Token } from "@/utils/types";
 import { AnyRecord } from "@/utils/types.generic";
+import { SiloConvertTokenDirection } from "../../types";
 import { SiloConvertValidationRules as ValidationRules } from "./SiloConvertValidationRules";
 
 /**
@@ -185,7 +186,7 @@ export abstract class BaseErrorHandler<TTokenContext = unknown, TContext extends
   /**
    * Validates token conversion patterns
    */
-  validateConversionTokens(expectedType: "default" | "LP2LP" | "default-down", sourceToken: Token, targetToken: Token) {
+  validateConversionTokens(expectedType: SiloConvertTokenDirection, sourceToken: Token, targetToken: Token) {
     ValidationRules.validateConversionTokens(expectedType, sourceToken, targetToken);
   }
 
@@ -203,7 +204,6 @@ export abstract class BaseErrorHandler<TTokenContext = unknown, TContext extends
         return new SCE.InvalidAmountError(displayValue, errorMessage, {
           amount: amount instanceof TV ? amount.toHuman() : amount,
           operation: operationName,
-          originalError: originalError instanceof Error ? originalError.message : "Unknown error",
           ...this.buildContext(ctx),
         });
       },
