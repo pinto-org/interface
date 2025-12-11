@@ -18,7 +18,7 @@ import { formatter } from "@/utils/format";
 import { sanitizeNumericInputValue } from "@/utils/string";
 import { cn } from "@/utils/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import React from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -108,7 +108,66 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
   // Set default values for minSoil, maxPerSeason, and podLineLength
   const mainToken = useChainConstant(MAIN_TOKEN);
   const podLine = usePodLine();
-  const [totalAmount] = useWatch({ control: form.control, name: ["totalAmount"] });
+  const [totalAmount, tokenStrategy, temperature] = useWatch({
+    control: form.control,
+    name: ["totalAmount", "selectedTokenStrategy", "temperature"],
+  });
+
+  // Calculate max amount based on farmer deposits and token strategy
+  const maxDepositAmount = useMemo(() => {
+    if (!farmerDeposits) return undefined;
+
+    const summary = StrategyUtil.getSummary(tokenStrategy);
+    let total = TV.ZERO;
+
+    if (summary.type === "SPECIFIC_TOKEN" && summary.addresses) {
+      summary.addresses.forEach((address) => {
+        farmerDeposits.forEach((deposit, token) => {
+          if (token.address.toLowerCase() === address.toLowerCase() && deposit.amount) {
+            if (token.isLP) {
+              const price = calculations.priceData.tokenPrices.get(token)?.instant;
+              if (price) {
+                total = total.add(deposit.amount.mul(price));
+              }
+            } else {
+              total = total.add(deposit.amount);
+            }
+          }
+        });
+      });
+    } else {
+      farmerDeposits.forEach((deposit, token) => {
+        if (deposit.amount) {
+          if (token.isLP) {
+            const price = calculations.priceData.tokenPrices.get(token)?.instant;
+            if (price) {
+              total = total.add(deposit.amount.mul(price));
+            }
+          } else {
+            total = total.add(deposit.amount);
+          }
+        }
+      });
+    }
+
+    return total.gt(0) ? total : undefined;
+  }, [farmerDeposits, tokenStrategy, calculations.priceData]);
+
+  // Check if total amount exceeds max deposits
+  const exceedsDeposits = useMemo(() => {
+    if (!maxDepositAmount || !totalAmount) return false;
+    const cleaned = sanitizeNumericInputValue(totalAmount, mainToken.decimals);
+    if (cleaned.nonAmount) return false;
+    return cleaned.tv.toNumber() > maxDepositAmount.toNumber();
+  }, [maxDepositAmount, totalAmount, mainToken.decimals]);
+
+  // Check if temperature is zero or empty
+  const temperatureIsZero = useMemo(() => {
+    if (!temperature) return false;
+    const cleaned = sanitizeNumericInputValue(temperature, 6);
+    if (cleaned.nonAmount) return false;
+    return cleaned.tv.toNumber() === 0;
+  }, [temperature]);
 
   // Set default values for minSoil and maxPerSeason based on totalAmount
   useEffect(() => {
@@ -258,7 +317,8 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
 
   const isStep1 = formStep === FormStep.MAIN_FORM;
 
-  const nextDisabled = (isLoading || isMissingFields || !allFieldsValid) && isStep1;
+  const nextDisabled =
+    (isLoading || isMissingFields || !allFieldsValid || exceedsDeposits || temperatureIsZero) && isStep1;
 
   return (
     <>
@@ -352,7 +412,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                 ) : null}
                 {formStep === FormStep.MAIN_FORM ? (
                   <>
-                    <SowOrderV0FormErrors errors={form.formState.errors} />
+                    <SowOrderV0FormErrors errors={form.formState.errors} exceedsDeposits={exceedsDeposits} />
                     <Row className="gap-6">
                       <Button
                         variant="outline"
@@ -379,7 +439,7 @@ export default function SowOrderDialog({ open, onOpenChange, onOrderPublished }:
                         }
                         side="top"
                         align="center"
-                        // Only show tooltip when there are missing fields or errors
+                        // Only show tooltip when there are missing fields
                         disabled={!(isMissingFields && isStep1)}
                       >
                         <div className="flex-1">
@@ -493,13 +553,21 @@ export const SowOrderV0TokenStrategyDialog = ({
 
 const SowOrderV0FormErrors = ({
   errors,
-}: { errors: ReturnType<typeof useSowOrderV0Form>["form"]["formState"]["errors"] }) => {
+  exceedsDeposits,
+}: {
+  errors: ReturnType<typeof useSowOrderV0Form>["form"]["formState"]["errors"];
+  exceedsDeposits?: boolean;
+}) => {
   const deduplicate = () => {
     const set = new Set<string>();
     for (const err of Object.values(errors)) {
       if (err?.message && errorsToShow.has(err.message)) {
         set.add(err.message);
       }
+    }
+    // Add exceeds deposits error if applicable
+    if (exceedsDeposits) {
+      set.add(sowOrderSchemaErrors.totalExceedsDeposits);
     }
 
     return Array.from(set);

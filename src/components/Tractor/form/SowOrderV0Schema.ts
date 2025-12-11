@@ -24,6 +24,8 @@ export const sowOrderSchemaErrors = {
   minLteMax: "Min per Season cannot exceed Max per Season",
   minLteTotal: "Min per Season cannot exceed the total amount to Sow",
   maxLteTotal: "Max per Season cannot exceed the total amount to Sow",
+  totalExceedsDeposits: "Total amount cannot exceed your available deposits",
+  temperatureZero: "Temperature must be greater than 0",
 } as const;
 
 // Main schema for sow order dialog

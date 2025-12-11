@@ -164,7 +164,10 @@ SowOrderV0Fields.TotalAmount = function TotalAmount({
   const ctx = useFormContext<SowOrderV0FormSchema>();
   const handlers = useSharedInputHandlers(ctx, "totalAmount");
   const decimals = useChainConstant(MAIN_TOKEN).decimals;
-  const [tokenStrategy] = useWatch({ control: ctx.control, name: ["selectedTokenStrategy"] });
+  const [tokenStrategy, totalAmountValue] = useWatch({
+    control: ctx.control,
+    name: ["selectedTokenStrategy", "totalAmount"],
+  });
   const farmerBalances = useFarmerBalances();
   const priceData = usePriceData();
   const tokenData = useTokenData();
@@ -229,6 +232,14 @@ SowOrderV0Fields.TotalAmount = function TotalAmount({
     return totalAmount.gt(0) ? totalAmount : undefined;
   }, [accountAddress, farmerDeposits, tokenStrategy, farmerBalances, priceData, tokenData]);
 
+  // Check if total amount exceeds max deposits
+  const exceedsDeposits = useMemo(() => {
+    if (!maxAmount || !totalAmountValue) return false;
+    const cleaned = sanitizeNumericInputValue(totalAmountValue, decimals);
+    if (cleaned.nonAmount) return false;
+    return cleaned.tv.toNumber() > maxAmount.toNumber();
+  }, [maxAmount, totalAmountValue, decimals]);
+
   const getHandlers = (): BaseIFormContextHandlers => {
     return {
       ...handlers,
@@ -260,7 +271,7 @@ SowOrderV0Fields.TotalAmount = function TotalAmount({
                 placeholder="0.00"
                 outlined
                 {...getHandlers()}
-                isError={!!fieldState.error}
+                isError={!!fieldState.error || exceedsDeposits}
                 containerClassName="w-full"
                 className="min-w-[25rem]"
                 endIcon={<MainTokenAdornment />}
