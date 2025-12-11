@@ -131,8 +131,9 @@ const TotalAmountSlider = ({
   const handleOnChange = useCallback(
     (value: number[]) => {
       // Truncate to max decimals (but limit to 6 for UI precision)
-      const precision = 10 ** Math.min(decimals, 6);
-      const truncatedValue = Math.floor(value[0] * precision) / precision;
+      // Use toFixed to avoid floating-point precision issues (e.g., 65.599999 instead of 65.6)
+      const maxDecimals = Math.min(decimals, 6);
+      const truncatedValue = Number(value[0].toFixed(maxDecimals));
       // use the blur handler to set the value with commas
       handlers.onBlur({ target: { value: truncatedValue.toString() } } as React.FocusEvent<HTMLInputElement>);
       // Trigger cross validation after setting value
