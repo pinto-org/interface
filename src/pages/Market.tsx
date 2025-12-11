@@ -193,6 +193,14 @@ export function Market() {
   const podLineAsNumber = podLine.toNumber() / MILLION;
   const navHeight = useNavHeight();
 
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setMounted(true);
+    }, 3000);
+  }, [])
+
   // Overlay state and chart ref
   const chartRef = useRef<Chart | null>(null);
   const [overlayParams, setOverlayParams] = useState<OverlayParams>(null);
@@ -429,6 +437,8 @@ export function Market() {
   const viewMode = mode || "buy";
   const viewAction = id || (viewMode === "buy" ? "fill" : "create");
 
+  console.log("Chart Ref", chartRef.current);
+
   return (
     <>
       <div className="sm:hidden mt-[100px] flex flex-col gap-4 items-center justify-center">
@@ -480,7 +490,9 @@ export function Market() {
                   <PodScoreGradientLegend />
                 </div>
 
-                <MarketChartOverlay
+                {
+                  mounted && (
+                    <MarketChartOverlay
                   overlayParams={overlayParams}
                   chartRef={chartRef}
                   visible={
@@ -490,6 +502,8 @@ export function Market() {
                   harvestableIndex={harvestableIndex}
                   marketListingScores={marketListingScores}
                 />
+                  )
+                }
               </div>
               <div className=" mb-4 pl-[52px] pr-[12px]">
                 <PodLineGraph className="h-24" onPlotGroupSelect={handleMarketPodLineGraphSelect} />

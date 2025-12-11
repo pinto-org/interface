@@ -78,6 +78,10 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
     const [dimensions, setDimensions] = useState<ChartDimensions | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
+    useEffect(() => {
+      console.log("Dimensions", dimensions);
+    }, [dimensions])
+
     // Note: Throttling removed to ensure immediate updates during price changes
     // Performance is acceptable without throttling due to optimized calculations
     const throttledOverlayParams = overlayParams;
@@ -87,6 +91,9 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
       (dataValue: number, axis: "x" | "y"): number | null => {
         const chart = chartRef.current;
         if (!chart?.scales) return null;
+
+        console.log("Data Value", dataValue);
+        console.log("Axis", axis);
 
         const scale = chart.scales[axis];
         if (!scale?.getPixelForValue || scale.min === undefined || scale.max === undefined) {
@@ -131,243 +138,243 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
     }, [chartRef]);
 
     // Optimized resize handling with single debounced handler
-    useEffect(() => {
-      let timeoutId: NodeJS.Timeout;
-      let retryTimeouts: NodeJS.Timeout[] = [];
-      let animationFrameId: number | null = null;
-      let resizeObserver: ResizeObserver | null = null;
-      let isMounted = true;
+    // useEffect(() => {
+    //   let timeoutId: NodeJS.Timeout;
+    //   let retryTimeouts: NodeJS.Timeout[] = [];
+    //   let animationFrameId: number | null = null;
+    //   let resizeObserver: ResizeObserver | null = null;
+    //   let isMounted = true;
 
-      // Check if chart is fully ready with all required properties
-      const isChartReady = (): boolean => {
-        const chart = chartRef.current;
-        if (!chart) return false;
+    //   // Check if chart is fully ready with all required properties
+    //   const isChartReady = (): boolean => {
+    //     const chart = chartRef.current;
+    //     if (!chart) return false;
 
-        // Check canvas is in DOM (critical check to prevent ownerDocument errors)
-        if (!chart.canvas || !chart.canvas.ownerDocument) return false;
+    //     // Check canvas is in DOM (critical check to prevent ownerDocument errors)
+    //     if (!chart.canvas || !chart.canvas.ownerDocument) return false;
 
-        // Check chartArea exists and has valid dimensions
-        if (!chart.chartArea) return false;
-        const { left, top, right, bottom } = chart.chartArea;
-        if (
-          typeof left !== "number" ||
-          typeof top !== "number" ||
-          typeof right !== "number" ||
-          typeof bottom !== "number" ||
-          right - left <= 0 ||
-          bottom - top <= 0
-        ) {
-          return false;
-        }
+    //     // Check chartArea exists and has valid dimensions
+    //     if (!chart.chartArea) return false;
+    //     const { left, top, right, bottom } = chart.chartArea;
+    //     if (
+    //       typeof left !== "number" ||
+    //       typeof top !== "number" ||
+    //       typeof right !== "number" ||
+    //       typeof bottom !== "number" ||
+    //       right - left <= 0 ||
+    //       bottom - top <= 0
+    //     ) {
+    //       return false;
+    //     }
 
-        // Check scales exist and are ready
-        if (!chart.scales?.x || !chart.scales?.y) return false;
-        const xScale = chart.scales.x;
-        const yScale = chart.scales.y;
+    //     // Check scales exist and are ready
+    //     if (!chart.scales?.x || !chart.scales?.y) return false;
+    //     const xScale = chart.scales.x;
+    //     const yScale = chart.scales.y;
 
-        // Check scales have required methods and valid ranges
-        if (
-          typeof xScale.getPixelForValue !== "function" ||
-          typeof yScale.getPixelForValue !== "function" ||
-          xScale.min === undefined ||
-          xScale.max === undefined ||
-          yScale.min === undefined ||
-          yScale.max === undefined
-        ) {
-          return false;
-        }
+    //     // Check scales have required methods and valid ranges
+    //     if (
+    //       typeof xScale.getPixelForValue !== "function" ||
+    //       typeof yScale.getPixelForValue !== "function" ||
+    //       xScale.min === undefined ||
+    //       xScale.max === undefined ||
+    //       yScale.min === undefined ||
+    //       yScale.max === undefined
+    //     ) {
+    //       return false;
+    //     }
 
-        return true;
-      };
+    //     return true;
+    //   };
 
-      const updateDimensions = () => {
-        if (!isMounted) return;
+    //   const updateDimensions = () => {
+    //     if (!isMounted) return;
 
-        const chart = chartRef.current;
+    //     const chart = chartRef.current;
 
-        // Ensure Chart.js resizes first before getting dimensions
-        // Only resize if canvas is in DOM
-        if (chart?.canvas?.ownerDocument && isChartReady()) {
-          try {
-            chart.resize();
-          } catch (error) {
-            // If resize fails, chart might be detached, skip resize
-            console.warn("Chart resize failed, canvas may be detached:", error);
-          }
-        }
+    //     // Ensure Chart.js resizes first before getting dimensions
+    //     // Only resize if canvas is in DOM
+    //     if (chart?.canvas?.ownerDocument && isChartReady()) {
+    //       try {
+    //         chart.resize();
+    //       } catch (error) {
+    //         // If resize fails, chart might be detached, skip resize
+    //         console.warn("Chart resize failed, canvas may be detached:", error);
+    //       }
+    //     }
 
-        // Use requestAnimationFrame to sync with browser's repaint cycle
-        // Double RAF ensures Chart.js has finished resizing and updated chartArea
-        if (animationFrameId !== null) {
-          cancelAnimationFrame(animationFrameId);
-        }
+    //     // Use requestAnimationFrame to sync with browser's repaint cycle
+    //     // Double RAF ensures Chart.js has finished resizing and updated chartArea
+    //     if (animationFrameId !== null) {
+    //       cancelAnimationFrame(animationFrameId);
+    //     }
 
-        animationFrameId = requestAnimationFrame(() => {
-          // Second RAF to ensure Chart.js has updated chartArea after resize
-          requestAnimationFrame(() => {
-            if (!isMounted) return;
+    //     animationFrameId = requestAnimationFrame(() => {
+    //       // Second RAF to ensure Chart.js has updated chartArea after resize
+    //       requestAnimationFrame(() => {
+    //         if (!isMounted) return;
 
-            // Try to get dimensions even if chart is not fully ready
-            // This ensures overlay can render when chartArea is available
-            const newDimensions = getChartDimensions();
-            if (newDimensions) {
-              setDimensions(newDimensions);
-            }
-            animationFrameId = null;
-          });
-        });
-      };
+    //         // Try to get dimensions even if chart is not fully ready
+    //         // This ensures overlay can render when chartArea is available
+    //         const newDimensions = getChartDimensions();
+    //         if (newDimensions) {
+    //           setDimensions(newDimensions);
+    //         }
+    //         animationFrameId = null;
+    //       });
+    //     });
+    //   };
 
-      const debouncedUpdate = () => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(updateDimensions, RESIZE_DEBOUNCE_MS);
-      };
+    //   const debouncedUpdate = () => {
+    //     clearTimeout(timeoutId);
+    //     timeoutId = setTimeout(updateDimensions, RESIZE_DEBOUNCE_MS);
+    //   };
 
-      // Aggressive retry mechanism for direct link navigation
-      const tryUpdateDimensions = (attempt = 0, maxAttempts = 10) => {
-        if (!isMounted) return;
+    //   // Aggressive retry mechanism for direct link navigation
+    //   const tryUpdateDimensions = (attempt = 0, maxAttempts = 10) => {
+    //     if (!isMounted) return;
 
-        if (isChartReady()) {
-          const chart = chartRef.current;
-          if (chart?.canvas?.ownerDocument) {
-            // Only update if canvas is in DOM
-            try {
-              chart.update("none");
-            } catch (error) {
-              // If update fails, chart might be detached, skip update
-              console.warn("Chart update failed, canvas may be detached:", error);
-            }
-          }
+    //     if (isChartReady()) {
+    //       const chart = chartRef.current;
+    //       if (chart?.canvas?.ownerDocument) {
+    //         // Only update if canvas is in DOM
+    //         try {
+    //           chart.update("none");
+    //         } catch (error) {
+    //           // If update fails, chart might be detached, skip update
+    //           console.warn("Chart update failed, canvas may be detached:", error);
+    //         }
+    //       }
 
-          // Use triple RAF to ensure chart is fully rendered
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                if (!isMounted) return;
-                // Try to get dimensions even if chart is not fully ready
-                // This ensures overlay can render when chartArea is available
-                const newDimensions = getChartDimensions();
-                if (newDimensions) {
-                  setDimensions(newDimensions);
-                } else if (attempt < maxAttempts) {
-                  // Retry if dimensions still not available
-                  const timeout = setTimeout(() => tryUpdateDimensions(attempt + 1, maxAttempts), 50);
-                  retryTimeouts.push(timeout);
-                }
-              });
-            });
-          });
-        } else if (attempt < maxAttempts) {
-          // Chart not ready, retry with exponential backoff
-          const delay = Math.min(50 * 1.5 ** attempt, 500);
-          const timeout = setTimeout(() => tryUpdateDimensions(attempt + 1, maxAttempts), delay);
-          retryTimeouts.push(timeout);
-        }
-      };
+    //       // Use triple RAF to ensure chart is fully rendered
+    //       requestAnimationFrame(() => {
+    //         requestAnimationFrame(() => {
+    //           requestAnimationFrame(() => {
+    //             if (!isMounted) return;
+    //             // Try to get dimensions even if chart is not fully ready
+    //             // This ensures overlay can render when chartArea is available
+    //             const newDimensions = getChartDimensions();
+    //             if (newDimensions) {
+    //               setDimensions(newDimensions);
+    //             } else if (attempt < maxAttempts) {
+    //               // Retry if dimensions still not available
+    //               const timeout = setTimeout(() => tryUpdateDimensions(attempt + 1, maxAttempts), 50);
+    //               retryTimeouts.push(timeout);
+    //             }
+    //           });
+    //         });
+    //       });
+    //     } else if (attempt < maxAttempts) {
+    //       // Chart not ready, retry with exponential backoff
+    //       const delay = Math.min(50 * 1.5 ** attempt, 500);
+    //       const timeout = setTimeout(() => tryUpdateDimensions(attempt + 1, maxAttempts), delay);
+    //       retryTimeouts.push(timeout);
+    //     }
+    //   };
 
-      // Start initial update attempts
-      tryUpdateDimensions();
+    //   // Start initial update attempts
+    //   tryUpdateDimensions();
 
-      // Single ResizeObserver for all resize events
-      if (typeof ResizeObserver !== "undefined") {
-        resizeObserver = new ResizeObserver(debouncedUpdate);
-        const parent = containerRef.current?.parentElement;
-        if (parent) {
-          resizeObserver.observe(parent);
-        }
-        // Also observe the chart canvas itself for more accurate updates
-        const chart = chartRef.current;
-        if (chart?.canvas) {
-          resizeObserver.observe(chart.canvas);
-        }
-      }
+    //   // Single ResizeObserver for all resize events
+    //   if (typeof ResizeObserver !== "undefined") {
+    //     resizeObserver = new ResizeObserver(debouncedUpdate);
+    //     const parent = containerRef.current?.parentElement;
+    //     if (parent) {
+    //       resizeObserver.observe(parent);
+    //     }
+    //     // Also observe the chart canvas itself for more accurate updates
+    //     const chart = chartRef.current;
+    //     if (chart?.canvas) {
+    //       resizeObserver.observe(chart.canvas);
+    //     }
+    //   }
 
-      // Fallback window resize listener with passive flag for better performance
-      window.addEventListener("resize", debouncedUpdate, { passive: true });
+    //   // Fallback window resize listener with passive flag for better performance
+    //   window.addEventListener("resize", debouncedUpdate, { passive: true });
 
-      // Listen to chart update events (zoom/pan/scale changes)
-      const chart = chartRef.current;
-      if (chart) {
-        // Listen to chart's update event to catch zoom/pan/scale changes
-        const handleChartUpdate = () => {
-          // Use RAF to ensure chart has finished updating
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              updateDimensions();
-            });
-          });
-        };
+    //   // Listen to chart update events (zoom/pan/scale changes)
+    //   const chart = chartRef.current;
+    //   if (chart) {
+    //     // Listen to chart's update event to catch zoom/pan/scale changes
+    //     const handleChartUpdate = () => {
+    //       // Use RAF to ensure chart has finished updating
+    //       requestAnimationFrame(() => {
+    //         requestAnimationFrame(() => {
+    //           updateDimensions();
+    //         });
+    //       });
+    //     };
 
-        // Chart.js doesn't have built-in event system, so we'll use a polling approach
-        // or listen to chart's internal update cycle
-        // For now, we'll add a MutationObserver on the canvas to detect changes
-        let lastScaleMin: { x: number | undefined; y: number | undefined } = {
-          x: chart.scales?.x?.min,
-          y: chart.scales?.y?.min,
-        };
-        let lastScaleMax: { x: number | undefined; y: number | undefined } = {
-          x: chart.scales?.x?.max,
-          y: chart.scales?.y?.max,
-        };
+    //     // Chart.js doesn't have built-in event system, so we'll use a polling approach
+    //     // or listen to chart's internal update cycle
+    //     // For now, we'll add a MutationObserver on the canvas to detect changes
+    //     let lastScaleMin: { x: number | undefined; y: number | undefined } = {
+    //       x: chart.scales?.x?.min,
+    //       y: chart.scales?.y?.min,
+    //     };
+    //     let lastScaleMax: { x: number | undefined; y: number | undefined } = {
+    //       x: chart.scales?.x?.max,
+    //       y: chart.scales?.y?.max,
+    //     };
 
-        // Poll for scale changes (zoom/pan) - Chart.js doesn't have built-in scale change events
-        const scaleCheckInterval = setInterval(() => {
-          if (!isMounted || !chartRef.current) {
-            clearInterval(scaleCheckInterval);
-            return;
-          }
+    //     // Poll for scale changes (zoom/pan) - Chart.js doesn't have built-in scale change events
+    //     const scaleCheckInterval = setInterval(() => {
+    //       if (!isMounted || !chartRef.current) {
+    //         clearInterval(scaleCheckInterval);
+    //         return;
+    //       }
 
-          const currentChart = chartRef.current;
-          if (!currentChart?.scales?.x || !currentChart?.scales?.y) return;
+    //       const currentChart = chartRef.current;
+    //       if (!currentChart?.scales?.x || !currentChart?.scales?.y) return;
 
-          const currentXMin = currentChart.scales.x.min;
-          const currentXMax = currentChart.scales.x.max;
-          const currentYMin = currentChart.scales.y.min;
-          const currentYMax = currentChart.scales.y.max;
+    //       const currentXMin = currentChart.scales.x.min;
+    //       const currentXMax = currentChart.scales.x.max;
+    //       const currentYMin = currentChart.scales.y.min;
+    //       const currentYMax = currentChart.scales.y.max;
 
-          // Check if scales have changed (zoom/pan)
-          if (
-            currentXMin !== lastScaleMin.x ||
-            currentXMax !== lastScaleMax.x ||
-            currentYMin !== lastScaleMin.y ||
-            currentYMax !== lastScaleMax.y
-          ) {
-            lastScaleMin = { x: currentXMin, y: currentYMin };
-            lastScaleMax = { x: currentXMax, y: currentYMax };
-            handleChartUpdate();
-          }
-        }, 200); // Check every 200ms for better performance
+    //       // Check if scales have changed (zoom/pan)
+    //       if (
+    //         currentXMin !== lastScaleMin.x ||
+    //         currentXMax !== lastScaleMax.x ||
+    //         currentYMin !== lastScaleMin.y ||
+    //         currentYMax !== lastScaleMax.y
+    //       ) {
+    //         lastScaleMin = { x: currentXMin, y: currentYMin };
+    //         lastScaleMax = { x: currentXMax, y: currentYMax };
+    //         handleChartUpdate();
+    //       }
+    //     }, 200); // Check every 200ms for better performance
 
-        chart.resize();
-        // Force update after chart is ready
-        updateDimensions();
+    //     chart.resize();
+    //     // Force update after chart is ready
+    //     updateDimensions();
 
-        return () => {
-          isMounted = false;
-          clearInterval(scaleCheckInterval);
-          clearTimeout(timeoutId);
-          retryTimeouts.forEach(clearTimeout);
-          retryTimeouts = [];
-          if (animationFrameId !== null) {
-            cancelAnimationFrame(animationFrameId);
-          }
-          resizeObserver?.disconnect();
-          window.removeEventListener("resize", debouncedUpdate);
-        };
-      } else {
-        return () => {
-          isMounted = false;
-          clearTimeout(timeoutId);
-          retryTimeouts.forEach(clearTimeout);
-          retryTimeouts = [];
-          if (animationFrameId !== null) {
-            cancelAnimationFrame(animationFrameId);
-          }
-          resizeObserver?.disconnect();
-          window.removeEventListener("resize", debouncedUpdate);
-        };
-      }
-    }, [getChartDimensions, chartRef]);
+    //     return () => {
+    //       isMounted = false;
+    //       clearInterval(scaleCheckInterval);
+    //       clearTimeout(timeoutId);
+    //       retryTimeouts.forEach(clearTimeout);
+    //       retryTimeouts = [];
+    //       if (animationFrameId !== null) {
+    //         cancelAnimationFrame(animationFrameId);
+    //       }
+    //       resizeObserver?.disconnect();
+    //       window.removeEventListener("resize", debouncedUpdate);
+    //     };
+    //   } else {
+    //     return () => {
+    //       isMounted = false;
+    //       clearTimeout(timeoutId);
+    //       retryTimeouts.forEach(clearTimeout);
+    //       retryTimeouts = [];
+    //       if (animationFrameId !== null) {
+    //         cancelAnimationFrame(animationFrameId);
+    //       }
+    //       resizeObserver?.disconnect();
+    //       window.removeEventListener("resize", debouncedUpdate);
+    //     };
+    //   }
+    // }, [getChartDimensions, chartRef]);
 
     // Update dimensions when overlay params or visibility changes
     useEffect(() => {
@@ -383,6 +390,7 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
             requestAnimationFrame(() => {
               const newDimensions = getChartDimensions();
               if (newDimensions) {
+                // console.log("New Dimensions from update on params change: ", newDimensions);
                 setDimensions(newDimensions);
               }
             });
@@ -426,6 +434,7 @@ const MarketChartOverlay = React.memo<MarketChartOverlayProps>(
               requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                   const newDimensions = getChartDimensions();
+                  // console.log("New Dimensions from try update: ", newDimensions);
                   if (newDimensions) {
                     setDimensions(newDimensions);
                   }
