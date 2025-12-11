@@ -41,7 +41,7 @@ export const TOOLTIP_COPY = {
   totalAmount: "The total amount of PINTO to Sow in this order.",
   temperature: "The minimum Temperature at which this order can be executed.",
   morningAuction:
-    "The morning is the first 10 minutes of the Season, where the Temperature slowly increases to its maximum. Farmers can opt for their orders to execute during the Morning, such that their orders fill first.",
+    "The Morning is the first 10 minutes of the Season, where the Temperature slowly increases to its maximum.\nFarmers can opt for their orders to execute during the Morning, such that their orders fill first.",
 } as const;
 
 interface BaseIFormContextHandlers {
