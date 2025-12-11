@@ -223,7 +223,10 @@ export const OperatorTipFormField = ({ averageTipPaid, preset, setPreset }: Oper
     <Row className="w-full justify-between">
       <Row className="pinto-sm-light text-pinto-secondary gap-1">
         Tip per Execution
-        <TooltipSimple content="The amount of PINTO paid to the operator when the order is executed." variant="outlined" />
+        <TooltipSimple
+          content="The amount of PINTO paid to the operator when the order is executed."
+          variant="outlined"
+        />
       </Row>
       <OperatorTipPresetDropdown
         averageTipPaid={averageTipPaid}
