@@ -271,6 +271,7 @@ SowOrderV0Fields.TotalAmount = function TotalAmount({
                 {...sharedInputProps}
                 placeholder="0.00"
                 outlined
+                disabled={isSliderDisabled}
                 {...getHandlers()}
                 isError={!!fieldState.error || exceedsDeposits}
                 containerClassName="w-full"
