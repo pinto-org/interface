@@ -3,7 +3,7 @@ import PintoIcon from "@/assets/tokens/PINTO.png";
 import { TokenValue } from "@/classes/TokenValue";
 import { Col } from "@/components/Container";
 import FrameAnimator from "@/components/LoadingSpinner";
-import MarketChartOverlay, { type OverlayParams } from "@/components/MarketChartOverlay";
+
 import PodLineGraph from "@/components/PodLineGraph";
 import PodScoreGradientLegend from "@/components/PodScoreGradientLegend";
 import ReadMoreAccordion from "@/components/ReadMoreAccordion";
@@ -199,36 +199,15 @@ export function Market() {
     setTimeout(() => {
       setMounted(true);
     }, 3000);
-  }, [])
-
-  // Overlay state and chart ref
-  const chartRef = useRef<Chart | null>(null);
-  const [overlayParams, setOverlayParams] = useState<OverlayParams>(null);
-
-  // Memoized callback to update overlay params
-  const handleOverlayParamsChange = useCallback((params: OverlayParams) => {
-    setOverlayParams(params);
   }, []);
+
+  // Chart ref
+  const chartRef = useRef<Chart | null>(null);
 
   const scatterChartData: MarketScatterChartData[] = useMemo(
     () => shapeScatterChartData(data || [], harvestableIndex),
     [data, harvestableIndex],
   );
-
-  // Extract Pod Scores from market listings for overlay color scaling
-  const marketListingScores = useMemo(() => {
-    if (!scatterChartData || scatterChartData.length < 2) return [];
-
-    // Listings are at index 1 in scatterChartData
-    const listingsData = scatterChartData[1];
-    if (!listingsData?.data) return [];
-
-    const scores = listingsData.data
-      .map((point) => point.podScore)
-      .filter((score): score is number => score !== undefined);
-
-    return scores;
-  }, [scatterChartData]);
 
   // Calculate chart x-axis max value - use podLineAsNumber with a minimum value
   // Don't depend on overlayParams to avoid re-rendering chart on every slider change
@@ -489,21 +468,6 @@ export function Market() {
                 <div className="absolute top-5 right-6 z-[3]">
                   <PodScoreGradientLegend />
                 </div>
-
-                {
-                  mounted && (
-                    <MarketChartOverlay
-                  overlayParams={overlayParams}
-                  chartRef={chartRef}
-                  visible={
-                    (viewMode === "buy" && (viewAction === "create" || viewAction === "fill")) ||
-                    (viewMode === "sell" && viewAction === "create")
-                  }
-                  harvestableIndex={harvestableIndex}
-                  marketListingScores={marketListingScores}
-                />
-                  )
-                }
               </div>
               <div className=" mb-4 pl-[52px] pr-[12px]">
                 <PodLineGraph className="h-24" onPlotGroupSelect={handleMarketPodLineGraphSelect} />
@@ -535,15 +499,9 @@ export function Market() {
                 <div className="flex flex-col gap-4 p-4">
                   <MarketModeSelect onSecondarySelectionChange={handleSecondaryTabClick} />
                   <div className="flex flex-col gap-4">
-                    {viewMode === "buy" && viewAction === "create" && (
-                      <CreateOrder onOverlayParamsChange={handleOverlayParamsChange} />
-                    )}
-                    {viewMode === "buy" && viewAction === "fill" && (
-                      <FillListing onOverlayParamsChange={handleOverlayParamsChange} />
-                    )}
-                    {viewMode === "sell" && viewAction === "create" && (
-                      <CreateListing onOverlayParamsChange={handleOverlayParamsChange} />
-                    )}
+                    {viewMode === "buy" && viewAction === "create" && <CreateOrder />}
+                    {viewMode === "buy" && viewAction === "fill" && <FillListing />}
+                    {viewMode === "sell" && viewAction === "create" && <CreateListing />}
                     {viewMode === "sell" && viewAction === "fill" && <FillOrder />}
                   </div>
                 </div>

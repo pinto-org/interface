@@ -2,7 +2,7 @@ import podIcon from "@/assets/protocol/Pod.png";
 import { TV, TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import FrameAnimator from "@/components/LoadingSpinner";
-import type { OverlayParams } from "@/components/MarketChartOverlay";
+
 import PodLineGraph from "@/components/PodLineGraph";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
 import SlippageButton from "@/components/SlippageButton";
@@ -110,11 +110,7 @@ const useFilterTokens = () => {
   }, [tokens, isWSOL]);
 };
 
-interface FillListingProps {
-  onOverlayParamsChange?: (params: OverlayParams) => void;
-}
-
-export default function FillListing({ onOverlayParamsChange }: FillListingProps = {}) {
+export default function FillListing() {
   const mainToken = useTokenData().mainToken;
   const diamondAddress = useProtocolAddress();
   const account = useAccount();
@@ -263,42 +259,6 @@ export default function FillListing({ onOverlayParamsChange }: FillListingProps 
     setMaxPlaceInLine(maxPlaceValue);
     setHasInitializedPlace(true); // Mark as initialized to prevent default value override
   }, [listingId, allListings, maxPlace, mainToken.decimals, harvestableIndex, placeInLineFromUrl]);
-
-  // Update overlay parameters when maxPricePerPod or maxPlaceInLine changes
-  const overlayUpdateTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    // Clear any pending update
-    if (overlayUpdateTimerRef.current) {
-      clearTimeout(overlayUpdateTimerRef.current);
-    }
-
-    // Throttle overlay updates to avoid performance issues during slider drag
-    overlayUpdateTimerRef.current = setTimeout(() => {
-      if (maxPlaceInLine && maxPlaceInLine > 0 && maxPricePerPod) {
-        onOverlayParamsChange?.({
-          pricePerPod: maxPricePerPod,
-          maxPlaceInLine,
-          mode: "buy",
-        });
-      } else {
-        onOverlayParamsChange?.(null);
-      }
-    }, 16); // ~60fps (16ms)
-
-    return () => {
-      if (overlayUpdateTimerRef.current) {
-        clearTimeout(overlayUpdateTimerRef.current);
-      }
-    };
-  }, [maxPricePerPod, maxPlaceInLine, onOverlayParamsChange]);
-
-  // Cleanup overlay on unmount
-  useEffect(() => {
-    return () => {
-      onOverlayParamsChange?.(null);
-    };
-  }, [onOverlayParamsChange]);
 
   // Token selection handler with tracking
   const handleTokenSelection = useCallback(

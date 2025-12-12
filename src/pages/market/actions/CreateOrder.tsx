@@ -2,7 +2,7 @@ import podIcon from "@/assets/protocol/Pod.png";
 import { TV, TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import FrameAnimator from "@/components/LoadingSpinner";
-import type { OverlayParams } from "@/components/MarketChartOverlay";
+
 import PodLineGraph from "@/components/PodLineGraph";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
 import SlippageButton from "@/components/SlippageButton";
@@ -86,11 +86,7 @@ const useFilterTokens = () => {
   }, [tokens, isWSOL]);
 };
 
-interface CreateOrderProps {
-  onOverlayParamsChange?: (params: OverlayParams) => void;
-}
-
-export default function CreateOrder({ onOverlayParamsChange }: CreateOrderProps = {}) {
+export default function CreateOrder() {
   const diamondAddress = useProtocolAddress();
   const mainToken = useTokenData().mainToken;
   const { queryKeys: balanceQKs } = useFarmerBalances();
@@ -173,42 +169,6 @@ export default function CreateOrder({ onOverlayParamsChange }: CreateOrderProps 
       setDidSetPreferred(true);
     }
   }, [preferredToken, preferredLoading, didSetPreferred]);
-
-  // Throttle overlay parameter updates for better performance
-  const overlayUpdateTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    // Clear any pending update
-    if (overlayUpdateTimerRef.current) {
-      clearTimeout(overlayUpdateTimerRef.current);
-    }
-
-    // Throttle overlay updates to avoid performance issues during slider drag
-    overlayUpdateTimerRef.current = setTimeout(() => {
-      if (maxPlaceInLine && maxPlaceInLine > 0 && pricePerPod > 0) {
-        onOverlayParamsChange?.({
-          mode: "buy",
-          pricePerPod,
-          maxPlaceInLine,
-        });
-      } else {
-        onOverlayParamsChange?.(null);
-      }
-    }, 16); // ~60fps (16ms)
-
-    return () => {
-      if (overlayUpdateTimerRef.current) {
-        clearTimeout(overlayUpdateTimerRef.current);
-      }
-    };
-  }, [pricePerPod, maxPlaceInLine, onOverlayParamsChange]);
-
-  // Cleanup overlay on unmount
-  useEffect(() => {
-    return () => {
-      onOverlayParamsChange?.(null);
-    };
-  }, [onOverlayParamsChange]);
 
   // Token selection handler with tracking
   const handleTokenSelection = useCallback(

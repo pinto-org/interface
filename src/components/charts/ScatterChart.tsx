@@ -199,40 +199,67 @@ const ScatterChart = React.memo(
         [data],
       );
 
-      const verticalLinePlugin: Plugin = useMemo<Plugin>(
+      const crosshairPlugin: Plugin = useMemo<Plugin>(
         () => ({
-          id: "customVerticalLine",
+          id: "customCrosshair",
           afterDraw: (chart: Chart) => {
             const ctx = chart.ctx;
-            const activeIndex = activeIndexRef.current;
-            if (ctx) {
-              ctx.save();
+            if (!ctx) return;
+
+            ctx.save();
+
+            const drawCrosshair = (x: number, y: number, color: string = "black", lineWidth: number = 1.5) => {
+              ctx.strokeStyle = color;
+              ctx.lineWidth = lineWidth;
               ctx.setLineDash([4, 4]);
 
-              // Draw the vertical line for the active element (hovered point)
-              const activeElements = chart.getActiveElements();
-              if (activeElements.length > 0) {
-                const activeElement = activeElements[0];
-                const datasetIndex = activeElement.datasetIndex;
-                const index = activeElement.index;
-                const dataPoint = chart.getDatasetMeta(datasetIndex).data[index];
+              // Draw vertical line
+              ctx.beginPath();
+              ctx.moveTo(x, chart.chartArea.top);
+              ctx.lineTo(x, chart.chartArea.bottom);
+              ctx.stroke();
 
+              // Draw horizontal line
+              ctx.beginPath();
+              ctx.moveTo(chart.chartArea.left, y);
+              ctx.lineTo(chart.chartArea.right, y);
+              ctx.stroke();
+            };
+
+            // Draw crosshair for selected point (if any)
+            const [selectedPointDatasetIndex, selectedPointIndex] = selectedPointRef.current || [];
+            if (selectedPointDatasetIndex !== undefined && selectedPointIndex !== undefined) {
+              const selectedDataPoint = chart.getDatasetMeta(selectedPointDatasetIndex).data[selectedPointIndex];
+              if (selectedDataPoint) {
+                const { x, y } = selectedDataPoint.getProps(["x", "y"], true);
+                drawCrosshair(x, y, "#387F5C", 2); // Green color for selected point, thicker line
+              }
+            }
+
+            // Draw crosshair for hovered point (if any and different from selected)
+            const activeElements = chart.getActiveElements();
+            if (activeElements.length > 0) {
+              const activeElement = activeElements[0];
+              const datasetIndex = activeElement.datasetIndex;
+              const index = activeElement.index;
+
+              // Only draw hover crosshair if it's different from the selected point
+              const isDifferentFromSelected =
+                selectedPointDatasetIndex !== datasetIndex || selectedPointIndex !== index;
+
+              if (isDifferentFromSelected) {
+                const dataPoint = chart.getDatasetMeta(datasetIndex).data[index];
                 if (dataPoint) {
-                  const { x } = dataPoint.getProps(["x"], true);
-                  ctx.beginPath();
-                  ctx.moveTo(x, chart.chartArea.top);
-                  ctx.lineTo(x, chart.chartArea.bottom);
-                  ctx.strokeStyle = "black";
-                  ctx.lineWidth = 1.5;
-                  ctx.stroke();
+                  const { x, y } = dataPoint.getProps(["x", "y"], true);
+                  drawCrosshair(x, y, "black", 1.5); // Black color for hovered point
                 }
               }
-
-              ctx.restore();
             }
+
+            ctx.restore();
           },
         }),
-        [],
+        [selectedPointRef.current],
       );
 
       const horizontalReferenceLinePlugin: Plugin = useMemo<Plugin>(
@@ -471,8 +498,8 @@ const ScatterChart = React.memo(
       }, [data, yTickMin, yTickMax, valueFormatter, useLogarithmicScale, customValueTransform]);
 
       const allPlugins = useMemo<Plugin[]>(
-        () => [verticalLinePlugin, horizontalReferenceLinePlugin, selectionPointPlugin, selectionCallbackPlugin],
-        [verticalLinePlugin, horizontalReferenceLinePlugin, selectionPointPlugin, selectionCallbackPlugin],
+        () => [crosshairPlugin, horizontalReferenceLinePlugin, selectionPointPlugin, selectionCallbackPlugin],
+        [crosshairPlugin, horizontalReferenceLinePlugin, selectionPointPlugin, selectionCallbackPlugin],
       );
 
       const chartDimensions = useMemo(() => {
