@@ -203,7 +203,7 @@ const LearnSilo = () => {
 
   return (
     <>
-      <ReadMoreAccordion defaultOpen={!learnDidVisit.silo}>
+      <ReadMoreAccordion defaultOpen={false}>
         <>
           Pinto and Pinto-LP can be Deposited into and Withdrawn from the Silo at any time. When the time-weighted
           average Pinto price over the previous Season is over $1, new Pinto are minted, 48.5% of which are distributed

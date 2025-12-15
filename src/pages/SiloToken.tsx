@@ -227,8 +227,8 @@ const ConvertUpTractorCard = ({
 
   return (
     <TractorCard
-      label="🚜 Want to Convert Up?"
-      subLabel="Set up a Tractor Order to automate Convert Ups"
+      label="🚜 Place an order to Convert Up"
+      subLabel="Create a Tractor order to automate Converts Upward based on Price and Bonus"
       onClick={handleOpen}
       shouldAnimateZoom={false}
       corderBordersDisabled
