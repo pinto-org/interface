@@ -1,12 +1,17 @@
 import podIcon from "@/assets/protocol/Pod.png";
-import pintoIcon from "@/assets/tokens/PINTO.png";
 import { TV, TokenValue } from "@/classes/TokenValue";
 import { ComboInputField } from "@/components/ComboInputField";
 import FrameAnimator from "@/components/LoadingSpinner";
+
+import PodLineGraph from "@/components/PodLineGraph";
 import RoutingAndSlippageInfo, { useRoutingAndSlippageWarning } from "@/components/RoutingAndSlippageInfo";
 import SlippageButton from "@/components/SlippageButton";
+import SmartApprovalButton from "@/components/SmartApprovalButton";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { Separator } from "@/components/ui/Separator";
+import { Slider } from "@/components/ui/Slider";
 import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { PODS } from "@/constants/internalTokens";
 import fillPodListing from "@/encoders/fillPodListing";
@@ -24,22 +29,70 @@ import usePriceImpactSummary from "@/hooks/wells/usePriceImpactSummary";
 import usePodListings from "@/state/market/usePodListings";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerPlotsQuery } from "@/state/useFarmerField";
-import { useHarvestableIndex } from "@/state/useFieldData";
+import { useHarvestableIndex, usePodIndex } from "@/state/useFieldData";
 import { useQueryKeys } from "@/state/useQueryKeys";
 import useTokenData from "@/state/useTokenData";
 import { trackSimpleEvent } from "@/utils/analytics";
 import { formatter } from "@/utils/format";
 import { toSafeTVFromHuman } from "@/utils/number";
 import { tokensEqual } from "@/utils/token";
-import { FarmFromMode, FarmToMode, Token } from "@/utils/types";
-import { getBalanceFromMode } from "@/utils/utils";
+import { FarmFromMode, FarmToMode, Plot, Token } from "@/utils/types";
+import { cn, getBalanceFromMode } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Address } from "viem";
+import { Address, encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
-import CancelListing from "./CancelListing";
+
+// Configuration constants
+const PRICE_PER_POD_CONFIG = {
+  MAX: 1,
+  MIN: 0.001,
+  DECIMALS: 6,
+  DECIMAL_MULTIPLIER: 1_000_000, // 10^6 for 6 decimals
+} as const;
+
+const PRICE_SLIDER_STEP = 0.001;
+const DEFAULT_PRICE_INPUT = "0.001";
+const PLACE_MARGIN_PERCENT = 0.01; // 1% margin for place in line range
+
+const TextAdornment = ({ text, className }: { text: string; className?: string }) => {
+  return <div className={cn("text-black pinto-sm-light mr-2", className)}>{text}</div>;
+};
+
+/**
+ * Calculates Pod Score for a listing based on price per pod and place in line.
+ * Formula: (1/pricePerPod - 1) / placeInLine * 1e6
+ *
+ * @param pricePerPod - Price per pod (must be > 0)
+ * @param placeInLine - Position in harvest queue in millions (must be > 0)
+ * @returns Pod Score value, or undefined for invalid inputs
+ */
+const calculatePodScore = (pricePerPod: number, placeInLine: number): number | undefined => {
+  // Handle edge cases: invalid price or place in line
+  if (pricePerPod <= 0 || placeInLine <= 0) {
+    return undefined;
+  }
+
+  // Calculate return: (1/pricePerPod - 1)
+  const returnValue = 1 / pricePerPod - 1;
+
+  // Calculate Pod Score: return / placeInLine * 1e6
+  const podScore = (returnValue / placeInLine) * 1e6;
+
+  // Filter out invalid results (NaN, Infinity)
+  if (!Number.isFinite(podScore)) {
+    return undefined;
+  }
+
+  return podScore;
+};
+
+// Utility function to format and truncate price per pod values
+const formatPricePerPod = (value: number): number => {
+  return Math.floor(value * PRICE_PER_POD_CONFIG.DECIMAL_MULTIPLIER) / PRICE_PER_POD_CONFIG.DECIMAL_MULTIPLIER;
+};
 
 const useFilterTokens = () => {
   const tokens = useTokenMap();
@@ -64,6 +117,9 @@ export default function FillListing() {
   const farmerBalances = useFarmerBalances();
   const harvestableIndex = useHarvestableIndex();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const listingId = searchParams.get("listingId");
+  const placeInLineFromUrl = searchParams.get("placeInLine");
 
   const filterTokens = useFilterTokens();
 
@@ -83,15 +139,36 @@ export default function FillListing() {
   });
 
   const podListings = usePodListings();
-  const { id } = useParams();
   const allListings = podListings.data;
-  const listing = allListings?.podListings.find((listing) => listing.index === id);
 
   const [didSetPreferred, setDidSetPreferred] = useState(false);
   const [amountIn, setAmountIn] = useState("");
   const [tokenIn, setTokenIn] = useState(mainToken);
   const [balanceFrom, setBalanceFrom] = useState(FarmFromMode.INTERNAL_EXTERNAL);
   const [slippage, setSlippage] = useState(0.1);
+  const [isSuccessful, setIsSuccessful] = useState(false);
+  const [successPods, setSuccessPods] = useState<number | null>(null);
+  const [successAvgPrice, setSuccessAvgPrice] = useState<number | null>(null);
+  const [successTotal, setSuccessTotal] = useState<number | null>(null);
+  const successDataRef = useRef<{ pods: number; avgPrice: number; total: number } | null>(null);
+
+  // Price per pod filter state
+  const [maxPricePerPod, setMaxPricePerPod] = useState<number>(0);
+  const [maxPricePerPodInput, setMaxPricePerPodInput] = useState<string>(DEFAULT_PRICE_INPUT);
+
+  // Place in line state
+  const podIndex = usePodIndex();
+  const maxPlace = Number.parseInt(podIndex.toHuman()) - Number.parseInt(harvestableIndex.toHuman()) || 0;
+  const [maxPlaceInLine, setMaxPlaceInLine] = useState<number | undefined>(undefined);
+  const [hasInitializedPlace, setHasInitializedPlace] = useState(false);
+
+  // Set maxPlaceInLine to maxPlace by default when maxPlace is available (only once on initial load)
+  useEffect(() => {
+    if (maxPlace > 0 && !hasInitializedPlace && maxPlaceInLine === undefined) {
+      setMaxPlaceInLine(maxPlace);
+      setHasInitializedPlace(true);
+    }
+  }, [maxPlace, hasInitializedPlace, maxPlaceInLine]);
 
   const isUsingMain = tokensEqual(tokenIn, mainToken);
 
@@ -127,6 +204,62 @@ export default function FillListing() {
     }
   }, [preferredToken, preferredLoading, didSetPreferred]);
 
+  // Find selected listing based on listingId parameter
+  const selectedListing = useMemo(() => {
+    if (!listingId || !allListings?.podListings) return null;
+    return allListings.podListings.find((l) => l.id === listingId) || null;
+  }, [listingId, allListings]);
+
+  // Calculate Pod Score for the selected listing
+  const listingPodScore = useMemo(() => {
+    if (!selectedListing) return undefined;
+
+    const price = TokenValue.fromBlockchain(selectedListing.pricePerPod, mainToken.decimals).toNumber();
+    const placeInLine = TokenValue.fromBlockchain(selectedListing.index, PODS.decimals)
+      .sub(harvestableIndex)
+      .toNumber();
+
+    // Use placeInLine in millions for consistent scaling
+    return calculatePodScore(price, placeInLine / 1_000_000);
+  }, [selectedListing, mainToken.decimals, harvestableIndex]);
+
+  // Pre-fill form when listingId parameter is present (clicked from chart)
+  useEffect(() => {
+    if (!listingId || !allListings?.podListings || maxPlace === 0) return;
+
+    // Find the listing with matching ID
+    const listing = allListings.podListings.find((l) => l.id === listingId);
+    if (!listing) return;
+
+    // Pre-fill price per pod
+    const listingPrice = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals).toNumber();
+    const formattedPrice = formatPricePerPod(listingPrice);
+    setMaxPricePerPod(formattedPrice);
+    setMaxPricePerPodInput(formattedPrice.toFixed(PRICE_PER_POD_CONFIG.DECIMALS));
+
+    // Use placeInLine from URL if available (from chart click), otherwise calculate from listing index
+    let placeInLine: number;
+    if (placeInLineFromUrl) {
+      // Use the exact place in line value from the chart (pod's actual place in line)
+      placeInLine = Number.parseInt(placeInLineFromUrl, 10);
+      if (Number.isNaN(placeInLine) || placeInLine <= 0) {
+        // Fallback to calculating from listing index if URL value is invalid
+        const listingIndex = TokenValue.fromBlockchain(listing.index, PODS.decimals);
+        placeInLine = listingIndex.sub(harvestableIndex).toNumber();
+      }
+    } else {
+      // Calculate listing's place in line from index (fallback for direct URL access)
+      const listingIndex = TokenValue.fromBlockchain(listing.index, PODS.decimals);
+      placeInLine = listingIndex.sub(harvestableIndex).toNumber();
+    }
+
+    // Set max place in line to the exact pod's place in line (no margin needed since it's the exact value)
+    // Clamp to valid range [0, maxPlace]
+    const maxPlaceValue = Math.min(maxPlace, Math.max(0, placeInLine));
+    setMaxPlaceInLine(maxPlaceValue);
+    setHasInitializedPlace(true); // Mark as initialized to prevent default value override
+  }, [listingId, allListings, maxPlace, mainToken.decimals, harvestableIndex, placeInLineFromUrl]);
+
   // Token selection handler with tracking
   const handleTokenSelection = useCallback(
     (newToken: Token) => {
@@ -137,16 +270,151 @@ export default function FillListing() {
       });
       setTokenIn(newToken);
     },
-    [tokenIn, mainToken],
+    [tokenIn],
   );
+
+  // Price per pod slider handler
+  const handlePriceSliderChange = useCallback((value: number[]) => {
+    const formatted = formatPricePerPod(value[0]);
+    setMaxPricePerPod(formatted);
+    setMaxPricePerPodInput(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS));
+  }, []);
+
+  // Price per pod input handlers
+  const handlePriceInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setMaxPricePerPodInput(value);
+
+    if (value === "" || value === ".") {
+      setMaxPricePerPod(0);
+      return;
+    }
+
+    const numValue = Number.parseFloat(value);
+    if (!Number.isNaN(numValue)) {
+      const clamped = Math.max(PRICE_PER_POD_CONFIG.MIN, Math.min(PRICE_PER_POD_CONFIG.MAX, numValue));
+      const formatted = formatPricePerPod(clamped);
+      setMaxPricePerPod(formatted);
+    }
+  }, []);
+
+  const handlePriceInputBlur = useCallback(() => {
+    const numValue = Number.parseFloat(maxPricePerPodInput);
+    if (!Number.isNaN(numValue)) {
+      const clamped = Math.max(0, Math.min(PRICE_PER_POD_CONFIG.MAX, numValue));
+      const formatted = formatPricePerPod(clamped);
+      setMaxPricePerPod(formatted);
+      setMaxPricePerPodInput(formatted.toFixed(PRICE_PER_POD_CONFIG.DECIMALS));
+    } else {
+      setMaxPricePerPodInput("0.000000");
+      setMaxPricePerPod(0);
+    }
+  }, [maxPricePerPodInput]);
+
+  // Max place in line slider handler
+  const handleMaxPlaceSliderChange = useCallback((value: number[]) => {
+    const newValue = Math.floor(value[0]);
+    setMaxPlaceInLine(newValue > 0 ? newValue : undefined);
+  }, []);
+
+  // Max place in line input handler
+  const handleMaxPlaceInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const cleanValue = e.target.value.replace(/,/g, "");
+      const value = Number.parseInt(cleanValue);
+      if (!Number.isNaN(value) && value > 0 && value <= maxPlace) {
+        setMaxPlaceInLine(value);
+      } else if (cleanValue === "") {
+        setMaxPlaceInLine(undefined);
+      }
+    },
+    [maxPlace],
+  );
+
+  /**
+   * Convert all listings to Plot objects and determine eligible ones
+   * Eligible = matching both price criteria AND place in line range
+   */
+  const { listingPlots, eligibleListingIds, rangeOverlay } = useMemo(() => {
+    if (!allListings?.podListings) {
+      return { listingPlots: [], eligibleListingIds: [], rangeOverlay: undefined };
+    }
+
+    // Convert all listings to Plot objects for graph visualization
+    const plots: Plot[] = allListings.podListings.map((listing) => ({
+      index: TokenValue.fromBlockchain(listing.index, PODS.decimals),
+      pods: TokenValue.fromBlockchain(listing.remainingAmount, PODS.decimals),
+      harvestedPods: TokenValue.ZERO,
+      harvestablePods: TokenValue.ZERO,
+      id: listing.id,
+      idHex: listing.id,
+    }));
+
+    // Calculate place in line boundary for filtering
+    const maxPlaceIndex = maxPlaceInLine
+      ? harvestableIndex.add(TokenValue.fromHuman(maxPlaceInLine.toString(), PODS.decimals))
+      : undefined;
+
+    // Determine eligible listings (shown as green on graph)
+    // When maxPricePerPod is 0 OR maxPlaceInLine is not set, no listings are eligible (all show as orange)
+    // When both maxPricePerPod > 0 AND maxPlaceInLine is set, filter by both price and place in line
+    const eligible: string[] =
+      maxPricePerPod > 0 && maxPlaceIndex
+        ? allListings.podListings
+            .filter((listing) => {
+              const listingPrice = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals).toNumber();
+              const listingIndex = TokenValue.fromBlockchain(listing.index, PODS.decimals);
+
+              // Listing must match both criteria to be eligible
+              const matchesPrice = listingPrice <= maxPricePerPod;
+              const matchesPlace = listingIndex.lte(maxPlaceIndex);
+              return matchesPrice && matchesPlace;
+            })
+            .map((listing) => listing.id)
+        : [];
+
+    // Calculate range overlay for visual feedback on graph
+    const overlay = maxPlaceInLine
+      ? {
+          start: harvestableIndex,
+          end: harvestableIndex.add(TokenValue.fromHuman(maxPlaceInLine.toString(), PODS.decimals)),
+        }
+      : undefined;
+
+    return { listingPlots: plots, eligibleListingIds: eligible, rangeOverlay: overlay };
+  }, [allListings, maxPricePerPod, maxPlaceInLine, mainToken.decimals, harvestableIndex]);
+
+  // Calculate open available pods count (eligible listings only - already filtered by price AND place)
+  const openAvailablePods = useMemo(() => {
+    if (!allListings?.podListings.length) return 0;
+
+    const eligibleSet = new Set(eligibleListingIds);
+
+    return allListings.podListings.reduce((sum, listing) => {
+      // eligibleListingIds already contains listings that match both price and place criteria
+      if (!eligibleSet.has(listing.id)) return sum;
+
+      const remainingAmount = TokenValue.fromBlockchain(listing.remainingAmount, PODS.decimals);
+      return sum + remainingAmount.toNumber();
+    }, 0);
+  }, [allListings, eligibleListingIds]);
 
   // reset form and invalidate pod listings/farmer plot queries
   const onSuccess = useCallback(() => {
-    navigate(`/market/pods/buy/fill`);
+    // Set success state from ref (to avoid stale closure)
+    if (successDataRef.current) {
+      const { pods, avgPrice, total } = successDataRef.current;
+      setSuccessPods(pods);
+      setSuccessAvgPrice(avgPrice);
+      setSuccessTotal(total);
+      setIsSuccessful(true);
+      successDataRef.current = null; // Clear ref after use
+    }
+
     setAmountIn("");
     resetSwap();
     allQK.forEach((key) => queryClient.invalidateQueries({ queryKey: key }));
-  }, [navigate, resetSwap, queryClient, allQK]);
+  }, [resetSwap, queryClient, allQK]);
 
   const { writeWithEstimateGas, submitting, isConfirming, setSubmitting } = useTransaction({
     successMessage: "Listing Fill successful",
@@ -154,76 +422,223 @@ export default function FillListing() {
     successCallback: onSuccess,
   });
 
-  const placeInLine = TokenValue.fromBlockchain(listing?.index || 0n, PODS.decimals).sub(harvestableIndex);
-  const podsAvailable = TokenValue.fromBlockchain(listing?.amount || 0n, PODS.decimals);
-  const pricePerPod = TokenValue.fromBlockchain(listing?.pricePerPod || 0n, mainToken.decimals);
-  const mainTokensToFill = podsAvailable.mul(pricePerPod);
   const mainTokensIn = isUsingMain ? toSafeTVFromHuman(amountIn, mainToken.decimals) : swapData?.buyAmount;
 
+  // Get eligible listings sorted by price (cheapest first)
+  const eligibleListings = useMemo(() => {
+    if (!allListings?.podListings.length || eligibleListingIds.length === 0) {
+      return [];
+    }
+
+    const eligibleSet = new Set(eligibleListingIds);
+    return allListings.podListings
+      .filter((l) => eligibleSet.has(l.id))
+      .sort((a, b) => {
+        const priceA = TokenValue.fromBlockchain(a.pricePerPod, mainToken.decimals).toNumber();
+        const priceB = TokenValue.fromBlockchain(b.pricePerPod, mainToken.decimals).toNumber();
+        return priceA - priceB; // Sort by price ascending (cheapest first)
+      });
+  }, [allListings, eligibleListingIds, mainToken.decimals]);
+
+  // Calculate which listings to fill and how much from each (based on mainTokensIn)
+  const listingsToFill = useMemo(() => {
+    if (!mainTokensIn || mainTokensIn.eq(0) || eligibleListings.length === 0) {
+      return [];
+    }
+
+    const result: Array<{ listing: (typeof eligibleListings)[0]; beanAmount: TokenValue }> = [];
+    let remainingBeans = mainTokensIn;
+
+    for (const listing of eligibleListings) {
+      if (remainingBeans.lte(0)) break;
+
+      const listingPrice = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals);
+      const listingRemainingPods = TokenValue.fromBlockchain(listing.remainingAmount, PODS.decimals);
+      const maxBeansForListing = listingRemainingPods.mul(listingPrice);
+
+      const beansToSpend = TokenValue.min(remainingBeans, maxBeansForListing);
+      if (beansToSpend.gt(0)) {
+        result.push({ listing, beanAmount: beansToSpend });
+        remainingBeans = remainingBeans.sub(beansToSpend);
+      }
+    }
+
+    return result;
+  }, [mainTokensIn, eligibleListings, mainToken.decimals]);
+
+  // Calculate weighted average for eligible listings
+  const eligibleSummary = useMemo(() => {
+    if (listingsToFill.length === 0) return null;
+
+    // Single listing - use its price directly
+    if (listingsToFill.length === 1) {
+      const { listing, beanAmount } = listingsToFill[0];
+      const listingPrice = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals);
+      const podsFromListing = beanAmount.div(listingPrice);
+      const listingPlace = TokenValue.fromBlockchain(listing.index, PODS.decimals).sub(harvestableIndex);
+
+      return {
+        avgPricePerPod: listingPrice,
+        avgPlaceInLine: listingPlace,
+        totalPods: podsFromListing.toNumber(),
+      };
+    }
+
+    // Multiple listings - calculate weighted average
+    let totalValue = 0;
+    let totalPods = 0;
+    let totalPlaceInLine = 0;
+
+    for (const { listing, beanAmount } of listingsToFill) {
+      const listingPrice = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals);
+      const podsFromListing = beanAmount.div(listingPrice);
+      const listingPlace = TokenValue.fromBlockchain(listing.index, PODS.decimals).sub(harvestableIndex);
+
+      const pods = podsFromListing.toNumber();
+      totalValue += listingPrice.toNumber() * pods;
+      totalPods += pods;
+      totalPlaceInLine += listingPlace.toNumber() * pods;
+    }
+
+    const avgPricePerPod = totalPods > 0 ? totalValue / totalPods : 0;
+    const avgPlaceInLine = totalPods > 0 ? totalPlaceInLine / totalPods : 0;
+
+    return {
+      avgPricePerPod: TokenValue.fromHuman(avgPricePerPod, mainToken.decimals),
+      avgPlaceInLine: TokenValue.fromHuman(avgPlaceInLine, PODS.decimals),
+      totalPods,
+    };
+  }, [listingsToFill, mainToken.decimals, harvestableIndex]);
+
+  // Calculate total tokens needed to fill eligible listings
+  const totalMainTokensToFill = useMemo(() => {
+    if (!eligibleSummary) return TokenValue.ZERO;
+    return eligibleSummary.avgPricePerPod.mul(TokenValue.fromHuman(eligibleSummary.totalPods, PODS.decimals));
+  }, [eligibleSummary]);
+
   const tokenInBalance = farmerBalances.balances.get(tokenIn);
-  const { data: maxFillAmount } = useMaxBuy(tokenIn, slippage, mainTokensToFill);
+  const { data: maxFillAmount } = useMaxBuy(tokenIn, slippage, totalMainTokensToFill);
   const balanceFromMode = getBalanceFromMode(tokenInBalance, balanceFrom);
   const balanceExceedsMax = balanceFromMode.gt(0) && maxFillAmount && balanceFromMode.gte(maxFillAmount);
 
   const onSubmit = useCallback(async () => {
-    if (!listing) {
-      throw new Error("Listing not found");
-    }
+    // Validate requirements
     if (!account.address) {
+      toast.error("Please connect your wallet");
       throw new Error("Signer required");
+    }
+    if (listingsToFill.length === 0) {
+      toast.error("No eligible listings to fill");
+      throw new Error("No listings to fill");
+    }
+    if (!mainTokensIn || mainTokensIn.eq(0)) {
+      toast.error("No amount specified");
+      throw new Error("Amount required");
+    }
+
+    // Reset success state when starting new transaction
+    setIsSuccessful(false);
+    setSuccessPods(null);
+    setSuccessAvgPrice(null);
+    setSuccessTotal(null);
+
+    // Calculate and save success data to ref (to avoid stale closure in onSuccess callback)
+    if (eligibleSummary && mainTokensIn) {
+      const estimatedPods = mainTokensIn.div(eligibleSummary.avgPricePerPod).toNumber();
+      const avgPrice = eligibleSummary.avgPricePerPod.toNumber();
+      const total = mainTokensIn.toNumber();
+
+      successDataRef.current = {
+        pods: estimatedPods,
+        avgPrice,
+        total,
+      };
     }
 
     // Track pod listing fill
     trackSimpleEvent(ANALYTICS_EVENTS.MARKET.POD_LIST_FILL, {
       payment_token: tokenIn.symbol,
       balance_source: balanceFrom,
+      eligible_listings_count: listingsToFill.length,
     });
 
     try {
       setSubmitting(true);
-      toast.loading("Filling Listing...");
+      toast.loading(`Filling ${listingsToFill.length} Listing${listingsToFill.length !== 1 ? "s" : ""}...`);
+
       if (isUsingMain) {
+        // Direct fill - create farm calls for each listing
+        const farmData: `0x${string}`[] = [];
+
+        for (const { listing, beanAmount } of listingsToFill) {
+          // Encode pricePerPod with 6 decimals (like CreateOrder.tsx)
+          const pricePerPodNumber = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals).toNumber();
+          const encodedPricePerPod = Math.floor(pricePerPodNumber * PRICE_PER_POD_CONFIG.DECIMAL_MULTIPLIER);
+
+          const fillCall = encodeFunctionData({
+            abi: beanstalkAbi,
+            functionName: "fillPodListing",
+            args: [
+              {
+                lister: listing.farmer.id as Address,
+                fieldId: 0n,
+                index: TokenValue.fromBlockchain(listing.index, PODS.decimals).toBigInt(),
+                start: TokenValue.fromBlockchain(listing.start, PODS.decimals).toBigInt(),
+                podAmount: TokenValue.fromBlockchain(listing.amount, PODS.decimals).toBigInt(),
+                pricePerPod: encodedPricePerPod,
+                maxHarvestableIndex: TokenValue.fromBlockchain(listing.maxHarvestableIndex, PODS.decimals).toBigInt(),
+                minFillAmount: TokenValue.fromBlockchain(listing.minFillAmount, mainToken.decimals).toBigInt(),
+                mode: Number(listing.mode),
+              },
+              beanAmount.toBigInt(),
+              Number(balanceFrom),
+            ],
+          });
+
+          farmData.push(fillCall);
+        }
+
+        if (farmData.length === 0) {
+          throw new Error("No valid fill operations to execute");
+        }
+
+        // Use farm to batch all listing fills in one transaction
         return writeWithEstimateGas({
           address: diamondAddress,
           abi: beanstalkAbi,
-          functionName: "fillPodListing",
-          args: [
-            {
-              lister: listing.farmer.id as Address, // account
-              fieldId: 0n, // fieldId
-              index: TokenValue.fromBlockchain(listing.index, PODS.decimals).toBigInt(), // index
-              start: TokenValue.fromBlockchain(listing.start, PODS.decimals).toBigInt(), // start
-              podAmount: TokenValue.fromBlockchain(listing.amount, PODS.decimals).toBigInt(), // amount
-              pricePerPod: Number(TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals)), // pricePerPod
-              maxHarvestableIndex: TokenValue.fromBlockchain(listing.maxHarvestableIndex, PODS.decimals).toBigInt(), // maxHarvestableIndex
-              minFillAmount: TokenValue.fromBlockchain(listing.minFillAmount, mainToken.decimals).toBigInt(), // minFillAmount, measured in Beans
-              mode: Number(listing.mode), // mode
-            },
-            toSafeTVFromHuman(amountIn, mainToken.decimals).toBigInt(), // amountIn
-            Number(balanceFrom), // fromMode
-          ],
+          functionName: "farm",
+          args: [farmData],
         });
       } else if (swapBuild?.advancedFarm.length) {
+        // Swap + fill - use advancedFarm
         const { clipboard } = await swapBuild.deriveClipboardWithOutputToken(mainToken, 9, account.address, {
           value: value ?? TV.ZERO,
         });
 
         const advFarm = [...swapBuild.advancedFarm];
-        advFarm.push(
-          fillPodListing(
-            listing.farmer.id as Address, // account
-            TokenValue.fromBlockchain(listing.index, PODS.decimals), // index
-            TokenValue.fromBlockchain(listing.start, PODS.decimals), // start
-            TokenValue.fromBlockchain(listing.amount, PODS.decimals), // amount
-            Number(TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals)), // pricePerPod
-            TokenValue.fromBlockchain(listing.maxHarvestableIndex, PODS.decimals), // maxHarvestableIndex
-            TokenValue.fromBlockchain(listing.minFillAmount, mainToken.decimals), // minFillAmount, measured in Beans
-            Number(listing.mode), // mode
-            TV.ZERO, // amountIn (from clipboard)
-            FarmFromMode.INTERNAL, // fromMode
+
+        // Add fillPodListing calls for each listing
+        for (const { listing, beanAmount } of listingsToFill) {
+          // Encode pricePerPod with 6 decimals (like CreateOrder.tsx)
+          const pricePerPodNumber = TokenValue.fromBlockchain(listing.pricePerPod, mainToken.decimals).toNumber();
+          const encodedPricePerPod = Math.floor(pricePerPodNumber * PRICE_PER_POD_CONFIG.DECIMAL_MULTIPLIER);
+
+          const fillCall = fillPodListing(
+            listing.farmer.id as Address,
+            TokenValue.fromBlockchain(listing.index, PODS.decimals),
+            TokenValue.fromBlockchain(listing.start, PODS.decimals),
+            TokenValue.fromBlockchain(listing.amount, PODS.decimals),
+            encodedPricePerPod,
+            TokenValue.fromBlockchain(listing.maxHarvestableIndex, PODS.decimals),
+            TokenValue.fromBlockchain(listing.minFillAmount, mainToken.decimals),
+            Number(listing.mode),
+            beanAmount,
+            FarmFromMode.INTERNAL,
             clipboard,
-          ),
-        );
+          );
+
+          advFarm.push(fillCall);
+        }
 
         return writeWithEstimateGas({
           address: diamondAddress,
@@ -238,15 +653,16 @@ export default function FillListing() {
     } catch (e) {
       console.error(e);
       toast.dismiss();
-      toast.error("Listing Fill Failed");
+      const errorMessage = e instanceof Error ? e.message : "Listing Fill Failed";
+      toast.error(errorMessage);
       throw e;
     } finally {
       setSubmitting(false);
     }
   }, [
-    listing,
-    account,
-    amountIn,
+    account.address,
+    listingsToFill,
+    mainTokensIn,
     balanceFrom,
     swapBuild,
     writeWithEstimateGas,
@@ -255,134 +671,264 @@ export default function FillListing() {
     value,
     diamondAddress,
     mainToken,
+    tokenIn.symbol,
+    eligibleSummary,
   ]);
 
-  const isOwnListing = listing && listing?.farmer.id === account.address?.toLowerCase();
-  const disabled = !mainTokensIn || mainTokensIn.eq(0);
+  // Disable submit if no tokens entered, no eligible listings, or no listings to fill
+  const disabled = !mainTokensIn || mainTokensIn.eq(0) || listingsToFill.length === 0;
 
   return (
-    <div>
-      {!listing ? (
-        <div className="flex justify-center mt-4 pinto-sm-light text-pinto-gray-5">
-          Select a Listing on the panel to the left
+    <div className="flex flex-col gap-4">
+      {/* PodLineGraph Visualization */}
+      <div className="flex flex-col gap-3">
+        <PodLineGraph
+          plots={listingPlots}
+          selectedPlotIndices={eligibleListingIds}
+          rangeOverlay={rangeOverlay}
+          disableInteractions={true}
+          label="Available Listings"
+        />
+      </div>
+
+      {/* Max Price Per Pod Filter Section */}
+      <div className="flex flex-col gap-2 mt-2">
+        <p className="pinto-body text-pinto-light">I am willing to buy Pods up to:</p>
+        <div className="flex flex-row gap-4 w-full items-center">
+          <div className="flex flex-row gap-4 items-center">
+            <p className="pinto-body text-pinto-light">0</p>
+            <Slider
+              min={PRICE_PER_POD_CONFIG.MIN}
+              max={PRICE_PER_POD_CONFIG.MAX}
+              step={PRICE_SLIDER_STEP}
+              value={[maxPricePerPod]}
+              onValueChange={handlePriceSliderChange}
+              className="w-[18rem]"
+            />
+            <p className="pinto-body text-pinto-light">1</p>
+          </div>
+          <Input
+            type="text"
+            inputMode="decimal"
+            value={maxPricePerPodInput}
+            onChange={handlePriceInputChange}
+            onBlur={handlePriceInputBlur}
+            onFocus={(e) => e.target.select()}
+            placeholder="0.001"
+            outlined
+            endIcon={<TextAdornment text={mainToken.symbol} className="bg-white" />}
+          />
         </div>
-      ) : (
-        <>
-          <div className="flex flex-col gap-4">
-            <div className="space-y-1">
-              <div className="flex flex-row justify-between">
-                <p className="pinto-body text-pinto-light">Seller</p>
-                <p className="pinto-body text-pinto-primary">{listing.farmer.id.substring(0, 6)}</p>
-              </div>
-              <div className="flex flex-row justify-between">
-                <p className="pinto-body text-pinto-light">Place in Line</p>
-                <p className="pinto-body text-pinto-primary">{placeInLine.toHuman("short")}</p>
-              </div>
-              <div className="flex flex-row justify-between">
-                <p className="pinto-body text-pinto-light">Pods Available</p>
-                <div className="flex items-center">
-                  <img src={podIcon} className="w-4 h-4 scale-110 mr-[6px]" alt={"pod icon"} />
-                  <p className="pinto-body text-pinto-primary">{podsAvailable.toHuman("short")}</p>
-                </div>
-              </div>
-              <div className="flex flex-row justify-between">
-                <p className="pinto-body text-pinto-light">Price per Pod</p>
-                <div className="flex items-center">
-                  <img src={pintoIcon} className="w-4 h-4 scale-110 mr-[6px]" alt={"pinto icon"} />
-                  <p className="pinto-body text-pinto-primary">{pricePerPod.toHuman()}</p>
-                </div>
-              </div>
-              <div className="flex flex-row justify-between">
-                <p className="pinto-body text-pinto-light">Pinto to Fill</p>
-                <div className="flex items-center">
-                  <img src={pintoIcon} className="w-4 h-4 scale-110 mr-[6px]" alt={"pinto icon"} />
-                  <p className="pinto-body text-pinto-primary">{mainTokensToFill.toHuman()}</p>
-                </div>
-              </div>
+        {/* Effective Temperature Display */}
+        {maxPricePerPod > 0 && (
+          <div className="flex justify-end mr-1">
+            <p className="pinto-sm text-pinto-light">
+              Effective Temperature (i):{" "}
+              <span className="text-green-600 font-semibold">
+                {formatter.number((1 / maxPricePerPod) * 100, { minDecimals: 2, maxDecimals: 2 })}%
+              </span>
+            </p>
+          </div>
+        )}
+        {/* Pod Score Display */}
+        {selectedListing && (
+          <div className="flex justify-end mr-1">
+            <p className="pinto-sm text-pinto-light">
+              Pod Score:{" "}
+              <span className="font-semibold">
+                {listingPodScore !== undefined
+                  ? formatter.number(listingPodScore, { minDecimals: 2, maxDecimals: 2 })
+                  : "N/A"}
+              </span>
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Place in Line Slider */}
+      <div className="flex flex-col gap-3 mt-2">
+        <p className="pinto-body text-pinto-light">I want to fill listings with a Place in Line up to:</p>
+        {maxPlace === 0 ? (
+          <p className="pinto-sm text-pinto-light italic">No Pods in Line currently available to fill.</p>
+        ) : (
+          <div className="flex flex-row gap-4 w-full items-center">
+            <div className="flex flex-row gap-4 items-center flex-1">
+              <p className="pinto-body text-pinto-light">0</p>
+              {maxPlace > 0 && (
+                <Slider
+                  value={[maxPlaceInLine || 0]}
+                  onValueChange={handleMaxPlaceSliderChange}
+                  step={1}
+                  min={0}
+                  max={maxPlace}
+                  className="flex-1"
+                />
+              )}
+              <p className="pinto-body text-pinto-light">{formatter.noDec(maxPlace)}</p>
             </div>
-            <Separator />
-            {isOwnListing ? (
-              <CancelListing listing={listing} />
-            ) : (
-              <>
-                <div className="-mt-2">
-                  <div className="flex flex-row justify-between items-center">
-                    <p className="pinto-body text-pinto-light">Fill Using</p>
-                    <SlippageButton slippage={slippage} setSlippage={setSlippage} />
-                  </div>
-                  <ComboInputField
-                    amount={amountIn}
-                    disableInput={isConfirming || submitting}
-                    setAmount={setAmountIn}
-                    setToken={handleTokenSelection}
-                    setBalanceFrom={setBalanceFrom}
-                    selectedToken={tokenIn}
-                    balanceFrom={balanceFrom}
-                    customMaxAmount={
-                      maxFillAmount?.gt(0) ? TokenValue.min(balanceFromMode, maxFillAmount) : TokenValue.ZERO
-                    }
-                    filterTokens={filterTokens}
-                    altText={balanceExceedsMax ? "Usable balance:" : undefined}
-                    disableClamping={true}
-                  />
-                  {!isUsingMain && amountInTV.gt(0) && (
-                    <RoutingAndSlippageInfo
-                      title="Total Swap Slippage"
-                      swapSummary={swapSummary}
-                      priceImpactSummary={priceImpactSummary}
-                      preferredSummary="swap"
-                      txnType="Swap"
-                      tokenIn={tokenIn}
-                      tokenOut={mainToken}
-                    />
-                  )}
-                  {slippageWarning}
+            <Input
+              type="text"
+              inputMode="numeric"
+              value={maxPlaceInLine ? formatter.noDec(maxPlaceInLine) : ""}
+              onChange={handleMaxPlaceInputChange}
+              onFocus={(e) => e.target.select()}
+              placeholder={formatter.noDec(maxPlace)}
+              outlined
+              containerClassName="w-[108px]"
+              className=""
+              disabled={maxPlace === 0}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Show these sections only when maxPlaceInLine is greater than 0 */}
+      {maxPlaceInLine !== undefined && maxPlaceInLine > 0 && (
+        <div className="flex flex-col gap-4 animate-fade-in">
+          {/* Open Available Pods Display */}
+          <div className="flex">
+            <p className="pinto-body text-pinto-light">
+              Open available pods: <span className="font-semibold">{formatter.noDec(openAvailablePods)}</span> Pods
+            </p>
+          </div>
+
+          {/* Fill Using Section - Only show if there are eligible listings */}
+          {eligibleListingIds.length > 0 && (
+            <>
+              <div className="-mt-2">
+                <div className="flex flex-row justify-between items-center">
+                  <p className="pinto-body text-pinto-light">Fill Using</p>
+                  <SlippageButton slippage={slippage} setSlippage={setSlippage} />
                 </div>
-                <div className="flex flex-col gap-4">
-                  <Separator />
-                  {disabled && Number(amountIn) > 0 && (
-                    <div className="flex justify-center">
-                      <FrameAnimator className="-mt-5 -mb-10" size={150} />
-                    </div>
-                  )}
-                  {!disabled && (
-                    <ActionSummary pricePerPod={pricePerPod} plotPosition={placeInLine} beanAmount={mainTokensIn} />
-                  )}
+                <ComboInputField
+                  amount={amountIn}
+                  connectedAccount={!!account.address}
+                  disableInput={isConfirming || submitting}
+                  setAmount={setAmountIn}
+                  setToken={handleTokenSelection}
+                  setBalanceFrom={setBalanceFrom}
+                  selectedToken={tokenIn}
+                  balanceFrom={balanceFrom}
+                  customMaxAmount={
+                    maxFillAmount?.gt(0) ? TokenValue.min(balanceFromMode, maxFillAmount) : TokenValue.ZERO
+                  }
+                  filterTokens={filterTokens}
+                  altText={balanceExceedsMax ? "Usable balance:" : undefined}
+                  disableClamping={true}
+                  enableSlider
+                  sliderMarkers={[25, 50, 75]}
+                />
+                {!isUsingMain && amountInTV.gt(0) && (
+                  <RoutingAndSlippageInfo
+                    title="Total Swap Slippage"
+                    swapSummary={swapSummary}
+                    priceImpactSummary={priceImpactSummary}
+                    preferredSummary="swap"
+                    txnType="Swap"
+                    tokenIn={tokenIn}
+                    tokenOut={mainToken}
+                  />
+                )}
+                {slippageWarning}
+              </div>
+              <div className="flex flex-col gap-4">
+                <Separator />
+                {disabled && Number(amountIn) > 0 && (
+                  <div className="flex justify-center">
+                    <FrameAnimator className="-mt-5 -mb-10" size={150} />
+                  </div>
+                )}
+                {!disabled && eligibleSummary && mainTokensIn && (
+                  <ActionSummary
+                    pricePerPod={eligibleSummary.avgPricePerPod}
+                    plotPosition={eligibleSummary.avgPlaceInLine}
+                    beanAmount={mainTokensIn}
+                  />
+                )}
+                <div className="flex flex-row gap-2 items-center w-full">
+                  <SmartApprovalButton
+                    variant="gradient"
+                    size="xxl"
+                    token={tokenIn}
+                    amount={amountIn}
+                    balanceFrom={balanceFrom}
+                    disabled={disabled || !ackSlippage || isConfirming || submitting || isSuccessful}
+                    className="flex-1"
+                  />
                   <SmartSubmitButton
                     variant="gradient"
                     size="xxl"
-                    submitButtonText="Buy Pods"
+                    submitButtonText={isSuccessful ? "Purchase Complete!" : "Buy Pods"}
                     token={tokenIn}
                     amount={amountIn}
                     balanceFrom={balanceFrom}
                     submitFunction={onSubmit}
-                    disabled={disabled || !ackSlippage || submitting || isConfirming}
+                    disabled={disabled || !ackSlippage || submitting || isConfirming || isSuccessful}
+                    className="flex-1"
                   />
                 </div>
-              </>
-            )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Success Screen */}
+      {isSuccessful && successPods !== null && successAvgPrice !== null && successTotal !== null && (
+        <div className="flex flex-col gap-6 w-full animate-fade-in">
+          <Separator />
+
+          <div className="flex flex-col gap-3 items-center text-center px-4">
+            <p className="pinto-body text-pinto-light">
+              You've successfully purchased {formatter.noDec(successPods)} Pods for{" "}
+              {formatter.number(successTotal, { minDecimals: 0, maxDecimals: 2 })} Pinto, for an average price of{" "}
+              {formatter.number(successAvgPrice, { minDecimals: 2, maxDecimals: 6 })} Pintos per Pod!
+            </p>
           </div>
-        </>
+
+          <div className="flex justify-center">
+            <Button
+              variant="outline-primary-2"
+              size="lg"
+              onClick={() => navigate("/overview")}
+              className="w-full sm:w-auto"
+            >
+              Go to Overview
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );
 }
 
-const ActionSummary = ({
-  pricePerPod,
-  plotPosition,
-  beanAmount,
-}: { pricePerPod: TV; plotPosition: TV; beanAmount: TV }) => {
-  const podAmount = beanAmount.div(pricePerPod);
+interface ActionSummaryProps {
+  pricePerPod: TV;
+  plotPosition: TV;
+  beanAmount: TV;
+}
+
+/**
+ * Displays summary of the fill transaction
+ * Shows estimated pods to receive, average position, and pricing details
+ */
+const ActionSummary = ({ pricePerPod, plotPosition, beanAmount }: ActionSummaryProps) => {
+  // Calculate estimated pods to receive - memoized to avoid recalculation
+  const estimatedPods = useMemo(() => beanAmount.div(pricePerPod), [beanAmount, pricePerPod]);
+
   return (
     <div className="flex flex-col gap-4">
-      <p className="pinto-body text-pinto-light">In exchange for {formatter.noDec(beanAmount)} Pinto, I will receive</p>
+      <p className="pinto-body text-pinto-light">You will receive approximately</p>
       <div className="flex flex-col gap-2">
         <p className="pinto-h3 flex flex-row items-center gap-2 -mt-1">
-          <img src={podIcon} className="w-8 h-8" alt={"order summary pinto"} />
-          {formatter.number(podAmount, { minDecimals: 0, maxDecimals: 2 })} Pods
+          <img src={podIcon} className="w-8 h-8" alt="Pod icon" />
+          {formatter.number(estimatedPods, { minDecimals: 0, maxDecimals: 2 })} Pods
         </p>
-        <p className="pinto-body text-pinto-light">@ {plotPosition.toHuman("short")} in Line</p>
+        <p className="pinto-body text-pinto-light">@ average {plotPosition.toHuman("short")} in Line</p>
+        <p className="pinto-sm text-pinto-light">
+          for {formatter.number(beanAmount, { minDecimals: 0, maxDecimals: 2 })} Pinto at an average price of{" "}
+          {formatter.number(pricePerPod, { minDecimals: 2, maxDecimals: 6 })} per Pod
+        </p>
       </div>
     </div>
   );
