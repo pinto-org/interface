@@ -365,18 +365,24 @@ export default function useSeasonsData(
   const marketPercentSeasonal = useMarketPerformanceCalc(useMarketPerformanceQuery.data, SMPChartType.PERCENT_SEASONAL);
 
   const transformedData = useMemo(() => {
+    // Only return empty if we're still loading required data
     if (
-      (beanstalkData && Object.keys(useStalkQuery.data || {}).length === 0) ||
-      (beanData && (useBeanQuery.data?.length ?? 0) === 0) ||
-      (basinData && (useBasinQuery.data?.length ?? 0) === 0) ||
-      (apyData && Object.keys(useAPYQuery.data || {}).length === 0) ||
-      (tractorData && (useTractorQuery.data?.length ?? 0) === 0) ||
-      (inflowData && (useInflowQuery.data?.length ?? 0) === 0) ||
-      (marketPerformanceData && (useMarketPerformanceQuery.data?.length ?? 0) === 0)
+      (beanstalkData && useStalkQuery.isLoading) ||
+      (beanData && useBeanQuery.isLoading) ||
+      (basinData && useBasinQuery.isLoading) ||
+      (apyData && useAPYQuery.isLoading) ||
+      (tractorData && useTractorQuery.isLoading) ||
+      (inflowData && useInflowQuery.isLoading) ||
+      (marketPerformanceData && useMarketPerformanceQuery.isLoading)
     ) {
       return [];
     }
-    const stalkResults = useStalkQuery?.data || { fieldHourlySnapshots: [], siloHourlySnapshots: [], stalkSeasons: [] };
+    const stalkResults = useStalkQuery?.data || {
+      fieldHourlySnapshots: [],
+      siloHourlySnapshots: [],
+      seasons: [],
+      gaugesInfoHourlySnapshots: [],
+    };
     const beanResults = useBeanQuery?.data || ([] as any);
     const basinResults = useBasinQuery?.data || ([] as any);
     const {
@@ -406,291 +412,328 @@ export default function useSeasonsData(
 
     const transformedData: SeasonsTableData[] = [];
     for (let idx = 0; idx < maxLength; ++idx) {
-      const allData: Partial<SeasonsTableData> = {};
-      const countSubgraphSeasons = stalkResults.seasons.length;
+      try {
+        const allData: Partial<SeasonsTableData> = {};
+        const countSubgraphSeasons = stalkResults.seasons?.length || 0;
 
-      // Subgraph data optionally has a +1 season offset applied to the datapoints, such that
-      // the result indicates the value at the start rather than end of the season.
-      if (beanstalkData && idx + syncOffset < countSubgraphSeasons) {
-        const currFieldHourlySnapshots = stalkResults.fieldHourlySnapshots[idx + syncOffset];
-        const currSiloHourlySnapshots = stalkResults.siloHourlySnapshots[idx + syncOffset];
-        const currStalkSeasons = stalkResults.seasons[idx + syncOffset];
-        const currGaugeInfoSnapshots = stalkResults.gaugesInfoHourlySnapshots[idx + syncOffset];
-        const timeSown = currFieldHourlySnapshots.blocksToSoldOutSoil
-          ? Duration.fromMillis(currFieldHourlySnapshots.blocksToSoldOutSoil * 2 * 1000).toFormat("mm:ss")
-          : "-";
+        // Subgraph data optionally has a +1 season offset applied to the datapoints, such that
+        // the result indicates the value at the start rather than end of the season.
+        if (beanstalkData && idx + syncOffset < countSubgraphSeasons) {
+          const currFieldHourlySnapshots = stalkResults.fieldHourlySnapshots?.[idx + syncOffset];
+          const currSiloHourlySnapshots = stalkResults.siloHourlySnapshots?.[idx + syncOffset];
+          const currStalkSeasons = stalkResults.seasons?.[idx + syncOffset];
+          const currGaugeInfoSnapshots = stalkResults.gaugesInfoHourlySnapshots?.[idx + syncOffset];
 
-        allData.caseId = Number(currFieldHourlySnapshots.caseId || 0);
-        allData.blocksToSoldOutSoil = timeSown ?? "0";
-        allData.issuedSoil = TokenValue.fromBlockchain(
-          currFieldHourlySnapshots.issuedSoil,
-          tokenData.mainToken.decimals,
-        );
-        allData.podRate = TokenValue.fromHuman(currFieldHourlySnapshots.podRate || 0n, 18).mul(100);
-        allData.sownBeans = TokenValue.fromBlockchain(currFieldHourlySnapshots.sownBeans, tokenData.mainToken.decimals);
-        allData.deltaSownBeans = TokenValue.fromBlockchain(
-          currFieldHourlySnapshots.deltaSownBeans,
-          tokenData.mainToken.decimals,
-        );
-        allData.temperature = TokenValue.fromHuman(currFieldHourlySnapshots.temperature, 1).toNumber();
-        allData.deltaTemperature = TokenValue.fromHuman(currFieldHourlySnapshots.deltaTemperature, 1).toNumber();
-        allData.beanToMaxLpGpPerBdvRatio = currSiloHourlySnapshots.beanToMaxLpGpPerBdvRatio;
-        allData.deltaBeanToMaxLpGpPerBdvRatio = TokenValue.fromHuman(
-          currSiloHourlySnapshots.deltaBeanToMaxLpGpPerBdvRatio,
-          18,
-        ).toNumber();
-        allData.deltaBeans = TokenValue.fromBlockchain(currStalkSeasons.deltaBeans, tokenData.mainToken.decimals);
-        allData.price = TokenValue.fromHuman(currStalkSeasons.price, 4);
-        allData.raining = currStalkSeasons.raining;
-        allData.rewardBeans = TokenValue.fromHuman(currStalkSeasons.rewardBeans, 2);
-        allData.deltaPodDemand = TokenValue.fromBlockchain(currFieldHourlySnapshots.deltaPodDemand, 18);
-        allData.realRateOfReturn = TokenValue.fromHuman(currFieldHourlySnapshots.realRateOfReturn || 0n, 18).mul(100);
-        allData.unharvestablePods = TokenValue.fromBlockchain(
-          currFieldHourlySnapshots.unharvestablePods || 0n,
-          PODS.decimals,
-        );
-        allData.harvestedPods = TokenValue.fromBlockchain(currFieldHourlySnapshots.harvestedPods || 0n, PODS.decimals);
-        allData.numberOfSowers = currFieldHourlySnapshots.numberOfSowers;
-        allData.numberOfSows = currFieldHourlySnapshots.numberOfSows;
-        allData.stalk = TokenValue.fromBlockchain(currSiloHourlySnapshots.stalk || 0n, STALK.decimals);
-        allData.cropRatio = TokenValue.fromHuman(currSiloHourlySnapshots.cropRatio, 2).toNumber();
-        allData.deltaCropRatio = TokenValue.fromHuman(currSiloHourlySnapshots.deltaCropRatio, 2).toNumber();
+          // Skip processing if any required data is missing, but continue with other data sources
+          if (currFieldHourlySnapshots && currSiloHourlySnapshots && currStalkSeasons) {
+            const timeSown = currFieldHourlySnapshots.blocksToSoldOutSoil
+              ? Duration.fromMillis(currFieldHourlySnapshots.blocksToSoldOutSoil * 2 * 1000).toFormat("mm:ss")
+              : "-";
 
-        if (currFieldHourlySnapshots.cultivationTemperature !== null) {
-          allData.cultivationTemperature = TokenValue.fromHuman(currFieldHourlySnapshots.cultivationTemperature, 2);
-        }
-
-        if (!!currGaugeInfoSnapshots) {
-          if (currGaugeInfoSnapshots.g0CultivationFactor !== null) {
-            allData.cultivationFactor = TokenValue.fromHuman(currGaugeInfoSnapshots.g0CultivationFactor, 2);
-          }
-          if (currGaugeInfoSnapshots.g1ConvertDownPenalty !== null) {
-            allData.convertDownPenalty = TokenValue.fromHuman(currGaugeInfoSnapshots.g1ConvertDownPenalty, 4)
-              .mul(100)
-              .toNumber();
-          }
-          if (currGaugeInfoSnapshots.g1BlightFactor !== null) {
-            allData.convertDownBlightFactor = TokenValue.fromHuman(currGaugeInfoSnapshots.g1BlightFactor, 0).toNumber();
-          }
-          if (currGaugeInfoSnapshots.g2BonusStalkPerBdv !== null) {
-            allData.convertUpBonusStalkPerBdv = TokenValue.fromBlockchain(
-              currGaugeInfoSnapshots.g2BonusStalkPerBdv || 0n,
-              STALK.decimals - tokenData.mainToken.decimals,
-            );
-          }
-          if (currGaugeInfoSnapshots.g2MaxConvertCapacity !== null) {
-            allData.convertUpBonusMaxCapacity = TokenValue.fromBlockchain(
-              currGaugeInfoSnapshots.g2MaxConvertCapacity || 0n,
+            allData.caseId = Number(currFieldHourlySnapshots.caseId || 0);
+            allData.blocksToSoldOutSoil = timeSown ?? "0";
+            allData.issuedSoil = TokenValue.fromBlockchain(
+              currFieldHourlySnapshots.issuedSoil,
               tokenData.mainToken.decimals,
             );
-          }
-          if (currGaugeInfoSnapshots.g2BdvConvertedThisSeason !== null) {
-            allData.convertUpBonusCapacityUsedThisSeason = TokenValue.fromBlockchain(
-              currGaugeInfoSnapshots.g2BdvConvertedThisSeason || 0n,
+            allData.podRate = TokenValue.fromHuman(currFieldHourlySnapshots.podRate || 0n, 18).mul(100);
+            allData.sownBeans = TokenValue.fromBlockchain(
+              currFieldHourlySnapshots.sownBeans,
               tokenData.mainToken.decimals,
             );
-          }
+            allData.deltaSownBeans = TokenValue.fromBlockchain(
+              currFieldHourlySnapshots.deltaSownBeans,
+              tokenData.mainToken.decimals,
+            );
+            allData.temperature = TokenValue.fromHuman(currFieldHourlySnapshots.temperature ?? 0, 1).toNumber();
+            allData.deltaTemperature = TokenValue.fromHuman(
+              currFieldHourlySnapshots.deltaTemperature ?? 0,
+              1,
+            ).toNumber();
+            allData.beanToMaxLpGpPerBdvRatio = currSiloHourlySnapshots.beanToMaxLpGpPerBdvRatio ?? 0;
+            allData.deltaBeanToMaxLpGpPerBdvRatio = TokenValue.fromHuman(
+              currSiloHourlySnapshots.deltaBeanToMaxLpGpPerBdvRatio ?? 0,
+              18,
+            ).toNumber();
+            allData.deltaBeans = TokenValue.fromBlockchain(currStalkSeasons.deltaBeans, tokenData.mainToken.decimals);
+            allData.price = TokenValue.fromHuman(currStalkSeasons.price ?? 0, 4);
+            allData.raining = currStalkSeasons.raining ?? false;
+            allData.rewardBeans = TokenValue.fromHuman(currStalkSeasons.rewardBeans ?? 0, 2);
+            allData.deltaPodDemand = TokenValue.fromBlockchain(currFieldHourlySnapshots.deltaPodDemand ?? 0n, 18);
+            allData.realRateOfReturn = TokenValue.fromHuman(currFieldHourlySnapshots.realRateOfReturn || 0n, 18).mul(
+              100,
+            );
+            allData.unharvestablePods = TokenValue.fromBlockchain(
+              currFieldHourlySnapshots.unharvestablePods || 0n,
+              PODS.decimals,
+            );
+            allData.harvestedPods = TokenValue.fromBlockchain(
+              currFieldHourlySnapshots.harvestedPods || 0n,
+              PODS.decimals,
+            );
+            allData.numberOfSowers = currFieldHourlySnapshots.numberOfSowers ?? 0;
+            allData.numberOfSows = currFieldHourlySnapshots.numberOfSows ?? 0;
+            allData.stalk = TokenValue.fromBlockchain(currSiloHourlySnapshots.stalk || 0n, STALK.decimals);
+            allData.cropRatio = TokenValue.fromHuman(currSiloHourlySnapshots.cropRatio ?? 0, 2).toNumber();
+            allData.deltaCropRatio = TokenValue.fromHuman(currSiloHourlySnapshots.deltaCropRatio ?? 0, 2).toNumber();
+
+            if (currFieldHourlySnapshots.cultivationTemperature !== null) {
+              allData.cultivationTemperature = TokenValue.fromHuman(currFieldHourlySnapshots.cultivationTemperature, 2);
+            }
+
+            if (!!currGaugeInfoSnapshots) {
+              if (currGaugeInfoSnapshots.g0CultivationFactor !== null) {
+                allData.cultivationFactor = TokenValue.fromHuman(currGaugeInfoSnapshots.g0CultivationFactor, 2);
+              }
+              if (currGaugeInfoSnapshots.g1ConvertDownPenalty !== null) {
+                allData.convertDownPenalty = TokenValue.fromHuman(currGaugeInfoSnapshots.g1ConvertDownPenalty, 4)
+                  .mul(100)
+                  .toNumber();
+              }
+              if (currGaugeInfoSnapshots.g1BlightFactor !== null) {
+                allData.convertDownBlightFactor = TokenValue.fromHuman(
+                  currGaugeInfoSnapshots.g1BlightFactor,
+                  0,
+                ).toNumber();
+              }
+              if (currGaugeInfoSnapshots.g2BonusStalkPerBdv !== null) {
+                allData.convertUpBonusStalkPerBdv = TokenValue.fromBlockchain(
+                  currGaugeInfoSnapshots.g2BonusStalkPerBdv || 0n,
+                  STALK.decimals - tokenData.mainToken.decimals,
+                );
+              }
+              if (currGaugeInfoSnapshots.g2MaxConvertCapacity !== null) {
+                allData.convertUpBonusMaxCapacity = TokenValue.fromBlockchain(
+                  currGaugeInfoSnapshots.g2MaxConvertCapacity || 0n,
+                  tokenData.mainToken.decimals,
+                );
+              }
+              if (currGaugeInfoSnapshots.g2BdvConvertedThisSeason !== null) {
+                allData.convertUpBonusCapacityUsedThisSeason = TokenValue.fromBlockchain(
+                  currGaugeInfoSnapshots.g2BdvConvertedThisSeason || 0n,
+                  tokenData.mainToken.decimals,
+                );
+              }
+            }
+
+            if (!allData.season) {
+              const season = stalkResults.seasons?.[idx + syncOffset];
+              if (season) {
+                allData.season = season.season;
+                allData.timestamp = Number(season.createdAt || 0);
+                allData.sunriseBlock = Number(season.sunriseBlock || 0);
+              }
+            }
+          } // End of currFieldHourlySnapshots && currSiloHourlySnapshots && currStalkSeasons check
         }
 
-        if (!allData.season) {
-          const season = stalkResults.seasons[idx];
-          allData.season = season.season;
-          allData.timestamp = Number(season.createdAt || 0);
-          allData.sunriseBlock = Number(season.sunriseBlock || 0);
+        if (beanData && idx + syncOffset < countSubgraphSeasons) {
+          const beanResult = beanResults?.[idx + syncOffset];
+          if (beanResult?.beanHourlySnapshot) {
+            const beanHourly = beanResult.beanHourlySnapshot;
+            allData.crosses = beanHourly.crosses ?? 0;
+            allData.marketCap = Number(beanHourly.marketCap ?? 0);
+            allData.supply = TokenValue.fromBlockchain(beanHourly.supply ?? 0n, tokenData.mainToken.decimals);
+            allData.supplyInPegLP = TokenValue.fromBlockchain(beanHourly.supply ?? 0n, tokenData.mainToken.decimals);
+            allData.instDeltaB = TokenValue.fromHuman(beanHourly.instDeltaB ?? 0, tokenData.mainToken.decimals);
+            allData.instPrice = TokenValue.fromHuman(beanHourly.instPrice ?? 0, tokenData.mainToken.decimals);
+            allData.l2sr = TokenValue.fromHuman((beanHourly.l2sr ?? 0) * 100, 2);
+            allData.twaDeltaB = TokenValue.fromHuman(beanHourly.twaDeltaB ?? 0, 2);
+            allData.twaPrice = TokenValue.fromHuman(beanHourly.twaPrice ?? 0, 4);
+
+            if (!allData.season) {
+              const season = beanResults?.[idx + syncOffset]?.season;
+              if (season) {
+                allData.season = season.season;
+                allData.timestamp = Number(season.timestamp || 0);
+              }
+            }
+          } // End of beanResult?.beanHourlySnapshot check
         }
-      }
 
-      if (beanData && idx + syncOffset < countSubgraphSeasons) {
-        const beanHourly = beanResults[idx + syncOffset].beanHourlySnapshot;
-        allData.crosses = beanHourly.crosses;
-        allData.marketCap = Number(beanHourly.marketCap);
-        allData.supply = TokenValue.fromBlockchain(beanHourly.supply, tokenData.mainToken.decimals);
-        allData.supplyInPegLP = TokenValue.fromBlockchain(beanHourly.supply, tokenData.mainToken.decimals);
-        allData.instDeltaB = TokenValue.fromHuman(beanHourly.instDeltaB, tokenData.mainToken.decimals);
-        allData.instPrice = TokenValue.fromHuman(beanHourly.instPrice, tokenData.mainToken.decimals);
-        allData.l2sr = TokenValue.fromHuman(beanHourly.l2sr * 100, 2);
-        allData.twaDeltaB = TokenValue.fromHuman(beanHourly.twaDeltaB, 2);
-        allData.twaPrice = TokenValue.fromHuman(beanHourly.twaPrice, 4);
+        if (basinData && idx + syncOffset < countSubgraphSeasons) {
+          const currBasinSeason = basinResults?.[idx + syncOffset];
+          if (currBasinSeason) {
+            allData.cumulativeVolumeNet =
+              Number(currBasinSeason.cumulativeBuyVolumeUSD) - Number(currBasinSeason.cumulativeSellVolumeUSD);
+            allData.cumulativeBuyVolumeUSD = Number(currBasinSeason.cumulativeBuyVolumeUSD);
+            allData.cumulativeSellVolumeUSD = Number(currBasinSeason.cumulativeSellVolumeUSD);
+            allData.cumulativeVolumeUSD = Number(currBasinSeason.cumulativeTradeVolumeUSD);
+            allData.deltaVolumeNet =
+              Number(currBasinSeason.deltaBuyVolumeUSD) - Number(currBasinSeason.deltaSellVolumeUSD);
+            allData.deltaBuyVolumeUSD = Number(currBasinSeason.deltaBuyVolumeUSD);
+            allData.deltaSellVolumeUSD = Number(currBasinSeason.deltaSellVolumeUSD);
+            allData.deltaVolumeUSD = Number(currBasinSeason.deltaTradeVolumeUSD);
+            allData.cumulativeConvertVolumeNet =
+              Number(currBasinSeason.cumulativeConvertUpVolumeUSD) -
+              Number(currBasinSeason.cumulativeConvertDownVolumeUSD);
+            allData.cumulativeConvertUpVolumeUSD = Number(currBasinSeason.cumulativeConvertUpVolumeUSD);
+            allData.cumulativeConvertDownVolumeUSD = Number(currBasinSeason.cumulativeConvertDownVolumeUSD);
+            allData.cumulativeConvertVolumeUSD = Number(currBasinSeason.cumulativeConvertVolumeUSD);
+            allData.cumulativeConvertNeutralTransferVolumeUSD = Number(
+              currBasinSeason.cumulativeConvertNeutralTransferVolumeUSD,
+            );
+            allData.deltaConvertVolumeNet =
+              Number(currBasinSeason.deltaConvertUpVolumeUSD) - Number(currBasinSeason.deltaConvertDownVolumeUSD);
+            allData.deltaConvertUpVolumeUSD = Number(currBasinSeason.deltaConvertUpVolumeUSD);
+            allData.deltaConvertDownVolumeUSD = Number(currBasinSeason.deltaConvertDownVolumeUSD);
+            allData.deltaConvertVolumeUSD = Number(currBasinSeason.deltaConvertVolumeUSD);
+            allData.deltaConvertNeutralTransferVolumeUSD = Number(currBasinSeason.deltaConvertNeutralTransferVolumeUSD);
+            allData.liquidityUSD = Number(currBasinSeason.totalLiquidityUSD);
+            allData.deltaLiquidityUSD = Number(currBasinSeason.deltaLiquidityUSD);
 
-        if (!allData.season) {
-          const season = beanResults[idx].season;
-          allData.season = season.season;
-          allData.timestamp = Number(season.timestamp || 0);
+            if (!allData.season) {
+              const season = basinResults?.[idx + syncOffset]?.season;
+              if (season) {
+                allData.season = season.season;
+                allData.timestamp = Number(season.createdTimestamp);
+              }
+            }
+          } // End of currBasinSeason check
         }
-      }
 
-      if (basinData && idx + syncOffset < countSubgraphSeasons) {
-        const currBasinSeason = basinResults[idx + syncOffset];
-        allData.cumulativeVolumeNet =
-          Number(currBasinSeason.cumulativeBuyVolumeUSD) - Number(currBasinSeason.cumulativeSellVolumeUSD);
-        allData.cumulativeBuyVolumeUSD = Number(currBasinSeason.cumulativeBuyVolumeUSD);
-        allData.cumulativeSellVolumeUSD = Number(currBasinSeason.cumulativeSellVolumeUSD);
-        allData.cumulativeVolumeUSD = Number(currBasinSeason.cumulativeTradeVolumeUSD);
-        allData.deltaVolumeNet = Number(currBasinSeason.deltaBuyVolumeUSD) - Number(currBasinSeason.deltaSellVolumeUSD);
-        allData.deltaBuyVolumeUSD = Number(currBasinSeason.deltaBuyVolumeUSD);
-        allData.deltaSellVolumeUSD = Number(currBasinSeason.deltaSellVolumeUSD);
-        allData.deltaVolumeUSD = Number(currBasinSeason.deltaTradeVolumeUSD);
-        allData.cumulativeConvertVolumeNet =
-          Number(currBasinSeason.cumulativeConvertUpVolumeUSD) - Number(currBasinSeason.cumulativeConvertDownVolumeUSD);
-        allData.cumulativeConvertUpVolumeUSD = Number(currBasinSeason.cumulativeConvertUpVolumeUSD);
-        allData.cumulativeConvertDownVolumeUSD = Number(currBasinSeason.cumulativeConvertDownVolumeUSD);
-        allData.cumulativeConvertVolumeUSD = Number(currBasinSeason.cumulativeConvertVolumeUSD);
-        allData.cumulativeConvertNeutralTransferVolumeUSD = Number(
-          currBasinSeason.cumulativeConvertNeutralTransferVolumeUSD,
-        );
-        allData.deltaConvertVolumeNet =
-          Number(currBasinSeason.deltaConvertUpVolumeUSD) - Number(currBasinSeason.deltaConvertDownVolumeUSD);
-        allData.deltaConvertUpVolumeUSD = Number(currBasinSeason.deltaConvertUpVolumeUSD);
-        allData.deltaConvertDownVolumeUSD = Number(currBasinSeason.deltaConvertDownVolumeUSD);
-        allData.deltaConvertVolumeUSD = Number(currBasinSeason.deltaConvertVolumeUSD);
-        allData.deltaConvertNeutralTransferVolumeUSD = Number(currBasinSeason.deltaConvertNeutralTransferVolumeUSD);
-        allData.liquidityUSD = Number(currBasinSeason.totalLiquidityUSD);
-        allData.deltaLiquidityUSD = Number(currBasinSeason.deltaLiquidityUSD);
-
-        if (!allData.season) {
-          const season = basinResults[idx].season;
-          allData.season = season.season;
-          allData.timestamp = Number(season.createdTimestamp);
-        }
-      }
-
-      if (apyData) {
-        allData.pinto30d = apy30d?.[idx]?.value || 0;
-        allData.pinto7d = apy7d?.[idx]?.value || 0;
-        allData.pinto24h = apy24h?.[idx]?.value || 0;
-
-        if (!allData.season) {
-          allData.season = apy24h?.[idx]?.season;
-          allData.timestamp = apy24h?.[idx]?.timestamp ? apy24h[idx].timestamp.getTime() / 1000 : undefined;
-        }
-      }
-
-      if (tractorData) {
-        // Ensure tractor api response is fully caught up/in sync
-        if (!allData.season || tractorSnapshots[idx]?.season === allData.season) {
-          allData.tractorSownPinto = TokenValue.fromBlockchain(
-            tractorSnapshots[idx]?.totalPintoSown || 0n,
-            PODS.decimals,
-          );
-          allData.tractorPodsMinted = TokenValue.fromBlockchain(
-            tractorSnapshots[idx]?.totalPodsMinted || 0n,
-            PODS.decimals,
-          );
-          allData.tractorSowingQueue = TokenValue.fromBlockchain(
-            tractorSnapshots[idx]?.totalCascadeFundedBelowTemp || 0n,
-            PODS.decimals,
-          );
-          allData.tractorMaxSeasonalSow = TokenValue.fromBlockchain(
-            tractorSnapshots[idx]?.maxSowThisSeason || 0n,
-            PODS.decimals,
-          );
-          allData.tractorCumulativeTips = TokenValue.fromBlockchain(
-            tractorSnapshots[idx]?.totalTipsPaid || 0n,
-            PODS.decimals,
-          );
-          allData.tractorMaxActiveTip = TokenValue.fromBlockchain(
-            tractorSnapshots[idx]?.currentMaxTip || 0n,
-            PODS.decimals,
-          );
-          allData.tractorExecutions = tractorSnapshots[idx]?.totalExecutions || 0;
-          allData.tractorPublishers = tractorSnapshots[idx]?.uniquePublishers || 0;
+        if (apyData) {
+          allData.pinto30d = apy30d?.[idx]?.value || 0;
+          allData.pinto7d = apy7d?.[idx]?.value || 0;
+          allData.pinto24h = apy24h?.[idx]?.value || 0;
 
           if (!allData.season) {
-            allData.season = tractorSnapshots[idx]?.season;
-            allData.timestamp = new Date(tractorSnapshots[idx]?.snapshotTimestamp).getTime() / 1000;
+            allData.season = apy24h?.[idx]?.season;
+            allData.timestamp = apy24h?.[idx]?.timestamp ? apy24h[idx]?.timestamp.getTime() / 1000 : undefined;
           }
         }
-      }
 
-      if (inflowData) {
-        // Ensure api response is fully caught up/in sync
-        const currInflow = inflowSnapshots[idx];
-        if (currInflow && (!allData.season || currInflow.season === allData.season)) {
-          allData.inflowAllCumulativeNet = currInflow.all.cumulative.net;
-          allData.inflowAllCumulativeIn = currInflow.all.cumulative.in;
-          allData.inflowAllCumulativeOut = currInflow.all.cumulative.out;
-          allData.inflowAllCumulativeVolume = currInflow.all.cumulative.volume;
-          allData.inflowAllDeltaNet = currInflow.all.delta.net;
-          allData.inflowAllDeltaIn = currInflow.all.delta.in;
-          allData.inflowAllDeltaOut = currInflow.all.delta.out;
-          allData.inflowAllDeltaVolume = currInflow.all.delta.volume;
-          allData.inflowSiloCumulativeNet = currInflow.silo.cumulative.net;
-          allData.inflowSiloCumulativeIn = currInflow.silo.cumulative.in;
-          allData.inflowSiloCumulativeOut = currInflow.silo.cumulative.out;
-          allData.inflowSiloCumulativeVolume = currInflow.silo.cumulative.volume;
-          allData.inflowSiloDeltaNet = currInflow.silo.delta.net;
-          allData.inflowSiloDeltaIn = currInflow.silo.delta.in;
-          allData.inflowSiloDeltaOut = currInflow.silo.delta.out;
-          allData.inflowSiloDeltaVolume = currInflow.silo.delta.volume;
-          allData.inflowFieldCumulativeNet = currInflow.field.cumulative.net;
-          allData.inflowFieldCumulativeIn = currInflow.field.cumulative.in;
-          allData.inflowFieldCumulativeOut = currInflow.field.cumulative.out;
-          allData.inflowFieldCumulativeVolume = currInflow.field.cumulative.volume;
-          allData.inflowFieldDeltaNet = currInflow.field.delta.net;
-          allData.inflowFieldDeltaIn = currInflow.field.delta.in;
-          allData.inflowFieldDeltaOut = currInflow.field.delta.out;
-          allData.inflowFieldDeltaVolume = currInflow.field.delta.volume;
+        if (tractorData) {
+          // Ensure tractor api response is fully caught up/in sync
+          if (!allData.season || tractorSnapshots[idx]?.season === allData.season) {
+            allData.tractorSownPinto = TokenValue.fromBlockchain(
+              tractorSnapshots[idx]?.totalPintoSown || 0n,
+              PODS.decimals,
+            );
+            allData.tractorPodsMinted = TokenValue.fromBlockchain(
+              tractorSnapshots[idx]?.totalPodsMinted || 0n,
+              PODS.decimals,
+            );
+            allData.tractorSowingQueue = TokenValue.fromBlockchain(
+              tractorSnapshots[idx]?.totalCascadeFundedBelowTemp || 0n,
+              PODS.decimals,
+            );
+            allData.tractorMaxSeasonalSow = TokenValue.fromBlockchain(
+              tractorSnapshots[idx]?.maxSowThisSeason || 0n,
+              PODS.decimals,
+            );
+            allData.tractorCumulativeTips = TokenValue.fromBlockchain(
+              tractorSnapshots[idx]?.totalTipsPaid || 0n,
+              PODS.decimals,
+            );
+            allData.tractorMaxActiveTip = TokenValue.fromBlockchain(
+              tractorSnapshots[idx]?.currentMaxTip || 0n,
+              PODS.decimals,
+            );
+            allData.tractorExecutions = tractorSnapshots[idx]?.totalExecutions || 0;
+            allData.tractorPublishers = tractorSnapshots[idx]?.uniquePublishers || 0;
+
+            if (!allData.season) {
+              allData.season = tractorSnapshots[idx]?.season;
+              allData.timestamp = new Date(tractorSnapshots[idx]?.snapshotTimestamp).getTime() / 1000;
+            }
+          }
+        }
+
+        if (inflowData) {
+          // Ensure api response is fully caught up/in sync
+          const currInflow = inflowSnapshots[idx];
+          if (currInflow && (!allData.season || currInflow.season === allData.season)) {
+            allData.inflowAllCumulativeNet = currInflow.all.cumulative.net;
+            allData.inflowAllCumulativeIn = currInflow.all.cumulative.in;
+            allData.inflowAllCumulativeOut = currInflow.all.cumulative.out;
+            allData.inflowAllCumulativeVolume = currInflow.all.cumulative.volume;
+            allData.inflowAllDeltaNet = currInflow.all.delta.net;
+            allData.inflowAllDeltaIn = currInflow.all.delta.in;
+            allData.inflowAllDeltaOut = currInflow.all.delta.out;
+            allData.inflowAllDeltaVolume = currInflow.all.delta.volume;
+            allData.inflowSiloCumulativeNet = currInflow.silo.cumulative.net;
+            allData.inflowSiloCumulativeIn = currInflow.silo.cumulative.in;
+            allData.inflowSiloCumulativeOut = currInflow.silo.cumulative.out;
+            allData.inflowSiloCumulativeVolume = currInflow.silo.cumulative.volume;
+            allData.inflowSiloDeltaNet = currInflow.silo.delta.net;
+            allData.inflowSiloDeltaIn = currInflow.silo.delta.in;
+            allData.inflowSiloDeltaOut = currInflow.silo.delta.out;
+            allData.inflowSiloDeltaVolume = currInflow.silo.delta.volume;
+            allData.inflowFieldCumulativeNet = currInflow.field.cumulative.net;
+            allData.inflowFieldCumulativeIn = currInflow.field.cumulative.in;
+            allData.inflowFieldCumulativeOut = currInflow.field.cumulative.out;
+            allData.inflowFieldCumulativeVolume = currInflow.field.cumulative.volume;
+            allData.inflowFieldDeltaNet = currInflow.field.delta.net;
+            allData.inflowFieldDeltaIn = currInflow.field.delta.in;
+            allData.inflowFieldDeltaOut = currInflow.field.delta.out;
+            allData.inflowFieldDeltaVolume = currInflow.field.delta.volume;
+
+            if (!allData.season) {
+              allData.season = currInflow.season;
+              allData.timestamp = new Date(currInflow.snapshotTimestamp).getTime() / 1000;
+            }
+          }
+        }
+
+        if (marketPerformanceData && idx + syncOffset < countSubgraphSeasons) {
+          allData.marketPriceWeth = marketPrices.WETH?.[marketPrices.WETH.length - 1 - idx - syncOffset]?.value;
+          allData.marketPriceCbeth = marketPrices.cbETH?.[marketPrices.cbETH.length - 1 - idx - syncOffset]?.value;
+          allData.marketPriceCbbtc = marketPrices.cbBTC?.[marketPrices.cbBTC.length - 1 - idx - syncOffset]?.value;
+          allData.marketPriceWsol = marketPrices.WSOL?.[marketPrices.WSOL.length - 1 - idx - syncOffset]?.value;
+          allData.marketCumulativeNonPintoUsd =
+            marketUsdCumulative.NET?.[marketUsdCumulative.NET.length - 1 - idx - syncOffset]?.value;
+          allData.marketCumulativeWethUsd =
+            marketUsdCumulative.WETH?.[marketUsdCumulative.WETH.length - 1 - idx - syncOffset]?.value;
+          allData.marketCumulativeCbethUsd =
+            marketUsdCumulative.cbETH?.[marketUsdCumulative.cbETH.length - 1 - idx - syncOffset]?.value;
+          allData.marketCumulativeCbbtcUsd =
+            marketUsdCumulative.cbBTC?.[marketUsdCumulative.cbBTC.length - 1 - idx - syncOffset]?.value;
+          allData.marketCumulativeWsolUsd =
+            marketUsdCumulative.WSOL?.[marketUsdCumulative.WSOL.length - 1 - idx - syncOffset]?.value;
+          allData.marketSeasonalNonPintoUsd =
+            marketUsdSeasonal.NET?.[marketUsdSeasonal.NET.length - 1 - idx - syncOffset]?.value;
+          allData.marketSeasonalWethUsd =
+            marketUsdSeasonal.WETH?.[marketUsdSeasonal.WETH.length - 1 - idx - syncOffset]?.value;
+          allData.marketSeasonalCbethUsd =
+            marketUsdSeasonal.cbETH?.[marketUsdSeasonal.cbETH.length - 1 - idx - syncOffset]?.value;
+          allData.marketSeasonalCbbtcUsd =
+            marketUsdSeasonal.cbBTC?.[marketUsdSeasonal.cbBTC.length - 1 - idx - syncOffset]?.value;
+          allData.marketSeasonalWsolUsd =
+            marketUsdSeasonal.WSOL?.[marketUsdSeasonal.WSOL.length - 1 - idx - syncOffset]?.value;
+          allData.marketCumulativeNonPintoPercent =
+            marketPercentCumulative.NET?.[marketPercentCumulative.NET.length - 1 - idx - syncOffset]?.value;
+          allData.marketCumulativeWethPercent =
+            marketPercentCumulative.WETH?.[marketPercentCumulative.WETH.length - 1 - idx - syncOffset]?.value;
+          allData.marketCumulativeCbethPercent =
+            marketPercentCumulative.cbETH?.[marketPercentCumulative.cbETH.length - 1 - idx - syncOffset]?.value;
+          allData.marketCumulativeCbbtcPercent =
+            marketPercentCumulative.cbBTC?.[marketPercentCumulative.cbBTC.length - 1 - idx - syncOffset]?.value;
+          allData.marketCumulativeWsolPercent =
+            marketPercentCumulative.WSOL?.[marketPercentCumulative.WSOL.length - 1 - idx - syncOffset]?.value;
+          allData.marketSeasonalNonPintoPercent =
+            marketPercentSeasonal.NET?.[marketPercentSeasonal.NET.length - 1 - idx - syncOffset]?.value;
+          allData.marketSeasonalWethPercent =
+            marketPercentSeasonal.WETH?.[marketPercentSeasonal.WETH.length - 1 - idx - syncOffset]?.value;
+          allData.marketSeasonalCbethPercent =
+            marketPercentSeasonal.cbETH?.[marketPercentSeasonal.cbETH.length - 1 - idx - syncOffset]?.value;
+          allData.marketSeasonalCbbtcPercent =
+            marketPercentSeasonal.cbBTC?.[marketPercentSeasonal.cbBTC.length - 1 - idx - syncOffset]?.value;
+          allData.marketSeasonalWsolPercent =
+            marketPercentSeasonal.WSOL?.[marketPercentSeasonal.WSOL.length - 1 - idx - syncOffset]?.value;
 
           if (!allData.season) {
-            allData.season = currInflow.season;
-            allData.timestamp = new Date(currInflow.snapshotTimestamp).getTime() / 1000;
+            const season = marketPerformanceResults[marketPerformanceResults.length - 1 - idx].season;
+            allData.season = season.season;
+            allData.timestamp = Number(season.createdTimestamp);
           }
         }
+        transformedData.push(allData as SeasonsTableData);
+      } catch (error) {
+        console.error(`Error processing season data at index ${idx}:`, error);
+        // Push empty data to maintain array length consistency
+        transformedData.push({} as SeasonsTableData);
       }
-
-      if (marketPerformanceData && idx + syncOffset < countSubgraphSeasons) {
-        allData.marketPriceWeth = marketPrices.WETH[marketPrices.WETH.length - 1 - idx - syncOffset].value;
-        allData.marketPriceCbeth = marketPrices.cbETH[marketPrices.cbETH.length - 1 - idx - syncOffset].value;
-        allData.marketPriceCbbtc = marketPrices.cbBTC[marketPrices.cbBTC.length - 1 - idx - syncOffset].value;
-        allData.marketPriceWsol = marketPrices.WSOL[marketPrices.WSOL.length - 1 - idx - syncOffset].value;
-        allData.marketCumulativeNonPintoUsd =
-          marketUsdCumulative.NET?.[marketUsdCumulative.NET.length - 1 - idx - syncOffset]?.value;
-        allData.marketCumulativeWethUsd =
-          marketUsdCumulative.WETH?.[marketUsdCumulative.WETH.length - 1 - idx - syncOffset]?.value;
-        allData.marketCumulativeCbethUsd =
-          marketUsdCumulative.cbETH?.[marketUsdCumulative.cbETH.length - 1 - idx - syncOffset]?.value;
-        allData.marketCumulativeCbbtcUsd =
-          marketUsdCumulative.cbBTC?.[marketUsdCumulative.cbBTC.length - 1 - idx - syncOffset]?.value;
-        allData.marketCumulativeWsolUsd =
-          marketUsdCumulative.WSOL?.[marketUsdCumulative.WSOL.length - 1 - idx - syncOffset]?.value;
-        allData.marketSeasonalNonPintoUsd =
-          marketUsdSeasonal.NET[marketUsdSeasonal.NET.length - 1 - idx - syncOffset]?.value;
-        allData.marketSeasonalWethUsd =
-          marketUsdSeasonal.WETH[marketUsdSeasonal.WETH.length - 1 - idx - syncOffset]?.value;
-        allData.marketSeasonalCbethUsd =
-          marketUsdSeasonal.cbETH[marketUsdSeasonal.cbETH.length - 1 - idx - syncOffset]?.value;
-        allData.marketSeasonalCbbtcUsd =
-          marketUsdSeasonal.cbBTC[marketUsdSeasonal.cbBTC.length - 1 - idx - syncOffset]?.value;
-        allData.marketSeasonalWsolUsd =
-          marketUsdSeasonal.WSOL[marketUsdSeasonal.WSOL.length - 1 - idx - syncOffset]?.value;
-        allData.marketCumulativeNonPintoPercent =
-          marketPercentCumulative.NET?.[marketPercentCumulative.NET.length - 1 - idx - syncOffset]?.value;
-        allData.marketCumulativeWethPercent =
-          marketPercentCumulative.WETH?.[marketPercentCumulative.WETH.length - 1 - idx - syncOffset]?.value;
-        allData.marketCumulativeCbethPercent =
-          marketPercentCumulative.cbETH?.[marketPercentCumulative.cbETH.length - 1 - idx - syncOffset]?.value;
-        allData.marketCumulativeCbbtcPercent =
-          marketPercentCumulative.cbBTC?.[marketPercentCumulative.cbBTC.length - 1 - idx - syncOffset]?.value;
-        allData.marketCumulativeWsolPercent =
-          marketPercentCumulative.WSOL?.[marketPercentCumulative.WSOL.length - 1 - idx - syncOffset]?.value;
-        allData.marketSeasonalNonPintoPercent =
-          marketPercentSeasonal.NET[marketPercentSeasonal.NET.length - 1 - idx - syncOffset]?.value;
-        allData.marketSeasonalWethPercent =
-          marketPercentSeasonal.WETH[marketPercentSeasonal.WETH.length - 1 - idx - syncOffset]?.value;
-        allData.marketSeasonalCbethPercent =
-          marketPercentSeasonal.cbETH[marketPercentSeasonal.cbETH.length - 1 - idx - syncOffset]?.value;
-        allData.marketSeasonalCbbtcPercent =
-          marketPercentSeasonal.cbBTC[marketPercentSeasonal.cbBTC.length - 1 - idx - syncOffset]?.value;
-        allData.marketSeasonalWsolPercent =
-          marketPercentSeasonal.WSOL[marketPercentSeasonal.WSOL.length - 1 - idx - syncOffset]?.value;
-
-        if (!allData.season) {
-          const season = marketPerformanceResults[marketPerformanceResults.length - 1 - idx].season;
-          allData.season = season.season;
-          allData.timestamp = Number(season.createdTimestamp);
-        }
-      }
-      transformedData.push(allData as SeasonsTableData);
     }
     return transformedData;
   }, [
