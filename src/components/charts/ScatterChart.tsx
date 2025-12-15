@@ -226,40 +226,24 @@ const ScatterChart = React.memo(
               ctx.stroke();
             };
 
-            // Draw crosshair for selected point (if any)
-            const [selectedPointDatasetIndex, selectedPointIndex] = selectedPointRef.current || [];
-            if (selectedPointDatasetIndex !== undefined && selectedPointIndex !== undefined) {
-              const selectedDataPoint = chart.getDatasetMeta(selectedPointDatasetIndex).data[selectedPointIndex];
-              if (selectedDataPoint) {
-                const { x, y } = selectedDataPoint.getProps(["x", "y"], true);
-                drawCrosshair(x, y, "#387F5C", 2); // Green color for selected point, thicker line
-              }
-            }
-
-            // Draw crosshair for hovered point (if any and different from selected)
+            // Only draw crosshair for hovered point (removed selected point crosshair)
             const activeElements = chart.getActiveElements();
             if (activeElements.length > 0) {
               const activeElement = activeElements[0];
               const datasetIndex = activeElement.datasetIndex;
               const index = activeElement.index;
 
-              // Only draw hover crosshair if it's different from the selected point
-              const isDifferentFromSelected =
-                selectedPointDatasetIndex !== datasetIndex || selectedPointIndex !== index;
-
-              if (isDifferentFromSelected) {
-                const dataPoint = chart.getDatasetMeta(datasetIndex).data[index];
-                if (dataPoint) {
-                  const { x, y } = dataPoint.getProps(["x", "y"], true);
-                  drawCrosshair(x, y, "black", 1.5); // Black color for hovered point
-                }
+              const dataPoint = chart.getDatasetMeta(datasetIndex).data[index];
+              if (dataPoint) {
+                const { x, y } = dataPoint.getProps(["x", "y"], true);
+                drawCrosshair(x, y, "black", 1.5); // Black color for hovered point
               }
             }
 
             ctx.restore();
           },
         }),
-        [selectedPointRef.current],
+        [],
       );
 
       const horizontalReferenceLinePlugin: Plugin = useMemo<Plugin>(

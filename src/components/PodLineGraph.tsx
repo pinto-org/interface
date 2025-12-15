@@ -51,6 +51,8 @@ interface PodLineGraphProps {
   className?: string;
   /** Optional: custom label text (default: "My Pods In Line") */
   label?: string;
+  /** Optional: specify label type */
+  labelType?: "title" | "label";
 }
 
 /**
@@ -188,6 +190,7 @@ export default function PodLineGraph({
   disableInteractions = false,
   className,
   label = "My Pods In Line",
+  labelType = "label",
 }: PodLineGraphProps) {
   const farmerField = useFarmerField();
   const harvestableIndex = useHarvestableIndex();
@@ -281,9 +284,15 @@ export default function PodLineGraph({
   return (
     <div ref={containerRef} className="relative w-full pb-2">
       {/* Label */}
-      <div className="mb-1">
-        <p className="text-pinto-gray-4 text-[0.75rem]">{label}</p>
-      </div>
+      {labelType === "title" ? (
+        <div className="mb-4">
+          <p className="pinto-h4">{label}</p>
+        </div>
+      ) : (
+        <div className="mb-1">
+          <p className="text-pinto-gray-4 text-[0.75rem]">{label}</p>
+        </div>
+      )}
 
       {/* Plot container with border */}
       <div className={cn("relative w-full h-12 border border-pinto-gray-2 rounded-lg overflow-hidden", className)}>

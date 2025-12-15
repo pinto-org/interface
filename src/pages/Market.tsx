@@ -470,7 +470,7 @@ export function Market() {
                 </div>
               </div>
               <div className=" mb-4 pl-[52px] pr-[12px]">
-                <PodLineGraph className="h-24" onPlotGroupSelect={handleMarketPodLineGraphSelect} />
+                <PodLineGraph className="h-24" onPlotGroupSelect={handleMarketPodLineGraphSelect} labelType="title" />
               </div>
               <div className="flex gap-10 ml-2.5 mt-4 mb-[1.625rem]">
                 {TABLE_SLUGS.map((s, idx) => (
