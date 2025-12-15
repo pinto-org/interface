@@ -394,11 +394,39 @@ function ComboInputField({
   );
 
   const [shouldRefocus, setShouldRefocus] = useState(false);
+  const keepCursorAtStartRef = useRef(false);
+  const cursorPositionRef = useRef<number | null>(null);
+
+  // Save and restore cursor position after render
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input || document.activeElement !== input) return;
+
+    // If we want to keep cursor at start, save position 0
+    if (keepCursorAtStartRef.current && cursorPositionRef.current === null) {
+      cursorPositionRef.current = 0;
+    }
+
+    // Restore cursor position if we have one saved
+    if (cursorPositionRef.current !== null) {
+      const position = cursorPositionRef.current;
+
+      setTimeout(() => {
+        if (document.activeElement === input) {
+          input.setSelectionRange(position, position);
+          cursorPositionRef.current = null;
+        }
+      }, 0);
+    }
+  }, [displayValue]);
 
   useEffect(() => {
     if (shouldRefocus && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.setSelectionRange(0, 0);
+      const input = inputRef.current;
+      input.focus();
+      setTimeout(() => {
+        input.setSelectionRange(0, 0);
+      }, 0);
       setShouldRefocus(false);
     }
   }, [shouldRefocus]);
@@ -451,6 +479,11 @@ function ComboInputField({
 
   const handleSetMax = () => {
     if (disableInput) return;
+
+    // Enable cursor anchoring at start
+    keepCursorAtStartRef.current = true;
+    cursorPositionRef.current = 0;
+
     if (selectedToken?.isNative) {
       // For ETH, subtract gas reserve from max amount
       const maxWithGasReserve = maxAmount.gt(ETH_GAS_RESERVE) ? maxAmount.sub(ETH_GAS_RESERVE) : TokenValue.ZERO;
@@ -467,7 +500,10 @@ function ComboInputField({
       lastInternalAmountRef.current = newAmount;
     }
 
-    setShouldRefocus(true);
+    // Focus and set cursor position
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
   const plotIdsToShow = useMemo(() => {
@@ -556,6 +592,10 @@ function ComboInputField({
                 }
                 value={disableInput ? amount : displayValue}
                 onChange={(e) => changeValue(e.target.value)}
+                onKeyDown={() => {
+                  keepCursorAtStartRef.current = false;
+                  cursorPositionRef.current = null;
+                }}
               />
             </TextSkeleton>
             {mode === "plots"
@@ -624,13 +664,13 @@ function ComboInputField({
                         {balanceFrom === FarmFromMode.EXTERNAL ? (
                           <>
                             <span className="sm:hidden">Wallet:</span>
-                            <span className="hidden sm:inline">Wallet Balance:</span>
+                            <span className="hidden sm:inline">External Wallet:</span>
                             {` ${balance.toHuman("short")}`}
                           </>
                         ) : balanceFrom === FarmFromMode.INTERNAL ? (
                           <>
                             <span className="sm:hidden">Farm:</span>
-                            <span className="hidden sm:inline">Farm Balance:</span>
+                            <span className="hidden sm:inline">Farm Wallet:</span>
                             {` ${balance.toHuman("short")}`}
                           </>
                         ) : (

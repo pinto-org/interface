@@ -1,5 +1,7 @@
 import pintoIcon from "@/assets/tokens/PINTO.png";
-import { TokenValue } from "@/classes/TokenValue";
+import { TV, TokenValue } from "@/classes/TokenValue";
+import ComboPlotInputField from "@/components/ComboPlotInputField";
+import FarmBalanceToggle from "@/components/FarmBalanceToggle";
 import PodLineGraph from "@/components/PodLineGraph";
 import SmartSubmitButton from "@/components/SmartSubmitButton";
 import { Button } from "@/components/ui/Button";
@@ -9,6 +11,7 @@ import { ANALYTICS_EVENTS } from "@/constants/analytics-events";
 import { PODS } from "@/constants/internalTokens";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { useFarmTogglePreference } from "@/hooks/useFarmTogglePreference";
 import useTransaction from "@/hooks/useTransaction";
 import usePodOrders from "@/state/market/usePodOrders";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
@@ -92,7 +95,6 @@ export default function FillOrder() {
     () => [allPodOrders, allMarket, farmerMarket, farmerFieldQK, farmerPlotsQK, ...balanceQKs],
     [allPodOrders, allMarket, farmerMarket, farmerFieldQK, farmerPlotsQK, balanceQKs],
   );
-
   const [podRange, setPodRange] = useState<[number, number]>([0, 0]);
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [isSuccessful, setIsSuccessful] = useState(false);
@@ -578,7 +580,6 @@ export default function FillOrder() {
                   </div>
                 </div>
               </div>
-
               <div className="flex flex-col gap-4">
                 <Separator />
                 {ordersToFill.length > 0 && amount > 0 && (

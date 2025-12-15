@@ -123,7 +123,7 @@ export default function WalletButtonTransfer() {
           <div className="flex flex-col gap-2 2xl:gap-4">
             <div className="text-black text-[1rem] sm:text-[1.25rem] font-[400]">Transfer Tokens</div>
             <div className="text-[0.875rem] sm:text-[1.25rem] text-pinto-gray-4 font-[340]">
-              Move tokens between your Wallet and your Farm Balance.
+              Move tokens in or out of your Farm Wallet.
             </div>
           </div>
         </div>
@@ -134,7 +134,7 @@ export default function WalletButtonTransfer() {
           <div className="flex flex-row justify-between">
             <span className="text-pinto-gray-4 font-[340] text-[1rem] sm:text-[1.25rem]">From:</span>
             <span className="text-black font-[400] text-[1rem] sm:text-[1.25rem]">
-              {balanceFrom === FarmFromMode.EXTERNAL ? "Wallet Balance" : "Farm Balance"}
+              {balanceFrom === FarmFromMode.EXTERNAL ? "External Wallet" : "Farm Wallet"}
             </span>
           </div>
           <Button
@@ -151,7 +151,7 @@ export default function WalletButtonTransfer() {
           <div className="flex flex-row justify-between">
             <span className="text-pinto-gray-4 font-[340] text-[1rem] sm:text-[1.25rem]">To:</span>
             <span className="text-black font-[400] text-[1rem] sm:text-[1.25rem]">
-              {balanceFrom === FarmFromMode.EXTERNAL ? "Farm Balance" : "Wallet Balance"}
+              {balanceFrom === FarmFromMode.EXTERNAL ? "Farm Wallet" : "External Wallet"}
             </span>
           </div>
         </div>
@@ -175,7 +175,7 @@ export default function WalletButtonTransfer() {
       <CardFooter className="flex flex-col flex-grow justify-end gap-4">
         <Separator className="w-full" />
         <div className="font-[340] text-[0.875rem] sm:text-[1.25rem] text-center">
-          {`Transfer ${Number(amountIn)} ${tokenIn.symbol} from your ${balanceFrom === FarmFromMode.EXTERNAL ? "Wallet" : "Farm Balance"} to your ${balanceFrom === FarmFromMode.EXTERNAL ? "Farm Balance" : "Wallet"}.`}
+          {`Transfer ${Number(amountIn)} ${tokenIn.symbol} from your ${balanceFrom === FarmFromMode.EXTERNAL ? "Wallet" : "Farm Wallet"} to your ${balanceFrom === FarmFromMode.EXTERNAL ? "Farm Wallet" : "External Wallet"}.`}
         </div>
         <SmartSubmitButton
           variant={"gradient"}

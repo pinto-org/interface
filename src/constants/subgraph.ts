@@ -22,3 +22,5 @@ export const subgraphs: { [chainId: number]: { beanstalk: string; bean: string; 
     basin: "https://graph.pinto.money/exchange",
   },
 };
+
+export const SG_FETCH_DISABLED = import.meta.env.VITE_SG_FETCH_DISABLED === "true";

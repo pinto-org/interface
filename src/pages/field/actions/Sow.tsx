@@ -7,12 +7,12 @@ import { PODS, SEEDS, STALK } from "@/constants/internalTokens";
 import sowWithMin from "@/encoders/sowWithMin";
 import { beanstalkAbi } from "@/generated/contractHooks";
 import { useProtocolAddress } from "@/hooks/pinto/useProtocolAddress";
+import { useScaledTemperature } from "@/hooks/useContinuousMorningTime";
 import useTransaction from "@/hooks/useTransaction";
 import { inputExceedsSoilAtom } from "@/state/protocol/field/field.atoms";
 import { useFarmerBalances } from "@/state/useFarmerBalances";
 import { useFarmerField } from "@/state/useFarmerField";
 import { useInvalidateField, usePodLine, useTotalSoil } from "@/state/useFieldData";
-import { useTemperature } from "@/state/useFieldData";
 import useTokenData from "@/state/useTokenData";
 import { formatter } from "@/utils/format";
 import { stringToNumber, stringToStringNum } from "@/utils/string";
@@ -66,7 +66,7 @@ function Sow({ isMorning, onShowOrder }: SowProps) {
   const farmerField = useFarmerField();
   const account = useAccount();
 
-  const temperature = useTemperature();
+  const temperature = useScaledTemperature();
   const podLine = usePodLine();
   const { totalSoil, isLoading: totalSoilLoading } = useTotalSoil();
   const invalidateField = useInvalidateField();

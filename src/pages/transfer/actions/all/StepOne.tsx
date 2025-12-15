@@ -28,7 +28,7 @@ export default function StepOne({ destination, setDestination, transferNotice, s
               <PintoAssetTransferNotice
                 transferNotice={transferNotice}
                 setTransferNotice={setTransferNotice}
-                customDestinationText="Farm Balance assets, Deposits, and/or Pods"
+                customDestinationText="Farm Wallet assets, Deposits, and/or Pods"
               />
             </motion.div>
           )}

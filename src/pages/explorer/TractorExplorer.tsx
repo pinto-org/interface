@@ -23,6 +23,7 @@ const TractorExplorer = () => {
   const [maxTipTab, setMaxTipTab] = useSharedTimeTab("tractorMaxTip");
   const [executionsTab, setExecutionsTab] = useSharedTimeTab("tractorExecutions");
   const [publishersTab, setPublishersTab] = useSharedTimeTab("tractorPublishers");
+  const [convertUpPublishersTab, setConvertUpPublishersTab] = useSharedTimeTab("tractorConvertUpPublishers");
 
   const season = useSunData().current;
 
@@ -48,6 +49,13 @@ const TractorExplorer = () => {
   const uniquePublishersData = useSeasonalTractorUniquePublishers(
     Math.max(0, season - tabToSeasonalLookback(publishersTab)),
     season,
+    "SOW_V0",
+  );
+
+  const convertUpPublishersData = useSeasonalTractorUniquePublishers(
+    Math.max(0, season - tabToSeasonalLookback(convertUpPublishersTab)),
+    season,
+    "CONVERT_UP_V0",
   );
 
   return (
@@ -163,7 +171,45 @@ const TractorExplorer = () => {
           />
         </div>
       </div>
-      <div className="flex flex-col sm:flex-row w-full sm:space-x-8">
+      <ChartsRow>
+        <div className="w-full sm:w-1/2">
+          <SeasonalChart
+            title="Sow Order Unique Publishers"
+            tooltip="Number of unique Tractor Sow blueprint publishers."
+            size="small"
+            fillArea
+            activeTab={publishersTab}
+            onChangeTab={setPublishersTab}
+            useSeasonalResult={uniquePublishersData}
+            valueFormatter={f.number0dFormatter}
+            tickValueFormatter={f.largeNumber1dFormatter}
+            analyticsContext={{
+              chart_id: "tractorPublishers",
+              chart_title: "Unique Publishers",
+              explorer_tab: "tractor",
+            }}
+          />
+        </div>
+        <div className="w-full sm:w-1/2">
+          <SeasonalChart
+            title="Convert Up Order Unique Publishers"
+            tooltip="Number of unique Tractor Convert Up blueprint publishers."
+            size="small"
+            fillArea
+            activeTab={convertUpPublishersTab}
+            onChangeTab={setConvertUpPublishersTab}
+            useSeasonalResult={convertUpPublishersData}
+            valueFormatter={f.number0dFormatter}
+            tickValueFormatter={f.largeNumber1dFormatter}
+            analyticsContext={{
+              chart_id: "tractorConvertUpPublishers",
+              chart_title: "Convert Up Order Unique Publishers",
+              explorer_tab: "tractor",
+            }}
+          />
+        </div>
+      </ChartsRow>
+      <ChartsRow>
         <div className="w-full sm:w-1/2">
           <SeasonalChart
             title="Tractor Executions"
@@ -182,27 +228,13 @@ const TractorExplorer = () => {
             }}
           />
         </div>
-        <div className="w-full sm:w-1/2">
-          <SeasonalChart
-            title="Unique Publishers"
-            tooltip="Number of unique Tractor blueprint publishers."
-            size="small"
-            fillArea
-            activeTab={publishersTab}
-            onChangeTab={setPublishersTab}
-            useSeasonalResult={uniquePublishersData}
-            valueFormatter={f.number0dFormatter}
-            tickValueFormatter={f.largeNumber1dFormatter}
-            analyticsContext={{
-              chart_id: "tractorPublishers",
-              chart_title: "Unique Publishers",
-              explorer_tab: "tractor",
-            }}
-          />
-        </div>
-      </div>
+      </ChartsRow>
     </>
   );
 };
 
 export default TractorExplorer;
+
+const ChartsRow = ({ children }: { children: React.ReactNode }) => {
+  return <div className="flex flex-col sm:flex-row w-full sm:space-x-8">{children}</div>;
+};

@@ -5,7 +5,8 @@ import IconImage from "@/components/ui/IconImage";
 import { Input } from "@/components/ui/Input";
 import { MAIN_TOKEN } from "@/constants/tokens";
 import { useTokenMap } from "@/hooks/pinto/useTokenMap";
-import { usePodLine, useTemperature } from "@/state/useFieldData";
+import { useScaledTemperature } from "@/hooks/useContinuousMorningTime";
+import { usePodLine } from "@/state/useFieldData";
 import { useChainConstant } from "@/utils/chain";
 import { formatter } from "@/utils/format";
 import { postSanitizedSanitizedValue, sanitizeNumericInputValue, stringEq } from "@/utils/string";
@@ -313,7 +314,7 @@ SowOrderV0Fields.Temperature = function Temperature() {
   const ctx = useFormContext<SowOrderV0FormSchema>();
   const handlers = useSharedInputHandlers(ctx, "temperature");
 
-  const currTemp = useTemperature();
+  const currTemp = useScaledTemperature();
   return (
     <FormField
       control={ctx.control}

@@ -193,6 +193,7 @@ export class SiloConvertPriceCache {
    * @param force - Whether to force the update.
    */
   async update(force: boolean = false) {
+    console.debug("[SiloConvertCache/update] updating cache...");
     const diff = Date.now() - this.lastUpdateTimestamp;
     if (force || this.lastUpdateTimestamp === 0 || diff > REFETCH_INTERVAL) {
       const priceResult = await this.fetch();
@@ -295,6 +296,7 @@ export class SiloConvertPriceCache {
    * Fetches the relevant pool data from on chain
    */
   async fetch(): Promise<ExtendedPriceResult> {
+    console.debug("[SiloConvertCache/fetch] fetching price data...");
     const tokenMap = getChainTokenMap(this.context.chainId);
     const mainToken = MAIN_TOKEN[resolveChainId(this.context.chainId)];
 

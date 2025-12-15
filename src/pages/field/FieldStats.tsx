@@ -1,6 +1,7 @@
 import TextSkeleton from "@/components/TextSkeleton";
 import TooltipSimple from "@/components/TooltipSimple";
-import { useInitialSoil, usePodLine, usePodLoading, useTemperature, useTotalSoil } from "@/state/useFieldData";
+import { useScaledTemperature } from "@/hooks/useContinuousMorningTime";
+import { usePodLine, usePodLoading, useTotalSoil } from "@/state/useFieldData";
 import { useMorning, useSunData } from "@/state/useSunData";
 import { formatter } from "@/utils/format";
 import { normalizeTV } from "@/utils/number";
@@ -8,16 +9,12 @@ import { MorningIntervalCountdown } from "./MorningCountdown";
 
 const FieldStats = () => {
   const abovePeg = useSunData().abovePeg;
-  const temperatures = useTemperature();
+  const temperatures = useScaledTemperature();
   const { isMorning } = useMorning();
 
   const totalSoilAtom = useTotalSoil();
   const totalSoil = totalSoilAtom.totalSoil;
   const soilIsLoading = totalSoilAtom.isLoading;
-
-  const initialSoilAtom = useInitialSoil();
-  // const initialSoil = normalizeTV(initialSoilAtom.initialSoil);
-  const initialSoilIsLoading = initialSoilAtom.isLoading;
 
   const podLine = usePodLine();
   const podLoading = usePodLoading();
@@ -27,7 +24,7 @@ const FieldStats = () => {
   const pLine = normalizeTV(podLine);
   const maxTemperature = normalizeTV(temperatures.max);
 
-  const isLoading = temperatures.isLoading || soilIsLoading || initialSoilIsLoading || podLoading;
+  const isLoading = temperatures.isLoading || soilIsLoading || podLoading;
 
   return (
     <div className="flex flex-col sm:flex-row gap-x-12 gap-y-4 w-full">

@@ -65,7 +65,7 @@ function SiloTable({ hovering }: { hovering: boolean }) {
       return !!hasDeposits || !!hasBalance;
     });
 
-    return filtered;
+    return sorted;
   }, [farmerDeposits, priceData.price, mayBeWhitelistedTokens, mainToken, siloData.tokenData]);
 
   const claimEnabled = farmerActions.claimRewards.enabled;
